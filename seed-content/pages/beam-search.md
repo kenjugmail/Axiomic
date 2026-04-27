@@ -16,6 +16,8 @@ Greedy decoding (always picking the top choice) can get stuck in locally optimal
 
 ## How Beam Search Works
 
+::viz[beam-search-tree]
+
 Instead of tracking just one sequence, beam search tracks the **top B sequences** at every step (B is called the "beam width"):
 
 1. **Start** with B copies of the empty sequence

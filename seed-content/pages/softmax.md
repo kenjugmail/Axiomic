@@ -31,6 +31,8 @@ Softmax shows up everywhere in transformers:
 
 ## Temperature
 
+::viz[softmax-temperature]
+
 There's a useful knob called **temperature** that controls how "sharp" or "smooth" the distribution is. Before applying softmax, you divide all the scores by a temperature value $T$:
 
 - **Low temperature (T < 1):** Makes the distribution sharper. The highest score dominates even more. At $T \to 0$, it becomes "winner takes all."

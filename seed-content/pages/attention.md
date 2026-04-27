@@ -25,6 +25,10 @@ Here's how it works: You take your query and compare it against every key. The b
 
 Say a translation model is translating "The cat sat on the mat" into French. When generating the French word for "cat" ("chat"), the model's query represents "what French word am I generating?" The keys represent each English word. The attention mechanism computes high similarity between the query for "chat" and the key for "cat," so the value (the representation of "cat") gets a high weight. Other words like "the" and "mat" get lower weights.
 
+## Interactive: Attention Weights
+
+::viz[attention-heatmap]
+
 ## Scaled Dot-Product Attention
 
 The specific attention used in transformers compares queries and keys using a **dot product** (a measure of how similar two vectors point). The result is then scaled down (divided by a number) to keep values from getting too extreme, and passed through [softmax](/wiki/softmax) to create proper weights that sum to 1. These weights are multiplied with the values to produce the output.

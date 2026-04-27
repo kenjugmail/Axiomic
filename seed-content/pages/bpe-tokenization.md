@@ -1,270 +1,174 @@
 ---
-title: BPE Tokenization
+title: Byte Pair Encoding (BPE) Tokenization
 category: fundamentals
 ---
 <!-- tier:intro -->
+# Byte Pair Encoding (BPE) Tokenization
 
-# BPE Tokenization
+Before a language model can read your text, it needs to chop it up into pieces it can understand. These pieces are called **tokens**, and the process of creating them is called **tokenization**. Byte Pair Encoding, or BPE, is the most widely used tokenization method in modern language models.
 
-How does a language model go from raw text to the [tokens](/wiki/tokens) it actually processes? The most popular method is called **Byte Pair Encoding (BPE)**, and it's surprisingly simple.
+## Why Not Just Use Words or Letters?
 
-## The Core Idea
+Using whole words seems natural, but it has a fatal flaw: what happens when the model encounters a word it has never seen before? Names, slang, technical jargon, typos -- the real world is full of words that would not be in any fixed dictionary. You would need an impossibly large vocabulary.
 
-BPE starts with the smallest possible pieces (individual characters or bytes) and repeatedly merges the most common pair of adjacent pieces into a new token. It's a bottom-up process of building a vocabulary from scratch.
+Using individual letters solves the unknown-word problem, but creates a different one. The sentence "The cat sat" becomes 11 tokens (including spaces). Transformers need to relate every token to every other token, and that cost grows with the square of the sequence length. Longer sequences mean much slower processing.
 
-## A Walkthrough
+BPE finds a sweet spot: it breaks text into **subword** pieces. Common words like "the" stay as single tokens, while rarer words get split into recognizable chunks. The word "tokenization" might become ["token", "ization"]. The word "unhappiness" might become ["un", "happiness"]. This keeps vocabularies manageable (typically 32,000 to 100,000 tokens) while still being able to represent any text.
 
-Suppose our training text contains the words: "low" (5 times), "lower" (2 times), "newest" (6 times), "widest" (3 times).
+## How BPE Works
 
-**Step 1**: Start with characters as tokens:
-```
-l o w      (frequency: 5)
-l o w e r  (frequency: 2)
-n e w e s t (frequency: 6)
-w i d e s t (frequency: 3)
-```
+The idea is surprisingly simple. Start with every individual character as its own token. Then, repeatedly find the most common pair of adjacent tokens in your training text and merge them into a new single token.
 
-**Step 2**: Count pairs. The most frequent adjacent pair is "e s" (appears 9 times: 6 from "newest" + 3 from "widest"). Merge it into a new token "es":
-```
-l o w      (5)
-l o w e r  (2)
-n e w es t (6)
-w i d es t (3)
-```
+1. Start: every character is a token. Your vocabulary is just the alphabet plus punctuation.
+2. Scan the training text and count every pair of adjacent tokens.
+3. The most frequent pair -- say "t" and "h" -- gets merged into a new token "th".
+4. Replace all occurrences of that pair in the text with the new merged token.
+5. Repeat from step 2, thousands of times, until you reach your target vocabulary size.
 
-**Step 3**: Now the most frequent pair is "es t" (9 times). Merge into "est":
-```
-l o w      (5)
-l o w e r  (2)
-n e w est  (6)
-w i d est  (3)
-```
+Early merges capture very common combinations ("th", "he", "in"). Later merges capture full words ("the", "and") or common subwords ("tion", "ing"). The result is a vocabulary that efficiently represents the statistical structure of the language.
 
-**Step 4**: Continue merging. "l o" appears 7 times, merge to "lo":
-```
-lo w       (5)
-lo w e r   (2)
-n e w est  (6)
-w i d est  (3)
-```
+## Why BPE Matters
 
-And so on, until we reach our desired vocabulary size (typically 32K-100K tokens).
+BPE is used by GPT-2, GPT-3, GPT-4, LLaMA, and most other major language models. The exact tokenization affects everything from how much text fits in the model's context window to how well the model handles different languages. English text typically averages about 1.3 tokens per word, but languages with different scripts or morphology can require significantly more tokens per word -- a real source of inequity in multilingual AI.
 
-## Why BPE Works
-
-BPE naturally learns a vocabulary that balances common words (which become single tokens) and rare words (which get split into known subword pieces). The word "unbelievably" might become ["un", "believ", "ably"] -- each piece is meaningful and reusable.
-
-## Variants
-
-- **WordPiece** (used in BERT): Similar to BPE but selects merges based on which pair maximizes the likelihood of the training data, not just frequency. Subword pieces are prefixed with "##" when they continue a word (e.g., "play ##ing").
-
-- **SentencePiece** (used in T5, LLaMA): Treats the input as a raw stream of characters (including spaces) rather than pre-tokenized words. Spaces are replaced with a special character (usually "\_"). This makes it language-agnostic and handles any language without needing word boundary rules.
-
-- **Byte-level BPE** (used in GPT-2, GPT-4): Instead of starting from characters, starts from raw bytes (256 base tokens). This means any text in any encoding can be tokenized -- nothing is ever "unknown."
-
-## Related Topics
-
-- [Tokens](/wiki/tokens) -- what tokens are and why we need them
-- [Embeddings](/wiki/embeddings) -- how tokens become vectors
-- [Training Objectives](/wiki/training-objectives) -- how the model learns from tokenized text
+When you hear that a model has a "128K context window," that means 128,000 tokens, not characters or words. Understanding tokenization is essential to understanding what these numbers actually mean.
 
 <!-- tier:undergrad -->
-
-# BPE Tokenization
-
-Byte Pair Encoding is a data compression algorithm (Gage, 1994) adapted for NLP by Sennrich et al. (2016). It builds a subword vocabulary by iteratively merging the most frequent adjacent pairs.
+# Byte Pair Encoding (BPE) Tokenization
 
 ## Algorithm
 
-**Training (vocabulary construction):**
+BPE (Sennrich et al., 2016) is a subword segmentation algorithm adapted from a data compression technique (Gage, 1994). Given a training corpus and a target vocabulary size $V$, BPE proceeds as follows:
 
-1. Initialize vocabulary $\mathcal{V}$ with all individual characters (or bytes) in the training corpus
-2. Represent each word as a sequence of characters plus a special end-of-word token
-3. Count the frequency of all adjacent symbol pairs in the corpus
-4. Merge the most frequent pair $(a, b) \to ab$, add $ab$ to $\mathcal{V}$
-5. Repeat steps 3-4 for $K$ merges (where $K = |\mathcal{V}_{\text{final}}| - |\mathcal{V}_{\text{initial}}|$)
+1. **Initialize** the vocabulary with all individual characters (or bytes) present in the corpus.
+2. **Represent** each word as a sequence of characters plus a special end-of-word symbol.
+3. **Iterate**: count all adjacent symbol pairs across the corpus, find the most frequent pair $(a, b)$, create a new symbol $ab$, and replace every occurrence of the pair. Record the merge rule $a, b \to ab$.
+4. **Terminate** when $|V|$ reaches the target size.
 
-**Encoding (tokenization of new text):**
+At inference time, tokenization applies the learned merge rules greedily in the order they were learned.
 
-Apply the learned merges in the same order they were learned. For each word, start with characters and greedily apply merges.
+## Formal Description
 
-## Complexity Analysis
+Let $\mathcal{C}$ be the corpus represented as a multiset of words, each word $w$ being a sequence of symbols $w = (s_1, s_2, \ldots, s_n)$. At each step, we compute:
 
-- **Training**: $O(K \times N)$ where $K$ is number of merges and $N$ is corpus size. In practice, efficient implementations use priority queues and update counts incrementally.
-- **Encoding**: $O(n \times K)$ per word of length $n$, but in practice $O(n \log n)$ with efficient data structures. The regex-based pre-tokenization in GPT-2 makes encoding fast.
+$$
+(a^*, b^*) = \arg\max_{(a,b)} \sum_{w \in \mathcal{C}} \text{count}(w) \cdot \text{pairs}(w, a, b)
+$$
 
-## WordPiece Algorithm
+where $\text{pairs}(w, a, b)$ counts the number of times $(a, b)$ appears as adjacent symbols in $w$, and $\text{count}(w)$ is the word frequency.
 
-WordPiece (Schuster & Nakajima, 2012) differs from BPE in the merge criterion:
+## Implementation
 
-**BPE**: Merge the pair $(a, b)$ with the highest frequency $\text{count}(a, b)$.
-
-**WordPiece**: Merge the pair that maximizes the likelihood of the training data:
-
-$$\text{score}(a, b) = \frac{\text{count}(ab)}{\text{count}(a) \times \text{count}(b)}$$
-
-This is equivalent to choosing the pair whose merge maximizes the mutual information. In practice, WordPiece tends to produce slightly different vocabularies (favoring merges of rare pieces that co-occur frequently over merges of common pieces).
-
-WordPiece uses "##" prefixes for continuation tokens:
-```
-"tokenization" -> ["token", "##ization"]
-```
-
-## SentencePiece
-
-SentencePiece (Kudo & Richardson, 2018) makes two key changes:
-
-1. **No pre-tokenization**: Treats input as a raw byte stream, replacing spaces with "\_" (U+2581). This eliminates language-specific preprocessing.
-2. **Unigram model option**: Besides BPE, SentencePiece supports a **unigram language model** tokenizer.
-
-**Unigram algorithm**: Start with a large vocabulary and iteratively *remove* tokens that least reduce the corpus likelihood:
-
-$$\mathcal{L} = \sum_{s=1}^{|\mathcal{D}|} \log P(\mathbf{x}^{(s)}) = \sum_{s=1}^{|\mathcal{D}|} \log \sum_{\mathbf{t} \in \mathcal{S}(\mathbf{x}^{(s)})} \prod_{i=1}^{|\mathbf{t}|} P(t_i)$$
-
-where $\mathcal{S}(\mathbf{x})$ is the set of all valid tokenizations of $\mathbf{x}$. This is solved via the Viterbi algorithm to find the highest-probability tokenization.
-
-## Byte-Level BPE
-
-GPT-2 introduced byte-level BPE:
-
-- Base vocabulary: 256 byte values (UTF-8)
-- Every text is representable (no `[UNK]` tokens)
-- Merges operate on byte sequences, not characters
+Here is a minimal BPE training implementation in Python:
 
 ```python
-# Simplified BPE training
-from collections import Counter
+import re
+from collections import Counter, defaultdict
 
-def get_pair_counts(vocab):
-    pairs = Counter()
+def get_stats(vocab):
+    """Count frequency of adjacent symbol pairs."""
+    pairs = defaultdict(int)
     for word, freq in vocab.items():
         symbols = word.split()
         for i in range(len(symbols) - 1):
             pairs[(symbols[i], symbols[i + 1])] += freq
     return pairs
 
-def merge_pair(pair, vocab):
-    merged = {}
-    bigram = ' '.join(pair)
-    replacement = ''.join(pair)
+def merge_vocab(pair, vocab):
+    """Merge all occurrences of a symbol pair."""
+    bigram = re.escape(' '.join(pair))
+    pattern = re.compile(r'(?<!\S)' + bigram + r'(?!\S)')
+    new_vocab = {}
     for word, freq in vocab.items():
-        new_word = word.replace(bigram, replacement)
-        merged[new_word] = freq
-    return merged
+        new_word = pattern.sub(''.join(pair), word)
+        new_vocab[new_word] = freq
+    return new_vocab
 
-# Example
-vocab = {'l o w </w>': 5, 'l o w e r </w>': 2,
-         'n e w e s t </w>': 6, 'w i d e s t </w>': 3}
+def train_bpe(corpus_words, num_merges):
+    """Train BPE on a word frequency dictionary."""
+    # Initialize: split each word into characters + end-of-word marker
+    vocab = {}
+    for word, freq in corpus_words.items():
+        symbols = ' '.join(list(word)) + ' </w>'
+        vocab[symbols] = freq
 
-num_merges = 10
-for i in range(num_merges):
-    pairs = get_pair_counts(vocab)
-    if not pairs:
-        break
-    best = max(pairs, key=pairs.get)
-    print(f"Merge {i+1}: {best} (count: {pairs[best]})")
-    vocab = merge_pair(best, vocab)
+    merges = []
+    for i in range(num_merges):
+        pairs = get_stats(vocab)
+        if not pairs:
+            break
+        best = max(pairs, key=pairs.get)
+        vocab = merge_vocab(best, vocab)
+        merges.append(best)
+
+    return merges, vocab
 ```
 
-## Tokenizer Configuration in Practice
+## Variants
 
-| Model | Tokenizer | Vocab Size | Base Unit |
-|---|---|---|---|
-| BERT | WordPiece | 30,522 | Characters |
-| GPT-2 | Byte-level BPE | 50,257 | Bytes |
-| T5 | SentencePiece (Unigram) | 32,000 | Characters |
-| LLaMA | SentencePiece (BPE) | 32,000 | Bytes |
-| GPT-4 | Byte-level BPE | ~100,000 | Bytes |
+**Byte-level BPE** (Radford et al., 2019, GPT-2) operates on raw bytes (0--255) rather than Unicode characters. This guarantees that any text can be encoded without unknown tokens, since every byte sequence is valid input. The base vocabulary is exactly 256 byte tokens.
 
-## Related Topics
+**SentencePiece** (Kudo & Richardson, 2018) treats the input as a raw character stream (no pre-tokenization into words), which makes it language-agnostic. It supports both BPE and unigram language model tokenization.
 
-- [Tokens](/wiki/tokens) -- the concept of tokens and vocabulary
-- [Embeddings](/wiki/embeddings) -- how token IDs map to vectors
-- [Training Objectives](/wiki/training-objectives) -- how models learn from tokenized sequences
+**WordPiece** (Schuster & Nakajima, 2012), used in BERT, is similar to BPE but selects merges based on likelihood improvement under a language model rather than raw frequency.
+
+## Tokenization in PyTorch with HuggingFace
+
+```python
+from transformers import AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained("gpt2")
+tokens = tokenizer.encode("Tokenization is fundamental.")
+print(tokenizer.convert_ids_to_tokens(tokens))
+# ['Token', 'ization', 'Ġis', 'Ġfundamental', '.']
+```
 
 <!-- tier:grad -->
+# Byte Pair Encoding (BPE) Tokenization
 
-# BPE Tokenization
+## Theoretical Foundations
 
-Tokenization is increasingly recognized not just as preprocessing but as a modeling decision with deep impacts on model behavior, multilinguality, and efficiency.
+BPE can be understood as a greedy compression algorithm that approximates the minimum description length (MDL) principle. At each step, the merge that maximally reduces the total encoded length of the corpus is selected (since it replaces the most frequent pair). Formally, if we denote the corpus length in symbols as $L$ and the most frequent pair has count $c$, the new corpus length is approximately $L - c$, and the vocabulary grows by one.
 
-## Optimal Tokenization Theory
+The connection to information theory is instructive: a BPE vocabulary with $V$ tokens on a corpus induces a code where common substrings receive shorter codes (single tokens) and rare substrings require multiple tokens. This is analogous to Huffman coding, but over variable-length substrings rather than fixed symbols.
 
-Zouhar et al. (2023, "Tokenization and the Noiseless Channel") formalized the connection between tokenization and compression. The key result: the R\'enyi efficiency of a tokenizer (how close it is to optimal compression) correlates with downstream model performance.
+## Optimal Transport View
 
-Define the **R\'enyi efficiency** of order $\alpha$ for tokenizer $T$ on corpus $\mathcal{D}$:
+Zouhar et al. (2023) analyze tokenization through the lens of Renyi efficiency, showing that the quality of a tokenizer can be measured by how uniformly it distributes probability mass across the vocabulary. An ideal tokenizer produces tokens that are close to uniformly distributed, maximizing the information carried per token. BPE approximates this: frequent character sequences are merged into single tokens, reducing the skew of the token distribution.
 
-$$\eta_\alpha(T) = \frac{H_\alpha(T(\mathcal{D}))}{\log |\mathcal{V}|}$$
+## Limitations and Pathologies
 
-where $H_\alpha$ is the R\'enyi entropy of the token distribution. Optimal tokenizers maximize R\'enyi efficiency, producing near-uniform token distributions. BPE approximates this but is not optimal -- it uses a greedy algorithm that can get stuck in local optima.
+**Compositionality failure.** BPE tokenization is context-free: the same substring always receives the same segmentation regardless of meaning. "unhappy" might tokenize as ["un", "happy"], correctly reflecting morphology, but "united" tokenizes as ["un", "ited"] -- a spurious morphological decomposition. Bostrom & Durrett (2020) showed that morphologically-aware tokenizers improve downstream performance on morphologically rich languages.
 
-## BPE Determinism and Tokenization Ambiguity
+**Fertility disparities.** The number of tokens per word (fertility) varies dramatically across languages. Petrov et al. (2023) found that for GPT-4's tokenizer, representing the same semantic content in Burmese or Amharic requires 5--10x more tokens than English. This has direct cost and performance implications, since context length and inference cost are measured in tokens.
 
-Standard BPE applies merges in a fixed order, producing a unique tokenization. However, the same string can be segmented in multiple valid ways using the same vocabulary. The **unigram model** explicitly models this:
+**Tokenization instability.** Minor input perturbations can cause different segmentations. Changing a single character can cascade into a different sequence of merge operations, altering downstream model behavior. This creates an attack surface: adversarial tokenization inputs can degrade model performance (Boucher et al., 2022).
 
-$$P(\mathbf{x}) = \sum_{\mathbf{t} \in \mathcal{S}(\mathbf{x})} \prod_i P(t_i)$$
+## Recent Developments
 
-Kudo (2018) showed that sampling from this distribution during training (subword regularization) improves robustness. **BPE-dropout** (Provilkov et al., 2020) achieves a similar effect by randomly dropping merges during tokenization with probability $p$:
+**BPE-dropout** (Provilkov et al., 2020) introduces stochasticity during training by randomly skipping merge operations with probability $p$. This exposes the model to multiple segmentations of the same word, acting as a regularizer:
 
-- At each step, with probability $p$, skip the merge
-- This produces varied tokenizations of the same text
-- Acts as a data augmentation technique
+$$
+P(\text{segmentation} \mid w) = \prod_{i} (1-p)^{\mathbb{1}[\text{merge}_i \text{ applied}]} \cdot p^{\mathbb{1}[\text{merge}_i \text{ skipped}]}
+$$
 
-BPE-dropout with $p=0.1$ consistently improves translation quality by 0.5-1.0 BLEU across language pairs.
+This significantly improves performance on low-resource and morphologically rich languages.
 
-## Vocabulary Construction Pitfalls
+**Unigram LM tokenization** (Kudo, 2018) takes the opposite approach to BPE: start with a large vocabulary and iteratively prune tokens whose removal causes the smallest increase in corpus log-likelihood under a unigram model:
 
-**Tokenizer fertility across languages**: Petrov et al. (2023) measured the "tokenizer tax" -- how many more tokens languages require compared to English:
+$$
+\mathcal{L} = \sum_{w \in \mathcal{C}} \log P(w) = \sum_{w \in \mathcal{C}} \sum_{t \in S^*(w)} \log p(t)
+$$
 
-| Language | GPT-4 fertility ratio (vs English) |
-|---|---|
-| English | 1.0x |
-| German | 1.3x |
-| Chinese | 1.6x |
-| Japanese | 1.8x |
-| Hindi | 3.2x |
-| Burmese | 8.5x |
+where $S^*(w)$ is the Viterbi segmentation of word $w$.
 
-This means non-English users pay more (literally, for API-priced models) and get less context. Solutions include:
+**Tokenizer-free models.** ByT5 (Xue et al., 2022) and MegaByte (Yu et al., 2023) operate directly on bytes, eliminating the tokenization step entirely. These models avoid all tokenization artifacts but require handling much longer sequences. MegaByte addresses this with a hierarchical architecture: a large "global" transformer processes patches of bytes, and a smaller "local" transformer generates individual bytes within each patch.
 
-- **Balanced training corpora**: Train the tokenizer on a language-balanced corpus (not the model training corpus, which may be English-heavy)
-- **Language-specific vocabularies**: Use separate or extended vocabularies for specific languages
-- **Byte-level fallback**: Byte-level BPE ensures coverage but doesn't solve the efficiency problem
+## Key References
 
-**Digit tokenization**: Standard BPE produces inconsistent tokenizations of numbers ("1234" might become ["12", "34"] or ["1", "234"]), making arithmetic difficult. Approaches:
-
-- Force individual digit tokenization (each digit is its own token)
-- Use special number tokenization schemes (Nogueira et al., 2021)
-- Train on formatted numbers with consistent digit boundaries
-
-## Fast BPE: Algorithm Improvements
-
-The naive BPE training algorithm is $O(K \times N)$ where $K$ is the number of merges and $N$ is corpus size. Several improvements:
-
-**Byte-level BPE with regex pre-tokenization** (GPT-2): Pre-split text using regex patterns (e.g., separate letters, digits, and punctuation). BPE merges only happen within pre-tokenized chunks. This dramatically speeds training and prevents cross-word merges like "the\_" becoming a single token.
-
-**MinBPE** (Karpathy, 2024): Clean reference implementation showing the algorithm can be implemented in ~100 lines of Python. The key insight is that most of the complexity in production tokenizers is engineering optimization, not algorithmic.
-
-**Parallel BPE**: Distribute pair counting across shards of the corpus, merge counts, and apply the top merge globally. Near-linear speedup with the number of shards.
-
-## Post-BPE: Learned and Adaptive Tokenization
-
-**CHARFORMER** (Tay et al., 2022): Replaces the discrete tokenization step with a differentiable soft tokenization layer. Characters are grouped using learned soft boundaries, and the groupings are trained end-to-end with the model.
-
-**MegaByte** (Yu et al., 2023): A hierarchical architecture that processes raw bytes using a large model for byte-group-level predictions and a small model for within-group predictions. Achieves competitive performance with subword models while eliminating the tokenizer.
-
-**Dynamic tokenization**: Godey et al. (2024) proposed adapting the tokenization based on the input domain, using different merge tables for code, natural language, and structured data within the same model. This requires the model to handle variable tokenization, typically via byte-level fallback.
-
-## Tokenization and Scaling Laws
-
-Hoffmann et al. (2022, Chinchilla) derived scaling laws in terms of tokens. But "token" is tokenizer-dependent -- a model with a 100K vocabulary tokenizes more efficiently (fewer tokens per document) than one with a 32K vocabulary. This means:
-
-- Scaling law comparisons across models with different tokenizers require normalization (e.g., by bytes rather than tokens)
-- Increasing vocabulary size can be a form of "free" compute scaling: the same text takes fewer tokens, so the effective context is longer and training is more efficient per byte
-- The optimal vocabulary size likely scales with model size, though the exact relationship is not well-characterized
-
-## Related Topics
-
-- [Tokens](/wiki/tokens) -- the concept of tokenization
-- [Embeddings](/wiki/embeddings) -- how the vocabulary maps to continuous representations
-- [Scaling Laws](/wiki/scaling-laws) -- how vocabulary size interacts with compute-optimal training
+- Gage, P. (1994). A new algorithm for data compression. *C Users Journal*, 12(2).
+- Sennrich, R., Haddow, B., & Birch, A. (2016). Neural machine translation of rare words with subword units. *ACL*.
+- Kudo, T. (2018). Subword regularization: Improving neural network translation models with multiple subword candidates. *ACL*.
+- Radford, A., et al. (2019). Language models are unsupervised multitask learners. *OpenAI Technical Report*.
+- Provilkov, I., et al. (2020). BPE-dropout: Simple and effective subword regularization. *ACL*.
+- Petrov, A., et al. (2023). Language model tokenizers introduce unfairness between languages. *NeurIPS*.

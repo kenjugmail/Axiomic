@@ -22,6 +22,10 @@ The most famous method for learning embeddings is **Word2Vec** (2013). It comes 
 
 By training a simple neural network on one of these tasks over billions of words of text, the network learns vectors that encode meaning.
 
+## Explore: Embedding Space
+
+::viz[embedding-explorer]
+
 ## The Famous Example
 
 The most celebrated property of word embeddings is that they capture analogies through vector arithmetic:

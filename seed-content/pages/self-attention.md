@@ -19,6 +19,8 @@ In the first sentence, "it" refers to "the animal." In the second, "it" refers t
 
 ## How It Works
 
+::viz[qkv-step-through]
+
 In self-attention, the queries, keys, and values all come from the same sequence. Each word generates:
 - A **query**: "What am I looking for?"
 - A **key**: "What do I contain?"

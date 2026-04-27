@@ -31,6 +31,8 @@ output = LayerNorm(input + SubLayer(input))
 
 ## How Blocks Stack
 
+::viz[layer-activations]
+
 A complete transformer model stacks many of these identical blocks:
 
 - BERT-base: 12 blocks

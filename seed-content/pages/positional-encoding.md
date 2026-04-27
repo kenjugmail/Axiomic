@@ -19,6 +19,8 @@ After converting each word to an [embedding vector](/wiki/embeddings), we **add*
 
 ## Sinusoidal Positional Encoding
 
+::viz[positional-encoding]
+
 The original Transformer paper ("Attention Is All You Need," 2017) introduced a clever scheme using sine and cosine waves at different frequencies.
 
 Think of it like giving each position a unique fingerprint made of waves. Position 0 gets one pattern of peaks and valleys, position 1 gets a slightly shifted pattern, position 2 shifts again, and so on. Because each position produces a unique combination of sine and cosine values, the model can always tell positions apart.
