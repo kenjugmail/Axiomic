@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { auth } from "./routes/auth";
+import { wiki } from "./routes/wiki";
 
 type Variables = {
   user: {
@@ -23,6 +24,7 @@ app.get("/health", (c) => c.json({ status: "ok", timestamp: new Date().toISOStri
 app.get("/ready", (c) => c.json({ status: "ready" }));
 
 app.route("/auth", auth);
+app.route("/wiki", wiki);
 
 const port = parseInt(process.env.PORT || "3000");
 console.log(`Axiomic server starting on port ${port}`);
