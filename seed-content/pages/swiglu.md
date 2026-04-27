@@ -1,227 +1,165 @@
 ---
-title: SwiGLU
+title: SwiGLU Activation
 category: architecture
 ---
 <!-- tier:intro -->
+# SwiGLU Activation
 
-# SwiGLU
+Inside every [transformer block](/wiki/transformer-block), there is a [feed-forward network](/wiki/feed-forward-networks) (FFN) -- a two-layer neural network that processes each token independently. A critical part of this network is the **activation function**, which introduces nonlinearity. Without it, stacking layers would be no more powerful than a single layer. **SwiGLU** is the activation function used in most modern large language models, including LLaMA, PaLM, Mistral, and Gemma.
 
-Inside a transformer, each layer has two main parts: the [attention mechanism](/wiki/attention) (which lets tokens look at each other) and the **feed-forward network** (which processes each token individually). The feed-forward network is where much of the model's "thinking" happens. **SwiGLU** is a modern upgrade to this feed-forward network that makes transformers more capable.
+## Building Up to SwiGLU
 
-## The Standard Feed-Forward Network
+To understand SwiGLU, let's build up from simpler pieces.
 
-In the original transformer, the feed-forward network is simple:
-1. Take the token's representation (a vector of numbers)
-2. Expand it to a wider vector (multiply by 4x)
-3. Apply a nonlinear function (ReLU — zero out negative numbers)
-4. Shrink it back to the original size
+**ReLU** (Rectified Linear Unit) is the classic activation: if the input is positive, pass it through unchanged; if negative, output zero. Simple and effective, but it throws away all negative information permanently.
 
-This is like: narrow → wide → activation → narrow.
+**Swish** (also called SiLU) is a smoother alternative: instead of a hard cutoff at zero, it uses a gentle S-shaped curve. The formula is $x \times \text{sigmoid}(x)$. Small negative values get slightly negative outputs instead of being zeroed out, which helps gradient flow during training.
 
-## What SwiGLU Changes
+**GLU** (Gated Linear Unit) is a different idea entirely. Instead of applying a simple function to each value, it splits the input into two halves. One half provides the "content" and the other half acts as a "gate" that controls how much of the content passes through. The gate values are between 0 and 1 (thanks to a sigmoid function), so the network learns to selectively filter information.
 
-SwiGLU makes two improvements:
+**SwiGLU** combines Swish and GLU: it uses Swish as the gating mechanism inside the GLU structure. One projection provides the content, another provides gate values via the Swish function, and they are multiplied together.
 
-**1. Swish instead of ReLU**: Instead of the harsh ReLU (which completely kills negative values), SwiGLU uses **Swish** (also called SiLU), a smooth curve that allows small negative values through. This helps gradients flow better during training.
+## Why It Works Better
 
-**2. A gating mechanism**: This is the clever part. Instead of one wide projection, SwiGLU uses **two** parallel projections. One is the "content" path (what information to process) and the other is the "gate" path (how much of that information to let through). The gate controls the content, element by element.
+SwiGLU consistently outperforms ReLU and plain GELU in language models. The intuition is that the gating mechanism gives the network a richer way to process information. Instead of just "pass or block" (like ReLU), SwiGLU lets the network make nuanced, input-dependent decisions about what information to keep and how much to scale it.
 
-Think of it like a dimmer switch: the gate can smoothly turn each dimension up or down, letting the model decide what to keep and what to suppress.
+## The Cost
 
-## Why Does It Work Better?
-
-The gating mechanism gives the model more control over information flow. Instead of a fixed nonlinearity (like ReLU) that applies the same transformation everywhere, the gate is **learned** and **input-dependent**. The model can learn to selectively amplify or suppress different features based on the specific input.
-
-Empirically, replacing ReLU feed-forward networks with SwiGLU leads to lower training loss — the model learns faster and achieves better performance for the same amount of compute.
-
-## Where Is SwiGLU Used?
-
-Almost every modern large language model:
-- **Llama** (all versions)
-- **Mistral** and **Mixtral**
-- **PaLM** and **Gemma** (Google)
-- **Qwen** (Alibaba)
-
-It's one of those improvements that's so universally beneficial that it has essentially replaced the original ReLU feed-forward design.
-
-## Related Topics
-
-- [Attention](/wiki/attention) — the other main component of each transformer layer
-- [Residual Connections](/wiki/residual-connections) — how the FFN output connects back to the main path
-- [Scaling Laws](/wiki/scaling-laws) — SwiGLU improves the scaling efficiency of transformers
+SwiGLU requires three weight matrices in the FFN instead of two (one for content, one for gating, and one for the output projection). To keep the total parameter count similar to a ReLU-based FFN, the hidden dimension is typically reduced by a factor of $2/3$. So you get better quality at roughly the same computational cost.
 
 <!-- tier:undergrad -->
-
-# SwiGLU
-
-SwiGLU (Shazeer, 2020) combines the Swish activation function with Gated Linear Units to create a feed-forward network variant that consistently outperforms standard ReLU or GELU alternatives in transformers.
+# SwiGLU Activation
 
 ## Background: Gated Linear Units
 
-Dauphin et al. (2017) introduced Gated Linear Units (GLU) as:
+Dauphin et al. (2017) introduced the Gated Linear Unit:
 
-$$\text{GLU}(\mathbf{x}) = (\mathbf{x}\mathbf{W}_1 + \mathbf{b}_1) \otimes \sigma(\mathbf{x}\mathbf{W}_2 + \mathbf{b}_2)$$
+$$
+\text{GLU}(\mathbf{x}) = (\mathbf{x} W_1 + b_1) \otimes \sigma(\mathbf{x} W_2 + b_2)
+$$
 
-where $\otimes$ is element-wise multiplication and $\sigma$ is the sigmoid function. The key idea: one linear projection provides the "content" and another provides the "gate" (passed through sigmoid to produce values in $[0, 1]$).
+where $W_1, W_2 \in \mathbb{R}^{d \times d_{\text{ff}}}$, $\sigma$ is the sigmoid function, and $\otimes$ denotes element-wise multiplication. The left term provides content and the right term provides gating.
+
+Shazeer (2020) generalized this by replacing sigmoid with other activation functions, yielding a family of GLU variants:
+
+| Name | Gate activation |
+|------|----------------|
+| GLU | $\sigma(x)$ (sigmoid) |
+| ReGLU | $\max(0, x)$ (ReLU) |
+| GEGLU | $\text{GELU}(x)$ |
+| SwiGLU | $x \cdot \sigma(\beta x)$ (Swish/SiLU) |
 
 ## SwiGLU Definition
 
-SwiGLU replaces the sigmoid gate with the Swish (SiLU) function:
+The Swish activation (Ramachandran et al., 2017) is:
 
-$$\text{Swish}(x) = x \cdot \sigma(x) = \frac{x}{1 + e^{-x}}$$
+$$
+\text{Swish}_\beta(x) = x \cdot \sigma(\beta x)
+$$
 
-The full SwiGLU feed-forward block:
+where $\sigma$ is the sigmoid function and $\beta$ is a learnable or fixed parameter (typically $\beta = 1$, in which case Swish equals SiLU).
 
-$$\text{SwiGLU}(\mathbf{x}) = (\text{Swish}(\mathbf{x}\mathbf{W}_1) \otimes \mathbf{x}\mathbf{W}_2) \mathbf{W}_3$$
+SwiGLU applies Swish as the gating function within a GLU:
 
-where:
-- $\mathbf{W}_1 \in \mathbb{R}^{d \times d_{\text{ff}}}$ — gate projection
-- $\mathbf{W}_2 \in \mathbb{R}^{d \times d_{\text{ff}}}$ — content projection  
-- $\mathbf{W}_3 \in \mathbb{R}^{d_{\text{ff}} \times d}$ — output projection
+$$
+\text{SwiGLU}(\mathbf{x}) = (\mathbf{x} W_1) \otimes \text{Swish}(\mathbf{x} W_{\text{gate}})
+$$
 
-## Parameter Count Comparison
+The full FFN with SwiGLU is:
 
-The standard FFN has two matrices: $\mathbf{W}_1 \in \mathbb{R}^{d \times 4d}$ and $\mathbf{W}_2 \in \mathbb{R}^{4d \times d}$, totaling $8d^2$ parameters.
+$$
+\text{FFN}_{\text{SwiGLU}}(\mathbf{x}) = \left[ (\mathbf{x} W_1) \otimes \text{Swish}(\mathbf{x} W_{\text{gate}}) \right] W_2
+$$
 
-SwiGLU has three matrices. To keep the parameter count roughly equal, $d_{\text{ff}}$ is reduced from $4d$ to $\frac{8d}{3}$ (often rounded to a multiple of 256 for hardware efficiency):
+where $W_1, W_{\text{gate}} \in \mathbb{R}^{d \times d_{\text{ff}}}$ and $W_2 \in \mathbb{R}^{d_{\text{ff}} \times d}$. Biases are typically omitted in modern architectures.
 
-$$\text{SwiGLU params} = d \cdot d_{\text{ff}} + d \cdot d_{\text{ff}} + d_{\text{ff}} \cdot d = 3d \cdot d_{\text{ff}} \approx 3d \cdot \frac{8d}{3} = 8d^2$$
+## Parameter Budget
 
-In Llama models, $d_{\text{ff}}$ is set to $\frac{8d}{3}$ rounded up to the nearest multiple of 256.
+A standard ReLU FFN has two matrices: $W_1 \in \mathbb{R}^{d \times 4d}$ and $W_2 \in \mathbb{R}^{4d \times d}$, totaling $8d^2$ parameters. SwiGLU has three matrices. To maintain the same parameter count, the hidden dimension is set to $\frac{8}{3}d$, often rounded to a multiple of 256 for hardware efficiency:
 
-## Comparing Activation Variants
+$$
+d_{\text{ff}} = \left\lfloor \frac{8d/3 + 255}{256} \right\rfloor \times 256
+$$
 
-Shazeer (2020) systematically compared GLU variants by substituting different activations:
+With $d_{\text{ff}} = \frac{8d}{3}$, total parameters are $3 \times d \times \frac{8d}{3} = 8d^2$.
 
-| Variant | Gate activation | FFN formula |
-|---|---|---|
-| GLU | Sigmoid | $(\sigma(\mathbf{x}\mathbf{W}_1) \otimes \mathbf{x}\mathbf{W}_2)\mathbf{W}_3$ |
-| ReGLU | ReLU | $(\text{ReLU}(\mathbf{x}\mathbf{W}_1) \otimes \mathbf{x}\mathbf{W}_2)\mathbf{W}_3$ |
-| GEGLU | GELU | $(\text{GELU}(\mathbf{x}\mathbf{W}_1) \otimes \mathbf{x}\mathbf{W}_2)\mathbf{W}_3$ |
-| SwiGLU | Swish | $(\text{Swish}(\mathbf{x}\mathbf{W}_1) \otimes \mathbf{x}\mathbf{W}_2)\mathbf{W}_3$ |
-
-SwiGLU and GEGLU consistently achieve the lowest perplexity, with SwiGLU having a slight edge.
-
-## Code Example
+## Implementation
 
 ```python
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class SwiGLUFFN(nn.Module):
+class SwiGLU_FFN(nn.Module):
     def __init__(self, d_model: int, d_ff: int = None):
         super().__init__()
-        # Default: 8/3 * d_model, rounded to multiple of 256
         if d_ff is None:
-            d_ff = int(8 * d_model / 3)
-            d_ff = 256 * ((d_ff + 255) // 256)  # round up
-        
-        self.w_gate = nn.Linear(d_model, d_ff, bias=False)  # W1: gate
-        self.w_up = nn.Linear(d_model, d_ff, bias=False)    # W2: content
-        self.w_down = nn.Linear(d_ff, d_model, bias=False)  # W3: output
-    
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.w_down(F.silu(self.w_gate(x)) * self.w_up(x))
-
-class StandardFFN(nn.Module):
-    """Standard ReLU FFN for comparison."""
-    def __init__(self, d_model: int, d_ff: int = None):
-        super().__init__()
-        d_ff = d_ff or 4 * d_model
+            # 8/3 * d_model, rounded to nearest multiple of 256
+            d_ff = int(((8 * d_model / 3) + 255) // 256 * 256)
         self.w1 = nn.Linear(d_model, d_ff, bias=False)
+        self.w_gate = nn.Linear(d_model, d_ff, bias=False)
         self.w2 = nn.Linear(d_ff, d_model, bias=False)
-    
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.w2(F.relu(self.w1(x)))
 
-# Compare parameter counts
-d = 4096
-swiglu = SwiGLUFFN(d)
-standard = StandardFFN(d)
-print(f"SwiGLU params: {sum(p.numel() for p in swiglu.parameters()):,}")
-print(f"Standard FFN params: {sum(p.numel() for p in standard.parameters()):,}")
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.w2(F.silu(self.w_gate(x)) * self.w1(x))
 ```
 
-## Why Swish?
+Note: `F.silu` is PyTorch's implementation of Swish with $\beta = 1$.
 
-The Swish function $f(x) = x \cdot \sigma(x)$ has several desirable properties:
+## Empirical Results
 
-- **Smooth**: Infinitely differentiable, unlike ReLU
-- **Non-monotonic**: Has a slight dip below zero near $x \approx -1.28$, allowing small negative values through
-- **Self-gated**: Already contains a gating mechanism ($x$ times $\sigma(x)$), which compounds with the explicit GLU gate
-
-## Related Topics
-
-- [Attention](/wiki/attention) — the other half of each transformer layer
-- [Grouped Query Attention](/wiki/grouped-query-attention) — another modern transformer optimization
-- [Scaling Laws](/wiki/scaling-laws) — SwiGLU shifts the scaling constants
+Shazeer (2020) evaluated GLU variants on language modeling tasks, finding consistent improvements. On a perplexity-matched basis (same total compute), SwiGLU and GEGLU outperformed ReLU by approximately 1--2 perplexity points across model sizes. This advantage has been consistently reproduced in LLaMA (Touvron et al., 2023), PaLM (Chowdhery et al., 2022), and subsequent models.
 
 <!-- tier:grad -->
+# SwiGLU Activation
 
-# SwiGLU
+## Theoretical Analysis
 
-SwiGLU (Shazeer, 2020) has become the standard FFN architecture in modern transformers. This section examines why gated activations work, their interaction with training dynamics, and emerging alternatives.
+### Expressivity of Gated Activations
 
-## Theoretical Analysis of Gating
+GLU-style activations implement a form of second-order interaction. A standard FFN with ReLU computes $\text{ReLU}(\mathbf{x}W_1)W_2$, which is piecewise linear in $\mathbf{x}$. SwiGLU computes $(\mathbf{x}W_1) \otimes \text{Swish}(\mathbf{x}W_{\text{gate}})$, which involves element-wise products of two different linear projections of $\mathbf{x}$. This creates bilinear (second-order) interactions between features:
 
-Why does gating help? Several complementary explanations:
+$$
+[\text{SwiGLU}(\mathbf{x})]_j = \left(\sum_i x_i [W_1]_{ij}\right) \cdot \text{Swish}\left(\sum_i x_i [W_{\text{gate}}]_{ij}\right)
+$$
 
-**Expressiveness**: GLU variants effectively double the "depth" of the nonlinearity within the FFN. A standard FFN computes $\text{act}(\mathbf{x}\mathbf{W}_1)\mathbf{W}_2$, which is a single nonlinear function. A gated FFN computes $\text{act}(\mathbf{x}\mathbf{W}_1) \otimes (\mathbf{x}\mathbf{W}_2)$, which is a product of two functions — one nonlinear, one linear — giving the overall function higher capacity to approximate complex mappings.
+This bilinear structure allows the network to learn multiplicative feature interactions that would require multiple ReLU layers to approximate.
 
-**Gradient flow**: In a standard ReLU FFN, any input that produces a negative pre-activation is completely zeroed out. The gate in GLU variants allows gradients to flow through both the gate and the content paths:
+### Gradient Properties
 
-$$\frac{\partial}{\partial \mathbf{x}} [\text{Swish}(\mathbf{x}\mathbf{W}_1) \otimes \mathbf{x}\mathbf{W}_2] = \text{Swish}'(\mathbf{x}\mathbf{W}_1)\mathbf{W}_1 \otimes \mathbf{x}\mathbf{W}_2 + \text{Swish}(\mathbf{x}\mathbf{W}_1) \otimes \mathbf{W}_2$$
+The gradient of SwiGLU with respect to the gate input has desirable properties. Let $g = \mathbf{x}W_{\text{gate}}$ and $c = \mathbf{x}W_1$. Then:
 
-The second term provides a "highway" for gradients even when the gate is partially closed.
+$$
+\frac{\partial \text{SwiGLU}}{\partial g_j} = c_j \cdot \text{Swish}'(g_j) = c_j \left[\sigma(g_j) + g_j \sigma(g_j)(1 - \sigma(g_j))\right]
+$$
 
-**Feature selection**: The gating mechanism enables the FFN to perform input-dependent feature selection. Elhage et al. (2022, "Superposition") showed that gated FFNs exhibit less superposition (overlapping feature representations) than ungated variants, suggesting cleaner internal representations.
+Unlike ReLU-gated variants where $\frac{\partial}{\partial g_j} = 0$ for $g_j < 0$, Swish provides non-zero gradients everywhere, allowing recovery from "dead gate" states. The gradient magnitude is also self-regulating: for large $|g_j|$, the derivative asymptotes to 1 (positive side) or 0 (negative side), providing implicit gradient clipping.
 
-## SwiGLU and Mixture of Experts
+## Connection to Mixture of Experts
 
-SwiGLU is the standard FFN within each expert in Mixture-of-Experts models (Mixtral, Switch Transformer). The interaction between gating at two levels — the MoE router gates which expert processes each token, and SwiGLU gates within each expert — creates a hierarchical feature selection mechanism.
+Csordas et al. (2024) showed that GLU-based FFNs exhibit emergent sparsity: a large fraction of gate values converge to near-zero during training, even without explicit sparsity regularization. In LLaMA-7B, approximately 90% of SwiGLU neurons are effectively inactive (gate value < 0.01) for any given input.
 
-Fedus et al. (2022) noted that the expert utilization patterns differ between SwiGLU and ReLU experts: SwiGLU experts tend to specialize more cleanly, with less token overlap between experts. This may be because the intra-expert gating reduces the need for inter-expert redundancy.
+This connects to the Mixture of Experts (MoE) paradigm: the gating mechanism learns to route different inputs to different subsets of neurons. Deja Vu (Liu et al., 2023) exploited this for inference acceleration: by predicting which neurons will be active (gate > threshold) using a small predictor network, they achieved 2x speedup with negligible quality loss.
 
-## Initialization and Training Dynamics
+## Role in Superposition
 
-SwiGLU requires careful initialization due to the multiplicative interaction between the gate and content paths. If both $\mathbf{W}_1$ and $\mathbf{W}_2$ are initialized with the same variance:
+From the [superposition](/wiki/superposition) perspective (Elhage et al., 2022), the bilinear structure of SwiGLU is particularly relevant. The element-wise multiplication creates interference patterns between the content and gate projections. If we think of the residual stream as encoding features in superposition, the gate can learn to selectively extract specific features based on the presence of other features -- a form of conditional computation that ReLU FFNs cannot implement in a single layer.
 
-$$\text{Var}[\text{Swish}(\mathbf{x}\mathbf{W}_1) \otimes \mathbf{x}\mathbf{W}_2] \approx \text{Var}[\text{Swish}(\mathbf{x}\mathbf{W}_1)] \cdot \text{Var}[\mathbf{x}\mathbf{W}_2]$$
+Gurnee et al. (2024) found that individual SwiGLU neurons in LLaMA models have more interpretable activation patterns than corresponding ReLU neurons in earlier architectures, suggesting that the gating mechanism facilitates cleaner feature decomposition.
 
-This variance can be too small (product of two sub-unit variances) or exhibit high kurtosis. In practice, implementations follow the approach from PaLM (Chowdhery et al., 2023):
-- Initialize $\mathbf{W}_1$ and $\mathbf{W}_2$ with standard Xavier/He initialization
-- Scale $\mathbf{W}_3$ by $1/\sqrt{2L}$ where $L$ is the number of layers (depth scaling)
+## Alternatives and Recent Developments
 
-## The $\frac{8}{3}d$ Hidden Dimension
+**Squared ReLU.** So et al. (2022) found that $\text{ReLU}(x)^2$ achieves comparable performance to SwiGLU on some benchmarks while being simpler. The squaring promotes sparsity (small activations become very small) and introduces a polynomial nonlinearity. However, it can suffer from activation explosion for large inputs.
 
-The choice of $d_{\text{ff}} = \frac{8}{3}d$ for parameter-matched SwiGLU is often treated as arbitrary, but it follows from requiring:
+**JumpReLU.** Erichson et al. (2024) proposed JumpReLU ($\max(0, x - \kappa)$ with a learned threshold $\kappa$) as an alternative that provides exact zeros (true sparsity) while maintaining trainability through straight-through estimators.
 
-$$3 \cdot d \cdot d_{\text{ff}} = 2 \cdot d \cdot 4d$$
+**GeGLU vs. SwiGLU.** Despite their similar performance in Shazeer's original experiments, SwiGLU has become the dominant choice. The practical difference is minimal; the choice may have been path-dependent, propagating through the LLaMA architecture's influence on subsequent open models.
 
-i.e., three matrices at size $d \times d_{\text{ff}}$ should match two matrices at size $d \times 4d$. Solving gives $d_{\text{ff}} = \frac{8d}{3}$.
+## Key References
 
-However, recent work suggests this parameter matching may be the wrong target. Touvron et al. (2023) and others have experimented with SwiGLU where $d_{\text{ff}}$ is set independently of the standard FFN size, often choosing values optimized for hardware utilization (multiples of 128 or 256 for tensor core efficiency on NVIDIA GPUs).
-
-## Beyond SwiGLU: Emerging Alternatives
-
-**Squared ReLU** (So et al., 2022): $f(x) = \max(0, x)^2$. Simpler than SwiGLU (no gating), but achieves competitive performance. The squaring amplifies large activations, acting as a soft feature selection mechanism. Used in some PaLM variants.
-
-**JetMoE-style gated FFN** (Shen et al., 2024): Combines SwiGLU with shared experts in an MoE framework, finding that the gating in SwiGLU and MoE routing serve complementary roles.
-
-**KAN (Kolmogorov-Arnold Networks)** (Liu et al., 2024): Replace the fixed activation function entirely with learnable spline-based activations on edges rather than nodes. While not directly replacing SwiGLU in production transformers, KANs represent a fundamentally different approach to nonlinearity in neural networks.
-
-## Sparse Activation in SwiGLU
-
-An underexplored property: SwiGLU naturally produces **sparse activations**. The Swish gate outputs near-zero values for many dimensions, meaning the effective computation in the output projection is sparse. Zhang et al. (2024) showed that ~90% of SwiGLU activations are near-zero for typical inputs, enabling:
-- Sparse matrix multiplication for faster inference
-- Activation checkpointing strategies that only store non-zero activations
-- Pruning of consistently dead dimensions
-
-This natural sparsity contrasts with ReLU, which has exact sparsity (~50% zeros) but less concentration of the non-zero mass.
-
-## Related Topics
-
-- [Grouped Query Attention](/wiki/grouped-query-attention) — complementary architectural optimization
-- [Scaling Laws](/wiki/scaling-laws) — how architectural choices affect scaling behavior
-- [KV Cache](/wiki/kv-cache) — memory optimization in the attention layer (SwiGLU optimizes the FFN layer)
+- Dauphin, Y., et al. (2017). Language modeling with gated convolutional networks. *ICML*.
+- Ramachandran, P., Zoph, B., & Le, Q. V. (2017). Searching for activation functions. *arXiv:1710.05941*.
+- Shazeer, N. (2020). GLU variants improve transformer. *arXiv:2002.05202*.
+- Touvron, H., et al. (2023). LLaMA: Open and efficient foundation language models. *arXiv:2302.13971*.
+- Elhage, N., et al. (2022). Toy models of superposition. *Anthropic*.
+- Liu, Z., et al. (2023). Deja Vu: Contextual sparsity for efficient LLMs at inference time. *ICML*.
