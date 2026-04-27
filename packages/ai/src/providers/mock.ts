@@ -7,11 +7,24 @@ export class MockProvider implements AIProvider {
   private responses: Map<string, any[]> = new Map();
   private loaded = false;
 
+  private findRoot(): string {
+    let dir = process.cwd();
+    while (dir !== "/") {
+      try {
+        const pkg = JSON.parse(fs.readFileSync(path.join(dir, "package.json"), "utf-8"));
+        if (pkg.workspaces) return dir;
+      } catch {}
+      dir = path.dirname(dir);
+    }
+    return process.cwd();
+  }
+
   private loadResponses() {
     if (this.loaded) return;
     this.loaded = true;
 
-    const responsesDir = path.join(process.cwd(), "seed-content/ai-responses");
+    const root = this.findRoot();
+    const responsesDir = path.join(root, "seed-content/ai-responses");
     if (!fs.existsSync(responsesDir)) return;
 
     const files = fs.readdirSync(responsesDir).filter((f) => f.endsWith(".json"));
