@@ -1,1 +1,9 @@
 export { BaseViz } from "./components/BaseViz";
+export { AttentionHeatmap } from "./components/AttentionHeatmap";
+export { SoftmaxTemperature } from "./components/SoftmaxTemperature";
+export { PositionalEncoding } from "./components/PositionalEncoding";
+export { TokenizerPlayground } from "./components/TokenizerPlayground";
+export { BeamSearchTree } from "./components/BeamSearchTree";
+export { LayerActivations } from "./components/LayerActivations";
+export { QKVStepThrough } from "./components/QKVStepThrough";
+export { EmbeddingExplorer } from "./components/EmbeddingExplorer";
