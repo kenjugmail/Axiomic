@@ -1,11 +1,17 @@
+import { useState } from "react";
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/auth";
 import { useThemeStore } from "../stores/theme";
+import { SearchDialog } from "./SearchDialog";
+import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 
 export function Layout() {
   const { user, logout } = useAuthStore();
   const { theme, setTheme } = useThemeStore();
   const navigate = useNavigate();
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  useKeyboardShortcuts(() => setSearchOpen(true));
 
   const handleLogout = async () => {
     await logout();
@@ -34,7 +40,20 @@ export function Layout() {
               </Link>
             </nav>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            {/* Search button */}
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-input bg-background text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <span className="hidden sm:inline">Search</span>
+              <kbd className="hidden sm:block text-[10px] bg-muted px-1 rounded">/</kbd>
+            </button>
+
+            {/* Theme toggle */}
             <button
               onClick={cycleTheme}
               className="p-2 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
@@ -48,11 +67,13 @@ export function Layout() {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
               )}
             </button>
+
+            {/* Auth */}
             {user ? (
               <div className="flex items-center gap-3 text-sm">
-                <Link to={`/profile/${user.username}`} className="text-muted-foreground hover:text-foreground transition-colors">
+                <span className="text-muted-foreground hidden sm:inline">
                   {user.displayName || user.username}
-                </Link>
+                </span>
                 <button
                   onClick={handleLogout}
                   className="text-muted-foreground hover:text-foreground transition-colors"
@@ -61,7 +82,7 @@ export function Layout() {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-3 text-sm">
+              <div className="flex items-center gap-2 text-sm">
                 <Link to="/login" className="text-muted-foreground hover:text-foreground transition-colors">
                   Sign in
                 </Link>
@@ -82,6 +103,7 @@ export function Layout() {
       <footer className="border-t border-border py-6 text-center text-sm text-muted-foreground">
         Axiomic — Deep Knowledge, Beautifully Structured
       </footer>
+      <SearchDialog isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );
 }

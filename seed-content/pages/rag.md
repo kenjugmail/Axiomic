@@ -1,239 +1,220 @@
 ---
-title: Retrieval-Augmented Generation
+title: Retrieval-Augmented Generation (RAG)
 category: applications
 ---
 <!-- tier:intro -->
-
 # Retrieval-Augmented Generation (RAG)
 
-Language models are trained on a fixed dataset, which means they have a knowledge cutoff — they don't know about events or information that appeared after their training. They can also hallucinate, confidently stating things that aren't true. **Retrieval-Augmented Generation** (RAG) addresses both problems by giving the model access to an external knowledge source it can consult before answering.
+Language models have a fundamental limitation: they can only "know" things that were in their training data. Ask about something that happened after training, or about a private document the model never saw, and it will either refuse to answer or -- worse -- confidently make something up (a phenomenon called **hallucination**).
 
-## How It Works
+**Retrieval-Augmented Generation** (RAG) solves this by giving the model the ability to look things up. Instead of relying solely on what it memorized during training, a RAG system first searches a knowledge base, retrieves relevant documents, and then feeds those documents to the language model along with the question. The model generates its answer based on the retrieved evidence.
 
-RAG works in two steps:
-
-1. **Retrieve.** When the user asks a question, search a knowledge base (documents, databases, web pages) for relevant information. This is typically done using [embeddings](/wiki/embeddings) — converting both the question and documents into numerical vectors and finding the closest matches.
-
-2. **Generate.** Feed the retrieved information to the language model along with the original question. The model then generates its answer based on both its own knowledge and the retrieved context.
-
-It's like the difference between taking a closed-book exam (standard LLM) and an open-book exam (RAG). The student (model) can look up relevant passages before writing their answer.
-
-## A Simple Example
-
-**User question:** "What was the revenue of Acme Corp in Q3 2025?"
-
-**Without RAG:** The model might hallucinate a number or say it doesn't know (if this is after its training cutoff).
-
-**With RAG:**
-1. The system searches Acme Corp's financial documents and retrieves the relevant quarterly report paragraph.
-2. The model reads: "In Q3 2025, Acme Corp reported revenue of $4.2 billion..."
-3. The model answers accurately based on the retrieved document.
-
-## Why RAG Is Popular
-
-- **Up-to-date knowledge.** New documents can be added to the knowledge base at any time — no model retraining needed.
-- **Reduced hallucination.** The model can ground its answers in actual source documents.
-- **Verifiability.** You can show users which documents the answer came from, enabling fact-checking.
-- **Domain specialization.** Point the retrieval system at your company's internal documents to create a specialized assistant.
-- **Cost-effective.** Much cheaper than fine-tuning a model for every knowledge update.
-
-## Limitations
-
-RAG is only as good as its retrieval step. If the relevant document isn't found, the model either won't answer correctly or will fall back on its (possibly wrong) internal knowledge. Writing good queries and building effective search indices are critical engineering challenges.
-
-## Related Topics
-
-- [Embeddings](/wiki/embeddings) — the vector representations used for similarity search
-- [Fine-Tuning](/wiki/fine-tuning) — an alternative approach to adding knowledge to models
-- [Tokens](/wiki/tokens) — context window limits constrain how much retrieved text the model can process
-
-<!-- tier:undergrad -->
-
-# Retrieval-Augmented Generation (RAG)
-
-RAG (Lewis et al., 2020) combines a parametric language model with a non-parametric retrieval component. This section covers the architecture, retrieval mechanisms, and practical implementation.
-
-## Architecture
+## How RAG Works
 
 A RAG system has three main components:
 
-1. **Query encoder** $E_q$: maps the input query $q$ to a dense vector $\mathbf{q} = E_q(q) \in \mathbb{R}^d$
-2. **Document index**: a collection of documents $\{d_1, \ldots, d_N\}$ pre-encoded as vectors $\mathbf{d}_i = E_d(d_i)$ and stored in a vector database
-3. **Generator** $G$: a language model that generates output conditioned on both the query and retrieved documents
+1. **A knowledge base.** This is a collection of documents -- it could be Wikipedia, your company's internal docs, a legal database, or any text corpus. Each document is split into chunks (typically a few hundred words each) and converted into a numerical representation (an [embedding](/wiki/embeddings)) that captures its meaning.
 
-The retrieval step finds the top-$k$ documents by similarity:
+2. **A retriever.** When a question comes in, the retriever converts it into an embedding too, then finds the document chunks whose embeddings are most similar. This is essentially a "meaning-based search" -- it finds documents that are semantically related to the question, not just ones that share the same keywords.
 
-$$\mathcal{R}(q) = \text{top-}k_{d_i} \; \text{sim}(\mathbf{q}, \mathbf{d}_i)$$
+3. **A generator.** The retrieved chunks are inserted into the model's prompt (for example: "Based on the following documents: [retrieved text]... Answer this question: [user question]"). The language model reads the documents and generates an answer grounded in that evidence.
 
-where $\text{sim}$ is typically cosine similarity or dot product. The generator then produces:
+## Why RAG Matters
 
-$$p(y \mid q) = G(y \mid q, \mathcal{R}(q))$$
+RAG provides several critical benefits:
+
+**Freshness.** The knowledge base can be updated anytime without retraining the model. A model trained in 2024 can answer questions about events in 2026 if the knowledge base contains up-to-date information.
+
+**Grounding.** Because the model is working from specific retrieved documents, its answers are traceable. You can show the user exactly which documents the answer came from, enabling verification and building trust.
+
+**Domain specialization.** A general-purpose model can be made an expert in law, medicine, or your company's products just by pointing it at the right knowledge base. No fine-tuning required.
+
+**Cost efficiency.** Keeping a knowledge base current is dramatically cheaper than retraining a large model, which can cost millions of dollars.
+
+## Limitations
+
+RAG is only as good as its retriever. If the right document is not found, the model cannot use it. And even with the right documents retrieved, the model might misinterpret or ignore them. RAG also adds latency (the retrieval step takes time) and complexity to the system.
+
+<!-- tier:undergrad -->
+# Retrieval-Augmented Generation (RAG)
+
+## Architecture
+
+RAG (Lewis et al., 2020) combines a parametric model (the generator) with a non-parametric memory (the retrieval corpus). Formally, given a query $q$, the system:
+
+1. **Retrieves** the top-$k$ documents $\{d_1, \ldots, d_k\}$ using a retriever $p_\eta(d \mid q)$
+2. **Generates** the output $y$ conditioned on both $q$ and the retrieved documents
+
+Two variants exist:
+
+**RAG-Sequence:** Generates the entire output conditioned on a single retrieved document, then marginalizes:
+
+$$
+P(y \mid q) = \sum_{d \in \text{top-}k} p_\eta(d \mid q) \cdot p_\theta(y \mid q, d)
+$$
+
+**RAG-Token:** Marginalizes over documents at each token position, allowing different tokens to attend to different documents:
+
+$$
+P(y \mid q) = \prod_{t=1}^{N} \sum_{d \in \text{top-}k} p_\eta(d \mid q) \cdot p_\theta(y_t \mid q, d, y_{<t})
+$$
 
 ## Dense Retrieval
 
-Modern RAG systems use **dense retrieval** with learned embeddings rather than sparse keyword matching (BM25). The retrieval model is typically a bi-encoder:
+Modern RAG systems use dense (embedding-based) retrieval rather than sparse (keyword-based) methods. Given an encoder $E$, each document chunk $d$ is encoded offline:
 
-$$\text{score}(q, d) = E_q(q)^\top E_d(d)$$
+$$
+\mathbf{d} = E_{\text{doc}}(d) \in \mathbb{R}^h
+$$
 
-Popular embedding models include E5 (Wang et al., 2022), BGE (Xiao et al., 2024), and OpenAI's text-embedding models. These are trained with contrastive learning:
+At query time, the query is encoded and similarity is computed via dot product or cosine similarity:
 
-$$\mathcal{L} = -\log \frac{\exp(\text{sim}(q, d^+) / \tau)}{\exp(\text{sim}(q, d^+) / \tau) + \sum_{d^-} \exp(\text{sim}(q, d^-) / \tau)}$$
+$$
+\text{score}(q, d) = E_{\text{query}}(q)^\top E_{\text{doc}}(d)
+$$
 
-where $d^+$ is a relevant document and $d^-$ are negatives.
+Top-$k$ retrieval over millions of documents is made efficient using approximate nearest neighbor (ANN) indices such as FAISS (Johnson et al., 2019) or ScaNN.
 
 ## Chunking Strategies
 
-Documents must be split into chunks that fit the retrieval model's context window and the generator's context window. Common approaches:
+Documents must be split into chunks that fit within the model's context window. Common approaches:
 
-| Strategy | Chunk Size | Pros | Cons |
-|---|---|---|---|
-| Fixed-size | 256--512 tokens | Simple, consistent | Breaks mid-sentence |
-| Sentence-based | Variable | Preserves meaning | Uneven sizes |
-| Recursive splitting | Variable | Respects structure | More complex |
-| Semantic chunking | Variable | Meaningful boundaries | Requires embedding model |
+- **Fixed-size chunking:** Split every $n$ tokens with $m$ tokens of overlap
+- **Semantic chunking:** Split at paragraph or section boundaries
+- **Recursive splitting:** Hierarchically split at decreasing granularity (document, section, paragraph, sentence)
 
-Overlap between adjacent chunks (e.g., 50 tokens) helps avoid splitting relevant passages.
+Chunk size is a fundamental tradeoff: smaller chunks enable precise retrieval but may lack context; larger chunks provide more context but may introduce noise.
 
-## Implementation Example
+## Implementation
 
 ```python
 import numpy as np
 from sentence_transformers import SentenceTransformer
-
-# 1. Encode documents
-encoder = SentenceTransformer("BAAI/bge-base-en-v1.5")
-documents = [
-    "Transformers use self-attention to process sequences in parallel.",
-    "LoRA reduces fine-tuning cost by using low-rank weight updates.",
-    "RLHF aligns language models with human preferences.",
-    # ... thousands more chunks
-]
-doc_embeddings = encoder.encode(documents, normalize_embeddings=True)
-
-# 2. Build index (using FAISS for efficient search)
 import faiss
-dimension = doc_embeddings.shape[1]
-index = faiss.IndexFlatIP(dimension)  # Inner product (cosine sim for normalized vectors)
-index.add(doc_embeddings.astype(np.float32))
 
-# 3. Retrieve
-query = "How can I fine-tune a model efficiently?"
-query_embedding = encoder.encode([query], normalize_embeddings=True)
-scores, indices = index.search(query_embedding.astype(np.float32), k=3)
-retrieved = [documents[i] for i in indices[0]]
+class SimpleRAG:
+    def __init__(self, embedding_model: str = "BAAI/bge-small-en-v1.5"):
+        self.encoder = SentenceTransformer(embedding_model)
+        self.chunks = []
+        self.index = None
 
-# 4. Generate (using the retrieved context)
-context = "\n".join(retrieved)
-prompt = f"""Answer the question based on the following context:
+    def index_documents(self, chunks: list[str]):
+        """Encode and index document chunks."""
+        self.chunks = chunks
+        embeddings = self.encoder.encode(chunks, normalize_embeddings=True)
+        dim = embeddings.shape[1]
+        self.index = faiss.IndexFlatIP(dim)  # Inner product = cosine for normalized vecs
+        self.index.add(embeddings.astype(np.float32))
 
-Context:
-{context}
+    def retrieve(self, query: str, top_k: int = 5) -> list[str]:
+        """Retrieve top-k most relevant chunks."""
+        q_emb = self.encoder.encode([query], normalize_embeddings=True)
+        scores, indices = self.index.search(q_emb.astype(np.float32), top_k)
+        return [self.chunks[i] for i in indices[0]]
 
-Question: {query}
-Answer:"""
-# Pass prompt to language model...
+    def build_prompt(self, query: str, top_k: int = 5) -> str:
+        """Build a prompt with retrieved context."""
+        docs = self.retrieve(query, top_k)
+        context = "\n\n---\n\n".join(docs)
+        return (
+            f"Answer the question based on the following context.\n\n"
+            f"Context:\n{context}\n\n"
+            f"Question: {query}\n"
+            f"Answer:"
+        )
 ```
 
-## Evaluation
+## Evaluation Metrics
 
-RAG evaluation has two dimensions:
+RAG systems are evaluated on both retrieval quality and generation quality:
 
-**Retrieval quality:**
-- **Recall@k**: fraction of relevant documents in top-$k$ results
-- **MRR** (Mean Reciprocal Rank): $\frac{1}{|Q|}\sum_{i=1}^{|Q|}\frac{1}{\text{rank}_i}$
-- **NDCG**: normalized discounted cumulative gain
-
-**Generation quality:**
-- **Faithfulness**: does the answer accurately reflect the retrieved documents?
-- **Answer relevance**: does the answer address the question?
-- **Context relevance**: are the retrieved documents relevant?
-
-Frameworks like RAGAS (Es et al., 2023) automate these evaluations using LLM-as-judge.
-
-## Related Topics
-
-- [Embeddings](/wiki/embeddings) — the vector representations powering retrieval
-- [Fine-Tuning](/wiki/fine-tuning) — an alternative to RAG for knowledge injection
-- [Tokens](/wiki/tokens) — context window constraints on retrieved text
-- [LoRA](/wiki/lora) — can be combined with RAG for domain adaptation
+- **Recall@k:** Fraction of relevant documents in the top-$k$ retrieved
+- **MRR (Mean Reciprocal Rank):** $\frac{1}{|Q|} \sum_{q} \frac{1}{\text{rank}(q)}$
+- **Faithfulness:** Does the generated answer accurately reflect the retrieved documents? (Often evaluated with NLI models)
+- **Answer relevance:** Does the generated answer address the query?
 
 <!-- tier:grad -->
-
 # Retrieval-Augmented Generation (RAG)
 
-Since Lewis et al. (2020), RAG has evolved from a research concept to the dominant architecture for knowledge-grounded generation. This section covers advanced architectures, failure modes, and the research frontier.
+## Retriever Training
 
-## RAG Taxonomies
+### Contrastive Learning
 
-Gao et al. (2024) categorize RAG systems into three paradigms:
+Dense retrievers are typically trained with contrastive objectives. DPR (Karpukhin et al., 2020) uses a dual-encoder architecture trained with in-batch negatives:
 
-1. **Naive RAG**: retrieve-then-generate pipeline. Simple but suffers from retrieval noise and limited reasoning over retrieved content.
-2. **Advanced RAG**: adds pre-retrieval (query rewriting, HyDE) and post-retrieval (reranking, compression) stages.
-3. **Modular RAG**: flexible architectures that may retrieve iteratively, route queries, or decide whether retrieval is needed at all.
+$$
+\mathcal{L} = -\log \frac{e^{\text{sim}(q, d^+)}}{e^{\text{sim}(q, d^+)} + \sum_{d^- \in \mathcal{N}} e^{\text{sim}(q, d^-)}}
+$$
 
-## Advanced Retrieval Techniques
+where $d^+$ is a relevant document and $\mathcal{N}$ contains negative examples. Hard negative mining (selecting negatives that are similar but irrelevant) is critical for performance.
 
-**HyDE** (Gao et al., 2023): Hypothetical Document Embeddings. Instead of embedding the query directly, the LLM first generates a hypothetical answer, which is then embedded for retrieval. This bridges the query-document distribution gap:
+### Late Interaction Models
 
-$$\mathbf{q}_\text{HyDE} = E_d\!\left(G(q)\right)$$
+ColBERT (Khattab & Zaharia, 2020) uses a "late interaction" mechanism that maintains per-token embeddings rather than compressing to a single vector:
 
-Since $G(q)$ resembles a document more than a query does, retrieval performance improves significantly.
+$$
+\text{score}(q, d) = \sum_{i=1}^{|q|} \max_{j=1}^{|d|} \mathbf{q}_i^\top \mathbf{d}_j
+$$
 
-**Query decomposition.** Complex queries are decomposed into sub-queries, each retrieving different information:
+This MaxSim operation captures fine-grained token-level matching while still allowing precomputation of document embeddings. ColBERTv2 (Santhanam et al., 2022) reduces storage costs via residual compression.
 
-$$q \to \{q_1, q_2, \ldots, q_m\}, \quad \mathcal{R}(q) = \bigcup_{i=1}^m \mathcal{R}(q_i)$$
+## Advanced RAG Architectures
 
-**Iterative retrieval.** For multi-hop reasoning, retrieve-generate-retrieve cycles allow the model to formulate follow-up queries based on intermediate results. IRCoT (Trivedi et al., 2023) interleaves chain-of-thought reasoning with retrieval.
+### Self-RAG
 
-**Reranking.** A cross-encoder reranker scores (query, document) pairs jointly, capturing fine-grained relevance that bi-encoders miss:
+Asai et al. (2023) introduced Self-RAG, which trains the language model to decide when retrieval is needed and to critically evaluate retrieved passages. The model generates special reflection tokens:
 
-$$\text{score}_\text{rerank}(q, d) = \text{CrossEncoder}([q; d])$$
+- **[Retrieve]:** Should I retrieve? (yes/no)
+- **[IsRel]:** Is this passage relevant? (relevant/irrelevant)
+- **[IsSup]:** Is the response supported by the passage? (fully/partially/no)
+- **[IsUse]:** Is the response useful? (score 1-5)
 
-Cross-encoders are too slow for initial retrieval (they can't pre-compute document embeddings) but effective for re-scoring the top-$k$ candidates.
+These tokens are trained via supervised learning on critic-annotated data, enabling the model to self-regulate its use of retrieval.
 
-## Failure Modes
+### Corrective RAG (CRAG)
 
-**Lost in the middle.** Liu et al. (2024) showed that language models pay disproportionate attention to information at the beginning and end of the context, often ignoring relevant information in the middle of long retrieved passages.
+Yan et al. (2024) add a lightweight "retrieval evaluator" that scores retrieved documents and takes corrective actions:
+- If confidence is high, refine by extracting key sentences
+- If confidence is low, trigger web search as a fallback
+- If ambiguous, combine both refined retrieval and web results
 
-**Retrieval noise.** Irrelevant retrieved documents can actively harm generation quality — the model may incorporate false information from noisy retrievals. Yoran et al. (2024) showed that training models to be robust to irrelevant context improves RAG reliability.
+### Adaptive Retrieval
 
-**Conflicting evidence.** When retrieved documents disagree, models tend to favor information appearing more frequently or earlier in the context, regardless of source reliability. Xie et al. (2024) studied this "knowledge conflict" problem.
+Not every query benefits from retrieval. Mallen et al. (2023) showed that for popular entities, LLMs already have accurate parametric knowledge and retrieval can hurt by introducing noise. Adaptive methods route queries to retrieval only when the model's parametric confidence is low, estimated via the entropy of the output distribution without retrieval:
 
-**Over-reliance.** RAG-augmented models may ignore their parametric knowledge even when it's correct and the retrieved context is wrong. Calibrating the balance between parametric and retrieved knowledge remains an open problem.
+$$
+H(Y \mid q) = -\sum_{y} P_\theta(y \mid q) \log P_\theta(y \mid q)
+$$
 
-## RAG vs. Long Context
+Retrieval is triggered when $H(Y \mid q) > \tau$ for a learned threshold $\tau$.
 
-As context windows expand (128K+ tokens), a natural question arises: can we simply stuff all documents into the context, eliminating the retrieval step?
+## Chunk Optimization
 
-Empirically, RAG with targeted retrieval often outperforms naive long-context approaches because:
-- Retrieval acts as a relevance filter, reducing noise
-- Vector search scales to millions of documents; context windows cannot
-- Cost scales with context length ($O(n^2)$ for attention)
+### Hypothetical Document Embeddings (HyDE)
 
-However, for small document collections (<100 pages), long-context approaches can be simpler and more effective (Xu et al., 2024).
+Gao et al. (2023) proposed a counterintuitive approach: instead of embedding the query directly, first ask the LLM to generate a hypothetical answer, then embed that. The rationale is that a hypothetical answer is more lexically and semantically similar to actual relevant documents than a short query is:
 
-## Training RAG Systems End-to-End
+$$
+\hat{d} = \text{LLM}(q), \quad \text{score}(q, d) = E(\hat{d})^\top E(d)
+$$
 
-**RETRO** (Borgeaud et al., 2022): integrates retrieval into the transformer architecture itself, with chunked cross-attention over retrieved neighbors. The retriever and generator are jointly trained.
+### Parent Document Retrieval
 
-**Atlas** (Izacard et al., 2023): jointly trains the retriever and generator, with the retriever receiving gradients through the generation loss via attention distillation:
+A common production pattern: embed small chunks for precise retrieval, but return the larger parent document for generation. This separates the granularity of retrieval (precise) from the granularity of context (comprehensive).
 
-$$\nabla_{\phi_\text{ret}} \mathcal{L} \approx \sum_{d \in \mathcal{R}(q)} \nabla_{\phi_\text{ret}} \text{score}(q, d) \cdot \left[\text{RAAP}(q, d)\right]$$
+## Scaling and Production Challenges
 
-where RAAP is the retriever-aware attention probability measuring each document's contribution to the correct answer.
+**Index freshness.** In production, documents change continuously. Incremental index updates, where new or modified documents are re-embedded and inserted without rebuilding the full index, are essential. FAISS supports this via `add()` and `remove_ids()` operations.
 
-**Self-RAG** (Asai et al., 2024): trains the model to decide *when* to retrieve, *what* to retrieve, and to critique its own use of retrieved information using special reflection tokens.
+**Latency.** Retrieval adds 50--200ms to generation latency. Techniques include: precomputation (embed the query during the first forward pass of the LLM), caching frequent queries, and using smaller embedding models with quantized indices.
 
-## Evaluation Challenges
+**Multi-hop reasoning.** Complex questions require chaining multiple retrieval steps. IRCoT (Trivedi et al., 2023) interleaves chain-of-thought reasoning with retrieval: the model generates a reasoning step, retrieves based on that step, then continues reasoning with the new evidence.
 
-Standard QA benchmarks don't capture RAG-specific failure modes. Open challenges:
-1. **Attribution accuracy**: can the model correctly cite which retrieved document supports each claim?
-2. **Robustness to adversarial documents**: can the system resist poisoned or misleading documents in the index?
-3. **Freshness**: when the knowledge base is updated, does the system correctly prefer new over outdated information?
+## Key References
 
-## Related Topics
-
-- [Embeddings](/wiki/embeddings) — the foundation of dense retrieval
-- [Fine-Tuning](/wiki/fine-tuning) — complementary approach to knowledge injection
-- [LoRA](/wiki/lora) — often combined with RAG for domain-specific models
-- [Attention](/wiki/attention) — the mechanism for incorporating retrieved context
+- Lewis, P., et al. (2020). Retrieval-augmented generation for knowledge-intensive NLP tasks. *NeurIPS*.
+- Karpukhin, V., et al. (2020). Dense passage retrieval for open-domain question answering. *EMNLP*.
+- Khattab, O., & Zaharia, M. (2020). ColBERT: Efficient and effective passage search via contextualized late interaction over BERT. *SIGIR*.
+- Asai, A., et al. (2023). Self-RAG: Learning to retrieve, generate, and critique through self-reflection. *ICLR*.
+- Gao, L., et al. (2023). Precise zero-shot dense retrieval without relevance labels. *ACL*.
+- Trivedi, H., et al. (2023). Interleaving retrieval with chain-of-thought reasoning for knowledge-intensive multi-step questions. *ACL*.
