@@ -1,4 +1,5 @@
 import { getDb, wikiPages, pageVersions, masteryPaths, masteryNodes } from "./index";
+import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import fs from "fs";
 import path from "path";
@@ -41,10 +42,7 @@ async function seed() {
     const versionId = randomUUID();
 
     // Check if page already exists
-    const existing = db.select().from(wikiPages).where(
-      // @ts-ignore
-      (row: any) => row.slug === slug
-    ).get();
+    const existing = db.select().from(wikiPages).where(eq(wikiPages.slug, slug)).get();
 
     if (existing) {
       console.log(`  Page "${slug}" already exists, skipping.`);

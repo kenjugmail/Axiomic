@@ -1,14 +1,14 @@
 import { lazy, Suspense } from "react";
 
-// Lazy-load visualizations
-const AttentionHeatmap = lazy(() => import("@axiomic/viz/src/components/AttentionHeatmap").then(m => ({ default: m.AttentionHeatmap })));
-const SoftmaxTemperature = lazy(() => import("@axiomic/viz/src/components/SoftmaxTemperature").then(m => ({ default: m.SoftmaxTemperature })));
-const PositionalEncoding = lazy(() => import("@axiomic/viz/src/components/PositionalEncoding").then(m => ({ default: m.PositionalEncoding })));
-const TokenizerPlayground = lazy(() => import("@axiomic/viz/src/components/TokenizerPlayground").then(m => ({ default: m.TokenizerPlayground })));
-const BeamSearchTree = lazy(() => import("@axiomic/viz/src/components/BeamSearchTree").then(m => ({ default: m.BeamSearchTree })));
-const LayerActivations = lazy(() => import("@axiomic/viz/src/components/LayerActivations").then(m => ({ default: m.LayerActivations })));
-const QKVStepThrough = lazy(() => import("@axiomic/viz/src/components/QKVStepThrough").then(m => ({ default: m.QKVStepThrough })));
-const EmbeddingExplorer = lazy(() => import("@axiomic/viz/src/components/EmbeddingExplorer").then(m => ({ default: m.EmbeddingExplorer })));
+// Lazy-load visualizations from the viz package source
+const AttentionHeatmap = lazy(() => import("../../../../packages/viz/src/components/AttentionHeatmap").then(m => ({ default: m.AttentionHeatmap })));
+const SoftmaxTemperature = lazy(() => import("../../../../packages/viz/src/components/SoftmaxTemperature").then(m => ({ default: m.SoftmaxTemperature })));
+const PositionalEncoding = lazy(() => import("../../../../packages/viz/src/components/PositionalEncoding").then(m => ({ default: m.PositionalEncoding })));
+const TokenizerPlayground = lazy(() => import("../../../../packages/viz/src/components/TokenizerPlayground").then(m => ({ default: m.TokenizerPlayground })));
+const BeamSearchTree = lazy(() => import("../../../../packages/viz/src/components/BeamSearchTree").then(m => ({ default: m.BeamSearchTree })));
+const LayerActivations = lazy(() => import("../../../../packages/viz/src/components/LayerActivations").then(m => ({ default: m.LayerActivations })));
+const QKVStepThrough = lazy(() => import("../../../../packages/viz/src/components/QKVStepThrough").then(m => ({ default: m.QKVStepThrough })));
+const EmbeddingExplorer = lazy(() => import("../../../../packages/viz/src/components/EmbeddingExplorer").then(m => ({ default: m.EmbeddingExplorer })));
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
   "attention-heatmap": AttentionHeatmap,
