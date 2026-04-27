@@ -6,6 +6,7 @@ import { TableOfContents } from "../components/TableOfContents";
 import { TierSwitcher } from "../components/TierSwitcher";
 import { AISidebar } from "../components/AISidebar";
 import { Comments } from "../components/Comments";
+import { FlashcardViewer } from "../components/FlashcardViewer";
 import { useAuthStore } from "../stores/auth";
 
 export function WikiPage() {
@@ -20,6 +21,7 @@ export function WikiPage() {
   const [error, setError] = useState("");
   const [showHistory, setShowHistory] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
+  const [flashcardsOpen, setFlashcardsOpen] = useState(false);
   const [relatedPages, setRelatedPages] = useState<WikiPageType[]>([]);
 
   useEffect(() => {
@@ -112,6 +114,15 @@ export function WikiPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                 </svg>
               </button>
+              <button
+                onClick={() => setFlashcardsOpen(true)}
+                className="p-2 rounded-lg border border-border hover:bg-accent transition-colors"
+                title="Flashcards"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+              </button>
             </div>
           </div>
 
@@ -172,6 +183,14 @@ export function WikiPage() {
         tier={tier}
         isOpen={aiOpen}
         onClose={() => setAiOpen(false)}
+      />
+
+      {/* Flashcard viewer */}
+      <FlashcardViewer
+        pageSlug={page.slug}
+        tier={tier}
+        isOpen={flashcardsOpen}
+        onClose={() => setFlashcardsOpen(false)}
       />
     </div>
   );
