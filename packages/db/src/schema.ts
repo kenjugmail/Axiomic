@@ -1,0 +1,100 @@
+import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
+import { sql } from "drizzle-orm";
+
+export const users = sqliteTable("users", {
+  id: text("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  displayName: text("display_name"),
+  bio: text("bio"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+export const sessions = sqliteTable("sessions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id),
+  expiresAt: text("expires_at").notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+export const wikiPages = sqliteTable("wiki_pages", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  category: text("category").notNull().default("uncategorized"),
+  currentVersion: integer("current_version").notNull().default(1),
+  createdBy: text("created_by").references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+export const pageVersions = sqliteTable("page_versions", {
+  id: text("id").primaryKey(),
+  pageId: text("page_id").notNull().references(() => wikiPages.id),
+  version: integer("version").notNull(),
+  contentIntro: text("content_intro").notNull(),
+  contentUndergrad: text("content_undergrad").notNull(),
+  contentGrad: text("content_grad").notNull(),
+  editedBy: text("edited_by").references(() => users.id),
+  editMessage: text("edit_message"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+export const comments = sqliteTable("comments", {
+  id: text("id").primaryKey(),
+  pageId: text("page_id").notNull().references(() => wikiPages.id),
+  parentId: text("parent_id"),
+  userId: text("user_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  editedAt: text("edited_at"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+export const commentEdits = sqliteTable("comment_edits", {
+  id: text("id").primaryKey(),
+  commentId: text("comment_id").notNull().references(() => comments.id),
+  previousContent: text("previous_content").notNull(),
+  editedAt: text("edited_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+export const votes = sqliteTable("votes", {
+  id: text("id").primaryKey(),
+  commentId: text("comment_id").notNull().references(() => comments.id),
+  userId: text("user_id").notNull().references(() => users.id),
+  value: integer("value").notNull(), // 1 or -1
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+export const masteryPaths = sqliteTable("mastery_paths", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+export const masteryNodes = sqliteTable("mastery_nodes", {
+  id: text("id").primaryKey(),
+  pathId: text("path_id").notNull().references(() => masteryPaths.id),
+  slug: text("slug").notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  order: integer("order").notNull(),
+  level: text("level").notNull(), // apprentice, practitioner, specialist, expert, researcher
+  pageIds: text("page_ids").notNull(), // JSON array of page IDs
+  prerequisiteNodeIds: text("prerequisite_node_ids").notNull().default("[]"), // JSON array
+  quizData: text("quiz_data"), // JSON: canned quiz questions for MockProvider
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+export const userProgress = sqliteTable("user_progress", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id),
+  nodeId: text("node_id").notNull().references(() => masteryNodes.id),
+  completed: integer("completed", { mode: "boolean" }).notNull().default(false),
+  quizScore: real("quiz_score"),
+  completedAt: text("completed_at"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+});

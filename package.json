@@ -1,0 +1,16 @@
+{
+  "name": "axiomic",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun run --filter '*' dev",
+    "build": "bun run --filter '*' build",
+    "test": "bun run --filter '*' test",
+    "db:migrate": "bun run --filter @axiomic/db migrate",
+    "db:seed": "bun run --filter @axiomic/db seed",
+    "setup": "bun install && bun run db:migrate && bun run db:seed"
+  }
+}

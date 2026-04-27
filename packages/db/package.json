@@ -1,0 +1,23 @@
+{
+  "name": "@axiomic/db",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "migrate": "bun run src/migrate.ts",
+    "seed": "bun run src/seed.ts",
+    "generate": "drizzle-kit generate",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.33.0"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.24.0",
+    "better-sqlite3": "^11.0.0",
+    "@types/better-sqlite3": "^7.6.0"
+  }
+}
