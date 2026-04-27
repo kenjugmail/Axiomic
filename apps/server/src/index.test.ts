@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeAll } from "bun:test";
+import { describe, test, expect } from "bun:test";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { auth } from "./routes/auth";
@@ -7,7 +7,6 @@ import { commentsRouter } from "./routes/comments";
 import { aiRouter } from "./routes/ai";
 import { mastery } from "./routes/mastery";
 
-// Build app directly for testing (no Bun.serve needed)
 const app = new Hono().basePath("/api/v1");
 app.use("*", cors());
 app.get("/health", (c) => c.json({ status: "ok" }));
@@ -22,6 +21,8 @@ function req(path: string, opts?: RequestInit): Promise<Response> {
   return app.fetch(new Request(`http://localhost/api/v1${path}`, opts));
 }
 
+const testId = Date.now().toString(36);
+
 describe("Health", () => {
   test("returns ok", async () => {
     const res = await req("/health");
@@ -32,17 +33,19 @@ describe("Health", () => {
 });
 
 describe("Auth", () => {
+  const email = `test_${testId}@example.com`;
+  const username = `user_${testId}`;
   let sessionCookie = "";
 
   test("signup creates user", async () => {
     const res = await req("/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: "integ", email: "integ@test.com", password: "testpass123" }),
+      body: JSON.stringify({ username, email, password: "testpass123" }),
     });
     expect(res.status).toBe(201);
     const data = await res.json() as any;
-    expect(data.user.username).toBe("integ");
+    expect(data.user.username).toBe(username);
     sessionCookie = res.headers.get("set-cookie") || "";
   });
 
@@ -50,7 +53,7 @@ describe("Auth", () => {
     const res = await req("/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: "integ2", email: "integ@test.com", password: "testpass123" }),
+      body: JSON.stringify({ username: `other_${testId}`, email, password: "testpass123" }),
     });
     expect(res.status).toBe(409);
   });
@@ -59,7 +62,7 @@ describe("Auth", () => {
     const res = await req("/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: "integ@test.com", password: "testpass123" }),
+      body: JSON.stringify({ email, password: "testpass123" }),
     });
     expect(res.status).toBe(200);
   });
@@ -68,7 +71,7 @@ describe("Auth", () => {
     const res = await req("/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: "integ@test.com", password: "wrong" }),
+      body: JSON.stringify({ email, password: "wrong" }),
     });
     expect(res.status).toBe(401);
   });
