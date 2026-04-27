@@ -6,6 +6,8 @@ import { LoginPage } from "./pages/LoginPage";
 import { SignupPage } from "./pages/SignupPage";
 import { WikiListPage } from "./pages/WikiListPage";
 import { WikiPage } from "./pages/WikiPage";
+import { MasteryListPage } from "./pages/MasteryListPage";
+import { MasteryPathPage } from "./pages/MasteryPathPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { useAuthStore } from "./stores/auth";
 
@@ -24,6 +26,8 @@ export function App() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/wiki" element={<WikiListPage />} />
         <Route path="/wiki/:slug" element={<WikiPage />} />
+        <Route path="/paths" element={<MasteryListPage />} />
+        <Route path="/paths/:slug" element={<MasteryPathPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
