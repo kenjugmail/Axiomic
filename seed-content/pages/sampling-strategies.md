@@ -3,296 +3,221 @@ title: Sampling Strategies
 category: decoding
 ---
 <!-- tier:intro -->
-
 # Sampling Strategies
 
-After a language model has been trained, how does it actually *generate* text? At each step, the model produces a probability distribution over all possible next tokens. The **sampling strategy** determines how we pick from that distribution. This choice dramatically affects the quality, creativity, and reliability of the output.
+When a language model generates text, it does not just pick one "correct" next word. Instead, it produces a probability distribution over its entire vocabulary -- maybe 50,000 or more possible next tokens. **Sampling strategies** are the methods used to choose which token to actually pick from that distribution.
 
-## Greedy Decoding -- Always Pick the Best
+## The Simplest Approaches
 
-The simplest approach: always choose the token with the highest probability.
+**Greedy decoding** always picks the single most probable token. It is fast and deterministic, but it produces bland, repetitive text. Imagine always ordering the most popular dish at every restaurant -- you would miss a lot of great food.
 
-```
-Model predicts: "the" (40%), "a" (25%), "my" (15%), ...
-Greedy picks:   "the"
-```
+**Pure random sampling** picks tokens according to their exact probabilities. If "the" has a 15% chance and "a" has a 10% chance, you would pick "the" 15% of the time and "a" 10% of the time. This produces diverse text, but it can also pick bizarre low-probability tokens that derail the output into nonsense.
 
-**Pros**: Deterministic, fast, often produces grammatically correct text.
-**Cons**: Boring and repetitive. Greedy decoding tends to get stuck in loops ("I think that I think that I think that...") because high-probability tokens keep reinforcing each other.
+## Temperature
 
-## Random (Pure) Sampling -- Roll the Dice
+[Temperature](/wiki/temperature) is like a dial that controls how "sharp" or "flat" the probability distribution is. Before sampling, each probability is adjusted by dividing the raw scores (logits) by a temperature value $T$.
 
-Pick the next token randomly according to the full probability distribution. A token with 40% probability gets chosen 40% of the time.
-
-**Pros**: High diversity, creative outputs.
-**Cons**: Too random. Low-probability tokens (like obscure words or nonsense) get picked sometimes, producing incoherent text.
-
-## Temperature -- Tuning the Randomness
-
-**Temperature** is a dial that controls how "sharp" or "flat" the probability distribution is:
-
-- **Temperature = 1.0**: Use the original probabilities (standard sampling)
-- **Temperature < 1.0**: Make the distribution sharper (high-probability tokens become even more likely). At temperature 0, this becomes greedy decoding.
-- **Temperature > 1.0**: Make the distribution flatter (more uniform, more random)
-
-Think of it like adjusting confidence: low temperature means the model is very confident in its top choice; high temperature means it's more open to alternatives.
-
-## Top-k Sampling -- Keep the Top Candidates
-
-Only consider the top $k$ most probable tokens, then sample from just those. If $k = 50$, the model picks from the 50 most likely next tokens (with probabilities renormalized to sum to 1).
-
-**The problem**: A fixed $k$ doesn't adapt. Sometimes only 2-3 tokens make sense (and $k=50$ includes nonsense). Other times, 200 tokens could all be reasonable (and $k=50$ is too restrictive).
-
-## Nucleus (Top-p) Sampling -- The Smart Cutoff
-
-Instead of a fixed number of tokens, keep the smallest set of tokens whose cumulative probability exceeds a threshold $p$. For example, with $p = 0.9$:
-
-1. Sort tokens by probability (highest first)
-2. Add tokens until their cumulative probability reaches 90%
-3. Sample from just those tokens
-
-This adapts naturally. When the model is confident (one token has 95% probability), the nucleus is just that one token. When the model is uncertain (many tokens around 5%), the nucleus includes many options.
-
-**Nucleus sampling (top-p)** is the default in most applications, typically with $p$ between 0.9 and 0.95.
-
-## Beam Search -- Exploring Multiple Paths
-
-Instead of committing to one token at a time, beam search maintains the top $b$ partial sequences (beams) at each step. It explores multiple possibilities in parallel and returns the highest-scoring complete sequence.
-
-**Used for**: Translation, summarization -- tasks where finding the single best output matters.
-**Not ideal for**: Creative writing, chatbots -- where diversity matters.
-
-## What Most Systems Use
-
-In practice, modern LLMs (ChatGPT, Claude, etc.) typically combine several strategies:
-- **Nucleus sampling** (top-p = 0.9-0.95) as the primary method
-- **Temperature** adjustment based on the task (lower for code, higher for creative writing)
-- Sometimes a **top-k** filter as well
-
-## Related Topics
-
-- [Masked Self-Attention](/wiki/masked-self-attention) -- the causal mechanism that enables autoregressive generation
-- [Training Objectives](/wiki/training-objectives) -- how models learn the distributions they sample from
-- [Tokens](/wiki/tokens) -- the units being sampled
-
-<!-- tier:undergrad -->
-
-# Sampling Strategies
-
-Given a trained autoregressive model that produces $P(x_t \mid x_{<t})$ at each step, the decoding strategy determines how sequences are constructed. This section formalizes the main approaches.
-
-## The Decoding Problem
-
-At each step $t$, the model outputs logits $\mathbf{z}_t \in \mathbb{R}^{|\mathcal{V}|}$. The probability distribution is:
-
-$$P(x_t = v \mid x_{<t}) = \frac{\exp(z_v / \tau)}{\sum_{v'} \exp(z_{v'} / \tau)}$$
-
-where $\tau$ is the temperature. Different decoding strategies apply transformations to this distribution before sampling.
-
-## Temperature Scaling
-
-Temperature $\tau$ rescales the logits before softmax:
-
-$$P_\tau(v) = \frac{\exp(z_v / \tau)}{\sum_{v'} \exp(z_{v'} / \tau)}$$
-
-- As $\tau \to 0^+$: $P_\tau$ approaches a one-hot distribution (greedy)
-- $\tau = 1$: Original distribution
-- As $\tau \to \infty$: $P_\tau$ approaches uniform distribution
-
-The entropy of the distribution is a monotonically increasing function of $\tau$:
-
-$$H(P_\tau) = -\sum_v P_\tau(v) \log P_\tau(v)$$
+- **Low temperature** (e.g., 0.2): The distribution becomes very peaked. The model almost always picks the most likely tokens. Output is focused but potentially boring.
+- **High temperature** (e.g., 1.5): The distribution flattens out. Less likely tokens get a bigger share. Output is creative but potentially incoherent.
+- **Temperature = 1.0**: The original distribution, unchanged.
 
 ## Top-k Sampling
 
-Define the set of top-$k$ tokens:
+[Top-k](/wiki/top-k-top-p) sampling restricts the choice to only the $k$ most probable tokens. If $k = 50$, the model considers only the top 50 candidates, redistributes their probabilities to sum to 1, and samples from that reduced set.
 
-$$\mathcal{V}^{(k)} = \{v : v \text{ is among the } k \text{ highest-probability tokens}\}$$
+The problem: a fixed $k$ does not adapt to the situation. Sometimes the model is very confident and only 3 tokens make sense. Other times, 500 tokens could reasonably come next. Using $k = 50$ in both cases either allows too many bad options or cuts off good ones.
 
-Sample from the truncated and renormalized distribution:
+## Top-p (Nucleus) Sampling
 
-$$P_{\text{top-}k}(v) = \begin{cases} P(v) / \sum_{v' \in \mathcal{V}^{(k)}} P(v') & \text{if } v \in \mathcal{V}^{(k)} \\ 0 & \text{otherwise} \end{cases}$$
+Top-p sampling (Holtzman et al., 2020) solves this by dynamically adjusting the candidate set. Instead of a fixed count, you set a probability threshold $p$ (e.g., 0.9). The model sorts tokens by probability and includes tokens from the top until their cumulative probability reaches $p$. If the model is confident, this might include only 5 tokens. If uncertain, it might include 500.
 
-## Nucleus (Top-p) Sampling
+## Min-p Sampling
 
-Holtzman et al. (2020) proposed top-p sampling. Define the nucleus as the smallest set $\mathcal{V}^{(p)}$ such that:
+Min-p is a newer strategy that sets a floor relative to the top token's probability. If the top token has probability 0.6 and you set min-p to 0.1, then any token with probability below $0.6 \times 0.1 = 0.06$ is excluded. This naturally adapts: when the model is confident, the floor is high and few tokens qualify; when uncertain, the floor is low and many tokens pass.
 
-$$\sum_{v \in \mathcal{V}^{(p)}} P(v) \geq p$$
+## Why This Matters
 
-where tokens are added in decreasing probability order. Sample from the renormalized distribution over $\mathcal{V}^{(p)}$.
+The choice of sampling strategy profoundly affects output quality. Too aggressive and you get repetitive, generic text. Too loose and you get incoherent ramblings. Modern systems typically combine temperature with either top-p or min-p, tuning these parameters for the application: lower temperature for code generation, higher for creative writing.
 
-The key advantage over top-k: the size of $\mathcal{V}^{(p)}$ adapts to the model's confidence. When the distribution is peaked, few tokens are included. When flat, many are included.
+<!-- tier:undergrad -->
+# Sampling Strategies
 
-## Beam Search
+## Framework
 
-Beam search maintains $b$ partial hypotheses. At each step:
+Given a language model with vocabulary $\mathcal{V}$, at each decoding step the model produces logits $z_i$ for each token $i \in \mathcal{V}$. A sampling strategy defines a procedure to select the next token $x_t$ from these logits.
 
-1. For each beam, compute scores for all vocabulary tokens
-2. From all $b \times |\mathcal{V}|$ candidates, keep the top $b$
-3. Continue until all beams produce an end-of-sequence token
+The base probability distribution is:
 
-The score of a sequence $\mathbf{y}$ of length $T$ is typically length-normalized:
+$$
+P(x_t = i \mid x_{<t}) = \text{softmax}(z)_i = \frac{e^{z_i}}{\sum_{j \in \mathcal{V}} e^{z_j}}
+$$
 
-$$\text{score}(\mathbf{y}) = \frac{1}{T^\alpha} \sum_{t=1}^{T} \log P(y_t \mid y_{<t})$$
+## Temperature Scaling
 
-where $\alpha \in [0, 1]$ is a length penalty (often $\alpha = 0.6$). Without length normalization, beam search strongly prefers short sequences.
+Temperature $T > 0$ rescales the logits before softmax:
 
-## Repetition Penalty
+$$
+P_T(x_t = i) = \frac{e^{z_i / T}}{\sum_{j} e^{z_j / T}}
+$$
 
-To combat the tendency toward repetitive text, a penalty is applied to tokens that have already appeared:
+As $T \to 0$, the distribution converges to a point mass on $\arg\max_i z_i$ (greedy). As $T \to \infty$, it approaches uniform. Temperature does not change the ranking of tokens, only the sharpness of the distribution.
 
-$$z'_v = \begin{cases} z_v / \theta & \text{if } v \in \{x_1, \ldots, x_{t-1}\} \text{ and } z_v > 0 \\ z_v \times \theta & \text{if } v \in \{x_1, \ldots, x_{t-1}\} \text{ and } z_v < 0 \end{cases}$$
+## Top-k Sampling (Fan et al., 2018)
 
-where $\theta > 1$ is the penalty factor. This penalizes positive logits (making already-seen tokens less likely) and amplifies negative logits.
+Let $\mathcal{V}^{(k)}$ be the set of $k$ tokens with the highest probabilities. Top-k sampling zeros out all tokens outside this set and renormalizes:
 
-**Frequency penalty** and **presence penalty** (used by OpenAI API) are additive variants:
-- Presence penalty: $z'_v = z_v - \alpha \cdot \mathbb{1}[v \in \{x_{<t}\}]$
-- Frequency penalty: $z'_v = z_v - \alpha \cdot \text{count}(v, x_{<t})$
+$$
+P_{\text{top-}k}(x_t = i) = \begin{cases} \frac{P(x_t = i)}{\sum_{j \in \mathcal{V}^{(k)}} P(x_t = j)} & \text{if } i \in \mathcal{V}^{(k)} \\ 0 & \text{otherwise} \end{cases}
+$$
 
-## Implementation
+## Nucleus (Top-p) Sampling (Holtzman et al., 2020)
+
+Define the nucleus $\mathcal{V}^{(p)}$ as the smallest set such that:
+
+$$
+\sum_{i \in \mathcal{V}^{(p)}} P(x_t = i) \geq p
+$$
+
+where tokens are added in decreasing probability order. Sampling proceeds from the renormalized distribution over $\mathcal{V}^{(p)}$.
+
+## Min-p Sampling
+
+Given a threshold $\delta \in [0, 1]$ and the maximum probability $p_{\max} = \max_i P(x_t = i)$, the candidate set is:
+
+$$
+\mathcal{V}^{(\text{min-}p)} = \{ i \in \mathcal{V} : P(x_t = i) \geq \delta \cdot p_{\max} \}
+$$
+
+## Implementation in PyTorch
 
 ```python
 import torch
 import torch.nn.functional as F
 
-def sample_next_token(logits: torch.Tensor, temperature: float = 1.0,
-                      top_k: int = 0, top_p: float = 1.0) -> int:
-    """Sample a token from logits with temperature, top-k, and top-p."""
+def sample_with_strategies(
+    logits: torch.Tensor,       # (vocab_size,)
+    temperature: float = 1.0,
+    top_k: int = 0,
+    top_p: float = 1.0,
+    min_p: float = 0.0,
+) -> int:
     # Temperature scaling
     if temperature != 1.0:
         logits = logits / temperature
 
+    probs = F.softmax(logits, dim=-1)
+
+    # Min-p filtering
+    if min_p > 0.0:
+        p_max = probs.max()
+        min_p_threshold = p_max * min_p
+        probs[probs < min_p_threshold] = 0.0
+
     # Top-k filtering
     if top_k > 0:
-        top_k_values, _ = torch.topk(logits, top_k)
-        threshold = top_k_values[-1]
-        logits[logits < threshold] = float('-inf')
+        topk_vals, _ = torch.topk(probs, min(top_k, probs.size(-1)))
+        probs[probs < topk_vals[-1]] = 0.0
 
     # Top-p (nucleus) filtering
     if top_p < 1.0:
-        sorted_logits, sorted_indices = torch.sort(logits, descending=True)
-        cumulative_probs = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
+        sorted_probs, sorted_indices = torch.sort(probs, descending=True)
+        cumulative = torch.cumsum(sorted_probs, dim=-1)
+        # Remove tokens with cumulative prob above threshold
+        mask = cumulative - sorted_probs > top_p
+        sorted_probs[mask] = 0.0
+        # Scatter back
+        probs = torch.zeros_like(probs).scatter(-1, sorted_indices, sorted_probs)
 
-        # Remove tokens with cumulative probability above the threshold
-        sorted_indices_to_remove = cumulative_probs > top_p
-        # Keep at least one token
-        sorted_indices_to_remove[0] = False
-        # Shift right to keep the first token above threshold
-        sorted_indices_to_remove[1:] = sorted_indices_to_remove[:-1].clone()
-        sorted_indices_to_remove[0] = False
-
-        indices_to_remove = sorted_indices[sorted_indices_to_remove]
-        logits[indices_to_remove] = float('-inf')
-
-    # Sample
-    probs = F.softmax(logits, dim=-1)
+    # Renormalize and sample
+    probs = probs / probs.sum()
     return torch.multinomial(probs, num_samples=1).item()
 ```
 
-## Comparing Strategies
+## Repetition Penalty
 
-| Strategy | Deterministic? | Diversity | Quality | Speed |
-|---|---|---|---|---|
-| Greedy | Yes | Very low | Medium | Fast |
-| Beam search ($b$=5) | ~Yes | Low | High (for specific tasks) | 5x slower |
-| Top-k ($k$=50) | No | Medium | Medium-High | Fast |
-| Top-p ($p$=0.9) | No | Adaptive | High | Fast |
-| Temperature ($\tau$=0.7) + top-p | No | Tunable | High | Fast |
+Keskar et al. (2019) introduced a multiplicative penalty applied to tokens that have already appeared in the generated text. For previously generated token $i$:
 
-## Related Topics
+$$
+z_i' = \begin{cases} z_i / \theta & \text{if } z_i > 0 \\ z_i \cdot \theta & \text{if } z_i \leq 0 \end{cases}
+$$
 
-- [Masked Self-Attention](/wiki/masked-self-attention) -- the causal attention enabling autoregressive decoding
-- [Training Objectives](/wiki/training-objectives) -- how the model learned the distribution it samples from
-- [BPE Tokenization](/wiki/bpe-tokenization) -- the token vocabulary being sampled from
+where $\theta > 1$ is the penalty factor. This discourages repetition without forbidding it outright.
+
+## Typical Sampling (Meister et al., 2023)
+
+Rather than selecting the most probable tokens, typical sampling selects tokens whose information content (negative log-probability) is close to the expected information content (entropy):
+
+$$
+\mathcal{V}^{(\tau)} = \{ i : | -\log P(x_t = i) - H(X_t) | \leq \tau \}
+$$
+
+This filters out both overly predictable tokens and highly surprising ones.
 
 <!-- tier:grad -->
-
 # Sampling Strategies
 
-Decoding from autoregressive models remains an active research area with connections to information theory, search algorithms, and cognitive science.
+## Information-Theoretic Analysis
 
-## The Decoding Gap
+Meister et al. (2023) frame decoding through the lens of information theory. A "typical set" $A_\epsilon^{(n)}$ is the set of sequences whose per-token log-probability is within $\epsilon$ of the entropy rate $h$:
 
-A fundamental observation: the highest-probability sequence under the model is often *not* the best output. Holtzman et al. (2020, "The Curious Case of Neural Text Degeneration") showed that:
+$$
+A_\epsilon^{(n)} = \left\{ x^n : \left| -\frac{1}{n} \log P(x^n) - h \right| < \epsilon \right\}
+$$
 
-1. **Exact most-likely sequences are degenerate**: The global MAP (maximum a posteriori) sequence tends to be short, repetitive, and dull.
-2. **Human text is not maximum-probability text**: The probability that humans assign to their own text (measured by model perplexity) is much lower than the maximum achievable probability. Humans operate in a "sweet spot" of the probability distribution -- not too likely (boring) and not too unlikely (incoherent).
+By the asymptotic equipartition property, $P(A_\epsilon^{(n)}) \to 1$ as $n \to \infty$. Greedy decoding systematically selects sequences outside the typical set (their per-token log-probability is too low, i.e., they are too "certain"). This explains why greedy outputs feel repetitive and generic: they are atypical under the model's own distribution.
 
-This "likelihood trap" suggests that good decoding requires staying in a high-probability region without maximizing probability. Top-p sampling achieves this by truncating the low-probability tail.
-
-## Typical Sampling
-
-Meister et al. (2023) proposed **typical sampling** based on information theory. Instead of selecting high-probability tokens, select tokens whose information content (surprisal) is close to the expected information content (entropy):
-
-$$\mathcal{V}_\epsilon = \{v : |{-\log P(v \mid x_{<t})} - H(P(\cdot \mid x_{<t}))| < \epsilon\}$$
-
-Intuitively: sample tokens that are neither too surprising nor too predictable. Typical sampling is grounded in the **Asymptotic Equipartition Property (AEP)**: for long sequences, typical sequences all have roughly the same probability, and this set contains almost all the probability mass.
-
-Empirical results show typical sampling produces text with statistical properties closer to human text than top-p sampling, particularly in terms of token-level entropy and burstiness.
+Holtzman et al. (2020) demonstrated this empirically, showing that human-generated text has higher per-token surprisal than greedy-decoded text from the same model -- humans write in the typical set, greedy decoding does not.
 
 ## Speculative Decoding
 
-Leviathan et al. (2023) and Chen et al. (2023) independently proposed **speculative decoding** to accelerate generation without changing the output distribution.
+Leviathan et al. (2023) and Chen et al. (2023) introduced speculative decoding, which accelerates sampling from large models without changing the output distribution. A small "draft" model $M_q$ generates $K$ candidate tokens autoregressively, and the large "target" model $M_p$ verifies them in parallel:
 
-**Algorithm**:
-1. A small draft model $M_q$ generates $K$ candidate tokens: $\tilde{x}_1, \ldots, \tilde{x}_K$
-2. The large target model $M_p$ scores all $K$ tokens in a single forward pass
-3. Accept $\tilde{x}_i$ with probability $\min(1, P_p(\tilde{x}_i) / P_q(\tilde{x}_i))$
-4. On first rejection at position $i$, resample from $\max(0, P_p - P_q)$ and discard $\tilde{x}_{i+1}, \ldots, \tilde{x}_K$
+For each candidate token $x_t$ with draft probability $q(x_t)$ and target probability $p(x_t)$:
+- Accept with probability $\min(1, p(x_t)/q(x_t))$
+- On rejection, sample a correction token from the residual distribution:
 
-**Key theorem**: The output distribution of speculative decoding is identical to sampling from $M_p$. The speedup comes from generating $K$ tokens with one large-model forward pass instead of $K$ forward passes.
+$$
+p'(x) = \frac{\max(0, p(x) - q(x))}{\sum_{x'} \max(0, p(x') - q(x'))}
+$$
 
-Expected acceptance length: $\mathbb{E}[\text{accepted}] = \sum_{i=1}^{K} \prod_{j=1}^{i} (1 - D_{\text{TV}}(P_p^{(j)}, P_q^{(j)}))$, where $D_{\text{TV}}$ is the total variation distance. Speedup is higher when the draft model closely approximates the target model.
+This guarantees that the final output is distributed exactly as $p$, while achieving a speedup proportional to the acceptance rate. With a well-matched draft model, acceptance rates of 70--90% are typical, yielding 2--3x wall-clock speedups.
+
+## Structured and Constrained Decoding
+
+For applications requiring structured output (JSON, code, SQL), sampling must respect grammatical constraints. Willard & Louf (2023) showed that context-free grammar constraints can be enforced during sampling by maintaining a parser state and masking logits for tokens that would lead to invalid parse states. At each step:
+
+$$
+P_{\text{constrained}}(x_t = i) \propto P(x_t = i) \cdot \mathbb{1}[i \in \text{Valid}(s_t)]
+$$
+
+where $s_t$ is the current parser state and $\text{Valid}(s_t)$ returns the set of tokens that can extend the current partial parse.
 
 ## Contrastive Decoding
 
-Li et al. (2023) proposed **contrastive decoding**: use the difference between a large (expert) model and a small (amateur) model to identify tokens that reflect the expert's unique capabilities:
+Li et al. (2023) proposed contrastive decoding, which exploits the observation that undesirable behaviors (repetition, incoherence) are amplified in smaller models. The score for each token is:
 
-$$\text{score}(v) = \log P_{\text{expert}}(v) - \log P_{\text{amateur}}(v)$$
+$$
+\text{CD}(x_t) = \log P_{\text{expert}}(x_t) - \log P_{\text{amateur}}(x_t)
+$$
 
-Subject to the constraint that $v$ must be in the expert's top-$p$ nucleus. This amplifies tokens that the large model prefers but the small model doesn't, which tend to be more factual, coherent, and sophisticated.
+subject to a plausibility constraint $P_{\text{expert}}(x_t) \geq \alpha \cdot \max_{x} P_{\text{expert}}(x)$. This amplifies behaviors that distinguish the expert model from the amateur, which tend to be the desirable ones (coherence, factuality).
 
-The information-theoretic interpretation: contrastive decoding approximates the **pointwise mutual information** between the token and the model's additional capacity:
+## Sampling Under Alignment
 
-$$\text{PMI}(v; \text{expert vs amateur}) \approx \log \frac{P_{\text{expert}}(v)}{P_{\text{amateur}}(v)}$$
+RLHF-trained models have already had their distributions shifted toward human preferences, which interacts with sampling parameters. Mudgal et al. (2024) showed that best-of-$n$ sampling -- generating $n$ candidates and selecting the one scored highest by a reward model -- can approximate the RLHF-optimal policy:
 
-## Minimum Bayes Risk (MBR) Decoding
+$$
+\pi^*(x) \propto \pi_{\text{ref}}(x) \cdot \exp\left(\frac{r(x)}{\beta}\right)
+$$
 
-MBR decoding selects the output that minimizes the expected loss under the model's distribution:
+Best-of-$n$ converges to this distribution as $n \to \infty$, providing an inference-time alternative to fine-tuning.
 
-$$\hat{\mathbf{y}} = \arg\min_{\mathbf{y} \in \mathcal{C}} \mathbb{E}_{\mathbf{y}' \sim P(\cdot | \mathbf{x})} [\mathcal{L}(\mathbf{y}, \mathbf{y}')]$$
+## Key References
 
-In practice, approximate MBR:
-1. Sample $N$ candidates from the model
-2. Score each candidate against all others using a utility function (e.g., BLEURT, COMET for translation)
-3. Select the candidate with the highest average utility
-
-MBR decoding is the standard in machine translation competitions and consistently outperforms beam search. The key insight: beam search maximizes model probability, but MBR maximizes expected quality under the model's uncertainty.
-
-## Guided and Constrained Decoding
-
-**Classifier-free guidance** (adapted from diffusion models): Interpolate between conditional and unconditional generations:
-
-$$\tilde{z}_v = z_v^{\text{cond}} + \gamma (z_v^{\text{cond}} - z_v^{\text{uncond}})$$
-
-where $\gamma > 1$ amplifies the effect of the conditioning. This can be applied to LLMs by treating the system prompt as the conditioning signal.
-
-**Grammar-constrained decoding**: Restrict outputs to valid strings in a formal grammar (e.g., JSON, SQL, Python). At each step, mask logits for tokens that would make the partial output inconsistent with the grammar. This is implemented via finite-state automata or pushdown automata tracking the parser state.
-
-**LMQL** (Beurer-Kellner et al., 2023): A query language for constrained LLM decoding that combines natural language generation with constraints (type checking, regex matching, length limits) applied at decode time.
-
-## Parallel and Non-Autoregressive Decoding
-
-The sequential nature of autoregressive decoding is a fundamental bottleneck. Alternatives:
-
-**Jacobi decoding** (Santilli et al., 2023): Initialize all positions randomly, then iteratively apply the model in parallel. Converges to the same fixed point as autoregressive decoding for deterministic (greedy) decoding.
-
-**Medusa** (Cai et al., 2024): Add multiple prediction heads to predict tokens 1, 2, ..., $k$ steps ahead. Verify candidate continuations using tree attention. Achieves 2-3x speedup.
-
-**Lookahead decoding** (Fu et al., 2024): Maintain a pool of n-gram candidates generated by the model's own drafts. Verify multiple n-grams in parallel using tree-structured attention masks.
-
-## Related Topics
-
-- [Masked Self-Attention](/wiki/masked-self-attention) -- the attention pattern enabling autoregressive generation
-- [Training Objectives](/wiki/training-objectives) -- the objectives that shape the distribution being decoded
-- [Efficiency](/wiki/efficiency) -- hardware considerations for decoding optimization
+- Fan, A., Lewis, M., & Dauphin, Y. (2018). Hierarchical neural story generation. *ACL*.
+- Holtzman, A., et al. (2020). The curious case of neural text degeneration. *ICLR*.
+- Keskar, N. S., et al. (2019). CTRL: A conditional transformer language model with controllable generation. *arXiv:1909.05858*.
+- Leviathan, Y., et al. (2023). Fast inference from transformers via speculative decoding. *ICML*.
+- Li, X. L., et al. (2023). Contrastive decoding: Open-ended text generation as optimization. *ACL*.
+- Meister, C., et al. (2023). Locally typical sampling. *TACL*.
+- Willard, B. T., & Louf, R. (2023). Efficient guided generation for large language models. *arXiv:2307.09702*.

@@ -33,9 +33,10 @@ export class MockProvider implements AIProvider {
     const response = this.findResponse(pageSlug, lastUserMessage, tier);
 
     // Stream character by character with realistic delay
+    const delay = process.env.NODE_ENV === "test" ? 0 : 15 + Math.random() * 10;
     for (const char of response) {
       opts.onToken(char);
-      await sleep(15 + Math.random() * 10);
+      if (delay > 0) await sleep(delay);
     }
   }
 
