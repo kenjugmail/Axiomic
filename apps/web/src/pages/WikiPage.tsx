@@ -6,9 +6,11 @@ import { TableOfContents } from "../components/TableOfContents";
 import { TierSwitcher } from "../components/TierSwitcher";
 import { AISidebar } from "../components/AISidebar";
 import { Comments } from "../components/Comments";
+import { useAuthStore } from "../stores/auth";
 
 export function WikiPage() {
   const { slug } = useParams<{ slug: string }>();
+  const user = useAuthStore((s) => s.user);
   const [page, setPage] = useState<WikiPageType | null>(null);
   const [content, setContent] = useState("");
   const [allContent, setAllContent] = useState<Record<string, string>>({});
@@ -88,6 +90,17 @@ export function WikiPage() {
             </div>
             <div className="flex items-center gap-3 shrink-0">
               <TierSwitcher tier={tier} onTierChange={handleTierChange} />
+              {user && (
+                <Link
+                  to={`/wiki/${slug}/edit`}
+                  className="p-2 rounded-lg border border-border hover:bg-accent transition-colors"
+                  title="Edit page"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </Link>
+              )}
               <button
                 onClick={() => setAiOpen(!aiOpen)}
                 className={`p-2 rounded-lg border transition-colors ${
