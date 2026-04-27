@@ -1,0 +1,14 @@
+[
+  {
+    "keywords": ["explain", "what is", "describe", "tell me", "how"],
+    "intro": "**Positional encoding** solves a critical problem: transformers process all tokens simultaneously (in parallel), which means they have no built-in sense of word order.\n\nThink about it — the sentence \"dog bites man\" and \"man bites dog\" would look identical to a transformer without positional information, because it processes all words at the same time.\n\nPositional encoding adds a unique \"position stamp\" to each token's embedding. The original Transformer paper used sine and cosine waves at different frequencies — each position gets a unique pattern of values that the model can learn to interpret.\n\nTry the interactive visualization above to see how different positions and dimensions create unique patterns!",
+    "undergrad": "The sinusoidal positional encoding from Vaswani et al. (2017) is defined as:\n\n$$PE_{(pos, 2i)} = \\sin\\left(\\frac{pos}{10000^{2i/d}}\\right)$$\n$$PE_{(pos, 2i+1)} = \\cos\\left(\\frac{pos}{10000^{2i/d}}\\right)$$\n\nKey properties:\n1. Each position has a unique encoding\n2. Bounded in [-1, 1]\n3. For fixed offset k, PE(pos+k) is a linear function of PE(pos)\n\nModern models often use learned positional embeddings or RoPE instead.",
+    "grad": "The evolution of positional encoding reflects deep questions about injecting sequential structure into permutation-equivariant architectures.\n\nRoPE (Su et al., 2024) rotates query and key vectors by position-dependent angles. ALiBi (Press et al., 2022) subtracts position-dependent biases from attention scores.\n\nLength extrapolation remains active research: position interpolation, NTK-aware scaling, YaRN."
+  },
+  {
+    "keywords": ["quiz", "test"],
+    "intro": "Let's test your understanding!\n\nQ1: Why can't a transformer tell \"dog bites man\" from \"man bites dog\" without positional encoding?\n\nQ2: What mathematical functions are used in sinusoidal positional encoding?\n\nQ3: True or false: every position gets a random encoding.",
+    "undergrad": "Q1: Write out PE for position 0 when d=4.\nQ2: Show PE(pos+k) is linear in PE(pos).\nQ3: Compare learned vs sinusoidal PEs.",
+    "grad": "Q1: Explain how RoPE encodes relative position.\nQ2: Why does NTK-aware scaling work better than linear interpolation?"
+  }
+]

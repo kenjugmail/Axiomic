@@ -6,7 +6,9 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "bun run --filter '*' dev",
+    "dev": "bun run --filter '@axiomic/server' dev & bun run --filter '@axiomic/web' dev & wait",
+    "dev:server": "bun run --filter '@axiomic/server' dev",
+    "dev:web": "bun run --filter '@axiomic/web' dev",
     "build": "bun run --filter '*' build",
     "test": "bun run --filter '*' test",
     "db:migrate": "bun run --filter @axiomic/db migrate",

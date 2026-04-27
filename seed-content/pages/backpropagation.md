@@ -1,244 +1,226 @@
 ---
 title: Backpropagation
-category: fundamentals
+category: training
 ---
 <!-- tier:intro -->
-
 # Backpropagation
 
-Every time a language model learns — whether during initial training or fine-tuning — it needs a way to figure out how to adjust its billions of parameters to make better predictions. **Backpropagation** (short for "backward propagation of errors") is the algorithm that does exactly this.
+Training a neural network means adjusting millions (or billions) of parameters so the network's outputs get closer to what we want. But how does the network know which parameters to change, and by how much? The answer is **backpropagation**, short for "backward propagation of errors."
 
-## The Learning Loop
+## The Core Idea
 
-Training works in a repeating cycle:
+Think of a neural network as a long chain of calculations. Data flows in at one end, gets transformed layer by layer, and produces an output at the other end. We compare that output to the desired answer using a **loss function** -- a single number that measures how wrong the network is. A loss of zero means perfect; higher means worse.
 
-1. **Forward pass.** The model processes an input and makes a prediction.
-2. **Compute the loss.** Compare the prediction to the correct answer using a mathematical formula (the "loss function"). A bigger loss means a worse prediction.
-3. **Backward pass (backpropagation).** Trace backward through every computation the model performed, calculating how much each parameter contributed to the error.
-4. **Update.** Adjust each parameter a tiny bit in the direction that reduces the error.
+The goal of training is to minimize this loss. To do that, we need to know: if I nudge each parameter a tiny bit, does the loss go up or down? This information is called the **gradient** -- it is the slope of the loss with respect to each parameter.
 
-Backpropagation is step 3 — the part where the model figures out *which* parameters to change and *by how much*.
+Backpropagation computes these gradients efficiently using the **chain rule** from calculus. The chain rule says that if you have a chain of functions (which is exactly what a neural network is), the overall rate of change is the product of the individual rates of change at each step.
 
-## The Chain Rule: The Key Insight
+## Forward and Backward
 
-Backpropagation relies on a mathematical principle called the **chain rule**. Here's the intuition:
+Training works in two phases:
 
-Suppose changing Parameter A by a little bit changes Intermediate Value B by some amount, and changing B changes the Final Error by some amount. Then we can figure out how Parameter A affects the Final Error by multiplying these two effects together.
+1. **Forward pass.** Input data flows through the network layer by layer, producing an output and a loss value. Along the way, we save intermediate results (like the output of each layer) because we will need them in the next phase.
 
-A neural network is just a long chain of such steps — input flows through many layers, each transforming the data. The chain rule lets us efficiently propagate the error signal backward through this entire chain.
+2. **Backward pass.** Starting from the loss, we work backward through the network. At each layer, we compute how much that layer's parameters contributed to the error, using the saved intermediate values and the chain rule. Each layer passes the gradient back to the previous layer, like a chain of dominoes falling in reverse.
 
-## Why "Backward"?
+## A Simple Example
 
-The key word is **efficiency**. To compute how every parameter affects the output, you could change each one individually and re-run the model — but with billions of parameters, that would take billions of forward passes. Backpropagation does it in just *one* backward pass, by reusing intermediate computations as it moves from the output back toward the input.
+Suppose a tiny network computes $y = w_2 \cdot \text{ReLU}(w_1 \cdot x)$. The chain of operations is: multiply by $w_1$, apply ReLU, multiply by $w_2$. If the output is too high, backpropagation figures out: was it because $w_2$ is too big? Or because $w_1$ made the intermediate value too large? Or both? It assigns blame proportionally by tracing back through the chain.
 
-## What Gets Computed: Gradients
+## Why It Matters
 
-The result of backpropagation is a **gradient** for each parameter — a number that says "if you increase this parameter slightly, the loss will increase/decrease by this much." The optimizer then nudges parameters in the opposite direction of the gradient (to decrease the loss).
+Before backpropagation became practical (Rumelhart, Hinton & Williams, 1986), there was no efficient way to train networks with more than one or two layers. Backpropagation made deep learning possible by providing a way to compute gradients for every parameter in a network, no matter how many layers it has, in roughly the same time as a single forward pass.
 
-## Backpropagation in Transformers
+Every modern neural network -- from image classifiers to GPT -- is trained using backpropagation. It is arguably the single most important algorithm in all of deep learning.
 
-In a transformer, backpropagation flows backward through:
-- The output layer (where predictions are made)
-- Layer normalization
-- Feed-forward networks (MLP blocks)
-- Attention mechanisms (through the softmax and the Q, K, V projections)
-- The embedding layer
+## Gradient Descent
 
-Every one of these components receives gradients, enabling the whole model to learn together.
-
-## Related Topics
-
-- [Attention](/wiki/attention) — one of the key operations that backpropagation flows through
-- [Tokens](/wiki/tokens) — the inputs that start the forward pass
-- [Fine-Tuning](/wiki/fine-tuning) — applies backpropagation to a pretrained model
-- [LoRA](/wiki/lora) — limits which parameters receive gradient updates
+Once backpropagation has computed the gradients, the network updates its parameters by taking a small step in the direction that reduces the loss. This process -- compute gradients, take a step, repeat -- is called **gradient descent**. The size of each step is controlled by the **learning rate**, a crucial hyperparameter that must be carefully tuned.
 
 <!-- tier:undergrad -->
-
 # Backpropagation
 
-Backpropagation computes the gradient of a scalar loss function with respect to all model parameters via recursive application of the chain rule on a computational graph. This section formalizes the algorithm and applies it to transformer components.
+## Mathematical Foundation
 
-## The Computational Graph
+Consider a neural network as a composition of functions $f = f_L \circ f_{L-1} \circ \cdots \circ f_1$, where each $f_l$ is parameterized by weights $W_l$. Given input $\mathbf{x}$ and target $\mathbf{y}$, the loss is:
 
-A neural network defines a directed acyclic graph (DAG) where:
-- Leaf nodes are inputs and parameters
-- Internal nodes are operations (matrix multiply, softmax, ReLU, etc.)
-- The root node is the scalar loss $\mathcal{L}$
+$$
+\mathcal{L} = \ell(\hat{\mathbf{y}}, \mathbf{y}), \quad \hat{\mathbf{y}} = f(\mathbf{x})
+$$
 
-For any parameter $\theta$ and loss $\mathcal{L}$, the gradient $\frac{\partial \mathcal{L}}{\partial \theta}$ can be computed by accumulating gradients along all paths from $\theta$ to $\mathcal{L}$ in the graph.
+Backpropagation computes $\frac{\partial \mathcal{L}}{\partial W_l}$ for all $l$ via the chain rule.
 
-## The Chain Rule in Vector Calculus
+## Forward Pass
 
-For a composition $\mathcal{L} = f(g(\theta))$ where $g: \mathbb{R}^n \to \mathbb{R}^m$ and $f: \mathbb{R}^m \to \mathbb{R}$:
+Denote the output of layer $l$ as $\mathbf{h}_l$, with $\mathbf{h}_0 = \mathbf{x}$:
 
-$$\frac{\partial \mathcal{L}}{\partial \theta} = \frac{\partial f}{\partial g} \cdot \frac{\partial g}{\partial \theta} = \mathbf{J}_g^\top \nabla_g f$$
+$$
+\mathbf{a}_l = W_l \mathbf{h}_{l-1} + \mathbf{b}_l \quad \text{(pre-activation)}
+$$
+$$
+\mathbf{h}_l = g_l(\mathbf{a}_l) \quad \text{(activation)}
+$$
 
-where $\mathbf{J}_g \in \mathbb{R}^{m \times n}$ is the Jacobian of $g$. Backpropagation computes **vector-Jacobian products** (VJPs) from output to input, which is efficient because the output is scalar (loss) and we want gradients for all inputs.
+where $g_l$ is the activation function (ReLU, GELU, etc.).
 
-## Gradients Through Transformer Components
+## Backward Pass
 
-### Linear Layer
+Define $\boldsymbol{\delta}_l = \frac{\partial \mathcal{L}}{\partial \mathbf{a}_l}$ as the error signal at layer $l$. Starting from the output layer:
 
-For $\mathbf{Y} = \mathbf{X}\mathbf{W}^\top + \mathbf{b}$ where $\mathbf{X} \in \mathbb{R}^{n \times d_\text{in}}$, $\mathbf{W} \in \mathbb{R}^{d_\text{out} \times d_\text{in}}$:
+$$
+\boldsymbol{\delta}_L = \frac{\partial \mathcal{L}}{\partial \hat{\mathbf{y}}} \odot g_L'(\mathbf{a}_L)
+$$
 
-$$\frac{\partial \mathcal{L}}{\partial \mathbf{W}} = \left(\frac{\partial \mathcal{L}}{\partial \mathbf{Y}}\right)^\top \mathbf{X}, \quad \frac{\partial \mathcal{L}}{\partial \mathbf{X}} = \frac{\partial \mathcal{L}}{\partial \mathbf{Y}} \mathbf{W}$$
+For each layer $l = L-1, \ldots, 1$, the recursion is:
 
-### Softmax
+$$
+\boldsymbol{\delta}_l = (W_{l+1}^\top \boldsymbol{\delta}_{l+1}) \odot g_l'(\mathbf{a}_l)
+$$
 
-For $\mathbf{p} = \text{softmax}(\mathbf{z})$, the Jacobian is:
+The parameter gradients are:
 
-$$\frac{\partial p_i}{\partial z_j} = p_i(\delta_{ij} - p_j)$$
+$$
+\frac{\partial \mathcal{L}}{\partial W_l} = \boldsymbol{\delta}_l \mathbf{h}_{l-1}^\top, \quad \frac{\partial \mathcal{L}}{\partial \mathbf{b}_l} = \boldsymbol{\delta}_l
+$$
 
-The VJP is: $\frac{\partial \mathcal{L}}{\partial z_i} = p_i\left(\frac{\partial \mathcal{L}}{\partial p_i} - \sum_k p_k \frac{\partial \mathcal{L}}{\partial p_k}\right)$
+## Computational Complexity
 
-### Attention
+The backward pass requires approximately 2x the FLOPs of the forward pass (one matrix-vector product for the gradient w.r.t. the input, another for the gradient w.r.t. the weights). Total training cost per sample is ~3x forward pass cost. Memory is $O(\sum_l |\mathbf{h}_l|)$ for storing activations.
 
-For single-head attention $\mathbf{O} = \text{softmax}\!\left(\frac{\mathbf{Q}\mathbf{K}^\top}{\sqrt{d_k}}\right)\mathbf{V}$, let $\mathbf{A} = \text{softmax}\!\left(\frac{\mathbf{Q}\mathbf{K}^\top}{\sqrt{d_k}}\right)$. Then:
+## Implementation with Autograd
 
-$$\frac{\partial \mathcal{L}}{\partial \mathbf{V}} = \mathbf{A}^\top \frac{\partial \mathcal{L}}{\partial \mathbf{O}}$$
-
-$$\frac{\partial \mathcal{L}}{\partial \mathbf{A}} = \frac{\partial \mathcal{L}}{\partial \mathbf{O}} \mathbf{V}^\top$$
-
-The gradient through the softmax and scaled dot product then gives $\frac{\partial \mathcal{L}}{\partial \mathbf{Q}}$ and $\frac{\partial \mathcal{L}}{\partial \mathbf{K}}$.
-
-### Layer Normalization
-
-For $\text{LayerNorm}(\mathbf{x}) = \gamma \odot \frac{\mathbf{x} - \mu}{\sigma} + \beta$ where $\mu = \frac{1}{d}\sum_i x_i$ and $\sigma = \sqrt{\frac{1}{d}\sum_i(x_i-\mu)^2 + \epsilon}$:
-
-$$\frac{\partial \mathcal{L}}{\partial x_i} = \frac{\gamma_i}{\sigma}\left(\frac{\partial \mathcal{L}}{\partial \hat{x}_i} - \frac{1}{d}\sum_j \frac{\partial \mathcal{L}}{\partial \hat{x}_j} - \frac{\hat{x}_i}{d}\sum_j \frac{\partial \mathcal{L}}{\partial \hat{x}_j}\hat{x}_j\right)$$
-
-## PyTorch Autograd
+Modern frameworks (PyTorch, JAX) implement backpropagation via **automatic differentiation**. Each operation records itself on a computational graph during the forward pass, and `.backward()` traverses this graph in reverse:
 
 ```python
 import torch
 import torch.nn as nn
 
-# PyTorch builds the computational graph automatically
-d_model = 512
-seq_len = 128
-batch = 4
-vocab_size = 32000
+# Simple 2-layer network
+model = nn.Sequential(
+    nn.Linear(784, 256),
+    nn.ReLU(),
+    nn.Linear(256, 10),
+)
+criterion = nn.CrossEntropyLoss()
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 
-# Simple transformer-like forward pass
-x = torch.randn(batch, seq_len, d_model, requires_grad=True)
-W_q = torch.randn(d_model, d_model, requires_grad=True)
-W_k = torch.randn(d_model, d_model, requires_grad=True)
-W_v = torch.randn(d_model, d_model, requires_grad=True)
+# Training step
+x = torch.randn(32, 784)       # batch of 32 inputs
+y = torch.randint(0, 10, (32,)) # labels
 
-Q = x @ W_q
-K = x @ W_k
-V = x @ W_v
-attn_scores = (Q @ K.transpose(-2, -1)) / (d_model ** 0.5)
-attn_weights = torch.softmax(attn_scores, dim=-1)
-output = attn_weights @ V
+# Forward pass
+logits = model(x)
+loss = criterion(logits, y)
 
-# Backward pass: compute all gradients
-loss = output.sum()  # dummy loss
+# Backward pass: computes all gradients
 loss.backward()
 
-# Gradients are now available
-print(W_q.grad.shape)  # (512, 512) — gradient of loss w.r.t. W_q
-print(x.grad.shape)    # (4, 128, 512) — gradient of loss w.r.t. input
+# Parameter update
+optimizer.step()
+optimizer.zero_grad()
+
+# Inspect gradients
+for name, param in model.named_parameters():
+    print(f"{name}: grad norm = {param.grad.norm().item():.4f}")
 ```
 
-## Memory Considerations
+## Vanishing and Exploding Gradients
 
-During backpropagation, all intermediate activations from the forward pass must be stored (or recomputed). For a transformer with $L$ layers, sequence length $n$, and hidden dimension $d$:
+Because the backward pass multiplies Jacobians across layers, gradients can shrink exponentially (vanish) or grow exponentially (explode) in deep networks.
 
-- **Activation memory**: $O(L \cdot n \cdot d)$ for residual stream states, plus $O(L \cdot n^2)$ for attention matrices
-- **Gradient checkpointing**: trade compute for memory by recomputing forward activations during the backward pass rather than storing them. Reduces memory from $O(L)$ to $O(\sqrt{L})$ with checkpointing every $\sqrt{L}$ layers.
+The gradient at layer $l$ involves:
 
-## Related Topics
+$$
+\frac{\partial \mathcal{L}}{\partial \mathbf{h}_l} = \prod_{k=l+1}^{L} \frac{\partial \mathbf{h}_k}{\partial \mathbf{h}_{k-1}} \cdot \frac{\partial \mathcal{L}}{\partial \mathbf{h}_L}
+$$
 
-- [Attention](/wiki/attention) — attention gradients are the most expensive component
-- [Fine-Tuning](/wiki/fine-tuning) — applies backpropagation to update pretrained models
-- [LoRA](/wiki/lora) — reduces gradient computation by limiting trainable parameters
-- [Tokens](/wiki/tokens) — sequence length affects backpropagation memory
+If the spectral norm of each Jacobian $\frac{\partial \mathbf{h}_k}{\partial \mathbf{h}_{k-1}}$ is consistently $< 1$, gradients vanish; if $> 1$, they explode. Key mitigations:
+
+- **[Residual connections](/wiki/residual-connections):** Add an identity path so the Jacobian includes an identity term
+- **[Layer normalization](/wiki/layer-normalization):** Stabilizes activation magnitudes
+- **Careful initialization:** Xavier (Glorot & Bengio, 2010) or Kaiming (He et al., 2015) initialization
+- **Gradient clipping:** Cap gradient norms during training
+
+## Backpropagation Through Time (BPTT)
+
+For recurrent neural networks, backpropagation is unrolled through time steps. A sequence of length $T$ becomes a depth-$T$ network. This makes RNNs especially vulnerable to vanishing gradients, which motivated the development of LSTMs and eventually [transformers](/wiki/transformer-block), where attention provides direct gradient paths across time.
 
 <!-- tier:grad -->
-
 # Backpropagation
 
-Backpropagation through transformers involves several non-obvious computational and numerical challenges. This section covers memory optimization, gradient pathology, and connections to recent training advances.
+## Automatic Differentiation: Forward vs. Reverse Mode
 
-## Gradient Flow in Deep Transformers
+Backpropagation is a specific instance of **reverse-mode automatic differentiation** (AD). Understanding this generalization is essential for modern ML systems.
 
-The residual connection structure of transformers is critical for gradient flow. For a transformer with $L$ layers and residual connections:
+Given a computation $f : \mathbb{R}^n \to \mathbb{R}^m$ decomposed into elementary operations, AD comes in two modes:
 
-$$\mathbf{x}^{(L)} = \mathbf{x}^{(0)} + \sum_{l=1}^{L} f^{(l)}(\mathbf{x}^{(l-1)})$$
+**Forward mode** propagates derivatives alongside the computation. For each input perturbation $\dot{x}_j$, it computes $\dot{y}_i = \frac{\partial y_i}{\partial x_j}$ via Jacobian-vector products (JVPs). Cost: $O(n)$ forward passes for the full Jacobian.
 
-The gradient of the loss with respect to early layers is:
+**Reverse mode** propagates adjoint variables backward. For a scalar loss $\mathcal{L}$, it computes all $\frac{\partial \mathcal{L}}{\partial x_j}$ in a single backward pass via vector-Jacobian products (VJPs). Cost: $O(m)$ backward passes.
 
-$$\frac{\partial \mathcal{L}}{\partial \mathbf{x}^{(0)}} = \frac{\partial \mathcal{L}}{\partial \mathbf{x}^{(L)}} \cdot \prod_{l=1}^{L}\left(\mathbf{I} + \frac{\partial f^{(l)}}{\partial \mathbf{x}^{(l-1)}}\right)$$
+Since $m = 1$ (scalar loss) and $n$ is enormous (millions of parameters), reverse mode (backpropagation) is $O(n)$ times cheaper than forward mode. This is why we use reverse mode for neural network training.
 
-The identity matrix $\mathbf{I}$ in each factor ensures that gradients can flow directly from the loss to any layer without vanishing — this is the fundamental reason residual connections enable training of very deep networks. Without them, the product of many matrices typically either vanishes or explodes.
+## Memory-Compute Tradeoffs
 
-## FlashAttention and the Backward Pass
+### Gradient Checkpointing
 
-Standard attention backpropagation stores the $n \times n$ attention matrix $\mathbf{A}$, requiring $O(n^2)$ memory per head per layer. FlashAttention (Dao et al., 2022) avoids this by recomputing attention during the backward pass using tiling:
+Standard backpropagation stores all intermediate activations, requiring $O(L)$ memory for an $L$-layer network. Chen et al. (2016) proposed **gradient checkpointing** (activation recomputation): save activations only at $\sqrt{L}$ evenly-spaced checkpoints. During the backward pass, recompute missing activations from the nearest checkpoint. This reduces memory to $O(\sqrt{L})$ at the cost of one additional forward pass.
 
-**Forward:** Compute attention in tiles, storing only the output $\mathbf{O}$ and the log-sum-exp statistics $\ell$ (per row).
+For transformers, this is critical. A 70B-parameter model training with sequence length 4096 and batch size 1 would require ~500GB for activations alone without checkpointing.
 
-**Backward:** Recompute attention weights from $\mathbf{Q}, \mathbf{K}$ on-the-fly within each tile:
+### Mixed-Precision Training
 
-$$\frac{\partial \mathcal{L}}{\partial \mathbf{Q}} = \frac{1}{\sqrt{d_k}} \cdot \text{diag}(\mathbf{D}) \cdot \left(\frac{\partial \mathcal{L}}{\partial \mathbf{O}} \mathbf{V}^\top - \mathbf{P}\right) \cdot \mathbf{K}$$
+Micikevicius et al. (2018) showed that training can use FP16 for most operations while maintaining an FP32 "master copy" of weights. The backward pass is particularly sensitive to precision: small gradients can underflow in FP16. **Loss scaling** multiplies the loss by a large factor before the backward pass, then divides gradients by the same factor after, keeping them in the representable FP16 range:
 
-where $\mathbf{D}_i = \sum_j A_{ij} \frac{\partial \mathcal{L}}{\partial O_{ij}}$ are the row-wise dot products. This reduces memory from $O(n^2)$ to $O(n)$ while being faster in practice due to better GPU memory access patterns.
+$$
+\nabla_{W} \mathcal{L}_{\text{scaled}} = S \cdot \nabla_{W} \mathcal{L}, \quad \text{update: } W \leftarrow W - \eta \cdot \frac{1}{S} \nabla_{W} \mathcal{L}_{\text{scaled}}
+$$
 
-FlashAttention-2 and FlashAttention-3 further optimize the backward pass with better work partitioning across GPU thread blocks and asynchronous computation.
+BF16 (Brain Float16) relaxes the need for loss scaling by matching FP32's exponent range, and has become the default for LLM training.
 
-## Gradient Checkpointing Strategies
+## Second-Order Methods and Their Approximations
 
-**Uniform checkpointing.** Save activations every $k$ layers; recompute intermediate layers during backward. For $L$ layers with checkpoints every $\sqrt{L}$ layers: memory $O(\sqrt{L} \cdot nd)$, compute overhead ~33%.
+The gradient $\nabla_W \mathcal{L}$ is a first-order approximation. The Hessian $H = \nabla^2_W \mathcal{L}$ provides curvature information, enabling Newton-style updates:
 
-**Selective checkpointing.** Selectively checkpoint expensive-to-store but cheap-to-recompute operations. Attention weight matrices ($O(n^2)$ memory each) are ideal candidates because they can be recomputed from $\mathbf{Q}, \mathbf{K}$ ($O(nd)$ storage).
+$$
+\Delta W = -H^{-1} \nabla_W \mathcal{L}
+$$
 
-**Sequence parallelism.** For very long sequences, the activation memory bottleneck is the sequence dimension. Korthikanti et al. (2022) proposed splitting the sequence across GPUs for operations that don't require cross-sequence communication (layer norm, MLP), synchronizing only for attention.
+For modern networks, the Hessian is intractable ($O(n^2)$ storage for $n$ parameters). Practical approximations include:
 
-## Mixed Precision Training
+**Hessian-vector products** can be computed via backpropagation without forming $H$ explicitly, using Pearlmutter's (1994) R-operator: one forward + one backward pass through a modified computation graph.
 
-Modern transformer training uses mixed precision (Micikevicius et al., 2018):
+**K-FAC** (Martens & Grosse, 2015) approximates the Fisher information matrix (closely related to the Hessian at convergence) as a Kronecker product:
 
-- **Forward pass**: FP16 or BF16 for speed and memory
-- **Backward pass**: FP16/BF16 for gradient computation
-- **Weight update**: FP32 master weights to avoid precision loss
+$$
+F_l \approx A_{l-1} \otimes G_l
+$$
 
-The critical insight: gradients can have very large dynamic range. BF16 (8 exponent bits, 7 mantissa bits) is preferred over FP16 (5 exponent bits, 10 mantissa bits) for gradients because the larger exponent range avoids overflow/underflow, even though individual values are less precise.
+where $A_{l-1} = \mathbb{E}[\mathbf{h}_{l-1}\mathbf{h}_{l-1}^\top]$ and $G_l = \mathbb{E}[\boldsymbol{\delta}_l \boldsymbol{\delta}_l^\top]$. Each factor is much smaller than the full Fisher, making inversion feasible.
 
-**Loss scaling.** With FP16, small gradients underflow to zero. Loss scaling multiplies the loss by a large factor before backpropagation (so gradients are larger), then divides the resulting gradients before the weight update. Dynamic loss scaling adjusts this factor during training.
-
-## Second-Order Methods and Beyond
-
-Standard backpropagation computes first-order gradients. Second-order information (the Hessian $\mathbf{H} = \nabla^2 \mathcal{L}$) is too expensive to compute and store ($O(p^2)$ for $p$ parameters), but approximations are useful:
-
-**AdaFactor and Adam.** These optimizers implicitly approximate diagonal elements of the Hessian via running averages of squared gradients. Adam's update $\Delta\theta_i \propto m_i / \sqrt{v_i}$ can be seen as a diagonal Newton step.
-
-**K-FAC** (Martens & Grosse, 2015): approximates the Fisher information matrix (related to the Hessian) as a Kronecker product of smaller matrices, one per layer. For a linear layer with weight $\mathbf{W}$:
-
-$$\mathbf{F}_\mathbf{W} \approx \mathbb{E}[\mathbf{a}\mathbf{a}^\top] \otimes \mathbb{E}[\mathbf{g}\mathbf{g}^\top]$$
-
-where $\mathbf{a}$ is the input activation and $\mathbf{g}$ is the output gradient. This factorization reduces the inversion from $O(d_\text{in}^2 d_\text{out}^2)$ to $O(d_\text{in}^3 + d_\text{out}^3)$.
-
-**Sophia** (Liu et al., 2024): a lightweight second-order optimizer for language model pretraining that uses a diagonal Hessian estimate via Hutchinson's method: $\hat{H}_{ii} = \mathbb{E}_{\mathbf{u}}[u_i (\mathbf{H}\mathbf{u})_i]$ where $\mathbf{u}$ is a random vector. This provides per-parameter adaptive learning rates with minimal overhead.
-
-## Gradient Pathology in Practice
-
-**Gradient norm spikes.** During transformer training, gradient norms occasionally spike by orders of magnitude, destabilizing training. Gradient clipping (capping $\|\nabla\mathcal{L}\|$ at a threshold, typically 1.0) is essential. Wortsman et al. (2024) linked these spikes to specific data patterns and attention entropy collapse.
-
-**Attention sink gradients.** Xiao et al. (2024) observed that the first token often receives disproportionate attention across all heads ("attention sinks"). During backpropagation, this concentrates gradient signal on the first position's embeddings, which can dominate parameter updates.
+**Shampoo** (Gupta et al., 2018) generalizes this to arbitrary-order tensors and has been shown to accelerate LLM pretraining (Anil et al., 2020).
 
 ## Distributed Backpropagation
 
-Training large transformers across multiple GPUs introduces communication overhead:
+Training large models across multiple devices requires distributing the backward pass:
 
-- **Data parallelism**: each GPU computes gradients on different data; gradients are all-reduced (averaged) before update. Communication: $O(p)$ per step, where $p$ is parameter count.
-- **Tensor parallelism** (Megatron-LM): split individual layers across GPUs. Requires two all-reduce operations per layer during both forward and backward passes.
-- **Pipeline parallelism**: split layers across GPUs. The backward pass must wait for the forward pass to complete, creating "pipeline bubbles." Interleaved scheduling (1F1B) minimizes idle time.
+**Data parallelism:** Each device computes gradients on different data; gradients are all-reduced. The backward pass is overlapped with communication via bucketing: as soon as gradients for one bucket of parameters are computed, the all-reduce begins while the backward pass continues for earlier layers.
 
-## Related Topics
+**Pipeline parallelism** (Huang et al., 2019): Different layers live on different devices. Microbatching fills the pipeline, but gradient accumulation introduces a "bubble" where devices are idle. The backward pass of microbatch $i$ can overlap with the forward pass of microbatch $i+1$.
 
-- [Attention](/wiki/attention) — the computational bottleneck of transformer backpropagation
-- [Fine-Tuning](/wiki/fine-tuning) — applying backpropagation to adapt pretrained models
-- [LoRA](/wiki/lora) — reduces the dimension of gradient computation
-- [Tokens](/wiki/tokens) — sequence length directly impacts backpropagation cost
+**Tensor parallelism** (Megatron-LM, Shoeybi et al., 2019): Individual layers are split across devices. For a linear layer $Y = XW$, if $W$ is column-split as $[W_1, W_2]$, each device computes $XW_i$ and the backward pass requires an all-reduce of the input gradient.
+
+## Beyond Backpropagation
+
+**Forward-forward algorithm** (Hinton, 2022) replaces the backward pass with two forward passes (one with real data, one with "negative" data), computing a local "goodness" metric at each layer. This eliminates the need to store activations and propagate gradients, but so far does not match backpropagation's performance.
+
+**Equilibrium models** (Bai et al., 2019) compute the fixed point of an implicit layer $\mathbf{z}^* = f(\mathbf{z}^*, \mathbf{x})$ and use implicit differentiation for the backward pass, requiring $O(1)$ memory regardless of the number of "iterations."
+
+## Key References
+
+- Rumelhart, D. E., Hinton, G. E., & Williams, R. J. (1986). Learning representations by back-propagating errors. *Nature*, 323.
+- Chen, T., et al. (2016). Training deep nets with sublinear memory cost. *arXiv:1604.06174*.
+- Micikevicius, P., et al. (2018). Mixed precision training. *ICLR*.
+- Martens, J., & Grosse, R. (2015). Optimizing neural networks with Kronecker-factored approximate curvature. *ICML*.
+- Huang, Y., et al. (2019). GPipe: Efficient training of giant neural networks using pipeline parallelism. *NeurIPS*.
+- Hinton, G. (2022). The forward-forward algorithm: Some preliminary investigations. *arXiv:2212.13345*.
