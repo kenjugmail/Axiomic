@@ -1,19 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { api, type WikiPage, type ForumTopicSummary } from "../lib/api";
+import { api, type SearchResultItem } from "../lib/api";
 
 interface SearchDialogProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-type SearchResult =
-  | { kind: "page"; page: WikiPage }
-  | { kind: "topic"; topic: ForumTopicSummary };
-
 export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchResult[]>([]);
+  const [results, setResults] = useState<SearchResultItem[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -36,36 +32,26 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
-        const [pagesData, topicsData] = await Promise.all([
-          api.wiki.search(query),
-          api.forum.listTopics({}).catch(() => ({ topics: [] })),
-        ]);
-        const q = query.toLowerCase();
-        const matchedTopics = topicsData.topics
-          .filter((t) => t.title.toLowerCase().includes(q))
-          .slice(0, 5);
-        const next: SearchResult[] = [
-          ...pagesData.results.map((page) => ({ kind: "page" as const, page })),
-          ...matchedTopics.map((topic) => ({ kind: "topic" as const, topic })),
-        ];
-        setResults(next);
+        const data = await api.search.query(query, 12);
+        setResults(data.results);
         setSelectedIndex(0);
-      } catch {}
+      } catch {
+        // ignore
+      }
       setLoading(false);
     }, 200);
     return () => clearTimeout(timer);
   }, [query]);
 
+  const hrefFor = (r: SearchResultItem): string =>
+    r.kind === "page" ? `/wiki/${r.slug}` : `/forum/t/${r.slug}`;
+
   const handleSelect = useCallback(
-    (result: SearchResult) => {
-      if (result.kind === "page") {
-        navigate(`/wiki/${result.page.slug}`);
-      } else {
-        navigate(`/forum/t/${result.topic.slug}`);
-      }
+    (r: SearchResultItem) => {
+      navigate(hrefFor(r));
       onClose();
     },
-    [navigate, onClose]
+    [navigate, onClose],
   );
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -84,6 +70,56 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
 
   if (!isOpen) return null;
 
+  // Group: keyword / both first, pure semantic ("Related") below.
+  const direct = results.filter((r) => r.matchedBy !== "semantic");
+  const related = results.filter((r) => r.matchedBy === "semantic");
+
+  // Flat ordered list to drive keyboard navigation.
+  const ordered = [...direct, ...related];
+
+  const renderRow = (r: SearchResultItem, flatIdx: number) => {
+    const trailing =
+      r.kind === "page" ? r.category : `forum · ${r.postType}`;
+    const semanticChip = r.matchedBy === "semantic";
+    const bothChip = r.matchedBy === "both";
+    return (
+      <button
+        key={r.id}
+        onClick={() => handleSelect(r)}
+        onMouseEnter={() => setSelectedIndex(flatIdx)}
+        className={`w-full text-left px-3 py-2 rounded-md text-sm flex items-center justify-between gap-3 ${
+          flatIdx === selectedIndex
+            ? "bg-accent text-accent-foreground"
+            : "text-foreground hover:bg-accent/50"
+        }`}
+      >
+        <div className="flex flex-col min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="font-medium truncate">{r.title}</span>
+            {semanticChip && (
+              <span className="text-[9px] uppercase tracking-wider px-1 py-px rounded bg-primary/10 text-primary shrink-0">
+                related
+              </span>
+            )}
+            {bothChip && (
+              <span className="text-[9px] uppercase tracking-wider px-1 py-px rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+                match
+              </span>
+            )}
+          </div>
+          {r.snippet && (
+            <span className="text-xs text-muted-foreground truncate mt-0.5">
+              {r.snippet}
+            </span>
+          )}
+        </div>
+        <span className="text-xs text-muted-foreground capitalize shrink-0">
+          {trailing}
+        </span>
+      </button>
+    );
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]">
       {/* Backdrop */}
@@ -100,43 +136,31 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Search wiki pages and forum topics..."
+            placeholder="Search wiki, forum, or paraphrase a question..."
             className="flex-1 py-3 bg-transparent text-foreground outline-none text-sm"
           />
           <kbd className="hidden sm:block text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">ESC</kbd>
         </div>
 
-        {/* Results */}
-        {results.length > 0 && (
-          <div className="max-h-80 overflow-y-auto p-2">
-            {results.map((result, i) => {
-              const isPage = result.kind === "page";
-              const title = isPage ? result.page.title : result.topic.title;
-              const trailing = isPage
-                ? result.page.category
-                : `forum · ${result.topic.postType}`;
-              const key = isPage ? result.page.id : result.topic.id;
-              return (
-                <button
-                  key={key}
-                  onClick={() => handleSelect(result)}
-                  className={`w-full text-left px-3 py-2 rounded-md text-sm flex items-center justify-between gap-3 ${
-                    i === selectedIndex
-                      ? "bg-accent text-accent-foreground"
-                      : "text-foreground hover:bg-accent/50"
-                  }`}
-                >
-                  <span className="font-medium truncate">{title}</span>
-                  <span className="text-xs text-muted-foreground capitalize shrink-0">
-                    {trailing}
-                  </span>
-                </button>
-              );
-            })}
+        {ordered.length > 0 && (
+          <div className="max-h-[60vh] overflow-y-auto p-2">
+            {direct.length > 0 && (
+              <>
+                {direct.map((r, i) => renderRow(r, i))}
+              </>
+            )}
+            {related.length > 0 && (
+              <>
+                <div className="px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Related
+                </div>
+                {related.map((r, i) => renderRow(r, direct.length + i))}
+              </>
+            )}
           </div>
         )}
 
-        {query && !loading && results.length === 0 && (
+        {query && !loading && ordered.length === 0 && (
           <div className="p-6 text-center text-sm text-muted-foreground">
             No matches for "{query}"
           </div>
@@ -145,7 +169,10 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
         {!query && (
           <div className="p-4 text-xs text-muted-foreground">
             <p>Type to search wiki pages and forum topics.</p>
-            <p className="mt-1">Use <kbd className="bg-muted px-1 rounded">↑↓</kbd> to navigate, <kbd className="bg-muted px-1 rounded">Enter</kbd> to select.</p>
+            <p className="mt-1">
+              Use <kbd className="bg-muted px-1 rounded">↑↓</kbd> to navigate, <kbd className="bg-muted px-1 rounded">Enter</kbd> to select.
+            </p>
+            <p className="mt-1">Try a paraphrase — semantic results appear under "Related".</p>
           </div>
         )}
       </div>

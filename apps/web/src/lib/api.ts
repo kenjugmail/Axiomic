@@ -22,6 +22,8 @@ import type {
   Notification,
   NotificationsListResponse,
   OkResponse,
+  SearchResponse,
+  SearchResultItem,
   PageVersion,
   PostType,
   QuizQuestion,
@@ -160,6 +162,13 @@ export const api = {
         headers: { "Content-Type": "application/json" },
       }),
   },
+  search: {
+    query: (q: string, limit?: number) => {
+      const sp = new URLSearchParams({ q });
+      if (limit) sp.set("limit", String(limit));
+      return request<SearchResponse>(`/search?${sp.toString()}`);
+    },
+  },
   notifications: {
     list: (params?: { unread?: boolean; limit?: number; offset?: number }) => {
       const sp = new URLSearchParams();
@@ -214,6 +223,7 @@ export type {
   PageVersion,
   PostType,
   QuizQuestion,
+  SearchResultItem,
   User,
   UserNodeProgress,
   WikiPage,

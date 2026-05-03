@@ -311,3 +311,36 @@ export interface NotificationsListResponse {
 export interface UnreadCountResponse {
   count: number;
 }
+
+// --- Unified search ---
+
+export type SearchMatchedBy = "keyword" | "semantic" | "both";
+
+export interface SearchPageResult {
+  kind: "page";
+  id: string;
+  slug: string;
+  title: string;
+  category: string;
+  snippet: string;
+  score: number;
+  matchedBy: SearchMatchedBy;
+}
+
+export interface SearchTopicResult {
+  kind: "topic";
+  id: string;
+  slug: string;
+  title: string;
+  postType: string;
+  snippet: string;
+  score: number;
+  matchedBy: SearchMatchedBy;
+}
+
+export type SearchResultItem = SearchPageResult | SearchTopicResult;
+
+export interface SearchResponse {
+  query: string;
+  results: SearchResultItem[];
+}

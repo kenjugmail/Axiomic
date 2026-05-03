@@ -16,6 +16,7 @@ import { randomUUID } from "crypto";
 import { getAIProvider } from "@axiomic/ai";
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { notify, notifyMentions, toPreview } from "../lib/notifications";
+import { invalidateSearchIndex } from "../lib/searchIndex";
 import type { Env } from "../env";
 
 const forum = new Hono<Env>();
@@ -369,6 +370,9 @@ forum.post("/topics", requireAuth, zValidator("json", createTopicSchema), async 
     authorId: user.id,
     wikiPageId: wikiPageId || null,
   }).run();
+
+  // New topic enters the search corpus.
+  invalidateSearchIndex();
 
   // Best-effort mention notifications. The topic has no parent so only
   // mentions fire. Awaited (not fire-and-forget) so the response observes

@@ -11,6 +11,8 @@ import { aiRouter } from "./routes/ai";
 import { mastery } from "./routes/mastery";
 import { forum } from "./routes/forum";
 import { notificationsRouter } from "./routes/notifications";
+import { searchRouter } from "./routes/search";
+import { prewarmSearchIndex } from "./lib/searchIndex";
 import type { Env } from "./env";
 
 const app = new Hono<Env>().basePath("/api/v1");
@@ -58,6 +60,11 @@ app.route("/ai", aiRouter);
 app.route("/mastery", mastery);
 app.route("/forum", forum);
 app.route("/notifications", notificationsRouter);
+app.route("/search", searchRouter);
+
+// Pre-warm the search index in the background so the first user query
+// doesn't pay the embedding-build cost.
+prewarmSearchIndex();
 
 export { app };
 

@@ -175,3 +175,21 @@ test("notifications: mention triggers badge → dropdown → mark read", async (
   await aliceCtx.close();
   await bobCtx.close();
 });
+
+test("hybrid search: paraphrase surfaces semantic matches", async ({ page }) => {
+  await page.goto("/");
+
+  // Open the search dialog with the "/" shortcut.
+  await page.keyboard.press("/");
+  const dialog = page.locator('input[placeholder*="paraphrase"]');
+  await expect(dialog).toBeVisible();
+
+  // A paraphrase that doesn't appear in any title should still surface
+  // a relevant page under the "Related" group.
+  await dialog.fill("cross-entropy and KL divergence");
+
+  // Wait for the debounced fetch + render.
+  await expect(page.getByText("Related").first()).toBeVisible({ timeout: 5_000 });
+  // Loss Functions is the seeded page that covers these concepts.
+  await expect(page.getByText(/loss functions/i).first()).toBeVisible();
+});

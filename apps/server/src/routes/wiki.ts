@@ -5,6 +5,7 @@ import { getDb, wikiPages, pageVersions } from "@axiomic/db";
 import { eq, like, or, desc } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { requireAuth } from "../middleware/auth";
+import { invalidateSearchIndex } from "../lib/searchIndex";
 import type { Env } from "../env";
 
 const wiki = new Hono<Env>();
@@ -154,6 +155,9 @@ wiki.put("/:slug", requireAuth, zValidator("json", updateSchema), async (c) => {
     .set({ currentVersion: newVersion, updatedAt: new Date().toISOString() })
     .where(eq(wikiPages.id, page.id))
     .run();
+
+  // Page content changed; drop the search index so the next query rebuilds.
+  invalidateSearchIndex();
 
   const updated = db.select().from(wikiPages).where(eq(wikiPages.id, page.id)).get();
   return c.json({ page: updated });
