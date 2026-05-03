@@ -18,6 +18,7 @@ import type {
   MasteryPath,
   MasteryPathResponse,
   MasteryPathsResponse,
+  MasterySummaryResponse,
   MeResponse,
   Notification,
   NotificationsListResponse,
@@ -110,6 +111,8 @@ export const api = {
       request<QuizQuestionsResponse>(`/mastery/quiz/${nodeId}`),
     submitQuiz: (nodeId: string, answers: Record<string, string>) =>
       request<QuizSubmitResponse>(`/mastery/quiz/${nodeId}`, { method: "POST", body: JSON.stringify({ answers }) }),
+    summary: (username: string) =>
+      request<MasterySummaryResponse>(`/mastery/users/${username}/summary`),
   },
   forum: {
     domains: () => request<ForumDomainsResponse>("/forum/domains"),

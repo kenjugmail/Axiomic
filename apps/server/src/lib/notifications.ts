@@ -6,9 +6,14 @@ export type NotificationKind =
   | "mention"
   | "topic_reply"
   | "post_reply"
-  | "comment_reply";
+  | "comment_reply"
+  | "mastery_level_up";
 
-export type NotificationSubject = "topic" | "post" | "comment";
+export type NotificationSubject =
+  | "topic"
+  | "post"
+  | "comment"
+  | "mastery_node";
 
 const MAX_MENTIONS_PER_BODY = 10;
 const PREVIEW_MAX = 140;
@@ -79,7 +84,7 @@ interface NotifyArgs {
 // null when the kind is always-on.
 function kindGate(
   kind: NotificationKind,
-): "notifyMentions" | "notifyReplies" | null {
+): "notifyMentions" | "notifyReplies" | "notifyMastery" | null {
   switch (kind) {
     case "mention":
       return "notifyMentions";
@@ -87,6 +92,8 @@ function kindGate(
     case "post_reply":
     case "comment_reply":
       return "notifyReplies";
+    case "mastery_level_up":
+      return "notifyMastery";
   }
 }
 
@@ -97,7 +104,10 @@ function kindGate(
 // decide whether to fall back to a less-specific notification kind.
 // Best-effort: any DB error is swallowed and logged.
 export async function notify(args: NotifyArgs, db: Db = getDb()): Promise<boolean> {
-  if (args.recipientId === args.actorId) return false;
+  // Skip self-notifications, but only when actorId is a real user. System
+  // events (actorId === null) are allowed to land in the recipient's bell —
+  // that's how mastery_level_up notifies the user about their own milestone.
+  if (args.actorId !== null && args.actorId === args.recipientId) return false;
   try {
     const gate = kindGate(args.kind);
     if (gate) {
@@ -105,6 +115,7 @@ export async function notify(args: NotifyArgs, db: Db = getDb()): Promise<boolea
         .select({
           notifyMentions: users.notifyMentions,
           notifyReplies: users.notifyReplies,
+          notifyMastery: users.notifyMastery,
         })
         .from(users)
         .where(eq(users.id, args.recipientId))

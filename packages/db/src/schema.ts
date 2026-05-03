@@ -11,6 +11,7 @@ export const users = sqliteTable("users", {
   theme: text("theme").notNull().default("system"),
   notifyMentions: integer("notify_mentions", { mode: "boolean" }).notNull().default(true),
   notifyReplies: integer("notify_replies", { mode: "boolean" }).notNull().default(true),
+  notifyMastery: integer("notify_mastery", { mode: "boolean" }).notNull().default(true),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
 });

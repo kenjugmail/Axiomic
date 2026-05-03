@@ -13,6 +13,8 @@ export function notificationLink(n: Notification): string {
       return `/forum/t/${n.contextSlug}#post-${n.subjectId}`;
     case "comment":
       return `/wiki/${n.contextSlug}#comment-${n.subjectId}`;
+    case "mastery_node":
+      return `/paths/${n.contextSlug}`;
     default:
       return "/notifications";
   }
@@ -28,6 +30,8 @@ function kindLabel(kind: Notification["kind"]): string {
       return "replied to your post";
     case "comment_reply":
       return "replied to your comment";
+    case "mastery_level_up":
+      return "you reached a new mastery level";
   }
 }
 
@@ -180,10 +184,14 @@ export function NotificationBell() {
                     }`}
                   >
                     <div className="text-sm">
-                      <span className="font-medium">
-                        {n.actor?.username ?? "Someone"}
-                      </span>{" "}
-                      <span className="text-muted-foreground">{kindLabel(n.kind)}</span>
+                      {n.actor ? (
+                        <>
+                          <span className="font-medium">{n.actor.username}</span>{" "}
+                          <span className="text-muted-foreground">{kindLabel(n.kind)}</span>
+                        </>
+                      ) : (
+                        <span className="text-muted-foreground capitalize">{kindLabel(n.kind)}</span>
+                      )}
                     </div>
                     {n.preview && (
                       <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">

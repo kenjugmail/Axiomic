@@ -275,21 +275,24 @@ export type NotificationKind =
   | "mention"
   | "topic_reply"
   | "post_reply"
-  | "comment_reply";
+  | "comment_reply"
+  | "mastery_level_up";
 
-export type NotificationSubject = "topic" | "post" | "comment";
+export type NotificationSubject = "topic" | "post" | "comment" | "mastery_node";
 
 export const NOTIFICATION_KINDS: NotificationKind[] = [
   "mention",
   "topic_reply",
   "post_reply",
   "comment_reply",
+  "mastery_level_up",
 ];
 
 export const NOTIFICATION_SUBJECTS: NotificationSubject[] = [
   "topic",
   "post",
   "comment",
+  "mastery_node",
 ];
 
 export interface Notification {
@@ -358,6 +361,7 @@ export interface UserSettings {
   theme: ThemePreference;
   notifyMentions: boolean;
   notifyReplies: boolean;
+  notifyMastery: boolean;
 }
 
 export interface SettingsResponse {
@@ -368,6 +372,32 @@ export interface SettingsUpdateInput {
   theme?: ThemePreference;
   notifyMentions?: boolean;
   notifyReplies?: boolean;
+  notifyMastery?: boolean;
   displayName?: string | null;
   bio?: string | null;
+}
+
+// --- Mastery summary ---
+
+export type MasteryLevel =
+  | "apprentice"
+  | "practitioner"
+  | "specialist"
+  | "expert"
+  | "researcher";
+
+export interface PathProgressSummary {
+  pathSlug: string;
+  pathTitle: string;
+  totalNodes: number;
+  completedNodes: number;
+  currentLevel: MasteryLevel | null;
+  latestCompletionAt: string | null;
+}
+
+export interface MasterySummaryResponse {
+  username: string;
+  paths: PathProgressSummary[];
+  totalCompleted: number;
+  highestLevel: MasteryLevel | null;
 }

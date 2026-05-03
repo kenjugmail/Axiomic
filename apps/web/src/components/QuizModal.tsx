@@ -1,0 +1,210 @@
+import { useEffect, useState } from "react";
+import { api, type QuizQuestion } from "../lib/api";
+
+const PASSING_SCORE = 0.7;
+
+interface QuizModalProps {
+  nodeId: string;
+  nodeTitle: string;
+  onClose: () => void;
+  // Called when the user passes the quiz so the parent can refetch progress.
+  onPassed?: () => void;
+}
+
+type Phase = "loading" | "answering" | "scored" | "error";
+
+export function QuizModal({ nodeId, nodeTitle, onClose, onPassed }: QuizModalProps) {
+  const [phase, setPhase] = useState<Phase>("loading");
+  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [result, setResult] = useState<{ score: number; correct: number; total: number } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    api.mastery
+      .getQuiz(nodeId)
+      .then((data) => {
+        if (cancelled) return;
+        setQuestions(data.questions);
+        setPhase("answering");
+      })
+      .catch((e) => {
+        if (cancelled) return;
+        setError(e?.message ?? "Failed to load quiz");
+        setPhase("error");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [nodeId]);
+
+  // Esc to close.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const handleSubmit = async () => {
+    if (Object.keys(answers).length !== questions.length) return;
+    setSubmitting(true);
+    try {
+      const r = await api.mastery.submitQuiz(nodeId, answers);
+      setResult(r);
+      setPhase("scored");
+      if (r.score >= PASSING_SCORE) {
+        try {
+          await api.mastery.markComplete(nodeId);
+          onPassed?.();
+        } catch {
+          // Don't fail the modal if the auto-mark step has a hiccup.
+        }
+      }
+    } catch (e: any) {
+      setError(e?.message ?? "Submit failed");
+      setPhase("error");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const passed = result !== null && result.score >= PASSING_SCORE;
+  const allAnswered = questions.length > 0 && Object.keys(answers).length === questions.length;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh]">
+      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-xl bg-card border border-border rounded-xl shadow-2xl overflow-hidden max-h-[80vh] flex flex-col">
+        <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold">Quiz · {nodeTitle}</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Pass with {Math.round(PASSING_SCORE * 100)}% to mark this node complete.
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-muted-foreground hover:text-foreground"
+            aria-label="Close"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-5 space-y-6">
+          {phase === "loading" && (
+            <div className="space-y-3">
+              {[1, 2].map((i) => (
+                <div key={i} className="h-20 animate-pulse bg-muted rounded-md" />
+              ))}
+            </div>
+          )}
+
+          {phase === "error" && (
+            <div className="text-sm text-destructive">{error}</div>
+          )}
+
+          {phase === "answering" &&
+            questions.map((q, i) => (
+              <div key={q.id} className="space-y-2">
+                <div className="text-sm font-medium">
+                  <span className="text-muted-foreground mr-2">{i + 1}.</span>
+                  {q.question}
+                </div>
+                <div className="space-y-1.5">
+                  {q.options.map((opt, j) => {
+                    const checked = answers[q.id] === String(j);
+                    return (
+                      <label
+                        key={j}
+                        className={`flex items-start gap-2 px-3 py-2 rounded-md border cursor-pointer text-sm transition-colors ${
+                          checked
+                            ? "border-primary bg-primary/5"
+                            : "border-input hover:bg-accent/40"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name={q.id}
+                          value={j}
+                          checked={checked}
+                          onChange={() => setAnswers((a) => ({ ...a, [q.id]: String(j) }))}
+                          className="mt-0.5 accent-primary"
+                        />
+                        <span>{opt}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+
+          {phase === "scored" && result && (
+            <div
+              className={`p-4 rounded-md border ${
+                passed
+                  ? "border-emerald-500/30 bg-emerald-500/5"
+                  : "border-amber-500/30 bg-amber-500/5"
+              }`}
+            >
+              <div className="text-lg font-semibold">
+                {passed ? "Passed!" : "Not quite — try again."}
+              </div>
+              <div className="text-sm text-muted-foreground mt-1">
+                You got {result.correct} / {result.total} correct (
+                {Math.round(result.score * 100)}%).
+              </div>
+              {passed && (
+                <p className="text-sm mt-2 text-foreground">
+                  This node is now marked complete.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="px-5 py-3 border-t border-border flex items-center justify-end gap-2">
+          {phase === "answering" && (
+            <>
+              <button
+                onClick={onClose}
+                className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={!allAnswered || submitting}
+                className="px-4 py-1.5 text-sm rounded-md bg-primary text-primary-foreground font-medium disabled:opacity-50"
+              >
+                {submitting ? "Scoring…" : "Submit"}
+              </button>
+            </>
+          )}
+          {phase === "scored" && (
+            <button
+              onClick={onClose}
+              className="px-4 py-1.5 text-sm rounded-md bg-primary text-primary-foreground font-medium"
+            >
+              Close
+            </button>
+          )}
+          {phase === "error" && (
+            <button
+              onClick={onClose}
+              className="px-4 py-1.5 text-sm rounded-md bg-primary text-primary-foreground font-medium"
+            >
+              Close
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

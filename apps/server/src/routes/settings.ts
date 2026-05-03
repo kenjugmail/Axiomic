@@ -14,6 +14,7 @@ const updateSchema = z.object({
   theme: themeSchema.optional(),
   notifyMentions: z.boolean().optional(),
   notifyReplies: z.boolean().optional(),
+  notifyMastery: z.boolean().optional(),
   displayName: z.string().max(80).nullable().optional(),
   bio: z.string().max(2000).nullable().optional(),
 });
@@ -31,6 +32,7 @@ settingsRouter.get("/", requireAuth, async (c) => {
       theme: users.theme,
       notifyMentions: users.notifyMentions,
       notifyReplies: users.notifyReplies,
+      notifyMastery: users.notifyMastery,
     })
     .from(users)
     .where(eq(users.id, user.id))
@@ -59,6 +61,7 @@ settingsRouter.put(
     if (patch.theme !== undefined) fields.theme = patch.theme;
     if (patch.notifyMentions !== undefined) fields.notifyMentions = patch.notifyMentions;
     if (patch.notifyReplies !== undefined) fields.notifyReplies = patch.notifyReplies;
+    if (patch.notifyMastery !== undefined) fields.notifyMastery = patch.notifyMastery;
     if (patch.displayName !== undefined) fields.displayName = patch.displayName;
     if (patch.bio !== undefined) fields.bio = patch.bio;
 

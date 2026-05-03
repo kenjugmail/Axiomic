@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `notify_mastery` integer DEFAULT true NOT NULL;

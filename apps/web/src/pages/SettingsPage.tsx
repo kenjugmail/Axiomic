@@ -15,6 +15,7 @@ export function SettingsPage() {
   const [bio, setBio] = useState("");
   const [notifyMentions, setNotifyMentions] = useState(true);
   const [notifyReplies, setNotifyReplies] = useState(true);
+  const [notifyMastery, setNotifyMastery] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -32,6 +33,7 @@ export function SettingsPage() {
         setBio(settings.bio ?? "");
         setNotifyMentions(settings.notifyMentions);
         setNotifyReplies(settings.notifyReplies);
+        setNotifyMastery(settings.notifyMastery);
       })
       .catch((e) => setError(e.message ?? "Failed to load settings"));
   }, [user, navigate]);
@@ -45,6 +47,7 @@ export function SettingsPage() {
         bio: bio.trim() || null,
         notifyMentions,
         notifyReplies,
+        notifyMastery,
       });
       setSettings(next);
       setSavedAt(Date.now());
@@ -144,6 +147,12 @@ export function SettingsPage() {
             description="Forum topic replies, post replies, and wiki comment replies"
             checked={notifyReplies}
             onChange={setNotifyReplies}
+          />
+          <ToggleRow
+            label="Notify me on mastery progress"
+            description="When you reach a new level on any mastery path"
+            checked={notifyMastery}
+            onChange={setNotifyMastery}
           />
         </div>
       </section>

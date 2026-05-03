@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api, type MasteryPath, type MasteryNode, type UserNodeProgress } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
+import { QuizModal } from "../components/QuizModal";
 
 const LEVEL_COLORS: Record<string, string> = {
   apprentice: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
@@ -20,12 +21,29 @@ const LEVEL_LABELS: Record<string, string> = {
   researcher: "Researcher",
 };
 
+function highestLevelIdx(
+  nodes: MasteryNode[],
+  progress: UserNodeProgress[],
+): number {
+  let highest = -1;
+  const completed = new Set(progress.filter((p) => p.completed).map((p) => p.nodeId));
+  for (const n of nodes) {
+    if (!completed.has(n.id)) continue;
+    const idx = LEVEL_ORDER.indexOf(n.level);
+    if (idx > highest) highest = idx;
+  }
+  return highest;
+}
+
 export function MasteryPathPage() {
   const { slug } = useParams<{ slug: string }>();
   const [path, setPath] = useState<MasteryPath | null>(null);
   const [nodes, setNodes] = useState<MasteryNode[]>([]);
   const [progress, setProgress] = useState<UserNodeProgress[]>([]);
   const [loading, setLoading] = useState(true);
+  const [quizFor, setQuizFor] = useState<MasteryNode | null>(null);
+  const [levelUpBanner, setLevelUpBanner] = useState<string | null>(null);
+  const prevHighestRef = useRef<number>(-2); // sentinel: not initialized yet
   const user = useAuthStore((s) => s.user);
 
   const loadPath = () => {
@@ -42,14 +60,39 @@ export function MasteryPathPage() {
   };
 
   useEffect(() => {
+    prevHighestRef.current = -2;
+    setLevelUpBanner(null);
     loadPath();
   }, [slug]);
 
+  // Watch for a level transition each time progress changes. Compares the
+  // newly-computed highest level against the previously-seen one; pops a
+  // banner only on a strictly increasing transition. The first observation
+  // (sentinel = -2) is skipped so the banner doesn't fire on initial load.
+  useEffect(() => {
+    const newHighest = highestLevelIdx(nodes, progress);
+    if (prevHighestRef.current !== -2 && newHighest > prevHighestRef.current) {
+      setLevelUpBanner(LEVEL_LABELS[LEVEL_ORDER[newHighest]] ?? null);
+      const t = setTimeout(() => setLevelUpBanner(null), 6000);
+      prevHighestRef.current = newHighest;
+      return () => clearTimeout(t);
+    }
+    prevHighestRef.current = newHighest;
+  }, [progress, nodes]);
+
   const isCompleted = (nodeId: string) => progress.some((p) => p.nodeId === nodeId && p.completed);
+  const quizScoreFor = (nodeId: string) => {
+    const p = progress.find((p) => p.nodeId === nodeId);
+    return p?.quizScore ?? null;
+  };
 
   const handleComplete = async (nodeId: string) => {
     if (!user) return;
     await api.mastery.markComplete(nodeId);
+    loadPath();
+  };
+
+  const handleQuizPassed = () => {
     loadPath();
   };
 
@@ -59,11 +102,8 @@ export function MasteryPathPage() {
 
   // Determine current level
   const currentLevel = (() => {
-    if (completedCount === 0) return "apprentice";
-    const lastCompleted = nodes
-      .filter((n) => isCompleted(n.id))
-      .sort((a, b) => b.order - a.order)[0];
-    return lastCompleted?.level || "apprentice";
+    const idx = highestLevelIdx(nodes, progress);
+    return idx >= 0 ? LEVEL_ORDER[idx] : "apprentice";
   })();
 
   if (loading) {
@@ -101,6 +141,24 @@ export function MasteryPathPage() {
         <h1 className="text-3xl font-bold">{path.title}</h1>
         <p className="text-muted-foreground mt-1">{path.description}</p>
       </div>
+
+      {levelUpBanner && (
+        <div className="mb-6 p-4 rounded-lg border border-primary/40 bg-primary/10 flex items-center justify-between animate-in fade-in">
+          <div>
+            <div className="text-sm font-semibold">🎉 {levelUpBanner} unlocked!</div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              You've crossed into a new mastery level on this path.
+            </div>
+          </div>
+          <button
+            onClick={() => setLevelUpBanner(null)}
+            className="text-xs text-muted-foreground hover:text-foreground"
+            aria-label="Dismiss"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Progress bar */}
       <div className="mb-8 p-4 rounded-lg bg-card border border-border">
@@ -151,6 +209,7 @@ export function MasteryPathPage() {
             <div className="space-y-2">
               {levelNodes.map((node) => {
                 const completed = isCompleted(node.id);
+                const quizScore = quizScoreFor(node.id);
                 return (
                   <div
                     key={node.id}
@@ -171,7 +230,14 @@ export function MasteryPathPage() {
                         )}
                       </div>
                       <div>
-                        <h3 className="font-medium text-sm">{node.title}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium text-sm">{node.title}</h3>
+                          {completed && quizScore !== null && quizScore !== undefined && (
+                            <span className="text-[10px] uppercase tracking-wider px-1.5 py-px rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
+                              Quiz · {Math.round(quizScore * 100)}%
+                            </span>
+                          )}
+                        </div>
                         <div className="flex gap-1.5 mt-1">
                           {node.pageIds.map((pageSlug: string) => (
                             <Link
@@ -186,12 +252,20 @@ export function MasteryPathPage() {
                       </div>
                     </div>
                     {user && !completed && (
-                      <button
-                        onClick={() => handleComplete(node.id)}
-                        className="px-3 py-1 rounded-md text-xs font-medium bg-secondary hover:bg-secondary/80 transition-colors"
-                      >
-                        Mark complete
-                      </button>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => setQuizFor(node)}
+                          className="px-3 py-1 rounded-md text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                        >
+                          Take quiz
+                        </button>
+                        <button
+                          onClick={() => handleComplete(node.id)}
+                          className="px-3 py-1 rounded-md text-xs font-medium bg-secondary hover:bg-secondary/80 transition-colors"
+                        >
+                          Mark complete
+                        </button>
+                      </div>
                     )}
                   </div>
                 );
@@ -200,6 +274,15 @@ export function MasteryPathPage() {
           </div>
         ))}
       </div>
+
+      {quizFor && (
+        <QuizModal
+          nodeId={quizFor.id}
+          nodeTitle={quizFor.title}
+          onClose={() => setQuizFor(null)}
+          onPassed={handleQuizPassed}
+        />
+      )}
     </div>
   );
 }

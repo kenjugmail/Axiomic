@@ -1,8 +1,75 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuthStore } from "../stores/auth";
-import { api, type MasteryPath } from "../lib/api";
-import type { ReputationByDomain } from "@axiomic/types";
+import { api } from "../lib/api";
+import type {
+  MasterySummaryResponse,
+  PathProgressSummary,
+  ReputationByDomain,
+} from "@axiomic/types";
+
+const LEVEL_COLORS: Record<string, string> = {
+  apprentice: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
+  practitioner: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  specialist: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+  expert: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
+  researcher: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+};
+
+function PathProgressCard({ path }: { path: PathProgressSummary }) {
+  const pct =
+    path.totalNodes > 0 ? (path.completedNodes / path.totalNodes) * 100 : 0;
+  const last = relativeTime(path.latestCompletionAt);
+  return (
+    <Link
+      to={`/paths/${path.pathSlug}`}
+      className="block p-4 rounded-lg border border-border hover:bg-accent/50 transition-colors"
+    >
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="font-medium">{path.pathTitle}</h3>
+        <div className="flex items-center gap-2 shrink-0">
+          {path.currentLevel && (
+            <span
+              className={`px-2 py-0.5 rounded-full text-[10px] font-medium capitalize ${
+                LEVEL_COLORS[path.currentLevel] ?? ""
+              }`}
+            >
+              {path.currentLevel}
+            </span>
+          )}
+          <span className="text-xs text-muted-foreground">
+            {path.completedNodes} / {path.totalNodes}
+          </span>
+        </div>
+      </div>
+      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+        <div
+          className="h-full bg-primary rounded-full transition-all duration-500"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      {last && (
+        <div className="text-[11px] text-muted-foreground mt-2">
+          Last activity {last}
+        </div>
+      )}
+    </Link>
+  );
+}
+
+function relativeTime(iso: string | null): string | null {
+  if (!iso) return null;
+  const then = new Date(iso).getTime();
+  const now = Date.now();
+  const s = Math.max(0, Math.floor((now - then) / 1000));
+  if (s < 60) return `${s}s ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  return `${d}d ago`;
+}
 
 export function ProfilePage() {
   const { username: paramUsername } = useParams<{ username?: string }>();
@@ -14,7 +81,7 @@ export function ProfilePage() {
     total: number;
     domains: ReputationByDomain[];
   } | null>(null);
-  const [paths, setPaths] = useState<MasteryPath[]>([]);
+  const [mastery, setMastery] = useState<MasterySummaryResponse | null>(null);
 
   useEffect(() => {
     if (!username) return;
@@ -22,12 +89,11 @@ export function ProfilePage() {
       .reputation(username)
       .then((r) => setReputation({ total: r.total, domains: r.domains }))
       .catch(() => setReputation({ total: 0, domains: [] }));
+    api.mastery
+      .summary(username)
+      .then(setMastery)
+      .catch(() => setMastery(null));
   }, [username]);
-
-  useEffect(() => {
-    if (!isOwnProfile) return;
-    api.mastery.getPaths().then((d) => setPaths(d.paths)).catch(() => {});
-  }, [isOwnProfile]);
 
   if (!username) {
     return (
@@ -119,29 +185,25 @@ export function ProfilePage() {
         {isOwnProfile && (
           <>
             <section>
-              <h2 className="text-lg font-semibold mb-3">Learning Progress</h2>
-              {paths.length === 0 ? (
-                <div className="h-20 animate-pulse bg-muted rounded-lg" />
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-lg font-semibold">Learning Progress</h2>
+                {mastery && mastery.totalCompleted > 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    {mastery.totalCompleted} nodes completed
+                    {mastery.highestLevel && (
+                      <> · highest: <span className="capitalize">{mastery.highestLevel}</span></>
+                    )}
+                  </span>
+                )}
+              </div>
+              {!mastery ? (
+                <div className="h-24 animate-pulse bg-muted rounded-lg" />
+              ) : mastery.paths.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No paths available.</p>
               ) : (
-                <div className="space-y-2">
-                  {paths.map((path) => (
-                    <Link
-                      key={path.id}
-                      to={`/paths/${path.slug}`}
-                      className="block p-4 rounded-lg border border-border hover:bg-accent/50 transition-colors"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="min-w-0">
-                          <h3 className="font-medium">{path.title}</h3>
-                          <p className="text-sm text-muted-foreground line-clamp-1">
-                            {path.description}
-                          </p>
-                        </div>
-                        <span className="text-primary text-sm shrink-0 ml-4">
-                          View &rarr;
-                        </span>
-                      </div>
-                    </Link>
+                <div className="space-y-3">
+                  {mastery.paths.map((p) => (
+                    <PathProgressCard key={p.pathSlug} path={p} />
                   ))}
                 </div>
               )}

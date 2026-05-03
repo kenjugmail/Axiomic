@@ -16,6 +16,8 @@ function kindLabel(kind: Notification["kind"]): string {
       return "replied to your post";
     case "comment_reply":
       return "replied to your comment";
+    case "mastery_level_up":
+      return "you reached a new mastery level";
   }
 }
 
@@ -141,10 +143,14 @@ export function NotificationsPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="text-sm">
-                      <span className="font-medium">
-                        {n.actor?.username ?? "Someone"}
-                      </span>{" "}
-                      <span className="text-muted-foreground">{kindLabel(n.kind)}</span>
+                      {n.actor ? (
+                        <>
+                          <span className="font-medium">{n.actor.username}</span>{" "}
+                          <span className="text-muted-foreground">{kindLabel(n.kind)}</span>
+                        </>
+                      ) : (
+                        <span className="text-muted-foreground capitalize">{kindLabel(n.kind)}</span>
+                      )}
                     </div>
                     {n.preview && (
                       <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
