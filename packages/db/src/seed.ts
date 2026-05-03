@@ -125,6 +125,33 @@ interface MasteryNodeSpec {
   description?: string;
 }
 
+// Look up hand-authored quiz JSON for a node by slug, if present.
+// Returns the JSON-stringified questions to store inline in
+// masteryNodes.quizData; null when no file exists (the route falls back
+// to generic stub questions in that case).
+function loadQuizData(nodeSlug: string): string | null {
+  const file = path.join(process.cwd(), "../../seed-content/quizzes", `${nodeSlug}.json`);
+  // Walk to repo root if cwd isn't packages/db.
+  const candidates = [
+    file,
+    path.join(process.cwd(), "seed-content/quizzes", `${nodeSlug}.json`),
+    path.join(process.cwd(), "../../seed-content/quizzes", `${nodeSlug}.json`),
+    path.join(process.cwd(), "../../../seed-content/quizzes", `${nodeSlug}.json`),
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) {
+      try {
+        const parsed = JSON.parse(fs.readFileSync(c, "utf-8"));
+        return JSON.stringify(parsed);
+      } catch (e) {
+        console.error(`  Failed to parse quiz file ${c}:`, e);
+        return null;
+      }
+    }
+  }
+  return null;
+}
+
 function seedMasteryPath(spec: {
   slug: string;
   title: string;
@@ -137,7 +164,28 @@ function seedMasteryPath(spec: {
     .where(eq(masteryPaths.slug, spec.slug))
     .get();
   if (existing) {
-    console.log(`  Mastery path "${spec.slug}" already exists, skipping.`);
+    // Path already exists, but author may have added quiz data for nodes
+    // since the last seed. Update quizData on existing nodes with a
+    // matching JSON file; leave everything else untouched.
+    let updated = 0;
+    const existingNodes = db
+      .select({ id: masteryNodes.id, slug: masteryNodes.slug })
+      .from(masteryNodes)
+      .where(eq(masteryNodes.pathId, existing.id))
+      .all();
+    for (const node of existingNodes) {
+      const data = loadQuizData(node.slug);
+      if (data) {
+        db.update(masteryNodes)
+          .set({ quizData: data })
+          .where(eq(masteryNodes.id, node.id))
+          .run();
+        updated++;
+      }
+    }
+    console.log(
+      `  Mastery path "${spec.slug}" already exists, refreshed quiz data on ${updated} nodes.`,
+    );
     return;
   }
 
@@ -166,6 +214,7 @@ function seedMasteryPath(spec: {
       level: node.level,
       pageIds: JSON.stringify(node.pages),
       prerequisiteNodeIds: JSON.stringify(prereqIds),
+      quizData: loadQuizData(node.slug),
     }).run();
   }
 

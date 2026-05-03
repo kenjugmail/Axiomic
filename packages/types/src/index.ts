@@ -79,9 +79,33 @@ export interface QuizQuestion {
   correctIndex: number;
 }
 
+// Ephemeral flashcard returned by the AI generator. The user can save
+// it into their personal deck via POST /flashcards.
 export interface Flashcard {
   front: string;
   back: string;
+}
+
+// A persisted flashcard the user has saved into their deck. Includes
+// SM-2 spaced repetition state.
+export interface SavedFlashcard {
+  id: string;
+  pageSlug: string;
+  pageTitle: string;
+  front: string;
+  back: string;
+  easeFactor: number;
+  interval: number;
+  repetitions: number;
+  dueAt: string | null;
+  createdAt: string;
+}
+
+export interface FlashcardReview {
+  id: string;
+  cardId: string;
+  rating: number;
+  reviewedAt: string;
 }
 
 // Response envelopes
@@ -152,6 +176,14 @@ export interface RelatedPagesResponse {
 
 export interface FlashcardsResponse {
   cards: Flashcard[];
+}
+
+export interface SavedFlashcardsResponse {
+  cards: SavedFlashcard[];
+}
+
+export interface SavedFlashcardResponse {
+  card: SavedFlashcard;
 }
 
 export interface OkResponse {

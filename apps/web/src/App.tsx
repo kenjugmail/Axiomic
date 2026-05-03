@@ -15,6 +15,7 @@ import { ForumTopicPage } from "./pages/ForumTopicPage";
 import { NewTopicPage } from "./pages/NewTopicPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { FlashcardsPage } from "./pages/FlashcardsPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { useAuthStore } from "./stores/auth";
 import { useThemeStore } from "./stores/theme";
@@ -52,6 +53,7 @@ export function App() {
         <Route path="/profile/:username" element={<ProfilePage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/flashcards" element={<FlashcardsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

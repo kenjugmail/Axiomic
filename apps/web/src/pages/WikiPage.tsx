@@ -244,6 +244,7 @@ export function WikiPage() {
       {/* Flashcard viewer */}
       <FlashcardViewer
         pageSlug={page.slug}
+        pageTitle={page.title}
         tier={tier}
         isOpen={flashcardsOpen}
         onClose={() => setFlashcardsOpen(false)}

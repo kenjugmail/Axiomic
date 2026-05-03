@@ -42,6 +42,11 @@ export function Layout() {
               <Link to="/paths" className="text-muted-foreground hover:text-foreground transition-colors">
                 Mastery Paths
               </Link>
+              {user && (
+                <Link to="/flashcards" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Flashcards
+                </Link>
+              )}
             </nav>
           </div>
           <div className="flex items-center gap-3">

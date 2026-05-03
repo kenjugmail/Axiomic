@@ -5,6 +5,9 @@ import type {
   CommentsListResponse,
   Flashcard,
   FlashcardsResponse,
+  SavedFlashcard,
+  SavedFlashcardResponse,
+  SavedFlashcardsResponse,
   ForumCreateTopicResponse,
   ForumDomain,
   ForumDomainsResponse,
@@ -221,6 +224,22 @@ export const api = {
     flashcards: (pageSlug: string, tier: string) =>
       request<FlashcardsResponse>(`/ai/flashcards/${pageSlug}?tier=${tier}`),
   },
+  flashcards: {
+    save: (data: { pageSlug: string; pageTitle: string; front: string; back: string }) =>
+      request<SavedFlashcardResponse>("/flashcards", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    list: () => request<SavedFlashcardsResponse>("/flashcards"),
+    due: () => request<SavedFlashcardsResponse>("/flashcards/due"),
+    review: (id: string, rating: number) =>
+      request<SavedFlashcardResponse>(`/flashcards/${id}/review`, {
+        method: "POST",
+        body: JSON.stringify({ rating }),
+      }),
+    delete: (id: string) =>
+      request<OkResponse>(`/flashcards/${id}`, { method: "DELETE" }),
+  },
 };
 
 export type {
@@ -236,6 +255,7 @@ export type {
   PageVersion,
   PostType,
   QuizQuestion,
+  SavedFlashcard,
   SearchResultItem,
   User,
   UserNodeProgress,

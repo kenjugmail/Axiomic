@@ -155,6 +155,41 @@ export const forumVotes = sqliteTable("forum_votes", {
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
 });
 
+// --- Flashcards (spaced repetition) ---
+//
+// Cards a user has saved into their personal deck. SM-2 state is stored
+// inline (easeFactor / interval / repetitions / dueAt) so the scheduler
+// only needs the row itself plus the new rating.
+export const flashcards = sqliteTable(
+  "flashcards",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    pageSlug: text("page_slug").notNull(),
+    pageTitle: text("page_title").notNull(),
+    front: text("front").notNull(),
+    back: text("back").notNull(),
+    easeFactor: real("ease_factor").notNull().default(2.5),
+    interval: integer("interval").notNull().default(0),  // days; 0 == new card
+    repetitions: integer("repetitions").notNull().default(0),
+    dueAt: text("due_at"),  // null == new card, surfaces in "due today"
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    dueIdx: index("flashcards_due_idx").on(t.userId, t.dueAt),
+  }),
+);
+
+// Append-only history of every review event. Useful for retention
+// analytics and for reverting a misclick (we don't surface that yet).
+export const flashcardReviews = sqliteTable("flashcard_reviews", {
+  id: text("id").primaryKey(),
+  cardId: text("card_id").notNull().references(() => flashcards.id),
+  userId: text("user_id").notNull().references(() => users.id),
+  rating: integer("rating").notNull(),  // 0..5 (SM-2 grade)
+  reviewedAt: text("reviewed_at").default(sql`(datetime('now'))`).notNull(),
+});
+
 // --- Notifications ---
 //
 // Polymorphic subject (matches forumVotes vocabulary): "topic" | "post" | "comment".

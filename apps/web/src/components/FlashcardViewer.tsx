@@ -1,30 +1,68 @@
 import { useState, useEffect } from "react";
 import { api, type Flashcard } from "../lib/api";
 import { MarkdownRenderer } from "./MarkdownRenderer";
+import { useAuthStore } from "../stores/auth";
 
 interface FlashcardViewerProps {
   pageSlug: string;
+  pageTitle: string;
   tier: string;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function FlashcardViewer({ pageSlug, tier, isOpen, onClose }: FlashcardViewerProps) {
+export function FlashcardViewer({
+  pageSlug,
+  pageTitle,
+  tier,
+  isOpen,
+  onClose,
+}: FlashcardViewerProps) {
   const [cards, setCards] = useState<Flashcard[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [loading, setLoading] = useState(true);
+  // Tracks which card-indexes the user has saved into their deck so we
+  // can swap the button into a checkmark without a re-fetch.
+  const [savedIdx, setSavedIdx] = useState<Set<number>>(new Set());
+  const [saving, setSaving] = useState(false);
+  const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
     if (!isOpen) return;
     setLoading(true);
     setCurrentIndex(0);
     setFlipped(false);
+    setSavedIdx(new Set());
     api.ai.flashcards(pageSlug, tier).then((data) => {
       setCards(data.cards);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [isOpen, pageSlug, tier]);
+
+  const handleSave = async () => {
+    if (!user || saving) return;
+    const card = cards[currentIndex];
+    if (!card) return;
+    setSaving(true);
+    try {
+      await api.flashcards.save({
+        pageSlug,
+        pageTitle,
+        front: card.front,
+        back: card.back,
+      });
+      setSavedIdx((prev) => {
+        const next = new Set(prev);
+        next.add(currentIndex);
+        return next;
+      });
+    } catch {
+      // ignore — user will see button stay un-checked.
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -74,6 +112,23 @@ export function FlashcardViewer({ pageSlug, tier, isOpen, onClose }: FlashcardVi
             <p className="text-xs text-muted-foreground text-center mt-2">
               {flipped ? "Click to see question" : "Click to reveal answer"}
             </p>
+
+            {/* Save to deck */}
+            {user && (
+              <div className="mt-3 flex justify-center">
+                <button
+                  onClick={handleSave}
+                  disabled={saving || savedIdx.has(currentIndex)}
+                  className={`text-xs px-3 py-1 rounded-md border transition-colors ${
+                    savedIdx.has(currentIndex)
+                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                      : "border-input hover:bg-accent/40 text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {savedIdx.has(currentIndex) ? "✓ Saved to deck" : saving ? "Saving…" : "Save to deck"}
+                </button>
+              </div>
+            )}
 
             {/* Navigation */}
             <div className="flex justify-between mt-4">

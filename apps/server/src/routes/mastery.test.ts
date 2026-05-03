@@ -194,6 +194,20 @@ describe("Mastery: quiz", () => {
     expect(data.correct).toBe(questions.length);
     expect(data.total).toBe(questions.length);
   });
+
+  test("seeded quiz data overrides stub questions", async () => {
+    // tokens-basics has hand-authored questions; the generic stub
+    // would only contain the words "What is the main concept behind".
+    const p = await getPath("ml-engineer");
+    const tokens = p.nodes.find((n) => n.slug === "tokens-basics")!;
+    const res = await req(`/mastery/quiz/${tokens.id}`);
+    const data = (await res.json()) as any;
+    expect(data.questions.length).toBe(3);
+    // Stub fingerprint shouldn't appear in real questions.
+    for (const q of data.questions) {
+      expect(q.question).not.toContain("the main concept behind");
+    }
+  });
 });
 
 describe("Mastery: per-user summary", () => {
