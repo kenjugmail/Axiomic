@@ -126,10 +126,64 @@ export interface DragClassifyQuestion {
   explanation?: string;
 }
 
+// --- Code question (Pyodide-backed) ---
+//
+// The frontend runs the user's code against `tests` in a browser-side
+// Pyodide sandbox and reports back `{ passed, total }` as a JSON-stringified
+// answer. The server scores by comparing those counts to `tests.length`.
+export interface CodeQuestionTest {
+  name: string;
+  // Each input is a Python literal expression evaluated in the sandbox
+  // (e.g., "[2.0, 1.0, 0.5]" or "np.array([1, 2, 3])").
+  inputs: string[];
+  // Python expression run with bindings { result, np, inputs } that
+  // returns truthy iff the test passes. Common pattern:
+  //   "abs(result.sum() - 1.0) < 1e-6"
+  check: string;
+}
+
+export interface CodeQuestion {
+  id: string;
+  kind: "code";
+  question: string;
+  starterCode: string;
+  functionName: string;
+  tests: CodeQuestionTest[];
+  explanation?: string;
+}
+
+// --- Puzzle: drag components into ordered slots ---
+//
+// The user drags `components` from the tray into `slots`. Each slot
+// declares which component `type` it accepts. The puzzle is correct
+// iff every slot's filled component has matching type.
+export interface PuzzleSlot {
+  id: string;
+  label: string;
+  accepts: string;     // matches one or more components' `type`
+}
+
+export interface PuzzleComponent {
+  id: string;
+  label: string;
+  type: string;
+}
+
+export interface PuzzleDragBuildQuestion {
+  id: string;
+  kind: "puzzle_drag_build";
+  question: string;
+  slots: PuzzleSlot[];
+  components: PuzzleComponent[];
+  explanation?: string;
+}
+
 export type QuizQuestion =
   | MultipleChoiceQuestion
   | SliderQuestion
-  | DragClassifyQuestion;
+  | DragClassifyQuestion
+  | CodeQuestion
+  | PuzzleDragBuildQuestion;
 
 // Coerce a raw question (which may lack `kind`) into a typed one. Used
 // by both server-side scoring and frontend rendering.

@@ -1,4 +1,5 @@
 import { SoftmaxTemperatureSlider } from "../../../../../packages/viz/src/quiz/SoftmaxTemperatureSlider";
+import { GradientDescent2D } from "../../../../../packages/viz/src/quiz/GradientDescent2D";
 import type { SliderQuestion as Q } from "@axiomic/types";
 
 interface Props {
@@ -20,6 +21,13 @@ function renderViz(name: string, value: number, q: Q) {
           value={value}
           targetMin={q.target.min}
           targetMax={q.target.max}
+          {...(q.vizProps as object)}
+        />
+      );
+    case "gradient-descent-2d":
+      return (
+        <GradientDescent2D
+          learningRate={value}
           {...(q.vizProps as object)}
         />
       );

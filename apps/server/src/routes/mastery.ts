@@ -354,6 +354,49 @@ function gradeQuestion(q: any, answer: string | undefined): boolean {
       }
       return true;
     }
+    case "code": {
+      // The client reports { passed, total } after running the user's
+      // code through Pyodide against the test cases. Self-paced learning
+      // — trust the report — but we cross-check the totals against the
+      // number of declared tests so a hand-crafted answer can't claim
+      // more passes than there are tests.
+      if (answer === undefined) return false;
+      try {
+        const parsed = JSON.parse(answer);
+        if (!parsed || typeof parsed !== "object") return false;
+        const total = q.tests?.length ?? 0;
+        return (
+          typeof parsed.passed === "number" &&
+          typeof parsed.total === "number" &&
+          parsed.passed === total &&
+          parsed.total === total
+        );
+      } catch {
+        return false;
+      }
+    }
+    case "puzzle_drag_build": {
+      if (answer === undefined) return false;
+      let map: Record<string, string>;
+      try {
+        const parsed = JSON.parse(answer);
+        if (!parsed || typeof parsed !== "object") return false;
+        map = parsed;
+      } catch {
+        return false;
+      }
+      const componentsById = new Map<string, { type: string }>();
+      for (const c of q.components as Array<{ id: string; type: string }>) {
+        componentsById.set(c.id, c);
+      }
+      for (const slot of q.slots as Array<{ id: string; accepts: string }>) {
+        const placed = map[slot.id];
+        if (!placed) return false;
+        const comp = componentsById.get(placed);
+        if (!comp || comp.type !== slot.accepts) return false;
+      }
+      return true;
+    }
     default:
       return false;
   }

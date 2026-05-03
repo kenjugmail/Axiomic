@@ -43,5 +43,35 @@
     "default": 1,
     "target": { "min": 4, "max": 10 },
     "explanation": "As T → ∞, softmax(z / T) flattens toward 1/N for every logit. By T ≈ 4-5 the bars are visually close to the dashed uniform line; higher still nudges them closer."
+  },
+  {
+    "id": "q5",
+    "kind": "code",
+    "question": "Implement softmax. Given a 1-D numpy array of logits, return a 1-D array of probabilities. Don't forget numerical stability: subtract the max before exponentiating.",
+    "functionName": "softmax",
+    "starterCode": "def softmax(logits):\n    # logits is a numpy array. Return a numpy array of\n    # probabilities that sum to 1.\n    pass\n",
+    "tests": [
+      {
+        "name": "Sums to 1 on a basic input",
+        "inputs": ["np.array([2.0, 1.0, 0.5, -1.0])"],
+        "check": "abs(float(result.sum()) - 1.0) < 1e-6"
+      },
+      {
+        "name": "All outputs non-negative",
+        "inputs": ["np.array([-3.0, 0.0, 5.0])"],
+        "check": "bool(np.all(result >= 0))"
+      },
+      {
+        "name": "Argmax is preserved",
+        "inputs": ["np.array([0.1, 2.5, -0.3, 1.0])"],
+        "check": "int(np.argmax(result)) == 1"
+      },
+      {
+        "name": "Numerically stable on huge logits",
+        "inputs": ["np.array([1000.0, 1001.0, 999.0])"],
+        "check": "bool(np.isfinite(result).all()) and abs(float(result.sum()) - 1.0) < 1e-6"
+      }
+    ],
+    "explanation": "The 'subtract the max' trick prevents overflow when logits are large. Without it, np.exp(1001) is inf and the sum becomes inf/inf = nan."
   }
 ]

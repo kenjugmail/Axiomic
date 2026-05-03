@@ -45,6 +45,32 @@ function scoreLocally(question: QuizQuestion, answer: string | undefined): boole
         return false;
       }
     }
+    case "code": {
+      try {
+        const r = JSON.parse(answer!) as { passed: number; total: number };
+        return (
+          typeof r.passed === "number" &&
+          r.passed === q.tests.length &&
+          r.total === q.tests.length
+        );
+      } catch {
+        return false;
+      }
+    }
+    case "puzzle_drag_build": {
+      try {
+        const map = JSON.parse(answer!) as Record<string, string>;
+        const compsById = new Map(q.components.map((c) => [c.id, c]));
+        return q.slots.every((s) => {
+          const cId = map[s.id];
+          if (!cId) return false;
+          const comp = compsById.get(cId);
+          return !!comp && comp.type === s.accepts;
+        });
+      } catch {
+        return false;
+      }
+    }
   }
 }
 

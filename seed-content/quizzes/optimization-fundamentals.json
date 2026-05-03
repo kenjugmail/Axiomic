@@ -31,5 +31,17 @@
       "Vanilla SGD doesn't work with PyTorch"
     ],
     "correctIndex": 0
+  },
+  {
+    "id": "q4",
+    "kind": "slider",
+    "question": "Drag the learning rate until gradient descent converges to the origin within 30 steps on this anisotropic loss surface. Too small and it inches; too large and it oscillates along the narrow axis.",
+    "viz": "gradient-descent-2d",
+    "min": 0.01,
+    "max": 0.2,
+    "step": 0.005,
+    "default": 0.05,
+    "target": { "min": 0.07, "max": 0.095 },
+    "explanation": "On f(x, y) = x² + 5y², the optimal learning rate is bounded by 1/(largest curvature) = 1/(2 · 5) = 0.1. Anything ≥ 0.1 oscillates along y; anything ≪ 0.1 crawls along x. The sweet spot is roughly 0.07-0.09."
   }
 ]

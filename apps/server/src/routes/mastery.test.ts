@@ -211,6 +211,8 @@ describe("Mastery: quiz", () => {
         const m: Record<string, string> = {};
         for (const item of q.items) m[item.id] = item.bin;
         allCorrect[q.id] = JSON.stringify(m);
+      } else if (q.kind === "code") {
+        allCorrect[q.id] = JSON.stringify({ passed: q.tests.length, total: q.tests.length });
       } else allCorrect[q.id] = String(q.correctIndex);
     }
     const okRes = await req(`/mastery/quiz/${softmaxNode.id}`, {
@@ -250,6 +252,8 @@ describe("Mastery: quiz", () => {
     for (const q of questions) {
       if (q.kind === "drag_classify") answers[q.id] = JSON.stringify(correctMap);
       else if (q.kind === "slider") answers[q.id] = String(q.default);
+      else if (q.kind === "code")
+        answers[q.id] = JSON.stringify({ passed: q.tests.length, total: q.tests.length });
       else answers[q.id] = String(q.correctIndex);
     }
     const res = await req(`/mastery/quiz/${bpe.id}`, {
@@ -268,6 +272,111 @@ describe("Mastery: quiz", () => {
     wrong[flipKey] = wrong[flipKey] === "whole_word" ? "subword" : "whole_word";
     const wrongAnswers = { ...answers, [dragQ.id]: JSON.stringify(wrong) };
     const wrongRes = await req(`/mastery/quiz/${bpe.id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(user.cookie) },
+      body: JSON.stringify({ answers: wrongAnswers }),
+    });
+    const wrongData = (await wrongRes.json()) as any;
+    expect(wrongData.correct).toBe(questions.length - 1);
+  });
+
+  test("code question scores by client-reported pass count", async () => {
+    const p = await getPath("ml-engineer");
+    const softmax = p.nodes.find((n) => n.slug === "softmax-basics")!;
+    const get = await req(`/mastery/quiz/${softmax.id}`);
+    const { questions } = (await get.json()) as any;
+    const codeQ = questions.find((q: any) => q.kind === "code");
+    expect(codeQ).toBeDefined();
+
+    // Build a "passing" answer: client reports passed === total === tests.length.
+    const allCorrect: Record<string, string> = {};
+    for (const q of questions) {
+      if (q.kind === "code")
+        allCorrect[q.id] = JSON.stringify({ passed: q.tests.length, total: q.tests.length });
+      else if (q.kind === "slider") allCorrect[q.id] = "5";
+      else if (q.kind === "drag_classify") {
+        const m: Record<string, string> = {};
+        for (const item of q.items) m[item.id] = item.bin;
+        allCorrect[q.id] = JSON.stringify(m);
+      } else allCorrect[q.id] = String(q.correctIndex);
+    }
+    const ok = await req(`/mastery/quiz/${softmax.id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(user.cookie) },
+      body: JSON.stringify({ answers: allCorrect }),
+    });
+    const okData = (await ok.json()) as any;
+    expect(okData.score).toBe(1);
+
+    // Now report fewer passes than tests — code question should score wrong.
+    const partial = {
+      ...allCorrect,
+      [codeQ.id]: JSON.stringify({ passed: codeQ.tests.length - 1, total: codeQ.tests.length }),
+    };
+    const partialRes = await req(`/mastery/quiz/${softmax.id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(user.cookie) },
+      body: JSON.stringify({ answers: partial }),
+    });
+    const partialData = (await partialRes.json()) as any;
+    expect(partialData.correct).toBe(questions.length - 1);
+
+    // Tampering: claiming more passes than tests must NOT be accepted.
+    const tampered = {
+      ...allCorrect,
+      [codeQ.id]: JSON.stringify({ passed: codeQ.tests.length + 5, total: codeQ.tests.length + 5 }),
+    };
+    const tamperedRes = await req(`/mastery/quiz/${softmax.id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(user.cookie) },
+      body: JSON.stringify({ answers: tampered }),
+    });
+    const tamperedData = (await tamperedRes.json()) as any;
+    expect(tamperedData.correct).toBe(questions.length - 1);
+  });
+
+  test("puzzle_drag_build scores by exact slot-component type match", async () => {
+    const p = await getPath("ml-engineer");
+    const tb = p.nodes.find((n) => n.slug === "transformer-block")!;
+    const get = await req(`/mastery/quiz/${tb.id}`);
+    const { questions } = (await get.json()) as any;
+    const puzzle = questions.find((q: any) => q.kind === "puzzle_drag_build");
+    expect(puzzle).toBeDefined();
+
+    // Build the correct mapping: pick any component whose type matches each
+    // slot's `accepts`. (For repeated types like layer_norm, multiple
+    // components are valid for that slot; use any one.)
+    const correctMap: Record<string, string> = {};
+    const usedComponents = new Set<string>();
+    for (const slot of puzzle.slots) {
+      const comp = puzzle.components.find(
+        (c: any) => c.type === slot.accepts && !usedComponents.has(c.id),
+      );
+      expect(comp).toBeDefined();
+      correctMap[slot.id] = comp.id;
+      usedComponents.add(comp.id);
+    }
+
+    const answers: Record<string, string> = {};
+    for (const q of questions) {
+      if (q.kind === "puzzle_drag_build")
+        answers[q.id] = JSON.stringify(correctMap);
+      else answers[q.id] = String(q.correctIndex);
+    }
+    const ok = await req(`/mastery/quiz/${tb.id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(user.cookie) },
+      body: JSON.stringify({ answers }),
+    });
+    const okData = (await ok.json()) as any;
+    expect(okData.correct).toBe(questions.length);
+
+    // Now swap a layer_norm slot to point at the FFN component — wrong type.
+    const ffn = puzzle.components.find((c: any) => c.type === "ffn")!;
+    const lnSlot = puzzle.slots.find((s: any) => s.accepts === "layer_norm")!;
+    const wrongMap = { ...correctMap, [lnSlot.id]: ffn.id };
+    const wrongAnswers = { ...answers, [puzzle.id]: JSON.stringify(wrongMap) };
+    const wrongRes = await req(`/mastery/quiz/${tb.id}`, {
       method: "POST",
       headers: { "Content-Type": "application/json", ...cookieHeader(user.cookie) },
       body: JSON.stringify({ answers: wrongAnswers }),

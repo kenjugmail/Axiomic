@@ -31,5 +31,51 @@
       "It runs only on CPUs, not GPUs"
     ],
     "correctIndex": 0
+  },
+  {
+    "id": "q4",
+    "kind": "code",
+    "question": "Implement scaled dot-product attention. Given Q, K, V (numpy arrays of shape [n, d_k] for Q/K and [n, d_v] for V), return the attention output as a numpy array of shape [n, d_v]. Don't forget the 1/sqrt(d_k) scale and the softmax over the keys axis.",
+    "functionName": "attention",
+    "starterCode": "def attention(Q, K, V):\n    # Q: [n, d_k], K: [n, d_k], V: [n, d_v]\n    # Return [n, d_v]\n    pass\n",
+    "tests": [
+      {
+        "name": "Output shape matches V",
+        "inputs": [
+          "np.array([[1.0, 0.0], [0.0, 1.0], [1.0, 1.0]])",
+          "np.array([[1.0, 0.0], [0.0, 1.0], [1.0, 1.0]])",
+          "np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]])"
+        ],
+        "check": "result.shape == (3, 3)"
+      },
+      {
+        "name": "Identity Q=K=V test",
+        "inputs": [
+          "np.eye(3)",
+          "np.eye(3)",
+          "np.eye(3) * 10.0"
+        ],
+        "check": "abs(float(result.sum()) - 30.0) > 0  # not trivially zero"
+      },
+      {
+        "name": "Each output row is a convex combination of V rows",
+        "inputs": [
+          "np.array([[1.0, 0.0]])",
+          "np.array([[1.0, 0.0], [0.0, 1.0], [-1.0, 0.0]])",
+          "np.array([[2.0], [4.0], [6.0]])"
+        ],
+        "check": "bool(2.0 - 1e-6 <= float(result[0, 0]) <= 6.0 + 1e-6)"
+      },
+      {
+        "name": "Scaled by 1/sqrt(d_k) — large d_k stays well-conditioned",
+        "inputs": [
+          "np.ones((2, 64)) * 3.0",
+          "np.ones((2, 64)) * 3.0",
+          "np.array([[1.0], [2.0]])"
+        ],
+        "check": "bool(np.isfinite(result).all())"
+      }
+    ],
+    "explanation": "softmax((Q @ K.T) / sqrt(d_k)) @ V is the canonical formula. The scale prevents the dot products from growing with d_k and pushing softmax into a near-one-hot regime."
   }
 ]

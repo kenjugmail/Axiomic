@@ -3,6 +3,8 @@ import type { QuizQuestion } from "@axiomic/types";
 import { MultipleChoiceQuestion } from "./MultipleChoiceQuestion";
 import { SliderQuestion } from "./SliderQuestion";
 import { DragClassifyQuestion } from "./DragClassifyQuestion";
+import { CodeQuestion } from "./CodeQuestion";
+import { PuzzleDragBuildQuestion } from "./PuzzleDragBuildQuestion";
 
 interface Props {
   question: QuizQuestion;
@@ -38,6 +40,19 @@ export function QuestionRenderer({ question, value, onChange, review }: Props) {
           review={review}
         />
       );
+    case "code":
+      return (
+        <CodeQuestion question={q} value={value} onChange={onChange} review={review} />
+      );
+    case "puzzle_drag_build":
+      return (
+        <PuzzleDragBuildQuestion
+          question={q}
+          value={value}
+          onChange={onChange}
+          review={review}
+        />
+      );
   }
 }
 
@@ -53,6 +68,25 @@ export function isAnswered(question: QuizQuestion, value: string | undefined): b
     try {
       const map = JSON.parse(value) as Record<string, string>;
       return q.items.every((i) => map[i.id] && map[i.id].length > 0);
+    } catch {
+      return false;
+    }
+  }
+  if (q.kind === "puzzle_drag_build") {
+    try {
+      const map = JSON.parse(value) as Record<string, string>;
+      return q.slots.every((s) => map[s.id] && map[s.id].length > 0);
+    } catch {
+      return false;
+    }
+  }
+  if (q.kind === "code") {
+    // Answered iff the user has run the tests at least once. We don't
+    // require all-passing to "advance" — but the host's submit step
+    // grades on actual pass count.
+    try {
+      const r = JSON.parse(value) as { passed: number; total: number };
+      return typeof r.passed === "number" && typeof r.total === "number";
     } catch {
       return false;
     }
