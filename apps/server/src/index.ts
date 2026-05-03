@@ -10,6 +10,7 @@ import { commentsRouter } from "./routes/comments";
 import { aiRouter } from "./routes/ai";
 import { mastery } from "./routes/mastery";
 import { forum } from "./routes/forum";
+import { notificationsRouter } from "./routes/notifications";
 import type { Env } from "./env";
 
 const app = new Hono<Env>().basePath("/api/v1");
@@ -56,6 +57,7 @@ app.route("/comments", commentsRouter);
 app.route("/ai", aiRouter);
 app.route("/mastery", mastery);
 app.route("/forum", forum);
+app.route("/notifications", notificationsRouter);
 
 export { app };
 

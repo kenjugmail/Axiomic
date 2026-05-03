@@ -13,6 +13,7 @@ import { ProfilePage } from "./pages/ProfilePage";
 import { ForumListPage } from "./pages/ForumListPage";
 import { ForumTopicPage } from "./pages/ForumTopicPage";
 import { NewTopicPage } from "./pages/NewTopicPage";
+import { NotificationsPage } from "./pages/NotificationsPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { useAuthStore } from "./stores/auth";
 
@@ -40,6 +41,7 @@ export function App() {
         <Route path="/forum/:domain" element={<ForumListPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/profile/:username" element={<ProfilePage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

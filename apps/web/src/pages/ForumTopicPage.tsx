@@ -277,7 +277,10 @@ function PostItem({
   };
 
   return (
-    <div className={depth > 0 ? "ml-6 border-l-2 border-border pl-4" : ""}>
+    <div
+      id={`post-${post.id}`}
+      className={`scroll-mt-20 ${depth > 0 ? "ml-6 border-l-2 border-border pl-4" : ""}`}
+    >
       <div className="flex gap-3">
         <div className="flex flex-col items-center gap-0.5 text-muted-foreground">
           <button

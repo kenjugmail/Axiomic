@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, real, index, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
 export const users = sqliteTable("users", {
@@ -150,3 +150,32 @@ export const forumVotes = sqliteTable("forum_votes", {
   value: integer("value").notNull(),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
 });
+
+// --- Notifications ---
+//
+// Polymorphic subject (matches forumVotes vocabulary): "topic" | "post" | "comment".
+// kind is one of: mention | topic_reply | post_reply | comment_reply (validated at API layer).
+// preview is plain text (≤140 chars), NOT markdown — rendered as text by the client.
+// readAt is null while unread; the dedup partial index uses this to allow a fresh
+// notification once a previous one has been read.
+export const notifications = sqliteTable(
+  "notifications",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    actorId: text("actor_id").references(() => users.id),
+    kind: text("kind").notNull(),
+    subjectType: text("subject_type").notNull(),
+    subjectId: text("subject_id").notNull(),
+    contextSlug: text("context_slug"),
+    preview: text("preview"),
+    readAt: text("read_at"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    listIdx: index("notifications_list_idx").on(t.userId, t.readAt, t.createdAt),
+    dedupIdx: uniqueIndex("notifications_dedup_idx")
+      .on(t.userId, t.kind, t.subjectType, t.subjectId, t.actorId)
+      .where(sql`read_at IS NULL`),
+  }),
+);

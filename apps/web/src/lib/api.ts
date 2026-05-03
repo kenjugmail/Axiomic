@@ -19,6 +19,8 @@ import type {
   MasteryPathResponse,
   MasteryPathsResponse,
   MeResponse,
+  Notification,
+  NotificationsListResponse,
   OkResponse,
   PageVersion,
   PostType,
@@ -27,6 +29,7 @@ import type {
   QuizSubmitResponse,
   RelatedPagesResponse,
   ReputationResponse,
+  UnreadCountResponse,
   User,
   UserNodeProgress,
   WikiListResponse,
@@ -157,6 +160,24 @@ export const api = {
         headers: { "Content-Type": "application/json" },
       }),
   },
+  notifications: {
+    list: (params?: { unread?: boolean; limit?: number; offset?: number }) => {
+      const sp = new URLSearchParams();
+      if (params?.unread) sp.set("unread", "true");
+      if (params?.limit) sp.set("limit", String(params.limit));
+      if (params?.offset) sp.set("offset", String(params.offset));
+      const qs = sp.toString();
+      return request<NotificationsListResponse>(`/notifications${qs ? `?${qs}` : ""}`);
+    },
+    unreadCount: () => request<UnreadCountResponse>("/notifications/unread-count"),
+    markRead: (data: { ids?: string[]; all?: true }) =>
+      request<OkResponse>("/notifications/mark-read", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    delete: (id: string) =>
+      request<OkResponse>(`/notifications/${id}`, { method: "DELETE" }),
+  },
   ai: {
     streamChat: (pageSlug: string, tier: string, messages: Array<{ role: string; content: string }>) => {
       return fetch(`${BASE}/ai/chat`, {
@@ -189,6 +210,7 @@ export type {
   ForumTopicSummary,
   MasteryNode,
   MasteryPath,
+  Notification,
   PageVersion,
   PostType,
   QuizQuestion,

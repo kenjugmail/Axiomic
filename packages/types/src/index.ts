@@ -267,3 +267,47 @@ export interface ReputationResponse {
   total: number;
   domains: ReputationByDomain[];
 }
+
+// --- Notifications ---
+
+export type NotificationKind =
+  | "mention"
+  | "topic_reply"
+  | "post_reply"
+  | "comment_reply";
+
+export type NotificationSubject = "topic" | "post" | "comment";
+
+export const NOTIFICATION_KINDS: NotificationKind[] = [
+  "mention",
+  "topic_reply",
+  "post_reply",
+  "comment_reply",
+];
+
+export const NOTIFICATION_SUBJECTS: NotificationSubject[] = [
+  "topic",
+  "post",
+  "comment",
+];
+
+export interface Notification {
+  id: string;
+  kind: NotificationKind;
+  subjectType: NotificationSubject;
+  subjectId: string;
+  contextSlug: string | null;
+  preview: string | null;
+  readAt: string | null;
+  createdAt: string;
+  actor: { id: string; username: string } | null;
+}
+
+export interface NotificationsListResponse {
+  notifications: Notification[];
+  total: number;
+}
+
+export interface UnreadCountResponse {
+  count: number;
+}

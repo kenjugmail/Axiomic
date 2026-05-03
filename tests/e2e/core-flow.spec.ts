@@ -96,3 +96,82 @@ test("forum: list → new topic → reply → vote → reputation", async ({ pag
   await page.goto(`/profile/forum_${RUN_ID}`);
   await expect(page.getByRole("heading", { name: /reputation/i })).toBeVisible();
 });
+
+test("notifications: mention triggers badge → dropdown → mark read", async ({
+  browser,
+}) => {
+  const aliceCtx = await browser.newContext();
+  const bobCtx = await browser.newContext();
+  const aliceUser = `notif_a_${RUN_ID}`;
+  const bobUser = `notif_b_${RUN_ID}`;
+
+  // Sign up both users in their own browser contexts so cookies don't mix.
+  for (const [ctx, user] of [
+    [aliceCtx, aliceUser],
+    [bobCtx, bobUser],
+  ] as const) {
+    const page = await ctx.newPage();
+    await page.goto("/signup");
+    await page.locator('input[type="text"]').first().fill(user);
+    await page.locator('input[type="email"]').fill(`${user}@example.com`);
+    await page.locator('input[type="password"]').fill("playwright-test-pass");
+    await page.getByRole("button", { name: /create account/i }).click();
+    await expect(page).toHaveURL("/");
+    await page.close();
+  }
+
+  // Alice creates a topic that mentions bob.
+  const alice = await aliceCtx.newPage();
+  await alice.goto("/forum/new");
+  await alice.getByRole("button", { name: /claim/i }).first().click();
+  await alice.locator("input").first().fill(`mention test ${RUN_ID}`);
+  await alice
+    .locator("textarea")
+    .fill(`Hey @${bobUser}, take a look at this.`);
+  await alice.getByRole("button", { name: /post topic/i }).click();
+  await expect(alice.getByRole("heading", { level: 1 })).toContainText(
+    `mention test ${RUN_ID}`,
+  );
+
+  // Bob sees the badge appear after navigating (poll triggers on focus).
+  const bob = await bobCtx.newPage();
+  await bob.goto("/");
+  const bell = bob.getByRole("button", { name: /notifications/i });
+  await expect(bell).toBeVisible();
+  // The bell shows an unread count (the polling cycle runs on mount).
+  await expect
+    .poll(
+      async () => {
+        const txt = await bell.innerText();
+        return /\d/.test(txt) ? txt.trim() : "";
+      },
+      { timeout: 10_000 },
+    )
+    .toMatch(/1/);
+
+  // Open the dropdown, see the mention, click through.
+  await bell.click();
+  await expect(
+    bob.getByText(new RegExp(`${aliceUser}.*mentioned`, "i")),
+  ).toBeVisible();
+
+  // Visit /notifications and mark all read.
+  await bob.goto("/notifications");
+  await expect(bob.getByRole("heading", { name: /notifications/i })).toBeVisible();
+  await bob.getByRole("button", { name: /mark all as read/i }).click();
+
+  // Badge clears.
+  await bob.goto("/");
+  await expect
+    .poll(
+      async () => {
+        const txt = await bell.innerText();
+        return /\d/.test(txt) ? txt.trim() : "";
+      },
+      { timeout: 10_000 },
+    )
+    .toBe("");
+
+  await aliceCtx.close();
+  await bobCtx.close();
+});

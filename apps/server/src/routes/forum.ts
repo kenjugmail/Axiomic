@@ -15,6 +15,7 @@ import { eq, and, sql, inArray } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { getAIProvider } from "@axiomic/ai";
 import { requireAuth, getSessionUser } from "../middleware/auth";
+import { notify, notifyMentions, toPreview } from "../lib/notifications";
 import type { Env } from "../env";
 
 const forum = new Hono<Env>();
@@ -369,6 +370,22 @@ forum.post("/topics", requireAuth, zValidator("json", createTopicSchema), async 
     wikiPageId: wikiPageId || null,
   }).run();
 
+  // Best-effort mention notifications. The topic has no parent so only
+  // mentions fire. Awaited (not fire-and-forget) so the response observes
+  // a consistent state and tests don't race.
+  try {
+    await notifyMentions({
+      body: `${title}\n${body}`,
+      actorId: user.id,
+      subjectType: "topic",
+      subjectId: id,
+      contextSlug: slug,
+      preview: toPreview(body || title),
+    });
+  } catch (err) {
+    console.error("topic notifications failed", err);
+  }
+
   return c.json(
     {
       topic: {
@@ -443,6 +460,52 @@ forum.post(
       .set({ updatedAt: new Date().toISOString() })
       .where(eq(forumTopics.id, topic.id))
       .run();
+
+    // Mentions take precedence over reply notifications: a recipient who
+    // is both @-mentioned and the parent author receives only the mention.
+    try {
+      const preview = toPreview(body);
+      const mentioned = await notifyMentions({
+        body,
+        actorId: user.id,
+        subjectType: "post",
+        subjectId: id,
+        contextSlug: topic.slug,
+        preview,
+      });
+
+      let replyRecipientId: string | null = null;
+      let replyKind: "topic_reply" | "post_reply" = "topic_reply";
+      if (parentId) {
+        const parent = db
+          .select({ authorId: forumPosts.authorId })
+          .from(forumPosts)
+          .where(eq(forumPosts.id, parentId))
+          .get();
+        replyRecipientId = parent?.authorId ?? null;
+        replyKind = "post_reply";
+      } else {
+        replyRecipientId = topic.authorId;
+        replyKind = "topic_reply";
+      }
+      if (
+        replyRecipientId &&
+        replyRecipientId !== user.id &&
+        !mentioned.has(replyRecipientId)
+      ) {
+        await notify({
+          recipientId: replyRecipientId,
+          actorId: user.id,
+          kind: replyKind,
+          subjectType: "post",
+          subjectId: id,
+          contextSlug: topic.slug,
+          preview,
+        });
+      }
+    } catch (err) {
+      console.error("post notifications failed", err);
+    }
 
     return c.json(
       {

@@ -1,10 +1,11 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { getDb, comments, votes, users, commentEdits } from "@axiomic/db";
+import { getDb, comments, votes, users, commentEdits, wikiPages } from "@axiomic/db";
 import { eq, and, desc, asc, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { requireAuth, getSessionUser } from "../middleware/auth";
+import { notify, notifyMentions, toPreview } from "../lib/notifications";
 import type { Env } from "../env";
 
 const commentsRouter = new Hono<Env>();
@@ -116,6 +117,47 @@ commentsRouter.post("/", requireAuth, zValidator("json", createSchema), async (c
     userId: user.id,
     content,
   }).run();
+
+  // Best-effort notifications: errors logged but never fail the request.
+  try {
+    const page = db
+      .select({ slug: wikiPages.slug })
+      .from(wikiPages)
+      .where(eq(wikiPages.id, pageId))
+      .get();
+    const contextSlug = page?.slug ?? null;
+    const preview = toPreview(content);
+
+    const mentioned = await notifyMentions({
+      body: content,
+      actorId: user.id,
+      subjectType: "comment",
+      subjectId: id,
+      contextSlug,
+      preview,
+    });
+
+    if (parentId) {
+      const parent = db
+        .select({ userId: comments.userId })
+        .from(comments)
+        .where(eq(comments.id, parentId))
+        .get();
+      if (parent && parent.userId !== user.id && !mentioned.has(parent.userId)) {
+        await notify({
+          recipientId: parent.userId,
+          actorId: user.id,
+          kind: "comment_reply",
+          subjectType: "comment",
+          subjectId: id,
+          contextSlug,
+          preview,
+        });
+      }
+    }
+  } catch (err) {
+    console.error("comment notifications failed", err);
+  }
 
   return c.json({
     comment: {

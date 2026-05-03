@@ -3,6 +3,7 @@ import { Outlet, Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/auth";
 import { useThemeStore } from "../stores/theme";
 import { SearchDialog } from "./SearchDialog";
+import { NotificationBell } from "./NotificationBell";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 
 export function Layout() {
@@ -74,6 +75,7 @@ export function Layout() {
             {/* Auth */}
             {user ? (
               <div className="flex items-center gap-3 text-sm">
+                <NotificationBell />
                 <span className="text-muted-foreground hidden sm:inline">
                   {user.displayName || user.username}
                 </span>
