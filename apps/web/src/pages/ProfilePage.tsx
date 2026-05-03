@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuthStore } from "../stores/auth";
-import { api } from "../lib/api";
+import { api, type MasteryPath } from "../lib/api";
 import type { ReputationByDomain } from "@axiomic/types";
 
 export function ProfilePage() {
@@ -14,6 +14,7 @@ export function ProfilePage() {
     total: number;
     domains: ReputationByDomain[];
   } | null>(null);
+  const [paths, setPaths] = useState<MasteryPath[]>([]);
 
   useEffect(() => {
     if (!username) return;
@@ -22,6 +23,11 @@ export function ProfilePage() {
       .then((r) => setReputation({ total: r.total, domains: r.domains }))
       .catch(() => setReputation({ total: 0, domains: [] }));
   }, [username]);
+
+  useEffect(() => {
+    if (!isOwnProfile) return;
+    api.mastery.getPaths().then((d) => setPaths(d.paths)).catch(() => {});
+  }, [isOwnProfile]);
 
   if (!username) {
     return (
@@ -114,20 +120,31 @@ export function ProfilePage() {
           <>
             <section>
               <h2 className="text-lg font-semibold mb-3">Learning Progress</h2>
-              <Link
-                to="/paths/ml-engineer"
-                className="block p-4 rounded-lg border border-border hover:bg-accent/50 transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">ML Engineer Path</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Track your progress through the mastery path
-                    </p>
-                  </div>
-                  <span className="text-primary text-sm">View &rarr;</span>
+              {paths.length === 0 ? (
+                <div className="h-20 animate-pulse bg-muted rounded-lg" />
+              ) : (
+                <div className="space-y-2">
+                  {paths.map((path) => (
+                    <Link
+                      key={path.id}
+                      to={`/paths/${path.slug}`}
+                      className="block p-4 rounded-lg border border-border hover:bg-accent/50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="min-w-0">
+                          <h3 className="font-medium">{path.title}</h3>
+                          <p className="text-sm text-muted-foreground line-clamp-1">
+                            {path.description}
+                          </p>
+                        </div>
+                        <span className="text-primary text-sm shrink-0 ml-4">
+                          View &rarr;
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
-              </Link>
+              )}
             </section>
 
             <section>

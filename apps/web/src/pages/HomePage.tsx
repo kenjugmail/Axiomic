@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import {
   api,
   type ForumTopicSummary,
+  type MasteryPath,
   type PostType,
   type WikiPage,
 } from "../lib/api";
@@ -11,6 +12,7 @@ import { PostTypeBadge } from "../components/PostTypeBadge";
 export function HomePage() {
   const [recentPages, setRecentPages] = useState<WikiPage[]>([]);
   const [recentTopics, setRecentTopics] = useState<ForumTopicSummary[]>([]);
+  const [paths, setPaths] = useState<MasteryPath[]>([]);
 
   useEffect(() => {
     api.wiki.list().then((data) => {
@@ -20,7 +22,14 @@ export function HomePage() {
       .listTopics({ sort: "active" })
       .then((d) => setRecentTopics(d.topics.slice(0, 5)))
       .catch(() => {});
+    api.mastery
+      .getPaths()
+      .then((d) => setPaths(d.paths))
+      .catch(() => {});
   }, []);
+
+  // First path is the default "Start Learning" CTA target.
+  const defaultPath = paths[0];
 
   return (
     <div>
@@ -46,7 +55,7 @@ export function HomePage() {
                 Explore the Wiki
               </Link>
               <Link
-                to="/paths/ml-engineer"
+                to={defaultPath ? `/paths/${defaultPath.slug}` : "/paths"}
                 className="inline-flex items-center px-7 py-3 bg-secondary text-secondary-foreground rounded-lg font-medium hover:bg-secondary/80 transition-colors text-lg"
               >
                 Start Learning
@@ -114,34 +123,50 @@ export function HomePage() {
             </div>
             <Link to="/paths" className="text-sm text-primary hover:underline">View all paths</Link>
           </div>
-          <div className="p-6 rounded-xl border border-border bg-card">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg">ML Engineer</h3>
-                <p className="text-sm text-muted-foreground">24 nodes across 5 levels</p>
-              </div>
-            </div>
-            <div className="flex gap-1">
-              {["Apprentice", "Practitioner", "Specialist", "Expert", "Researcher"].map((level, i) => (
-                <div key={level} className="flex-1 text-center">
-                  <div className={`h-2 rounded-full mb-1 ${
-                    i === 0 ? "bg-emerald-400" : i === 1 ? "bg-blue-400" : i === 2 ? "bg-purple-400" : i === 3 ? "bg-amber-400" : "bg-red-400"
-                  }`} />
-                  <span className="text-[10px] text-muted-foreground">{level}</span>
-                </div>
-              ))}
-            </div>
-            <Link
-              to="/paths/ml-engineer"
-              className="mt-4 inline-flex items-center text-sm text-primary hover:underline"
-            >
-              Start this path &rarr;
-            </Link>
+          <div className="grid sm:grid-cols-2 gap-4">
+            {paths.length === 0 ? (
+              <div className="h-32 animate-pulse bg-muted rounded-xl col-span-2" />
+            ) : (
+              paths.map((path) => (
+                <Link
+                  key={path.id}
+                  to={`/paths/${path.slug}`}
+                  className="block p-6 rounded-xl border border-border bg-card hover:bg-accent/30 transition-colors"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                      </svg>
+                    </div>
+                    <h3 className="font-semibold text-lg">{path.title}</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                    {path.description}
+                  </p>
+                  <div className="flex gap-1">
+                    {["Apprentice", "Practitioner", "Specialist", "Expert", "Researcher"].map((level, i) => (
+                      <div key={level} className="flex-1 text-center">
+                        <div
+                          className={`h-2 rounded-full mb-1 ${
+                            i === 0
+                              ? "bg-emerald-400"
+                              : i === 1
+                                ? "bg-blue-400"
+                                : i === 2
+                                  ? "bg-purple-400"
+                                  : i === 3
+                                    ? "bg-amber-400"
+                                    : "bg-red-400"
+                          }`}
+                        />
+                        <span className="text-[9px] text-muted-foreground">{level}</span>
+                      </div>
+                    ))}
+                  </div>
+                </Link>
+              ))
+            )}
           </div>
         </div>
       </section>
