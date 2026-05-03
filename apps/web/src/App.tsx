@@ -10,6 +10,9 @@ import { WikiEditPage } from "./pages/WikiEditPage";
 import { MasteryListPage } from "./pages/MasteryListPage";
 import { MasteryPathPage } from "./pages/MasteryPathPage";
 import { ProfilePage } from "./pages/ProfilePage";
+import { ForumListPage } from "./pages/ForumListPage";
+import { ForumTopicPage } from "./pages/ForumTopicPage";
+import { NewTopicPage } from "./pages/NewTopicPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { useAuthStore } from "./stores/auth";
 
@@ -31,6 +34,10 @@ export function App() {
         <Route path="/wiki/:slug/edit" element={<WikiEditPage />} />
         <Route path="/paths" element={<MasteryListPage />} />
         <Route path="/paths/:slug" element={<MasteryPathPage />} />
+        <Route path="/forum" element={<ForumListPage />} />
+        <Route path="/forum/new" element={<NewTopicPage />} />
+        <Route path="/forum/t/:slug" element={<ForumTopicPage />} />
+        <Route path="/forum/:domain" element={<ForumListPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/profile/:username" element={<ProfilePage />} />
         <Route path="*" element={<NotFoundPage />} />

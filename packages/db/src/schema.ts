@@ -98,3 +98,55 @@ export const userProgress = sqliteTable("user_progress", {
   completedAt: text("completed_at"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
 });
+
+// --- Forum (Pillar 2: discourse) ---
+
+export const domains = sqliteTable("domains", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+// postType is one of: claim, question, derivation, critique, synthesis, prediction.
+// Validated at the API layer (Zod enum). SQLite has no native enum.
+export const forumTopics = sqliteTable("forum_topics", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  body: text("body").notNull(),
+  postType: text("post_type").notNull(),
+  domainId: text("domain_id").notNull().references(() => domains.id),
+  authorId: text("author_id").notNull().references(() => users.id),
+  wikiPageId: text("wiki_page_id").references(() => wikiPages.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+export const forumPosts = sqliteTable("forum_posts", {
+  id: text("id").primaryKey(),
+  topicId: text("topic_id").notNull().references(() => forumTopics.id),
+  parentId: text("parent_id"),
+  authorId: text("author_id").notNull().references(() => users.id),
+  body: text("body").notNull(),
+  editedAt: text("edited_at"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+export const forumPostEdits = sqliteTable("forum_post_edits", {
+  id: text("id").primaryKey(),
+  postId: text("post_id").notNull().references(() => forumPosts.id),
+  previousBody: text("previous_body").notNull(),
+  editedAt: text("edited_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+// Polymorphic: subjectType is "topic" | "post". No FK; integrity enforced at app layer.
+export const forumVotes = sqliteTable("forum_votes", {
+  id: text("id").primaryKey(),
+  subjectType: text("subject_type").notNull(),
+  subjectId: text("subject_id").notNull(),
+  userId: text("user_id").notNull().references(() => users.id),
+  value: integer("value").notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+});

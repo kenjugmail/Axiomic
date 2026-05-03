@@ -1,14 +1,25 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { api, type WikiPage } from "../lib/api";
+import {
+  api,
+  type ForumTopicSummary,
+  type PostType,
+  type WikiPage,
+} from "../lib/api";
+import { PostTypeBadge } from "../components/PostTypeBadge";
 
 export function HomePage() {
   const [recentPages, setRecentPages] = useState<WikiPage[]>([]);
+  const [recentTopics, setRecentTopics] = useState<ForumTopicSummary[]>([]);
 
   useEffect(() => {
     api.wiki.list().then((data) => {
       setRecentPages(data.pages.slice(0, 8));
     }).catch(() => {});
+    api.forum
+      .listTopics({ sort: "active" })
+      .then((d) => setRecentTopics(d.topics.slice(0, 5)))
+      .catch(() => {});
   }, []);
 
   return (
@@ -52,7 +63,7 @@ export function HomePage() {
       {/* Features */}
       <section className="border-t border-border bg-muted/30">
         <div className="max-w-5xl mx-auto px-4 py-16">
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             <FeatureCard
               title="Tiered Explanations"
               description="Every topic has three levels: intuitive intro, undergraduate depth with full math, and graduate-level with research connections."
@@ -77,6 +88,15 @@ export function HomePage() {
               icon={
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+              }
+            />
+            <FeatureCard
+              title="Discourse Forum"
+              description="Structured discussion: claims, questions, derivations, critiques, syntheses, predictions. Per-domain reputation built in."
+              icon={
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 8h10M7 12h6m-6 8l4-4h7a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2h2v4z" />
                 </svg>
               }
             />
@@ -125,6 +145,49 @@ export function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Recent forum activity */}
+      {recentTopics.length > 0 && (
+        <section className="border-t border-border">
+          <div className="max-w-5xl mx-auto px-4 py-16">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-2xl font-bold">Forum</h2>
+                <p className="text-muted-foreground mt-1">
+                  Structured discussion across claims, questions, derivations, and predictions
+                </p>
+              </div>
+              <Link to="/forum" className="text-sm text-primary hover:underline">
+                Browse all
+              </Link>
+            </div>
+            <ul className="space-y-2">
+              {recentTopics.map((t) => (
+                <li
+                  key={t.id}
+                  className="border border-border rounded-lg p-3 hover:bg-accent/30 transition-colors"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <PostTypeBadge type={t.postType as PostType} />
+                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {t.domainTitle}
+                    </span>
+                  </div>
+                  <Link
+                    to={`/forum/t/${t.slug}`}
+                    className="font-medium text-sm hover:text-primary"
+                  >
+                    {t.title}
+                  </Link>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    @{t.authorUsername} · {t.postCount} replies · score {t.score}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
 
       {/* Recent pages */}
       {recentPages.length > 0 && (

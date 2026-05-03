@@ -5,6 +5,15 @@ import type {
   CommentsListResponse,
   Flashcard,
   FlashcardsResponse,
+  ForumCreateTopicResponse,
+  ForumDomain,
+  ForumDomainsResponse,
+  ForumPost,
+  ForumPostResponse,
+  ForumTopicDetail,
+  ForumTopicDetailResponse,
+  ForumTopicSummary,
+  ForumTopicsResponse,
   MasteryNode,
   MasteryPath,
   MasteryPathResponse,
@@ -12,10 +21,12 @@ import type {
   MeResponse,
   OkResponse,
   PageVersion,
+  PostType,
   QuizQuestion,
   QuizQuestionsResponse,
   QuizSubmitResponse,
   RelatedPagesResponse,
+  ReputationResponse,
   User,
   UserNodeProgress,
   WikiListResponse,
@@ -93,6 +104,59 @@ export const api = {
     submitQuiz: (nodeId: string, answers: Record<string, string>) =>
       request<QuizSubmitResponse>(`/mastery/quiz/${nodeId}`, { method: "POST", body: JSON.stringify({ answers }) }),
   },
+  forum: {
+    domains: () => request<ForumDomainsResponse>("/forum/domains"),
+    listTopics: (params?: {
+      domain?: string;
+      postType?: PostType;
+      wikiPageId?: string;
+      sort?: "new" | "top" | "active";
+    }) => {
+      const sp = new URLSearchParams();
+      if (params?.domain) sp.set("domain", params.domain);
+      if (params?.postType) sp.set("postType", params.postType);
+      if (params?.wikiPageId) sp.set("wikiPageId", params.wikiPageId);
+      if (params?.sort) sp.set("sort", params.sort);
+      const qs = sp.toString();
+      return request<ForumTopicsResponse>(`/forum/topics${qs ? `?${qs}` : ""}`);
+    },
+    getTopic: (slug: string) =>
+      request<ForumTopicDetailResponse>(`/forum/topics/${slug}`),
+    createTopic: (data: {
+      title: string;
+      body: string;
+      postType: PostType;
+      domainSlug: string;
+      wikiPageId?: string | null;
+    }) =>
+      request<ForumCreateTopicResponse>("/forum/topics", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    reply: (slug: string, data: { body: string; parentId?: string }) =>
+      request<ForumPostResponse>(`/forum/topics/${slug}/posts`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    voteTopic: (slug: string, value: 1 | -1) =>
+      request<OkResponse>(`/forum/topics/${slug}/vote`, {
+        method: "POST",
+        body: JSON.stringify({ value }),
+      }),
+    votePost: (postId: string, value: 1 | -1) =>
+      request<OkResponse>(`/forum/posts/${postId}/vote`, {
+        method: "POST",
+        body: JSON.stringify({ value }),
+      }),
+    reputation: (username: string) =>
+      request<ReputationResponse>(`/forum/users/${username}/reputation`),
+    summarize: (slug: string) =>
+      fetch(`${BASE}/forum/topics/${slug}/summarize`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      }),
+  },
   ai: {
     streamChat: (pageSlug: string, tier: string, messages: Array<{ role: string; content: string }>) => {
       return fetch(`${BASE}/ai/chat`, {
@@ -119,9 +183,14 @@ export const api = {
 export type {
   Comment,
   Flashcard,
+  ForumDomain,
+  ForumPost,
+  ForumTopicDetail,
+  ForumTopicSummary,
   MasteryNode,
   MasteryPath,
   PageVersion,
+  PostType,
   QuizQuestion,
   User,
   UserNodeProgress,

@@ -1,4 +1,4 @@
-import type { AIProvider, StreamOptions } from "../provider";
+import type { AIProvider, StreamOptions, SummarizeThreadOptions } from "../provider";
 import fs from "fs";
 import path from "path";
 
@@ -111,6 +111,15 @@ export class MockProvider implements AIProvider {
     return this.genericResponse(query, tier);
   }
 
+  async summarizeThread(opts: SummarizeThreadOptions): Promise<void> {
+    const summary = buildMockThreadSummary(opts);
+    const delay = process.env.NODE_ENV === "test" ? 0 : 12;
+    for (const char of summary) {
+      opts.onToken(char);
+      if (delay > 0) await sleep(delay);
+    }
+  }
+
   private genericResponse(query: string, tier: string): string {
     const responses: Record<string, string> = {
       intro: `That's a great question! Let me break this down in simple terms.\n\nThe concept you're asking about is fundamental to how modern AI systems work. Think of it like building blocks — each piece builds on the ones before it.\n\nThe key insight is that neural networks learn by adjusting their internal parameters based on examples. When we talk about transformers specifically, they introduced a revolutionary way for the model to "pay attention" to different parts of the input, rather than processing everything sequentially.\n\nThis might sound abstract, but here's a concrete analogy: imagine reading a book where you can instantly flip back to any relevant earlier passage while reading a new sentence. That's essentially what the attention mechanism allows.\n\nWould you like me to elaborate on any particular aspect of this?`,
@@ -124,4 +133,61 @@ export class MockProvider implements AIProvider {
 
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
+}
+
+function firstSentence(text: string): string {
+  const trimmed = text.replace(/\s+/g, " ").trim();
+  const m = trimmed.match(/^.{20,240}?[.!?](\s|$)/);
+  return (m ? m[0] : trimmed.slice(0, 200)).trim();
+}
+
+function buildMockThreadSummary(opts: SummarizeThreadOptions): string {
+  const { topicTitle, postType, posts } = opts;
+  const participantSet = new Set(posts.map((p) => p.author));
+  const participants = [...participantSet];
+  const lead = postTypeSummaryLead(postType, topicTitle);
+
+  if (posts.length === 0) {
+    return `${lead}\n\nNo replies yet — be the first to engage.`;
+  }
+
+  const bullets = posts.slice(0, 6).map((p) => {
+    const sentence = firstSentence(p.body);
+    return `- **${p.author}**: ${sentence}`;
+  });
+
+  const closing =
+    posts.length >= 5
+      ? "The discussion is converging on a few key tensions; a synthesizer post would be welcome."
+      : "Early in the thread — more perspectives would sharpen the picture.";
+
+  return [
+    lead,
+    "",
+    `**Participants** (${participants.length}): ${participants.join(", ")}.`,
+    "",
+    "**Argument map:**",
+    ...bullets,
+    "",
+    closing,
+  ].join("\n");
+}
+
+function postTypeSummaryLead(postType: string, title: string): string {
+  switch (postType) {
+    case "claim":
+      return `This thread debates the claim **"${title}"**.`;
+    case "question":
+      return `This thread tackles the question **"${title}"**.`;
+    case "derivation":
+      return `This thread reviews a derivation: **"${title}"**.`;
+    case "critique":
+      return `This thread is a critique titled **"${title}"**.`;
+    case "synthesis":
+      return `This thread is a synthesis: **"${title}"**.`;
+    case "prediction":
+      return `This thread evaluates a prediction: **"${title}"**.`;
+    default:
+      return `Discussion of **"${title}"**.`;
+  }
 }

@@ -9,6 +9,7 @@ import { wiki } from "./routes/wiki";
 import { commentsRouter } from "./routes/comments";
 import { aiRouter } from "./routes/ai";
 import { mastery } from "./routes/mastery";
+import { forum } from "./routes/forum";
 import type { Env } from "./env";
 
 const app = new Hono<Env>().basePath("/api/v1");
@@ -54,6 +55,7 @@ app.route("/wiki", wiki);
 app.route("/comments", commentsRouter);
 app.route("/ai", aiRouter);
 app.route("/mastery", mastery);
+app.route("/forum", forum);
 
 export { app };
 

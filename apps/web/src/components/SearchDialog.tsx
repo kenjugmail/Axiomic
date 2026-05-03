@@ -1,15 +1,19 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { api, type WikiPage } from "../lib/api";
+import { api, type WikiPage, type ForumTopicSummary } from "../lib/api";
 
 interface SearchDialogProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+type SearchResult =
+  | { kind: "page"; page: WikiPage }
+  | { kind: "topic"; topic: ForumTopicSummary };
+
 export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<WikiPage[]>([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -32,8 +36,19 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
-        const data = await api.wiki.search(query);
-        setResults(data.results);
+        const [pagesData, topicsData] = await Promise.all([
+          api.wiki.search(query),
+          api.forum.listTopics({}).catch(() => ({ topics: [] })),
+        ]);
+        const q = query.toLowerCase();
+        const matchedTopics = topicsData.topics
+          .filter((t) => t.title.toLowerCase().includes(q))
+          .slice(0, 5);
+        const next: SearchResult[] = [
+          ...pagesData.results.map((page) => ({ kind: "page" as const, page })),
+          ...matchedTopics.map((topic) => ({ kind: "topic" as const, topic })),
+        ];
+        setResults(next);
         setSelectedIndex(0);
       } catch {}
       setLoading(false);
@@ -41,10 +56,17 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
     return () => clearTimeout(timer);
   }, [query]);
 
-  const handleSelect = useCallback((slug: string) => {
-    navigate(`/wiki/${slug}`);
-    onClose();
-  }, [navigate, onClose]);
+  const handleSelect = useCallback(
+    (result: SearchResult) => {
+      if (result.kind === "page") {
+        navigate(`/wiki/${result.page.slug}`);
+      } else {
+        navigate(`/forum/t/${result.topic.slug}`);
+      }
+      onClose();
+    },
+    [navigate, onClose]
+  );
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
@@ -54,7 +76,7 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
       e.preventDefault();
       setSelectedIndex((i) => Math.max(i - 1, 0));
     } else if (e.key === "Enter" && results[selectedIndex]) {
-      handleSelect(results[selectedIndex].slug);
+      handleSelect(results[selectedIndex]);
     } else if (e.key === "Escape") {
       onClose();
     }
@@ -78,7 +100,7 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Search wiki pages..."
+            placeholder="Search wiki pages and forum topics..."
             className="flex-1 py-3 bg-transparent text-foreground outline-none text-sm"
           />
           <kbd className="hidden sm:block text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">ESC</kbd>
@@ -87,30 +109,42 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
         {/* Results */}
         {results.length > 0 && (
           <div className="max-h-80 overflow-y-auto p-2">
-            {results.map((page, i) => (
-              <button
-                key={page.id}
-                onClick={() => handleSelect(page.slug)}
-                className={`w-full text-left px-3 py-2 rounded-md text-sm flex items-center justify-between ${
-                  i === selectedIndex ? "bg-accent text-accent-foreground" : "text-foreground hover:bg-accent/50"
-                }`}
-              >
-                <span className="font-medium">{page.title}</span>
-                <span className="text-xs text-muted-foreground capitalize">{page.category}</span>
-              </button>
-            ))}
+            {results.map((result, i) => {
+              const isPage = result.kind === "page";
+              const title = isPage ? result.page.title : result.topic.title;
+              const trailing = isPage
+                ? result.page.category
+                : `forum · ${result.topic.postType}`;
+              const key = isPage ? result.page.id : result.topic.id;
+              return (
+                <button
+                  key={key}
+                  onClick={() => handleSelect(result)}
+                  className={`w-full text-left px-3 py-2 rounded-md text-sm flex items-center justify-between gap-3 ${
+                    i === selectedIndex
+                      ? "bg-accent text-accent-foreground"
+                      : "text-foreground hover:bg-accent/50"
+                  }`}
+                >
+                  <span className="font-medium truncate">{title}</span>
+                  <span className="text-xs text-muted-foreground capitalize shrink-0">
+                    {trailing}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         )}
 
         {query && !loading && results.length === 0 && (
           <div className="p-6 text-center text-sm text-muted-foreground">
-            No pages found for "{query}"
+            No matches for "{query}"
           </div>
         )}
 
         {!query && (
           <div className="p-4 text-xs text-muted-foreground">
-            <p>Type to search wiki pages by title or category.</p>
+            <p>Type to search wiki pages and forum topics.</p>
             <p className="mt-1">Use <kbd className="bg-muted px-1 rounded">↑↓</kbd> to navigate, <kbd className="bg-muted px-1 rounded">Enter</kbd> to select.</p>
           </div>
         )}

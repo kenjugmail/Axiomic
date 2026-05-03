@@ -50,3 +50,49 @@ test("signup → wiki page → AI sidebar → comment → mastery", async ({ pag
   await page.goto("/paths/ml-engineer");
   await expect(page.getByRole("heading", { name: /ml engineer/i })).toBeVisible();
 });
+
+test("forum: list → new topic → reply → vote → reputation", async ({ page }) => {
+  // Sign up a fresh user.
+  await page.goto("/signup");
+  await page.locator('input[type="text"]').first().fill(`forum_${RUN_ID}`);
+  await page.locator('input[type="email"]').fill(`forum_${RUN_ID}@example.com`);
+  await page.locator('input[type="password"]').fill("playwright-test-pass");
+  await page.getByRole("button", { name: /create account/i }).click();
+  await expect(page).toHaveURL("/");
+
+  // Browse forum.
+  await page.goto("/forum");
+  await expect(page.getByRole("heading", { name: /forum/i }).first()).toBeVisible();
+  // Seeded topics should be visible.
+  await expect(page.getByText(/induction heads/i).first()).toBeVisible();
+
+  // Open the seeded induction-heads topic and verify the summarize button shows
+  // for a thread with multiple posts. Use the first matching link.
+  await page.getByText(/induction heads are the canonical/i).click();
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  // Summarize button appears when post count >= 3.
+  const summarizeBtn = page.getByRole("button", { name: /summarize thread/i });
+  await expect(summarizeBtn).toBeVisible();
+
+  // Vote on the topic (upvote arrow is the first one in the topic body area).
+  await page.getByRole("button", { name: /upvote topic/i }).click();
+
+  // Create a new topic of our own.
+  await page.goto("/forum/new");
+  await page.getByRole("button", { name: /question/i }).first().click();
+  await page.locator("input").first().fill(`E2E topic ${RUN_ID}`);
+  await page.locator("textarea").fill("Asking a real question for e2e.");
+  await page.getByRole("button", { name: /post topic/i }).click();
+
+  // We should land on the new topic page.
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(`E2E topic ${RUN_ID}`);
+
+  // Reply to it.
+  await page.locator('textarea[placeholder*="reply"]').first().fill("My own reply.");
+  await page.getByRole("button", { name: /post reply/i }).click();
+  await expect(page.getByText("My own reply.").first()).toBeVisible({ timeout: 5_000 });
+
+  // Reputation page reflects activity.
+  await page.goto(`/profile/forum_${RUN_ID}`);
+  await expect(page.getByRole("heading", { name: /reputation/i })).toBeVisible();
+});

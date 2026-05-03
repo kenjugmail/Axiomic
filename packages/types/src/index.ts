@@ -167,3 +167,103 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
 }
+
+// --- Forum (Pillar 2) ---
+
+export type PostType =
+  | "claim"
+  | "question"
+  | "derivation"
+  | "critique"
+  | "synthesis"
+  | "prediction";
+
+export const POST_TYPES: PostType[] = [
+  "claim",
+  "question",
+  "derivation",
+  "critique",
+  "synthesis",
+  "prediction",
+];
+
+export interface ForumDomain {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+}
+
+export interface ForumTopicSummary {
+  id: string;
+  slug: string;
+  title: string;
+  postType: PostType;
+  domainId: string;
+  domainSlug: string;
+  domainTitle: string;
+  authorId: string;
+  authorUsername: string;
+  wikiPageId: string | null;
+  wikiPageSlug: string | null;
+  wikiPageTitle: string | null;
+  score: number;
+  userVote: number;
+  postCount: number;
+  lastActivityAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ForumPost {
+  id: string;
+  topicId: string;
+  parentId: string | null;
+  authorId: string;
+  authorUsername: string;
+  body: string;
+  score: number;
+  userVote: number;
+  editedAt: string | null;
+  createdAt: string;
+  children?: ForumPost[];
+}
+
+export interface ForumTopicDetail extends ForumTopicSummary {
+  body: string;
+  posts: ForumPost[];
+}
+
+export interface ReputationByDomain {
+  domainSlug: string;
+  domainTitle: string;
+  score: number;
+  topicCount: number;
+  postCount: number;
+}
+
+export interface ForumDomainsResponse {
+  domains: ForumDomain[];
+}
+
+export interface ForumTopicsResponse {
+  topics: ForumTopicSummary[];
+}
+
+export interface ForumTopicDetailResponse {
+  topic: ForumTopicDetail;
+}
+
+export interface ForumPostResponse {
+  post: ForumPost;
+}
+
+export interface ForumCreateTopicResponse {
+  topic: ForumTopicSummary;
+}
+
+export interface ReputationResponse {
+  username: string;
+  total: number;
+  domains: ReputationByDomain[];
+}
