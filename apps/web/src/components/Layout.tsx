@@ -76,9 +76,13 @@ export function Layout() {
             {user ? (
               <div className="flex items-center gap-3 text-sm">
                 <NotificationBell />
-                <span className="text-muted-foreground hidden sm:inline">
+                <Link
+                  to="/settings"
+                  className="text-muted-foreground hover:text-foreground transition-colors hidden sm:inline"
+                  title="Settings"
+                >
                   {user.displayName || user.username}
-                </span>
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="text-muted-foreground hover:text-foreground transition-colors"

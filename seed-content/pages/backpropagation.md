@@ -13,7 +13,7 @@ Think of a neural network as a long chain of calculations. Data flows in at one 
 
 The goal of training is to minimize this loss. To do that, we need to know: if I nudge each parameter a tiny bit, does the loss go up or down? This information is called the **gradient** -- it is the slope of the loss with respect to each parameter.
 
-Backpropagation computes these gradients efficiently using the **chain rule** from calculus. The chain rule says that if you have a chain of functions (which is exactly what a neural network is), the overall rate of change is the product of the individual rates of change at each step.
+Backpropagation computes these gradients efficiently using the **chain rule** from calculus (see [calculus foundations](/wiki/calculus-foundations) for the full multivariate setup and reverse-mode differentiation). The chain rule says that if you have a chain of functions (which is exactly what a neural network is), the overall rate of change is the product of the individual rates of change at each step.
 
 ## Forward and Backward
 

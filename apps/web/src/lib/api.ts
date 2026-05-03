@@ -24,6 +24,8 @@ import type {
   OkResponse,
   SearchResponse,
   SearchResultItem,
+  SettingsResponse,
+  SettingsUpdateInput,
   PageVersion,
   PostType,
   QuizQuestion,
@@ -168,6 +170,14 @@ export const api = {
       if (limit) sp.set("limit", String(limit));
       return request<SearchResponse>(`/search?${sp.toString()}`);
     },
+  },
+  settings: {
+    get: () => request<SettingsResponse>("/settings"),
+    update: (patch: SettingsUpdateInput) =>
+      request<SettingsResponse>("/settings", {
+        method: "PUT",
+        body: JSON.stringify(patch),
+      }),
   },
   notifications: {
     list: (params?: { unread?: boolean; limit?: number; offset?: number }) => {

@@ -44,8 +44,12 @@ export function WikiPage() {
         setContent(data.content);
         setAllContent(data.allContent || {});
         setVersions(data.versions || []);
-        // Load discussions anchored to this page once we know its id.
-        if (data.page?.id) {
+        // linkedTopics is bundled with the page response now; falls back
+        // to a separate fetch if the field isn't present (e.g., older
+        // server). Keeps backward compatibility cheap.
+        if (Array.isArray(data.linkedTopics)) {
+          setDiscussions(data.linkedTopics);
+        } else if (data.page?.id) {
           api.forum
             .listTopics({ wikiPageId: data.page.id, sort: "active" })
             .then((d) => setDiscussions(d.topics))

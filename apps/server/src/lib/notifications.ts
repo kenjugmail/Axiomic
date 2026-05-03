@@ -75,12 +75,43 @@ interface NotifyArgs {
   preview: string | null;
 }
 
+// Map a notification kind to the user-pref column that gates it. Returns
+// null when the kind is always-on.
+function kindGate(
+  kind: NotificationKind,
+): "notifyMentions" | "notifyReplies" | null {
+  switch (kind) {
+    case "mention":
+      return "notifyMentions";
+    case "topic_reply":
+    case "post_reply":
+    case "comment_reply":
+      return "notifyReplies";
+  }
+}
+
 // Insert one notification. Idempotent on (recipient, kind, subject, actor)
-// while unread, via the partial unique index. Skips self-notifications.
+// while unread, via the partial unique index. Skips self-notifications and
+// recipients who have opted out of this kind. Returns true when a row was
+// (potentially) inserted, false when gated out — callers use this to
+// decide whether to fall back to a less-specific notification kind.
 // Best-effort: any DB error is swallowed and logged.
-export async function notify(args: NotifyArgs, db: Db = getDb()): Promise<void> {
-  if (args.recipientId === args.actorId) return;
+export async function notify(args: NotifyArgs, db: Db = getDb()): Promise<boolean> {
+  if (args.recipientId === args.actorId) return false;
   try {
+    const gate = kindGate(args.kind);
+    if (gate) {
+      const prefs = db
+        .select({
+          notifyMentions: users.notifyMentions,
+          notifyReplies: users.notifyReplies,
+        })
+        .from(users)
+        .where(eq(users.id, args.recipientId))
+        .get();
+      if (prefs && prefs[gate] === false) return false;
+    }
+
     await db
       .insert(notifications)
       .values({
@@ -94,8 +125,10 @@ export async function notify(args: NotifyArgs, db: Db = getDb()): Promise<void> 
         preview: args.preview,
       })
       .onConflictDoNothing();
+    return true;
   } catch (err) {
     console.error("notify failed", err);
+    return false;
   }
 }
 
@@ -129,8 +162,7 @@ export async function notifyMentions(
   const recipients = new Set<string>();
   for (const row of rows) {
     if (row.id === args.actorId) continue;
-    recipients.add(row.id);
-    await notify(
+    const inserted = await notify(
       {
         recipientId: row.id,
         actorId: args.actorId,
@@ -142,6 +174,9 @@ export async function notifyMentions(
       },
       db,
     );
+    // Only count recipients who actually received the mention. A user who
+    // muted mentions but not replies should still get a reply notification.
+    if (inserted) recipients.add(row.id);
   }
   return recipients;
 }

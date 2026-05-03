@@ -8,6 +8,9 @@ export const users = sqliteTable("users", {
   passwordHash: text("password_hash").notNull(),
   displayName: text("display_name"),
   bio: text("bio"),
+  theme: text("theme").notNull().default("system"),
+  notifyMentions: integer("notify_mentions", { mode: "boolean" }).notNull().default(true),
+  notifyReplies: integer("notify_replies", { mode: "boolean" }).notNull().default(true),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
 });

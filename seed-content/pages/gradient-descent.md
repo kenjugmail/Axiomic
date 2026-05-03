@@ -9,7 +9,7 @@ Imagine you're standing on a hilly landscape in thick fog. You can't see the bot
 
 ## What's Being Optimized?
 
-In machine learning, we have a **loss function** — a number that tells us how wrong our model's predictions are. High loss = bad predictions. Low loss = good predictions. Our goal is to find model parameters (the millions of numbers inside a neural network) that make this loss as small as possible.
+In machine learning, we have a **loss function** — a number that tells us how wrong our model's predictions are. High loss = bad predictions. Low loss = good predictions. Our goal is to find model parameters (the millions of numbers inside a neural network) that make this loss as small as possible. The general theory of how to do this (convexity, convergence rates, second-order methods) lives in [optimization theory](/wiki/optimization-theory).
 
 ## The Algorithm
 

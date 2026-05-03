@@ -9,7 +9,7 @@ A **loss function** (also called a cost function or objective function) measures
 
 ## Cross-Entropy Loss
 
-The most common loss function for language models is **cross-entropy loss**. Here's the intuition: if the model thinks the next word should be "cat" with 90% probability and it actually was "cat," the loss is low. If the model only gave "cat" a 1% chance, the loss is high.
+The most common loss function for language models is **cross-entropy loss**. Here's the intuition: if the model thinks the next word should be "cat" with 90% probability and it actually was "cat," the loss is low. If the model only gave "cat" a 1% chance, the loss is high. The deeper "why" — why this is the natural quantity to minimize — lives in [information theory](/wiki/information-theory): cross-entropy measures the expected code length of the data under the model's distribution.
 
 Mathematically, for a single prediction, the loss is $-\log(p)$ where $p$ is the probability the model assigned to the correct answer. This has nice properties:
 - When $p = 1$ (perfect prediction), the loss is $0$

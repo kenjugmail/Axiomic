@@ -67,7 +67,7 @@ The policy $\pi_\theta$ is optimized to maximize the reward while staying close 
 
 $$\mathcal{J}(\theta) = \mathbb{E}_{x \sim \mathcal{D},\, y \sim \pi_\theta(\cdot|x)} \left[r_\phi(x, y) - \beta \, D_\text{KL}\!\left(\pi_\theta(\cdot|x) \,\|\, \pi_\text{SFT}(\cdot|x)\right)\right]$$
 
-The KL term is critical — without it, the policy collapses to degenerate outputs that exploit reward model weaknesses (reward hacking).
+The KL term is critical — without it, the policy collapses to degenerate outputs that exploit reward model weaknesses (reward hacking). KL divergence is the natural penalty here for the reasons covered in [information theory](/wiki/information-theory): it measures the extra bits per sample of using the new policy where the old one was the optimal code.
 
 **PPO specifics.** The reward is computed per token or per sequence. The advantage estimate uses Generalized Advantage Estimation (GAE). The clipped surrogate objective prevents overly large policy updates:
 

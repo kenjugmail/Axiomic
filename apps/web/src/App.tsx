@@ -14,15 +14,24 @@ import { ForumListPage } from "./pages/ForumListPage";
 import { ForumTopicPage } from "./pages/ForumTopicPage";
 import { NewTopicPage } from "./pages/NewTopicPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
+import { SettingsPage } from "./pages/SettingsPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { useAuthStore } from "./stores/auth";
+import { useThemeStore } from "./stores/theme";
 
 export function App() {
   const fetchUser = useAuthStore((s) => s.fetchUser);
+  const user = useAuthStore((s) => s.user);
+  const hydrateFromServer = useThemeStore((s) => s.hydrateFromServer);
 
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
+
+  // Hydrate theme from server once auth resolves with a logged-in user.
+  useEffect(() => {
+    if (user) hydrateFromServer();
+  }, [user, hydrateFromServer]);
 
   return (
     <Routes>
@@ -42,6 +51,7 @@ export function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/profile/:username" element={<ProfilePage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

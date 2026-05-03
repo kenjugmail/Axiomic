@@ -12,6 +12,7 @@ import { mastery } from "./routes/mastery";
 import { forum } from "./routes/forum";
 import { notificationsRouter } from "./routes/notifications";
 import { searchRouter } from "./routes/search";
+import { settingsRouter } from "./routes/settings";
 import { prewarmSearchIndex } from "./lib/searchIndex";
 import type { Env } from "./env";
 
@@ -61,6 +62,7 @@ app.route("/mastery", mastery);
 app.route("/forum", forum);
 app.route("/notifications", notificationsRouter);
 app.route("/search", searchRouter);
+app.route("/settings", settingsRouter);
 
 // Pre-warm the search index in the background so the first user query
 // doesn't pay the embedding-build cost.

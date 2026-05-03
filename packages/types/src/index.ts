@@ -111,6 +111,7 @@ export interface WikiPageResponse {
   content: string;
   allContent?: { intro: string; undergrad: string; grad: string };
   versions: PageVersion[];
+  linkedTopics?: ForumTopicSummary[];
 }
 
 export interface WikiUpdateResponse {
@@ -343,4 +344,30 @@ export type SearchResultItem = SearchPageResult | SearchTopicResult;
 export interface SearchResponse {
   query: string;
   results: SearchResultItem[];
+}
+
+// --- Settings & user preferences ---
+
+export type ThemePreference = "light" | "dark" | "system";
+
+export interface UserSettings {
+  username: string;
+  email: string;
+  displayName: string | null;
+  bio: string | null;
+  theme: ThemePreference;
+  notifyMentions: boolean;
+  notifyReplies: boolean;
+}
+
+export interface SettingsResponse {
+  settings: UserSettings;
+}
+
+export interface SettingsUpdateInput {
+  theme?: ThemePreference;
+  notifyMentions?: boolean;
+  notifyReplies?: boolean;
+  displayName?: string | null;
+  bio?: string | null;
 }
