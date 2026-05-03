@@ -195,6 +195,87 @@ describe("Mastery: quiz", () => {
     expect(data.total).toBe(questions.length);
   });
 
+  test("slider question scores in/out of range", async () => {
+    // softmax-basics has a slider question (q4) with target [4, 10].
+    const p = await getPath("ml-engineer");
+    const softmaxNode = p.nodes.find((n) => n.slug === "softmax-basics")!;
+
+    // In-range: T=5 → correct; combined with all other multiple-choice
+    // questions correct, score should be 1.0.
+    const get = await req(`/mastery/quiz/${softmaxNode.id}`);
+    const { questions } = (await get.json()) as any;
+    const allCorrect: Record<string, string> = {};
+    for (const q of questions) {
+      if (q.kind === "slider") allCorrect[q.id] = "5";
+      else if (q.kind === "drag_classify") {
+        const m: Record<string, string> = {};
+        for (const item of q.items) m[item.id] = item.bin;
+        allCorrect[q.id] = JSON.stringify(m);
+      } else allCorrect[q.id] = String(q.correctIndex);
+    }
+    const okRes = await req(`/mastery/quiz/${softmaxNode.id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(user.cookie) },
+      body: JSON.stringify({ answers: allCorrect }),
+    });
+    expect(okRes.status).toBe(200);
+    const okData = (await okRes.json()) as any;
+    expect(okData.score).toBe(1);
+
+    // Out-of-range: slider T=1 falls below target.min=4; one wrong answer
+    // among 4 → score 0.75.
+    const partial = { ...allCorrect, q4: "1" };
+    const partialRes = await req(`/mastery/quiz/${softmaxNode.id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(user.cookie) },
+      body: JSON.stringify({ answers: partial }),
+    });
+    const partialData = (await partialRes.json()) as any;
+    expect(partialData.correct).toBe(questions.length - 1);
+  });
+
+  test("drag_classify scores by exact bin match", async () => {
+    const p = await getPath("ml-engineer");
+    const bpe = p.nodes.find((n) => n.slug === "bpe-tokenization")!;
+    const get = await req(`/mastery/quiz/${bpe.id}`);
+    const { questions } = (await get.json()) as any;
+    const dragQ = questions.find((q: any) => q.kind === "drag_classify");
+    expect(dragQ).toBeDefined();
+
+    // Build the answer map: every item in its declared bin → correct.
+    const correctMap: Record<string, string> = {};
+    for (const item of dragQ.items) correctMap[item.id] = item.bin;
+
+    const answers: Record<string, string> = {};
+    for (const q of questions) {
+      if (q.kind === "drag_classify") answers[q.id] = JSON.stringify(correctMap);
+      else if (q.kind === "slider") answers[q.id] = String(q.default);
+      else answers[q.id] = String(q.correctIndex);
+    }
+    const res = await req(`/mastery/quiz/${bpe.id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(user.cookie) },
+      body: JSON.stringify({ answers }),
+    });
+    const data = (await res.json()) as any;
+    // Drag-classify scored correct; multi-choice all correct too.
+    // (No slider in BPE quiz so we don't gate on that.)
+    expect(data.correct).toBe(questions.length);
+
+    // Now flip one item to the wrong bin and re-submit.
+    const wrong: Record<string, string> = { ...correctMap };
+    const flipKey = Object.keys(wrong)[0];
+    wrong[flipKey] = wrong[flipKey] === "whole_word" ? "subword" : "whole_word";
+    const wrongAnswers = { ...answers, [dragQ.id]: JSON.stringify(wrong) };
+    const wrongRes = await req(`/mastery/quiz/${bpe.id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(user.cookie) },
+      body: JSON.stringify({ answers: wrongAnswers }),
+    });
+    const wrongData = (await wrongRes.json()) as any;
+    expect(wrongData.correct).toBe(questions.length - 1);
+  });
+
   test("seeded quiz data overrides stub questions", async () => {
     // tokens-basics has hand-authored questions; the generic stub
     // would only contain the words "What is the main concept behind".

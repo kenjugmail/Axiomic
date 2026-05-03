@@ -63,6 +63,8 @@ export interface MasteryNode {
   level: string;
   pageIds: string[];
   prerequisiteNodeIds: string[];
+  // Server-derived flag — true when the node has authored lesson_data.
+  hasLesson?: boolean;
 }
 
 export interface UserNodeProgress {
@@ -72,11 +74,71 @@ export interface UserNodeProgress {
   completedAt: string | null;
 }
 
-export interface QuizQuestion {
+// --- Quiz questions: discriminated by `kind` ---
+//
+// Older seeded files omit `kind` entirely — those are interpreted as
+// "multiple_choice" via assertQuestionKind() so we don't have to rewrite
+// the 16 already-authored quiz JSON files.
+
+export interface MultipleChoiceQuestion {
   id: string;
+  kind: "multiple_choice";
   question: string;
   options: string[];
   correctIndex: number;
+  explanation?: string;
+}
+
+export interface SliderQuestion {
+  id: string;
+  kind: "slider";
+  question: string;
+  // Name of the controlled viz component to render. Currently:
+  //   "softmax-temperature" — bar chart of softmax(logits / T)
+  viz: string;
+  // Optional payload passed straight to the viz (logits, etc.).
+  vizProps?: Record<string, unknown>;
+  min: number;
+  max: number;
+  step: number;
+  default: number;
+  target: { min: number; max: number };
+  explanation?: string;
+}
+
+export interface DragClassifyItem {
+  id: string;
+  label: string;
+  bin: string;  // declared correct bin id
+}
+
+export interface DragClassifyBin {
+  id: string;
+  label: string;
+}
+
+export interface DragClassifyQuestion {
+  id: string;
+  kind: "drag_classify";
+  question: string;
+  items: DragClassifyItem[];
+  bins: DragClassifyBin[];
+  explanation?: string;
+}
+
+export type QuizQuestion =
+  | MultipleChoiceQuestion
+  | SliderQuestion
+  | DragClassifyQuestion;
+
+// Coerce a raw question (which may lack `kind`) into a typed one. Used
+// by both server-side scoring and frontend rendering.
+export function assertQuestionKind(raw: any): QuizQuestion {
+  if (!raw || typeof raw !== "object") {
+    throw new Error("Invalid quiz question");
+  }
+  if (!raw.kind) return { ...raw, kind: "multiple_choice" };
+  return raw;
 }
 
 // Ephemeral flashcard returned by the AI generator. The user can save
@@ -162,6 +224,31 @@ export interface MasteryPathResponse {
 
 export interface QuizQuestionsResponse {
   questions: QuizQuestion[];
+}
+
+// --- Lessons: Brilliant-style step-through slides ---
+
+export interface LessonTextSlide {
+  kind: "text";
+  title?: string;
+  body: string;             // markdown
+  viz?: string;             // optional viz name to render alongside body
+  vizProps?: Record<string, unknown>;
+}
+
+export interface LessonQuestionSlide {
+  kind: "question";
+  question: QuizQuestion;
+}
+
+export type LessonSlide = LessonTextSlide | LessonQuestionSlide;
+
+export interface Lesson {
+  slides: LessonSlide[];
+}
+
+export interface LessonResponse {
+  lesson: Lesson | null;    // null when the node has no authored lesson
 }
 
 export interface QuizSubmitResponse {

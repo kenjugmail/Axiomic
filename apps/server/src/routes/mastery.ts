@@ -55,6 +55,11 @@ mastery.get("/paths/:slug", async (c) => {
       ...n,
       pageIds: JSON.parse(n.pageIds),
       prerequisiteNodeIds: JSON.parse(n.prerequisiteNodeIds),
+      // Don't ship the full lesson body in the listing — just a flag so
+      // the path page can show or hide the "Start lesson" button.
+      hasLesson: !!n.lessonData,
+      lessonData: undefined,
+      quizData: undefined,
     }));
 
   let progress: any[] = [];
@@ -253,6 +258,24 @@ mastery.get("/users/:username/summary", (c) => {
   });
 });
 
+// Get the authored lesson for a node, if any.
+mastery.get("/lesson/:nodeId", async (c) => {
+  const nodeId = c.req.param("nodeId");
+  const db = getDb();
+  const node = db
+    .select({ lessonData: masteryNodes.lessonData })
+    .from(masteryNodes)
+    .where(eq(masteryNodes.id, nodeId))
+    .get();
+  if (!node) return c.json({ error: "Node not found" }, 404);
+  if (!node.lessonData) return c.json({ lesson: null });
+  try {
+    return c.json({ lesson: JSON.parse(node.lessonData) });
+  } catch {
+    return c.json({ lesson: null });
+  }
+});
+
 // Get quiz for a node
 mastery.get("/quiz/:nodeId", async (c) => {
   const nodeId = c.req.param("nodeId");
@@ -300,6 +323,42 @@ const quizSubmitSchema = z.object({
   answers: z.record(z.string()),
 });
 
+// Grade one question against one answer. Dispatches on `kind`,
+// defaulting to multiple_choice for back-compat with older seeded
+// quiz JSON that omits the field. Returns true when the answer is
+// correct.
+function gradeQuestion(q: any, answer: string | undefined): boolean {
+  const kind = q?.kind ?? "multiple_choice";
+  switch (kind) {
+    case "multiple_choice":
+      return answer !== undefined && answer === String(q.correctIndex);
+    case "slider": {
+      if (answer === undefined) return false;
+      const v = parseFloat(answer);
+      if (isNaN(v)) return false;
+      return v >= q.target.min && v <= q.target.max;
+    }
+    case "drag_classify": {
+      if (answer === undefined) return false;
+      let map: Record<string, string>;
+      try {
+        const parsed = JSON.parse(answer);
+        if (!parsed || typeof parsed !== "object") return false;
+        map = parsed;
+      } catch {
+        return false;
+      }
+      // Every declared item must map to its declared bin.
+      for (const item of q.items as Array<{ id: string; bin: string }>) {
+        if (map[item.id] !== item.bin) return false;
+      }
+      return true;
+    }
+    default:
+      return false;
+  }
+}
+
 mastery.post("/quiz/:nodeId", requireAuth, zValidator("json", quizSubmitSchema), async (c) => {
   const nodeId = c.req.param("nodeId");
   const { answers } = c.req.valid("json");
@@ -321,7 +380,7 @@ mastery.post("/quiz/:nodeId", requireAuth, zValidator("json", quizSubmitSchema),
 
   let correct = 0;
   for (const q of questions) {
-    if (answers[q.id] === String(q.correctIndex)) correct++;
+    if (gradeQuestion(q, answers[q.id])) correct++;
   }
 
   const score = questions.length > 0 ? correct / questions.length : 0;

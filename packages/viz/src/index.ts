@@ -7,3 +7,4 @@ export { BeamSearchTree } from "./components/BeamSearchTree";
 export { LayerActivations } from "./components/LayerActivations";
 export { QKVStepThrough } from "./components/QKVStepThrough";
 export { EmbeddingExplorer } from "./components/EmbeddingExplorer";
+export { SoftmaxTemperatureSlider } from "./quiz/SoftmaxTemperatureSlider";

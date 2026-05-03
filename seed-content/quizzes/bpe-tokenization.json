@@ -31,5 +31,23 @@
       "Never — modern models use character-level tokenization"
     ],
     "correctIndex": 0
+  },
+  {
+    "id": "q4",
+    "kind": "drag_classify",
+    "question": "Sort each token by what it represents in a typical BPE vocabulary.",
+    "items": [
+      { "id": "t1", "label": "the", "bin": "whole_word" },
+      { "id": "t2", "label": "cat", "bin": "whole_word" },
+      { "id": "t3", "label": "##ization", "bin": "subword" },
+      { "id": "t4", "label": "transform", "bin": "whole_word" },
+      { "id": "t5", "label": "##ing", "bin": "subword" },
+      { "id": "t6", "label": "un##", "bin": "subword" }
+    ],
+    "bins": [
+      { "id": "whole_word", "label": "Whole word" },
+      { "id": "subword", "label": "Subword piece" }
+    ],
+    "explanation": "Pieces beginning or ending with ## are merge fragments — they only appear glued to other pieces. Standalone strings without that marker are full vocabulary entries that map directly to a word."
   }
 ]

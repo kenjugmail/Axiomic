@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, type QuizQuestion } from "../lib/api";
+import { QuestionRenderer, isAnswered } from "./quiz/QuestionRenderer";
+import { assertQuestionKind } from "@axiomic/types";
 
 const PASSING_SCORE = 0.7;
 
@@ -13,11 +15,44 @@ interface QuizModalProps {
 
 type Phase = "loading" | "answering" | "scored" | "error";
 
+interface ScoreResult {
+  score: number;
+  correct: number;
+  total: number;
+  // Optional per-question right/wrong for the review state. Falls back
+  // to "couldn't determine" when older servers omit it.
+  perQuestion?: Record<string, boolean>;
+}
+
+// Client-side mirror of the server's per-kind scoring. Used to feed
+// the review state without a second round trip; the server remains the
+// source of truth for the overall score.
+function scoreLocally(question: QuizQuestion, answer: string | undefined): boolean {
+  const q = assertQuestionKind(question);
+  if (answer === undefined && q.kind !== "slider") return false;
+  switch (q.kind) {
+    case "multiple_choice":
+      return answer === String(q.correctIndex);
+    case "slider": {
+      const v = parseFloat(answer ?? String(q.default));
+      return !isNaN(v) && v >= q.target.min && v <= q.target.max;
+    }
+    case "drag_classify": {
+      try {
+        const map = JSON.parse(answer!) as Record<string, string>;
+        return q.items.every((i) => map[i.id] === i.bin);
+      } catch {
+        return false;
+      }
+    }
+  }
+}
+
 export function QuizModal({ nodeId, nodeTitle, onClose, onPassed }: QuizModalProps) {
   const [phase, setPhase] = useState<Phase>("loading");
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [result, setResult] = useState<{ score: number; correct: number; total: number } | null>(null);
+  const [result, setResult] = useState<ScoreResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -50,11 +85,18 @@ export function QuizModal({ nodeId, nodeTitle, onClose, onPassed }: QuizModalPro
   }, [onClose]);
 
   const handleSubmit = async () => {
-    if (Object.keys(answers).length !== questions.length) return;
+    if (!allAnswered) return;
     setSubmitting(true);
     try {
       const r = await api.mastery.submitQuiz(nodeId, answers);
-      setResult(r);
+      // Compute per-question correctness locally so the review state can
+      // light up right/wrong colors. The server's overall score is what
+      // gates auto-mark-complete.
+      const perQuestion: Record<string, boolean> = {};
+      for (const q of questions) {
+        perQuestion[q.id] = scoreLocally(q, answers[q.id]);
+      }
+      setResult({ ...r, perQuestion });
       setPhase("scored");
       if (r.score >= PASSING_SCORE) {
         try {
@@ -73,12 +115,13 @@ export function QuizModal({ nodeId, nodeTitle, onClose, onPassed }: QuizModalPro
   };
 
   const passed = result !== null && result.score >= PASSING_SCORE;
-  const allAnswered = questions.length > 0 && Object.keys(answers).length === questions.length;
+  const allAnswered =
+    questions.length > 0 && questions.every((q) => isAnswered(q, answers[q.id]));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh]">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[8vh]">
       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-xl bg-card border border-border rounded-xl shadow-2xl overflow-hidden max-h-[80vh] flex flex-col">
+      <div className="relative w-full max-w-2xl bg-card border border-border rounded-xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
         <div className="px-5 py-4 border-b border-border flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold">Quiz · {nodeTitle}</h2>
@@ -110,40 +153,32 @@ export function QuizModal({ nodeId, nodeTitle, onClose, onPassed }: QuizModalPro
             <div className="text-sm text-destructive">{error}</div>
           )}
 
-          {phase === "answering" &&
-            questions.map((q, i) => (
-              <div key={q.id} className="space-y-2">
-                <div className="text-sm font-medium">
-                  <span className="text-muted-foreground mr-2">{i + 1}.</span>
-                  {q.question}
+          {(phase === "answering" || phase === "scored") &&
+            questions.map((q, i) => {
+              const review =
+                phase === "scored" && result?.perQuestion
+                  ? { correct: !!result.perQuestion[q.id] }
+                  : undefined;
+              return (
+                <div key={q.id} className="space-y-3">
+                  <div className="text-sm font-medium">
+                    <span className="text-muted-foreground mr-2">{i + 1}.</span>
+                    {q.question}
+                  </div>
+                  <QuestionRenderer
+                    question={q}
+                    value={answers[q.id]}
+                    onChange={(v) => setAnswers((a) => ({ ...a, [q.id]: v }))}
+                    review={review}
+                  />
+                  {review && (q as any).explanation && (
+                    <div className="text-xs text-muted-foreground italic px-1">
+                      {(q as any).explanation}
+                    </div>
+                  )}
                 </div>
-                <div className="space-y-1.5">
-                  {q.options.map((opt, j) => {
-                    const checked = answers[q.id] === String(j);
-                    return (
-                      <label
-                        key={j}
-                        className={`flex items-start gap-2 px-3 py-2 rounded-md border cursor-pointer text-sm transition-colors ${
-                          checked
-                            ? "border-primary bg-primary/5"
-                            : "border-input hover:bg-accent/40"
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name={q.id}
-                          value={j}
-                          checked={checked}
-                          onChange={() => setAnswers((a) => ({ ...a, [q.id]: String(j) }))}
-                          className="mt-0.5 accent-primary"
-                        />
-                        <span>{opt}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
+              );
+            })}
 
           {phase === "scored" && result && (
             <div
@@ -187,15 +222,7 @@ export function QuizModal({ nodeId, nodeTitle, onClose, onPassed }: QuizModalPro
               </button>
             </>
           )}
-          {phase === "scored" && (
-            <button
-              onClick={onClose}
-              className="px-4 py-1.5 text-sm rounded-md bg-primary text-primary-foreground font-medium"
-            >
-              Close
-            </button>
-          )}
-          {phase === "error" && (
+          {(phase === "scored" || phase === "error") && (
             <button
               onClick={onClose}
               className="px-4 py-1.5 text-sm rounded-md bg-primary text-primary-foreground font-medium"

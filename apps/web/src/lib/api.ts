@@ -5,6 +5,8 @@ import type {
   CommentsListResponse,
   Flashcard,
   FlashcardsResponse,
+  Lesson,
+  LessonResponse,
   SavedFlashcard,
   SavedFlashcardResponse,
   SavedFlashcardsResponse,
@@ -114,6 +116,8 @@ export const api = {
       request<QuizQuestionsResponse>(`/mastery/quiz/${nodeId}`),
     submitQuiz: (nodeId: string, answers: Record<string, string>) =>
       request<QuizSubmitResponse>(`/mastery/quiz/${nodeId}`, { method: "POST", body: JSON.stringify({ answers }) }),
+    getLesson: (nodeId: string) =>
+      request<LessonResponse>(`/mastery/lesson/${nodeId}`),
     summary: (username: string) =>
       request<MasterySummaryResponse>(`/mastery/users/${username}/summary`),
   },

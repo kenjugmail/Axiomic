@@ -90,6 +90,9 @@ export const masteryNodes = sqliteTable("mastery_nodes", {
   pageIds: text("page_ids").notNull(), // JSON array of page IDs
   prerequisiteNodeIds: text("prerequisite_node_ids").notNull().default("[]"), // JSON array
   quizData: text("quiz_data"), // JSON: canned quiz questions for MockProvider
+  // JSON: Brilliant-style lesson — array of slides (text+viz or
+  // embedded-question). Loaded from seed-content/lessons/<slug>.json.
+  lessonData: text("lesson_data"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
 });
 

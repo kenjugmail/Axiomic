@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { api, type MasteryPath, type MasteryNode, type UserNodeProgress } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { QuizModal } from "../components/QuizModal";
+import { LessonPlayer } from "../components/LessonPlayer";
 
 const LEVEL_COLORS: Record<string, string> = {
   apprentice: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
@@ -42,6 +43,7 @@ export function MasteryPathPage() {
   const [progress, setProgress] = useState<UserNodeProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [quizFor, setQuizFor] = useState<MasteryNode | null>(null);
+  const [lessonFor, setLessonFor] = useState<MasteryNode | null>(null);
   const [levelUpBanner, setLevelUpBanner] = useState<string | null>(null);
   const prevHighestRef = useRef<number>(-2); // sentinel: not initialized yet
   const user = useAuthStore((s) => s.user);
@@ -253,9 +255,21 @@ export function MasteryPathPage() {
                     </div>
                     {user && !completed && (
                       <div className="flex items-center gap-2 shrink-0">
+                        {node.hasLesson && (
+                          <button
+                            onClick={() => setLessonFor(node)}
+                            className="px-3 py-1 rounded-md text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                          >
+                            Start lesson
+                          </button>
+                        )}
                         <button
                           onClick={() => setQuizFor(node)}
-                          className="px-3 py-1 rounded-md text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                          className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                            node.hasLesson
+                              ? "bg-secondary hover:bg-secondary/80"
+                              : "bg-primary text-primary-foreground hover:bg-primary/90"
+                          }`}
                         >
                           Take quiz
                         </button>
@@ -281,6 +295,15 @@ export function MasteryPathPage() {
           nodeTitle={quizFor.title}
           onClose={() => setQuizFor(null)}
           onPassed={handleQuizPassed}
+        />
+      )}
+
+      {lessonFor && (
+        <LessonPlayer
+          nodeId={lessonFor.id}
+          nodeTitle={lessonFor.title}
+          onClose={() => setLessonFor(null)}
+          onCompleted={handleQuizPassed}
         />
       )}
     </div>

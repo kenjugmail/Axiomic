@@ -31,5 +31,17 @@
       "It changes the distribution to be sharper"
     ],
     "correctIndex": 0
+  },
+  {
+    "id": "q4",
+    "kind": "slider",
+    "question": "Drag the temperature T until the softmax distribution becomes approximately uniform across the five logits.",
+    "viz": "softmax-temperature",
+    "min": 0.1,
+    "max": 10,
+    "step": 0.1,
+    "default": 1,
+    "target": { "min": 4, "max": 10 },
+    "explanation": "As T → ∞, softmax(z / T) flattens toward 1/N for every logit. By T ≈ 4-5 the bars are visually close to the dashed uniform line; higher still nudges them closer."
   }
 ]

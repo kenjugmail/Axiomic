@@ -1,0 +1,57 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What is softmax?",
+      "body": "Neural networks output **logits** — raw real numbers like `[2.5, 2.0, 1.5, 0.8, 0.3]`. To turn these into a probability distribution we need positive numbers that sum to 1.\n\n**Softmax** does exactly that:\n\n$$\\sigma(z)_i = \\frac{e^{z_i}}{\\sum_j e^{z_j}}$$\n\nThe shape on the right shows softmax applied to a fixed set of logits. The bars are the resulting probabilities."
+    },
+    {
+      "kind": "text",
+      "title": "Temperature controls sharpness",
+      "body": "Before applying softmax, we can divide all logits by a **temperature** $T$:\n\n$$\\sigma(z / T)_i = \\frac{e^{z_i / T}}{\\sum_j e^{z_j / T}}$$\n\n- **Low $T$** ($< 1$): the largest logit dominates — the distribution becomes **sharper**.\n- **High $T$** ($> 1$): differences between logits shrink — the distribution becomes **flatter**, closer to uniform.\n\nDrag the slider on the next slide to feel how this works.",
+      "viz": "softmax-temperature-preview",
+      "vizProps": { "value": 1 }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "lesson_q1",
+        "kind": "slider",
+        "question": "Drag the temperature T until the softmax distribution is approximately uniform across all five logits.",
+        "viz": "softmax-temperature",
+        "min": 0.1,
+        "max": 10,
+        "step": 0.1,
+        "default": 1,
+        "target": { "min": 4, "max": 10 },
+        "explanation": "As T grows, each logit z_i / T → 0, and softmax converges to 1/N for every position. The dashed line shows where uniform sits."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Why softmax — and not just normalize?",
+      "body": "A natural question: why not divide each logit by the sum and call it a day? Two reasons:\n\n1. Logits can be **negative**, but probabilities must be non-negative. The exponential $e^{z}$ is always positive.\n2. The exponential is **monotonic and amplifies differences**: a small gap in logit space becomes a meaningful gap in probability space, scaled by the temperature.\n\nThis is exactly why **temperature sampling** in language models works the way it does — turning the same logits into either a confident greedy choice or a creative random sample, just by changing one number."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "lesson_q2",
+        "kind": "multiple_choice",
+        "question": "If you want greedy generation (always pick the highest-probability token), what temperature regime is most appropriate?",
+        "options": [
+          "Very low T (sharpens the distribution toward the argmax)",
+          "Very high T (flattens the distribution toward uniform)",
+          "T = 1 (the default)",
+          "Negative T"
+        ],
+        "correctIndex": 0,
+        "explanation": "At T → 0, softmax becomes one-hot on the largest logit — equivalent to argmax."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Where you'll meet softmax again",
+      "body": "Softmax shows up almost everywhere a neural network needs to choose:\n\n- **[Attention](/wiki/attention) weights** — query·key dot products → softmax → how much each token attends to every other.\n- **Output predictions** — final layer logits → softmax → next-token distribution.\n- **Classification heads** — class scores → softmax → predicted-class probabilities.\n\nNow that you have the intuition for **what** softmax does and **why** temperature matters, the rest of these uses become straightforward to read."
+    }
+  ]
+}
