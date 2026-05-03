@@ -1,5 +1,6 @@
 import { Database } from "bun:sqlite";
 import { drizzle } from "drizzle-orm/bun-sqlite";
+import { readFileSync } from "fs";
 import * as schema from "./schema";
 import path from "path";
 
@@ -13,7 +14,7 @@ function findDbPath(): string {
   let dir = process.cwd();
   while (dir !== "/") {
     try {
-      const pkg = JSON.parse(require("fs").readFileSync(path.join(dir, "package.json"), "utf-8"));
+      const pkg = JSON.parse(readFileSync(path.join(dir, "package.json"), "utf-8"));
       if (pkg.workspaces) {
         return path.join(dir, "axiomic.db");
       }

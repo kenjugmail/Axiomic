@@ -5,8 +5,9 @@ import { getDb, masteryPaths, masteryNodes, userProgress } from "@axiomic/db";
 import { eq, and } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { requireAuth, getSessionUser } from "../middleware/auth";
+import type { Env } from "../env";
 
-const mastery = new Hono();
+const mastery = new Hono<Env>();
 
 // List mastery paths
 mastery.get("/paths", async (c) => {
@@ -54,7 +55,7 @@ mastery.get("/paths/:slug", async (c) => {
 
 // Mark node complete
 mastery.post("/progress/:nodeId/complete", requireAuth, async (c) => {
-  const nodeId = c.req.param("nodeId");
+  const nodeId = c.req.param("nodeId")!;
   const user = c.get("user")!;
   const db = getDb();
 

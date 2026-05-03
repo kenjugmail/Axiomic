@@ -61,11 +61,11 @@ export function EmbeddingExplorer() {
     const cosX = Math.cos(rotation.x), sinX = Math.sin(rotation.x);
 
     // Rotate around Y axis
-    let x1 = p.x * cosY - p.z * sinY;
-    let z1 = p.x * sinY + p.z * cosY;
+    const x1 = p.x * cosY - p.z * sinY;
+    const z1 = p.x * sinY + p.z * cosY;
     // Rotate around X axis
-    let y1 = p.y * cosX - z1 * sinX;
-    let z2 = p.y * sinX + z1 * cosX;
+    const y1 = p.y * cosX - z1 * sinX;
+    const z2 = p.y * sinX + z1 * cosX;
 
     return {
       x: cx + x1 * scale,

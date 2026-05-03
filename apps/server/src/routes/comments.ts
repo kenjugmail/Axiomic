@@ -5,8 +5,9 @@ import { getDb, comments, votes, users, commentEdits } from "@axiomic/db";
 import { eq, and, desc, asc, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { requireAuth, getSessionUser } from "../middleware/auth";
+import type { Env } from "../env";
 
-const commentsRouter = new Hono();
+const commentsRouter = new Hono<Env>();
 
 // Get comments for a page
 commentsRouter.get("/:pageId", async (c) => {

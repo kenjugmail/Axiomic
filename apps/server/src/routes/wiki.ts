@@ -4,9 +4,10 @@ import { z } from "zod";
 import { getDb, wikiPages, pageVersions } from "@axiomic/db";
 import { eq, like, or, desc } from "drizzle-orm";
 import { randomUUID } from "crypto";
-import { getSessionUser, requireAuth } from "../middleware/auth";
+import { requireAuth } from "../middleware/auth";
+import type { Env } from "../env";
 
-const wiki = new Hono();
+const wiki = new Hono<Env>();
 
 // List all wiki pages
 wiki.get("/", async (c) => {

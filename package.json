@@ -11,8 +11,27 @@
     "dev:web": "bun run --filter '@axiomic/web' dev",
     "build": "bun run --filter '*' build",
     "test": "bun run --filter '*' test",
+    "test:e2e": "playwright test",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "bun run --filter '*' typecheck",
     "db:migrate": "bun run --filter @axiomic/db migrate",
     "db:seed": "bun run --filter @axiomic/db seed",
     "setup": "bash scripts/setup.sh"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.10.0",
+    "@playwright/test": "^1.48.0",
+    "@types/bun": "latest",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.10.0",
+    "eslint-plugin-react": "^7.35.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "prettier": "^3.3.0",
+    "typescript": "^5.5.0",
+    "typescript-eslint": "^8.0.0"
   }
 }

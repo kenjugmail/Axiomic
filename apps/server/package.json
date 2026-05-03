@@ -5,11 +5,13 @@
   "scripts": {
     "dev": "bun run --watch src/index.ts",
     "build": "bun build src/index.ts --outdir dist --target bun",
-    "test": "bun test"
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@axiomic/db": "workspace:*",
     "@axiomic/ai": "workspace:*",
+    "@axiomic/types": "workspace:*",
     "drizzle-orm": "^0.33.0",
     "@hono/zod-validator": "^0.3.0",
     "hono": "^4.6.0",

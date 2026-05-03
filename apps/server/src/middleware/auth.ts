@@ -3,6 +3,7 @@ import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import { getDb, sessions, users } from "@axiomic/db";
 import { eq, and, gt } from "drizzle-orm";
 import { randomUUID } from "crypto";
+import type { Env } from "../env";
 
 const SESSION_COOKIE = "axiomic_session";
 const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
@@ -61,7 +62,7 @@ export async function getSessionUser(c: Context) {
   return result || null;
 }
 
-export async function requireAuth(c: Context, next: Next) {
+export async function requireAuth(c: Context<Env>, next: Next) {
   const user = await getSessionUser(c);
   if (!user) {
     return c.json({ error: "Unauthorized" }, 401);

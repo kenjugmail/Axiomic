@@ -1,13 +1,14 @@
 import { Database } from "bun:sqlite";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { migrate } from "drizzle-orm/bun-sqlite/migrator";
+import { readFileSync } from "fs";
 import path from "path";
 
 // Find monorepo root
 let rootDir = process.cwd();
 while (rootDir !== "/") {
   try {
-    const pkg = JSON.parse(require("fs").readFileSync(path.join(rootDir, "package.json"), "utf-8"));
+    const pkg = JSON.parse(readFileSync(path.join(rootDir, "package.json"), "utf-8"));
     if (pkg.workspaces) break;
   } catch {}
   rootDir = path.dirname(rootDir);
