@@ -39,8 +39,10 @@ test("signup → wiki page → AI sidebar → comment → mastery", async ({ pag
     )
     .toBeGreaterThan(0);
 
-  // Leave a comment. The comment textarea is the first textarea below the discussion heading.
-  await page.getByRole("heading", { name: /discussion/i }).scrollIntoViewIfNeeded();
+  // Leave a comment. The comment textarea is the first textarea below the
+  // discussion heading. Match "Discussion" exactly so we don't collide
+  // with the "Discussions" h3 above the forum-links panel.
+  await page.getByRole("heading", { name: /^Discussion$/i }).scrollIntoViewIfNeeded();
   const commentBox = page.locator('textarea[placeholder*="thoughts"]').first();
   await commentBox.fill(`hello from e2e ${RUN_ID}`);
   await page.getByRole("button", { name: /post comment/i }).click();
