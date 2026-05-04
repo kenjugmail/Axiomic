@@ -8,8 +8,28 @@ import {
   type WikiPage,
 } from "../lib/api";
 import { PostTypeBadge } from "../components/PostTypeBadge";
+import { WelcomeBanner } from "../components/WelcomeBanner";
+import { useAuthStore } from "../stores/auth";
+
+// Featured lesson — hand-picked to surface the most polished
+// interactive experience to first-time visitors. The /paths/ link
+// drops the user directly on the path; clicking "Start lesson" on
+// softmax-basics opens the LessonPlayer.
+const FEATURED_LESSON = {
+  pathSlug: "ml-engineer",
+  nodeSlug: "softmax-basics",
+  title: "Softmax & temperature",
+  blurb:
+    "Drag a slider to flatten or sharpen a probability distribution; finish with a Python sandbox where you implement softmax from scratch.",
+  bullets: [
+    "6 slides mixing live visualizations with embedded checks",
+    "An interactive temperature slider you can play with",
+    "A Pyodide-backed coding problem with instant test feedback",
+  ],
+};
 
 export function HomePage() {
+  const { user } = useAuthStore();
   const [recentPages, setRecentPages] = useState<WikiPage[]>([]);
   const [recentTopics, setRecentTopics] = useState<ForumTopicSummary[]>([]);
   const [paths, setPaths] = useState<MasteryPath[]>([]);
@@ -33,6 +53,7 @@ export function HomePage() {
 
   return (
     <div>
+      <WelcomeBanner />
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="max-w-5xl mx-auto px-4 py-20 sm:py-28">
@@ -43,9 +64,10 @@ export function HomePage() {
               <span className="text-primary">Beautifully Structured</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-              An open educational platform with interactive wiki, AI-powered learning,
-              and structured mastery paths — starting with modern machine learning
-              and transformer architectures.
+              Interactive lessons with live visualizations and a Python sandbox,
+              tiered wiki articles, structured forum debate, and gamified mastery
+              paths — starting with modern machine learning and transformer
+              architectures.
             </p>
             <div className="flex gap-4 justify-center flex-wrap">
               <Link
@@ -83,8 +105,8 @@ export function HomePage() {
               }
             />
             <FeatureCard
-              title="Interactive Visualizations"
-              description="Attention heatmaps, embedding spaces, positional encodings — understand transformers through hands-on exploration."
+              title="Brilliant-Style Lessons"
+              description="Step-through slides with live attention heatmaps, gradient-descent surfaces, and embedded checks. Drag, classify, and run real Python in your browser."
               icon={
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
@@ -92,8 +114,8 @@ export function HomePage() {
               }
             />
             <FeatureCard
-              title="AI Learning Companion"
-              description="An always-available tutor that knows the page you're on, adjusts to your level, and generates quizzes and practice problems."
+              title="AI Tutor + Spaced Repetition"
+              description="An always-available tutor that adapts to your level. Generate flashcards from any page; review what's due with a real SM-2 spaced-repetition scheduler."
               icon={
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
@@ -112,6 +134,105 @@ export function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Featured interactive lesson */}
+      <section className="border-t border-border">
+        <div className="max-w-5xl mx-auto px-4 py-16">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-2xl font-bold">Try an interactive lesson</h2>
+              <p className="text-muted-foreground mt-1">
+                Live visualizations, drag-and-classify, and a Python sandbox — in 5 minutes.
+              </p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
+            <div className="grid md:grid-cols-[1fr_auto] items-center gap-6">
+              <div>
+                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
+                  Featured · Apprentice
+                </div>
+                <h3 className="text-xl font-semibold mb-2">
+                  {FEATURED_LESSON.title}
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {FEATURED_LESSON.blurb}
+                </p>
+                <ul className="space-y-1 mb-5">
+                  {FEATURED_LESSON.bullets.map((b) => (
+                    <li
+                      key={b}
+                      className="flex items-start gap-2 text-sm text-muted-foreground"
+                    >
+                      <span className="text-primary mt-0.5">•</span>
+                      <span>{b}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="flex items-center gap-3">
+                  <Link
+                    to={`/paths/${FEATURED_LESSON.pathSlug}`}
+                    className="inline-flex items-center px-4 py-2 rounded-md bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90"
+                  >
+                    Start the lesson →
+                  </Link>
+                  {!user && (
+                    <Link
+                      to="/signup"
+                      className="text-sm text-muted-foreground hover:text-foreground"
+                    >
+                      or sign up to track progress
+                    </Link>
+                  )}
+                </div>
+              </div>
+              <div className="hidden md:flex items-center justify-center w-48 h-48 rounded-lg bg-gradient-to-br from-primary/20 via-primary/5 to-transparent">
+                {/* Stylized softmax bars */}
+                <svg viewBox="0 0 120 80" className="w-32 h-20 text-primary">
+                  {[0.45, 0.27, 0.15, 0.08, 0.05].map((h, i) => (
+                    <rect
+                      key={i}
+                      x={6 + i * 22}
+                      y={80 - h * 70}
+                      width={16}
+                      height={h * 70}
+                      rx={2}
+                      fill="currentColor"
+                      opacity={0.85 - i * 0.12}
+                    />
+                  ))}
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Practice tools — visible only when signed in */}
+      {user && (
+        <section className="border-t border-border bg-muted/30">
+          <div className="max-w-5xl mx-auto px-4 py-12">
+            <h2 className="text-2xl font-bold mb-6">Your practice tools</h2>
+            <div className="grid sm:grid-cols-3 gap-4">
+              <PracticeCard
+                title="Flashcards"
+                description="Save cards from any wiki page; review what's due today with SM-2 scheduling."
+                to="/flashcards"
+              />
+              <PracticeCard
+                title="Notifications"
+                description="Replies to your topics, mentions, and mastery level-up celebrations land here."
+                to="/notifications"
+              />
+              <PracticeCard
+                title="Profile"
+                description="Per-domain reputation, mastery progress across paths, recent completions."
+                to={`/profile/${user.username}`}
+              />
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Mastery path preview */}
       <section className="border-t border-border">
@@ -258,5 +379,25 @@ function FeatureCard({
       <h3 className="font-semibold mb-2">{title}</h3>
       <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
     </div>
+  );
+}
+
+function PracticeCard({
+  title,
+  description,
+  to,
+}: {
+  title: string;
+  description: string;
+  to: string;
+}) {
+  return (
+    <Link
+      to={to}
+      className="block p-5 rounded-lg border border-border bg-card hover:bg-accent/30 transition-colors"
+    >
+      <h3 className="font-semibold mb-1">{title}</h3>
+      <p className="text-sm text-muted-foreground">{description}</p>
+    </Link>
   );
 }
