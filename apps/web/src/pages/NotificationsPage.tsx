@@ -35,13 +35,16 @@ function relativeTime(iso: string): string {
 }
 
 export function NotificationsPage() {
-  const { user } = useAuthStore();
+  const { user, loading: authLoading } = useAuthStore();
   const navigate = useNavigate();
   const [filter, setFilter] = useState<Filter>("all");
   const [items, setItems] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Wait for the auth store to finish hydrating before deciding to bounce.
+    // Otherwise a fresh page load races /me and we redirect a signed-in user.
+    if (authLoading) return;
     if (!user) {
       navigate("/login");
       return;
@@ -60,7 +63,7 @@ export function NotificationsPage() {
     return () => {
       cancelled = true;
     };
-  }, [filter, user, navigate]);
+  }, [filter, user, authLoading, navigate]);
 
   const markAllRead = async () => {
     try {
