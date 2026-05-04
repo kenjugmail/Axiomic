@@ -38,28 +38,47 @@ export async function destroySession(c: Context): Promise<void> {
   deleteCookie(c, SESSION_COOKIE, { path: "/" });
 }
 
+const SESSION_USER_COLUMNS = {
+  id: users.id,
+  username: users.username,
+  email: users.email,
+  displayName: users.displayName,
+  bio: users.bio,
+  createdAt: users.createdAt,
+} as const;
+
+function devBypassEnabled(): boolean {
+  return (
+    process.env.DEV_AUTH_BYPASS === "1" && process.env.NODE_ENV !== "production"
+  );
+}
+
 export async function getSessionUser(c: Context) {
   const sessionId = getCookie(c, SESSION_COOKIE);
-  if (!sessionId) return null;
-
   const db = getDb();
-  const now = new Date().toISOString();
 
-  const result = db
-    .select({
-      id: users.id,
-      username: users.username,
-      email: users.email,
-      displayName: users.displayName,
-      bio: users.bio,
-      createdAt: users.createdAt,
-    })
-    .from(sessions)
-    .innerJoin(users, eq(sessions.userId, users.id))
-    .where(and(eq(sessions.id, sessionId), gt(sessions.expiresAt, now)))
-    .get();
+  if (sessionId) {
+    const now = new Date().toISOString();
+    const result = db
+      .select(SESSION_USER_COLUMNS)
+      .from(sessions)
+      .innerJoin(users, eq(sessions.userId, users.id))
+      .where(and(eq(sessions.id, sessionId), gt(sessions.expiresAt, now)))
+      .get();
+    if (result) return result;
+  }
 
-  return result || null;
+  if (devBypassEnabled()) {
+    const username = process.env.DEV_AUTH_BYPASS_USER || "alice";
+    const result = db
+      .select(SESSION_USER_COLUMNS)
+      .from(users)
+      .where(eq(users.username, username))
+      .get();
+    return result || null;
+  }
+
+  return null;
 }
 
 export async function requireAuth(c: Context<Env>, next: Next) {

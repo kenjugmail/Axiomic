@@ -78,6 +78,15 @@ const port = parseInt(process.env.PORT || "3000");
 
 if (import.meta.main) {
   console.log(`Axiomic server starting on port ${port}`);
+  if (
+    process.env.DEV_AUTH_BYPASS === "1" &&
+    process.env.NODE_ENV !== "production"
+  ) {
+    const u = process.env.DEV_AUTH_BYPASS_USER || "alice";
+    console.warn(
+      `⚠️  DEV_AUTH_BYPASS enabled — every request is authed as "${u}". DO NOT USE IN PRODUCTION.`
+    );
+  }
 }
 
 export default {
