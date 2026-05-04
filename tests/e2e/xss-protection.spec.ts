@@ -15,7 +15,9 @@ test("script tag in a comment renders as text, not as a script", async ({ page }
   // and via a literal script tag. Neither should execute.
   await page.goto("/wiki/attention");
   const payload = `\`<script>window.__pwned=true</script>\` and [click](javascript:window.__pwned=true)`;
-  await page.getByRole("heading", { name: /discussion/i }).scrollIntoViewIfNeeded();
+  // Match the singular "Discussion" comments heading; the plural
+  // "Discussions" forum-links panel above it would otherwise collide.
+  await page.getByRole("heading", { name: /^Discussion$/i }).scrollIntoViewIfNeeded();
   const commentBox = page.locator('textarea[placeholder*="thoughts"]').first();
   await commentBox.fill(payload);
   await page.getByRole("button", { name: /post comment/i }).click();

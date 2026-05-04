@@ -74,7 +74,7 @@ $$\sigma(\mathbf{z})_i = \frac{e^{z_i - z_{\max}}}{\sum_j e^{z_j - z_{\max}}}, \
 
 After subtracting $z_{\max}$, the largest exponent is $e^0 = 1$, preventing overflow. All other exponents are $\leq 1$.
 
-For log-softmax (used in cross-entropy loss), the log-sum-exp trick provides additional stability:
+For log-softmax (used in cross-entropy loss — see [information theory](/wiki/information-theory) for the entropy framing), the log-sum-exp trick provides additional stability:
 
 $$\log \sigma(\mathbf{z})_i = z_i - \log\sum_j e^{z_j} = z_i - z_{\max} - \log\sum_j e^{z_j - z_{\max}}$$
 

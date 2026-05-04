@@ -1,0 +1,53 @@
+[
+  {
+    "id": "q1",
+    "question": "What is the core idea of Byte-Pair Encoding (BPE)?",
+    "options": [
+      "Iteratively merge the most frequent pair of adjacent symbols into a new token",
+      "Hash every word to a fixed integer",
+      "Split text by whitespace only",
+      "Use the Unicode block of each character as the token"
+    ],
+    "correctIndex": 0
+  },
+  {
+    "id": "q2",
+    "question": "Why does BPE handle out-of-vocabulary words gracefully?",
+    "options": [
+      "Any word can be decomposed into a sequence of known subword pieces, down to single bytes",
+      "It silently replaces unknown words with <unk>",
+      "It memorizes every English word in advance",
+      "Modern GPUs ignore unknown tokens"
+    ],
+    "correctIndex": 0
+  },
+  {
+    "id": "q3",
+    "question": "BPE is typically trained:",
+    "options": [
+      "Once, on a large corpus, before model training begins",
+      "Continuously during model inference",
+      "Per-user, on each query",
+      "Never — modern models use character-level tokenization"
+    ],
+    "correctIndex": 0
+  },
+  {
+    "id": "q4",
+    "kind": "drag_classify",
+    "question": "Sort each token by what it represents in a typical BPE vocabulary.",
+    "items": [
+      { "id": "t1", "label": "the", "bin": "whole_word" },
+      { "id": "t2", "label": "cat", "bin": "whole_word" },
+      { "id": "t3", "label": "##ization", "bin": "subword" },
+      { "id": "t4", "label": "transform", "bin": "whole_word" },
+      { "id": "t5", "label": "##ing", "bin": "subword" },
+      { "id": "t6", "label": "un##", "bin": "subword" }
+    ],
+    "bins": [
+      { "id": "whole_word", "label": "Whole word" },
+      { "id": "subword", "label": "Subword piece" }
+    ],
+    "explanation": "Pieces beginning or ending with ## are merge fragments — they only appear glued to other pieces. Standalone strings without that marker are full vocabulary entries that map directly to a word."
+  }
+]

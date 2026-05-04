@@ -1,10 +1,11 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { getDb, wikiPages, pageVersions } from "@axiomic/db";
-import { eq, like, or, desc } from "drizzle-orm";
+import { getDb, wikiPages, pageVersions, forumTopics, domains, users, forumPosts, forumVotes } from "@axiomic/db";
+import { eq, like, or, desc, sql, count } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { requireAuth } from "../middleware/auth";
+import { invalidateSearchIndex } from "../lib/searchIndex";
 import type { Env } from "../env";
 
 const wiki = new Hono<Env>();
@@ -109,11 +110,71 @@ wiki.get("/:slug", async (c) => {
     .orderBy(desc(pageVersions.version))
     .all();
 
+  // Discussions anchored to this page. Light shape — title, postType,
+  // score from forumVotes (sum of values where subject_type='topic'),
+  // post count, last activity. Mirrors the listing pattern but scoped.
+  const linkedRows = db
+    .select({
+      id: forumTopics.id,
+      slug: forumTopics.slug,
+      title: forumTopics.title,
+      postType: forumTopics.postType,
+      domainId: forumTopics.domainId,
+      domainSlug: domains.slug,
+      domainTitle: domains.title,
+      authorId: forumTopics.authorId,
+      authorUsername: users.username,
+      createdAt: forumTopics.createdAt,
+      updatedAt: forumTopics.updatedAt,
+    })
+    .from(forumTopics)
+    .innerJoin(domains, eq(forumTopics.domainId, domains.id))
+    .innerJoin(users, eq(forumTopics.authorId, users.id))
+    .where(eq(forumTopics.wikiPageId, page.id))
+    .orderBy(desc(forumTopics.updatedAt))
+    .all();
+
+  const linkedTopics = linkedRows.map((row) => {
+    const scoreRow = db
+      .select({ s: sql<number>`COALESCE(SUM(${forumVotes.value}), 0)` })
+      .from(forumVotes)
+      .where(
+        sql`${forumVotes.subjectType} = 'topic' AND ${forumVotes.subjectId} = ${row.id}`,
+      )
+      .get();
+    const postCountRow = db
+      .select({ n: count() })
+      .from(forumPosts)
+      .where(eq(forumPosts.topicId, row.id))
+      .get();
+    return {
+      id: row.id,
+      slug: row.slug,
+      title: row.title,
+      postType: row.postType,
+      domainId: row.domainId,
+      domainSlug: row.domainSlug,
+      domainTitle: row.domainTitle,
+      authorId: row.authorId,
+      authorUsername: row.authorUsername,
+      wikiPageId: page.id,
+      wikiPageSlug: page.slug,
+      wikiPageTitle: page.title,
+      score: Number(scoreRow?.s ?? 0),
+      userVote: 0,
+      postCount: Number(postCountRow?.n ?? 0),
+      lastActivityAt: row.updatedAt,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    };
+  });
+
   return c.json({
     page,
     content: contentMap[tier] || contentMap.intro,
     allContent: contentMap,
     versions,
+    linkedTopics,
   });
 });
 
@@ -154,6 +215,9 @@ wiki.put("/:slug", requireAuth, zValidator("json", updateSchema), async (c) => {
     .set({ currentVersion: newVersion, updatedAt: new Date().toISOString() })
     .where(eq(wikiPages.id, page.id))
     .run();
+
+  // Page content changed; drop the search index so the next query rebuilds.
+  invalidateSearchIndex();
 
   const updated = db.select().from(wikiPages).where(eq(wikiPages.id, page.id)).get();
   return c.json({ page: updated });

@@ -1,0 +1,65 @@
+[
+  {
+    "id": "q1",
+    "question": "What does layer normalization normalize over?",
+    "options": [
+      "The features within a single token's vector — mean and variance computed across the embedding dimension",
+      "The batch — across multiple training examples",
+      "Time — across the sequence length",
+      "Only the parameters, not the activations"
+    ],
+    "correctIndex": 0
+  },
+  {
+    "id": "q2",
+    "question": "Why is LayerNorm preferred over BatchNorm for transformers?",
+    "options": [
+      "It doesn't depend on batch size and works well with variable-length sequences",
+      "It's strictly faster on every hardware",
+      "It removes the need for activation functions",
+      "It eliminates the need for residual connections"
+    ],
+    "correctIndex": 0
+  },
+  {
+    "id": "q3",
+    "question": "What is the difference between pre-norm and post-norm placement?",
+    "options": [
+      "Pre-norm applies LayerNorm before the sublayer's input; post-norm applies it after the residual sum. Pre-norm is generally more stable for deep stacks",
+      "Pre-norm uses a sigmoid; post-norm uses tanh",
+      "Post-norm is required for all modern transformers",
+      "They differ only in floating-point precision"
+    ],
+    "correctIndex": 0
+  },
+  {
+    "id": "q4",
+    "kind": "code",
+    "question": "Implement layer normalization. Given an array x of shape [batch, features], normalize each row to have mean ≈ 0 and standard deviation ≈ 1 (you can ignore learnable affine parameters for this version). Use eps=1e-5 to avoid division by zero.",
+    "functionName": "layer_norm",
+    "starterCode": "def layer_norm(x, eps=1e-5):\n    # x is a 2-D numpy array of shape [batch, features].\n    # Return a same-shape array where each row has mean ~0 and std ~1.\n    pass\n",
+    "tests": [
+      {
+        "name": "Output shape matches input",
+        "inputs": ["np.array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]])"],
+        "check": "result.shape == (2, 4)"
+      },
+      {
+        "name": "Each row has mean ≈ 0",
+        "inputs": ["np.array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]])"],
+        "check": "bool(np.all(np.abs(result.mean(axis=1)) < 1e-5))"
+      },
+      {
+        "name": "Each row has std ≈ 1",
+        "inputs": ["np.array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]])"],
+        "check": "bool(np.all(np.abs(result.std(axis=1) - 1.0) < 1e-3))"
+      },
+      {
+        "name": "Stable on near-constant rows",
+        "inputs": ["np.array([[1.0, 1.0, 1.0, 1.0]])"],
+        "check": "bool(np.isfinite(result).all())"
+      }
+    ],
+    "explanation": "(x - x.mean(axis=-1, keepdims=True)) / sqrt(x.var(axis=-1, keepdims=True) + eps) — the eps is what saves you when an entire row is identical and the variance is zero."
+  }
+]

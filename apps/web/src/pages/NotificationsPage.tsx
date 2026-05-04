@@ -1,0 +1,175 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { api, type Notification } from "../lib/api";
+import { useAuthStore } from "../stores/auth";
+import { notificationLink } from "../components/NotificationBell";
+
+type Filter = "all" | "unread";
+
+function kindLabel(kind: Notification["kind"]): string {
+  switch (kind) {
+    case "mention":
+      return "mentioned you";
+    case "topic_reply":
+      return "replied to your topic";
+    case "post_reply":
+      return "replied to your post";
+    case "comment_reply":
+      return "replied to your comment";
+    case "mastery_level_up":
+      return "you reached a new mastery level";
+  }
+}
+
+function relativeTime(iso: string): string {
+  const then = new Date(iso).getTime();
+  const now = Date.now();
+  const s = Math.max(0, Math.floor((now - then) / 1000));
+  if (s < 60) return `${s}s ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  return `${d}d ago`;
+}
+
+export function NotificationsPage() {
+  const { user, loading: authLoading } = useAuthStore();
+  const navigate = useNavigate();
+  const [filter, setFilter] = useState<Filter>("all");
+  const [items, setItems] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Wait for the auth store to finish hydrating before deciding to bounce.
+    // Otherwise a fresh page load races /me and we redirect a signed-in user.
+    if (authLoading) return;
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    api.notifications
+      .list({ unread: filter === "unread", limit: 50 })
+      .then((r) => {
+        if (!cancelled) setItems(r.notifications);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [filter, user, authLoading, navigate]);
+
+  const markAllRead = async () => {
+    try {
+      await api.notifications.markRead({ all: true });
+      const now = new Date().toISOString();
+      setItems((arr) => arr.map((n) => (n.readAt ? n : { ...n, readAt: now })));
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleRowClick = async (n: Notification) => {
+    if (!n.readAt) {
+      try {
+        await api.notifications.markRead({ ids: [n.id] });
+        setItems((arr) =>
+          arr.map((i) =>
+            i.id === n.id ? { ...i, readAt: new Date().toISOString() } : i,
+          ),
+        );
+      } catch {
+        // ignore
+      }
+    }
+    navigate(notificationLink(n));
+  };
+
+  const unreadCount = items.filter((n) => !n.readAt).length;
+
+  return (
+    <div className="max-w-3xl mx-auto px-4 py-8">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Notifications</h1>
+        {unreadCount > 0 && (
+          <button
+            onClick={markAllRead}
+            className="text-sm text-primary hover:underline"
+          >
+            Mark all as read
+          </button>
+        )}
+      </div>
+
+      <div className="flex gap-2 mb-4 border-b border-border">
+        {(["all", "unread"] as Filter[]).map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`px-3 py-2 text-sm border-b-2 transition-colors capitalize ${
+              filter === f
+                ? "border-primary text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-16 animate-pulse bg-muted rounded-md" />
+          ))}
+        </div>
+      ) : items.length === 0 ? (
+        <div className="py-16 text-center text-muted-foreground">
+          {filter === "unread" ? "No unread notifications." : "No notifications yet."}
+        </div>
+      ) : (
+        <ul className="divide-y divide-border border border-border rounded-lg overflow-hidden">
+          {items.map((n) => (
+            <li key={n.id}>
+              <button
+                onClick={() => handleRowClick(n)}
+                className={`w-full text-left px-4 py-3 hover:bg-accent/40 transition-colors ${
+                  !n.readAt ? "bg-primary/5" : ""
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-sm">
+                      {n.actor ? (
+                        <>
+                          <span className="font-medium">{n.actor.username}</span>{" "}
+                          <span className="text-muted-foreground">{kindLabel(n.kind)}</span>
+                        </>
+                      ) : (
+                        <span className="text-muted-foreground capitalize">{kindLabel(n.kind)}</span>
+                      )}
+                    </div>
+                    {n.preview && (
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                        {n.preview}
+                      </p>
+                    )}
+                  </div>
+                  <span className="text-xs text-muted-foreground shrink-0">
+                    {relativeTime(n.createdAt)}
+                  </span>
+                </div>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}

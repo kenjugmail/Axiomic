@@ -148,7 +148,10 @@ function CommentItem({
   };
 
   return (
-    <div className={depth > 0 ? "ml-6 border-l-2 border-border pl-4" : ""}>
+    <div
+      id={`comment-${comment.id}`}
+      className={`scroll-mt-20 ${depth > 0 ? "ml-6 border-l-2 border-border pl-4" : ""}`}
+    >
       <div className="flex gap-3">
         {/* Vote buttons */}
         <div className="flex flex-col items-center gap-0.5 text-muted-foreground">

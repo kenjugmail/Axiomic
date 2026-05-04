@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, real, index, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
 export const users = sqliteTable("users", {
@@ -8,6 +8,10 @@ export const users = sqliteTable("users", {
   passwordHash: text("password_hash").notNull(),
   displayName: text("display_name"),
   bio: text("bio"),
+  theme: text("theme").notNull().default("system"),
+  notifyMentions: integer("notify_mentions", { mode: "boolean" }).notNull().default(true),
+  notifyReplies: integer("notify_replies", { mode: "boolean" }).notNull().default(true),
+  notifyMastery: integer("notify_mastery", { mode: "boolean" }).notNull().default(true),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
 });
@@ -86,6 +90,9 @@ export const masteryNodes = sqliteTable("mastery_nodes", {
   pageIds: text("page_ids").notNull(), // JSON array of page IDs
   prerequisiteNodeIds: text("prerequisite_node_ids").notNull().default("[]"), // JSON array
   quizData: text("quiz_data"), // JSON: canned quiz questions for MockProvider
+  // JSON: Brilliant-style lesson — array of slides (text+viz or
+  // embedded-question). Loaded from seed-content/lessons/<slug>.json.
+  lessonData: text("lesson_data"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
 });
 
@@ -98,3 +105,157 @@ export const userProgress = sqliteTable("user_progress", {
   completedAt: text("completed_at"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
 });
+
+// --- Forum (Pillar 2: discourse) ---
+
+export const domains = sqliteTable("domains", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+// postType is one of: claim, question, derivation, critique, synthesis, prediction.
+// Validated at the API layer (Zod enum). SQLite has no native enum.
+export const forumTopics = sqliteTable("forum_topics", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  body: text("body").notNull(),
+  postType: text("post_type").notNull(),
+  domainId: text("domain_id").notNull().references(() => domains.id),
+  authorId: text("author_id").notNull().references(() => users.id),
+  wikiPageId: text("wiki_page_id").references(() => wikiPages.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+export const forumPosts = sqliteTable("forum_posts", {
+  id: text("id").primaryKey(),
+  topicId: text("topic_id").notNull().references(() => forumTopics.id),
+  parentId: text("parent_id"),
+  authorId: text("author_id").notNull().references(() => users.id),
+  body: text("body").notNull(),
+  editedAt: text("edited_at"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+export const forumPostEdits = sqliteTable("forum_post_edits", {
+  id: text("id").primaryKey(),
+  postId: text("post_id").notNull().references(() => forumPosts.id),
+  previousBody: text("previous_body").notNull(),
+  editedAt: text("edited_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+// Polymorphic: subjectType is "topic" | "post". No FK; integrity enforced at app layer.
+export const forumVotes = sqliteTable("forum_votes", {
+  id: text("id").primaryKey(),
+  subjectType: text("subject_type").notNull(),
+  subjectId: text("subject_id").notNull(),
+  userId: text("user_id").notNull().references(() => users.id),
+  value: integer("value").notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+// --- Achievements & activity ---
+//
+// `user_achievements` records which user earned which achievement (and
+// when). The achievement catalog itself is hardcoded in
+// apps/server/src/lib/achievements.ts so we don't have to seed reference
+// rows; the `slug` here is the catalog key.
+export const userAchievements = sqliteTable(
+  "user_achievements",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    slug: text("slug").notNull(),
+    awardedAt: text("awarded_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("user_achievements_uniq_idx").on(t.userId, t.slug),
+  }),
+);
+
+// Append-only activity log. Each row is an event the user performed
+// (completed a node, passed a quiz, saved a flashcard, posted a topic).
+// Used to compute daily-activity streaks and to render the heatmap.
+export const activityEvents = sqliteTable(
+  "activity_events",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    kind: text("kind").notNull(),
+    // Day key in YYYY-MM-DD UTC, computed at insert time. Lets the
+    // heatmap aggregate cheaply via GROUP BY.
+    day: text("day").notNull(),
+    occurredAt: text("occurred_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    userDayIdx: index("activity_user_day_idx").on(t.userId, t.day),
+  }),
+);
+
+// --- Flashcards (spaced repetition) ---
+//
+// Cards a user has saved into their personal deck. SM-2 state is stored
+// inline (easeFactor / interval / repetitions / dueAt) so the scheduler
+// only needs the row itself plus the new rating.
+export const flashcards = sqliteTable(
+  "flashcards",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    pageSlug: text("page_slug").notNull(),
+    pageTitle: text("page_title").notNull(),
+    front: text("front").notNull(),
+    back: text("back").notNull(),
+    easeFactor: real("ease_factor").notNull().default(2.5),
+    interval: integer("interval").notNull().default(0),  // days; 0 == new card
+    repetitions: integer("repetitions").notNull().default(0),
+    dueAt: text("due_at"),  // null == new card, surfaces in "due today"
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    dueIdx: index("flashcards_due_idx").on(t.userId, t.dueAt),
+  }),
+);
+
+// Append-only history of every review event. Useful for retention
+// analytics and for reverting a misclick (we don't surface that yet).
+export const flashcardReviews = sqliteTable("flashcard_reviews", {
+  id: text("id").primaryKey(),
+  cardId: text("card_id").notNull().references(() => flashcards.id),
+  userId: text("user_id").notNull().references(() => users.id),
+  rating: integer("rating").notNull(),  // 0..5 (SM-2 grade)
+  reviewedAt: text("reviewed_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+// --- Notifications ---
+//
+// Polymorphic subject (matches forumVotes vocabulary): "topic" | "post" | "comment".
+// kind is one of: mention | topic_reply | post_reply | comment_reply (validated at API layer).
+// preview is plain text (≤140 chars), NOT markdown — rendered as text by the client.
+// readAt is null while unread; the dedup partial index uses this to allow a fresh
+// notification once a previous one has been read.
+export const notifications = sqliteTable(
+  "notifications",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    actorId: text("actor_id").references(() => users.id),
+    kind: text("kind").notNull(),
+    subjectType: text("subject_type").notNull(),
+    subjectId: text("subject_id").notNull(),
+    contextSlug: text("context_slug"),
+    preview: text("preview"),
+    readAt: text("read_at"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    listIdx: index("notifications_list_idx").on(t.userId, t.readAt, t.createdAt),
+    dedupIdx: uniqueIndex("notifications_dedup_idx")
+      .on(t.userId, t.kind, t.subjectType, t.subjectId, t.actorId)
+      .where(sql`read_at IS NULL`),
+  }),
+);

@@ -1,0 +1,45 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why tokens?",
+      "body": "Computers don't understand words — they understand numbers. So before any neural network can read text, the text has to be **chopped into pieces and each piece replaced by a number**.\n\nThe natural first instinct is *one number per word*. That mostly works for English, but it falls apart fast: what about typos, made-up words, code, emoji, or any of the world's other 7,000 languages?\n\nThe modern answer is **subword tokenization** — a vocabulary of common pieces, where:\n\n- Common words like `the`, `cat`, `transformer` get a single token.\n- Rare or unknown words get split into pieces: `antidisestablishmentarianism` → `anti`, `dis`, `establish`, `ment`, `arian`, `ism`.\n\nA fixed-size vocabulary covers all of human writing, with no `<unk>` tokens, just by allowing words to be assembled from pieces."
+    },
+    {
+      "kind": "text",
+      "title": "Whole words vs subword pieces",
+      "body": "Look at this snippet of how a real tokenizer might split a sentence:\n\n```\n\"Tokenization preserves meaning.\"\n→ [\"Token\", \"ization\", \"preserves\", \"meaning\", \".\"]\n```\n\nNotice that:\n\n- `Token` and `preserves` and `meaning` are common enough to be **whole tokens**.\n- `ization` is a subword fragment — it appears in many words (`tokenization`, `realization`, `civilization`), so the tokenizer learned it as a reusable piece.\n- The period is its own token.\n\nThe `##` prefix (or `▁` or other markers, depending on the tokenizer) is a convention to signal *\"this piece doesn't start a new word — glue it to the previous token.\"*"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "lesson_q1",
+        "kind": "drag_classify",
+        "question": "Sort each of these tokens by what it represents.",
+        "items": [
+          { "id": "t1", "label": "the", "bin": "whole_word" },
+          { "id": "t2", "label": "##ization", "bin": "subword" },
+          { "id": "t3", "label": "transformer", "bin": "whole_word" },
+          { "id": "t4", "label": "##ing", "bin": "subword" },
+          { "id": "t5", "label": "un##", "bin": "subword" },
+          { "id": "t6", "label": "neural", "bin": "whole_word" }
+        ],
+        "bins": [
+          { "id": "whole_word", "label": "Whole word" },
+          { "id": "subword", "label": "Subword piece" }
+        ],
+        "explanation": "Pieces with ## (or another continuation marker) only appear glued to other pieces — they can't stand alone as a word. Standalone strings without that marker are full vocabulary entries."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "How BPE learns its vocabulary",
+      "body": "**Byte-Pair Encoding** (BPE) is the algorithm behind most modern tokenizers. The idea is almost embarrassingly simple:\n\n1. Start with a vocabulary of single characters.\n2. Find the **most frequent pair** of adjacent symbols in your corpus.\n3. Merge them into a new token.\n4. Repeat thousands of times.\n\nAfter ~30,000 merges, common pieces (`the`, `ing`, `transformer`) emerge as single tokens, while rare words remain decomposable into smaller pieces.\n\nThe beauty: the same vocabulary handles English, code, JSON, math notation, even emoji — anything that can be written as a byte sequence is tokenizable, with no out-of-vocabulary case."
+    },
+    {
+      "kind": "text",
+      "title": "What comes next",
+      "body": "Tokens are just integers — the model has no idea that `cat` and `dog` are related until we **embed** each token as a vector. That's the next concept on this path: [Word Embeddings](/wiki/embeddings).\n\nFrom there: positional encoding (so the model knows which token came first), attention (so each token can look at every other), and finally the full transformer block.\n\nEvery one of those mechanisms operates on tokens — so the choice of tokenizer shapes everything downstream. A model trained on a Chinese corpus with a 50K vocabulary tokenizes English very differently from a multilingual model with 250K, and that's a real difference users feel as quality."
+    }
+  ]
+}

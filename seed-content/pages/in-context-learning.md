@@ -94,7 +94,7 @@ Two competing hypotheses:
 
 ## Theoretical Foundations
 
-**The Bayesian view** (Xie et al., 2022): If pretraining data is a mixture of tasks, then the autoregressive objective incentivizes models to infer the latent task from examples. Formally, if documents are generated as $d \sim p(d | z)$ for latent task $z$, then the optimal predictor marginalizes over tasks: $p(y|x, \text{context}) = \sum_z p(y|x, z) p(z|\text{context})$.
+**The Bayesian view** (Xie et al., 2022): If pretraining data is a mixture of tasks, then the autoregressive objective incentivizes models to infer the latent task from examples. Formally, if documents are generated as $d \sim p(d | z)$ for latent task $z$, then the optimal predictor marginalizes over tasks: $p(y|x, \text{context}) = \sum_z p(y|x, z) p(z|\text{context})$. The de Finetti / exchangeability machinery this rests on is laid out in [probability foundations](/wiki/probability-foundations).
 
 **Transformers as gradient descent** (Von Oswald et al., 2023): A single transformer attention layer can implement one step of gradient descent on a linear regression problem. The construction uses the fact that $\text{softmax}(QK^T)V$ can approximate $V - \eta K^T(KV - Y)$ with appropriate parameterization. This suggests that deep transformers implement multi-step optimization in their forward pass.
 

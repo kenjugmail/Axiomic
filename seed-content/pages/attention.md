@@ -31,7 +31,7 @@ Say a translation model is translating "The cat sat on the mat" into French. Whe
 
 ## Scaled Dot-Product Attention
 
-The specific attention used in transformers compares queries and keys using a **dot product** (a measure of how similar two vectors point). The result is then scaled down (divided by a number) to keep values from getting too extreme, and passed through [softmax](/wiki/softmax) to create proper weights that sum to 1. These weights are multiplied with the values to produce the output.
+The specific attention used in transformers compares queries and keys using a **dot product** (a measure of how similar two vectors point — see [linear algebra foundations](/wiki/linear-algebra-foundations) for the inner-product structure that makes this work). The result is then scaled down (divided by a number) to keep values from getting too extreme, and passed through [softmax](/wiki/softmax) to create proper weights that sum to 1. These weights are multiplied with the values to produce the output.
 
 The "scaled" part is important: without it, when the vectors are high-dimensional, the dot products can become very large, pushing [softmax](/wiki/softmax) into regions where it produces extremely peaked distributions (almost all weight on one item). Scaling keeps the gradients healthy during training.
 

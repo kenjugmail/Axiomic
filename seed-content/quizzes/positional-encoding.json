@@ -1,0 +1,65 @@
+[
+  {
+    "id": "q1",
+    "question": "Why do transformers need positional encoding?",
+    "options": [
+      "Self-attention is permutation-invariant, so without position information the model can't tell word order",
+      "Positional encoding speeds up matrix multiplication",
+      "It's needed to compress the embedding dimension",
+      "It replaces the need for tokenization"
+    ],
+    "correctIndex": 0
+  },
+  {
+    "id": "q2",
+    "question": "What does the original Transformer paper use for positional encoding?",
+    "options": [
+      "Fixed sinusoidal functions of the position index",
+      "Learned random vectors that update during training",
+      "One-hot vectors of the position",
+      "No encoding — position is implicit"
+    ],
+    "correctIndex": 0
+  },
+  {
+    "id": "q3",
+    "question": "What is one advantage of rotary position embeddings (RoPE) over sinusoidal encodings?",
+    "options": [
+      "They embed position as a rotation in pairs of dimensions, naturally encoding relative position in attention scores",
+      "They use less memory at training time",
+      "They require no additional parameters of any kind",
+      "They eliminate the need for layer normalization"
+    ],
+    "correctIndex": 0
+  },
+  {
+    "id": "q4",
+    "kind": "code",
+    "question": "Implement sinusoidal positional encoding. Return a [seq_len, d_model] array where even-index columns are sin(pos / 10000^(2i/d_model)) and odd-index columns are cos at the same frequency.",
+    "functionName": "positional_encoding",
+    "starterCode": "def positional_encoding(seq_len, d_model):\n    # Return a numpy array of shape [seq_len, d_model].\n    # PE[pos, 2i]   = sin(pos / 10000^(2i / d_model))\n    # PE[pos, 2i+1] = cos(pos / 10000^(2i / d_model))\n    pass\n",
+    "tests": [
+      {
+        "name": "Output shape matches [seq_len, d_model]",
+        "inputs": ["10", "16"],
+        "check": "result.shape == (10, 16)"
+      },
+      {
+        "name": "All values are bounded in [-1, 1]",
+        "inputs": ["50", "32"],
+        "check": "bool(np.all(result >= -1.0 - 1e-9) and np.all(result <= 1.0 + 1e-9))"
+      },
+      {
+        "name": "Position 0: even columns are 0 (sin(0)=0)",
+        "inputs": ["1", "8"],
+        "check": "bool(np.allclose(result[0, ::2], 0.0))"
+      },
+      {
+        "name": "Position 0: odd columns are 1 (cos(0)=1)",
+        "inputs": ["1", "8"],
+        "check": "bool(np.allclose(result[0, 1::2], 1.0))"
+      }
+    ],
+    "explanation": "Build a position vector [0, 1, ..., seq_len-1], then per-dimension frequencies omega_i = 1 / 10000^(2i/d_model). PE[:, 2i] = sin(pos * omega_i); PE[:, 2i+1] = cos(pos * omega_i). The geometric progression of frequencies is what lets attention recover relative positions: sin(a + b) = sin(a)cos(b) + cos(a)sin(b) means a linear combination of nearby PEs encodes the offset b."
+  }
+]

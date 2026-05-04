@@ -16,6 +16,40 @@ interface MarkdownRendererProps {
 
 const SAFE_PROTOCOLS = ["http:", "https:", "mailto:"];
 
+// Match @username (3-32 word chars), preceded by a non-word boundary so we
+// don't pick up `email@example.com`. Keeps the regex aligned with the
+// server-side extractor in apps/server/src/lib/notifications.ts.
+const MENTION_RE = /(^|[^A-Za-z0-9_])@([A-Za-z0-9_]{3,32})(?=$|[^A-Za-z0-9_])/g;
+
+// Walk a text node and inject <Link> elements for any @mentions. This
+// runs only on prose text nodes (react-markdown calls `text` for these),
+// so inline code, fenced blocks, and KaTeX subtrees pass through
+// untouched.
+function renderTextWithMentions(text: string): (string | JSX.Element)[] {
+  if (!text || !text.includes("@")) return [text];
+  const parts: (string | JSX.Element)[] = [];
+  let lastIdx = 0;
+  let m: RegExpExecArray | null;
+  MENTION_RE.lastIndex = 0;
+  while ((m = MENTION_RE.exec(text)) !== null) {
+    const [full, lead, name] = m;
+    const start = m.index + lead.length;
+    if (start > lastIdx) parts.push(text.slice(lastIdx, start));
+    parts.push(
+      <Link
+        key={`m-${start}`}
+        to={`/profile/${name}`}
+        className="text-primary hover:underline"
+      >
+        @{name}
+      </Link>,
+    );
+    lastIdx = m.index + full.length;
+  }
+  if (lastIdx < text.length) parts.push(text.slice(lastIdx));
+  return parts;
+}
+
 function safeHref(href: string | undefined): string | undefined {
   if (!href) return undefined;
   // Internal route, anchor, or relative path — let through.
@@ -172,6 +206,15 @@ export function MarkdownRenderer({ content, className, untrusted }: MarkdownRend
                   );
                 }
                 return <code className={className} {...props}>{children}</code>;
+              },
+              // Wrap @mentions in profile links. react-markdown only calls
+              // this for prose text nodes — code spans, fenced blocks, and
+              // KaTeX subtrees aren't routed through `text`, so we don't
+              // mangle them.
+              text: ({ children }) => {
+                if (typeof children !== "string") return <>{children}</>;
+                const rendered = renderTextWithMentions(children);
+                return <>{rendered}</>;
               },
             }}
           >

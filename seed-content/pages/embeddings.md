@@ -7,7 +7,7 @@ category: fundamentals
 
 Computers don't understand words the way we do. When you read the word "cat," your brain lights up with associations -- fur, whiskers, purring, independence. But to a computer, "cat" is just a string of three characters. Word embeddings are the trick that gives computers something closer to our rich understanding of words.
 
-An embedding is a list of numbers (a vector) that represents a word. Instead of treating words as arbitrary labels, we place each word at a specific point in a high-dimensional space. The magic is that **words with similar meanings end up close together** in this space.
+An embedding is a list of numbers (a vector) that represents a word. Instead of treating words as arbitrary labels, we place each word at a specific point in a high-dimensional space. The magic is that **words with similar meanings end up close together** in this space. The geometry of these spaces — vectors, inner products, projections — comes from [linear algebra foundations](/wiki/linear-algebra-foundations).
 
 Imagine a giant room where every word in English has a location. "Dog" and "cat" are near each other because they're both pets. "King" and "queen" are near each other because they're both royalty. "Paris" and "France" are near each other because of their geographic relationship. This room is the embedding space, and each word's location is its embedding vector.
 

@@ -1,0 +1,47 @@
+[
+  {
+    "id": "q1",
+    "question": "What does the gradient ∇f(θ) tell you geometrically?",
+    "options": [
+      "The direction of steepest ascent at θ; gradient descent moves in the opposite direction to decrease f",
+      "The Hessian's smallest eigenvalue",
+      "The number of training steps remaining",
+      "The variance of the loss"
+    ],
+    "correctIndex": 0
+  },
+  {
+    "id": "q2",
+    "question": "What's the difference between SGD and full-batch gradient descent?",
+    "options": [
+      "SGD estimates the gradient from a mini-batch, trading exact direction for vastly more steps per unit of compute",
+      "SGD ignores the gradient entirely and uses random updates",
+      "Full-batch GD doesn't use a learning rate",
+      "SGD only works on convex problems"
+    ],
+    "correctIndex": 0
+  },
+  {
+    "id": "q3",
+    "question": "Why do practitioners use Adam / AdamW instead of vanilla SGD on most deep learning problems?",
+    "options": [
+      "Per-parameter adaptive learning rates and momentum make optimization robust to ill-conditioning typical in deep nets",
+      "Adam guarantees convergence to a global minimum",
+      "Adam removes the need for learning rate at all",
+      "Vanilla SGD doesn't work with PyTorch"
+    ],
+    "correctIndex": 0
+  },
+  {
+    "id": "q4",
+    "kind": "slider",
+    "question": "Drag the learning rate until gradient descent converges to the origin within 30 steps on this anisotropic loss surface. Too small and it inches; too large and it oscillates along the narrow axis.",
+    "viz": "gradient-descent-2d",
+    "min": 0.01,
+    "max": 0.2,
+    "step": 0.005,
+    "default": 0.05,
+    "target": { "min": 0.07, "max": 0.095 },
+    "explanation": "On f(x, y) = x² + 5y², the optimal learning rate is bounded by 1/(largest curvature) = 1/(2 · 5) = 0.1. Anything ≥ 0.1 oscillates along y; anything ≪ 0.1 crawls along x. The sweet spot is roughly 0.07-0.09."
+  }
+]

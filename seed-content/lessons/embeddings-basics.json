@@ -1,0 +1,40 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Words as vectors",
+      "body": "An **embedding** is a list of numbers — a vector — that represents a word. Instead of treating tokens as arbitrary integers (token 12 has nothing to do with token 13), we place each one at a specific point in a high-dimensional space.\n\nThe magic property: **words with similar meanings end up near each other**.\n\nThink of a giant room where every word in English has a location. `dog` and `cat` are near each other because they're both pets. `king` and `queen` are near each other because they're both royalty. `Paris` and `France` are near each other because of geography. This room is the embedding space; each word's location is its embedding vector.\n\nA typical transformer embedding has 768 to 4,096 dimensions — far more than 3, but the geometric intuition still holds."
+    },
+    {
+      "kind": "text",
+      "title": "Similarity is direction, not magnitude",
+      "body": "When we ask *\"how similar are these two words?\"*, we usually mean **cosine similarity** — the angle between their embedding vectors. Two vectors pointing in the same direction are maximally similar (cosine = 1); perpendicular vectors are unrelated (cosine = 0); opposite vectors are anti-related (cosine = -1).\n\nMagnitude is mostly ignored in semantic-similarity contexts. A common embedding has length ~1 anyway, after L2 normalization.\n\nWhy does this work? Because the model is trained on the **distributional hypothesis**: words that appear in similar contexts get pushed toward similar directions. `king` and `queen` co-occur with similar surrounding words (royal, throne, crown), so the training objective drives their vectors close together."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "lesson_q1",
+        "kind": "multiple_choice",
+        "question": "Which pair of words would you expect to have the *highest* cosine similarity in a well-trained embedding space?",
+        "options": [
+          "doctor and nurse",
+          "doctor and lamppost",
+          "doctor and seventeen",
+          "doctor and the"
+        ],
+        "correctIndex": 0,
+        "explanation": "doctor and nurse co-occur in many similar contexts (hospitals, medicine, patients), so their embeddings are pulled toward similar directions during training. The other pairs share little contextual structure."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Where embeddings come from",
+      "body": "Embeddings aren't designed by hand — they're **learned**, alongside the rest of the model.\n\nIn a transformer, the embedding layer is just a giant matrix `E` of shape `[vocab_size, d_model]`. Token id 42 fetches row 42 of this matrix as its starting vector. During training, gradients flow back into `E` and adjust those rows so that the model's predictions get better.\n\nFor a model trained on next-token prediction over hundreds of billions of tokens, the embeddings end up encoding remarkably structured semantic knowledge. The famous `king − man + woman ≈ queen` pattern (Mikolov et al. 2013) emerges from this kind of training.\n\nModern transformers also **tie** the input embedding matrix to the output projection — the same matrix that turned tokens into vectors at the start is used (transposed) to turn vectors back into token probabilities at the end."
+    },
+    {
+      "kind": "text",
+      "title": "How attention uses embeddings",
+      "body": "Embeddings aren't the destination — they're the **starting point**. Every transformer layer reads the embedding of each token, computes a new representation that mixes information across tokens via [attention](/wiki/attention), and writes the result back.\n\nThe key insight to carry forward: attention computes **dot products between embedding-derived vectors** (queries and keys). High dot product means \"these two tokens are aligned in the relevant subspace,\" which is exactly the geometric relationship we just discussed.\n\nSo every concept on this path — positional encoding, attention, multi-head, the transformer block — is operating on this vector geometry. The embedding space is the substrate of meaning that the rest of the network manipulates."
+    }
+  ]
+}

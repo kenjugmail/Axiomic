@@ -1,12 +1,19 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { api, type WikiPage as WikiPageType, type PageVersion } from "../lib/api";
+import {
+  api,
+  type WikiPage as WikiPageType,
+  type PageVersion,
+  type ForumTopicSummary,
+  type PostType,
+} from "../lib/api";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { TableOfContents } from "../components/TableOfContents";
 import { TierSwitcher } from "../components/TierSwitcher";
 import { AISidebar } from "../components/AISidebar";
 import { Comments } from "../components/Comments";
 import { FlashcardViewer } from "../components/FlashcardViewer";
+import { PostTypeBadge } from "../components/PostTypeBadge";
 import { useAuthStore } from "../stores/auth";
 
 export function WikiPage() {
@@ -23,6 +30,7 @@ export function WikiPage() {
   const [aiOpen, setAiOpen] = useState(false);
   const [flashcardsOpen, setFlashcardsOpen] = useState(false);
   const [relatedPages, setRelatedPages] = useState<WikiPageType[]>([]);
+  const [discussions, setDiscussions] = useState<ForumTopicSummary[]>([]);
 
   useEffect(() => {
     if (!slug) return;
@@ -36,6 +44,17 @@ export function WikiPage() {
         setContent(data.content);
         setAllContent(data.allContent || {});
         setVersions(data.versions || []);
+        // linkedTopics is bundled with the page response now; falls back
+        // to a separate fetch if the field isn't present (e.g., older
+        // server). Keeps backward compatibility cheap.
+        if (Array.isArray(data.linkedTopics)) {
+          setDiscussions(data.linkedTopics);
+        } else if (data.page?.id) {
+          api.forum
+            .listTopics({ wikiPageId: data.page.id, sort: "active" })
+            .then((d) => setDiscussions(d.topics))
+            .catch(() => {});
+        }
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -166,6 +185,43 @@ export function WikiPage() {
             )}
           </div>
 
+          {/* Forum discussions anchored to this page */}
+          <div className="mt-8 border-t border-border pt-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold">Discussions</h3>
+              <Link
+                to={`/forum/new?wikiPageId=${page.id}&wikiPageSlug=${page.slug}`}
+                className="text-xs px-3 py-1 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              >
+                Start a discussion
+              </Link>
+            </div>
+            {discussions.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No threads yet. Be the first to make a claim, ask a question, or critique an argument here.
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {discussions.map((t) => (
+                  <li key={t.id} className="border border-border rounded-md p-3 hover:bg-accent/30 transition-colors">
+                    <div className="flex items-center gap-2 mb-1">
+                      <PostTypeBadge type={t.postType as PostType} />
+                      <Link
+                        to={`/forum/t/${t.slug}`}
+                        className="font-medium hover:text-primary text-sm"
+                      >
+                        {t.title}
+                      </Link>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      @{t.authorUsername} · {t.postCount} replies · score {t.score}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
           {/* Comments */}
           <Comments pageId={page.id} />
         </article>
@@ -188,6 +244,7 @@ export function WikiPage() {
       {/* Flashcard viewer */}
       <FlashcardViewer
         pageSlug={page.slug}
+        pageTitle={page.title}
         tier={tier}
         isOpen={flashcardsOpen}
         onClose={() => setFlashcardsOpen(false)}

@@ -3,19 +3,48 @@ import type {
   Comment,
   CommentResponse,
   CommentsListResponse,
+  AchievementCatalogEntry,
+  AchievementCatalogResponse,
+  EarnedAchievement,
+  ActivityHeatmapCell,
   Flashcard,
   FlashcardsResponse,
+  Lesson,
+  LessonResponse,
+  UserAchievementsResponse,
+  SavedFlashcard,
+  SavedFlashcardResponse,
+  SavedFlashcardsResponse,
+  ForumCreateTopicResponse,
+  ForumDomain,
+  ForumDomainsResponse,
+  ForumPost,
+  ForumPostResponse,
+  ForumTopicDetail,
+  ForumTopicDetailResponse,
+  ForumTopicSummary,
+  ForumTopicsResponse,
   MasteryNode,
   MasteryPath,
   MasteryPathResponse,
   MasteryPathsResponse,
+  MasterySummaryResponse,
   MeResponse,
+  Notification,
+  NotificationsListResponse,
   OkResponse,
+  SearchResponse,
+  SearchResultItem,
+  SettingsResponse,
+  SettingsUpdateInput,
   PageVersion,
+  PostType,
   QuizQuestion,
   QuizQuestionsResponse,
   QuizSubmitResponse,
   RelatedPagesResponse,
+  ReputationResponse,
+  UnreadCountResponse,
   User,
   UserNodeProgress,
   WikiListResponse,
@@ -92,6 +121,96 @@ export const api = {
       request<QuizQuestionsResponse>(`/mastery/quiz/${nodeId}`),
     submitQuiz: (nodeId: string, answers: Record<string, string>) =>
       request<QuizSubmitResponse>(`/mastery/quiz/${nodeId}`, { method: "POST", body: JSON.stringify({ answers }) }),
+    getLesson: (nodeId: string) =>
+      request<LessonResponse>(`/mastery/lesson/${nodeId}`),
+    summary: (username: string) =>
+      request<MasterySummaryResponse>(`/mastery/users/${username}/summary`),
+  },
+  forum: {
+    domains: () => request<ForumDomainsResponse>("/forum/domains"),
+    listTopics: (params?: {
+      domain?: string;
+      postType?: PostType;
+      wikiPageId?: string;
+      sort?: "new" | "top" | "active";
+    }) => {
+      const sp = new URLSearchParams();
+      if (params?.domain) sp.set("domain", params.domain);
+      if (params?.postType) sp.set("postType", params.postType);
+      if (params?.wikiPageId) sp.set("wikiPageId", params.wikiPageId);
+      if (params?.sort) sp.set("sort", params.sort);
+      const qs = sp.toString();
+      return request<ForumTopicsResponse>(`/forum/topics${qs ? `?${qs}` : ""}`);
+    },
+    getTopic: (slug: string) =>
+      request<ForumTopicDetailResponse>(`/forum/topics/${slug}`),
+    createTopic: (data: {
+      title: string;
+      body: string;
+      postType: PostType;
+      domainSlug: string;
+      wikiPageId?: string | null;
+    }) =>
+      request<ForumCreateTopicResponse>("/forum/topics", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    reply: (slug: string, data: { body: string; parentId?: string }) =>
+      request<ForumPostResponse>(`/forum/topics/${slug}/posts`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    voteTopic: (slug: string, value: 1 | -1) =>
+      request<OkResponse>(`/forum/topics/${slug}/vote`, {
+        method: "POST",
+        body: JSON.stringify({ value }),
+      }),
+    votePost: (postId: string, value: 1 | -1) =>
+      request<OkResponse>(`/forum/posts/${postId}/vote`, {
+        method: "POST",
+        body: JSON.stringify({ value }),
+      }),
+    reputation: (username: string) =>
+      request<ReputationResponse>(`/forum/users/${username}/reputation`),
+    summarize: (slug: string) =>
+      fetch(`${BASE}/forum/topics/${slug}/summarize`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      }),
+  },
+  search: {
+    query: (q: string, limit?: number) => {
+      const sp = new URLSearchParams({ q });
+      if (limit) sp.set("limit", String(limit));
+      return request<SearchResponse>(`/search?${sp.toString()}`);
+    },
+  },
+  settings: {
+    get: () => request<SettingsResponse>("/settings"),
+    update: (patch: SettingsUpdateInput) =>
+      request<SettingsResponse>("/settings", {
+        method: "PUT",
+        body: JSON.stringify(patch),
+      }),
+  },
+  notifications: {
+    list: (params?: { unread?: boolean; limit?: number; offset?: number }) => {
+      const sp = new URLSearchParams();
+      if (params?.unread) sp.set("unread", "true");
+      if (params?.limit) sp.set("limit", String(params.limit));
+      if (params?.offset) sp.set("offset", String(params.offset));
+      const qs = sp.toString();
+      return request<NotificationsListResponse>(`/notifications${qs ? `?${qs}` : ""}`);
+    },
+    unreadCount: () => request<UnreadCountResponse>("/notifications/unread-count"),
+    markRead: (data: { ids?: string[]; all?: true }) =>
+      request<OkResponse>("/notifications/mark-read", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    delete: (id: string) =>
+      request<OkResponse>(`/notifications/${id}`, { method: "DELETE" }),
   },
   ai: {
     streamChat: (pageSlug: string, tier: string, messages: Array<{ role: string; content: string }>) => {
@@ -114,15 +233,47 @@ export const api = {
     flashcards: (pageSlug: string, tier: string) =>
       request<FlashcardsResponse>(`/ai/flashcards/${pageSlug}?tier=${tier}`),
   },
+  achievements: {
+    catalog: () => request<AchievementCatalogResponse>("/achievements/catalog"),
+    forUser: (username: string) =>
+      request<UserAchievementsResponse>(`/achievements/users/${username}`),
+  },
+  flashcards: {
+    save: (data: { pageSlug: string; pageTitle: string; front: string; back: string }) =>
+      request<SavedFlashcardResponse>("/flashcards", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    list: () => request<SavedFlashcardsResponse>("/flashcards"),
+    due: () => request<SavedFlashcardsResponse>("/flashcards/due"),
+    review: (id: string, rating: number) =>
+      request<SavedFlashcardResponse>(`/flashcards/${id}/review`, {
+        method: "POST",
+        body: JSON.stringify({ rating }),
+      }),
+    delete: (id: string) =>
+      request<OkResponse>(`/flashcards/${id}`, { method: "DELETE" }),
+  },
 };
 
 export type {
   Comment,
   Flashcard,
+  ForumDomain,
+  ForumPost,
+  ForumTopicDetail,
+  ForumTopicSummary,
   MasteryNode,
   MasteryPath,
+  AchievementCatalogEntry,
+  ActivityHeatmapCell,
+  EarnedAchievement,
+  Notification,
   PageVersion,
+  PostType,
   QuizQuestion,
+  SavedFlashcard,
+  SearchResultItem,
   User,
   UserNodeProgress,
   WikiPage,

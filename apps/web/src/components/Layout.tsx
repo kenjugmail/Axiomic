@@ -3,6 +3,7 @@ import { Outlet, Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/auth";
 import { useThemeStore } from "../stores/theme";
 import { SearchDialog } from "./SearchDialog";
+import { NotificationBell } from "./NotificationBell";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 
 export function Layout() {
@@ -35,9 +36,17 @@ export function Layout() {
               <Link to="/wiki" className="text-muted-foreground hover:text-foreground transition-colors">
                 Wiki
               </Link>
+              <Link to="/forum" className="text-muted-foreground hover:text-foreground transition-colors">
+                Forum
+              </Link>
               <Link to="/paths" className="text-muted-foreground hover:text-foreground transition-colors">
                 Mastery Paths
               </Link>
+              {user && (
+                <Link to="/flashcards" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Flashcards
+                </Link>
+              )}
             </nav>
           </div>
           <div className="flex items-center gap-3">
@@ -71,9 +80,14 @@ export function Layout() {
             {/* Auth */}
             {user ? (
               <div className="flex items-center gap-3 text-sm">
-                <span className="text-muted-foreground hidden sm:inline">
+                <NotificationBell />
+                <Link
+                  to="/settings"
+                  className="text-muted-foreground hover:text-foreground transition-colors hidden sm:inline"
+                  title="Settings"
+                >
                   {user.displayName || user.username}
-                </span>
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="text-muted-foreground hover:text-foreground transition-colors"

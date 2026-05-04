@@ -9,6 +9,13 @@ import { wiki } from "./routes/wiki";
 import { commentsRouter } from "./routes/comments";
 import { aiRouter } from "./routes/ai";
 import { mastery } from "./routes/mastery";
+import { forum } from "./routes/forum";
+import { notificationsRouter } from "./routes/notifications";
+import { searchRouter } from "./routes/search";
+import { settingsRouter } from "./routes/settings";
+import { flashcardsRouter } from "./routes/flashcards";
+import { achievementsRouter } from "./routes/achievements";
+import { prewarmSearchIndex } from "./lib/searchIndex";
 import type { Env } from "./env";
 
 const app = new Hono<Env>().basePath("/api/v1");
@@ -54,6 +61,16 @@ app.route("/wiki", wiki);
 app.route("/comments", commentsRouter);
 app.route("/ai", aiRouter);
 app.route("/mastery", mastery);
+app.route("/forum", forum);
+app.route("/notifications", notificationsRouter);
+app.route("/search", searchRouter);
+app.route("/settings", settingsRouter);
+app.route("/flashcards", flashcardsRouter);
+app.route("/achievements", achievementsRouter);
+
+// Pre-warm the search index in the background so the first user query
+// doesn't pay the embedding-build cost.
+prewarmSearchIndex();
 
 export { app };
 
