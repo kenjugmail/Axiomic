@@ -175,6 +175,20 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
             <p className="mt-1">Try a paraphrase — semantic results appear under "Related".</p>
           </div>
         )}
+
+        {query && (
+          <div className="border-t border-border px-3 py-2 text-xs text-muted-foreground flex justify-end">
+            <button
+              onClick={() => {
+                navigate(`/search?q=${encodeURIComponent(query)}`);
+                onClose();
+              }}
+              className="hover:text-foreground"
+            >
+              See all results in /search →
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

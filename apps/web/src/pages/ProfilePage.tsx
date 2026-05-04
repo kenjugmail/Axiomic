@@ -91,17 +91,35 @@ export function ProfilePage() {
   const [earned, setEarned] = useState<EarnedAchievement[]>([]);
   const [streak, setStreak] = useState(0);
   const [heatmap, setHeatmap] = useState<ActivityHeatmapCell[]>([]);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     if (!username) return;
+    setNotFound(false);
+    let repFailed = false;
+    let masteryFailed = false;
+    let achievementsFailed = false;
+    const checkNotFound = () => {
+      if (repFailed && masteryFailed && achievementsFailed && !isOwnProfile) {
+        setNotFound(true);
+      }
+    };
     api.forum
       .reputation(username)
       .then((r) => setReputation({ total: r.total, domains: r.domains }))
-      .catch(() => setReputation({ total: 0, domains: [] }));
+      .catch(() => {
+        repFailed = true;
+        setReputation({ total: 0, domains: [] });
+        checkNotFound();
+      });
     api.mastery
       .summary(username)
       .then(setMastery)
-      .catch(() => setMastery(null));
+      .catch(() => {
+        masteryFailed = true;
+        setMastery(null);
+        checkNotFound();
+      });
     api.achievements
       .forUser(username)
       .then((r) => {
@@ -109,12 +127,15 @@ export function ProfilePage() {
         setStreak(r.streak);
         setHeatmap(r.heatmap);
       })
-      .catch(() => {});
+      .catch(() => {
+        achievementsFailed = true;
+        checkNotFound();
+      });
     api.achievements
       .catalog()
       .then((r) => setCatalog(r.achievements))
       .catch(() => {});
-  }, [username]);
+  }, [username, isOwnProfile]);
 
   if (!username) {
     return (
@@ -124,6 +145,20 @@ export function ProfilePage() {
         </p>
         <Link to="/login" className="text-primary hover:underline">
           Sign in
+        </Link>
+      </div>
+    );
+  }
+
+  if (notFound) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-16 text-center">
+        <h1 className="text-xl font-semibold mb-2">User not found</h1>
+        <p className="text-muted-foreground mb-4">
+          No user with the username <span className="font-mono">@{username}</span>.
+        </p>
+        <Link to="/" className="text-primary hover:underline">
+          Back to home
         </Link>
       </div>
     );

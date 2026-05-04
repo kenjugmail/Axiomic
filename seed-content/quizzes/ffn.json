@@ -85,5 +85,17 @@
       }
     ],
     "explanation": "x @ W1 + b1, then np.maximum(0, ...) for ReLU, then that @ W2 + b2. Numpy broadcasting handles the bias add per row. The 4x widening (d_hidden = 4 * d_in) in real transformers is what gives this layer its capacity."
+  },
+  {
+    "id": "q5",
+    "kind": "slider",
+    "question": "Drag the input until Sigmoid saturates (i.e. its output is ≥ 0.9). Notice how GELU and Tanh behave very differently in the same range.",
+    "viz": "activation-function-gallery",
+    "min": -4,
+    "max": 4,
+    "step": 0.05,
+    "default": 0,
+    "target": { "min": 2.3, "max": 4 },
+    "explanation": "Sigmoid(x) = 1/(1+e^-x) crosses 0.9 around x ≈ 2.2. Past that it asymptotes — gradients shrink — which is the historical reason ReLU/GELU replaced Sigmoid as a hidden-layer non-linearity in deep networks."
   }
 ]

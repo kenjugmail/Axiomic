@@ -1,5 +1,6 @@
 import { SoftmaxTemperatureSlider } from "../../../../../packages/viz/src/quiz/SoftmaxTemperatureSlider";
 import { GradientDescent2D } from "../../../../../packages/viz/src/quiz/GradientDescent2D";
+import { ActivationFunctionGallery } from "../../../../../packages/viz/src/components/ActivationFunctionGallery";
 import type { SliderQuestion as Q } from "@axiomic/types";
 
 interface Props {
@@ -31,6 +32,8 @@ function renderViz(name: string, value: number, q: Q) {
           {...(q.vizProps as object)}
         />
       );
+    case "activation-function-gallery":
+      return <ActivationFunctionGallery x={value} />;
     default:
       return (
         <div className="rounded-md border border-dashed border-border p-4 text-xs text-muted-foreground">

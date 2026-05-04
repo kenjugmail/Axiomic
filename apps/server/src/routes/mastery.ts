@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { getDb, masteryPaths, masteryNodes, userProgress, users } from "@axiomic/db";
-import { eq, and, desc, inArray, ne } from "drizzle-orm";
+import { eq, and, desc, inArray, ne, asc } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { notify } from "../lib/notifications";
@@ -264,6 +264,81 @@ mastery.get("/users/:username/summary", (c) => {
     paths: pathSummaries,
     totalCompleted,
     highestLevel: highestIdx >= 0 ? LEVEL_ORDER[highestIdx] : null,
+  });
+});
+
+// "Pick up where you left off" — for the auth'd user, return the next
+// incomplete node on the most-recently-active path. Falls back to the
+// first node of the first path if the user has no completions yet.
+mastery.get("/next-node", requireAuth, (c) => {
+  const user = c.get("user")!;
+  const db = getDb();
+
+  const paths = db.select().from(masteryPaths).orderBy(asc(masteryPaths.id)).all();
+  if (paths.length === 0) return c.json({ next: null });
+
+  // Most-recent completion per path; choose the path with the latest
+  // activity. If the user has no completions yet, fall back to the first
+  // path so the home card always points somewhere.
+  let chosenPath = paths[0];
+  let latestActivity = "";
+  for (const path of paths) {
+    const nodeIds = db
+      .select({ id: masteryNodes.id })
+      .from(masteryNodes)
+      .where(eq(masteryNodes.pathId, path.id))
+      .all()
+      .map((n) => n.id);
+    if (nodeIds.length === 0) continue;
+    const last = db
+      .select({ completedAt: userProgress.completedAt })
+      .from(userProgress)
+      .where(
+        and(
+          eq(userProgress.userId, user.id),
+          eq(userProgress.completed, true),
+          inArray(userProgress.nodeId, nodeIds),
+        ),
+      )
+      .orderBy(desc(userProgress.completedAt))
+      .limit(1)
+      .get();
+    if (last?.completedAt && last.completedAt > latestActivity) {
+      latestActivity = last.completedAt;
+      chosenPath = path;
+    }
+  }
+
+  // First non-completed node, ordered by `order`. If every node is
+  // complete on the chosen path, return null.
+  const nodes = db
+    .select()
+    .from(masteryNodes)
+    .where(eq(masteryNodes.pathId, chosenPath.id))
+    .orderBy(asc(masteryNodes.order))
+    .all();
+
+  const completedSet = new Set(
+    db
+      .select({ nodeId: userProgress.nodeId })
+      .from(userProgress)
+      .where(and(eq(userProgress.userId, user.id), eq(userProgress.completed, true)))
+      .all()
+      .map((r) => r.nodeId),
+  );
+
+  const next = nodes.find((n) => !completedSet.has(n.id));
+  if (!next) return c.json({ next: null });
+
+  return c.json({
+    next: {
+      pathSlug: chosenPath.slug,
+      pathTitle: chosenPath.title,
+      nodeSlug: next.slug,
+      nodeTitle: next.title,
+      level: next.level,
+      hasLesson: !!next.lessonData,
+    },
   });
 });
 

@@ -6,7 +6,7 @@ import { useThemeStore } from "../stores/theme";
 import type { ThemePreference, UserSettings } from "@axiomic/types";
 
 export function SettingsPage() {
-  const { user } = useAuthStore();
+  const { user, loading: authLoading } = useAuthStore();
   const { theme, setTheme } = useThemeStore();
   const navigate = useNavigate();
 
@@ -21,6 +21,7 @@ export function SettingsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       navigate("/login");
       return;
@@ -36,7 +37,7 @@ export function SettingsPage() {
         setNotifyMastery(settings.notifyMastery);
       })
       .catch((e) => setError(e.message ?? "Failed to load settings"));
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
   const handleSave = async () => {
     setSaving(true);

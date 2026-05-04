@@ -7,10 +7,14 @@ import type {
   AchievementCatalogResponse,
   EarnedAchievement,
   ActivityHeatmapCell,
+  CreateWikiPageRequest,
+  DueCountResponse,
   Flashcard,
   FlashcardsResponse,
   Lesson,
   LessonResponse,
+  NextNodeResponse,
+  RecentActivityResponse,
   UserAchievementsResponse,
   SavedFlashcard,
   SavedFlashcardResponse,
@@ -98,6 +102,13 @@ export const api = {
       request<WikiPageResponse>(`/wiki/${slug}${tier ? `?tier=${tier}` : ""}`),
     update: (slug: string, data: { contentIntro: string; contentUndergrad: string; contentGrad: string; editMessage?: string }) =>
       request<WikiUpdateResponse>(`/wiki/${slug}`, { method: "PUT", body: JSON.stringify(data) }),
+    create: (data: CreateWikiPageRequest) =>
+      request<WikiUpdateResponse>("/wiki", { method: "POST", body: JSON.stringify(data) }),
+    restore: (slug: string, version: number) =>
+      request<WikiUpdateResponse>(`/wiki/${slug}/restore`, {
+        method: "POST",
+        body: JSON.stringify({ version }),
+      }),
     search: (query: string) =>
       request<WikiSearchResponse>(`/wiki/search?q=${encodeURIComponent(query)}`),
   },
@@ -125,6 +136,7 @@ export const api = {
       request<LessonResponse>(`/mastery/lesson/${nodeId}`),
     summary: (username: string) =>
       request<MasterySummaryResponse>(`/mastery/users/${username}/summary`),
+    nextNode: () => request<NextNodeResponse>("/mastery/next-node"),
   },
   forum: {
     domains: () => request<ForumDomainsResponse>("/forum/domains"),
@@ -238,6 +250,12 @@ export const api = {
     forUser: (username: string) =>
       request<UserAchievementsResponse>(`/achievements/users/${username}`),
   },
+  activity: {
+    recent: (username: string, limit = 5) =>
+      request<RecentActivityResponse>(
+        `/activity/users/${username}?limit=${limit}`,
+      ),
+  },
   flashcards: {
     save: (data: { pageSlug: string; pageTitle: string; front: string; back: string }) =>
       request<SavedFlashcardResponse>("/flashcards", {
@@ -246,6 +264,7 @@ export const api = {
       }),
     list: () => request<SavedFlashcardsResponse>("/flashcards"),
     due: () => request<SavedFlashcardsResponse>("/flashcards/due"),
+    dueCount: () => request<DueCountResponse>("/flashcards/due/count"),
     review: (id: string, rating: number) =>
       request<SavedFlashcardResponse>(`/flashcards/${id}/review`, {
         method: "POST",

@@ -7,6 +7,11 @@ import { QuestionRenderer, isAnswered } from "./quiz/QuestionRenderer";
 import { SoftmaxTemperatureSlider } from "../../../../packages/viz/src/quiz/SoftmaxTemperatureSlider";
 import { AttentionHeatmapExplorer } from "../../../../packages/viz/src/quiz/AttentionHeatmapExplorer";
 import { GradientDescent2D } from "../../../../packages/viz/src/quiz/GradientDescent2D";
+import { TokenizerPlayground } from "../../../../packages/viz/src/components/TokenizerPlayground";
+import { EmbeddingExplorer } from "../../../../packages/viz/src/components/EmbeddingExplorer";
+import { LayerActivations } from "../../../../packages/viz/src/components/LayerActivations";
+import { PositionalEncoding } from "../../../../packages/viz/src/components/PositionalEncoding";
+import { ActivationFunctionGallery } from "../../../../packages/viz/src/components/ActivationFunctionGallery";
 
 const PASSING_SCORE = 0.7;
 
@@ -96,6 +101,20 @@ function PreviewViz({ name, props }: { name: string; props?: Record<string, unkn
         <GradientDescent2D
           learningRate={typeof props?.learningRate === "number" ? props.learningRate : 0.1}
           {...(props as object)}
+        />
+      );
+    case "tokenizer-playground":
+      return <TokenizerPlayground />;
+    case "embedding-explorer":
+      return <EmbeddingExplorer />;
+    case "layer-activations":
+      return <LayerActivations />;
+    case "positional-encoding":
+      return <PositionalEncoding />;
+    case "activation-function-gallery":
+      return (
+        <ActivationFunctionGallery
+          x={typeof props?.x === "number" ? props.x : undefined}
         />
       );
     default:

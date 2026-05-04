@@ -11,7 +11,14 @@ import "katex/dist/katex.min.css";
 interface MarkdownRendererProps {
   content: string;
   className?: string;
+  // When true, sanitize HTML (used for user-authored content like forum
+  // posts, comments, AI replies). Wiki pages run as trusted by default.
   untrusted?: boolean;
+  // When true, parse `:::viz[name]:::` directives and render the named
+  // visualization inline. Defaults to true; comment threads pass false
+  // so users can't surprise readers by embedding interactive widgets in
+  // a high-volume, low-friction surface.
+  allowViz?: boolean;
 }
 
 const SAFE_PROTOCOLS = ["http:", "https:", "mailto:"];
@@ -118,12 +125,18 @@ const sanitizeSchema = {
   ],
 };
 
-export function MarkdownRenderer({ content, className, untrusted }: MarkdownRendererProps) {
-  // Split content by viz directives and render them inline. Viz directives
-  // are intentionally only honored for trusted content — otherwise a
-  // commenter could embed any visualization into their post.
+export function MarkdownRenderer({
+  content,
+  className,
+  untrusted,
+  allowViz = true,
+}: MarkdownRendererProps) {
+  // Split content by viz directives and render them inline. The opt-in
+  // `allowViz` flag is independent of `untrusted` — forum posts run
+  // with HTML sanitization on but with vizes allowed, while comments
+  // disable vizes entirely.
   const parts: { type: "markdown" | "viz"; content: string }[] = [];
-  if (!untrusted) {
+  if (allowViz) {
     const vizPattern = /::viz\[([^\]]+)\]/g;
     let lastIndex = 0;
     let match;

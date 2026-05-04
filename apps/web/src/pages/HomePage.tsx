@@ -7,14 +7,16 @@ import {
   type PostType,
   type WikiPage,
 } from "../lib/api";
+import type {
+  NextNodeResponse,
+  RecentActivityEvent,
+} from "@axiomic/types";
 import { PostTypeBadge } from "../components/PostTypeBadge";
 import { WelcomeBanner } from "../components/WelcomeBanner";
 import { useAuthStore } from "../stores/auth";
 
-// Featured lesson — hand-picked to surface the most polished
-// interactive experience to first-time visitors. The /paths/ link
-// drops the user directly on the path; clicking "Start lesson" on
-// softmax-basics opens the LessonPlayer.
+// Featured lesson — surface to first-time visitors only. Signed-in
+// users see the personalized "continue learning" card instead.
 const FEATURED_LESSON = {
   pathSlug: "ml-engineer",
   nodeSlug: "softmax-basics",
@@ -28,11 +30,30 @@ const FEATURED_LESSON = {
   ],
 };
 
+function relativeTime(iso: string): string {
+  const t = new Date(iso).getTime();
+  const s = Math.max(0, Math.floor((Date.now() - t) / 1000));
+  if (s < 60) return `${s}s ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  return `${d}d ago`;
+}
+
 export function HomePage() {
   const { user } = useAuthStore();
   const [recentPages, setRecentPages] = useState<WikiPage[]>([]);
   const [recentTopics, setRecentTopics] = useState<ForumTopicSummary[]>([]);
   const [paths, setPaths] = useState<MasteryPath[]>([]);
+
+  // Personalized data — only fetched when signed in. Each one degrades
+  // gracefully on failure so a single 404 doesn't blank the dashboard.
+  const [nextNode, setNextNode] = useState<NextNodeResponse["next"] | null>(null);
+  const [nextLoading, setNextLoading] = useState(false);
+  const [dueCount, setDueCount] = useState<number | null>(null);
+  const [activity, setActivity] = useState<RecentActivityEvent[]>([]);
 
   useEffect(() => {
     api.wiki.list().then((data) => {
@@ -48,165 +69,273 @@ export function HomePage() {
       .catch(() => {});
   }, []);
 
-  // First path is the default "Start Learning" CTA target.
+  useEffect(() => {
+    if (!user) {
+      setNextNode(null);
+      setDueCount(null);
+      setActivity([]);
+      return;
+    }
+    setNextLoading(true);
+    api.mastery
+      .nextNode()
+      .then((r) => setNextNode(r.next))
+      .catch(() => setNextNode(null))
+      .finally(() => setNextLoading(false));
+    api.flashcards
+      .dueCount()
+      .then((r) => setDueCount(r.count))
+      .catch(() => setDueCount(null));
+    api.activity
+      .recent(user.username, 5)
+      .then((r) => setActivity(r.events))
+      .catch(() => setActivity([]));
+  }, [user]);
+
+  // First path is the default "Start Learning" CTA target for signed-out.
   const defaultPath = paths[0];
+  const greeting = user?.displayName || user?.username || "";
 
   return (
     <div>
       <WelcomeBanner />
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="max-w-5xl mx-auto px-4 py-20 sm:py-28">
-          <div className="text-center">
-            <h1 className="text-5xl sm:text-6xl font-bold tracking-tight leading-[1.1] mb-6">
-              Deep Knowledge,
-              <br />
-              <span className="text-primary">Beautifully Structured</span>
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-              Interactive lessons with live visualizations and a Python sandbox,
-              tiered wiki articles, structured forum debate, and gamified mastery
-              paths — starting with modern machine learning and transformer
-              architectures.
-            </p>
-            <div className="flex gap-4 justify-center flex-wrap">
-              <Link
-                to="/wiki"
-                className="inline-flex items-center px-7 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors text-lg"
-              >
-                Explore the Wiki
-              </Link>
-              <Link
-                to={defaultPath ? `/paths/${defaultPath.slug}` : "/paths"}
-                className="inline-flex items-center px-7 py-3 bg-secondary text-secondary-foreground rounded-lg font-medium hover:bg-secondary/80 transition-colors text-lg"
-              >
-                Start Learning
-              </Link>
-            </div>
-          </div>
-        </div>
-        {/* Decorative gradient */}
-        <div className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/5 rounded-full blur-3xl" />
-        </div>
-      </section>
 
-      {/* Features */}
-      <section className="border-t border-border bg-muted/30">
-        <div className="max-w-5xl mx-auto px-4 py-16">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <FeatureCard
-              title="Tiered Explanations"
-              description="Every topic has three levels: intuitive intro, undergraduate depth with full math, and graduate-level with research connections."
-              icon={
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-              }
-            />
-            <FeatureCard
-              title="Brilliant-Style Lessons"
-              description="Step-through slides with live attention heatmaps, gradient-descent surfaces, and embedded checks. Drag, classify, and run real Python in your browser."
-              icon={
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                </svg>
-              }
-            />
-            <FeatureCard
-              title="AI Tutor + Spaced Repetition"
-              description="An always-available tutor that adapts to your level. Generate flashcards from any page; review what's due with a real SM-2 spaced-repetition scheduler."
-              icon={
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                </svg>
-              }
-            />
-            <FeatureCard
-              title="Discourse Forum"
-              description="Structured discussion: claims, questions, derivations, critiques, syntheses, predictions. Per-domain reputation built in."
-              icon={
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 8h10M7 12h6m-6 8l4-4h7a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2h2v4z" />
-                </svg>
-              }
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Featured interactive lesson */}
-      <section className="border-t border-border">
-        <div className="max-w-5xl mx-auto px-4 py-16">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-2xl font-bold">Try an interactive lesson</h2>
-              <p className="text-muted-foreground mt-1">
-                Live visualizations, drag-and-classify, and a Python sandbox — in 5 minutes.
-              </p>
-            </div>
-          </div>
-          <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
-            <div className="grid md:grid-cols-[1fr_auto] items-center gap-6">
-              <div>
-                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
-                  Featured · Apprentice
-                </div>
-                <h3 className="text-xl font-semibold mb-2">
-                  {FEATURED_LESSON.title}
-                </h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {FEATURED_LESSON.blurb}
+      {!user ? (
+        // --- Signed-out: marketing hero + features + featured lesson ----
+        <>
+          <section className="relative overflow-hidden">
+            <div className="max-w-5xl mx-auto px-4 py-20 sm:py-28">
+              <div className="text-center">
+                <h1 className="text-5xl sm:text-6xl font-bold tracking-tight leading-[1.1] mb-6">
+                  Deep Knowledge,
+                  <br />
+                  <span className="text-primary">Beautifully Structured</span>
+                </h1>
+                <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
+                  Interactive lessons with live visualizations and a Python sandbox,
+                  tiered wiki articles, structured forum debate, and gamified mastery
+                  paths — starting with modern machine learning and transformer
+                  architectures.
                 </p>
-                <ul className="space-y-1 mb-5">
-                  {FEATURED_LESSON.bullets.map((b) => (
-                    <li
-                      key={b}
-                      className="flex items-start gap-2 text-sm text-muted-foreground"
+                <div className="flex gap-4 justify-center flex-wrap">
+                  <Link
+                    to="/wiki"
+                    className="inline-flex items-center px-7 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors text-lg"
+                  >
+                    Explore the Wiki
+                  </Link>
+                  <Link
+                    to={defaultPath ? `/paths/${defaultPath.slug}` : "/paths"}
+                    className="inline-flex items-center px-7 py-3 bg-secondary text-secondary-foreground rounded-lg font-medium hover:bg-secondary/80 transition-colors text-lg"
+                  >
+                    Start Learning
+                  </Link>
+                </div>
+              </div>
+            </div>
+            <div className="absolute inset-0 -z-10 overflow-hidden">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/5 rounded-full blur-3xl" />
+            </div>
+          </section>
+
+          <section className="border-t border-border bg-muted/30">
+            <div className="max-w-5xl mx-auto px-4 py-16">
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <FeatureCard
+                  title="Tiered Explanations"
+                  description="Every topic has three levels: intuitive intro, undergraduate depth with full math, and graduate-level with research connections."
+                />
+                <FeatureCard
+                  title="Brilliant-Style Lessons"
+                  description="Step-through slides with live attention heatmaps, gradient-descent surfaces, and embedded checks. Drag, classify, and run real Python in your browser."
+                />
+                <FeatureCard
+                  title="AI Tutor + Spaced Repetition"
+                  description="An always-available tutor that adapts to your level. Generate flashcards from any page; review what's due with a real SM-2 spaced-repetition scheduler."
+                />
+                <FeatureCard
+                  title="Discourse Forum"
+                  description="Structured discussion: claims, questions, derivations, critiques, syntheses, predictions. Per-domain reputation built in."
+                />
+              </div>
+            </div>
+          </section>
+
+          <section className="border-t border-border">
+            <div className="max-w-5xl mx-auto px-4 py-16">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h2 className="text-2xl font-bold">Try an interactive lesson</h2>
+                  <p className="text-muted-foreground mt-1">
+                    Live visualizations, drag-and-classify, and a Python sandbox — in 5 minutes.
+                  </p>
+                </div>
+              </div>
+              <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
+                <div className="grid md:grid-cols-[1fr_auto] items-center gap-6">
+                  <div>
+                    <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
+                      Featured · Apprentice
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">
+                      {FEATURED_LESSON.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      {FEATURED_LESSON.blurb}
+                    </p>
+                    <ul className="space-y-1 mb-5">
+                      {FEATURED_LESSON.bullets.map((b) => (
+                        <li
+                          key={b}
+                          className="flex items-start gap-2 text-sm text-muted-foreground"
+                        >
+                          <span className="text-primary mt-0.5">•</span>
+                          <span>{b}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="flex items-center gap-3">
+                      <Link
+                        to={`/paths/${FEATURED_LESSON.pathSlug}`}
+                        className="inline-flex items-center px-4 py-2 rounded-md bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90"
+                      >
+                        Start the lesson →
+                      </Link>
+                      <Link
+                        to="/signup"
+                        className="text-sm text-muted-foreground hover:text-foreground"
+                      >
+                        or sign up to track progress
+                      </Link>
+                    </div>
+                  </div>
+                  <div className="hidden md:flex items-center justify-center w-48 h-48 rounded-lg bg-gradient-to-br from-primary/20 via-primary/5 to-transparent">
+                    <svg viewBox="0 0 120 80" className="w-32 h-20 text-primary">
+                      {[0.45, 0.27, 0.15, 0.08, 0.05].map((h, i) => (
+                        <rect
+                          key={i}
+                          x={6 + i * 22}
+                          y={80 - h * 70}
+                          width={16}
+                          height={h * 70}
+                          rx={2}
+                          fill="currentColor"
+                          opacity={0.85 - i * 0.12}
+                        />
+                      ))}
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </>
+      ) : (
+        // --- Signed-in: personalized dashboard ----
+        <section className="border-b border-border bg-gradient-to-b from-primary/5 to-transparent">
+          <div className="max-w-5xl mx-auto px-4 py-10">
+            <h1 className="text-2xl font-bold mb-1">Welcome back, {greeting}.</h1>
+            <p className="text-sm text-muted-foreground mb-6">
+              Pick up where you left off, clear today's queue, or jump back into a discussion.
+            </p>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Continue learning */}
+              <div className="rounded-xl border border-border bg-card p-5">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
+                  Continue learning
+                </div>
+                {nextLoading ? (
+                  <div className="h-16 animate-pulse bg-muted rounded mt-2" />
+                ) : nextNode ? (
+                  <>
+                    <h3 className="text-lg font-semibold mt-1">{nextNode.nodeTitle}</h3>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      <span className="capitalize">{nextNode.level}</span> · {nextNode.pathTitle}
+                    </p>
+                    <Link
+                      to={`/wiki/${nextNode.nodeSlug}`}
+                      className="inline-flex items-center px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
                     >
-                      <span className="text-primary mt-0.5">•</span>
-                      <span>{b}</span>
+                      {nextNode.hasLesson ? "Open lesson" : "Open page"} →
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-muted-foreground mb-3 mt-2">
+                      You're all caught up on every path. Nice work.
+                    </p>
+                    <Link
+                      to="/paths"
+                      className="text-sm text-primary hover:underline"
+                    >
+                      Explore another path →
+                    </Link>
+                  </>
+                )}
+              </div>
+
+              {/* Today's review */}
+              <div className="rounded-xl border border-border bg-card p-5">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
+                  Today's review
+                </div>
+                {dueCount === null ? (
+                  <div className="h-16 animate-pulse bg-muted rounded mt-2" />
+                ) : dueCount > 0 ? (
+                  <>
+                    <h3 className="text-3xl font-semibold mt-1">
+                      {dueCount}
+                      <span className="text-sm font-normal text-muted-foreground ml-2">
+                        card{dueCount === 1 ? "" : "s"} due
+                      </span>
+                    </h3>
+                    <Link
+                      to="/flashcards"
+                      className="inline-block mt-3 px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+                    >
+                      Review now →
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-muted-foreground mt-2 mb-3">
+                      No cards due. Save flashcards from any wiki page to build your deck.
+                    </p>
+                    <Link to="/wiki" className="text-sm text-primary hover:underline">
+                      Browse the wiki →
+                    </Link>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Recent activity strip */}
+            {activity.length > 0 && (
+              <div className="mt-6">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+                  Recent activity
+                </div>
+                <ul className="rounded-lg border border-border bg-card divide-y divide-border overflow-hidden">
+                  {activity.map((e, i) => (
+                    <li key={i}>
+                      <Link
+                        to={e.href}
+                        className="flex items-center justify-between px-4 py-2 text-sm hover:bg-accent/30 transition-colors"
+                      >
+                        <span>{e.title}</span>
+                        <span className="text-xs text-muted-foreground shrink-0 ml-3">
+                          {relativeTime(e.occurredAt)}
+                        </span>
+                      </Link>
                     </li>
                   ))}
                 </ul>
-                <div className="flex items-center gap-3">
-                  <Link
-                    to={`/paths/${FEATURED_LESSON.pathSlug}`}
-                    className="inline-flex items-center px-4 py-2 rounded-md bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90"
-                  >
-                    Start the lesson →
-                  </Link>
-                  {!user && (
-                    <Link
-                      to="/signup"
-                      className="text-sm text-muted-foreground hover:text-foreground"
-                    >
-                      or sign up to track progress
-                    </Link>
-                  )}
-                </div>
               </div>
-              <div className="hidden md:flex items-center justify-center w-48 h-48 rounded-lg bg-gradient-to-br from-primary/20 via-primary/5 to-transparent">
-                {/* Stylized softmax bars */}
-                <svg viewBox="0 0 120 80" className="w-32 h-20 text-primary">
-                  {[0.45, 0.27, 0.15, 0.08, 0.05].map((h, i) => (
-                    <rect
-                      key={i}
-                      x={6 + i * 22}
-                      y={80 - h * 70}
-                      width={16}
-                      height={h * 70}
-                      rx={2}
-                      fill="currentColor"
-                      opacity={0.85 - i * 0.12}
-                    />
-                  ))}
-                </svg>
-              </div>
-            </div>
+            )}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Practice tools — visible only when signed in */}
       {user && (
@@ -292,15 +421,15 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Recent forum activity */}
+      {/* Trending forum activity */}
       {recentTopics.length > 0 && (
         <section className="border-t border-border">
           <div className="max-w-5xl mx-auto px-4 py-16">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="text-2xl font-bold">Forum</h2>
+                <h2 className="text-2xl font-bold">Trending in the forum</h2>
                 <p className="text-muted-foreground mt-1">
-                  Structured discussion across claims, questions, derivations, and predictions
+                  Most recently active claims, questions, derivations, and predictions
                 </p>
               </div>
               <Link to="/forum" className="text-sm text-primary hover:underline">
@@ -365,17 +494,12 @@ export function HomePage() {
 function FeatureCard({
   title,
   description,
-  icon,
 }: {
   title: string;
   description: string;
-  icon: React.ReactNode;
 }) {
   return (
     <div className="p-6 rounded-xl">
-      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-4">
-        {icon}
-      </div>
       <h3 className="font-semibold mb-2">{title}</h3>
       <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
     </div>

@@ -7,6 +7,8 @@ import { SignupPage } from "./pages/SignupPage";
 import { WikiListPage } from "./pages/WikiListPage";
 import { WikiPage } from "./pages/WikiPage";
 import { WikiEditPage } from "./pages/WikiEditPage";
+import { WikiNewPage } from "./pages/WikiNewPage";
+import { SearchPage } from "./pages/SearchPage";
 import { MasteryListPage } from "./pages/MasteryListPage";
 import { MasteryPathPage } from "./pages/MasteryPathPage";
 import { ProfilePage } from "./pages/ProfilePage";
@@ -41,8 +43,10 @@ export function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/wiki" element={<WikiListPage />} />
+        <Route path="/wiki/new" element={<WikiNewPage />} />
         <Route path="/wiki/:slug" element={<WikiPage />} />
         <Route path="/wiki/:slug/edit" element={<WikiEditPage />} />
+        <Route path="/search" element={<SearchPage />} />
         <Route path="/paths" element={<MasteryListPage />} />
         <Route path="/paths/:slug" element={<MasteryPathPage />} />
         <Route path="/forum" element={<ForumListPage />} />

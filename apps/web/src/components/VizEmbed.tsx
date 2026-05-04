@@ -9,6 +9,22 @@ const BeamSearchTree = lazy(() => import("../../../../packages/viz/src/component
 const LayerActivations = lazy(() => import("../../../../packages/viz/src/components/LayerActivations").then(m => ({ default: m.LayerActivations })));
 const QKVStepThrough = lazy(() => import("../../../../packages/viz/src/components/QKVStepThrough").then(m => ({ default: m.QKVStepThrough })));
 const EmbeddingExplorer = lazy(() => import("../../../../packages/viz/src/components/EmbeddingExplorer").then(m => ({ default: m.EmbeddingExplorer })));
+const ActivationFunctionGallery = lazy(() => import("../../../../packages/viz/src/components/ActivationFunctionGallery").then(m => ({ default: m.ActivationFunctionGallery })));
+
+// Names exposed here are also surfaced in the wiki editor's viz-picker.
+// Keep the catalog ordered by topic adjacency rather than alphabetically
+// so the picker reads as a learning sequence.
+export const VIZ_NAMES = [
+  "attention-heatmap",
+  "softmax-temperature",
+  "positional-encoding",
+  "tokenizer-playground",
+  "beam-search-tree",
+  "layer-activations",
+  "qkv-step-through",
+  "embedding-explorer",
+  "activation-function-gallery",
+] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
   "attention-heatmap": AttentionHeatmap,
@@ -19,6 +35,7 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "layer-activations": LayerActivations,
   "qkv-step-through": QKVStepThrough,
   "embedding-explorer": EmbeddingExplorer,
+  "activation-function-gallery": ActivationFunctionGallery,
 };
 
 interface VizEmbedProps {

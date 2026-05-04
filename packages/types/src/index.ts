@@ -603,3 +603,44 @@ export interface UserAchievementsResponse {
   streak: number;
   heatmap: ActivityHeatmapCell[];
 }
+
+// "Pick up where you left off" payload shown on the home page.
+export interface NextNodeResponse {
+  next: {
+    pathSlug: string;
+    pathTitle: string;
+    nodeSlug: string;
+    nodeTitle: string;
+    level: string;
+    hasLesson: boolean;
+  } | null;
+}
+
+export interface DueCountResponse {
+  count: number;
+}
+
+export interface RecentActivityEvent {
+  kind: string;
+  title: string;
+  href: string;
+  occurredAt: string;
+}
+
+export interface RecentActivityResponse {
+  events: RecentActivityEvent[];
+}
+
+export interface CreateWikiPageRequest {
+  slug: string;
+  title: string;
+  category?: string;
+  contentIntro: string;
+  contentUndergrad: string;
+  contentGrad: string;
+  editMessage?: string;
+}
+
+export interface RestoreWikiVersionRequest {
+  version: number;
+}

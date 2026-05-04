@@ -1,25 +1,39 @@
-import { useEffect, useRef, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { VizPickerButton } from "../components/VizPickerButton";
 import { useAuthStore } from "../stores/auth";
 
-export function WikiEditPage() {
-  const { slug } = useParams<{ slug: string }>();
+// Slugify on the fly so the user can stop fiddling with the slug field
+// once the title is set; they can still edit it explicitly if they want
+// a different shape.
+function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+export function WikiNewPage() {
   const navigate = useNavigate();
-  const user = useAuthStore((s) => s.user);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-  const [pageTitle, setPageTitle] = useState("");
+  const { user, loading: authLoading } = useAuthStore();
+
+  const [title, setTitle] = useState("");
+  const [slug, setSlug] = useState("");
+  const [slugTouched, setSlugTouched] = useState(false);
+  const [category, setCategory] = useState("uncategorized");
   const [activeTier, setActiveTier] = useState<"intro" | "undergrad" | "grad">("intro");
   const [content, setContent] = useState({ intro: "", undergrad: "", grad: "" });
   const [editMessage, setEditMessage] = useState("");
   const [showPreview, setShowPreview] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  // Insert a snippet at the textarea's cursor (or append if blurred).
   const insertAtCursor = (snippet: string) => {
     const ta = textareaRef.current;
     const current = content[activeTier];
@@ -31,7 +45,6 @@ export function WikiEditPage() {
     const end = ta.selectionEnd ?? current.length;
     const next = current.slice(0, start) + snippet + current.slice(end);
     setContent({ ...content, [activeTier]: next });
-    // Restore caret after the inserted snippet on the next paint.
     requestAnimationFrame(() => {
       ta.focus();
       const pos = start + snippet.length;
@@ -39,53 +52,47 @@ export function WikiEditPage() {
     });
   };
 
-  useEffect(() => {
-    if (!slug) return;
-    api.wiki.get(slug).then((data: any) => {
-      setPageTitle(data.page.title);
-      setContent({
-        intro: data.allContent.intro || "",
-        undergrad: data.allContent.undergrad || "",
-        grad: data.allContent.grad || "",
-      });
-      setLoading(false);
-    }).catch(() => {
-      setError("Page not found");
-      setLoading(false);
-    });
-  }, [slug]);
+  if (authLoading) {
+    return <div className="max-w-4xl mx-auto px-4 py-12"><div className="animate-pulse h-64 bg-muted rounded-lg" /></div>;
+  }
 
   if (!user) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <p className="text-muted-foreground mb-4">You need to be signed in to edit pages.</p>
+        <p className="text-muted-foreground mb-4">You need to be signed in to create pages.</p>
         <Link to="/login" className="text-primary hover:underline">Sign in</Link>
       </div>
     );
   }
 
+  const effectiveSlug = slugTouched ? slug : slugify(title);
+
+  const canSave =
+    title.trim().length > 0 &&
+    /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(effectiveSlug) &&
+    (content.intro.trim() || content.undergrad.trim() || content.grad.trim());
+
   const handleSave = async () => {
-    if (!slug) return;
+    if (!canSave || saving) return;
     setSaving(true);
     setError("");
     try {
-      await api.wiki.update(slug, {
+      await api.wiki.create({
+        slug: effectiveSlug,
+        title: title.trim(),
+        category: category.trim() || "uncategorized",
         contentIntro: content.intro,
         contentUndergrad: content.undergrad,
         contentGrad: content.grad,
-        editMessage: editMessage || `Edit by ${user.username}`,
+        editMessage: editMessage || undefined,
       });
-      navigate(`/wiki/${slug}`);
+      navigate(`/wiki/${effectiveSlug}`);
     } catch (err: any) {
-      setError(err.message || "Failed to save");
+      setError(err?.message ?? "Failed to create page");
     } finally {
       setSaving(false);
     }
   };
-
-  if (loading) {
-    return <div className="max-w-4xl mx-auto px-4 py-12"><div className="animate-pulse h-64 bg-muted rounded-lg" /></div>;
-  }
 
   const tiers = [
     { key: "intro" as const, label: "Intro" },
@@ -97,8 +104,8 @@ export function WikiEditPage() {
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <Link to={`/wiki/${slug}`} className="text-sm text-muted-foreground hover:text-foreground">&larr; Back to page</Link>
-          <h1 className="text-2xl font-bold mt-1">Editing: {pageTitle}</h1>
+          <Link to="/wiki" className="text-sm text-muted-foreground hover:text-foreground">&larr; Back to wiki</Link>
+          <h1 className="text-2xl font-bold mt-1">New wiki page</h1>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -115,15 +122,51 @@ export function WikiEditPage() {
           />
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={!canSave || saving}
             className="px-4 py-1.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
           >
-            {saving ? "Saving..." : "Save"}
+            {saving ? "Creating..." : "Create page"}
           </button>
         </div>
       </div>
 
       {error && <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>}
+
+      {/* Page metadata */}
+      <div className="grid sm:grid-cols-3 gap-3 mb-4">
+        <div className="sm:col-span-2">
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Title</label>
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="e.g. Layer Normalization"
+            className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Category</label>
+          <input
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            placeholder="uncategorized"
+            className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+        <div className="sm:col-span-3">
+          <label className="block text-xs font-medium text-muted-foreground mb-1">
+            Slug <span className="font-mono text-[10px]">(/wiki/{effectiveSlug || "..."})</span>
+          </label>
+          <input
+            value={effectiveSlug}
+            onChange={(e) => {
+              setSlugTouched(true);
+              setSlug(e.target.value);
+            }}
+            placeholder="auto-generated from title"
+            className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+      </div>
 
       {/* Tier tabs + viz picker */}
       <div className="flex items-center justify-between mb-4">
@@ -143,7 +186,6 @@ export function WikiEditPage() {
         {!showPreview && <VizPickerButton onPick={insertAtCursor} />}
       </div>
 
-      {/* Editor / Preview */}
       {showPreview ? (
         <div className="min-h-[500px] p-6 rounded-lg border border-border bg-card">
           <MarkdownRenderer content={content[activeTier]} />
