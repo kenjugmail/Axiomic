@@ -3,10 +3,15 @@ import type {
   Comment,
   CommentResponse,
   CommentsListResponse,
+  AchievementCatalogEntry,
+  AchievementCatalogResponse,
+  EarnedAchievement,
+  ActivityHeatmapCell,
   Flashcard,
   FlashcardsResponse,
   Lesson,
   LessonResponse,
+  UserAchievementsResponse,
   SavedFlashcard,
   SavedFlashcardResponse,
   SavedFlashcardsResponse,
@@ -228,6 +233,11 @@ export const api = {
     flashcards: (pageSlug: string, tier: string) =>
       request<FlashcardsResponse>(`/ai/flashcards/${pageSlug}?tier=${tier}`),
   },
+  achievements: {
+    catalog: () => request<AchievementCatalogResponse>("/achievements/catalog"),
+    forUser: (username: string) =>
+      request<UserAchievementsResponse>(`/achievements/users/${username}`),
+  },
   flashcards: {
     save: (data: { pageSlug: string; pageTitle: string; front: string; back: string }) =>
       request<SavedFlashcardResponse>("/flashcards", {
@@ -255,6 +265,9 @@ export type {
   ForumTopicSummary,
   MasteryNode,
   MasteryPath,
+  AchievementCatalogEntry,
+  ActivityHeatmapCell,
+  EarnedAchievement,
   Notification,
   PageVersion,
   PostType,

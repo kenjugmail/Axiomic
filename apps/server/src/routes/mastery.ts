@@ -6,6 +6,7 @@ import { eq, and, desc, inArray, ne } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { notify } from "../lib/notifications";
+import { recordActivityAndEvaluate } from "../lib/achievements";
 import type { Env } from "../env";
 
 const mastery = new Hono<Env>();
@@ -180,7 +181,15 @@ mastery.post("/progress/:nodeId/complete", requireAuth, async (c) => {
     }
   }
 
-  return c.json({ ok: true });
+  // Activity + achievements: only fire when this is a fresh completion,
+  // so re-marking an already-complete node doesn't pollute the activity
+  // log or claim duplicate progress against streaks.
+  let newAchievements: string[] = [];
+  if (!wasAlreadyCompleted) {
+    newAchievements = recordActivityAndEvaluate(user.id, "node_completed");
+  }
+
+  return c.json({ ok: true, newAchievements });
 });
 
 // Per-user mastery summary across all paths.
@@ -449,7 +458,22 @@ mastery.post("/quiz/:nodeId", requireAuth, zValidator("json", quizSubmitSchema),
     }).run();
   }
 
-  return c.json({ score, correct, total: questions.length });
+  // Record activity for both the quiz attempt and (if there was a code
+  // question) the coding problem specifically — code_warrior achievement
+  // gates on it. Activity events fire even on partial passes so streaks
+  // aren't held hostage by a hard quiz.
+  const newAchievements: string[] = [];
+  newAchievements.push(...recordActivityAndEvaluate(user.id, "quiz_passed"));
+  // Look for any code question that the user got fully right and credit it.
+  const codeQs = (questions as any[]).filter((q) => q?.kind === "code");
+  for (const cq of codeQs) {
+    if (gradeQuestion(cq, answers[cq.id])) {
+      newAchievements.push(...recordActivityAndEvaluate(user.id, "code_question_passed"));
+      break; // one credit per submit, regardless of how many code questions
+    }
+  }
+
+  return c.json({ score, correct, total: questions.length, newAchievements });
 });
 
 export { mastery };

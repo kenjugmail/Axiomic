@@ -14,6 +14,7 @@ import { notificationsRouter } from "./routes/notifications";
 import { searchRouter } from "./routes/search";
 import { settingsRouter } from "./routes/settings";
 import { flashcardsRouter } from "./routes/flashcards";
+import { achievementsRouter } from "./routes/achievements";
 import { prewarmSearchIndex } from "./lib/searchIndex";
 import type { Env } from "./env";
 
@@ -65,6 +66,7 @@ app.route("/notifications", notificationsRouter);
 app.route("/search", searchRouter);
 app.route("/settings", settingsRouter);
 app.route("/flashcards", flashcardsRouter);
+app.route("/achievements", achievementsRouter);
 
 // Pre-warm the search index in the background so the first user query
 // doesn't pay the embedding-build cost.

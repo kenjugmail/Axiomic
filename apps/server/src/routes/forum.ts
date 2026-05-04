@@ -17,6 +17,7 @@ import { getAIProvider } from "@axiomic/ai";
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { notify, notifyMentions, toPreview } from "../lib/notifications";
 import { invalidateSearchIndex } from "../lib/searchIndex";
+import { recordActivityAndEvaluate } from "../lib/achievements";
 import type { Env } from "../env";
 
 const forum = new Hono<Env>();
@@ -373,6 +374,13 @@ forum.post("/topics", requireAuth, zValidator("json", createTopicSchema), async 
 
   // New topic enters the search corpus.
   invalidateSearchIndex();
+
+  // Activity + achievement evaluation. Best-effort, swallowed errors.
+  try {
+    recordActivityAndEvaluate(user.id, "forum_topic_created");
+  } catch (err) {
+    console.error("forum activity recording failed", err);
+  }
 
   // Best-effort mention notifications. The topic has no parent so only
   // mentions fire. Awaited (not fire-and-forget) so the response observes

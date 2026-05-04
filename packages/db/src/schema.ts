@@ -158,6 +158,44 @@ export const forumVotes = sqliteTable("forum_votes", {
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
 });
 
+// --- Achievements & activity ---
+//
+// `user_achievements` records which user earned which achievement (and
+// when). The achievement catalog itself is hardcoded in
+// apps/server/src/lib/achievements.ts so we don't have to seed reference
+// rows; the `slug` here is the catalog key.
+export const userAchievements = sqliteTable(
+  "user_achievements",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    slug: text("slug").notNull(),
+    awardedAt: text("awarded_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("user_achievements_uniq_idx").on(t.userId, t.slug),
+  }),
+);
+
+// Append-only activity log. Each row is an event the user performed
+// (completed a node, passed a quiz, saved a flashcard, posted a topic).
+// Used to compute daily-activity streaks and to render the heatmap.
+export const activityEvents = sqliteTable(
+  "activity_events",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    kind: text("kind").notNull(),
+    // Day key in YYYY-MM-DD UTC, computed at insert time. Lets the
+    // heatmap aggregate cheaply via GROUP BY.
+    day: text("day").notNull(),
+    occurredAt: text("occurred_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    userDayIdx: index("activity_user_day_idx").on(t.userId, t.day),
+  }),
+);
+
 // --- Flashcards (spaced repetition) ---
 //
 // Cards a user has saved into their personal deck. SM-2 state is stored

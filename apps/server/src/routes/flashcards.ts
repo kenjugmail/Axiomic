@@ -6,6 +6,7 @@ import { randomUUID } from "crypto";
 import { getDb, flashcards, flashcardReviews } from "@axiomic/db";
 import { requireAuth } from "../middleware/auth";
 import { schedule } from "../lib/srs";
+import { recordActivityAndEvaluate } from "../lib/achievements";
 import type { Env } from "../env";
 
 export const flashcardsRouter = new Hono<Env>();
@@ -44,7 +45,8 @@ flashcardsRouter.post(
       .where(eq(flashcards.id, id))
       .get();
 
-    return c.json({ card }, 201);
+    const newAchievements = recordActivityAndEvaluate(user.id, "flashcard_saved");
+    return c.json({ card, newAchievements }, 201);
   },
 );
 
@@ -146,7 +148,8 @@ flashcardsRouter.post(
       .where(eq(flashcards.id, id))
       .get();
 
-    return c.json({ card: updated });
+    const newAchievements = recordActivityAndEvaluate(user.id, "flashcard_reviewed");
+    return c.json({ card: updated, newAchievements });
   },
 );
 

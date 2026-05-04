@@ -574,3 +574,32 @@ export interface MasterySummaryResponse {
   totalCompleted: number;
   highestLevel: MasteryLevel | null;
 }
+
+// --- Achievements & activity ---
+
+export interface AchievementCatalogEntry {
+  slug: string;
+  title: string;
+  description: string;
+  icon: string;
+}
+
+export interface EarnedAchievement extends AchievementCatalogEntry {
+  awardedAt: string;
+}
+
+export interface ActivityHeatmapCell {
+  day: string;        // YYYY-MM-DD UTC
+  count: number;
+}
+
+export interface AchievementCatalogResponse {
+  achievements: AchievementCatalogEntry[];
+}
+
+export interface UserAchievementsResponse {
+  username: string;
+  earned: EarnedAchievement[];
+  streak: number;
+  heatmap: ActivityHeatmapCell[];
+}

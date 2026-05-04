@@ -3,10 +3,15 @@ import { Link, useParams } from "react-router-dom";
 import { useAuthStore } from "../stores/auth";
 import { api } from "../lib/api";
 import type {
+  AchievementCatalogEntry,
+  EarnedAchievement,
+  ActivityHeatmapCell,
   MasterySummaryResponse,
   PathProgressSummary,
   ReputationByDomain,
 } from "@axiomic/types";
+import { AchievementsGallery } from "../components/AchievementsGallery";
+import { ActivityHeatmap } from "../components/ActivityHeatmap";
 
 const LEVEL_COLORS: Record<string, string> = {
   apprentice: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
@@ -82,6 +87,10 @@ export function ProfilePage() {
     domains: ReputationByDomain[];
   } | null>(null);
   const [mastery, setMastery] = useState<MasterySummaryResponse | null>(null);
+  const [catalog, setCatalog] = useState<AchievementCatalogEntry[]>([]);
+  const [earned, setEarned] = useState<EarnedAchievement[]>([]);
+  const [streak, setStreak] = useState(0);
+  const [heatmap, setHeatmap] = useState<ActivityHeatmapCell[]>([]);
 
   useEffect(() => {
     if (!username) return;
@@ -93,6 +102,18 @@ export function ProfilePage() {
       .summary(username)
       .then(setMastery)
       .catch(() => setMastery(null));
+    api.achievements
+      .forUser(username)
+      .then((r) => {
+        setEarned(r.earned);
+        setStreak(r.streak);
+        setHeatmap(r.heatmap);
+      })
+      .catch(() => {});
+    api.achievements
+      .catalog()
+      .then((r) => setCatalog(r.achievements))
+      .catch(() => {});
   }, [username]);
 
   if (!username) {
@@ -181,6 +202,28 @@ export function ProfilePage() {
             </div>
           )}
         </section>
+
+        {/* Activity heatmap — visible on any profile, gives even the
+            public view a pulse. */}
+        {heatmap.length > 0 && (
+          <section>
+            <ActivityHeatmap cells={heatmap} streak={streak} />
+          </section>
+        )}
+
+        {/* Achievements gallery — also public. Locked rows are greyed
+            out. */}
+        {catalog.length > 0 && (
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold">Achievements</h2>
+              <span className="text-xs text-muted-foreground">
+                {earned.length} of {catalog.length} earned
+              </span>
+            </div>
+            <AchievementsGallery catalog={catalog} earned={earned} />
+          </section>
+        )}
 
         {isOwnProfile && (
           <>
