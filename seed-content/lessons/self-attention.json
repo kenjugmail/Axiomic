@@ -1,0 +1,42 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Self-attention",
+      "body": "**Self-attention** is the special case of attention where the query, key, and value sequences are *the same sequence*. Every token attends to every other token in the same input.\n\nWhy is this so powerful? Because it lets the model **mix information freely across the sequence in a single layer**. RNNs had to laboriously pass information one step at a time. Convolutions only see a fixed window. Self-attention has full reach in one operation.\n\nThe heatmap on the right shows a self-attention matrix with a **locality bias** — most weight on nearby tokens. Self-attention can do this *or* learn long-range dependencies, depending on what the training signal asks for.",
+      "viz": "attention-heatmap-explorer",
+      "vizProps": { "presetIndex": 1 }
+    },
+    {
+      "kind": "text",
+      "title": "Why the diagonal matters",
+      "body": "Look at any self-attention heatmap and you'll usually see meaningful weight on the **diagonal** — token *i* attending to token *i*. That's the model deciding: *\"For this position, my own information is also relevant.\"*\n\nIn cross-attention (e.g., decoder attending to encoder), there's no diagonal preference — Q and K come from different sequences entirely. Self-attention is the only flavor where the diagonal has identity meaning.\n\nMore generally: every row of a self-attention matrix is a **probability distribution over the entire input sequence**, including the token itself. The output for position *i* is a weighted blend of all the tokens' values, with the model choosing the weights."
+    },
+    {
+      "kind": "text",
+      "title": "Causal masking",
+      "body": "There's a critical wrinkle for **autoregressive** models (the kind that generate text one token at a time). When predicting token 5, the model must not be allowed to peek at tokens 6, 7, 8 — those are the future, which doesn't exist yet at inference time.\n\nThe fix is a **causal mask**: before applying softmax, every cell above the diagonal of the attention matrix is set to `-∞`. After softmax, those cells become exactly 0. Each token can attend to itself and all earlier positions, but not to anything later.\n\nDuring training, this lets the model learn to predict every position in parallel — each prediction only looks backward. At inference, generation is autoregressive: predict, append, predict, append.\n\n**Encoder** transformers (BERT-style) skip the mask — every token can see every other. **Decoder** transformers (GPT-style) require it."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "lesson_q1",
+        "kind": "multiple_choice",
+        "question": "In causal self-attention, can token at position 3 attend to the token at position 7?",
+        "options": [
+          "No — position 7 is in the future, masked out",
+          "Yes — every token attends to every other token",
+          "Only if positions 4, 5, 6 are also attended to",
+          "Only the first head can; subsequent heads can't"
+        ],
+        "correctIndex": 0,
+        "explanation": "Causal masking zeros out attention from position i to any j > i. Position 3 can attend to positions 0, 1, 2, and 3 (itself), but never 4 or beyond. This is what makes the model autoregressive."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Why this scales (and where it breaks)",
+      "body": "Self-attention has **quadratic** time and memory complexity in sequence length: $O(n^2)$. For a context of 1,000 tokens that's a million attention scores; at 100,000 tokens it's 10 billion.\n\nThis is the central bottleneck of modern transformers. Most architectural innovations of the last few years are attempts to break or soften it:\n\n- **[Flash Attention](/wiki/flash-attention)** keeps the formula but reorders the computation to avoid materializing the full $n \\times n$ matrix.\n- **Grouped-query / multi-query attention** shares K and V across heads, reducing memory at the cost of expressiveness.\n- **Sliding-window attention** restricts each token to a local neighborhood, breaking the quadratic but losing long-range reach.\n- **Linear attention variants** (Mamba, Performer, Linformer) replace the softmax with kernel approximations, achieving $O(n)$ at quality cost.\n\nThe full $O(n^2)$ self-attention remains the gold standard when compute permits; everything else is a careful trade-off."
+    }
+  ]
+}

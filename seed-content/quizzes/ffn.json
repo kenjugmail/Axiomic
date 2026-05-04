@@ -31,5 +31,59 @@
       "It's applied between layers, not within them"
     ],
     "correctIndex": 0
+  },
+  {
+    "id": "q4",
+    "kind": "code",
+    "question": "Implement a 2-layer feed-forward network with ReLU. Given x of shape [n, d_in] and weight/bias matrices, return the output of shape [n, d_out].",
+    "functionName": "ffn",
+    "starterCode": "def ffn(x, W1, b1, W2, b2):\n    # x: [n, d_in]; W1: [d_in, d_hidden]; b1: [d_hidden]\n    # W2: [d_hidden, d_out]; b2: [d_out]\n    # Apply: linear -> ReLU -> linear. Return [n, d_out].\n    pass\n",
+    "tests": [
+      {
+        "name": "Output shape matches d_out",
+        "inputs": [
+          "np.array([[1.0, 2.0]])",
+          "np.array([[0.5, -0.5, 1.0], [-1.0, 1.5, 0.5]])",
+          "np.zeros(3)",
+          "np.array([[1.0], [-1.0], [0.5]])",
+          "np.zeros(1)"
+        ],
+        "check": "result.shape == (1, 1)"
+      },
+      {
+        "name": "ReLU clips negatives in the hidden layer",
+        "inputs": [
+          "np.array([[1.0]])",
+          "np.array([[-2.0]])",
+          "np.zeros(1)",
+          "np.array([[3.0]])",
+          "np.zeros(1)"
+        ],
+        "check": "bool(np.allclose(result, np.array([[0.0]])))"
+      },
+      {
+        "name": "Identity-style fixture",
+        "inputs": [
+          "np.array([[1.0, 2.0]])",
+          "np.eye(2)",
+          "np.zeros(2)",
+          "np.eye(2)",
+          "np.zeros(2)"
+        ],
+        "check": "bool(np.allclose(result, np.array([[1.0, 2.0]])))"
+      },
+      {
+        "name": "Bias is added correctly",
+        "inputs": [
+          "np.zeros((1, 2))",
+          "np.eye(2)",
+          "np.array([1.0, 1.0])",
+          "np.eye(2)",
+          "np.array([2.0, 3.0])"
+        ],
+        "check": "bool(np.allclose(result, np.array([[3.0, 4.0]])))"
+      }
+    ],
+    "explanation": "x @ W1 + b1, then np.maximum(0, ...) for ReLU, then that @ W2 + b2. Numpy broadcasting handles the bias add per row. The 4x widening (d_hidden = 4 * d_in) in real transformers is what gives this layer its capacity."
   }
 ]

@@ -1,0 +1,76 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Following the slope",
+      "body": "Imagine you're standing on a hilly landscape in thick fog. You can't see the bottom of the valley, but you can feel which direction is downhill under your feet. **Take a step in that direction. Repeat.** Eventually, you reach a low point.\n\nThat's gradient descent. The \"landscape\" is a loss function — a number that tells the model how wrong its predictions are. The \"position\" is the model's parameters (often billions of them). The \"steepest downhill direction\" is the gradient, $-\\nabla L$.\n\nThe contour plot on the right shows a 2D loss surface — a stretched bowl, $f(x, y) = x^2 + 5 y^2$. The trajectory shows gradient descent finding its way to the minimum at the origin, starting from the upper-right corner.",
+      "viz": "gradient-descent-2d",
+      "vizProps": { "learningRate": 0.05 }
+    },
+    {
+      "kind": "text",
+      "title": "The size of each step matters",
+      "body": "How big a step should we take? That's the **learning rate** $\\eta$. The update rule is:\n\n$$\\theta_{t+1} = \\theta_t - \\eta \\, \\nabla L(\\theta_t)$$\n\nToo small and you crawl. Too large and you overshoot — and on an *anisotropic* surface (one stretched in some directions, narrow in others) you can oscillate wildly along the narrow axis while barely moving along the wide one.\n\nLook at the trajectory now: with a much higher learning rate, the descent ricochets. The narrow axis (vertical) has high curvature; small movements there change the loss a lot. A learning rate that's well-tuned for the wide axis is too large for the narrow one.\n\nThis ill-conditioning is one reason **Adam** and friends exist — they automatically adapt the learning rate per parameter.",
+      "viz": "gradient-descent-2d",
+      "vizProps": { "learningRate": 0.18 }
+    },
+    {
+      "kind": "text",
+      "title": "The update rule, explicitly",
+      "body": "Stripped to its essentials, gradient descent is just one line of math:\n\n$$\\theta \\leftarrow \\theta - \\eta \\, \\nabla L(\\theta)$$\n\n- $\\theta$ is whatever parameters you want to optimize.\n- $\\nabla L$ is the gradient of the loss with respect to those parameters.\n- $\\eta$ is the learning rate — the step size scalar.\n- The minus sign is the only reason you go *down* the gradient instead of up.\n\nReal training pipelines wrap this with momentum, adaptive learning rates, weight decay, gradient clipping, mixed-precision arithmetic, distributed reductions, and a hundred other things. But every one of them sits on top of this one update."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "lesson_q1",
+        "kind": "slider",
+        "question": "Drag the learning rate until gradient descent converges to the origin within 30 steps on this anisotropic surface.",
+        "viz": "gradient-descent-2d",
+        "min": 0.01,
+        "max": 0.2,
+        "step": 0.005,
+        "default": 0.05,
+        "target": { "min": 0.07, "max": 0.095 },
+        "explanation": "The optimal learning rate is bounded by 1/(largest curvature) — here that's 1/(2·5) = 0.1. Anything ≥ 0.1 oscillates along the y-axis; anything ≪ 0.1 crawls along x. The sweet spot is roughly 0.07-0.09."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "lesson_q2",
+        "kind": "code",
+        "question": "Implement one step of gradient descent. Given current params, gradients (same shape), and a learning rate, return the updated params.",
+        "functionName": "gradient_descent_step",
+        "starterCode": "def gradient_descent_step(params, grads, lr):\n    # All numpy arrays. Return updated params, same shape.\n    pass\n",
+        "tests": [
+          {
+            "name": "Output shape matches input",
+            "inputs": ["np.array([1.0, 2.0, 3.0])", "np.array([0.1, 0.2, 0.3])", "0.5"],
+            "check": "result.shape == (3,)"
+          },
+          {
+            "name": "Zero gradient leaves params unchanged",
+            "inputs": ["np.array([1.0, 2.0, 3.0])", "np.zeros(3)", "0.1"],
+            "check": "bool(np.allclose(result, np.array([1.0, 2.0, 3.0])))"
+          },
+          {
+            "name": "Numerical fixture",
+            "inputs": ["np.array([1.0, 2.0])", "np.array([0.5, -0.25])", "0.1"],
+            "check": "bool(np.allclose(result, np.array([0.95, 2.025])))"
+          },
+          {
+            "name": "Works on 2-D arrays",
+            "inputs": ["np.ones((2, 3))", "np.ones((2, 3)) * 2.0", "0.1"],
+            "check": "bool(np.allclose(result, np.ones((2, 3)) * 0.8))"
+          }
+        ],
+        "explanation": "The minus sign is what makes it descent rather than ascent: params - lr * grads. Numpy broadcasting handles arbitrary shapes for free."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Where it goes from here",
+      "body": "Vanilla gradient descent is the bedrock, but in practice almost nobody runs it as-written:\n\n- **Stochastic gradient descent (SGD)** computes the gradient on a mini-batch instead of the full dataset — vastly cheaper per step, with noise that often helps generalization.\n- **Momentum** adds a fraction of the previous step to the current one, smoothing through narrow valleys.\n- **Adam / AdamW** maintain per-parameter adaptive learning rates plus momentum — robust to ill-conditioning, the modern default.\n- **Learning rate schedules** (warmup, cosine decay, linear decay) are essential for stable training of large models.\n\nEvery one of these inherits this lesson's basic geometry: you're following a gradient down a non-convex surface. The differences are in *how* you take each step. See [optimization theory](/wiki/optimization-theory) for the broader landscape."
+    }
+  ]
+}
