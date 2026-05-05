@@ -313,6 +313,40 @@ export const newsReactions = sqliteTable(
   }),
 );
 
+// Inline threaded comments scoped to a news article. Mirrors the wiki
+// `comments` table shape but anchored to news_articles.id so the two
+// surfaces stay decoupled and can evolve independently.
+export const newsComments = sqliteTable(
+  "news_comments",
+  {
+    id: text("id").primaryKey(),
+    articleId: text("article_id").notNull().references(() => newsArticles.id),
+    parentId: text("parent_id"),
+    userId: text("user_id").notNull().references(() => users.id),
+    content: text("content").notNull(),
+    editedAt: text("edited_at"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    articleIdx: index("news_comments_article_idx").on(t.articleId, t.createdAt),
+  }),
+);
+
+// Save-for-later. Unique on (user, article) so toggling is safe.
+export const newsBookmarks = sqliteTable(
+  "news_bookmarks",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    articleId: text("article_id").notNull().references(() => newsArticles.id),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("news_bookmarks_uniq_idx").on(t.userId, t.articleId),
+    userIdx: index("news_bookmarks_user_idx").on(t.userId, t.createdAt),
+  }),
+);
+
 // --- Notifications ---
 //
 // Polymorphic subject (matches forumVotes vocabulary): "topic" | "post" | "comment".

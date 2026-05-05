@@ -327,3 +327,147 @@ describe("news reactions", () => {
     expect(res.status).toBe(401);
   });
 });
+
+describe("news comments", () => {
+  test("anyone can read; signed-in users can post; replies thread under parent", async () => {
+    const author = await signup("comm_a");
+    const replier = await signup("comm_b");
+    const slug = `commentable-${testId}`;
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ slug, title: "C", summary: "", body: "x" }),
+    });
+
+    const post = await req(`/news/${slug}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(replier.cookie) },
+      body: JSON.stringify({ content: "Top-level comment" }),
+    });
+    expect(post.status).toBe(201);
+    const top = (await post.json()) as { commentId: string };
+
+    const reply = await req(`/news/${slug}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ content: "A reply", parentId: top.commentId }),
+    });
+    expect(reply.status).toBe(201);
+
+    const list = await req(`/news/${slug}/comments`);
+    expect(list.status).toBe(200);
+    const body = (await list.json()) as { comments: any[] };
+    expect(body.comments).toHaveLength(1);
+    expect(body.comments[0].id).toBe(top.commentId);
+    expect(body.comments[0].children).toHaveLength(1);
+  });
+
+  test("rejects parent comment from another article", async () => {
+    const author = await signup("comm_c");
+    const slug = `crossref-${testId}`;
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ slug, title: "C", summary: "", body: "x" }),
+    });
+    const bad = await req(`/news/${slug}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ content: "x", parentId: "no-such-id" }),
+    });
+    expect(bad.status).toBe(400);
+  });
+
+  test("only the comment author can edit", async () => {
+    const a = await signup("comm_d");
+    const b = await signup("comm_e");
+    const slug = `edit-comment-${testId}`;
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(a.cookie) },
+      body: JSON.stringify({ slug, title: "C", summary: "", body: "x" }),
+    });
+    const post = await req(`/news/${slug}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(a.cookie) },
+      body: JSON.stringify({ content: "original" }),
+    });
+    const { commentId } = (await post.json()) as { commentId: string };
+
+    const stranger = await req(`/news/comments/${commentId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...cookieHeader(b.cookie) },
+      body: JSON.stringify({ content: "tampered" }),
+    });
+    expect(stranger.status).toBe(403);
+
+    const own = await req(`/news/comments/${commentId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...cookieHeader(a.cookie) },
+      body: JSON.stringify({ content: "updated" }),
+    });
+    expect(own.status).toBe(200);
+  });
+});
+
+describe("news bookmarks", () => {
+  test("toggle adds then removes; bookmarks list reflects state; article carries myBookmark", async () => {
+    const author = await signup("bm_a");
+    const reader = await signup("bm_b");
+    const slug = `bookmarkable-${testId}`;
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ slug, title: "B", summary: "", body: "x" }),
+    });
+
+    const on = await req(`/news/${slug}/bookmark`, {
+      method: "POST",
+      headers: cookieHeader(reader.cookie),
+    });
+    expect(on.status).toBe(200);
+    expect(((await on.json()) as { bookmarked: boolean }).bookmarked).toBe(true);
+
+    const list = await req("/news/me/bookmarks", { headers: cookieHeader(reader.cookie) });
+    const listBody = (await list.json()) as { articles: any[] };
+    expect(listBody.articles.some((a) => a.slug === slug)).toBe(true);
+
+    const get = await req(`/news/${slug}`, { headers: cookieHeader(reader.cookie) });
+    expect(((await get.json()) as { article: any }).article.myBookmark).toBe(true);
+
+    const off = await req(`/news/${slug}/bookmark`, {
+      method: "POST",
+      headers: cookieHeader(reader.cookie),
+    });
+    expect(((await off.json()) as { bookmarked: boolean }).bookmarked).toBe(false);
+  });
+
+  test("bookmark requires auth", async () => {
+    const res = await req("/news/whatever/bookmark", { method: "POST" });
+    expect(res.status).toBe(401);
+  });
+});
+
+describe("news related", () => {
+  test("returns up to 4 articles, excluding the current one", async () => {
+    const author = await signup("rel_a");
+    for (let i = 0; i < 3; i++) {
+      await req("/news", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+        body: JSON.stringify({
+          slug: `related-${i}-${testId}`,
+          title: `Related ${i}`,
+          summary: "",
+          body: "x",
+        }),
+      });
+    }
+    const res = await req(`/news/related-0-${testId}/related`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { articles: any[] };
+    expect(body.articles.length).toBeGreaterThan(0);
+    expect(body.articles.length).toBeLessThanOrEqual(4);
+    expect(body.articles.every((a) => a.slug !== `related-0-${testId}`)).toBe(true);
+  });
+});

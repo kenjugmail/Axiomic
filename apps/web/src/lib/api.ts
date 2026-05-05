@@ -8,15 +8,21 @@ import type {
   EarnedAchievement,
   ActivityHeatmapCell,
   CreateNewsArticleRequest,
+  CreateNewsCommentRequest,
   CreateNewsProposalRequest,
   CreateWikiPageRequest,
   DueCountResponse,
   NewsArticleResponse,
+  NewsBookmarksResponse,
+  NewsCommentsResponse,
   NewsListResponse,
   NewsProposalsResponse,
   NewsReactionKind,
+  NewsRelatedResponse,
   ReviewNewsProposalRequest,
+  ToggleNewsBookmarkResponse,
   UpdateNewsArticleRequest,
+  UpdateNewsCommentRequest,
   Flashcard,
   FlashcardsResponse,
   Lesson,
@@ -302,6 +308,25 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ kind }),
       }),
+    listComments: (slug: string) =>
+      request<NewsCommentsResponse>(`/news/${slug}/comments`),
+    addComment: (slug: string, data: CreateNewsCommentRequest) =>
+      request<{ commentId: string }>(`/news/${slug}/comments`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    editComment: (id: string, data: UpdateNewsCommentRequest) =>
+      request<OkResponse>(`/news/comments/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    toggleBookmark: (slug: string) =>
+      request<ToggleNewsBookmarkResponse>(`/news/${slug}/bookmark`, {
+        method: "POST",
+      }),
+    bookmarks: () => request<NewsBookmarksResponse>("/news/me/bookmarks"),
+    related: (slug: string) =>
+      request<NewsRelatedResponse>(`/news/${slug}/related`),
   },
   flashcards: {
     save: (data: { pageSlug: string; pageTitle: string; front: string; back: string }) =>

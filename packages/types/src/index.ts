@@ -460,7 +460,8 @@ export type NotificationSubject =
   | "comment"
   | "mastery_node"
   | "news_article"
-  | "news_proposal";
+  | "news_proposal"
+  | "news_comment";
 
 export const NOTIFICATION_KINDS: NotificationKind[] = [
   "mention",
@@ -480,6 +481,7 @@ export const NOTIFICATION_SUBJECTS: NotificationSubject[] = [
   "mastery_node",
   "news_article",
   "news_proposal",
+  "news_comment",
 ];
 
 export interface Notification {
@@ -710,6 +712,7 @@ export interface NewsArticle extends NewsArticleSummary {
   myReactions: Record<NewsReactionKind, boolean> | null;
   pendingProposalCount: number;
   isAuthor: boolean;
+  myBookmark: boolean;
 }
 
 export interface NewsListResponse {
@@ -779,4 +782,57 @@ export interface ReviewNewsProposalRequest {
 
 export interface ToggleNewsReactionRequest {
   kind: NewsReactionKind;
+}
+
+export interface NewsArticleCard {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  coverEmoji: string;
+  accentColor: NewsAccentColor;
+  authorUsername: string;
+  createdAt: string;
+}
+
+export interface NewsRelatedResponse {
+  articles: NewsArticleCard[];
+}
+
+export interface NewsBookmarkSummary extends NewsArticleSummary {
+  bookmarkedAt: string;
+}
+
+export interface NewsBookmarksResponse {
+  articles: NewsBookmarkSummary[];
+}
+
+export interface ToggleNewsBookmarkResponse {
+  bookmarked: boolean;
+}
+
+export interface NewsCommentNode {
+  id: string;
+  articleId: string;
+  parentId: string | null;
+  userId: string;
+  username: string;
+  displayName: string | null;
+  content: string;
+  editedAt: string | null;
+  createdAt: string;
+  children: NewsCommentNode[];
+}
+
+export interface NewsCommentsResponse {
+  comments: NewsCommentNode[];
+}
+
+export interface CreateNewsCommentRequest {
+  content: string;
+  parentId?: string;
+}
+
+export interface UpdateNewsCommentRequest {
+  content: string;
 }

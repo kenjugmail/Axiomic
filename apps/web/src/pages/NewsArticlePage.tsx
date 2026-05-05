@@ -3,7 +3,9 @@ import { Link, useParams } from "react-router-dom";
 import { api } from "../lib/api";
 import type { NewsArticle, NewsReactionKind } from "@axiomic/types";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
+import { NewsComments } from "../components/news/NewsComments";
 import { NewsCover } from "../components/news/NewsCover";
+import { RelatedNewsRail } from "../components/news/RelatedNewsRail";
 import { useAuthStore } from "../stores/auth";
 
 const REACTION_BUTTONS: Array<{
@@ -30,6 +32,7 @@ export function NewsArticlePage() {
   const [article, setArticle] = useState<NewsArticle | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reacting, setReacting] = useState(false);
+  const [bookmarking, setBookmarking] = useState(false);
 
   useEffect(() => {
     if (!slug) return;
@@ -51,6 +54,17 @@ export function NewsArticlePage() {
       });
     } finally {
       setReacting(false);
+    }
+  };
+
+  const handleBookmark = async () => {
+    if (!user || !slug || !article || bookmarking) return;
+    setBookmarking(true);
+    try {
+      const next = await api.news.toggleBookmark(slug);
+      setArticle({ ...article, myBookmark: next.bookmarked });
+    } finally {
+      setBookmarking(false);
     }
   };
 
@@ -173,7 +187,7 @@ export function NewsArticlePage() {
         <MarkdownRenderer content={article.body} />
       </article>
 
-      {/* Reactions */}
+      {/* Reactions + bookmark */}
       <div className="mt-10 pt-6 border-t border-border">
         <div className="flex flex-wrap items-center gap-2">
           {REACTION_BUTTONS.map((r) => {
@@ -201,16 +215,37 @@ export function NewsArticlePage() {
               </button>
             );
           })}
+          <div className="flex-1" />
+          {user && (
+            <button
+              onClick={handleBookmark}
+              disabled={bookmarking}
+              className={`px-3 py-1.5 rounded-full border text-sm transition-colors flex items-center gap-2 ${
+                article.myBookmark
+                  ? "border-amber-500 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                  : "border-border hover:bg-accent/40"
+              } disabled:opacity-50`}
+              title={article.myBookmark ? "Remove from bookmarks" : "Save for later"}
+            >
+              <span className="text-lg">{article.myBookmark ? "🔖" : "🏷️"}</span>
+              <span className="font-medium">
+                {article.myBookmark ? "Saved" : "Save"}
+              </span>
+            </button>
+          )}
         </div>
         {!user && (
           <p className="text-xs text-muted-foreground mt-2">
             <Link to="/login" className="text-primary hover:underline">
               Sign in
             </Link>{" "}
-            to react or suggest edits.
+            to react, save, or suggest edits.
           </p>
         )}
       </div>
+
+      {slug && <NewsComments articleSlug={slug} />}
+      {slug && <RelatedNewsRail articleSlug={slug} />}
     </div>
   );
 }

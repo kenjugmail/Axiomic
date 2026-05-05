@@ -21,6 +21,8 @@ export function notificationLink(n: Notification): string {
       // contextSlug is the article slug; deep-link to the proposals
       // review page (visible to author) or the article (others).
       return `/news/${n.contextSlug}/proposals`;
+    case "news_comment":
+      return `/news/${n.contextSlug}#comment-${n.subjectId}`;
     default:
       return "/notifications";
   }

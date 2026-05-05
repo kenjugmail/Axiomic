@@ -4,6 +4,8 @@ import { z } from "zod";
 import {
   getDb,
   newsArticles,
+  newsBookmarks,
+  newsComments,
   newsEditProposals,
   newsReactions,
   users,
@@ -215,6 +217,21 @@ newsRouter.get("/:slug", async (c) => {
 
   const isAuthor = !!session && session.id === row.authorId;
 
+  let myBookmark = false;
+  if (session) {
+    const bookmark = db
+      .select({ id: newsBookmarks.id })
+      .from(newsBookmarks)
+      .where(
+        and(
+          eq(newsBookmarks.articleId, row.id),
+          eq(newsBookmarks.userId, session.id),
+        ),
+      )
+      .get();
+    myBookmark = !!bookmark;
+  }
+
   return c.json({
     article: {
       id: row.id,
@@ -233,6 +250,7 @@ newsRouter.get("/:slug", async (c) => {
       myReactions,
       pendingProposalCount,
       isAuthor,
+      myBookmark,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     },
@@ -644,3 +662,334 @@ newsRouter.post(
     });
   },
 );
+
+// --- Comments ---
+
+newsRouter.get("/:slug/comments", async (c) => {
+  const slug = c.req.param("slug")!;
+  const db = getDb();
+
+  const article = db
+    .select({ id: newsArticles.id })
+    .from(newsArticles)
+    .where(eq(newsArticles.slug, slug))
+    .get();
+  if (!article) return c.json({ error: "Article not found" }, 404);
+
+  const rows = db
+    .select({
+      id: newsComments.id,
+      articleId: newsComments.articleId,
+      parentId: newsComments.parentId,
+      userId: newsComments.userId,
+      username: users.username,
+      displayName: users.displayName,
+      content: newsComments.content,
+      editedAt: newsComments.editedAt,
+      createdAt: newsComments.createdAt,
+    })
+    .from(newsComments)
+    .innerJoin(users, eq(newsComments.userId, users.id))
+    .where(eq(newsComments.articleId, article.id))
+    .orderBy(desc(newsComments.createdAt))
+    .all();
+
+  // Build a tree. Root comments first; children attached recursively.
+  const childMap = new Map<string, typeof rows>();
+  for (const r of rows) {
+    if (r.parentId) {
+      const list = childMap.get(r.parentId) ?? [];
+      list.push(r);
+      childMap.set(r.parentId, list);
+    }
+  }
+  const buildTree = (n: (typeof rows)[number]): any => ({
+    ...n,
+    children: (childMap.get(n.id) ?? []).map(buildTree),
+  });
+  const roots = rows.filter((r) => !r.parentId).map(buildTree);
+
+  return c.json({ comments: roots });
+});
+
+const newCommentSchema = z.object({
+  content: z.string().min(1).max(5000),
+  parentId: z.string().optional(),
+});
+
+newsRouter.post(
+  "/:slug/comments",
+  requireAuth,
+  zValidator("json", newCommentSchema),
+  async (c) => {
+    const slug = c.req.param("slug")!;
+    const { content, parentId } = c.req.valid("json");
+    const user = c.get("user")!;
+    const db = getDb();
+
+    const article = db
+      .select({ id: newsArticles.id, authorId: newsArticles.authorId })
+      .from(newsArticles)
+      .where(eq(newsArticles.slug, slug))
+      .get();
+    if (!article) return c.json({ error: "Article not found" }, 404);
+
+    // If replying, validate the parent belongs to this article so we
+    // don't accidentally allow cross-article reply chains.
+    let parentAuthorId: string | null = null;
+    if (parentId) {
+      const parent = db
+        .select({
+          id: newsComments.id,
+          articleId: newsComments.articleId,
+          userId: newsComments.userId,
+        })
+        .from(newsComments)
+        .where(eq(newsComments.id, parentId))
+        .get();
+      if (!parent || parent.articleId !== article.id) {
+        return c.json({ error: "Parent comment not found" }, 400);
+      }
+      parentAuthorId = parent.userId;
+    }
+
+    const id = randomUUID();
+    db.insert(newsComments).values({
+      id,
+      articleId: article.id,
+      parentId: parentId ?? null,
+      userId: user.id,
+      content,
+    }).run();
+
+    // Fire reply / mention notifications. Reuse the existing kinds so
+    // the bell + page render uniformly. contextSlug carries the
+    // article slug so the deep-link helper can construct
+    // /news/{slug}#comment-{id}.
+    if (parentAuthorId) {
+      await notify({
+        recipientId: parentAuthorId,
+        actorId: user.id,
+        kind: "comment_reply",
+        subjectType: "news_comment",
+        subjectId: id,
+        contextSlug: slug,
+        preview: previewFrom(content),
+      });
+    } else if (article.authorId !== user.id) {
+      // Top-level comment on someone else's article — notify the author.
+      await notify({
+        recipientId: article.authorId,
+        actorId: user.id,
+        kind: "comment_reply",
+        subjectType: "news_comment",
+        subjectId: id,
+        contextSlug: slug,
+        preview: previewFrom(content),
+      });
+    }
+
+    return c.json({ commentId: id }, 201);
+  },
+);
+
+const editCommentSchema = z.object({
+  content: z.string().min(1).max(5000),
+});
+
+newsRouter.put(
+  "/comments/:id",
+  requireAuth,
+  zValidator("json", editCommentSchema),
+  async (c) => {
+    const id = c.req.param("id")!;
+    const { content } = c.req.valid("json");
+    const user = c.get("user")!;
+    const db = getDb();
+
+    const existing = db
+      .select()
+      .from(newsComments)
+      .where(eq(newsComments.id, id))
+      .get();
+    if (!existing) return c.json({ error: "Comment not found" }, 404);
+    if (existing.userId !== user.id) {
+      return c.json({ error: "Only the author can edit this comment." }, 403);
+    }
+
+    db.update(newsComments)
+      .set({ content, editedAt: new Date().toISOString() })
+      .where(eq(newsComments.id, id))
+      .run();
+
+    return c.json({ ok: true });
+  },
+);
+
+// --- Bookmarks ---
+
+newsRouter.post("/:slug/bookmark", requireAuth, async (c) => {
+  const slug = c.req.param("slug")!;
+  const user = c.get("user")!;
+  const db = getDb();
+
+  const article = db
+    .select({ id: newsArticles.id })
+    .from(newsArticles)
+    .where(eq(newsArticles.slug, slug))
+    .get();
+  if (!article) return c.json({ error: "Article not found" }, 404);
+
+  const existing = db
+    .select({ id: newsBookmarks.id })
+    .from(newsBookmarks)
+    .where(
+      and(
+        eq(newsBookmarks.userId, user.id),
+        eq(newsBookmarks.articleId, article.id),
+      ),
+    )
+    .get();
+  if (existing) {
+    db.delete(newsBookmarks).where(eq(newsBookmarks.id, existing.id)).run();
+    return c.json({ bookmarked: false });
+  }
+  db.insert(newsBookmarks).values({
+    id: randomUUID(),
+    userId: user.id,
+    articleId: article.id,
+  }).run();
+  return c.json({ bookmarked: true });
+});
+
+// User's bookmarked articles, freshest-bookmarked first. Returns the
+// same summary shape used by GET /news so the bookmarks page can
+// reuse the list cards.
+newsRouter.get("/me/bookmarks", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const db = getDb();
+
+  const rows = db
+    .select({
+      id: newsArticles.id,
+      slug: newsArticles.slug,
+      title: newsArticles.title,
+      summary: newsArticles.summary,
+      body: newsArticles.body,
+      coverEmoji: newsArticles.coverEmoji,
+      accentColor: newsArticles.accentColor,
+      authorId: newsArticles.authorId,
+      authorUsername: users.username,
+      authorDisplayName: users.displayName,
+      lastEditorId: newsArticles.lastEditorId,
+      bookmarkedAt: newsBookmarks.createdAt,
+      createdAt: newsArticles.createdAt,
+      updatedAt: newsArticles.updatedAt,
+    })
+    .from(newsBookmarks)
+    .innerJoin(newsArticles, eq(newsBookmarks.articleId, newsArticles.id))
+    .innerJoin(users, eq(newsArticles.authorId, users.id))
+    .where(eq(newsBookmarks.userId, user.id))
+    .orderBy(desc(newsBookmarks.createdAt))
+    .all();
+
+  const reactions = await reactionRollup(
+    db,
+    rows.map((r) => r.id),
+  );
+
+  return c.json({
+    articles: rows.map((r) => ({
+      id: r.id,
+      slug: r.slug,
+      title: r.title,
+      summary: r.summary,
+      coverEmoji: r.coverEmoji,
+      accentColor: r.accentColor,
+      authorId: r.authorId,
+      authorUsername: r.authorUsername,
+      authorDisplayName: r.authorDisplayName,
+      lastEditorUsername: null,
+      readingMinutes: readingMinutes(r.body),
+      reactionCounts: reactions.get(r.id) ?? {
+        thumbs: 0,
+        lightbulb: 0,
+        mind_blown: 0,
+      },
+      bookmarkedAt: r.bookmarkedAt,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    })),
+  });
+});
+
+// --- Related articles ---
+
+// Cheap "related" v1: prioritize same author, then most-recent others.
+// No semantic similarity — that lives in the search index and is its
+// own bundle. Limit 4 so the rail fits comfortably on the article page.
+newsRouter.get("/:slug/related", async (c) => {
+  const slug = c.req.param("slug")!;
+  const db = getDb();
+
+  const article = db
+    .select({ id: newsArticles.id, authorId: newsArticles.authorId })
+    .from(newsArticles)
+    .where(eq(newsArticles.slug, slug))
+    .get();
+  if (!article) return c.json({ articles: [] });
+
+  const sameAuthor = db
+    .select({
+      id: newsArticles.id,
+      slug: newsArticles.slug,
+      title: newsArticles.title,
+      summary: newsArticles.summary,
+      coverEmoji: newsArticles.coverEmoji,
+      accentColor: newsArticles.accentColor,
+      authorUsername: users.username,
+      createdAt: newsArticles.createdAt,
+    })
+    .from(newsArticles)
+    .innerJoin(users, eq(newsArticles.authorId, users.id))
+    .where(
+      and(
+        eq(newsArticles.authorId, article.authorId),
+        sql`${newsArticles.id} <> ${article.id}`,
+      ),
+    )
+    .orderBy(desc(newsArticles.createdAt))
+    .limit(4)
+    .all();
+
+  let pool = sameAuthor;
+  if (pool.length < 4) {
+    const fillerNeeded = 4 - pool.length;
+    const usedIds = new Set([article.id, ...pool.map((p) => p.id)]);
+    const recent = db
+      .select({
+        id: newsArticles.id,
+        slug: newsArticles.slug,
+        title: newsArticles.title,
+        summary: newsArticles.summary,
+        coverEmoji: newsArticles.coverEmoji,
+        accentColor: newsArticles.accentColor,
+        authorUsername: users.username,
+        createdAt: newsArticles.createdAt,
+      })
+      .from(newsArticles)
+      .innerJoin(users, eq(newsArticles.authorId, users.id))
+      .orderBy(desc(newsArticles.createdAt))
+      .limit(fillerNeeded + usedIds.size)
+      .all();
+    for (const r of recent) {
+      if (pool.length >= 4) break;
+      if (!usedIds.has(r.id)) {
+        pool.push(r);
+        usedIds.add(r.id);
+      }
+    }
+  }
+
+  return c.json({ articles: pool });
+});

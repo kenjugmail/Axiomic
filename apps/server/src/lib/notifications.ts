@@ -18,7 +18,8 @@ export type NotificationSubject =
   | "comment"
   | "mastery_node"
   | "news_article"
-  | "news_proposal";
+  | "news_proposal"
+  | "news_comment";
 
 const MAX_MENTIONS_PER_BODY = 10;
 const PREVIEW_MAX = 140;

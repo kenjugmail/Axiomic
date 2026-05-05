@@ -41,14 +41,24 @@ export function NewsListPage() {
             the author approves them.
           </p>
         </div>
-        {user && (
-          <Link
-            to="/news/new"
-            className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
-          >
-            + New article
-          </Link>
-        )}
+        <div className="flex items-center gap-2">
+          {user && (
+            <Link
+              to="/news/bookmarks"
+              className="px-3 py-2 rounded-md border border-border text-sm hover:bg-accent/40"
+            >
+              🔖 Saved
+            </Link>
+          )}
+          {user && (
+            <Link
+              to="/news/new"
+              className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+            >
+              + New article
+            </Link>
+          )}
+        </div>
       </div>
 
       {articles === null ? (
