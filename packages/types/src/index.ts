@@ -449,9 +449,18 @@ export type NotificationKind =
   | "topic_reply"
   | "post_reply"
   | "comment_reply"
-  | "mastery_level_up";
+  | "mastery_level_up"
+  | "news_edit_proposed"
+  | "news_edit_approved"
+  | "news_edit_rejected";
 
-export type NotificationSubject = "topic" | "post" | "comment" | "mastery_node";
+export type NotificationSubject =
+  | "topic"
+  | "post"
+  | "comment"
+  | "mastery_node"
+  | "news_article"
+  | "news_proposal";
 
 export const NOTIFICATION_KINDS: NotificationKind[] = [
   "mention",
@@ -459,6 +468,9 @@ export const NOTIFICATION_KINDS: NotificationKind[] = [
   "post_reply",
   "comment_reply",
   "mastery_level_up",
+  "news_edit_proposed",
+  "news_edit_approved",
+  "news_edit_rejected",
 ];
 
 export const NOTIFICATION_SUBJECTS: NotificationSubject[] = [
@@ -466,6 +478,8 @@ export const NOTIFICATION_SUBJECTS: NotificationSubject[] = [
   "post",
   "comment",
   "mastery_node",
+  "news_article",
+  "news_proposal",
 ];
 
 export interface Notification {
@@ -643,4 +657,126 @@ export interface CreateWikiPageRequest {
 
 export interface RestoreWikiVersionRequest {
   version: number;
+}
+
+// --- News articles + propose/approve edits ---
+
+export type NewsAccentColor =
+  | "indigo"
+  | "emerald"
+  | "rose"
+  | "amber"
+  | "sky"
+  | "violet";
+
+export const NEWS_ACCENT_COLORS: NewsAccentColor[] = [
+  "indigo",
+  "emerald",
+  "rose",
+  "amber",
+  "sky",
+  "violet",
+];
+
+export type NewsReactionKind = "thumbs" | "lightbulb" | "mind_blown";
+
+export const NEWS_REACTION_KINDS: NewsReactionKind[] = [
+  "thumbs",
+  "lightbulb",
+  "mind_blown",
+];
+
+export interface NewsArticleSummary {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  coverEmoji: string;
+  accentColor: NewsAccentColor;
+  authorId: string;
+  authorUsername: string;
+  authorDisplayName: string | null;
+  lastEditorUsername: string | null;
+  readingMinutes: number;
+  reactionCounts: Record<NewsReactionKind, number>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NewsArticle extends NewsArticleSummary {
+  body: string;
+  // True when the requester has reacted with this kind. Null fields
+  // for signed-out viewers.
+  myReactions: Record<NewsReactionKind, boolean> | null;
+  pendingProposalCount: number;
+  isAuthor: boolean;
+}
+
+export interface NewsListResponse {
+  articles: NewsArticleSummary[];
+}
+
+export interface NewsArticleResponse {
+  article: NewsArticle;
+}
+
+export interface CreateNewsArticleRequest {
+  slug: string;
+  title: string;
+  summary: string;
+  body: string;
+  coverEmoji?: string;
+  accentColor?: NewsAccentColor;
+}
+
+export interface UpdateNewsArticleRequest {
+  title: string;
+  summary: string;
+  body: string;
+  coverEmoji?: string;
+  accentColor?: NewsAccentColor;
+}
+
+export type NewsEditProposalStatus = "pending" | "approved" | "rejected";
+
+export interface NewsEditProposal {
+  id: string;
+  articleId: string;
+  articleSlug: string;
+  articleTitle: string;
+  proposerId: string;
+  proposerUsername: string;
+  proposedTitle: string;
+  proposedSummary: string;
+  proposedBody: string;
+  message: string | null;
+  status: NewsEditProposalStatus;
+  reviewerId: string | null;
+  reviewerUsername: string | null;
+  reviewedAt: string | null;
+  reviewMessage: string | null;
+  createdAt: string;
+}
+
+export interface NewsProposalsResponse {
+  proposals: NewsEditProposal[];
+}
+
+export interface NewsProposalResponse {
+  proposal: NewsEditProposal;
+}
+
+export interface CreateNewsProposalRequest {
+  proposedTitle: string;
+  proposedSummary: string;
+  proposedBody: string;
+  message?: string;
+}
+
+export interface ReviewNewsProposalRequest {
+  reviewMessage?: string;
+}
+
+export interface ToggleNewsReactionRequest {
+  kind: NewsReactionKind;
 }

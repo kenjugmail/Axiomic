@@ -15,6 +15,12 @@ import { ProfilePage } from "./pages/ProfilePage";
 import { ForumListPage } from "./pages/ForumListPage";
 import { ForumTopicPage } from "./pages/ForumTopicPage";
 import { NewTopicPage } from "./pages/NewTopicPage";
+import { NewsListPage } from "./pages/NewsListPage";
+import { NewsArticlePage } from "./pages/NewsArticlePage";
+import { NewsNewPage } from "./pages/NewsNewPage";
+import { NewsEditPage } from "./pages/NewsEditPage";
+import { NewsProposeEditPage } from "./pages/NewsProposeEditPage";
+import { NewsProposalsPage } from "./pages/NewsProposalsPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { FlashcardsPage } from "./pages/FlashcardsPage";
@@ -53,6 +59,12 @@ export function App() {
         <Route path="/forum/new" element={<NewTopicPage />} />
         <Route path="/forum/t/:slug" element={<ForumTopicPage />} />
         <Route path="/forum/:domain" element={<ForumListPage />} />
+        <Route path="/news" element={<NewsListPage />} />
+        <Route path="/news/new" element={<NewsNewPage />} />
+        <Route path="/news/:slug" element={<NewsArticlePage />} />
+        <Route path="/news/:slug/edit" element={<NewsEditPage />} />
+        <Route path="/news/:slug/propose" element={<NewsProposeEditPage />} />
+        <Route path="/news/:slug/proposals" element={<NewsProposalsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/profile/:username" element={<ProfilePage />} />
         <Route path="/notifications" element={<NotificationsPage />} />

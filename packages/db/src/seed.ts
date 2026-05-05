@@ -9,6 +9,7 @@ import {
   forumTopics,
   forumPosts,
   forumVotes,
+  newsArticles,
 } from "./index";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -91,7 +92,95 @@ async function seed() {
   // Seed forum (domains, demo users, topics, replies, votes)
   seedForum();
 
+  // Seed news (article-style posts with covers + viz embeds)
+  seedNews();
+
   console.log("Seeding complete.");
+}
+
+function seedNews() {
+  const anyArticle = db.select().from(newsArticles).get();
+  if (anyArticle) {
+    console.log("  News already seeded, skipping.");
+    return;
+  }
+
+  // Reuse the forum demo users so articles have real authors.
+  const aliceId = db.select({ id: users.id }).from(users).where(eq(users.username, "alice")).get()?.id;
+  const carolId = db.select({ id: users.id }).from(users).where(eq(users.username, "carol")).get()?.id;
+  if (!aliceId || !carolId) {
+    console.log("  Forum users missing; skipping news seed.");
+    return;
+  }
+
+  const articles = [
+    {
+      slug: "transformers-are-not-magic",
+      title: "Transformers are not magic",
+      summary: "A demystifying tour of attention, told one viz at a time.",
+      coverEmoji: "🪄",
+      accentColor: "violet",
+      authorId: aliceId,
+      body: `The first time I saw self-attention written out, I thought it was a hack. *"You take three copies of the input, multiply two of them, softmax the result, and weight the third — and that's it?"*
+
+Years later it still works that way, but I no longer think it's a hack. I think it's the simplest possible content-based router. Here's why.
+
+::viz[attention-heatmap]
+
+## What attention actually computes
+
+For each token, attention asks two questions: *who else in this sequence should I look at?*, and *what should I take from them?* The first is the **score** matrix, the second is the **value** matrix. The split is so clean that you can swap one out and the other still makes sense.
+
+When the model is well-trained, you'll see structure pop out of the heatmap above: an induction head learning to copy the previous occurrence of a token, a positional head pinned to the diagonal, a syntactic head that lights up on subjects when looking at verbs.
+
+## Why it scales
+
+The thing that *isn't* obvious from the formula is that attention is **embarrassingly parallel** along the sequence axis. RNNs forced you to wait for token $t-1$ before computing token $t$. Attention computes them all at once.
+
+That's the whole story. Everything since — multi-head attention, RoPE, GQA, FlashAttention — is a refinement. Read [the attention page](/wiki/attention) for the math, or open the lesson on the ml-engineer path to play with it.`,
+    },
+    {
+      slug: "what-tokenizers-actually-see",
+      title: "What tokenizers actually see (and why it matters)",
+      summary: "Tokens aren't words, and that bites you in surprising places.",
+      coverEmoji: "🔤",
+      accentColor: "emerald",
+      authorId: carolId,
+      body: `Most tutorials hand-wave past tokenization — *"the model splits the text into tokens, you don't really need to think about it"* — and then you spend the next three weeks debugging why your model can't count letters.
+
+::viz[tokenizer-playground]
+
+Try the playground above. Two facts that surprise people:
+
+1. **\`" the"\` and \`"the"\` are usually different tokens.** The leading space is part of the token. This is why models occasionally misalign words at sentence boundaries.
+
+2. **Numbers are split into chunks of 1-3 digits**, often inconsistently. \`"3.14159"\` might tokenize as \`["3", ".", "14", "159"]\` or any number of other splits. This is part of why arithmetic is hard for LLMs.
+
+## Why subword
+
+The naive alternatives — one token per word, or one per character — both lose. Word-level vocabularies blow up combinatorially and can't handle out-of-vocabulary words. Character-level models work but are *much* slower; you spend most of your compute predicting whitespace.
+
+Subword tokenization (BPE, WordPiece, Unigram, SentencePiece) is the compromise: a fixed-size vocabulary where common words get a single token and rare words get split into pieces that the model has seen many times in other contexts.
+
+## The takeaway
+
+If your model is failing on something that involves *characters as a unit* — counting letters, reversing strings, syllable rhyming — your first hypothesis should be **the tokenization is the bug**, not the model.`,
+    },
+  ];
+
+  for (const a of articles) {
+    db.insert(newsArticles).values({
+      id: randomUUID(),
+      slug: a.slug,
+      title: a.title,
+      summary: a.summary,
+      body: a.body,
+      coverEmoji: a.coverEmoji,
+      accentColor: a.accentColor,
+      authorId: a.authorId,
+    }).run();
+  }
+  console.log(`  Seeded news: ${articles.length} articles.`);
 }
 
 function parseTiers(body: string): { intro: string; undergrad: string; grad: string } {

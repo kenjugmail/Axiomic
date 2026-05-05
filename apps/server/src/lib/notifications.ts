@@ -7,13 +7,18 @@ export type NotificationKind =
   | "topic_reply"
   | "post_reply"
   | "comment_reply"
-  | "mastery_level_up";
+  | "mastery_level_up"
+  | "news_edit_proposed"
+  | "news_edit_approved"
+  | "news_edit_rejected";
 
 export type NotificationSubject =
   | "topic"
   | "post"
   | "comment"
-  | "mastery_node";
+  | "mastery_node"
+  | "news_article"
+  | "news_proposal";
 
 const MAX_MENTIONS_PER_BODY = 10;
 const PREVIEW_MAX = 140;
@@ -94,6 +99,11 @@ function kindGate(
       return "notifyReplies";
     case "mastery_level_up":
       return "notifyMastery";
+    case "news_edit_proposed":
+    case "news_edit_approved":
+    case "news_edit_rejected":
+      // News flow events are direct + low-volume — always on.
+      return null;
   }
 }
 

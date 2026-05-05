@@ -15,6 +15,12 @@ export function notificationLink(n: Notification): string {
       return `/wiki/${n.contextSlug}#comment-${n.subjectId}`;
     case "mastery_node":
       return `/paths/${n.contextSlug}`;
+    case "news_article":
+      return `/news/${n.contextSlug}`;
+    case "news_proposal":
+      // contextSlug is the article slug; deep-link to the proposals
+      // review page (visible to author) or the article (others).
+      return `/news/${n.contextSlug}/proposals`;
     default:
       return "/notifications";
   }
@@ -32,6 +38,12 @@ function kindLabel(kind: Notification["kind"]): string {
       return "replied to your comment";
     case "mastery_level_up":
       return "you reached a new mastery level";
+    case "news_edit_proposed":
+      return "proposed an edit to your article";
+    case "news_edit_approved":
+      return "approved your proposed edit";
+    case "news_edit_rejected":
+      return "declined your proposed edit";
   }
 }
 

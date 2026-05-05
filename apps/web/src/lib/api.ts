@@ -7,8 +7,16 @@ import type {
   AchievementCatalogResponse,
   EarnedAchievement,
   ActivityHeatmapCell,
+  CreateNewsArticleRequest,
+  CreateNewsProposalRequest,
   CreateWikiPageRequest,
   DueCountResponse,
+  NewsArticleResponse,
+  NewsListResponse,
+  NewsProposalsResponse,
+  NewsReactionKind,
+  ReviewNewsProposalRequest,
+  UpdateNewsArticleRequest,
   Flashcard,
   FlashcardsResponse,
   Lesson,
@@ -255,6 +263,45 @@ export const api = {
       request<RecentActivityResponse>(
         `/activity/users/${username}?limit=${limit}`,
       ),
+  },
+  news: {
+    list: () => request<NewsListResponse>("/news"),
+    get: (slug: string) => request<NewsArticleResponse>(`/news/${slug}`),
+    create: (data: CreateNewsArticleRequest) =>
+      request<NewsArticleResponse>("/news", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    update: (slug: string, data: UpdateNewsArticleRequest) =>
+      request<NewsArticleResponse>(`/news/${slug}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    proposals: (slug: string) =>
+      request<NewsProposalsResponse>(`/news/${slug}/proposals`),
+    propose: (slug: string, data: CreateNewsProposalRequest) =>
+      request<{ proposalId: string }>(`/news/${slug}/proposals`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    approve: (slug: string, proposalId: string, data?: ReviewNewsProposalRequest) =>
+      request<OkResponse>(`/news/${slug}/proposals/${proposalId}/approve`, {
+        method: "POST",
+        body: JSON.stringify(data ?? {}),
+      }),
+    reject: (slug: string, proposalId: string, data?: ReviewNewsProposalRequest) =>
+      request<OkResponse>(`/news/${slug}/proposals/${proposalId}/reject`, {
+        method: "POST",
+        body: JSON.stringify(data ?? {}),
+      }),
+    react: (slug: string, kind: NewsReactionKind) =>
+      request<{
+        reactionCounts: Record<NewsReactionKind, number>;
+        myReactions: Record<NewsReactionKind, boolean>;
+      }>(`/news/${slug}/reactions`, {
+        method: "POST",
+        body: JSON.stringify({ kind }),
+      }),
   },
   flashcards: {
     save: (data: { pageSlug: string; pageTitle: string; front: string; back: string }) =>

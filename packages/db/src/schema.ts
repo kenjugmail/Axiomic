@@ -231,6 +231,88 @@ export const flashcardReviews = sqliteTable("flashcard_reviews", {
   reviewedAt: text("reviewed_at").default(sql`(datetime('now'))`).notNull(),
 });
 
+// --- News articles ---
+//
+// Long-form, article-style posts. Distinguished from forum topics by
+// rendering full-width with a colored cover banner + emoji and by
+// supporting a propose-then-approve edit flow:
+//   - The author edits their own article directly.
+//   - Anyone signed in can submit an edit proposal.
+//   - The author approves or rejects each proposal; approving copies
+//     the proposed fields onto the parent article.
+// News bodies are markdown with the same `::viz[name]` directive
+// support as wiki pages, so authors can embed live visualizations.
+export const newsArticles = sqliteTable("news_articles", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  summary: text("summary").notNull().default(""),
+  body: text("body").notNull(),
+  // Visual flourish — drives the gradient hero on the article and card
+  // in the list. coverEmoji is a single emoji (📰 default); accentColor
+  // is one of indigo|emerald|rose|amber|sky|violet (validated at API).
+  coverEmoji: text("cover_emoji").notNull().default("📰"),
+  accentColor: text("accent_color").notNull().default("indigo"),
+  authorId: text("author_id").notNull().references(() => users.id),
+  // Tracks the most recent applied edit (the author's direct edit, or
+  // an approved proposal). Null on a fresh article — same as authorId.
+  lastEditorId: text("last_editor_id").references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+// Proposed edits from anyone-but-the-author. Status flows pending →
+// (approved | rejected). Approving copies the proposed fields onto
+// the parent article and stamps lastEditorId = proposerId.
+export const newsEditProposals = sqliteTable(
+  "news_edit_proposals",
+  {
+    id: text("id").primaryKey(),
+    articleId: text("article_id").notNull().references(() => newsArticles.id),
+    proposerId: text("proposer_id").notNull().references(() => users.id),
+    proposedTitle: text("proposed_title").notNull(),
+    proposedSummary: text("proposed_summary").notNull().default(""),
+    proposedBody: text("proposed_body").notNull(),
+    message: text("message"),
+    status: text("status").notNull().default("pending"),
+    reviewerId: text("reviewer_id").references(() => users.id),
+    reviewedAt: text("reviewed_at"),
+    reviewMessage: text("review_message"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    articleStatusIdx: index("news_proposals_article_status_idx").on(
+      t.articleId,
+      t.status,
+    ),
+  }),
+);
+
+// Lightweight per-user reactions on news articles. Three kinds for v1
+// (thumbs up, lightbulb, mind-blown). Unique on (article, user, kind)
+// so each user can only set each reaction once but can mix kinds.
+export const newsReactions = sqliteTable(
+  "news_reactions",
+  {
+    id: text("id").primaryKey(),
+    articleId: text("article_id").notNull().references(() => newsArticles.id),
+    userId: text("user_id").notNull().references(() => users.id),
+    kind: text("kind").notNull(),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("news_reactions_uniq_idx").on(
+      t.articleId,
+      t.userId,
+      t.kind,
+    ),
+    articleKindIdx: index("news_reactions_article_kind_idx").on(
+      t.articleId,
+      t.kind,
+    ),
+  }),
+);
+
 // --- Notifications ---
 //
 // Polymorphic subject (matches forumVotes vocabulary): "topic" | "post" | "comment".

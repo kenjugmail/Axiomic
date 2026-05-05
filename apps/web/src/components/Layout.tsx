@@ -39,6 +39,9 @@ export function Layout() {
               <Link to="/forum" className="text-muted-foreground hover:text-foreground transition-colors">
                 Forum
               </Link>
+              <Link to="/news" className="text-muted-foreground hover:text-foreground transition-colors">
+                News
+              </Link>
               <Link to="/paths" className="text-muted-foreground hover:text-foreground transition-colors">
                 Mastery Paths
               </Link>
