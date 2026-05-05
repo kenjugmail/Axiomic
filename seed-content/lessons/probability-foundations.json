@@ -1,0 +1,53 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "A distribution is a budget",
+      "body": "A discrete probability distribution over a set of outcomes assigns a non-negative weight to each outcome, with all the weights summing to 1. Think of it as a *budget* of probability — total exactly 1 — that you allocate however you like across the options.\n\nAny ML classifier ends in a distribution: a 1000-way image classifier emits a 1000-element vector that sums to 1; a language model emits a vocab-sized vector that sums to 1. The shape of that distribution — sharp or flat, calibrated or overconfident — *is* the model's prediction."
+    },
+    {
+      "kind": "text",
+      "title": "Softmax produces distributions",
+      "body": "The standard recipe for turning unconstrained model outputs (logits) into a distribution is **softmax**:\n\n$$p_i = \\frac{e^{z_i / T}}{\\sum_j e^{z_j / T}}$$\n\nThe temperature $T$ controls sharpness:\n\n- $T \\to 0$: distribution collapses to a one-hot at the largest logit\n- $T = 1$: standard softmax\n- $T \\to \\infty$: distribution flattens toward uniform $1/N$\n\nThe slider above lets you sweep $T$ and watch the bars rearrange. Notice that the *ranking* of the bars never changes — only how concentrated the mass is on the top option.",
+      "viz": "softmax-temperature",
+      "vizProps": { "value": 1 }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "lesson_q1",
+        "kind": "multiple_choice",
+        "question": "If a softmax distribution becomes nearly uniform, what's true about the temperature T?",
+        "options": [
+          "T is large (T → ∞)",
+          "T is small (T → 0)",
+          "T is exactly 1",
+          "T is negative"
+        ],
+        "correctIndex": 0,
+        "explanation": "Dividing every logit by a large T compresses them toward zero, after which exp(z/T) is roughly constant — giving a uniform distribution. Generation that 'feels random' is sampling at high temperature."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Bayes' rule, the engine of inference",
+      "body": "Given a model class with parameters $\\theta$ and observed data $D$:\n\n$$P(\\theta \\mid D) = \\frac{P(D \\mid \\theta)\\,P(\\theta)}{P(D)}$$\n\nIn words: *posterior ∝ likelihood × prior*. Every Bayesian inference, every diagnostic-test calculation, the form of cross-entropy loss, even the way RAG systems weight retrieved evidence — all flow from this one identity.\n\nThe denominator $P(D)$ is the normalizing constant that makes the posterior sum to 1. Often you can ignore it (you only need ratios), which is why so much of probabilistic ML is *up to a constant*."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "lesson_q2",
+        "kind": "multiple_choice",
+        "question": "A medical test has 99% sensitivity and 95% specificity. If the disease prevalence is 0.5%, the probability that a positive-testing person actually has the disease is roughly:",
+        "options": [
+          "9% (Bayes' rule beats your intuition badly here)",
+          "99%, matching the sensitivity",
+          "95%, matching the specificity",
+          "50%, by symmetry"
+        ],
+        "correctIndex": 0,
+        "explanation": "P(disease | +) = (0.99 × 0.005) / (0.99 × 0.005 + 0.05 × 0.995) ≈ 0.09. The base rate dominates because true positives are rare in absolute terms. This is the classic lesson of Bayes — *priors matter*."
+      }
+    }
+  ]
+}

@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { api } from "../lib/api";
 import type { NewsArticle, NewsReactionKind } from "@axiomic/types";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
+import { AiArticleHelpers } from "../components/news/AiArticleHelpers";
 import { NewsComments } from "../components/news/NewsComments";
 import { NewsCover } from "../components/news/NewsCover";
 import { RelatedNewsRail } from "../components/news/RelatedNewsRail";
@@ -181,6 +182,10 @@ export function NewsArticlePage() {
           </Link>
         </div>
       )}
+
+      {/* AI helpers — TL;DR + explain-simpler shortcuts. Render above
+          the article body so a reader can decide whether to dive in. */}
+      {slug && <AiArticleHelpers articleSlug={slug} />}
 
       {/* Body. Trusted markdown — viz directives render inline. */}
       <article className="mt-8 prose-sm max-w-none">

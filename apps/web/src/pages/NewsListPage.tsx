@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../lib/api";
-import type { NewsArticleSummary } from "@axiomic/types";
+import type { NewsArticleSummary, NewsTagCount } from "@axiomic/types";
 import { NewsCover } from "../components/news/NewsCover";
 import { useAuthStore } from "../stores/auth";
 
@@ -22,14 +22,29 @@ function totalReactions(counts: NewsArticleSummary["reactionCounts"]): number {
 
 export function NewsListPage() {
   const user = useAuthStore((s) => s.user);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTag = searchParams.get("tag") || "";
   const [articles, setArticles] = useState<NewsArticleSummary[] | null>(null);
+  const [tags, setTags] = useState<NewsTagCount[]>([]);
 
   useEffect(() => {
+    setArticles(null);
     api.news
-      .list()
+      .list({ tag: activeTag || undefined })
       .then((r) => setArticles(r.articles))
       .catch(() => setArticles([]));
+  }, [activeTag]);
+
+  useEffect(() => {
+    api.news.tags().then((r) => setTags(r.tags)).catch(() => setTags([]));
   }, []);
+
+  const setTag = (tag: string) => {
+    const sp = new URLSearchParams(searchParams);
+    if (tag) sp.set("tag", tag);
+    else sp.delete("tag");
+    setSearchParams(sp);
+  };
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
@@ -42,6 +57,14 @@ export function NewsListPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {user && (
+            <Link
+              to="/news/drafts"
+              className="px-3 py-2 rounded-md border border-border text-sm hover:bg-accent/40"
+            >
+              ✏️ Drafts
+            </Link>
+          )}
           {user && (
             <Link
               to="/news/bookmarks"
@@ -61,6 +84,35 @@ export function NewsListPage() {
         </div>
       </div>
 
+      {tags.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5 mb-6">
+          <button
+            onClick={() => setTag("")}
+            className={`px-3 py-1 rounded-full text-xs font-medium ${
+              !activeTag
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            All
+          </button>
+          {tags.map((t) => (
+            <button
+              key={t.tag}
+              onClick={() => setTag(t.tag)}
+              className={`px-3 py-1 rounded-full text-xs font-medium ${
+                activeTag === t.tag
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              #{t.tag}
+              <span className="ml-1 opacity-60">{t.count}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {articles === null ? (
         <div className="grid sm:grid-cols-2 gap-5">
           {[1, 2, 3, 4].map((i) => (
@@ -69,13 +121,30 @@ export function NewsListPage() {
         </div>
       ) : articles.length === 0 ? (
         <div className="py-16 text-center text-muted-foreground border border-dashed border-border rounded-xl">
-          <p className="text-base">No articles yet.</p>
-          {user && (
-            <p className="text-sm mt-2">
-              <Link to="/news/new" className="text-primary hover:underline">
-                Write the first one →
-              </Link>
-            </p>
+          {activeTag ? (
+            <>
+              <p className="text-base">
+                No articles tagged{" "}
+                <span className="font-mono text-foreground">#{activeTag}</span> yet.
+              </p>
+              <button
+                onClick={() => setTag("")}
+                className="text-sm text-primary hover:underline mt-2"
+              >
+                Clear filter →
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="text-base">No articles yet.</p>
+              {user && (
+                <p className="text-sm mt-2">
+                  <Link to="/news/new" className="text-primary hover:underline">
+                    Write the first one →
+                  </Link>
+                </p>
+              )}
+            </>
           )}
         </div>
       ) : (
@@ -100,6 +169,18 @@ export function NewsListPage() {
               <p className="text-muted-foreground mb-3 line-clamp-2">
                 {articles[0].summary}
               </p>
+              {articles[0].tags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {articles[0].tags.map((t) => (
+                    <span
+                      key={t}
+                      className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              )}
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 <span>
                   by{" "}

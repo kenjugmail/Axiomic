@@ -19,6 +19,7 @@ import type {
   NewsProposalsResponse,
   NewsReactionKind,
   NewsRelatedResponse,
+  NewsTagsResponse,
   ReviewNewsProposalRequest,
   ToggleNewsBookmarkResponse,
   UpdateNewsArticleRequest,
@@ -271,7 +272,14 @@ export const api = {
       ),
   },
   news: {
-    list: () => request<NewsListResponse>("/news"),
+    list: (params?: { tag?: string }) => {
+      const sp = new URLSearchParams();
+      if (params?.tag) sp.set("tag", params.tag);
+      const qs = sp.toString();
+      return request<NewsListResponse>(`/news${qs ? `?${qs}` : ""}`);
+    },
+    drafts: () => request<NewsListResponse>("/news/me/drafts"),
+    tags: () => request<NewsTagsResponse>("/news/tags"),
     get: (slug: string) => request<NewsArticleResponse>(`/news/${slug}`),
     create: (data: CreateNewsArticleRequest) =>
       request<NewsArticleResponse>("/news", {

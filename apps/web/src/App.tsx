@@ -22,6 +22,7 @@ import { NewsEditPage } from "./pages/NewsEditPage";
 import { NewsProposeEditPage } from "./pages/NewsProposeEditPage";
 import { NewsProposalsPage } from "./pages/NewsProposalsPage";
 import { NewsBookmarksPage } from "./pages/NewsBookmarksPage";
+import { NewsDraftsPage } from "./pages/NewsDraftsPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { FlashcardsPage } from "./pages/FlashcardsPage";
@@ -63,6 +64,7 @@ export function App() {
         <Route path="/news" element={<NewsListPage />} />
         <Route path="/news/new" element={<NewsNewPage />} />
         <Route path="/news/bookmarks" element={<NewsBookmarksPage />} />
+        <Route path="/news/drafts" element={<NewsDraftsPage />} />
         <Route path="/news/:slug" element={<NewsArticlePage />} />
         <Route path="/news/:slug/edit" element={<NewsEditPage />} />
         <Route path="/news/:slug/propose" element={<NewsProposeEditPage />} />

@@ -253,6 +253,12 @@ export const newsArticles = sqliteTable("news_articles", {
   // is one of indigo|emerald|rose|amber|sky|violet (validated at API).
   coverEmoji: text("cover_emoji").notNull().default("📰"),
   accentColor: text("accent_color").notNull().default("indigo"),
+  // Publication state. Drafts are visible only to the author.
+  // Validated at API to be "draft" | "published".
+  status: text("status").notNull().default("published"),
+  // JSON array of lowercase kebab-case tag strings. Stored as text
+  // since SQLite has no native array; parsed by the API layer.
+  tags: text("tags").notNull().default("[]"),
   authorId: text("author_id").notNull().references(() => users.id),
   // Tracks the most recent applied edit (the author's direct edit, or
   // an approved proposal). Null on a fresh article — same as authorId.

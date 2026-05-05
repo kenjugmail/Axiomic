@@ -28,6 +28,7 @@ export function NewsEditPage() {
           body: r.article.body,
           coverEmoji: r.article.coverEmoji,
           accentColor: r.article.accentColor as NewsAccentColor,
+          tags: r.article.tags,
         });
       })
       .catch(() => setError("Failed to load article"));
@@ -84,19 +85,22 @@ export function NewsEditPage() {
 
   const canSave = draft.title.trim().length > 0 && draft.body.trim().length > 0;
 
-  const handleSave = async () => {
-    if (!canSave || saving || !slug) return;
+  const save = async (statusOverride?: "draft" | "published") => {
+    if (!canSave || saving || !slug || !article) return;
     setSaving(true);
     setError(null);
     try {
+      const nextStatus = statusOverride ?? article.status;
       await api.news.update(slug, {
         title: draft.title.trim(),
         summary: draft.summary.trim(),
         body: draft.body,
         coverEmoji: draft.coverEmoji || "📰",
         accentColor: draft.accentColor,
+        tags: draft.tags,
+        status: nextStatus,
       });
-      navigate(`/news/${slug}`);
+      navigate(nextStatus === "draft" ? "/news/drafts" : `/news/${slug}`);
     } catch (e: any) {
       setError(e?.message ?? "Save failed");
     } finally {
@@ -116,13 +120,32 @@ export function NewsEditPage() {
           </Link>
           <h1 className="text-2xl font-bold mt-1">Editing: {article.title}</h1>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={!canSave || saving}
-          className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
-        >
-          {saving ? "Saving…" : "Save changes"}
-        </button>
+        <div className="flex items-center gap-2">
+          {article.status === "published" ? (
+            <button
+              onClick={() => save("draft")}
+              disabled={!canSave || saving}
+              className="px-3 py-2 rounded-md border border-border text-sm hover:bg-accent/40 disabled:opacity-50"
+            >
+              Unpublish
+            </button>
+          ) : (
+            <button
+              onClick={() => save("published")}
+              disabled={!canSave || saving}
+              className="px-3 py-2 rounded-md border border-emerald-500/40 text-emerald-700 dark:text-emerald-400 text-sm hover:bg-emerald-500/10 disabled:opacity-50"
+            >
+              Publish
+            </button>
+          )}
+          <button
+            onClick={() => save()}
+            disabled={!canSave || saving}
+            className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
+          >
+            {saving ? "Saving…" : "Save changes"}
+          </button>
+        </div>
       </div>
       <NewsEditor
         draft={draft}

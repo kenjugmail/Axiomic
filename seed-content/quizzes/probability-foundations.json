@@ -1,0 +1,50 @@
+[
+  {
+    "id": "q1",
+    "question": "A discrete probability distribution p(x) over a set of outcomes must satisfy:",
+    "options": [
+      "p(x) ≥ 0 for all x, and Σ p(x) = 1",
+      "p(x) > 0 for all x, with no other constraints",
+      "p(x) ≤ 1 for all x, and Σ p(x) = 0",
+      "p(x) is monotonically increasing in x"
+    ],
+    "correctIndex": 0,
+    "explanation": "Probabilities are non-negative and sum to 1. Both constraints are why softmax — which exponentiates and normalizes — is the standard way a model emits a discrete distribution."
+  },
+  {
+    "id": "q2",
+    "question": "Bayes' rule expresses P(A | B) in terms of:",
+    "options": [
+      "P(B | A) · P(A) / P(B)",
+      "P(A) · P(B)",
+      "P(A) + P(B) − P(A ∩ B)",
+      "P(A | B) · P(B)"
+    ],
+    "correctIndex": 0,
+    "explanation": "Posterior ∝ likelihood × prior. The denominator P(B) is the normalizing constant. Every Bayesian inference, every diagnostic-test calculation, and the form of cross-entropy loss all flow from this identity."
+  },
+  {
+    "id": "q3",
+    "question": "Two events A and B are independent iff:",
+    "options": [
+      "P(A ∩ B) = P(A) · P(B)",
+      "P(A | B) = 1 − P(B)",
+      "P(A ∪ B) = P(A) + P(B)",
+      "A and B never co-occur"
+    ],
+    "correctIndex": 0,
+    "explanation": "Independence factorizes the joint into the product of marginals. The naive-Bayes classifier *assumes* this within a class — usually wrong, often useful anyway."
+  },
+  {
+    "id": "q4",
+    "question": "For a fair six-sided die, what is the expected value E[X] of the number rolled?",
+    "options": [
+      "3.5",
+      "3",
+      "4",
+      "6"
+    ],
+    "correctIndex": 0,
+    "explanation": "E[X] = (1+2+3+4+5+6)/6 = 21/6 = 3.5. The expected value isn't a value the variable can actually take — it's the long-run average."
+  }
+]

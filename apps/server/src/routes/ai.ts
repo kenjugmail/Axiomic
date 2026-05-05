@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { getAIProvider } from "@axiomic/ai";
-import { getDb, wikiPages, pageVersions } from "@axiomic/db";
+import { getDb, wikiPages, pageVersions, newsArticles } from "@axiomic/db";
 import { eq, desc } from "drizzle-orm";
 import { getSessionUser } from "../middleware/auth";
 
@@ -259,6 +259,158 @@ function generateFlashcards(title: string, content: string, tier: string) {
 
   return cards.slice(0, 8);
 }
+
+// --- AI authoring helpers (news drafts, polish, TL;DR, explain) ---
+
+// Wraps a streaming AI call as an SSE response. The handler shape is
+// identical for every authoring endpoint — only the system prompt and
+// user message change.
+function streamingResponse(
+  system: string,
+  userMessage: string,
+): Response {
+  const provider = getAIProvider();
+  const stream = new ReadableStream({
+    async start(controller) {
+      const encoder = new TextEncoder();
+      try {
+        await provider.stream({
+          system,
+          messages: [{ role: "user", content: userMessage }],
+          onToken: (token) => {
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ token })}\n\n`),
+            );
+          },
+        });
+      } catch (err: any) {
+        controller.enqueue(
+          encoder.encode(
+            `data: ${JSON.stringify({ error: err?.message ?? "stream failed" })}\n\n`,
+          ),
+        );
+      }
+      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      controller.close();
+    },
+  });
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
+  });
+}
+
+const draftSchema = z.object({
+  prompt: z.string().min(3).max(2000),
+  tags: z.array(z.string()).optional(),
+});
+
+ai.post("/news/draft", zValidator("json", draftSchema), async (c) => {
+  const { prompt, tags } = c.req.valid("json");
+  const user = await getSessionUser(c);
+  const rateLimitKey = user?.id || c.req.header("x-forwarded-for") || "anonymous";
+  if (!checkRateLimit(`draft:${rateLimitKey}`, 10, 60_000)) {
+    return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+  }
+
+  const tagHint = tags && tags.length > 0
+    ? `\nThe author wants this tagged: ${tags.join(", ")}.`
+    : "";
+
+  const system = `You draft long-form news articles for the Axiomic learning platform — a Brilliant/Khan-Academy-style site for ML and AI. Voice: clear, opinionated, technical but warm. Style: magazine-style, not academic.
+
+Output rules:
+- Markdown body only. Do NOT include the title, byline, or YAML frontmatter — those are set elsewhere in the UI.
+- Open with a hook, not a definition.
+- Use level-2 headings (## ...) to structure 3-6 sections. Keep paragraphs tight.
+- LaTeX is supported via $...$ inline and $$...$$ block. Code blocks via triple backticks.
+- You can embed an inline visualization with the directive ::viz[name] on its own line. Available names: attention-heatmap, softmax-temperature, positional-encoding, tokenizer-playground, beam-search-tree, layer-activations, qkv-step-through, embedding-explorer, activation-function-gallery. Use at most one or two — and only when they actually illustrate the point.
+- Aim for ~500-900 words.${tagHint}`;
+
+  return streamingResponse(system, prompt);
+});
+
+const polishSchema = z.object({
+  original: z.string(),
+  proposed: z.string().min(1),
+  message: z.string().optional(),
+});
+
+ai.post("/news/polish", zValidator("json", polishSchema), async (c) => {
+  const { original, proposed, message } = c.req.valid("json");
+  const user = await getSessionUser(c);
+  const rateLimitKey = user?.id || c.req.header("x-forwarded-for") || "anonymous";
+  if (!checkRateLimit(`polish:${rateLimitKey}`, 15, 60_000)) {
+    return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+  }
+
+  const system = `You are an editing assistant on the Axiomic platform. The user is proposing an edit to a news article and wants the wording polished before they submit it for the original author's review.
+
+Output rules:
+- Return ONLY the polished markdown body. No commentary, no preamble, no explanation.
+- Preserve the structure, tone, and intent of the proposed version.
+- Fix grammar, tighten sentences, smooth flow. Do not add new claims or remove substantive content the proposer added.
+- Preserve LaTeX, code blocks, and ::viz[...] directives verbatim.`;
+
+  const userMessage = `Original article body (for reference, not to be returned):
+\`\`\`
+${original.slice(0, 6000)}
+\`\`\`
+
+Proposed edit body (POLISH THIS — return only the polished version):
+\`\`\`
+${proposed.slice(0, 6000)}
+\`\`\`
+${message ? `\nProposer's note about the change: ${message}` : ""}`;
+
+  return streamingResponse(system, userMessage);
+});
+
+const articleHelpSchema = z.object({
+  slug: z.string(),
+});
+
+async function loadNewsBody(slug: string): Promise<string | null> {
+  const db = getDb();
+  const row = db
+    .select({ body: newsArticles.body, status: newsArticles.status })
+    .from(newsArticles)
+    .where(eq(newsArticles.slug, slug))
+    .get();
+  if (!row || row.status !== "published") return null;
+  return row.body;
+}
+
+ai.post("/article/tldr", zValidator("json", articleHelpSchema), async (c) => {
+  const { slug } = c.req.valid("json");
+  const user = await getSessionUser(c);
+  const rateLimitKey = user?.id || c.req.header("x-forwarded-for") || "anonymous";
+  if (!checkRateLimit(`tldr:${rateLimitKey}`, 30, 60_000)) {
+    return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+  }
+  const body = await loadNewsBody(slug);
+  if (!body) return c.json({ error: "Article not found" }, 404);
+
+  const system = `Write a 2-3 sentence TL;DR of the article below. No headings. No bullet points. Plain prose only. Match the article's tone.`;
+  return streamingResponse(system, body.slice(0, 8000));
+});
+
+ai.post("/article/explain", zValidator("json", articleHelpSchema), async (c) => {
+  const { slug } = c.req.valid("json");
+  const user = await getSessionUser(c);
+  const rateLimitKey = user?.id || c.req.header("x-forwarded-for") || "anonymous";
+  if (!checkRateLimit(`explain:${rateLimitKey}`, 20, 60_000)) {
+    return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+  }
+  const body = await loadNewsBody(slug);
+  if (!body) return c.json({ error: "Article not found" }, 404);
+
+  const system = `Re-explain the following article for someone brand-new to the topic. Use everyday vocabulary, replace jargon with concrete analogies, keep the structure compact (3-5 short paragraphs). Don't talk down — explain. Markdown body only, no headings.`;
+  return streamingResponse(system, body.slice(0, 8000));
+});
 
 function cosineSimilarity(a: number[], b: number[]): number {
   if (a.length !== b.length) return 0;

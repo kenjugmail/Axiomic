@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import type { NewsAccentColor } from "@axiomic/types";
 import { NewsEditor, type NewsDraft } from "../components/news/NewsEditor";
+import { AiDraftDialog } from "../components/news/AiDraftDialog";
 import { useAuthStore } from "../stores/auth";
 
 function slugify(s: string): string {
@@ -23,6 +24,7 @@ export function NewsNewPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [slugTouched, setSlugTouched] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
   const [draft, setDraft] = useState<NewsDraft>({
     slug: "",
     title: "",
@@ -30,6 +32,7 @@ export function NewsNewPage() {
     body: "",
     coverEmoji: "📰",
     accentColor: "indigo" as NewsAccentColor,
+    tags: [],
   });
 
   if (authLoading) {
@@ -68,7 +71,7 @@ export function NewsNewPage() {
     draft.body.trim().length > 0 &&
     /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(draft.slug);
 
-  const handleSave = async () => {
+  const save = async (status: "draft" | "published") => {
     if (!canSave || saving) return;
     setSaving(true);
     setError(null);
@@ -80,10 +83,12 @@ export function NewsNewPage() {
         body: draft.body,
         coverEmoji: draft.coverEmoji || "📰",
         accentColor: draft.accentColor,
+        tags: draft.tags,
+        status,
       });
-      navigate(`/news/${draft.slug}`);
+      navigate(status === "draft" ? "/news/drafts" : `/news/${draft.slug}`);
     } catch (e: any) {
-      setError(e?.message ?? "Failed to publish");
+      setError(e?.message ?? "Failed to save");
     } finally {
       setSaving(false);
     }
@@ -101,14 +106,41 @@ export function NewsNewPage() {
           </Link>
           <h1 className="text-2xl font-bold mt-1">Write a news article</h1>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={!canSave || saving}
-          className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
-        >
-          {saving ? "Publishing…" : "Publish"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setAiOpen(true)}
+            className="px-3 py-2 rounded-md border border-primary/40 text-primary text-sm font-medium hover:bg-primary/10"
+          >
+            ✨ Draft with AI
+          </button>
+          <button
+            onClick={() => save("draft")}
+            disabled={!canSave || saving}
+            className="px-4 py-2 rounded-md border border-border text-sm font-medium hover:bg-accent/40 disabled:opacity-50"
+          >
+            Save as draft
+          </button>
+          <button
+            onClick={() => save("published")}
+            disabled={!canSave || saving}
+            className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
+          >
+            {saving ? "Saving…" : "Publish"}
+          </button>
+        </div>
       </div>
+
+      {aiOpen && (
+        <AiDraftDialog
+          tags={draft.tags}
+          onAccept={(body) => {
+            setDraft({ ...draft, body });
+            setAiOpen(false);
+            setShowPreview(true);
+          }}
+          onClose={() => setAiOpen(false)}
+        />
+      )}
       {error && (
         <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
           {error}

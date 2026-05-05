@@ -1,0 +1,50 @@
+[
+  {
+    "id": "q1",
+    "question": "Two vectors a and b have the same length. Their dot product a · b is at its maximum when:",
+    "options": [
+      "They point in the same direction (angle 0)",
+      "They are perpendicular (angle 90°)",
+      "They point in opposite directions (angle 180°)",
+      "Their magnitudes don't matter; the dot product is constant"
+    ],
+    "correctIndex": 0,
+    "explanation": "a · b = |a||b|cos(θ). With fixed magnitudes, the maximum is at θ = 0, where cos = 1. Perpendicular vectors give 0; opposite vectors give the negative."
+  },
+  {
+    "id": "q2",
+    "question": "If A is a 3x4 matrix and B is a 4x2 matrix, what is the shape of A @ B?",
+    "options": [
+      "3x2",
+      "4x4",
+      "2x3",
+      "Undefined — shapes don't match"
+    ],
+    "correctIndex": 0,
+    "explanation": "Matrix multiplication contracts the inner dimension. (3x4) @ (4x2) → (3x2)."
+  },
+  {
+    "id": "q3",
+    "question": "What does it mean for two vectors to be orthogonal?",
+    "options": [
+      "Their dot product is zero",
+      "They have the same magnitude",
+      "One is a positive scalar multiple of the other",
+      "Their cross product is the zero vector"
+    ],
+    "correctIndex": 0,
+    "explanation": "Orthogonal = perpendicular. cos(90°) = 0, so the dot product vanishes. In ML, orthogonal directions encode independent information."
+  },
+  {
+    "id": "q4",
+    "question": "Embeddings live in high-dimensional space. Why is *cosine similarity* preferred over Euclidean distance for comparing them?",
+    "options": [
+      "Cosine measures direction (semantic alignment) and ignores magnitude, which is often a training artifact",
+      "Euclidean distance is computationally more expensive",
+      "Cosine similarity is bounded above by 1, which makes plotting easier",
+      "Euclidean distance can be negative, which is meaningless"
+    ],
+    "correctIndex": 0,
+    "explanation": "Trained embeddings often vary in magnitude for reasons unrelated to meaning. Cosine ignores magnitude and captures only direction — exactly the part that encodes semantic similarity."
+  }
+]

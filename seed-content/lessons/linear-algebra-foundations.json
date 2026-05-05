@@ -1,0 +1,36 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Vectors are arrows in space",
+      "body": "A **vector** is just a list of numbers — but the geometric reading is more useful. Think of a vector as an arrow with a *direction* and a *length*.\n\nIn ML, every embedding is a vector. The famous *king − man + woman ≈ queen* identity is doing arithmetic on these arrows: subtract the *man-direction*, add the *woman-direction*, and you've moved from `king` to roughly where `queen` lives.\n\nOnce you start seeing data as vectors, half the linear algebra you need just falls out of asking *what is the angle between these two arrows?*"
+    },
+    {
+      "kind": "text",
+      "title": "Direction, not magnitude",
+      "body": "Two vectors can be very different in length but point the same way. **Cosine similarity** measures direction alone:\n\n$$\\cos\\theta = \\frac{\\mathbf{a} \\cdot \\mathbf{b}}{\\lVert\\mathbf{a}\\rVert\\,\\lVert\\mathbf{b}\\rVert}$$\n\n- 1 = same direction\n- 0 = perpendicular\n- −1 = opposite\n\nML uses cosine for embeddings because the magnitude of a learned vector is mostly noise — what's meaningful is *which way it points*. The embedding playground above lets you eyeball this geometry on real word vectors.",
+      "viz": "embedding-explorer"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "lesson_q1",
+        "kind": "multiple_choice",
+        "question": "Which pair of vectors has cosine similarity closest to 1?",
+        "options": [
+          "Two vectors pointing in the same direction with very different magnitudes",
+          "Two perpendicular vectors with the same magnitude",
+          "A vector and its negation",
+          "The zero vector and any other vector"
+        ],
+        "correctIndex": 0,
+        "explanation": "Cosine ignores magnitude entirely. Same direction, any lengths → cos θ = 1."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Matrix multiplication as a transformation",
+      "body": "A matrix is a *linear transformation*. Multiplying $M\\mathbf{x}$ takes the vector $\\mathbf{x}$ and rotates / stretches / shears it according to what $M$ encodes.\n\nIn a transformer's attention, the query, key, and value matrices are each one of these transformations. The model *learns* what direction in embedding space deserves to be called a query, a key, or a value.\n\nThe dot product inside attention is then the question: *how aligned is this query with this key?* — directly the cosine-similarity intuition you just learned, projected through the learned $Q$ and $K$ matrices.\n\nIf you can hold *vectors are arrows* and *matrices are linear transformations of those arrows* in your head, you have most of the linear algebra ML actually uses."
+    }
+  ]
+}

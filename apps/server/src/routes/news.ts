@@ -74,9 +74,19 @@ async function reactionRollup(
   return out;
 }
 
+function parseTags(json: string): string[] {
+  try {
+    const v = JSON.parse(json);
+    return Array.isArray(v) ? v.filter((s) => typeof s === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
 newsRouter.get("/", async (c) => {
   const db = getDb();
-  const rows = db
+  const tag = c.req.query("tag");
+  const baseQuery = db
     .select({
       id: newsArticles.id,
       slug: newsArticles.slug,
@@ -85,6 +95,7 @@ newsRouter.get("/", async (c) => {
       body: newsArticles.body,
       coverEmoji: newsArticles.coverEmoji,
       accentColor: newsArticles.accentColor,
+      tags: newsArticles.tags,
       authorId: newsArticles.authorId,
       authorUsername: users.username,
       authorDisplayName: users.displayName,
@@ -94,8 +105,15 @@ newsRouter.get("/", async (c) => {
     })
     .from(newsArticles)
     .innerJoin(users, eq(newsArticles.authorId, users.id))
-    .orderBy(desc(newsArticles.createdAt))
-    .all();
+    .where(eq(newsArticles.status, "published"))
+    .orderBy(desc(newsArticles.createdAt));
+  // Tag filter is applied in JS — SQLite JSON1 isn't always present
+  // and the article count is small. Acceptable until the table grows.
+  let rows = baseQuery.all();
+  if (tag) {
+    const t = tag.toLowerCase();
+    rows = rows.filter((r) => parseTags(r.tags).includes(t));
+  }
 
   // Resolve last-editor usernames in one extra query (only when needed).
   const editorIds = Array.from(
@@ -122,6 +140,7 @@ newsRouter.get("/", async (c) => {
       summary: r.summary,
       coverEmoji: r.coverEmoji,
       accentColor: r.accentColor,
+      tags: parseTags(r.tags),
       authorId: r.authorId,
       authorUsername: r.authorUsername,
       authorDisplayName: r.authorDisplayName,
@@ -140,6 +159,28 @@ newsRouter.get("/", async (c) => {
   });
 });
 
+// Tags catalog: every distinct tag used on a published article, with a
+// count, ordered by frequency. Used by the index filter chips.
+// Registered before /:slug so the literal path wins the radix match.
+newsRouter.get("/tags", async (c) => {
+  const db = getDb();
+  const rows = db
+    .select({ tags: newsArticles.tags })
+    .from(newsArticles)
+    .where(eq(newsArticles.status, "published"))
+    .all();
+  const counts = new Map<string, number>();
+  for (const r of rows) {
+    for (const t of parseTags(r.tags)) {
+      counts.set(t, (counts.get(t) ?? 0) + 1);
+    }
+  }
+  const tags = Array.from(counts.entries())
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+  return c.json({ tags });
+});
+
 newsRouter.get("/:slug", async (c) => {
   const slug = c.req.param("slug")!;
   const db = getDb();
@@ -154,6 +195,8 @@ newsRouter.get("/:slug", async (c) => {
       body: newsArticles.body,
       coverEmoji: newsArticles.coverEmoji,
       accentColor: newsArticles.accentColor,
+      status: newsArticles.status,
+      tags: newsArticles.tags,
       authorId: newsArticles.authorId,
       authorUsername: users.username,
       authorDisplayName: users.displayName,
@@ -166,6 +209,12 @@ newsRouter.get("/:slug", async (c) => {
     .where(eq(newsArticles.slug, slug))
     .get();
   if (!row) return c.json({ error: "Article not found" }, 404);
+
+  // Drafts are private: only the author can fetch them. Strangers see
+  // a 404 so the slug isn't even revealed.
+  if (row.status === "draft" && (!session || session.id !== row.authorId)) {
+    return c.json({ error: "Article not found" }, 404);
+  }
 
   const editor = row.lastEditorId
     ? db
@@ -241,6 +290,8 @@ newsRouter.get("/:slug", async (c) => {
       body: row.body,
       coverEmoji: row.coverEmoji,
       accentColor: row.accentColor,
+      status: row.status,
+      tags: parseTags(row.tags),
       authorId: row.authorId,
       authorUsername: row.authorUsername,
       authorDisplayName: row.authorDisplayName,
@@ -263,6 +314,34 @@ const slugSchema = z
   .max(120)
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case");
 
+// Tag input is normalized to lowercase kebab-case and capped at 8
+// per article. Empty or malformed entries are dropped silently.
+const tagSchema = z
+  .array(z.string().min(1).max(40))
+  .max(8)
+  .optional();
+
+function normalizeTags(input: string[] | undefined): string[] {
+  if (!input) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of input) {
+    const t = raw
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 40);
+    if (t && !seen.has(t)) {
+      seen.add(t);
+      out.push(t);
+    }
+  }
+  return out.slice(0, 8);
+}
+
 const createSchema = z.object({
   slug: slugSchema,
   title: z.string().min(1).max(200),
@@ -270,6 +349,8 @@ const createSchema = z.object({
   body: z.string().min(1),
   coverEmoji: z.string().max(8).optional(),
   accentColor: z.enum(ACCENT_COLORS).optional(),
+  status: z.enum(["draft", "published"]).optional(),
+  tags: tagSchema,
 });
 
 newsRouter.post("/", requireAuth, zValidator("json", createSchema), async (c) => {
@@ -293,6 +374,8 @@ newsRouter.post("/", requireAuth, zValidator("json", createSchema), async (c) =>
     body: body.body,
     coverEmoji: body.coverEmoji || "📰",
     accentColor: body.accentColor || "indigo",
+    status: body.status || "published",
+    tags: JSON.stringify(normalizeTags(body.tags)),
     authorId: user.id,
   }).run();
 
@@ -308,6 +391,8 @@ const updateSchema = z.object({
   body: z.string().min(1),
   coverEmoji: z.string().max(8).optional(),
   accentColor: z.enum(ACCENT_COLORS).optional(),
+  status: z.enum(["draft", "published"]).optional(),
+  tags: tagSchema,
 });
 
 newsRouter.put("/:slug", requireAuth, zValidator("json", updateSchema), async (c) => {
@@ -336,6 +421,10 @@ newsRouter.put("/:slug", requireAuth, zValidator("json", updateSchema), async (c
       body: data.body,
       coverEmoji: data.coverEmoji ?? article.coverEmoji,
       accentColor: data.accentColor ?? article.accentColor,
+      status: data.status ?? article.status,
+      tags: data.tags !== undefined
+        ? JSON.stringify(normalizeTags(data.tags))
+        : article.tags,
       lastEditorId: user.id,
       updatedAt: new Date().toISOString(),
     })
@@ -862,6 +951,67 @@ newsRouter.post("/:slug/bookmark", requireAuth, async (c) => {
   return c.json({ bookmarked: true });
 });
 
+// User's drafts — published-status filter inverted. Drafts are private
+// to their author so the route is auth-gated and scoped to user.id.
+newsRouter.get("/me/drafts", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const db = getDb();
+
+  const rows = db
+    .select({
+      id: newsArticles.id,
+      slug: newsArticles.slug,
+      title: newsArticles.title,
+      summary: newsArticles.summary,
+      body: newsArticles.body,
+      coverEmoji: newsArticles.coverEmoji,
+      accentColor: newsArticles.accentColor,
+      tags: newsArticles.tags,
+      authorId: newsArticles.authorId,
+      authorUsername: users.username,
+      authorDisplayName: users.displayName,
+      lastEditorId: newsArticles.lastEditorId,
+      createdAt: newsArticles.createdAt,
+      updatedAt: newsArticles.updatedAt,
+    })
+    .from(newsArticles)
+    .innerJoin(users, eq(newsArticles.authorId, users.id))
+    .where(
+      and(
+        eq(newsArticles.authorId, user.id),
+        eq(newsArticles.status, "draft"),
+      ),
+    )
+    .orderBy(desc(newsArticles.updatedAt))
+    .all();
+
+  const reactions = await reactionRollup(db, rows.map((r) => r.id));
+
+  return c.json({
+    articles: rows.map((r) => ({
+      id: r.id,
+      slug: r.slug,
+      title: r.title,
+      summary: r.summary,
+      coverEmoji: r.coverEmoji,
+      accentColor: r.accentColor,
+      tags: parseTags(r.tags),
+      authorId: r.authorId,
+      authorUsername: r.authorUsername,
+      authorDisplayName: r.authorDisplayName,
+      lastEditorUsername: null,
+      readingMinutes: readingMinutes(r.body),
+      reactionCounts: reactions.get(r.id) ?? {
+        thumbs: 0,
+        lightbulb: 0,
+        mind_blown: 0,
+      },
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    })),
+  });
+});
+
 // User's bookmarked articles, freshest-bookmarked first. Returns the
 // same summary shape used by GET /news so the bookmarks page can
 // reuse the list cards.
@@ -955,6 +1105,7 @@ newsRouter.get("/:slug/related", async (c) => {
     .where(
       and(
         eq(newsArticles.authorId, article.authorId),
+        eq(newsArticles.status, "published"),
         sql`${newsArticles.id} <> ${article.id}`,
       ),
     )
@@ -962,7 +1113,7 @@ newsRouter.get("/:slug/related", async (c) => {
     .limit(4)
     .all();
 
-  let pool = sameAuthor;
+  const pool = sameAuthor;
   if (pool.length < 4) {
     const fillerNeeded = 4 - pool.length;
     const usedIds = new Set([article.id, ...pool.map((p) => p.id)]);
@@ -979,6 +1130,7 @@ newsRouter.get("/:slug/related", async (c) => {
       })
       .from(newsArticles)
       .innerJoin(users, eq(newsArticles.authorId, users.id))
+      .where(eq(newsArticles.status, "published"))
       .orderBy(desc(newsArticles.createdAt))
       .limit(fillerNeeded + usedIds.size)
       .all();

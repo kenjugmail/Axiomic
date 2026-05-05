@@ -1,0 +1,50 @@
+[
+  {
+    "id": "q1",
+    "question": "Backpropagation computes gradients by:",
+    "options": [
+      "Applying the chain rule recursively from the output back through the layers",
+      "Sampling random parameter perturbations and keeping the best",
+      "Inverting the forward-pass weight matrices",
+      "Numerically differentiating each parameter one at a time"
+    ],
+    "correctIndex": 0,
+    "explanation": "Backprop is *just* the chain rule, organized so each intermediate gradient is computed once and reused. Numerical differentiation works but is O(N) forward passes per gradient."
+  },
+  {
+    "id": "q2",
+    "question": "During the forward pass, why must we *cache* the activations of each layer?",
+    "options": [
+      "The backward pass needs them to compute the local Jacobians at each layer",
+      "They are needed to compute the loss",
+      "Caching reduces the memory footprint",
+      "They are required to update the learning rate"
+    ],
+    "correctIndex": 0,
+    "explanation": "∂L/∂W at layer ℓ depends on the activation that fed into ℓ — so we keep activations around until backprop visits them. This is also why activations dominate memory in deep networks."
+  },
+  {
+    "id": "q3",
+    "question": "*Vanishing gradients* in very deep networks happen when:",
+    "options": [
+      "Many small per-layer Jacobians multiply together, shrinking the effective gradient toward zero",
+      "The learning rate is too high",
+      "There is too much training data",
+      "The loss function is non-convex"
+    ],
+    "correctIndex": 0,
+    "explanation": "Sigmoid activations saturate, multiplying gradients < 1 layer after layer. Modern fixes — ReLU/GELU, residual connections, layer norm, careful init — all attack this."
+  },
+  {
+    "id": "q4",
+    "question": "Why are *residual connections* (y = F(x) + x) so important for training deep networks?",
+    "options": [
+      "They give the gradient an identity-shaped path back through the network, sidestepping vanishing gradients in deep stacks",
+      "They reduce the number of parameters",
+      "They make the network output a sum of layer outputs",
+      "They guarantee convergence"
+    ],
+    "correctIndex": 0,
+    "explanation": "∂(F(x) + x)/∂x = ∂F/∂x + I. The identity term means at least *some* gradient survives the trip back, regardless of what F is doing. ResNets / transformers wouldn't train past a few layers without this."
+  }
+]

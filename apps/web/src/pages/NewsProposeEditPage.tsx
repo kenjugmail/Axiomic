@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../lib/api";
 import type { NewsAccentColor, NewsArticle } from "@axiomic/types";
 import { NewsEditor, type NewsDraft } from "../components/news/NewsEditor";
+import { streamTokens } from "../lib/streamTokens";
 import { useAuthStore } from "../stores/auth";
 
 export function NewsProposeEditPage() {
@@ -16,6 +17,32 @@ export function NewsProposeEditPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [polishing, setPolishing] = useState(false);
+
+  const polish = async () => {
+    if (!article || !draft || polishing) return;
+    setPolishing(true);
+    setError(null);
+    let acc = "";
+    const result = await streamTokens({
+      url: "/api/v1/ai/news/polish",
+      body: {
+        original: article.body,
+        proposed: draft.body,
+        message: message.trim() || undefined,
+      },
+      onToken: (_t, next) => {
+        acc = next;
+        setDraft((d) => (d ? { ...d, body: next } : d));
+      },
+    });
+    setPolishing(false);
+    if (!result.ok) setError(result.error ?? "Polish failed");
+    // Final sync in case the last setDraft was dropped during a re-render.
+    if (result.ok && acc) {
+      setDraft((d) => (d ? { ...d, body: acc } : d));
+    }
+  };
 
   useEffect(() => {
     if (!slug) return;
@@ -30,6 +57,7 @@ export function NewsProposeEditPage() {
           body: r.article.body,
           coverEmoji: r.article.coverEmoji,
           accentColor: r.article.accentColor as NewsAccentColor,
+          tags: r.article.tags,
         });
       })
       .catch(() => setError("Failed to load article"));
@@ -135,13 +163,23 @@ export function NewsProposeEditPage() {
             Your changes go to @{article.authorUsername} for review.
           </p>
         </div>
-        <button
-          onClick={handleSubmit}
-          disabled={!canSubmit || submitting}
-          className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
-        >
-          {submitting ? "Submitting…" : "Submit proposal"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={polish}
+            disabled={polishing || !canSubmit}
+            className="px-3 py-2 rounded-md border border-primary/40 text-primary text-sm font-medium hover:bg-primary/10 disabled:opacity-50"
+            title="AI polishes the body of your proposal in place"
+          >
+            {polishing ? "Polishing…" : "✨ Polish with AI"}
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={!canSubmit || submitting || polishing}
+            className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
+          >
+            {submitting ? "Submitting…" : "Submit proposal"}
+          </button>
+        </div>
       </div>
       {error && (
         <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">

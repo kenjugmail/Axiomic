@@ -688,6 +688,8 @@ export const NEWS_REACTION_KINDS: NewsReactionKind[] = [
   "mind_blown",
 ];
 
+export type NewsStatus = "draft" | "published";
+
 export interface NewsArticleSummary {
   id: string;
   slug: string;
@@ -695,6 +697,7 @@ export interface NewsArticleSummary {
   summary: string;
   coverEmoji: string;
   accentColor: NewsAccentColor;
+  tags: string[];
   authorId: string;
   authorUsername: string;
   authorDisplayName: string | null;
@@ -707,12 +710,22 @@ export interface NewsArticleSummary {
 
 export interface NewsArticle extends NewsArticleSummary {
   body: string;
+  status: NewsStatus;
   // True when the requester has reacted with this kind. Null fields
   // for signed-out viewers.
   myReactions: Record<NewsReactionKind, boolean> | null;
   pendingProposalCount: number;
   isAuthor: boolean;
   myBookmark: boolean;
+}
+
+export interface NewsTagCount {
+  tag: string;
+  count: number;
+}
+
+export interface NewsTagsResponse {
+  tags: NewsTagCount[];
 }
 
 export interface NewsListResponse {
@@ -730,6 +743,8 @@ export interface CreateNewsArticleRequest {
   body: string;
   coverEmoji?: string;
   accentColor?: NewsAccentColor;
+  status?: NewsStatus;
+  tags?: string[];
 }
 
 export interface UpdateNewsArticleRequest {
@@ -738,6 +753,8 @@ export interface UpdateNewsArticleRequest {
   body: string;
   coverEmoji?: string;
   accentColor?: NewsAccentColor;
+  status?: NewsStatus;
+  tags?: string[];
 }
 
 export type NewsEditProposalStatus = "pending" | "approved" | "rejected";

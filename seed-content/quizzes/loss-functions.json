@@ -1,0 +1,50 @@
+[
+  {
+    "id": "q1",
+    "question": "For a classification task with a softmax output layer, the natural loss function is:",
+    "options": [
+      "Cross-entropy",
+      "Mean squared error",
+      "Hinge loss",
+      "L1 distance"
+    ],
+    "correctIndex": 0,
+    "explanation": "Softmax + cross-entropy is the negative log-likelihood of a categorical distribution — the right pairing both numerically (clean gradients) and statistically (proper scoring rule)."
+  },
+  {
+    "id": "q2",
+    "question": "Why is *mean squared error* a poor loss for classification probabilities?",
+    "options": [
+      "Its gradient is small when the model is very confidently wrong, slowing learning",
+      "It is not differentiable",
+      "It produces non-bounded outputs",
+      "It is mathematically equivalent to cross-entropy"
+    ],
+    "correctIndex": 0,
+    "explanation": "Plot d/dp of (p − 1)²: tiny near p ≈ 0 (confidently-wrong region). Cross-entropy's gradient is 1 − p there, so it punishes confident mistakes hard."
+  },
+  {
+    "id": "q3",
+    "question": "Cross-entropy between target distribution p and model q is H(p, q) = −Σ p(x) log q(x). It equals H(p) + KL(p ‖ q). What does this tell you?",
+    "options": [
+      "Minimizing cross-entropy w.r.t. q is equivalent to minimizing KL(p ‖ q), since H(p) is constant w.r.t. q",
+      "Cross-entropy is always less than or equal to entropy",
+      "KL divergence is symmetric in its arguments",
+      "Cross-entropy and entropy are the same when p = q"
+    ],
+    "correctIndex": 0,
+    "explanation": "When you train on fixed targets, H(p) is a constant, so minimizing cross-entropy *is* minimizing KL — pulling the model distribution toward the data distribution."
+  },
+  {
+    "id": "q4",
+    "question": "L1 loss (mean absolute error) is more *robust to outliers* than L2 (squared error) because:",
+    "options": [
+      "L1 grows linearly with the residual instead of quadratically, so a single huge error doesn't dominate the gradient",
+      "L1 is always smaller than L2",
+      "L1 is differentiable everywhere; L2 is not",
+      "L1 has a closed-form minimum; L2 doesn't"
+    ],
+    "correctIndex": 0,
+    "explanation": "Outliers drive L2 to chase them because the gradient scales with the residual. L1's gradient is just ±1 — every example contributes equally to the update direction. Huber loss is the standard compromise."
+  }
+]

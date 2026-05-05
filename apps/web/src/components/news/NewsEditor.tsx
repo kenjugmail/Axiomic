@@ -21,6 +21,7 @@ export interface NewsDraft {
   body: string;
   coverEmoji: string;
   accentColor: NewsAccentColor;
+  tags: string[];
 }
 
 interface Props {
@@ -147,6 +148,39 @@ export function NewsEditor({
           maxLength={500}
           className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         />
+      </div>
+
+      <div>
+        <label className="block text-xs font-medium text-muted-foreground mb-1">
+          Tags{" "}
+          <span className="text-[10px]">(comma-separated, max 8)</span>
+        </label>
+        <input
+          value={draft.tags.join(", ")}
+          onChange={(e) =>
+            set(
+              "tags",
+              e.target.value
+                .split(",")
+                .map((t) => t.trim())
+                .filter(Boolean),
+            )
+          }
+          placeholder="research, transformers, tokenization"
+          className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+        {draft.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {draft.tags.slice(0, 8).map((t) => (
+              <span
+                key={t}
+                className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
+              >
+                {t}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="flex items-center justify-between">

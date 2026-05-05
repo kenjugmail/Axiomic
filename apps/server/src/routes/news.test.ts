@@ -448,6 +448,120 @@ describe("news bookmarks", () => {
   });
 });
 
+describe("news drafts + tags", () => {
+  test("drafts are private to author; published list filters them out; tag filter works", async () => {
+    const author = await signup("draft_a");
+    const stranger = await signup("draft_b");
+
+    const slug = `draft-test-${testId}`;
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({
+        slug,
+        title: "Draft only",
+        summary: "private",
+        body: "x",
+        status: "draft",
+        tags: ["unit-test", "drafts"],
+      }),
+    });
+
+    // Stranger sees a 404 — slug isn't even revealed.
+    const peek = await req(`/news/${slug}`, { headers: cookieHeader(stranger.cookie) });
+    expect(peek.status).toBe(404);
+
+    // Author can fetch.
+    const own = await req(`/news/${slug}`, { headers: cookieHeader(author.cookie) });
+    expect(own.status).toBe(200);
+    const ownBody = (await own.json()) as { article: any };
+    expect(ownBody.article.status).toBe("draft");
+    expect(ownBody.article.tags).toEqual(["unit-test", "drafts"]);
+
+    // Drafts list returns it for the author and not for the stranger.
+    const myDrafts = await req("/news/me/drafts", { headers: cookieHeader(author.cookie) });
+    const myDraftsBody = (await myDrafts.json()) as { articles: any[] };
+    expect(myDraftsBody.articles.some((a) => a.slug === slug)).toBe(true);
+
+    const otherDrafts = await req("/news/me/drafts", { headers: cookieHeader(stranger.cookie) });
+    const otherDraftsBody = (await otherDrafts.json()) as { articles: any[] };
+    expect(otherDraftsBody.articles.some((a) => a.slug === slug)).toBe(false);
+
+    // Public listing excludes drafts.
+    const list = await req("/news");
+    const listBody = (await list.json()) as { articles: any[] };
+    expect(listBody.articles.some((a) => a.slug === slug)).toBe(false);
+  });
+
+  test("publishing a draft via PUT moves it into the public list", async () => {
+    const author = await signup("draft_c");
+    const slug = `pubflow-${testId}`;
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({
+        slug,
+        title: "T",
+        summary: "S",
+        body: "B",
+        status: "draft",
+        tags: ["pub-test"],
+      }),
+    });
+
+    await req(`/news/${slug}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({
+        title: "T2",
+        summary: "S2",
+        body: "B2",
+        status: "published",
+        tags: ["pub-test"],
+      }),
+    });
+
+    const list = await req("/news?tag=pub-test");
+    const listBody = (await list.json()) as { articles: any[] };
+    expect(listBody.articles.some((a) => a.slug === slug)).toBe(true);
+  });
+
+  test("tags catalog reports counts for published articles only", async () => {
+    const author = await signup("tag_a");
+    // Unique tag per test run so prior-run rows don't pollute the count.
+    const uniqueTag = `cat-${testId}`;
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({
+        slug: `tagged-pub-${testId}`,
+        title: "P",
+        summary: "",
+        body: "x",
+        tags: [uniqueTag],
+      }),
+    });
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({
+        slug: `tagged-draft-${testId}`,
+        title: "D",
+        summary: "",
+        body: "x",
+        status: "draft",
+        tags: [uniqueTag],
+      }),
+    });
+
+    const res = await req("/news/tags");
+    const body = (await res.json()) as { tags: Array<{ tag: string; count: number }> };
+    const ct = body.tags.find((t) => t.tag === uniqueTag);
+    expect(ct).toBeDefined();
+    expect(ct!.count).toBe(1); // draft excluded
+  });
+});
+
 describe("news related", () => {
   test("returns up to 4 articles, excluding the current one", async () => {
     const author = await signup("rel_a");
