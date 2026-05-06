@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowDown,
@@ -10,29 +10,20 @@ import {
   List as ListIcon,
   Plus,
   Save,
+  Sparkles,
   Trash2,
   X as XIcon,
 } from "lucide-react";
 import { api } from "../lib/api";
 import type { Lesson, LessonSlide } from "@axiomic/types";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
+import { AiDraftSlideDialog } from "../components/lesson/AiDraftSlideDialog";
 import { LessonPreviewModal } from "../components/lesson/LessonPreviewModal";
+import { VizPicker, VIZ_CATALOG } from "../components/lesson/VizPicker";
+import { MarkdownToolbar } from "../components/composer/MarkdownToolbar";
 import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
-
-const VIZ_NAMES: string[] = [
-  "softmax-temperature-preview",
-  "attention-heatmap-explorer",
-  "gradient-descent-2d",
-  "tokenizer-playground",
-  "embedding-explorer",
-  "layer-activations",
-  "positional-encoding",
-  "activation-function-gallery",
-  "lorenz-attractor",
-  "double-pendulum",
-  "phase-portrait-1d",
-];
+import { streamTokens } from "../lib/streamTokens";
 
 function newTextSlide(): LessonSlide {
   return { kind: "text", title: "Untitled", body: "" };
@@ -74,6 +65,10 @@ export function LessonEditPage() {
   } | null>(null);
   const [slidesDrawerOpen, setSlidesDrawerOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [aiDraftKind, setAiDraftKind] = useState<"text" | "question" | null>(
+    null,
+  );
+  const [rewriting, setRewriting] = useState(false);
   const [versions, setVersions] = useState<
     Array<{
       version: number;
@@ -208,6 +203,10 @@ export function LessonEditPage() {
         {slides.map((s, i) => {
           const Icon = s.kind === "question" ? HelpCircle : BookOpen;
           const active = i === activeIdx;
+          const vizName = s.kind === "text" ? s.viz : undefined;
+          const vizEntry = vizName
+            ? VIZ_CATALOG.find((v) => v.name === vizName)
+            : undefined;
           return (
             <li key={i} className="group">
               <button
@@ -215,11 +214,16 @@ export function LessonEditPage() {
                   setActiveIdx(i);
                   onPick?.();
                 }}
-                className={`w-full text-left flex items-start gap-2 px-3 py-2 rounded-md text-xs transition-colors duration-fast ${
+                className={`relative w-full text-left flex items-start gap-2 px-3 py-2 rounded-md text-xs transition-colors duration-fast ${
                   active
-                    ? "bg-primary/10 text-foreground"
+                    ? "bg-primary/10 text-foreground ring-1 ring-primary/30"
                     : "text-muted-foreground hover:text-foreground hover:bg-accent/40"
                 }`}
+                title={
+                  s.kind === "text"
+                    ? s.title || "Untitled"
+                    : s.question.question
+                }
               >
                 <Icon
                   className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${
@@ -228,8 +232,18 @@ export function LessonEditPage() {
                   strokeWidth={2}
                 />
                 <span className="flex-1 min-w-0">
-                  <span className="block font-mono text-[10px] text-muted-foreground">
-                    {String(i + 1).padStart(2, "0")}
+                  <span className="flex items-center gap-1.5">
+                    <span className="font-mono text-[10px] text-muted-foreground">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    {vizEntry && (
+                      <span
+                        className="text-[11px] leading-none"
+                        title={`Viz: ${vizEntry.label}`}
+                      >
+                        {vizEntry.thumb}
+                      </span>
+                    )}
                   </span>
                   <span className="block leading-snug truncate">
                     {s.kind === "text"
@@ -243,25 +257,37 @@ export function LessonEditPage() {
         })}
       </ol>
       <div className="px-2 mt-2 space-y-1">
+        <div className="grid grid-cols-2 gap-1">
+          <button
+            onClick={() => {
+              addText();
+              onPick?.();
+            }}
+            className="inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-md border border-dashed border-border text-xs text-muted-foreground hover:text-foreground hover:bg-accent/40"
+          >
+            <Plus className="w-3.5 h-3.5" strokeWidth={2} />
+            Text
+          </button>
+          <button
+            onClick={() => {
+              addQuestion();
+              onPick?.();
+            }}
+            className="inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-md border border-dashed border-border text-xs text-muted-foreground hover:text-foreground hover:bg-accent/40"
+          >
+            <Plus className="w-3.5 h-3.5" strokeWidth={2} />
+            Question
+          </button>
+        </div>
         <button
           onClick={() => {
-            addText();
+            setAiDraftKind("text");
             onPick?.();
           }}
-          className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-md border border-dashed border-border text-xs text-muted-foreground hover:text-foreground hover:bg-accent/40"
+          className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-md border border-dashed border-primary/40 text-xs text-primary hover:bg-primary/10"
         >
-          <Plus className="w-3.5 h-3.5" strokeWidth={2} />
-          Text slide
-        </button>
-        <button
-          onClick={() => {
-            addQuestion();
-            onPick?.();
-          }}
-          className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-md border border-dashed border-border text-xs text-muted-foreground hover:text-foreground hover:bg-accent/40"
-        >
-          <Plus className="w-3.5 h-3.5" strokeWidth={2} />
-          Question slide
+          <Sparkles className="w-3.5 h-3.5" strokeWidth={2} />
+          Draft with AI
         </button>
       </div>
     </>
@@ -317,6 +343,83 @@ export function LessonEditPage() {
       setError(e?.message ?? "Publish failed");
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Rewrite a specific slide using the analytics signal as context.
+  // Streams into the slides[idx] cell so the user sees the rewrite
+  // happen in place; falls back to the original on failure.
+  const rewriteFromAnalytics = async (idx: number) => {
+    if (!nodeId || rewriting) return;
+    const target = slides[idx];
+    if (!target) return;
+    const original =
+      target.kind === "text"
+        ? target.body
+        : JSON.stringify(target.question, null, 2);
+
+    let analytics:
+      | { views: number; dropOff: number; incorrectRate: number }
+      | undefined;
+    try {
+      const a = await api.mastery.lessonAnalytics(nodeId);
+      const row = a.slides[idx];
+      if (row) {
+        analytics = {
+          views: row.views,
+          dropOff: row.dropOff,
+          incorrectRate: row.incorrectRate,
+        };
+      }
+    } catch {
+      // analytics is best-effort; the rewrite still works without it
+    }
+
+    setRewriting(true);
+    setError(null);
+    let acc = "";
+    const r = await streamTokens({
+      url: "/api/v1/ai/lesson/rewrite-from-analytics",
+      body: { slide: original, analytics },
+      onToken: (_t, next) => {
+        acc = next;
+        // For text slides we stream straight into the body. Question
+        // slides come back as JSON; we wait for [DONE] to parse.
+        if (target.kind === "text") {
+          setSlides((prev) =>
+            prev.map((s, j) =>
+              j === idx && s.kind === "text" ? { ...s, body: next } : s,
+            ),
+          );
+        }
+      },
+    });
+    setRewriting(false);
+    if (!r.ok) {
+      setError(r.error ?? "Rewrite failed");
+      // Roll back to the original.
+      setSlides((prev) =>
+        prev.map((s, j) => (j === idx ? target : s)),
+      );
+      return;
+    }
+    if (target.kind === "question") {
+      try {
+        const cleaned = acc.replace(/^```(?:json)?\s*|\s*```\s*$/g, "").trim();
+        const parsed = JSON.parse(cleaned);
+        setSlides((prev) =>
+          prev.map((s, j) =>
+            j === idx && s.kind === "question"
+              ? {
+                  ...s,
+                  question: { ...s.question, ...parsed },
+                }
+              : s,
+          ),
+        );
+      } catch {
+        setError("AI returned invalid JSON for the question rewrite.");
+      }
     }
   };
 
@@ -500,6 +603,17 @@ export function LessonEditPage() {
                   {activeIdx + 1} of {slides.length}
                 </div>
                 <div className="flex items-center gap-1">
+                  {nodeId && (
+                    <button
+                      onClick={() => rewriteFromAnalytics(activeIdx)}
+                      disabled={rewriting}
+                      className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-md text-primary hover:bg-primary/10 disabled:opacity-50 mr-1"
+                      title="Use this slide's analytics drop-off + incorrect-rate to ask AI for a clearer rewrite"
+                    >
+                      <Sparkles className="w-3 h-3" strokeWidth={2} />
+                      {rewriting ? "Rewriting…" : "Rewrite"}
+                    </button>
+                  )}
                   <button
                     onClick={() => moveSlide(activeIdx, -1)}
                     disabled={activeIdx === 0}
@@ -614,6 +728,17 @@ export function LessonEditPage() {
           onClose={() => setPreviewOpen(false)}
         />
       )}
+
+      {aiDraftKind && (
+        <AiDraftSlideDialog
+          kind={aiDraftKind}
+          onAccept={(s) => {
+            setSlides((prev) => [...prev, s]);
+            setActiveIdx(slides.length);
+          }}
+          onClose={() => setAiDraftKind(null)}
+        />
+      )}
     </div>
   );
 }
@@ -626,6 +751,10 @@ function TextSlideEditor({
   onChange: (s: LessonSlide) => void;
 }) {
   const [showPreview, setShowPreview] = useState(false);
+  const [vizOpen, setVizOpen] = useState(false);
+  const [polishing, setPolishing] = useState<"title" | "body" | null>(null);
+  const titleRef = useRef<HTMLInputElement | null>(null);
+  const bodyRef = useRef<HTMLTextAreaElement | null>(null);
   const props = useMemo(() => {
     try {
       return JSON.stringify(slide.vizProps ?? {}, null, 2);
@@ -634,13 +763,49 @@ function TextSlideEditor({
     }
   }, [slide.vizProps]);
 
+  const polish = async (field: "title" | "body") => {
+    const current = field === "title" ? slide.title ?? "" : slide.body;
+    if (polishing || current.trim().length === 0) return;
+    setPolishing(field);
+    let acc = "";
+    const r = await streamTokens({
+      url: "/api/v1/ai/lesson/polish-slide",
+      body: { field, current },
+      onToken: (_t, next) => {
+        acc = next;
+        if (field === "title") onChange({ ...slide, title: next });
+        else onChange({ ...slide, body: next });
+      },
+    });
+    setPolishing(null);
+    if (!r.ok) {
+      // Revert on failure.
+      if (field === "title") onChange({ ...slide, title: current });
+      else onChange({ ...slide, body: current });
+    }
+    void acc;
+  };
+
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-xs font-medium text-muted-foreground mb-1">
-          Title
-        </label>
+        <div className="flex items-center justify-between mb-1">
+          <label className="block text-xs font-medium text-muted-foreground">
+            Title
+          </label>
+          <button
+            type="button"
+            onClick={() => polish("title")}
+            disabled={polishing !== null || (slide.title ?? "").trim().length === 0}
+            className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline disabled:opacity-50"
+            title="Polish the title with AI"
+          >
+            <Sparkles className="w-3 h-3" strokeWidth={2} />
+            {polishing === "title" ? "Polishing…" : "Polish"}
+          </button>
+        </div>
         <input
+          ref={titleRef}
           value={slide.title ?? ""}
           onChange={(e) => onChange({ ...slide, title: e.target.value })}
           maxLength={200}
@@ -652,19 +817,41 @@ function TextSlideEditor({
           <label className="block text-xs font-medium text-muted-foreground">
             Body (markdown)
           </label>
-          <button
-            onClick={() => setShowPreview((v) => !v)}
-            className="text-xs text-muted-foreground hover:text-foreground"
-          >
-            {showPreview ? "Edit" : "Preview"}
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => polish("body")}
+              disabled={polishing !== null || slide.body.trim().length === 0}
+              className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline disabled:opacity-50"
+              title="Polish the body with AI"
+            >
+              <Sparkles className="w-3 h-3" strokeWidth={2} />
+              {polishing === "body" ? "Polishing…" : "Polish"}
+            </button>
+            <button
+              onClick={() => setShowPreview((v) => !v)}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              {showPreview ? "Edit" : "Preview"}
+            </button>
+          </div>
         </div>
+        {!showPreview && (
+          <div className="mb-1.5">
+            <MarkdownToolbar
+              textareaRef={bodyRef}
+              onChange={(v) => onChange({ ...slide, body: v })}
+              showVizButton={false}
+            />
+          </div>
+        )}
         {showPreview ? (
           <div className="min-h-[16rem] rounded-md border border-border bg-card p-4 prose-sm max-w-none">
             <MarkdownRenderer content={slide.body} />
           </div>
         ) : (
           <textarea
+            ref={bodyRef}
             value={slide.body}
             onChange={(e) => onChange({ ...slide, body: e.target.value })}
             maxLength={20000}
@@ -673,35 +860,54 @@ function TextSlideEditor({
           />
         )}
       </div>
-      <div className="grid sm:grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs font-medium text-muted-foreground mb-1">
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <label className="block text-xs font-medium text-muted-foreground">
             Visualization (optional)
           </label>
-          <select
-            value={slide.viz ?? ""}
-            onChange={(e) =>
-              onChange({
-                ...slide,
-                viz: e.target.value || undefined,
-                vizProps: e.target.value ? slide.vizProps ?? {} : undefined,
-              })
-            }
-            className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          <button
+            type="button"
+            onClick={() => setVizOpen(true)}
+            className="text-xs text-primary hover:underline"
           >
-            <option value="">— None —</option>
-            {VIZ_NAMES.map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
+            {slide.viz ? "Change" : "Pick"}
+          </button>
         </div>
+        {slide.viz ? (
+          <div className="rounded-md border border-border bg-card p-3 flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-sm font-medium truncate">
+                {VIZ_CATALOG.find((v) => v.name === slide.viz)?.label ??
+                  slide.viz}
+              </div>
+              <div className="text-xs text-muted-foreground line-clamp-2">
+                {VIZ_CATALOG.find((v) => v.name === slide.viz)?.description}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                onChange({ ...slide, viz: undefined, vizProps: undefined })
+              }
+              className="text-xs text-muted-foreground hover:text-destructive shrink-0"
+            >
+              Remove
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setVizOpen(true)}
+            className="w-full p-3 rounded-md border border-dashed border-border text-xs text-muted-foreground hover:text-foreground hover:bg-accent/30"
+          >
+            + Add a visualization
+          </button>
+        )}
         {slide.viz && (
-          <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1">
-              Viz props (JSON)
-            </label>
+          <details className="mt-2">
+            <summary className="text-[11px] text-muted-foreground cursor-pointer hover:text-foreground">
+              Viz props (advanced)
+            </summary>
             <textarea
               defaultValue={props}
               onBlur={(e) => {
@@ -713,11 +919,23 @@ function TextSlideEditor({
                 }
               }}
               rows={3}
-              className="w-full px-3 py-2 rounded-md border border-input bg-background text-xs font-mono focus:outline-none focus:ring-2 focus:ring-ring"
+              className="mt-1 w-full px-3 py-2 rounded-md border border-input bg-background text-xs font-mono focus:outline-none focus:ring-2 focus:ring-ring"
             />
-          </div>
+          </details>
         )}
       </div>
+
+      <VizPicker
+        open={vizOpen}
+        onClose={() => setVizOpen(false)}
+        onPick={(entry) =>
+          onChange({
+            ...slide,
+            viz: entry.name,
+            vizProps: slide.vizProps ?? {},
+          })
+        }
+      />
     </div>
   );
 }
