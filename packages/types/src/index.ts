@@ -621,7 +621,13 @@ export interface SearchResponse {
 
 // --- Settings & user preferences ---
 
-export type ThemePreference = "light" | "dark" | "system";
+export type ThemePreference =
+  | "light"
+  | "dark"
+  | "system"
+  | "sepia"
+  | "dim"
+  | "high-contrast";
 
 export interface UserSettings {
   username: string;

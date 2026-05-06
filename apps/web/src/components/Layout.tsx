@@ -1,16 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import {
+  Check,
   ChevronDown,
   Menu,
-  Monitor,
-  Moon,
+  Palette,
   Search,
-  Sun,
   X as XIcon,
 } from "lucide-react";
 import { useAuthStore } from "../stores/auth";
-import { useThemeStore } from "../stores/theme";
+import { THEME_OPTIONS, useThemeStore, type Theme } from "../stores/theme";
 import { SearchDialog } from "./SearchDialog";
 import { NotificationBell } from "./NotificationBell";
 import { ShortcutsDialog } from "./ShortcutsDialog";
@@ -42,7 +41,9 @@ export function Layout() {
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [themeOpen, setThemeOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement | null>(null);
+  const themeRef = useRef<HTMLDivElement | null>(null);
 
   useKeyboardShortcuts(() => setSearchOpen(true));
 
@@ -99,9 +100,28 @@ export function Layout() {
     navigate("/");
   };
 
-  const cycleTheme = () => {
-    const next = theme === "light" ? "dark" : theme === "dark" ? "system" : "light";
-    setTheme(next);
+  // Close theme popover on outside click / Esc.
+  useEffect(() => {
+    if (!themeOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (themeRef.current && !themeRef.current.contains(e.target as Node)) {
+        setThemeOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setThemeOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [themeOpen]);
+
+  const pickTheme = (t: Theme) => {
+    setTheme(t);
+    setThemeOpen(false);
   };
 
   const secondary = [
@@ -182,20 +202,59 @@ export function Layout() {
               <kbd className="hidden sm:inline-block text-[10px] bg-muted px-1 rounded">/</kbd>
             </button>
 
-            <button
-              onClick={cycleTheme}
-              className="p-2 rounded-md hover:bg-accent/40 text-muted-foreground hover:text-foreground transition-colors duration-fast"
-              title={`Theme: ${theme}`}
-              aria-label={`Theme: ${theme}`}
-            >
-              {theme === "dark" ? (
-                <Moon className="w-4 h-4" strokeWidth={2} />
-              ) : theme === "light" ? (
-                <Sun className="w-4 h-4" strokeWidth={2} />
-              ) : (
-                <Monitor className="w-4 h-4" strokeWidth={2} />
+            <div ref={themeRef} className="relative">
+              <button
+                onClick={() => setThemeOpen((v) => !v)}
+                className="p-2 rounded-md hover:bg-accent/40 text-muted-foreground hover:text-foreground transition-colors duration-fast"
+                title={`Theme: ${theme}`}
+                aria-label="Pick theme"
+                aria-haspopup="menu"
+                aria-expanded={themeOpen}
+              >
+                <Palette className="w-4 h-4" strokeWidth={2} />
+              </button>
+              {themeOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 top-full mt-2 w-64 rounded-lg border border-border bg-card shadow-elevated p-1 animate-fade-in"
+                >
+                  <div className="px-3 py-2 text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Theme
+                  </div>
+                  {THEME_OPTIONS.map((opt) => {
+                    const active = opt.value === theme;
+                    return (
+                      <button
+                        key={opt.value}
+                        role="menuitemradio"
+                        aria-checked={active}
+                        onClick={() => pickTheme(opt.value)}
+                        className={`w-full flex items-start gap-2 px-3 py-2 text-left rounded-md text-sm transition-colors duration-fast ${
+                          active
+                            ? "bg-primary/10 text-foreground"
+                            : "text-muted-foreground hover:text-foreground hover:bg-accent/40"
+                        }`}
+                      >
+                        <span className="flex-1 min-w-0">
+                          <span className="block font-medium text-foreground">
+                            {opt.label}
+                          </span>
+                          <span className="block text-[11px] text-muted-foreground">
+                            {opt.description}
+                          </span>
+                        </span>
+                        {active && (
+                          <Check
+                            className="w-4 h-4 text-primary mt-0.5 shrink-0"
+                            strokeWidth={2.5}
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               )}
-            </button>
+            </div>
 
             {user ? (
               <div className="flex items-center gap-2 text-sm">

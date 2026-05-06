@@ -1,37 +1,88 @@
 import { create } from "zustand";
+import type { ThemePreference } from "@axiomic/types";
 import { api } from "../lib/api";
 
-type Theme = "light" | "dark" | "system";
+export type Theme = ThemePreference;
+
+export const THEME_OPTIONS: Array<{
+  value: Theme;
+  label: string;
+  description: string;
+}> = [
+  { value: "system", label: "System", description: "Follow OS preference" },
+  { value: "light", label: "Light", description: "Bright neutral" },
+  { value: "dark", label: "Dark", description: "Cool deep navy" },
+  { value: "dim", label: "Dim", description: "Softer dark, easier on eyes" },
+  { value: "sepia", label: "Sepia", description: "Warm, paperwhite reading" },
+  {
+    value: "high-contrast",
+    label: "High contrast",
+    description: "Maximum legibility",
+  },
+];
 
 interface ThemeState {
   theme: Theme;
   setTheme: (theme: Theme) => void;
-  // Hydrate from server (called after auth.fetchUser succeeds). Server is
-  // the source of truth for signed-in users; localStorage is a fallback
-  // for anon users and a fast path for instant theme on next page load.
   hydrateFromServer: () => Promise<void>;
 }
 
+const ALL_THEME_CLASSES = [
+  "dark",
+  "theme-sepia",
+  "theme-dim",
+  "theme-high-contrast",
+];
+
 function applyTheme(theme: Theme) {
   const root = document.documentElement;
-  if (theme === "system") {
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    root.classList.toggle("dark", prefersDark);
-  } else {
-    root.classList.toggle("dark", theme === "dark");
+  root.classList.remove(...ALL_THEME_CLASSES);
+
+  // `dim` and `dark` both add the `dark` class so Tailwind's `dark:`
+  // variants resolve correctly; `dim` then layers a token override on top.
+  // `high-contrast` follows the OS preference for light vs dark and layers
+  // its own tokens.
+  const prefersDark =
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+  switch (theme) {
+    case "system":
+      if (prefersDark) root.classList.add("dark");
+      break;
+    case "light":
+      break;
+    case "dark":
+      root.classList.add("dark");
+      break;
+    case "dim":
+      root.classList.add("dark", "theme-dim");
+      break;
+    case "sepia":
+      root.classList.add("theme-sepia");
+      break;
+    case "high-contrast":
+      root.classList.add("theme-high-contrast");
+      if (prefersDark) root.classList.add("dark");
+      break;
   }
 }
 
 export const useThemeStore = create<ThemeState>((set, get) => {
-  const stored = (typeof localStorage !== "undefined" && localStorage.getItem("axiomic-theme")) as Theme | null;
-  const initial = stored || "system";
+  const stored =
+    (typeof localStorage !== "undefined" &&
+      (localStorage.getItem("axiomic-theme") as Theme | null)) ||
+    null;
+  const initial: Theme = stored ?? "system";
 
   if (typeof document !== "undefined") {
     applyTheme(initial);
-    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-      const state = useThemeStore.getState();
-      if (state.theme === "system") applyTheme("system");
-    });
+    window
+      .matchMedia("(prefers-color-scheme: dark)")
+      .addEventListener("change", () => {
+        const t = useThemeStore.getState().theme;
+        if (t === "system" || t === "high-contrast") applyTheme(t);
+      });
   }
 
   return {
@@ -40,7 +91,6 @@ export const useThemeStore = create<ThemeState>((set, get) => {
       localStorage.setItem("axiomic-theme", theme);
       applyTheme(theme);
       set({ theme });
-      // Persist to server in the background. Anon users get 401 — ignored.
       api.settings.update({ theme }).catch(() => {});
     },
     hydrateFromServer: async () => {

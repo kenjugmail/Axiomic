@@ -8,7 +8,14 @@ import type { Env } from "../env";
 
 export const settingsRouter = new Hono<Env>();
 
-const themeSchema = z.enum(["light", "dark", "system"]);
+const themeSchema = z.enum([
+  "light",
+  "dark",
+  "system",
+  "sepia",
+  "dim",
+  "high-contrast",
+]);
 
 const updateSchema = z.object({
   theme: themeSchema.optional(),
@@ -43,7 +50,7 @@ settingsRouter.get("/", requireAuth, async (c) => {
   return c.json({
     settings: {
       ...row,
-      theme: row.theme as "light" | "dark" | "system",
+      theme: row.theme as z.infer<typeof themeSchema>,
     },
   });
 });
@@ -87,7 +94,7 @@ settingsRouter.put(
     return c.json({
       settings: {
         ...row,
-        theme: row?.theme as "light" | "dark" | "system",
+        theme: row?.theme as z.infer<typeof themeSchema>,
       },
     });
   },
