@@ -369,11 +369,14 @@ export function LessonPage() {
     };
   }, [pathSlug, nodeSlug]);
 
-  // Persist slide index (debounced).
+  // Persist slide index (debounced) and fire a "viewed" telemetry
+  // event for the active slide. Both are best-effort — failures are
+  // swallowed (anon users get 401 on the events endpoint).
   useEffect(() => {
     if (phase !== "playing" || !node) return;
     const t = setTimeout(() => {
       api.mastery.setLessonProgress(node.id, idx).catch(() => {});
+      api.mastery.postSlideEvent(node.id, idx, "viewed").catch(() => {});
     }, 200);
     return () => clearTimeout(t);
   }, [idx, phase, node]);
@@ -447,9 +450,20 @@ export function LessonPage() {
 
   function handleNext() {
     if (!canAdvance) return;
-    // For question slides, mark them revealed before advancing.
+    // For question slides, mark them revealed and report the answer
+    // outcome to the analytics endpoint before advancing.
     if (slide?.kind === "question") {
       setRevealed((r) => ({ ...r, [slide.question.id]: true }));
+      const correct = scoreLocally(slide.question, answers[slide.question.id]);
+      if (node) {
+        api.mastery
+          .postSlideEvent(
+            node.id,
+            idx,
+            correct ? "answered_correct" : "answered_wrong",
+          )
+          .catch(() => {});
+      }
     }
     if (isLast) {
       handleFinish();

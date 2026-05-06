@@ -608,3 +608,28 @@ export const quizMistakes = sqliteTable(
     userIdx: index("quiz_mistakes_user_idx").on(t.userId, t.lastWrongAt),
   }),
 );
+
+// Per-slide telemetry powering the LessonAnalyticsPage. We append one
+// row per (user, node, slideIdx, kind) the first time a user does the
+// thing, ignored otherwise — gives us views, drop-offs, and per-slide
+// answer correctness without exposing individual answer history.
+export const lessonSlideEvents = sqliteTable(
+  "lesson_slide_events",
+  {
+    id: text("id").primaryKey(),
+    nodeId: text("node_id").notNull().references(() => masteryNodes.id),
+    userId: text("user_id").notNull().references(() => users.id),
+    slideIdx: integer("slide_idx").notNull(),
+    kind: text("kind").notNull(), // "viewed" | "answered_correct" | "answered_wrong"
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    nodeIdx: index("lesson_slide_events_node_idx").on(t.nodeId, t.slideIdx),
+    userUniqIdx: uniqueIndex("lesson_slide_events_user_uniq_idx").on(
+      t.nodeId,
+      t.userId,
+      t.slideIdx,
+      t.kind,
+    ),
+  }),
+);

@@ -6,6 +6,7 @@ import {
   masteryPaths,
   masteryNodes,
   lessonVersions,
+  lessonSlideEvents,
   userProgress,
   users,
   lessonProgress,
@@ -678,6 +679,123 @@ mastery.post(
     });
   },
 );
+
+// --- Lesson analytics -------------------------------------------------
+//
+// Fire-and-forget per-slide telemetry from the client (advance, answer
+// reveal). The unique-index on (nodeId, userId, slideIdx, kind) makes
+// repeats no-ops — we count distinct learner-touchpoints, not raw
+// firings. The aggregated GET endpoint powers the analytics surface
+// for authors.
+
+const slideEventSchema = z.object({
+  slideIdx: z.number().int().min(0).max(99),
+  kind: z.enum(["viewed", "answered_correct", "answered_wrong"]),
+});
+
+mastery.post(
+  "/nodes/:nodeId/slide-event",
+  requireAuth,
+  zValidator("json", slideEventSchema),
+  async (c) => {
+    const user = c.get("user")!;
+    const nodeId = c.req.param("nodeId")!;
+    const { slideIdx, kind } = c.req.valid("json");
+    const db = getDb();
+
+    // Confirm the node exists; without this a malicious client could
+    // pollute the table with bogus references (FK would catch it but a
+    // 400 is friendlier than 500).
+    const exists = db
+      .select({ id: masteryNodes.id })
+      .from(masteryNodes)
+      .where(eq(masteryNodes.id, nodeId))
+      .get();
+    if (!exists) return c.json({ error: "Node not found" }, 404);
+
+    // INSERT OR IGNORE on the unique index makes repeats no-ops.
+    db.run(sql`
+      INSERT OR IGNORE INTO lesson_slide_events (id, node_id, user_id, slide_idx, kind, created_at)
+      VALUES (${randomUUID()}, ${nodeId}, ${user.id}, ${slideIdx}, ${kind}, ${new Date().toISOString()})
+    `);
+
+    return c.json({ ok: true });
+  },
+);
+
+mastery.get("/nodes/:nodeId/lesson-analytics", async (c) => {
+  const nodeId = c.req.param("nodeId")!;
+  const db = getDb();
+
+  const node = db
+    .select({ id: masteryNodes.id, lessonData: masteryNodes.lessonData })
+    .from(masteryNodes)
+    .where(eq(masteryNodes.id, nodeId))
+    .get();
+  if (!node) return c.json({ error: "Node not found" }, 404);
+
+  // Slide count from the current lesson, so the response shape lines up
+  // with what the player would render.
+  let slideCount = 0;
+  try {
+    const parsed = node.lessonData
+      ? (JSON.parse(node.lessonData) as { slides?: unknown[] })
+      : null;
+    slideCount = Array.isArray(parsed?.slides) ? parsed!.slides!.length : 0;
+  } catch {
+    slideCount = 0;
+  }
+
+  // Aggregate counts per (slideIdx, kind). One row per unique user
+  // touchpoint thanks to the unique index.
+  const rows = db
+    .select({
+      slideIdx: lessonSlideEvents.slideIdx,
+      kind: lessonSlideEvents.kind,
+      count: sql<number>`count(*)`.as("count"),
+    })
+    .from(lessonSlideEvents)
+    .where(eq(lessonSlideEvents.nodeId, nodeId))
+    .groupBy(lessonSlideEvents.slideIdx, lessonSlideEvents.kind)
+    .all();
+
+  const perSlide: Array<{
+    slideIdx: number;
+    views: number;
+    answeredCorrect: number;
+    answeredWrong: number;
+  }> = [];
+  for (let i = 0; i < slideCount; i++) {
+    perSlide.push({
+      slideIdx: i,
+      views: 0,
+      answeredCorrect: 0,
+      answeredWrong: 0,
+    });
+  }
+  for (const r of rows) {
+    if (r.slideIdx >= slideCount) continue;
+    const slot = perSlide[r.slideIdx];
+    if (!slot) continue;
+    if (r.kind === "viewed") slot.views = r.count;
+    else if (r.kind === "answered_correct") slot.answeredCorrect = r.count;
+    else if (r.kind === "answered_wrong") slot.answeredWrong = r.count;
+  }
+
+  // Drop-off = viewers who didn't view the next slide. Only meaningful
+  // for slides 0..n-2; the final slide can't drop off.
+  const slides = perSlide.map((s, i) => {
+    const next = perSlide[i + 1];
+    const dropOff = next ? Math.max(0, s.views - next.views) : 0;
+    const incorrectRate =
+      s.answeredCorrect + s.answeredWrong > 0
+        ? s.answeredWrong / (s.answeredCorrect + s.answeredWrong)
+        : 0;
+    return { ...s, dropOff, incorrectRate };
+  });
+
+  return c.json({ slideCount, slides });
+});
 
 // Get quiz for a node
 mastery.get("/quiz/:nodeId", async (c) => {

@@ -190,6 +190,27 @@ export const api = {
         `/mastery/nodes/${nodeId}/lesson/restore/${version}`,
         { method: "POST" },
       ),
+    postSlideEvent: (
+      nodeId: string,
+      slideIdx: number,
+      kind: "viewed" | "answered_correct" | "answered_wrong",
+    ) =>
+      request<{ ok: true }>(`/mastery/nodes/${nodeId}/slide-event`, {
+        method: "POST",
+        body: JSON.stringify({ slideIdx, kind }),
+      }),
+    lessonAnalytics: (nodeId: string) =>
+      request<{
+        slideCount: number;
+        slides: Array<{
+          slideIdx: number;
+          views: number;
+          answeredCorrect: number;
+          answeredWrong: number;
+          dropOff: number;
+          incorrectRate: number;
+        }>;
+      }>(`/mastery/nodes/${nodeId}/lesson-analytics`),
     summary: (username: string) =>
       request<MasterySummaryResponse>(`/mastery/users/${username}/summary`),
     nextNode: () => request<NextNodeResponse>("/mastery/next-node"),

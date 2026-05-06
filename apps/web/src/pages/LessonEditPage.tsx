@@ -239,6 +239,15 @@ export function LessonEditPage() {
               Saved v{savedVersion}
             </span>
           )}
+          {pathSlug && nodeSlug && (
+            <Link
+              to={`/paths/${pathSlug}/lessons/${nodeSlug}/analytics`}
+              className="hidden sm:inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/40"
+              title="Lesson analytics"
+            >
+              Analytics
+            </Link>
+          )}
           <input
             value={editMessage}
             onChange={(e) => setEditMessage(e.target.value)}

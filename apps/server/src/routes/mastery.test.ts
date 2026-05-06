@@ -620,3 +620,88 @@ describe("Mastery: lesson authoring (wiki-style open)", () => {
     expect(res.status).toBe(404);
   });
 });
+
+describe("Mastery: lesson analytics", () => {
+  let viewer = { cookie: "", username: "" };
+  let nodeId = "";
+
+  beforeAll(async () => {
+    viewer = await signup("an");
+    const path = await getPath("ml-engineer");
+    nodeId = path.nodes[0].id;
+  });
+
+  test("POST slide-event requires auth", async () => {
+    const res = await req(`/mastery/nodes/${nodeId}/slide-event`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slideIdx: 0, kind: "viewed" }),
+    });
+    expect(res.status).toBe(401);
+  });
+
+  test("POST slide-event accepts viewed and answered events", async () => {
+    for (const kind of ["viewed", "answered_correct", "answered_wrong"]) {
+      const res = await req(`/mastery/nodes/${nodeId}/slide-event`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...cookieHeader(viewer.cookie),
+        },
+        body: JSON.stringify({ slideIdx: 0, kind }),
+      });
+      expect(res.status).toBe(200);
+    }
+  });
+
+  test("POST slide-event is idempotent per (user,slide,kind)", async () => {
+    // Re-firing the same event doesn't double-count thanks to the
+    // unique index.
+    for (let i = 0; i < 3; i++) {
+      await req(`/mastery/nodes/${nodeId}/slide-event`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...cookieHeader(viewer.cookie),
+        },
+        body: JSON.stringify({ slideIdx: 1, kind: "viewed" }),
+      });
+    }
+    const res = await req(`/mastery/nodes/${nodeId}/lesson-analytics`);
+    const data = (await res.json()) as any;
+    expect(data.slides[1].views).toBe(1);
+  });
+
+  test("GET analytics aggregates views + correctness across users", async () => {
+    const u2 = await signup("an2");
+    await req(`/mastery/nodes/${nodeId}/slide-event`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...cookieHeader(u2.cookie),
+      },
+      body: JSON.stringify({ slideIdx: 0, kind: "viewed" }),
+    });
+    await req(`/mastery/nodes/${nodeId}/slide-event`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...cookieHeader(u2.cookie),
+      },
+      body: JSON.stringify({ slideIdx: 0, kind: "answered_wrong" }),
+    });
+
+    const res = await req(`/mastery/nodes/${nodeId}/lesson-analytics`);
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as any;
+    expect(data.slides[0].views).toBeGreaterThanOrEqual(2);
+    expect(data.slides[0].answeredCorrect).toBeGreaterThanOrEqual(1);
+    expect(data.slides[0].answeredWrong).toBeGreaterThanOrEqual(1);
+    expect(data.slides[0].incorrectRate).toBeGreaterThan(0);
+  });
+
+  test("GET analytics on unknown node returns 404", async () => {
+    const res = await req(`/mastery/nodes/no-such-node/lesson-analytics`);
+    expect(res.status).toBe(404);
+  });
+});
