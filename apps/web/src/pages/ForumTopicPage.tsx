@@ -6,9 +6,13 @@ import {
   type ForumTopicDetail,
   type PostType,
 } from "../lib/api";
+import type { ForumPoll, NewsReactionKind } from "@axiomic/types";
 import { useAuthStore } from "../stores/auth";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { PostTypeBadge } from "../components/PostTypeBadge";
+import { PollEmbed } from "../components/forum/PollEmbed";
+import { BookmarkButton } from "../components/social/BookmarkButton";
+import { ReactionStrip } from "../components/social/ReactionStrip";
 
 export function ForumTopicPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -164,7 +168,50 @@ export function ForumTopicPage() {
         </div>
         <div className="flex-1 prose prose-sm dark:prose-invert max-w-none">
           <MarkdownRenderer content={topic.body} untrusted />
+          {topic.poll && (
+            <PollEmbed
+              topicSlug={topic.slug}
+              poll={topic.poll}
+              signedIn={!!user}
+              onChange={(next) => setTopic({ ...topic, poll: next })}
+            />
+          )}
         </div>
+      </div>
+
+      {/* Reactions + bookmark — same component used on news articles. */}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <ReactionStrip
+          signedIn={!!user}
+          reactionCounts={topic.reactionCounts}
+          myReactions={topic.myReactions}
+          onReact={async (kind: NewsReactionKind) => {
+            if (!user) return;
+            try {
+              const res = await api.forum.react(topic.slug, kind);
+              setTopic({
+                ...topic,
+                reactionCounts: res.reactionCounts,
+                myReactions: res.myReactions,
+              });
+            } catch {
+              // ignore
+            }
+          }}
+        />
+        {user && (
+          <BookmarkButton
+            bookmarked={topic.myBookmark}
+            onToggle={async () => {
+              try {
+                const res = await api.forum.toggleBookmark(topic.slug);
+                setTopic({ ...topic, myBookmark: res.bookmarked });
+              } catch {
+                // ignore
+              }
+            }}
+          />
+        )}
       </div>
 
       {/* Summarize */}

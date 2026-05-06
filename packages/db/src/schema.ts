@@ -353,6 +353,96 @@ export const newsBookmarks = sqliteTable(
   }),
 );
 
+// --- Forum reactions / bookmarks / polls ---
+// Topic-level reactions (per-post deferred). Same three kinds as news.
+export const forumReactions = sqliteTable(
+  "forum_reactions",
+  {
+    id: text("id").primaryKey(),
+    topicId: text("topic_id").notNull().references(() => forumTopics.id),
+    userId: text("user_id").notNull().references(() => users.id),
+    kind: text("kind").notNull(),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("forum_reactions_uniq_idx").on(
+      t.topicId,
+      t.userId,
+      t.kind,
+    ),
+    topicKindIdx: index("forum_reactions_topic_kind_idx").on(t.topicId, t.kind),
+  }),
+);
+
+export const forumBookmarks = sqliteTable(
+  "forum_bookmarks",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    topicId: text("topic_id").notNull().references(() => forumTopics.id),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("forum_bookmarks_uniq_idx").on(t.userId, t.topicId),
+    userIdx: index("forum_bookmarks_user_idx").on(t.userId, t.createdAt),
+  }),
+);
+
+// Polls live on a forum topic with postType="poll". One poll per topic;
+// 2-8 options; each user votes for exactly one option (and may switch).
+export const forumPolls = sqliteTable("forum_polls", {
+  id: text("id").primaryKey(),
+  topicId: text("topic_id").notNull().unique().references(() => forumTopics.id),
+  question: text("question").notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+export const forumPollOptions = sqliteTable(
+  "forum_poll_options",
+  {
+    id: text("id").primaryKey(),
+    pollId: text("poll_id").notNull().references(() => forumPolls.id),
+    label: text("label").notNull(),
+    order: integer("order").notNull(),
+  },
+  (t) => ({
+    pollIdx: index("forum_poll_options_poll_idx").on(t.pollId, t.order),
+  }),
+);
+
+export const forumPollVotes = sqliteTable(
+  "forum_poll_votes",
+  {
+    id: text("id").primaryKey(),
+    pollId: text("poll_id").notNull().references(() => forumPolls.id),
+    optionId: text("option_id").notNull().references(() => forumPollOptions.id),
+    userId: text("user_id").notNull().references(() => users.id),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("forum_poll_votes_uniq_idx").on(t.pollId, t.userId),
+  }),
+);
+
+// --- Social: one-way follow graph ---
+export const userFollows = sqliteTable(
+  "user_follows",
+  {
+    id: text("id").primaryKey(),
+    followerId: text("follower_id").notNull().references(() => users.id),
+    followeeId: text("followee_id").notNull().references(() => users.id),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("user_follows_uniq_idx").on(
+      t.followerId,
+      t.followeeId,
+    ),
+    followerIdx: index("user_follows_follower_idx").on(t.followerId, t.createdAt),
+    followeeIdx: index("user_follows_followee_idx").on(t.followeeId, t.createdAt),
+  }),
+);
+
 // --- Notifications ---
 //
 // Polymorphic subject (matches forumVotes vocabulary): "topic" | "post" | "comment".

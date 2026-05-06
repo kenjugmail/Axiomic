@@ -5,6 +5,7 @@ import { POST_TYPES } from "@axiomic/types";
 import { useAuthStore } from "../stores/auth";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { PostTypeBadge } from "../components/PostTypeBadge";
+import { PollBuilder } from "../components/forum/PollBuilder";
 
 const POST_TYPE_HINTS: Record<PostType, string> = {
   claim: "Stake out a position. State the claim sharply and offer your strongest evidence.",
@@ -15,6 +16,8 @@ const POST_TYPE_HINTS: Record<PostType, string> = {
     "Bring multiple threads or papers together into a unified picture. Cite what you're synthesizing.",
   prediction:
     "Make a falsifiable prediction. Include the criterion that would make you abandon it.",
+  poll:
+    "Ask the community to choose. Frame the question and provide 2-8 options.",
 };
 
 export function NewTopicPage() {
@@ -32,6 +35,8 @@ export function NewTopicPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [pollQuestion, setPollQuestion] = useState("");
+  const [pollOptions, setPollOptions] = useState<string[]>(["", ""]);
 
   useEffect(() => {
     api.forum.domains().then((d) => setDomains(d.domains));
@@ -54,19 +59,39 @@ export function NewTopicPage() {
     );
   }
 
+  const validPollOptions = pollOptions
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+  const pollReady =
+    postType !== "poll" ||
+    (pollQuestion.trim().length >= 3 && validPollOptions.length >= 2);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submitting) return;
     setError(null);
     setSubmitting(true);
     try {
-      const { topic } = await api.forum.createTopic({
-        title: title.trim(),
-        body: body.trim(),
-        postType,
-        domainSlug,
-        wikiPageId: wikiPageId || null,
-      });
+      let topic;
+      if (postType === "poll") {
+        ({ topic } = await api.forum.createTopicWithPoll({
+          title: title.trim(),
+          body: body.trim() || pollQuestion.trim(),
+          domainSlug,
+          poll: {
+            question: pollQuestion.trim(),
+            options: validPollOptions.map((label) => ({ label })),
+          },
+        }));
+      } else {
+        ({ topic } = await api.forum.createTopic({
+          title: title.trim(),
+          body: body.trim(),
+          postType,
+          domainSlug,
+          wikiPageId: wikiPageId || null,
+        }));
+      }
       navigate(`/forum/t/${topic.slug}`);
     } catch (err: any) {
       setError(err?.message || "Failed to create topic");
@@ -148,10 +173,21 @@ export function NewTopicPage() {
           />
         </div>
 
+        {postType === "poll" && (
+          <PollBuilder
+            question={pollQuestion}
+            options={pollOptions}
+            onChange={(next) => {
+              setPollQuestion(next.question);
+              setPollOptions(next.options);
+            }}
+          />
+        )}
+
         <div>
           <div className="flex justify-between items-baseline">
             <label className="text-xs uppercase tracking-wider text-muted-foreground">
-              Body (Markdown · LaTeX)
+              {postType === "poll" ? "Intro (optional)" : "Body (Markdown · LaTeX)"}
             </label>
             <button
               type="button"
@@ -169,11 +205,15 @@ export function NewTopicPage() {
             <textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              rows={14}
-              required
-              minLength={1}
+              rows={postType === "poll" ? 4 : 14}
+              required={postType !== "poll"}
+              minLength={postType === "poll" ? 0 : 1}
               className="mt-1 w-full px-3 py-2 rounded-md border border-input bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring"
-              placeholder="State the case. Quote sources. Make assumptions explicit."
+              placeholder={
+                postType === "poll"
+                  ? "Optional context for the poll."
+                  : "State the case. Quote sources. Make assumptions explicit."
+              }
             />
           )}
         </div>
@@ -183,7 +223,12 @@ export function NewTopicPage() {
         <div className="flex gap-2">
           <button
             type="submit"
-            disabled={submitting || !title.trim() || !body.trim()}
+            disabled={
+              submitting ||
+              !title.trim() ||
+              (postType !== "poll" && !body.trim()) ||
+              !pollReady
+            }
             className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
           >
             {submitting ? "Posting…" : "Post topic"}

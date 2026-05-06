@@ -7,11 +7,19 @@ import type {
   AchievementCatalogResponse,
   EarnedAchievement,
   ActivityHeatmapCell,
+  CreateForumPollRequest,
   CreateNewsArticleRequest,
   CreateNewsCommentRequest,
   CreateNewsProposalRequest,
   CreateWikiPageRequest,
   DueCountResponse,
+  FeedResponse,
+  FollowStatsResponse,
+  FollowsListResponse,
+  ForumBookmarksResponse,
+  PollVoteResponse,
+  ToggleFollowResponse,
+  ToggleForumReactionResponse,
   NewsArticleResponse,
   NewsBookmarksResponse,
   NewsCommentsResponse,
@@ -205,6 +213,42 @@ export const api = {
         credentials: "include",
         headers: { "Content-Type": "application/json" },
       }),
+    react: (slug: string, kind: "thumbs" | "lightbulb" | "mind_blown") =>
+      request<ToggleForumReactionResponse>(`/forum/topics/${slug}/reactions`, {
+        method: "POST",
+        body: JSON.stringify({ kind }),
+      }),
+    toggleBookmark: (slug: string) =>
+      request<{ bookmarked: boolean }>(`/forum/topics/${slug}/bookmark`, {
+        method: "POST",
+      }),
+    bookmarks: () => request<ForumBookmarksResponse>("/forum/me/bookmarks"),
+    votePoll: (pollId: string, optionId: string) =>
+      request<PollVoteResponse>(`/forum/polls/${pollId}/vote`, {
+        method: "POST",
+        body: JSON.stringify({ optionId }),
+      }),
+    createTopicWithPoll: (data: {
+      title: string;
+      body: string;
+      domainSlug: string;
+      poll: CreateForumPollRequest;
+    }) =>
+      request<ForumCreateTopicResponse>("/forum/topics", {
+        method: "POST",
+        body: JSON.stringify({ ...data, postType: "poll" }),
+      }),
+  },
+  social: {
+    toggleFollow: (username: string) =>
+      request<ToggleFollowResponse>(`/users/${username}/follow`, {
+        method: "POST",
+      }),
+    followStats: (username: string) =>
+      request<FollowStatsResponse>(`/users/${username}/follow-stats`),
+    follows: (username: string) =>
+      request<FollowsListResponse>(`/users/${username}/follows`),
+    feed: () => request<FeedResponse>("/me/feed"),
   },
   search: {
     query: (q: string, limit?: number) => {

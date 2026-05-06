@@ -8,6 +8,7 @@ import {
   newsComments,
   newsEditProposals,
   newsReactions,
+  userFollows,
   users,
 } from "@axiomic/db";
 import { and, count, desc, eq, sql } from "drizzle-orm";
@@ -366,6 +367,7 @@ newsRouter.post("/", requireAuth, zValidator("json", createSchema), async (c) =>
   if (dup) return c.json({ error: "An article with this slug already exists" }, 409);
 
   const id = randomUUID();
+  const status = body.status || "published";
   db.insert(newsArticles).values({
     id,
     slug: body.slug,
@@ -374,16 +376,53 @@ newsRouter.post("/", requireAuth, zValidator("json", createSchema), async (c) =>
     body: body.body,
     coverEmoji: body.coverEmoji || "📰",
     accentColor: body.accentColor || "indigo",
-    status: body.status || "published",
+    status,
     tags: JSON.stringify(normalizeTags(body.tags)),
     authorId: user.id,
   }).run();
 
   invalidateSearchIndex();
 
+  // Fan out to followers when publishing immediately. Drafts don't notify.
+  if (status === "published") {
+    await fanOutNewsPublished(db, id, body.slug, body.title, user.id);
+  }
+
   const created = db.select().from(newsArticles).where(eq(newsArticles.id, id)).get();
   return c.json({ article: created }, 201);
 });
+
+// Notify every follower of `authorId` that the named article was just
+// published. Best-effort; errors are swallowed so a flaky notify call
+// doesn't fail the publish.
+async function fanOutNewsPublished(
+  db: ReturnType<typeof getDb>,
+  articleId: string,
+  slug: string,
+  title: string,
+  authorId: string,
+): Promise<void> {
+  try {
+    const followers = db
+      .select({ id: userFollows.followerId })
+      .from(userFollows)
+      .where(eq(userFollows.followeeId, authorId))
+      .all();
+    for (const f of followers) {
+      await notify({
+        recipientId: f.id,
+        actorId: authorId,
+        kind: "news_published",
+        subjectType: "news_article",
+        subjectId: articleId,
+        contextSlug: slug,
+        preview: previewFrom(`Published "${title}"`),
+      });
+    }
+  } catch (err) {
+    console.error("follower fanout (news) failed", err);
+  }
+}
 
 const updateSchema = z.object({
   title: z.string().min(1).max(200),
@@ -432,6 +471,14 @@ newsRouter.put("/:slug", requireAuth, zValidator("json", updateSchema), async (c
     .run();
 
   invalidateSearchIndex();
+
+  // Draft → published transition fans out to followers, exactly once
+  // per transition. Re-publishing an already-published article is silent.
+  const wasDraft = article.status === "draft";
+  const isNowPublished = (data.status ?? article.status) === "published";
+  if (wasDraft && isNowPublished) {
+    await fanOutNewsPublished(db, article.id, article.slug, data.title, user.id);
+  }
 
   const updated = db.select().from(newsArticles).where(eq(newsArticles.id, article.id)).get();
   return c.json({ article: updated });

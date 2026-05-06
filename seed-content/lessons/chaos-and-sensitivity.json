@@ -1,0 +1,57 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Lorenz's accident",
+      "body": "In 1963 Edward Lorenz was running a simplified weather model on an early computer. The simulation was slow, so he restarted it from a midway state — but he typed in only the first six decimals of the printed values, not the full precision in memory.\n\nWithin a few simulated weeks the new run had completely diverged from the original. Same equations, almost the same initial state, totally different weather.\n\nThis was the discovery of **chaos** — and it explained why long-term weather forecasting is fundamentally hard, not just tedious."
+    },
+    {
+      "kind": "text",
+      "title": "The Lorenz attractor",
+      "body": "The system Lorenz studied:\n\n$$\\dot{x} = \\sigma(y - x), \\quad \\dot{y} = x(\\rho - z) - y, \\quad \\dot{z} = xy - \\beta z.$$\n\nFor $\\sigma = 10, \\rho = 28, \\beta = 8/3$, trajectories spiral on two roughly-planar 'wings' and switch between them aperiodically. The attractor is bounded — the trajectory never escapes — but the path on it is non-repeating.\n\nDrag the parameters above. Below $\\rho \\approx 24.7$ the dynamics is *not* chaotic — trajectories settle onto fixed points. Past that threshold the butterfly emerges.",
+      "viz": "lorenz-attractor"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "lesson_q1",
+        "kind": "multiple_choice",
+        "question": "Same Lorenz equations, same parameters, two different initial conditions that differ by 10⁻⁹. After enough time, what do the trajectories look like?",
+        "options": [
+          "They are *visibly* different — separated by O(1) on the attractor — even though they started indistinguishable",
+          "They remain within 10⁻⁹ of each other forever",
+          "They converge to the same attractor and onto the same point",
+          "They diverge to infinity"
+        ],
+        "correctIndex": 0,
+        "explanation": "Sensitive dependence: the separation grows like e^(λt) with λ > 0. Around 1/λ ≈ 1 time unit per order of magnitude for the canonical Lorenz parameters."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Determinism without predictability",
+      "body": "This is the central paradox: chaotic systems are **fully deterministic** — same initial state gives the same trajectory, every time — but they are also **practically unpredictable** beyond a finite horizon.\n\nThe reason: real-world initial conditions are always known to finite precision. Even in a perfect simulation, the limits of measurement give you a small ball of possibilities, and chaos exponentially stretches that ball into something the size of the whole attractor.\n\nThe time horizon $1/\\lambda$ (the Lyapunov time) is the practical prediction limit:\n\n- Weather: $\\sim 2$ weeks.\n- Solar system: $\\sim 5$ million years.\n- Double pendulum: $\\sim 1$ second.\n\nPast that, it's not bad math, it's not insufficient compute. It's information-theoretically out of reach."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "lesson_q2",
+        "kind": "multiple_choice",
+        "question": "Is chaos the same thing as randomness?",
+        "options": [
+          "No — chaos is structured and lawful, but unpredictable past a horizon. Randomness has no underlying deterministic equation.",
+          "Yes — they are interchangeable.",
+          "Chaos is a kind of true random number generator.",
+          "They differ only in name."
+        ],
+        "correctIndex": 0,
+        "explanation": "A chaotic system is deterministic and reproducible from the same initial conditions. A random system has irreducible probabilistic outcomes. The former *looks* random over long times, but its short-time predictions are exact."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Where chaos appears in ML",
+      "body": "Chaos isn't just exotic physics. It shows up in:\n\n- **Recurrent neural networks at the edge of stability** — the dynamics of the hidden state can be chaotic, and at the boundary you get long memory plus rich expressivity.\n- **Training trajectories** — SGD on a non-convex loss is noisy, sometimes chaotic, and the geometry of the loss landscape is full of saddle points and bifurcations like the ones we just studied.\n- **Generation from autoregressive models** — long-horizon sampling is chaotic in the sense that small perturbations to the prefix can produce vastly different completions.\n\nThe vocabulary of dynamical systems is *the* language for thinking about how stable / sensitive a learned model is. Lorenz's accident was the start; the field hasn't stopped paying dividends."
+    }
+  ]
+}

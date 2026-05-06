@@ -12,6 +12,7 @@ import type {
 } from "@axiomic/types";
 import { AchievementsGallery } from "../components/AchievementsGallery";
 import { ActivityHeatmap } from "../components/ActivityHeatmap";
+import { FollowButton } from "../components/FollowButton";
 
 const LEVEL_COLORS: Record<string, string> = {
   apprentice: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
@@ -174,7 +175,7 @@ export function ProfilePage() {
         <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-2xl font-bold text-primary">
           {display.charAt(0).toUpperCase()}
         </div>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-bold">{display}</h1>
           <p className="text-muted-foreground text-sm">@{username}</p>
           {isOwnProfile && currentUser?.createdAt && (
@@ -183,6 +184,7 @@ export function ProfilePage() {
             </p>
           )}
         </div>
+        {!isOwnProfile && <FollowButton username={username} />}
       </div>
 
       <div className="space-y-6">

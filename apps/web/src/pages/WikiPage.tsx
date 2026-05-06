@@ -94,7 +94,7 @@ export function WikiPage() {
   }
 
   return (
-    <div className={`max-w-7xl mx-auto px-4 py-8 ${aiOpen ? "mr-96" : ""}`}>
+    <div className={`max-w-7xl mx-auto px-4 py-8 ${aiOpen ? "lg:mr-96" : ""}`}>
       <div className="flex gap-8">
         {/* Main content */}
         <article className="flex-1 min-w-0">

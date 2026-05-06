@@ -1,0 +1,50 @@
+[
+  {
+    "id": "q1",
+    "question": "What is a *limit cycle*?",
+    "options": [
+      "A closed periodic orbit in phase space that nearby trajectories spiral toward (or away from)",
+      "A linear oscillation with constant amplitude",
+      "Any chaotic orbit",
+      "A trajectory that diverges to infinity"
+    ],
+    "correctIndex": 0,
+    "explanation": "Limit cycles are uniquely nonlinear: a linear oscillator's amplitude is set by initial conditions, but a *stable* limit cycle is approached from any nearby state. Heartbeats and laser oscillations live on limit cycles."
+  },
+  {
+    "id": "q2",
+    "question": "In a Hopf bifurcation, what changes as the parameter crosses the critical value?",
+    "options": [
+      "A stable fixed point loses stability and births a small-amplitude limit cycle",
+      "Two fixed points collide and disappear",
+      "The system enters chaos directly",
+      "Energy is no longer conserved"
+    ],
+    "correctIndex": 0,
+    "explanation": "Hopf is the standard route to oscillation in 2D systems: a pair of complex eigenvalues crosses the imaginary axis, the fixed point destabilizes, and a small limit cycle appears nearby."
+  },
+  {
+    "id": "q3",
+    "question": "Feigenbaum's constant δ ≈ 4.669 is *universal* in the sense that:",
+    "options": [
+      "Every smooth, single-humped 1D map exhibits a period-doubling cascade with the same δ as it approaches chaos",
+      "It is exactly equal to e + 2",
+      "It only applies to the logistic map",
+      "It is a fundamental physical constant"
+    ],
+    "correctIndex": 0,
+    "explanation": "Different maps with different shapes share the same Feigenbaum constants — universality. Renormalization-group analysis explains why; the rate of period-doubling depends only on the qualitative shape of the map, not its specifics."
+  },
+  {
+    "id": "q4",
+    "kind": "slider",
+    "question": "On the double pendulum viz, vary the upper-arm initial angle. Find a starting angle where the motion stays roughly periodic (small oscillations near the bottom) instead of chaotic. The bottom of the well is θ = 0.",
+    "viz": "double-pendulum",
+    "min": -3.14,
+    "max": 3.14,
+    "step": 0.05,
+    "default": 2.2,
+    "target": { "min": -0.5, "max": 0.5 },
+    "explanation": "Near θ = 0 (small oscillations), the double pendulum is well-approximated by a linear two-mode coupled oscillator — pure normal-mode behavior, not chaotic. Chaos kicks in at large angles where nonlinearity dominates."
+  }
+]

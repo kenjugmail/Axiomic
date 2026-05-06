@@ -350,7 +350,8 @@ export type PostType =
   | "derivation"
   | "critique"
   | "synthesis"
-  | "prediction";
+  | "prediction"
+  | "poll";
 
 export const POST_TYPES: PostType[] = [
   "claim",
@@ -359,6 +360,7 @@ export const POST_TYPES: PostType[] = [
   "critique",
   "synthesis",
   "prediction",
+  "poll",
 ];
 
 export interface ForumDomain {
@@ -406,6 +408,10 @@ export interface ForumPost {
 export interface ForumTopicDetail extends ForumTopicSummary {
   body: string;
   posts: ForumPost[];
+  reactionCounts: Record<NewsReactionKind, number>;
+  myReactions: Record<NewsReactionKind, boolean> | null;
+  myBookmark: boolean;
+  poll: ForumPoll | null;
 }
 
 export interface ReputationByDomain {
@@ -452,7 +458,9 @@ export type NotificationKind =
   | "mastery_level_up"
   | "news_edit_proposed"
   | "news_edit_approved"
-  | "news_edit_rejected";
+  | "news_edit_rejected"
+  | "news_published"
+  | "forum_topic_posted";
 
 export type NotificationSubject =
   | "topic"
@@ -472,6 +480,8 @@ export const NOTIFICATION_KINDS: NotificationKind[] = [
   "news_edit_proposed",
   "news_edit_approved",
   "news_edit_rejected",
+  "news_published",
+  "forum_topic_posted",
 ];
 
 export const NOTIFICATION_SUBJECTS: NotificationSubject[] = [
@@ -852,4 +862,111 @@ export interface CreateNewsCommentRequest {
 
 export interface UpdateNewsCommentRequest {
   content: string;
+}
+
+// --- Forum reactions / bookmarks / polls / follows ---
+
+export type ForumReactionKind = NewsReactionKind;
+
+export interface ForumPollOption {
+  id: string;
+  label: string;
+  order: number;
+  count: number;
+}
+
+export interface ForumPoll {
+  id: string;
+  question: string;
+  totalVotes: number;
+  myOptionId: string | null;
+  options: ForumPollOption[];
+}
+
+export interface ForumBookmarkSummary {
+  id: string;
+  slug: string;
+  title: string;
+  postType: string;
+  domainSlug: string;
+  domainTitle: string;
+  authorUsername: string;
+  bookmarkedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ForumBookmarksResponse {
+  topics: ForumBookmarkSummary[];
+}
+
+export interface ToggleForumReactionResponse {
+  reactionCounts: Record<NewsReactionKind, number>;
+  myReactions: Record<NewsReactionKind, boolean>;
+}
+
+export interface PollVoteResponse {
+  poll: {
+    id: string;
+    myOptionId: string;
+    totalVotes: number;
+    options: ForumPollOption[];
+  };
+}
+
+export interface FollowStatsResponse {
+  followerCount: number;
+  followingCount: number;
+  following: boolean;
+}
+
+export interface ToggleFollowResponse {
+  following: boolean;
+}
+
+export interface FollowSummary {
+  username: string;
+  displayName: string | null;
+  createdAt: string;
+}
+
+export interface FollowsListResponse {
+  followers: FollowSummary[];
+  following: FollowSummary[];
+}
+
+export type FeedItem =
+  | {
+      kind: "news";
+      slug: string;
+      title: string;
+      summary: string;
+      coverEmoji: string;
+      accentColor: NewsAccentColor;
+      authorUsername: string;
+      createdAt: string;
+    }
+  | {
+      kind: "topic";
+      slug: string;
+      title: string;
+      body: string;
+      postType: string;
+      domainSlug: string;
+      domainTitle: string;
+      authorUsername: string;
+      createdAt: string;
+    };
+
+export interface FeedResponse {
+  items: FeedItem[];
+}
+
+export interface CreatePollOption {
+  label: string;
+}
+
+export interface CreateForumPollRequest {
+  question: string;
+  options: CreatePollOption[];
 }

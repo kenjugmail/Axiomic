@@ -1,6 +1,9 @@
 import { SoftmaxTemperatureSlider } from "../../../../../packages/viz/src/quiz/SoftmaxTemperatureSlider";
 import { GradientDescent2D } from "../../../../../packages/viz/src/quiz/GradientDescent2D";
 import { ActivationFunctionGallery } from "../../../../../packages/viz/src/components/ActivationFunctionGallery";
+import { LorenzAttractor } from "../../../../../packages/viz/src/components/LorenzAttractor";
+import { DoublePendulum } from "../../../../../packages/viz/src/components/DoublePendulum";
+import { PhasePortrait1D } from "../../../../../packages/viz/src/components/PhasePortrait1D";
 import type { SliderQuestion as Q } from "@axiomic/types";
 
 interface Props {
@@ -34,6 +37,14 @@ function renderViz(name: string, value: number, q: Q) {
       );
     case "activation-function-gallery":
       return <ActivationFunctionGallery x={value} />;
+    case "lorenz-attractor":
+      // Slider drives ρ — the most pedagogically interesting parameter.
+      return <LorenzAttractor rho={value} />;
+    case "double-pendulum":
+      // Slider drives the upper-arm initial angle.
+      return <DoublePendulum initialTh1={value} />;
+    case "phase-portrait-1d":
+      return <PhasePortrait1D r={value} />;
     default:
       return (
         <div className="rounded-md border border-dashed border-border p-4 text-xs text-muted-foreground">

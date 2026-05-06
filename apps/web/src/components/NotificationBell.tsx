@@ -24,6 +24,10 @@ export function notificationLink(n: Notification): string {
     case "news_comment":
       return `/news/${n.contextSlug}#comment-${n.subjectId}`;
     default:
+      // news_article (news_published) and topic (forum_topic_posted)
+      // already have routes above; this fallthrough catches anything new.
+      if (n.subjectType === "news_article") return `/news/${n.contextSlug}`;
+      if (n.subjectType === "topic") return `/forum/t/${n.contextSlug}`;
       return "/notifications";
   }
 }
@@ -46,6 +50,10 @@ function kindLabel(kind: Notification["kind"]): string {
       return "approved your proposed edit";
     case "news_edit_rejected":
       return "declined your proposed edit";
+    case "news_published":
+      return "published a new article";
+    case "forum_topic_posted":
+      return "started a new forum topic";
   }
 }
 

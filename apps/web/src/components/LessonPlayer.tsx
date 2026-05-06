@@ -12,6 +12,9 @@ import { EmbeddingExplorer } from "../../../../packages/viz/src/components/Embed
 import { LayerActivations } from "../../../../packages/viz/src/components/LayerActivations";
 import { PositionalEncoding } from "../../../../packages/viz/src/components/PositionalEncoding";
 import { ActivationFunctionGallery } from "../../../../packages/viz/src/components/ActivationFunctionGallery";
+import { LorenzAttractor } from "../../../../packages/viz/src/components/LorenzAttractor";
+import { DoublePendulum } from "../../../../packages/viz/src/components/DoublePendulum";
+import { PhasePortrait1D } from "../../../../packages/viz/src/components/PhasePortrait1D";
 
 const PASSING_SCORE = 0.7;
 
@@ -117,6 +120,12 @@ function PreviewViz({ name, props }: { name: string; props?: Record<string, unkn
           x={typeof props?.x === "number" ? props.x : undefined}
         />
       );
+    case "lorenz-attractor":
+      return <LorenzAttractor {...(props as object)} />;
+    case "double-pendulum":
+      return <DoublePendulum {...(props as object)} />;
+    case "phase-portrait-1d":
+      return <PhasePortrait1D {...(props as object)} />;
     default:
       return null;
   }

@@ -24,6 +24,10 @@ function kindLabel(kind: Notification["kind"]): string {
       return "approved your proposed edit";
     case "news_edit_rejected":
       return "declined your proposed edit";
+    case "news_published":
+      return "published a new article";
+    case "forum_topic_posted":
+      return "started a new forum topic";
   }
 }
 

@@ -1,0 +1,41 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What is a phase portrait?",
+      "body": "Take a 1D dynamical system $\\dot{x} = f(x)$. The state at any moment is just a single number — the position $x$. The dynamics is the function $f$ that says how $x$ changes.\n\nThe **phase portrait** is the picture you get when you draw $f(x)$ on a plot, mark its zeros, and put little arrows on the x-axis showing whether $x$ is moving left or right at each point.\n\nFrom that one picture you can read off the entire long-term behavior of the system without solving anything."
+    },
+    {
+      "kind": "text",
+      "title": "A toy with one knob",
+      "body": "Consider $\\dot{x} = rx - x^3$. Here $r$ is a tunable parameter — temperature, applied field, growth rate, anything that smoothly varies.\n\nFor different values of $r$ you get different phase portraits. Try the slider:\n\n- $r < 0$: a single stable fixed point at the origin. Everything is attracted there.\n- $r = 0$: the dynamics is marginal — exactly $\\dot{x} = -x^3$. Still attracts to zero, but very slowly.\n- $r > 0$: the origin destabilizes, and two new stable fixed points appear at $\\pm \\sqrt{r}$.\n\nThis is a *pitchfork bifurcation*. One stable solution becomes three (one of them unstable, two stable) as $r$ crosses zero.",
+      "viz": "phase-portrait-1d"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "lesson_q1",
+        "kind": "multiple_choice",
+        "question": "When r < 0, where does the system end up if you start at x = +1?",
+        "options": [
+          "x = 0 (the only stable fixed point)",
+          "x = +√|r|",
+          "x = −√|r|",
+          "x diverges to infinity"
+        ],
+        "correctIndex": 0,
+        "explanation": "For r < 0 the only fixed point is at 0, and it's stable. From any starting position, you flow toward zero."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Why bifurcations are everywhere",
+      "body": "Bifurcations are how *continuous* parameter changes produce *discrete* behavioral shifts. A real-world tuning knob is smooth — temperature, voltage, hormone level — but the system's behavior often snaps between regimes at sharp thresholds.\n\nExamples that all share the pitchfork structure:\n\n- A magnetized iron bar above its Curie temperature: zero net magnetization. Below: it picks ±M spontaneously.\n- A laser below threshold: no coherent light. Above: coherent emission (one of two phases spontaneously selected).\n- A neuron at rest: subthreshold drift. Above the spike threshold: the action potential fires.\n\nAll the same picture. Same bifurcation. Different physics."
+    },
+    {
+      "kind": "text",
+      "title": "What this leads into",
+      "body": "Phase portraits are the right way to *see* dynamics. They generalize cleanly:\n\n- 2D phase space (position + velocity for a 1D mechanical system) lets us draw spirals, centers, saddles, and limit cycles.\n- 3D phase space is the home of strange attractors. The [Lorenz system](/wiki/chaos-and-sensitivity) lives here.\n- High-dimensional phase space is where neural-network training dynamics happen. The same vocabulary — fixed points, basins of attraction, saddles — is what theorists use to think about why deep learning works.\n\nMaster the 1D picture and the higher-dimensional cases stop looking foreign."
+    }
+  ]
+}

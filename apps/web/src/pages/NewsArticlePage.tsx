@@ -7,17 +7,9 @@ import { AiArticleHelpers } from "../components/news/AiArticleHelpers";
 import { NewsComments } from "../components/news/NewsComments";
 import { NewsCover } from "../components/news/NewsCover";
 import { RelatedNewsRail } from "../components/news/RelatedNewsRail";
+import { BookmarkButton } from "../components/social/BookmarkButton";
+import { ReactionStrip } from "../components/social/ReactionStrip";
 import { useAuthStore } from "../stores/auth";
-
-const REACTION_BUTTONS: Array<{
-  kind: NewsReactionKind;
-  emoji: string;
-  label: string;
-}> = [
-  { kind: "thumbs", emoji: "👍", label: "Helpful" },
-  { kind: "lightbulb", emoji: "💡", label: "Insightful" },
-  { kind: "mind_blown", emoji: "🤯", label: "Mind-blown" },
-];
 
 function relativeDate(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, {
@@ -193,59 +185,20 @@ export function NewsArticlePage() {
       </article>
 
       {/* Reactions + bookmark */}
-      <div className="mt-10 pt-6 border-t border-border">
-        <div className="flex flex-wrap items-center gap-2">
-          {REACTION_BUTTONS.map((r) => {
-            const count = article.reactionCounts[r.kind];
-            const mine = !!article.myReactions?.[r.kind];
-            return (
-              <button
-                key={r.kind}
-                onClick={() => handleReact(r.kind)}
-                disabled={!user || reacting}
-                className={`px-3 py-1.5 rounded-full border text-sm transition-colors flex items-center gap-2 ${
-                  mine
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border hover:bg-accent/40"
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-                title={user ? r.label : "Sign in to react"}
-              >
-                <span className="text-lg">{r.emoji}</span>
-                <span className="font-medium">{r.label}</span>
-                {count > 0 && (
-                  <span className="text-xs text-muted-foreground tabular-nums">
-                    {count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-          <div className="flex-1" />
-          {user && (
-            <button
-              onClick={handleBookmark}
-              disabled={bookmarking}
-              className={`px-3 py-1.5 rounded-full border text-sm transition-colors flex items-center gap-2 ${
-                article.myBookmark
-                  ? "border-amber-500 bg-amber-500/10 text-amber-700 dark:text-amber-400"
-                  : "border-border hover:bg-accent/40"
-              } disabled:opacity-50`}
-              title={article.myBookmark ? "Remove from bookmarks" : "Save for later"}
-            >
-              <span className="text-lg">{article.myBookmark ? "🔖" : "🏷️"}</span>
-              <span className="font-medium">
-                {article.myBookmark ? "Saved" : "Save"}
-              </span>
-            </button>
-          )}
-        </div>
-        {!user && (
-          <p className="text-xs text-muted-foreground mt-2">
-            <Link to="/login" className="text-primary hover:underline">
-              Sign in
-            </Link>{" "}
-            to react, save, or suggest edits.
-          </p>
+      <div className="mt-10 pt-6 border-t border-border flex flex-wrap items-center justify-between gap-3">
+        <ReactionStrip
+          signedIn={!!user}
+          reactionCounts={article.reactionCounts}
+          myReactions={article.myReactions}
+          onReact={handleReact}
+          pending={reacting}
+        />
+        {user && (
+          <BookmarkButton
+            bookmarked={article.myBookmark}
+            onToggle={handleBookmark}
+            pending={bookmarking}
+          />
         )}
       </div>
 

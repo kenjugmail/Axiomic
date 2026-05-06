@@ -10,6 +10,8 @@ const STYLES: Record<PostType, string> = {
     "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
   prediction:
     "bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-300 border-fuchsia-500/30",
+  poll:
+    "bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/30",
 };
 
 export function PostTypeBadge({

@@ -8,10 +8,16 @@ import {
   forumPosts,
   forumPostEdits,
   forumVotes,
+  forumReactions,
+  forumBookmarks,
+  forumPolls,
+  forumPollOptions,
+  forumPollVotes,
+  userFollows,
   users,
   wikiPages,
 } from "@axiomic/db";
-import { eq, and, sql, inArray } from "drizzle-orm";
+import { count, desc, eq, and, sql, inArray, asc } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { getAIProvider } from "@axiomic/ai";
 import { requireAuth, getSessionUser } from "../middleware/auth";
@@ -29,7 +35,42 @@ const POST_TYPES = [
   "critique",
   "synthesis",
   "prediction",
+  "poll",
 ] as const;
+
+const REACTION_KINDS = ["thumbs", "lightbulb", "mind_blown"] as const;
+type ReactionKind = (typeof REACTION_KINDS)[number];
+
+async function forumReactionRollup(
+  db: ReturnType<typeof getDb>,
+  topicIds: string[],
+): Promise<Map<string, Record<ReactionKind, number>>> {
+  const blank = (): Record<ReactionKind, number> => ({
+    thumbs: 0,
+    lightbulb: 0,
+    mind_blown: 0,
+  });
+  const out = new Map<string, Record<ReactionKind, number>>();
+  for (const id of topicIds) out.set(id, blank());
+  if (topicIds.length === 0) return out;
+  const rows = db
+    .select({
+      topicId: forumReactions.topicId,
+      kind: forumReactions.kind,
+      n: count(),
+    })
+    .from(forumReactions)
+    .where(sql`${forumReactions.topicId} in ${topicIds}`)
+    .groupBy(forumReactions.topicId, forumReactions.kind)
+    .all();
+  for (const r of rows) {
+    const bucket = out.get(r.topicId);
+    if (bucket && (REACTION_KINDS as readonly string[]).includes(r.kind)) {
+      bucket[r.kind as ReactionKind] = Number(r.n);
+    }
+  }
+  return out;
+}
 
 const SLUG_RANDOM_LEN = 6;
 
@@ -307,6 +348,100 @@ forum.get("/topics/:slug", async (c) => {
         )
       : topicRow.updatedAt;
 
+  // Reactions + my-reactions + my-bookmark.
+  const reactionRollup = await forumReactionRollup(db, [topicRow.id]);
+  const reactionCounts = reactionRollup.get(topicRow.id) ?? {
+    thumbs: 0,
+    lightbulb: 0,
+    mind_blown: 0,
+  };
+  let myReactions: Record<ReactionKind, boolean> | null = null;
+  let myBookmark = false;
+  if (currentUser) {
+    const mine = db
+      .select({ kind: forumReactions.kind })
+      .from(forumReactions)
+      .where(
+        and(
+          eq(forumReactions.topicId, topicRow.id),
+          eq(forumReactions.userId, currentUser.id),
+        ),
+      )
+      .all();
+    myReactions = { thumbs: false, lightbulb: false, mind_blown: false };
+    for (const r of mine) {
+      if ((REACTION_KINDS as readonly string[]).includes(r.kind)) {
+        myReactions[r.kind as ReactionKind] = true;
+      }
+    }
+    const bm = db
+      .select({ id: forumBookmarks.id })
+      .from(forumBookmarks)
+      .where(
+        and(
+          eq(forumBookmarks.topicId, topicRow.id),
+          eq(forumBookmarks.userId, currentUser.id),
+        ),
+      )
+      .get();
+    myBookmark = !!bm;
+  }
+
+  // Poll, if this topic carries one.
+  let poll: any = null;
+  if (topicRow.postType === "poll") {
+    const pollRow = db
+      .select()
+      .from(forumPolls)
+      .where(eq(forumPolls.topicId, topicRow.id))
+      .get();
+    if (pollRow) {
+      const optionRows = db
+        .select()
+        .from(forumPollOptions)
+        .where(eq(forumPollOptions.pollId, pollRow.id))
+        .orderBy(asc(forumPollOptions.order))
+        .all();
+      const tallies = db
+        .select({ optionId: forumPollVotes.optionId, n: count() })
+        .from(forumPollVotes)
+        .where(eq(forumPollVotes.pollId, pollRow.id))
+        .groupBy(forumPollVotes.optionId)
+        .all();
+      const tallyMap = new Map(tallies.map((t) => [t.optionId, Number(t.n)]));
+      let myOptionId: string | null = null;
+      if (currentUser) {
+        const myVote = db
+          .select({ optionId: forumPollVotes.optionId })
+          .from(forumPollVotes)
+          .where(
+            and(
+              eq(forumPollVotes.pollId, pollRow.id),
+              eq(forumPollVotes.userId, currentUser.id),
+            ),
+          )
+          .get();
+        myOptionId = myVote?.optionId ?? null;
+      }
+      const totalVotes = Array.from(tallyMap.values()).reduce(
+        (a, b) => a + b,
+        0,
+      );
+      poll = {
+        id: pollRow.id,
+        question: pollRow.question,
+        totalVotes,
+        myOptionId,
+        options: optionRows.map((o) => ({
+          id: o.id,
+          label: o.label,
+          order: o.order,
+          count: tallyMap.get(o.id) ?? 0,
+        })),
+      };
+    }
+  }
+
   return c.json({
     topic: {
       ...topicRow,
@@ -317,11 +452,17 @@ forum.get("/topics/:slug", async (c) => {
       wikiPageSlug,
       wikiPageTitle,
       posts: rootPosts,
+      reactionCounts,
+      myReactions,
+      myBookmark,
+      poll,
     },
   });
 });
 
 // --- Create topic -------------------------------------------------------
+
+const pollOptionSchema = z.object({ label: z.string().min(1).max(200) });
 
 const createTopicSchema = z.object({
   title: z.string().min(3).max(200),
@@ -329,15 +470,26 @@ const createTopicSchema = z.object({
   postType: z.enum(POST_TYPES),
   domainSlug: z.string(),
   wikiPageId: z.string().optional().nullable(),
+  // Required when postType === "poll". Min 2, max 8 options.
+  poll: z
+    .object({
+      question: z.string().min(3).max(200),
+      options: z.array(pollOptionSchema).min(2).max(8),
+    })
+    .optional(),
 });
 
 forum.post("/topics", requireAuth, zValidator("json", createTopicSchema), async (c) => {
-  const { title, body, postType, domainSlug, wikiPageId } = c.req.valid("json");
+  const { title, body, postType, domainSlug, wikiPageId, poll } = c.req.valid("json");
   const user = c.get("user")!;
   const db = getDb();
 
   const dom = db.select().from(domains).where(eq(domains.slug, domainSlug)).get();
   if (!dom) return c.json({ error: "Unknown domain" }, 400);
+
+  if (postType === "poll" && !poll) {
+    return c.json({ error: "poll required for postType=poll" }, 400);
+  }
 
   if (wikiPageId) {
     const exists = db
@@ -371,6 +523,46 @@ forum.post("/topics", requireAuth, zValidator("json", createTopicSchema), async 
     authorId: user.id,
     wikiPageId: wikiPageId || null,
   }).run();
+
+  // Persist the poll alongside, if present.
+  if (postType === "poll" && poll) {
+    const pollId = randomUUID();
+    db.insert(forumPolls).values({
+      id: pollId,
+      topicId: id,
+      question: poll.question,
+    }).run();
+    for (let i = 0; i < poll.options.length; i++) {
+      db.insert(forumPollOptions).values({
+        id: randomUUID(),
+        pollId,
+        label: poll.options[i].label,
+        order: i,
+      }).run();
+    }
+  }
+
+  // Notify followers of the author about the new topic.
+  try {
+    const followers = db
+      .select({ id: userFollows.followerId })
+      .from(userFollows)
+      .where(eq(userFollows.followeeId, user.id))
+      .all();
+    for (const f of followers) {
+      await notify({
+        recipientId: f.id,
+        actorId: user.id,
+        kind: "forum_topic_posted",
+        subjectType: "topic",
+        subjectId: id,
+        contextSlug: slug,
+        preview: toPreview(body || title),
+      });
+    }
+  } catch (err) {
+    console.error("follower fanout (topic) failed", err);
+  }
 
   // New topic enters the search corpus.
   invalidateSearchIndex();
@@ -805,5 +997,228 @@ forum.post("/topics/:slug/summarize", async (c) => {
     },
   });
 });
+
+// --- Reactions, bookmarks, poll voting -------------------------------
+
+const reactionSchema = z.object({ kind: z.enum(REACTION_KINDS) });
+
+forum.post(
+  "/topics/:slug/reactions",
+  requireAuth,
+  zValidator("json", reactionSchema),
+  async (c) => {
+    const slug = c.req.param("slug")!;
+    const { kind } = c.req.valid("json");
+    const user = c.get("user")!;
+    const db = getDb();
+
+    const topic = db
+      .select({ id: forumTopics.id })
+      .from(forumTopics)
+      .where(eq(forumTopics.slug, slug))
+      .get();
+    if (!topic) return c.json({ error: "Topic not found" }, 404);
+
+    const existing = db
+      .select({ id: forumReactions.id })
+      .from(forumReactions)
+      .where(
+        and(
+          eq(forumReactions.topicId, topic.id),
+          eq(forumReactions.userId, user.id),
+          eq(forumReactions.kind, kind),
+        ),
+      )
+      .get();
+    if (existing) {
+      db.delete(forumReactions).where(eq(forumReactions.id, existing.id)).run();
+    } else {
+      db.insert(forumReactions).values({
+        id: randomUUID(),
+        topicId: topic.id,
+        userId: user.id,
+        kind,
+      }).run();
+    }
+
+    const counts = await forumReactionRollup(db, [topic.id]);
+    const myRows = db
+      .select({ kind: forumReactions.kind })
+      .from(forumReactions)
+      .where(
+        and(
+          eq(forumReactions.topicId, topic.id),
+          eq(forumReactions.userId, user.id),
+        ),
+      )
+      .all();
+    const mine: Record<ReactionKind, boolean> = {
+      thumbs: false,
+      lightbulb: false,
+      mind_blown: false,
+    };
+    for (const r of myRows) {
+      if ((REACTION_KINDS as readonly string[]).includes(r.kind)) {
+        mine[r.kind as ReactionKind] = true;
+      }
+    }
+    return c.json({
+      reactionCounts: counts.get(topic.id) ?? {
+        thumbs: 0,
+        lightbulb: 0,
+        mind_blown: 0,
+      },
+      myReactions: mine,
+    });
+  },
+);
+
+forum.post("/topics/:slug/bookmark", requireAuth, async (c) => {
+  const slug = c.req.param("slug")!;
+  const user = c.get("user")!;
+  const db = getDb();
+
+  const topic = db
+    .select({ id: forumTopics.id })
+    .from(forumTopics)
+    .where(eq(forumTopics.slug, slug))
+    .get();
+  if (!topic) return c.json({ error: "Topic not found" }, 404);
+
+  const existing = db
+    .select({ id: forumBookmarks.id })
+    .from(forumBookmarks)
+    .where(
+      and(
+        eq(forumBookmarks.userId, user.id),
+        eq(forumBookmarks.topicId, topic.id),
+      ),
+    )
+    .get();
+  if (existing) {
+    db.delete(forumBookmarks).where(eq(forumBookmarks.id, existing.id)).run();
+    return c.json({ bookmarked: false });
+  }
+  db.insert(forumBookmarks).values({
+    id: randomUUID(),
+    userId: user.id,
+    topicId: topic.id,
+  }).run();
+  return c.json({ bookmarked: true });
+});
+
+forum.get("/me/bookmarks", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const db = getDb();
+
+  const rows = db
+    .select({
+      id: forumTopics.id,
+      slug: forumTopics.slug,
+      title: forumTopics.title,
+      postType: forumTopics.postType,
+      domainSlug: domains.slug,
+      domainTitle: domains.title,
+      authorUsername: users.username,
+      bookmarkedAt: forumBookmarks.createdAt,
+      createdAt: forumTopics.createdAt,
+      updatedAt: forumTopics.updatedAt,
+    })
+    .from(forumBookmarks)
+    .innerJoin(forumTopics, eq(forumBookmarks.topicId, forumTopics.id))
+    .innerJoin(domains, eq(forumTopics.domainId, domains.id))
+    .innerJoin(users, eq(forumTopics.authorId, users.id))
+    .where(eq(forumBookmarks.userId, user.id))
+    .orderBy(desc(forumBookmarks.createdAt))
+    .all();
+
+  return c.json({ topics: rows });
+});
+
+const pollVoteSchema = z.object({ optionId: z.string() });
+
+forum.post(
+  "/polls/:pollId/vote",
+  requireAuth,
+  zValidator("json", pollVoteSchema),
+  async (c) => {
+    const pollId = c.req.param("pollId")!;
+    const { optionId } = c.req.valid("json");
+    const user = c.get("user")!;
+    const db = getDb();
+
+    const poll = db
+      .select({ id: forumPolls.id })
+      .from(forumPolls)
+      .where(eq(forumPolls.id, pollId))
+      .get();
+    if (!poll) return c.json({ error: "Poll not found" }, 404);
+
+    const option = db
+      .select({ id: forumPollOptions.id, pollId: forumPollOptions.pollId })
+      .from(forumPollOptions)
+      .where(eq(forumPollOptions.id, optionId))
+      .get();
+    if (!option || option.pollId !== poll.id) {
+      return c.json({ error: "Option does not belong to this poll" }, 400);
+    }
+
+    const existing = db
+      .select({ id: forumPollVotes.id })
+      .from(forumPollVotes)
+      .where(
+        and(
+          eq(forumPollVotes.pollId, poll.id),
+          eq(forumPollVotes.userId, user.id),
+        ),
+      )
+      .get();
+    if (existing) {
+      db.update(forumPollVotes)
+        .set({ optionId, createdAt: new Date().toISOString() })
+        .where(eq(forumPollVotes.id, existing.id))
+        .run();
+    } else {
+      db.insert(forumPollVotes).values({
+        id: randomUUID(),
+        pollId: poll.id,
+        optionId,
+        userId: user.id,
+      }).run();
+    }
+
+    const tallies = db
+      .select({ optionId: forumPollVotes.optionId, n: count() })
+      .from(forumPollVotes)
+      .where(eq(forumPollVotes.pollId, poll.id))
+      .groupBy(forumPollVotes.optionId)
+      .all();
+    const tallyMap = new Map(tallies.map((t) => [t.optionId, Number(t.n)]));
+    const optionRows = db
+      .select()
+      .from(forumPollOptions)
+      .where(eq(forumPollOptions.pollId, poll.id))
+      .orderBy(asc(forumPollOptions.order))
+      .all();
+    const totalVotes = Array.from(tallyMap.values()).reduce(
+      (a, b) => a + b,
+      0,
+    );
+
+    return c.json({
+      poll: {
+        id: poll.id,
+        myOptionId: optionId,
+        totalVotes,
+        options: optionRows.map((o) => ({
+          id: o.id,
+          label: o.label,
+          order: o.order,
+          count: tallyMap.get(o.id) ?? 0,
+        })),
+      },
+    });
+  },
+);
 
 export { forum };

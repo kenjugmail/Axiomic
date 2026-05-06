@@ -10,6 +10,9 @@ const LayerActivations = lazy(() => import("../../../../packages/viz/src/compone
 const QKVStepThrough = lazy(() => import("../../../../packages/viz/src/components/QKVStepThrough").then(m => ({ default: m.QKVStepThrough })));
 const EmbeddingExplorer = lazy(() => import("../../../../packages/viz/src/components/EmbeddingExplorer").then(m => ({ default: m.EmbeddingExplorer })));
 const ActivationFunctionGallery = lazy(() => import("../../../../packages/viz/src/components/ActivationFunctionGallery").then(m => ({ default: m.ActivationFunctionGallery })));
+const LorenzAttractor = lazy(() => import("../../../../packages/viz/src/components/LorenzAttractor").then(m => ({ default: m.LorenzAttractor })));
+const DoublePendulum = lazy(() => import("../../../../packages/viz/src/components/DoublePendulum").then(m => ({ default: m.DoublePendulum })));
+const PhasePortrait1D = lazy(() => import("../../../../packages/viz/src/components/PhasePortrait1D").then(m => ({ default: m.PhasePortrait1D })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -24,6 +27,9 @@ export const VIZ_NAMES = [
   "qkv-step-through",
   "embedding-explorer",
   "activation-function-gallery",
+  "lorenz-attractor",
+  "double-pendulum",
+  "phase-portrait-1d",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -36,6 +42,9 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "qkv-step-through": QKVStepThrough,
   "embedding-explorer": EmbeddingExplorer,
   "activation-function-gallery": ActivationFunctionGallery,
+  "lorenz-attractor": LorenzAttractor,
+  "double-pendulum": DoublePendulum,
+  "phase-portrait-1d": PhasePortrait1D,
 };
 
 interface VizEmbedProps {

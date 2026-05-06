@@ -10,7 +10,9 @@ export type NotificationKind =
   | "mastery_level_up"
   | "news_edit_proposed"
   | "news_edit_approved"
-  | "news_edit_rejected";
+  | "news_edit_rejected"
+  | "news_published"
+  | "forum_topic_posted";
 
 export type NotificationSubject =
   | "topic"
@@ -103,7 +105,9 @@ function kindGate(
     case "news_edit_proposed":
     case "news_edit_approved":
     case "news_edit_rejected":
-      // News flow events are direct + low-volume — always on.
+    case "news_published":
+    case "forum_topic_posted":
+      // News flow + follow events are direct + low-volume — always on.
       return null;
   }
 }

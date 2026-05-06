@@ -1,0 +1,50 @@
+[
+  {
+    "id": "q1",
+    "question": "What does it mean to say the Lyapunov exponent λ is positive?",
+    "options": [
+      "Nearby trajectories diverge exponentially in time, with separation growing like e^(λt) — the signature of chaos",
+      "Energy is gained over time",
+      "The system is dissipative",
+      "There exists a global attractor"
+    ],
+    "correctIndex": 0,
+    "explanation": "Positive λ ⇒ exponential separation ⇒ chaos. The reciprocal 1/λ is the Lyapunov time, the rough horizon for prediction."
+  },
+  {
+    "id": "q2",
+    "question": "Lorenz's 'butterfly effect' is a metaphor for:",
+    "options": [
+      "Sensitive dependence on initial conditions in chaotic systems",
+      "A bifurcation that resembles a butterfly",
+      "The fact that all chaotic systems are reversible in time",
+      "A specific theorem about insects and weather"
+    ],
+    "correctIndex": 0,
+    "explanation": "The butterfly metaphor (and the visual butterfly shape of the Lorenz attractor) names the property that vanishingly small differences in initial conditions amplify into completely different long-term outcomes."
+  },
+  {
+    "id": "q3",
+    "question": "Is the Lorenz system random?",
+    "options": [
+      "No — it is fully deterministic; the same initial state gives the same trajectory. But long-term prediction is impossible because we never know the initial state precisely enough",
+      "Yes — chaos is a synonym for randomness",
+      "Sometimes — depending on the values of σ, ρ, β",
+      "It depends on the integration scheme"
+    ],
+    "correctIndex": 0,
+    "explanation": "Determinism without long-term predictability is the central paradox of chaos. The dynamics are exact; the limit is on our knowledge of where we started."
+  },
+  {
+    "id": "q4",
+    "kind": "slider",
+    "question": "Drag ρ until the trajectory locks onto a single fixed point and stops looping. (Try around ρ ≈ 1-2; the canonical butterfly appears at ρ = 28.)",
+    "viz": "lorenz-attractor",
+    "min": 0.5,
+    "max": 40,
+    "step": 0.5,
+    "default": 28,
+    "target": { "min": 0.5, "max": 13.5 },
+    "explanation": "Below ρ ≈ 1 the origin is the only stable fixed point. Between 1 and ~13.9 there are stable non-trivial fixed points and the trajectory spirals into one. Past ρ ≈ 24.7 the system is fully chaotic."
+  }
+]
