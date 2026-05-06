@@ -101,8 +101,30 @@ export const masteryNodes = sqliteTable("mastery_nodes", {
   // JSON: Brilliant-style lesson — array of slides (text+viz or
   // embedded-question). Loaded from seed-content/lessons/<slug>.json.
   lessonData: text("lesson_data"),
+  // Bumped on each PUT to /lesson; mirrors wikiPages.currentVersion.
+  // Starts at 1 even for nodes that have never had a lesson edit.
+  currentLessonVersion: integer("current_lesson_version").notNull().default(1),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
 });
+
+// Lesson edit history. Mirrors pageVersions for wiki: every PUT
+// /mastery/nodes/:id/lesson appends a row, and restore semantics
+// write a NEW version that points back to the snapshotted lessonData
+// rather than overwriting history.
+export const lessonVersions = sqliteTable("lesson_versions", {
+  id: text("id").primaryKey(),
+  nodeId: text("node_id").notNull().references(() => masteryNodes.id),
+  version: integer("version").notNull(),
+  lessonData: text("lesson_data").notNull(),
+  editedBy: text("edited_by").references(() => users.id),
+  editMessage: text("edit_message"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  uniq: uniqueIndex("lesson_versions_node_version_idx").on(
+    t.nodeId,
+    t.version,
+  ),
+}));
 
 export const userProgress = sqliteTable("user_progress", {
   id: text("id").primaryKey(),

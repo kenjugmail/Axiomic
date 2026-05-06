@@ -8,6 +8,7 @@ import {
   HelpCircle,
   List as ListIcon,
   NotebookPen,
+  Pencil,
   Sparkles,
   Trophy,
   X as XIcon,
@@ -586,6 +587,16 @@ export function LessonPage() {
               <ListIcon className="w-3.5 h-3.5" strokeWidth={2} />
               {idx + 1} / {slides.length}
             </button>
+          )}
+          {user && pathSlug && nodeSlug && (
+            <Link
+              to={`/paths/${pathSlug}/lessons/${nodeSlug}/edit`}
+              className="hidden sm:inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/40"
+              title="Suggest an edit"
+            >
+              <Pencil className="w-3.5 h-3.5" strokeWidth={2} />
+              Edit
+            </Link>
           )}
           <button
             onClick={() => setNotesOpen((v) => !v)}

@@ -5,6 +5,7 @@ import {
   getDb,
   masteryPaths,
   masteryNodes,
+  lessonVersions,
   userProgress,
   users,
   lessonProgress,
@@ -464,6 +465,210 @@ mastery.get("/lesson/:nodeId", async (c) => {
     return c.json({ lesson: null });
   }
 });
+
+// --- Lesson authoring (wiki-style open) -------------------------------
+//
+// Any signed-in user can edit any lesson. Every PUT writes a new
+// versioned snapshot to lesson_versions, then bumps
+// masteryNodes.currentLessonVersion + replaces lessonData. Mirrors how
+// wiki versioning works.
+
+// Loose validation: full discriminated-union validation for every
+// question kind would balloon this file. We require slides to look
+// shaped-correctly and cap counts; the client editor is the canonical
+// source of well-typed lessons. Bad payloads are rejected with 400.
+const slideSchema = z.union([
+  z.object({
+    kind: z.literal("text"),
+    title: z.string().max(200).optional(),
+    body: z.string().max(20000),
+    viz: z.string().max(80).optional(),
+    vizProps: z.record(z.unknown()).optional(),
+  }),
+  z.object({
+    kind: z.literal("question"),
+    question: z
+      .object({
+        id: z.string().min(1).max(80),
+        kind: z.string().min(1),
+        question: z.string().min(1).max(500),
+      })
+      .passthrough(),
+  }),
+]);
+
+const lessonBodySchema = z.object({
+  slides: z.array(slideSchema).min(1).max(50),
+  editMessage: z.string().max(200).optional(),
+});
+
+// PUT /mastery/nodes/:nodeId/lesson — author or replace. Returns the
+// new currentLessonVersion + the saved lessonData.
+mastery.put(
+  "/nodes/:nodeId/lesson",
+  requireAuth,
+  zValidator("json", lessonBodySchema),
+  async (c) => {
+    const user = c.get("user")!;
+    const nodeId = c.req.param("nodeId")!;
+    const { slides, editMessage } = c.req.valid("json");
+    const db = getDb();
+
+    const node = db
+      .select({
+        id: masteryNodes.id,
+        currentLessonVersion: masteryNodes.currentLessonVersion,
+      })
+      .from(masteryNodes)
+      .where(eq(masteryNodes.id, nodeId))
+      .get();
+    if (!node) return c.json({ error: "Node not found" }, 404);
+
+    // Reject duplicate question.id within the same lesson — we'd
+    // otherwise overwrite per-slide answer state in the player.
+    const seen = new Set<string>();
+    for (const s of slides) {
+      if (s.kind === "question") {
+        const id = s.question.id;
+        if (seen.has(id)) {
+          return c.json(
+            { error: `Duplicate question id: ${id}` },
+            400,
+          );
+        }
+        seen.add(id);
+      }
+    }
+
+    const lessonData = JSON.stringify({ slides });
+    const nextVersion = node.currentLessonVersion + 1;
+    const versionId = randomUUID();
+    const now = new Date().toISOString();
+
+    db.insert(lessonVersions)
+      .values({
+        id: versionId,
+        nodeId,
+        version: nextVersion,
+        lessonData,
+        editedBy: user.id,
+        editMessage: editMessage ?? null,
+        createdAt: now,
+      })
+      .run();
+
+    db.update(masteryNodes)
+      .set({
+        lessonData,
+        currentLessonVersion: nextVersion,
+      })
+      .where(eq(masteryNodes.id, nodeId))
+      .run();
+
+    return c.json({
+      lesson: JSON.parse(lessonData),
+      version: nextVersion,
+    });
+  },
+);
+
+// GET /mastery/nodes/:nodeId/lesson-versions — paged history list.
+mastery.get("/nodes/:nodeId/lesson-versions", async (c) => {
+  const nodeId = c.req.param("nodeId")!;
+  const db = getDb();
+
+  const exists = db
+    .select({ id: masteryNodes.id })
+    .from(masteryNodes)
+    .where(eq(masteryNodes.id, nodeId))
+    .get();
+  if (!exists) return c.json({ error: "Node not found" }, 404);
+
+  const rows = db
+    .select({
+      id: lessonVersions.id,
+      version: lessonVersions.version,
+      editorId: lessonVersions.editedBy,
+      editorUsername: users.username,
+      editMessage: lessonVersions.editMessage,
+      createdAt: lessonVersions.createdAt,
+    })
+    .from(lessonVersions)
+    .leftJoin(users, eq(lessonVersions.editedBy, users.id))
+    .where(eq(lessonVersions.nodeId, nodeId))
+    .orderBy(desc(lessonVersions.version))
+    .all();
+
+  return c.json({ versions: rows });
+});
+
+// POST /mastery/nodes/:nodeId/lesson/restore/:version — write a new
+// version that copies the snapshotted lessonData. Doesn't overwrite
+// history; the restore is just another forward-going version.
+mastery.post(
+  "/nodes/:nodeId/lesson/restore/:version",
+  requireAuth,
+  async (c) => {
+    const user = c.get("user")!;
+    const nodeId = c.req.param("nodeId")!;
+    const version = parseInt(c.req.param("version") ?? "", 10);
+    if (!Number.isFinite(version) || version <= 0) {
+      return c.json({ error: "Invalid version" }, 400);
+    }
+    const db = getDb();
+
+    const node = db
+      .select({
+        id: masteryNodes.id,
+        currentLessonVersion: masteryNodes.currentLessonVersion,
+      })
+      .from(masteryNodes)
+      .where(eq(masteryNodes.id, nodeId))
+      .get();
+    if (!node) return c.json({ error: "Node not found" }, 404);
+
+    const target = db
+      .select({ lessonData: lessonVersions.lessonData })
+      .from(lessonVersions)
+      .where(
+        and(
+          eq(lessonVersions.nodeId, nodeId),
+          eq(lessonVersions.version, version),
+        ),
+      )
+      .get();
+    if (!target) return c.json({ error: "Version not found" }, 404);
+
+    const nextVersion = node.currentLessonVersion + 1;
+    const versionId = randomUUID();
+    const now = new Date().toISOString();
+
+    db.insert(lessonVersions)
+      .values({
+        id: versionId,
+        nodeId,
+        version: nextVersion,
+        lessonData: target.lessonData,
+        editedBy: user.id,
+        editMessage: `Restore from v${version}`,
+        createdAt: now,
+      })
+      .run();
+
+    db.update(masteryNodes)
+      .set({
+        lessonData: target.lessonData,
+        currentLessonVersion: nextVersion,
+      })
+      .where(eq(masteryNodes.id, nodeId))
+      .run();
+
+    return c.json({
+      lesson: JSON.parse(target.lessonData),
+      version: nextVersion,
+    });
+  },
+);
 
 // Get quiz for a node
 mastery.get("/quiz/:nodeId", async (c) => {

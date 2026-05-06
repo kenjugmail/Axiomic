@@ -31,6 +31,11 @@ const OnboardingPage = lazy(() =>
     default: m.OnboardingPage,
   })),
 );
+const LessonEditPage = lazy(() =>
+  import("./pages/LessonEditPage").then((m) => ({
+    default: m.LessonEditPage,
+  })),
+);
 // Reading pages with heavy deps (markdown + KaTeX renderers, comments,
 // reactions). Lazy so the home/list pages don't pull them in.
 const WikiPage = lazy(() =>
@@ -152,6 +157,10 @@ export function App() {
           <Route
             path="/paths/:pathSlug/lessons/:nodeSlug"
             element={<LessonPage />}
+          />
+          <Route
+            path="/paths/:pathSlug/lessons/:nodeSlug/edit"
+            element={<LessonEditPage />}
           />
           <Route path="/forum" element={<ForumListPage />} />
           <Route path="/forum/new" element={<NewTopicPage />} />

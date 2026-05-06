@@ -166,6 +166,30 @@ export const api = {
       request<QuizSubmitResponse>(`/mastery/quiz/${nodeId}`, { method: "POST", body: JSON.stringify({ answers }) }),
     getLesson: (nodeId: string) =>
       request<LessonResponse>(`/mastery/lesson/${nodeId}`),
+    putLesson: (
+      nodeId: string,
+      body: { slides: any[]; editMessage?: string },
+    ) =>
+      request<{ lesson: { slides: any[] }; version: number }>(
+        `/mastery/nodes/${nodeId}/lesson`,
+        { method: "PUT", body: JSON.stringify(body) },
+      ),
+    listLessonVersions: (nodeId: string) =>
+      request<{
+        versions: Array<{
+          id: string;
+          version: number;
+          editorId: string | null;
+          editorUsername: string | null;
+          editMessage: string | null;
+          createdAt: string;
+        }>;
+      }>(`/mastery/nodes/${nodeId}/lesson-versions`),
+    restoreLessonVersion: (nodeId: string, version: number) =>
+      request<{ lesson: { slides: any[] }; version: number }>(
+        `/mastery/nodes/${nodeId}/lesson/restore/${version}`,
+        { method: "POST" },
+      ),
     summary: (username: string) =>
       request<MasterySummaryResponse>(`/mastery/users/${username}/summary`),
     nextNode: () => request<NextNodeResponse>("/mastery/next-node"),
