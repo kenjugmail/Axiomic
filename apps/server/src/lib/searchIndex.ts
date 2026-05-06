@@ -1,6 +1,13 @@
 import { desc, eq } from "drizzle-orm";
 import { getAIProvider } from "@axiomic/ai";
-import { getDb, wikiPages, pageVersions, forumTopics } from "@axiomic/db";
+import {
+  getDb,
+  wikiPages,
+  pageVersions,
+  forumTopics,
+  masteryNodes,
+  masteryPaths,
+} from "@axiomic/db";
 
 // Hybrid keyword + semantic search index.
 //
@@ -32,7 +39,22 @@ export interface IndexedTopic {
   vector: number[];
 }
 
-export type IndexedItem = IndexedPage | IndexedTopic;
+export interface IndexedLesson {
+  kind: "lesson";
+  id: string;
+  // The path slug + node slug let the client build a /paths/<p>/lessons/<n>
+  // URL without a follow-up DB lookup.
+  pathSlug: string;
+  nodeSlug: string;
+  // We reuse `slug` to mean nodeSlug so existing keyword-on-slug scoring
+  // applies uniformly across all kinds.
+  slug: string;
+  title: string;
+  snippet: string;
+  vector: number[];
+}
+
+export type IndexedItem = IndexedPage | IndexedTopic | IndexedLesson;
 
 let cache: IndexedItem[] | null = null;
 let building: Promise<IndexedItem[]> | null = null;
@@ -75,6 +97,54 @@ async function buildIndex(): Promise<IndexedItem[]> {
       title: topic.title,
       postType: topic.postType,
       domainSlug: "",  // resolved at query time if needed
+      snippet,
+      vector,
+    });
+  }
+
+  // Lessons. We extract slide titles + the first ~2KB of slide bodies
+  // and feed the concatenation through the same embedding pipeline.
+  // Nodes without authored lessons (lessonData IS NULL) are skipped.
+  const nodes = db
+    .select({
+      id: masteryNodes.id,
+      slug: masteryNodes.slug,
+      title: masteryNodes.title,
+      lessonData: masteryNodes.lessonData,
+      pathSlug: masteryPaths.slug,
+    })
+    .from(masteryNodes)
+    .innerJoin(masteryPaths, eq(masteryNodes.pathId, masteryPaths.id))
+    .all();
+  for (const node of nodes) {
+    if (!node.lessonData) continue;
+    let parsed: { slides?: Array<{ kind: string; title?: string; body?: string; question?: { question?: string } }> };
+    try {
+      parsed = JSON.parse(node.lessonData);
+    } catch {
+      continue;
+    }
+    const slides = parsed.slides ?? [];
+    if (slides.length === 0) continue;
+    const titles = slides
+      .map((s) => s.title ?? s.question?.question ?? "")
+      .filter(Boolean)
+      .join(" · ");
+    const bodies = slides
+      .map((s) => s.body ?? "")
+      .join(" ")
+      .slice(0, 2000);
+    const snippet = (titles + " " + bodies).slice(0, 500);
+    const vector = await provider.embed(
+      `${node.title} ${titles} ${bodies}`,
+    );
+    items.push({
+      kind: "lesson",
+      id: node.id,
+      pathSlug: node.pathSlug,
+      nodeSlug: node.slug,
+      slug: node.slug,
+      title: node.title,
       snippet,
       vector,
     });

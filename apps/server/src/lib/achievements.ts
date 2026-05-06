@@ -19,6 +19,7 @@ export type ActivityKind =
   | "node_completed"
   | "quiz_passed"
   | "lesson_completed"
+  | "lesson_edit"
   | "flashcard_saved"
   | "flashcard_reviewed"
   | "forum_topic_created"
@@ -179,6 +180,29 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: "Seven consecutive days of learning activity",
     icon: "🌟",
     predicate: (db, uid) => currentStreak(db, uid) >= 7,
+  },
+  // Authoring achievements — wiki-style open editing means every signed-in
+  // user can rewrite a lesson. Recognize the contributors who do.
+  {
+    slug: "lesson_first_edit",
+    title: "Author",
+    description: "Edited your first lesson",
+    icon: "✏️",
+    predicate: (db, uid) => countActivity(db, uid, "lesson_edit") >= 1,
+  },
+  {
+    slug: "lesson_5_edits",
+    title: "Curator",
+    description: "Edited five lessons",
+    icon: "✨",
+    predicate: (db, uid) => countActivity(db, uid, "lesson_edit") >= 5,
+  },
+  {
+    slug: "lesson_25_edits",
+    title: "Editor-in-chief",
+    description: "Edited twenty-five lessons",
+    icon: "🏆",
+    predicate: (db, uid) => countActivity(db, uid, "lesson_edit") >= 25,
   },
 ];
 

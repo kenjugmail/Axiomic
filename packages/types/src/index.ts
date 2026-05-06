@@ -612,7 +612,24 @@ export interface SearchTopicResult {
   matchedBy: SearchMatchedBy;
 }
 
-export type SearchResultItem = SearchPageResult | SearchTopicResult;
+export interface SearchLessonResult {
+  kind: "lesson";
+  id: string;
+  // The slide-aware index emits both pathSlug + nodeSlug; the client uses
+  // them to build /paths/<pathSlug>/lessons/<nodeSlug>.
+  slug: string;
+  pathSlug: string;
+  nodeSlug: string;
+  title: string;
+  snippet: string;
+  score: number;
+  matchedBy: SearchMatchedBy;
+}
+
+export type SearchResultItem =
+  | SearchPageResult
+  | SearchTopicResult
+  | SearchLessonResult;
 
 export interface SearchResponse {
   query: string;

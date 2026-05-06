@@ -12,7 +12,9 @@ interface Props {
 }
 
 export function hrefFor(r: SearchResultItem): string {
-  return r.kind === "page" ? `/wiki/${r.slug}` : `/forum/t/${r.slug}`;
+  if (r.kind === "page") return `/wiki/${r.slug}`;
+  if (r.kind === "lesson") return `/paths/${r.pathSlug}/lessons/${r.nodeSlug}`;
+  return `/forum/t/${r.slug}`;
 }
 
 // Shared row used by SearchDialog (modal) and SearchPage (full page).
@@ -23,7 +25,12 @@ export function SearchResultRow({
   onHover,
   onSelect,
 }: Props) {
-  const trailing = r.kind === "page" ? r.category : `forum · ${r.postType}`;
+  const trailing =
+    r.kind === "page"
+      ? r.category
+      : r.kind === "lesson"
+        ? "lesson"
+        : `forum · ${r.postType}`;
   const semanticChip = r.matchedBy === "semantic";
   const bothChip = r.matchedBy === "both";
   const inner = (

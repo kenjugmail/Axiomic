@@ -19,6 +19,7 @@ import { randomUUID } from "crypto";
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { notify } from "../lib/notifications";
 import { recordActivityAndEvaluate } from "../lib/achievements";
+import { invalidateSearchIndex } from "../lib/searchIndex";
 import type { Env } from "../env";
 
 const mastery = new Hono<Env>();
@@ -575,9 +576,16 @@ mastery.put(
       .where(eq(masteryNodes.id, nodeId))
       .run();
 
+    // Record the lesson edit so authoring achievements grant.
+    const newAchievements = recordActivityAndEvaluate(user.id, "lesson_edit");
+    // The lesson is part of the search index; refresh so future searches
+    // reflect the new content.
+    invalidateSearchIndex();
+
     return c.json({
       lesson: JSON.parse(lessonData),
       version: nextVersion,
+      newAchievements,
     });
   },
 );
