@@ -5,16 +5,11 @@ import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { SignupPage } from "./pages/SignupPage";
 import { WikiListPage } from "./pages/WikiListPage";
-import { WikiPage } from "./pages/WikiPage";
 import { SearchPage } from "./pages/SearchPage";
 import { MasteryListPage } from "./pages/MasteryListPage";
 import { MasteryPathPage } from "./pages/MasteryPathPage";
-import { LessonPage } from "./pages/LessonPage";
-import { ProfilePage } from "./pages/ProfilePage";
 import { ForumListPage } from "./pages/ForumListPage";
-import { ForumTopicPage } from "./pages/ForumTopicPage";
 import { NewsListPage } from "./pages/NewsListPage";
-import { NewsArticlePage } from "./pages/NewsArticlePage";
 import { NotificationsPage } from "./pages/NotificationsPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { useAuthStore } from "./stores/auth";
@@ -24,6 +19,30 @@ import { useThemeStore } from "./stores/theme";
 // lazy-loaded so the initial bundle is much smaller. Editors pull in
 // MarkdownRenderer + KaTeX + viz code that the article reader doesn't
 // need.
+// LessonPage pulls in 11 viz components (each in its own chunk) plus all
+// 8 question kinds and the embedded notes editor. Lazy so users who never
+// open a lesson don't pay for it.
+const LessonPage = lazy(() =>
+  import("./pages/LessonPage").then((m) => ({ default: m.LessonPage })),
+);
+// Reading pages with heavy deps (markdown + KaTeX renderers, comments,
+// reactions). Lazy so the home/list pages don't pull them in.
+const WikiPage = lazy(() =>
+  import("./pages/WikiPage").then((m) => ({ default: m.WikiPage })),
+);
+const NewsArticlePage = lazy(() =>
+  import("./pages/NewsArticlePage").then((m) => ({
+    default: m.NewsArticlePage,
+  })),
+);
+const ForumTopicPage = lazy(() =>
+  import("./pages/ForumTopicPage").then((m) => ({
+    default: m.ForumTopicPage,
+  })),
+);
+const ProfilePage = lazy(() =>
+  import("./pages/ProfilePage").then((m) => ({ default: m.ProfilePage })),
+);
 const WikiNewPage = lazy(() =>
   import("./pages/WikiNewPage").then((m) => ({ default: m.WikiNewPage })),
 );

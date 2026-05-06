@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Component, Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -6,6 +6,7 @@ import {
   BookOpen,
   CheckCircle2,
   HelpCircle,
+  List as ListIcon,
   NotebookPen,
   Sparkles,
   Trophy,
@@ -22,18 +23,67 @@ import { assertQuestionKind } from "@axiomic/types";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { QuestionRenderer, isAnswered } from "../components/quiz/QuestionRenderer";
 import { LessonNotes } from "../components/mastery/LessonNotes";
-import { SoftmaxTemperatureSlider } from "../../../../packages/viz/src/quiz/SoftmaxTemperatureSlider";
-import { AttentionHeatmapExplorer } from "../../../../packages/viz/src/quiz/AttentionHeatmapExplorer";
-import { GradientDescent2D } from "../../../../packages/viz/src/quiz/GradientDescent2D";
-import { TokenizerPlayground } from "../../../../packages/viz/src/components/TokenizerPlayground";
-import { EmbeddingExplorer } from "../../../../packages/viz/src/components/EmbeddingExplorer";
-import { LayerActivations } from "../../../../packages/viz/src/components/LayerActivations";
-import { PositionalEncoding } from "../../../../packages/viz/src/components/PositionalEncoding";
-import { ActivationFunctionGallery } from "../../../../packages/viz/src/components/ActivationFunctionGallery";
-import { LorenzAttractor } from "../../../../packages/viz/src/components/LorenzAttractor";
-import { DoublePendulum } from "../../../../packages/viz/src/components/DoublePendulum";
-import { PhasePortrait1D } from "../../../../packages/viz/src/components/PhasePortrait1D";
 import { useAuthStore } from "../stores/auth";
+
+// Lazy-loaded viz registry. Each entry is a separate chunk; only the
+// vizes a given lesson actually references are downloaded. Imports use
+// the workspace `@axiomic/viz` alias when available; the deep-relative
+// path keeps Vite's analyzer happy in the existing build setup.
+const LazySoftmaxTemperatureSlider = lazy(() =>
+  import("../../../../packages/viz/src/quiz/SoftmaxTemperatureSlider").then(
+    (m) => ({ default: m.SoftmaxTemperatureSlider }),
+  ),
+);
+const LazyAttentionHeatmapExplorer = lazy(() =>
+  import("../../../../packages/viz/src/quiz/AttentionHeatmapExplorer").then(
+    (m) => ({ default: m.AttentionHeatmapExplorer }),
+  ),
+);
+const LazyGradientDescent2D = lazy(() =>
+  import("../../../../packages/viz/src/quiz/GradientDescent2D").then((m) => ({
+    default: m.GradientDescent2D,
+  })),
+);
+const LazyTokenizerPlayground = lazy(() =>
+  import("../../../../packages/viz/src/components/TokenizerPlayground").then(
+    (m) => ({ default: m.TokenizerPlayground }),
+  ),
+);
+const LazyEmbeddingExplorer = lazy(() =>
+  import("../../../../packages/viz/src/components/EmbeddingExplorer").then(
+    (m) => ({ default: m.EmbeddingExplorer }),
+  ),
+);
+const LazyLayerActivations = lazy(() =>
+  import("../../../../packages/viz/src/components/LayerActivations").then(
+    (m) => ({ default: m.LayerActivations }),
+  ),
+);
+const LazyPositionalEncoding = lazy(() =>
+  import("../../../../packages/viz/src/components/PositionalEncoding").then(
+    (m) => ({ default: m.PositionalEncoding }),
+  ),
+);
+const LazyActivationFunctionGallery = lazy(() =>
+  import(
+    "../../../../packages/viz/src/components/ActivationFunctionGallery"
+  ).then((m) => ({ default: m.ActivationFunctionGallery })),
+);
+const LazyLorenzAttractor = lazy(() =>
+  import("../../../../packages/viz/src/components/LorenzAttractor").then(
+    (m) => ({ default: m.LorenzAttractor }),
+  ),
+);
+const LazyDoublePendulum = lazy(() =>
+  import("../../../../packages/viz/src/components/DoublePendulum").then(
+    (m) => ({ default: m.DoublePendulum }),
+  ),
+);
+const LazyPhasePortrait1D = lazy(() =>
+  import("../../../../packages/viz/src/components/PhasePortrait1D").then(
+    (m) => ({ default: m.PhasePortrait1D }),
+  ),
+);
 
 const PASSING_SCORE = 0.7;
 
@@ -118,7 +168,39 @@ function scoreLocally(question: QuizQuestion, answer: string | undefined): boole
   }
 }
 
-function PreviewViz({
+function VizSkeleton() {
+  return (
+    <div className="min-h-[280px] w-full rounded-md bg-muted animate-pulse" />
+  );
+}
+
+// Catches dynamic-import failures (offline / chunk load error) so a
+// missing viz never blanks the lesson body. Falls back to a small note.
+class VizErrorBoundary extends Component<
+  { children: React.ReactNode },
+  { failed: boolean }
+> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  componentDidCatch() {
+    // Swallow — UI already shows the fallback. No need to log.
+  }
+  render() {
+    if (this.state.failed) {
+      return (
+        <div className="min-h-[120px] flex items-center justify-center rounded-md border border-dashed border-border bg-muted/40 text-xs text-muted-foreground p-4 text-center">
+          Visualization unavailable — keep reading; the concept stands on its
+          own.
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function VizByName({
   name,
   props,
 }: {
@@ -128,13 +210,13 @@ function PreviewViz({
   switch (name) {
     case "softmax-temperature-preview":
       return (
-        <SoftmaxTemperatureSlider
+        <LazySoftmaxTemperatureSlider
           value={typeof props?.value === "number" ? props.value : 1}
         />
       );
     case "attention-heatmap-explorer":
       return (
-        <AttentionHeatmapExplorer
+        <LazyAttentionHeatmapExplorer
           presetIndex={
             typeof props?.presetIndex === "number" ? props.presetIndex : 0
           }
@@ -142,7 +224,7 @@ function PreviewViz({
       );
     case "gradient-descent-2d":
       return (
-        <GradientDescent2D
+        <LazyGradientDescent2D
           learningRate={
             typeof props?.learningRate === "number" ? props.learningRate : 0.1
           }
@@ -150,28 +232,38 @@ function PreviewViz({
         />
       );
     case "tokenizer-playground":
-      return <TokenizerPlayground />;
+      return <LazyTokenizerPlayground />;
     case "embedding-explorer":
-      return <EmbeddingExplorer />;
+      return <LazyEmbeddingExplorer />;
     case "layer-activations":
-      return <LayerActivations />;
+      return <LazyLayerActivations />;
     case "positional-encoding":
-      return <PositionalEncoding />;
+      return <LazyPositionalEncoding />;
     case "activation-function-gallery":
       return (
-        <ActivationFunctionGallery
+        <LazyActivationFunctionGallery
           x={typeof props?.x === "number" ? props.x : undefined}
         />
       );
     case "lorenz-attractor":
-      return <LorenzAttractor {...(props as object)} />;
+      return <LazyLorenzAttractor {...(props as object)} />;
     case "double-pendulum":
-      return <DoublePendulum {...(props as object)} />;
+      return <LazyDoublePendulum {...(props as object)} />;
     case "phase-portrait-1d":
-      return <PhasePortrait1D {...(props as object)} />;
+      return <LazyPhasePortrait1D {...(props as object)} />;
     default:
       return null;
   }
+}
+
+function PreviewViz(props: { name: string; props?: Record<string, unknown> }) {
+  return (
+    <VizErrorBoundary>
+      <Suspense fallback={<VizSkeleton />}>
+        <VizByName {...props} />
+      </Suspense>
+    </VizErrorBoundary>
+  );
 }
 
 function slideShortTitle(s: LessonSlide, i: number): string {
@@ -204,7 +296,9 @@ export function LessonPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
+  const [slidesDrawerOpen, setSlidesDrawerOpen] = useState(false);
   const mainRef = useRef<HTMLDivElement | null>(null);
+  const drawerRef = useRef<HTMLDivElement | null>(null);
 
   // Load path (for context + recommended-next), plus lesson + saved progress.
   useEffect(() => {
@@ -301,6 +395,10 @@ export function LessonPage() {
         return;
       }
       if (e.key === "Escape") {
+        if (slidesDrawerOpen) {
+          setSlidesDrawerOpen(false);
+          return;
+        }
         if (pathSlug) navigate(`/paths/${pathSlug}`);
         return;
       }
@@ -311,7 +409,17 @@ export function LessonPage() {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, idx, lesson, answers]);
+  }, [phase, idx, lesson, answers, slidesDrawerOpen]);
+
+  // Lock body scroll while the slide drawer is open on mobile.
+  useEffect(() => {
+    if (!slidesDrawerOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [slidesDrawerOpen]);
 
   const slides = lesson?.slides ?? [];
   const slide = slides[idx];
@@ -396,6 +504,57 @@ export function LessonPage() {
 
   const exitHref = pathSlug ? `/paths/${pathSlug}` : "/paths";
 
+  // Single slide-list rendering used by the desktop sidebar AND the
+  // mobile bottom-sheet. `onPick` lets the sheet close when the user
+  // chooses a slide.
+  const renderSlideList = (onPick?: () => void) => (
+    <ol className="space-y-px px-2">
+      {slides.map((s, i) => {
+        const active = i === idx;
+        const Icon = s.kind === "question" ? HelpCircle : BookOpen;
+        const correct =
+          s.kind === "question" && answeredCorrectIds.has(s.question.id);
+        return (
+          <li key={i}>
+            <button
+              onClick={() => {
+                setIdx(i);
+                onPick?.();
+              }}
+              className={`w-full text-left flex items-start gap-2 px-3 py-2 rounded-md text-xs transition-colors duration-fast ${
+                active
+                  ? "bg-primary/10 text-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent/40"
+              }`}
+            >
+              <span className="mt-0.5 shrink-0">
+                {correct ? (
+                  <CheckCircle2
+                    className="w-3.5 h-3.5 text-accent-emerald"
+                    strokeWidth={2.2}
+                  />
+                ) : (
+                  <Icon
+                    className={`w-3.5 h-3.5 ${active ? "text-primary" : ""}`}
+                    strokeWidth={2}
+                  />
+                )}
+              </span>
+              <span className="flex-1 min-w-0">
+                <span className="block font-mono text-[10px] text-muted-foreground">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="block leading-snug">
+                  {slideShortTitle(s, i)}
+                </span>
+              </span>
+            </button>
+          </li>
+        );
+      })}
+    </ol>
+  );
+
   return (
     <div className="min-h-[calc(100vh-3.5rem)] bg-background">
       {/* Top header */}
@@ -417,6 +576,17 @@ export function LessonPage() {
               {node?.title ?? "Loading…"}
             </h1>
           </div>
+          {phase === "playing" && slides.length > 0 && (
+            <button
+              onClick={() => setSlidesDrawerOpen(true)}
+              className="lg:hidden inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-colors duration-fast tabular-nums"
+              aria-haspopup="dialog"
+              aria-expanded={slidesDrawerOpen}
+            >
+              <ListIcon className="w-3.5 h-3.5" strokeWidth={2} />
+              {idx + 1} / {slides.length}
+            </button>
+          )}
           <button
             onClick={() => setNotesOpen((v) => !v)}
             className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md transition-colors duration-fast ${
@@ -452,57 +622,13 @@ export function LessonPage() {
 
       {/* Body */}
       <div className="max-w-7xl mx-auto grid lg:grid-cols-[260px_1fr] min-h-[calc(100vh-7rem)]">
-        {/* Slide list — sticky sidebar */}
+        {/* Slide list — sticky sidebar (desktop only) */}
         <aside className="hidden lg:block border-r border-border">
           <nav className="sticky top-[calc(3.5rem+3.5rem+0.25rem)] py-4 max-h-[calc(100vh-7.25rem)] overflow-y-auto">
             <div className="px-4 pb-2 text-[10px] uppercase tracking-wider text-muted-foreground">
               Slides · {slides.length}
             </div>
-            <ol className="space-y-px px-2">
-              {slides.map((s, i) => {
-                const active = i === idx;
-                const Icon = s.kind === "question" ? HelpCircle : BookOpen;
-                const correct =
-                  s.kind === "question" &&
-                  answeredCorrectIds.has(s.question.id);
-                return (
-                  <li key={i}>
-                    <button
-                      onClick={() => setIdx(i)}
-                      className={`w-full text-left flex items-start gap-2 px-3 py-2 rounded-md text-xs transition-colors duration-fast ${
-                        active
-                          ? "bg-primary/10 text-foreground"
-                          : "text-muted-foreground hover:text-foreground hover:bg-accent/40"
-                      }`}
-                    >
-                      <span className="mt-0.5 shrink-0">
-                        {correct ? (
-                          <CheckCircle2
-                            className="w-3.5 h-3.5 text-accent-emerald"
-                            strokeWidth={2.2}
-                          />
-                        ) : (
-                          <Icon
-                            className={`w-3.5 h-3.5 ${
-                              active ? "text-primary" : ""
-                            }`}
-                            strokeWidth={2}
-                          />
-                        )}
-                      </span>
-                      <span className="flex-1 min-w-0">
-                        <span className="block font-mono text-[10px] text-muted-foreground">
-                          {String(i + 1).padStart(2, "0")}
-                        </span>
-                        <span className="block leading-snug">
-                          {slideShortTitle(s, i)}
-                        </span>
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ol>
+            {renderSlideList()}
           </nav>
         </aside>
 
@@ -725,6 +851,40 @@ export function LessonPage() {
         <div className="fixed bottom-0 inset-x-0 z-40 px-4 pb-4 sm:px-8 sm:pb-8 pointer-events-none">
           <div className="max-w-2xl mx-auto pointer-events-auto animate-fade-in">
             <LessonNotes nodeId={node.id} />
+          </div>
+        </div>
+      )}
+
+      {/* Mobile slide-list bottom sheet — only used on screens below
+          the lg breakpoint where the desktop sidebar is hidden. */}
+      {slidesDrawerOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-50 bg-background/70 backdrop-blur-sm animate-fade-in"
+          onClick={() => setSlidesDrawerOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="All slides"
+        >
+          <div
+            ref={drawerRef}
+            className="absolute inset-x-0 bottom-0 max-h-[70vh] bg-card border-t border-border rounded-t-xl shadow-floating flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 h-12 border-b border-border">
+              <span className="text-xs uppercase tracking-wider text-muted-foreground">
+                Slides · {slides.length}
+              </span>
+              <button
+                onClick={() => setSlidesDrawerOpen(false)}
+                className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/40"
+                aria-label="Close slide list"
+              >
+                <XIcon className="w-4 h-4" strokeWidth={2} />
+              </button>
+            </div>
+            <nav className="flex-1 overflow-y-auto py-3">
+              {renderSlideList(() => setSlidesDrawerOpen(false))}
+            </nav>
           </div>
         </div>
       )}
