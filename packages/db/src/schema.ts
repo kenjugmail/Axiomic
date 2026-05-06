@@ -104,8 +104,33 @@ export const masteryNodes = sqliteTable("mastery_nodes", {
   // Bumped on each PUT to /lesson; mirrors wikiPages.currentVersion.
   // Starts at 1 even for nodes that have never had a lesson edit.
   currentLessonVersion: integer("current_lesson_version").notNull().default(1),
+  // Wiki-style open editing keeps `lessonData` as the canonical
+  // published payload. `draftLessonData` lets authors stash WIP without
+  // exposing it to learners — published reads ignore the draft.
+  draftLessonData: text("draft_lesson_data"),
+  draftUpdatedAt: text("draft_updated_at"),
+  draftEditorId: text("draft_editor_id").references(() => users.id),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
 });
+
+// Anyone-can-flag-anything reports for lesson edits. Reports just
+// accumulate; admin tooling for reviewing them is a follow-up.
+export const lessonEditReports = sqliteTable(
+  "lesson_edit_reports",
+  {
+    id: text("id").primaryKey(),
+    nodeId: text("node_id").notNull().references(() => masteryNodes.id),
+    version: integer("version").notNull(),
+    reporterId: text("reporter_id").notNull().references(() => users.id),
+    reason: text("reason").notNull(), // "vandalism" | "spam" | "accuracy" | "other"
+    message: text("message"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    nodeIdx: index("lesson_edit_reports_node_idx").on(t.nodeId, t.version),
+    reporterIdx: index("lesson_edit_reports_reporter_idx").on(t.reporterId),
+  }),
+);
 
 // Lesson edit history. Mirrors pageVersions for wiki: every PUT
 // /mastery/nodes/:id/lesson appends a row, and restore semantics

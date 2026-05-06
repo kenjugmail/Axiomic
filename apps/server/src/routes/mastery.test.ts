@@ -705,3 +705,149 @@ describe("Mastery: lesson analytics", () => {
     expect(res.status).toBe(404);
   });
 });
+
+describe("Mastery: lesson drafts + reports + edits feed", () => {
+  let editor = { cookie: "", username: "" };
+  let nodeId = "";
+
+  const makeBody = (suffix: string) => ({
+    slides: [
+      { kind: "text", title: `Draft ${suffix}`, body: "wip" },
+    ],
+  });
+
+  beforeAll(async () => {
+    editor = await signup("draft");
+    const path = await getPath("ml-engineer");
+    nodeId = path.nodes[0].id;
+  });
+
+  test("PUT ?draft=1 stashes a draft without bumping version", async () => {
+    const before = await req(`/mastery/nodes/${nodeId}/lesson-versions`);
+    const beforeData = (await before.json()) as any;
+    const beforeMax =
+      beforeData.versions.length > 0 ? beforeData.versions[0].version : 1;
+
+    const res = await req(`/mastery/nodes/${nodeId}/lesson?draft=1`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...cookieHeader(editor.cookie),
+      },
+      body: JSON.stringify(makeBody("first")),
+    });
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as any;
+    expect(data.draft).toBe(true);
+    expect(data.version).toBe(beforeMax);
+
+    const after = await req(`/mastery/nodes/${nodeId}/lesson-versions`);
+    const afterData = (await after.json()) as any;
+    const afterMax =
+      afterData.versions.length > 0 ? afterData.versions[0].version : 1;
+    expect(afterMax).toBe(beforeMax);
+  });
+
+  test("GET draft returns the in-flight draft + editor handle", async () => {
+    const res = await req(`/mastery/nodes/${nodeId}/lesson/draft`);
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as any;
+    expect(data.draft).toBeTruthy();
+    expect(data.draft.lesson.slides[0].title).toBe("Draft first");
+    expect(data.draft.editorUsername).toBe(editor.username);
+  });
+
+  test("Publishing a draft creates a new version + clears the draft", async () => {
+    const before = await req(`/mastery/nodes/${nodeId}/lesson-versions`);
+    const beforeMax = ((await before.json()) as any).versions[0].version;
+
+    const pub = await req(`/mastery/nodes/${nodeId}/lesson/publish-draft`, {
+      method: "POST",
+      headers: cookieHeader(editor.cookie),
+    });
+    expect(pub.status).toBe(200);
+    const data = (await pub.json()) as any;
+    expect(data.version).toBe(beforeMax + 1);
+
+    const draftRes = await req(`/mastery/nodes/${nodeId}/lesson/draft`);
+    const draftData = (await draftRes.json()) as any;
+    expect(draftData.draft).toBeNull();
+  });
+
+  test("Publishing without a draft returns 400", async () => {
+    const res = await req(`/mastery/nodes/${nodeId}/lesson/publish-draft`, {
+      method: "POST",
+      headers: cookieHeader(editor.cookie),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  test("Reporting an existing version writes a row", async () => {
+    const versions = await req(`/mastery/nodes/${nodeId}/lesson-versions`);
+    const v = ((await versions.json()) as any).versions[0].version as number;
+
+    const res = await req(
+      `/mastery/nodes/${nodeId}/lesson/report-version/${v}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...cookieHeader(editor.cookie),
+        },
+        body: JSON.stringify({ reason: "spam", message: "test" }),
+      },
+    );
+    expect(res.status).toBe(200);
+  });
+
+  test("Reporting an unknown version returns 404", async () => {
+    const res = await req(
+      `/mastery/nodes/${nodeId}/lesson/report-version/99999`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...cookieHeader(editor.cookie),
+        },
+        body: JSON.stringify({ reason: "vandalism" }),
+      },
+    );
+    expect(res.status).toBe(404);
+  });
+
+  test("Reporting requires auth", async () => {
+    const res = await req(
+      `/mastery/nodes/${nodeId}/lesson/report-version/1`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: "spam" }),
+      },
+    );
+    expect(res.status).toBe(401);
+  });
+
+  test("GET /lesson-edits returns recent lesson_versions rows", async () => {
+    const res = await req("/mastery/lesson-edits?limit=5");
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as any;
+    expect(Array.isArray(data.edits)).toBe(true);
+    if (data.edits.length > 0) {
+      const first = data.edits[0];
+      expect(first.nodeSlug).toBeTruthy();
+      expect(first.pathSlug).toBeTruthy();
+      expect(typeof first.version).toBe("number");
+    }
+  });
+
+  test("GET /lesson-edits filters by username", async () => {
+    const res = await req(
+      `/mastery/lesson-edits?username=${editor.username}&limit=20`,
+    );
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as any;
+    for (const e of data.edits) {
+      expect(e.editorUsername).toBe(editor.username);
+    }
+  });
+});

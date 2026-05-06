@@ -1,0 +1,216 @@
+import { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { Flag, RotateCcw, Sparkles } from "lucide-react";
+import { api } from "../lib/api";
+import { useAuthStore } from "../stores/auth";
+import { Skeleton } from "../components/ui";
+import { ReportEditModal } from "../components/lesson/ReportEditModal";
+
+interface Edit {
+  versionId: string;
+  nodeId: string;
+  version: number;
+  editorId: string | null;
+  editorUsername: string | null;
+  editMessage: string | null;
+  createdAt: string;
+  nodeSlug: string;
+  nodeTitle: string;
+  pathSlug: string;
+  currentLessonVersion: number;
+}
+
+function relativeTime(iso: string): string {
+  const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+  if (s < 60) return `${s}s ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  return `${d}d ago`;
+}
+
+export function LessonEditsFeed() {
+  const [searchParams] = useSearchParams();
+  const usernameFilter = searchParams.get("username") ?? undefined;
+  const user = useAuthStore((s) => s.user);
+
+  const [edits, setEdits] = useState<Edit[] | null>(null);
+  const [reverting, setReverting] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [reporting, setReporting] = useState<{
+    nodeId: string;
+    version: number;
+  } | null>(null);
+
+  const load = () => {
+    setEdits(null);
+    api.mastery
+      .lessonEditsFeed({ username: usernameFilter, limit: 30 })
+      .then((r) => setEdits(r.edits))
+      .catch(() => setEdits([]));
+  };
+
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [usernameFilter]);
+
+  const revertTo = async (e: Edit) => {
+    if (reverting) return;
+    if (e.version <= 1) {
+      setError("There's no earlier version to revert to.");
+      return;
+    }
+    if (!confirm(`Revert ${e.nodeTitle} from v${e.version} back to v${e.version - 1}?`)) {
+      return;
+    }
+    setReverting(e.versionId);
+    setError(null);
+    try {
+      await api.mastery.restoreLessonVersion(e.nodeId, e.version - 1);
+      load();
+    } catch (err: any) {
+      setError(err?.message ?? "Revert failed");
+    } finally {
+      setReverting(null);
+    }
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto px-4 py-8">
+      <div className="text-[11px] uppercase tracking-wider text-muted-foreground inline-flex items-center gap-1.5 mb-1">
+        <Sparkles className="w-3 h-3" strokeWidth={2} />
+        Community
+      </div>
+      <h1 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight leading-tight mb-1">
+        Lesson edits
+      </h1>
+      <p className="text-sm text-muted-foreground mb-6">
+        Every recent change to a lesson, newest first. Anyone can revert an
+        edit; everyone signed in can flag one for review.
+        {usernameFilter && (
+          <>
+            {" "}Filtered to{" "}
+            <Link
+              to={`/profile/${usernameFilter}`}
+              className="text-primary hover:underline"
+            >
+              @{usernameFilter}
+            </Link>{" "}
+            (
+            <Link to="/lesson-edits" className="text-primary hover:underline">
+              clear
+            </Link>
+            ).
+          </>
+        )}
+      </p>
+
+      {error && (
+        <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm mb-4">
+          {error}
+        </div>
+      )}
+
+      {edits === null ? (
+        <div className="space-y-2">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-16" />
+          ))}
+        </div>
+      ) : edits.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No edits yet.</p>
+      ) : (
+        <ul className="space-y-2">
+          {edits.map((e) => {
+            const isCurrent = e.version === e.currentLessonVersion;
+            return (
+              <li
+                key={e.versionId}
+                className="rounded-lg border border-border bg-card p-3"
+              >
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap text-xs">
+                      <Link
+                        to={`/paths/${e.pathSlug}/lessons/${e.nodeSlug}`}
+                        className="font-semibold text-sm hover:underline"
+                      >
+                        {e.nodeTitle}
+                      </Link>
+                      <span className="font-mono text-muted-foreground">
+                        v{e.version}
+                      </span>
+                      {isCurrent && (
+                        <span className="text-[10px] uppercase tracking-wider px-1.5 py-px rounded bg-primary/10 text-primary">
+                          current
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      {e.editMessage || (
+                        <span className="italic">no edit message</span>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground mt-1">
+                      {e.editorUsername ? (
+                        <>
+                          by{" "}
+                          <Link
+                            to={`/profile/${e.editorUsername}`}
+                            className="hover:text-foreground"
+                          >
+                            @{e.editorUsername}
+                          </Link>{" "}
+                          ·{" "}
+                        </>
+                      ) : (
+                        <>by deleted user · </>
+                      )}
+                      {relativeTime(e.createdAt)}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {user && e.version > 1 && (
+                      <button
+                        onClick={() => revertTo(e)}
+                        disabled={reverting === e.versionId}
+                        className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md border border-border hover:bg-accent/40 disabled:opacity-50"
+                        title={`Revert to v${e.version - 1}`}
+                      >
+                        <RotateCcw className="w-3 h-3" strokeWidth={2} />
+                        Revert
+                      </button>
+                    )}
+                    {user && (
+                      <button
+                        onClick={() =>
+                          setReporting({ nodeId: e.nodeId, version: e.version })
+                        }
+                        className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md text-muted-foreground hover:text-destructive"
+                        title="Report this edit"
+                      >
+                        <Flag className="w-3 h-3" strokeWidth={2} />
+                        Report
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {reporting && (
+        <ReportEditModal
+          nodeId={reporting.nodeId}
+          version={reporting.version}
+          onClose={() => setReporting(null)}
+        />
+      )}
+    </div>
+  );
+}

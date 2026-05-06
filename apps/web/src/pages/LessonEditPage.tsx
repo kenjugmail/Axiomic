@@ -68,6 +68,10 @@ export function LessonEditPage() {
   const [editMessage, setEditMessage] = useState("");
   const [saving, setSaving] = useState(false);
   const [savedVersion, setSavedVersion] = useState<number | null>(null);
+  const [draftStatus, setDraftStatus] = useState<{
+    updatedAt: string;
+    editorUsername: string | null;
+  } | null>(null);
   const [slidesDrawerOpen, setSlidesDrawerOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [versions, setVersions] = useState<
@@ -100,14 +104,30 @@ export function LessonEditPage() {
           api.mastery.listLessonVersions(node.id).catch(() => ({
             versions: [],
           })),
-        ]).then(([lr, vr]) => {
+          api.mastery.getLessonDraft(node.id).catch(() => ({ draft: null })),
+        ]).then(([lr, vr, dr]) => {
           if (cancelled) return;
-          const initial: LessonSlide[] =
+          // Drafts override published content for the editor itself —
+          // authors continue from where they (or a collaborator) left
+          // off. The viewer (LessonPage) keeps reading published.
+          const draftSlides =
+            dr.draft?.lesson?.slides && dr.draft.lesson.slides.length > 0
+              ? (dr.draft.lesson.slides as LessonSlide[])
+              : null;
+          const publishedSlides =
             lr.lesson?.slides && lr.lesson.slides.length > 0
               ? (lr.lesson.slides as LessonSlide[])
-              : [newTextSlide()];
+              : null;
+          const initial: LessonSlide[] =
+            draftSlides ?? publishedSlides ?? [newTextSlide()];
           setSlides(initial);
           setVersions(vr.versions ?? []);
+          if (dr.draft) {
+            setDraftStatus({
+              updatedAt: dr.draft.updatedAt,
+              editorUsername: dr.draft.editorUsername,
+            });
+          }
           setPhase("ready");
         });
       })
@@ -247,24 +267,54 @@ export function LessonEditPage() {
     </>
   );
 
-  const save = async () => {
+  const save = async (mode: "publish" | "draft" = "publish") => {
     if (!nodeId || saving) return;
     setSaving(true);
     setError(null);
     try {
-      const r = await api.mastery.putLesson(nodeId, {
-        slides: slides as any,
-        editMessage: editMessage.trim() || undefined,
-      });
+      const r = await api.mastery.putLesson(
+        nodeId,
+        {
+          slides: slides as any,
+          editMessage: editMessage.trim() || undefined,
+        },
+        { draft: mode === "draft" },
+      );
+      if (r.draft) {
+        setDraftStatus({
+          updatedAt: r.draftUpdatedAt ?? new Date().toISOString(),
+          editorUsername: user?.username ?? null,
+        });
+      } else {
+        setSavedVersion(r.version);
+        setDraftStatus(null);
+        setEditMessage("");
+        const vr = await api.mastery.listLessonVersions(nodeId).catch(() => ({
+          versions: [],
+        }));
+        setVersions(vr.versions ?? []);
+      }
+    } catch (e: any) {
+      setError(e?.message ?? "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const publishDraft = async () => {
+    if (!nodeId || saving) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const r = await api.mastery.publishLessonDraft(nodeId);
       setSavedVersion(r.version);
-      setEditMessage("");
-      // refresh versions list
+      setDraftStatus(null);
       const vr = await api.mastery.listLessonVersions(nodeId).catch(() => ({
         versions: [],
       }));
       setVersions(vr.versions ?? []);
     } catch (e: any) {
-      setError(e?.message ?? "Save failed");
+      setError(e?.message ?? "Publish failed");
     } finally {
       setSaving(false);
     }
@@ -376,12 +426,20 @@ export function LessonEditPage() {
             maxLength={200}
           />
           <button
-            onClick={save}
+            onClick={() => save("draft")}
+            disabled={saving}
+            className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-border text-xs text-muted-foreground hover:text-foreground hover:bg-accent/40 disabled:opacity-50"
+            title="Save without publishing — draft is hidden from learners"
+          >
+            Save draft
+          </button>
+          <button
+            onClick={() => save("publish")}
             disabled={saving}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 disabled:opacity-50"
           >
             <Save className="w-3.5 h-3.5" strokeWidth={2} />
-            {saving ? "Saving…" : "Save"}
+            {saving ? "Saving…" : "Publish"}
           </button>
         </div>
       </div>
@@ -390,6 +448,31 @@ export function LessonEditPage() {
         <div className="max-w-7xl mx-auto px-4 mt-4">
           <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
             {error}
+          </div>
+        </div>
+      )}
+
+      {draftStatus && (
+        <div className="max-w-7xl mx-auto px-4 mt-4">
+          <div className="p-3 rounded-md border border-accent-amber/40 bg-accent-amber/10 text-sm flex items-center justify-between flex-wrap gap-2">
+            <span className="text-accent-amber">
+              Editing an unpublished draft
+              {draftStatus.editorUsername && (
+                <>
+                  {" "}
+                  last saved by{" "}
+                  <span className="font-medium">@{draftStatus.editorUsername}</span>
+                </>
+              )}
+              .
+            </span>
+            <button
+              onClick={publishDraft}
+              disabled={saving}
+              className="text-xs px-2 py-1 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              Publish this draft
+            </button>
           </div>
         </div>
       )}

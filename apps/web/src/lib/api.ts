@@ -169,11 +169,65 @@ export const api = {
     putLesson: (
       nodeId: string,
       body: { slides: any[]; editMessage?: string },
+      opts?: { draft?: boolean },
     ) =>
-      request<{ lesson: { slides: any[] }; version: number }>(
-        `/mastery/nodes/${nodeId}/lesson`,
+      request<{
+        draft: boolean;
+        lesson: { slides: any[] };
+        version: number;
+        draftUpdatedAt?: string;
+        newAchievements?: string[];
+      }>(
+        `/mastery/nodes/${nodeId}/lesson${opts?.draft ? "?draft=1" : ""}`,
         { method: "PUT", body: JSON.stringify(body) },
       ),
+    getLessonDraft: (nodeId: string) =>
+      request<{
+        draft:
+          | null
+          | {
+              lesson: { slides: any[] };
+              updatedAt: string;
+              editorUsername: string | null;
+            };
+      }>(`/mastery/nodes/${nodeId}/lesson/draft`),
+    publishLessonDraft: (nodeId: string) =>
+      request<{
+        lesson: { slides: any[] };
+        version: number;
+        newAchievements?: string[];
+      }>(`/mastery/nodes/${nodeId}/lesson/publish-draft`, { method: "POST" }),
+    reportLessonVersion: (
+      nodeId: string,
+      version: number,
+      body: { reason: "vandalism" | "spam" | "accuracy" | "other"; message?: string },
+    ) =>
+      request<{ ok: true }>(
+        `/mastery/nodes/${nodeId}/lesson/report-version/${version}`,
+        { method: "POST", body: JSON.stringify(body) },
+      ),
+    lessonEditsFeed: (params?: { username?: string; limit?: number; offset?: number }) => {
+      const sp = new URLSearchParams();
+      if (params?.username) sp.set("username", params.username);
+      if (params?.limit) sp.set("limit", String(params.limit));
+      if (params?.offset) sp.set("offset", String(params.offset));
+      const qs = sp.toString();
+      return request<{
+        edits: Array<{
+          versionId: string;
+          nodeId: string;
+          version: number;
+          editorId: string | null;
+          editorUsername: string | null;
+          editMessage: string | null;
+          createdAt: string;
+          nodeSlug: string;
+          nodeTitle: string;
+          pathSlug: string;
+          currentLessonVersion: number;
+        }>;
+      }>(`/mastery/lesson-edits${qs ? `?${qs}` : ""}`);
+    },
     listLessonVersions: (nodeId: string) =>
       request<{
         versions: Array<{

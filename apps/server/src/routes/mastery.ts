@@ -6,6 +6,7 @@ import {
   masteryPaths,
   masteryNodes,
   lessonVersions,
+  lessonEditReports,
   lessonSlideEvents,
   userProgress,
   users,
@@ -513,8 +514,10 @@ const lessonBodySchema = z.object({
   editMessage: z.string().max(200).optional(),
 });
 
-// PUT /mastery/nodes/:nodeId/lesson — author or replace. Returns the
-// new currentLessonVersion + the saved lessonData.
+// PUT /mastery/nodes/:nodeId/lesson — author or replace. With ?draft=1
+// the slides land in draftLessonData (no version bump, no search-index
+// refresh; learners still see the published content). Without the flag
+// the edit is published and a new lesson_versions row is created.
 mastery.put(
   "/nodes/:nodeId/lesson",
   requireAuth,
@@ -522,6 +525,7 @@ mastery.put(
   async (c) => {
     const user = c.get("user")!;
     const nodeId = c.req.param("nodeId")!;
+    const draftMode = c.req.query("draft") === "1";
     const { slides, editMessage } = c.req.valid("json");
     const db = getDb();
 
@@ -552,9 +556,31 @@ mastery.put(
     }
 
     const lessonData = JSON.stringify({ slides });
+    const now = new Date().toISOString();
+
+    if (draftMode) {
+      // Draft: stash the WIP without bumping the version or touching
+      // the published payload. Learners keep reading the existing
+      // lessonData; the editor reloads from draftLessonData.
+      db.update(masteryNodes)
+        .set({
+          draftLessonData: lessonData,
+          draftUpdatedAt: now,
+          draftEditorId: user.id,
+        })
+        .where(eq(masteryNodes.id, nodeId))
+        .run();
+
+      return c.json({
+        draft: true,
+        lesson: JSON.parse(lessonData),
+        version: node.currentLessonVersion,
+        draftUpdatedAt: now,
+      });
+    }
+
     const nextVersion = node.currentLessonVersion + 1;
     const versionId = randomUUID();
-    const now = new Date().toISOString();
 
     db.insert(lessonVersions)
       .values({
@@ -572,6 +598,10 @@ mastery.put(
       .set({
         lessonData,
         currentLessonVersion: nextVersion,
+        // Publishing clears any in-flight draft.
+        draftLessonData: null,
+        draftUpdatedAt: null,
+        draftEditorId: null,
       })
       .where(eq(masteryNodes.id, nodeId))
       .run();
@@ -583,12 +613,203 @@ mastery.put(
     invalidateSearchIndex();
 
     return c.json({
+      draft: false,
       lesson: JSON.parse(lessonData),
       version: nextVersion,
       newAchievements,
     });
   },
 );
+
+// GET /mastery/nodes/:nodeId/lesson/draft — fetches an in-flight draft
+// if one exists. Returns null when there's no draft. Auth not required
+// since drafts aren't sensitive (they're collaborative wiki-style).
+mastery.get("/nodes/:nodeId/lesson/draft", async (c) => {
+  const nodeId = c.req.param("nodeId")!;
+  const db = getDb();
+  const row = db
+    .select({
+      draftLessonData: masteryNodes.draftLessonData,
+      draftUpdatedAt: masteryNodes.draftUpdatedAt,
+      draftEditorId: masteryNodes.draftEditorId,
+      editorUsername: users.username,
+    })
+    .from(masteryNodes)
+    .leftJoin(users, eq(masteryNodes.draftEditorId, users.id))
+    .where(eq(masteryNodes.id, nodeId))
+    .get();
+  if (!row) return c.json({ error: "Node not found" }, 404);
+  if (!row.draftLessonData) return c.json({ draft: null });
+  try {
+    return c.json({
+      draft: {
+        lesson: JSON.parse(row.draftLessonData),
+        updatedAt: row.draftUpdatedAt,
+        editorUsername: row.editorUsername,
+      },
+    });
+  } catch {
+    return c.json({ draft: null });
+  }
+});
+
+// POST /mastery/nodes/:nodeId/lesson/publish-draft — promote whatever
+// is in draftLessonData into a real version. Same path as the
+// non-draft PUT but doesn't take a body: the draft IS the body.
+mastery.post(
+  "/nodes/:nodeId/lesson/publish-draft",
+  requireAuth,
+  async (c) => {
+    const user = c.get("user")!;
+    const nodeId = c.req.param("nodeId")!;
+    const db = getDb();
+
+    const node = db
+      .select({
+        id: masteryNodes.id,
+        currentLessonVersion: masteryNodes.currentLessonVersion,
+        draftLessonData: masteryNodes.draftLessonData,
+      })
+      .from(masteryNodes)
+      .where(eq(masteryNodes.id, nodeId))
+      .get();
+    if (!node) return c.json({ error: "Node not found" }, 404);
+    if (!node.draftLessonData) {
+      return c.json({ error: "No draft to publish" }, 400);
+    }
+
+    const nextVersion = node.currentLessonVersion + 1;
+    const versionId = randomUUID();
+    const now = new Date().toISOString();
+
+    db.insert(lessonVersions)
+      .values({
+        id: versionId,
+        nodeId,
+        version: nextVersion,
+        lessonData: node.draftLessonData,
+        editedBy: user.id,
+        editMessage: "Published draft",
+        createdAt: now,
+      })
+      .run();
+
+    db.update(masteryNodes)
+      .set({
+        lessonData: node.draftLessonData,
+        currentLessonVersion: nextVersion,
+        draftLessonData: null,
+        draftUpdatedAt: null,
+        draftEditorId: null,
+      })
+      .where(eq(masteryNodes.id, nodeId))
+      .run();
+
+    const newAchievements = recordActivityAndEvaluate(user.id, "lesson_edit");
+    invalidateSearchIndex();
+
+    return c.json({
+      lesson: JSON.parse(node.draftLessonData),
+      version: nextVersion,
+      newAchievements,
+    });
+  },
+);
+
+// POST /mastery/nodes/:nodeId/lesson/report-version/:version — flag a
+// problematic edit. Reports just accumulate; admin tooling for
+// reviewing them is a follow-up.
+const reportSchema = z.object({
+  reason: z.enum(["vandalism", "spam", "accuracy", "other"]),
+  message: z.string().max(500).optional(),
+});
+mastery.post(
+  "/nodes/:nodeId/lesson/report-version/:version",
+  requireAuth,
+  zValidator("json", reportSchema),
+  async (c) => {
+    const user = c.get("user")!;
+    const nodeId = c.req.param("nodeId")!;
+    const version = parseInt(c.req.param("version") ?? "", 10);
+    const { reason, message } = c.req.valid("json");
+    if (!Number.isFinite(version) || version <= 0) {
+      return c.json({ error: "Invalid version" }, 400);
+    }
+    const db = getDb();
+
+    const target = db
+      .select({ id: lessonVersions.id })
+      .from(lessonVersions)
+      .where(
+        and(
+          eq(lessonVersions.nodeId, nodeId),
+          eq(lessonVersions.version, version),
+        ),
+      )
+      .get();
+    if (!target) return c.json({ error: "Version not found" }, 404);
+
+    db.insert(lessonEditReports)
+      .values({
+        id: randomUUID(),
+        nodeId,
+        version,
+        reporterId: user.id,
+        reason,
+        message: message ?? null,
+        createdAt: new Date().toISOString(),
+      })
+      .run();
+
+    return c.json({ ok: true });
+  },
+);
+
+// GET /mastery/lesson-edits — paged feed of recent lesson_versions
+// rows joined to users + nodes for the public edits feed page.
+mastery.get("/lesson-edits", async (c) => {
+  const db = getDb();
+  const limit = Math.min(50, parseInt(c.req.query("limit") ?? "30", 10));
+  const offset = parseInt(c.req.query("offset") ?? "0", 10);
+  const username = c.req.query("username");
+
+  let editorFilter: string | undefined;
+  if (username) {
+    const u = db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.username, username))
+      .get();
+    if (!u) return c.json({ edits: [] });
+    editorFilter = u.id;
+  }
+
+  const rows = db
+    .select({
+      versionId: lessonVersions.id,
+      nodeId: lessonVersions.nodeId,
+      version: lessonVersions.version,
+      editorId: lessonVersions.editedBy,
+      editorUsername: users.username,
+      editMessage: lessonVersions.editMessage,
+      createdAt: lessonVersions.createdAt,
+      nodeSlug: masteryNodes.slug,
+      nodeTitle: masteryNodes.title,
+      pathSlug: masteryPaths.slug,
+      currentLessonVersion: masteryNodes.currentLessonVersion,
+    })
+    .from(lessonVersions)
+    .leftJoin(users, eq(lessonVersions.editedBy, users.id))
+    .innerJoin(masteryNodes, eq(lessonVersions.nodeId, masteryNodes.id))
+    .innerJoin(masteryPaths, eq(masteryNodes.pathId, masteryPaths.id))
+    .where(editorFilter ? eq(lessonVersions.editedBy, editorFilter) : undefined)
+    .orderBy(desc(lessonVersions.createdAt))
+    .limit(limit)
+    .offset(offset)
+    .all();
+
+  return c.json({ edits: rows });
+});
 
 // GET /mastery/nodes/:nodeId/lesson-versions — paged history list.
 mastery.get("/nodes/:nodeId/lesson-versions", async (c) => {
