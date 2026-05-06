@@ -12,6 +12,14 @@ export const users = sqliteTable("users", {
   notifyMentions: integer("notify_mentions", { mode: "boolean" }).notNull().default(true),
   notifyReplies: integer("notify_replies", { mode: "boolean" }).notNull().default(true),
   notifyMastery: integer("notify_mastery", { mode: "boolean" }).notNull().default(true),
+  // Set when the user finishes the post-signup onboarding wizard.
+  // Null means they haven't onboarded yet (also true for legacy users
+  // pre-feature; we treat null as "no longer prompt" to avoid surprising
+  // existing accounts).
+  onboardedAt: text("onboarded_at"),
+  // Optional preferred starting path (slug) chosen during onboarding.
+  // Used to seed the dashboard's "Continue learning" tile.
+  startingPathSlug: text("starting_path_slug"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
 });

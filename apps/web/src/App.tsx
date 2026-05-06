@@ -25,6 +25,12 @@ import { useThemeStore } from "./stores/theme";
 const LessonPage = lazy(() =>
   import("./pages/LessonPage").then((m) => ({ default: m.LessonPage })),
 );
+// Post-signup wizard. Only rendered once per user.
+const OnboardingPage = lazy(() =>
+  import("./pages/OnboardingPage").then((m) => ({
+    default: m.OnboardingPage,
+  })),
+);
 // Reading pages with heavy deps (markdown + KaTeX renderers, comments,
 // reactions). Lazy so the home/list pages don't pull them in.
 const WikiPage = lazy(() =>
@@ -135,6 +141,7 @@ export function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/welcome" element={<OnboardingPage />} />
           <Route path="/wiki" element={<WikiListPage />} />
           <Route path="/wiki/new" element={<WikiNewPage />} />
           <Route path="/wiki/:slug" element={<WikiPage />} />

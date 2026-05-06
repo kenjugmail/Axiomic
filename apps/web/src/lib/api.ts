@@ -303,6 +303,21 @@ export const api = {
         body: JSON.stringify(patch),
       }),
   },
+  onboarding: {
+    status: () =>
+      request<{ onboarded: boolean; startingPathSlug: string | null }>(
+        "/onboarding/status",
+      ),
+    complete: (pathSlug?: string) =>
+      request<{
+        onboarded: true;
+        startingPathSlug: string | null;
+        firstNodeSlug: string | null;
+      }>("/onboarding", {
+        method: "POST",
+        body: JSON.stringify(pathSlug ? { pathSlug } : {}),
+      }),
+  },
   notifications: {
     list: (params?: { unread?: boolean; limit?: number; offset?: number }) => {
       const sp = new URLSearchParams();

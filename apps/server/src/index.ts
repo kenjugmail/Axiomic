@@ -19,6 +19,7 @@ import { activityRouter } from "./routes/activity";
 import { newsRouter } from "./routes/news";
 import { socialRouter } from "./routes/social";
 import { gamificationRouter } from "./routes/gamification";
+import { onboardingRouter } from "./routes/onboarding";
 import { prewarmSearchIndex } from "./lib/searchIndex";
 import { userFromCookieHeader } from "./middleware/auth";
 import { attachUser, detach, subscribeArticle } from "./lib/liveBus";
@@ -77,6 +78,7 @@ app.route("/activity", activityRouter);
 app.route("/news", newsRouter);
 app.route("/", socialRouter);
 app.route("/gamification", gamificationRouter);
+app.route("/onboarding", onboardingRouter);
 
 // Pre-warm the search index in the background so the first user query
 // doesn't pay the embedding-build cost.
