@@ -5,14 +5,18 @@ import {
   ArrowLeft,
   ArrowUp,
   BookOpen,
+  Eye,
   HelpCircle,
+  List as ListIcon,
   Plus,
   Save,
   Trash2,
+  X as XIcon,
 } from "lucide-react";
 import { api } from "../lib/api";
 import type { Lesson, LessonSlide } from "@axiomic/types";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
+import { LessonPreviewModal } from "../components/lesson/LessonPreviewModal";
 import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
 
@@ -64,6 +68,8 @@ export function LessonEditPage() {
   const [editMessage, setEditMessage] = useState("");
   const [saving, setSaving] = useState(false);
   const [savedVersion, setSavedVersion] = useState<number | null>(null);
+  const [slidesDrawerOpen, setSlidesDrawerOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [versions, setVersions] = useState<
     Array<{
       version: number;
@@ -115,6 +121,36 @@ export function LessonEditPage() {
     };
   }, [pathSlug, nodeSlug]);
 
+  // Body-scroll lock + Esc handler for the mobile slide drawer.
+  useEffect(() => {
+    if (!slidesDrawerOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSlidesDrawerOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [slidesDrawerOpen]);
+
+  // Body-scroll lock + Esc handler for the preview modal.
+  useEffect(() => {
+    if (!previewOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPreviewOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [previewOpen]);
+
   const exitHref = pathSlug ? `/paths/${pathSlug}/lessons/${nodeSlug}` : "/paths";
 
   const updateSlide = (i: number, next: LessonSlide) => {
@@ -145,6 +181,71 @@ export function LessonEditPage() {
   };
 
   const slide = slides[activeIdx];
+
+  const renderSlideList = (onPick?: () => void) => (
+    <>
+      <ol className="space-y-px px-2">
+        {slides.map((s, i) => {
+          const Icon = s.kind === "question" ? HelpCircle : BookOpen;
+          const active = i === activeIdx;
+          return (
+            <li key={i} className="group">
+              <button
+                onClick={() => {
+                  setActiveIdx(i);
+                  onPick?.();
+                }}
+                className={`w-full text-left flex items-start gap-2 px-3 py-2 rounded-md text-xs transition-colors duration-fast ${
+                  active
+                    ? "bg-primary/10 text-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent/40"
+                }`}
+              >
+                <Icon
+                  className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${
+                    active ? "text-primary" : ""
+                  }`}
+                  strokeWidth={2}
+                />
+                <span className="flex-1 min-w-0">
+                  <span className="block font-mono text-[10px] text-muted-foreground">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span className="block leading-snug truncate">
+                    {s.kind === "text"
+                      ? s.title || "Untitled"
+                      : s.question.question.slice(0, 40) || "Question"}
+                  </span>
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ol>
+      <div className="px-2 mt-2 space-y-1">
+        <button
+          onClick={() => {
+            addText();
+            onPick?.();
+          }}
+          className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-md border border-dashed border-border text-xs text-muted-foreground hover:text-foreground hover:bg-accent/40"
+        >
+          <Plus className="w-3.5 h-3.5" strokeWidth={2} />
+          Text slide
+        </button>
+        <button
+          onClick={() => {
+            addQuestion();
+            onPick?.();
+          }}
+          className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-md border border-dashed border-border text-xs text-muted-foreground hover:text-foreground hover:bg-accent/40"
+        >
+          <Plus className="w-3.5 h-3.5" strokeWidth={2} />
+          Question slide
+        </button>
+      </div>
+    </>
+  );
 
   const save = async () => {
     if (!nodeId || saving) return;
@@ -234,11 +335,30 @@ export function LessonEditPage() {
             </div>
             <h1 className="text-sm font-semibold truncate">{nodeTitle}</h1>
           </div>
+          {/* Mobile: opens the slide-list bottom sheet (replaces the
+              desktop sidebar that's hidden below lg). */}
+          <button
+            onClick={() => setSlidesDrawerOpen(true)}
+            className="lg:hidden inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 tabular-nums"
+            aria-haspopup="dialog"
+            aria-expanded={slidesDrawerOpen}
+          >
+            <ListIcon className="w-3.5 h-3.5" strokeWidth={2} />
+            {activeIdx + 1} / {slides.length}
+          </button>
           {savedVersion !== null && (
             <span className="text-[11px] text-muted-foreground hidden sm:inline">
               Saved v{savedVersion}
             </span>
           )}
+          <button
+            onClick={() => setPreviewOpen(true)}
+            className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/40"
+            title="Preview unsaved lesson"
+          >
+            <Eye className="w-3.5 h-3.5" strokeWidth={2} />
+            <span className="hidden sm:inline">Preview</span>
+          </button>
           {pathSlug && nodeSlug && (
             <Link
               to={`/paths/${pathSlug}/lessons/${nodeSlug}/analytics`}
@@ -275,65 +395,15 @@ export function LessonEditPage() {
       )}
 
       <div className="max-w-7xl mx-auto grid lg:grid-cols-[260px_1fr] min-h-[calc(100vh-7rem)]">
-        {/* Slide list */}
-        <aside className="border-r border-border">
+        {/* Slide list — desktop sidebar (mobile uses the drawer below) */}
+        <aside className="hidden lg:block border-r border-border">
           <nav className="sticky top-[calc(3.5rem+3.5rem+0.25rem)] py-4 max-h-[calc(100vh-7.25rem)] overflow-y-auto">
             <div className="px-4 pb-2 flex items-center justify-between">
               <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
                 Slides · {slides.length}
               </span>
             </div>
-            <ol className="space-y-px px-2">
-              {slides.map((s, i) => {
-                const Icon = s.kind === "question" ? HelpCircle : BookOpen;
-                const active = i === activeIdx;
-                return (
-                  <li key={i} className="group">
-                    <button
-                      onClick={() => setActiveIdx(i)}
-                      className={`w-full text-left flex items-start gap-2 px-3 py-2 rounded-md text-xs transition-colors duration-fast ${
-                        active
-                          ? "bg-primary/10 text-foreground"
-                          : "text-muted-foreground hover:text-foreground hover:bg-accent/40"
-                      }`}
-                    >
-                      <Icon
-                        className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${
-                          active ? "text-primary" : ""
-                        }`}
-                        strokeWidth={2}
-                      />
-                      <span className="flex-1 min-w-0">
-                        <span className="block font-mono text-[10px] text-muted-foreground">
-                          {String(i + 1).padStart(2, "0")}
-                        </span>
-                        <span className="block leading-snug truncate">
-                          {s.kind === "text"
-                            ? s.title || "Untitled"
-                            : s.question.question.slice(0, 40) || "Question"}
-                        </span>
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ol>
-            <div className="px-2 mt-2 space-y-1">
-              <button
-                onClick={addText}
-                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-md border border-dashed border-border text-xs text-muted-foreground hover:text-foreground hover:bg-accent/40"
-              >
-                <Plus className="w-3.5 h-3.5" strokeWidth={2} />
-                Text slide
-              </button>
-              <button
-                onClick={addQuestion}
-                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-md border border-dashed border-border text-xs text-muted-foreground hover:text-foreground hover:bg-accent/40"
-              >
-                <Plus className="w-3.5 h-3.5" strokeWidth={2} />
-                Question slide
-              </button>
-            </div>
+            {renderSlideList()}
           </nav>
         </aside>
 
@@ -419,6 +489,48 @@ export function LessonEditPage() {
           )}
         </div>
       </div>
+
+      {/* Mobile slide-list bottom sheet */}
+      {slidesDrawerOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-50 bg-background/70 backdrop-blur-sm animate-fade-in"
+          onClick={() => setSlidesDrawerOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="All slides"
+        >
+          <div
+            className="absolute inset-x-0 bottom-0 max-h-[70vh] bg-card border-t border-border rounded-t-xl shadow-floating flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 h-12 border-b border-border">
+              <span className="text-xs uppercase tracking-wider text-muted-foreground">
+                Slides · {slides.length}
+              </span>
+              <button
+                onClick={() => setSlidesDrawerOpen(false)}
+                className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/40"
+                aria-label="Close"
+              >
+                <XIcon className="w-4 h-4" strokeWidth={2} />
+              </button>
+            </div>
+            <nav className="flex-1 overflow-y-auto py-3">
+              {renderSlideList(() => setSlidesDrawerOpen(false))}
+            </nav>
+          </div>
+        </div>
+      )}
+
+      {/* Preview modal — renders the lesson with the in-memory (unsaved)
+          slides so authors can validate before committing. */}
+      {previewOpen && nodeId && (
+        <LessonPreviewModal
+          slides={slides}
+          nodeTitle={nodeTitle}
+          onClose={() => setPreviewOpen(false)}
+        />
+      )}
     </div>
   );
 }
@@ -535,7 +647,6 @@ function QuestionSlideEditor({
   onChange: (s: LessonSlide) => void;
 }) {
   const q = slide.question as any;
-  const isMC = q.kind === "multiple_choice";
 
   return (
     <div className="space-y-4">
@@ -596,10 +707,26 @@ function QuestionSlideEditor({
           className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         />
       </div>
-      {isMC ? (
-        <MultipleChoiceEditor q={q} onChange={(next) => onChange({ ...slide, question: next })} />
+      {q.kind === "multiple_choice" ? (
+        <MultipleChoiceEditor
+          q={q}
+          onChange={(next) => onChange({ ...slide, question: next })}
+        />
+      ) : q.kind === "slider" ? (
+        <SliderEditor
+          q={q}
+          onChange={(next) => onChange({ ...slide, question: next })}
+        />
+      ) : q.kind === "code" ? (
+        <CodeEditor
+          q={q}
+          onChange={(next) => onChange({ ...slide, question: next })}
+        />
       ) : (
-        <RawJsonEditor q={q} onChange={(next) => onChange({ ...slide, question: next })} />
+        <RawJsonEditor
+          q={q}
+          onChange={(next) => onChange({ ...slide, question: next })}
+        />
       )}
     </div>
   );
@@ -664,6 +791,186 @@ function MultipleChoiceEditor({
         <Plus className="w-3.5 h-3.5" strokeWidth={2} />
         Add option
       </button>
+    </div>
+  );
+}
+
+function NumberField({
+  label,
+  value,
+  step,
+  onChange,
+}: {
+  label: string;
+  value: number | undefined;
+  step?: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <div>
+      <label className="block text-[11px] font-medium text-muted-foreground mb-1">
+        {label}
+      </label>
+      <input
+        type="number"
+        step={step ?? "any"}
+        value={typeof value === "number" ? value : ""}
+        onChange={(e) => {
+          const n = parseFloat(e.target.value);
+          if (Number.isFinite(n)) onChange(n);
+        }}
+        className="w-full px-2 py-1.5 rounded-md border border-input bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring"
+      />
+    </div>
+  );
+}
+
+function SliderEditor({
+  q,
+  onChange,
+}: {
+  q: any;
+  onChange: (next: any) => void;
+}) {
+  const target = (q.target ?? { min: 0, max: 1 }) as { min: number; max: number };
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <NumberField
+          label="min"
+          value={q.min}
+          onChange={(v) => onChange({ ...q, min: v })}
+        />
+        <NumberField
+          label="max"
+          value={q.max}
+          onChange={(v) => onChange({ ...q, max: v })}
+        />
+        <NumberField
+          label="step"
+          value={q.step}
+          onChange={(v) => onChange({ ...q, step: v })}
+        />
+        <NumberField
+          label="default"
+          value={q.default}
+          onChange={(v) => onChange({ ...q, default: v })}
+        />
+      </div>
+      <div>
+        <div className="text-[11px] font-medium text-muted-foreground mb-1">
+          Accepted answer range (target)
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <NumberField
+            label="target.min"
+            value={target.min}
+            onChange={(v) =>
+              onChange({ ...q, target: { ...target, min: v } })
+            }
+          />
+          <NumberField
+            label="target.max"
+            value={target.max}
+            onChange={(v) =>
+              onChange({ ...q, target: { ...target, max: v } })
+            }
+          />
+        </div>
+      </div>
+      <p className="text-[11px] text-muted-foreground">
+        The learner's answer is correct iff target.min ≤ value ≤ target.max.
+      </p>
+    </div>
+  );
+}
+
+function CodeEditor({
+  q,
+  onChange,
+}: {
+  q: any;
+  onChange: (next: any) => void;
+}) {
+  const tests: Array<{ input?: string; expected?: string }> = Array.isArray(
+    q.tests,
+  )
+    ? q.tests
+    : [];
+  const setTest = (i: number, next: { input?: string; expected?: string }) => {
+    const copy = tests.slice();
+    copy[i] = next;
+    onChange({ ...q, tests: copy });
+  };
+  const addTest = () =>
+    onChange({ ...q, tests: [...tests, { input: "", expected: "" }] });
+  const removeTest = (i: number) =>
+    onChange({ ...q, tests: tests.filter((_, j) => j !== i) });
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="block text-[11px] font-medium text-muted-foreground mb-1">
+          Starter code
+        </label>
+        <textarea
+          value={q.starterCode ?? ""}
+          onChange={(e) => onChange({ ...q, starterCode: e.target.value })}
+          rows={6}
+          className="w-full px-3 py-2 rounded-md border border-input bg-background text-xs font-mono focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+      </div>
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-[11px] font-medium text-muted-foreground">
+            Tests · {tests.length}
+          </span>
+          <button
+            onClick={addTest}
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+          >
+            <Plus className="w-3.5 h-3.5" strokeWidth={2} />
+            Add test
+          </button>
+        </div>
+        <div className="space-y-2">
+          {tests.length === 0 && (
+            <p className="text-xs text-muted-foreground italic">
+              No tests yet. Each test pairs an input with an expected output.
+            </p>
+          )}
+          {tests.map((t, i) => (
+            <div
+              key={i}
+              className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2 items-start"
+            >
+              <textarea
+                value={t.input ?? ""}
+                onChange={(e) => setTest(i, { ...t, input: e.target.value })}
+                rows={2}
+                placeholder="input"
+                className="px-2 py-1.5 rounded-md border border-input bg-background text-xs font-mono focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              <textarea
+                value={t.expected ?? ""}
+                onChange={(e) =>
+                  setTest(i, { ...t, expected: e.target.value })
+                }
+                rows={2}
+                placeholder="expected"
+                className="px-2 py-1.5 rounded-md border border-input bg-background text-xs font-mono focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              <button
+                onClick={() => removeTest(i)}
+                className="self-start p-1.5 rounded-md text-muted-foreground hover:text-destructive"
+                aria-label="Remove test"
+              >
+                <Trash2 className="w-3.5 h-3.5" strokeWidth={2} />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

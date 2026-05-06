@@ -1,4 +1,4 @@
-import { Component, Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -24,67 +24,8 @@ import { assertQuestionKind } from "@axiomic/types";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { QuestionRenderer, isAnswered } from "../components/quiz/QuestionRenderer";
 import { LessonNotes } from "../components/mastery/LessonNotes";
+import { PreviewViz } from "../components/lesson/PreviewViz";
 import { useAuthStore } from "../stores/auth";
-
-// Lazy-loaded viz registry. Each entry is a separate chunk; only the
-// vizes a given lesson actually references are downloaded. Imports use
-// the workspace `@axiomic/viz` alias when available; the deep-relative
-// path keeps Vite's analyzer happy in the existing build setup.
-const LazySoftmaxTemperatureSlider = lazy(() =>
-  import("../../../../packages/viz/src/quiz/SoftmaxTemperatureSlider").then(
-    (m) => ({ default: m.SoftmaxTemperatureSlider }),
-  ),
-);
-const LazyAttentionHeatmapExplorer = lazy(() =>
-  import("../../../../packages/viz/src/quiz/AttentionHeatmapExplorer").then(
-    (m) => ({ default: m.AttentionHeatmapExplorer }),
-  ),
-);
-const LazyGradientDescent2D = lazy(() =>
-  import("../../../../packages/viz/src/quiz/GradientDescent2D").then((m) => ({
-    default: m.GradientDescent2D,
-  })),
-);
-const LazyTokenizerPlayground = lazy(() =>
-  import("../../../../packages/viz/src/components/TokenizerPlayground").then(
-    (m) => ({ default: m.TokenizerPlayground }),
-  ),
-);
-const LazyEmbeddingExplorer = lazy(() =>
-  import("../../../../packages/viz/src/components/EmbeddingExplorer").then(
-    (m) => ({ default: m.EmbeddingExplorer }),
-  ),
-);
-const LazyLayerActivations = lazy(() =>
-  import("../../../../packages/viz/src/components/LayerActivations").then(
-    (m) => ({ default: m.LayerActivations }),
-  ),
-);
-const LazyPositionalEncoding = lazy(() =>
-  import("../../../../packages/viz/src/components/PositionalEncoding").then(
-    (m) => ({ default: m.PositionalEncoding }),
-  ),
-);
-const LazyActivationFunctionGallery = lazy(() =>
-  import(
-    "../../../../packages/viz/src/components/ActivationFunctionGallery"
-  ).then((m) => ({ default: m.ActivationFunctionGallery })),
-);
-const LazyLorenzAttractor = lazy(() =>
-  import("../../../../packages/viz/src/components/LorenzAttractor").then(
-    (m) => ({ default: m.LorenzAttractor }),
-  ),
-);
-const LazyDoublePendulum = lazy(() =>
-  import("../../../../packages/viz/src/components/DoublePendulum").then(
-    (m) => ({ default: m.DoublePendulum }),
-  ),
-);
-const LazyPhasePortrait1D = lazy(() =>
-  import("../../../../packages/viz/src/components/PhasePortrait1D").then(
-    (m) => ({ default: m.PhasePortrait1D }),
-  ),
-);
 
 const PASSING_SCORE = 0.7;
 
@@ -169,103 +110,8 @@ function scoreLocally(question: QuizQuestion, answer: string | undefined): boole
   }
 }
 
-function VizSkeleton() {
-  return (
-    <div className="min-h-[280px] w-full rounded-md bg-muted animate-pulse" />
-  );
-}
-
-// Catches dynamic-import failures (offline / chunk load error) so a
-// missing viz never blanks the lesson body. Falls back to a small note.
-class VizErrorBoundary extends Component<
-  { children: React.ReactNode },
-  { failed: boolean }
-> {
-  state = { failed: false };
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-  componentDidCatch() {
-    // Swallow — UI already shows the fallback. No need to log.
-  }
-  render() {
-    if (this.state.failed) {
-      return (
-        <div className="min-h-[120px] flex items-center justify-center rounded-md border border-dashed border-border bg-muted/40 text-xs text-muted-foreground p-4 text-center">
-          Visualization unavailable — keep reading; the concept stands on its
-          own.
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
-
-function VizByName({
-  name,
-  props,
-}: {
-  name: string;
-  props?: Record<string, unknown>;
-}) {
-  switch (name) {
-    case "softmax-temperature-preview":
-      return (
-        <LazySoftmaxTemperatureSlider
-          value={typeof props?.value === "number" ? props.value : 1}
-        />
-      );
-    case "attention-heatmap-explorer":
-      return (
-        <LazyAttentionHeatmapExplorer
-          presetIndex={
-            typeof props?.presetIndex === "number" ? props.presetIndex : 0
-          }
-        />
-      );
-    case "gradient-descent-2d":
-      return (
-        <LazyGradientDescent2D
-          learningRate={
-            typeof props?.learningRate === "number" ? props.learningRate : 0.1
-          }
-          {...(props as object)}
-        />
-      );
-    case "tokenizer-playground":
-      return <LazyTokenizerPlayground />;
-    case "embedding-explorer":
-      return <LazyEmbeddingExplorer />;
-    case "layer-activations":
-      return <LazyLayerActivations />;
-    case "positional-encoding":
-      return <LazyPositionalEncoding />;
-    case "activation-function-gallery":
-      return (
-        <LazyActivationFunctionGallery
-          x={typeof props?.x === "number" ? props.x : undefined}
-        />
-      );
-    case "lorenz-attractor":
-      return <LazyLorenzAttractor {...(props as object)} />;
-    case "double-pendulum":
-      return <LazyDoublePendulum {...(props as object)} />;
-    case "phase-portrait-1d":
-      return <LazyPhasePortrait1D {...(props as object)} />;
-    default:
-      return null;
-  }
-}
-
-function PreviewViz(props: { name: string; props?: Record<string, unknown> }) {
-  return (
-    <VizErrorBoundary>
-      <Suspense fallback={<VizSkeleton />}>
-        <VizByName {...props} />
-      </Suspense>
-    </VizErrorBoundary>
-  );
-}
+// PreviewViz lives in components/lesson/ so the editor preview modal
+// can share the lazy chunks with the player.
 
 function slideShortTitle(s: LessonSlide, i: number): string {
   if (s.kind === "text") return s.title || `Slide ${i + 1}`;

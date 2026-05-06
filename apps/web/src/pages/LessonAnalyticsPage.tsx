@@ -134,15 +134,17 @@ export function LessonAnalyticsPage() {
             </div>
           )}
 
-          <div className="rounded-lg border border-border overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="rounded-lg border border-border overflow-x-auto">
+            <table className="w-full text-sm min-w-[480px]">
               <thead className="bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground">
                 <tr>
-                  <th className="text-left px-3 py-2">#</th>
-                  <th className="text-left px-3 py-2">Views</th>
-                  <th className="text-left px-3 py-2">Drop-off</th>
-                  <th className="text-left px-3 py-2">Correct / wrong</th>
-                  <th className="text-left px-3 py-2">% wrong</th>
+                  <th className="text-left px-3 py-2 min-w-[40px]">#</th>
+                  <th className="text-left px-3 py-2 min-w-[120px]">Views</th>
+                  <th className="text-left px-3 py-2 min-w-[80px]">Drop-off</th>
+                  <th className="hidden sm:table-cell text-left px-3 py-2 min-w-[120px]">
+                    Correct / wrong
+                  </th>
+                  <th className="text-left px-3 py-2 min-w-[80px]">% wrong</th>
                 </tr>
               </thead>
               <tbody>
@@ -159,7 +161,7 @@ export function LessonAnalyticsPage() {
                       </td>
                       <td className="px-3 py-2">
                         <div className="flex items-center gap-2">
-                          <div className="h-1.5 w-32 bg-muted rounded-full overflow-hidden">
+                          <div className="h-1.5 w-16 sm:w-32 bg-muted rounded-full overflow-hidden">
                             <div
                               className="h-full bg-primary rounded-full"
                               style={{ width: `${widthPct}%` }}
@@ -177,7 +179,7 @@ export function LessonAnalyticsPage() {
                           <span className="text-muted-foreground">—</span>
                         )}
                       </td>
-                      <td className="px-3 py-2 tabular-nums text-muted-foreground">
+                      <td className="hidden sm:table-cell px-3 py-2 tabular-nums text-muted-foreground">
                         {r.answeredCorrect + r.answeredWrong > 0 ? (
                           <>
                             <span className="text-accent-emerald">
