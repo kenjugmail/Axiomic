@@ -348,7 +348,15 @@ mastery.get("/users/:username/summary", (c) => {
 
     const completedSet = new Set(completed.map((c) => c.nodeId));
     let pathHighest = -1;
+    // Per-level breakdown for the SkillTree visualization on the
+    // profile page. Each level maps to {total, completed}; missing
+    // levels are absent.
+    const levels: Record<string, { total: number; completed: number }> = {};
     for (const n of nodes) {
+      const cur = levels[n.level] ?? { total: 0, completed: 0 };
+      cur.total += 1;
+      if (completedSet.has(n.id)) cur.completed += 1;
+      levels[n.level] = cur;
       if (!completedSet.has(n.id)) continue;
       const idx = levelIndex(n.level);
       if (idx > pathHighest) pathHighest = idx;
@@ -362,6 +370,7 @@ mastery.get("/users/:username/summary", (c) => {
       completedNodes,
       currentLevel: pathHighest >= 0 ? LEVEL_ORDER[pathHighest] : null,
       latestCompletionAt: completed[0]?.completedAt ?? null,
+      levels,
     };
   });
 

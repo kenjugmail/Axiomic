@@ -13,6 +13,7 @@ import type {
 import { AchievementsGallery } from "../components/AchievementsGallery";
 import { ActivityHeatmap } from "../components/ActivityHeatmap";
 import { FollowButton } from "../components/FollowButton";
+import { SkillTree } from "../components/profile/SkillTree";
 
 const LEVEL_COLORS: Record<string, string> = {
   apprentice: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
@@ -245,6 +246,27 @@ export function ProfilePage() {
         {heatmap.length > 0 && (
           <section>
             <ActivityHeatmap cells={heatmap} streak={streak} />
+          </section>
+        )}
+
+        {/* Skill tree — public mastery snapshot across all paths. */}
+        {mastery && mastery.paths.length > 0 && (
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold">Mastery</h2>
+              {mastery.totalCompleted > 0 && (
+                <span className="text-xs text-muted-foreground">
+                  {mastery.totalCompleted} nodes completed
+                  {mastery.highestLevel && (
+                    <>
+                      {" "}· highest:{" "}
+                      <span className="capitalize">{mastery.highestLevel}</span>
+                    </>
+                  )}
+                </span>
+              )}
+            </div>
+            <SkillTree summary={mastery} />
           </section>
         )}
 

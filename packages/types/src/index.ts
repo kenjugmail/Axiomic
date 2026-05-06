@@ -669,6 +669,10 @@ export interface PathProgressSummary {
   completedNodes: number;
   currentLevel: MasteryLevel | null;
   latestCompletionAt: string | null;
+  // Per-level node counts for the SkillTree on the profile page.
+  // Keyed by level name; values are { total, completed }. Missing
+  // levels (paths that don't have e.g. a researcher tier) are absent.
+  levels?: Partial<Record<MasteryLevel, { total: number; completed: number }>>;
 }
 
 export interface MasterySummaryResponse {
