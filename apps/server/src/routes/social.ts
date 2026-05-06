@@ -7,7 +7,7 @@ import {
   forumTopics,
   domains,
 } from "@axiomic/db";
-import { and, count, desc, eq, sql } from "drizzle-orm";
+import { and, count, desc, eq, like, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import type { Env } from "../env";
@@ -222,4 +222,24 @@ socialRouter.get("/me/feed", requireAuth, async (c) => {
   ].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 
   return c.json({ items: items.slice(0, 40) });
+});
+
+// GET /users?q=ali — substring username lookup for the @mention picker.
+// No auth required; returns at most 10 hits, alphabetical.
+socialRouter.get("/users", async (c) => {
+  const q = (c.req.query("q") ?? "").trim().toLowerCase();
+  if (q.length < 1) return c.json({ users: [] });
+  const db = getDb();
+  const rows = db
+    .select({
+      username: users.username,
+      displayName: users.displayName,
+    })
+    .from(users)
+    .where(sql`lower(${users.username}) LIKE ${`${q}%`}`)
+    .orderBy(users.username)
+    .limit(10)
+    .all();
+  void like;
+  return c.json({ users: rows });
 });

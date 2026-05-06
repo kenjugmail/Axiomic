@@ -386,6 +386,10 @@ export const api = {
     follows: (username: string) =>
       request<FollowsListResponse>(`/users/${username}/follows`),
     feed: () => request<FeedResponse>("/me/feed"),
+    searchUsers: (q: string) =>
+      request<{
+        users: Array<{ username: string; displayName: string | null }>;
+      }>(`/users?q=${encodeURIComponent(q)}`),
   },
   search: {
     query: (q: string, limit?: number) => {

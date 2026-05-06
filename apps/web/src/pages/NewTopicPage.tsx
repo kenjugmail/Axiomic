@@ -4,6 +4,7 @@ import { api, type ForumDomain, type PostType } from "../lib/api";
 import { POST_TYPES } from "@axiomic/types";
 import { useAuthStore } from "../stores/auth";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
+import { RichComposer } from "../components/composer/RichComposer";
 import { PostTypeBadge } from "../components/PostTypeBadge";
 import { PollBuilder } from "../components/forum/PollBuilder";
 
@@ -192,30 +193,23 @@ export function NewTopicPage() {
             <button
               type="button"
               onClick={() => setShowPreview((p) => !p)}
-              className="text-xs text-muted-foreground hover:text-foreground"
+              className="hidden text-xs text-muted-foreground hover:text-foreground"
             >
               {showPreview ? "Edit" : "Preview"}
             </button>
           </div>
-          {showPreview ? (
-            <div className="mt-1 min-h-48 px-3 py-2 rounded-md border border-input bg-background text-sm prose prose-sm dark:prose-invert max-w-none">
-              <MarkdownRenderer content={body || "*(empty)*"} untrusted />
-            </div>
-          ) : (
-            <textarea
+          <div className="mt-1">
+            <RichComposer
               value={body}
-              onChange={(e) => setBody(e.target.value)}
-              rows={postType === "poll" ? 4 : 14}
-              required={postType !== "poll"}
-              minLength={postType === "poll" ? 0 : 1}
-              className="mt-1 w-full px-3 py-2 rounded-md border border-input bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring"
+              onChange={setBody}
+              rows={postType === "poll" ? 4 : 12}
               placeholder={
                 postType === "poll"
                   ? "Optional context for the poll."
-                  : "State the case. Quote sources. Make assumptions explicit."
+                  : "State the case. Quote sources. Make assumptions explicit. Drag images / videos to attach, or use @ to mention someone."
               }
             />
-          )}
+          </div>
         </div>
 
         {error && <p className="text-sm text-destructive">{error}</p>}

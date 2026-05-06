@@ -131,21 +131,38 @@ export function MarkdownRenderer({
   untrusted,
   allowViz = true,
 }: MarkdownRendererProps) {
-  // Split content by viz directives and render them inline. The opt-in
-  // `allowViz` flag is independent of `untrusted` — forum posts run
-  // with HTML sanitization on but with vizes allowed, while comments
-  // disable vizes entirely.
-  const parts: { type: "markdown" | "viz"; content: string }[] = [];
+  // Split content by viz + video directives and render them inline.
+  // The opt-in `allowViz` flag is independent of `untrusted` — forum
+  // posts run with HTML sanitization on but with vizes allowed,
+  // while comments disable vizes entirely.
+  type Part =
+    | { type: "markdown"; content: string }
+    | { type: "viz"; content: string }
+    | { type: "video"; id: string };
+  const parts: Part[] = [];
   if (allowViz) {
-    const vizPattern = /::viz\[([^\]]+)\]/g;
+    // Match either `:::viz[name]` (1+ colons, the historical form) or
+    // `:::video[id=xxx]` for uploaded video attachments.
+    const directivePattern = /:+(viz|video)\[([^\]]+)\]/g;
     let lastIndex = 0;
     let match;
 
-    while ((match = vizPattern.exec(content)) !== null) {
+    while ((match = directivePattern.exec(content)) !== null) {
       if (match.index > lastIndex) {
-        parts.push({ type: "markdown", content: content.slice(lastIndex, match.index) });
+        parts.push({
+          type: "markdown",
+          content: content.slice(lastIndex, match.index),
+        });
       }
-      parts.push({ type: "viz", content: match[1] });
+      const kind = match[1];
+      const inner = match[2];
+      if (kind === "video") {
+        // Inner shape: id=<uuid>
+        const idMatch = inner.match(/id\s*=\s*([0-9a-f-]+)/i);
+        if (idMatch) parts.push({ type: "video", id: idMatch[1] });
+      } else {
+        parts.push({ type: "viz", content: inner });
+      }
       lastIndex = match.index + match[0].length;
     }
     if (lastIndex < content.length) {
@@ -168,6 +185,14 @@ export function MarkdownRenderer({
       {parts.map((part, i) =>
         part.type === "viz" ? (
           <VizEmbed key={i} name={part.content} />
+        ) : part.type === "video" ? (
+          <video
+            key={i}
+            controls
+            preload="metadata"
+            className="my-4 max-w-full rounded-lg border border-border"
+            src={`/api/v1/uploads/${part.id}`}
+          />
         ) : (
           <ReactMarkdown
             key={i}
