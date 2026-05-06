@@ -9,6 +9,7 @@ import { WikiPage } from "./pages/WikiPage";
 import { SearchPage } from "./pages/SearchPage";
 import { MasteryListPage } from "./pages/MasteryListPage";
 import { MasteryPathPage } from "./pages/MasteryPathPage";
+import { LessonPage } from "./pages/LessonPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { ForumListPage } from "./pages/ForumListPage";
 import { ForumTopicPage } from "./pages/ForumTopicPage";
@@ -122,6 +123,10 @@ export function App() {
           <Route path="/search" element={<SearchPage />} />
           <Route path="/paths" element={<MasteryListPage />} />
           <Route path="/paths/:slug" element={<MasteryPathPage />} />
+          <Route
+            path="/paths/:pathSlug/lessons/:nodeSlug"
+            element={<LessonPage />}
+          />
           <Route path="/forum" element={<ForumListPage />} />
           <Route path="/forum/new" element={<NewTopicPage />} />
           <Route path="/forum/bookmarks" element={<ForumBookmarksPage />} />

@@ -90,6 +90,112 @@
     --shadow-floating: 0 12px 32px rgb(0 0 0 / 0.55), 0 24px 64px rgb(0 0 0 / 0.55);
   }
 
+  /* Sepia — warm, low-contrast reading theme. Inspired by Kindle paperwhite
+     and old book pages. Built on the light foundation; just retunes hues. */
+  .theme-sepia {
+    --background: 39 38% 95%;
+    --foreground: 30 24% 18%;
+    --card: 38 42% 97%;
+    --card-foreground: 30 24% 18%;
+    --primary: 25 65% 38%;
+    --primary-foreground: 39 38% 97%;
+    --secondary: 36 30% 88%;
+    --secondary-foreground: 30 24% 18%;
+    --muted: 36 26% 90%;
+    --muted-foreground: 28 16% 42%;
+    --accent: 36 30% 88%;
+    --accent-foreground: 30 24% 18%;
+    --destructive: 0 70% 48%;
+    --destructive-foreground: 39 38% 97%;
+    --border: 36 24% 82%;
+    --input: 36 24% 82%;
+    --ring: 25 65% 38%;
+  }
+
+  /* Dim — softer, less aggressive dark theme. Lower contrast than .dark.
+     For long evening reading sessions where pure-black hurts the eyes. */
+  .theme-dim {
+    --background: 220 16% 14%;
+    --foreground: 215 20% 88%;
+    --card: 220 14% 17%;
+    --card-foreground: 215 20% 88%;
+    --primary: 210 50% 75%;
+    --primary-foreground: 220 16% 14%;
+    --secondary: 220 12% 22%;
+    --secondary-foreground: 215 20% 88%;
+    --muted: 220 12% 22%;
+    --muted-foreground: 215 12% 62%;
+    --accent: 220 12% 22%;
+    --accent-foreground: 215 20% 88%;
+    --destructive: 0 55% 55%;
+    --destructive-foreground: 215 20% 95%;
+    --border: 220 12% 25%;
+    --input: 220 12% 25%;
+    --ring: 210 50% 75%;
+
+    --accent-indigo: 239 70% 72%;
+    --accent-emerald: 158 50% 60%;
+    --accent-rose: 350 70% 70%;
+    --accent-amber: 38 80% 64%;
+    --accent-sky: 200 75% 64%;
+    --accent-violet: 263 70% 72%;
+
+    --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.25), 0 2px 8px rgb(0 0 0 / 0.25);
+    --shadow-elevated: 0 4px 12px rgb(0 0 0 / 0.35), 0 8px 24px rgb(0 0 0 / 0.35);
+    --shadow-floating: 0 12px 32px rgb(0 0 0 / 0.45), 0 24px 64px rgb(0 0 0 / 0.45);
+  }
+
+  /* High-contrast — accessibility theme. Pure black/white edges, bumped
+     primary saturation, thicker focus rings (handled in JS-injected class). */
+  .theme-high-contrast {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+    --primary: 222 90% 30%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 92%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 25%;
+    --accent: 0 0% 90%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 100% 38%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 0%;
+    --input: 0 0% 0%;
+    --ring: 0 0% 0%;
+
+    --accent-indigo: 239 100% 38%;
+    --accent-emerald: 158 100% 28%;
+    --accent-rose: 350 95% 42%;
+    --accent-amber: 38 100% 36%;
+    --accent-sky: 200 100% 32%;
+    --accent-violet: 263 100% 42%;
+  }
+  .theme-high-contrast.dark {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 5%;
+    --card-foreground: 0 0% 100%;
+    --primary: 210 100% 75%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 80%;
+    --accent: 0 0% 14%;
+    --accent-foreground: 0 0% 100%;
+    --border: 0 0% 100%;
+    --input: 0 0% 100%;
+    --ring: 0 0% 100%;
+  }
+  /* Beefy focus ring across the app for high-contrast. */
+  .theme-high-contrast :focus-visible {
+    outline: 3px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
   * {
     @apply border-border;
   }

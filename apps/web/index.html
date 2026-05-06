@@ -7,6 +7,24 @@
     <meta name="description" content="An open educational platform combining wiki, discourse, AI, and mastery paths for serious learners." />
   </head>
   <body>
+    <script>
+      // Pre-paint theme apply so we don't flash. Mirrors stores/theme.ts.
+      (function () {
+        try {
+          var t = localStorage.getItem("axiomic-theme") || "system";
+          var dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          var c = document.documentElement.classList;
+          if (t === "system") { if (dark) c.add("dark"); }
+          else if (t === "dark") c.add("dark");
+          else if (t === "dim") { c.add("dark"); c.add("theme-dim"); }
+          else if (t === "sepia") c.add("theme-sepia");
+          else if (t === "high-contrast") {
+            c.add("theme-high-contrast");
+            if (dark) c.add("dark");
+          }
+        } catch (e) {}
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

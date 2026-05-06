@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { Trophy } from "lucide-react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { Sparkles, Trophy } from "lucide-react";
 import { api, type MasteryPath, type MasteryNode, type UserNodeProgress } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { QuizModal } from "../components/QuizModal";
-import { LessonPlayer } from "../components/LessonPlayer";
 import { PathGraph } from "../components/mastery/PathGraph";
 import { Skeleton } from "../components/ui";
 
@@ -41,6 +40,7 @@ function highestLevelIdx(
 
 export function MasteryPathPage() {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const [path, setPath] = useState<MasteryPath | null>(null);
   const [nodes, setNodes] = useState<MasteryNode[]>([]);
   const [progress, setProgress] = useState<UserNodeProgress[]>([]);
@@ -51,7 +51,6 @@ export function MasteryPathPage() {
   );
   const [loading, setLoading] = useState(true);
   const [quizFor, setQuizFor] = useState<MasteryNode | null>(null);
-  const [lessonFor, setLessonFor] = useState<MasteryNode | null>(null);
   const [view, setView] = useState<"list" | "graph">("list");
   const [levelUpBanner, setLevelUpBanner] = useState<string | null>(null);
   const prevHighestRef = useRef<number>(-2); // sentinel: not initialized yet
@@ -118,6 +117,22 @@ export function MasteryPathPage() {
   const currentLevel = (() => {
     const idx = highestLevelIdx(nodes, progress);
     return idx >= 0 ? LEVEL_ORDER[idx] : "apprentice";
+  })();
+
+  // Recommended-next is the first non-completed node when the path is
+  // walked in canonical order (level → node.order). Lessons are open to
+  // everyone, so this is just a guidance signal — never a gate.
+  const recommendedNextId = (() => {
+    if (!user) return null;
+    const completedIds = new Set(
+      progress.filter((p) => p.completed).map((p) => p.nodeId),
+    );
+    const ordered = [...nodes].sort((a, b) => {
+      const li = LEVEL_ORDER.indexOf(a.level) - LEVEL_ORDER.indexOf(b.level);
+      if (li !== 0) return li;
+      return a.order - b.order;
+    });
+    return ordered.find((n) => !completedIds.has(n.id))?.id ?? null;
   })();
 
   if (loading) {
@@ -251,7 +266,7 @@ export function MasteryPathPage() {
             nodeMastery={nodeMastery}
             signedIn={!!user}
             onPick={(n) => {
-              if (n.hasLesson) setLessonFor(n);
+              if (n.hasLesson) navigate(`/paths/${slug}/lessons/${n.slug}`);
               else setQuizFor(n);
             }}
           />
@@ -272,19 +287,32 @@ export function MasteryPathPage() {
                 const completed = isCompleted(node.id);
                 const quizScore = quizScoreFor(node.id);
                 const mastery = nodeMastery[node.id] ?? 0;
+                const isRecommended = node.id === recommendedNextId;
                 return (
                   <div
                     key={node.id}
-                    className={`flex items-center justify-between p-4 rounded-lg border transition-colors ${
+                    className={`relative flex items-center justify-between p-4 rounded-lg border transition-colors duration-fast ${
                       completed
                         ? "bg-primary/5 border-primary/20"
-                        : "border-border hover:bg-accent/50"
+                        : isRecommended
+                          ? "border-primary/40 bg-primary/5 ring-1 ring-primary/30 hover:bg-primary/10"
+                          : "border-border hover:bg-accent/50"
                     }`}
                   >
+                    {isRecommended && (
+                      <span className="absolute -top-2 left-3 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground">
+                        <Sparkles className="w-2.5 h-2.5" strokeWidth={2.5} />
+                        Recommended next
+                      </span>
+                    )}
                     <div className="flex items-center gap-3">
                       <div
                         className={`w-6 h-6 rounded-full flex items-center justify-center border-2 ${
-                          completed ? "bg-primary border-primary text-primary-foreground" : "border-border"
+                          completed
+                            ? "bg-primary border-primary text-primary-foreground"
+                            : isRecommended
+                              ? "border-primary"
+                              : "border-border"
                         }`}
                       >
                         {completed && (
@@ -334,12 +362,12 @@ export function MasteryPathPage() {
                     {user && !completed && (
                       <div className="flex items-center gap-2 shrink-0">
                         {node.hasLesson && (
-                          <button
-                            onClick={() => setLessonFor(node)}
+                          <Link
+                            to={`/paths/${slug}/lessons/${node.slug}`}
                             className="px-3 py-1 rounded-md text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                           >
                             Start lesson
-                          </button>
+                          </Link>
                         )}
                         <button
                           onClick={() => setQuizFor(node)}
@@ -376,14 +404,6 @@ export function MasteryPathPage() {
         />
       )}
 
-      {lessonFor && (
-        <LessonPlayer
-          nodeId={lessonFor.id}
-          nodeTitle={lessonFor.title}
-          onClose={() => setLessonFor(null)}
-          onCompleted={handleQuizPassed}
-        />
-      )}
     </div>
   );
 }

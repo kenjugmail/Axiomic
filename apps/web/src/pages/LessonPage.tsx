@@ -1,0 +1,733 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import {
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  CheckCircle2,
+  HelpCircle,
+  NotebookPen,
+  Sparkles,
+  Trophy,
+  X as XIcon,
+} from "lucide-react";
+import { api } from "../lib/api";
+import type {
+  Lesson,
+  LessonSlide,
+  MasteryNode,
+  QuizQuestion,
+} from "@axiomic/types";
+import { assertQuestionKind } from "@axiomic/types";
+import { MarkdownRenderer } from "../components/MarkdownRenderer";
+import { QuestionRenderer, isAnswered } from "../components/quiz/QuestionRenderer";
+import { LessonNotes } from "../components/mastery/LessonNotes";
+import { SoftmaxTemperatureSlider } from "../../../../packages/viz/src/quiz/SoftmaxTemperatureSlider";
+import { AttentionHeatmapExplorer } from "../../../../packages/viz/src/quiz/AttentionHeatmapExplorer";
+import { GradientDescent2D } from "../../../../packages/viz/src/quiz/GradientDescent2D";
+import { TokenizerPlayground } from "../../../../packages/viz/src/components/TokenizerPlayground";
+import { EmbeddingExplorer } from "../../../../packages/viz/src/components/EmbeddingExplorer";
+import { LayerActivations } from "../../../../packages/viz/src/components/LayerActivations";
+import { PositionalEncoding } from "../../../../packages/viz/src/components/PositionalEncoding";
+import { ActivationFunctionGallery } from "../../../../packages/viz/src/components/ActivationFunctionGallery";
+import { LorenzAttractor } from "../../../../packages/viz/src/components/LorenzAttractor";
+import { DoublePendulum } from "../../../../packages/viz/src/components/DoublePendulum";
+import { PhasePortrait1D } from "../../../../packages/viz/src/components/PhasePortrait1D";
+import { useAuthStore } from "../stores/auth";
+
+const PASSING_SCORE = 0.7;
+
+type Phase = "loading" | "playing" | "finished" | "no-lesson" | "error";
+
+function scoreLocally(question: QuizQuestion, answer: string | undefined): boolean {
+  const q = assertQuestionKind(question);
+  if (answer === undefined && q.kind !== "slider") return false;
+  switch (q.kind) {
+    case "multiple_choice":
+      return answer === String(q.correctIndex);
+    case "slider": {
+      const v = parseFloat(answer ?? String(q.default));
+      return !isNaN(v) && v >= q.target.min && v <= q.target.max;
+    }
+    case "drag_classify": {
+      try {
+        const map = JSON.parse(answer!) as Record<string, string>;
+        return q.items.every((i) => map[i.id] === i.bin);
+      } catch {
+        return false;
+      }
+    }
+    case "code": {
+      try {
+        const r = JSON.parse(answer!) as { passed: number; total: number };
+        return (
+          typeof r.passed === "number" &&
+          r.passed === q.tests.length &&
+          r.total === q.tests.length
+        );
+      } catch {
+        return false;
+      }
+    }
+    case "puzzle_drag_build": {
+      try {
+        const map = JSON.parse(answer!) as Record<string, string>;
+        const compsById = new Map(q.components.map((c) => [c.id, c]));
+        return q.slots.every((s) => {
+          const cId = map[s.id];
+          if (!cId) return false;
+          const comp = compsById.get(cId);
+          return !!comp && comp.type === s.accepts;
+        });
+      } catch {
+        return false;
+      }
+    }
+    case "math_expression": {
+      if (answer === undefined) return false;
+      const norm = (s: string) => s.replace(/\s+/g, "").toLowerCase();
+      const a = norm(answer);
+      return q.acceptedAnswers.some((acc) => norm(acc) === a);
+    }
+    case "sortable": {
+      try {
+        const order = JSON.parse(answer!) as string[];
+        const correct = q.items.map((it) => it.id);
+        return (
+          order.length === correct.length &&
+          order.every((id, i) => id === correct[i])
+        );
+      } catch {
+        return false;
+      }
+    }
+    case "code_completion": {
+      try {
+        const map = JSON.parse(answer!) as Record<string, string>;
+        const norm = (s: string) => s.trim();
+        return q.blanks.every((b) => {
+          const u = map[b.id];
+          if (typeof u !== "string") return false;
+          const nu = norm(u);
+          return b.acceptedAnswers.some((acc) => norm(acc) === nu);
+        });
+      } catch {
+        return false;
+      }
+    }
+  }
+}
+
+function PreviewViz({
+  name,
+  props,
+}: {
+  name: string;
+  props?: Record<string, unknown>;
+}) {
+  switch (name) {
+    case "softmax-temperature-preview":
+      return (
+        <SoftmaxTemperatureSlider
+          value={typeof props?.value === "number" ? props.value : 1}
+        />
+      );
+    case "attention-heatmap-explorer":
+      return (
+        <AttentionHeatmapExplorer
+          presetIndex={
+            typeof props?.presetIndex === "number" ? props.presetIndex : 0
+          }
+        />
+      );
+    case "gradient-descent-2d":
+      return (
+        <GradientDescent2D
+          learningRate={
+            typeof props?.learningRate === "number" ? props.learningRate : 0.1
+          }
+          {...(props as object)}
+        />
+      );
+    case "tokenizer-playground":
+      return <TokenizerPlayground />;
+    case "embedding-explorer":
+      return <EmbeddingExplorer />;
+    case "layer-activations":
+      return <LayerActivations />;
+    case "positional-encoding":
+      return <PositionalEncoding />;
+    case "activation-function-gallery":
+      return (
+        <ActivationFunctionGallery
+          x={typeof props?.x === "number" ? props.x : undefined}
+        />
+      );
+    case "lorenz-attractor":
+      return <LorenzAttractor {...(props as object)} />;
+    case "double-pendulum":
+      return <DoublePendulum {...(props as object)} />;
+    case "phase-portrait-1d":
+      return <PhasePortrait1D {...(props as object)} />;
+    default:
+      return null;
+  }
+}
+
+function slideShortTitle(s: LessonSlide, i: number): string {
+  if (s.kind === "text") return s.title || `Slide ${i + 1}`;
+  return s.question.question.length > 60
+    ? s.question.question.slice(0, 60) + "…"
+    : s.question.question;
+}
+
+export function LessonPage() {
+  const { pathSlug, nodeSlug } = useParams<{
+    pathSlug: string;
+    nodeSlug: string;
+  }>();
+  const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
+
+  const [phase, setPhase] = useState<Phase>("loading");
+  const [lesson, setLesson] = useState<Lesson | null>(null);
+  const [node, setNode] = useState<MasteryNode | null>(null);
+  const [pathTitle, setPathTitle] = useState("");
+  const [recommendedNext, setRecommendedNext] = useState<{
+    slug: string;
+    title: string;
+    hasLesson: boolean;
+  } | null>(null);
+  const [idx, setIdx] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [revealed, setRevealed] = useState<Record<string, boolean>>({});
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
+  const mainRef = useRef<HTMLDivElement | null>(null);
+
+  // Load path (for context + recommended-next), plus lesson + saved progress.
+  useEffect(() => {
+    if (!pathSlug || !nodeSlug) return;
+    let cancelled = false;
+    setPhase("loading");
+
+    api.mastery
+      .getPath(pathSlug)
+      .then((data) => {
+        if (cancelled) return;
+        const found = data.nodes.find((n) => n.slug === nodeSlug);
+        if (!found) {
+          setError("Node not found in this path.");
+          setPhase("error");
+          return;
+        }
+        setNode(found);
+        setPathTitle(data.path.title);
+
+        // Recommended next: first non-completed node in path order whose
+        // id ≠ current. Falls back to the next node by `order` if all done.
+        const completed = new Set(
+          data.progress.filter((p) => p.completed).map((p) => p.nodeId),
+        );
+        const ordered = [...data.nodes].sort((a, b) => a.order - b.order);
+        const here = ordered.findIndex((n) => n.id === found.id);
+        const after = ordered.slice(here + 1);
+        const next =
+          after.find((n) => !completed.has(n.id)) ?? after[0] ?? null;
+        if (next) {
+          setRecommendedNext({
+            slug: next.slug,
+            title: next.title,
+            hasLesson: !!next.hasLesson,
+          });
+        }
+
+        // Load the lesson body + saved progress in parallel.
+        return Promise.all([
+          api.mastery.getLesson(found.id),
+          api.mastery.getLessonProgress(found.id).catch(() => ({ slideIdx: 0 })),
+        ]).then(([lr, prog]) => {
+          if (cancelled) return;
+          if (!lr.lesson || lr.lesson.slides.length === 0) {
+            setPhase("no-lesson");
+            return;
+          }
+          setLesson(lr.lesson);
+          setIdx(
+            Math.min(
+              Math.max(0, prog.slideIdx),
+              lr.lesson.slides.length - 1,
+            ),
+          );
+          setPhase("playing");
+        });
+      })
+      .catch((e) => {
+        if (cancelled) return;
+        setError(e?.message ?? "Failed to load lesson");
+        setPhase("error");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pathSlug, nodeSlug]);
+
+  // Persist slide index (debounced).
+  useEffect(() => {
+    if (phase !== "playing" || !node) return;
+    const t = setTimeout(() => {
+      api.mastery.setLessonProgress(node.id, idx).catch(() => {});
+    }, 200);
+    return () => clearTimeout(t);
+  }, [idx, phase, node]);
+
+  // Scroll the main panel back to top on slide change.
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [idx]);
+
+  // Keyboard: ← → to step, Esc to exit.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+      if (e.key === "Escape") {
+        if (pathSlug) navigate(`/paths/${pathSlug}`);
+        return;
+      }
+      if (phase !== "playing") return;
+      if (e.key === "ArrowRight") handleNext();
+      if (e.key === "ArrowLeft") handlePrev();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, idx, lesson, answers]);
+
+  const slides = lesson?.slides ?? [];
+  const slide = slides[idx];
+  const questionSlides = useMemo(
+    () =>
+      slides.filter(
+        (s): s is Extract<LessonSlide, { kind: "question" }> =>
+          s.kind === "question",
+      ),
+    [slides],
+  );
+  const isLast = idx === slides.length - 1;
+
+  const isCorrect = (q: QuizQuestion) =>
+    revealed[q.id] && scoreLocally(q, answers[q.id]);
+
+  const canAdvance = (() => {
+    if (!slide) return false;
+    if (slide.kind === "question") {
+      return isAnswered(slide.question, answers[slide.question.id]);
+    }
+    return true;
+  })();
+
+  function handleNext() {
+    if (!canAdvance) return;
+    // For question slides, mark them revealed before advancing.
+    if (slide?.kind === "question") {
+      setRevealed((r) => ({ ...r, [slide.question.id]: true }));
+    }
+    if (isLast) {
+      handleFinish();
+    } else {
+      setIdx((i) => Math.min(i + 1, slides.length - 1));
+    }
+  }
+
+  function handlePrev() {
+    setIdx((i) => Math.max(0, i - 1));
+  }
+
+  async function handleFinish() {
+    if (submitting || !node) return;
+    setSubmitting(true);
+    try {
+      const total = questionSlides.length;
+      let correct = 0;
+      for (const s of questionSlides) {
+        if (scoreLocally(s.question, answers[s.question.id])) correct++;
+      }
+      const score = total > 0 ? correct / total : 1;
+      if (score >= PASSING_SCORE) {
+        try {
+          await api.mastery.markComplete(node.id);
+        } catch {
+          // ignore — auto-mark is best-effort
+        }
+      }
+      setPhase("finished");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const finalScore = (() => {
+    if (questionSlides.length === 0) return 1;
+    let correct = 0;
+    for (const s of questionSlides) {
+      if (scoreLocally(s.question, answers[s.question.id])) correct++;
+    }
+    return correct / questionSlides.length;
+  })();
+
+  const answeredCorrectIds = new Set(
+    Object.entries(answers)
+      .filter(([qid, val]) => {
+        const qs = questionSlides.find((s) => s.question.id === qid);
+        return qs && scoreLocally(qs.question, val);
+      })
+      .map(([qid]) => qid),
+  );
+
+  const exitHref = pathSlug ? `/paths/${pathSlug}` : "/paths";
+
+  return (
+    <div className="min-h-[calc(100vh-3.5rem)] bg-background">
+      {/* Top header */}
+      <div className="border-b border-border bg-card/95 backdrop-blur sticky top-14 z-30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center gap-3">
+          <Link
+            to={exitHref}
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="w-4 h-4" strokeWidth={2} />
+            <span className="hidden sm:inline">{pathTitle || "Path"}</span>
+          </Link>
+          <div className="h-5 w-px bg-border" />
+          <div className="min-w-0 flex-1">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              Lesson
+            </div>
+            <h1 className="text-sm font-semibold truncate">
+              {node?.title ?? "Loading…"}
+            </h1>
+          </div>
+          <button
+            onClick={() => setNotesOpen((v) => !v)}
+            className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md transition-colors duration-fast ${
+              notesOpen
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:text-foreground hover:bg-accent/40"
+            }`}
+            aria-pressed={notesOpen}
+          >
+            <NotebookPen className="w-3.5 h-3.5" strokeWidth={2} />
+            <span className="hidden sm:inline">Notes</span>
+          </button>
+          <Link
+            to={exitHref}
+            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/40"
+            aria-label="Exit lesson"
+            title="Exit (Esc)"
+          >
+            <XIcon className="w-4 h-4" strokeWidth={2} />
+          </Link>
+        </div>
+        {phase === "playing" && slides.length > 0 && (
+          <div className="h-1 bg-muted">
+            <div
+              className="h-full bg-primary transition-all duration-base ease-out"
+              style={{
+                width: `${((idx + 1) / slides.length) * 100}%`,
+              }}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Body */}
+      <div className="max-w-7xl mx-auto grid lg:grid-cols-[260px_1fr] min-h-[calc(100vh-7rem)]">
+        {/* Slide list — sticky sidebar */}
+        <aside className="hidden lg:block border-r border-border">
+          <nav className="sticky top-[calc(3.5rem+3.5rem+0.25rem)] py-4 max-h-[calc(100vh-7.25rem)] overflow-y-auto">
+            <div className="px-4 pb-2 text-[10px] uppercase tracking-wider text-muted-foreground">
+              Slides · {slides.length}
+            </div>
+            <ol className="space-y-px px-2">
+              {slides.map((s, i) => {
+                const active = i === idx;
+                const Icon = s.kind === "question" ? HelpCircle : BookOpen;
+                const correct =
+                  s.kind === "question" &&
+                  answeredCorrectIds.has(s.question.id);
+                return (
+                  <li key={i}>
+                    <button
+                      onClick={() => setIdx(i)}
+                      className={`w-full text-left flex items-start gap-2 px-3 py-2 rounded-md text-xs transition-colors duration-fast ${
+                        active
+                          ? "bg-primary/10 text-foreground"
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent/40"
+                      }`}
+                    >
+                      <span className="mt-0.5 shrink-0">
+                        {correct ? (
+                          <CheckCircle2
+                            className="w-3.5 h-3.5 text-accent-emerald"
+                            strokeWidth={2.2}
+                          />
+                        ) : (
+                          <Icon
+                            className={`w-3.5 h-3.5 ${
+                              active ? "text-primary" : ""
+                            }`}
+                            strokeWidth={2}
+                          />
+                        )}
+                      </span>
+                      <span className="flex-1 min-w-0">
+                        <span className="block font-mono text-[10px] text-muted-foreground">
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <span className="block leading-snug">
+                          {slideShortTitle(s, i)}
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+          </nav>
+        </aside>
+
+        {/* Main content */}
+        <div ref={mainRef} className="px-4 sm:px-8 py-8 overflow-y-auto">
+          {phase === "loading" && (
+            <div className="max-w-3xl mx-auto space-y-4">
+              <div className="h-8 animate-pulse bg-muted rounded w-1/3" />
+              <div className="h-48 animate-pulse bg-muted rounded" />
+              <div className="h-4 animate-pulse bg-muted rounded w-2/3" />
+            </div>
+          )}
+
+          {phase === "no-lesson" && (
+            <div className="max-w-2xl mx-auto py-20 text-center">
+              <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                <BookOpen
+                  className="w-6 h-6 text-muted-foreground"
+                  strokeWidth={1.6}
+                />
+              </div>
+              <h2 className="font-display text-2xl font-semibold mb-2">
+                No lesson yet
+              </h2>
+              <p className="text-sm text-muted-foreground mb-6">
+                This node doesn't have an authored lesson. You can still take
+                the quiz to mark it complete.
+              </p>
+              <Link
+                to={exitHref}
+                className="inline-flex items-center px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+              >
+                Back to path
+              </Link>
+            </div>
+          )}
+
+          {phase === "error" && (
+            <div className="max-w-2xl mx-auto py-20 text-center">
+              <h2 className="font-display text-2xl font-semibold mb-2">
+                Couldn't load this lesson
+              </h2>
+              <p className="text-sm text-destructive mb-6">{error}</p>
+              <Link
+                to={exitHref}
+                className="inline-flex items-center px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+              >
+                Back to path
+              </Link>
+            </div>
+          )}
+
+          {phase === "playing" && slide && slide.kind === "text" && (
+            <article className="max-w-3xl mx-auto animate-fade-in">
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2 inline-flex items-center gap-1.5">
+                <BookOpen className="w-3 h-3" strokeWidth={2} />
+                Concept · slide {idx + 1} of {slides.length}
+              </div>
+              {slide.title && (
+                <h2 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight leading-tight mb-6">
+                  {slide.title}
+                </h2>
+              )}
+              <div
+                className={
+                  slide.viz
+                    ? "grid lg:grid-cols-2 gap-8 items-start"
+                    : "max-w-prose"
+                }
+              >
+                <div className="font-serif text-lg leading-relaxed [&_p]:mb-4 [&_h3]:font-sans [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mt-6 [&_h3]:mb-3">
+                  <MarkdownRenderer content={slide.body} />
+                </div>
+                {slide.viz && (
+                  <div className="lg:sticky lg:top-32">
+                    <div className="rounded-lg border border-border bg-card p-4">
+                      <PreviewViz name={slide.viz} props={slide.vizProps} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </article>
+          )}
+
+          {phase === "playing" && slide && slide.kind === "question" && (
+            <div className="max-w-2xl mx-auto animate-fade-in">
+              <div className="text-[11px] uppercase tracking-wider text-primary mb-2 inline-flex items-center gap-1.5">
+                <HelpCircle className="w-3 h-3" strokeWidth={2} />
+                Check your understanding · slide {idx + 1} of {slides.length}
+              </div>
+              <h2 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight leading-snug mb-6">
+                {slide.question.question}
+              </h2>
+              <div className="rounded-lg border border-border bg-card p-5">
+                <QuestionRenderer
+                  question={slide.question}
+                  value={answers[slide.question.id]}
+                  onChange={(v) =>
+                    setAnswers((a) => ({ ...a, [slide.question.id]: v }))
+                  }
+                />
+                {revealed[slide.question.id] && (
+                  <div
+                    className={`mt-4 rounded-md border p-3 text-sm ${
+                      isCorrect(slide.question)
+                        ? "border-accent-emerald/40 bg-accent-emerald/10 text-accent-emerald"
+                        : "border-accent-amber/40 bg-accent-amber/10 text-accent-amber"
+                    }`}
+                  >
+                    {isCorrect(slide.question)
+                      ? "Correct."
+                      : "Not quite — review the explanation, then continue."}
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-3">
+                Answer to advance. Use ← → to navigate.
+              </p>
+            </div>
+          )}
+
+          {phase === "finished" && (
+            <div className="max-w-2xl mx-auto py-12 text-center animate-fade-in">
+              <div
+                className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-5 ${
+                  finalScore >= PASSING_SCORE
+                    ? "bg-accent-emerald/15 text-accent-emerald"
+                    : "bg-accent-amber/15 text-accent-amber"
+                }`}
+              >
+                {finalScore >= PASSING_SCORE ? (
+                  <Trophy className="w-7 h-7" strokeWidth={2} />
+                ) : (
+                  <BookOpen className="w-7 h-7" strokeWidth={2} />
+                )}
+              </div>
+              <h2 className="font-display text-3xl font-semibold tracking-tight mb-2">
+                {finalScore >= PASSING_SCORE
+                  ? "Lesson complete"
+                  : "Lesson finished"}
+              </h2>
+              {questionSlides.length > 0 ? (
+                <p className="text-base text-muted-foreground mb-6">
+                  You answered{" "}
+                  <span className="font-semibold text-foreground">
+                    {Math.round(finalScore * questionSlides.length)} /{" "}
+                    {questionSlides.length}
+                  </span>{" "}
+                  embedded checks correctly.
+                  {finalScore >= PASSING_SCORE
+                    ? " This node is now marked complete."
+                    : " Keep exploring — try the quiz to mark this node complete."}
+                </p>
+              ) : (
+                <p className="text-base text-muted-foreground mb-6">
+                  This node is now marked complete.
+                </p>
+              )}
+              <div className="flex items-center justify-center gap-3 flex-wrap">
+                {recommendedNext && recommendedNext.slug !== nodeSlug && (
+                  <button
+                    onClick={() => {
+                      if (!pathSlug || !recommendedNext) return;
+                      if (recommendedNext.hasLesson) {
+                        navigate(
+                          `/paths/${pathSlug}/lessons/${recommendedNext.slug}`,
+                        );
+                      } else {
+                        navigate(exitHref);
+                      }
+                    }}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" strokeWidth={2} />
+                    Continue: {recommendedNext.title}
+                    <ArrowRight className="w-3.5 h-3.5" strokeWidth={2} />
+                  </button>
+                )}
+                <Link
+                  to={exitHref}
+                  className="inline-flex items-center px-4 py-2 rounded-md border border-border text-sm hover:bg-accent/40"
+                >
+                  Back to path
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Footer controls — sticky at bottom on the playing phase */}
+      {phase === "playing" && slides.length > 0 && (
+        <div className="sticky bottom-0 border-t border-border bg-card/95 backdrop-blur z-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-8 py-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+            <button
+              onClick={handlePrev}
+              disabled={idx === 0}
+              className="justify-self-start inline-flex items-center gap-1 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground disabled:opacity-30"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" strokeWidth={2} />
+              Back
+            </button>
+            <div className="text-xs text-muted-foreground tabular-nums">
+              {idx + 1} / {slides.length}
+            </div>
+            <button
+              onClick={handleNext}
+              disabled={!canAdvance || submitting}
+              className="justify-self-end inline-flex items-center gap-1 px-4 py-1.5 text-sm rounded-md bg-primary text-primary-foreground font-medium disabled:opacity-50"
+            >
+              {isLast ? (submitting ? "Finishing…" : "Finish") : "Next"}
+              <ArrowRight className="w-3.5 h-3.5" strokeWidth={2} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Notes drawer */}
+      {notesOpen && node && user && (
+        <div className="fixed bottom-0 inset-x-0 z-40 px-4 pb-4 sm:px-8 sm:pb-8 pointer-events-none">
+          <div className="max-w-2xl mx-auto pointer-events-auto animate-fade-in">
+            <LessonNotes nodeId={node.id} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
