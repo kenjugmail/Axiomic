@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { Layers, MessageSquare, Pencil } from "lucide-react";
 import {
   api,
   type WikiPage as WikiPageType,
@@ -108,40 +109,41 @@ export function WikiPage() {
                   {page.category}
                 </Link>
               </div>
-              <h1 className="text-3xl font-bold">{page.title}</h1>
+              <h1 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight leading-tight">
+                {page.title}
+              </h1>
             </div>
-            <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
               <TierSwitcher tier={tier} onTierChange={handleTierChange} />
               {user && (
                 <Link
                   to={`/wiki/${slug}/edit`}
-                  className="p-2 rounded-lg border border-border hover:bg-accent transition-colors"
+                  className="p-2 rounded-md border border-border hover:bg-accent/40 transition-colors duration-fast"
                   title="Edit page"
+                  aria-label="Edit page"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
+                  <Pencil className="w-4 h-4" strokeWidth={2} />
                 </Link>
               )}
               <button
                 onClick={() => setAiOpen(!aiOpen)}
-                className={`p-2 rounded-lg border transition-colors ${
-                  aiOpen ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-accent"
+                className={`p-2 rounded-md border transition-colors duration-fast ${
+                  aiOpen
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "border-border hover:bg-accent/40"
                 }`}
                 title="AI Tutor"
+                aria-label="AI Tutor"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                </svg>
+                <MessageSquare className="w-4 h-4" strokeWidth={2} />
               </button>
               <button
                 onClick={() => setFlashcardsOpen(true)}
-                className="p-2 rounded-lg border border-border hover:bg-accent transition-colors"
+                className="p-2 rounded-md border border-border hover:bg-accent/40 transition-colors duration-fast"
                 title="Flashcards"
+                aria-label="Flashcards"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
+                <Layers className="w-4 h-4" strokeWidth={2} />
               </button>
             </div>
           </div>

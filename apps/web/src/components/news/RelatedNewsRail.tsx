@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Sparkles } from "lucide-react";
 import { api } from "../../lib/api";
 import type { NewsArticleCard } from "@axiomic/types";
 import { NewsCover } from "./NewsCover";
@@ -45,13 +46,14 @@ export function RelatedNewsRail({ articleSlug }: Props) {
           </button>
           <button
             onClick={() => setMode("semantic")}
-            className={`px-3 py-1 rounded transition-colors ${
+            className={`inline-flex items-center gap-1 px-3 py-1 rounded transition-colors ${
               mode === "semantic"
                 ? "bg-background text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            ✨ Semantic
+            <Sparkles className="w-3 h-3" strokeWidth={2} />
+            Semantic
           </button>
         </div>
       </div>

@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { FileText, Plus } from "lucide-react";
 import { api } from "../lib/api";
 import type { NewsArticleSummary } from "@axiomic/types";
 import { NewsCover } from "../components/news/NewsCover";
 import { useAuthStore } from "../stores/auth";
+import { EmptyState } from "../components/ui";
 
 function relativeDate(iso: string): string {
   const d = new Date(iso);
@@ -50,9 +52,10 @@ export function NewsResearchPage() {
         {user && (
           <Link
             to="/news/new"
-            className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
           >
-            + New article
+            <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+            New article
           </Link>
         )}
       </div>
@@ -64,26 +67,22 @@ export function NewsResearchPage() {
           ))}
         </div>
       ) : articles.length === 0 ? (
-        <div className="py-16 text-center text-muted-foreground border border-dashed border-border rounded-xl">
-          <div className="text-4xl mb-2">📑</div>
-          <p className="text-base">No research articles yet.</p>
-          <p className="text-sm mt-2">
-            Open the news editor's{" "}
-            <span className="font-medium text-foreground">
-              Research-paper fields
-            </span>{" "}
-            section and fill in an abstract or references — your article
-            will land here.
-          </p>
-          {user && (
-            <Link
-              to="/news/new"
-              className="inline-block mt-4 text-sm text-primary hover:underline"
-            >
-              Write the first one →
-            </Link>
-          )}
-        </div>
+        <EmptyState
+          icon={FileText}
+          title="No research articles yet."
+          description="Fill in an abstract or references on a news article and it will land here."
+          cta={
+            user ? (
+              <Link
+                to="/news/new"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+              >
+                <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+                Write the first one
+              </Link>
+            ) : undefined
+          }
+        />
       ) : (
         <ul className="space-y-4">
           {articles.map((a) => (

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../lib/api";
+import { Skeleton } from "../components/ui";
 import type { NewsArticle, NewsReactionKind } from "@axiomic/types";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { AiArticleHelpers } from "../components/news/AiArticleHelpers";
@@ -89,10 +90,10 @@ export function NewsArticlePage() {
   if (!article) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-8">
-        <div className="h-56 animate-pulse bg-muted rounded-xl mb-6" />
+        <Skeleton variant="card" className="h-56 mb-6" />
         <div className="space-y-3">
-          <div className="h-8 animate-pulse bg-muted rounded w-2/3" />
-          <div className="h-4 animate-pulse bg-muted rounded w-1/2" />
+          <Skeleton className="h-8 w-2/3" />
+          <Skeleton className="h-4 w-1/2" />
         </div>
       </div>
     );
@@ -100,7 +101,7 @@ export function NewsArticlePage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 grid xl:grid-cols-[1fr_220px] gap-10">
-      <div className="max-w-3xl min-w-0">
+      <div className="max-w-2xl min-w-0">
       <Link
         to="/news"
         className="text-sm text-muted-foreground hover:text-foreground"
@@ -116,9 +117,11 @@ export function NewsArticlePage() {
         />
       </div>
 
-      <h1 className="text-4xl font-bold mt-6 leading-tight">{article.title}</h1>
+      <h1 className="font-display text-4xl sm:text-5xl font-semibold mt-6 leading-[1.1] tracking-tight">
+        {article.title}
+      </h1>
       {article.summary && (
-        <p className="text-lg text-muted-foreground mt-3 leading-relaxed">
+        <p className="text-lg text-muted-foreground mt-4 leading-relaxed">
           {article.summary}
         </p>
       )}
@@ -211,11 +214,11 @@ export function NewsArticlePage() {
 
       {/* Optional abstract — research-paper style, lives above body. */}
       {article.abstract && (
-        <div className="mt-8 rounded-xl border border-border bg-muted/30 p-5">
+        <div className="mt-8 border-l-4 border-primary/40 pl-6 py-1">
           <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
             Abstract
           </div>
-          <div className="prose-sm max-w-none [&_p]:text-sm [&_p]:leading-relaxed">
+          <div className="prose-sm max-w-none italic [&_p]:text-base [&_p]:leading-relaxed [&_p]:text-foreground/85">
             <MarkdownRenderer content={article.abstract} />
           </div>
         </div>
@@ -229,13 +232,20 @@ export function NewsArticlePage() {
       {/* Numbered references list. Each entry is a one-liner with an
           optional link. Body uses [1], [2] markers. */}
       {article.references.length > 0 && (
-        <section className="mt-10 pt-6 border-t border-border">
-          <h2 className="text-base font-semibold mb-3">References</h2>
-          <ol className="space-y-1.5 text-sm">
+        <section className="mt-12 pt-6 border-t border-border">
+          <h2 className="text-[10px] uppercase tracking-wider text-muted-foreground mb-3">
+            References
+          </h2>
+          <ol className="space-y-2 text-sm">
             {article.references.map((r, i) => (
-              <li key={r.label ?? String(i + 1)} className="flex gap-2">
-                <span className="text-muted-foreground tabular-nums">[{r.label ?? i + 1}]</span>
-                <span className="flex-1">
+              <li
+                key={r.label ?? String(i + 1)}
+                className="grid grid-cols-[2.5rem_1fr] gap-1 leading-relaxed"
+              >
+                <span className="font-mono text-xs text-muted-foreground tabular-nums">
+                  [{r.label ?? i + 1}]
+                </span>
+                <span>
                   {r.text}
                   {r.url && (
                     <>

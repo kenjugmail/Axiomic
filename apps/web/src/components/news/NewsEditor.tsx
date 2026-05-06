@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { Sparkles } from "lucide-react";
 import type { NewsAccentColor } from "@axiomic/types";
 import { NEWS_ACCENT_COLORS } from "@axiomic/types";
 import { api } from "../../lib/api";
@@ -244,10 +245,11 @@ function TagsRow({
           type="button"
           onClick={suggest}
           disabled={suggesting || !draft.title.trim()}
-          className="text-xs px-2 py-1 rounded-md border border-primary/40 text-primary hover:bg-primary/10 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md border border-primary/40 text-primary hover:bg-primary/10 disabled:opacity-50 transition-colors duration-fast"
           title="Suggest tags from the title + summary + body"
         >
-          {suggesting ? "Thinking…" : "✨ Suggest tags"}
+          <Sparkles className="w-3 h-3" strokeWidth={2} />
+          {suggesting ? "Thinking…" : "Suggest tags"}
         </button>
       </div>
       <input

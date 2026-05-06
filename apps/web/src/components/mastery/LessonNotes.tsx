@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { NotebookPen } from "lucide-react";
 import { api } from "../../lib/api";
 
 interface Props {
@@ -54,7 +55,10 @@ export function LessonNotes({ nodeId }: Props) {
   return (
     <div className="rounded-lg border border-border bg-card overflow-hidden">
       <div className="px-3 py-2 border-b border-border flex items-center justify-between">
-        <span className="text-xs font-medium">📝 Notes</span>
+        <span className="inline-flex items-center gap-1.5 text-xs font-medium">
+          <NotebookPen className="w-3.5 h-3.5" strokeWidth={1.8} />
+          Notes
+        </span>
         <span className="text-[10px] text-muted-foreground">
           {saving
             ? "Saving…"

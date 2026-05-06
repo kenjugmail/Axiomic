@@ -18,6 +18,7 @@ export function ForumTopicPage() {
   const { slug } = useParams<{ slug: string }>();
   const [topic, setTopic] = useState<ForumTopicDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [reply, setReply] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [summary, setSummary] = useState<string>("");
@@ -27,9 +28,13 @@ export function ForumTopicPage() {
   const load = () => {
     if (!slug) return;
     setLoading(true);
+    setError(null);
     api.forum
       .getTopic(slug)
       .then((d) => setTopic(d.topic))
+      .catch((e) =>
+        setError(e?.message ?? "Couldn't load this topic. Try again."),
+      )
       .finally(() => setLoading(false));
   };
 
@@ -84,10 +89,35 @@ export function ForumTopicPage() {
     }
   };
 
-  if (loading || !topic) {
+  if (loading) {
     return (
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
         <div className="h-32 animate-pulse bg-muted rounded-lg" />
+      </div>
+    );
+  }
+
+  if (error || !topic) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-3">
+        <h1 className="text-xl font-semibold">Couldn't load this topic</h1>
+        <p className="text-sm text-muted-foreground">
+          {error ?? "The topic may have been deleted or moved."}
+        </p>
+        <div className="flex gap-2 justify-center">
+          <button
+            onClick={load}
+            className="px-3 py-1.5 rounded-md border border-border text-sm hover:bg-accent/40"
+          >
+            Retry
+          </button>
+          <Link
+            to="/forum"
+            className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+          >
+            Back to forum
+          </Link>
+        </div>
       </div>
     );
   }

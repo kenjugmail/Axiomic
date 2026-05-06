@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { Target } from "lucide-react";
 import {
   api,
   type ForumTopicSummary,
@@ -103,38 +104,31 @@ export function HomePage() {
       {!user ? (
         // --- Signed-out: marketing hero + features + featured lesson ----
         <>
-          <section className="relative overflow-hidden">
-            <div className="max-w-5xl mx-auto px-4 py-20 sm:py-28">
-              <div className="text-center">
-                <h1 className="text-5xl sm:text-6xl font-bold tracking-tight leading-[1.1] mb-6">
-                  Deep Knowledge,
-                  <br />
-                  <span className="text-primary">Beautifully Structured</span>
-                </h1>
-                <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-                  Interactive lessons with live visualizations and a Python sandbox,
-                  tiered wiki articles, structured forum debate, and gamified mastery
-                  paths — starting with modern machine learning and transformer
-                  architectures.
-                </p>
-                <div className="flex gap-4 justify-center flex-wrap">
-                  <Link
-                    to="/wiki"
-                    className="inline-flex items-center px-7 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors text-lg"
-                  >
-                    Explore the Wiki
-                  </Link>
-                  <Link
-                    to={defaultPath ? `/paths/${defaultPath.slug}` : "/paths"}
-                    className="inline-flex items-center px-7 py-3 bg-secondary text-secondary-foreground rounded-lg font-medium hover:bg-secondary/80 transition-colors text-lg"
-                  >
-                    Start Learning
-                  </Link>
-                </div>
+          <section>
+            <div className="max-w-3xl mx-auto px-4 py-16 sm:py-20 text-center">
+              <h1 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.05] mb-5">
+                Deep knowledge,
+                <br />
+                beautifully structured.
+              </h1>
+              <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8 leading-relaxed">
+                Interactive lessons, tiered wiki articles, structured forum debate,
+                and gamified mastery paths — for modern ML and beyond.
+              </p>
+              <div className="flex gap-3 justify-center flex-wrap">
+                <Link
+                  to="/wiki"
+                  className="inline-flex items-center px-5 py-2.5 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors duration-fast text-sm"
+                >
+                  Explore the wiki
+                </Link>
+                <Link
+                  to={defaultPath ? `/paths/${defaultPath.slug}` : "/paths"}
+                  className="inline-flex items-center px-5 py-2.5 border border-border text-foreground rounded-md font-medium hover:bg-accent/40 transition-colors duration-fast text-sm"
+                >
+                  Start learning
+                </Link>
               </div>
-            </div>
-            <div className="absolute inset-0 -z-10 overflow-hidden">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/5 rounded-full blur-3xl" />
             </div>
           </section>
 
@@ -317,7 +311,9 @@ export function HomePage() {
                 className="block rounded-xl border border-primary/30 bg-gradient-to-r from-primary/10 to-transparent px-4 py-3 hover:from-primary/15 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">🎯</span>
+                  <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 text-primary">
+                    <Target className="w-5 h-5" strokeWidth={2} />
+                  </span>
                   <div className="flex-1">
                     <div className="text-sm font-semibold">Today's challenge</div>
                     <div className="text-xs text-muted-foreground">
@@ -394,47 +390,33 @@ export function HomePage() {
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             {paths.length === 0 ? (
-              <div className="h-32 animate-pulse bg-muted rounded-xl col-span-2" />
+              <div className="h-32 animate-pulse bg-muted rounded-lg col-span-2" />
             ) : (
-              paths.map((path) => (
-                <Link
-                  key={path.id}
-                  to={`/paths/${path.slug}`}
-                  className="block p-6 rounded-xl border border-border bg-card hover:bg-accent/30 transition-colors"
-                >
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
-                      </svg>
+              paths.map((path, i) => {
+                const accents = [
+                  "bg-accent-indigo",
+                  "bg-accent-emerald",
+                  "bg-accent-rose",
+                  "bg-accent-amber",
+                ];
+                const accent = accents[i % accents.length];
+                return (
+                  <Link
+                    key={path.id}
+                    to={`/paths/${path.slug}`}
+                    className="group relative pl-5 pr-5 py-5 rounded-lg border border-border bg-card hover:bg-accent/30 hover:shadow-soft transition-all duration-fast overflow-hidden"
+                  >
+                    <span className={`absolute left-0 top-0 bottom-0 w-1 ${accent}`} />
+                    <h3 className="font-semibold text-base mb-1.5">{path.title}</h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {path.description}
+                    </p>
+                    <div className="mt-3 text-[11px] uppercase tracking-wider text-muted-foreground">
+                      Apprentice → Researcher
                     </div>
-                    <h3 className="font-semibold text-lg">{path.title}</h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                    {path.description}
-                  </p>
-                  <div className="flex gap-1">
-                    {["Apprentice", "Practitioner", "Specialist", "Expert", "Researcher"].map((level, i) => (
-                      <div key={level} className="flex-1 text-center">
-                        <div
-                          className={`h-2 rounded-full mb-1 ${
-                            i === 0
-                              ? "bg-emerald-400"
-                              : i === 1
-                                ? "bg-blue-400"
-                                : i === 2
-                                  ? "bg-purple-400"
-                                  : i === 3
-                                    ? "bg-amber-400"
-                                    : "bg-red-400"
-                          }`}
-                        />
-                        <span className="text-[9px] text-muted-foreground">{level}</span>
-                      </div>
-                    ))}
-                  </div>
-                </Link>
-              ))
+                  </Link>
+                );
+              })
             )}
           </div>
         </div>

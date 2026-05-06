@@ -1,3 +1,6 @@
+import { Bookmark, BookmarkPlus } from "lucide-react";
+import { Button } from "../ui/Button";
+
 interface Props {
   bookmarked: boolean;
   onToggle: () => void;
@@ -6,19 +9,22 @@ interface Props {
 
 // "Save for later" toggle. Used on news articles and forum topics.
 export function BookmarkButton({ bookmarked, onToggle, pending }: Props) {
+  const Icon = bookmarked ? Bookmark : BookmarkPlus;
   return (
-    <button
+    <Button
+      variant={bookmarked ? "secondary" : "outline"}
+      size="sm"
       onClick={onToggle}
       disabled={!!pending}
-      className={`px-3 py-1.5 rounded-full border text-sm transition-colors flex items-center gap-2 ${
-        bookmarked
-          ? "border-amber-500 bg-amber-500/10 text-amber-700 dark:text-amber-400"
-          : "border-border hover:bg-accent/40"
-      } disabled:opacity-50`}
       title={bookmarked ? "Remove from bookmarks" : "Save for later"}
+      className="rounded-full"
     >
-      <span className="text-lg">{bookmarked ? "🔖" : "🏷️"}</span>
-      <span className="font-medium">{bookmarked ? "Saved" : "Save"}</span>
-    </button>
+      <Icon
+        className="w-4 h-4"
+        strokeWidth={1.8}
+        fill={bookmarked ? "currentColor" : "none"}
+      />
+      <span>{bookmarked ? "Saved" : "Save"}</span>
+    </Button>
   );
 }

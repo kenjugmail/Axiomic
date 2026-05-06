@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { Sparkles } from "lucide-react";
 import { api } from "../lib/api";
 import type { NewsAccentColor, NewsArticle } from "@axiomic/types";
 import { NewsEditor, type NewsDraft } from "../components/news/NewsEditor";
@@ -170,10 +171,11 @@ export function NewsProposeEditPage() {
           <button
             onClick={polish}
             disabled={polishing || !canSubmit}
-            className="px-3 py-2 rounded-md border border-primary/40 text-primary text-sm font-medium hover:bg-primary/10 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md border border-primary/40 text-primary text-sm font-medium hover:bg-primary/10 disabled:opacity-50"
             title="AI polishes the body of your proposal in place"
           >
-            {polishing ? "Polishing…" : "✨ Polish with AI"}
+            <Sparkles className="w-3.5 h-3.5" strokeWidth={2} />
+            {polishing ? "Polishing…" : "Polish with AI"}
           </button>
           <button
             onClick={handleSubmit}

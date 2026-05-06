@@ -11,11 +11,11 @@ const LEVEL_LABELS: Record<string, string> = {
 };
 
 const ACCENT_BORDER: Record<string, string> = {
-  apprentice: "border-emerald-500/40",
-  practitioner: "border-blue-500/40",
-  specialist: "border-violet-500/40",
-  expert: "border-amber-500/40",
-  researcher: "border-rose-500/40",
+  apprentice: "border-accent-emerald/40",
+  practitioner: "border-accent-sky/40",
+  specialist: "border-accent-violet/40",
+  expert: "border-accent-amber/40",
+  researcher: "border-accent-rose/40",
 };
 
 interface Props {
@@ -115,28 +115,25 @@ export function PathGraph({ nodes, nodeMastery, signedIn, onPick }: Props) {
             viewBox="0 0 10 10"
             refX="8"
             refY="5"
-            markerWidth="6"
-            markerHeight="6"
+            markerWidth="4.5"
+            markerHeight="4.5"
             orient="auto-start-reverse"
           >
             <path
               d="M 0 0 L 10 5 L 0 10 z"
-              className="fill-muted-foreground/40"
+              className="fill-muted-foreground/30"
             />
           </marker>
         </defs>
         {edges.map((e) => {
-          // Cubic curve so edges arc rather than ziggy. Control
-          // points sit at ~30% of the dx, vertically aligned with
-          // the endpoints.
           const dx = Math.max(40, (e.x2 - e.x1) * 0.5);
           return (
             <path
               key={`${e.fromId}-${e.toId}`}
               d={`M ${e.x1} ${e.y1} C ${e.x1 + dx} ${e.y1}, ${e.x2 - dx} ${e.y2}, ${e.x2} ${e.y2}`}
               fill="none"
-              strokeWidth="1.5"
-              className="stroke-muted-foreground/30"
+              strokeWidth="1.25"
+              className="stroke-muted-foreground/15"
               markerEnd="url(#arrow)"
             />
           );
@@ -144,9 +141,9 @@ export function PathGraph({ nodes, nodeMastery, signedIn, onPick }: Props) {
       </svg>
 
       <div
-        className="grid gap-6 relative"
+        className="grid gap-x-10 gap-y-4 relative"
         style={{
-          gridTemplateColumns: `repeat(${cols.length}, minmax(180px, 1fr))`,
+          gridTemplateColumns: `repeat(${cols.length}, minmax(200px, 1fr))`,
         }}
       >
         {cols.map(({ level, nodes: levelNodes }) => (
@@ -165,24 +162,26 @@ export function PathGraph({ nodes, nodeMastery, signedIn, onPick }: Props) {
                     else cardRefs.current.delete(n.id);
                   }}
                   onClick={() => onPick(n)}
-                  className={`w-full text-left p-3 rounded-lg border-2 bg-card transition-all ${
+                  className={`w-full text-left p-3 rounded-md border bg-card transition-all duration-fast hover:shadow-soft ${
                     completed
-                      ? "border-emerald-500/60 bg-emerald-500/5"
-                      : `${ACCENT_BORDER[n.level] ?? "border-border"} hover:scale-[1.02]`
+                      ? "border-accent-emerald/40 bg-accent-emerald/5"
+                      : `${ACCENT_BORDER[n.level] ?? "border-border"} hover:-translate-y-0.5`
                   }`}
                 >
                   <div className="flex items-start justify-between gap-1.5">
                     <h4 className="font-medium text-xs leading-tight flex-1">
                       {n.title}
                     </h4>
-                    {completed && <span className="text-xs">✓</span>}
+                    {completed && (
+                      <span className="text-accent-emerald text-xs leading-none">✓</span>
+                    )}
                   </div>
                   {signedIn && (
-                    <div className="mt-2">
-                      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div className="mt-2.5">
+                      <div className="h-1 bg-muted rounded-full overflow-hidden">
                         <div
-                          className={`h-full rounded-full transition-all ${
-                            completed ? "bg-emerald-500" : "bg-primary"
+                          className={`h-full rounded-full transition-all duration-slow ease-out ${
+                            completed ? "bg-accent-emerald" : "bg-primary"
                           }`}
                           style={{ width: `${mastery}%` }}
                         />

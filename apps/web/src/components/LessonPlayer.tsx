@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { NotebookPen } from "lucide-react";
 import { api } from "../lib/api";
 import type { Lesson, LessonSlide, QuizQuestion } from "@axiomic/types";
 import { assertQuestionKind } from "@axiomic/types";
@@ -305,14 +306,15 @@ export function LessonPlayer({ nodeId, nodeTitle, onClose, onCompleted }: Props)
           <div className="flex items-center gap-2">
             <button
               onClick={() => setNotesOpen((v) => !v)}
-              className={`text-xs px-2 py-1 rounded transition-colors ${
+              className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md transition-colors duration-fast ${
                 notesOpen
                   ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent/40"
               }`}
               aria-pressed={notesOpen}
             >
-              📝 Notes
+              <NotebookPen className="w-3.5 h-3.5" strokeWidth={1.8} />
+              Notes
             </button>
             <button
               onClick={onClose}

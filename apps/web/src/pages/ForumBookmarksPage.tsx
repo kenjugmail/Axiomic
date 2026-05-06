@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Bookmark } from "lucide-react";
 import { api } from "../lib/api";
 import type { ForumBookmarkSummary, PostType } from "@axiomic/types";
 import { PostTypeBadge } from "../components/PostTypeBadge";
 import { useAuthStore } from "../stores/auth";
+import { EmptyState } from "../components/ui";
 
 function bookmarkedAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -60,15 +62,19 @@ export function ForumBookmarksPage() {
           ))}
         </div>
       ) : topics.length === 0 ? (
-        <div className="py-16 text-center text-muted-foreground border border-dashed border-border rounded-xl">
-          <div className="text-4xl mb-2">🔖</div>
-          <p className="text-base">No saved topics yet.</p>
-          <p className="text-sm mt-2">
-            Hit{" "}
-            <span className="font-medium text-foreground">Save</span> on any
-            forum topic to find it here later.
-          </p>
-        </div>
+        <EmptyState
+          icon={Bookmark}
+          title="No saved topics yet."
+          description="Hit Save on any forum topic to find it here later."
+          cta={
+            <Link
+              to="/forum"
+              className="inline-flex items-center px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+            >
+              Browse the forum
+            </Link>
+          }
+        />
       ) : (
         <ul className="space-y-2">
           {topics.map((t) => (
@@ -81,8 +87,9 @@ export function ForumBookmarksPage() {
                 <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
                   {t.domainTitle}
                 </span>
-                <span className="ml-auto text-[11px] text-amber-700 dark:text-amber-400">
-                  🔖 {bookmarkedAgo(t.bookmarkedAt)}
+                <span className="ml-auto inline-flex items-center gap-1 text-[11px] text-accent-amber">
+                  <Bookmark className="w-3 h-3" strokeWidth={2} />
+                  {bookmarkedAgo(t.bookmarkedAt)}
                 </span>
               </div>
               <Link

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Sparkles } from "lucide-react";
 import { api } from "../lib/api";
 import type { NewsAccentColor } from "@axiomic/types";
 import { NewsEditor, type NewsDraft } from "../components/news/NewsEditor";
@@ -115,9 +116,10 @@ export function NewsNewPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setAiOpen(true)}
-            className="px-3 py-2 rounded-md border border-primary/40 text-primary text-sm font-medium hover:bg-primary/10"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md border border-primary/40 text-primary text-sm font-medium hover:bg-primary/10"
           >
-            ✨ Draft with AI
+            <Sparkles className="w-3.5 h-3.5" strokeWidth={2} />
+            Draft with AI
           </button>
           <button
             onClick={() => save("draft")}

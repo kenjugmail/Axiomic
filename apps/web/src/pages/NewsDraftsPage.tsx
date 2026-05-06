@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Pencil, Plus } from "lucide-react";
 import { api } from "../lib/api";
 import type { NewsArticleSummary } from "@axiomic/types";
 import { NewsCover } from "../components/news/NewsCover";
 import { useAuthStore } from "../stores/auth";
+import { EmptyState } from "../components/ui";
 
 export function NewsDraftsPage() {
   const { user, loading: authLoading } = useAuthStore();
@@ -49,9 +51,10 @@ export function NewsDraftsPage() {
         </div>
         <Link
           to="/news/new"
-          className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
         >
-          + New article
+          <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+          New article
         </Link>
       </div>
 
@@ -62,14 +65,20 @@ export function NewsDraftsPage() {
           ))}
         </div>
       ) : drafts.length === 0 ? (
-        <div className="py-16 text-center text-muted-foreground border border-dashed border-border rounded-xl">
-          <p className="text-base">No drafts.</p>
-          <p className="text-sm mt-2">
-            Hit{" "}
-            <span className="font-medium text-foreground">Save as draft</span>{" "}
-            from the editor to come back to a piece later.
-          </p>
-        </div>
+        <EmptyState
+          icon={Pencil}
+          title="No drafts."
+          description="Hit Save as draft from the editor to come back to a piece later."
+          cta={
+            <Link
+              to="/news/new"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+            >
+              <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+              Start writing
+            </Link>
+          }
+        />
       ) : (
         <div className="grid sm:grid-cols-2 gap-5">
           {drafts.map((a) => (

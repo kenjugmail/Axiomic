@@ -1,3 +1,4 @@
+import { Lock } from "lucide-react";
 import type {
   AchievementCatalogEntry,
   EarnedAchievement,
@@ -32,8 +33,12 @@ export function AchievementsGallery({ catalog, earned }: Props) {
                 : "Locked"
             }
           >
-            <div className="text-2xl shrink-0 grayscale-[0.3]">
-              {locked ? "🔒" : a.icon}
+            <div className="shrink-0 w-9 h-9 rounded-md flex items-center justify-center text-xl grayscale-[0.3]">
+              {locked ? (
+                <Lock className="w-4 h-4 text-muted-foreground" strokeWidth={2} />
+              ) : (
+                a.icon
+              )}
             </div>
             <div className="min-w-0">
               <div className="text-sm font-medium truncate">{a.title}</div>
