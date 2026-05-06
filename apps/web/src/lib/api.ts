@@ -24,6 +24,9 @@ import type {
   DailyChallengeSubmitResponse,
   LeaderboardResponse,
   PathCertificateResponse,
+  PathLessonNotesResponse,
+  PathLessonProgressResponse,
+  QuizMistakesResponse,
   ToggleFollowResponse,
   ToggleForumReactionResponse,
   NewsArticleResponse,
@@ -166,6 +169,21 @@ export const api = {
     summary: (username: string) =>
       request<MasterySummaryResponse>(`/mastery/users/${username}/summary`),
     nextNode: () => request<NextNodeResponse>("/mastery/next-node"),
+    getLessonProgress: (nodeId: string) =>
+      request<PathLessonProgressResponse>(`/mastery/lesson-progress/${nodeId}`),
+    setLessonProgress: (nodeId: string, slideIdx: number) =>
+      request<OkResponse>(`/mastery/lesson-progress/${nodeId}`, {
+        method: "PUT",
+        body: JSON.stringify({ slideIdx }),
+      }),
+    getLessonNotes: (nodeId: string) =>
+      request<PathLessonNotesResponse>(`/mastery/lesson-notes/${nodeId}`),
+    saveLessonNotes: (nodeId: string, body: string) =>
+      request<{ ok: boolean; updatedAt: string }>(
+        `/mastery/lesson-notes/${nodeId}`,
+        { method: "PUT", body: JSON.stringify({ body }) },
+      ),
+    mistakes: () => request<QuizMistakesResponse>("/mastery/mistakes"),
   },
   forum: {
     domains: () => request<ForumDomainsResponse>("/forum/domains"),

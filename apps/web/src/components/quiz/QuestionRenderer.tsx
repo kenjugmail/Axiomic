@@ -5,6 +5,9 @@ import { SliderQuestion } from "./SliderQuestion";
 import { DragClassifyQuestion } from "./DragClassifyQuestion";
 import { CodeQuestion } from "./CodeQuestion";
 import { PuzzleDragBuildQuestion } from "./PuzzleDragBuildQuestion";
+import { MathExpressionQuestion } from "./MathExpressionQuestion";
+import { SortableQuestion } from "./SortableQuestion";
+import { CodeCompletionQuestion } from "./CodeCompletionQuestion";
 
 interface Props {
   question: QuizQuestion;
@@ -53,6 +56,33 @@ export function QuestionRenderer({ question, value, onChange, review }: Props) {
           review={review}
         />
       );
+    case "math_expression":
+      return (
+        <MathExpressionQuestion
+          question={q}
+          value={value}
+          onChange={onChange}
+          review={review}
+        />
+      );
+    case "sortable":
+      return (
+        <SortableQuestion
+          question={q}
+          value={value}
+          onChange={onChange}
+          review={review}
+        />
+      );
+    case "code_completion":
+      return (
+        <CodeCompletionQuestion
+          question={q}
+          value={value}
+          onChange={onChange}
+          review={review}
+        />
+      );
   }
 }
 
@@ -90,6 +120,27 @@ export function isAnswered(question: QuizQuestion, value: string | undefined): b
     } catch {
       return false;
     }
+  }
+  if (q.kind === "sortable") {
+    try {
+      const arr = JSON.parse(value) as string[];
+      return Array.isArray(arr) && arr.length === q.items.length;
+    } catch {
+      return false;
+    }
+  }
+  if (q.kind === "code_completion") {
+    try {
+      const map = JSON.parse(value) as Record<string, string>;
+      return q.blanks.every(
+        (b) => typeof map[b.id] === "string" && map[b.id].trim().length > 0,
+      );
+    } catch {
+      return false;
+    }
+  }
+  if (q.kind === "math_expression") {
+    return value.trim().length > 0;
   }
   return true;
 }

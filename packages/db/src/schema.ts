@@ -521,3 +521,60 @@ export const dailyChallengeAttempts = sqliteTable(
     userIdx: index("daily_challenge_attempts_user_idx").on(t.userId, t.createdAt),
   }),
 );
+
+// --- Per-node lesson progress + per-node notes ---
+//
+// Lesson progress lets the lesson player resume mid-lesson at the
+// slide the user last reached. Notes are a small per-user scratchpad
+// scoped to a node (rendered alongside the lesson and surfaced on
+// the user's profile).
+export const lessonProgress = sqliteTable(
+  "lesson_progress",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    nodeId: text("node_id").notNull().references(() => masteryNodes.id),
+    slideIdx: integer("slide_idx").notNull().default(0),
+    updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("lesson_progress_uniq_idx").on(t.userId, t.nodeId),
+  }),
+);
+
+export const lessonNotes = sqliteTable(
+  "lesson_notes",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    nodeId: text("node_id").notNull().references(() => masteryNodes.id),
+    body: text("body").notNull().default(""),
+    updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("lesson_notes_uniq_idx").on(t.userId, t.nodeId),
+  }),
+);
+
+// Per-question wrong-answer log. Used to build the /review/mistakes
+// page, auto-create flashcards, and weight the daily challenge toward
+// a user's weak areas.
+export const quizMistakes = sqliteTable(
+  "quiz_mistakes",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    nodeId: text("node_id").notNull().references(() => masteryNodes.id),
+    questionId: text("question_id").notNull(),
+    occurrences: integer("occurrences").notNull().default(1),
+    lastWrongAt: text("last_wrong_at").default(sql`(datetime('now'))`).notNull(),
+    // Set when the user later gets the same question right; the row
+    // stays around for the mistakes log but doesn't bias the daily
+    // challenge anymore.
+    resolvedAt: text("resolved_at"),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("quiz_mistakes_uniq_idx").on(t.userId, t.nodeId, t.questionId),
+    userIdx: index("quiz_mistakes_user_idx").on(t.userId, t.lastWrongAt),
+  }),
+);

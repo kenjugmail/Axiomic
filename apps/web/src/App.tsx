@@ -73,6 +73,9 @@ const DailyChallengePage = lazy(() =>
 const PathCertificatePage = lazy(() =>
   import("./pages/PathCertificatePage").then((m) => ({ default: m.PathCertificatePage })),
 );
+const MistakesPage = lazy(() =>
+  import("./pages/MistakesPage").then((m) => ({ default: m.MistakesPage })),
+);
 const SettingsPage = lazy(() =>
   import("./pages/SettingsPage").then((m) => ({ default: m.SettingsPage })),
 );
@@ -136,6 +139,7 @@ export function App() {
             path="/paths/:pathSlug/certificate/:username"
             element={<PathCertificatePage />}
           />
+          <Route path="/review/mistakes" element={<MistakesPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/profile/:username" element={<ProfilePage />} />
           <Route path="/notifications" element={<NotificationsPage />} />

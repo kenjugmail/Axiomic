@@ -81,6 +81,9 @@ export function Layout() {
                   <Link to="/flashcards" className="text-muted-foreground hover:text-foreground transition-colors">
                     Flashcards
                   </Link>
+                  <Link to="/review/mistakes" className="text-muted-foreground hover:text-foreground transition-colors">
+                    Review
+                  </Link>
                 </>
               )}
             </nav>

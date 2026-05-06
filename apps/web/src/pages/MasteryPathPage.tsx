@@ -4,6 +4,7 @@ import { api, type MasteryPath, type MasteryNode, type UserNodeProgress } from "
 import { useAuthStore } from "../stores/auth";
 import { QuizModal } from "../components/QuizModal";
 import { LessonPlayer } from "../components/LessonPlayer";
+import { PathGraph } from "../components/mastery/PathGraph";
 
 const LEVEL_COLORS: Record<string, string> = {
   apprentice: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
@@ -41,9 +42,15 @@ export function MasteryPathPage() {
   const [path, setPath] = useState<MasteryPath | null>(null);
   const [nodes, setNodes] = useState<MasteryNode[]>([]);
   const [progress, setProgress] = useState<UserNodeProgress[]>([]);
+  const [nodeMastery, setNodeMastery] = useState<Record<string, number>>({});
+  const [lockState, setLockState] = useState<Record<string, boolean>>({});
+  const [lastVisitedNodeSlug, setLastVisitedNodeSlug] = useState<string | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   const [quizFor, setQuizFor] = useState<MasteryNode | null>(null);
   const [lessonFor, setLessonFor] = useState<MasteryNode | null>(null);
+  const [view, setView] = useState<"list" | "graph">("list");
   const [levelUpBanner, setLevelUpBanner] = useState<string | null>(null);
   const prevHighestRef = useRef<number>(-2); // sentinel: not initialized yet
   const user = useAuthStore((s) => s.user);
@@ -57,6 +64,9 @@ export function MasteryPathPage() {
         setPath(data.path);
         setNodes(data.nodes);
         setProgress(data.progress);
+        setNodeMastery(data.nodeMastery ?? {});
+        setLockState(data.lockState ?? {});
+        setLastVisitedNodeSlug(data.lastVisitedNodeSlug ?? null);
       })
       .finally(() => setLoading(false));
   };
@@ -209,8 +219,64 @@ export function MasteryPathPage() {
         </div>
       </div>
 
+      {/* Resume CTA + view toggle */}
+      <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+        {lastVisitedNodeSlug ? (
+          <Link
+            to={`/wiki/${
+              nodes.find((n) => n.slug === lastVisitedNodeSlug)?.pageIds[0] ??
+              lastVisitedNodeSlug
+            }`}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-primary/10 text-primary text-sm font-medium hover:bg-primary/15"
+          >
+            ↻ Resume{" "}
+            {nodes.find((n) => n.slug === lastVisitedNodeSlug)?.title ?? "where you left off"}
+          </Link>
+        ) : (
+          <span />
+        )}
+        <div className="flex gap-1 p-1 rounded-md bg-muted text-xs">
+          <button
+            onClick={() => setView("list")}
+            className={`px-3 py-1 rounded transition-colors ${
+              view === "list"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            List
+          </button>
+          <button
+            onClick={() => setView("graph")}
+            className={`px-3 py-1 rounded transition-colors ${
+              view === "graph"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Graph
+          </button>
+        </div>
+      </div>
+
+      {view === "graph" && (
+        <div className="mb-8">
+          <PathGraph
+            nodes={nodes}
+            nodeMastery={nodeMastery}
+            lockState={lockState}
+            signedIn={!!user}
+            onPick={(n) => {
+              if (lockState[n.id]) return;
+              if (n.hasLesson) setLessonFor(n);
+              else setQuizFor(n);
+            }}
+          />
+        </div>
+      )}
+
       {/* Nodes by level */}
-      <div className="space-y-8">
+      {view === "list" && <div className="space-y-8">
         {nodesByLevel.map(({ level, label, nodes: levelNodes }) => (
           <div key={level}>
             <div className="flex items-center gap-2 mb-3">
@@ -222,11 +288,17 @@ export function MasteryPathPage() {
               {levelNodes.map((node) => {
                 const completed = isCompleted(node.id);
                 const quizScore = quizScoreFor(node.id);
+                const locked = !!lockState[node.id];
+                const mastery = nodeMastery[node.id] ?? 0;
                 return (
                   <div
                     key={node.id}
                     className={`flex items-center justify-between p-4 rounded-lg border transition-colors ${
-                      completed ? "bg-primary/5 border-primary/20" : "border-border hover:bg-accent/50"
+                      locked
+                        ? "border-dashed border-muted-foreground/30 bg-muted/20 opacity-70"
+                        : completed
+                          ? "bg-primary/5 border-primary/20"
+                          : "border-border hover:bg-accent/50"
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -242,11 +314,28 @@ export function MasteryPathPage() {
                         )}
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-medium text-sm">{node.title}</h3>
+                          {locked && <span className="text-xs">🔒</span>}
+                          {!locked && user && mastery > 0 && (
+                            <span
+                              className={`text-[10px] uppercase tracking-wider px-1.5 py-px rounded ${
+                                mastery >= 70
+                                  ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                                  : "bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                              }`}
+                            >
+                              Mastery · {mastery}/100
+                            </span>
+                          )}
                           {completed && quizScore !== null && quizScore !== undefined && (
                             <span className="text-[10px] uppercase tracking-wider px-1.5 py-px rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
                               Quiz · {Math.round(quizScore * 100)}%
+                            </span>
+                          )}
+                          {node.estimatedMinutes && (
+                            <span className="text-[10px] text-muted-foreground">
+                              ~{node.estimatedMinutes}m
                             </span>
                           )}
                         </div>
@@ -297,7 +386,7 @@ export function MasteryPathPage() {
             </div>
           </div>
         ))}
-      </div>
+      </div>}
 
       {quizFor && (
         <QuizModal

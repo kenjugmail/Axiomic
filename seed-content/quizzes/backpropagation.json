@@ -46,5 +46,17 @@
     ],
     "correctIndex": 0,
     "explanation": "∂(F(x) + x)/∂x = ∂F/∂x + I. The identity term means at least *some* gradient survives the trip back, regardless of what F is doing. ResNets / transformers wouldn't train past a few layers without this."
+  },
+  {
+    "id": "q5",
+    "kind": "sortable",
+    "question": "Order these training-loop steps from first to last (one full SGD step on a minibatch).",
+    "items": [
+      { "id": "s1", "label": "Forward pass: compute the loss" },
+      { "id": "s2", "label": "Backward pass: compute gradients via chain rule" },
+      { "id": "s3", "label": "Apply optimizer update: θ ← θ − η·∇L" },
+      { "id": "s4", "label": "Zero out cached gradients for the next step" }
+    ],
+    "explanation": "Forward → backward → update → zero. Skipping the zero-grad step is the single most common deep-learning bug — gradients accumulate across steps."
   }
 ]

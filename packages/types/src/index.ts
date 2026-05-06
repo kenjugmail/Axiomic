@@ -65,6 +65,9 @@ export interface MasteryNode {
   prerequisiteNodeIds: string[];
   // Server-derived flag — true when the node has authored lesson_data.
   hasLesson?: boolean;
+  // Cheap server-side estimate (minutes). Defaults to undefined for
+  // older callers that haven't fetched the enriched payload.
+  estimatedMinutes?: number;
 }
 
 export interface UserNodeProgress {
@@ -178,12 +181,72 @@ export interface PuzzleDragBuildQuestion {
   explanation?: string;
 }
 
+// Math-expression input. The user types a LaTeX-friendly expression
+// in the box; the renderer shows a live KaTeX preview. Grading is by
+// matching the user's input (with a normalization pass) against any
+// of `acceptedAnswers`. Symbolic equivalence beyond literal-with-
+// normalization is out of scope for v1 — authors list common forms.
+export interface MathExpressionQuestion {
+  id: string;
+  kind: "math_expression";
+  question: string;
+  // Pre-fill the input. Useful for "complete this expression" prompts.
+  starter?: string;
+  // Any of these values count as correct after the same whitespace +
+  // case normalization the input goes through.
+  acceptedAnswers: string[];
+  // Hint shown beneath the input.
+  hint?: string;
+  explanation?: string;
+}
+
+// Sortable list. The user drags `items` into the correct order. The
+// declared order in the JSON is the correct one.
+export interface SortableItem {
+  id: string;
+  label: string;
+}
+
+export interface SortableQuestion {
+  id: string;
+  kind: "sortable";
+  question: string;
+  items: SortableItem[];
+  explanation?: string;
+}
+
+// Code-completion. A code block with `___` placeholders the user
+// fills. The placeholders are 1-indexed and the answer map is a
+// `{ "1": "...", "2": "..." }`. Grading is exact-string-match per
+// blank after trimming.
+export interface CodeCompletionBlank {
+  id: string;
+  // Acceptable values for this blank. Any one is correct after a
+  // whitespace trim.
+  acceptedAnswers: string[];
+}
+
+export interface CodeCompletionQuestion {
+  id: string;
+  kind: "code_completion";
+  question: string;
+  // The full code block. Use `___1___`, `___2___`, etc. as inline
+  // placeholders that the renderer turns into input boxes.
+  template: string;
+  language?: string;
+  blanks: CodeCompletionBlank[];
+  explanation?: string;
+}
+
 export type QuizQuestion =
   | MultipleChoiceQuestion
   | SliderQuestion
   | DragClassifyQuestion
   | CodeQuestion
-  | PuzzleDragBuildQuestion;
+  | PuzzleDragBuildQuestion
+  | MathExpressionQuestion
+  | SortableQuestion
+  | CodeCompletionQuestion;
 
 // Coerce a raw question (which may lack `kind`) into a typed one. Used
 // by both server-side scoring and frontend rendering.
@@ -274,6 +337,14 @@ export interface MasteryPathResponse {
   path: MasteryPath;
   nodes: MasteryNode[];
   progress: UserNodeProgress[];
+  // 0-100 mastery per node id. Empty for signed-out viewers.
+  nodeMastery?: Record<string, number>;
+  // True when the node should render as locked (prereqs not yet
+  // mastered to ≥70). Empty / always-false for signed-out viewers.
+  lockState?: Record<string, boolean>;
+  // Slug of the node to send the user to with the "Resume" CTA, or
+  // null if there's nothing to resume.
+  lastVisitedNodeSlug?: string | null;
 }
 
 export interface QuizQuestionsResponse {
@@ -1085,3 +1156,31 @@ export type LiveEvent =
       articleSlug: string;
       reactionCounts: Record<NewsReactionKind, number>;
     };
+
+// --- Learning-path enrichments ---
+
+export interface PathLessonProgressResponse {
+  slideIdx: number;
+}
+
+export interface PathLessonNotesResponse {
+  body: string;
+  updatedAt: string | null;
+}
+
+export interface QuizMistakeEntry {
+  nodeId: string;
+  nodeSlug: string;
+  nodeTitle: string;
+  pathSlug: string | null;
+  pathTitle: string | null;
+  questionId: string;
+  questionText: string | null;
+  occurrences: number;
+  lastWrongAt: string;
+  resolvedAt: string | null;
+}
+
+export interface QuizMistakesResponse {
+  mistakes: QuizMistakeEntry[];
+}
