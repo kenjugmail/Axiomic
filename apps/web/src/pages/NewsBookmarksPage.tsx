@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Bookmark } from "lucide-react";
 import { api } from "../lib/api";
 import type { NewsBookmarkSummary } from "@axiomic/types";
 import { NewsCover } from "../components/news/NewsCover";
 import { useAuthStore } from "../stores/auth";
+import { EmptyState } from "../components/ui";
 
 function bookmarkedAgo(iso: string): string {
   const d = new Date(iso).getTime();
@@ -68,14 +70,19 @@ export function NewsBookmarksPage() {
           ))}
         </div>
       ) : articles.length === 0 ? (
-        <div className="py-16 text-center text-muted-foreground border border-dashed border-border rounded-xl">
-          <p className="text-base">No bookmarks yet.</p>
-          <p className="text-sm mt-2">
-            Hit{" "}
-            <span className="font-medium text-foreground">Save</span> on any
-            article to find it here later.
-          </p>
-        </div>
+        <EmptyState
+          icon={Bookmark}
+          title="No bookmarks yet."
+          description="Hit Save on any article to find it here later."
+          cta={
+            <Link
+              to="/news"
+              className="inline-flex items-center px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+            >
+              Browse the news
+            </Link>
+          }
+        />
       ) : (
         <div className="grid sm:grid-cols-2 gap-5">
           {articles.map((a) => (
@@ -97,8 +104,9 @@ export function NewsBookmarksPage() {
                   <span>·</span>
                   <span>{a.readingMinutes} min</span>
                   <span>·</span>
-                  <span className="text-amber-700 dark:text-amber-400">
-                    🔖 {bookmarkedAgo(a.bookmarkedAt)}
+                  <span className="inline-flex items-center gap-1 text-accent-amber">
+                    <Bookmark className="w-3 h-3" strokeWidth={2} />
+                    {bookmarkedAgo(a.bookmarkedAt)}
                   </span>
                 </div>
               </div>

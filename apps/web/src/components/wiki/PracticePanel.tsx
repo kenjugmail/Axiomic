@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Sparkles } from "lucide-react";
 import { api } from "../../lib/api";
 import type { AiPracticeQuestion } from "@axiomic/types";
 
@@ -39,8 +40,9 @@ export function PracticePanel({ pageSlug, tier }: Props) {
     <div className="my-6 rounded-lg border border-primary/30 bg-gradient-to-br from-primary/5 to-transparent p-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <div className="text-xs uppercase tracking-wider text-primary mb-0.5">
-            ✨ Quiz me on this page
+          <div className="inline-flex items-center gap-1.5 text-xs uppercase tracking-wider text-primary mb-0.5">
+            <Sparkles className="w-3 h-3" strokeWidth={2} />
+            Quiz me on this page
           </div>
           <p className="text-sm text-muted-foreground">
             AI generates 3 multiple-choice questions from the content above.

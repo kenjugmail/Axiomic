@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { Trophy } from "lucide-react";
 import { api, type MasteryPath, type MasteryNode, type UserNodeProgress } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { QuizModal } from "../components/QuizModal";
 import { LessonPlayer } from "../components/LessonPlayer";
 import { PathGraph } from "../components/mastery/PathGraph";
+import { Skeleton } from "../components/ui";
 
 const LEVEL_COLORS: Record<string, string> = {
   apprentice: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
@@ -120,11 +122,9 @@ export function MasteryPathPage() {
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-12">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-muted rounded w-1/3" />
-          <div className="h-4 bg-muted rounded w-2/3" />
-        </div>
+      <div className="max-w-4xl mx-auto px-4 py-12 space-y-3">
+        <Skeleton className="h-8 w-1/3" />
+        <Skeleton className="h-4 w-2/3" />
       </div>
     );
   }
@@ -172,9 +172,9 @@ export function MasteryPathPage() {
         </div>
       )}
 
-      {/* Progress bar */}
-      <div className="mb-8 p-4 rounded-lg bg-card border border-border">
-        <div className="flex items-center justify-between mb-2">
+      {/* Progress card */}
+      <div className="mb-8 p-5 rounded-lg bg-card border border-border">
+        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${LEVEL_COLORS[currentLevel]}`}>
               {LEVEL_LABELS[currentLevel]}
@@ -183,40 +183,25 @@ export function MasteryPathPage() {
               {completedCount} / {totalNodes} nodes completed
             </span>
           </div>
-          <span className="text-sm font-medium">{Math.round(progressPercent)}%</span>
+          <span className="text-sm font-semibold tabular-nums">{Math.round(progressPercent)}%</span>
         </div>
-        {user && completedCount > 0 && completedCount === totalNodes && (
-          <div className="mt-3">
-            <Link
-              to={`/paths/${slug}/certificate/${user.username}`}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-gradient-to-r from-amber-500 to-orange-600 text-white text-sm font-medium hover:opacity-90"
-            >
-              🏆 View certificate
-            </Link>
-          </div>
-        )}
-        <div className="h-2 bg-muted rounded-full overflow-hidden">
+        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
           <div
-            className="h-full bg-primary rounded-full transition-all duration-500"
+            className="h-full bg-primary rounded-full transition-all duration-slow ease-out"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
-        {/* Level progression */}
-        <div className="flex gap-1 mt-3">
-          {LEVEL_ORDER.map((level) => {
-            const levelNodes = nodes.filter((n) => n.level === level);
-            const levelCompleted = levelNodes.filter((n) => isCompleted(n.id)).length;
-            const pct = levelNodes.length > 0 ? (levelCompleted / levelNodes.length) * 100 : 0;
-            return (
-              <div key={level} className="flex-1">
-                <div className="text-[10px] text-muted-foreground text-center mb-0.5 capitalize">{level}</div>
-                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-primary/60 rounded-full" style={{ width: `${pct}%` }} />
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        {user && completedCount > 0 && completedCount === totalNodes && (
+          <div className="mt-4">
+            <Link
+              to={`/paths/${slug}/certificate/${user.username}`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-accent-amber/15 text-accent-amber border border-accent-amber/30 text-sm font-medium hover:bg-accent-amber/20 transition-colors duration-fast"
+            >
+              <Trophy className="w-3.5 h-3.5" strokeWidth={2} />
+              View certificate
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Resume CTA + view toggle */}

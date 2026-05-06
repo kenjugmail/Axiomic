@@ -1,30 +1,60 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { Download, Trophy } from "lucide-react";
 import { api } from "../lib/api";
 import type { PathCertificateResponse } from "@axiomic/types";
 
-const ACCENT_GRADIENT: Record<string, string> = {
-  indigo: "from-indigo-600 to-violet-700",
-  emerald: "from-emerald-600 to-teal-700",
-  rose: "from-rose-600 to-pink-700",
-  amber: "from-amber-600 to-orange-700",
-  sky: "from-sky-600 to-cyan-700",
-  violet: "from-violet-600 to-fuchsia-700",
+// On-screen accent — uses our second-tier accent palette so light
+// + dark mode track the rest of the app instead of saturated rainbow.
+const ACCENT_BG_FROM: Record<string, string> = {
+  indigo: "from-accent-indigo",
+  emerald: "from-accent-emerald",
+  rose: "from-accent-rose",
+  amber: "from-accent-amber",
+  sky: "from-accent-sky",
+  violet: "from-accent-violet",
 };
+
+// Read a CSS variable from :root and convert the HSL triplet into
+// an SVG-friendly hex string. The certificate is a downloaded SVG
+// so we resolve at build-time; CSS vars don't follow the file once
+// detached.
+function resolveAccentHex(name: string): string {
+  const fallback = "#6366f1";
+  if (typeof window === "undefined") return fallback;
+  try {
+    const v = getComputedStyle(document.documentElement)
+      .getPropertyValue(`--accent-${name}`)
+      .trim();
+    if (!v) return fallback;
+    // var like "239 70% 58%". Convert via canvas-free HSL→RGB.
+    const m = v.match(/^(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)%\s+(\d+(?:\.\d+)?)%$/);
+    if (!m) return fallback;
+    return hslToHex(parseFloat(m[1]), parseFloat(m[2]), parseFloat(m[3]));
+  } catch {
+    return fallback;
+  }
+}
+
+function hslToHex(h: number, s: number, l: number): string {
+  const sN = s / 100;
+  const lN = l / 100;
+  const k = (n: number) => (n + h / 30) % 12;
+  const a = sN * Math.min(lN, 1 - lN);
+  const f = (n: number) => {
+    const c = lN - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    return Math.round(255 * c)
+      .toString(16)
+      .padStart(2, "0");
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
 
 // Render an SVG card that can be saved or shared. Keeps the layout
 // fully resolution-independent so saving the SVG yields a crisp
 // share image at any size.
 function buildSvg(cert: PathCertificateResponse): string {
-  const accent: Record<string, string> = {
-    indigo: "#6366f1",
-    emerald: "#10b981",
-    rose: "#f43f5e",
-    amber: "#f59e0b",
-    sky: "#0ea5e9",
-    violet: "#8b5cf6",
-  };
-  const c = accent[cert.accentColor] ?? "#6366f1";
+  const c = resolveAccentHex(cert.accentColor);
   const date = new Date(cert.completedAt).toLocaleDateString(undefined, {
     year: "numeric",
     month: "long",
@@ -105,18 +135,27 @@ export function PathCertificatePage() {
       <Link to={`/paths/${cert.pathSlug}`} className="text-sm text-muted-foreground hover:text-foreground">
         &larr; Back to {cert.pathTitle}
       </Link>
-      <h1 className="text-2xl font-bold mt-2 mb-6">Certificate of completion</h1>
+      <h1 className="font-display text-3xl font-semibold mt-2 mb-6">
+        Certificate of completion
+      </h1>
 
       <div
-        className={`rounded-2xl overflow-hidden bg-gradient-to-br ${ACCENT_GRADIENT[cert.accentColor] ?? ACCENT_GRADIENT.indigo} text-white shadow-2xl`}
+        className={`rounded-xl overflow-hidden text-white shadow-elevated bg-gradient-to-br ${
+          ACCENT_BG_FROM[cert.accentColor] ?? ACCENT_BG_FROM.indigo
+        } to-foreground`}
       >
-        <div className="p-12 text-center space-y-4 border-2 border-white/20 m-2 rounded-xl">
-          <div className="text-sm uppercase tracking-wider opacity-80">Certificate of completion</div>
-          <h2 className="text-5xl font-serif">
+        <div className="p-12 text-center space-y-4 border-2 border-white/20 m-2 rounded-lg">
+          <div className="inline-flex items-center gap-2 text-xs uppercase tracking-wider opacity-80">
+            <Trophy className="w-3.5 h-3.5" strokeWidth={2} />
+            Certificate of completion
+          </div>
+          <h2 className="font-display text-5xl font-semibold">
             {cert.displayName || cert.username}
           </h2>
-          <p className="text-lg opacity-90">has completed all {cert.totalNodes} nodes of</p>
-          <p className="text-3xl font-bold">{cert.pathTitle}</p>
+          <p className="text-base opacity-90">
+            has completed all {cert.totalNodes} nodes of
+          </p>
+          <p className="text-3xl font-semibold">{cert.pathTitle}</p>
           <p className="text-sm opacity-80">
             {cert.achievements} achievements earned ·{" "}
             {new Date(cert.completedAt).toLocaleDateString(undefined, {
@@ -131,8 +170,9 @@ export function PathCertificatePage() {
       <div className="flex gap-3 mt-6">
         <button
           onClick={download}
-          className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
         >
+          <Download className="w-3.5 h-3.5" strokeWidth={2.5} />
           Download SVG
         </button>
         <Link

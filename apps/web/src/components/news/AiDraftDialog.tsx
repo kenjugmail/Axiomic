@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Sparkles, X } from "lucide-react";
 import { streamTokens } from "../../lib/streamTokens";
 
 interface Props {
@@ -32,21 +33,19 @@ export function AiDraftDialog({ tags, onAccept, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[8vh]">
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-2xl bg-card border border-border rounded-xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
+      <div className="absolute inset-0 bg-background/70 backdrop-blur-sm animate-fade-in" onClick={onClose} />
+      <div className="relative w-full max-w-2xl bg-card border border-border rounded-xl shadow-floating overflow-hidden max-h-[85vh] flex flex-col animate-fade-in">
         <div className="px-5 py-3 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xl">✨</span>
+            <Sparkles className="w-5 h-5 text-primary" strokeWidth={1.8} />
             <h2 className="text-base font-semibold">Draft from a prompt</h2>
           </div>
           <button
             onClick={onClose}
-            className="text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground transition-colors duration-fast"
             aria-label="Close"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <X className="w-5 h-5" strokeWidth={1.8} />
           </button>
         </div>
 

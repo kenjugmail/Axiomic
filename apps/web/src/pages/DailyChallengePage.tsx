@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Check, Flame, X as XIcon } from "lucide-react";
 import { api } from "../lib/api";
 import type { DailyChallengeResponse } from "@axiomic/types";
 import { useAuthStore } from "../stores/auth";
@@ -123,14 +124,25 @@ export function DailyChallengePage() {
             ? "border-emerald-500/30 bg-emerald-500/5"
             : "border-rose-500/30 bg-rose-500/5"
         }`}>
-          <div className="font-semibold mb-1">
-            {result.correct ? "✓ Correct" : "✗ Not quite"}
+          <div className="font-semibold mb-1 inline-flex items-center gap-1.5">
+            {result.correct ? (
+              <>
+                <Check className="w-4 h-4" strokeWidth={2.5} />
+                Correct
+              </>
+            ) : (
+              <>
+                <XIcon className="w-4 h-4" strokeWidth={2.5} />
+                Not quite
+              </>
+            )}
           </div>
           {q?.explanation && (
             <p className="text-sm text-muted-foreground">{q.explanation}</p>
           )}
-          <p className="text-xs text-muted-foreground mt-3">
-            🔥 Streak: <span className="font-semibold text-foreground">{challenge.streak}</span> day{challenge.streak === 1 ? "" : "s"}
+          <p className="inline-flex items-center gap-1 text-xs text-muted-foreground mt-3">
+            <Flame className="w-3 h-3" strokeWidth={2} />
+            Streak: <span className="font-semibold text-foreground">{challenge.streak}</span> day{challenge.streak === 1 ? "" : "s"}
           </p>
         </div>
       )}

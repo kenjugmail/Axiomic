@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Users } from "lucide-react";
 import { api } from "../lib/api";
 import type { FeedItem, FollowSummary, PostType } from "@axiomic/types";
 import { NewsCover } from "../components/news/NewsCover";
 import { PostTypeBadge } from "../components/PostTypeBadge";
 import { useAuthStore } from "../stores/auth";
+import { EmptyState } from "../components/ui";
 
 function relativeTime(iso: string): string {
   const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
@@ -70,19 +72,19 @@ export function FeedPage() {
               ))}
             </div>
           ) : items.length === 0 ? (
-            <div className="py-16 text-center text-muted-foreground border border-dashed border-border rounded-xl">
-              <div className="text-4xl mb-2">👀</div>
-              <p className="text-base">Nothing here yet.</p>
-              <p className="text-sm mt-2">
-                Follow people from any profile or article byline to fill this feed.
-              </p>
-              <Link
-                to="/news"
-                className="inline-block mt-4 text-sm text-primary hover:underline"
-              >
-                Browse news →
-              </Link>
-            </div>
+            <EmptyState
+              icon={Users}
+              title="Nothing here yet."
+              description="Follow people from any profile or article byline to fill this feed."
+              cta={
+                <Link
+                  to="/news"
+                  className="inline-flex items-center px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+                >
+                  Browse news
+                </Link>
+              }
+            />
           ) : (
             <ul className="space-y-3">
               {items.map((item, i) => (

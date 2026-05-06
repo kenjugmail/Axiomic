@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { Bookmark, FileText, Pencil, Plus } from "lucide-react";
 import { api } from "../lib/api";
+import { Skeleton } from "../components/ui";
 import type { NewsArticleSummary, NewsTagCount } from "@axiomic/types";
 import { NewsCover } from "../components/news/NewsCover";
 import { useAuthStore } from "../stores/auth";
@@ -59,33 +61,37 @@ export function NewsListPage() {
         <div className="flex items-center gap-2">
           <Link
             to="/news/research"
-            className="px-3 py-2 rounded-md border border-border text-sm hover:bg-accent/40"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md border border-border text-sm hover:bg-accent/40"
             title="Paper-style articles with abstract + references"
           >
-            📑 Research
+            <FileText className="w-3.5 h-3.5" strokeWidth={2} />
+            Research
           </Link>
           {user && (
             <Link
               to="/news/drafts"
-              className="px-3 py-2 rounded-md border border-border text-sm hover:bg-accent/40"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md border border-border text-sm hover:bg-accent/40"
             >
-              ✏️ Drafts
+              <Pencil className="w-3.5 h-3.5" strokeWidth={2} />
+              Drafts
             </Link>
           )}
           {user && (
             <Link
               to="/news/bookmarks"
-              className="px-3 py-2 rounded-md border border-border text-sm hover:bg-accent/40"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md border border-border text-sm hover:bg-accent/40"
             >
-              🔖 Saved
+              <Bookmark className="w-3.5 h-3.5" strokeWidth={2} />
+              Saved
             </Link>
           )}
           {user && (
             <Link
               to="/news/new"
-              className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
             >
-              + New article
+              <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+              New article
             </Link>
           )}
         </div>
@@ -123,7 +129,7 @@ export function NewsListPage() {
       {articles === null ? (
         <div className="grid sm:grid-cols-2 gap-5">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-64 animate-pulse bg-muted rounded-xl" />
+            <Skeleton key={i} variant="card" className="h-64" />
           ))}
         </div>
       ) : articles.length === 0 ? (

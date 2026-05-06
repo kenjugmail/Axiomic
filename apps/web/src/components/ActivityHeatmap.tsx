@@ -1,3 +1,4 @@
+import { Flame } from "lucide-react";
 import type { ActivityHeatmapCell } from "@axiomic/types";
 
 // GitHub-style activity heatmap. The server returns 84 cells (12 weeks)
@@ -55,17 +56,18 @@ export function ActivityHeatmap({ cells, streak }: Props) {
         </div>
         <div className="flex items-center gap-2">
           {streak > 0 && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-700 dark:text-orange-400">
-              🔥 {streak}-day streak
+            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-accent-amber/10 text-accent-amber border border-accent-amber/25">
+              <Flame className="w-3 h-3" strokeWidth={2} />
+              {streak}-day streak
             </span>
           )}
         </div>
       </div>
 
       <div className="overflow-x-auto">
-        <div className="inline-flex gap-[3px]">
+        <div className="inline-flex gap-1">
           {columns.map((week, ci) => (
-            <div key={ci} className="flex flex-col gap-[3px]">
+            <div key={ci} className="flex flex-col gap-1">
               {week.map((cell, ri) =>
                 cell === null ? (
                   <div key={ri} className="w-3 h-3" />

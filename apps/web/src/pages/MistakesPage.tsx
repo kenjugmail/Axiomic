@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Check, Target, X as XIcon } from "lucide-react";
 import { api } from "../lib/api";
 import type { QuizMistakeEntry } from "@axiomic/types";
 import { useAuthStore } from "../stores/auth";
+import { EmptyState } from "../components/ui";
 
 function timeAgo(iso: string): string {
   const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
@@ -111,17 +113,19 @@ export function MistakesPage() {
           ))}
         </div>
       ) : grouped.length === 0 ? (
-        <div className="py-16 text-center text-muted-foreground border border-dashed border-border rounded-xl">
-          <div className="text-4xl mb-2">🎯</div>
-          <p className="text-base">No mistakes logged yet.</p>
-          <p className="text-sm mt-2">
-            Take any{" "}
-            <Link to="/paths" className="text-primary hover:underline">
-              quiz
-            </Link>{" "}
-            and any wrong answer will land here.
-          </p>
-        </div>
+        <EmptyState
+          icon={Target}
+          title="No mistakes logged yet."
+          description="Take any quiz and any wrong answer will land here."
+          cta={
+            <Link
+              to="/paths"
+              className="inline-flex items-center px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+            >
+              Browse quizzes
+            </Link>
+          }
+        />
       ) : (
         <ul className="space-y-4">
           {grouped.map((g) => (
@@ -165,13 +169,17 @@ export function MistakesPage() {
                     className="px-4 py-2.5 flex items-start gap-3"
                   >
                     <span
-                      className={`text-lg shrink-0 ${
+                      className={`shrink-0 inline-flex items-center justify-center w-5 h-5 rounded-full ${
                         m.resolvedAt
-                          ? "text-emerald-600 dark:text-emerald-400"
-                          : "text-rose-600 dark:text-rose-400"
+                          ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                          : "bg-rose-500/15 text-rose-600 dark:text-rose-400"
                       }`}
                     >
-                      {m.resolvedAt ? "✓" : "✗"}
+                      {m.resolvedAt ? (
+                        <Check className="w-3 h-3" strokeWidth={3} />
+                      ) : (
+                        <XIcon className="w-3 h-3" strokeWidth={3} />
+                      )}
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm">

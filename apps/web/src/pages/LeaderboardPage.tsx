@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Flame, Trophy } from "lucide-react";
 import { api } from "../lib/api";
 import type { LeaderboardEntry, LeaderboardResponse } from "@axiomic/types";
 import { useAuthStore } from "../stores/auth";
@@ -37,9 +38,17 @@ function Row({
         </div>
         <div className="text-xs text-muted-foreground">@{entry.username}</div>
       </div>
-      <div className="text-right text-xs text-muted-foreground tabular-nums hidden sm:block">
-        {entry.achievements} 🏆
-        {entry.streak > 0 && <span className="ml-2">🔥 {entry.streak}</span>}
+      <div className="text-right text-xs text-muted-foreground tabular-nums hidden sm:flex items-center justify-end gap-2">
+        <span className="inline-flex items-center gap-1">
+          <Trophy className="w-3 h-3" strokeWidth={2} />
+          {entry.achievements}
+        </span>
+        {entry.streak > 0 && (
+          <span className="inline-flex items-center gap-1">
+            <Flame className="w-3 h-3" strokeWidth={2} />
+            {entry.streak}
+          </span>
+        )}
       </div>
       <div className="text-right font-semibold tabular-nums">
         {entry.totalPoints.toLocaleString()}{" "}

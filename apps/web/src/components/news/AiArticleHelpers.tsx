@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { Baby, Sparkles, type LucideIcon } from "lucide-react";
 import { streamTokens } from "../../lib/streamTokens";
 import { MarkdownRenderer } from "../MarkdownRenderer";
+import { Button } from "../ui/Button";
 
 interface Props {
   articleSlug: string;
@@ -10,12 +12,12 @@ type Mode = "tldr" | "explain";
 
 const LABEL: Record<Mode, string> = {
   tldr: "TL;DR",
-  explain: "Explain like I'm new",
+  explain: "Explain simpler",
 };
 
-const ICON: Record<Mode, string> = {
-  tldr: "✨",
-  explain: "🧒",
+const ICON: Record<Mode, LucideIcon> = {
+  tldr: Sparkles,
+  explain: Baby,
 };
 
 export function AiArticleHelpers({ articleSlug }: Props) {
@@ -42,27 +44,30 @@ export function AiArticleHelpers({ articleSlug }: Props) {
   return (
     <div className="mt-6">
       <div className="flex flex-wrap gap-2">
-        {(["tldr", "explain"] as Mode[]).map((m) => (
-          <button
-            key={m}
-            onClick={() => run(m)}
-            disabled={streaming}
-            className={`px-3 py-1.5 rounded-full border text-sm flex items-center gap-2 transition-colors ${
-              mode === m
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border hover:bg-accent/40"
-            } disabled:opacity-50`}
-          >
-            <span>{ICON[m]}</span>
-            <span className="font-medium">{LABEL[m]}</span>
-          </button>
-        ))}
+        {(["tldr", "explain"] as Mode[]).map((m) => {
+          const Icon = ICON[m];
+          const active = mode === m;
+          return (
+            <Button
+              key={m}
+              variant={active ? "secondary" : "outline"}
+              size="sm"
+              onClick={() => run(m)}
+              disabled={streaming}
+              className="rounded-full"
+            >
+              <Icon className="w-3.5 h-3.5" strokeWidth={1.8} />
+              <span>{LABEL[m]}</span>
+            </Button>
+          );
+        })}
       </div>
 
       {(text || streaming || error) && mode && (
-        <div className="mt-3 rounded-xl border border-border bg-gradient-to-br from-primary/5 to-transparent p-4">
+        <div className="mt-3 rounded-lg border border-border bg-muted/40 p-4 animate-fade-in">
           <div className="text-[10px] uppercase tracking-wider text-primary mb-2 flex items-center gap-2">
-            <span>{ICON[mode]} {LABEL[mode]}</span>
+            <Sparkles className="w-3 h-3" strokeWidth={2} />
+            <span>{LABEL[mode]}</span>
             {streaming && (
               <span className="inline-flex items-center gap-1 text-muted-foreground normal-case tracking-normal">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />

@@ -105,7 +105,7 @@ export function AISidebar({ pageSlug, pageTitle, tier, isOpen, onClose }: AISide
   if (!isOpen) return null;
 
   return (
-    <div className="fixed right-0 top-14 bottom-0 w-96 bg-card border-l border-border flex flex-col z-40 shadow-lg">
+    <div className="fixed right-0 top-14 bottom-0 w-96 bg-card flex flex-col z-40 shadow-elevated animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div>
