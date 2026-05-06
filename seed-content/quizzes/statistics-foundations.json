@@ -1,0 +1,50 @@
+[
+  {
+    "id": "q1",
+    "question": "Maximum likelihood estimation (MLE) finds parameters θ that:",
+    "options": [
+      "Maximize the probability of the observed data under the model",
+      "Minimize the variance of the predictions",
+      "Maximize the prior probability of θ",
+      "Match the moments of the data exactly"
+    ],
+    "correctIndex": 0,
+    "explanation": "MLE picks θ to make the observed data as likely as possible under the model. Adding a prior turns this into MAP; full Bayes integrates over θ."
+  },
+  {
+    "id": "q2",
+    "question": "Why do we usually minimize *negative log likelihood* instead of maximizing likelihood directly?",
+    "options": [
+      "Logarithms turn products into sums (numerically stable) and the negative makes it a minimization problem suitable for gradient descent",
+      "The two are not equivalent — log-likelihood is fundamentally different",
+      "Only negative log-likelihood is differentiable",
+      "Likelihood values are always negative"
+    ],
+    "correctIndex": 0,
+    "explanation": "log() is monotonic so the argmax is the same. Products of many small probabilities underflow; sums of logs don't. Most modern ML losses (cross-entropy, MSE under Gaussian noise) are negative log-likelihoods."
+  },
+  {
+    "id": "q3",
+    "question": "A model is *biased* if it consistently over- or under-estimates the true value. *Variance* refers to:",
+    "options": [
+      "How much the model's predictions change across different training sets",
+      "The spread of the input data",
+      "The width of the loss curve",
+      "The squared error of a single prediction"
+    ],
+    "correctIndex": 0,
+    "explanation": "Bias-variance: bias = systematic error of the average prediction; variance = how predictions wobble across resamples of the training data. Total expected error decomposes into bias² + variance + noise."
+  },
+  {
+    "id": "q4",
+    "question": "You want to estimate whether a new model is *significantly* better than a baseline. The right tool is:",
+    "options": [
+      "A hypothesis test (e.g. paired bootstrap, McNemar's test) over many evaluation runs or items",
+      "A single side-by-side accuracy comparison on the test set",
+      "Cosine similarity between predictions",
+      "The Cramér-Rao lower bound"
+    ],
+    "correctIndex": 0,
+    "explanation": "A single number can flip on a different sample. Hypothesis tests quantify whether the gap is bigger than the noise. Bootstrap is a robust default when you don't trust normality assumptions."
+  }
+]

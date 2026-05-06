@@ -9,6 +9,7 @@ import {
   forumTopics,
   forumPosts,
   forumVotes,
+  newsArticles,
 } from "./index";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -91,7 +92,157 @@ async function seed() {
   // Seed forum (domains, demo users, topics, replies, votes)
   seedForum();
 
+  // Seed news (article-style posts with covers + viz embeds)
+  seedNews();
+
   console.log("Seeding complete.");
+}
+
+function seedNews() {
+  const anyArticle = db.select().from(newsArticles).get();
+  if (anyArticle) {
+    console.log("  News already seeded, skipping.");
+    return;
+  }
+
+  // Reuse the forum demo users so articles have real authors.
+  const aliceId = db.select({ id: users.id }).from(users).where(eq(users.username, "alice")).get()?.id;
+  const carolId = db.select({ id: users.id }).from(users).where(eq(users.username, "carol")).get()?.id;
+  if (!aliceId || !carolId) {
+    console.log("  Forum users missing; skipping news seed.");
+    return;
+  }
+
+  const articles = [
+    {
+      slug: "transformers-are-not-magic",
+      title: "Transformers are not magic",
+      summary: "A demystifying tour of attention, told one viz at a time.",
+      coverEmoji: "🪄",
+      accentColor: "violet",
+      authorId: aliceId,
+      body: `The first time I saw self-attention written out, I thought it was a hack. *"You take three copies of the input, multiply two of them, softmax the result, and weight the third — and that's it?"*
+
+Years later it still works that way, but I no longer think it's a hack. I think it's the simplest possible content-based router. Here's why.
+
+::viz[attention-heatmap]
+
+## What attention actually computes
+
+For each token, attention asks two questions: *who else in this sequence should I look at?*, and *what should I take from them?* The first is the **score** matrix, the second is the **value** matrix. The split is so clean that you can swap one out and the other still makes sense.
+
+When the model is well-trained, you'll see structure pop out of the heatmap above: an induction head learning to copy the previous occurrence of a token, a positional head pinned to the diagonal, a syntactic head that lights up on subjects when looking at verbs.
+
+## Why it scales
+
+The thing that *isn't* obvious from the formula is that attention is **embarrassingly parallel** along the sequence axis. RNNs forced you to wait for token $t-1$ before computing token $t$. Attention computes them all at once.
+
+That's the whole story. Everything since — multi-head attention, RoPE, GQA, FlashAttention — is a refinement. Read [the attention page](/wiki/attention) for the math, or open the lesson on the ml-engineer path to play with it.`,
+    },
+    {
+      slug: "what-tokenizers-actually-see",
+      title: "What tokenizers actually see (and why it matters)",
+      summary: "Tokens aren't words, and that bites you in surprising places.",
+      coverEmoji: "🔤",
+      accentColor: "emerald",
+      authorId: carolId,
+      body: `Most tutorials hand-wave past tokenization — *"the model splits the text into tokens, you don't really need to think about it"* — and then you spend the next three weeks debugging why your model can't count letters.
+
+::viz[tokenizer-playground]
+
+Try the playground above. Two facts that surprise people:
+
+1. **\`" the"\` and \`"the"\` are usually different tokens.** The leading space is part of the token. This is why models occasionally misalign words at sentence boundaries.
+
+2. **Numbers are split into chunks of 1-3 digits**, often inconsistently. \`"3.14159"\` might tokenize as \`["3", ".", "14", "159"]\` or any number of other splits. This is part of why arithmetic is hard for LLMs.
+
+## Why subword
+
+The naive alternatives — one token per word, or one per character — both lose. Word-level vocabularies blow up combinatorially and can't handle out-of-vocabulary words. Character-level models work but are *much* slower; you spend most of your compute predicting whitespace.
+
+Subword tokenization (BPE, WordPiece, Unigram, SentencePiece) is the compromise: a fixed-size vocabulary where common words get a single token and rare words get split into pieces that the model has seen many times in other contexts.
+
+## The takeaway
+
+If your model is failing on something that involves *characters as a unit* — counting letters, reversing strings, syllable rhyming — your first hypothesis should be **the tokenization is the bug**, not the model.`,
+    },
+    {
+      slug: "induction-heads-the-circuit-behind-in-context-learning",
+      title: "Induction heads: the circuit behind in-context learning",
+      summary:
+        "A short paper-style walk-through of the two-attention-head circuit that drives copy-and-complete behavior in transformers.",
+      coverEmoji: "🧠",
+      accentColor: "indigo",
+      authorId: aliceId,
+      abstract:
+        "**Induction heads** are a small two-layer attention circuit that explains a surprisingly large fraction of in-context learning in transformer language models. We motivate the construction, walk through the canonical (previous-token-head, induction-head) decomposition, and connect the result to the broader mechanistic-interpretability program. The aim is to give a working ML engineer a concrete circuit they can find in their own model with two probe runs.",
+      coauthors: ["bob", "carol"],
+      references: [
+        {
+          text: "Olsson et al., In-context Learning and Induction Heads (Anthropic, 2022).",
+          url: "https://transformer-circuits.pub/2022/in-context-learning-and-induction-heads/index.html",
+        },
+        {
+          text: "Elhage et al., A Mathematical Framework for Transformer Circuits (2021).",
+          url: "https://transformer-circuits.pub/2021/framework/index.html",
+        },
+        {
+          text: "Vaswani et al., Attention Is All You Need (2017).",
+          url: "https://arxiv.org/abs/1706.03762",
+        },
+      ],
+      body: `## The behavior
+
+Show a transformer the prefix \`A B C ... A\` and it tends to predict \`B\` next [1]. The model isn't fine-tuned on this; the pattern emerges during pretraining and accounts for much of what we call *in-context learning*. The circuit responsible turns out to be small enough to draw on a napkin.
+
+::viz[attention-heatmap]
+
+## The two-head decomposition
+
+The canonical induction circuit lives across two attention heads in two consecutive layers [1, 2]:
+
+1. A **previous-token head** in layer $L$ writes \`(token at position t-1)\` into the residual stream at position $t$. This is just a lookup; you can find these heads by the diagonal-shifted-by-one attention pattern.
+
+2. An **induction head** in layer $L+1$ then attends from the current position to *prior occurrences of the same token* — and crucially, it reads the value from one step *after* that prior occurrence, courtesy of the layer-$L$ head's left-shifted writeback.
+
+Composed: at the second \`A\`, the induction head attends to the first \`A\`, but the value it pulls is *the thing that came after the first* \`A\` — namely \`B\`. The model has, in effect, looked up "what followed the last time I saw this?" and put the answer in the residual stream.
+
+## Why this matters
+
+If the residual stream is the highway and attention heads are the on-ramps, induction heads are the simplest interesting *content-based* on-ramp the model learns. Once you start looking for them, you find them in nearly every reasonably-sized pretrained transformer [1].
+
+The broader bet of the mechanistic-interpretability program [2] is that *most* of what large models do can be similarly decomposed — that there is no fundamental obstruction to reading off the circuits, only an engineering problem of finding them. Induction heads were the first concrete piece of evidence in that direction.
+
+## What to try next
+
+- Probe your favourite small open model (1-3B params is plenty) for previous-token heads in early layers. Look for the off-by-one diagonal.
+- Layer above those, look for heads whose attention pattern is roughly diagonal in *content space* (each row attends to the column where the same token last appeared).
+- The transformer architecture introduced in [3] is the substrate for all of this; the circuit we're describing is a *learned* program, not a hard-coded operation.
+
+The point is that "in-context learning" stops being a mysterious property of scale once you see the circuit. It's just a specific composition of two lookups.`,
+    },
+  ];
+
+  for (const a of articles) {
+    db.insert(newsArticles).values({
+      id: randomUUID(),
+      slug: a.slug,
+      title: a.title,
+      summary: a.summary,
+      body: a.body,
+      abstract: (a as any).abstract ?? "",
+      referencesJson: JSON.stringify(
+        ((a as any).references as Array<{ text: string; url?: string }> | undefined)?.map(
+          (r, i) => ({ label: String(i + 1), text: r.text, url: r.url }),
+        ) ?? [],
+      ),
+      coauthorsJson: JSON.stringify((a as any).coauthors ?? []),
+      coverEmoji: a.coverEmoji,
+      accentColor: a.accentColor,
+      authorId: a.authorId,
+    }).run();
+  }
+  console.log(`  Seeded news: ${articles.length} articles.`);
 }
 
 function parseTiers(body: string): { intro: string; undergrad: string; grad: string } {
@@ -288,6 +439,40 @@ function seedMasteryPaths() {
       { slug: "emergent-capabilities", title: "Emergent Capabilities & ICL", level: "expert", order: 10, pages: ["in-context-learning", "scaling-laws"], prereqs: ["transformer-deep-dive", "training-dynamics"], description: "What appears with scale, what doesn't, and how to tell the difference." },
       { slug: "research-frontiers", title: "Reading & Critiquing Frontier Work", level: "researcher", order: 11, pages: ["mechanistic-interpretability", "induction-heads", "scaling-laws"], prereqs: ["interpretability", "alignment-frontier", "emergent-capabilities"], description: "Read three major papers per week, identify the load-bearing claim, find the weakest link." },
       { slug: "novel-contributions", title: "Original Research Contributions", level: "researcher", order: 12, pages: ["mechanistic-interpretability"], prereqs: ["research-frontiers"], description: "Pose a question no one has answered. Run an experiment. Write it up." },
+    ],
+  });
+
+  seedMasteryPath({
+    slug: "mathematician",
+    title: "Mathematician",
+    description:
+      "The math behind ML, learned in the order it actually shows up: linear algebra, calculus, probability, statistics, info theory, and optimization.",
+    nodes: [
+      { slug: "linear-algebra-foundations", title: "Linear Algebra Foundations", level: "apprentice", order: 1, pages: ["linear-algebra-foundations"], prereqs: [], description: "Vectors, matrices, dot products, and the geometry that drives every ML operation." },
+      { slug: "calculus-foundations", title: "Calculus Foundations", level: "apprentice", order: 2, pages: ["calculus-foundations"], prereqs: [], description: "Derivatives, gradients, and the chain rule — the language of training." },
+      { slug: "probability-foundations", title: "Probability Foundations", level: "apprentice", order: 3, pages: ["probability-foundations"], prereqs: [], description: "Random variables, distributions, expectations, and Bayes' rule." },
+      { slug: "statistics-foundations", title: "Statistics Foundations", level: "practitioner", order: 4, pages: ["statistics-foundations"], prereqs: ["probability-foundations"], description: "Estimation, MLE, and hypothesis testing — turning data into claims." },
+      { slug: "info-theory-basics", title: "Information Theory", level: "practitioner", order: 5, pages: ["information-theory"], prereqs: ["probability-foundations"], description: "Entropy, KL divergence, and mutual information — the formal vocabulary of ML losses." },
+      { slug: "loss-functions", title: "Loss Functions", level: "practitioner", order: 6, pages: ["loss-functions"], prereqs: ["statistics-foundations", "info-theory-basics"], description: "Cross-entropy, MSE, and the rest — and why each one is the right tool for its job." },
+      { slug: "gradient-descent", title: "Gradient Descent", level: "practitioner", order: 7, pages: ["gradient-descent", "optimization-theory"], prereqs: ["calculus-foundations"], description: "Vanilla GD, SGD, momentum, and the geometry of loss landscapes." },
+      { slug: "backpropagation", title: "Backpropagation", level: "specialist", order: 8, pages: ["backpropagation"], prereqs: ["gradient-descent", "linear-algebra-foundations"], description: "How gradients actually flow through a deep network. The chain rule, vectorized." },
+    ],
+  });
+
+  seedMasteryPath({
+    slug: "physicist",
+    title: "Physicist",
+    description:
+      "From Newton to chaos: the language of dynamical systems, learned with live simulations.",
+    nodes: [
+      { slug: "mechanics-foundations", title: "Mechanics Foundations", level: "apprentice", order: 1, pages: ["mechanics-foundations"], prereqs: [], description: "Newton's laws, conservation, energy — the spine of classical mechanics." },
+      { slug: "oscillations", title: "Oscillations", level: "apprentice", order: 2, pages: ["oscillations"], prereqs: ["mechanics-foundations"], description: "Simple harmonic motion, damped + driven oscillators, resonance." },
+      { slug: "phase-space", title: "Phase Space & Fixed Points", level: "practitioner", order: 3, pages: ["phase-space"], prereqs: ["oscillations"], description: "Read a 1D system off its phase portrait. Stability without solving." },
+      { slug: "chaos-and-sensitivity", title: "Chaos & Sensitivity", level: "practitioner", order: 4, pages: ["chaos-and-sensitivity"], prereqs: ["phase-space"], description: "The Lorenz system. Why deterministic ≠ predictable in the long run." },
+      { slug: "lagrangian-mechanics", title: "Lagrangian Mechanics", level: "practitioner", order: 5, pages: ["lagrangian-mechanics"], prereqs: ["mechanics-foundations"], description: "Least action, generalized coordinates, Euler-Lagrange equations." },
+      { slug: "nonlinear-dynamics", title: "Nonlinear Dynamics", level: "specialist", order: 6, pages: ["nonlinear-dynamics"], prereqs: ["chaos-and-sensitivity", "lagrangian-mechanics"], description: "Bifurcations, limit cycles, the double pendulum as a chaos lab." },
+      { slug: "statistical-mechanics", title: "Statistical Mechanics", level: "specialist", order: 7, pages: ["statistical-mechanics"], prereqs: ["mechanics-foundations"], description: "Ensembles, the partition function, free energy. Entropy as counting." },
+      { slug: "entropy-and-information", title: "Entropy ↔ Information", level: "expert", order: 8, pages: ["information-theory"], prereqs: ["statistical-mechanics"], description: "Boltzmann's H meets Shannon's H — the bridge between the two." },
     ],
   });
 }

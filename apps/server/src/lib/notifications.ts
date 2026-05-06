@@ -1,19 +1,28 @@
 import { randomUUID } from "crypto";
 import { eq, inArray } from "drizzle-orm";
 import { getDb, notifications, users, type Db } from "@axiomic/db";
+import { publishToUser } from "./liveBus";
 
 export type NotificationKind =
   | "mention"
   | "topic_reply"
   | "post_reply"
   | "comment_reply"
-  | "mastery_level_up";
+  | "mastery_level_up"
+  | "news_edit_proposed"
+  | "news_edit_approved"
+  | "news_edit_rejected"
+  | "news_published"
+  | "forum_topic_posted";
 
 export type NotificationSubject =
   | "topic"
   | "post"
   | "comment"
-  | "mastery_node";
+  | "mastery_node"
+  | "news_article"
+  | "news_proposal"
+  | "news_comment";
 
 const MAX_MENTIONS_PER_BODY = 10;
 const PREVIEW_MAX = 140;
@@ -94,6 +103,13 @@ function kindGate(
       return "notifyReplies";
     case "mastery_level_up":
       return "notifyMastery";
+    case "news_edit_proposed":
+    case "news_edit_approved":
+    case "news_edit_rejected":
+    case "news_published":
+    case "forum_topic_posted":
+      // News flow + follow events are direct + low-volume — always on.
+      return null;
   }
 }
 
@@ -123,10 +139,12 @@ export async function notify(args: NotifyArgs, db: Db = getDb()): Promise<boolea
       if (prefs && prefs[gate] === false) return false;
     }
 
+    const id = randomUUID();
+    const createdAt = new Date().toISOString();
     await db
       .insert(notifications)
       .values({
-        id: randomUUID(),
+        id,
         userId: args.recipientId,
         actorId: args.actorId,
         kind: args.kind,
@@ -136,6 +154,38 @@ export async function notify(args: NotifyArgs, db: Db = getDb()): Promise<boolea
         preview: args.preview,
       })
       .onConflictDoNothing();
+
+    // Best-effort live push to the recipient's open WebSockets. The
+    // dedup index above may have squashed the row; fetching the actor
+    // username is what the bell shows. Failures here don't cause the
+    // notify() call to fail.
+    try {
+      let actor: { id: string; username: string } | null = null;
+      if (args.actorId) {
+        const row = db
+          .select({ id: users.id, username: users.username })
+          .from(users)
+          .where(eq(users.id, args.actorId))
+          .get();
+        actor = row ?? null;
+      }
+      publishToUser(args.recipientId, {
+        kind: "notification",
+        notification: {
+          id,
+          kind: args.kind,
+          subjectType: args.subjectType,
+          subjectId: args.subjectId,
+          contextSlug: args.contextSlug,
+          preview: args.preview,
+          readAt: null,
+          createdAt,
+          actor,
+        },
+      });
+    } catch {
+      // ignore live-push errors
+    }
     return true;
   } catch (err) {
     console.error("notify failed", err);

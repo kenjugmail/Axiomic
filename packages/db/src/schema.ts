@@ -231,6 +231,226 @@ export const flashcardReviews = sqliteTable("flashcard_reviews", {
   reviewedAt: text("reviewed_at").default(sql`(datetime('now'))`).notNull(),
 });
 
+// --- News articles ---
+//
+// Long-form, article-style posts. Distinguished from forum topics by
+// rendering full-width with a colored cover banner + emoji and by
+// supporting a propose-then-approve edit flow:
+//   - The author edits their own article directly.
+//   - Anyone signed in can submit an edit proposal.
+//   - The author approves or rejects each proposal; approving copies
+//     the proposed fields onto the parent article.
+// News bodies are markdown with the same `::viz[name]` directive
+// support as wiki pages, so authors can embed live visualizations.
+export const newsArticles = sqliteTable("news_articles", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  summary: text("summary").notNull().default(""),
+  body: text("body").notNull(),
+  // Optional research-paper fields. abstract is a longer-form intro
+  // (one to two paragraphs) that renders ABOVE the body in the
+  // article view. references is a JSON array of { label, url? }.
+  // coauthors is a JSON array of usernames; together with authorId
+  // the byline lists everyone who contributed.
+  abstract: text("abstract").notNull().default(""),
+  referencesJson: text("references_json").notNull().default("[]"),
+  coauthorsJson: text("coauthors_json").notNull().default("[]"),
+  // Visual flourish — drives the gradient hero on the article and card
+  // in the list. coverEmoji is a single emoji (📰 default); accentColor
+  // is one of indigo|emerald|rose|amber|sky|violet (validated at API).
+  coverEmoji: text("cover_emoji").notNull().default("📰"),
+  accentColor: text("accent_color").notNull().default("indigo"),
+  // Publication state. Drafts are visible only to the author.
+  // Validated at API to be "draft" | "published".
+  status: text("status").notNull().default("published"),
+  // JSON array of lowercase kebab-case tag strings. Stored as text
+  // since SQLite has no native array; parsed by the API layer.
+  tags: text("tags").notNull().default("[]"),
+  authorId: text("author_id").notNull().references(() => users.id),
+  // Tracks the most recent applied edit (the author's direct edit, or
+  // an approved proposal). Null on a fresh article — same as authorId.
+  lastEditorId: text("last_editor_id").references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+// Proposed edits from anyone-but-the-author. Status flows pending →
+// (approved | rejected). Approving copies the proposed fields onto
+// the parent article and stamps lastEditorId = proposerId.
+export const newsEditProposals = sqliteTable(
+  "news_edit_proposals",
+  {
+    id: text("id").primaryKey(),
+    articleId: text("article_id").notNull().references(() => newsArticles.id),
+    proposerId: text("proposer_id").notNull().references(() => users.id),
+    proposedTitle: text("proposed_title").notNull(),
+    proposedSummary: text("proposed_summary").notNull().default(""),
+    proposedBody: text("proposed_body").notNull(),
+    message: text("message"),
+    status: text("status").notNull().default("pending"),
+    reviewerId: text("reviewer_id").references(() => users.id),
+    reviewedAt: text("reviewed_at"),
+    reviewMessage: text("review_message"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    articleStatusIdx: index("news_proposals_article_status_idx").on(
+      t.articleId,
+      t.status,
+    ),
+  }),
+);
+
+// Lightweight per-user reactions on news articles. Three kinds for v1
+// (thumbs up, lightbulb, mind-blown). Unique on (article, user, kind)
+// so each user can only set each reaction once but can mix kinds.
+export const newsReactions = sqliteTable(
+  "news_reactions",
+  {
+    id: text("id").primaryKey(),
+    articleId: text("article_id").notNull().references(() => newsArticles.id),
+    userId: text("user_id").notNull().references(() => users.id),
+    kind: text("kind").notNull(),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("news_reactions_uniq_idx").on(
+      t.articleId,
+      t.userId,
+      t.kind,
+    ),
+    articleKindIdx: index("news_reactions_article_kind_idx").on(
+      t.articleId,
+      t.kind,
+    ),
+  }),
+);
+
+// Inline threaded comments scoped to a news article. Mirrors the wiki
+// `comments` table shape but anchored to news_articles.id so the two
+// surfaces stay decoupled and can evolve independently.
+export const newsComments = sqliteTable(
+  "news_comments",
+  {
+    id: text("id").primaryKey(),
+    articleId: text("article_id").notNull().references(() => newsArticles.id),
+    parentId: text("parent_id"),
+    userId: text("user_id").notNull().references(() => users.id),
+    content: text("content").notNull(),
+    editedAt: text("edited_at"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    articleIdx: index("news_comments_article_idx").on(t.articleId, t.createdAt),
+  }),
+);
+
+// Save-for-later. Unique on (user, article) so toggling is safe.
+export const newsBookmarks = sqliteTable(
+  "news_bookmarks",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    articleId: text("article_id").notNull().references(() => newsArticles.id),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("news_bookmarks_uniq_idx").on(t.userId, t.articleId),
+    userIdx: index("news_bookmarks_user_idx").on(t.userId, t.createdAt),
+  }),
+);
+
+// --- Forum reactions / bookmarks / polls ---
+// Topic-level reactions (per-post deferred). Same three kinds as news.
+export const forumReactions = sqliteTable(
+  "forum_reactions",
+  {
+    id: text("id").primaryKey(),
+    topicId: text("topic_id").notNull().references(() => forumTopics.id),
+    userId: text("user_id").notNull().references(() => users.id),
+    kind: text("kind").notNull(),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("forum_reactions_uniq_idx").on(
+      t.topicId,
+      t.userId,
+      t.kind,
+    ),
+    topicKindIdx: index("forum_reactions_topic_kind_idx").on(t.topicId, t.kind),
+  }),
+);
+
+export const forumBookmarks = sqliteTable(
+  "forum_bookmarks",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    topicId: text("topic_id").notNull().references(() => forumTopics.id),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("forum_bookmarks_uniq_idx").on(t.userId, t.topicId),
+    userIdx: index("forum_bookmarks_user_idx").on(t.userId, t.createdAt),
+  }),
+);
+
+// Polls live on a forum topic with postType="poll". One poll per topic;
+// 2-8 options; each user votes for exactly one option (and may switch).
+export const forumPolls = sqliteTable("forum_polls", {
+  id: text("id").primaryKey(),
+  topicId: text("topic_id").notNull().unique().references(() => forumTopics.id),
+  question: text("question").notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+export const forumPollOptions = sqliteTable(
+  "forum_poll_options",
+  {
+    id: text("id").primaryKey(),
+    pollId: text("poll_id").notNull().references(() => forumPolls.id),
+    label: text("label").notNull(),
+    order: integer("order").notNull(),
+  },
+  (t) => ({
+    pollIdx: index("forum_poll_options_poll_idx").on(t.pollId, t.order),
+  }),
+);
+
+export const forumPollVotes = sqliteTable(
+  "forum_poll_votes",
+  {
+    id: text("id").primaryKey(),
+    pollId: text("poll_id").notNull().references(() => forumPolls.id),
+    optionId: text("option_id").notNull().references(() => forumPollOptions.id),
+    userId: text("user_id").notNull().references(() => users.id),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("forum_poll_votes_uniq_idx").on(t.pollId, t.userId),
+  }),
+);
+
+// --- Social: one-way follow graph ---
+export const userFollows = sqliteTable(
+  "user_follows",
+  {
+    id: text("id").primaryKey(),
+    followerId: text("follower_id").notNull().references(() => users.id),
+    followeeId: text("followee_id").notNull().references(() => users.id),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("user_follows_uniq_idx").on(
+      t.followerId,
+      t.followeeId,
+    ),
+    followerIdx: index("user_follows_follower_idx").on(t.followerId, t.createdAt),
+    followeeIdx: index("user_follows_followee_idx").on(t.followeeId, t.createdAt),
+  }),
+);
+
 // --- Notifications ---
 //
 // Polymorphic subject (matches forumVotes vocabulary): "topic" | "post" | "comment".
@@ -257,5 +477,104 @@ export const notifications = sqliteTable(
     dedupIdx: uniqueIndex("notifications_dedup_idx")
       .on(t.userId, t.kind, t.subjectType, t.subjectId, t.actorId)
       .where(sql`read_at IS NULL`),
+  }),
+);
+
+// --- Daily challenge ---
+//
+// One challenge per day, deterministic from the date so every user
+// sees the same question. The challenge is a reference into an
+// existing seeded quiz (nodeSlug + question id). Attempts are
+// recorded for streaks + leaderboards.
+export const dailyChallenges = sqliteTable(
+  "daily_challenges",
+  {
+    id: text("id").primaryKey(),
+    // Day key in YYYY-MM-DD UTC.
+    day: text("day").notNull().unique(),
+    // Source of the question — a node slug + question id within that
+    // node's quizData.
+    nodeSlug: text("node_slug").notNull(),
+    questionId: text("question_id").notNull(),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    dayIdx: uniqueIndex("daily_challenges_day_idx").on(t.day),
+  }),
+);
+
+export const dailyChallengeAttempts = sqliteTable(
+  "daily_challenge_attempts",
+  {
+    id: text("id").primaryKey(),
+    challengeId: text("challenge_id").notNull().references(() => dailyChallenges.id),
+    userId: text("user_id").notNull().references(() => users.id),
+    correct: integer("correct", { mode: "boolean" }).notNull(),
+    answer: text("answer").notNull(),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("daily_challenge_attempts_uniq_idx").on(
+      t.challengeId,
+      t.userId,
+    ),
+    userIdx: index("daily_challenge_attempts_user_idx").on(t.userId, t.createdAt),
+  }),
+);
+
+// --- Per-node lesson progress + per-node notes ---
+//
+// Lesson progress lets the lesson player resume mid-lesson at the
+// slide the user last reached. Notes are a small per-user scratchpad
+// scoped to a node (rendered alongside the lesson and surfaced on
+// the user's profile).
+export const lessonProgress = sqliteTable(
+  "lesson_progress",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    nodeId: text("node_id").notNull().references(() => masteryNodes.id),
+    slideIdx: integer("slide_idx").notNull().default(0),
+    updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("lesson_progress_uniq_idx").on(t.userId, t.nodeId),
+  }),
+);
+
+export const lessonNotes = sqliteTable(
+  "lesson_notes",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    nodeId: text("node_id").notNull().references(() => masteryNodes.id),
+    body: text("body").notNull().default(""),
+    updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("lesson_notes_uniq_idx").on(t.userId, t.nodeId),
+  }),
+);
+
+// Per-question wrong-answer log. Used to build the /review/mistakes
+// page, auto-create flashcards, and weight the daily challenge toward
+// a user's weak areas.
+export const quizMistakes = sqliteTable(
+  "quiz_mistakes",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    nodeId: text("node_id").notNull().references(() => masteryNodes.id),
+    questionId: text("question_id").notNull(),
+    occurrences: integer("occurrences").notNull().default(1),
+    lastWrongAt: text("last_wrong_at").default(sql`(datetime('now'))`).notNull(),
+    // Set when the user later gets the same question right; the row
+    // stays around for the mistakes log but doesn't bias the daily
+    // challenge anymore.
+    resolvedAt: text("resolved_at"),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("quiz_mistakes_uniq_idx").on(t.userId, t.nodeId, t.questionId),
+    userIdx: index("quiz_mistakes_user_idx").on(t.userId, t.lastWrongAt),
   }),
 );

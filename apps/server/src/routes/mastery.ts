@@ -1,8 +1,18 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { getDb, masteryPaths, masteryNodes, userProgress, users } from "@axiomic/db";
-import { eq, and, desc, inArray, ne } from "drizzle-orm";
+import {
+  getDb,
+  masteryPaths,
+  masteryNodes,
+  userProgress,
+  users,
+  lessonProgress,
+  lessonNotes,
+  quizMistakes,
+  flashcards,
+} from "@axiomic/db";
+import { eq, and, desc, inArray, ne, asc, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { notify } from "../lib/notifications";
@@ -47,23 +57,55 @@ mastery.get("/paths/:slug", async (c) => {
   const path = db.select().from(masteryPaths).where(eq(masteryPaths.slug, slug)).get();
   if (!path) return c.json({ error: "Path not found" }, 404);
 
-  const nodes = db
+  const rawNodes = db
     .select()
     .from(masteryNodes)
     .where(eq(masteryNodes.pathId, path.id))
-    .all()
-    .map((n) => ({
+    .all();
+
+  // Estimate per-node time from quiz/lesson size + page count. Cheap
+  // heuristic — tunable later. Authored lessons get more weight than
+  // quiz-only nodes; multi-page nodes get extra reading time.
+  const estimateMinutes = (n: (typeof rawNodes)[number], pageIds: string[]): number => {
+    let total = 5; // base
+    if (n.lessonData) {
+      try {
+        const slides = JSON.parse(n.lessonData)?.slides ?? [];
+        total += Math.max(8, slides.length * 2);
+      } catch {
+        total += 8;
+      }
+    }
+    if (n.quizData) {
+      try {
+        const qs = JSON.parse(n.quizData);
+        if (Array.isArray(qs)) total += qs.length * 2;
+      } catch {
+        total += 5;
+      }
+    }
+    total += Math.max(0, pageIds.length - 1) * 4;
+    return total;
+  };
+
+  const nodes = rawNodes.map((n) => {
+    const pageIds = JSON.parse(n.pageIds);
+    const prerequisiteNodeIds = JSON.parse(n.prerequisiteNodeIds);
+    return {
       ...n,
-      pageIds: JSON.parse(n.pageIds),
-      prerequisiteNodeIds: JSON.parse(n.prerequisiteNodeIds),
-      // Don't ship the full lesson body in the listing — just a flag so
-      // the path page can show or hide the "Start lesson" button.
+      pageIds,
+      prerequisiteNodeIds,
       hasLesson: !!n.lessonData,
       lessonData: undefined,
       quizData: undefined,
-    }));
+      estimatedMinutes: estimateMinutes(n, pageIds),
+    };
+  });
 
   let progress: any[] = [];
+  const nodeMastery: Record<string, number> = {};
+  let lastVisitedNodeSlug: string | null = null;
+
   if (user) {
     progress = db
       .select({
@@ -75,9 +117,72 @@ mastery.get("/paths/:slug", async (c) => {
       .from(userProgress)
       .where(eq(userProgress.userId, user.id))
       .all();
+
+    const progressByNode = new Map(progress.map((p) => [p.nodeId, p]));
+
+    // Per-node mastery 0..100 = 70% quiz score + 30% lesson presence
+    // (or completion). Pure quiz nodes get the full 100 for a perfect
+    // quiz; nodes with no quiz data fall back to completion.
+    for (const n of rawNodes) {
+      const p = progressByNode.get(n.id);
+      let score = 0;
+      if (p?.quizScore != null) {
+        score = Math.round(p.quizScore * 100);
+      } else if (p?.completed) {
+        score = 100;
+      }
+      // Lesson bonus: completing the lesson beats quiz alone.
+      if (p?.completed && score < 100) score = Math.min(100, score + 30);
+      nodeMastery[n.id] = score;
+    }
+
+    // Resume target: most-recently-touched lesson position OR most
+    // recent completion on this path.
+    const myLessonProgress = db
+      .select({
+        nodeId: lessonProgress.nodeId,
+        updatedAt: lessonProgress.updatedAt,
+      })
+      .from(lessonProgress)
+      .innerJoin(masteryNodes, eq(lessonProgress.nodeId, masteryNodes.id))
+      .where(
+        and(
+          eq(lessonProgress.userId, user.id),
+          eq(masteryNodes.pathId, path.id),
+        ),
+      )
+      .orderBy(desc(lessonProgress.updatedAt))
+      .limit(1)
+      .get();
+    if (myLessonProgress) {
+      const node = rawNodes.find((n) => n.id === myLessonProgress.nodeId);
+      if (node) lastVisitedNodeSlug = node.slug;
+    }
+    if (!lastVisitedNodeSlug) {
+      const recentCompletion = progress
+        .filter((p) => p.completed && p.completedAt)
+        .sort((a, b) => (a.completedAt! < b.completedAt! ? 1 : -1))[0];
+      if (recentCompletion) {
+        const node = rawNodes.find((n) => n.id === recentCompletion.nodeId);
+        if (node) lastVisitedNodeSlug = node.slug;
+      }
+    }
   }
 
-  return c.json({ path, nodes, progress });
+  // Lock state is intentionally always-unlocked: lessons are open to
+  // everyone, and the prereq list is informational only. Kept on the
+  // wire for backward compatibility with clients that still read it.
+  const lockState: Record<string, boolean> = {};
+  for (const n of nodes) lockState[n.id] = false;
+
+  return c.json({
+    path,
+    nodes,
+    progress,
+    nodeMastery,
+    lockState,
+    lastVisitedNodeSlug,
+  });
 });
 
 // Mark node complete. Idempotent: re-marking an already-completed node
@@ -267,6 +372,81 @@ mastery.get("/users/:username/summary", (c) => {
   });
 });
 
+// "Pick up where you left off" — for the auth'd user, return the next
+// incomplete node on the most-recently-active path. Falls back to the
+// first node of the first path if the user has no completions yet.
+mastery.get("/next-node", requireAuth, (c) => {
+  const user = c.get("user")!;
+  const db = getDb();
+
+  const paths = db.select().from(masteryPaths).orderBy(asc(masteryPaths.id)).all();
+  if (paths.length === 0) return c.json({ next: null });
+
+  // Most-recent completion per path; choose the path with the latest
+  // activity. If the user has no completions yet, fall back to the first
+  // path so the home card always points somewhere.
+  let chosenPath = paths[0];
+  let latestActivity = "";
+  for (const path of paths) {
+    const nodeIds = db
+      .select({ id: masteryNodes.id })
+      .from(masteryNodes)
+      .where(eq(masteryNodes.pathId, path.id))
+      .all()
+      .map((n) => n.id);
+    if (nodeIds.length === 0) continue;
+    const last = db
+      .select({ completedAt: userProgress.completedAt })
+      .from(userProgress)
+      .where(
+        and(
+          eq(userProgress.userId, user.id),
+          eq(userProgress.completed, true),
+          inArray(userProgress.nodeId, nodeIds),
+        ),
+      )
+      .orderBy(desc(userProgress.completedAt))
+      .limit(1)
+      .get();
+    if (last?.completedAt && last.completedAt > latestActivity) {
+      latestActivity = last.completedAt;
+      chosenPath = path;
+    }
+  }
+
+  // First non-completed node, ordered by `order`. If every node is
+  // complete on the chosen path, return null.
+  const nodes = db
+    .select()
+    .from(masteryNodes)
+    .where(eq(masteryNodes.pathId, chosenPath.id))
+    .orderBy(asc(masteryNodes.order))
+    .all();
+
+  const completedSet = new Set(
+    db
+      .select({ nodeId: userProgress.nodeId })
+      .from(userProgress)
+      .where(and(eq(userProgress.userId, user.id), eq(userProgress.completed, true)))
+      .all()
+      .map((r) => r.nodeId),
+  );
+
+  const next = nodes.find((n) => !completedSet.has(n.id));
+  if (!next) return c.json({ next: null });
+
+  return c.json({
+    next: {
+      pathSlug: chosenPath.slug,
+      pathTitle: chosenPath.title,
+      nodeSlug: next.slug,
+      nodeTitle: next.title,
+      level: next.level,
+      hasLesson: !!next.lessonData,
+    },
+  });
+});
+
 // Get the authored lesson for a node, if any.
 mastery.get("/lesson/:nodeId", async (c) => {
   const nodeId = c.req.param("nodeId");
@@ -406,6 +586,49 @@ function gradeQuestion(q: any, answer: string | undefined): boolean {
       }
       return true;
     }
+    case "math_expression": {
+      if (answer === undefined) return false;
+      const norm = (s: string) => s.replace(/\s+/g, "").toLowerCase();
+      const a = norm(answer);
+      const accepted = (q.acceptedAnswers as unknown[]).filter(
+        (s): s is string => typeof s === "string",
+      );
+      return accepted.some((acc) => norm(acc) === a);
+    }
+    case "sortable": {
+      if (answer === undefined) return false;
+      let order: string[];
+      try {
+        const parsed = JSON.parse(answer);
+        if (!Array.isArray(parsed)) return false;
+        order = parsed.filter((s): s is string => typeof s === "string");
+      } catch {
+        return false;
+      }
+      const correct = (q.items as Array<{ id: string }>).map((it) => it.id);
+      if (order.length !== correct.length) return false;
+      return order.every((id, i) => id === correct[i]);
+    }
+    case "code_completion": {
+      if (answer === undefined) return false;
+      let map: Record<string, string>;
+      try {
+        const parsed = JSON.parse(answer);
+        if (!parsed || typeof parsed !== "object") return false;
+        map = parsed;
+      } catch {
+        return false;
+      }
+      const norm = (s: string) => s.trim();
+      for (const blank of q.blanks as Array<{ id: string; acceptedAnswers: string[] }>) {
+        const userAns = map[blank.id];
+        if (typeof userAns !== "string") return false;
+        const u = norm(userAns);
+        const ok = blank.acceptedAnswers.some((acc) => norm(acc) === u);
+        if (!ok) return false;
+      }
+      return true;
+    }
     default:
       return false;
   }
@@ -431,11 +654,113 @@ mastery.post("/quiz/:nodeId", requireAuth, zValidator("json", quizSubmitSchema),
   }
 
   let correct = 0;
+  // Track per-question outcomes so we can update the mistakes log
+  // (and auto-create flashcards) for everything the user got wrong.
+  const wrongIds: string[] = [];
   for (const q of questions) {
-    if (gradeQuestion(q, answers[q.id])) correct++;
+    const ok = gradeQuestion(q, answers[q.id]);
+    if (ok) correct++;
+    else if (q?.id) wrongIds.push(q.id);
   }
 
   const score = questions.length > 0 ? correct / questions.length : 0;
+
+  // Mistakes log: insert or bump per question. Anything the user just
+  // got right gets stamped resolvedAt so the daily challenge doesn't
+  // keep biasing toward it.
+  const nowIso = new Date().toISOString();
+  for (const q of questions as Array<{ id: string }>) {
+    if (!q?.id) continue;
+    const wasWrong = wrongIds.includes(q.id);
+    const existing = db
+      .select()
+      .from(quizMistakes)
+      .where(
+        and(
+          eq(quizMistakes.userId, user.id),
+          eq(quizMistakes.nodeId, nodeId),
+          eq(quizMistakes.questionId, q.id),
+        ),
+      )
+      .get();
+    if (wasWrong) {
+      if (existing) {
+        db.update(quizMistakes)
+          .set({
+            occurrences: existing.occurrences + 1,
+            lastWrongAt: nowIso,
+            resolvedAt: null,
+          })
+          .where(eq(quizMistakes.id, existing.id))
+          .run();
+      } else {
+        db.insert(quizMistakes).values({
+          id: randomUUID(),
+          userId: user.id,
+          nodeId,
+          questionId: q.id,
+          occurrences: 1,
+          lastWrongAt: nowIso,
+        }).run();
+      }
+    } else if (existing && !existing.resolvedAt) {
+      db.update(quizMistakes)
+        .set({ resolvedAt: nowIso })
+        .where(eq(quizMistakes.id, existing.id))
+        .run();
+    }
+  }
+
+  // Auto-create flashcards for newly missed multiple-choice questions
+  // (the easiest kind to flip into a Q/A card). Skipped if the user
+  // already has a card for this exact question.
+  try {
+    const nodeRow = db
+      .select({ slug: masteryNodes.slug, title: masteryNodes.title })
+      .from(masteryNodes)
+      .where(eq(masteryNodes.id, nodeId))
+      .get();
+    if (nodeRow) {
+      for (const q of questions as Array<any>) {
+        if (!wrongIds.includes(q?.id)) continue;
+        const kind = q.kind ?? "multiple_choice";
+        if (kind !== "multiple_choice") continue;
+        if (
+          !Array.isArray(q.options) ||
+          typeof q.correctIndex !== "number"
+        )
+          continue;
+        const front = String(q.question ?? "").slice(0, 500);
+        const correctOption = String(q.options[q.correctIndex] ?? "");
+        const back = q.explanation
+          ? `${correctOption}\n\n${q.explanation}`.slice(0, 2000)
+          : correctOption.slice(0, 2000);
+        if (!front || !back) continue;
+        const dup = db
+          .select({ id: flashcards.id })
+          .from(flashcards)
+          .where(
+            and(
+              eq(flashcards.userId, user.id),
+              eq(flashcards.front, front),
+            ),
+          )
+          .get();
+        if (!dup) {
+          db.insert(flashcards).values({
+            id: randomUUID(),
+            userId: user.id,
+            pageSlug: nodeRow.slug,
+            pageTitle: nodeRow.title,
+            front,
+            back,
+          }).run();
+        }
+      }
+    }
+  } catch (err) {
+    console.error("auto-flashcard creation failed", err);
+  }
 
   // Update progress
   const existing = db
@@ -474,6 +799,191 @@ mastery.post("/quiz/:nodeId", requireAuth, zValidator("json", quizSubmitSchema),
   }
 
   return c.json({ score, correct, total: questions.length, newAchievements });
+});
+
+// --- Lesson position (resume mid-lesson) -----------------------------
+
+const lessonProgressSchema = z.object({
+  slideIdx: z.number().int().min(0).max(200),
+});
+
+mastery.get("/lesson-progress/:nodeId", requireAuth, (c) => {
+  const nodeId = c.req.param("nodeId")!;
+  const user = c.get("user")!;
+  const db = getDb();
+  const row = db
+    .select()
+    .from(lessonProgress)
+    .where(
+      and(
+        eq(lessonProgress.userId, user.id),
+        eq(lessonProgress.nodeId, nodeId),
+      ),
+    )
+    .get();
+  return c.json({ slideIdx: row?.slideIdx ?? 0 });
+});
+
+mastery.put(
+  "/lesson-progress/:nodeId",
+  requireAuth,
+  zValidator("json", lessonProgressSchema),
+  (c) => {
+    const nodeId = c.req.param("nodeId")!;
+    const { slideIdx } = c.req.valid("json");
+    const user = c.get("user")!;
+    const db = getDb();
+    const existing = db
+      .select({ id: lessonProgress.id })
+      .from(lessonProgress)
+      .where(
+        and(
+          eq(lessonProgress.userId, user.id),
+          eq(lessonProgress.nodeId, nodeId),
+        ),
+      )
+      .get();
+    if (existing) {
+      db.update(lessonProgress)
+        .set({ slideIdx, updatedAt: new Date().toISOString() })
+        .where(eq(lessonProgress.id, existing.id))
+        .run();
+    } else {
+      db.insert(lessonProgress).values({
+        id: randomUUID(),
+        userId: user.id,
+        nodeId,
+        slideIdx,
+      }).run();
+    }
+    return c.json({ ok: true });
+  },
+);
+
+// --- Per-node lesson notes ------------------------------------------
+
+const lessonNotesSchema = z.object({
+  body: z.string().max(20000),
+});
+
+mastery.get("/lesson-notes/:nodeId", requireAuth, (c) => {
+  const nodeId = c.req.param("nodeId")!;
+  const user = c.get("user")!;
+  const db = getDb();
+  const row = db
+    .select()
+    .from(lessonNotes)
+    .where(
+      and(
+        eq(lessonNotes.userId, user.id),
+        eq(lessonNotes.nodeId, nodeId),
+      ),
+    )
+    .get();
+  return c.json({ body: row?.body ?? "", updatedAt: row?.updatedAt ?? null });
+});
+
+mastery.put(
+  "/lesson-notes/:nodeId",
+  requireAuth,
+  zValidator("json", lessonNotesSchema),
+  (c) => {
+    const nodeId = c.req.param("nodeId")!;
+    const { body } = c.req.valid("json");
+    const user = c.get("user")!;
+    const db = getDb();
+    const existing = db
+      .select({ id: lessonNotes.id })
+      .from(lessonNotes)
+      .where(
+        and(
+          eq(lessonNotes.userId, user.id),
+          eq(lessonNotes.nodeId, nodeId),
+        ),
+      )
+      .get();
+    const nowIso = new Date().toISOString();
+    if (existing) {
+      db.update(lessonNotes)
+        .set({ body, updatedAt: nowIso })
+        .where(eq(lessonNotes.id, existing.id))
+        .run();
+    } else {
+      db.insert(lessonNotes).values({
+        id: randomUUID(),
+        userId: user.id,
+        nodeId,
+        body,
+      }).run();
+    }
+    return c.json({ ok: true, updatedAt: nowIso });
+  },
+);
+
+// --- Quiz mistakes review ------------------------------------------
+
+mastery.get("/mistakes", requireAuth, (c) => {
+  const user = c.get("user")!;
+  const db = getDb();
+
+  const rows = db
+    .select({
+      nodeId: quizMistakes.nodeId,
+      nodeSlug: masteryNodes.slug,
+      nodeTitle: masteryNodes.title,
+      pathId: masteryNodes.pathId,
+      questionId: quizMistakes.questionId,
+      occurrences: quizMistakes.occurrences,
+      lastWrongAt: quizMistakes.lastWrongAt,
+      resolvedAt: quizMistakes.resolvedAt,
+      quizData: masteryNodes.quizData,
+    })
+    .from(quizMistakes)
+    .innerJoin(masteryNodes, eq(quizMistakes.nodeId, masteryNodes.id))
+    .where(eq(quizMistakes.userId, user.id))
+    .orderBy(desc(quizMistakes.lastWrongAt))
+    .all();
+
+  // Resolve path slug/title in bulk.
+  const pathIds = Array.from(new Set(rows.map((r) => r.pathId)));
+  const pathRows = pathIds.length
+    ? db
+        .select({ id: masteryPaths.id, slug: masteryPaths.slug, title: masteryPaths.title })
+        .from(masteryPaths)
+        .where(inArray(masteryPaths.id, pathIds))
+        .all()
+    : [];
+  const pathMap = new Map(pathRows.map((p) => [p.id, p]));
+
+  const mistakes = rows.map((r) => {
+    let questionText: string | null = null;
+    if (r.quizData) {
+      try {
+        const qs = JSON.parse(r.quizData);
+        const q = Array.isArray(qs)
+          ? qs.find((qq: any) => qq?.id === r.questionId)
+          : null;
+        if (q && typeof q.question === "string") questionText = q.question;
+      } catch {
+        // ignore
+      }
+    }
+    const path = pathMap.get(r.pathId);
+    return {
+      nodeId: r.nodeId,
+      nodeSlug: r.nodeSlug,
+      nodeTitle: r.nodeTitle,
+      pathSlug: path?.slug ?? null,
+      pathTitle: path?.title ?? null,
+      questionId: r.questionId,
+      questionText,
+      occurrences: r.occurrences,
+      lastWrongAt: r.lastWrongAt,
+      resolvedAt: r.resolvedAt,
+    };
+  });
+
+  return c.json({ mistakes });
 });
 
 export { mastery };

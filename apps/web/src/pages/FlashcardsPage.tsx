@@ -27,7 +27,7 @@ function relativeTime(iso: string | null): string {
 }
 
 export function FlashcardsPage() {
-  const { user } = useAuthStore();
+  const { user, loading: authLoading } = useAuthStore();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("due");
   const [allCards, setAllCards] = useState<SavedFlashcard[]>([]);
@@ -38,12 +38,13 @@ export function FlashcardsPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       navigate("/login");
       return;
     }
     refresh();
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
   const refresh = async () => {
     setLoading(true);

@@ -85,5 +85,30 @@
       }
     ],
     "explanation": "x @ W1 + b1, then np.maximum(0, ...) for ReLU, then that @ W2 + b2. Numpy broadcasting handles the bias add per row. The 4x widening (d_hidden = 4 * d_in) in real transformers is what gives this layer its capacity."
+  },
+  {
+    "id": "q5",
+    "kind": "slider",
+    "question": "Drag the input until Sigmoid saturates (i.e. its output is ≥ 0.9). Notice how GELU and Tanh behave very differently in the same range.",
+    "viz": "activation-function-gallery",
+    "min": -4,
+    "max": 4,
+    "step": 0.05,
+    "default": 0,
+    "target": { "min": 2.3, "max": 4 },
+    "explanation": "Sigmoid(x) = 1/(1+e^-x) crosses 0.9 around x ≈ 2.2. Past that it asymptotes — gradients shrink — which is the historical reason ReLU/GELU replaced Sigmoid as a hidden-layer non-linearity in deep networks."
+  },
+  {
+    "id": "q6",
+    "kind": "code_completion",
+    "question": "Fill in the two-layer FFN forward pass with ReLU. (np.maximum is the elementwise max.)",
+    "language": "python",
+    "template": "def ffn(x, W1, b1, W2, b2):\n    h = ___1___ @ W1 + b1\n    h = np.maximum(0, ___2___)\n    return h @ ___3___ + b2\n",
+    "blanks": [
+      { "id": "1", "acceptedAnswers": ["x"] },
+      { "id": "2", "acceptedAnswers": ["h"] },
+      { "id": "3", "acceptedAnswers": ["W2"] }
+    ],
+    "explanation": "Linear → ReLU → linear. The widening factor (d_hidden = 4·d_in in modern transformers) is what gives this layer its capacity."
   }
 ]

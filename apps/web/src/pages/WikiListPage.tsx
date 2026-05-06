@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api, type WikiPage } from "../lib/api";
+import { useAuthStore } from "../stores/auth";
 
 export function WikiListPage() {
+  const user = useAuthStore((s) => s.user);
   const [pages, setPages] = useState<WikiPage[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,6 +47,14 @@ export function WikiListPage() {
             }}
             className="px-3 py-1.5 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring w-56"
           />
+          {user && (
+            <Link
+              to="/wiki/new"
+              className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+            >
+              New page
+            </Link>
+          )}
         </div>
       </div>
 

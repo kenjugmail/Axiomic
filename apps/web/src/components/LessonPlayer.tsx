@@ -4,9 +4,18 @@ import type { Lesson, LessonSlide, QuizQuestion } from "@axiomic/types";
 import { assertQuestionKind } from "@axiomic/types";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import { QuestionRenderer, isAnswered } from "./quiz/QuestionRenderer";
+import { LessonNotes } from "./mastery/LessonNotes";
 import { SoftmaxTemperatureSlider } from "../../../../packages/viz/src/quiz/SoftmaxTemperatureSlider";
 import { AttentionHeatmapExplorer } from "../../../../packages/viz/src/quiz/AttentionHeatmapExplorer";
 import { GradientDescent2D } from "../../../../packages/viz/src/quiz/GradientDescent2D";
+import { TokenizerPlayground } from "../../../../packages/viz/src/components/TokenizerPlayground";
+import { EmbeddingExplorer } from "../../../../packages/viz/src/components/EmbeddingExplorer";
+import { LayerActivations } from "../../../../packages/viz/src/components/LayerActivations";
+import { PositionalEncoding } from "../../../../packages/viz/src/components/PositionalEncoding";
+import { ActivationFunctionGallery } from "../../../../packages/viz/src/components/ActivationFunctionGallery";
+import { LorenzAttractor } from "../../../../packages/viz/src/components/LorenzAttractor";
+import { DoublePendulum } from "../../../../packages/viz/src/components/DoublePendulum";
+import { PhasePortrait1D } from "../../../../packages/viz/src/components/PhasePortrait1D";
 
 const PASSING_SCORE = 0.7;
 
@@ -68,6 +77,38 @@ function scoreLocally(question: QuizQuestion, answer: string | undefined): boole
         return false;
       }
     }
+    case "math_expression": {
+      if (answer === undefined) return false;
+      const norm = (s: string) => s.replace(/\s+/g, "").toLowerCase();
+      const a = norm(answer);
+      return q.acceptedAnswers.some((acc) => norm(acc) === a);
+    }
+    case "sortable": {
+      try {
+        const order = JSON.parse(answer!) as string[];
+        const correct = q.items.map((it) => it.id);
+        return (
+          order.length === correct.length &&
+          order.every((id, i) => id === correct[i])
+        );
+      } catch {
+        return false;
+      }
+    }
+    case "code_completion": {
+      try {
+        const map = JSON.parse(answer!) as Record<string, string>;
+        const norm = (s: string) => s.trim();
+        return q.blanks.every((b) => {
+          const u = map[b.id];
+          if (typeof u !== "string") return false;
+          const nu = norm(u);
+          return b.acceptedAnswers.some((acc) => norm(acc) === nu);
+        });
+      } catch {
+        return false;
+      }
+    }
   }
 }
 
@@ -98,6 +139,26 @@ function PreviewViz({ name, props }: { name: string; props?: Record<string, unkn
           {...(props as object)}
         />
       );
+    case "tokenizer-playground":
+      return <TokenizerPlayground />;
+    case "embedding-explorer":
+      return <EmbeddingExplorer />;
+    case "layer-activations":
+      return <LayerActivations />;
+    case "positional-encoding":
+      return <PositionalEncoding />;
+    case "activation-function-gallery":
+      return (
+        <ActivationFunctionGallery
+          x={typeof props?.x === "number" ? props.x : undefined}
+        />
+      );
+    case "lorenz-attractor":
+      return <LorenzAttractor {...(props as object)} />;
+    case "double-pendulum":
+      return <DoublePendulum {...(props as object)} />;
+    case "phase-portrait-1d":
+      return <PhasePortrait1D {...(props as object)} />;
     default:
       return null;
   }
@@ -111,18 +172,28 @@ export function LessonPlayer({ nodeId, nodeTitle, onClose, onCompleted }: Props)
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    api.mastery
-      .getLesson(nodeId)
-      .then((data) => {
+    Promise.all([
+      api.mastery.getLesson(nodeId),
+      api.mastery.getLessonProgress(nodeId).catch(() => ({ slideIdx: 0 })),
+    ])
+      .then(([data, prog]) => {
         if (cancelled) return;
         if (!data.lesson || data.lesson.slides.length === 0) {
           setPhase("no-lesson");
           return;
         }
         setLesson(data.lesson);
+        // Resume from the saved slide if it's still in range; clamp to
+        // the last slide so a shrunken lesson doesn't strand the user.
+        const resumeIdx = Math.min(
+          Math.max(0, prog.slideIdx),
+          data.lesson.slides.length - 1,
+        );
+        setIdx(resumeIdx);
         setPhase("playing");
       })
       .catch((e) => {
@@ -134,6 +205,17 @@ export function LessonPlayer({ nodeId, nodeTitle, onClose, onCompleted }: Props)
       cancelled = true;
     };
   }, [nodeId]);
+
+  // Persist the current slide index every time it changes. Best-effort.
+  useEffect(() => {
+    if (phase !== "playing") return;
+    const t = setTimeout(() => {
+      api.mastery.setLessonProgress(nodeId, idx).catch(() => {
+        // ignore; signed-out users get a 401 and that's fine
+      });
+    }, 200);
+    return () => clearTimeout(t);
+  }, [idx, phase, nodeId]);
 
   // Esc to close.
   useEffect(() => {
@@ -220,15 +302,28 @@ export function LessonPlayer({ nodeId, nodeTitle, onClose, onCompleted }: Props)
                   : "Loading…"}
             </p>
           </div>
-          <button
-            onClick={onClose}
-            className="text-muted-foreground hover:text-foreground"
-            aria-label="Close"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setNotesOpen((v) => !v)}
+              className={`text-xs px-2 py-1 rounded transition-colors ${
+                notesOpen
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              aria-pressed={notesOpen}
+            >
+              📝 Notes
+            </button>
+            <button
+              onClick={onClose}
+              className="text-muted-foreground hover:text-foreground"
+              aria-label="Close"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Progress dots */}
@@ -323,6 +418,12 @@ export function LessonPlayer({ nodeId, nodeTitle, onClose, onCompleted }: Props)
                   This node is now marked complete.
                 </p>
               )}
+            </div>
+          )}
+
+          {notesOpen && (
+            <div className="mt-4">
+              <LessonNotes nodeId={nodeId} />
             </div>
           )}
         </div>

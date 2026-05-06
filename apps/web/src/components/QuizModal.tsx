@@ -71,6 +71,38 @@ function scoreLocally(question: QuizQuestion, answer: string | undefined): boole
         return false;
       }
     }
+    case "math_expression": {
+      if (answer === undefined) return false;
+      const norm = (s: string) => s.replace(/\s+/g, "").toLowerCase();
+      const a = norm(answer);
+      return q.acceptedAnswers.some((acc) => norm(acc) === a);
+    }
+    case "sortable": {
+      try {
+        const order = JSON.parse(answer!) as string[];
+        const correct = q.items.map((it) => it.id);
+        return (
+          order.length === correct.length &&
+          order.every((id, i) => id === correct[i])
+        );
+      } catch {
+        return false;
+      }
+    }
+    case "code_completion": {
+      try {
+        const map = JSON.parse(answer!) as Record<string, string>;
+        const norm = (s: string) => s.trim();
+        return q.blanks.every((b) => {
+          const u = map[b.id];
+          if (typeof u !== "string") return false;
+          const nu = norm(u);
+          return b.acceptedAnswers.some((acc) => norm(acc) === nu);
+        });
+      } catch {
+        return false;
+      }
+    }
   }
 }
 

@@ -178,6 +178,107 @@ wiki.get("/:slug", async (c) => {
   });
 });
 
+// Create a brand-new wiki page. Slug must be unique (kebab-case).
+const createSchema = z.object({
+  slug: z
+    .string()
+    .min(1)
+    .max(120)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case"),
+  title: z.string().min(1).max(200),
+  category: z.string().min(1).max(80).default("uncategorized"),
+  contentIntro: z.string(),
+  contentUndergrad: z.string(),
+  contentGrad: z.string(),
+  editMessage: z.string().optional(),
+});
+
+wiki.post("/", requireAuth, zValidator("json", createSchema), async (c) => {
+  const body = c.req.valid("json");
+  const user = c.get("user")!;
+  const db = getDb();
+
+  const existing = db
+    .select({ id: wikiPages.id })
+    .from(wikiPages)
+    .where(eq(wikiPages.slug, body.slug))
+    .get();
+  if (existing) return c.json({ error: "A page with this slug already exists" }, 409);
+
+  const pageId = randomUUID();
+  db.insert(wikiPages).values({
+    id: pageId,
+    slug: body.slug,
+    title: body.title,
+    category: body.category,
+    currentVersion: 1,
+    createdBy: user.id,
+  }).run();
+
+  db.insert(pageVersions).values({
+    id: randomUUID(),
+    pageId,
+    version: 1,
+    contentIntro: body.contentIntro,
+    contentUndergrad: body.contentUndergrad,
+    contentGrad: body.contentGrad,
+    editedBy: user.id,
+    editMessage: body.editMessage || `Created by ${user.username}`,
+  }).run();
+
+  invalidateSearchIndex();
+
+  const created = db.select().from(wikiPages).where(eq(wikiPages.id, pageId)).get();
+  return c.json({ page: created }, 201);
+});
+
+// Restore a previous version. Writes a new version (so history stays
+// linear and append-only) whose content matches the chosen version.
+const restoreSchema = z.object({
+  version: z.number().int().min(1),
+});
+
+wiki.post("/:slug/restore", requireAuth, zValidator("json", restoreSchema), async (c) => {
+  const slug = c.req.param("slug");
+  const { version } = c.req.valid("json");
+  const user = c.get("user")!;
+  const db = getDb();
+
+  const page = db.select().from(wikiPages).where(eq(wikiPages.slug, slug)).get();
+  if (!page) return c.json({ error: "Page not found" }, 404);
+
+  const target = db
+    .select()
+    .from(pageVersions)
+    .where(
+      sql`${pageVersions.pageId} = ${page.id} AND ${pageVersions.version} = ${version}`,
+    )
+    .get();
+  if (!target) return c.json({ error: "Version not found" }, 404);
+
+  const newVersion = page.currentVersion + 1;
+  db.insert(pageVersions).values({
+    id: randomUUID(),
+    pageId: page.id,
+    version: newVersion,
+    contentIntro: target.contentIntro,
+    contentUndergrad: target.contentUndergrad,
+    contentGrad: target.contentGrad,
+    editedBy: user.id,
+    editMessage: `Restored from v${version}`,
+  }).run();
+
+  db.update(wikiPages)
+    .set({ currentVersion: newVersion, updatedAt: new Date().toISOString() })
+    .where(eq(wikiPages.id, page.id))
+    .run();
+
+  invalidateSearchIndex();
+
+  const updated = db.select().from(wikiPages).where(eq(wikiPages.id, page.id)).get();
+  return c.json({ page: updated });
+});
+
 // Update/create page version
 const updateSchema = z.object({
   contentIntro: z.string(),

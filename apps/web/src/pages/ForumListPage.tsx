@@ -44,12 +44,20 @@ export function ForumListPage() {
         <h1 className="text-2xl font-semibold tracking-tight">
           {activeDomain ? activeDomain.title : "Forum"}
         </h1>
-        <Link
-          to="/forum/new"
-          className="text-sm px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
-        >
-          New topic
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/news"
+            className="text-sm px-3 py-1.5 rounded-md border border-border hover:bg-accent/40"
+          >
+            News
+          </Link>
+          <Link
+            to="/forum/new"
+            className="text-sm px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            New topic
+          </Link>
+        </div>
       </div>
       <p className="text-sm text-muted-foreground mb-6">
         {activeDomain?.description ||

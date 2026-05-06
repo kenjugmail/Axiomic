@@ -92,6 +92,27 @@ flashcardsRouter.get("/due", requireAuth, async (c) => {
   return c.json({ cards });
 });
 
+// Lightweight count for the home "Today's review" badge — avoids
+// shipping the whole card list when the caller only needs a number.
+flashcardsRouter.get("/due/count", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const db = getDb();
+  const now = new Date().toISOString();
+
+  const row = db
+    .select({ count: sql<number>`count(*)` })
+    .from(flashcards)
+    .where(
+      and(
+        eq(flashcards.userId, user.id),
+        or(isNull(flashcards.dueAt), lte(flashcards.dueAt, now)),
+      ),
+    )
+    .get();
+
+  return c.json({ count: row?.count ?? 0 });
+});
+
 // --- Submit a review ----------------------------------------------------
 
 const reviewSchema = z.object({

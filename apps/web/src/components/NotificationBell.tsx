@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, type Notification } from "../lib/api";
+import { useLiveEvents } from "../hooks/useLiveEvents";
 
 const POLL_INTERVAL_MS = 60_000;
 
@@ -15,7 +16,19 @@ export function notificationLink(n: Notification): string {
       return `/wiki/${n.contextSlug}#comment-${n.subjectId}`;
     case "mastery_node":
       return `/paths/${n.contextSlug}`;
+    case "news_article":
+      return `/news/${n.contextSlug}`;
+    case "news_proposal":
+      // contextSlug is the article slug; deep-link to the proposals
+      // review page (visible to author) or the article (others).
+      return `/news/${n.contextSlug}/proposals`;
+    case "news_comment":
+      return `/news/${n.contextSlug}#comment-${n.subjectId}`;
     default:
+      // news_article (news_published) and topic (forum_topic_posted)
+      // already have routes above; this fallthrough catches anything new.
+      if (n.subjectType === "news_article") return `/news/${n.contextSlug}`;
+      if (n.subjectType === "topic") return `/forum/t/${n.contextSlug}`;
       return "/notifications";
   }
 }
@@ -32,6 +45,16 @@ function kindLabel(kind: Notification["kind"]): string {
       return "replied to your comment";
     case "mastery_level_up":
       return "you reached a new mastery level";
+    case "news_edit_proposed":
+      return "proposed an edit to your article";
+    case "news_edit_approved":
+      return "approved your proposed edit";
+    case "news_edit_rejected":
+      return "declined your proposed edit";
+    case "news_published":
+      return "published a new article";
+    case "forum_topic_posted":
+      return "started a new forum topic";
   }
 }
 
@@ -55,6 +78,21 @@ export function NotificationBell() {
   const [loading, setLoading] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
+
+  // Live-pushed notifications: increment the badge instantly and
+  // prepend to the dropdown list so the user sees the bump in real
+  // time. Falls back to the polling tick below if the WS is down.
+  useLiveEvents({
+    onEvent: (e) => {
+      if (e.kind !== "notification") return;
+      setCount((c) => c + 1);
+      setItems((arr) => {
+        const existing = arr.findIndex((n) => n.id === e.notification.id);
+        if (existing >= 0) return arr;
+        return [e.notification, ...arr].slice(0, 50);
+      });
+    },
+  });
 
   // Poll unread count while document is visible.
   useEffect(() => {

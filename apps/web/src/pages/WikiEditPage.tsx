@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
+import { VizPickerButton } from "../components/VizPickerButton";
 import { useAuthStore } from "../stores/auth";
 
 export function WikiEditPage() {
@@ -16,6 +17,27 @@ export function WikiEditPage() {
   const [content, setContent] = useState({ intro: "", undergrad: "", grad: "" });
   const [editMessage, setEditMessage] = useState("");
   const [showPreview, setShowPreview] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  // Insert a snippet at the textarea's cursor (or append if blurred).
+  const insertAtCursor = (snippet: string) => {
+    const ta = textareaRef.current;
+    const current = content[activeTier];
+    if (!ta) {
+      setContent({ ...content, [activeTier]: current + snippet });
+      return;
+    }
+    const start = ta.selectionStart ?? current.length;
+    const end = ta.selectionEnd ?? current.length;
+    const next = current.slice(0, start) + snippet + current.slice(end);
+    setContent({ ...content, [activeTier]: next });
+    // Restore caret after the inserted snippet on the next paint.
+    requestAnimationFrame(() => {
+      ta.focus();
+      const pos = start + snippet.length;
+      ta.setSelectionRange(pos, pos);
+    });
+  };
 
   useEffect(() => {
     if (!slug) return;
@@ -103,19 +125,22 @@ export function WikiEditPage() {
 
       {error && <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>}
 
-      {/* Tier tabs */}
-      <div className="flex gap-1 p-1 rounded-lg bg-muted mb-4 w-fit">
-        {tiers.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setActiveTier(t.key)}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              activeTier === t.key ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
+      {/* Tier tabs + viz picker */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex gap-1 p-1 rounded-lg bg-muted w-fit">
+          {tiers.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setActiveTier(t.key)}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                activeTier === t.key ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        {!showPreview && <VizPickerButton onPick={insertAtCursor} />}
       </div>
 
       {/* Editor / Preview */}
@@ -125,6 +150,7 @@ export function WikiEditPage() {
         </div>
       ) : (
         <textarea
+          ref={textareaRef}
           value={content[activeTier]}
           onChange={(e) => setContent({ ...content, [activeTier]: e.target.value })}
           className="w-full min-h-[500px] p-4 rounded-lg border border-input bg-background font-mono text-sm resize-y focus:outline-none focus:ring-2 focus:ring-ring"

@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/auth";
 import { useThemeStore } from "../stores/theme";
 import { SearchDialog } from "./SearchDialog";
 import { NotificationBell } from "./NotificationBell";
+import { ShortcutsDialog } from "./ShortcutsDialog";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 
 export function Layout() {
@@ -11,8 +12,29 @@ export function Layout() {
   const { theme, setTheme } = useThemeStore();
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
   useKeyboardShortcuts(() => setSearchOpen(true));
+
+  // "?" anywhere outside a text input opens the shortcuts cheatsheet.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "?") return;
+      const t = e.target as HTMLElement | null;
+      if (
+        t &&
+        (t.tagName === "INPUT" ||
+          t.tagName === "TEXTAREA" ||
+          t.isContentEditable)
+      ) {
+        return;
+      }
+      e.preventDefault();
+      setShortcutsOpen(true);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -39,13 +61,30 @@ export function Layout() {
               <Link to="/forum" className="text-muted-foreground hover:text-foreground transition-colors">
                 Forum
               </Link>
+              <Link to="/news" className="text-muted-foreground hover:text-foreground transition-colors">
+                News
+              </Link>
               <Link to="/paths" className="text-muted-foreground hover:text-foreground transition-colors">
                 Mastery Paths
               </Link>
+              <Link to="/challenge" className="text-muted-foreground hover:text-foreground transition-colors">
+                Daily
+              </Link>
+              <Link to="/leaderboard" className="text-muted-foreground hover:text-foreground transition-colors">
+                Ranks
+              </Link>
               {user && (
-                <Link to="/flashcards" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Flashcards
-                </Link>
+                <>
+                  <Link to="/feed" className="text-muted-foreground hover:text-foreground transition-colors">
+                    Feed
+                  </Link>
+                  <Link to="/flashcards" className="text-muted-foreground hover:text-foreground transition-colors">
+                    Flashcards
+                  </Link>
+                  <Link to="/review/mistakes" className="text-muted-foreground hover:text-foreground transition-colors">
+                    Review
+                  </Link>
+                </>
               )}
             </nav>
           </div>
@@ -110,6 +149,20 @@ export function Layout() {
             )}
           </div>
         </div>
+        {/* Mobile-only horizontal-scroll nav. Mirrors the desktop links
+            so narrow viewports still get section navigation. */}
+        <nav className="sm:hidden border-t border-border bg-card">
+          <div className="flex items-center gap-4 px-4 h-10 overflow-x-auto text-sm whitespace-nowrap">
+            <Link to="/wiki" className="text-muted-foreground hover:text-foreground">Wiki</Link>
+            <Link to="/forum" className="text-muted-foreground hover:text-foreground">Forum</Link>
+            <Link to="/news" className="text-muted-foreground hover:text-foreground">News</Link>
+            <Link to="/paths" className="text-muted-foreground hover:text-foreground">Paths</Link>
+            <Link to="/challenge" className="text-muted-foreground hover:text-foreground">Daily</Link>
+            <Link to="/leaderboard" className="text-muted-foreground hover:text-foreground">Ranks</Link>
+            {user && <Link to="/feed" className="text-muted-foreground hover:text-foreground">Feed</Link>}
+            {user && <Link to="/flashcards" className="text-muted-foreground hover:text-foreground">Flashcards</Link>}
+          </div>
+        </nav>
       </header>
       <main className="flex-1">
         <Outlet />
@@ -118,6 +171,7 @@ export function Layout() {
         Axiomic — Deep Knowledge, Beautifully Structured
       </footer>
       <SearchDialog isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
+      <ShortcutsDialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
     </div>
   );
 }

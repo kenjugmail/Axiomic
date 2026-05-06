@@ -1,0 +1,50 @@
+[
+  {
+    "id": "q1",
+    "question": "What does the gradient ∇f of a multivariable function point toward?",
+    "options": [
+      "The direction of steepest ascent",
+      "The direction of steepest descent",
+      "The minimum of the function",
+      "The origin"
+    ],
+    "correctIndex": 0,
+    "explanation": "The gradient points uphill. Gradient descent moves in the *negative* gradient direction precisely because that's the steepest way down."
+  },
+  {
+    "id": "q2",
+    "question": "Apply the chain rule: if y = (3x + 1)², what is dy/dx?",
+    "options": [
+      "6(3x + 1)",
+      "2(3x + 1)",
+      "(3x + 1)²",
+      "3 · 2x"
+    ],
+    "correctIndex": 0,
+    "explanation": "Outer derivative 2u, inner derivative 3, product = 6(3x+1). This same chain-rule pattern is what backpropagation generalizes."
+  },
+  {
+    "id": "q3",
+    "question": "At a local minimum of a smooth function, what is true of the gradient?",
+    "options": [
+      "It is the zero vector",
+      "It is undefined",
+      "It points away from the minimum",
+      "It has the same magnitude as at neighbouring points"
+    ],
+    "correctIndex": 0,
+    "explanation": "Critical points of smooth functions have ∇f = 0. To distinguish a minimum from a maximum or saddle you need second-order information (the Hessian)."
+  },
+  {
+    "id": "q4",
+    "question": "Why does gradient descent struggle with *non-convex* loss landscapes?",
+    "options": [
+      "There can be multiple local minima and saddle points; gradient descent only sees the local slope",
+      "The gradient is undefined for non-convex functions",
+      "Non-convex functions have no minima",
+      "It only works on linear functions"
+    ],
+    "correctIndex": 0,
+    "explanation": "Non-convex landscapes have many critical points. Modern deep learning still works because in high dimensions most critical points turn out to be saddles or 'good enough' minima — not because the optimizer is clever."
+  }
+]

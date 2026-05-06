@@ -18,6 +18,16 @@ function kindLabel(kind: Notification["kind"]): string {
       return "replied to your comment";
     case "mastery_level_up":
       return "you reached a new mastery level";
+    case "news_edit_proposed":
+      return "proposed an edit to your article";
+    case "news_edit_approved":
+      return "approved your proposed edit";
+    case "news_edit_rejected":
+      return "declined your proposed edit";
+    case "news_published":
+      return "published a new article";
+    case "forum_topic_posted":
+      return "started a new forum topic";
   }
 }
 

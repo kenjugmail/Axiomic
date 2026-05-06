@@ -2,8 +2,8 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { getAIProvider } from "@axiomic/ai";
-import { getDb, wikiPages, pageVersions } from "@axiomic/db";
-import { eq, desc } from "drizzle-orm";
+import { getDb, wikiPages, pageVersions, newsArticles, users } from "@axiomic/db";
+import { eq, desc, sql } from "drizzle-orm";
 import { getSessionUser } from "../middleware/auth";
 
 const ai = new Hono();
@@ -260,6 +260,158 @@ function generateFlashcards(title: string, content: string, tier: string) {
   return cards.slice(0, 8);
 }
 
+// --- AI authoring helpers (news drafts, polish, TL;DR, explain) ---
+
+// Wraps a streaming AI call as an SSE response. The handler shape is
+// identical for every authoring endpoint — only the system prompt and
+// user message change.
+function streamingResponse(
+  system: string,
+  userMessage: string,
+): Response {
+  const provider = getAIProvider();
+  const stream = new ReadableStream({
+    async start(controller) {
+      const encoder = new TextEncoder();
+      try {
+        await provider.stream({
+          system,
+          messages: [{ role: "user", content: userMessage }],
+          onToken: (token) => {
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ token })}\n\n`),
+            );
+          },
+        });
+      } catch (err: any) {
+        controller.enqueue(
+          encoder.encode(
+            `data: ${JSON.stringify({ error: err?.message ?? "stream failed" })}\n\n`,
+          ),
+        );
+      }
+      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      controller.close();
+    },
+  });
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
+  });
+}
+
+const draftSchema = z.object({
+  prompt: z.string().min(3).max(2000),
+  tags: z.array(z.string()).optional(),
+});
+
+ai.post("/news/draft", zValidator("json", draftSchema), async (c) => {
+  const { prompt, tags } = c.req.valid("json");
+  const user = await getSessionUser(c);
+  const rateLimitKey = user?.id || c.req.header("x-forwarded-for") || "anonymous";
+  if (!checkRateLimit(`draft:${rateLimitKey}`, 10, 60_000)) {
+    return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+  }
+
+  const tagHint = tags && tags.length > 0
+    ? `\nThe author wants this tagged: ${tags.join(", ")}.`
+    : "";
+
+  const system = `You draft long-form news articles for the Axiomic learning platform — a Brilliant/Khan-Academy-style site for ML and AI. Voice: clear, opinionated, technical but warm. Style: magazine-style, not academic.
+
+Output rules:
+- Markdown body only. Do NOT include the title, byline, or YAML frontmatter — those are set elsewhere in the UI.
+- Open with a hook, not a definition.
+- Use level-2 headings (## ...) to structure 3-6 sections. Keep paragraphs tight.
+- LaTeX is supported via $...$ inline and $$...$$ block. Code blocks via triple backticks.
+- You can embed an inline visualization with the directive ::viz[name] on its own line. Available names: attention-heatmap, softmax-temperature, positional-encoding, tokenizer-playground, beam-search-tree, layer-activations, qkv-step-through, embedding-explorer, activation-function-gallery. Use at most one or two — and only when they actually illustrate the point.
+- Aim for ~500-900 words.${tagHint}`;
+
+  return streamingResponse(system, prompt);
+});
+
+const polishSchema = z.object({
+  original: z.string(),
+  proposed: z.string().min(1),
+  message: z.string().optional(),
+});
+
+ai.post("/news/polish", zValidator("json", polishSchema), async (c) => {
+  const { original, proposed, message } = c.req.valid("json");
+  const user = await getSessionUser(c);
+  const rateLimitKey = user?.id || c.req.header("x-forwarded-for") || "anonymous";
+  if (!checkRateLimit(`polish:${rateLimitKey}`, 15, 60_000)) {
+    return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+  }
+
+  const system = `You are an editing assistant on the Axiomic platform. The user is proposing an edit to a news article and wants the wording polished before they submit it for the original author's review.
+
+Output rules:
+- Return ONLY the polished markdown body. No commentary, no preamble, no explanation.
+- Preserve the structure, tone, and intent of the proposed version.
+- Fix grammar, tighten sentences, smooth flow. Do not add new claims or remove substantive content the proposer added.
+- Preserve LaTeX, code blocks, and ::viz[...] directives verbatim.`;
+
+  const userMessage = `Original article body (for reference, not to be returned):
+\`\`\`
+${original.slice(0, 6000)}
+\`\`\`
+
+Proposed edit body (POLISH THIS — return only the polished version):
+\`\`\`
+${proposed.slice(0, 6000)}
+\`\`\`
+${message ? `\nProposer's note about the change: ${message}` : ""}`;
+
+  return streamingResponse(system, userMessage);
+});
+
+const articleHelpSchema = z.object({
+  slug: z.string(),
+});
+
+async function loadNewsBody(slug: string): Promise<string | null> {
+  const db = getDb();
+  const row = db
+    .select({ body: newsArticles.body, status: newsArticles.status })
+    .from(newsArticles)
+    .where(eq(newsArticles.slug, slug))
+    .get();
+  if (!row || row.status !== "published") return null;
+  return row.body;
+}
+
+ai.post("/article/tldr", zValidator("json", articleHelpSchema), async (c) => {
+  const { slug } = c.req.valid("json");
+  const user = await getSessionUser(c);
+  const rateLimitKey = user?.id || c.req.header("x-forwarded-for") || "anonymous";
+  if (!checkRateLimit(`tldr:${rateLimitKey}`, 30, 60_000)) {
+    return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+  }
+  const body = await loadNewsBody(slug);
+  if (!body) return c.json({ error: "Article not found" }, 404);
+
+  const system = `Write a 2-3 sentence TL;DR of the article below. No headings. No bullet points. Plain prose only. Match the article's tone.`;
+  return streamingResponse(system, body.slice(0, 8000));
+});
+
+ai.post("/article/explain", zValidator("json", articleHelpSchema), async (c) => {
+  const { slug } = c.req.valid("json");
+  const user = await getSessionUser(c);
+  const rateLimitKey = user?.id || c.req.header("x-forwarded-for") || "anonymous";
+  if (!checkRateLimit(`explain:${rateLimitKey}`, 20, 60_000)) {
+    return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+  }
+  const body = await loadNewsBody(slug);
+  if (!body) return c.json({ error: "Article not found" }, 404);
+
+  const system = `Re-explain the following article for someone brand-new to the topic. Use everyday vocabulary, replace jargon with concrete analogies, keep the structure compact (3-5 short paragraphs). Don't talk down — explain. Markdown body only, no headings.`;
+  return streamingResponse(system, body.slice(0, 8000));
+});
+
 function cosineSimilarity(a: number[], b: number[]): number {
   if (a.length !== b.length) return 0;
   let dot = 0, normA = 0, normB = 0;
@@ -270,5 +422,214 @@ function cosineSimilarity(a: number[], b: number[]): number {
   }
   return dot / (Math.sqrt(normA) * Math.sqrt(normB) || 1);
 }
+
+// --- AI extensions: tag suggestions, practice questions, semantic related ---
+
+// Run a streaming completion to its end and return the accumulated
+// text. Used for endpoints that need a single JSON-shaped reply.
+async function completion(system: string, userMessage: string): Promise<string> {
+  const provider = getAIProvider();
+  let acc = "";
+  await provider.stream({
+    system,
+    messages: [{ role: "user", content: userMessage }],
+    onToken: (t) => {
+      acc += t;
+    },
+  });
+  return acc;
+}
+
+// Best-effort JSON extraction from a model reply. Models sometimes
+// wrap the JSON in fences or prose; strip what we can and try again.
+function extractJson<T>(text: string): T | null {
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  const candidates = [fenced ? fenced[1] : null, text];
+  for (const cand of candidates) {
+    if (!cand) continue;
+    const trimmed = cand.trim();
+    try {
+      return JSON.parse(trimmed) as T;
+    } catch {
+      // try slicing from first `{` or `[` to matching last `}`/`]`
+      const firstBracket = Math.min(
+        ...["{", "["]
+          .map((c) => trimmed.indexOf(c))
+          .filter((i) => i >= 0),
+      );
+      const lastBracket = Math.max(
+        trimmed.lastIndexOf("}"),
+        trimmed.lastIndexOf("]"),
+      );
+      if (
+        Number.isFinite(firstBracket) &&
+        lastBracket > firstBracket
+      ) {
+        try {
+          return JSON.parse(trimmed.slice(firstBracket, lastBracket + 1)) as T;
+        } catch {
+          // give up
+        }
+      }
+    }
+  }
+  return null;
+}
+
+const tagSuggestSchema = z.object({
+  title: z.string(),
+  summary: z.string().optional(),
+  body: z.string().optional(),
+});
+
+ai.post("/news/tag-suggest", zValidator("json", tagSuggestSchema), async (c) => {
+  const { title, summary, body } = c.req.valid("json");
+  const session = await getSessionUser(c);
+  const rateLimitKey = session?.id || c.req.header("x-forwarded-for") || "anonymous";
+  if (!checkRateLimit(`tagsuggest:${rateLimitKey}`, 30, 60_000)) {
+    return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+  }
+
+  const system = `Suggest 3-6 short, lowercase, kebab-case tags for the article below. Tags should be 1-3 words, focused on the topic and audience (e.g., "transformers", "rope", "mechanistic-interpretability"). Return ONLY valid JSON of the form {"tags": ["tag-one", "tag-two", "tag-three"]}. No prose.`;
+  const userMessage = `Title: ${title}\n\nSummary: ${summary ?? ""}\n\nBody (first 4000 chars):\n${(body ?? "").slice(0, 4000)}`;
+  const raw = await completion(system, userMessage);
+  const parsed = extractJson<{ tags?: string[] }>(raw);
+  const tags = Array.isArray(parsed?.tags)
+    ? parsed.tags
+        .filter((t): t is string => typeof t === "string")
+        .map((t) =>
+          t
+            .toLowerCase()
+            .trim()
+            .replace(/[^a-z0-9\s-]/g, "")
+            .replace(/\s+/g, "-")
+            .replace(/-+/g, "-")
+            .replace(/^-|-$/g, "")
+            .slice(0, 40),
+        )
+        .filter(Boolean)
+        .slice(0, 8)
+    : [];
+  return c.json({ tags });
+});
+
+const practiceSchema = z.object({
+  pageSlug: z.string(),
+  tier: z.string().default("intro"),
+});
+
+ai.post(
+  "/wiki/practice-questions",
+  zValidator("json", practiceSchema),
+  async (c) => {
+    const { pageSlug, tier } = c.req.valid("json");
+    const session = await getSessionUser(c);
+    const rateLimitKey = session?.id || c.req.header("x-forwarded-for") || "anonymous";
+    if (!checkRateLimit(`practice:${rateLimitKey}`, 15, 60_000)) {
+      return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+    }
+
+    const db = getDb();
+    const page = db.select().from(wikiPages).where(eq(wikiPages.slug, pageSlug)).get();
+    if (!page) return c.json({ error: "Page not found" }, 404);
+    const version = db
+      .select()
+      .from(pageVersions)
+      .where(eq(pageVersions.pageId, page.id))
+      .orderBy(desc(pageVersions.version))
+      .get();
+    if (!version) return c.json({ error: "Page has no content" }, 404);
+    const contentMap: Record<string, string> = {
+      intro: version.contentIntro,
+      undergrad: version.contentUndergrad,
+      grad: version.contentGrad,
+    };
+    const content = (contentMap[tier] || version.contentIntro).slice(0, 6000);
+
+    const system = `Generate exactly 3 multiple-choice practice questions from the article below. Each question MUST have 4 options and exactly one correct answer. Return ONLY valid JSON of the form:
+{"questions":[{"question":"...","options":["...","...","...","..."],"correctIndex":0,"explanation":"..."}]}
+No prose, no commentary, no preamble.`;
+    const raw = await completion(system, `Article: ${page.title}\n\n${content}`);
+    const parsed = extractJson<{ questions?: any[] }>(raw);
+    const questions = Array.isArray(parsed?.questions)
+      ? parsed.questions
+          .filter(
+            (q) =>
+              q &&
+              typeof q.question === "string" &&
+              Array.isArray(q.options) &&
+              q.options.length === 4 &&
+              typeof q.correctIndex === "number" &&
+              q.correctIndex >= 0 &&
+              q.correctIndex < 4,
+          )
+          .slice(0, 5)
+      : [];
+    return c.json({ questions });
+  },
+);
+
+// Embedding-based "related news" — replaces the cheap same-author
+// heuristic with semantic similarity over article titles + summaries.
+ai.get("/news/related-semantic/:slug", async (c) => {
+  const slug = c.req.param("slug")!;
+  const db = getDb();
+  const provider = getAIProvider();
+
+  const article = db
+    .select({
+      id: newsArticles.id,
+      title: newsArticles.title,
+      summary: newsArticles.summary,
+    })
+    .from(newsArticles)
+    .where(eq(newsArticles.slug, slug))
+    .get();
+  if (!article) return c.json({ articles: [] });
+
+  const others = db
+    .select({
+      id: newsArticles.id,
+      slug: newsArticles.slug,
+      title: newsArticles.title,
+      summary: newsArticles.summary,
+      coverEmoji: newsArticles.coverEmoji,
+      accentColor: newsArticles.accentColor,
+      authorId: newsArticles.authorId,
+    })
+    .from(newsArticles)
+    .where(eq(newsArticles.status, "published"))
+    .all()
+    .filter((a) => a.id !== article.id);
+
+  if (others.length === 0) return c.json({ articles: [] });
+
+  // Get author usernames for the byline.
+  const authorIds = Array.from(new Set(others.map((o) => o.authorId)));
+  const authorRows = db
+    .select({ id: users.id, username: users.username })
+    .from(users)
+    .where(sql`${users.id} in ${authorIds}`)
+    .all();
+  const authorMap = new Map(authorRows.map((u) => [u.id, u.username]));
+
+  const queryEmbed = await provider.embed(`${article.title}\n${article.summary}`);
+  const scored: Array<{ a: (typeof others)[number]; score: number }> = [];
+  for (const a of others) {
+    const e = await provider.embed(`${a.title}\n${a.summary}`);
+    scored.push({ a, score: cosineSimilarity(queryEmbed, e) });
+  }
+  scored.sort((x, y) => y.score - x.score);
+  const top = scored.slice(0, 4).map(({ a }) => ({
+    id: a.id,
+    slug: a.slug,
+    title: a.title,
+    summary: a.summary,
+    coverEmoji: a.coverEmoji,
+    accentColor: a.accentColor,
+    authorUsername: authorMap.get(a.authorId) ?? "unknown",
+  }));
+  return c.json({ articles: top });
+});
 
 export { ai as aiRouter };

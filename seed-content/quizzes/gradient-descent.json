@@ -1,0 +1,50 @@
+[
+  {
+    "id": "q1",
+    "question": "Vanilla gradient descent updates parameters with the rule θ ← θ − η ∇L(θ). What is η?",
+    "options": [
+      "The learning rate — a positive scalar that scales the step size",
+      "The negative gradient of the loss",
+      "A momentum term",
+      "The Hessian"
+    ],
+    "correctIndex": 0,
+    "explanation": "η is the only knob you really have to turn. Too small: slow. Too large: divergence. Modern optimizers (Adam, AdamW) adapt it per-parameter."
+  },
+  {
+    "id": "q2",
+    "question": "What's the practical difference between *batch* gradient descent and *stochastic* gradient descent (SGD)?",
+    "options": [
+      "Batch GD averages the gradient over the whole dataset per step; SGD uses one (or a small minibatch) example at a time",
+      "Batch GD is exact; SGD is a heuristic with no convergence guarantees",
+      "SGD always converges faster than batch GD",
+      "Batch GD requires the loss to be convex"
+    ],
+    "correctIndex": 0,
+    "explanation": "Minibatch SGD is the default for deep learning: cheap per step, noise that helps escape saddles, and parallelizes across GPUs. The noise itself is a regularizer."
+  },
+  {
+    "id": "q3",
+    "question": "Why does *momentum* (e.g., v ← βv + ∇L; θ ← θ − η v) speed things up?",
+    "options": [
+      "It accumulates a running average of past gradients, smoothing oscillations across narrow valleys and accelerating along consistent directions",
+      "It reduces the learning rate over time",
+      "It computes the second-order Hessian",
+      "It always halves the step count"
+    ],
+    "correctIndex": 0,
+    "explanation": "On anisotropic loss surfaces, gradient descent zigzags across the steep axis. Momentum dampens that zigzag and lets the iterate roll along the gentler axis."
+  },
+  {
+    "id": "q4",
+    "question": "Adam combines two ideas. They are:",
+    "options": [
+      "Momentum (first moment of gradients) + per-parameter step-size adaptation (second moment)",
+      "Newton's method + line search",
+      "L2 regularization + early stopping",
+      "Cross-validation + dropout"
+    ],
+    "correctIndex": 0,
+    "explanation": "Adam keeps an EMA of gradients (m) and squared gradients (v), then divides m by √v. Effective per-parameter learning rates appear automatically — which is why it works out of the box on so many problems."
+  }
+]

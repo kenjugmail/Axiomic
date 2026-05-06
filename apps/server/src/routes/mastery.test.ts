@@ -213,6 +213,14 @@ describe("Mastery: quiz", () => {
         allCorrect[q.id] = JSON.stringify(m);
       } else if (q.kind === "code") {
         allCorrect[q.id] = JSON.stringify({ passed: q.tests.length, total: q.tests.length });
+      } else if (q.kind === "math_expression") {
+        allCorrect[q.id] = q.acceptedAnswers[0] ?? "";
+      } else if (q.kind === "sortable") {
+        allCorrect[q.id] = JSON.stringify(q.items.map((it: any) => it.id));
+      } else if (q.kind === "code_completion") {
+        const m: Record<string, string> = {};
+        for (const b of q.blanks) m[b.id] = b.acceptedAnswers[0] ?? "";
+        allCorrect[q.id] = JSON.stringify(m);
       } else allCorrect[q.id] = String(q.correctIndex);
     }
     const okRes = await req(`/mastery/quiz/${softmaxNode.id}`, {
@@ -297,6 +305,14 @@ describe("Mastery: quiz", () => {
       else if (q.kind === "drag_classify") {
         const m: Record<string, string> = {};
         for (const item of q.items) m[item.id] = item.bin;
+        allCorrect[q.id] = JSON.stringify(m);
+      } else if (q.kind === "math_expression") {
+        allCorrect[q.id] = q.acceptedAnswers[0] ?? "";
+      } else if (q.kind === "sortable") {
+        allCorrect[q.id] = JSON.stringify(q.items.map((it: any) => it.id));
+      } else if (q.kind === "code_completion") {
+        const m: Record<string, string> = {};
+        for (const b of q.blanks) m[b.id] = b.acceptedAnswers[0] ?? "";
         allCorrect[q.id] = JSON.stringify(m);
       } else allCorrect[q.id] = String(q.correctIndex);
     }

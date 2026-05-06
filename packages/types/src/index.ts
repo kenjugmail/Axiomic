@@ -65,6 +65,9 @@ export interface MasteryNode {
   prerequisiteNodeIds: string[];
   // Server-derived flag — true when the node has authored lesson_data.
   hasLesson?: boolean;
+  // Cheap server-side estimate (minutes). Defaults to undefined for
+  // older callers that haven't fetched the enriched payload.
+  estimatedMinutes?: number;
 }
 
 export interface UserNodeProgress {
@@ -178,12 +181,72 @@ export interface PuzzleDragBuildQuestion {
   explanation?: string;
 }
 
+// Math-expression input. The user types a LaTeX-friendly expression
+// in the box; the renderer shows a live KaTeX preview. Grading is by
+// matching the user's input (with a normalization pass) against any
+// of `acceptedAnswers`. Symbolic equivalence beyond literal-with-
+// normalization is out of scope for v1 — authors list common forms.
+export interface MathExpressionQuestion {
+  id: string;
+  kind: "math_expression";
+  question: string;
+  // Pre-fill the input. Useful for "complete this expression" prompts.
+  starter?: string;
+  // Any of these values count as correct after the same whitespace +
+  // case normalization the input goes through.
+  acceptedAnswers: string[];
+  // Hint shown beneath the input.
+  hint?: string;
+  explanation?: string;
+}
+
+// Sortable list. The user drags `items` into the correct order. The
+// declared order in the JSON is the correct one.
+export interface SortableItem {
+  id: string;
+  label: string;
+}
+
+export interface SortableQuestion {
+  id: string;
+  kind: "sortable";
+  question: string;
+  items: SortableItem[];
+  explanation?: string;
+}
+
+// Code-completion. A code block with `___` placeholders the user
+// fills. The placeholders are 1-indexed and the answer map is a
+// `{ "1": "...", "2": "..." }`. Grading is exact-string-match per
+// blank after trimming.
+export interface CodeCompletionBlank {
+  id: string;
+  // Acceptable values for this blank. Any one is correct after a
+  // whitespace trim.
+  acceptedAnswers: string[];
+}
+
+export interface CodeCompletionQuestion {
+  id: string;
+  kind: "code_completion";
+  question: string;
+  // The full code block. Use `___1___`, `___2___`, etc. as inline
+  // placeholders that the renderer turns into input boxes.
+  template: string;
+  language?: string;
+  blanks: CodeCompletionBlank[];
+  explanation?: string;
+}
+
 export type QuizQuestion =
   | MultipleChoiceQuestion
   | SliderQuestion
   | DragClassifyQuestion
   | CodeQuestion
-  | PuzzleDragBuildQuestion;
+  | PuzzleDragBuildQuestion
+  | MathExpressionQuestion
+  | SortableQuestion
+  | CodeCompletionQuestion;
 
 // Coerce a raw question (which may lack `kind`) into a typed one. Used
 // by both server-side scoring and frontend rendering.
@@ -274,6 +337,14 @@ export interface MasteryPathResponse {
   path: MasteryPath;
   nodes: MasteryNode[];
   progress: UserNodeProgress[];
+  // 0-100 mastery per node id. Empty for signed-out viewers.
+  nodeMastery?: Record<string, number>;
+  // True when the node should render as locked (prereqs not yet
+  // mastered to ≥70). Empty / always-false for signed-out viewers.
+  lockState?: Record<string, boolean>;
+  // Slug of the node to send the user to with the "Resume" CTA, or
+  // null if there's nothing to resume.
+  lastVisitedNodeSlug?: string | null;
 }
 
 export interface QuizQuestionsResponse {
@@ -350,7 +421,8 @@ export type PostType =
   | "derivation"
   | "critique"
   | "synthesis"
-  | "prediction";
+  | "prediction"
+  | "poll";
 
 export const POST_TYPES: PostType[] = [
   "claim",
@@ -359,6 +431,7 @@ export const POST_TYPES: PostType[] = [
   "critique",
   "synthesis",
   "prediction",
+  "poll",
 ];
 
 export interface ForumDomain {
@@ -406,6 +479,10 @@ export interface ForumPost {
 export interface ForumTopicDetail extends ForumTopicSummary {
   body: string;
   posts: ForumPost[];
+  reactionCounts: Record<NewsReactionKind, number>;
+  myReactions: Record<NewsReactionKind, boolean> | null;
+  myBookmark: boolean;
+  poll: ForumPoll | null;
 }
 
 export interface ReputationByDomain {
@@ -449,9 +526,21 @@ export type NotificationKind =
   | "topic_reply"
   | "post_reply"
   | "comment_reply"
-  | "mastery_level_up";
+  | "mastery_level_up"
+  | "news_edit_proposed"
+  | "news_edit_approved"
+  | "news_edit_rejected"
+  | "news_published"
+  | "forum_topic_posted";
 
-export type NotificationSubject = "topic" | "post" | "comment" | "mastery_node";
+export type NotificationSubject =
+  | "topic"
+  | "post"
+  | "comment"
+  | "mastery_node"
+  | "news_article"
+  | "news_proposal"
+  | "news_comment";
 
 export const NOTIFICATION_KINDS: NotificationKind[] = [
   "mention",
@@ -459,6 +548,11 @@ export const NOTIFICATION_KINDS: NotificationKind[] = [
   "post_reply",
   "comment_reply",
   "mastery_level_up",
+  "news_edit_proposed",
+  "news_edit_approved",
+  "news_edit_rejected",
+  "news_published",
+  "forum_topic_posted",
 ];
 
 export const NOTIFICATION_SUBJECTS: NotificationSubject[] = [
@@ -466,6 +560,9 @@ export const NOTIFICATION_SUBJECTS: NotificationSubject[] = [
   "post",
   "comment",
   "mastery_node",
+  "news_article",
+  "news_proposal",
+  "news_comment",
 ];
 
 export interface Notification {
@@ -602,4 +699,488 @@ export interface UserAchievementsResponse {
   earned: EarnedAchievement[];
   streak: number;
   heatmap: ActivityHeatmapCell[];
+}
+
+// "Pick up where you left off" payload shown on the home page.
+export interface NextNodeResponse {
+  next: {
+    pathSlug: string;
+    pathTitle: string;
+    nodeSlug: string;
+    nodeTitle: string;
+    level: string;
+    hasLesson: boolean;
+  } | null;
+}
+
+export interface DueCountResponse {
+  count: number;
+}
+
+export interface RecentActivityEvent {
+  kind: string;
+  title: string;
+  href: string;
+  occurredAt: string;
+}
+
+export interface RecentActivityResponse {
+  events: RecentActivityEvent[];
+}
+
+export interface CreateWikiPageRequest {
+  slug: string;
+  title: string;
+  category?: string;
+  contentIntro: string;
+  contentUndergrad: string;
+  contentGrad: string;
+  editMessage?: string;
+}
+
+export interface RestoreWikiVersionRequest {
+  version: number;
+}
+
+// --- News articles + propose/approve edits ---
+
+export type NewsAccentColor =
+  | "indigo"
+  | "emerald"
+  | "rose"
+  | "amber"
+  | "sky"
+  | "violet";
+
+export const NEWS_ACCENT_COLORS: NewsAccentColor[] = [
+  "indigo",
+  "emerald",
+  "rose",
+  "amber",
+  "sky",
+  "violet",
+];
+
+export type NewsReactionKind = "thumbs" | "lightbulb" | "mind_blown";
+
+export const NEWS_REACTION_KINDS: NewsReactionKind[] = [
+  "thumbs",
+  "lightbulb",
+  "mind_blown",
+];
+
+export type NewsStatus = "draft" | "published";
+
+export interface NewsReference {
+  // 1-indexed label (e.g., "1", "2"). The API renumbers on save, so
+  // request payloads can omit `label`; responses always include it.
+  label?: string;
+  text: string;
+  url?: string;
+}
+
+export interface NewsArticleSummary {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  coverEmoji: string;
+  accentColor: NewsAccentColor;
+  tags: string[];
+  authorId: string;
+  authorUsername: string;
+  authorDisplayName: string | null;
+  lastEditorUsername: string | null;
+  readingMinutes: number;
+  reactionCounts: Record<NewsReactionKind, number>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NewsArticle extends NewsArticleSummary {
+  body: string;
+  status: NewsStatus;
+  // Optional research-paper fields. Empty defaults are returned for
+  // articles that don't use them; the UI hides empty sections.
+  abstract: string;
+  references: NewsReference[];
+  coauthors: string[];
+  // True when the requester has reacted with this kind. Null fields
+  // for signed-out viewers.
+  myReactions: Record<NewsReactionKind, boolean> | null;
+  pendingProposalCount: number;
+  isAuthor: boolean;
+  myBookmark: boolean;
+}
+
+export interface NewsTagCount {
+  tag: string;
+  count: number;
+}
+
+export interface NewsTagsResponse {
+  tags: NewsTagCount[];
+}
+
+export interface NewsListResponse {
+  articles: NewsArticleSummary[];
+}
+
+export interface NewsArticleResponse {
+  article: NewsArticle;
+}
+
+export interface CreateNewsArticleRequest {
+  slug: string;
+  title: string;
+  summary: string;
+  body: string;
+  coverEmoji?: string;
+  accentColor?: NewsAccentColor;
+  status?: NewsStatus;
+  tags?: string[];
+  abstract?: string;
+  references?: NewsReference[];
+  coauthors?: string[];
+}
+
+export interface UpdateNewsArticleRequest {
+  title: string;
+  summary: string;
+  body: string;
+  coverEmoji?: string;
+  accentColor?: NewsAccentColor;
+  status?: NewsStatus;
+  tags?: string[];
+  abstract?: string;
+  references?: NewsReference[];
+  coauthors?: string[];
+}
+
+export type NewsEditProposalStatus = "pending" | "approved" | "rejected";
+
+export interface NewsEditProposal {
+  id: string;
+  articleId: string;
+  articleSlug: string;
+  articleTitle: string;
+  proposerId: string;
+  proposerUsername: string;
+  proposedTitle: string;
+  proposedSummary: string;
+  proposedBody: string;
+  message: string | null;
+  status: NewsEditProposalStatus;
+  reviewerId: string | null;
+  reviewerUsername: string | null;
+  reviewedAt: string | null;
+  reviewMessage: string | null;
+  createdAt: string;
+}
+
+export interface NewsProposalsResponse {
+  proposals: NewsEditProposal[];
+}
+
+export interface NewsProposalResponse {
+  proposal: NewsEditProposal;
+}
+
+export interface CreateNewsProposalRequest {
+  proposedTitle: string;
+  proposedSummary: string;
+  proposedBody: string;
+  message?: string;
+}
+
+export interface ReviewNewsProposalRequest {
+  reviewMessage?: string;
+}
+
+export interface ToggleNewsReactionRequest {
+  kind: NewsReactionKind;
+}
+
+export interface NewsArticleCard {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  coverEmoji: string;
+  accentColor: NewsAccentColor;
+  authorUsername: string;
+  createdAt: string;
+}
+
+export interface NewsRelatedResponse {
+  articles: NewsArticleCard[];
+}
+
+export interface NewsBookmarkSummary extends NewsArticleSummary {
+  bookmarkedAt: string;
+}
+
+export interface NewsBookmarksResponse {
+  articles: NewsBookmarkSummary[];
+}
+
+export interface ToggleNewsBookmarkResponse {
+  bookmarked: boolean;
+}
+
+export interface NewsCommentNode {
+  id: string;
+  articleId: string;
+  parentId: string | null;
+  userId: string;
+  username: string;
+  displayName: string | null;
+  content: string;
+  editedAt: string | null;
+  createdAt: string;
+  children: NewsCommentNode[];
+}
+
+export interface NewsCommentsResponse {
+  comments: NewsCommentNode[];
+}
+
+export interface CreateNewsCommentRequest {
+  content: string;
+  parentId?: string;
+}
+
+export interface UpdateNewsCommentRequest {
+  content: string;
+}
+
+// --- Forum reactions / bookmarks / polls / follows ---
+
+export type ForumReactionKind = NewsReactionKind;
+
+export interface ForumPollOption {
+  id: string;
+  label: string;
+  order: number;
+  count: number;
+}
+
+export interface ForumPoll {
+  id: string;
+  question: string;
+  totalVotes: number;
+  myOptionId: string | null;
+  options: ForumPollOption[];
+}
+
+export interface ForumBookmarkSummary {
+  id: string;
+  slug: string;
+  title: string;
+  postType: string;
+  domainSlug: string;
+  domainTitle: string;
+  authorUsername: string;
+  bookmarkedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ForumBookmarksResponse {
+  topics: ForumBookmarkSummary[];
+}
+
+export interface ToggleForumReactionResponse {
+  reactionCounts: Record<NewsReactionKind, number>;
+  myReactions: Record<NewsReactionKind, boolean>;
+}
+
+export interface PollVoteResponse {
+  poll: {
+    id: string;
+    myOptionId: string;
+    totalVotes: number;
+    options: ForumPollOption[];
+  };
+}
+
+export interface FollowStatsResponse {
+  followerCount: number;
+  followingCount: number;
+  following: boolean;
+}
+
+export interface ToggleFollowResponse {
+  following: boolean;
+}
+
+export interface FollowSummary {
+  username: string;
+  displayName: string | null;
+  createdAt: string;
+}
+
+export interface FollowsListResponse {
+  followers: FollowSummary[];
+  following: FollowSummary[];
+}
+
+export type FeedItem =
+  | {
+      kind: "news";
+      slug: string;
+      title: string;
+      summary: string;
+      coverEmoji: string;
+      accentColor: NewsAccentColor;
+      authorUsername: string;
+      createdAt: string;
+    }
+  | {
+      kind: "topic";
+      slug: string;
+      title: string;
+      body: string;
+      postType: string;
+      domainSlug: string;
+      domainTitle: string;
+      authorUsername: string;
+      createdAt: string;
+    };
+
+export interface FeedResponse {
+  items: FeedItem[];
+}
+
+export interface CreatePollOption {
+  label: string;
+}
+
+export interface CreateForumPollRequest {
+  question: string;
+  options: CreatePollOption[];
+}
+
+// --- Gamification: leaderboard, daily challenge, certificates ---
+
+export interface LeaderboardEntry {
+  rank: number;
+  username: string;
+  displayName: string | null;
+  totalPoints: number;
+  achievements: number;
+  streak: number;
+}
+
+export interface LeaderboardResponse {
+  entries: LeaderboardEntry[];
+  // The auth'd user's slot — useful for "you're #243 of 1,200" UX
+  // even when they don't appear in the top page.
+  me: LeaderboardEntry | null;
+}
+
+export type DailyChallengeQuestionKind =
+  | "multiple_choice"
+  | "slider"
+  | "drag_classify";
+
+export interface DailyChallengeQuestion {
+  // The shape mirrors a single quiz question. The client renders it
+  // with the existing QuestionRenderer.
+  raw: any;
+}
+
+export interface DailyChallengeStats {
+  attempted: number;
+  correct: number;
+  // % of users who answered correctly so far today.
+  correctRate: number;
+}
+
+export interface DailyChallengeResponse {
+  challengeId: string;
+  day: string;
+  nodeSlug: string;
+  nodeTitle: string;
+  question: DailyChallengeQuestion;
+  myAnswer: { answer: string; correct: boolean } | null;
+  stats: DailyChallengeStats;
+  streak: number;
+}
+
+export interface DailyChallengeSubmitRequest {
+  answer: string;
+}
+
+export interface DailyChallengeSubmitResponse {
+  correct: boolean;
+  stats: DailyChallengeStats;
+  streak: number;
+}
+
+export interface PathCertificateResponse {
+  pathSlug: string;
+  pathTitle: string;
+  username: string;
+  displayName: string | null;
+  completedAt: string;
+  totalNodes: number;
+  achievements: number;
+  // Hex/word color matching the path's accent for the rendered card.
+  accentColor: string;
+}
+
+// --- AI extensions ---
+
+export interface AiTagSuggestionsResponse {
+  tags: string[];
+}
+
+export interface AiPracticeQuestion {
+  question: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
+export interface AiPracticeQuestionsResponse {
+  questions: AiPracticeQuestion[];
+}
+
+// --- WebSocket envelope ---
+
+export type LiveEvent =
+  | { kind: "notification"; notification: Notification }
+  | {
+      kind: "reaction_update";
+      articleSlug: string;
+      reactionCounts: Record<NewsReactionKind, number>;
+    };
+
+// --- Learning-path enrichments ---
+
+export interface PathLessonProgressResponse {
+  slideIdx: number;
+}
+
+export interface PathLessonNotesResponse {
+  body: string;
+  updatedAt: string | null;
+}
+
+export interface QuizMistakeEntry {
+  nodeId: string;
+  nodeSlug: string;
+  nodeTitle: string;
+  pathSlug: string | null;
+  pathTitle: string | null;
+  questionId: string;
+  questionText: string | null;
+  occurrences: number;
+  lastWrongAt: string;
+  resolvedAt: string | null;
+}
+
+export interface QuizMistakesResponse {
+  mistakes: QuizMistakeEntry[];
 }

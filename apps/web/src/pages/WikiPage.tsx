@@ -8,6 +8,7 @@ import {
   type PostType,
 } from "../lib/api";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
+import { PracticePanel } from "../components/wiki/PracticePanel";
 import { TableOfContents } from "../components/TableOfContents";
 import { TierSwitcher } from "../components/TierSwitcher";
 import { AISidebar } from "../components/AISidebar";
@@ -94,7 +95,7 @@ export function WikiPage() {
   }
 
   return (
-    <div className={`max-w-7xl mx-auto px-4 py-8 ${aiOpen ? "mr-96" : ""}`}>
+    <div className={`max-w-7xl mx-auto px-4 py-8 ${aiOpen ? "lg:mr-96" : ""}`}>
       <div className="flex gap-8">
         {/* Main content */}
         <article className="flex-1 min-w-0">
@@ -147,6 +148,9 @@ export function WikiPage() {
 
           <MarkdownRenderer content={content} />
 
+          {/* Quiz me on this page (AI). */}
+          {slug && <PracticePanel pageSlug={slug} tier={tier} />}
+
           {/* Related pages */}
           {relatedPages.length > 0 && (
             <div className="mt-8 p-4 rounded-lg bg-muted/50 border border-border">
@@ -175,12 +179,42 @@ export function WikiPage() {
             </button>
             {showHistory && (
               <div className="mt-3 space-y-2">
-                {versions.map((v) => (
-                  <div key={v.id} className="text-sm text-muted-foreground">
-                    <span className="font-mono">v{v.version}</span> — {v.editMessage || "No message"}{" "}
-                    <span className="text-xs">({new Date(v.createdAt).toLocaleDateString()})</span>
-                  </div>
-                ))}
+                {versions.map((v) => {
+                  const isCurrent = page && v.version === page.currentVersion;
+                  return (
+                    <div
+                      key={v.id}
+                      className="flex items-center justify-between gap-3 text-sm text-muted-foreground"
+                    >
+                      <div>
+                        <span className="font-mono">v{v.version}</span> — {v.editMessage || "No message"}{" "}
+                        <span className="text-xs">({new Date(v.createdAt).toLocaleDateString()})</span>
+                      </div>
+                      {user && !isCurrent && (
+                        <button
+                          onClick={async () => {
+                            if (!slug) return;
+                            if (!confirm(`Restore content from v${v.version}? A new version will be created.`)) return;
+                            try {
+                              await api.wiki.restore(slug, v.version);
+                              // Re-fetch the page so the restored content shows.
+                              const data: any = await api.wiki.get(slug, tier);
+                              setPage(data.page);
+                              setContent(data.content);
+                              setAllContent(data.allContent || {});
+                              setVersions(data.versions || []);
+                            } catch (err: any) {
+                              alert(err?.message ?? "Restore failed");
+                            }
+                          }}
+                          className="text-xs px-2 py-0.5 rounded border border-border hover:bg-accent/40"
+                        >
+                          Restore
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

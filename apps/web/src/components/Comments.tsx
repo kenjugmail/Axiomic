@@ -185,7 +185,12 @@ function CommentItem({
             {comment.editedAt && <span className="italic">(edited)</span>}
           </div>
           <div className="text-sm">
-            <MarkdownRenderer content={comment.content} className="[&_p]:mb-1 [&_p]:text-sm" untrusted />
+            <MarkdownRenderer
+              content={comment.content}
+              className="[&_p]:mb-1 [&_p]:text-sm"
+              untrusted
+              allowViz={false}
+            />
           </div>
           <div className="flex gap-3 mt-1">
             {user && depth < 3 && (

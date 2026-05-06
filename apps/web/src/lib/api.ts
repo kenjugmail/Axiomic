@@ -7,10 +7,46 @@ import type {
   AchievementCatalogResponse,
   EarnedAchievement,
   ActivityHeatmapCell,
+  CreateForumPollRequest,
+  CreateNewsArticleRequest,
+  CreateNewsCommentRequest,
+  CreateNewsProposalRequest,
+  CreateWikiPageRequest,
+  DueCountResponse,
+  FeedResponse,
+  FollowStatsResponse,
+  FollowsListResponse,
+  ForumBookmarksResponse,
+  PollVoteResponse,
+  AiPracticeQuestionsResponse,
+  AiTagSuggestionsResponse,
+  DailyChallengeResponse,
+  DailyChallengeSubmitResponse,
+  LeaderboardResponse,
+  PathCertificateResponse,
+  PathLessonNotesResponse,
+  PathLessonProgressResponse,
+  QuizMistakesResponse,
+  ToggleFollowResponse,
+  ToggleForumReactionResponse,
+  NewsArticleResponse,
+  NewsBookmarksResponse,
+  NewsCommentsResponse,
+  NewsListResponse,
+  NewsProposalsResponse,
+  NewsReactionKind,
+  NewsRelatedResponse,
+  NewsTagsResponse,
+  ReviewNewsProposalRequest,
+  ToggleNewsBookmarkResponse,
+  UpdateNewsArticleRequest,
+  UpdateNewsCommentRequest,
   Flashcard,
   FlashcardsResponse,
   Lesson,
   LessonResponse,
+  NextNodeResponse,
+  RecentActivityResponse,
   UserAchievementsResponse,
   SavedFlashcard,
   SavedFlashcardResponse,
@@ -98,6 +134,13 @@ export const api = {
       request<WikiPageResponse>(`/wiki/${slug}${tier ? `?tier=${tier}` : ""}`),
     update: (slug: string, data: { contentIntro: string; contentUndergrad: string; contentGrad: string; editMessage?: string }) =>
       request<WikiUpdateResponse>(`/wiki/${slug}`, { method: "PUT", body: JSON.stringify(data) }),
+    create: (data: CreateWikiPageRequest) =>
+      request<WikiUpdateResponse>("/wiki", { method: "POST", body: JSON.stringify(data) }),
+    restore: (slug: string, version: number) =>
+      request<WikiUpdateResponse>(`/wiki/${slug}/restore`, {
+        method: "POST",
+        body: JSON.stringify({ version }),
+      }),
     search: (query: string) =>
       request<WikiSearchResponse>(`/wiki/search?q=${encodeURIComponent(query)}`),
   },
@@ -125,6 +168,22 @@ export const api = {
       request<LessonResponse>(`/mastery/lesson/${nodeId}`),
     summary: (username: string) =>
       request<MasterySummaryResponse>(`/mastery/users/${username}/summary`),
+    nextNode: () => request<NextNodeResponse>("/mastery/next-node"),
+    getLessonProgress: (nodeId: string) =>
+      request<PathLessonProgressResponse>(`/mastery/lesson-progress/${nodeId}`),
+    setLessonProgress: (nodeId: string, slideIdx: number) =>
+      request<OkResponse>(`/mastery/lesson-progress/${nodeId}`, {
+        method: "PUT",
+        body: JSON.stringify({ slideIdx }),
+      }),
+    getLessonNotes: (nodeId: string) =>
+      request<PathLessonNotesResponse>(`/mastery/lesson-notes/${nodeId}`),
+    saveLessonNotes: (nodeId: string, body: string) =>
+      request<{ ok: boolean; updatedAt: string }>(
+        `/mastery/lesson-notes/${nodeId}`,
+        { method: "PUT", body: JSON.stringify({ body }) },
+      ),
+    mistakes: () => request<QuizMistakesResponse>("/mastery/mistakes"),
   },
   forum: {
     domains: () => request<ForumDomainsResponse>("/forum/domains"),
@@ -178,6 +237,56 @@ export const api = {
         credentials: "include",
         headers: { "Content-Type": "application/json" },
       }),
+    react: (slug: string, kind: "thumbs" | "lightbulb" | "mind_blown") =>
+      request<ToggleForumReactionResponse>(`/forum/topics/${slug}/reactions`, {
+        method: "POST",
+        body: JSON.stringify({ kind }),
+      }),
+    toggleBookmark: (slug: string) =>
+      request<{ bookmarked: boolean }>(`/forum/topics/${slug}/bookmark`, {
+        method: "POST",
+      }),
+    bookmarks: () => request<ForumBookmarksResponse>("/forum/me/bookmarks"),
+    votePoll: (pollId: string, optionId: string) =>
+      request<PollVoteResponse>(`/forum/polls/${pollId}/vote`, {
+        method: "POST",
+        body: JSON.stringify({ optionId }),
+      }),
+    createTopicWithPoll: (data: {
+      title: string;
+      body: string;
+      domainSlug: string;
+      poll: CreateForumPollRequest;
+    }) =>
+      request<ForumCreateTopicResponse>("/forum/topics", {
+        method: "POST",
+        body: JSON.stringify({ ...data, postType: "poll" }),
+      }),
+  },
+  gamification: {
+    leaderboard: () => request<LeaderboardResponse>("/gamification/leaderboard"),
+    dailyChallenge: () =>
+      request<DailyChallengeResponse>("/gamification/daily-challenge"),
+    submitDaily: (answer: string) =>
+      request<DailyChallengeSubmitResponse>("/gamification/daily-challenge/submit", {
+        method: "POST",
+        body: JSON.stringify({ answer }),
+      }),
+    certificate: (pathSlug: string, username: string) =>
+      request<PathCertificateResponse>(
+        `/gamification/paths/${pathSlug}/certificate/${username}`,
+      ),
+  },
+  social: {
+    toggleFollow: (username: string) =>
+      request<ToggleFollowResponse>(`/users/${username}/follow`, {
+        method: "POST",
+      }),
+    followStats: (username: string) =>
+      request<FollowStatsResponse>(`/users/${username}/follow-stats`),
+    follows: (username: string) =>
+      request<FollowsListResponse>(`/users/${username}/follows`),
+    feed: () => request<FeedResponse>("/me/feed"),
   },
   search: {
     query: (q: string, limit?: number) => {
@@ -232,11 +341,95 @@ export const api = {
       }),
     flashcards: (pageSlug: string, tier: string) =>
       request<FlashcardsResponse>(`/ai/flashcards/${pageSlug}?tier=${tier}`),
+    suggestTags: (data: { title: string; summary?: string; body?: string }) =>
+      request<AiTagSuggestionsResponse>("/ai/news/tag-suggest", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    practiceQuestions: (pageSlug: string, tier = "intro") =>
+      request<AiPracticeQuestionsResponse>("/ai/wiki/practice-questions", {
+        method: "POST",
+        body: JSON.stringify({ pageSlug, tier }),
+      }),
+    relatedNewsSemantic: (slug: string) =>
+      request<NewsRelatedResponse>(`/ai/news/related-semantic/${slug}`),
   },
   achievements: {
     catalog: () => request<AchievementCatalogResponse>("/achievements/catalog"),
     forUser: (username: string) =>
       request<UserAchievementsResponse>(`/achievements/users/${username}`),
+  },
+  activity: {
+    recent: (username: string, limit = 5) =>
+      request<RecentActivityResponse>(
+        `/activity/users/${username}?limit=${limit}`,
+      ),
+  },
+  news: {
+    list: (params?: { tag?: string; style?: "research" }) => {
+      const sp = new URLSearchParams();
+      if (params?.tag) sp.set("tag", params.tag);
+      if (params?.style) sp.set("style", params.style);
+      const qs = sp.toString();
+      return request<NewsListResponse>(`/news${qs ? `?${qs}` : ""}`);
+    },
+    drafts: () => request<NewsListResponse>("/news/me/drafts"),
+    tags: () => request<NewsTagsResponse>("/news/tags"),
+    get: (slug: string) => request<NewsArticleResponse>(`/news/${slug}`),
+    create: (data: CreateNewsArticleRequest) =>
+      request<NewsArticleResponse>("/news", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    update: (slug: string, data: UpdateNewsArticleRequest) =>
+      request<NewsArticleResponse>(`/news/${slug}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    proposals: (slug: string) =>
+      request<NewsProposalsResponse>(`/news/${slug}/proposals`),
+    propose: (slug: string, data: CreateNewsProposalRequest) =>
+      request<{ proposalId: string }>(`/news/${slug}/proposals`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    approve: (slug: string, proposalId: string, data?: ReviewNewsProposalRequest) =>
+      request<OkResponse>(`/news/${slug}/proposals/${proposalId}/approve`, {
+        method: "POST",
+        body: JSON.stringify(data ?? {}),
+      }),
+    reject: (slug: string, proposalId: string, data?: ReviewNewsProposalRequest) =>
+      request<OkResponse>(`/news/${slug}/proposals/${proposalId}/reject`, {
+        method: "POST",
+        body: JSON.stringify(data ?? {}),
+      }),
+    react: (slug: string, kind: NewsReactionKind) =>
+      request<{
+        reactionCounts: Record<NewsReactionKind, number>;
+        myReactions: Record<NewsReactionKind, boolean>;
+      }>(`/news/${slug}/reactions`, {
+        method: "POST",
+        body: JSON.stringify({ kind }),
+      }),
+    listComments: (slug: string) =>
+      request<NewsCommentsResponse>(`/news/${slug}/comments`),
+    addComment: (slug: string, data: CreateNewsCommentRequest) =>
+      request<{ commentId: string }>(`/news/${slug}/comments`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    editComment: (id: string, data: UpdateNewsCommentRequest) =>
+      request<OkResponse>(`/news/comments/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    toggleBookmark: (slug: string) =>
+      request<ToggleNewsBookmarkResponse>(`/news/${slug}/bookmark`, {
+        method: "POST",
+      }),
+    bookmarks: () => request<NewsBookmarksResponse>("/news/me/bookmarks"),
+    related: (slug: string) =>
+      request<NewsRelatedResponse>(`/news/${slug}/related`),
   },
   flashcards: {
     save: (data: { pageSlug: string; pageTitle: string; front: string; back: string }) =>
@@ -246,6 +439,7 @@ export const api = {
       }),
     list: () => request<SavedFlashcardsResponse>("/flashcards"),
     due: () => request<SavedFlashcardsResponse>("/flashcards/due"),
+    dueCount: () => request<DueCountResponse>("/flashcards/due/count"),
     review: (id: string, rating: number) =>
       request<SavedFlashcardResponse>(`/flashcards/${id}/review`, {
         method: "POST",
