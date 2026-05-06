@@ -369,6 +369,192 @@ ${message ? `\nProposer's note about the change: ${message}` : ""}`;
   return streamingResponse(system, userMessage);
 });
 
+// --- Lesson authoring helpers ----------------------------------------
+
+const lessonDraftSchema = z.object({
+  topic: z.string().min(2).max(400),
+  // Optional: which slide kind the user wants. Defaults to "text".
+  kind: z.enum(["text", "question"]).optional(),
+});
+
+ai.post(
+  "/lesson/draft-slide",
+  zValidator("json", lessonDraftSchema),
+  async (c) => {
+    const { topic, kind = "text" } = c.req.valid("json");
+    const user = await getSessionUser(c);
+    const rateLimitKey =
+      user?.id || c.req.header("x-forwarded-for") || "anonymous";
+    if (!checkRateLimit(`lesson-draft:${rateLimitKey}`, 20, 60_000)) {
+      return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+    }
+
+    if (kind === "question") {
+      const system = `You write multiple-choice check-your-understanding questions for an interactive ML/AI lesson on the Axiomic learning platform. Output a single JSON object with this exact shape and nothing else (no prose, no code fences):
+
+{"question": "...", "options": ["...", "...", "...", "..."], "correctIndex": 0, "explanation": "..."}
+
+Constraints:
+- Exactly 4 options. The correct answer is exactly one of them.
+- Question is one sentence, ≤ 30 words.
+- Distractors should be plausible but wrong; no "all of the above" tricks.
+- Explanation is one or two sentences pointing at the underlying intuition.`;
+      return streamingResponse(system, `Topic: ${topic}`);
+    }
+
+    const system = `You draft a single short slide for an interactive ML/AI lesson on the Axiomic learning platform. Voice: clear, technical, slightly warm — like a great TA at office hours.
+
+Output rules:
+- Output a single JSON object and nothing else (no prose, no code fences):
+  {"title": "Short Title", "body": "markdown body", "viz": "name-or-null"}
+- Title is ≤ 6 words, headline-cased.
+- Body is 80-180 words of markdown. Use one short paragraph, optionally followed by a tiny bullet list. LaTeX via $...$ is fine.
+- "viz" is OPTIONAL. If a visualization fits, set it to one of: softmax-temperature-preview, attention-heatmap-explorer, gradient-descent-2d, tokenizer-playground, embedding-explorer, layer-activations, positional-encoding, activation-function-gallery, lorenz-attractor, double-pendulum, phase-portrait-1d. Otherwise set "viz": null.
+- Don't include any other keys. The client will parse this JSON.`;
+
+    return streamingResponse(system, `Topic: ${topic}`);
+  },
+);
+
+const lessonPolishSchema = z.object({
+  // Either polish a slide title (short) or its body (longer markdown).
+  field: z.enum(["title", "body"]),
+  current: z.string().min(1).max(20000),
+  hint: z.string().max(400).optional(),
+});
+
+ai.post(
+  "/lesson/polish-slide",
+  zValidator("json", lessonPolishSchema),
+  async (c) => {
+    const { field, current, hint } = c.req.valid("json");
+    const user = await getSessionUser(c);
+    const rateLimitKey =
+      user?.id || c.req.header("x-forwarded-for") || "anonymous";
+    if (!checkRateLimit(`lesson-polish:${rateLimitKey}`, 30, 60_000)) {
+      return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+    }
+
+    const baseRules =
+      field === "title"
+        ? `Polish a slide title. Keep it ≤ 6 words. Make it concrete and active. Output ONLY the polished title — no quotes, no commentary.`
+        : `Polish slide body markdown. Keep the same length and structure. Don't add new claims; just sharpen the prose, fix typos, and make the math + code crisp. Output ONLY the polished markdown — no commentary.`;
+
+    const system = `You polish lesson content for the Axiomic learning platform. ${baseRules}${
+      hint ? `\n\nAuthor hint: ${hint}` : ""
+    }`;
+
+    return streamingResponse(system, current);
+  },
+);
+
+const lessonRewriteSchema = z.object({
+  slide: z.string().min(1).max(20000),
+  analytics: z
+    .object({
+      views: z.number(),
+      dropOff: z.number(),
+      incorrectRate: z.number(),
+    })
+    .optional(),
+  hint: z.string().max(400).optional(),
+});
+
+ai.post(
+  "/lesson/rewrite-from-analytics",
+  zValidator("json", lessonRewriteSchema),
+  async (c) => {
+    const { slide, analytics, hint } = c.req.valid("json");
+    const user = await getSessionUser(c);
+    const rateLimitKey =
+      user?.id || c.req.header("x-forwarded-for") || "anonymous";
+    if (!checkRateLimit(`lesson-rewrite:${rateLimitKey}`, 15, 60_000)) {
+      return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+    }
+
+    const ctx = analytics
+      ? `\n\nThis slide is underperforming: ${analytics.views} views, drop-off ${analytics.dropOff}, incorrect-rate ${(analytics.incorrectRate * 100).toFixed(0)}%. Rewrite for clarity — common drop-off triggers are jargon dumped without setup, missing examples, and skipped steps in math. Be concrete.`
+      : "";
+
+    const system = `You rewrite an underperforming lesson slide to be clearer and stickier. Keep roughly the same length. Output ONLY the rewritten slide — markdown body for text slides, or a single JSON object for question slides (matching the existing question's shape). No commentary.${ctx}${
+      hint ? `\n\nAuthor hint: ${hint}` : ""
+    }`;
+
+    return streamingResponse(system, slide);
+  },
+);
+
+// --- Wiki authoring helpers ------------------------------------------
+
+const wikiDraftSchema = z.object({
+  topic: z.string().min(2).max(400),
+  // Tier the draft should target. Wiki pages have 3 tiers; mirror that.
+  tier: z.enum(["intro", "undergrad", "grad"]).optional(),
+});
+
+ai.post(
+  "/wiki/draft",
+  zValidator("json", wikiDraftSchema),
+  async (c) => {
+    const { topic, tier = "intro" } = c.req.valid("json");
+    const user = await getSessionUser(c);
+    const rateLimitKey =
+      user?.id || c.req.header("x-forwarded-for") || "anonymous";
+    if (!checkRateLimit(`wiki-draft:${rateLimitKey}`, 10, 60_000)) {
+      return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+    }
+
+    const tierBlurb =
+      tier === "intro"
+        ? "Write at the intro tier: intuitive, accessible, build vocabulary, almost no math."
+        : tier === "undergrad"
+          ? "Write at the undergraduate tier: full math (LaTeX), worked examples, derivations where they help."
+          : "Write at the graduate tier: terse + research-flavored, link to active questions in the field, density is fine.";
+
+    const system = `You draft wiki page content for the Axiomic learning platform. ${tierBlurb}
+
+Output rules:
+- Markdown body only. No frontmatter, no title, no byline.
+- Open with a one-sentence definition or hook.
+- Use level-2 headings (## ...) for 3-5 sections.
+- LaTeX via $...$ inline and $$...$$ block. Code blocks via triple backticks.
+- You may embed a visualization with :::viz[name]. Available names: attention-heatmap, softmax-temperature, positional-encoding, tokenizer-playground, beam-search-tree, layer-activations, qkv-step-through, embedding-explorer, activation-function-gallery. At most one or two.
+- Aim for 400-700 words.`;
+
+    return streamingResponse(system, `Topic: ${topic}`);
+  },
+);
+
+const wikiPolishSchema = z.object({
+  current: z.string().min(1).max(40000),
+  tier: z.enum(["intro", "undergrad", "grad"]).optional(),
+  hint: z.string().max(400).optional(),
+});
+
+ai.post(
+  "/wiki/polish",
+  zValidator("json", wikiPolishSchema),
+  async (c) => {
+    const { current, tier, hint } = c.req.valid("json");
+    const user = await getSessionUser(c);
+    const rateLimitKey =
+      user?.id || c.req.header("x-forwarded-for") || "anonymous";
+    if (!checkRateLimit(`wiki-polish:${rateLimitKey}`, 20, 60_000)) {
+      return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+    }
+
+    const tierBlurb = tier
+      ? ` Maintain the ${tier} tier (don't dumb it down or jargonize it up).`
+      : "";
+
+    const system = `You polish wiki page markdown for the Axiomic learning platform.${tierBlurb} Keep length and structure the same — sharpen prose, fix typos, tighten math + code. Don't add new claims. Output ONLY the polished markdown.${
+      hint ? `\n\nAuthor hint: ${hint}` : ""
+    }`;
+
+    return streamingResponse(system, current);
+  },
+);
+
 const articleHelpSchema = z.object({
   slug: z.string(),
 });

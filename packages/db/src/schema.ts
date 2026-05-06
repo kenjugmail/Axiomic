@@ -658,3 +658,27 @@ export const lessonSlideEvents = sqliteTable(
     ),
   }),
 );
+
+// User-uploaded files: images (incl. animated GIF/WebP), short videos,
+// and the occasional PDF. Used by the rich composer in posts, the wiki
+// editor, the lesson editor, and the news editor. We store only
+// metadata here; the bytes live on disk under uploads/<id>.<ext>.
+export const attachments = sqliteTable(
+  "attachments",
+  {
+    id: text("id").primaryKey(),
+    ownerId: text("owner_id").notNull().references(() => users.id),
+    // "image" (any image/* mime), "video" (mp4 / webm), "file"
+    // (anything else we accept, currently just PDF).
+    kind: text("kind").notNull(),
+    originalName: text("original_name").notNull(),
+    mimeType: text("mime_type").notNull(),
+    sizeBytes: integer("size_bytes").notNull(),
+    // Path relative to the uploads root, e.g. "2026/05/<id>.png".
+    storagePath: text("storage_path").notNull(),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    ownerIdx: index("attachments_owner_idx").on(t.ownerId, t.createdAt),
+  }),
+);
