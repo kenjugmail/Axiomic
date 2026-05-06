@@ -29,6 +29,9 @@ export function NewsEditPage() {
           coverEmoji: r.article.coverEmoji,
           accentColor: r.article.accentColor as NewsAccentColor,
           tags: r.article.tags,
+          abstract: r.article.abstract ?? "",
+          references: r.article.references ?? [],
+          coauthors: r.article.coauthors ?? [],
         });
       })
       .catch(() => setError("Failed to load article"));
@@ -98,6 +101,9 @@ export function NewsEditPage() {
         coverEmoji: draft.coverEmoji || "📰",
         accentColor: draft.accentColor,
         tags: draft.tags,
+        abstract: draft.abstract.trim(),
+        references: draft.references.filter((r) => r.text.trim().length > 0),
+        coauthors: draft.coauthors,
         status: nextStatus,
       });
       navigate(nextStatus === "draft" ? "/news/drafts" : `/news/${slug}`);

@@ -53,6 +53,41 @@ function devBypassEnabled(): boolean {
   );
 }
 
+// Resolve a session-cookie's owning user from a raw Cookie header.
+// Used by the WebSocket upgrade handler, which has a Request but not
+// a Hono Context. Returns null if there's no valid session.
+export function userFromCookieHeader(cookieHeader: string | null): string | null {
+  if (!cookieHeader) {
+    if (devBypassEnabled()) {
+      const username = process.env.DEV_AUTH_BYPASS_USER || "alice";
+      const db = getDb();
+      const u = db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.username, username))
+        .get();
+      return u?.id ?? null;
+    }
+    return null;
+  }
+  const cookies = Object.fromEntries(
+    cookieHeader.split(/;\s*/).map((p) => {
+      const i = p.indexOf("=");
+      return i === -1 ? [p, ""] : [p.slice(0, i), decodeURIComponent(p.slice(i + 1))];
+    }),
+  );
+  const sessionId = cookies[SESSION_COOKIE];
+  if (!sessionId) return null;
+  const now = new Date().toISOString();
+  const db = getDb();
+  const result = db
+    .select({ userId: sessions.userId })
+    .from(sessions)
+    .where(and(eq(sessions.id, sessionId), gt(sessions.expiresAt, now)))
+    .get();
+  return result?.userId ?? null;
+}
+
 export async function getSessionUser(c: Context) {
   const sessionId = getCookie(c, SESSION_COOKIE);
   const db = getDb();

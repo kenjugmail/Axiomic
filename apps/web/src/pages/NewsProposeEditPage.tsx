@@ -58,6 +58,9 @@ export function NewsProposeEditPage() {
           coverEmoji: r.article.coverEmoji,
           accentColor: r.article.accentColor as NewsAccentColor,
           tags: r.article.tags,
+          abstract: r.article.abstract ?? "",
+          references: r.article.references ?? [],
+          coauthors: r.article.coauthors ?? [],
         });
       })
       .catch(() => setError("Failed to load article"));

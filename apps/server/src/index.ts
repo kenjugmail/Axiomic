@@ -18,7 +18,10 @@ import { achievementsRouter } from "./routes/achievements";
 import { activityRouter } from "./routes/activity";
 import { newsRouter } from "./routes/news";
 import { socialRouter } from "./routes/social";
+import { gamificationRouter } from "./routes/gamification";
 import { prewarmSearchIndex } from "./lib/searchIndex";
+import { userFromCookieHeader } from "./middleware/auth";
+import { attachUser, detach, subscribeArticle } from "./lib/liveBus";
 import type { Env } from "./env";
 
 const app = new Hono<Env>().basePath("/api/v1");
@@ -73,6 +76,7 @@ app.route("/achievements", achievementsRouter);
 app.route("/activity", activityRouter);
 app.route("/news", newsRouter);
 app.route("/", socialRouter);
+app.route("/gamification", gamificationRouter);
 
 // Pre-warm the search index in the background so the first user query
 // doesn't pay the embedding-build cost.
@@ -95,7 +99,42 @@ if (import.meta.main) {
   }
 }
 
+// Bun.serve passes (req, server) when a `websocket` handler is set.
+// We hijack /api/v1/ws upgrades and delegate everything else to Hono.
+type WSData = { userId: string | null; subscriptions: Set<string> };
+
 export default {
   port,
-  fetch: app.fetch,
+  fetch(req: Request, server: any): Response | Promise<Response> | undefined {
+    const url = new URL(req.url);
+    if (url.pathname === "/api/v1/ws") {
+      const userId = userFromCookieHeader(req.headers.get("cookie"));
+      const data: WSData = { userId, subscriptions: new Set() };
+      if (server.upgrade(req, { data })) return;
+      return new Response("Upgrade failed", { status: 500 });
+    }
+    return app.fetch(req);
+  },
+  websocket: {
+    open(ws: any) {
+      const data = ws.data as WSData;
+      if (data?.userId) attachUser(ws, data.userId);
+    },
+    message(ws: any, raw: string | Uint8Array) {
+      // Clients can subscribe to per-article reaction streams. Other
+      // message kinds are ignored for v1.
+      try {
+        const text = typeof raw === "string" ? raw : new TextDecoder().decode(raw);
+        const msg = JSON.parse(text);
+        if (msg && msg.type === "subscribe_article" && typeof msg.slug === "string") {
+          subscribeArticle(ws, msg.slug);
+        }
+      } catch {
+        // ignore malformed frames
+      }
+    },
+    close(ws: any) {
+      detach(ws);
+    },
+  },
 };

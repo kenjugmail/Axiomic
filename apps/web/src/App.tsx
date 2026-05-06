@@ -64,6 +64,15 @@ const ForumBookmarksPage = lazy(() =>
 const FeedPage = lazy(() =>
   import("./pages/FeedPage").then((m) => ({ default: m.FeedPage })),
 );
+const LeaderboardPage = lazy(() =>
+  import("./pages/LeaderboardPage").then((m) => ({ default: m.LeaderboardPage })),
+);
+const DailyChallengePage = lazy(() =>
+  import("./pages/DailyChallengePage").then((m) => ({ default: m.DailyChallengePage })),
+);
+const PathCertificatePage = lazy(() =>
+  import("./pages/PathCertificatePage").then((m) => ({ default: m.PathCertificatePage })),
+);
 const SettingsPage = lazy(() =>
   import("./pages/SettingsPage").then((m) => ({ default: m.SettingsPage })),
 );
@@ -121,6 +130,12 @@ export function App() {
           <Route path="/news/:slug/propose" element={<NewsProposeEditPage />} />
           <Route path="/news/:slug/proposals" element={<NewsProposalsPage />} />
           <Route path="/feed" element={<FeedPage />} />
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
+          <Route path="/challenge" element={<DailyChallengePage />} />
+          <Route
+            path="/paths/:pathSlug/certificate/:username"
+            element={<PathCertificatePage />}
+          />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/profile/:username" element={<ProfilePage />} />
           <Route path="/notifications" element={<NotificationsPage />} />

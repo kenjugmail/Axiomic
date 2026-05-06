@@ -248,6 +248,14 @@ export const newsArticles = sqliteTable("news_articles", {
   title: text("title").notNull(),
   summary: text("summary").notNull().default(""),
   body: text("body").notNull(),
+  // Optional research-paper fields. abstract is a longer-form intro
+  // (one to two paragraphs) that renders ABOVE the body in the
+  // article view. references is a JSON array of { label, url? }.
+  // coauthors is a JSON array of usernames; together with authorId
+  // the byline lists everyone who contributed.
+  abstract: text("abstract").notNull().default(""),
+  referencesJson: text("references_json").notNull().default("[]"),
+  coauthorsJson: text("coauthors_json").notNull().default("[]"),
   // Visual flourish — drives the gradient hero on the article and card
   // in the list. coverEmoji is a single emoji (📰 default); accentColor
   // is one of indigo|emerald|rose|amber|sky|violet (validated at API).
@@ -469,5 +477,47 @@ export const notifications = sqliteTable(
     dedupIdx: uniqueIndex("notifications_dedup_idx")
       .on(t.userId, t.kind, t.subjectType, t.subjectId, t.actorId)
       .where(sql`read_at IS NULL`),
+  }),
+);
+
+// --- Daily challenge ---
+//
+// One challenge per day, deterministic from the date so every user
+// sees the same question. The challenge is a reference into an
+// existing seeded quiz (nodeSlug + question id). Attempts are
+// recorded for streaks + leaderboards.
+export const dailyChallenges = sqliteTable(
+  "daily_challenges",
+  {
+    id: text("id").primaryKey(),
+    // Day key in YYYY-MM-DD UTC.
+    day: text("day").notNull().unique(),
+    // Source of the question — a node slug + question id within that
+    // node's quizData.
+    nodeSlug: text("node_slug").notNull(),
+    questionId: text("question_id").notNull(),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    dayIdx: uniqueIndex("daily_challenges_day_idx").on(t.day),
+  }),
+);
+
+export const dailyChallengeAttempts = sqliteTable(
+  "daily_challenge_attempts",
+  {
+    id: text("id").primaryKey(),
+    challengeId: text("challenge_id").notNull().references(() => dailyChallenges.id),
+    userId: text("user_id").notNull().references(() => users.id),
+    correct: integer("correct", { mode: "boolean" }).notNull(),
+    answer: text("answer").notNull(),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("daily_challenge_attempts_uniq_idx").on(
+      t.challengeId,
+      t.userId,
+    ),
+    userIdx: index("daily_challenge_attempts_user_idx").on(t.userId, t.createdAt),
   }),
 );

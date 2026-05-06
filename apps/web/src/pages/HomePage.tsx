@@ -310,6 +310,25 @@ export function HomePage() {
               </div>
             </div>
 
+            {/* Daily challenge nudge — single line so it doesn't crowd the dashboard. */}
+            <div className="mt-4">
+              <Link
+                to="/challenge"
+                className="block rounded-xl border border-primary/30 bg-gradient-to-r from-primary/10 to-transparent px-4 py-3 hover:from-primary/15 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">🎯</span>
+                  <div className="flex-1">
+                    <div className="text-sm font-semibold">Today's challenge</div>
+                    <div className="text-xs text-muted-foreground">
+                      One question. Build your streak.
+                    </div>
+                  </div>
+                  <span className="text-primary text-sm font-medium">Play →</span>
+                </div>
+              </Link>
+            </div>
+
             {/* Recent activity strip */}
             {activity.length > 0 && (
               <div className="mt-6">

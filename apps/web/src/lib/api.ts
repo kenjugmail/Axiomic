@@ -18,6 +18,12 @@ import type {
   FollowsListResponse,
   ForumBookmarksResponse,
   PollVoteResponse,
+  AiPracticeQuestionsResponse,
+  AiTagSuggestionsResponse,
+  DailyChallengeResponse,
+  DailyChallengeSubmitResponse,
+  LeaderboardResponse,
+  PathCertificateResponse,
   ToggleFollowResponse,
   ToggleForumReactionResponse,
   NewsArticleResponse,
@@ -239,6 +245,20 @@ export const api = {
         body: JSON.stringify({ ...data, postType: "poll" }),
       }),
   },
+  gamification: {
+    leaderboard: () => request<LeaderboardResponse>("/gamification/leaderboard"),
+    dailyChallenge: () =>
+      request<DailyChallengeResponse>("/gamification/daily-challenge"),
+    submitDaily: (answer: string) =>
+      request<DailyChallengeSubmitResponse>("/gamification/daily-challenge/submit", {
+        method: "POST",
+        body: JSON.stringify({ answer }),
+      }),
+    certificate: (pathSlug: string, username: string) =>
+      request<PathCertificateResponse>(
+        `/gamification/paths/${pathSlug}/certificate/${username}`,
+      ),
+  },
   social: {
     toggleFollow: (username: string) =>
       request<ToggleFollowResponse>(`/users/${username}/follow`, {
@@ -303,6 +323,18 @@ export const api = {
       }),
     flashcards: (pageSlug: string, tier: string) =>
       request<FlashcardsResponse>(`/ai/flashcards/${pageSlug}?tier=${tier}`),
+    suggestTags: (data: { title: string; summary?: string; body?: string }) =>
+      request<AiTagSuggestionsResponse>("/ai/news/tag-suggest", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    practiceQuestions: (pageSlug: string, tier = "intro") =>
+      request<AiPracticeQuestionsResponse>("/ai/wiki/practice-questions", {
+        method: "POST",
+        body: JSON.stringify({ pageSlug, tier }),
+      }),
+    relatedNewsSemantic: (slug: string) =>
+      request<NewsRelatedResponse>(`/ai/news/related-semantic/${slug}`),
   },
   achievements: {
     catalog: () => request<AchievementCatalogResponse>("/achievements/catalog"),

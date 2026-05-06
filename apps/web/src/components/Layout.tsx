@@ -67,6 +67,12 @@ export function Layout() {
               <Link to="/paths" className="text-muted-foreground hover:text-foreground transition-colors">
                 Mastery Paths
               </Link>
+              <Link to="/challenge" className="text-muted-foreground hover:text-foreground transition-colors">
+                Daily
+              </Link>
+              <Link to="/leaderboard" className="text-muted-foreground hover:text-foreground transition-colors">
+                Ranks
+              </Link>
               {user && (
                 <>
                   <Link to="/feed" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -148,6 +154,8 @@ export function Layout() {
             <Link to="/forum" className="text-muted-foreground hover:text-foreground">Forum</Link>
             <Link to="/news" className="text-muted-foreground hover:text-foreground">News</Link>
             <Link to="/paths" className="text-muted-foreground hover:text-foreground">Paths</Link>
+            <Link to="/challenge" className="text-muted-foreground hover:text-foreground">Daily</Link>
+            <Link to="/leaderboard" className="text-muted-foreground hover:text-foreground">Ranks</Link>
             {user && <Link to="/feed" className="text-muted-foreground hover:text-foreground">Feed</Link>}
             {user && <Link to="/flashcards" className="text-muted-foreground hover:text-foreground">Flashcards</Link>}
           </div>

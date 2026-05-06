@@ -33,6 +33,9 @@ export function NewsNewPage() {
     coverEmoji: "📰",
     accentColor: "indigo" as NewsAccentColor,
     tags: [],
+    abstract: "",
+    references: [],
+    coauthors: [],
   });
 
   if (authLoading) {
@@ -84,6 +87,9 @@ export function NewsNewPage() {
         coverEmoji: draft.coverEmoji || "📰",
         accentColor: draft.accentColor,
         tags: draft.tags,
+        abstract: draft.abstract.trim(),
+        references: draft.references.filter((r) => r.text.trim().length > 0),
+        coauthors: draft.coauthors,
         status,
       });
       navigate(status === "draft" ? "/news/drafts" : `/news/${draft.slug}`);

@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { eq, inArray } from "drizzle-orm";
 import { getDb, notifications, users, type Db } from "@axiomic/db";
+import { publishToUser } from "./liveBus";
 
 export type NotificationKind =
   | "mention"
@@ -138,10 +139,12 @@ export async function notify(args: NotifyArgs, db: Db = getDb()): Promise<boolea
       if (prefs && prefs[gate] === false) return false;
     }
 
+    const id = randomUUID();
+    const createdAt = new Date().toISOString();
     await db
       .insert(notifications)
       .values({
-        id: randomUUID(),
+        id,
         userId: args.recipientId,
         actorId: args.actorId,
         kind: args.kind,
@@ -151,6 +154,38 @@ export async function notify(args: NotifyArgs, db: Db = getDb()): Promise<boolea
         preview: args.preview,
       })
       .onConflictDoNothing();
+
+    // Best-effort live push to the recipient's open WebSockets. The
+    // dedup index above may have squashed the row; fetching the actor
+    // username is what the bell shows. Failures here don't cause the
+    // notify() call to fail.
+    try {
+      let actor: { id: string; username: string } | null = null;
+      if (args.actorId) {
+        const row = db
+          .select({ id: users.id, username: users.username })
+          .from(users)
+          .where(eq(users.id, args.actorId))
+          .get();
+        actor = row ?? null;
+      }
+      publishToUser(args.recipientId, {
+        kind: "notification",
+        notification: {
+          id,
+          kind: args.kind,
+          subjectType: args.subjectType,
+          subjectId: args.subjectId,
+          contextSlug: args.contextSlug,
+          preview: args.preview,
+          readAt: null,
+          createdAt,
+          actor,
+        },
+      });
+    } catch {
+      // ignore live-push errors
+    }
     return true;
   } catch (err) {
     console.error("notify failed", err);

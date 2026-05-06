@@ -700,6 +700,14 @@ export const NEWS_REACTION_KINDS: NewsReactionKind[] = [
 
 export type NewsStatus = "draft" | "published";
 
+export interface NewsReference {
+  // 1-indexed label (e.g., "1", "2"). The API renumbers on save, so
+  // request payloads can omit `label`; responses always include it.
+  label?: string;
+  text: string;
+  url?: string;
+}
+
 export interface NewsArticleSummary {
   id: string;
   slug: string;
@@ -721,6 +729,11 @@ export interface NewsArticleSummary {
 export interface NewsArticle extends NewsArticleSummary {
   body: string;
   status: NewsStatus;
+  // Optional research-paper fields. Empty defaults are returned for
+  // articles that don't use them; the UI hides empty sections.
+  abstract: string;
+  references: NewsReference[];
+  coauthors: string[];
   // True when the requester has reacted with this kind. Null fields
   // for signed-out viewers.
   myReactions: Record<NewsReactionKind, boolean> | null;
@@ -755,6 +768,9 @@ export interface CreateNewsArticleRequest {
   accentColor?: NewsAccentColor;
   status?: NewsStatus;
   tags?: string[];
+  abstract?: string;
+  references?: NewsReference[];
+  coauthors?: string[];
 }
 
 export interface UpdateNewsArticleRequest {
@@ -765,6 +781,9 @@ export interface UpdateNewsArticleRequest {
   accentColor?: NewsAccentColor;
   status?: NewsStatus;
   tags?: string[];
+  abstract?: string;
+  references?: NewsReference[];
+  coauthors?: string[];
 }
 
 export type NewsEditProposalStatus = "pending" | "approved" | "rejected";
@@ -970,3 +989,99 @@ export interface CreateForumPollRequest {
   question: string;
   options: CreatePollOption[];
 }
+
+// --- Gamification: leaderboard, daily challenge, certificates ---
+
+export interface LeaderboardEntry {
+  rank: number;
+  username: string;
+  displayName: string | null;
+  totalPoints: number;
+  achievements: number;
+  streak: number;
+}
+
+export interface LeaderboardResponse {
+  entries: LeaderboardEntry[];
+  // The auth'd user's slot — useful for "you're #243 of 1,200" UX
+  // even when they don't appear in the top page.
+  me: LeaderboardEntry | null;
+}
+
+export type DailyChallengeQuestionKind =
+  | "multiple_choice"
+  | "slider"
+  | "drag_classify";
+
+export interface DailyChallengeQuestion {
+  // The shape mirrors a single quiz question. The client renders it
+  // with the existing QuestionRenderer.
+  raw: any;
+}
+
+export interface DailyChallengeStats {
+  attempted: number;
+  correct: number;
+  // % of users who answered correctly so far today.
+  correctRate: number;
+}
+
+export interface DailyChallengeResponse {
+  challengeId: string;
+  day: string;
+  nodeSlug: string;
+  nodeTitle: string;
+  question: DailyChallengeQuestion;
+  myAnswer: { answer: string; correct: boolean } | null;
+  stats: DailyChallengeStats;
+  streak: number;
+}
+
+export interface DailyChallengeSubmitRequest {
+  answer: string;
+}
+
+export interface DailyChallengeSubmitResponse {
+  correct: boolean;
+  stats: DailyChallengeStats;
+  streak: number;
+}
+
+export interface PathCertificateResponse {
+  pathSlug: string;
+  pathTitle: string;
+  username: string;
+  displayName: string | null;
+  completedAt: string;
+  totalNodes: number;
+  achievements: number;
+  // Hex/word color matching the path's accent for the rendered card.
+  accentColor: string;
+}
+
+// --- AI extensions ---
+
+export interface AiTagSuggestionsResponse {
+  tags: string[];
+}
+
+export interface AiPracticeQuestion {
+  question: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
+export interface AiPracticeQuestionsResponse {
+  questions: AiPracticeQuestion[];
+}
+
+// --- WebSocket envelope ---
+
+export type LiveEvent =
+  | { kind: "notification"; notification: Notification }
+  | {
+      kind: "reaction_update";
+      articleSlug: string;
+      reactionCounts: Record<NewsReactionKind, number>;
+    };

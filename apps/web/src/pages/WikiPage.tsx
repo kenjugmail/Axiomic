@@ -8,6 +8,7 @@ import {
   type PostType,
 } from "../lib/api";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
+import { PracticePanel } from "../components/wiki/PracticePanel";
 import { TableOfContents } from "../components/TableOfContents";
 import { TierSwitcher } from "../components/TierSwitcher";
 import { AISidebar } from "../components/AISidebar";
@@ -146,6 +147,9 @@ export function WikiPage() {
           </div>
 
           <MarkdownRenderer content={content} />
+
+          {/* Quiz me on this page (AI). */}
+          {slug && <PracticePanel pageSlug={slug} tier={tier} />}
 
           {/* Related pages */}
           {relatedPages.length > 0 && (

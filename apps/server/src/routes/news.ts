@@ -16,6 +16,7 @@ import { randomUUID } from "crypto";
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { notify } from "../lib/notifications";
 import { invalidateSearchIndex } from "../lib/searchIndex";
+import { publishToArticle } from "../lib/liveBus";
 import type { Env } from "../env";
 
 export const newsRouter = new Hono<Env>();
@@ -76,6 +77,34 @@ async function reactionRollup(
 }
 
 function parseTags(json: string): string[] {
+  try {
+    const v = JSON.parse(json);
+    return Array.isArray(v) ? v.filter((s) => typeof s === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function parseReferences(json: string): Array<{ label: string; text: string; url?: string }> {
+  try {
+    const v = JSON.parse(json);
+    if (!Array.isArray(v)) return [];
+    return v
+      .filter(
+        (r): r is { label?: string; text?: string; url?: string } =>
+          !!r && typeof (r as any).text === "string",
+      )
+      .map((r, i) => ({
+        label: typeof r.label === "string" ? r.label : String(i + 1),
+        text: r.text!,
+        url: typeof r.url === "string" ? r.url : undefined,
+      }));
+  } catch {
+    return [];
+  }
+}
+
+function parseCoauthors(json: string): string[] {
   try {
     const v = JSON.parse(json);
     return Array.isArray(v) ? v.filter((s) => typeof s === "string") : [];
@@ -194,6 +223,9 @@ newsRouter.get("/:slug", async (c) => {
       title: newsArticles.title,
       summary: newsArticles.summary,
       body: newsArticles.body,
+      abstract: newsArticles.abstract,
+      referencesJson: newsArticles.referencesJson,
+      coauthorsJson: newsArticles.coauthorsJson,
       coverEmoji: newsArticles.coverEmoji,
       accentColor: newsArticles.accentColor,
       status: newsArticles.status,
@@ -289,6 +321,9 @@ newsRouter.get("/:slug", async (c) => {
       title: row.title,
       summary: row.summary,
       body: row.body,
+      abstract: row.abstract,
+      references: parseReferences(row.referencesJson),
+      coauthors: parseCoauthors(row.coauthorsJson),
       coverEmoji: row.coverEmoji,
       accentColor: row.accentColor,
       status: row.status,
@@ -343,6 +378,51 @@ function normalizeTags(input: string[] | undefined): string[] {
   return out.slice(0, 8);
 }
 
+const referenceSchema = z.object({
+  text: z.string().min(1).max(500),
+  url: z.string().url().optional(),
+});
+
+// Renumber labels 1..N. Storage normalizes — the API guarantees the
+// labels rendered to the reader are sequential, even if the editor
+// drops or reorders entries.
+function normalizeReferences(input: unknown): Array<{ label: string; text: string; url?: string }> {
+  if (!Array.isArray(input)) return [];
+  return input
+    .filter(
+      (r): r is { text: string; url?: string } =>
+        !!r && typeof (r as any).text === "string",
+    )
+    .slice(0, 50)
+    .map((r, i) => ({
+      label: String(i + 1),
+      text: (r as any).text.slice(0, 500),
+      url: typeof (r as any).url === "string" ? (r as any).url : undefined,
+    }));
+}
+
+// Coauthor input: array of usernames. Validated against the users
+// table at write time; unknown usernames are dropped silently.
+async function normalizeCoauthors(input: unknown, db: ReturnType<typeof getDb>): Promise<string[]> {
+  if (!Array.isArray(input)) return [];
+  const requested = Array.from(
+    new Set(
+      input
+        .filter((s): s is string => typeof s === "string")
+        .map((s) => s.trim().toLowerCase())
+        .filter(Boolean),
+    ),
+  ).slice(0, 8);
+  if (requested.length === 0) return [];
+  const found = db
+    .select({ username: users.username })
+    .from(users)
+    .where(sql`${users.username} in ${requested}`)
+    .all()
+    .map((u) => u.username);
+  return found;
+}
+
 const createSchema = z.object({
   slug: slugSchema,
   title: z.string().min(1).max(200),
@@ -352,6 +432,9 @@ const createSchema = z.object({
   accentColor: z.enum(ACCENT_COLORS).optional(),
   status: z.enum(["draft", "published"]).optional(),
   tags: tagSchema,
+  abstract: z.string().max(4000).optional(),
+  references: z.array(referenceSchema).optional(),
+  coauthors: z.array(z.string()).optional(),
 });
 
 newsRouter.post("/", requireAuth, zValidator("json", createSchema), async (c) => {
@@ -368,12 +451,16 @@ newsRouter.post("/", requireAuth, zValidator("json", createSchema), async (c) =>
 
   const id = randomUUID();
   const status = body.status || "published";
+  const coauthors = await normalizeCoauthors(body.coauthors, db);
   db.insert(newsArticles).values({
     id,
     slug: body.slug,
     title: body.title,
     summary: body.summary ?? "",
     body: body.body,
+    abstract: body.abstract ?? "",
+    referencesJson: JSON.stringify(normalizeReferences(body.references)),
+    coauthorsJson: JSON.stringify(coauthors),
     coverEmoji: body.coverEmoji || "📰",
     accentColor: body.accentColor || "indigo",
     status,
@@ -432,6 +519,9 @@ const updateSchema = z.object({
   accentColor: z.enum(ACCENT_COLORS).optional(),
   status: z.enum(["draft", "published"]).optional(),
   tags: tagSchema,
+  abstract: z.string().max(4000).optional(),
+  references: z.array(referenceSchema).optional(),
+  coauthors: z.array(z.string()).optional(),
 });
 
 newsRouter.put("/:slug", requireAuth, zValidator("json", updateSchema), async (c) => {
@@ -453,11 +543,22 @@ newsRouter.put("/:slug", requireAuth, zValidator("json", updateSchema), async (c
     return c.json({ error: "Only the author can edit this article directly. Submit a proposal instead." }, 403);
   }
 
+  const newCoauthors =
+    data.coauthors !== undefined
+      ? JSON.stringify(await normalizeCoauthors(data.coauthors, db))
+      : article.coauthorsJson;
+
   db.update(newsArticles)
     .set({
       title: data.title,
       summary: data.summary,
       body: data.body,
+      abstract: data.abstract ?? article.abstract,
+      referencesJson:
+        data.references !== undefined
+          ? JSON.stringify(normalizeReferences(data.references))
+          : article.referencesJson,
+      coauthorsJson: newCoauthors,
       coverEmoji: data.coverEmoji ?? article.coverEmoji,
       accentColor: data.accentColor ?? article.accentColor,
       status: data.status ?? article.status,
@@ -788,14 +889,21 @@ newsRouter.post(
       }
     }
 
-    return c.json({
-      reactionCounts: counts.get(article.id) ?? {
-        thumbs: 0,
-        lightbulb: 0,
-        mind_blown: 0,
-      },
-      myReactions: mine,
+    const reactionCounts = counts.get(article.id) ?? {
+      thumbs: 0,
+      lightbulb: 0,
+      mind_blown: 0,
+    };
+
+    // Live broadcast: anyone currently subscribed to this article
+    // gets the new counts in real time, no polling.
+    publishToArticle(slug, {
+      kind: "reaction_update",
+      articleSlug: slug,
+      reactionCounts,
     });
+
+    return c.json({ reactionCounts, myReactions: mine });
   },
 );
 

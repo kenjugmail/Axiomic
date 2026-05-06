@@ -175,6 +175,16 @@ export function MasteryPathPage() {
           </div>
           <span className="text-sm font-medium">{Math.round(progressPercent)}%</span>
         </div>
+        {user && completedCount > 0 && completedCount === totalNodes && (
+          <div className="mt-3">
+            <Link
+              to={`/paths/${slug}/certificate/${user.username}`}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-gradient-to-r from-amber-500 to-orange-600 text-white text-sm font-medium hover:opacity-90"
+            >
+              🏆 View certificate
+            </Link>
+          </div>
+        )}
         <div className="h-2 bg-muted rounded-full overflow-hidden">
           <div
             className="h-full bg-primary rounded-full transition-all duration-500"

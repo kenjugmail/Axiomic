@@ -1,6 +1,7 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import type { NewsAccentColor } from "@axiomic/types";
 import { NEWS_ACCENT_COLORS } from "@axiomic/types";
+import { api } from "../../lib/api";
 import { MarkdownRenderer } from "../MarkdownRenderer";
 import { VizPickerButton } from "../VizPickerButton";
 import { NewsCover } from "./NewsCover";
@@ -14,6 +15,11 @@ const ACCENT_DOT: Record<NewsAccentColor, string> = {
   violet: "bg-violet-500",
 };
 
+export interface NewsDraftReference {
+  text: string;
+  url?: string;
+}
+
 export interface NewsDraft {
   slug: string;
   title: string;
@@ -22,6 +28,9 @@ export interface NewsDraft {
   coverEmoji: string;
   accentColor: NewsAccentColor;
   tags: string[];
+  abstract: string;
+  references: NewsDraftReference[];
+  coauthors: string[];
 }
 
 interface Props {
@@ -150,38 +159,14 @@ export function NewsEditor({
         />
       </div>
 
-      <div>
-        <label className="block text-xs font-medium text-muted-foreground mb-1">
-          Tags{" "}
-          <span className="text-[10px]">(comma-separated, max 8)</span>
-        </label>
-        <input
-          value={draft.tags.join(", ")}
-          onChange={(e) =>
-            set(
-              "tags",
-              e.target.value
-                .split(",")
-                .map((t) => t.trim())
-                .filter(Boolean),
-            )
-          }
-          placeholder="research, transformers, tokenization"
-          className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring"
-        />
-        {draft.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-2">
-            {draft.tags.slice(0, 8).map((t) => (
-              <span
-                key={t}
-                className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
-              >
-                {t}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
+      <TagsRow draft={draft} setTags={(tags) => set("tags", tags)} />
+
+      <ResearchPaperFields
+        draft={draft}
+        setAbstract={(abstract) => set("abstract", abstract)}
+        setReferences={(refs) => set("references", refs)}
+        setCoauthors={(co) => set("coauthors", co)}
+      />
 
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-muted-foreground">Body</span>
@@ -213,5 +198,208 @@ export function NewsEditor({
         />
       )}
     </div>
+  );
+}
+
+function TagsRow({
+  draft,
+  setTags,
+}: {
+  draft: NewsDraft;
+  setTags: (next: string[]) => void;
+}) {
+  const [suggesting, setSuggesting] = useState(false);
+
+  const suggest = async () => {
+    if (suggesting || !draft.title.trim()) return;
+    setSuggesting(true);
+    try {
+      const res = await api.ai.suggestTags({
+        title: draft.title,
+        summary: draft.summary,
+        body: draft.body,
+      });
+      // Merge suggestions on top of existing tags, dedupe, cap at 8.
+      const merged: string[] = [];
+      for (const t of [...res.tags, ...draft.tags]) {
+        if (!merged.includes(t)) merged.push(t);
+        if (merged.length >= 8) break;
+      }
+      setTags(merged);
+    } catch {
+      // ignore
+    } finally {
+      setSuggesting(false);
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <label className="block text-xs font-medium text-muted-foreground">
+          Tags{" "}
+          <span className="text-[10px]">(comma-separated, max 8)</span>
+        </label>
+        <button
+          type="button"
+          onClick={suggest}
+          disabled={suggesting || !draft.title.trim()}
+          className="text-xs px-2 py-1 rounded-md border border-primary/40 text-primary hover:bg-primary/10 disabled:opacity-50"
+          title="Suggest tags from the title + summary + body"
+        >
+          {suggesting ? "Thinking…" : "✨ Suggest tags"}
+        </button>
+      </div>
+      <input
+        value={draft.tags.join(", ")}
+        onChange={(e) =>
+          setTags(
+            e.target.value
+              .split(",")
+              .map((t) => t.trim())
+              .filter(Boolean),
+          )
+        }
+        placeholder="research, transformers, tokenization"
+        className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring"
+      />
+      {draft.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-2">
+          {draft.tags.slice(0, 8).map((t) => (
+            <span
+              key={t}
+              className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
+            >
+              {t}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+function ResearchPaperFields({
+  draft,
+  setAbstract,
+  setReferences,
+  setCoauthors,
+}: {
+  draft: NewsDraft;
+  setAbstract: (s: string) => void;
+  setReferences: (refs: NewsDraftReference[]) => void;
+  setCoauthors: (cos: string[]) => void;
+}) {
+  const hasContent =
+    draft.abstract.length > 0 ||
+    draft.references.length > 0 ||
+    draft.coauthors.length > 0;
+
+  return (
+    <details className="rounded-lg border border-border bg-muted/30" open={hasContent}>
+      <summary className="px-4 py-2 cursor-pointer text-sm font-medium select-none">
+        Research-paper fields{" "}
+        <span className="text-xs text-muted-foreground font-normal">
+          (abstract · references · coauthors — optional)
+        </span>
+      </summary>
+      <div className="px-4 pb-4 space-y-4">
+        <div>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">
+            Abstract
+          </label>
+          <textarea
+            value={draft.abstract}
+            onChange={(e) => setAbstract(e.target.value)}
+            rows={3}
+            maxLength={4000}
+            placeholder="One or two paragraphs that frame the article. Renders above the body in the article view."
+            className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm resize-y focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">
+            Coauthors{" "}
+            <span className="text-[10px]">
+              (comma-separated usernames; you don't need to add yourself)
+            </span>
+          </label>
+          <input
+            value={draft.coauthors.join(", ")}
+            onChange={(e) =>
+              setCoauthors(
+                e.target.value
+                  .split(",")
+                  .map((s) => s.trim())
+                  .filter(Boolean),
+              )
+            }
+            placeholder="alice, bob"
+            className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <label className="block text-xs font-medium text-muted-foreground">
+              References ({draft.references.length})
+            </label>
+            <button
+              type="button"
+              onClick={() =>
+                setReferences([...draft.references, { text: "", url: "" }])
+              }
+              className="text-xs px-2 py-1 rounded border border-dashed border-border hover:bg-accent/40"
+            >
+              + Add reference
+            </button>
+          </div>
+          <ol className="space-y-2 list-decimal list-inside">
+            {draft.references.map((ref, i) => (
+              <li key={i} className="ml-2">
+                <div className="grid grid-cols-1 sm:grid-cols-[1fr_220px_auto] gap-2 items-start">
+                  <input
+                    value={ref.text}
+                    onChange={(e) => {
+                      const next = [...draft.references];
+                      next[i] = { ...ref, text: e.target.value };
+                      setReferences(next);
+                    }}
+                    placeholder="Vaswani et al., Attention Is All You Need (2017)"
+                    className="px-3 py-1.5 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
+                  <input
+                    value={ref.url ?? ""}
+                    onChange={(e) => {
+                      const next = [...draft.references];
+                      next[i] = { ...ref, url: e.target.value };
+                      setReferences(next);
+                    }}
+                    placeholder="https://arxiv.org/abs/1706.03762"
+                    className="px-3 py-1.5 rounded-md border border-input bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setReferences(draft.references.filter((_, idx) => idx !== i))
+                    }
+                    className="text-xs px-2 py-1 rounded text-muted-foreground hover:text-destructive"
+                    aria-label="Remove reference"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <p className="text-[10px] text-muted-foreground mt-2">
+            In the body, cite as [1], [2], etc. References are auto-numbered
+            on save.
+          </p>
+        </div>
+      </div>
+    </details>
   );
 }

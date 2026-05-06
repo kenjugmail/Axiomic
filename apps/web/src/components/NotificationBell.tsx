@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, type Notification } from "../lib/api";
+import { useLiveEvents } from "../hooks/useLiveEvents";
 
 const POLL_INTERVAL_MS = 60_000;
 
@@ -77,6 +78,21 @@ export function NotificationBell() {
   const [loading, setLoading] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
+
+  // Live-pushed notifications: increment the badge instantly and
+  // prepend to the dropdown list so the user sees the bump in real
+  // time. Falls back to the polling tick below if the WS is down.
+  useLiveEvents({
+    onEvent: (e) => {
+      if (e.kind !== "notification") return;
+      setCount((c) => c + 1);
+      setItems((arr) => {
+        const existing = arr.findIndex((n) => n.id === e.notification.id);
+        if (existing >= 0) return arr;
+        return [e.notification, ...arr].slice(0, 50);
+      });
+    },
+  });
 
   // Poll unread count while document is visible.
   useEffect(() => {
