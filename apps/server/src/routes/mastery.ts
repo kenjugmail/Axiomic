@@ -169,18 +169,11 @@ mastery.get("/paths/:slug", async (c) => {
     }
   }
 
-  // Lock state: a node is locked iff any prereq has mastery < 70 (or
-  // is missing for the user). Always unlocked for signed-out viewers
-  // (so the page is browsable).
+  // Lock state is intentionally always-unlocked: lessons are open to
+  // everyone, and the prereq list is informational only. Kept on the
+  // wire for backward compatibility with clients that still read it.
   const lockState: Record<string, boolean> = {};
-  for (const n of nodes) {
-    if (!user) {
-      lockState[n.id] = false;
-      continue;
-    }
-    const prereqs = n.prerequisiteNodeIds as string[];
-    lockState[n.id] = prereqs.some((id) => (nodeMastery[id] ?? 0) < 70);
-  }
+  for (const n of nodes) lockState[n.id] = false;
 
   return c.json({
     path,

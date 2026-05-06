@@ -56,6 +56,9 @@ const NewsBookmarksPage = lazy(() =>
 const NewsDraftsPage = lazy(() =>
   import("./pages/NewsDraftsPage").then((m) => ({ default: m.NewsDraftsPage })),
 );
+const NewsResearchPage = lazy(() =>
+  import("./pages/NewsResearchPage").then((m) => ({ default: m.NewsResearchPage })),
+);
 const ForumBookmarksPage = lazy(() =>
   import("./pages/ForumBookmarksPage").then((m) => ({
     default: m.ForumBookmarksPage,
@@ -128,6 +131,7 @@ export function App() {
           <Route path="/news/new" element={<NewsNewPage />} />
           <Route path="/news/bookmarks" element={<NewsBookmarksPage />} />
           <Route path="/news/drafts" element={<NewsDraftsPage />} />
+          <Route path="/news/research" element={<NewsResearchPage />} />
           <Route path="/news/:slug" element={<NewsArticlePage />} />
           <Route path="/news/:slug/edit" element={<NewsEditPage />} />
           <Route path="/news/:slug/propose" element={<NewsProposeEditPage />} />

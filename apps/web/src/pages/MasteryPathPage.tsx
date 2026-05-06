@@ -264,10 +264,8 @@ export function MasteryPathPage() {
           <PathGraph
             nodes={nodes}
             nodeMastery={nodeMastery}
-            lockState={lockState}
             signedIn={!!user}
             onPick={(n) => {
-              if (lockState[n.id]) return;
               if (n.hasLesson) setLessonFor(n);
               else setQuizFor(n);
             }}
@@ -288,17 +286,14 @@ export function MasteryPathPage() {
               {levelNodes.map((node) => {
                 const completed = isCompleted(node.id);
                 const quizScore = quizScoreFor(node.id);
-                const locked = !!lockState[node.id];
                 const mastery = nodeMastery[node.id] ?? 0;
                 return (
                   <div
                     key={node.id}
                     className={`flex items-center justify-between p-4 rounded-lg border transition-colors ${
-                      locked
-                        ? "border-dashed border-muted-foreground/30 bg-muted/20 opacity-70"
-                        : completed
-                          ? "bg-primary/5 border-primary/20"
-                          : "border-border hover:bg-accent/50"
+                      completed
+                        ? "bg-primary/5 border-primary/20"
+                        : "border-border hover:bg-accent/50"
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -316,8 +311,7 @@ export function MasteryPathPage() {
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-medium text-sm">{node.title}</h3>
-                          {locked && <span className="text-xs">🔒</span>}
-                          {!locked && user && mastery > 0 && (
+                          {user && mastery > 0 && (
                             <span
                               className={`text-[10px] uppercase tracking-wider px-1.5 py-px rounded ${
                                 mastery >= 70

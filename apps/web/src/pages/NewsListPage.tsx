@@ -57,6 +57,13 @@ export function NewsListPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Link
+            to="/news/research"
+            className="px-3 py-2 rounded-md border border-border text-sm hover:bg-accent/40"
+            title="Paper-style articles with abstract + references"
+          >
+            📑 Research
+          </Link>
           {user && (
             <Link
               to="/news/drafts"

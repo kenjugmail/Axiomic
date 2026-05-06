@@ -366,9 +366,10 @@ export const api = {
       ),
   },
   news: {
-    list: (params?: { tag?: string }) => {
+    list: (params?: { tag?: string; style?: "research" }) => {
       const sp = new URLSearchParams();
       if (params?.tag) sp.set("tag", params.tag);
+      if (params?.style) sp.set("style", params.style);
       const qs = sp.toString();
       return request<NewsListResponse>(`/news${qs ? `?${qs}` : ""}`);
     },

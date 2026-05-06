@@ -166,6 +166,61 @@ Subword tokenization (BPE, WordPiece, Unigram, SentencePiece) is the compromise:
 
 If your model is failing on something that involves *characters as a unit* — counting letters, reversing strings, syllable rhyming — your first hypothesis should be **the tokenization is the bug**, not the model.`,
     },
+    {
+      slug: "induction-heads-the-circuit-behind-in-context-learning",
+      title: "Induction heads: the circuit behind in-context learning",
+      summary:
+        "A short paper-style walk-through of the two-attention-head circuit that drives copy-and-complete behavior in transformers.",
+      coverEmoji: "🧠",
+      accentColor: "indigo",
+      authorId: aliceId,
+      abstract:
+        "**Induction heads** are a small two-layer attention circuit that explains a surprisingly large fraction of in-context learning in transformer language models. We motivate the construction, walk through the canonical (previous-token-head, induction-head) decomposition, and connect the result to the broader mechanistic-interpretability program. The aim is to give a working ML engineer a concrete circuit they can find in their own model with two probe runs.",
+      coauthors: ["bob", "carol"],
+      references: [
+        {
+          text: "Olsson et al., In-context Learning and Induction Heads (Anthropic, 2022).",
+          url: "https://transformer-circuits.pub/2022/in-context-learning-and-induction-heads/index.html",
+        },
+        {
+          text: "Elhage et al., A Mathematical Framework for Transformer Circuits (2021).",
+          url: "https://transformer-circuits.pub/2021/framework/index.html",
+        },
+        {
+          text: "Vaswani et al., Attention Is All You Need (2017).",
+          url: "https://arxiv.org/abs/1706.03762",
+        },
+      ],
+      body: `## The behavior
+
+Show a transformer the prefix \`A B C ... A\` and it tends to predict \`B\` next [1]. The model isn't fine-tuned on this; the pattern emerges during pretraining and accounts for much of what we call *in-context learning*. The circuit responsible turns out to be small enough to draw on a napkin.
+
+::viz[attention-heatmap]
+
+## The two-head decomposition
+
+The canonical induction circuit lives across two attention heads in two consecutive layers [1, 2]:
+
+1. A **previous-token head** in layer $L$ writes \`(token at position t-1)\` into the residual stream at position $t$. This is just a lookup; you can find these heads by the diagonal-shifted-by-one attention pattern.
+
+2. An **induction head** in layer $L+1$ then attends from the current position to *prior occurrences of the same token* — and crucially, it reads the value from one step *after* that prior occurrence, courtesy of the layer-$L$ head's left-shifted writeback.
+
+Composed: at the second \`A\`, the induction head attends to the first \`A\`, but the value it pulls is *the thing that came after the first* \`A\` — namely \`B\`. The model has, in effect, looked up "what followed the last time I saw this?" and put the answer in the residual stream.
+
+## Why this matters
+
+If the residual stream is the highway and attention heads are the on-ramps, induction heads are the simplest interesting *content-based* on-ramp the model learns. Once you start looking for them, you find them in nearly every reasonably-sized pretrained transformer [1].
+
+The broader bet of the mechanistic-interpretability program [2] is that *most* of what large models do can be similarly decomposed — that there is no fundamental obstruction to reading off the circuits, only an engineering problem of finding them. Induction heads were the first concrete piece of evidence in that direction.
+
+## What to try next
+
+- Probe your favourite small open model (1-3B params is plenty) for previous-token heads in early layers. Look for the off-by-one diagonal.
+- Layer above those, look for heads whose attention pattern is roughly diagonal in *content space* (each row attends to the column where the same token last appeared).
+- The transformer architecture introduced in [3] is the substrate for all of this; the circuit we're describing is a *learned* program, not a hard-coded operation.
+
+The point is that "in-context learning" stops being a mysterious property of scale once you see the circuit. It's just a specific composition of two lookups.`,
+    },
   ];
 
   for (const a of articles) {
@@ -175,6 +230,13 @@ If your model is failing on something that involves *characters as a unit* — c
       title: a.title,
       summary: a.summary,
       body: a.body,
+      abstract: (a as any).abstract ?? "",
+      referencesJson: JSON.stringify(
+        ((a as any).references as Array<{ text: string; url?: string }> | undefined)?.map(
+          (r, i) => ({ label: String(i + 1), text: r.text, url: r.url }),
+        ) ?? [],
+      ),
+      coauthorsJson: JSON.stringify((a as any).coauthors ?? []),
       coverEmoji: a.coverEmoji,
       accentColor: a.accentColor,
       authorId: a.authorId,

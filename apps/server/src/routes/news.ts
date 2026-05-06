@@ -116,6 +116,10 @@ function parseCoauthors(json: string): string[] {
 newsRouter.get("/", async (c) => {
   const db = getDb();
   const tag = c.req.query("tag");
+  // style=research surfaces articles that have used the research-paper
+  // pipeline — i.e., they have an abstract or at least one reference.
+  // Other styles can be added later if needed.
+  const style = c.req.query("style");
   const baseQuery = db
     .select({
       id: newsArticles.id,
@@ -123,6 +127,8 @@ newsRouter.get("/", async (c) => {
       title: newsArticles.title,
       summary: newsArticles.summary,
       body: newsArticles.body,
+      abstract: newsArticles.abstract,
+      referencesJson: newsArticles.referencesJson,
       coverEmoji: newsArticles.coverEmoji,
       accentColor: newsArticles.accentColor,
       tags: newsArticles.tags,
@@ -137,12 +143,19 @@ newsRouter.get("/", async (c) => {
     .innerJoin(users, eq(newsArticles.authorId, users.id))
     .where(eq(newsArticles.status, "published"))
     .orderBy(desc(newsArticles.createdAt));
-  // Tag filter is applied in JS — SQLite JSON1 isn't always present
-  // and the article count is small. Acceptable until the table grows.
+  // Filters applied in JS — SQLite JSON1 isn't always present and the
+  // article count is small. Acceptable until the table grows.
   let rows = baseQuery.all();
   if (tag) {
     const t = tag.toLowerCase();
     rows = rows.filter((r) => parseTags(r.tags).includes(t));
+  }
+  if (style === "research") {
+    rows = rows.filter(
+      (r) =>
+        r.abstract.trim().length > 0 ||
+        parseReferences(r.referencesJson).length > 0,
+    );
   }
 
   // Resolve last-editor usernames in one extra query (only when needed).

@@ -21,7 +21,6 @@ const ACCENT_BORDER: Record<string, string> = {
 interface Props {
   nodes: MasteryNode[];
   nodeMastery: Record<string, number>;
-  lockState: Record<string, boolean>;
   signedIn: boolean;
   // Called when the user clicks a node card.
   onPick: (node: MasteryNode) => void;
@@ -35,13 +34,7 @@ interface Edge {
 // DAG view of the path: one column per level, nodes ordered within
 // each column. Prerequisite edges drawn behind the cards via an SVG
 // overlay that measures real card positions on layout.
-export function PathGraph({
-  nodes,
-  nodeMastery,
-  lockState,
-  signedIn,
-  onPick,
-}: Props) {
+export function PathGraph({ nodes, nodeMastery, signedIn, onPick }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const cardRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
   const [edges, setEdges] = useState<
@@ -163,7 +156,6 @@ export function PathGraph({
             </div>
             {levelNodes.map((n) => {
               const mastery = nodeMastery[n.id] ?? 0;
-              const locked = !!lockState[n.id];
               const completed = mastery >= 100;
               return (
                 <button
@@ -174,21 +166,18 @@ export function PathGraph({
                   }}
                   onClick={() => onPick(n)}
                   className={`w-full text-left p-3 rounded-lg border-2 bg-card transition-all ${
-                    locked
-                      ? "opacity-50 hover:opacity-70 border-dashed border-muted-foreground/30"
-                      : completed
-                        ? "border-emerald-500/60 bg-emerald-500/5"
-                        : `${ACCENT_BORDER[n.level] ?? "border-border"} hover:scale-[1.02]`
+                    completed
+                      ? "border-emerald-500/60 bg-emerald-500/5"
+                      : `${ACCENT_BORDER[n.level] ?? "border-border"} hover:scale-[1.02]`
                   }`}
                 >
                   <div className="flex items-start justify-between gap-1.5">
                     <h4 className="font-medium text-xs leading-tight flex-1">
                       {n.title}
                     </h4>
-                    {locked && <span className="text-xs">🔒</span>}
                     {completed && <span className="text-xs">✓</span>}
                   </div>
-                  {signedIn && !locked && (
+                  {signedIn && (
                     <div className="mt-2">
                       <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                         <div
