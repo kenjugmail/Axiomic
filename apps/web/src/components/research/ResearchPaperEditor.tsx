@@ -8,6 +8,9 @@
 // disclosure for research-question / hypothesis / method / etc.
 
 import { useState } from "react";
+import { Loader2, Wand2 } from "lucide-react";
+import { api } from "../../lib/api";
+import { streamTokens } from "../../lib/streamTokens";
 import {
   Sparkles,
   CheckCircle2,
@@ -84,6 +87,11 @@ export function ResearchPaperEditor({ draft, onChange, slugEditable }: Props) {
   const [activeTier, setActiveTier] = useState<ResearchPaperTier>(
     draft.canonicalTier,
   );
+  // Sprint 24 — tier-derive: streams /ai/paper/derive-tier into the
+  // empty target tier slot. `derivingTier` is the tier we're currently
+  // writing; all derive buttons disable while one is in flight.
+  const [derivingTier, setDerivingTier] =
+    useState<ResearchPaperTier | null>(null);
   const [structureOpen, setStructureOpen] = useState(
     Object.values(draft.paperStructure).some((v) => v && v.length > 0),
   );
@@ -312,11 +320,74 @@ export function ResearchPaperEditor({ draft, onChange, slugEditable }: Props) {
             onClick={() => set("canonicalTier", activeTier)}
             disabled={draft.canonicalTier === activeTier}
             className="text-xs px-2.5 py-1 rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 disabled:opacity-50"
-            title="Mark this tier as the source of truth — wizard tier-derivation reads from here."
+            title="Mark this tier as the source of truth — tier-derivation reads from here."
           >
             <Sparkles className="w-3 h-3 inline mr-1" strokeWidth={2} />
             Mark canonical
           </button>
+          {(["intro", "grad"] as const)
+            .filter((t) => t !== draft.canonicalTier)
+            .map((target) => {
+              const targetField = tierField[target] as
+                | "contentIntro"
+                | "contentUndergrad"
+                | "contentGrad";
+              const hasContent = (draft[targetField] as string).trim().length > 0;
+              const canonicalHasContent =
+                (draft[tierField[draft.canonicalTier]] as string).trim().length > 0;
+              const targetLabel = target === "intro" ? "intro" : "grad";
+              return (
+                <button
+                  key={target}
+                  type="button"
+                  onClick={async () => {
+                    if (derivingTier) return;
+                    if (
+                      hasContent &&
+                      !confirm(
+                        `Replace the existing ${targetLabel} body with an AI-derived version?`,
+                      )
+                    )
+                      return;
+                    setDerivingTier(target);
+                    setActiveTier(target);
+                    const canonicalBody = draft[
+                      tierField[draft.canonicalTier]
+                    ] as string;
+                    try {
+                      const res = await api.ai.paperDeriveTier({
+                        canonicalBody,
+                        canonicalTier: draft.canonicalTier,
+                        targetTier: target,
+                        format: draft.format,
+                      });
+                      await streamTokens({
+                        url: "",
+                        body: undefined,
+                        existingResponse: res,
+                        onToken: (_t, acc) => {
+                          set(targetField as any, acc as any);
+                        },
+                      });
+                    } catch {
+                      // ignore stream errors; partial body stays
+                    } finally {
+                      setDerivingTier(null);
+                    }
+                  }}
+                  disabled={!canonicalHasContent || !!derivingTier}
+                  className="text-xs px-2.5 py-1 rounded-md border border-primary/40 text-primary hover:bg-primary/10 disabled:opacity-50 inline-flex items-center gap-1"
+                  title={`AI-derive ${targetLabel} from the canonical ${draft.canonicalTier} tier`}
+                >
+                  {derivingTier === target ? (
+                    <Loader2 className="w-3 h-3 animate-spin" strokeWidth={2} />
+                  ) : (
+                    <Wand2 className="w-3 h-3" strokeWidth={2} />
+                  )}
+                  Derive {targetLabel}
+                </button>
+              );
+            })}
         </div>
         <p className="text-[11px] text-muted-foreground mb-2">
           {TIER_TABS.find((t) => t.tier === activeTier)?.blurb}

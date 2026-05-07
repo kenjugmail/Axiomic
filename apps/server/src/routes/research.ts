@@ -25,6 +25,7 @@ import {
 } from "@axiomic/db";
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { notify, notifyMentions } from "../lib/notifications";
+import { invalidateSearchIndex } from "../lib/searchIndex";
 import type { Env } from "../env";
 
 export const researchRouter = new Hono<Env>();
@@ -240,6 +241,46 @@ researchRouter.get("/", async (c) => {
       authorDisplayName: r.authorDisplayName,
       createdAt: r.createdAt,
       updatedAt: r.updatedAt,
+    })),
+  });
+});
+
+// GET /research/by-author/:username — published papers by one user.
+researchRouter.get("/by-author/:username", async (c) => {
+  const username = c.req.param("username")!;
+  const db = getDb();
+  const author = db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.username, username))
+    .get();
+  if (!author) return c.json({ papers: [] });
+
+  const rows = db
+    .select({
+      id: researchPapers.id,
+      slug: researchPapers.slug,
+      title: researchPapers.title,
+      summary: researchPapers.summary,
+      format: researchPapers.format,
+      coverEmoji: researchPapers.coverEmoji,
+      accentColor: researchPapers.accentColor,
+      tags: researchPapers.tags,
+      createdAt: researchPapers.createdAt,
+    })
+    .from(researchPapers)
+    .where(
+      and(
+        eq(researchPapers.authorId, author.id),
+        eq(researchPapers.status, "published"),
+      ),
+    )
+    .orderBy(desc(researchPapers.createdAt))
+    .all();
+  return c.json({
+    papers: rows.map((r) => ({
+      ...r,
+      tags: safeParseStrArray(r.tags),
     })),
   });
 });
@@ -479,6 +520,7 @@ researchRouter.post(
       })
       .run();
 
+    invalidateSearchIndex();
     return c.json({ paperId: id, slug: data.slug }, 201);
   },
 );
@@ -535,6 +577,7 @@ researchRouter.put(
       .where(eq(researchPapers.id, existing.id))
       .run();
 
+    invalidateSearchIndex();
     return c.json({ ok: true });
   },
 );

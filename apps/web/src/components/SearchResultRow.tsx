@@ -14,6 +14,8 @@ interface Props {
 export function hrefFor(r: SearchResultItem): string {
   if (r.kind === "page") return `/wiki/${r.slug}`;
   if (r.kind === "lesson") return `/paths/${r.pathSlug}/lessons/${r.nodeSlug}`;
+  if (r.kind === "news") return `/news/${r.slug}`;
+  if (r.kind === "research") return `/research/${r.slug}`;
   return `/forum/t/${r.slug}`;
 }
 
@@ -30,7 +32,11 @@ export function SearchResultRow({
       ? r.category
       : r.kind === "lesson"
         ? "lesson"
-        : `forum · ${r.postType}`;
+        : r.kind === "news"
+          ? "news"
+          : r.kind === "research"
+            ? `research · ${r.format}`
+            : `forum · ${r.postType}`;
   const semanticChip = r.matchedBy === "semantic";
   const bothChip = r.matchedBy === "both";
   const inner = (

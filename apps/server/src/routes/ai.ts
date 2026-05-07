@@ -6,6 +6,7 @@ import { getDb, wikiPages, pageVersions, newsArticles, researchPapers, users } f
 import { eq, desc, sql } from "drizzle-orm";
 import { getSessionUser, requireAuth } from "../middleware/auth";
 import { buildCoachContext, summarizeCoachContext } from "../lib/userContext";
+import { getOrEmbed } from "../lib/embeddingCache";
 
 const ai = new Hono();
 
@@ -1209,44 +1210,43 @@ ai.post(
 
     const db = getDb();
     const haystack = body.toLowerCase();
-    const haystackTokens = new Set(
-      haystack
-        .split(/[^a-z0-9]+/)
-        .filter((t) => t.length > 3),
-    );
+
+    // Sprint 25 — embedding-backed ranking against the wiki corpus.
+    // We embed the query body once, then score each wiki page via the
+    // cache so subsequent calls hit precomputed vectors.
+    const provider = getAIProvider();
+    const queryEmbed = await provider.embed(body.slice(0, 2000));
 
     const pages = db
       .select({
+        id: wikiPages.id,
         slug: wikiPages.slug,
         title: wikiPages.title,
       })
       .from(wikiPages)
       .all();
 
-    const scored = pages
-      .map((p) => {
-        const titleTokens = p.title
-          .toLowerCase()
-          .split(/[^a-z0-9]+/)
-          .filter((t) => t.length > 3);
-        const slugTokens = p.slug
-          .toLowerCase()
-          .split(/-/)
-          .filter((t) => t.length > 3);
-        let score = 0;
-        for (const t of titleTokens) if (haystackTokens.has(t)) score += 2;
-        for (const t of slugTokens) if (haystackTokens.has(t)) score += 1;
-        // Already linked? Skip — author has it.
-        if (haystack.includes(`[[${p.slug}]]`) || haystack.includes(`[[${p.slug}|`)) {
-          score = 0;
-        }
-        return { slug: p.slug, title: p.title, score };
-      })
-      .filter((p) => p.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 6);
-
-    return c.json({ suggestions: scored });
+    const scored: Array<{ slug: string; title: string; score: number }> = [];
+    for (const p of pages) {
+      // Already linked? Skip — author has it.
+      if (
+        haystack.includes(`[[${p.slug}]]`) ||
+        haystack.includes(`[[${p.slug}|`)
+      ) {
+        continue;
+      }
+      const e = await getOrEmbed(
+        "wiki_page",
+        p.id,
+        `${p.title}\n${p.slug.replace(/-/g, " ")}`,
+      );
+      const score = cosineSimilarity(queryEmbed, e);
+      if (score > 0.18) {
+        scored.push({ slug: p.slug, title: p.title, score });
+      }
+    }
+    scored.sort((a, b) => b.score - a.score);
+    return c.json({ suggestions: scored.slice(0, 6) });
   },
 );
 
@@ -1296,6 +1296,8 @@ ai.post(
       .all();
     const corpus = [...articles, ...papers];
 
+    // Sprint 25 — go through the embedding cache instead of
+    // re-computing every corpus embedding on every wizard call.
     const scored: Array<{
       title: string;
       slug: string;
@@ -1303,7 +1305,11 @@ ai.post(
       score: number;
     }> = [];
     for (const item of corpus) {
-      const e = await provider.embed(`${item.title}\n${item.summary}`);
+      const e = await getOrEmbed(
+        item.kind === "news" ? "news_article" : "research_paper",
+        item.id,
+        `${item.title}\n${item.summary}`,
+      );
       scored.push({
         title: item.title,
         slug: item.slug,

@@ -994,10 +994,33 @@ export interface SearchLessonResult {
   matchedBy: SearchMatchedBy;
 }
 
+export interface SearchNewsResult {
+  kind: "news";
+  id: string;
+  slug: string;
+  title: string;
+  snippet: string;
+  score: number;
+  matchedBy: SearchMatchedBy;
+}
+
+export interface SearchResearchResult {
+  kind: "research";
+  id: string;
+  slug: string;
+  title: string;
+  format: string;
+  snippet: string;
+  score: number;
+  matchedBy: SearchMatchedBy;
+}
+
 export type SearchResultItem =
   | SearchPageResult
   | SearchTopicResult
-  | SearchLessonResult;
+  | SearchLessonResult
+  | SearchNewsResult
+  | SearchResearchResult;
 
 export interface SearchResponse {
   query: string;

@@ -671,6 +671,20 @@ export const api = {
     },
     drafts: () =>
       request<ResearchPapersDraftsResponse>("/research/me/drafts"),
+    byAuthor: (username: string) =>
+      request<{
+        papers: Array<{
+          id: string;
+          slug: string;
+          title: string;
+          summary: string;
+          format: string;
+          coverEmoji: string;
+          accentColor: string;
+          tags: string[];
+          createdAt: string;
+        }>;
+      }>(`/research/by-author/${encodeURIComponent(username)}`),
     get: (slug: string, tier?: "intro" | "undergrad" | "grad") => {
       const qs = tier ? `?tier=${tier}` : "";
       return request<ResearchPaperResponse>(`/research/${slug}${qs}`);

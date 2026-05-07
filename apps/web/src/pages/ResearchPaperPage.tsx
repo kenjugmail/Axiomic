@@ -338,6 +338,8 @@ export function ResearchPaperPage() {
             codeKernelKey={`paper:${paper.slug}`}
             codeAuthorUsername={paper.authorUsername}
             codeViewerUsername={user?.username ?? null}
+            numberFigures
+            linkCitations={paper.references.length > 0}
           />
         ) : (
           <p className="text-sm text-muted-foreground italic">
@@ -356,7 +358,8 @@ export function ResearchPaperPage() {
             {paper.references.map((r, i) => (
               <li
                 key={r.label ?? String(i + 1)}
-                className="grid grid-cols-[2.5rem_1fr] gap-1 leading-relaxed"
+                id={`ref-${r.label ?? i + 1}`}
+                className="grid grid-cols-[2.5rem_1fr] gap-1 leading-relaxed scroll-mt-20"
               >
                 <span className="font-mono text-xs text-muted-foreground tabular-nums">
                   [{r.label ?? i + 1}]

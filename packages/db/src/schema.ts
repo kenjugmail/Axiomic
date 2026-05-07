@@ -799,6 +799,29 @@ export const attachments = sqliteTable(
   }),
 );
 
+// Sprint 25 — embedding cache. Stores per-(corpusKind, corpusId)
+// vector embeddings keyed by a content hash so the wizard's
+// suggest-references / suggest-concepts endpoints don't re-embed the
+// entire corpus on every call. Cache misses fall back to live
+// embed-and-store.
+export const cachedEmbeddings = sqliteTable(
+  "cached_embeddings",
+  {
+    corpusKind: text("corpus_kind").notNull(),
+    corpusId: text("corpus_id").notNull(),
+    // Hash of (title + body slice) — when the source content changes
+    // the hash changes too, so a stale cache entry is detected and
+    // re-embedded on the next read.
+    contentHash: text("content_hash").notNull(),
+    // JSON-serialized number[] vector.
+    vectorJson: text("vector_json").notNull(),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    pk: uniqueIndex("cached_embeddings_pk").on(t.corpusKind, t.corpusId),
+  }),
+);
+
 // Research papers (Sprint 20). Distinct from news_articles in three
 // concrete ways:
 //
