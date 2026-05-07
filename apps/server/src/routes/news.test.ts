@@ -1094,6 +1094,46 @@ describe("news reproducibility receipts (Sprint 15)", () => {
   });
 });
 
+describe("news cross-links (Sprint 16)", () => {
+  test("article body with [[slug]] mentions populates relatedWikiPages on GET", async () => {
+    const author = await signup("xl_a");
+    const slug = `xl-mention-${testId}`;
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({
+        slug,
+        title: "On attention",
+        summary: "",
+        body: "We rely on [[attention]] heavily here, and also link to /wiki/softmax for the surrounding context.",
+      }),
+    });
+    const fetched = await req(`/news/${slug}`);
+    const ab = (await fetched.json()) as { article: any };
+    const slugs = (ab.article.relatedWikiPages ?? []).map((w: any) => w.slug);
+    expect(slugs).toContain("attention");
+    expect(slugs).toContain("softmax");
+  });
+
+  test("article body with no concept references returns empty relatedWikiPages", async () => {
+    const author = await signup("xl_e");
+    const slug = `xl-empty-${testId}`;
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({
+        slug,
+        title: "No mentions",
+        summary: "",
+        body: "Just plain prose, no concept links.",
+      }),
+    });
+    const fetched = await req(`/news/${slug}`);
+    const ab = (await fetched.json()) as { article: any };
+    expect(ab.article.relatedWikiPages).toEqual([]);
+  });
+});
+
 describe("news related", () => {
   test("returns up to 4 articles, excluding the current one", async () => {
     const author = await signup("rel_a");

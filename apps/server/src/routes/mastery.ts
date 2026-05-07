@@ -22,6 +22,7 @@ import { requireAuth, getSessionUser } from "../middleware/auth";
 import { notify } from "../lib/notifications";
 import { recordActivityAndEvaluate } from "../lib/achievements";
 import { invalidateSearchIndex } from "../lib/searchIndex";
+import { forumTopicsForNode } from "../lib/crossLinks";
 import type { Env } from "../env";
 
 const mastery = new Hono<Env>();
@@ -96,6 +97,9 @@ mastery.get("/paths/:slug", async (c) => {
   const nodes = rawNodes.map((n) => {
     const pageIds = JSON.parse(n.pageIds);
     const prerequisiteNodeIds = JSON.parse(n.prerequisiteNodeIds);
+    // Sprint 16 — surface up to 3 forum topics tagged to this node's
+    // wiki pages. Lets the path overview show "Discuss" chips inline.
+    const linkedTopics = forumTopicsForNode(n.id, 3);
     return {
       ...n,
       pageIds,
@@ -104,6 +108,7 @@ mastery.get("/paths/:slug", async (c) => {
       lessonData: undefined,
       quizData: undefined,
       estimatedMinutes: estimateMinutes(n, pageIds),
+      linkedTopics,
     };
   });
 

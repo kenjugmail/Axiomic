@@ -54,6 +54,18 @@ export interface MasteryPath {
   description: string;
 }
 
+// Lightweight forum topic shape used in cross-link rails (no
+// per-topic vote counts or scores; just enough for the chip).
+export interface LinkedTopicLite {
+  id: string;
+  slug: string;
+  title: string;
+  postType: string;
+  authorUsername: string;
+  postCount: number;
+  lastActivityAt: string;
+}
+
 export interface MasteryNode {
   id: string;
   slug: string;
@@ -68,6 +80,10 @@ export interface MasteryNode {
   // Cheap server-side estimate (minutes). Defaults to undefined for
   // older callers that haven't fetched the enriched payload.
   estimatedMinutes?: number;
+  // Sprint 16 — forum threads tagged to any wiki page in this node's
+  // pageIds. Capped at 3 per node server-side; clients show "Discuss"
+  // chips inline.
+  linkedTopics?: LinkedTopicLite[];
 }
 
 export interface UserNodeProgress {
@@ -309,12 +325,43 @@ export interface WikiCategoriesResponse {
   categories: string[];
 }
 
+// Sprint 16 — flywheel cross-link bundles surfaced on the wiki page
+// so the reader sees "practice this in node X" and "article Y cites
+// this concept" without round-tripping. Each list capped at 5
+// server-side; older clients that don't render them simply ignore.
+export interface LinkedNodeSummary {
+  nodeId: string;
+  nodeSlug: string;
+  pathSlug: string;
+  pathTitle: string;
+  title: string;
+  level: string;
+  hasLesson: boolean;
+}
+
+export interface LinkedArticleSummary {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  authorUsername: string;
+  coverEmoji: string;
+  accentColor: string;
+}
+
+export interface LinkedWikiPageSummary {
+  slug: string;
+  title: string;
+}
+
 export interface WikiPageResponse {
   page: WikiPage;
   content: string;
   allContent?: { intro: string; undergrad: string; grad: string };
   versions: PageVersion[];
   linkedTopics?: ForumTopicSummary[];
+  linkedNodes?: LinkedNodeSummary[];
+  linkedArticles?: LinkedArticleSummary[];
 }
 
 export interface WikiUpdateResponse {
@@ -491,6 +538,10 @@ export interface ForumTopicDetail extends ForumTopicSummary {
   myReactions: Record<NewsReactionKind, boolean> | null;
   myBookmark: boolean;
   poll: ForumPoll | null;
+  // Sprint 16 — mastery nodes that teach the wiki page this topic is
+  // tagged to. Populated only when the topic has a wikiPageId. Reader
+  // can drop into the lesson if they're missing prerequisites.
+  linkedNodes?: LinkedNodeSummary[];
 }
 
 export interface ReputationByDomain {
@@ -863,6 +914,11 @@ export interface NewsArticle extends NewsArticleSummary {
   // is shown vs replaced with a "you already filed a receipt" hint.
   artifacts: RunnableArtifact[];
   reproStats: ReproStats;
+  // Sprint 16 — wiki concepts referenced in the article body, top N
+  // by mention count. Used by the article view's "Background concepts"
+  // rail. Empty when no `[[slug]]` or `/wiki/{slug}` references
+  // appear.
+  relatedWikiPages: LinkedWikiPageSummary[];
 }
 
 export interface NewsTagCount {

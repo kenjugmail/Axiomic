@@ -9,6 +9,7 @@ import {
 import type { ForumPoll, NewsReactionKind } from "@axiomic/types";
 import { useAuthStore } from "../stores/auth";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
+import { RelatedRail } from "../components/cross/RelatedRail";
 import { RichComposer } from "../components/composer/RichComposer";
 import { PostTypeBadge } from "../components/PostTypeBadge";
 import { PollEmbed } from "../components/forum/PollEmbed";
@@ -268,6 +269,19 @@ export function ForumTopicPage() {
             </div>
           )}
         </div>
+      )}
+
+      {/* Sprint 16 — "Practice this" rail when this topic discusses a
+          wiki concept that's also taught in mastery nodes. Lets a
+          reader who's missing background drop into the lesson before
+          weighing in. Hidden when no nodes link in. */}
+      {topic.linkedNodes && topic.linkedNodes.length > 0 && (
+        <RelatedRail
+          title="Background lesson"
+          icon="lesson"
+          items={topic.linkedNodes.map((n) => ({ kind: "node" as const, ...n }))}
+          emptyHint={null}
+        />
       )}
 
       {/* Replies */}

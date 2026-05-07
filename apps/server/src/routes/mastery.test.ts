@@ -851,3 +851,33 @@ describe("Mastery: lesson drafts + reports + edits feed", () => {
     }
   });
 });
+
+describe("Cross-link bundles (Sprint 16)", () => {
+  test("GET /mastery/paths/ml-engineer carries linkedTopics on each node", async () => {
+    const res = await req("/mastery/paths/ml-engineer");
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as any;
+    expect(Array.isArray(data.nodes)).toBe(true);
+    expect(data.nodes.length).toBeGreaterThan(0);
+    for (const n of data.nodes) {
+      expect(Array.isArray(n.linkedTopics)).toBe(true);
+    }
+  });
+
+  test("GET /wiki/attention surfaces linkedNodes/linkedArticles arrays", async () => {
+    const res = await req("/wiki/attention");
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as any;
+    expect(Array.isArray(data.linkedNodes)).toBe(true);
+    expect(Array.isArray(data.linkedArticles)).toBe(true);
+    // The seeded ml-engineer path has at least one node whose pageIds
+    // includes "attention" (attention-intro), so this should be
+    // non-empty in the canonical seed.
+    if (data.linkedNodes.length > 0) {
+      const first = data.linkedNodes[0];
+      expect(typeof first.nodeSlug).toBe("string");
+      expect(typeof first.pathSlug).toBe("string");
+      expect(typeof first.title).toBe("string");
+    }
+  });
+});

@@ -6,6 +6,7 @@ import { eq, like, or, desc, sql, count } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { requireAuth } from "../middleware/auth";
 import { invalidateSearchIndex } from "../lib/searchIndex";
+import { nodesForWikiSlug, articlesForWikiSlug } from "../lib/crossLinks";
 import type { Env } from "../env";
 
 const wiki = new Hono<Env>();
@@ -169,12 +170,20 @@ wiki.get("/:slug", async (c) => {
     };
   });
 
+  // Sprint 16 — flywheel cross-links: which mastery nodes teach this
+  // concept, and which published articles cite it. Both lists capped
+  // at 5 server-side; client paginates with a "see all" search query.
+  const linkedNodes = nodesForWikiSlug(page.slug);
+  const linkedArticles = articlesForWikiSlug(page.slug);
+
   return c.json({
     page,
     content: contentMap[tier] || contentMap.intro,
     allContent: contentMap,
     versions,
     linkedTopics,
+    linkedNodes,
+    linkedArticles,
   });
 });
 

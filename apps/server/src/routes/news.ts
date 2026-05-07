@@ -22,6 +22,7 @@ import { requireAuth, getSessionUser } from "../middleware/auth";
 import { notify, notifyMentions } from "../lib/notifications";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import { publishToArticle } from "../lib/liveBus";
+import { wikiPagesForArticle } from "../lib/crossLinks";
 import type { Env } from "../env";
 
 export const newsRouter = new Hono<Env>();
@@ -375,6 +376,9 @@ newsRouter.get("/:slug", async (c) => {
     .orderBy(asc(runnableArtifacts.createdAt))
     .all();
 
+  // Sprint 16 — related wiki pages cited by this article.
+  const relatedWikiPages = wikiPagesForArticle(row.id);
+
   const reproRows = db
     .select({ status: reproductions.status, reproducerId: reproductions.reproducerId })
     .from(reproductions)
@@ -421,6 +425,7 @@ newsRouter.get("/:slug", async (c) => {
       derivedLesson,
       artifacts,
       reproStats,
+      relatedWikiPages,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     },

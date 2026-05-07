@@ -12,6 +12,7 @@ import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { AiArticleHelpers } from "../components/news/AiArticleHelpers";
 import { ArticleTOC } from "../components/news/ArticleTOC";
 import { ArtifactsSection } from "../components/news/ArtifactsSection";
+import { RelatedRail } from "../components/cross/RelatedRail";
 import { ClaimSelectionPopover } from "../components/news/ClaimSelectionPopover";
 import { ClaimThreadPanel } from "../components/news/ClaimThreadPanel";
 import { LessonFromArticleDialog } from "../components/news/LessonFromArticleDialog";
@@ -412,6 +413,18 @@ export function NewsArticlePage() {
           onChange={(artifacts) => setArticle({ ...article, artifacts })}
         />
       )}
+
+      {/* Sprint 16 — wiki concepts referenced in the body. Hides itself
+          when there are no `[[slug]]` mentions. */}
+      <RelatedRail
+        title="Background concepts"
+        icon="wiki"
+        items={(article.relatedWikiPages ?? []).map((w) => ({
+          kind: "wiki" as const,
+          ...w,
+        }))}
+        emptyHint={null}
+      />
 
       {user && !article.isAuthor && (
         <div className="mt-6">
