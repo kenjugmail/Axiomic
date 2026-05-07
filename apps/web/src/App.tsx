@@ -190,6 +190,10 @@ const PaperVersionPage = lazy(() =>
 const ArgumentMapPage = lazy(() =>
   import("./pages/ArgumentMapPage").then((m) => ({ default: m.ArgumentMapPage })),
 );
+// Sprint 37 — Public transcript verifier (paste-and-check).
+const VerifyPage = lazy(() =>
+  import("./pages/VerifyPage").then((m) => ({ default: m.VerifyPage })),
+);
 
 function PageFallback() {
   return (
@@ -246,6 +250,7 @@ export function App() {
           <Route path="/forum/bookmarks" element={<ForumBookmarksPage />} />
           <Route path="/forum/t/:slug" element={<ForumTopicPage />} />
           <Route path="/forum/graph" element={<ArgumentMapPage />} />
+          <Route path="/verify" element={<VerifyPage />} />
           <Route path="/forum/:domain" element={<ForumListPage />} />
           <Route path="/news" element={<NewsListPage />} />
           <Route path="/news/new" element={<NewsNewPage />} />

@@ -12,6 +12,7 @@ import type { CapstoneArtifactPage } from "@axiomic/types";
 import { api } from "../lib/api";
 import { Skeleton } from "../components/ui";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
+import { VerifiedBadge } from "../components/transcripts/VerifiedBadge";
 
 export function CapstoneArtifactPageView() {
   const { artifactSlug = "" } = useParams<{ artifactSlug: string }>();
@@ -78,12 +79,15 @@ export function CapstoneArtifactPageView() {
             Copy link
           </button>
         </div>
-        <div className="rounded-md bg-emerald-500/10 border border-emerald-500/30 px-3 py-2 mt-4 inline-flex items-center gap-2 text-xs">
-          <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-          <span className="text-emerald-700 dark:text-emerald-300">
-            {submissions.length} milestone{submissions.length === 1 ? "" : "s"} passed —
-            verified by AI grader
-          </span>
+        <div className="flex flex-wrap items-center gap-2 mt-4">
+          <div className="rounded-md bg-emerald-500/10 border border-emerald-500/30 px-3 py-2 inline-flex items-center gap-2 text-xs">
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            <span className="text-emerald-700 dark:text-emerald-300">
+              {submissions.length} milestone{submissions.length === 1 ? "" : "s"} passed —
+              verified by AI grader
+            </span>
+          </div>
+          <VerifiedBadge artifactSlug={enrollment.artifactPageSlug} />
         </div>
       </header>
 

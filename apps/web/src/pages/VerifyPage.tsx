@@ -1,0 +1,281 @@
+// Sprint 37 — Public transcript verifier.
+//
+// /verify lets anyone paste a signed transcript JSON and check the
+// signature against this server's published public key (or against a
+// caller-supplied key in the bundle). The actual ed25519 verification
+// happens server-side at /api/v1/keys/verify, so this page is a thin
+// shell around POSTing the bundle and rendering the result.
+
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  AlertTriangle,
+  Check,
+  Copy,
+  KeyRound,
+  Network,
+  ShieldCheck,
+  Upload,
+  X,
+} from "lucide-react";
+
+interface VerifyResult {
+  valid: boolean;
+  publicKey?: string;
+  canonicalPayload?: string;
+  error?: string;
+}
+
+export function VerifyPage() {
+  const [text, setText] = useState("");
+  const [result, setResult] = useState<VerifyResult | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [serverKey, setServerKey] = useState<string | null>(null);
+  const [keyCopied, setKeyCopied] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/v1/keys/signing")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((r) => {
+        if (r?.publicKey) setServerKey(r.publicKey);
+      })
+      .catch(() => {});
+  }, []);
+
+  const onVerify = async () => {
+    setError("");
+    setResult(null);
+    setBusy(true);
+    try {
+      let parsed: any;
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        throw new Error("That isn't valid JSON.");
+      }
+      if (!parsed || typeof parsed !== "object" || !parsed.manifest || !parsed.signature) {
+        throw new Error(
+          'Bundle must include both "manifest" and "signature".',
+        );
+      }
+      const res = await fetch("/api/v1/keys/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          manifest: parsed.manifest,
+          signature: parsed.signature,
+          publicKey: parsed.publicKey,
+        }),
+      });
+      const data = (await res.json()) as VerifyResult;
+      setResult(data);
+    } catch (e: any) {
+      setError(e?.message ?? "Failed to verify");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onPasteSample = () => {
+    setText("");
+    setResult(null);
+    setError("");
+  };
+
+  const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setText(await f.text());
+  };
+
+  const copyServerKey = async () => {
+    if (!serverKey) return;
+    try {
+      await navigator.clipboard.writeText(serverKey);
+      setKeyCopied(true);
+      setTimeout(() => setKeyCopied(false), 1500);
+    } catch {}
+  };
+
+  const manifest = result?.valid ? safeParse(result.canonicalPayload) : null;
+
+  return (
+    <div className="max-w-2xl mx-auto px-4 py-8">
+      <h1 className="font-display text-3xl font-semibold tracking-tight inline-flex items-center gap-2">
+        <ShieldCheck className="w-6 h-6 text-primary" strokeWidth={2} />
+        Verify a transcript
+      </h1>
+      <p className="text-sm text-muted-foreground mt-2 max-w-prose">
+        Paste a signed capstone transcript below. Signatures are
+        ed25519. The bundle's <code className="px-1 py-0.5 rounded bg-muted text-[11px]">publicKey</code> field is checked
+        against the issuer; you can also pin to this Axiomic instance's
+        published key.
+      </p>
+
+      <div className="mt-6 rounded-lg border border-border bg-card p-3">
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            Transcript JSON
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-xs px-2 py-1 rounded-md border border-border hover:bg-accent/40 cursor-pointer inline-flex items-center gap-1">
+              <Upload className="w-3 h-3" strokeWidth={2} />
+              Upload
+              <input
+                type="file"
+                accept="application/json"
+                className="sr-only"
+                onChange={onFile}
+              />
+            </label>
+            <button
+              type="button"
+              onClick={onPasteSample}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder='Paste {"manifest":...,"signature":"...","publicKey":"..."}'
+          className="w-full h-64 px-3 py-2 text-xs font-mono rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+        <div className="flex justify-end mt-2">
+          <button
+            type="button"
+            onClick={onVerify}
+            disabled={busy || !text.trim()}
+            className="text-sm px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          >
+            {busy ? "Checking…" : "Verify signature"}
+          </button>
+        </div>
+      </div>
+
+      {error && (
+        <p className="mt-4 text-sm text-rose-600 dark:text-rose-400 inline-flex items-center gap-2">
+          <X className="w-4 h-4" strokeWidth={2} />
+          {error}
+        </p>
+      )}
+
+      {result && (
+        <div
+          className={`mt-4 rounded-md border p-4 ${
+            result.valid
+              ? "border-emerald-500/40 bg-emerald-500/10"
+              : "border-rose-500/40 bg-rose-500/10"
+          }`}
+        >
+          <div
+            className={`text-sm font-semibold inline-flex items-center gap-2 ${
+              result.valid
+                ? "text-emerald-700 dark:text-emerald-300"
+                : "text-rose-700 dark:text-rose-300"
+            }`}
+          >
+            {result.valid ? (
+              <>
+                <ShieldCheck className="w-4 h-4" strokeWidth={2} />
+                Signature valid
+              </>
+            ) : (
+              <>
+                <AlertTriangle className="w-4 h-4" strokeWidth={2} />
+                Signature INVALID
+              </>
+            )}
+          </div>
+          {result.valid && manifest && (
+            <div className="text-xs text-foreground/80 mt-2 space-y-1">
+              <div>
+                <strong>{manifest.capstone?.title}</strong> · v
+                {manifest.capstone?.version}
+              </div>
+              <div>
+                Completed by{" "}
+                <strong>
+                  @{manifest.learner?.username ?? "unknown"}
+                </strong>{" "}
+                on{" "}
+                {manifest.completedAt
+                  ? new Date(manifest.completedAt).toLocaleDateString()
+                  : "—"}
+              </div>
+              <div>
+                {(manifest.milestones ?? []).length} milestones · issued
+                by {manifest.issuer ?? "unknown"}
+              </div>
+              {manifest.artifactUrl && (
+                <div>
+                  <a
+                    href={manifest.artifactUrl}
+                    className="text-primary hover:underline"
+                  >
+                    Open artifact page →
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
+          {!result.valid && (
+            <p className="text-xs text-foreground/80 mt-1">
+              The signature does not match the manifest bytes. The
+              transcript was either modified after signing or signed by
+              a different issuer than the public key supplied.
+            </p>
+          )}
+        </div>
+      )}
+
+      <section className="mt-10 pt-6 border-t border-border">
+        <h2 className="text-sm font-semibold inline-flex items-center gap-2">
+          <KeyRound className="w-4 h-4 text-primary" strokeWidth={2} />
+          This server's signing key
+        </h2>
+        <p className="text-xs text-muted-foreground mt-1">
+          Pin this hex to your records. Any transcript signed by this
+          Axiomic instance will verify against it.
+        </p>
+        <div className="mt-2 rounded-md border border-border p-2 bg-muted/30 flex items-center gap-2">
+          <code className="text-[11px] font-mono break-all flex-1">
+            {serverKey ?? "loading…"}
+          </code>
+          {serverKey && (
+            <button
+              type="button"
+              onClick={copyServerKey}
+              className="shrink-0 text-xs px-2 py-1 rounded border border-border hover:bg-accent/40 inline-flex items-center gap-1"
+            >
+              {keyCopied ? (
+                <Check className="w-3 h-3" strokeWidth={2} />
+              ) : (
+                <Copy className="w-3 h-3" strokeWidth={2} />
+              )}
+              {keyCopied ? "Copied" : "Copy"}
+            </button>
+          )}
+        </div>
+        <p className="text-[11px] text-muted-foreground mt-3">
+          See also:{" "}
+          <Link to="/capstones" className="text-primary hover:underline">
+            <Network className="w-3 h-3 inline -mt-0.5" /> Capstones gallery
+          </Link>
+        </p>
+      </section>
+    </div>
+  );
+}
+
+function safeParse(s: string | undefined): any {
+  if (!s) return null;
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+}

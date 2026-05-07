@@ -38,6 +38,8 @@ import {
   type CitationSource,
 } from "../lib/citations";
 import { snapshotCapstone } from "../lib/versionSnapshots";
+import { buildTranscriptManifest } from "../lib/transcripts";
+import { canonicalJson, publicKeyHex, sign } from "../lib/signing";
 import type { Env } from "../env";
 
 export const capstonesRouter = new Hono<Env>();
@@ -340,6 +342,39 @@ capstonesRouter.get("/me/enrollments", requireAuth, async (c) => {
   });
 
   return c.json({ enrollments: result });
+});
+
+// Sprint 37 — Capstone artifact transcripts. The unsigned manifest
+// is the canonical record; the signed transcript bundles {manifest,
+// signature, publicKey} so anyone can verify the bytes against our
+// ed25519 public key. Both endpoints are public.
+capstonesRouter.get("/c/:artifactSlug/manifest", async (c) => {
+  const artifactSlug = c.req.param("artifactSlug")!;
+  const manifest = buildTranscriptManifest(artifactSlug);
+  if (!manifest) return c.json({ error: "Artifact not found" }, 404);
+  // Return the canonical (sorted-key) JSON so verifiers see the exact
+  // bytes the server would have signed.
+  return new Response(canonicalJson(manifest), {
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "public, max-age=60",
+    },
+  });
+});
+
+capstonesRouter.get("/c/:artifactSlug/transcript", async (c) => {
+  const artifactSlug = c.req.param("artifactSlug")!;
+  const manifest = buildTranscriptManifest(artifactSlug);
+  if (!manifest) return c.json({ error: "Artifact not found" }, 404);
+  const payload = canonicalJson(manifest);
+  const signature = sign(payload);
+  return c.json({
+    manifest,
+    signature,
+    publicKey: publicKeyHex(),
+    algorithm: "ed25519",
+    canonicalPayload: payload,
+  });
 });
 
 // GET /capstones/c/:artifactSlug — public portfolio page.

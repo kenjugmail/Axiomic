@@ -29,6 +29,12 @@ import { usersRouter } from "./routes/users";
 import { prewarmSearchIndex } from "./lib/searchIndex";
 import { userFromCookieHeader } from "./middleware/auth";
 import { attachUser, detach, subscribeArticle } from "./lib/liveBus";
+import {
+  canonicalJson,
+  publicKeyHex,
+  verify,
+  verifyWithPublicKey,
+} from "./lib/signing";
 import type { Env } from "./env";
 
 const app = new Hono<Env>().basePath("/api/v1");
@@ -37,6 +43,46 @@ app.use("*", cors({ origin: "http://localhost:5173", credentials: true }));
 app.use("*", logger());
 
 app.get("/health", (c) => c.json({ status: "ok", timestamp: new Date().toISOString() }));
+
+// Sprint 37 — Public signing key for transcript verification.
+// Returns the raw 32-byte ed25519 public key as lowercase hex so any
+// external verifier can re-check a transcript signature without the
+// server's involvement.
+app.get("/keys/signing", (c) =>
+  c.json({ algorithm: "ed25519", publicKey: publicKeyHex() }),
+);
+
+// Sprint 37 — Verify a posted transcript bundle. Accepts the same
+// shape returned by /capstones/c/:slug/transcript: { manifest,
+// signature, publicKey? }. When `publicKey` is present we verify
+// against that key (so a verifier can confirm a manifest matches a
+// specific instance's pinned key); otherwise we use this server's key.
+app.post("/keys/verify", async (c) => {
+  let body: any;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ valid: false, error: "Invalid JSON body" }, 400);
+  }
+  const manifest = body?.manifest;
+  const signature = body?.signature;
+  const claimedPublicKey: string | undefined = body?.publicKey;
+  if (!manifest || typeof signature !== "string") {
+    return c.json(
+      { valid: false, error: "Missing manifest or signature" },
+      400,
+    );
+  }
+  const payload = canonicalJson(manifest);
+  const valid = claimedPublicKey
+    ? verifyWithPublicKey(payload, signature, claimedPublicKey)
+    : verify(payload, signature);
+  return c.json({
+    valid,
+    publicKey: claimedPublicKey ?? publicKeyHex(),
+    canonicalPayload: payload,
+  });
+});
 
 app.get("/ready", async (c) => {
   let dbOk = false;
