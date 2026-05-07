@@ -425,12 +425,13 @@ function PostItem({
           </div>
           {replying && (
             <div className="mt-2">
-              <textarea
+              <RichComposer
                 value={replyBody}
-                onChange={(e) => setReplyBody(e.target.value)}
+                onChange={setReplyBody}
                 rows={3}
                 placeholder="Write a reply…"
-                className="w-full px-2 py-1.5 rounded-md border border-input bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                compact
+                showVizButton={false}
               />
               <div className="flex gap-2 mt-1">
                 <button

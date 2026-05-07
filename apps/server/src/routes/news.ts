@@ -14,7 +14,7 @@ import {
 import { and, count, desc, eq, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { requireAuth, getSessionUser } from "../middleware/auth";
-import { notify } from "../lib/notifications";
+import { notify, notifyMentions } from "../lib/notifications";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import { publishToArticle } from "../lib/liveBus";
 import type { Env } from "../env";
@@ -1019,11 +1019,22 @@ newsRouter.post(
       content,
     }).run();
 
+    // Fire mention notifications first so we can avoid double-notifying
+    // a user who is *also* the parent / article author.
+    const mentioned = await notifyMentions({
+      body: content,
+      actorId: user.id,
+      subjectType: "news_comment",
+      subjectId: id,
+      contextSlug: slug,
+      preview: previewFrom(content),
+    });
+
     // Fire reply / mention notifications. Reuse the existing kinds so
     // the bell + page render uniformly. contextSlug carries the
     // article slug so the deep-link helper can construct
     // /news/{slug}#comment-{id}.
-    if (parentAuthorId) {
+    if (parentAuthorId && !mentioned.has(parentAuthorId)) {
       await notify({
         recipientId: parentAuthorId,
         actorId: user.id,
@@ -1033,7 +1044,11 @@ newsRouter.post(
         contextSlug: slug,
         preview: previewFrom(content),
       });
-    } else if (article.authorId !== user.id) {
+    } else if (
+      !parentAuthorId &&
+      article.authorId !== user.id &&
+      !mentioned.has(article.authorId)
+    ) {
       // Top-level comment on someone else's article — notify the author.
       await notify({
         recipientId: article.authorId,

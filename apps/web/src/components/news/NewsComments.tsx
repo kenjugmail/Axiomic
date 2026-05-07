@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
 import type { NewsCommentNode } from "@axiomic/types";
 import { MarkdownRenderer } from "../MarkdownRenderer";
+import { RichComposer } from "../composer/RichComposer";
 import { useAuthStore } from "../../stores/auth";
 
 function timeAgo(iso: string): string {
@@ -112,11 +113,12 @@ export function NewsComments({ articleSlug }: Props) {
         </div>
         {isEditing ? (
           <div className="mt-2 space-y-2">
-            <textarea
+            <RichComposer
               value={editDraft}
-              onChange={(e) => setEditDraft(e.target.value)}
+              onChange={setEditDraft}
               rows={3}
-              className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm resize-y focus:outline-none focus:ring-2 focus:ring-ring"
+              compact
+              showVizButton={false}
             />
             <div className="flex items-center gap-2">
               <button
@@ -175,12 +177,13 @@ export function NewsComments({ articleSlug }: Props) {
         )}
         {replyTo === c.id && (
           <div className="mt-2 space-y-2">
-            <textarea
+            <RichComposer
               value={replyDraft}
-              onChange={(e) => setReplyDraft(e.target.value)}
+              onChange={setReplyDraft}
               rows={2}
               placeholder={`Reply to @${c.username}…`}
-              className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm resize-y focus:outline-none focus:ring-2 focus:ring-ring"
+              compact
+              showVizButton={false}
             />
             <button
               onClick={() => post(replyDraft, c.id)}
@@ -208,12 +211,13 @@ export function NewsComments({ articleSlug }: Props) {
 
       {user ? (
         <div className="space-y-2 mb-6">
-          <textarea
+          <RichComposer
             value={draft}
-            onChange={(e) => setDraft(e.target.value)}
+            onChange={setDraft}
             rows={3}
             placeholder="Share your thoughts on this article…"
-            className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm resize-y focus:outline-none focus:ring-2 focus:ring-ring"
+            compact
+            showVizButton={false}
           />
           <button
             onClick={() => post(draft)}

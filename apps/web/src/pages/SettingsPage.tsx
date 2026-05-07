@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { useThemeStore } from "../stores/theme";
@@ -174,6 +174,19 @@ export function SettingsPage() {
           <span className="text-xs text-muted-foreground">Saved.</span>
         )}
       </div>
+
+      <section className="space-y-2 pt-6 border-t border-border">
+        <h2 className="text-lg font-semibold">Storage</h2>
+        <p className="text-sm text-muted-foreground">
+          <Link
+            to="/settings/attachments"
+            className="text-primary hover:underline"
+          >
+            Manage attachments
+          </Link>{" "}
+          you've uploaded across articles, lessons, posts, and comments.
+        </p>
+      </section>
     </div>
   );
 }

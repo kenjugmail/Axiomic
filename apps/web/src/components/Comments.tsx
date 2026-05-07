@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { api, type Comment } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { MarkdownRenderer } from "./MarkdownRenderer";
+import { RichComposer } from "./composer/RichComposer";
 
 interface CommentsProps {
   pageId: string;
@@ -61,12 +62,13 @@ export function Comments({ pageId }: CommentsProps) {
       {/* New comment form */}
       {user ? (
         <div className="mb-6">
-          <textarea
+          <RichComposer
             value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
+            onChange={setNewComment}
             placeholder="Share your thoughts... (Markdown and LaTeX supported)"
             rows={3}
-            className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+            compact
+            showVizButton={false}
           />
           <div className="flex justify-end mt-2">
             <button
@@ -206,12 +208,13 @@ function CommentItem({
           {/* Reply form */}
           {replying && (
             <div className="mt-2">
-              <textarea
+              <RichComposer
                 value={replyContent}
-                onChange={(e) => setReplyContent(e.target.value)}
+                onChange={setReplyContent}
                 placeholder="Write a reply..."
                 rows={2}
-                className="w-full px-2 py-1.5 rounded-md border border-input bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                compact
+                showVizButton={false}
               />
               <div className="flex gap-2 mt-1">
                 <button

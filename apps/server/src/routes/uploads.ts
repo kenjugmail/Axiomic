@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
-import { mkdir, writeFile, readFile } from "fs/promises";
+import { mkdir, writeFile, readFile, unlink } from "fs/promises";
 import path from "path";
 import { getDb, attachments, users } from "@axiomic/db";
 import { requireAuth } from "../middleware/auth";
@@ -166,6 +166,34 @@ uploadsRouter.get("/", requireAuth, async (c) => {
   return c.json({
     attachments: rows.map((r) => ({ ...r, url: `/api/v1/uploads/${r.id}` })),
   });
+});
+
+uploadsRouter.delete("/:id", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const id = c.req.param("id")!;
+  const db = getDb();
+
+  const row = db
+    .select({
+      id: attachments.id,
+      ownerId: attachments.ownerId,
+      storagePath: attachments.storagePath,
+    })
+    .from(attachments)
+    .where(eq(attachments.id, id))
+    .get();
+  if (!row) return c.json({ error: "Not found" }, 404);
+  if (row.ownerId !== user.id) return c.json({ error: "Forbidden" }, 403);
+
+  // Remove the row first; if the FS delete fails (e.g. file already
+  // missing) we still want the row gone so the user's quota frees up.
+  db.delete(attachments).where(eq(attachments.id, id)).run();
+  try {
+    await unlink(path.join(uploadsRoot(), row.storagePath));
+  } catch {
+    // file may already be gone
+  }
+  return c.json({ ok: true });
 });
 
 // Suppress unused users warning — kept around for future joining.
