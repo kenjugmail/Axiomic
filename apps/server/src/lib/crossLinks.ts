@@ -273,5 +273,104 @@ export function wikiPagesForArticle(
     .map((s) => ({ slug: s, title: byslug.get(s)! }));
 }
 
+// Wiki slugs that are prerequisites of the given wiki slug, derived
+// from any mastery node that includes the target slug in its pageIds.
+// For each such node, we walk its prerequisiteNodeIds, look up the
+// prereq nodes, and union their pageIds. Deduped, capped, ordered by
+// the union's first appearance.
+export function prereqWikiSlugsForSlug(
+  slug: string,
+  cap = 8,
+  db: Db = getDb(),
+): string[] {
+  const hostNodes = db
+    .select({
+      id: masteryNodes.id,
+      prerequisiteNodeIds: masteryNodes.prerequisiteNodeIds,
+    })
+    .from(masteryNodes)
+    .where(
+      sql`EXISTS (SELECT 1 FROM json_each(${masteryNodes.pageIds}) WHERE value = ${slug})`,
+    )
+    .all();
+  if (hostNodes.length === 0) return [];
+
+  const prereqNodeIds = new Set<string>();
+  for (const node of hostNodes) {
+    try {
+      const ids = JSON.parse(node.prerequisiteNodeIds);
+      if (Array.isArray(ids)) {
+        for (const id of ids) {
+          if (typeof id === "string") prereqNodeIds.add(id);
+        }
+      }
+    } catch {
+      // ignore malformed
+    }
+  }
+  if (prereqNodeIds.size === 0) return [];
+
+  const prereqNodes = db
+    .select({ pageIds: masteryNodes.pageIds })
+    .from(masteryNodes)
+    .where(inArray(masteryNodes.id, [...prereqNodeIds]))
+    .all();
+
+  const out: string[] = [];
+  const seen = new Set<string>([slug]);
+  for (const node of prereqNodes) {
+    try {
+      const slugs = JSON.parse(node.pageIds);
+      if (!Array.isArray(slugs)) continue;
+      for (const s of slugs) {
+        if (typeof s !== "string" || seen.has(s)) continue;
+        seen.add(s);
+        out.push(s);
+        if (out.length >= cap) return out;
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return out;
+}
+
+// Wiki slugs referenced from a free-text body via either the
+// `[[concept-slug]]` syntax or `/wiki/concept-slug` URLs. Returns the
+// existing wiki page slugs in mention-count order, capped. Reuses the
+// same regex pair as `wikiPagesForArticle` but works against any body
+// string — useful for research papers, capstone briefs, etc.
+export function extractReferencedWikiSlugs(
+  body: string,
+  cap = 8,
+  db: Db = getDb(),
+): string[] {
+  if (!body) return [];
+  const counts = new Map<string, number>();
+  const conceptRe = /\[\[([a-z0-9][a-z0-9-]+)(?:\|[^\]]+)?\]\]/g;
+  const urlRe = /\/wiki\/([a-z0-9][a-z0-9-]+)\b/g;
+  let m: RegExpExecArray | null;
+  while ((m = conceptRe.exec(body)) !== null) {
+    counts.set(m[1], (counts.get(m[1]) ?? 0) + 1);
+  }
+  while ((m = urlRe.exec(body)) !== null) {
+    counts.set(m[1], (counts.get(m[1]) ?? 0) + 1);
+  }
+  if (counts.size === 0) return [];
+
+  const sorted = [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([s]) => s);
+
+  const candidate = sorted.slice(0, cap * 2);
+  const rows = db
+    .select({ slug: sql<string>`slug` })
+    .from(sql`wiki_pages`)
+    .where(inArray(sql`slug`, candidate))
+    .all();
+  const valid = new Set(rows.map((r) => r.slug));
+  return sorted.filter((s) => valid.has(s)).slice(0, cap);
+}
+
 // Suppress unused warning for `ne` (kept for future use).
 void ne;

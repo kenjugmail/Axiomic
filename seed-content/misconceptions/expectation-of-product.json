@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "probability-foundations",
+  "key": "expectation-of-product",
+  "label": "Expectation of a product equals the product of expectations",
+  "description": "E[XY] = E[X]E[Y] is true ONLY when X and Y are independent (or at least uncorrelated). In general, E[XY] = E[X]E[Y] + Cov(X,Y).\n\nThis matters constantly in ML: variance reductions in importance sampling, the Bellman equation, attention's dot products, gradient correlations across batches. If you assume independence and the variables are correlated, your estimator is biased exactly by Cov(X,Y), and that bias does not shrink with sample size.",
+  "probeQuestions": [
+    "Let X and Y both be the result of the same coin flip (1 if heads, 0 if tails). Is E[XY] = E[X]E[Y]?",
+    "Why does the variance of a sum NOT equal the sum of variances when variables are correlated?"
+  ],
+  "correctionPromptTemplate": "The learner thinks E[XY] = E[X]E[Y] in general. Walk through: this requires independence (or zero covariance). Use the same-coin-flip counterexample — E[XY] = 0.5, E[X]E[Y] = 0.25. Then show E[XY] = E[X]E[Y] + Cov(X,Y). Ask the counterexample question first."
+}

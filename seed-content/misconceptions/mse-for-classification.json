@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "loss-functions",
+  "key": "mse-for-classification",
+  "label": "MSE is fine to use for classification",
+  "description": "MSE on classification logits or probabilities looks reasonable but has two failure modes. First, the gradient of MSE composed with sigmoid (or softmax) saturates: when the prediction is far from the target, the sigmoid gradient is tiny, so the loss gradient w.r.t. the logits is also tiny, and learning slows to a crawl. Cross-entropy avoids this by exactly cancelling the sigmoid/softmax derivative — gradient w.r.t. logits is just (predicted − target).\n\nSecond, MSE on one-hot targets does not produce calibrated probabilities; it pushes outputs toward 0 and 1 regardless of class confidence. For Bernoulli/Categorical likelihoods, cross-entropy is the maximum-likelihood loss; MSE is not.",
+  "probeQuestions": [
+    "If you put MSE on top of a sigmoid output and the model predicts 0.99 when the label is 0, what's the gradient w.r.t. the logit?",
+    "Why does cross-entropy produce a clean (predicted - target) gradient at the logit level?"
+  ],
+  "correctionPromptTemplate": "The learner is using MSE for a classification head. Walk through: MSE composed with sigmoid/softmax saturates at the extremes — the sigmoid derivative kills the gradient. Show that cross-entropy gives gradient (p - y) at the logit. Tie to MLE for Bernoulli/Categorical likelihoods. Ask the saturation probe first."
+}

@@ -26,6 +26,7 @@ import {
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { notify, notifyMentions } from "../lib/notifications";
 import { invalidateSearchIndex } from "../lib/searchIndex";
+import { extractReferencedWikiSlugs } from "../lib/crossLinks";
 import type { Env } from "../env";
 
 export const researchRouter = new Hono<Env>();
@@ -429,6 +430,10 @@ researchRouter.get("/:slug", async (c) => {
     else if (r.status === "failed") reproStats.failed++;
   }
 
+  const prereqWikiSlugs = extractReferencedWikiSlugs(
+    `${row.abstract}\n${row.contentIntro}\n${row.contentUndergrad}\n${row.contentGrad}`,
+  );
+
   return c.json({
     paper: {
       id: row.id,
@@ -462,6 +467,7 @@ researchRouter.get("/:slug", async (c) => {
       isAuthor,
       artifacts,
       reproStats,
+      prereqWikiSlugs,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     },

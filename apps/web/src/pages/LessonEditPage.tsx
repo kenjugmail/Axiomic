@@ -77,6 +77,7 @@ export function LessonEditPage() {
       createdAt: string;
     }>
   >([]);
+  const [prereqWikiSlugs, setPrereqWikiSlugs] = useState<string[]>([]);
 
   useEffect(() => {
     if (!pathSlug || !nodeSlug) return;
@@ -117,6 +118,9 @@ export function LessonEditPage() {
             draftSlides ?? publishedSlides ?? [newTextSlide()];
           setSlides(initial);
           setVersions(vr.versions ?? []);
+          setPrereqWikiSlugs(
+            Array.isArray(lr.prereqWikiSlugs) ? lr.prereqWikiSlugs : [],
+          );
           if (dr.draft) {
             setDraftStatus({
               updatedAt: dr.draft.updatedAt,
@@ -726,6 +730,7 @@ export function LessonEditPage() {
           slides={slides}
           nodeTitle={nodeTitle}
           onClose={() => setPreviewOpen(false)}
+          prereqWikiSlugs={prereqWikiSlugs}
         />
       )}
 

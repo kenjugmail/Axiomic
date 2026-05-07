@@ -475,11 +475,41 @@ mastery.get("/lesson/:nodeId", async (c) => {
     .select({
       lessonData: masteryNodes.lessonData,
       sourceArticleId: masteryNodes.sourceArticleId,
+      prerequisiteNodeIds: masteryNodes.prerequisiteNodeIds,
     })
     .from(masteryNodes)
     .where(eq(masteryNodes.id, nodeId))
     .get();
   if (!node) return c.json({ error: "Node not found" }, 404);
+
+  // Sprint 32 — walk prerequisite mastery nodes to surface the wiki
+  // slugs that gate this lesson. Lets the editor preview render a
+  // PrereqXray showing which prereqs the learner has actually mastered.
+  let prereqWikiSlugs: string[] = [];
+  try {
+    const prereqIds: string[] = JSON.parse(node.prerequisiteNodeIds);
+    if (Array.isArray(prereqIds) && prereqIds.length > 0) {
+      const prereqNodes = db
+        .select({ pageIds: masteryNodes.pageIds })
+        .from(masteryNodes)
+        .where(inArray(masteryNodes.id, prereqIds))
+        .all();
+      const seen = new Set<string>();
+      for (const p of prereqNodes) {
+        try {
+          const slugs = JSON.parse(p.pageIds);
+          if (Array.isArray(slugs)) {
+            for (const s of slugs) {
+              if (typeof s === "string" && !seen.has(s)) {
+                seen.add(s);
+                prereqWikiSlugs.push(s);
+              }
+            }
+          }
+        } catch {}
+      }
+    }
+  } catch {}
 
   // Look up the source article (if any) so the lesson page can render
   // a "Sourced from @author's article" footer without a second fetch.
@@ -500,11 +530,15 @@ mastery.get("/lesson/:nodeId", async (c) => {
     if (a) sourceArticle = a;
   }
 
-  if (!node.lessonData) return c.json({ lesson: null, sourceArticle });
+  if (!node.lessonData) return c.json({ lesson: null, sourceArticle, prereqWikiSlugs });
   try {
-    return c.json({ lesson: JSON.parse(node.lessonData), sourceArticle });
+    return c.json({
+      lesson: JSON.parse(node.lessonData),
+      sourceArticle,
+      prereqWikiSlugs,
+    });
   } catch {
-    return c.json({ lesson: null, sourceArticle });
+    return c.json({ lesson: null, sourceArticle, prereqWikiSlugs });
   }
 });
 

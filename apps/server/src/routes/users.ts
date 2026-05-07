@@ -6,7 +6,7 @@
 // authored wiki pages, reproductions count).
 
 import { Hono } from "hono";
-import { and, desc, eq, isNotNull } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import {
   capstoneEnrollments,
   capstones,
@@ -102,31 +102,42 @@ usersRouter.get("/:username/portfolio", async (c) => {
     });
   }
 
-  // Wiki pages where this user authored the most-recent version.
-  const wikiAuthored = db
+  // Wiki pages where this user authored at least one version. Counts
+  // come from a single GROUP BY across pageVersions instead of N+1
+  // lookups per page.
+  const authoredRows = db
     .select({
+      pageId: wikiPages.id,
       slug: wikiPages.slug,
       title: wikiPages.title,
-      pageId: wikiPages.id,
-      version: pageVersions.version,
     })
     .from(pageVersions)
     .innerJoin(wikiPages, eq(pageVersions.pageId, wikiPages.id))
     .where(eq(pageVersions.editedBy, user.id))
+    .groupBy(wikiPages.id)
     .all();
-  // Count total versions per page to compute authored-fraction.
-  if (wikiAuthored.length > 0) {
-    const seen = new Set<string>();
-    for (const w of wikiAuthored) {
-      if (seen.has(w.pageId)) continue;
-      seen.add(w.pageId);
-      const all = db
-        .select({ editedBy: pageVersions.editedBy })
-        .from(pageVersions)
-        .where(eq(pageVersions.pageId, w.pageId))
-        .all();
-      const mine = all.filter((v) => v.editedBy === user.id).length;
-      const fraction = all.length > 0 ? mine / all.length : 0;
+  if (authoredRows.length > 0) {
+    const pageIds = authoredRows.map((r) => r.pageId);
+    const totals = db
+      .select({
+        pageId: pageVersions.pageId,
+        total: sql<number>`COUNT(*)`,
+        mine: sql<number>`SUM(CASE WHEN ${pageVersions.editedBy} = ${user.id} THEN 1 ELSE 0 END)`,
+      })
+      .from(pageVersions)
+      .where(inArray(pageVersions.pageId, pageIds))
+      .groupBy(pageVersions.pageId)
+      .all();
+    const byPage = new Map(
+      totals.map((t) => [
+        t.pageId,
+        { total: Number(t.total), mine: Number(t.mine) },
+      ]),
+    );
+    for (const w of authoredRows) {
+      const counts = byPage.get(w.pageId);
+      const fraction =
+        counts && counts.total > 0 ? counts.mine / counts.total : 0;
       entries.push({
         kind: "wiki",
         slug: w.slug,

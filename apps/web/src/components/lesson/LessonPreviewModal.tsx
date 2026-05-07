@@ -4,11 +4,13 @@ import type { LessonSlide } from "@axiomic/types";
 import { MarkdownRenderer } from "../MarkdownRenderer";
 import { QuestionRenderer } from "../quiz/QuestionRenderer";
 import { PreviewViz } from "./PreviewViz";
+import { PrereqXray } from "../prereq/PrereqXray";
 
 interface Props {
   slides: LessonSlide[];
   nodeTitle: string;
   onClose: () => void;
+  prereqWikiSlugs?: string[];
 }
 
 // Read-only lesson preview for the editor. Renders the same layout as
@@ -16,7 +18,12 @@ interface Props {
 // viz, question slides centre the prompt with a card-wrapped answer
 // UI — but reads from in-memory `slides` so authors can validate
 // UNSAVED edits without round-tripping through Save.
-export function LessonPreviewModal({ slides, nodeTitle, onClose }: Props) {
+export function LessonPreviewModal({
+  slides,
+  nodeTitle,
+  onClose,
+  prereqWikiSlugs,
+}: Props) {
   const [idx, setIdx] = useState(0);
   // Local-only answer state so authors can step through the question
   // UI without persisting anything.
@@ -71,6 +78,11 @@ export function LessonPreviewModal({ slides, nodeTitle, onClose }: Props) {
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 sm:px-10 py-8">
+          {idx === 0 && prereqWikiSlugs && prereqWikiSlugs.length > 0 && (
+            <div className="max-w-2xl mx-auto mb-6">
+              <PrereqXray wikiSlugs={prereqWikiSlugs} />
+            </div>
+          )}
           {!slide ? (
             <p className="text-sm text-muted-foreground">No slides yet.</p>
           ) : slide.kind === "text" ? (

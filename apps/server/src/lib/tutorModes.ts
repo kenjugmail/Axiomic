@@ -11,7 +11,7 @@
 //   - debate        → argues the opposite of a forum claim
 //   - contribution  → suggests gaps the user is positioned to fill
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import {
   forumTopics,
   forumPosts,
@@ -138,8 +138,34 @@ function buildBridgePrompt(
   }
   const db = getDb();
 
-  // Find the user's strongest mastered concept (highest quizScore on any
-  // node with score > 0.7). Use that as the bridge anchor.
+  // Sprint 32 — anchor selection now intersects with the current page's
+  // actual prereqs. We find mastery nodes that include `ctx.pageSlug` in
+  // their pageIds, walk their prerequisiteNodeIds, then pick the user's
+  // highest-scored mastered node *among those prereqs*. Falls back to
+  // global highest-mastered when prereqs are unavailable.
+  const hostNodes = db
+    .select({
+      id: masteryNodes.id,
+      prerequisiteNodeIds: masteryNodes.prerequisiteNodeIds,
+    })
+    .from(masteryNodes)
+    .where(
+      sql`EXISTS (SELECT 1 FROM json_each(${masteryNodes.pageIds}) WHERE value = ${ctx.pageSlug})`,
+    )
+    .all();
+
+  const prereqIds = new Set<string>();
+  for (const h of hostNodes) {
+    try {
+      const ids = JSON.parse(h.prerequisiteNodeIds);
+      if (Array.isArray(ids)) {
+        for (const id of ids) {
+          if (typeof id === "string") prereqIds.add(id);
+        }
+      }
+    } catch {}
+  }
+
   const progress = db
     .select({
       nodeId: userProgress.nodeId,
@@ -149,19 +175,32 @@ function buildBridgePrompt(
     .where(eq(userProgress.userId, userId))
     .all();
 
-  const sorted = progress
+  const mastered = progress
     .filter((p) => p.quizScore != null && p.quizScore >= 0.7)
     .sort((a, b) => (b.quizScore ?? 0) - (a.quizScore ?? 0));
 
+  let anchorNodeId: string | null = null;
+  if (prereqIds.size > 0) {
+    const matched = mastered.find((p) => prereqIds.has(p.nodeId));
+    if (matched) anchorNodeId = matched.nodeId;
+  }
+  // Fall back to global highest-mastered if no prereq match.
+  if (!anchorNodeId && mastered.length > 0) {
+    anchorNodeId = mastered[0].nodeId;
+  }
+
   let anchor = "";
-  if (sorted.length > 0) {
+  if (anchorNodeId) {
     const node = db
-      .select({ slug: masteryNodes.slug, title: masteryNodes.title, pageIds: masteryNodes.pageIds })
+      .select({ slug: masteryNodes.slug, title: masteryNodes.title })
       .from(masteryNodes)
-      .where(eq(masteryNodes.id, sorted[0].nodeId))
+      .where(eq(masteryNodes.id, anchorNodeId))
       .get();
     if (node) {
-      anchor = `The learner has mastered "${node.title}" (slug: ${node.slug}). Use it as the bridge anchor.`;
+      const isPrereq = prereqIds.has(anchorNodeId);
+      anchor = isPrereq
+        ? `The learner has mastered "${node.title}" (slug: ${node.slug}), which is a direct prerequisite of ${ctx.pageSlug}. Use it as the bridge anchor.`
+        : `The learner has mastered "${node.title}" (slug: ${node.slug}). It is not a direct prerequisite of ${ctx.pageSlug}, so bridge analogically rather than by reduction.`;
     }
   }
 

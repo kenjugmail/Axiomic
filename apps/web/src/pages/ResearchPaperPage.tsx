@@ -24,6 +24,7 @@ import { NewsComments } from "../components/news/NewsComments";
 import { ReproduceDialog } from "../components/news/ReproduceDialog";
 import { ReproductionsBadge } from "../components/news/ReproductionsBadge";
 import { TierToggle } from "../components/research/TierToggle";
+import { PrereqXray } from "../components/prereq/PrereqXray";
 import { findTextQuote, type TextQuote } from "../lib/textQuote";
 
 const FORMAT_LABEL: Record<string, string> = {
@@ -287,6 +288,13 @@ export function ResearchPaperPage() {
           </p>
         )}
       </div>
+
+      {/* Prerequisite X-ray — concepts referenced in the body. */}
+      {user && paper.prereqWikiSlugs && paper.prereqWikiSlugs.length > 0 && (
+        <div className="mt-6">
+          <PrereqXray wikiSlugs={paper.prereqWikiSlugs} />
+        </div>
+      )}
 
       {/* Abstract */}
       {paper.abstract && (

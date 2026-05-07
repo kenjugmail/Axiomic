@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "feed-forward-networks",
+  "key": "ffn-mixes-tokens",
+  "label": "The transformer's FFN mixes information across tokens",
+  "description": "The feed-forward (MLP) block in a transformer is applied INDEPENDENTLY to each token's representation. Token-position 5 is processed without ever seeing token-position 4 or 6 inside the FFN. The token-mixing happens in the attention sublayer; the FFN is a per-token nonlinearity that lifts each representation into a larger hidden dim and projects back.\n\nThis is why people describe the transformer as 'attention mixes tokens, FFN mixes features'. Recent work like MoE FFNs preserves this per-token property — each token routes to its own expert independently. Confusing the FFN with a token-mixer leads to wrong intuitions about why attention is needed at all.",
+  "probeQuestions": [
+    "If you applied only the FFN block (no attention) to a sequence of tokens, what would the model fail to do?",
+    "Inside the FFN, does token i's hidden vector ever depend on token j's hidden vector?"
+  ],
+  "correctionPromptTemplate": "The learner thinks the FFN mixes information across tokens. Walk through: FFN is applied PER TOKEN independently — same MLP weights, separate forward pass per position. Attention is the only token-mixer in the standard transformer block. Tie to MoE which preserves the per-token property. Ask first — 'what would the model lose if you removed all attention layers and kept only FFNs?'"
+}

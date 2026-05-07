@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "optimization-theory",
+  "key": "weight-decay-equals-l2-in-adam",
+  "label": "Weight decay is identical to L2 regularization in Adam",
+  "description": "For vanilla SGD, weight decay (subtracting λ·w from the parameter at each step) and L2 regularization (adding λ/2·||w||² to the loss) are mathematically equivalent. For Adam — and other adaptive optimizers — they are NOT.\n\nL2 regularization adds λ·w to the gradient before Adam's per-parameter rescaling, so weights with already-small adaptive scales get less effective regularization. Decoupled weight decay (the AdamW paper) applies w ← w − η·λ·w directly, bypassing the adaptive rescaling. This is why AdamW exists as a separate optimizer and why most transformer recipes specify AdamW explicitly. Using vanilla Adam with L2 instead of AdamW often leaves an unintended LR/regularization-strength interaction that has to be re-tuned.",
+  "probeQuestions": [
+    "Why does the AdamW paper say its decoupled weight decay generalizes better than Adam + L2?",
+    "If you switch from SGD + L2 to Adam + L2 with the same λ, why might your model regularize differently?"
+  ],
+  "correctionPromptTemplate": "The learner thinks weight decay and L2 are the same in Adam. Walk through: equivalence holds for vanilla SGD (constant per-parameter scale). Adam scales each parameter's gradient adaptively, so adding λ·w to the gradient gets rescaled too — coupling regularization strength to the adaptive estimate. AdamW decouples them. Ask first — 'if Adam adapts per-parameter scales, what happens to the L2 penalty's effective strength on a high-variance parameter?'"
+}

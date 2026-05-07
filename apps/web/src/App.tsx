@@ -5,7 +5,6 @@ import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { SignupPage } from "./pages/SignupPage";
 import { WikiListPage } from "./pages/WikiListPage";
-import { SearchPage } from "./pages/SearchPage";
 import { MasteryListPage } from "./pages/MasteryListPage";
 import { MasteryPathPage } from "./pages/MasteryPathPage";
 import { ForumListPage } from "./pages/ForumListPage";
@@ -24,6 +23,11 @@ import { useThemeStore } from "./stores/theme";
 // open a lesson don't pay for it.
 const LessonPage = lazy(() =>
   import("./pages/LessonPage").then((m) => ({ default: m.LessonPage })),
+);
+// Search page pulls in the full search index API + Navigator path; lazy
+// so pages that link out to /search don't pay the cost on first paint.
+const SearchPage = lazy(() =>
+  import("./pages/SearchPage").then((m) => ({ default: m.SearchPage })),
 );
 // Post-signup wizard. Only rendered once per user.
 const OnboardingPage = lazy(() =>

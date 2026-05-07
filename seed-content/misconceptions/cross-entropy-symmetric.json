@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "loss-functions",
+  "key": "cross-entropy-symmetric",
+  "label": "Cross-entropy(p, q) equals cross-entropy(q, p)",
+  "description": "Cross-entropy is NOT symmetric: H(p, q) = -Σ p(x) log q(x) treats p as the data distribution and q as the model's predicted distribution. Swapping arguments changes both which distribution gets weighted (the first one) and which gets log-evaluated (the second one).\n\nKL divergence inherits this asymmetry — KL(p ∥ q) ≠ KL(q ∥ p) in general — and the two flavors are sometimes called 'forward KL' (mode-covering) vs 'reverse KL' (mode-seeking). VAE training, RLHF, and variational inference all care which direction you minimize, because they push the model toward different solutions.",
+  "probeQuestions": [
+    "Compute H(p, q) and H(q, p) for p = [0.9, 0.1] and q = [0.5, 0.5]. Are they equal?",
+    "Why does forward KL (KL(p ∥ q)) tend to produce mode-covering solutions and reverse KL produce mode-seeking ones?"
+  ],
+  "correctionPromptTemplate": "The learner thinks cross-entropy is symmetric. Walk through the definition: H(p,q) = -Σ p log q — the first arg weights, the second is logged. Show with p=[0.9,0.1], q=[0.5,0.5] that H(p,q) ≠ H(q,p). Tie to KL asymmetry and forward-vs-reverse. Ask first — 'which argument is the model's prediction in cross-entropy loss as you'd write it in PyTorch?'"
+}

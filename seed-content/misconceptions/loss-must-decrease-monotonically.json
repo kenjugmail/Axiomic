@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "gradient-descent",
+  "key": "loss-must-decrease-monotonically",
+  "label": "Training loss should decrease at every step",
+  "description": "A common belief is that a healthy training run shows the loss falling on every step, and any uptick is a bug. This is wrong for stochastic gradient descent on minibatches: the gradient on one batch is a noisy estimate of the true gradient, so individual steps can and should oscillate. What you want is a downward TREND on a moving average over many steps, not monotonic decrease.\n\nIf you actually see monotonic decrease, your batch size is probably enormous (full-batch GD), your learning rate is tiny, or you're plotting a smoothed line and forgetting it's smoothed. Per-step jitter is normal and is part of how SGD escapes shallow saddles.",
+  "probeQuestions": [
+    "If your loss spikes upward on one step but the moving average keeps falling, is training broken?",
+    "Why does increasing batch size tend to make per-step loss curves look smoother?"
+  ],
+  "correctionPromptTemplate": "The learner thinks loss must drop every step or training is broken. Walk through: SGD's per-batch gradient is a noisy estimator. Per-step jitter is normal; what matters is the trend over hundreds of steps. Ask a calibrated question first — for example, 'why might full-batch GD on a convex problem look smoother than SGD on the same problem?'"
+}

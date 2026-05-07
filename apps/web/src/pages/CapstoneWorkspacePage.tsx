@@ -21,6 +21,7 @@ import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
+import { PrereqXray } from "../components/prereq/PrereqXray";
 
 const ARTIFACT_KINDS: CapstoneArtifactKind[] = [
   "github",
@@ -176,6 +177,12 @@ export function CapstoneWorkspacePage() {
           );
         })}
       </ol>
+
+      {capstone.prerequisiteWikiSlugs && capstone.prerequisiteWikiSlugs.length > 0 && (
+        <div className="mb-5">
+          <PrereqXray wikiSlugs={capstone.prerequisiteWikiSlugs} />
+        </div>
+      )}
 
       {/* Active milestone */}
       <ActiveMilestonePanel

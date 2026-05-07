@@ -18,6 +18,7 @@ import { PracticePanel } from "../components/wiki/PracticePanel";
 import { TableOfContents } from "../components/TableOfContents";
 import { TierSwitcher } from "../components/TierSwitcher";
 import { AISidebar } from "../components/AISidebar";
+import { PrereqXray } from "../components/prereq/PrereqXray";
 import { Comments } from "../components/Comments";
 import { FlashcardViewer } from "../components/FlashcardViewer";
 import { PostTypeBadge } from "../components/PostTypeBadge";
@@ -42,6 +43,7 @@ export function WikiPage() {
   const [linkedArticles, setLinkedArticles] = useState<LinkedArticleSummary[]>(
     [],
   );
+  const [prereqWikiSlugs, setPrereqWikiSlugs] = useState<string[]>([]);
 
   useEffect(() => {
     if (!slug) return;
@@ -73,6 +75,9 @@ export function WikiPage() {
         );
         setLinkedArticles(
           Array.isArray(data.linkedArticles) ? data.linkedArticles : [],
+        );
+        setPrereqWikiSlugs(
+          Array.isArray(data.prereqWikiSlugs) ? data.prereqWikiSlugs : [],
         );
       })
       .catch((err) => setError(err.message))
@@ -164,6 +169,12 @@ export function WikiPage() {
               </button>
             </div>
           </div>
+
+          {prereqWikiSlugs.length > 0 && user && (
+            <div className="mb-5">
+              <PrereqXray wikiSlugs={prereqWikiSlugs} />
+            </div>
+          )}
 
           <MarkdownRenderer
             content={content}

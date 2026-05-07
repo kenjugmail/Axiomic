@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "linear-algebra-foundations",
+  "key": "matrix-multiplication-commutative",
+  "label": "Matrix multiplication is commutative",
+  "description": "AB ≠ BA in general for matrices. Even when both products are defined and have the same shape (square matrices of the same size), the result usually differs. Multiplication only commutes for special cases: when one matrix is a scalar multiple of the identity, when the matrices share an eigenbasis, or when they're diagonal.\n\nThis is why order of operations matters everywhere in ML: applying W1 then W2 to a vector is W2(W1·x) = (W2·W1)·x, not (W1·W2)·x. The forward pass and the backward pass are NOT just transposes of each other for a multi-layer network — they're chains of matrix products with very specific orderings.",
+  "probeQuestions": [
+    "Pick two random 2x2 matrices A and B and compute AB and BA. How often are they equal?",
+    "When two matrices DO commute, what does that imply about their eigenstructure?"
+  ],
+  "correctionPromptTemplate": "The learner is using AB and BA interchangeably. Walk through a concrete 2x2 example where AB ≠ BA. Then connect to ML: a two-layer linear stack W2·W1 is a different operator from W1·W2, and reversing the order changes everything. Ask first — 'when do two diagonal matrices commute? what about two rotation matrices?'"
+}

@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "optimization-theory",
+  "key": "momentum-is-just-smoothing",
+  "label": "Momentum is just an exponential smoother on the gradient",
+  "description": "Momentum is often described as 'a moving average of past gradients', which makes it sound equivalent to averaging recent gradient values. It is not equivalent. SGD with momentum modifies the *update direction* using accumulated velocity, which lets the optimizer build up speed in consistent-direction valleys and damp oscillations across steep ridges.\n\nA pure smoother of g_t (e.g. taking mean of last k gradients) ignores the previous velocity v_{t-1}. Momentum adds v_t = β·v_{t-1} + (1-β)·g_t, then steps with v_t — the previous velocity carries forward, which is the actual mechanism behind both faster convergence in long valleys and Nesterov-style lookahead.",
+  "probeQuestions": [
+    "Why does momentum help on the classic 'narrow valley with steep walls' loss landscape, while a per-step gradient mean does not?",
+    "What's the effective horizon of accumulated velocity if β = 0.9?"
+  ],
+  "correctionPromptTemplate": "The learner conflates momentum with gradient smoothing. Walk through: momentum carries forward previous velocity (v_t = β·v_{t-1} + g_t), so it accumulates in consistent directions and damps in oscillating ones. A pure mean of recent gradients does neither. Ask first — 'what would a long valley look like to a momentum optimizer vs a moving-average one?'"
+}

@@ -200,6 +200,9 @@ export interface ResearchPaper extends ResearchPaperSummary {
   // GET /:slug response so the reader renders in one round-trip.
   artifacts: RunnableArtifact[];
   reproStats: ReproStats;
+  // Sprint 32 — wiki slugs referenced from the body. Renders the
+  // PrereqXray strip above the abstract.
+  prereqWikiSlugs?: string[];
 }
 
 export interface ResearchPapersListResponse {
@@ -738,6 +741,9 @@ export interface LessonResponse {
     title: string;
     authorUsername: string;
   } | null;
+  // Sprint 32 — wiki slugs derived from this node's prereq mastery
+  // nodes. Editor preview uses this to render PrereqXray.
+  prereqWikiSlugs?: string[];
 }
 
 export interface QuizSubmitResponse {
@@ -1025,6 +1031,30 @@ export type SearchResultItem =
 export interface SearchResponse {
   query: string;
   results: SearchResultItem[];
+}
+
+// Sprint 31/32 — Knowledge Navigator: intent-grouped search.
+export interface SearchCapstoneBuildHit {
+  kind: "capstone";
+  slug: string;
+  title: string;
+  snippet: string;
+  estimatedWeeks: number;
+  completionCount: number;
+}
+
+export interface SearchNavigatorGroups {
+  define: SearchResultItem[];
+  practice: SearchResultItem[];
+  discuss: SearchResultItem[];
+  read: SearchResultItem[];
+  build: SearchCapstoneBuildHit[];
+}
+
+export interface SearchNavigatorResponse {
+  query: string;
+  navigator: true;
+  groups: SearchNavigatorGroups;
 }
 
 // --- Settings & user preferences ---

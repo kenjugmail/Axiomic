@@ -1,10 +1,93 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
+import { and, eq, isNotNull, or, sql } from "drizzle-orm";
+import {
+  capstones,
+  capstoneEnrollments,
+  getDb,
+} from "@axiomic/db";
 import { scoreQuery } from "../lib/searchIndex";
 import type { Env } from "../env";
 
 export const searchRouter = new Hono<Env>();
+
+interface CapstoneBuildHit {
+  kind: "capstone";
+  slug: string;
+  title: string;
+  snippet: string;
+  estimatedWeeks: number;
+  completionCount: number;
+}
+
+// Sprint 32 — Navigator's "build" group. The flat search index doesn't
+// cover capstones, so this side query scores capstones by case-
+// insensitive matches across title + summary + brief. Returns up to
+// `cap` results.
+function searchCapstonesForBuild(query: string, cap = 5): CapstoneBuildHit[] {
+  const tokens = query
+    .toLowerCase()
+    .split(/\s+/)
+    .map((t) => t.trim())
+    .filter((t) => t.length >= 2);
+  if (tokens.length === 0) return [];
+
+  const db = getDb();
+  const conditions = tokens.flatMap((t) => {
+    const pat = `%${t}%`;
+    return [
+      sql`lower(${capstones.title}) LIKE ${pat}`,
+      sql`lower(${capstones.summary}) LIKE ${pat}`,
+      sql`lower(${capstones.contentIntro}) LIKE ${pat}`,
+      sql`lower(${capstones.contentUndergrad}) LIKE ${pat}`,
+    ];
+  });
+  if (conditions.length === 0) return [];
+
+  const rows = db
+    .select({
+      id: capstones.id,
+      slug: capstones.slug,
+      title: capstones.title,
+      summary: capstones.summary,
+      estimatedWeeks: capstones.estimatedWeeks,
+    })
+    .from(capstones)
+    .where(and(eq(capstones.status, "published"), or(...conditions)))
+    .limit(cap * 2)
+    .all();
+
+  if (rows.length === 0) return [];
+
+  const completionRows = db
+    .select({
+      capstoneId: capstoneEnrollments.capstoneId,
+      n: sql<number>`COUNT(*)`,
+    })
+    .from(capstoneEnrollments)
+    .where(isNotNull(capstoneEnrollments.completedAt))
+    .groupBy(capstoneEnrollments.capstoneId)
+    .all();
+  const completionsById = new Map(completionRows.map((r) => [r.capstoneId, Number(r.n)]));
+
+  const scored = rows.map((r) => {
+    const haystack = `${r.title} ${r.summary}`.toLowerCase();
+    let matches = 0;
+    for (const t of tokens) if (haystack.includes(t)) matches++;
+    return { row: r, score: matches };
+  });
+  scored.sort((a, b) => b.score - a.score);
+
+  return scored.slice(0, cap).map(({ row }) => ({
+    kind: "capstone" as const,
+    slug: row.slug,
+    title: row.title,
+    snippet: row.summary.slice(0, 180),
+    estimatedWeeks: row.estimatedWeeks,
+    completionCount: completionsById.get(row.id) ?? 0,
+  }));
+}
 
 const querySchema = z.object({
   q: z.string().optional().default(""),
@@ -83,9 +166,9 @@ searchRouter.get("/", zValidator("query", querySchema), async (c) => {
     //   topic   → discuss
     //   news    → read
     //   research→ read
-    //   capstone is currently outside the search index; surface a
-    //   "build" group via a side query.
-    const groups: Record<string, typeof results> = {
+    //   capstone→ build (side query against capstones table since
+    //            capstones aren't in the flat search index yet).
+    const groups: Record<string, any[]> = {
       define: [],
       practice: [],
       discuss: [],
@@ -103,6 +186,7 @@ searchRouter.get("/", zValidator("query", querySchema), async (c) => {
               : "read";
       groups[intent].push(r);
     }
+    groups.build = searchCapstonesForBuild(trimmed, 5);
     return c.json({
       query: trimmed,
       navigator: true,

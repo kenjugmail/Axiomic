@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "gradient-descent",
+  "key": "batch-size-monotonic-better",
+  "label": "Larger batch size always means better training",
+  "description": "Larger batches give a less noisy gradient estimate, but more accurate is not always better. The noise in small-batch SGD is what helps the optimizer escape sharp minima and find flatter basins that generalize better. There's an empirically observed 'critical batch size' below which doubling the batch ~halves the steps needed (linear scaling), and above which returns flatten or reverse.\n\nThis is why huge-batch recipes need additional tricks (LARS/LAMB, learning-rate scaling, warmup adjustments) to recover the small-batch generalization properties. Pure 'bigger is better' breaks down well before you hit memory limits.",
+  "probeQuestions": [
+    "Why does small-batch SGD often generalize better than full-batch GD on the same model?",
+    "What is 'critical batch size' and how would you measure it for a given setup?"
+  ],
+  "correctionPromptTemplate": "The learner thinks bigger batch is monotonically better. Walk through: big batches give cleaner gradients but lose the implicit-regularization noise of SGD; flat minima vs sharp minima research; the critical-batch-size finding from OpenAI's empirical paper. Ask first — 'if you trained with batch size = entire dataset, would you converge faster wall-clock?'"
+}

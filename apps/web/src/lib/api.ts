@@ -104,6 +104,7 @@ import type {
   NotificationsListResponse,
   OkResponse,
   SearchResponse,
+  SearchNavigatorResponse,
   SearchResultItem,
   SettingsResponse,
   SettingsUpdateInput,
@@ -430,6 +431,11 @@ export const api = {
       const sp = new URLSearchParams({ q });
       if (limit) sp.set("limit", String(limit));
       return request<SearchResponse>(`/search?${sp.toString()}`);
+    },
+    navigator: (q: string, limit?: number) => {
+      const sp = new URLSearchParams({ q, navigator: "1" });
+      if (limit) sp.set("limit", String(limit));
+      return request<SearchNavigatorResponse>(`/search?${sp.toString()}`);
     },
   },
   settings: {

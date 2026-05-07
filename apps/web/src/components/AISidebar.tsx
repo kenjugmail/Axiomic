@@ -41,8 +41,25 @@ export function AISidebar({ pageSlug, pageTitle, tier, isOpen, onClose }: AISide
       ? urlMode
       : "socratic",
   );
-  const diagnosisId = searchParams.get("diagnosisId") ?? undefined;
+  const urlDiagnosisId = searchParams.get("diagnosisId") ?? undefined;
   const forumTopicId = searchParams.get("forumTopicId") ?? undefined;
+  // Sprint 32 — when no explicit ?aiMode is set, the sidebar can
+  // auto-pick a mode from page context. We resolve a diagnosisId from
+  // the user's active misconceptions matching pageSlug, and fall back
+  // to bridge mode when prerequisite gaps exist. Manual chip clicks
+  // still override.
+  const [autoDiagnosisId, setAutoDiagnosisId] = useState<string | undefined>(
+    undefined,
+  );
+  const diagnosisId = urlDiagnosisId ?? autoDiagnosisId;
+  const [hasAutoSelected, setHasAutoSelected] = useState(false);
+
+  // Reset auto-selection state when the page changes so a fresh
+  // surface re-evaluates which mode to pick.
+  useEffect(() => {
+    setHasAutoSelected(false);
+    setAutoDiagnosisId(undefined);
+  }, [pageSlug]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -63,11 +80,34 @@ export function AISidebar({ pageSlug, pageTitle, tier, isOpen, onClose }: AISide
     Promise.all([
       api.ai.coachContext(pageSlug),
       api.ai.coachSuggest(pageSlug),
+      // Sprint 32 — pull active diagnoses so we can auto-route into
+      // misconception mode when this page maps to one of them.
+      urlMode || hasAutoSelected
+        ? Promise.resolve(null)
+        : api.me.weakConcepts().catch(() => null),
     ])
-      .then(([ctx, sug]) => {
+      .then(([ctx, sug, weak]) => {
         if (cancelled) return;
         setDueCards(ctx.dueFlashcards);
         setSuggestions(sug.suggestions);
+
+        // Auto-mode-routing — runs once per sidebar open, only when the
+        // URL didn't pin a mode.
+        if (!urlMode && !hasAutoSelected) {
+          const activeDiagnoses = weak?.diagnoses?.filter(
+            (d) => d.status === "active" || d.status === "coached",
+          );
+          const match = activeDiagnoses?.find(
+            (d) => d.conceptSlug === pageSlug,
+          );
+          if (match) {
+            setMode("misconception");
+            setAutoDiagnosisId(match.id);
+          } else if (ctx.prerequisiteGaps && ctx.prerequisiteGaps.length > 0) {
+            setMode("bridge");
+          }
+          setHasAutoSelected(true);
+        }
       })
       .catch(() => {
         if (cancelled) return;
@@ -76,7 +116,7 @@ export function AISidebar({ pageSlug, pageTitle, tier, isOpen, onClose }: AISide
     return () => {
       cancelled = true;
     };
-  }, [isOpen, user, pageSlug]);
+  }, [isOpen, user, pageSlug, urlMode, hasAutoSelected]);
 
   const handleSend = async () => {
     if (!input.trim() || streaming) return;

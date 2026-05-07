@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "rlhf",
+  "key": "rlhf-preference-is-reward",
+  "label": "Human preferences ARE the reward signal in RLHF",
+  "description": "In RLHF, human preference labels are NOT the reward — they're training data for a separate reward model. The pipeline has three stages: (1) collect pairs of model outputs and ask humans which is better, (2) train a reward model R(x, y) on those preferences using a Bradley-Terry-style objective, (3) optimize the policy against the reward model with PPO (or DPO/IPO/etc.).\n\nThe reward model is what the policy actually maximizes. Confusing the two leads to wrong intuitions about reward hacking — the policy can find responses the reward model overrates that humans actually dislike, which is a model-error problem, not a preference-data problem. DPO is sometimes described as 'skipping the reward model', but it's more accurate to say DPO derives the reward implicitly from the preference loss.",
+  "probeQuestions": [
+    "What does the reward model in RLHF take as input and what does it output?",
+    "Why is reward hacking a property of the reward model, not of the human preferences?"
+  ],
+  "correctionPromptTemplate": "The learner thinks RLHF feeds human preferences directly as reward. Walk through the three-stage pipeline: preferences → reward model → policy optimization. Reward hacking comes from the reward MODEL diverging from human intent. Mention DPO as an implicit-reward variant. Ask first — 'what's the input/output shape of the RLHF reward model?'"
+}
