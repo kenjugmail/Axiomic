@@ -25,6 +25,7 @@ import { conceptsRouter } from "./routes/concepts";
 import { researchRouter } from "./routes/research";
 import { capstonesRouter } from "./routes/capstones";
 import { meRouter } from "./routes/me";
+import { usersRouter } from "./routes/users";
 import { prewarmSearchIndex } from "./lib/searchIndex";
 import { userFromCookieHeader } from "./middleware/auth";
 import { attachUser, detach, subscribeArticle } from "./lib/liveBus";
@@ -89,6 +90,7 @@ app.route("/concepts", conceptsRouter);
 app.route("/research", researchRouter);
 app.route("/capstones", capstonesRouter);
 app.route("/me", meRouter);
+app.route("/users", usersRouter);
 
 // Pre-warm the search index in the background so the first user query
 // doesn't pay the embedding-build cost.

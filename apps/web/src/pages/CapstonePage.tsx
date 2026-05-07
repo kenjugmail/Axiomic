@@ -14,6 +14,7 @@ import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { TierToggle } from "../components/research/TierToggle";
+import { PrereqXray } from "../components/prereq/PrereqXray";
 
 export function CapstonePage() {
   const { slug = "" } = useParams<{ slug: string }>();
@@ -233,24 +234,10 @@ export function CapstonePage() {
         )}
       </article>
 
-      {/* Prereq chips */}
+      {/* Prereq X-ray */}
       {capstone.prerequisiteWikiSlugs.length > 0 && (
         <section className="mt-10 pt-6 border-t border-border">
-          <h2 className="text-[10px] uppercase tracking-wider text-muted-foreground mb-3">
-            Prerequisites
-          </h2>
-          <ul className="flex flex-wrap gap-2">
-            {capstone.prerequisiteWikiSlugs.map((s) => (
-              <li key={s}>
-                <Link
-                  to={`/wiki/${s}`}
-                  className="text-xs px-2.5 py-1 rounded-full border border-border hover:bg-accent/40"
-                >
-                  {s}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <PrereqXray wikiSlugs={capstone.prerequisiteWikiSlugs} />
         </section>
       )}
 

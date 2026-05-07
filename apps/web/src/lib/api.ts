@@ -59,6 +59,7 @@ import type {
   CapstoneSubmission,
   WeakConceptsResponse,
   PrereqXrayResponse,
+  PortfolioResponse,
   PaperOutlineRequest,
   PaperDraftSectionRequest,
   PaperVizSuggestionsResponse,
@@ -815,6 +816,10 @@ export const api = {
       ),
     artifact: (artifactSlug: string) =>
       request<CapstoneArtifactPageResponse>(`/capstones/c/${artifactSlug}`),
+  },
+  users: {
+    portfolio: (username: string) =>
+      request<PortfolioResponse>(`/users/${encodeURIComponent(username)}/portfolio`),
   },
   me: {
     weakConcepts: () => request<WeakConceptsResponse>("/me/weak-concepts"),

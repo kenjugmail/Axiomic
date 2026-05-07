@@ -15,10 +15,15 @@ const querySchema = z.object({
   // Sprint 25 — comma-separated kind filter, e.g. ?kind=research or
   // ?kind=research,news. Empty / unset returns all kinds.
   kind: z.string().optional(),
+  // Sprint 31 — Knowledge Navigator: when set, the response is grouped
+  // by intent (define / practice / discuss / read / build) instead of
+  // a flat ranked list. The grouping ranks the same scored items;
+  // it's purely a presentation reshape.
+  navigator: z.string().optional(),
 });
 
 searchRouter.get("/", zValidator("query", querySchema), async (c) => {
-  const { q, limit, kind } = c.req.valid("query");
+  const { q, limit, kind, navigator } = c.req.valid("query");
   const trimmed = q.trim();
   if (!trimmed) {
     return c.json({ query: "", results: [] });
@@ -70,6 +75,40 @@ searchRouter.get("/", zValidator("query", querySchema), async (c) => {
     }
     return { kind: "topic" as const, ...base, postType: s.item.postType };
   });
+
+  if (navigator === "1" || navigator === "true") {
+    // Group by intent. Mapping:
+    //   page    → define
+    //   lesson  → practice
+    //   topic   → discuss
+    //   news    → read
+    //   research→ read
+    //   capstone is currently outside the search index; surface a
+    //   "build" group via a side query.
+    const groups: Record<string, typeof results> = {
+      define: [],
+      practice: [],
+      discuss: [],
+      read: [],
+      build: [],
+    };
+    for (const r of results) {
+      const intent =
+        r.kind === "page"
+          ? "define"
+          : r.kind === "lesson"
+            ? "practice"
+            : r.kind === "topic"
+              ? "discuss"
+              : "read";
+      groups[intent].push(r);
+    }
+    return c.json({
+      query: trimmed,
+      navigator: true,
+      groups,
+    });
+  }
 
   return c.json({ query: trimmed, results });
 });

@@ -11,6 +11,7 @@ import type {
   ReputationByDomain,
 } from "@axiomic/types";
 import { AchievementsGallery } from "../components/AchievementsGallery";
+import { MasteryPortfolio } from "../components/profile/MasteryPortfolio";
 import { ActivityHeatmap } from "../components/ActivityHeatmap";
 import { FollowButton } from "../components/FollowButton";
 import { SkillTree } from "../components/profile/SkillTree";
@@ -205,6 +206,11 @@ export function ProfilePage() {
       </div>
 
       <div className="space-y-6">
+        {/* Sprint 31 — public mastery portfolio: capstones + research +
+            authored wiki + reproductions. Pulled in a single
+            aggregate request from /users/:username/portfolio. */}
+        <MasteryPortfolio username={username} />
+
         <section>
           <h2 className="text-lg font-semibold mb-3">Reputation</h2>
           {reputation === null ? (
