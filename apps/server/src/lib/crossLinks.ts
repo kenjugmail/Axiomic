@@ -5,7 +5,7 @@
 // SQL's json_each + LIKE rather than full-text search to keep the
 // helpers dependency-free; results are capped at 5 per call.
 
-import { and, asc, desc, eq, inArray, like, ne, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, like, ne, or, sql } from "drizzle-orm";
 import {
   getDb,
   forumTopics,
@@ -53,9 +53,23 @@ export interface LinkedTopicLite {
   lastActivityAt: string;
 }
 
+// Difficulty ranking used to surface the easier lesson first inside
+// the Concept Card "Practice this" CTA. A novice landing on the
+// `attention` page should see the apprentice/practitioner-level
+// `attention-intro` lesson, not the specialist `transformer-deep-dive`.
+const LEVEL_RANK: Record<string, number> = {
+  apprentice: 1,
+  practitioner: 2,
+  specialist: 3,
+  expert: 4,
+  researcher: 5,
+};
+
 // Mastery nodes whose `pageIds` JSON array contains the given wiki
 // slug. We use json_each to expand each node's pageIds and match the
-// slug exactly — survives whitespace / order differences.
+// slug exactly — survives whitespace / order differences. Results are
+// ordered easiest-first so the Concept Card's "Practice this" CTA
+// surfaces the most beginner-friendly lesson teaching this concept.
 export function nodesForWikiSlug(
   slug: string,
   cap = DEFAULT_CAP,
@@ -77,10 +91,20 @@ export function nodesForWikiSlug(
     .where(
       sql`EXISTS (SELECT 1 FROM json_each(${masteryNodes.pageIds}) WHERE value = ${slug})`,
     )
-    .orderBy(asc(masteryPaths.slug), asc(masteryNodes.order))
-    .limit(cap)
     .all();
-  return rows.map((r) => ({
+
+  // Rank in JS — SQLite can't ORDER BY a CASE-mapped level cheaply
+  // without a separate column, and the result set is tiny (a single
+  // wiki slug rarely backs more than ~5 nodes).
+  rows.sort((a, b) => {
+    const la = LEVEL_RANK[a.level] ?? 99;
+    const lb = LEVEL_RANK[b.level] ?? 99;
+    if (la !== lb) return la - lb;
+    if (a.pathSlug !== b.pathSlug) return a.pathSlug < b.pathSlug ? -1 : 1;
+    return (a.order ?? 0) - (b.order ?? 0);
+  });
+
+  return rows.slice(0, cap).map((r) => ({
     nodeId: r.nodeId,
     nodeSlug: r.nodeSlug,
     pathSlug: r.pathSlug,

@@ -126,6 +126,9 @@ const SettingsPage = lazy(() =>
 const AttachmentsPage = lazy(() =>
   import("./pages/AttachmentsPage").then((m) => ({ default: m.AttachmentsPage })),
 );
+const DemoAttentionPage = lazy(() =>
+  import("./pages/DemoAttentionPage").then((m) => ({ default: m.DemoAttentionPage })),
+);
 const FlashcardsPage = lazy(() =>
   import("./pages/FlashcardsPage").then((m) => ({ default: m.FlashcardsPage })),
 );
@@ -207,6 +210,7 @@ export function App() {
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/settings/attachments" element={<AttachmentsPage />} />
+          <Route path="/demo/attention" element={<DemoAttentionPage />} />
           <Route path="/flashcards" element={<FlashcardsPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
