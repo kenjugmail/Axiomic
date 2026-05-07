@@ -20,6 +20,7 @@ const PRIMARY_NAV: Array<{ to: string; label: string }> = [
   { to: "/forum", label: "Forum" },
   { to: "/news", label: "News" },
   { to: "/research", label: "Research" },
+  { to: "/capstones", label: "Capstones" },
   { to: "/paths", label: "Paths" },
 ];
 

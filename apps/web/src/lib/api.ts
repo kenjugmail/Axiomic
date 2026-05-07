@@ -47,6 +47,16 @@ import type {
   ResearchPapersDraftsResponse,
   ResearchPapersListResponse,
   UpdateResearchPaperRequest,
+  CapstonesListResponse,
+  CapstoneResponse,
+  CapstoneEnrollmentsResponse,
+  CapstoneArtifactPageResponse,
+  CreateCapstoneRequest,
+  UpdateCapstoneRequest,
+  CreateMilestoneRequest,
+  UpdateMilestoneRequest,
+  SubmitMilestoneRequest,
+  CapstoneSubmission,
   PaperOutlineRequest,
   PaperDraftSectionRequest,
   PaperVizSuggestionsResponse,
@@ -740,6 +750,69 @@ export const api = {
         method: "POST",
         body: JSON.stringify(body),
       }),
+  },
+  capstones: {
+    list: (params?: { tag?: string }) => {
+      const sp = new URLSearchParams();
+      if (params?.tag) sp.set("tag", params.tag);
+      const qs = sp.toString();
+      return request<CapstonesListResponse>(`/capstones${qs ? `?${qs}` : ""}`);
+    },
+    drafts: () =>
+      request<{
+        capstones: Array<{
+          id: string;
+          slug: string;
+          title: string;
+          summary: string;
+          estimatedWeeks: number;
+          coverEmoji: string;
+          accentColor: string;
+          tags: string[];
+          updatedAt: string;
+        }>;
+      }>("/capstones/me/drafts"),
+    enrollments: () =>
+      request<CapstoneEnrollmentsResponse>("/capstones/me/enrollments"),
+    get: (slug: string, tier?: "intro" | "undergrad" | "grad") => {
+      const qs = tier ? `?tier=${tier}` : "";
+      return request<CapstoneResponse>(`/capstones/${slug}${qs}`);
+    },
+    create: (data: CreateCapstoneRequest) =>
+      request<{ capstoneId: string; slug: string }>("/capstones", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    update: (slug: string, data: UpdateCapstoneRequest) =>
+      request<OkResponse>(`/capstones/${slug}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    addMilestone: (slug: string, data: CreateMilestoneRequest) =>
+      request<{ milestoneId: string }>(`/capstones/${slug}/milestones`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    updateMilestone: (slug: string, id: string, data: UpdateMilestoneRequest) =>
+      request<OkResponse>(`/capstones/${slug}/milestones/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    deleteMilestone: (slug: string, id: string) =>
+      request<OkResponse>(`/capstones/${slug}/milestones/${id}`, {
+        method: "DELETE",
+      }),
+    enroll: (slug: string) =>
+      request<{ enrollmentId: string }>(`/capstones/${slug}/enroll`, {
+        method: "POST",
+      }),
+    submit: (slug: string, milestoneId: string, data: SubmitMilestoneRequest) =>
+      request<{ submission: CapstoneSubmission }>(
+        `/capstones/${slug}/milestones/${milestoneId}/submit`,
+        { method: "POST", body: JSON.stringify(data) },
+      ),
+    artifact: (artifactSlug: string) =>
+      request<CapstoneArtifactPageResponse>(`/capstones/c/${artifactSlug}`),
   },
   flashcards: {
     save: (data: { pageSlug: string; pageTitle: string; front: string; back: string }) =>

@@ -875,3 +875,172 @@ export const researchPapers = sqliteTable("research_papers", {
   authorIdx: index("research_papers_author_idx").on(t.authorId, t.createdAt),
   statusIdx: index("research_papers_status_idx").on(t.status, t.createdAt),
 }));
+
+// Capstones (Sprint 26). A capstone is a thesis-scale (4-12 week)
+// project a learner builds end-to-end and ships as a public artifact
+// page. Authors publish a brief + ordered milestones + a per-milestone
+// AI-graded rubric; learners enroll, submit each milestone, and on
+// completion get a permanent public URL that proves what they built.
+//
+// Read this row alongside `capstone_milestones` to understand the
+// shape; the brief is tiered (intro / undergrad / grad) like a wiki
+// page so a curious novice and a seasoned reviewer both get value
+// from the same artifact. `prerequisiteWikiSlugs` + `prerequisiteNodeIds`
+// drive the prereq X-ray that surfaces above the brief.
+export const capstones = sqliteTable("capstones", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  summary: text("summary").notNull().default(""),
+  // Tiered brief mirrors research_papers / wiki_pages.
+  contentIntro: text("content_intro").notNull().default(""),
+  contentUndergrad: text("content_undergrad").notNull().default(""),
+  contentGrad: text("content_grad").notNull().default(""),
+  canonicalTier: text("canonical_tier").notNull().default("undergrad"),
+  // Pacing hint surfaced on cards; not enforced.
+  estimatedWeeks: integer("estimated_weeks").notNull().default(6),
+  // JSON arrays. The X-ray reads both — wiki slugs let it green/yellow/
+  // red against the user's mastery state directly; nodeIds tie into
+  // mastery_paths for "complete this lesson first" hints.
+  prerequisiteWikiSlugs: text("prerequisite_wiki_slugs").notNull().default("[]"),
+  prerequisiteNodeIds: text("prerequisite_node_ids").notNull().default("[]"),
+  tags: text("tags").notNull().default("[]"),
+  coverEmoji: text("cover_emoji").notNull().default("🎓"),
+  accentColor: text("accent_color").notNull().default("violet"),
+  // 'draft' | 'published'
+  status: text("status").notNull().default("draft"),
+  authorId: text("author_id").notNull().references(() => users.id),
+  lastEditorId: text("last_editor_id").references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  authorIdx: index("capstones_author_idx").on(t.authorId, t.createdAt),
+  statusIdx: index("capstones_status_idx").on(t.status, t.createdAt),
+}));
+
+// Per-capstone milestone. Ordered linearly via `order`. Each milestone
+// carries a structured rubric (criteria + weights + AI prompts) and
+// optional Pyodide-executable tests the learner runs in their browser
+// before submitting. The rubric is the contract the AI grader scores
+// against in S27.
+export const capstoneMilestones = sqliteTable("capstone_milestones", {
+  id: text("id").primaryKey(),
+  capstoneId: text("capstone_id")
+    .notNull()
+    .references(() => capstones.id, { onDelete: "cascade" }),
+  order: integer("order").notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull().default(""),
+  // JSON: { criteria: [{ id, weight, description, aiPrompt }], passingScore, notes }
+  rubricJson: text("rubric_json").notNull().default("{}"),
+  // JSON array of artifact kinds the learner must attach
+  // (e.g. ['github', 'colab']). Empty array allows any.
+  requiredArtifactKinds: text("required_artifact_kinds").notNull().default("[]"),
+  // Optional Python code (Pyodide-executable) the learner runs against
+  // their solution before submitting. Pass/fail is included in the
+  // submission and the AI grader can reference it.
+  runnableTests: text("runnable_tests"),
+  estimatedDays: integer("estimated_days").notNull().default(7),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  capstoneIdx: index("capstone_milestones_capstone_idx").on(t.capstoneId, t.order),
+}));
+
+// Sprint 27 — capstone enrollments. One row per (capstone, learner).
+// Created on enroll; `completedAt` flips when every milestone for this
+// enrollment has a passing submission, and `artifactPageSlug` is set
+// at the same moment so /capstones/c/:slug becomes the public
+// portfolio piece.
+export const capstoneEnrollments = sqliteTable("capstone_enrollments", {
+  id: text("id").primaryKey(),
+  capstoneId: text("capstone_id")
+    .notNull()
+    .references(() => capstones.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id),
+  startedAt: text("started_at").default(sql`(datetime('now'))`).notNull(),
+  completedAt: text("completed_at"),
+  // Set when the enrollment completes. Format: `${username}-${capstoneSlug}`.
+  artifactPageSlug: text("artifact_page_slug"),
+}, (t) => ({
+  pk: uniqueIndex("capstone_enrollments_pk").on(t.capstoneId, t.userId),
+  userIdx: index("capstone_enrollments_user_idx").on(t.userId, t.startedAt),
+  artifactSlugIdx: uniqueIndex("capstone_enrollments_artifact_slug_idx").on(t.artifactPageSlug),
+}));
+
+// Sprint 27 — capstone submissions. One row per (enrollment, milestone).
+// Re-submissions update the existing row in place — the previous
+// `aiGradeJson` overwrites and the status flips from `needs_revision`
+// back to `pending` then `passed`/`needs_revision`. We don't keep a
+// full submission history in v1; the grade is a snapshot.
+export const capstoneSubmissions = sqliteTable("capstone_submissions", {
+  id: text("id").primaryKey(),
+  enrollmentId: text("enrollment_id")
+    .notNull()
+    .references(() => capstoneEnrollments.id, { onDelete: "cascade" }),
+  milestoneId: text("milestone_id")
+    .notNull()
+    .references(() => capstoneMilestones.id, { onDelete: "cascade" }),
+  // JSON array of { kind, url, label, description? } — same shape as
+  // runnable_artifacts rows but inline (artifacts on a submission are
+  // scoped to that submission, not the parent capstone).
+  artifactsJson: text("artifacts_json").notNull().default("[]"),
+  writeup: text("writeup").notNull().default(""),
+  // 'pending' | 'passed' | 'needs_revision'
+  status: text("status").notNull().default("pending"),
+  // JSON: { score, perCriterion: [{criterionId, score, feedback}], summary, gradedBy }
+  aiGradeJson: text("ai_grade_json"),
+  // JSON: per-test pass/fail when the milestone has runnable_tests.
+  runnableTestResultsJson: text("runnable_test_results_json"),
+  // Optional structured lab state captured by interactive labs (S28)
+  // so the AI grader sees the learner's final widget state.
+  labStateJson: text("lab_state_json"),
+  submittedAt: text("submitted_at").default(sql`(datetime('now'))`).notNull(),
+  gradedAt: text("graded_at"),
+}, (t) => ({
+  pk: uniqueIndex("capstone_submissions_pk").on(t.enrollmentId, t.milestoneId),
+  milestoneIdx: index("capstone_submissions_milestone_idx").on(t.milestoneId, t.submittedAt),
+}));
+
+// Sprint 29 — misconception coaching. The detector runs against
+// `quiz_mistakes` + `lesson_slide_events` and produces a typed
+// diagnosis row per (user, conceptSlug, misconceptionKey). Coaching
+// flips `status` to 'coached' once a tutor session targets it; a
+// 'resolved' row means the learner has been getting the relevant
+// probes right. `dismissed` rows are hidden from the UI.
+export const misconceptionCatalog = sqliteTable("misconception_catalog", {
+  id: text("id").primaryKey(),
+  conceptSlug: text("concept_slug").notNull(),
+  // Stable short id, e.g. 'softmax-temperature-inverted'.
+  key: text("key").notNull(),
+  label: text("label").notNull(),
+  description: text("description").notNull().default(""),
+  // JSON: short MCQ probes the AI tutor can ask to confirm.
+  probeQuestionsJson: text("probe_questions_json").notNull().default("[]"),
+  // System-prompt snippet folded into the misconception-mode tutor.
+  correctionPromptTemplate: text("correction_prompt_template").notNull().default(""),
+}, (t) => ({
+  pk: uniqueIndex("misconception_catalog_pk").on(t.conceptSlug, t.key),
+}));
+
+export const misconceptionDiagnoses = sqliteTable("misconception_diagnoses", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id),
+  conceptSlug: text("concept_slug").notNull(),
+  misconceptionKey: text("misconception_key").notNull(),
+  label: text("label").notNull(),
+  // JSON array of evidence pointers ({kind, refId, snippet}).
+  evidenceJson: text("evidence_json").notNull().default("[]"),
+  confidence: real("confidence").notNull().default(0.5),
+  // 'active' | 'coached' | 'resolved' | 'dismissed'
+  status: text("status").notNull().default("active"),
+  firstSeenAt: text("first_seen_at").default(sql`(datetime('now'))`).notNull(),
+  lastSeenAt: text("last_seen_at").default(sql`(datetime('now'))`).notNull(),
+  resolvedAt: text("resolved_at"),
+}, (t) => ({
+  pk: uniqueIndex("misconception_diagnoses_pk").on(
+    t.userId,
+    t.conceptSlug,
+    t.misconceptionKey,
+  ),
+  userIdx: index("misconception_diagnoses_user_idx").on(t.userId, t.status),
+}));

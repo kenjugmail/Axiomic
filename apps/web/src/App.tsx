@@ -150,6 +150,24 @@ const ResearchWizardPage = lazy(() =>
 const FlashcardsPage = lazy(() =>
   import("./pages/FlashcardsPage").then((m) => ({ default: m.FlashcardsPage })),
 );
+const CapstonesListPage = lazy(() =>
+  import("./pages/CapstonesListPage").then((m) => ({ default: m.CapstonesListPage })),
+);
+const CapstonePage = lazy(() =>
+  import("./pages/CapstonePage").then((m) => ({ default: m.CapstonePage })),
+);
+const CapstoneNewPage = lazy(() =>
+  import("./pages/CapstoneNewPage").then((m) => ({ default: m.CapstoneNewPage })),
+);
+const CapstoneEditPage = lazy(() =>
+  import("./pages/CapstoneEditPage").then((m) => ({ default: m.CapstoneEditPage })),
+);
+const CapstoneWorkspacePage = lazy(() =>
+  import("./pages/CapstoneWorkspacePage").then((m) => ({ default: m.CapstoneWorkspacePage })),
+);
+const CapstoneArtifactPageView = lazy(() =>
+  import("./pages/CapstoneArtifactPage").then((m) => ({ default: m.CapstoneArtifactPageView })),
+);
 
 function PageFallback() {
   return (
@@ -236,6 +254,12 @@ export function App() {
           <Route path="/research/:slug" element={<ResearchPaperPage />} />
           <Route path="/research/:slug/edit" element={<ResearchEditPage />} />
           <Route path="/flashcards" element={<FlashcardsPage />} />
+          <Route path="/capstones" element={<CapstonesListPage />} />
+          <Route path="/capstones/new" element={<CapstoneNewPage />} />
+          <Route path="/capstones/c/:artifactSlug" element={<CapstoneArtifactPageView />} />
+          <Route path="/capstones/:slug" element={<CapstonePage />} />
+          <Route path="/capstones/:slug/edit" element={<CapstoneEditPage />} />
+          <Route path="/capstones/:slug/work" element={<CapstoneWorkspacePage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

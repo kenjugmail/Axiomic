@@ -1734,3 +1734,359 @@ export interface QuizMistakeEntry {
 export interface QuizMistakesResponse {
   mistakes: QuizMistakeEntry[];
 }
+
+// --- Capstones (Sprint 26-28) ----------------------------------------
+
+export type CapstoneTier = "intro" | "undergrad" | "grad";
+export type CapstoneStatus = "draft" | "published";
+export type CapstoneAccent = ResearchPaperAccent;
+export type CapstoneArtifactKind =
+  | "github"
+  | "colab"
+  | "docker"
+  | "dataset"
+  | "writeup"
+  | "arxiv"
+  | "other";
+
+export interface CapstoneArtifact {
+  kind: CapstoneArtifactKind;
+  url: string;
+  label: string;
+  description?: string;
+}
+
+export interface CapstoneRubricCriterion {
+  id: string;
+  weight: number;
+  description: string;
+  aiPrompt: string;
+}
+
+export interface CapstoneRubric {
+  criteria: CapstoneRubricCriterion[];
+  passingScore: number;
+  notes?: string;
+}
+
+export interface CapstoneMilestone {
+  id: string;
+  capstoneId: string;
+  order: number;
+  title: string;
+  description: string;
+  rubric: CapstoneRubric;
+  requiredArtifactKinds: CapstoneArtifactKind[];
+  runnableTests: string | null;
+  estimatedDays: number;
+  createdAt: string;
+}
+
+export interface CapstoneSummary {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  estimatedWeeks: number;
+  coverEmoji: string;
+  accentColor: CapstoneAccent;
+  tags: string[];
+  authorId: string;
+  authorUsername: string;
+  authorDisplayName: string | null;
+  milestoneCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CapstoneMyEnrollmentSummary {
+  id: string;
+  startedAt: string;
+  completedAt: string | null;
+  artifactPageSlug: string | null;
+  passedMilestoneIds: string[];
+  pendingMilestoneIds: string[];
+  needsRevisionMilestoneIds: string[];
+}
+
+export interface Capstone {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  brief: string;
+  tier: CapstoneTier;
+  requestedTier: CapstoneTier;
+  availableTiers: CapstoneTier[];
+  allContent: {
+    intro: string;
+    undergrad: string;
+    grad: string;
+  };
+  canonicalTier: CapstoneTier;
+  estimatedWeeks: number;
+  prerequisiteWikiSlugs: string[];
+  prerequisiteNodeIds: string[];
+  tags: string[];
+  coverEmoji: string;
+  accentColor: CapstoneAccent;
+  status: CapstoneStatus;
+  authorId: string;
+  authorUsername: string;
+  authorDisplayName: string | null;
+  isAuthor: boolean;
+  milestones: CapstoneMilestone[];
+  myEnrollment: CapstoneMyEnrollmentSummary | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CapstoneSubmissionStatus = "pending" | "passed" | "needs_revision";
+
+export interface CapstoneAiGradePerCriterion {
+  criterionId: string;
+  score: number;
+  feedback: string;
+}
+
+export interface CapstoneAiGrade {
+  score: number;
+  perCriterion: CapstoneAiGradePerCriterion[];
+  summary: string;
+  gradedBy?: string;
+}
+
+export interface CapstoneRunnableTestResult {
+  name: string;
+  passed: boolean;
+  message?: string;
+}
+
+export interface CapstoneSubmission {
+  id: string;
+  enrollmentId: string;
+  milestoneId: string;
+  artifacts: CapstoneArtifact[];
+  writeup: string;
+  status: CapstoneSubmissionStatus;
+  aiGrade: CapstoneAiGrade | null;
+  runnableTestResults: CapstoneRunnableTestResult[] | null;
+  labState: Record<string, unknown> | null;
+  submittedAt: string;
+  gradedAt: string | null;
+}
+
+export interface CapstoneEnrollmentDetail {
+  id: string;
+  capstoneId: string;
+  capstoneSlug: string;
+  capstoneTitle: string;
+  capstoneCoverEmoji: string;
+  capstoneAccentColor: CapstoneAccent;
+  startedAt: string;
+  completedAt: string | null;
+  artifactPageSlug: string | null;
+  submissions: CapstoneSubmission[];
+}
+
+export interface CapstoneArtifactPage {
+  capstone: Capstone;
+  enrollment: {
+    id: string;
+    artifactPageSlug: string;
+    startedAt: string;
+    completedAt: string;
+  };
+  learner: {
+    id: string;
+    username: string;
+    displayName: string | null;
+  };
+  submissions: CapstoneSubmission[];
+}
+
+export interface CapstonesListResponse {
+  capstones: CapstoneSummary[];
+}
+
+export interface CapstoneResponse {
+  capstone: Capstone;
+}
+
+export interface CapstoneEnrollmentsResponse {
+  enrollments: CapstoneEnrollmentDetail[];
+}
+
+export interface CapstoneArtifactPageResponse {
+  artifact: CapstoneArtifactPage;
+}
+
+export interface CreateCapstoneRequest {
+  slug: string;
+  title: string;
+  summary?: string;
+  contentIntro?: string;
+  contentUndergrad?: string;
+  contentGrad?: string;
+  canonicalTier?: CapstoneTier;
+  estimatedWeeks?: number;
+  prerequisiteWikiSlugs?: string[];
+  prerequisiteNodeIds?: string[];
+  tags?: string[];
+  coverEmoji?: string;
+  accentColor?: CapstoneAccent;
+  status?: CapstoneStatus;
+}
+
+export interface UpdateCapstoneRequest {
+  title?: string;
+  summary?: string;
+  contentIntro?: string;
+  contentUndergrad?: string;
+  contentGrad?: string;
+  canonicalTier?: CapstoneTier;
+  estimatedWeeks?: number;
+  prerequisiteWikiSlugs?: string[];
+  prerequisiteNodeIds?: string[];
+  tags?: string[];
+  coverEmoji?: string;
+  accentColor?: CapstoneAccent;
+  status?: CapstoneStatus;
+}
+
+export interface CreateMilestoneRequest {
+  title: string;
+  description?: string;
+  rubric?: CapstoneRubric;
+  requiredArtifactKinds?: CapstoneArtifactKind[];
+  runnableTests?: string | null;
+  estimatedDays?: number;
+  order?: number;
+}
+
+export interface UpdateMilestoneRequest {
+  title?: string;
+  description?: string;
+  rubric?: CapstoneRubric;
+  requiredArtifactKinds?: CapstoneArtifactKind[];
+  runnableTests?: string | null;
+  estimatedDays?: number;
+  order?: number;
+}
+
+export interface SubmitMilestoneRequest {
+  artifacts: CapstoneArtifact[];
+  writeup: string;
+  runnableTestResults?: CapstoneRunnableTestResult[];
+  labState?: Record<string, unknown>;
+}
+
+// --- Misconception coaching (Sprint 29) ------------------------------
+
+export type MisconceptionStatus = "active" | "coached" | "resolved" | "dismissed";
+
+export interface MisconceptionEvidence {
+  kind: "quiz_mistake" | "lesson_slide" | "forum_reply" | "other";
+  refId: string;
+  snippet: string;
+}
+
+export interface MisconceptionDiagnosis {
+  id: string;
+  conceptSlug: string;
+  conceptTitle: string | null;
+  misconceptionKey: string;
+  label: string;
+  description: string;
+  evidence: MisconceptionEvidence[];
+  confidence: number;
+  status: MisconceptionStatus;
+  firstSeenAt: string;
+  lastSeenAt: string;
+}
+
+export interface WeakConceptsResponse {
+  diagnoses: MisconceptionDiagnosis[];
+}
+
+// --- AI tutor modes (Sprint 30) --------------------------------------
+
+export type TutorMode =
+  | "socratic"
+  | "misconception"
+  | "bridge"
+  | "debate"
+  | "contribution";
+
+export interface TutorModeContext {
+  diagnosisId?: string;
+  forumTopicId?: string;
+  capstoneSlug?: string;
+  milestoneId?: string;
+  pageSlug?: string;
+}
+
+// --- Knowledge Navigator (Sprint 31) ---------------------------------
+
+export type NavigatorIntent = "define" | "practice" | "discuss" | "read" | "build";
+
+export interface NavigatorGroup<T = unknown> {
+  intent: NavigatorIntent;
+  items: T[];
+  total: number;
+}
+
+export interface PrereqXrayEntry {
+  conceptSlug: string;
+  conceptTitle: string | null;
+  status: "mastered" | "in_progress" | "untouched";
+  nodeId?: string;
+  nodeSlug?: string;
+  pathSlug?: string;
+}
+
+export interface PrereqXrayResponse {
+  entries: PrereqXrayEntry[];
+}
+
+export interface PortfolioEntryCapstone {
+  kind: "capstone";
+  capstoneSlug: string;
+  capstoneTitle: string;
+  artifactPageSlug: string;
+  completedAt: string;
+  coverEmoji: string;
+  accentColor: CapstoneAccent;
+}
+
+export interface PortfolioEntryResearch {
+  kind: "research";
+  slug: string;
+  title: string;
+  summary: string;
+  format: ResearchPaperFormat;
+  publishedAt: string;
+}
+
+export interface PortfolioEntryWiki {
+  kind: "wiki";
+  slug: string;
+  title: string;
+  authoredFraction: number;
+}
+
+export interface PortfolioEntryReproduction {
+  kind: "reproduction";
+  count: number;
+}
+
+export type PortfolioEntry =
+  | PortfolioEntryCapstone
+  | PortfolioEntryResearch
+  | PortfolioEntryWiki
+  | PortfolioEntryReproduction;
+
+export interface PortfolioResponse {
+  username: string;
+  entries: PortfolioEntry[];
+}
