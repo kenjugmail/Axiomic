@@ -5,7 +5,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { GraduationCap } from "lucide-react";
+import { GraduationCap, Wand2 } from "lucide-react";
 import type { ResearchPaperFormat, ResearchPaperSummary } from "@axiomic/types";
 import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
@@ -65,7 +65,7 @@ export function ResearchListPage() {
           </p>
         </div>
         {user && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Link
               to="/research/me/drafts"
               className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40"
@@ -74,10 +74,18 @@ export function ResearchListPage() {
             </Link>
             <Link
               to="/research/new"
-              className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 font-medium inline-flex items-center gap-1.5"
+              className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40 font-medium inline-flex items-center gap-1.5"
             >
               <GraduationCap className="w-3.5 h-3.5" strokeWidth={2} />
-              New paper
+              Blank paper
+            </Link>
+            <Link
+              to="/research/new/wizard"
+              className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 font-medium inline-flex items-center gap-1.5"
+              title="Multi-step AI-assisted authoring with an auto-draft shortcut."
+            >
+              <Wand2 className="w-3.5 h-3.5" strokeWidth={2} />
+              Generate with AI
             </Link>
           </div>
         )}

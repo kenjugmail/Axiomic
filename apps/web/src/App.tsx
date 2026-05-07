@@ -144,6 +144,9 @@ const ResearchEditPage = lazy(() =>
 const ResearchDraftsPage = lazy(() =>
   import("./pages/ResearchDraftsPage").then((m) => ({ default: m.ResearchDraftsPage })),
 );
+const ResearchWizardPage = lazy(() =>
+  import("./pages/ResearchWizardPage").then((m) => ({ default: m.ResearchWizardPage })),
+);
 const FlashcardsPage = lazy(() =>
   import("./pages/FlashcardsPage").then((m) => ({ default: m.FlashcardsPage })),
 );
@@ -228,6 +231,7 @@ export function App() {
           <Route path="/demo/attention" element={<DemoAttentionPage />} />
           <Route path="/research" element={<ResearchListPage />} />
           <Route path="/research/new" element={<ResearchNewPage />} />
+          <Route path="/research/new/wizard" element={<ResearchWizardPage />} />
           <Route path="/research/me/drafts" element={<ResearchDraftsPage />} />
           <Route path="/research/:slug" element={<ResearchPaperPage />} />
           <Route path="/research/:slug/edit" element={<ResearchEditPage />} />

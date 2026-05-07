@@ -47,6 +47,12 @@ import type {
   ResearchPapersDraftsResponse,
   ResearchPapersListResponse,
   UpdateResearchPaperRequest,
+  PaperOutlineRequest,
+  PaperDraftSectionRequest,
+  PaperVizSuggestionsResponse,
+  PaperConceptSuggestionsResponse,
+  PaperReferenceSuggestionsResponse,
+  PaperDeriveTierRequest,
   NewsListResponse,
   NewsProposalsResponse,
   NewsReactionKind,
@@ -494,6 +500,45 @@ export const api = {
       request<CoachSuggestionsResponse>("/ai/coach/suggest", {
         method: "POST",
         body: JSON.stringify({ pageSlug }),
+      }),
+    // Sprint 21 — research paper generator wizard endpoints. Streaming
+    // endpoints (outline / draft-section / derive-tier) return a raw
+    // Response so the caller can pipe them through streamTokens().
+    paperOutline: (data: PaperOutlineRequest) =>
+      fetch(`${BASE}/ai/paper/outline`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }),
+    paperDraftSection: (data: PaperDraftSectionRequest) =>
+      fetch(`${BASE}/ai/paper/draft-section`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }),
+    paperSuggestViz: (section: { title: string; body: string }) =>
+      request<PaperVizSuggestionsResponse>("/ai/paper/suggest-viz", {
+        method: "POST",
+        body: JSON.stringify({ section }),
+      }),
+    paperSuggestConcepts: (body: string) =>
+      request<PaperConceptSuggestionsResponse>("/ai/paper/suggest-concepts", {
+        method: "POST",
+        body: JSON.stringify({ body }),
+      }),
+    paperSuggestReferences: (data: { title: string; body: string }) =>
+      request<PaperReferenceSuggestionsResponse>(
+        "/ai/paper/suggest-references",
+        { method: "POST", body: JSON.stringify(data) },
+      ),
+    paperDeriveTier: (data: PaperDeriveTierRequest) =>
+      fetch(`${BASE}/ai/paper/derive-tier`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
       }),
   },
   achievements: {

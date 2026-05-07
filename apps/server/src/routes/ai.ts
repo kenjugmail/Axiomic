@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { getAIProvider } from "@axiomic/ai";
-import { getDb, wikiPages, pageVersions, newsArticles, users } from "@axiomic/db";
+import { getDb, wikiPages, pageVersions, newsArticles, researchPapers, users } from "@axiomic/db";
 import { eq, desc, sql } from "drizzle-orm";
 import { getSessionUser, requireAuth } from "../middleware/auth";
 import { buildCoachContext, summarizeCoachContext } from "../lib/userContext";
@@ -986,6 +986,393 @@ function rankSuggestions(ctx: ReturnType<typeof buildCoachContext>): CoachSugges
   }
 
   return out.slice(0, 3);
+}
+
+// --- Sprint 21 — Research Paper Generator endpoints ----------------
+//
+// Six endpoints driving the wizard flow at /research/new/wizard:
+//   /paper/outline          — streams JSON outline from a topic
+//   /paper/draft-section    — streams markdown for one outlined section
+//   /paper/suggest-viz      — non-streaming, ranks the platform viz catalog
+//   /paper/suggest-concepts — non-streaming, finds [[slug]] candidates by embedding
+//   /paper/suggest-references — non-streaming, finds platform citations
+//   /paper/derive-tier      — streams a tier-shifted body
+//
+// All require authentication so the per-user rate limit applies. The
+// wizard's auto-draft button calls these in series client-side.
+
+const VIZ_CATALOG: Array<{ name: string; blurb: string }> = [
+  { name: "attention-heatmap", blurb: "Cells of attention weights from queries to keys; great for explaining attention concentrations." },
+  { name: "softmax-temperature", blurb: "Slider for softmax temperature showing how the distribution sharpens or flattens." },
+  { name: "positional-encoding", blurb: "Sinusoidal vs RoPE positional embeddings, comparing the geometry." },
+  { name: "tokenizer-playground", blurb: "Type a sentence and see how a BPE tokenizer splits it." },
+  { name: "beam-search-tree", blurb: "Beam search expanding step by step; shows hypothesis pruning." },
+  { name: "layer-activations", blurb: "Histograms of activation magnitudes across transformer layers." },
+  { name: "qkv-step-through", blurb: "Walks the Q-K-V matmul for one token, value by value." },
+  { name: "embedding-explorer", blurb: "2D projection of word embeddings, with nearest-neighbour highlights." },
+  { name: "activation-function-gallery", blurb: "Side-by-side plots of ReLU/GELU/SiLU/etc." },
+  { name: "lorenz-attractor", blurb: "Chaotic ODE; useful for dynamical-systems intuition." },
+  { name: "double-pendulum", blurb: "Sensitivity-to-initial-conditions demo for nonlinear dynamics." },
+  { name: "phase-portrait-1d", blurb: "1D phase portraits for fixed-point + stability analysis." },
+];
+
+const PAPER_FORMAT_BLURB: Record<string, string> = {
+  research: "Original results + method. Audience: practitioners + researchers.",
+  explainer: "Existing concepts made accessible. Audience: motivated learners.",
+  survey: "Lay of the land + open questions. Audience: orienting researchers.",
+  opinion: "An argued position with evidence. Audience: peers in the field.",
+};
+
+const TIER_VOICE: Record<string, string> = {
+  intro: "Plain English. Almost no math. Build intuition with analogies. Aim for a curious novice.",
+  undergrad: "Full mathematical fluency, derivations, worked examples. Aim for a strong undergraduate.",
+  grad: "Terse, research-flavored, links to open questions. Aim for an active researcher.",
+};
+
+const LENGTH_TARGET: Record<string, string> = {
+  short: "Aim for 400-600 words total across all sections.",
+  medium: "Aim for 800-1400 words total across all sections.",
+  deep: "Aim for 1800-3000 words across all sections.",
+};
+
+// 1. /paper/outline — streams a JSON outline from a topic.
+const paperOutlineSchema = z.object({
+  title: z.string().min(3).max(200),
+  researchQuestion: z.string().max(500).optional(),
+  format: z.enum(["research", "explainer", "survey", "opinion"]).default("research"),
+  tier: z.enum(["intro", "undergrad", "grad"]).default("undergrad"),
+  length: z.enum(["short", "medium", "deep"]).default("medium"),
+});
+
+ai.post("/paper/outline", zValidator("json", paperOutlineSchema), async (c) => {
+  const { title, researchQuestion, format, tier, length } = c.req.valid("json");
+  const user = await getSessionUser(c);
+  if (!user) return c.json({ error: "Authentication required" }, 401);
+  if (!checkRateLimit(`paper-outline:${user.id}`, 12, 60_000)) {
+    return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+  }
+
+  const system = `You outline research papers for the Axiomic learning platform — a Brilliant/Khan-Academy-style site for ML and AI. Output a single JSON object and nothing else (no prose, no code fences):
+
+{"sections": [
+  {"title": "...", "kind": "concept" | "method" | "result" | "discussion" | "background", "bullets": ["...","..."]}
+]}
+
+Constraints:
+- 4-7 sections.
+- Each section has 3-5 bullets capturing what the section will argue / show / derive.
+- "kind" tags the section so downstream tools can render it correctly: concept (definitions/intuition), method (derivation, algorithm, math), result (figure / experiment / claim), discussion (interpretation, caveats), background (prior work).
+- Open with a hook section (kind=background or concept), close with a discussion or future-work section.
+- Keep titles ≤ 60 chars, snappy.
+- Bullets are full sentences a reader could understand without context.
+- Match the format: ${PAPER_FORMAT_BLURB[format] ?? PAPER_FORMAT_BLURB.research}
+- Voice: ${TIER_VOICE[tier]}
+- ${LENGTH_TARGET[length]}`;
+
+  const userMessage = `Title: ${title}${
+    researchQuestion ? `\n\nResearch question: ${researchQuestion}` : ""
+  }`;
+
+  return streamingResponse(system, userMessage);
+});
+
+// 2. /paper/draft-section — streams markdown for one outlined section.
+const paperDraftSectionSchema = z.object({
+  paper: z.object({
+    title: z.string().min(1).max(200),
+    format: z.enum(["research", "explainer", "survey", "opinion"]).default("research"),
+  }),
+  section: z.object({
+    title: z.string().min(1).max(120),
+    kind: z.enum(["concept", "method", "result", "discussion", "background"]).optional(),
+    bullets: z.array(z.string().max(400)).max(8),
+  }),
+  // Optional prior-section context (last ~600 chars) so the LLM can
+  // pick up where the paper left off without repeating itself.
+  prior: z.string().max(2000).optional(),
+  tier: z.enum(["intro", "undergrad", "grad"]).default("undergrad"),
+  length: z.enum(["short", "medium", "deep"]).default("medium"),
+});
+
+const SECTION_LENGTH: Record<string, string> = {
+  short: "120-220 words.",
+  medium: "200-360 words.",
+  deep: "350-600 words.",
+};
+
+ai.post(
+  "/paper/draft-section",
+  zValidator("json", paperDraftSectionSchema),
+  async (c) => {
+    const { paper, section, prior, tier, length } = c.req.valid("json");
+    const user = await getSessionUser(c);
+    if (!user) return c.json({ error: "Authentication required" }, 401);
+    if (!checkRateLimit(`paper-section:${user.id}`, 30, 60_000)) {
+      return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+    }
+
+    const system = `You draft one section of a research paper for the Axiomic platform. Output ONLY the section's markdown body — no heading (the platform renders the title separately), no commentary, no preamble.
+
+Constraints:
+- Length: ${SECTION_LENGTH[length] ?? SECTION_LENGTH.medium}
+- Voice: ${TIER_VOICE[tier]}
+- Format: ${PAPER_FORMAT_BLURB[paper.format] ?? PAPER_FORMAT_BLURB.research}
+- LaTeX via $...$ inline and $$...$$ block. Code blocks via triple backticks.
+- You may embed a visualization with :::viz[name] when one fits; available viz names: ${VIZ_CATALOG.map((v) => v.name).join(", ")}. At most one per section.
+- You may reference platform concepts via [[concept-slug]] inline links; readers see hover cards. Use kebab-case slugs that match wiki page names if you know them; otherwise stick to plain prose.
+- Do NOT repeat content from the prior section.
+- Do NOT add citations like "[1]"; references are managed separately.`;
+
+    const userMessage = `Paper title: ${paper.title}
+
+Section to draft:
+- Title: ${section.title}
+- Kind: ${section.kind ?? "concept"}
+- Bullets to cover:
+${section.bullets.map((b, i) => `  ${i + 1}. ${b}`).join("\n")}
+${prior ? `\nPrior section (for continuity, do not repeat):\n${prior.slice(-1500)}` : ""}`;
+
+    return streamingResponse(system, userMessage);
+  },
+);
+
+// 3. /paper/suggest-viz — ranks the platform viz catalog for a section.
+const paperSuggestVizSchema = z.object({
+  section: z.object({
+    title: z.string().min(1).max(120),
+    body: z.string().max(8000),
+  }),
+});
+
+ai.post(
+  "/paper/suggest-viz",
+  zValidator("json", paperSuggestVizSchema),
+  async (c) => {
+    const { section } = c.req.valid("json");
+    const user = await getSessionUser(c);
+    if (!user) return c.json({ error: "Authentication required" }, 401);
+    if (!checkRateLimit(`paper-viz:${user.id}`, 30, 60_000)) {
+      return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+    }
+
+    // Cheap keyword-match ranker — LLM doesn't help here; a tiny
+    // overlap-of-tokens heuristic ranks the catalog in ~1ms and
+    // returns the top 3. Stays deterministic and offline-friendly.
+    const haystack = (section.title + " " + section.body).toLowerCase();
+    const tokens = haystack
+      .split(/[^a-z0-9]+/)
+      .filter((t) => t.length > 3);
+    const tokenSet = new Set(tokens);
+
+    const scored = VIZ_CATALOG.map((v) => {
+      const haystackV = (v.name + " " + v.blurb).toLowerCase();
+      const vTokens = haystackV
+        .split(/[^a-z0-9]+/)
+        .filter((t) => t.length > 3);
+      let score = 0;
+      for (const t of vTokens) if (tokenSet.has(t)) score++;
+      // Boost when the viz name appears in the body verbatim.
+      if (haystack.includes(v.name)) score += 5;
+      return { viz: v, score };
+    })
+      .filter((s) => s.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3);
+
+    return c.json({
+      suggestions: scored.map((s) => ({
+        name: s.viz.name,
+        blurb: s.viz.blurb,
+        score: s.score,
+      })),
+    });
+  },
+);
+
+// 4. /paper/suggest-concepts — find [[slug]] candidates from the wiki
+// corpus. Embeddings would be nicer; here we use a fast title +
+// keyword heuristic so this stays fast even on small deploys.
+const paperSuggestConceptsSchema = z.object({
+  body: z.string().min(20).max(50000),
+});
+
+ai.post(
+  "/paper/suggest-concepts",
+  zValidator("json", paperSuggestConceptsSchema),
+  async (c) => {
+    const { body } = c.req.valid("json");
+    const user = await getSessionUser(c);
+    if (!user) return c.json({ error: "Authentication required" }, 401);
+    if (!checkRateLimit(`paper-concepts:${user.id}`, 20, 60_000)) {
+      return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+    }
+
+    const db = getDb();
+    const haystack = body.toLowerCase();
+    const haystackTokens = new Set(
+      haystack
+        .split(/[^a-z0-9]+/)
+        .filter((t) => t.length > 3),
+    );
+
+    const pages = db
+      .select({
+        slug: wikiPages.slug,
+        title: wikiPages.title,
+      })
+      .from(wikiPages)
+      .all();
+
+    const scored = pages
+      .map((p) => {
+        const titleTokens = p.title
+          .toLowerCase()
+          .split(/[^a-z0-9]+/)
+          .filter((t) => t.length > 3);
+        const slugTokens = p.slug
+          .toLowerCase()
+          .split(/-/)
+          .filter((t) => t.length > 3);
+        let score = 0;
+        for (const t of titleTokens) if (haystackTokens.has(t)) score += 2;
+        for (const t of slugTokens) if (haystackTokens.has(t)) score += 1;
+        // Already linked? Skip — author has it.
+        if (haystack.includes(`[[${p.slug}]]`) || haystack.includes(`[[${p.slug}|`)) {
+          score = 0;
+        }
+        return { slug: p.slug, title: p.title, score };
+      })
+      .filter((p) => p.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6);
+
+    return c.json({ suggestions: scored });
+  },
+);
+
+// 5. /paper/suggest-references — find platform citations (other
+// research papers + news articles) by embedding similarity.
+const paperSuggestRefsSchema = z.object({
+  title: z.string().min(1).max(200),
+  body: z.string().min(50).max(50000),
+});
+
+ai.post(
+  "/paper/suggest-references",
+  zValidator("json", paperSuggestRefsSchema),
+  async (c) => {
+    const { title, body } = c.req.valid("json");
+    const user = await getSessionUser(c);
+    if (!user) return c.json({ error: "Authentication required" }, 401);
+    if (!checkRateLimit(`paper-refs:${user.id}`, 12, 60_000)) {
+      return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+    }
+
+    const provider = getAIProvider();
+    const queryEmbed = await provider.embed(`${title}\n\n${body.slice(0, 2000)}`);
+
+    const db = getDb();
+    const articles = db
+      .select({
+        id: newsArticles.id,
+        slug: newsArticles.slug,
+        title: newsArticles.title,
+        summary: newsArticles.summary,
+        kind: sql<string>`'news'`,
+      })
+      .from(newsArticles)
+      .where(eq(newsArticles.status, "published"))
+      .all();
+    const papers = db
+      .select({
+        id: researchPapers.id,
+        slug: researchPapers.slug,
+        title: researchPapers.title,
+        summary: researchPapers.summary,
+        kind: sql<string>`'research'`,
+      })
+      .from(researchPapers)
+      .where(eq(researchPapers.status, "published"))
+      .all();
+    const corpus = [...articles, ...papers];
+
+    const scored: Array<{
+      title: string;
+      slug: string;
+      kind: string;
+      score: number;
+    }> = [];
+    for (const item of corpus) {
+      const e = await provider.embed(`${item.title}\n${item.summary}`);
+      scored.push({
+        title: item.title,
+        slug: item.slug,
+        kind: item.kind,
+        score: cosineSimilarity(queryEmbed, e),
+      });
+    }
+    scored.sort((a, b) => b.score - a.score);
+
+    const top = scored.slice(0, 5).map((s) => ({
+      kind: s.kind,
+      slug: s.slug,
+      title: s.title,
+      url:
+        s.kind === "news" ? `/news/${s.slug}` : `/research/${s.slug}`,
+      score: s.score,
+    }));
+    return c.json({ suggestions: top });
+  },
+);
+
+// 6. /paper/derive-tier — streams a tier-shifted body.
+const paperDeriveTierSchema = z.object({
+  canonicalBody: z.string().min(50).max(50000),
+  canonicalTier: z.enum(["intro", "undergrad", "grad"]),
+  targetTier: z.enum(["intro", "undergrad", "grad"]),
+  format: z.enum(["research", "explainer", "survey", "opinion"]).default("research"),
+});
+
+ai.post(
+  "/paper/derive-tier",
+  zValidator("json", paperDeriveTierSchema),
+  async (c) => {
+    const { canonicalBody, canonicalTier, targetTier, format } = c.req.valid("json");
+    const user = await getSessionUser(c);
+    if (!user) return c.json({ error: "Authentication required" }, 401);
+    if (canonicalTier === targetTier) {
+      return c.json({ error: "Source and target tiers are the same." }, 400);
+    }
+    if (!checkRateLimit(`paper-derive:${user.id}`, 12, 60_000)) {
+      return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+    }
+
+    const direction =
+      tierRank(targetTier) > tierRank(canonicalTier) ? "deepen" : "simplify";
+
+    const system = `You re-render a research paper for the Axiomic platform from one reading depth to another.
+
+Source tier: ${canonicalTier}
+Target tier: ${targetTier} (${direction === "deepen" ? "go deeper — add math, derivations, frontier links" : "simplify — strip math, lean on analogy and intuition"}).
+Format: ${PAPER_FORMAT_BLURB[format] ?? PAPER_FORMAT_BLURB.research}
+
+Voice for the target tier: ${TIER_VOICE[targetTier]}
+
+Output rules:
+- Markdown only. No commentary.
+- Preserve all :::viz[name] embeds verbatim.
+- Preserve [[concept-slug]] references verbatim — they're the platform's hover-card primitive.
+- ${direction === "simplify"
+        ? "Convert dense math into prose where possible; keep one canonical equation per major idea, no more."
+        : "Add the missing math + derivations a research-frontier reader expects; reference open questions where relevant."}
+- Section headings (## ...) are kept as-is so the structure stays consistent across tiers.`;
+
+    return streamingResponse(system, canonicalBody);
+  },
+);
+
+function tierRank(t: "intro" | "undergrad" | "grad"): number {
+  return t === "intro" ? 1 : t === "undergrad" ? 2 : 3;
 }
 
 export { ai as aiRouter };

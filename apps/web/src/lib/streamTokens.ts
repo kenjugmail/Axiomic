@@ -3,10 +3,17 @@
 // receives tokens as they arrive plus a final settled value.
 
 export interface StreamTokensOptions {
+  // The endpoint to POST to. Ignored when `existingResponse` is set.
   url: string;
   body: any;
   onToken: (token: string, accumulated: string) => void;
   signal?: AbortSignal;
+  // Sprint 21 — when the caller has already initiated the fetch (e.g.
+  // the api client returned a Response), pass it here to skip the
+  // internal fetch. This lets the API client keep its typed surface
+  // for streaming endpoints without making the caller re-build the
+  // request.
+  existingResponse?: Response;
 }
 
 export async function streamTokens({
@@ -14,14 +21,17 @@ export async function streamTokens({
   body,
   onToken,
   signal,
+  existingResponse,
 }: StreamTokensOptions): Promise<{ ok: boolean; text: string; error?: string }> {
-  const res = await fetch(url, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-    signal,
-  });
+  const res =
+    existingResponse ??
+    (await fetch(url, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal,
+    }));
   if (!res.ok || !res.body) {
     let error = "Stream failed";
     try {

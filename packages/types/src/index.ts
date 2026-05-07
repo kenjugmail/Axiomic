@@ -247,6 +247,85 @@ export interface UpdateResearchPaperRequest {
   status?: ResearchPaperStatus;
 }
 
+// Sprint 21 — Research paper generator wizard types. The wizard
+// orchestrates the AI endpoints in apps/server/src/routes/ai.ts and
+// hands a fully-drafted paper to the standard editor.
+export type PaperOutlineSectionKind =
+  | "concept"
+  | "method"
+  | "result"
+  | "discussion"
+  | "background";
+
+export interface PaperOutlineSection {
+  title: string;
+  kind: PaperOutlineSectionKind;
+  bullets: string[];
+  // Filled in once the section has been drafted by /paper/draft-section.
+  body?: string;
+}
+
+export interface PaperOutline {
+  sections: PaperOutlineSection[];
+}
+
+export type PaperLengthTarget = "short" | "medium" | "deep";
+
+export interface PaperOutlineRequest {
+  title: string;
+  researchQuestion?: string;
+  format?: ResearchPaperFormat;
+  tier?: ResearchPaperTier;
+  length?: PaperLengthTarget;
+}
+
+export interface PaperDraftSectionRequest {
+  paper: { title: string; format: ResearchPaperFormat };
+  section: { title: string; kind?: PaperOutlineSectionKind; bullets: string[] };
+  prior?: string;
+  tier?: ResearchPaperTier;
+  length?: PaperLengthTarget;
+}
+
+export interface PaperVizSuggestion {
+  name: string;
+  blurb: string;
+  score: number;
+}
+
+export interface PaperVizSuggestionsResponse {
+  suggestions: PaperVizSuggestion[];
+}
+
+export interface PaperConceptSuggestion {
+  slug: string;
+  title: string;
+  score: number;
+}
+
+export interface PaperConceptSuggestionsResponse {
+  suggestions: PaperConceptSuggestion[];
+}
+
+export interface PaperReferenceSuggestion {
+  kind: "news" | "research";
+  slug: string;
+  title: string;
+  url: string;
+  score: number;
+}
+
+export interface PaperReferenceSuggestionsResponse {
+  suggestions: PaperReferenceSuggestion[];
+}
+
+export interface PaperDeriveTierRequest {
+  canonicalBody: string;
+  canonicalTier: ResearchPaperTier;
+  targetTier: ResearchPaperTier;
+  format?: ResearchPaperFormat;
+}
+
 // Sprint 17 — Concept preview payload. Cheap subset of the full
 // wiki page response; powers the hover card rendered anywhere a
 // `[[slug]]` reference appears in markdown.

@@ -114,7 +114,7 @@ export function ResearchNewPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
+      <div className="flex items-center justify-between mb-2 gap-3 flex-wrap">
         <div>
           <Link
             to="/research"
@@ -141,6 +141,14 @@ export function ResearchNewPage() {
           </button>
         </div>
       </div>
+
+      <p className="text-xs text-muted-foreground mb-6">
+        Prefer guided authoring?{" "}
+        <Link to="/research/new/wizard" className="text-primary hover:underline">
+          Generate with the AI wizard
+        </Link>{" "}
+        — outline → draft sections → enrich → review.
+      </p>
 
       {error && (
         <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
