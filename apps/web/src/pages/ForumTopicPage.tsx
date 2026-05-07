@@ -9,6 +9,8 @@ import {
 import type { ForumPoll, NewsReactionKind } from "@axiomic/types";
 import { useAuthStore } from "../stores/auth";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
+import { RelatedRail } from "../components/cross/RelatedRail";
+import { RichComposer } from "../components/composer/RichComposer";
 import { PostTypeBadge } from "../components/PostTypeBadge";
 import { PollEmbed } from "../components/forum/PollEmbed";
 import { BookmarkButton } from "../components/social/BookmarkButton";
@@ -269,17 +271,29 @@ export function ForumTopicPage() {
         </div>
       )}
 
+      {/* Sprint 16 — "Practice this" rail when this topic discusses a
+          wiki concept that's also taught in mastery nodes. Lets a
+          reader who's missing background drop into the lesson before
+          weighing in. Hidden when no nodes link in. */}
+      {topic.linkedNodes && topic.linkedNodes.length > 0 && (
+        <RelatedRail
+          title="Background lesson"
+          icon="lesson"
+          items={topic.linkedNodes.map((n) => ({ kind: "node" as const, ...n }))}
+          emptyHint={null}
+        />
+      )}
+
       {/* Replies */}
       <div className="mt-8 border-t border-border pt-6">
         <h2 className="text-lg font-semibold mb-4">Replies</h2>
         {user ? (
           <div className="mb-6">
-            <textarea
+            <RichComposer
               value={reply}
-              onChange={(e) => setReply(e.target.value)}
-              placeholder="Add a reply… (Markdown and LaTeX supported)"
+              onChange={setReply}
               rows={4}
-              className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm resize-y focus:outline-none focus:ring-2 focus:ring-ring"
+              placeholder="Add a reply… Markdown + LaTeX supported. Drag a file to attach. Use @ to mention."
             />
             <div className="flex justify-end mt-2">
               <button
@@ -425,12 +439,13 @@ function PostItem({
           </div>
           {replying && (
             <div className="mt-2">
-              <textarea
+              <RichComposer
                 value={replyBody}
-                onChange={(e) => setReplyBody(e.target.value)}
+                onChange={setReplyBody}
                 rows={3}
                 placeholder="Write a reply…"
-                className="w-full px-2 py-1.5 rounded-md border border-input bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                compact
+                showVizButton={false}
               />
               <div className="flex gap-2 mt-1">
                 <button

@@ -12,6 +12,14 @@ export const users = sqliteTable("users", {
   notifyMentions: integer("notify_mentions", { mode: "boolean" }).notNull().default(true),
   notifyReplies: integer("notify_replies", { mode: "boolean" }).notNull().default(true),
   notifyMastery: integer("notify_mastery", { mode: "boolean" }).notNull().default(true),
+  // Set when the user finishes the post-signup onboarding wizard.
+  // Null means they haven't onboarded yet (also true for legacy users
+  // pre-feature; we treat null as "no longer prompt" to avoid surprising
+  // existing accounts).
+  onboardedAt: text("onboarded_at"),
+  // Optional preferred starting path (slug) chosen during onboarding.
+  // Used to seed the dashboard's "Continue learning" tile.
+  startingPathSlug: text("starting_path_slug"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
 });
@@ -93,8 +101,59 @@ export const masteryNodes = sqliteTable("mastery_nodes", {
   // JSON: Brilliant-style lesson — array of slides (text+viz or
   // embedded-question). Loaded from seed-content/lessons/<slug>.json.
   lessonData: text("lesson_data"),
+  // Bumped on each PUT to /lesson; mirrors wikiPages.currentVersion.
+  // Starts at 1 even for nodes that have never had a lesson edit.
+  currentLessonVersion: integer("current_lesson_version").notNull().default(1),
+  // Wiki-style open editing keeps `lessonData` as the canonical
+  // published payload. `draftLessonData` lets authors stash WIP without
+  // exposing it to learners — published reads ignore the draft.
+  draftLessonData: text("draft_lesson_data"),
+  draftUpdatedAt: text("draft_updated_at"),
+  draftEditorId: text("draft_editor_id").references(() => users.id),
+  // Set when this node's lesson was derived from a news article via the
+  // Paper→Lesson pipeline. Surfaces a "Sourced from @author's article"
+  // link on the lesson page.
+  sourceArticleId: text("source_article_id"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
 });
+
+// Anyone-can-flag-anything reports for lesson edits. Reports just
+// accumulate; admin tooling for reviewing them is a follow-up.
+export const lessonEditReports = sqliteTable(
+  "lesson_edit_reports",
+  {
+    id: text("id").primaryKey(),
+    nodeId: text("node_id").notNull().references(() => masteryNodes.id),
+    version: integer("version").notNull(),
+    reporterId: text("reporter_id").notNull().references(() => users.id),
+    reason: text("reason").notNull(), // "vandalism" | "spam" | "accuracy" | "other"
+    message: text("message"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    nodeIdx: index("lesson_edit_reports_node_idx").on(t.nodeId, t.version),
+    reporterIdx: index("lesson_edit_reports_reporter_idx").on(t.reporterId),
+  }),
+);
+
+// Lesson edit history. Mirrors pageVersions for wiki: every PUT
+// /mastery/nodes/:id/lesson appends a row, and restore semantics
+// write a NEW version that points back to the snapshotted lessonData
+// rather than overwriting history.
+export const lessonVersions = sqliteTable("lesson_versions", {
+  id: text("id").primaryKey(),
+  nodeId: text("node_id").notNull().references(() => masteryNodes.id),
+  version: integer("version").notNull(),
+  lessonData: text("lesson_data").notNull(),
+  editedBy: text("edited_by").references(() => users.id),
+  editMessage: text("edit_message"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  uniq: uniqueIndex("lesson_versions_node_version_idx").on(
+    t.nodeId,
+    t.version,
+  ),
+}));
 
 export const userProgress = sqliteTable("user_progress", {
   id: text("id").primaryKey(),
@@ -271,6 +330,10 @@ export const newsArticles = sqliteTable("news_articles", {
   // Tracks the most recent applied edit (the author's direct edit, or
   // an approved proposal). Null on a fresh article — same as authorId.
   lastEditorId: text("last_editor_id").references(() => users.id),
+  // Set when an author has used Paper→Lesson to derive a teaching
+  // lesson from this article. Surfaces a "📚 Lesson available" badge on
+  // the article view that deep-links to the lesson.
+  derivedLessonNodeId: text("derived_lesson_node_id"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
 });
@@ -330,19 +393,127 @@ export const newsReactions = sqliteTable(
 // Inline threaded comments scoped to a news article. Mirrors the wiki
 // `comments` table shape but anchored to news_articles.id so the two
 // surfaces stay decoupled and can evolve independently.
+//
+// `claimThreadId` is set when this comment lives inside a claim-anchored
+// discussion thread (Sprint 14 — like hypothes.is or Genius). When null,
+// the comment is a regular article-level comment under the article body.
 export const newsComments = sqliteTable(
   "news_comments",
   {
     id: text("id").primaryKey(),
-    articleId: text("article_id").notNull().references(() => newsArticles.id),
+    // Legacy reference. Nullable since Sprint 23: research-paper-
+    // targeted rows leave this null and use (targetKind, targetId).
+    articleId: text("article_id").references(() => newsArticles.id),
     parentId: text("parent_id"),
     userId: text("user_id").notNull().references(() => users.id),
     content: text("content").notNull(),
+    claimThreadId: text("claim_thread_id"),
+    // Sprint 23 — polymorphism columns. `targetKind` discriminates
+    // 'news_article' (default) vs 'research_paper'; `targetId` carries
+    // the foreign id within that kind. `articleId` stays for legacy +
+    // backfill.
+    targetKind: text("target_kind").notNull().default("news_article"),
+    targetId: text("target_id").notNull().default(""),
     editedAt: text("edited_at"),
     createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   },
   (t) => ({
     articleIdx: index("news_comments_article_idx").on(t.articleId, t.createdAt),
+    claimThreadIdx: index("news_comments_claim_thread_idx").on(t.claimThreadId),
+    targetIdx: index("news_comments_target_idx").on(t.targetKind, t.targetId, t.createdAt),
+  }),
+);
+
+// Claim-anchored discussion threads. A thread is pinned to a specific
+// passage in an article via text-quote annotation (W3C model). `exact`
+// is the highlighted text; `prefix` / `suffix` are short snippets around
+// it for fuzzy disambiguation when the text appears multiple times or
+// the article is later edited. Replies live in `news_comments` with
+// claimThreadId set.
+export const claimThreads = sqliteTable(
+  "claim_threads",
+  {
+    id: text("id").primaryKey(),
+    // Nullable since Sprint 23 — see news_comments.articleId comment.
+    articleId: text("article_id").references(() => newsArticles.id),
+    authorId: text("author_id").notNull().references(() => users.id),
+    // Sprint 23 — polymorphism: 'news_article' (default) vs 'research_paper'.
+    targetKind: text("target_kind").notNull().default("news_article"),
+    targetId: text("target_id").notNull().default(""),
+    exact: text("exact").notNull(),
+    prefix: text("prefix").notNull().default(""),
+    suffix: text("suffix").notNull().default(""),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    articleIdx: index("claim_threads_article_idx").on(t.articleId, t.createdAt),
+    targetIdx: index("claim_threads_target_idx").on(t.targetKind, t.targetId, t.createdAt),
+  }),
+);
+
+// Reproducibility receipts (Sprint 15). Authors attach runnable
+// artifacts (Colab notebook, GitHub repo, Docker image, dataset hash,
+// arXiv link) to their published articles; other researchers submit a
+// reproduction receipt with status (success/partial/failed) and
+// optional notes. The article view shows a "Reproduced by N" badge
+// once any receipts exist.
+export const runnableArtifacts = sqliteTable(
+  "runnable_artifacts",
+  {
+    id: text("id").primaryKey(),
+    // Nullable since Sprint 23.
+    articleId: text("article_id").references(() => newsArticles.id),
+    // Sprint 23 — polymorphism: 'news_article' (default) vs 'research_paper'.
+    targetKind: text("target_kind").notNull().default("news_article"),
+    targetId: text("target_id").notNull().default(""),
+    // 'github' | 'colab' | 'docker' | 'dataset' | 'arxiv' | 'other'
+    kind: text("kind").notNull(),
+    url: text("url").notNull(),
+    label: text("label").notNull(),
+    description: text("description"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    articleIdx: index("runnable_artifacts_article_idx").on(t.articleId, t.createdAt),
+    targetIdx: index("runnable_artifacts_target_idx").on(t.targetKind, t.targetId, t.createdAt),
+  }),
+);
+
+export const reproductions = sqliteTable(
+  "reproductions",
+  {
+    id: text("id").primaryKey(),
+    // Nullable since Sprint 23.
+    articleId: text("article_id").references(() => newsArticles.id),
+    // Sprint 23 — polymorphism: 'news_article' (default) vs 'research_paper'.
+    targetKind: text("target_kind").notNull().default("news_article"),
+    targetId: text("target_id").notNull().default(""),
+    // Optional: which specific artifact this receipt covers. Null means
+    // the receipt is for the article as a whole (e.g. the author
+    // attached no formal artifacts but the reader still reproduced).
+    artifactId: text("artifact_id").references(() => runnableArtifacts.id),
+    reproducerId: text("reproducer_id").notNull().references(() => users.id),
+    // 'success' | 'partial' | 'failed'
+    status: text("status").notNull(),
+    notes: text("notes"),
+    evidenceUrl: text("evidence_url"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    articleIdx: index("reproductions_article_idx").on(t.articleId, t.createdAt),
+    // One receipt per (article, user) so a single researcher can't
+    // inflate the badge count.
+    uniquePerUser: uniqueIndex("reproductions_unique_per_user").on(
+      t.articleId,
+      t.reproducerId,
+    ),
+    // One receipt per (target, user) — the modern polymorphic version.
+    uniquePerUserKind: uniqueIndex("reproductions_unique_per_user_kind").on(
+      t.targetKind,
+      t.targetId,
+      t.reproducerId,
+    ),
+    targetIdx: index("reproductions_target_idx").on(t.targetKind, t.targetId, t.createdAt),
   }),
 );
 
@@ -578,3 +749,106 @@ export const quizMistakes = sqliteTable(
     userIdx: index("quiz_mistakes_user_idx").on(t.userId, t.lastWrongAt),
   }),
 );
+
+// Per-slide telemetry powering the LessonAnalyticsPage. We append one
+// row per (user, node, slideIdx, kind) the first time a user does the
+// thing, ignored otherwise — gives us views, drop-offs, and per-slide
+// answer correctness without exposing individual answer history.
+export const lessonSlideEvents = sqliteTable(
+  "lesson_slide_events",
+  {
+    id: text("id").primaryKey(),
+    nodeId: text("node_id").notNull().references(() => masteryNodes.id),
+    userId: text("user_id").notNull().references(() => users.id),
+    slideIdx: integer("slide_idx").notNull(),
+    kind: text("kind").notNull(), // "viewed" | "answered_correct" | "answered_wrong"
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    nodeIdx: index("lesson_slide_events_node_idx").on(t.nodeId, t.slideIdx),
+    userUniqIdx: uniqueIndex("lesson_slide_events_user_uniq_idx").on(
+      t.nodeId,
+      t.userId,
+      t.slideIdx,
+      t.kind,
+    ),
+  }),
+);
+
+// User-uploaded files: images (incl. animated GIF/WebP), short videos,
+// and the occasional PDF. Used by the rich composer in posts, the wiki
+// editor, the lesson editor, and the news editor. We store only
+// metadata here; the bytes live on disk under uploads/<id>.<ext>.
+export const attachments = sqliteTable(
+  "attachments",
+  {
+    id: text("id").primaryKey(),
+    ownerId: text("owner_id").notNull().references(() => users.id),
+    // "image" (any image/* mime), "video" (mp4 / webm), "file"
+    // (anything else we accept, currently just PDF).
+    kind: text("kind").notNull(),
+    originalName: text("original_name").notNull(),
+    mimeType: text("mime_type").notNull(),
+    sizeBytes: integer("size_bytes").notNull(),
+    // Path relative to the uploads root, e.g. "2026/05/<id>.png".
+    storagePath: text("storage_path").notNull(),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    ownerIdx: index("attachments_owner_idx").on(t.ownerId, t.createdAt),
+  }),
+);
+
+// Research papers (Sprint 20). Distinct from news_articles in three
+// concrete ways:
+//
+//   - Tiered content: intro / undergrad / grad bodies stored side by
+//     side, like wiki_pages. The reader picks a tier; the author
+//     marks one as canonical.
+//   - Paper-structure metadata: optional research question, hypothesis,
+//     method, results, discussion, future-work fields rendered as a
+//     structured panel above the body.
+//   - Format flag: research / explainer / survey / opinion drives a
+//     handful of default sections + visual flourishes.
+//
+// Otherwise mirrors the news_articles shape (abstract, references,
+// coauthors, status, tags, slug, accent + emoji) so the existing
+// authoring patterns port cleanly. Comments / claim threads /
+// artifacts / reproductions do NOT yet attach to research papers in
+// v1 — those come back in a follow-up sprint once readers exist.
+export const researchPapers = sqliteTable("research_papers", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  summary: text("summary").notNull().default(""),
+  // 'research' | 'explainer' | 'survey' | 'opinion'
+  format: text("format").notNull().default("research"),
+  // Long-form intro paragraph rendered above the tier bodies.
+  abstract: text("abstract").notNull().default(""),
+  // The three-tier bodies. Either or both of intro / grad may be empty
+  // when the author hasn't drafted them yet — the reader's tier toggle
+  // hides empty tiers gracefully.
+  contentIntro: text("content_intro").notNull().default(""),
+  contentUndergrad: text("content_undergrad").notNull().default(""),
+  contentGrad: text("content_grad").notNull().default(""),
+  // Which tier is the source of truth — used by the wizard's
+  // derive-tier step. 'intro' | 'undergrad' | 'grad'.
+  canonicalTier: text("canonical_tier").notNull().default("undergrad"),
+  // Optional structured metadata: { researchQuestion, hypothesis,
+  // method, results, discussion, futureWork }. JSON.
+  paperStructureJson: text("paper_structure_json").notNull().default("{}"),
+  referencesJson: text("references_json").notNull().default("[]"),
+  coauthorsJson: text("coauthors_json").notNull().default("[]"),
+  coverEmoji: text("cover_emoji").notNull().default("📄"),
+  accentColor: text("accent_color").notNull().default("violet"),
+  // 'draft' | 'published'
+  status: text("status").notNull().default("draft"),
+  tags: text("tags").notNull().default("[]"),
+  authorId: text("author_id").notNull().references(() => users.id),
+  lastEditorId: text("last_editor_id").references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  authorIdx: index("research_papers_author_idx").on(t.authorId, t.createdAt),
+  statusIdx: index("research_papers_status_idx").on(t.status, t.createdAt),
+}));

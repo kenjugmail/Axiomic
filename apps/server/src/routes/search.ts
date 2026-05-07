@@ -39,6 +39,14 @@ searchRouter.get("/", zValidator("query", querySchema), async (c) => {
         category: s.item.category,
       };
     }
+    if (s.item.kind === "lesson") {
+      return {
+        kind: "lesson" as const,
+        ...base,
+        pathSlug: s.item.pathSlug,
+        nodeSlug: s.item.nodeSlug,
+      };
+    }
     return {
       kind: "topic" as const,
       ...base,

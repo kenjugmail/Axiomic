@@ -79,7 +79,11 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
 
   const renderRow = (r: SearchResultItem, flatIdx: number) => {
     const trailing =
-      r.kind === "page" ? r.category : `forum · ${r.postType}`;
+      r.kind === "page"
+        ? r.category
+        : r.kind === "lesson"
+          ? "lesson"
+          : `forum · ${r.postType}`;
     const semanticChip = r.matchedBy === "semantic";
     const bothChip = r.matchedBy === "both";
     return (

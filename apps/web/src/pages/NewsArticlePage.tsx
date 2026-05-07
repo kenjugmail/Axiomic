@@ -1,18 +1,31 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { CheckCircle2, GraduationCap, MessageSquare } from "lucide-react";
 import { api } from "../lib/api";
 import { Skeleton } from "../components/ui";
-import type { NewsArticle, NewsReactionKind } from "@axiomic/types";
+import type {
+  ClaimThread,
+  NewsArticle,
+  NewsReactionKind,
+} from "@axiomic/types";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { AiArticleHelpers } from "../components/news/AiArticleHelpers";
 import { ArticleTOC } from "../components/news/ArticleTOC";
+import { ArtifactsSection } from "../components/news/ArtifactsSection";
+import { RelatedRail } from "../components/cross/RelatedRail";
+import { ClaimSelectionPopover } from "../components/news/ClaimSelectionPopover";
+import { ClaimThreadPanel } from "../components/news/ClaimThreadPanel";
+import { LessonFromArticleDialog } from "../components/news/LessonFromArticleDialog";
 import { NewsComments } from "../components/news/NewsComments";
 import { NewsCover } from "../components/news/NewsCover";
 import { RelatedNewsRail } from "../components/news/RelatedNewsRail";
+import { ReproduceDialog } from "../components/news/ReproduceDialog";
+import { ReproductionsBadge } from "../components/news/ReproductionsBadge";
 import { BookmarkButton } from "../components/social/BookmarkButton";
 import { ReactionStrip } from "../components/social/ReactionStrip";
 import { useLiveEvents } from "../hooks/useLiveEvents";
 import { useAuthStore } from "../stores/auth";
+import { findTextQuote, type TextQuote } from "../lib/textQuote";
 
 function relativeDate(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, {
@@ -29,6 +42,13 @@ export function NewsArticlePage() {
   const [error, setError] = useState<string | null>(null);
   const [reacting, setReacting] = useState(false);
   const [bookmarking, setBookmarking] = useState(false);
+  const [lessonDialogOpen, setLessonDialogOpen] = useState(false);
+  const [reproDialogOpen, setReproDialogOpen] = useState(false);
+  const [threads, setThreads] = useState<ClaimThread[]>([]);
+  const [pendingThreadQuote, setPendingThreadQuote] =
+    useState<TextQuote | null>(null);
+  const [openThreadId, setOpenThreadId] = useState<string | null>(null);
+  const articleBodyRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!slug) return;
@@ -37,6 +57,66 @@ export function NewsArticlePage() {
       .then((r) => setArticle(r.article))
       .catch((e) => setError(e?.message ?? "Failed to load article"));
   }, [slug]);
+
+  // Load claim threads for this article. We do this in a separate
+  // request so the article paint isn't blocked on the threads query.
+  const refreshThreads = () => {
+    if (!slug) return;
+    api.news
+      .listClaimThreads(slug)
+      .then((r) => setThreads(r.threads))
+      .catch(() => {
+        // Don't surface a hard error here — the article still renders
+        // fine without threads loaded.
+      });
+  };
+
+  useEffect(() => {
+    refreshThreads();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug]);
+
+  // Resolve each thread's text-quote to a Range in the rendered article
+  // and register the ranges with the CSS Highlight API. Falls back to
+  // no-op when the API isn't supported (degrades to sidebar-only navigation).
+  // Anchor-lost threads are tracked so the panel can show a note.
+  const [anchorLostIds, setAnchorLostIds] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    const root = articleBodyRef.current;
+    if (!root || threads.length === 0 || !article) return;
+
+    const ranges: Range[] = [];
+    const lost = new Set<string>();
+    for (const t of threads) {
+      const r = findTextQuote(root, {
+        exact: t.exact,
+        prefix: t.prefix,
+        suffix: t.suffix,
+      });
+      if (r) ranges.push(r);
+      else lost.add(t.id);
+    }
+    setAnchorLostIds(lost);
+
+    // CSS Highlight API: subtle yellow underline. Browsers without
+    // support skip silently — sidebar list still surfaces the threads.
+    const supported =
+      typeof (window as any).CSS !== "undefined" &&
+      "highlights" in (window as any).CSS &&
+      typeof (window as any).Highlight === "function";
+    if (!supported) return;
+    try {
+      const h = new (window as any).Highlight(...ranges);
+      (window as any).CSS.highlights.set("claim-thread", h);
+    } catch {
+      // Defensive — some browsers throw on duplicate registrations.
+    }
+    return () => {
+      try {
+        (window as any).CSS.highlights.delete("claim-thread");
+      } catch {}
+    };
+  }, [threads, article]);
 
   // Subscribe to live reaction updates for this article. Other people's
   // reactions land instantly without a refresh.
@@ -171,11 +251,17 @@ export function NewsArticlePage() {
               </span>
             </>
           )}
+        {slug && article.reproStats.total > 0 && (
+          <>
+            <span>·</span>
+            <ReproductionsBadge articleSlug={slug} stats={article.reproStats} />
+          </>
+        )}
       </div>
 
-      {/* Author actions: edit + review pending proposals. */}
+      {/* Author actions: edit + review pending proposals + turn into lesson. */}
       {article.isAuthor && (
-        <div className="flex items-center gap-2 mt-4">
+        <div className="flex items-center gap-2 mt-4 flex-wrap">
           <Link
             to={`/news/${article.slug}/edit`}
             className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40"
@@ -194,7 +280,57 @@ export function NewsArticlePage() {
               ? `Review ${article.pendingProposalCount} pending edit${article.pendingProposalCount === 1 ? "" : "s"}`
               : "Review proposals"}
           </Link>
+          {article.status === "published" && (
+            <button
+              onClick={() => setLessonDialogOpen(true)}
+              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border border-primary/40 text-primary hover:bg-primary/10"
+              title="Generate a Brilliant-style lesson from this article"
+            >
+              <GraduationCap className="w-3.5 h-3.5" strokeWidth={2} />
+              {article.derivedLesson ? "Regenerate lesson" : "Turn into lesson"}
+            </button>
+          )}
         </div>
+      )}
+
+      {/* Lesson-available badge: visible to everyone once a lesson has
+          been derived. Author sees it too — confirms the link is live. */}
+      {article.derivedLesson && (
+        <div className="mt-4">
+          <Link
+            to={`/paths/${article.derivedLesson.pathSlug}/lessons/${article.derivedLesson.nodeSlug}`}
+            className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20"
+          >
+            <GraduationCap className="w-3.5 h-3.5" strokeWidth={2} />
+            Lesson available — practice the concepts
+          </Link>
+        </div>
+      )}
+
+      {lessonDialogOpen && (
+        <LessonFromArticleDialog
+          articleSlug={article.slug}
+          articleTitle={article.title}
+          onClose={() => setLessonDialogOpen(false)}
+        />
+      )}
+
+      {reproDialogOpen && slug && (
+        <ReproduceDialog
+          articleSlug={slug}
+          artifacts={article.artifacts}
+          onClose={() => setReproDialogOpen(false)}
+          onSubmitted={async () => {
+            setReproDialogOpen(false);
+            // Re-fetch the article to refresh the badge + mine flag.
+            try {
+              const fresh = await api.news.get(slug);
+              setArticle(fresh.article);
+            } catch {
+              // ignore
+            }
+          }}
+        />
       )}
 
       {!article.isAuthor && user && (
@@ -225,8 +361,13 @@ export function NewsArticlePage() {
       )}
 
       {/* Body. Trusted markdown — viz directives render inline. */}
-      <article className="mt-8 prose-sm max-w-none">
-        <MarkdownRenderer content={article.body} />
+      <article ref={articleBodyRef} className="mt-8 prose-sm max-w-none">
+        <MarkdownRenderer
+          content={article.body}
+          codeKernelKey={`article:${article.slug}`}
+          codeAuthorUsername={article.authorUsername}
+          codeViewerUsername={user?.username ?? null}
+        />
       </article>
 
       {/* Numbered references list. Each entry is a one-liner with an
@@ -267,6 +408,48 @@ export function NewsArticlePage() {
         </section>
       )}
 
+      {/* Sprint 15 — runnable artifacts + reproduce CTA. Section hides
+          itself for anonymous viewers when there's nothing attached. */}
+      {slug && (
+        <ArtifactsSection
+          articleSlug={slug}
+          initialArtifacts={article.artifacts}
+          canEdit={article.isAuthor}
+          onChange={(artifacts) => setArticle({ ...article, artifacts })}
+        />
+      )}
+
+      {/* Sprint 16 — wiki concepts referenced in the body. Hides itself
+          when there are no `[[slug]]` mentions. */}
+      <RelatedRail
+        title="Background concepts"
+        icon="wiki"
+        items={(article.relatedWikiPages ?? []).map((w) => ({
+          kind: "wiki" as const,
+          ...w,
+        }))}
+        emptyHint={null}
+      />
+
+      {user && !article.isAuthor && (
+        <div className="mt-6">
+          {article.reproStats.mine ? (
+            <p className="text-xs text-muted-foreground italic">
+              ✓ You've already filed a reproduction receipt for this article.
+            </p>
+          ) : (
+            <button
+              onClick={() => setReproDialogOpen(true)}
+              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10"
+              title="File a reproduction receipt for this article"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2} />
+              I reproduced this
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Reactions + bookmark */}
       <div className="mt-10 pt-6 border-t border-border flex flex-wrap items-center justify-between gap-3">
         <ReactionStrip
@@ -285,10 +468,120 @@ export function NewsArticlePage() {
         )}
       </div>
 
+      {threads.length > 0 && (
+        <section className="mt-10 pt-6 border-t border-border">
+          <h2 className="text-[10px] uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
+            <MessageSquare className="w-3 h-3" strokeWidth={2} />
+            Claim threads · {threads.length}
+          </h2>
+          <ul className="space-y-1.5 text-sm">
+            {threads.map((t) => {
+              const lost = anchorLostIds.has(t.id);
+              return (
+                <li key={t.id}>
+                  <button
+                    onClick={() => {
+                      setOpenThreadId(t.id);
+                      // Scroll the matching range into view + flash it.
+                      const root = articleBodyRef.current;
+                      if (root) {
+                        const r = findTextQuote(root, {
+                          exact: t.exact,
+                          prefix: t.prefix,
+                          suffix: t.suffix,
+                        });
+                        if (r) {
+                          const anchorNode =
+                            r.startContainer.parentElement ?? null;
+                          if (anchorNode) {
+                            anchorNode.scrollIntoView({
+                              behavior: "smooth",
+                              block: "center",
+                            });
+                            anchorNode.classList.add("claim-flash");
+                            setTimeout(
+                              () =>
+                                anchorNode.classList.remove("claim-flash"),
+                              900,
+                            );
+                          }
+                        }
+                      }
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-md border border-border hover:bg-accent/40 transition-colors duration-fast"
+                  >
+                    <div className="flex items-baseline gap-2 text-xs text-muted-foreground mb-0.5">
+                      <span className="text-foreground font-medium">
+                        @{t.authorUsername}
+                      </span>
+                      <span>· {t.replies.length} repl{t.replies.length === 1 ? "y" : "ies"}</span>
+                      {lost && (
+                        <span className="text-amber-600 dark:text-amber-400">
+                          · anchor lost
+                        </span>
+                      )}
+                    </div>
+                    <div className="italic text-foreground/80 line-clamp-2">
+                      “{t.exact}”
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
       {slug && <NewsComments articleSlug={slug} />}
       {slug && <RelatedNewsRail articleSlug={slug} />}
       </div>
       <ArticleTOC body={article.body} />
+
+      {slug && (
+        <ClaimSelectionPopover
+          rootRef={articleBodyRef}
+          signedIn={!!user}
+          onStart={(quote) => setPendingThreadQuote(quote)}
+        />
+      )}
+
+      {pendingThreadQuote && slug && (
+        <ClaimThreadPanel
+          mode="create"
+          exact={pendingThreadQuote.exact}
+          onClose={() => setPendingThreadQuote(null)}
+          onSubmit={async (body) => {
+            await api.news.createClaimThread(slug, {
+              exact: pendingThreadQuote.exact,
+              prefix: pendingThreadQuote.prefix,
+              suffix: pendingThreadQuote.suffix,
+              body,
+            });
+            setPendingThreadQuote(null);
+            // Clear browser selection so the popover doesn't immediately
+            // re-appear over the same range.
+            window.getSelection()?.removeAllRanges();
+            refreshThreads();
+          }}
+        />
+      )}
+
+      {openThreadId && slug && (() => {
+        const t = threads.find((x) => x.id === openThreadId);
+        if (!t) return null;
+        return (
+          <ClaimThreadPanel
+            mode="view"
+            thread={t}
+            anchorLost={anchorLostIds.has(t.id)}
+            onClose={() => setOpenThreadId(null)}
+            onSubmitReply={async (content) => {
+              await api.news.replyToClaimThread(slug, t.id, { content });
+              refreshThreads();
+            }}
+          />
+        );
+      })()}
     </div>
   );
 }

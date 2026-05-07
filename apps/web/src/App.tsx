@@ -5,16 +5,11 @@ import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { SignupPage } from "./pages/SignupPage";
 import { WikiListPage } from "./pages/WikiListPage";
-import { WikiPage } from "./pages/WikiPage";
 import { SearchPage } from "./pages/SearchPage";
 import { MasteryListPage } from "./pages/MasteryListPage";
 import { MasteryPathPage } from "./pages/MasteryPathPage";
-import { LessonPage } from "./pages/LessonPage";
-import { ProfilePage } from "./pages/ProfilePage";
 import { ForumListPage } from "./pages/ForumListPage";
-import { ForumTopicPage } from "./pages/ForumTopicPage";
 import { NewsListPage } from "./pages/NewsListPage";
-import { NewsArticlePage } from "./pages/NewsArticlePage";
 import { NotificationsPage } from "./pages/NotificationsPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { useAuthStore } from "./stores/auth";
@@ -24,6 +19,51 @@ import { useThemeStore } from "./stores/theme";
 // lazy-loaded so the initial bundle is much smaller. Editors pull in
 // MarkdownRenderer + KaTeX + viz code that the article reader doesn't
 // need.
+// LessonPage pulls in 11 viz components (each in its own chunk) plus all
+// 8 question kinds and the embedded notes editor. Lazy so users who never
+// open a lesson don't pay for it.
+const LessonPage = lazy(() =>
+  import("./pages/LessonPage").then((m) => ({ default: m.LessonPage })),
+);
+// Post-signup wizard. Only rendered once per user.
+const OnboardingPage = lazy(() =>
+  import("./pages/OnboardingPage").then((m) => ({
+    default: m.OnboardingPage,
+  })),
+);
+const LessonEditPage = lazy(() =>
+  import("./pages/LessonEditPage").then((m) => ({
+    default: m.LessonEditPage,
+  })),
+);
+const LessonAnalyticsPage = lazy(() =>
+  import("./pages/LessonAnalyticsPage").then((m) => ({
+    default: m.LessonAnalyticsPage,
+  })),
+);
+const LessonEditsFeed = lazy(() =>
+  import("./pages/LessonEditsFeed").then((m) => ({
+    default: m.LessonEditsFeed,
+  })),
+);
+// Reading pages with heavy deps (markdown + KaTeX renderers, comments,
+// reactions). Lazy so the home/list pages don't pull them in.
+const WikiPage = lazy(() =>
+  import("./pages/WikiPage").then((m) => ({ default: m.WikiPage })),
+);
+const NewsArticlePage = lazy(() =>
+  import("./pages/NewsArticlePage").then((m) => ({
+    default: m.NewsArticlePage,
+  })),
+);
+const ForumTopicPage = lazy(() =>
+  import("./pages/ForumTopicPage").then((m) => ({
+    default: m.ForumTopicPage,
+  })),
+);
+const ProfilePage = lazy(() =>
+  import("./pages/ProfilePage").then((m) => ({ default: m.ProfilePage })),
+);
 const WikiNewPage = lazy(() =>
   import("./pages/WikiNewPage").then((m) => ({ default: m.WikiNewPage })),
 );
@@ -83,6 +123,30 @@ const MistakesPage = lazy(() =>
 const SettingsPage = lazy(() =>
   import("./pages/SettingsPage").then((m) => ({ default: m.SettingsPage })),
 );
+const AttachmentsPage = lazy(() =>
+  import("./pages/AttachmentsPage").then((m) => ({ default: m.AttachmentsPage })),
+);
+const DemoAttentionPage = lazy(() =>
+  import("./pages/DemoAttentionPage").then((m) => ({ default: m.DemoAttentionPage })),
+);
+const ResearchListPage = lazy(() =>
+  import("./pages/ResearchListPage").then((m) => ({ default: m.ResearchListPage })),
+);
+const ResearchPaperPage = lazy(() =>
+  import("./pages/ResearchPaperPage").then((m) => ({ default: m.ResearchPaperPage })),
+);
+const ResearchNewPage = lazy(() =>
+  import("./pages/ResearchNewPage").then((m) => ({ default: m.ResearchNewPage })),
+);
+const ResearchEditPage = lazy(() =>
+  import("./pages/ResearchEditPage").then((m) => ({ default: m.ResearchEditPage })),
+);
+const ResearchDraftsPage = lazy(() =>
+  import("./pages/ResearchDraftsPage").then((m) => ({ default: m.ResearchDraftsPage })),
+);
+const ResearchWizardPage = lazy(() =>
+  import("./pages/ResearchWizardPage").then((m) => ({ default: m.ResearchWizardPage })),
+);
 const FlashcardsPage = lazy(() =>
   import("./pages/FlashcardsPage").then((m) => ({ default: m.FlashcardsPage })),
 );
@@ -116,6 +180,7 @@ export function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/welcome" element={<OnboardingPage />} />
           <Route path="/wiki" element={<WikiListPage />} />
           <Route path="/wiki/new" element={<WikiNewPage />} />
           <Route path="/wiki/:slug" element={<WikiPage />} />
@@ -127,6 +192,15 @@ export function App() {
             path="/paths/:pathSlug/lessons/:nodeSlug"
             element={<LessonPage />}
           />
+          <Route
+            path="/paths/:pathSlug/lessons/:nodeSlug/edit"
+            element={<LessonEditPage />}
+          />
+          <Route
+            path="/paths/:pathSlug/lessons/:nodeSlug/analytics"
+            element={<LessonAnalyticsPage />}
+          />
+          <Route path="/lesson-edits" element={<LessonEditsFeed />} />
           <Route path="/forum" element={<ForumListPage />} />
           <Route path="/forum/new" element={<NewTopicPage />} />
           <Route path="/forum/bookmarks" element={<ForumBookmarksPage />} />
@@ -153,6 +227,14 @@ export function App() {
           <Route path="/profile/:username" element={<ProfilePage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/settings/attachments" element={<AttachmentsPage />} />
+          <Route path="/demo/attention" element={<DemoAttentionPage />} />
+          <Route path="/research" element={<ResearchListPage />} />
+          <Route path="/research/new" element={<ResearchNewPage />} />
+          <Route path="/research/new/wizard" element={<ResearchWizardPage />} />
+          <Route path="/research/me/drafts" element={<ResearchDraftsPage />} />
+          <Route path="/research/:slug" element={<ResearchPaperPage />} />
+          <Route path="/research/:slug/edit" element={<ResearchEditPage />} />
           <Route path="/flashcards" element={<FlashcardsPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>

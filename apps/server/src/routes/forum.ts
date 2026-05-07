@@ -23,6 +23,7 @@ import { getAIProvider } from "@axiomic/ai";
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { notify, notifyMentions, toPreview } from "../lib/notifications";
 import { invalidateSearchIndex } from "../lib/searchIndex";
+import { nodesForWikiSlug } from "../lib/crossLinks";
 import { recordActivityAndEvaluate } from "../lib/achievements";
 import type { Env } from "../env";
 
@@ -328,6 +329,7 @@ forum.get("/topics/:slug", async (c) => {
 
   let wikiPageSlug: string | null = null;
   let wikiPageTitle: string | null = null;
+  let linkedNodes: ReturnType<typeof nodesForWikiSlug> = [];
   if (topicRow.wikiPageId) {
     const w = db
       .select({ slug: wikiPages.slug, title: wikiPages.title })
@@ -337,6 +339,9 @@ forum.get("/topics/:slug", async (c) => {
     if (w) {
       wikiPageSlug = w.slug;
       wikiPageTitle = w.title;
+      // Sprint 16 — show "Practice this" cards next to the topic so a
+      // reader who's missing prerequisites can drop into the lesson.
+      linkedNodes = nodesForWikiSlug(w.slug);
     }
   }
 
@@ -451,6 +456,7 @@ forum.get("/topics/:slug", async (c) => {
       lastActivityAt,
       wikiPageSlug,
       wikiPageTitle,
+      linkedNodes,
       posts: rootPosts,
       reactionCounts,
       myReactions,

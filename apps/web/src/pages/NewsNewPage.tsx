@@ -21,7 +21,6 @@ function slugify(s: string): string {
 export function NewsNewPage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuthStore();
-  const [showPreview, setShowPreview] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [slugTouched, setSlugTouched] = useState(false);
@@ -144,7 +143,6 @@ export function NewsNewPage() {
           onAccept={(body) => {
             setDraft({ ...draft, body });
             setAiOpen(false);
-            setShowPreview(true);
           }}
           onClose={() => setAiOpen(false)}
         />
@@ -154,13 +152,7 @@ export function NewsNewPage() {
           {error}
         </div>
       )}
-      <NewsEditor
-        draft={draft}
-        onChange={handleChange}
-        slugEditable
-        showPreview={showPreview}
-        onTogglePreview={() => setShowPreview((v) => !v)}
-      />
+      <NewsEditor draft={draft} onChange={handleChange} slugEditable />
     </div>
   );
 }

@@ -32,6 +32,27 @@ import type {
   NewsArticleResponse,
   NewsBookmarksResponse,
   NewsCommentsResponse,
+  ClaimThreadsResponse,
+  CreateClaimThreadRequest,
+  CreateClaimThreadReplyRequest,
+  CreateRunnableArtifactRequest,
+  CreateReproductionRequest,
+  RunnableArtifactsResponse,
+  ReproductionsResponse,
+  ConceptPreview,
+  CoachContext,
+  CoachSuggestionsResponse,
+  CreateResearchPaperRequest,
+  ResearchPaperResponse,
+  ResearchPapersDraftsResponse,
+  ResearchPapersListResponse,
+  UpdateResearchPaperRequest,
+  PaperOutlineRequest,
+  PaperDraftSectionRequest,
+  PaperVizSuggestionsResponse,
+  PaperConceptSuggestionsResponse,
+  PaperReferenceSuggestionsResponse,
+  PaperDeriveTierRequest,
   NewsListResponse,
   NewsProposalsResponse,
   NewsReactionKind,
@@ -166,6 +187,105 @@ export const api = {
       request<QuizSubmitResponse>(`/mastery/quiz/${nodeId}`, { method: "POST", body: JSON.stringify({ answers }) }),
     getLesson: (nodeId: string) =>
       request<LessonResponse>(`/mastery/lesson/${nodeId}`),
+    putLesson: (
+      nodeId: string,
+      body: { slides: any[]; editMessage?: string },
+      opts?: { draft?: boolean },
+    ) =>
+      request<{
+        draft: boolean;
+        lesson: { slides: any[] };
+        version: number;
+        draftUpdatedAt?: string;
+        newAchievements?: string[];
+      }>(
+        `/mastery/nodes/${nodeId}/lesson${opts?.draft ? "?draft=1" : ""}`,
+        { method: "PUT", body: JSON.stringify(body) },
+      ),
+    getLessonDraft: (nodeId: string) =>
+      request<{
+        draft:
+          | null
+          | {
+              lesson: { slides: any[] };
+              updatedAt: string;
+              editorUsername: string | null;
+            };
+      }>(`/mastery/nodes/${nodeId}/lesson/draft`),
+    publishLessonDraft: (nodeId: string) =>
+      request<{
+        lesson: { slides: any[] };
+        version: number;
+        newAchievements?: string[];
+      }>(`/mastery/nodes/${nodeId}/lesson/publish-draft`, { method: "POST" }),
+    reportLessonVersion: (
+      nodeId: string,
+      version: number,
+      body: { reason: "vandalism" | "spam" | "accuracy" | "other"; message?: string },
+    ) =>
+      request<{ ok: true }>(
+        `/mastery/nodes/${nodeId}/lesson/report-version/${version}`,
+        { method: "POST", body: JSON.stringify(body) },
+      ),
+    lessonEditsFeed: (params?: { username?: string; limit?: number; offset?: number }) => {
+      const sp = new URLSearchParams();
+      if (params?.username) sp.set("username", params.username);
+      if (params?.limit) sp.set("limit", String(params.limit));
+      if (params?.offset) sp.set("offset", String(params.offset));
+      const qs = sp.toString();
+      return request<{
+        edits: Array<{
+          versionId: string;
+          nodeId: string;
+          version: number;
+          editorId: string | null;
+          editorUsername: string | null;
+          editMessage: string | null;
+          createdAt: string;
+          nodeSlug: string;
+          nodeTitle: string;
+          pathSlug: string;
+          currentLessonVersion: number;
+        }>;
+      }>(`/mastery/lesson-edits${qs ? `?${qs}` : ""}`);
+    },
+    listLessonVersions: (nodeId: string) =>
+      request<{
+        versions: Array<{
+          id: string;
+          version: number;
+          editorId: string | null;
+          editorUsername: string | null;
+          editMessage: string | null;
+          createdAt: string;
+        }>;
+      }>(`/mastery/nodes/${nodeId}/lesson-versions`),
+    restoreLessonVersion: (nodeId: string, version: number) =>
+      request<{ lesson: { slides: any[] }; version: number }>(
+        `/mastery/nodes/${nodeId}/lesson/restore/${version}`,
+        { method: "POST" },
+      ),
+    postSlideEvent: (
+      nodeId: string,
+      slideIdx: number,
+      kind: "viewed" | "answered_correct" | "answered_wrong",
+    ) =>
+      request<{ ok: true }>(`/mastery/nodes/${nodeId}/slide-event`, {
+        method: "POST",
+        body: JSON.stringify({ slideIdx, kind }),
+      }),
+    lessonAnalytics: (nodeId: string) =>
+      request<{
+        slideCount: number;
+        slides: Array<{
+          slideIdx: number;
+          views: number;
+          answeredCorrect: number;
+          answeredWrong: number;
+          dropOff: number;
+          incorrectRate: number;
+        }>;
+      }>(`/mastery/nodes/${nodeId}/lesson-analytics`),
     summary: (username: string) =>
       request<MasterySummaryResponse>(`/mastery/users/${username}/summary`),
     nextNode: () => request<NextNodeResponse>("/mastery/next-node"),
@@ -287,6 +407,10 @@ export const api = {
     follows: (username: string) =>
       request<FollowsListResponse>(`/users/${username}/follows`),
     feed: () => request<FeedResponse>("/me/feed"),
+    searchUsers: (q: string) =>
+      request<{
+        users: Array<{ username: string; displayName: string | null }>;
+      }>(`/users?q=${encodeURIComponent(q)}`),
   },
   search: {
     query: (q: string, limit?: number) => {
@@ -301,6 +425,21 @@ export const api = {
       request<SettingsResponse>("/settings", {
         method: "PUT",
         body: JSON.stringify(patch),
+      }),
+  },
+  onboarding: {
+    status: () =>
+      request<{ onboarded: boolean; startingPathSlug: string | null }>(
+        "/onboarding/status",
+      ),
+    complete: (pathSlug?: string) =>
+      request<{
+        onboarded: true;
+        startingPathSlug: string | null;
+        firstNodeSlug: string | null;
+      }>("/onboarding", {
+        method: "POST",
+        body: JSON.stringify(pathSlug ? { pathSlug } : {}),
       }),
   },
   notifications: {
@@ -353,6 +492,54 @@ export const api = {
       }),
     relatedNewsSemantic: (slug: string) =>
       request<NewsRelatedResponse>(`/ai/news/related-semantic/${slug}`),
+    coachContext: (pageSlug?: string) => {
+      const qs = pageSlug ? `?pageSlug=${encodeURIComponent(pageSlug)}` : "";
+      return request<CoachContext>(`/ai/coach/context${qs}`);
+    },
+    coachSuggest: (pageSlug?: string) =>
+      request<CoachSuggestionsResponse>("/ai/coach/suggest", {
+        method: "POST",
+        body: JSON.stringify({ pageSlug }),
+      }),
+    // Sprint 21 — research paper generator wizard endpoints. Streaming
+    // endpoints (outline / draft-section / derive-tier) return a raw
+    // Response so the caller can pipe them through streamTokens().
+    paperOutline: (data: PaperOutlineRequest) =>
+      fetch(`${BASE}/ai/paper/outline`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }),
+    paperDraftSection: (data: PaperDraftSectionRequest) =>
+      fetch(`${BASE}/ai/paper/draft-section`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }),
+    paperSuggestViz: (section: { title: string; body: string }) =>
+      request<PaperVizSuggestionsResponse>("/ai/paper/suggest-viz", {
+        method: "POST",
+        body: JSON.stringify({ section }),
+      }),
+    paperSuggestConcepts: (body: string) =>
+      request<PaperConceptSuggestionsResponse>("/ai/paper/suggest-concepts", {
+        method: "POST",
+        body: JSON.stringify({ body }),
+      }),
+    paperSuggestReferences: (data: { title: string; body: string }) =>
+      request<PaperReferenceSuggestionsResponse>(
+        "/ai/paper/suggest-references",
+        { method: "POST", body: JSON.stringify(data) },
+      ),
+    paperDeriveTier: (data: PaperDeriveTierRequest) =>
+      fetch(`${BASE}/ai/paper/derive-tier`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }),
   },
   achievements: {
     catalog: () => request<AchievementCatalogResponse>("/achievements/catalog"),
@@ -430,6 +617,81 @@ export const api = {
     bookmarks: () => request<NewsBookmarksResponse>("/news/me/bookmarks"),
     related: (slug: string) =>
       request<NewsRelatedResponse>(`/news/${slug}/related`),
+    deriveLesson: (slug: string, body: { slides: any[] }) =>
+      request<{ nodeId: string; nodeSlug: string; pathSlug: string }>(
+        `/news/${slug}/derive-lesson`,
+        { method: "POST", body: JSON.stringify(body) },
+      ),
+    listClaimThreads: (slug: string) =>
+      request<ClaimThreadsResponse>(`/news/${slug}/claim-threads`),
+    createClaimThread: (slug: string, body: CreateClaimThreadRequest) =>
+      request<{ threadId: string; commentId: string }>(
+        `/news/${slug}/claim-threads`,
+        { method: "POST", body: JSON.stringify(body) },
+      ),
+    replyToClaimThread: (
+      slug: string,
+      threadId: string,
+      body: CreateClaimThreadReplyRequest,
+    ) =>
+      request<{ commentId: string }>(
+        `/news/${slug}/claim-threads/${threadId}/replies`,
+        { method: "POST", body: JSON.stringify(body) },
+      ),
+    listArtifacts: (slug: string) =>
+      request<RunnableArtifactsResponse>(`/news/${slug}/artifacts`),
+    addArtifact: (slug: string, body: CreateRunnableArtifactRequest) =>
+      request<{ artifactId: string }>(`/news/${slug}/artifacts`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    deleteArtifact: (slug: string, id: string) =>
+      request<OkResponse>(`/news/${slug}/artifacts/${id}`, { method: "DELETE" }),
+    listReproductions: (slug: string) =>
+      request<ReproductionsResponse>(`/news/${slug}/reproductions`),
+    addReproduction: (slug: string, body: CreateReproductionRequest) =>
+      request<{ reproductionId: string }>(`/news/${slug}/reproductions`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+  },
+  concepts: {
+    preview: (slug: string) =>
+      request<ConceptPreview>(`/concepts/${slug}/preview`),
+  },
+  research: {
+    list: (params?: { tag?: string; format?: string }) => {
+      const sp = new URLSearchParams();
+      if (params?.tag) sp.set("tag", params.tag);
+      if (params?.format) sp.set("format", params.format);
+      const qs = sp.toString();
+      return request<ResearchPapersListResponse>(
+        `/research${qs ? `?${qs}` : ""}`,
+      );
+    },
+    drafts: () =>
+      request<ResearchPapersDraftsResponse>("/research/me/drafts"),
+    get: (slug: string, tier?: "intro" | "undergrad" | "grad") => {
+      const qs = tier ? `?tier=${tier}` : "";
+      return request<ResearchPaperResponse>(`/research/${slug}${qs}`);
+    },
+    create: (data: CreateResearchPaperRequest) =>
+      request<{ paperId: string; slug: string }>("/research", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    update: (slug: string, data: UpdateResearchPaperRequest) =>
+      request<OkResponse>(`/research/${slug}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    listComments: (slug: string) =>
+      request<NewsCommentsResponse>(`/research/${slug}/comments`),
+    addComment: (slug: string, data: CreateNewsCommentRequest) =>
+      request<{ commentId: string }>(`/research/${slug}/comments`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
   },
   flashcards: {
     save: (data: { pageSlug: string; pageTitle: string; front: string; back: string }) =>

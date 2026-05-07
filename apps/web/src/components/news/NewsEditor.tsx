@@ -1,10 +1,9 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Sparkles } from "lucide-react";
 import type { NewsAccentColor } from "@axiomic/types";
 import { NEWS_ACCENT_COLORS } from "@axiomic/types";
 import { api } from "../../lib/api";
-import { MarkdownRenderer } from "../MarkdownRenderer";
-import { VizPickerButton } from "../VizPickerButton";
+import { RichComposer } from "../composer/RichComposer";
 import { NewsCover } from "./NewsCover";
 
 const ACCENT_DOT: Record<NewsAccentColor, string> = {
@@ -40,45 +39,11 @@ interface Props {
   // When true, slug field is editable (create + propose modes); when
   // false, slug is read-only (direct edit by author).
   slugEditable: boolean;
-  // Render the title-area as a text input. False on propose mode (we
-  // still show it but allow edit), true on create + edit. Always true
-  // for now — kept as a hook for future reduced-form modes.
-  showMetaFields?: boolean;
-  // Toggles the preview pane (set by parent so it can persist across
-  // unrelated state changes).
-  showPreview: boolean;
-  onTogglePreview: () => void;
 }
 
-export function NewsEditor({
-  draft,
-  onChange,
-  slugEditable,
-  showPreview,
-  onTogglePreview,
-}: Props) {
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-
+export function NewsEditor({ draft, onChange, slugEditable }: Props) {
   const set = <K extends keyof NewsDraft>(k: K, v: NewsDraft[K]) =>
     onChange({ ...draft, [k]: v });
-
-  const insertAtCursor = (snippet: string) => {
-    const ta = textareaRef.current;
-    const current = draft.body;
-    if (!ta) {
-      set("body", current + snippet);
-      return;
-    }
-    const start = ta.selectionStart ?? current.length;
-    const end = ta.selectionEnd ?? current.length;
-    const next = current.slice(0, start) + snippet + current.slice(end);
-    set("body", next);
-    requestAnimationFrame(() => {
-      ta.focus();
-      const pos = start + snippet.length;
-      ta.setSelectionRange(pos, pos);
-    });
-  };
 
   return (
     <div className="space-y-4">
@@ -169,35 +134,19 @@ export function NewsEditor({
         setCoauthors={(co) => set("coauthors", co)}
       />
 
-      <div className="flex items-center justify-between">
+      <div>
         <span className="text-xs font-medium text-muted-foreground">Body</span>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onTogglePreview}
-            className={`px-3 py-1 rounded-md text-xs ${
-              showPreview ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
-            }`}
-          >
-            {showPreview ? "Editor" : "Preview"}
-          </button>
-          {!showPreview && <VizPickerButton onPick={insertAtCursor} />}
-        </div>
       </div>
 
-      {showPreview ? (
-        <div className="min-h-[400px] p-6 rounded-lg border border-border bg-card">
-          <MarkdownRenderer content={draft.body} />
-        </div>
-      ) : (
-        <textarea
-          ref={textareaRef}
-          value={draft.body}
-          onChange={(e) => set("body", e.target.value)}
-          className="w-full min-h-[400px] p-4 rounded-lg border border-input bg-background font-mono text-sm resize-y focus:outline-none focus:ring-2 focus:ring-ring"
-          placeholder={"Markdown supported, plus $LaTeX$, fenced code, and ::viz[name] embeds.\n\nTip: drop a heatmap or tokenizer into the middle of an article with the + Insert viz button."}
-        />
-      )}
+      <RichComposer
+        value={draft.body}
+        onChange={(body) => set("body", body)}
+        rows={18}
+        showCodeButton
+        placeholder={
+          "Markdown supported, plus $LaTeX$, fenced code, ::viz[name] embeds, and :::code[python] runnable cells.\n\nTip: drop a heatmap or runnable code block from the toolbar."
+        }
+      />
     </div>
   );
 }

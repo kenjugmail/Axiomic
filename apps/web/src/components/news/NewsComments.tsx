@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
 import type { NewsCommentNode } from "@axiomic/types";
 import { MarkdownRenderer } from "../MarkdownRenderer";
+import { RichComposer } from "../composer/RichComposer";
 import { useAuthStore } from "../../stores/auth";
 
 function timeAgo(iso: string): string {
@@ -18,9 +19,13 @@ function timeAgo(iso: string): string {
 
 interface Props {
   articleSlug: string;
+  // Sprint 23 — when set to "research_paper", calls hit /research/:slug/*
+  // instead of /news/:slug/*. NewsComments shares the underlying
+  // news_comments table via the polymorphic targetKind discriminator.
+  surface?: "news" | "research";
 }
 
-export function NewsComments({ articleSlug }: Props) {
+export function NewsComments({ articleSlug, surface = "news" }: Props) {
   const user = useAuthStore((s) => s.user);
   const [comments, setComments] = useState<NewsCommentNode[] | null>(null);
   const [draft, setDraft] = useState("");
@@ -31,19 +36,26 @@ export function NewsComments({ articleSlug }: Props) {
   const [editDraft, setEditDraft] = useState("");
 
   const refresh = () => {
-    api.news
-      .listComments(articleSlug)
+    const fetcher =
+      surface === "research"
+        ? api.research.listComments(articleSlug)
+        : api.news.listComments(articleSlug);
+    fetcher
       .then((r) => setComments(r.comments))
       .catch(() => setComments([]));
   };
 
-  useEffect(refresh, [articleSlug]);
+  useEffect(refresh, [articleSlug, surface]);
 
   const post = async (content: string, parentId?: string) => {
     if (!content.trim() || submitting) return;
     setSubmitting(true);
     try {
-      await api.news.addComment(articleSlug, {
+      const adder =
+        surface === "research"
+          ? api.research.addComment
+          : api.news.addComment;
+      await adder(articleSlug, {
         content: content.trim(),
         parentId,
       });
@@ -112,11 +124,12 @@ export function NewsComments({ articleSlug }: Props) {
         </div>
         {isEditing ? (
           <div className="mt-2 space-y-2">
-            <textarea
+            <RichComposer
               value={editDraft}
-              onChange={(e) => setEditDraft(e.target.value)}
+              onChange={setEditDraft}
               rows={3}
-              className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm resize-y focus:outline-none focus:ring-2 focus:ring-ring"
+              compact
+              showVizButton={false}
             />
             <div className="flex items-center gap-2">
               <button
@@ -175,12 +188,13 @@ export function NewsComments({ articleSlug }: Props) {
         )}
         {replyTo === c.id && (
           <div className="mt-2 space-y-2">
-            <textarea
+            <RichComposer
               value={replyDraft}
-              onChange={(e) => setReplyDraft(e.target.value)}
+              onChange={setReplyDraft}
               rows={2}
               placeholder={`Reply to @${c.username}…`}
-              className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm resize-y focus:outline-none focus:ring-2 focus:ring-ring"
+              compact
+              showVizButton={false}
             />
             <button
               onClick={() => post(replyDraft, c.id)}
@@ -208,12 +222,13 @@ export function NewsComments({ articleSlug }: Props) {
 
       {user ? (
         <div className="space-y-2 mb-6">
-          <textarea
+          <RichComposer
             value={draft}
-            onChange={(e) => setDraft(e.target.value)}
+            onChange={setDraft}
             rows={3}
             placeholder="Share your thoughts on this article…"
-            className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm resize-y focus:outline-none focus:ring-2 focus:ring-ring"
+            compact
+            showVizButton={false}
           />
           <button
             onClick={() => post(draft)}

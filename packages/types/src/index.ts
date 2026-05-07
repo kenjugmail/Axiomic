@@ -54,6 +54,323 @@ export interface MasteryPath {
   description: string;
 }
 
+// Sprint 18 — AI active coach. Compact per-user state surfaced in
+// the AI sidebar and folded into the chat system prompt to make the
+// tutor Socratic + state-aware.
+export interface CoachContextMistake {
+  questionId: string;
+  nodeId: string;
+  nodeSlug: string;
+  pathSlug: string;
+  questionText: string;
+  occurrences: number;
+  lastWrongAt: string;
+}
+
+export interface CoachContextLessonProgress {
+  nodeId: string;
+  nodeSlug: string;
+  pathSlug: string;
+  pathTitle: string;
+  title: string;
+  slideIdx: number;
+  totalSlides: number;
+  updatedAt: string;
+}
+
+export interface CoachContextPrereqGap {
+  nodeId: string;
+  nodeSlug: string;
+  pathSlug: string;
+  title: string;
+}
+
+export interface CoachContext {
+  recentMistakes: CoachContextMistake[];
+  dueFlashcards: number;
+  weakConcepts: string[];
+  currentLessonProgress: CoachContextLessonProgress | null;
+  prerequisiteGaps: CoachContextPrereqGap[];
+}
+
+export type CoachSuggestionKind =
+  | "review_prereq"
+  | "review_mistake"
+  | "spaced_rep"
+  | "next_node"
+  | "primer";
+
+export interface CoachSuggestion {
+  kind: CoachSuggestionKind;
+  title: string;
+  body: string;
+  ctaUrl: string;
+}
+
+export interface CoachSuggestionsResponse {
+  suggestions: CoachSuggestion[];
+}
+
+// Sprint 20 — Research papers. A first-class authoring surface
+// distinct from news: tiered content (intro / undergrad / grad)
+// stored side-by-side, paper-structure metadata fields, and a format
+// flag (research / explainer / survey / opinion).
+export type ResearchPaperTier = "intro" | "undergrad" | "grad";
+export type ResearchPaperFormat =
+  | "research"
+  | "explainer"
+  | "survey"
+  | "opinion";
+export type ResearchPaperStatus = "draft" | "published";
+export type ResearchPaperAccent =
+  | "indigo"
+  | "emerald"
+  | "rose"
+  | "amber"
+  | "sky"
+  | "violet";
+
+export interface ResearchPaperReference {
+  label?: string;
+  text: string;
+  url?: string;
+}
+
+export interface ResearchPaperStructure {
+  researchQuestion?: string;
+  hypothesis?: string;
+  method?: string;
+  results?: string;
+  discussion?: string;
+  futureWork?: string;
+}
+
+export interface ResearchPaperSummary {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  format: ResearchPaperFormat;
+  abstract: string;
+  coverEmoji: string;
+  accentColor: ResearchPaperAccent;
+  tags: string[];
+  authorId: string;
+  authorUsername: string;
+  authorDisplayName: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ResearchPaperDraftSummary {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  format: ResearchPaperFormat;
+  coverEmoji: string;
+  accentColor: ResearchPaperAccent;
+  tags: string[];
+  updatedAt: string;
+}
+
+export interface ResearchPaper extends ResearchPaperSummary {
+  // The body resolved at the requested tier (with sensible fallback).
+  content: string;
+  // Which tier the server ended up returning content from. May differ
+  // from `requestedTier` if the asked-for tier was empty.
+  tier: ResearchPaperTier;
+  requestedTier: ResearchPaperTier;
+  // Tiers with non-empty content. Drives the toggle's enabled state.
+  availableTiers: ResearchPaperTier[];
+  allContent: {
+    intro: string;
+    undergrad: string;
+    grad: string;
+  };
+  canonicalTier: ResearchPaperTier;
+  paperStructure: ResearchPaperStructure;
+  references: ResearchPaperReference[];
+  coauthors: string[];
+  status: ResearchPaperStatus;
+  lastEditorUsername: string | null;
+  readingMinutes: number;
+  isAuthor: boolean;
+}
+
+export interface ResearchPapersListResponse {
+  papers: ResearchPaperSummary[];
+}
+
+export interface ResearchPapersDraftsResponse {
+  papers: ResearchPaperDraftSummary[];
+}
+
+export interface ResearchPaperResponse {
+  paper: ResearchPaper;
+}
+
+export interface CreateResearchPaperRequest {
+  slug: string;
+  title: string;
+  summary?: string;
+  format?: ResearchPaperFormat;
+  abstract?: string;
+  contentIntro?: string;
+  contentUndergrad?: string;
+  contentGrad?: string;
+  canonicalTier?: ResearchPaperTier;
+  paperStructure?: ResearchPaperStructure;
+  references?: ResearchPaperReference[];
+  coauthors?: string[];
+  coverEmoji?: string;
+  accentColor?: ResearchPaperAccent;
+  tags?: string[];
+  status?: ResearchPaperStatus;
+}
+
+export interface UpdateResearchPaperRequest {
+  title?: string;
+  summary?: string;
+  format?: ResearchPaperFormat;
+  abstract?: string;
+  contentIntro?: string;
+  contentUndergrad?: string;
+  contentGrad?: string;
+  canonicalTier?: ResearchPaperTier;
+  paperStructure?: ResearchPaperStructure;
+  references?: ResearchPaperReference[];
+  coauthors?: string[];
+  coverEmoji?: string;
+  accentColor?: ResearchPaperAccent;
+  tags?: string[];
+  status?: ResearchPaperStatus;
+}
+
+// Sprint 21 — Research paper generator wizard types. The wizard
+// orchestrates the AI endpoints in apps/server/src/routes/ai.ts and
+// hands a fully-drafted paper to the standard editor.
+export type PaperOutlineSectionKind =
+  | "concept"
+  | "method"
+  | "result"
+  | "discussion"
+  | "background";
+
+export interface PaperOutlineSection {
+  title: string;
+  kind: PaperOutlineSectionKind;
+  bullets: string[];
+  // Filled in once the section has been drafted by /paper/draft-section.
+  body?: string;
+}
+
+export interface PaperOutline {
+  sections: PaperOutlineSection[];
+}
+
+export type PaperLengthTarget = "short" | "medium" | "deep";
+
+export interface PaperOutlineRequest {
+  title: string;
+  researchQuestion?: string;
+  format?: ResearchPaperFormat;
+  tier?: ResearchPaperTier;
+  length?: PaperLengthTarget;
+}
+
+export interface PaperDraftSectionRequest {
+  paper: { title: string; format: ResearchPaperFormat };
+  section: { title: string; kind?: PaperOutlineSectionKind; bullets: string[] };
+  prior?: string;
+  tier?: ResearchPaperTier;
+  length?: PaperLengthTarget;
+}
+
+export interface PaperVizSuggestion {
+  name: string;
+  blurb: string;
+  score: number;
+}
+
+export interface PaperVizSuggestionsResponse {
+  suggestions: PaperVizSuggestion[];
+}
+
+export interface PaperConceptSuggestion {
+  slug: string;
+  title: string;
+  score: number;
+}
+
+export interface PaperConceptSuggestionsResponse {
+  suggestions: PaperConceptSuggestion[];
+}
+
+export interface PaperReferenceSuggestion {
+  kind: "news" | "research";
+  slug: string;
+  title: string;
+  url: string;
+  score: number;
+}
+
+export interface PaperReferenceSuggestionsResponse {
+  suggestions: PaperReferenceSuggestion[];
+}
+
+export interface PaperDeriveTierRequest {
+  canonicalBody: string;
+  canonicalTier: ResearchPaperTier;
+  targetTier: ResearchPaperTier;
+  format?: ResearchPaperFormat;
+}
+
+// Sprint 17 — Concept preview payload. Cheap subset of the full
+// wiki page response; powers the hover card rendered anywhere a
+// `[[slug]]` reference appears in markdown.
+export type ConceptMasteryStatus =
+  | "not_started"
+  | "in_progress"
+  | "completed";
+
+export interface ConceptPreview {
+  slug: string;
+  title: string;
+  category: string;
+  // First non-empty paragraph of the intro tier, stripped of markdown.
+  // Empty string when no intro content yet.
+  oneLineDef: string;
+  // Number of forum threads tagged to this wiki page.
+  threadCount: number;
+  // The first mastery node teaching this concept (when one exists),
+  // used for the "Practice this" CTA inside the card.
+  nodeRef: {
+    nodeId: string;
+    nodeSlug: string;
+    pathSlug: string;
+    pathTitle: string;
+    title: string;
+    level: string;
+    hasLesson: boolean;
+  } | null;
+  // Per-user mastery on the linked node — null for anonymous viewers
+  // or when no mastery node references this concept.
+  masteryStatus: ConceptMasteryStatus | null;
+}
+
+// Lightweight forum topic shape used in cross-link rails (no
+// per-topic vote counts or scores; just enough for the chip).
+export interface LinkedTopicLite {
+  id: string;
+  slug: string;
+  title: string;
+  postType: string;
+  authorUsername: string;
+  postCount: number;
+  lastActivityAt: string;
+}
+
 export interface MasteryNode {
   id: string;
   slug: string;
@@ -68,6 +385,10 @@ export interface MasteryNode {
   // Cheap server-side estimate (minutes). Defaults to undefined for
   // older callers that haven't fetched the enriched payload.
   estimatedMinutes?: number;
+  // Sprint 16 — forum threads tagged to any wiki page in this node's
+  // pageIds. Capped at 3 per node server-side; clients show "Discuss"
+  // chips inline.
+  linkedTopics?: LinkedTopicLite[];
 }
 
 export interface UserNodeProgress {
@@ -309,12 +630,43 @@ export interface WikiCategoriesResponse {
   categories: string[];
 }
 
+// Sprint 16 — flywheel cross-link bundles surfaced on the wiki page
+// so the reader sees "practice this in node X" and "article Y cites
+// this concept" without round-tripping. Each list capped at 5
+// server-side; older clients that don't render them simply ignore.
+export interface LinkedNodeSummary {
+  nodeId: string;
+  nodeSlug: string;
+  pathSlug: string;
+  pathTitle: string;
+  title: string;
+  level: string;
+  hasLesson: boolean;
+}
+
+export interface LinkedArticleSummary {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  authorUsername: string;
+  coverEmoji: string;
+  accentColor: string;
+}
+
+export interface LinkedWikiPageSummary {
+  slug: string;
+  title: string;
+}
+
 export interface WikiPageResponse {
   page: WikiPage;
   content: string;
   allContent?: { intro: string; undergrad: string; grad: string };
   versions: PageVersion[];
   linkedTopics?: ForumTopicSummary[];
+  linkedNodes?: LinkedNodeSummary[];
+  linkedArticles?: LinkedArticleSummary[];
 }
 
 export interface WikiUpdateResponse {
@@ -374,6 +726,14 @@ export interface Lesson {
 
 export interface LessonResponse {
   lesson: Lesson | null;    // null when the node has no authored lesson
+  // Set when the lesson was derived from a published news article via
+  // the Paper→Lesson pipeline. The page renders a "Sourced from
+  // @author's article" footer when this is non-null.
+  sourceArticle?: {
+    slug: string;
+    title: string;
+    authorUsername: string;
+  } | null;
 }
 
 export interface QuizSubmitResponse {
@@ -483,6 +843,10 @@ export interface ForumTopicDetail extends ForumTopicSummary {
   myReactions: Record<NewsReactionKind, boolean> | null;
   myBookmark: boolean;
   poll: ForumPoll | null;
+  // Sprint 16 — mastery nodes that teach the wiki page this topic is
+  // tagged to. Populated only when the topic has a wikiPageId. Reader
+  // can drop into the lesson if they're missing prerequisites.
+  linkedNodes?: LinkedNodeSummary[];
 }
 
 export interface ReputationByDomain {
@@ -612,7 +976,24 @@ export interface SearchTopicResult {
   matchedBy: SearchMatchedBy;
 }
 
-export type SearchResultItem = SearchPageResult | SearchTopicResult;
+export interface SearchLessonResult {
+  kind: "lesson";
+  id: string;
+  // The slide-aware index emits both pathSlug + nodeSlug; the client uses
+  // them to build /paths/<pathSlug>/lessons/<nodeSlug>.
+  slug: string;
+  pathSlug: string;
+  nodeSlug: string;
+  title: string;
+  snippet: string;
+  score: number;
+  matchedBy: SearchMatchedBy;
+}
+
+export type SearchResultItem =
+  | SearchPageResult
+  | SearchTopicResult
+  | SearchLessonResult;
 
 export interface SearchResponse {
   query: string;
@@ -669,6 +1050,10 @@ export interface PathProgressSummary {
   completedNodes: number;
   currentLevel: MasteryLevel | null;
   latestCompletionAt: string | null;
+  // Per-level node counts for the SkillTree on the profile page.
+  // Keyed by level name; values are { total, completed }. Missing
+  // levels (paths that don't have e.g. a researcher tier) are absent.
+  levels?: Partial<Record<MasteryLevel, { total: number; completed: number }>>;
 }
 
 export interface MasterySummaryResponse {
@@ -817,6 +1202,28 @@ export interface NewsArticle extends NewsArticleSummary {
   pendingProposalCount: number;
   isAuthor: boolean;
   myBookmark: boolean;
+  // Set when this article has been turned into a lesson via the
+  // Paper→Lesson pipeline. Null when no lesson has been derived. The
+  // article view shows a "📚 Lesson available" badge that links to
+  // /paths/{pathSlug}/lessons/{nodeSlug} when this is non-null.
+  derivedLesson: {
+    nodeId: string;
+    nodeSlug: string;
+    pathSlug: string;
+  } | null;
+  // Sprint 15 — reproducibility receipts. `artifacts` is the list of
+  // runnable links the author has attached (Colab/GitHub/Docker/etc).
+  // `reproStats` is an aggregate of all submitted receipts; the
+  // article view turns total > 0 into a "Reproduced by N" badge in the
+  // byline, and `mine` controls whether the "I reproduced this" button
+  // is shown vs replaced with a "you already filed a receipt" hint.
+  artifacts: RunnableArtifact[];
+  reproStats: ReproStats;
+  // Sprint 16 — wiki concepts referenced in the article body, top N
+  // by mention count. Used by the article view's "Background concepts"
+  // rail. Empty when no `[[slug]]` or `/wiki/{slug}` references
+  // appear.
+  relatedWikiPages: LinkedWikiPageSummary[];
 }
 
 export interface NewsTagCount {
@@ -958,6 +1365,116 @@ export interface CreateNewsCommentRequest {
 
 export interface UpdateNewsCommentRequest {
   content: string;
+}
+
+// Claim-anchored discussion thread. Pinned to a passage in the article
+// via text-quote (W3C model: exact + prefix + suffix). Replies are
+// stored as news_comments with claimThreadId set.
+export interface ClaimThreadReply {
+  id: string;
+  userId: string;
+  username: string;
+  content: string;
+  editedAt: string | null;
+  createdAt: string;
+}
+
+export interface ClaimThread {
+  id: string;
+  authorId: string;
+  authorUsername: string;
+  // The W3C TextQuoteSelector triple. Used by the client to locate the
+  // passage in the rendered article via a fuzzy DOM walk.
+  exact: string;
+  prefix: string;
+  suffix: string;
+  createdAt: string;
+  replies: ClaimThreadReply[];
+}
+
+export interface ClaimThreadsResponse {
+  threads: ClaimThread[];
+}
+
+export interface CreateClaimThreadRequest {
+  exact: string;
+  prefix?: string;
+  suffix?: string;
+  body: string;
+}
+
+export interface CreateClaimThreadReplyRequest {
+  content: string;
+}
+
+// --- Reproducibility receipts (Sprint 15) -------------------------
+
+export type RunnableArtifactKind =
+  | "github"
+  | "colab"
+  | "docker"
+  | "dataset"
+  | "arxiv"
+  | "other";
+
+export interface RunnableArtifact {
+  id: string;
+  kind: RunnableArtifactKind;
+  url: string;
+  label: string;
+  description: string | null;
+  createdAt: string;
+}
+
+export interface RunnableArtifactsResponse {
+  artifacts: RunnableArtifact[];
+}
+
+export interface CreateRunnableArtifactRequest {
+  kind: RunnableArtifactKind;
+  url: string;
+  label: string;
+  description?: string;
+}
+
+export type ReproductionStatus = "success" | "partial" | "failed";
+
+export interface Reproduction {
+  id: string;
+  artifactId: string | null;
+  reproducerId: string;
+  reproducerUsername: string;
+  status: ReproductionStatus;
+  notes: string | null;
+  evidenceUrl: string | null;
+  createdAt: string;
+}
+
+export interface ReproductionsResponse {
+  reproductions: Reproduction[];
+  stats: {
+    total: number;
+    success: number;
+    partial: number;
+    failed: number;
+  };
+}
+
+export interface ReproStats {
+  total: number;
+  success: number;
+  partial: number;
+  failed: number;
+  // Whether the requesting user has already filed a receipt. False
+  // for anonymous viewers.
+  mine: boolean;
+}
+
+export interface CreateReproductionRequest {
+  artifactId?: string;
+  status: ReproductionStatus;
+  notes?: string;
+  evidenceUrl?: string;
 }
 
 // --- Forum reactions / bookmarks / polls / follows ---

@@ -6,7 +6,9 @@ import {
   BookOpen,
   CheckCircle2,
   HelpCircle,
+  List as ListIcon,
   NotebookPen,
+  Pencil,
   Sparkles,
   Trophy,
   X as XIcon,
@@ -22,17 +24,7 @@ import { assertQuestionKind } from "@axiomic/types";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { QuestionRenderer, isAnswered } from "../components/quiz/QuestionRenderer";
 import { LessonNotes } from "../components/mastery/LessonNotes";
-import { SoftmaxTemperatureSlider } from "../../../../packages/viz/src/quiz/SoftmaxTemperatureSlider";
-import { AttentionHeatmapExplorer } from "../../../../packages/viz/src/quiz/AttentionHeatmapExplorer";
-import { GradientDescent2D } from "../../../../packages/viz/src/quiz/GradientDescent2D";
-import { TokenizerPlayground } from "../../../../packages/viz/src/components/TokenizerPlayground";
-import { EmbeddingExplorer } from "../../../../packages/viz/src/components/EmbeddingExplorer";
-import { LayerActivations } from "../../../../packages/viz/src/components/LayerActivations";
-import { PositionalEncoding } from "../../../../packages/viz/src/components/PositionalEncoding";
-import { ActivationFunctionGallery } from "../../../../packages/viz/src/components/ActivationFunctionGallery";
-import { LorenzAttractor } from "../../../../packages/viz/src/components/LorenzAttractor";
-import { DoublePendulum } from "../../../../packages/viz/src/components/DoublePendulum";
-import { PhasePortrait1D } from "../../../../packages/viz/src/components/PhasePortrait1D";
+import { PreviewViz } from "../components/lesson/PreviewViz";
 import { useAuthStore } from "../stores/auth";
 
 const PASSING_SCORE = 0.7;
@@ -118,61 +110,8 @@ function scoreLocally(question: QuizQuestion, answer: string | undefined): boole
   }
 }
 
-function PreviewViz({
-  name,
-  props,
-}: {
-  name: string;
-  props?: Record<string, unknown>;
-}) {
-  switch (name) {
-    case "softmax-temperature-preview":
-      return (
-        <SoftmaxTemperatureSlider
-          value={typeof props?.value === "number" ? props.value : 1}
-        />
-      );
-    case "attention-heatmap-explorer":
-      return (
-        <AttentionHeatmapExplorer
-          presetIndex={
-            typeof props?.presetIndex === "number" ? props.presetIndex : 0
-          }
-        />
-      );
-    case "gradient-descent-2d":
-      return (
-        <GradientDescent2D
-          learningRate={
-            typeof props?.learningRate === "number" ? props.learningRate : 0.1
-          }
-          {...(props as object)}
-        />
-      );
-    case "tokenizer-playground":
-      return <TokenizerPlayground />;
-    case "embedding-explorer":
-      return <EmbeddingExplorer />;
-    case "layer-activations":
-      return <LayerActivations />;
-    case "positional-encoding":
-      return <PositionalEncoding />;
-    case "activation-function-gallery":
-      return (
-        <ActivationFunctionGallery
-          x={typeof props?.x === "number" ? props.x : undefined}
-        />
-      );
-    case "lorenz-attractor":
-      return <LorenzAttractor {...(props as object)} />;
-    case "double-pendulum":
-      return <DoublePendulum {...(props as object)} />;
-    case "phase-portrait-1d":
-      return <PhasePortrait1D {...(props as object)} />;
-    default:
-      return null;
-  }
-}
+// PreviewViz lives in components/lesson/ so the editor preview modal
+// can share the lazy chunks with the player.
 
 function slideShortTitle(s: LessonSlide, i: number): string {
   if (s.kind === "text") return s.title || `Slide ${i + 1}`;
@@ -193,6 +132,11 @@ export function LessonPage() {
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [node, setNode] = useState<MasteryNode | null>(null);
   const [pathTitle, setPathTitle] = useState("");
+  const [sourceArticle, setSourceArticle] = useState<{
+    slug: string;
+    title: string;
+    authorUsername: string;
+  } | null>(null);
   const [recommendedNext, setRecommendedNext] = useState<{
     slug: string;
     title: string;
@@ -204,7 +148,9 @@ export function LessonPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
+  const [slidesDrawerOpen, setSlidesDrawerOpen] = useState(false);
   const mainRef = useRef<HTMLDivElement | null>(null);
+  const drawerRef = useRef<HTMLDivElement | null>(null);
 
   // Load path (for context + recommended-next), plus lesson + saved progress.
   useEffect(() => {
@@ -249,6 +195,7 @@ export function LessonPage() {
           api.mastery.getLessonProgress(found.id).catch(() => ({ slideIdx: 0 })),
         ]).then(([lr, prog]) => {
           if (cancelled) return;
+          setSourceArticle(lr.sourceArticle ?? null);
           if (!lr.lesson || lr.lesson.slides.length === 0) {
             setPhase("no-lesson");
             return;
@@ -274,11 +221,14 @@ export function LessonPage() {
     };
   }, [pathSlug, nodeSlug]);
 
-  // Persist slide index (debounced).
+  // Persist slide index (debounced) and fire a "viewed" telemetry
+  // event for the active slide. Both are best-effort — failures are
+  // swallowed (anon users get 401 on the events endpoint).
   useEffect(() => {
     if (phase !== "playing" || !node) return;
     const t = setTimeout(() => {
       api.mastery.setLessonProgress(node.id, idx).catch(() => {});
+      api.mastery.postSlideEvent(node.id, idx, "viewed").catch(() => {});
     }, 200);
     return () => clearTimeout(t);
   }, [idx, phase, node]);
@@ -301,6 +251,10 @@ export function LessonPage() {
         return;
       }
       if (e.key === "Escape") {
+        if (slidesDrawerOpen) {
+          setSlidesDrawerOpen(false);
+          return;
+        }
         if (pathSlug) navigate(`/paths/${pathSlug}`);
         return;
       }
@@ -311,7 +265,17 @@ export function LessonPage() {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, idx, lesson, answers]);
+  }, [phase, idx, lesson, answers, slidesDrawerOpen]);
+
+  // Lock body scroll while the slide drawer is open on mobile.
+  useEffect(() => {
+    if (!slidesDrawerOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [slidesDrawerOpen]);
 
   const slides = lesson?.slides ?? [];
   const slide = slides[idx];
@@ -338,9 +302,20 @@ export function LessonPage() {
 
   function handleNext() {
     if (!canAdvance) return;
-    // For question slides, mark them revealed before advancing.
+    // For question slides, mark them revealed and report the answer
+    // outcome to the analytics endpoint before advancing.
     if (slide?.kind === "question") {
       setRevealed((r) => ({ ...r, [slide.question.id]: true }));
+      const correct = scoreLocally(slide.question, answers[slide.question.id]);
+      if (node) {
+        api.mastery
+          .postSlideEvent(
+            node.id,
+            idx,
+            correct ? "answered_correct" : "answered_wrong",
+          )
+          .catch(() => {});
+      }
     }
     if (isLast) {
       handleFinish();
@@ -396,6 +371,57 @@ export function LessonPage() {
 
   const exitHref = pathSlug ? `/paths/${pathSlug}` : "/paths";
 
+  // Single slide-list rendering used by the desktop sidebar AND the
+  // mobile bottom-sheet. `onPick` lets the sheet close when the user
+  // chooses a slide.
+  const renderSlideList = (onPick?: () => void) => (
+    <ol className="space-y-px px-2">
+      {slides.map((s, i) => {
+        const active = i === idx;
+        const Icon = s.kind === "question" ? HelpCircle : BookOpen;
+        const correct =
+          s.kind === "question" && answeredCorrectIds.has(s.question.id);
+        return (
+          <li key={i}>
+            <button
+              onClick={() => {
+                setIdx(i);
+                onPick?.();
+              }}
+              className={`w-full text-left flex items-start gap-2 px-3 py-2 rounded-md text-xs transition-colors duration-fast ${
+                active
+                  ? "bg-primary/10 text-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent/40"
+              }`}
+            >
+              <span className="mt-0.5 shrink-0">
+                {correct ? (
+                  <CheckCircle2
+                    className="w-3.5 h-3.5 text-accent-emerald"
+                    strokeWidth={2.2}
+                  />
+                ) : (
+                  <Icon
+                    className={`w-3.5 h-3.5 ${active ? "text-primary" : ""}`}
+                    strokeWidth={2}
+                  />
+                )}
+              </span>
+              <span className="flex-1 min-w-0">
+                <span className="block font-mono text-[10px] text-muted-foreground">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="block leading-snug">
+                  {slideShortTitle(s, i)}
+                </span>
+              </span>
+            </button>
+          </li>
+        );
+      })}
+    </ol>
+  );
+
   return (
     <div className="min-h-[calc(100vh-3.5rem)] bg-background">
       {/* Top header */}
@@ -417,6 +443,27 @@ export function LessonPage() {
               {node?.title ?? "Loading…"}
             </h1>
           </div>
+          {phase === "playing" && slides.length > 0 && (
+            <button
+              onClick={() => setSlidesDrawerOpen(true)}
+              className="lg:hidden inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-colors duration-fast tabular-nums"
+              aria-haspopup="dialog"
+              aria-expanded={slidesDrawerOpen}
+            >
+              <ListIcon className="w-3.5 h-3.5" strokeWidth={2} />
+              {idx + 1} / {slides.length}
+            </button>
+          )}
+          {user && pathSlug && nodeSlug && (
+            <Link
+              to={`/paths/${pathSlug}/lessons/${nodeSlug}/edit`}
+              className="hidden sm:inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/40"
+              title="Suggest an edit"
+            >
+              <Pencil className="w-3.5 h-3.5" strokeWidth={2} />
+              Edit
+            </Link>
+          )}
           <button
             onClick={() => setNotesOpen((v) => !v)}
             className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md transition-colors duration-fast ${
@@ -452,62 +499,33 @@ export function LessonPage() {
 
       {/* Body */}
       <div className="max-w-7xl mx-auto grid lg:grid-cols-[260px_1fr] min-h-[calc(100vh-7rem)]">
-        {/* Slide list — sticky sidebar */}
+        {/* Slide list — sticky sidebar (desktop only) */}
         <aside className="hidden lg:block border-r border-border">
           <nav className="sticky top-[calc(3.5rem+3.5rem+0.25rem)] py-4 max-h-[calc(100vh-7.25rem)] overflow-y-auto">
             <div className="px-4 pb-2 text-[10px] uppercase tracking-wider text-muted-foreground">
               Slides · {slides.length}
             </div>
-            <ol className="space-y-px px-2">
-              {slides.map((s, i) => {
-                const active = i === idx;
-                const Icon = s.kind === "question" ? HelpCircle : BookOpen;
-                const correct =
-                  s.kind === "question" &&
-                  answeredCorrectIds.has(s.question.id);
-                return (
-                  <li key={i}>
-                    <button
-                      onClick={() => setIdx(i)}
-                      className={`w-full text-left flex items-start gap-2 px-3 py-2 rounded-md text-xs transition-colors duration-fast ${
-                        active
-                          ? "bg-primary/10 text-foreground"
-                          : "text-muted-foreground hover:text-foreground hover:bg-accent/40"
-                      }`}
-                    >
-                      <span className="mt-0.5 shrink-0">
-                        {correct ? (
-                          <CheckCircle2
-                            className="w-3.5 h-3.5 text-accent-emerald"
-                            strokeWidth={2.2}
-                          />
-                        ) : (
-                          <Icon
-                            className={`w-3.5 h-3.5 ${
-                              active ? "text-primary" : ""
-                            }`}
-                            strokeWidth={2}
-                          />
-                        )}
-                      </span>
-                      <span className="flex-1 min-w-0">
-                        <span className="block font-mono text-[10px] text-muted-foreground">
-                          {String(i + 1).padStart(2, "0")}
-                        </span>
-                        <span className="block leading-snug">
-                          {slideShortTitle(s, i)}
-                        </span>
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ol>
+            {renderSlideList()}
           </nav>
         </aside>
 
         {/* Main content */}
         <div ref={mainRef} className="px-4 sm:px-8 py-8 overflow-y-auto">
+          {sourceArticle && phase !== "loading" && (
+            <div className="max-w-3xl mx-auto mb-6">
+              <Link
+                to={`/news/${sourceArticle.slug}`}
+                className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border border-border bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-colors"
+              >
+                <BookOpen className="w-3 h-3" strokeWidth={2} />
+                Sourced from{" "}
+                <span className="font-medium">@{sourceArticle.authorUsername}</span>
+                's article ·{" "}
+                <span className="text-foreground">{sourceArticle.title}</span>
+              </Link>
+            </div>
+          )}
+
           {phase === "loading" && (
             <div className="max-w-3xl mx-auto space-y-4">
               <div className="h-8 animate-pulse bg-muted rounded w-1/3" />
@@ -574,7 +592,10 @@ export function LessonPage() {
                 }
               >
                 <div className="font-serif text-lg leading-relaxed [&_p]:mb-4 [&_h3]:font-sans [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mt-6 [&_h3]:mb-3">
-                  <MarkdownRenderer content={slide.body} />
+                  <MarkdownRenderer
+                    content={slide.body}
+                    codeKernelKey={node ? `lesson:${node.id}` : null}
+                  />
                 </div>
                 {slide.viz && (
                   <div className="lg:sticky lg:top-32">
@@ -725,6 +746,40 @@ export function LessonPage() {
         <div className="fixed bottom-0 inset-x-0 z-40 px-4 pb-4 sm:px-8 sm:pb-8 pointer-events-none">
           <div className="max-w-2xl mx-auto pointer-events-auto animate-fade-in">
             <LessonNotes nodeId={node.id} />
+          </div>
+        </div>
+      )}
+
+      {/* Mobile slide-list bottom sheet — only used on screens below
+          the lg breakpoint where the desktop sidebar is hidden. */}
+      {slidesDrawerOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-50 bg-background/70 backdrop-blur-sm animate-fade-in"
+          onClick={() => setSlidesDrawerOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="All slides"
+        >
+          <div
+            ref={drawerRef}
+            className="absolute inset-x-0 bottom-0 max-h-[70vh] bg-card border-t border-border rounded-t-xl shadow-floating flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 h-12 border-b border-border">
+              <span className="text-xs uppercase tracking-wider text-muted-foreground">
+                Slides · {slides.length}
+              </span>
+              <button
+                onClick={() => setSlidesDrawerOpen(false)}
+                className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/40"
+                aria-label="Close slide list"
+              >
+                <XIcon className="w-4 h-4" strokeWidth={2} />
+              </button>
+            </div>
+            <nav className="flex-1 overflow-y-auto py-3">
+              {renderSlideList(() => setSlidesDrawerOpen(false))}
+            </nav>
           </div>
         </div>
       )}

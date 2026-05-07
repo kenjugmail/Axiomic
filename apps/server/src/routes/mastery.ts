@@ -5,6 +5,10 @@ import {
   getDb,
   masteryPaths,
   masteryNodes,
+  lessonVersions,
+  lessonEditReports,
+  lessonSlideEvents,
+  newsArticles,
   userProgress,
   users,
   lessonProgress,
@@ -17,6 +21,8 @@ import { randomUUID } from "crypto";
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { notify } from "../lib/notifications";
 import { recordActivityAndEvaluate } from "../lib/achievements";
+import { invalidateSearchIndex } from "../lib/searchIndex";
+import { forumTopicsForNode } from "../lib/crossLinks";
 import type { Env } from "../env";
 
 const mastery = new Hono<Env>();
@@ -91,6 +97,9 @@ mastery.get("/paths/:slug", async (c) => {
   const nodes = rawNodes.map((n) => {
     const pageIds = JSON.parse(n.pageIds);
     const prerequisiteNodeIds = JSON.parse(n.prerequisiteNodeIds);
+    // Sprint 16 — surface up to 3 forum topics tagged to this node's
+    // wiki pages. Lets the path overview show "Discuss" chips inline.
+    const linkedTopics = forumTopicsForNode(n.id, 3);
     return {
       ...n,
       pageIds,
@@ -99,6 +108,7 @@ mastery.get("/paths/:slug", async (c) => {
       lessonData: undefined,
       quizData: undefined,
       estimatedMinutes: estimateMinutes(n, pageIds),
+      linkedTopics,
     };
   });
 
@@ -347,7 +357,15 @@ mastery.get("/users/:username/summary", (c) => {
 
     const completedSet = new Set(completed.map((c) => c.nodeId));
     let pathHighest = -1;
+    // Per-level breakdown for the SkillTree visualization on the
+    // profile page. Each level maps to {total, completed}; missing
+    // levels are absent.
+    const levels: Record<string, { total: number; completed: number }> = {};
     for (const n of nodes) {
+      const cur = levels[n.level] ?? { total: 0, completed: 0 };
+      cur.total += 1;
+      if (completedSet.has(n.id)) cur.completed += 1;
+      levels[n.level] = cur;
       if (!completedSet.has(n.id)) continue;
       const idx = levelIndex(n.level);
       if (idx > pathHighest) pathHighest = idx;
@@ -361,6 +379,7 @@ mastery.get("/users/:username/summary", (c) => {
       completedNodes,
       currentLevel: pathHighest >= 0 ? LEVEL_ORDER[pathHighest] : null,
       latestCompletionAt: completed[0]?.completedAt ?? null,
+      levels,
     };
   });
 
@@ -452,17 +471,588 @@ mastery.get("/lesson/:nodeId", async (c) => {
   const nodeId = c.req.param("nodeId");
   const db = getDb();
   const node = db
-    .select({ lessonData: masteryNodes.lessonData })
+    .select({
+      lessonData: masteryNodes.lessonData,
+      sourceArticleId: masteryNodes.sourceArticleId,
+    })
     .from(masteryNodes)
     .where(eq(masteryNodes.id, nodeId))
     .get();
   if (!node) return c.json({ error: "Node not found" }, 404);
-  if (!node.lessonData) return c.json({ lesson: null });
-  try {
-    return c.json({ lesson: JSON.parse(node.lessonData) });
-  } catch {
-    return c.json({ lesson: null });
+
+  // Look up the source article (if any) so the lesson page can render
+  // a "Sourced from @author's article" footer without a second fetch.
+  let sourceArticle:
+    | { slug: string; title: string; authorUsername: string }
+    | null = null;
+  if (node.sourceArticleId) {
+    const a = db
+      .select({
+        slug: newsArticles.slug,
+        title: newsArticles.title,
+        authorUsername: users.username,
+      })
+      .from(newsArticles)
+      .innerJoin(users, eq(newsArticles.authorId, users.id))
+      .where(eq(newsArticles.id, node.sourceArticleId))
+      .get();
+    if (a) sourceArticle = a;
   }
+
+  if (!node.lessonData) return c.json({ lesson: null, sourceArticle });
+  try {
+    return c.json({ lesson: JSON.parse(node.lessonData), sourceArticle });
+  } catch {
+    return c.json({ lesson: null, sourceArticle });
+  }
+});
+
+// --- Lesson authoring (wiki-style open) -------------------------------
+//
+// Any signed-in user can edit any lesson. Every PUT writes a new
+// versioned snapshot to lesson_versions, then bumps
+// masteryNodes.currentLessonVersion + replaces lessonData. Mirrors how
+// wiki versioning works.
+
+// Loose validation: full discriminated-union validation for every
+// question kind would balloon this file. We require slides to look
+// shaped-correctly and cap counts; the client editor is the canonical
+// source of well-typed lessons. Bad payloads are rejected with 400.
+const slideSchema = z.union([
+  z.object({
+    kind: z.literal("text"),
+    title: z.string().max(200).optional(),
+    body: z.string().max(20000),
+    viz: z.string().max(80).optional(),
+    vizProps: z.record(z.unknown()).optional(),
+  }),
+  z.object({
+    kind: z.literal("question"),
+    question: z
+      .object({
+        id: z.string().min(1).max(80),
+        kind: z.string().min(1),
+        question: z.string().min(1).max(500),
+      })
+      .passthrough(),
+  }),
+]);
+
+const lessonBodySchema = z.object({
+  slides: z.array(slideSchema).min(1).max(50),
+  editMessage: z.string().max(200).optional(),
+});
+
+// PUT /mastery/nodes/:nodeId/lesson — author or replace. With ?draft=1
+// the slides land in draftLessonData (no version bump, no search-index
+// refresh; learners still see the published content). Without the flag
+// the edit is published and a new lesson_versions row is created.
+mastery.put(
+  "/nodes/:nodeId/lesson",
+  requireAuth,
+  zValidator("json", lessonBodySchema),
+  async (c) => {
+    const user = c.get("user")!;
+    const nodeId = c.req.param("nodeId")!;
+    const draftMode = c.req.query("draft") === "1";
+    const { slides, editMessage } = c.req.valid("json");
+    const db = getDb();
+
+    const node = db
+      .select({
+        id: masteryNodes.id,
+        currentLessonVersion: masteryNodes.currentLessonVersion,
+      })
+      .from(masteryNodes)
+      .where(eq(masteryNodes.id, nodeId))
+      .get();
+    if (!node) return c.json({ error: "Node not found" }, 404);
+
+    // Reject duplicate question.id within the same lesson — we'd
+    // otherwise overwrite per-slide answer state in the player.
+    const seen = new Set<string>();
+    for (const s of slides) {
+      if (s.kind === "question") {
+        const id = s.question.id;
+        if (seen.has(id)) {
+          return c.json(
+            { error: `Duplicate question id: ${id}` },
+            400,
+          );
+        }
+        seen.add(id);
+      }
+    }
+
+    const lessonData = JSON.stringify({ slides });
+    const now = new Date().toISOString();
+
+    if (draftMode) {
+      // Draft: stash the WIP without bumping the version or touching
+      // the published payload. Learners keep reading the existing
+      // lessonData; the editor reloads from draftLessonData.
+      db.update(masteryNodes)
+        .set({
+          draftLessonData: lessonData,
+          draftUpdatedAt: now,
+          draftEditorId: user.id,
+        })
+        .where(eq(masteryNodes.id, nodeId))
+        .run();
+
+      return c.json({
+        draft: true,
+        lesson: JSON.parse(lessonData),
+        version: node.currentLessonVersion,
+        draftUpdatedAt: now,
+      });
+    }
+
+    const nextVersion = node.currentLessonVersion + 1;
+    const versionId = randomUUID();
+
+    db.insert(lessonVersions)
+      .values({
+        id: versionId,
+        nodeId,
+        version: nextVersion,
+        lessonData,
+        editedBy: user.id,
+        editMessage: editMessage ?? null,
+        createdAt: now,
+      })
+      .run();
+
+    db.update(masteryNodes)
+      .set({
+        lessonData,
+        currentLessonVersion: nextVersion,
+        // Publishing clears any in-flight draft.
+        draftLessonData: null,
+        draftUpdatedAt: null,
+        draftEditorId: null,
+      })
+      .where(eq(masteryNodes.id, nodeId))
+      .run();
+
+    // Record the lesson edit so authoring achievements grant.
+    const newAchievements = recordActivityAndEvaluate(user.id, "lesson_edit");
+    // The lesson is part of the search index; refresh so future searches
+    // reflect the new content.
+    invalidateSearchIndex();
+
+    return c.json({
+      draft: false,
+      lesson: JSON.parse(lessonData),
+      version: nextVersion,
+      newAchievements,
+    });
+  },
+);
+
+// GET /mastery/nodes/:nodeId/lesson/draft — fetches an in-flight draft
+// if one exists. Returns null when there's no draft. Auth not required
+// since drafts aren't sensitive (they're collaborative wiki-style).
+mastery.get("/nodes/:nodeId/lesson/draft", async (c) => {
+  const nodeId = c.req.param("nodeId")!;
+  const db = getDb();
+  const row = db
+    .select({
+      draftLessonData: masteryNodes.draftLessonData,
+      draftUpdatedAt: masteryNodes.draftUpdatedAt,
+      draftEditorId: masteryNodes.draftEditorId,
+      editorUsername: users.username,
+    })
+    .from(masteryNodes)
+    .leftJoin(users, eq(masteryNodes.draftEditorId, users.id))
+    .where(eq(masteryNodes.id, nodeId))
+    .get();
+  if (!row) return c.json({ error: "Node not found" }, 404);
+  if (!row.draftLessonData) return c.json({ draft: null });
+  try {
+    return c.json({
+      draft: {
+        lesson: JSON.parse(row.draftLessonData),
+        updatedAt: row.draftUpdatedAt,
+        editorUsername: row.editorUsername,
+      },
+    });
+  } catch {
+    return c.json({ draft: null });
+  }
+});
+
+// POST /mastery/nodes/:nodeId/lesson/publish-draft — promote whatever
+// is in draftLessonData into a real version. Same path as the
+// non-draft PUT but doesn't take a body: the draft IS the body.
+mastery.post(
+  "/nodes/:nodeId/lesson/publish-draft",
+  requireAuth,
+  async (c) => {
+    const user = c.get("user")!;
+    const nodeId = c.req.param("nodeId")!;
+    const db = getDb();
+
+    const node = db
+      .select({
+        id: masteryNodes.id,
+        currentLessonVersion: masteryNodes.currentLessonVersion,
+        draftLessonData: masteryNodes.draftLessonData,
+      })
+      .from(masteryNodes)
+      .where(eq(masteryNodes.id, nodeId))
+      .get();
+    if (!node) return c.json({ error: "Node not found" }, 404);
+    if (!node.draftLessonData) {
+      return c.json({ error: "No draft to publish" }, 400);
+    }
+
+    const nextVersion = node.currentLessonVersion + 1;
+    const versionId = randomUUID();
+    const now = new Date().toISOString();
+
+    db.insert(lessonVersions)
+      .values({
+        id: versionId,
+        nodeId,
+        version: nextVersion,
+        lessonData: node.draftLessonData,
+        editedBy: user.id,
+        editMessage: "Published draft",
+        createdAt: now,
+      })
+      .run();
+
+    db.update(masteryNodes)
+      .set({
+        lessonData: node.draftLessonData,
+        currentLessonVersion: nextVersion,
+        draftLessonData: null,
+        draftUpdatedAt: null,
+        draftEditorId: null,
+      })
+      .where(eq(masteryNodes.id, nodeId))
+      .run();
+
+    const newAchievements = recordActivityAndEvaluate(user.id, "lesson_edit");
+    invalidateSearchIndex();
+
+    return c.json({
+      lesson: JSON.parse(node.draftLessonData),
+      version: nextVersion,
+      newAchievements,
+    });
+  },
+);
+
+// POST /mastery/nodes/:nodeId/lesson/report-version/:version — flag a
+// problematic edit. Reports just accumulate; admin tooling for
+// reviewing them is a follow-up.
+const reportSchema = z.object({
+  reason: z.enum(["vandalism", "spam", "accuracy", "other"]),
+  message: z.string().max(500).optional(),
+});
+mastery.post(
+  "/nodes/:nodeId/lesson/report-version/:version",
+  requireAuth,
+  zValidator("json", reportSchema),
+  async (c) => {
+    const user = c.get("user")!;
+    const nodeId = c.req.param("nodeId")!;
+    const version = parseInt(c.req.param("version") ?? "", 10);
+    const { reason, message } = c.req.valid("json");
+    if (!Number.isFinite(version) || version <= 0) {
+      return c.json({ error: "Invalid version" }, 400);
+    }
+    const db = getDb();
+
+    const target = db
+      .select({ id: lessonVersions.id })
+      .from(lessonVersions)
+      .where(
+        and(
+          eq(lessonVersions.nodeId, nodeId),
+          eq(lessonVersions.version, version),
+        ),
+      )
+      .get();
+    if (!target) return c.json({ error: "Version not found" }, 404);
+
+    db.insert(lessonEditReports)
+      .values({
+        id: randomUUID(),
+        nodeId,
+        version,
+        reporterId: user.id,
+        reason,
+        message: message ?? null,
+        createdAt: new Date().toISOString(),
+      })
+      .run();
+
+    return c.json({ ok: true });
+  },
+);
+
+// GET /mastery/lesson-edits — paged feed of recent lesson_versions
+// rows joined to users + nodes for the public edits feed page.
+mastery.get("/lesson-edits", async (c) => {
+  const db = getDb();
+  const limit = Math.min(50, parseInt(c.req.query("limit") ?? "30", 10));
+  const offset = parseInt(c.req.query("offset") ?? "0", 10);
+  const username = c.req.query("username");
+
+  let editorFilter: string | undefined;
+  if (username) {
+    const u = db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.username, username))
+      .get();
+    if (!u) return c.json({ edits: [] });
+    editorFilter = u.id;
+  }
+
+  const rows = db
+    .select({
+      versionId: lessonVersions.id,
+      nodeId: lessonVersions.nodeId,
+      version: lessonVersions.version,
+      editorId: lessonVersions.editedBy,
+      editorUsername: users.username,
+      editMessage: lessonVersions.editMessage,
+      createdAt: lessonVersions.createdAt,
+      nodeSlug: masteryNodes.slug,
+      nodeTitle: masteryNodes.title,
+      pathSlug: masteryPaths.slug,
+      currentLessonVersion: masteryNodes.currentLessonVersion,
+    })
+    .from(lessonVersions)
+    .leftJoin(users, eq(lessonVersions.editedBy, users.id))
+    .innerJoin(masteryNodes, eq(lessonVersions.nodeId, masteryNodes.id))
+    .innerJoin(masteryPaths, eq(masteryNodes.pathId, masteryPaths.id))
+    .where(editorFilter ? eq(lessonVersions.editedBy, editorFilter) : undefined)
+    .orderBy(desc(lessonVersions.createdAt))
+    .limit(limit)
+    .offset(offset)
+    .all();
+
+  return c.json({ edits: rows });
+});
+
+// GET /mastery/nodes/:nodeId/lesson-versions — paged history list.
+mastery.get("/nodes/:nodeId/lesson-versions", async (c) => {
+  const nodeId = c.req.param("nodeId")!;
+  const db = getDb();
+
+  const exists = db
+    .select({ id: masteryNodes.id })
+    .from(masteryNodes)
+    .where(eq(masteryNodes.id, nodeId))
+    .get();
+  if (!exists) return c.json({ error: "Node not found" }, 404);
+
+  const rows = db
+    .select({
+      id: lessonVersions.id,
+      version: lessonVersions.version,
+      editorId: lessonVersions.editedBy,
+      editorUsername: users.username,
+      editMessage: lessonVersions.editMessage,
+      createdAt: lessonVersions.createdAt,
+    })
+    .from(lessonVersions)
+    .leftJoin(users, eq(lessonVersions.editedBy, users.id))
+    .where(eq(lessonVersions.nodeId, nodeId))
+    .orderBy(desc(lessonVersions.version))
+    .all();
+
+  return c.json({ versions: rows });
+});
+
+// POST /mastery/nodes/:nodeId/lesson/restore/:version — write a new
+// version that copies the snapshotted lessonData. Doesn't overwrite
+// history; the restore is just another forward-going version.
+mastery.post(
+  "/nodes/:nodeId/lesson/restore/:version",
+  requireAuth,
+  async (c) => {
+    const user = c.get("user")!;
+    const nodeId = c.req.param("nodeId")!;
+    const version = parseInt(c.req.param("version") ?? "", 10);
+    if (!Number.isFinite(version) || version <= 0) {
+      return c.json({ error: "Invalid version" }, 400);
+    }
+    const db = getDb();
+
+    const node = db
+      .select({
+        id: masteryNodes.id,
+        currentLessonVersion: masteryNodes.currentLessonVersion,
+      })
+      .from(masteryNodes)
+      .where(eq(masteryNodes.id, nodeId))
+      .get();
+    if (!node) return c.json({ error: "Node not found" }, 404);
+
+    const target = db
+      .select({ lessonData: lessonVersions.lessonData })
+      .from(lessonVersions)
+      .where(
+        and(
+          eq(lessonVersions.nodeId, nodeId),
+          eq(lessonVersions.version, version),
+        ),
+      )
+      .get();
+    if (!target) return c.json({ error: "Version not found" }, 404);
+
+    const nextVersion = node.currentLessonVersion + 1;
+    const versionId = randomUUID();
+    const now = new Date().toISOString();
+
+    db.insert(lessonVersions)
+      .values({
+        id: versionId,
+        nodeId,
+        version: nextVersion,
+        lessonData: target.lessonData,
+        editedBy: user.id,
+        editMessage: `Restore from v${version}`,
+        createdAt: now,
+      })
+      .run();
+
+    db.update(masteryNodes)
+      .set({
+        lessonData: target.lessonData,
+        currentLessonVersion: nextVersion,
+      })
+      .where(eq(masteryNodes.id, nodeId))
+      .run();
+
+    return c.json({
+      lesson: JSON.parse(target.lessonData),
+      version: nextVersion,
+    });
+  },
+);
+
+// --- Lesson analytics -------------------------------------------------
+//
+// Fire-and-forget per-slide telemetry from the client (advance, answer
+// reveal). The unique-index on (nodeId, userId, slideIdx, kind) makes
+// repeats no-ops — we count distinct learner-touchpoints, not raw
+// firings. The aggregated GET endpoint powers the analytics surface
+// for authors.
+
+const slideEventSchema = z.object({
+  slideIdx: z.number().int().min(0).max(99),
+  kind: z.enum(["viewed", "answered_correct", "answered_wrong"]),
+});
+
+mastery.post(
+  "/nodes/:nodeId/slide-event",
+  requireAuth,
+  zValidator("json", slideEventSchema),
+  async (c) => {
+    const user = c.get("user")!;
+    const nodeId = c.req.param("nodeId")!;
+    const { slideIdx, kind } = c.req.valid("json");
+    const db = getDb();
+
+    // Confirm the node exists; without this a malicious client could
+    // pollute the table with bogus references (FK would catch it but a
+    // 400 is friendlier than 500).
+    const exists = db
+      .select({ id: masteryNodes.id })
+      .from(masteryNodes)
+      .where(eq(masteryNodes.id, nodeId))
+      .get();
+    if (!exists) return c.json({ error: "Node not found" }, 404);
+
+    // INSERT OR IGNORE on the unique index makes repeats no-ops.
+    db.run(sql`
+      INSERT OR IGNORE INTO lesson_slide_events (id, node_id, user_id, slide_idx, kind, created_at)
+      VALUES (${randomUUID()}, ${nodeId}, ${user.id}, ${slideIdx}, ${kind}, ${new Date().toISOString()})
+    `);
+
+    return c.json({ ok: true });
+  },
+);
+
+mastery.get("/nodes/:nodeId/lesson-analytics", async (c) => {
+  const nodeId = c.req.param("nodeId")!;
+  const db = getDb();
+
+  const node = db
+    .select({ id: masteryNodes.id, lessonData: masteryNodes.lessonData })
+    .from(masteryNodes)
+    .where(eq(masteryNodes.id, nodeId))
+    .get();
+  if (!node) return c.json({ error: "Node not found" }, 404);
+
+  // Slide count from the current lesson, so the response shape lines up
+  // with what the player would render.
+  let slideCount = 0;
+  try {
+    const parsed = node.lessonData
+      ? (JSON.parse(node.lessonData) as { slides?: unknown[] })
+      : null;
+    slideCount = Array.isArray(parsed?.slides) ? parsed!.slides!.length : 0;
+  } catch {
+    slideCount = 0;
+  }
+
+  // Aggregate counts per (slideIdx, kind). One row per unique user
+  // touchpoint thanks to the unique index.
+  const rows = db
+    .select({
+      slideIdx: lessonSlideEvents.slideIdx,
+      kind: lessonSlideEvents.kind,
+      count: sql<number>`count(*)`.as("count"),
+    })
+    .from(lessonSlideEvents)
+    .where(eq(lessonSlideEvents.nodeId, nodeId))
+    .groupBy(lessonSlideEvents.slideIdx, lessonSlideEvents.kind)
+    .all();
+
+  const perSlide: Array<{
+    slideIdx: number;
+    views: number;
+    answeredCorrect: number;
+    answeredWrong: number;
+  }> = [];
+  for (let i = 0; i < slideCount; i++) {
+    perSlide.push({
+      slideIdx: i,
+      views: 0,
+      answeredCorrect: 0,
+      answeredWrong: 0,
+    });
+  }
+  for (const r of rows) {
+    if (r.slideIdx >= slideCount) continue;
+    const slot = perSlide[r.slideIdx];
+    if (!slot) continue;
+    if (r.kind === "viewed") slot.views = r.count;
+    else if (r.kind === "answered_correct") slot.answeredCorrect = r.count;
+    else if (r.kind === "answered_wrong") slot.answeredWrong = r.count;
+  }
+
+  // Drop-off = viewers who didn't view the next slide. Only meaningful
+  // for slides 0..n-2; the final slide can't drop off.
+  const slides = perSlide.map((s, i) => {
+    const next = perSlide[i + 1];
+    const dropOff = next ? Math.max(0, s.views - next.views) : 0;
+    const incorrectRate =
+      s.answeredCorrect + s.answeredWrong > 0
+        ? s.answeredWrong / (s.answeredCorrect + s.answeredWrong)
+        : 0;
+    return { ...s, dropOff, incorrectRate };
+  });
+
+  return c.json({ slideCount, slides });
 });
 
 // Get quiz for a node

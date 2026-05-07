@@ -562,6 +562,578 @@ describe("news drafts + tags", () => {
   });
 });
 
+describe("news derive-lesson (Paper → Lesson pipeline)", () => {
+  function validSlides() {
+    return [
+      { kind: "text", title: "Setup", body: "Intro paragraph." },
+      { kind: "text", title: "Concept", body: "Core idea." },
+      {
+        kind: "question",
+        question: {
+          id: "q-1",
+          kind: "multiple_choice",
+          question: "Which is right?",
+          options: ["a", "b", "c", "d"],
+          correctIndex: 1,
+          explanation: "Because b.",
+        },
+      },
+    ];
+  }
+
+  test("requires authentication", async () => {
+    const author = await signup("dl_anon_a");
+    const slug = `dl-anon-${testId}`;
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ slug, title: "T", summary: "", body: "Body" }),
+    });
+    const res = await req(`/news/${slug}/derive-lesson`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slides: validSlides() }),
+    });
+    expect(res.status).toBe(401);
+  });
+
+  test("non-author, non-coauthor cannot derive a lesson", async () => {
+    const author = await signup("dl_owner");
+    const stranger = await signup("dl_stranger");
+    const slug = `dl-strict-${testId}`;
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ slug, title: "T", summary: "", body: "Body" }),
+    });
+    const res = await req(`/news/${slug}/derive-lesson`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(stranger.cookie) },
+      body: JSON.stringify({ slides: validSlides() }),
+    });
+    expect(res.status).toBe(403);
+  });
+
+  test("author derives a lesson, article + lesson are cross-linked", async () => {
+    const author = await signup("dl_ok");
+    const slug = `dl-ok-${testId}`;
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({
+        slug,
+        title: "FlashAttention",
+        summary: "Why it's fast",
+        body: "Long body about the memory hierarchy.",
+      }),
+    });
+
+    const derive = await req(`/news/${slug}/derive-lesson`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ slides: validSlides() }),
+    });
+    expect(derive.status).toBe(200);
+    const dr = (await derive.json()) as {
+      nodeId: string;
+      nodeSlug: string;
+      pathSlug: string;
+    };
+    expect(dr.pathSlug).toBe("from-articles");
+    expect(dr.nodeSlug).toBe(slug);
+
+    const fetched = await req(`/news/${slug}`);
+    const ab = (await fetched.json()) as { article: any };
+    expect(ab.article.derivedLesson).toBeTruthy();
+    expect(ab.article.derivedLesson.pathSlug).toBe("from-articles");
+    expect(ab.article.derivedLesson.nodeSlug).toBe(slug);
+
+    const lessonRes = await req(`/mastery/lesson/${dr.nodeId}`);
+    expect(lessonRes.status).toBe(200);
+    const lessonBody = (await lessonRes.json()) as {
+      lesson: { slides: any[] } | null;
+      sourceArticle: { slug: string; authorUsername: string } | null;
+    };
+    expect(lessonBody.lesson?.slides.length).toBe(3);
+    expect(lessonBody.sourceArticle?.slug).toBe(slug);
+    expect(lessonBody.sourceArticle?.authorUsername).toBe(author.username);
+  });
+
+  test("calling derive-lesson twice updates the same node", async () => {
+    const author = await signup("dl_idem");
+    const slug = `dl-idem-${testId}`;
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ slug, title: "T", summary: "", body: "Body" }),
+    });
+    const first = (await (
+      await req(`/news/${slug}/derive-lesson`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+        body: JSON.stringify({ slides: validSlides() }),
+      })
+    ).json()) as { nodeId: string };
+
+    const updatedSlides = [
+      ...validSlides(),
+      { kind: "text", title: "Extra", body: "One more." },
+    ];
+    const second = (await (
+      await req(`/news/${slug}/derive-lesson`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+        body: JSON.stringify({ slides: updatedSlides }),
+      })
+    ).json()) as { nodeId: string };
+
+    expect(second.nodeId).toBe(first.nodeId);
+
+    const lessonRes = await req(`/mastery/lesson/${first.nodeId}`);
+    const lessonBody = (await lessonRes.json()) as { lesson: { slides: any[] } };
+    expect(lessonBody.lesson.slides.length).toBe(4);
+  });
+
+  test("rejects duplicate question ids", async () => {
+    const author = await signup("dl_dup");
+    const slug = `dl-dup-${testId}`;
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ slug, title: "T", summary: "", body: "Body" }),
+    });
+    const dupSlides = [
+      { kind: "text", title: "S", body: "B" },
+      {
+        kind: "question",
+        question: {
+          id: "q-dup",
+          kind: "multiple_choice",
+          question: "?",
+          options: ["a", "b", "c", "d"],
+          correctIndex: 0,
+        },
+      },
+      {
+        kind: "question",
+        question: {
+          id: "q-dup",
+          kind: "multiple_choice",
+          question: "?",
+          options: ["a", "b", "c", "d"],
+          correctIndex: 0,
+        },
+      },
+    ];
+    const res = await req(`/news/${slug}/derive-lesson`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ slides: dupSlides }),
+    });
+    expect(res.status).toBe(400);
+  });
+});
+
+describe("news claim threads (Sprint 14 — claim-anchored discussion)", () => {
+  async function makeArticle(authorCookie: string, slug: string) {
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(authorCookie) },
+      body: JSON.stringify({
+        slug,
+        title: "T",
+        summary: "",
+        body: "Some passage about transformers and attention.",
+      }),
+    });
+  }
+
+  test("requires authentication to start a thread", async () => {
+    const author = await signup("ct_anon");
+    const slug = `ct-anon-${testId}`;
+    await makeArticle(author.cookie, slug);
+    const res = await req(`/news/${slug}/claim-threads`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        exact: "attention",
+        prefix: "and ",
+        suffix: ".",
+        body: "Hot take",
+      }),
+    });
+    expect(res.status).toBe(401);
+  });
+
+  test("creates a thread with a first comment, listing returns the pair", async () => {
+    const author = await signup("ct_owner");
+    const reader = await signup("ct_reader");
+    const slug = `ct-ok-${testId}`;
+    await makeArticle(author.cookie, slug);
+    const create = await req(`/news/${slug}/claim-threads`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(reader.cookie) },
+      body: JSON.stringify({
+        exact: "attention",
+        prefix: "and ",
+        suffix: ".",
+        body: "Why attention here?",
+      }),
+    });
+    expect(create.status).toBe(201);
+    const cb = (await create.json()) as { threadId: string; commentId: string };
+
+    const list = await req(`/news/${slug}/claim-threads`);
+    expect(list.status).toBe(200);
+    const lb = (await list.json()) as {
+      threads: Array<{
+        id: string;
+        exact: string;
+        authorUsername: string;
+        replies: any[];
+      }>;
+    };
+    expect(lb.threads.length).toBe(1);
+    expect(lb.threads[0].id).toBe(cb.threadId);
+    expect(lb.threads[0].exact).toBe("attention");
+    expect(lb.threads[0].authorUsername).toBe(reader.username);
+    expect(lb.threads[0].replies.length).toBe(1);
+    expect(lb.threads[0].replies[0].content).toBe("Why attention here?");
+  });
+
+  test("article-level comments listing excludes claim-thread replies", async () => {
+    const author = await signup("ct_excl");
+    const reader = await signup("ct_excl_r");
+    const slug = `ct-excl-${testId}`;
+    await makeArticle(author.cookie, slug);
+    // Regular comment.
+    await req(`/news/${slug}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(reader.cookie) },
+      body: JSON.stringify({ content: "Article-level comment." }),
+    });
+    // Claim thread + its reply.
+    const ct = (await (
+      await req(`/news/${slug}/claim-threads`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(reader.cookie) },
+        body: JSON.stringify({
+          exact: "transformers",
+          prefix: "about ",
+          suffix: " and ",
+          body: "Pinned to a passage.",
+        }),
+      })
+    ).json()) as { threadId: string };
+
+    await req(`/news/${slug}/claim-threads/${ct.threadId}/replies`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(reader.cookie) },
+      body: JSON.stringify({ content: "Follow-up reply." }),
+    });
+
+    const cmts = await req(`/news/${slug}/comments`);
+    const cb = (await cmts.json()) as { comments: any[] };
+    expect(cb.comments.length).toBe(1);
+    expect(cb.comments[0].content).toBe("Article-level comment.");
+  });
+
+  test("reply route rejects mismatched thread id", async () => {
+    const author = await signup("ct_mm");
+    const slug = `ct-mm-${testId}`;
+    await makeArticle(author.cookie, slug);
+    const res = await req(`/news/${slug}/claim-threads/does-not-exist/replies`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ content: "Hi" }),
+    });
+    expect(res.status).toBe(404);
+  });
+
+  test("reply notifies the thread author + prior repliers, not the actor", async () => {
+    const author = await signup("ctn_o");
+    const opener = await signup("ctn_p");
+    const replier = await signup("ctn_r");
+    const slug = `ct-notif-${testId}`;
+    await makeArticle(author.cookie, slug);
+
+    const ct = (await (
+      await req(`/news/${slug}/claim-threads`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(opener.cookie) },
+        body: JSON.stringify({
+          exact: "attention",
+          prefix: "and ",
+          suffix: ".",
+          body: "Why this framing?",
+        }),
+      })
+    ).json()) as { threadId: string };
+
+    // Replier joins. Should notify both the article author (who is also
+    // the thread participant by virtue of authoring the article? no —
+    // the thread author is the opener; article author got notified at
+    // thread-create) and the opener.
+    await req(`/news/${slug}/claim-threads/${ct.threadId}/replies`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(replier.cookie) },
+      body: JSON.stringify({ content: "I think so too." }),
+    });
+
+    // Opener should have a claim_thread_reply notification.
+    const openerNotifs = await req("/notifications", {
+      headers: cookieHeader(opener.cookie),
+    });
+    expect(openerNotifs.status).toBe(200);
+    const ob = (await openerNotifs.json()) as { notifications?: any[] };
+    expect(Array.isArray(ob.notifications)).toBe(true);
+    expect(
+      (ob.notifications ?? []).some(
+        (n) =>
+          n.kind === "claim_thread_reply" &&
+          n.subjectType === "claim_thread" &&
+          n.subjectId === ct.threadId,
+      ),
+    ).toBe(true);
+
+    // Replier should NOT have notified themselves.
+    const replierNotifs = await req("/notifications", {
+      headers: cookieHeader(replier.cookie),
+    });
+    expect(replierNotifs.status).toBe(200);
+    const rb = (await replierNotifs.json()) as { notifications?: any[] };
+    expect(
+      (rb.notifications ?? []).some(
+        (n) =>
+          n.kind === "claim_thread_reply" && n.subjectId === ct.threadId,
+      ),
+    ).toBe(false);
+  });
+});
+
+describe("news reproducibility receipts (Sprint 15)", () => {
+  async function makeArticle(authorCookie: string, slug: string) {
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(authorCookie) },
+      body: JSON.stringify({
+        slug,
+        title: "Reproducibility test",
+        summary: "",
+        body: "Some body.",
+      }),
+    });
+  }
+
+  test("only author/coauthor can attach artifacts", async () => {
+    const author = await signup("rep_a");
+    const stranger = await signup("rep_s");
+    const slug = `rep-art-${testId}`;
+    await makeArticle(author.cookie, slug);
+
+    const denied = await req(`/news/${slug}/artifacts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(stranger.cookie) },
+      body: JSON.stringify({
+        kind: "github",
+        url: "https://github.com/x/y",
+        label: "Code",
+      }),
+    });
+    expect(denied.status).toBe(403);
+
+    const ok = await req(`/news/${slug}/artifacts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({
+        kind: "github",
+        url: "https://github.com/x/y",
+        label: "Training code",
+        description: "Run with python train.py",
+      }),
+    });
+    expect(ok.status).toBe(201);
+
+    // Article view exposes artifacts.
+    const fetched = await req(`/news/${slug}`);
+    const ab = (await fetched.json()) as { article: any };
+    expect(ab.article.artifacts.length).toBe(1);
+    expect(ab.article.artifacts[0].label).toBe("Training code");
+  });
+
+  test("rejects malformed urls + invalid artifact kinds", async () => {
+    const author = await signup("rep_v");
+    const slug = `rep-v-${testId}`;
+    await makeArticle(author.cookie, slug);
+
+    const badUrl = await req(`/news/${slug}/artifacts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ kind: "github", url: "not-a-url", label: "Code" }),
+    });
+    expect(badUrl.status).toBe(400);
+
+    const badKind = await req(`/news/${slug}/artifacts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({
+        kind: "tarball",
+        url: "https://x.com/y",
+        label: "Code",
+      }),
+    });
+    expect(badKind.status).toBe(400);
+  });
+
+  test("author cannot file a receipt on their own article", async () => {
+    const author = await signup("rep_self");
+    const slug = `rep-self-${testId}`;
+    await makeArticle(author.cookie, slug);
+    const res = await req(`/news/${slug}/reproductions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ status: "success" }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  test("happy path: receipt updates stats + article author gets notified; second receipt by same user is rejected", async () => {
+    const author = await signup("rep_h_a");
+    const reader = await signup("rep_h_r");
+    const slug = `rep-h-${testId}`;
+    await makeArticle(author.cookie, slug);
+
+    const filed = await req(`/news/${slug}/reproductions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(reader.cookie) },
+      body: JSON.stringify({
+        status: "partial",
+        notes: "Worked at fp32 but not fp16.",
+      }),
+    });
+    expect(filed.status).toBe(201);
+
+    const fetched = await req(`/news/${slug}`, {
+      headers: cookieHeader(reader.cookie),
+    });
+    const ab = (await fetched.json()) as { article: any };
+    expect(ab.article.reproStats.total).toBe(1);
+    expect(ab.article.reproStats.partial).toBe(1);
+    expect(ab.article.reproStats.mine).toBe(true);
+
+    // Article author should have a notification.
+    const notif = await req("/notifications", {
+      headers: cookieHeader(author.cookie),
+    });
+    expect(notif.status).toBe(200);
+    const nb = (await notif.json()) as { notifications: any[] };
+    expect(
+      nb.notifications.some(
+        (n) =>
+          n.kind === "article_reproduced" && n.subjectType === "reproduction",
+      ),
+    ).toBe(true);
+
+    // Duplicate from the same user → 409.
+    const dup = await req(`/news/${slug}/reproductions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(reader.cookie) },
+      body: JSON.stringify({ status: "success" }),
+    });
+    expect(dup.status).toBe(409);
+
+    // Public listing.
+    const list = await req(`/news/${slug}/reproductions`);
+    expect(list.status).toBe(200);
+    const lb = (await list.json()) as { reproductions: any[]; stats: any };
+    expect(lb.reproductions.length).toBe(1);
+    expect(lb.stats.partial).toBe(1);
+  });
+
+  test("delete artifact: only author/coauthor; cross-article ID is rejected", async () => {
+    const author1 = await signup("rep_d_1");
+    const author2 = await signup("rep_d_2");
+    const slug1 = `rep-d-1-${testId}`;
+    const slug2 = `rep-d-2-${testId}`;
+    await makeArticle(author1.cookie, slug1);
+    await makeArticle(author2.cookie, slug2);
+
+    const created = (await (
+      await req(`/news/${slug1}/artifacts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(author1.cookie) },
+        body: JSON.stringify({
+          kind: "github",
+          url: "https://github.com/x/y",
+          label: "Code",
+        }),
+      })
+    ).json()) as { artifactId: string };
+
+    // author2 tries to delete via slug2 — wrong article, 400
+    // because the artifact belongs to slug1.
+    const wrongArticle = await req(
+      `/news/${slug2}/artifacts/${created.artifactId}`,
+      { method: "DELETE", headers: cookieHeader(author2.cookie) },
+    );
+    expect(wrongArticle.status).toBe(400);
+
+    // author2 tries via slug1 — not the author/coauthor.
+    const denied = await req(
+      `/news/${slug1}/artifacts/${created.artifactId}`,
+      { method: "DELETE", headers: cookieHeader(author2.cookie) },
+    );
+    expect(denied.status).toBe(403);
+
+    // author1 can delete.
+    const ok = await req(
+      `/news/${slug1}/artifacts/${created.artifactId}`,
+      { method: "DELETE", headers: cookieHeader(author1.cookie) },
+    );
+    expect(ok.status).toBe(200);
+  });
+});
+
+describe("news cross-links (Sprint 16)", () => {
+  test("article body with [[slug]] mentions populates relatedWikiPages on GET", async () => {
+    const author = await signup("xl_a");
+    const slug = `xl-mention-${testId}`;
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({
+        slug,
+        title: "On attention",
+        summary: "",
+        body: "We rely on [[attention]] heavily here, and also link to /wiki/softmax for the surrounding context.",
+      }),
+    });
+    const fetched = await req(`/news/${slug}`);
+    const ab = (await fetched.json()) as { article: any };
+    const slugs = (ab.article.relatedWikiPages ?? []).map((w: any) => w.slug);
+    expect(slugs).toContain("attention");
+    expect(slugs).toContain("softmax");
+  });
+
+  test("article body with no concept references returns empty relatedWikiPages", async () => {
+    const author = await signup("xl_e");
+    const slug = `xl-empty-${testId}`;
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({
+        slug,
+        title: "No mentions",
+        summary: "",
+        body: "Just plain prose, no concept links.",
+      }),
+    });
+    const fetched = await req(`/news/${slug}`);
+    const ab = (await fetched.json()) as { article: any };
+    expect(ab.article.relatedWikiPages).toEqual([]);
+  });
+});
+
 describe("news related", () => {
   test("returns up to 4 articles, excluding the current one", async () => {
     const author = await signup("rel_a");

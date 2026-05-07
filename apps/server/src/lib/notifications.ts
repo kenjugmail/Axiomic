@@ -8,11 +8,13 @@ export type NotificationKind =
   | "topic_reply"
   | "post_reply"
   | "comment_reply"
+  | "claim_thread_reply"
   | "mastery_level_up"
   | "news_edit_proposed"
   | "news_edit_approved"
   | "news_edit_rejected"
   | "news_published"
+  | "article_reproduced"
   | "forum_topic_posted";
 
 export type NotificationSubject =
@@ -22,7 +24,9 @@ export type NotificationSubject =
   | "mastery_node"
   | "news_article"
   | "news_proposal"
-  | "news_comment";
+  | "news_comment"
+  | "claim_thread"
+  | "reproduction";
 
 const MAX_MENTIONS_PER_BODY = 10;
 const PREVIEW_MAX = 140;
@@ -100,6 +104,7 @@ function kindGate(
     case "topic_reply":
     case "post_reply":
     case "comment_reply":
+    case "claim_thread_reply":
       return "notifyReplies";
     case "mastery_level_up":
       return "notifyMastery";
@@ -107,6 +112,7 @@ function kindGate(
     case "news_edit_approved":
     case "news_edit_rejected":
     case "news_published":
+    case "article_reproduced":
     case "forum_topic_posted":
       // News flow + follow events are direct + low-volume — always on.
       return null;

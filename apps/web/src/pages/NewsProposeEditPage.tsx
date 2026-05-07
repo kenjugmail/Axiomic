@@ -14,7 +14,6 @@ export function NewsProposeEditPage() {
   const [article, setArticle] = useState<NewsArticle | null>(null);
   const [draft, setDraft] = useState<NewsDraft | null>(null);
   const [message, setMessage] = useState("");
-  const [showPreview, setShowPreview] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -206,13 +205,7 @@ export function NewsProposeEditPage() {
         />
       </div>
 
-      <NewsEditor
-        draft={draft}
-        onChange={setDraft}
-        slugEditable={false}
-        showPreview={showPreview}
-        onTogglePreview={() => setShowPreview((v) => !v)}
-      />
+      <NewsEditor draft={draft} onChange={setDraft} slugEditable={false} />
     </div>
   );
 }

@@ -17,7 +17,9 @@ export function SignupPage() {
     setLoading(true);
     try {
       await signup(username, email, password);
-      navigate("/");
+      // Brand-new users go through the onboarding wizard. Existing
+      // users (re-signup is blocked) never reach this branch.
+      navigate("/welcome");
     } catch (err: any) {
       setError(err.message || "Signup failed");
     } finally {

@@ -4,7 +4,7 @@ import { api } from "../lib/api";
 import type { SearchResultItem } from "@axiomic/types";
 import { SearchResultRow } from "../components/SearchResultRow";
 
-type Filter = "all" | "pages" | "topics";
+type Filter = "all" | "pages" | "topics" | "lessons";
 
 // Full-page search. Mirrors SearchDialog's logic but writes the query
 // to the URL so the result is shareable, and exposes filters that the
@@ -54,12 +54,14 @@ export function SearchPage() {
   const filtered = results.filter((r) => {
     if (filter === "pages" && r.kind !== "page") return false;
     if (filter === "topics" && r.kind !== "topic") return false;
+    if (filter === "lessons" && r.kind !== "lesson") return false;
     if (semanticOnly && r.matchedBy === "keyword") return false;
     return true;
   });
 
   const pages = filtered.filter((r) => r.kind === "page");
   const topics = filtered.filter((r) => r.kind === "topic");
+  const lessons = filtered.filter((r) => r.kind === "lesson");
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
@@ -75,7 +77,7 @@ export function SearchPage() {
 
       <div className="flex flex-wrap items-center gap-3 mt-4">
         <div className="flex gap-1 p-1 rounded-md bg-muted">
-          {(["all", "pages", "topics"] as Filter[]).map((f) => (
+          {(["all", "pages", "topics", "lessons"] as Filter[]).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -127,13 +129,25 @@ export function SearchPage() {
             </div>
           </section>
         )}
-        {filter !== "pages" && topics.length > 0 && (
+        {filter !== "pages" && filter !== "lessons" && topics.length > 0 && (
           <section>
             <h2 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
               Topics
             </h2>
             <div className="space-y-1">
               {topics.map((r) => (
+                <SearchResultRow key={r.id} result={r} />
+              ))}
+            </div>
+          </section>
+        )}
+        {filter !== "pages" && filter !== "topics" && lessons.length > 0 && (
+          <section>
+            <h2 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+              Lessons
+            </h2>
+            <div className="space-y-1">
+              {lessons.map((r) => (
                 <SearchResultRow key={r.id} result={r} />
               ))}
             </div>

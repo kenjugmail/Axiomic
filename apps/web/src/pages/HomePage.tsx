@@ -117,8 +117,14 @@ export function HomePage() {
               </p>
               <div className="flex gap-3 justify-center flex-wrap">
                 <Link
+                  to="/demo/attention"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors duration-fast text-sm"
+                >
+                  ✨ Try it: 3 minutes on attention
+                </Link>
+                <Link
                   to="/wiki"
-                  className="inline-flex items-center px-5 py-2.5 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors duration-fast text-sm"
+                  className="inline-flex items-center px-5 py-2.5 border border-border text-foreground rounded-md font-medium hover:bg-accent/40 transition-colors duration-fast text-sm"
                 >
                   Explore the wiki
                 </Link>

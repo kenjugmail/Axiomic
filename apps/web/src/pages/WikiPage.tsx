@@ -8,6 +8,11 @@ import {
   type ForumTopicSummary,
   type PostType,
 } from "../lib/api";
+import type {
+  LinkedNodeSummary,
+  LinkedArticleSummary,
+} from "@axiomic/types";
+import { RelatedRail } from "../components/cross/RelatedRail";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { PracticePanel } from "../components/wiki/PracticePanel";
 import { TableOfContents } from "../components/TableOfContents";
@@ -33,6 +38,10 @@ export function WikiPage() {
   const [flashcardsOpen, setFlashcardsOpen] = useState(false);
   const [relatedPages, setRelatedPages] = useState<WikiPageType[]>([]);
   const [discussions, setDiscussions] = useState<ForumTopicSummary[]>([]);
+  const [linkedNodes, setLinkedNodes] = useState<LinkedNodeSummary[]>([]);
+  const [linkedArticles, setLinkedArticles] = useState<LinkedArticleSummary[]>(
+    [],
+  );
 
   useEffect(() => {
     if (!slug) return;
@@ -57,6 +66,14 @@ export function WikiPage() {
             .then((d) => setDiscussions(d.topics))
             .catch(() => {});
         }
+        // Sprint 16 — Practice / Articles cross-link rails. Both arrive
+        // bundled; missing fields just hide their rail.
+        setLinkedNodes(
+          Array.isArray(data.linkedNodes) ? data.linkedNodes : [],
+        );
+        setLinkedArticles(
+          Array.isArray(data.linkedArticles) ? data.linkedArticles : [],
+        );
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -148,7 +165,10 @@ export function WikiPage() {
             </div>
           </div>
 
-          <MarkdownRenderer content={content} />
+          <MarkdownRenderer
+            content={content}
+            codeKernelKey={slug ? `wiki:${slug}` : null}
+          />
 
           {/* Quiz me on this page (AI). */}
           {slug && <PracticePanel pageSlug={slug} tier={tier} />}
@@ -220,6 +240,29 @@ export function WikiPage() {
               </div>
             )}
           </div>
+
+          {/* Sprint 16 — flywheel cross-link rails: which nodes teach
+              this concept, which articles cite it. Both sit between the
+              existing version history and the discussions list, so the
+              reader sees "practice this" and "articles citing this" at
+              the same scroll depth as forum threads. Empty rails hide
+              themselves; first-load author can leave them empty without
+              clutter. */}
+          <RelatedRail
+            title="Practice this"
+            icon="lesson"
+            items={linkedNodes.map((n) => ({ kind: "node" as const, ...n }))}
+            emptyHint={null}
+          />
+          <RelatedRail
+            title="Articles citing this concept"
+            icon="article"
+            items={linkedArticles.map((a) => ({
+              kind: "article" as const,
+              ...a,
+            }))}
+            emptyHint={null}
+          />
 
           {/* Forum discussions anchored to this page */}
           <div className="mt-8 border-t border-border pt-6">

@@ -2,21 +2,27 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import {
+  claimThreads,
   getDb,
+  masteryNodes,
+  masteryPaths,
   newsArticles,
   newsBookmarks,
   newsComments,
   newsEditProposals,
   newsReactions,
+  reproductions,
+  runnableArtifacts,
   userFollows,
   users,
 } from "@axiomic/db";
-import { and, count, desc, eq, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, isNull, max, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { requireAuth, getSessionUser } from "../middleware/auth";
-import { notify } from "../lib/notifications";
+import { notify, notifyMentions } from "../lib/notifications";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import { publishToArticle } from "../lib/liveBus";
+import { wikiPagesForArticle } from "../lib/crossLinks";
 import type { Env } from "../env";
 
 export const newsRouter = new Hono<Env>();
@@ -247,6 +253,7 @@ newsRouter.get("/:slug", async (c) => {
       authorUsername: users.username,
       authorDisplayName: users.displayName,
       lastEditorId: newsArticles.lastEditorId,
+      derivedLessonNodeId: newsArticles.derivedLessonNodeId,
       createdAt: newsArticles.createdAt,
       updatedAt: newsArticles.updatedAt,
     })
@@ -312,6 +319,31 @@ newsRouter.get("/:slug", async (c) => {
 
   const isAuthor = !!session && session.id === row.authorId;
 
+  // If a lesson has been derived, look up its path + node slugs so the
+  // client can build a deep link without a second round-trip.
+  let derivedLesson:
+    | { nodeId: string; nodeSlug: string; pathSlug: string }
+    | null = null;
+  if (row.derivedLessonNodeId) {
+    const linked = db
+      .select({
+        nodeId: masteryNodes.id,
+        nodeSlug: masteryNodes.slug,
+        pathSlug: masteryPaths.slug,
+      })
+      .from(masteryNodes)
+      .innerJoin(masteryPaths, eq(masteryNodes.pathId, masteryPaths.id))
+      .where(eq(masteryNodes.id, row.derivedLessonNodeId))
+      .get();
+    if (linked) {
+      derivedLesson = {
+        nodeId: linked.nodeId,
+        nodeSlug: linked.nodeSlug,
+        pathSlug: linked.pathSlug,
+      };
+    }
+  }
+
   let myBookmark = false;
   if (session) {
     const bookmark = db
@@ -325,6 +357,45 @@ newsRouter.get("/:slug", async (c) => {
       )
       .get();
     myBookmark = !!bookmark;
+  }
+
+  // Sprint 15 — runnable artifacts + reproduction stats. Both surface
+  // inline on the article view: artifacts as a "How to reproduce"
+  // section, stats as the byline badge "Reproduced by N researchers".
+  const artifacts = db
+    .select({
+      id: runnableArtifacts.id,
+      kind: runnableArtifacts.kind,
+      url: runnableArtifacts.url,
+      label: runnableArtifacts.label,
+      description: runnableArtifacts.description,
+      createdAt: runnableArtifacts.createdAt,
+    })
+    .from(runnableArtifacts)
+    .where(eq(runnableArtifacts.articleId, row.id))
+    .orderBy(asc(runnableArtifacts.createdAt))
+    .all();
+
+  // Sprint 16 — related wiki pages cited by this article.
+  const relatedWikiPages = wikiPagesForArticle(row.id);
+
+  const reproRows = db
+    .select({ status: reproductions.status, reproducerId: reproductions.reproducerId })
+    .from(reproductions)
+    .where(eq(reproductions.articleId, row.id))
+    .all();
+  const reproStats = {
+    total: reproRows.length,
+    success: 0,
+    partial: 0,
+    failed: 0,
+    // Whether the requester (if any) has already submitted a receipt.
+    mine: session ? reproRows.some((r) => r.reproducerId === session.id) : false,
+  };
+  for (const r of reproRows) {
+    if (r.status === "success") reproStats.success++;
+    else if (r.status === "partial") reproStats.partial++;
+    else if (r.status === "failed") reproStats.failed++;
   }
 
   return c.json({
@@ -351,6 +422,10 @@ newsRouter.get("/:slug", async (c) => {
       pendingProposalCount,
       isAuthor,
       myBookmark,
+      derivedLesson,
+      artifacts,
+      reproStats,
+      relatedWikiPages,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     },
@@ -947,7 +1022,15 @@ newsRouter.get("/:slug/comments", async (c) => {
     })
     .from(newsComments)
     .innerJoin(users, eq(newsComments.userId, users.id))
-    .where(eq(newsComments.articleId, article.id))
+    .where(
+      and(
+        eq(newsComments.articleId, article.id),
+        // Exclude claim-thread replies — those render in their own
+        // panel pinned to the article passage they discuss, not in
+        // the article-level comment list.
+        isNull(newsComments.claimThreadId),
+      ),
+    )
     .orderBy(desc(newsComments.createdAt))
     .all();
 
@@ -1017,13 +1100,26 @@ newsRouter.post(
       parentId: parentId ?? null,
       userId: user.id,
       content,
+      targetKind: "news_article",
+      targetId: article.id,
     }).run();
+
+    // Fire mention notifications first so we can avoid double-notifying
+    // a user who is *also* the parent / article author.
+    const mentioned = await notifyMentions({
+      body: content,
+      actorId: user.id,
+      subjectType: "news_comment",
+      subjectId: id,
+      contextSlug: slug,
+      preview: previewFrom(content),
+    });
 
     // Fire reply / mention notifications. Reuse the existing kinds so
     // the bell + page render uniformly. contextSlug carries the
     // article slug so the deep-link helper can construct
     // /news/{slug}#comment-{id}.
-    if (parentAuthorId) {
+    if (parentAuthorId && !mentioned.has(parentAuthorId)) {
       await notify({
         recipientId: parentAuthorId,
         actorId: user.id,
@@ -1033,7 +1129,11 @@ newsRouter.post(
         contextSlug: slug,
         preview: previewFrom(content),
       });
-    } else if (article.authorId !== user.id) {
+    } else if (
+      !parentAuthorId &&
+      article.authorId !== user.id &&
+      !mentioned.has(article.authorId)
+    ) {
       // Top-level comment on someone else's article — notify the author.
       await notify({
         recipientId: article.authorId,
@@ -1312,4 +1412,749 @@ newsRouter.get("/:slug/related", async (c) => {
   }
 
   return c.json({ articles: pool });
+});
+
+// --- Paper → Lesson pipeline ----------------------------------------
+//
+// Authors / coauthors can convert a published article into a Brilliant-
+// style lesson. Slides are generated by /ai/lesson/from-article (streaming),
+// reviewed in the dialog, then submitted here. The endpoint creates a
+// dedicated "from-articles" mastery path on first use, then a mastery_node
+// under it whose lessonData carries the slides. Both ends get cross-linked
+// so the article view shows a "📚 Lesson available" badge and the lesson
+// page shows a "Sourced from @author's article" footer.
+
+const FROM_ARTICLES_PATH_SLUG = "from-articles";
+
+const lessonSlideSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("text"),
+    title: z.string().optional(),
+    body: z.string().min(1),
+    viz: z.string().nullable().optional(),
+  }),
+  z.object({
+    kind: z.literal("question"),
+    question: z.object({
+      id: z.string().min(1),
+      kind: z.literal("multiple_choice"),
+      question: z.string().min(1),
+      options: z.array(z.string().min(1)).length(4),
+      correctIndex: z.number().int().min(0).max(3),
+      explanation: z.string().optional(),
+    }),
+  }),
+]);
+
+const deriveLessonSchema = z.object({
+  slides: z.array(lessonSlideSchema).min(2).max(20),
+});
+
+newsRouter.post(
+  "/:slug/derive-lesson",
+  requireAuth,
+  zValidator("json", deriveLessonSchema),
+  async (c) => {
+    const slug = c.req.param("slug")!;
+    const user = c.get("user")!;
+    const { slides } = c.req.valid("json");
+    const db = getDb();
+
+    const article = db
+      .select({
+        id: newsArticles.id,
+        title: newsArticles.title,
+        summary: newsArticles.summary,
+        status: newsArticles.status,
+        authorId: newsArticles.authorId,
+        coauthorsJson: newsArticles.coauthorsJson,
+        derivedLessonNodeId: newsArticles.derivedLessonNodeId,
+      })
+      .from(newsArticles)
+      .where(eq(newsArticles.slug, slug))
+      .get();
+    if (!article) return c.json({ error: "Article not found" }, 404);
+    if (article.status !== "published") {
+      return c.json({ error: "Publish the article first." }, 400);
+    }
+
+    // Author + coauthors only. Coauthors are stored as a JSON array of
+    // usernames; we resolve the caller's username to compare.
+    const isAuthor = article.authorId === user.id;
+    const coauthors = parseCoauthors(article.coauthorsJson);
+    const isCoauthor = coauthors.includes(user.username);
+    if (!isAuthor && !isCoauthor) {
+      return c.json({ error: "Only the author or coauthors can derive a lesson." }, 403);
+    }
+
+    // Reject duplicate question ids — same constraint the lesson PUT
+    // endpoint enforces, so the player's per-slide answer state stays
+    // sane.
+    const seenIds = new Set<string>();
+    for (const s of slides) {
+      if (s.kind === "question") {
+        if (seenIds.has(s.question.id)) {
+          return c.json({ error: `Duplicate question id: ${s.question.id}` }, 400);
+        }
+        seenIds.add(s.question.id);
+      }
+    }
+
+    // If a lesson is already linked, update its slides in place rather
+    // than create another node — the dialog shouldn't multiply lessons.
+    if (article.derivedLessonNodeId) {
+      const existing = db
+        .select({
+          id: masteryNodes.id,
+          slug: masteryNodes.slug,
+          pathId: masteryNodes.pathId,
+          currentLessonVersion: masteryNodes.currentLessonVersion,
+        })
+        .from(masteryNodes)
+        .where(eq(masteryNodes.id, article.derivedLessonNodeId))
+        .get();
+      if (existing) {
+        const lessonData = JSON.stringify({ slides });
+        db.update(masteryNodes)
+          .set({
+            lessonData,
+            currentLessonVersion: existing.currentLessonVersion + 1,
+            // Clear any in-flight draft — the new published payload
+            // supersedes it.
+            draftLessonData: null,
+            draftUpdatedAt: null,
+            draftEditorId: null,
+          })
+          .where(eq(masteryNodes.id, existing.id))
+          .run();
+        const path = db
+          .select({ slug: masteryPaths.slug })
+          .from(masteryPaths)
+          .where(eq(masteryPaths.id, existing.pathId))
+          .get();
+        return c.json({
+          nodeId: existing.id,
+          nodeSlug: existing.slug,
+          pathSlug: path?.slug ?? FROM_ARTICLES_PATH_SLUG,
+        });
+      }
+      // Stale link (node was deleted) — fall through and create a fresh
+      // one, which will overwrite the dangling pointer below.
+    }
+
+    // Get-or-create the "from-articles" path. The first paper-derived
+    // lesson on a fresh deploy creates this implicitly.
+    let path = db
+      .select({ id: masteryPaths.id })
+      .from(masteryPaths)
+      .where(eq(masteryPaths.slug, FROM_ARTICLES_PATH_SLUG))
+      .get();
+    if (!path) {
+      const pathId = randomUUID();
+      db.insert(masteryPaths)
+        .values({
+          id: pathId,
+          slug: FROM_ARTICLES_PATH_SLUG,
+          title: "From articles",
+          description:
+            "Lessons derived from published research articles by their authors.",
+        })
+        .run();
+      path = { id: pathId };
+    }
+
+    // Pick a slug under that path — fall back to suffixing if collision.
+    const baseSlug = slug.slice(0, 100);
+    let nodeSlug = baseSlug;
+    for (let attempt = 2; attempt < 50; attempt++) {
+      const collision = db
+        .select({ id: masteryNodes.id })
+        .from(masteryNodes)
+        .where(
+          and(
+            eq(masteryNodes.pathId, path.id),
+            eq(masteryNodes.slug, nodeSlug),
+          ),
+        )
+        .get();
+      if (!collision) break;
+      nodeSlug = `${baseSlug}-${attempt}`;
+    }
+
+    // Append after the existing nodes in the path. Order doesn't drive
+    // navigation here (paper-derived lessons don't form a curriculum),
+    // but keeping it monotonic makes the listing stable.
+    const nextOrder = Number(
+      db
+        .select({ m: max(masteryNodes.order) })
+        .from(masteryNodes)
+        .where(eq(masteryNodes.pathId, path.id))
+        .get()?.m ?? 0,
+    );
+
+    const nodeId = randomUUID();
+    const lessonData = JSON.stringify({ slides });
+    db.insert(masteryNodes)
+      .values({
+        id: nodeId,
+        pathId: path.id,
+        slug: nodeSlug,
+        title: article.title,
+        description:
+          article.summary ||
+          `Lesson derived from the article "${article.title}".`,
+        order: nextOrder + 1,
+        // Sensible default; the author can revise via the lesson editor.
+        level: "practitioner",
+        pageIds: "[]",
+        prerequisiteNodeIds: "[]",
+        lessonData,
+        currentLessonVersion: 1,
+        sourceArticleId: article.id,
+      })
+      .run();
+
+    db.update(newsArticles)
+      .set({ derivedLessonNodeId: nodeId })
+      .where(eq(newsArticles.id, article.id))
+      .run();
+
+    return c.json({ nodeId, nodeSlug, pathSlug: FROM_ARTICLES_PATH_SLUG });
+  },
+);
+
+// --- Claim-anchored discussion threads ------------------------------
+//
+// Pin a thread to a specific passage in the article. Anchoring is a
+// W3C-style text-quote (exact + prefix + suffix). Replies live in
+// `news_comments` with claimThreadId set so they share the same
+// editing/notification plumbing as regular article comments.
+
+const claimThreadCreateSchema = z.object({
+  exact: z.string().min(4).max(2000),
+  prefix: z.string().max(80).optional().default(""),
+  suffix: z.string().max(80).optional().default(""),
+  body: z.string().min(1).max(5000),
+});
+
+newsRouter.post(
+  "/:slug/claim-threads",
+  requireAuth,
+  zValidator("json", claimThreadCreateSchema),
+  async (c) => {
+    const slug = c.req.param("slug")!;
+    const user = c.get("user")!;
+    const { exact, prefix, suffix, body } = c.req.valid("json");
+    const db = getDb();
+
+    const article = db
+      .select({ id: newsArticles.id, authorId: newsArticles.authorId })
+      .from(newsArticles)
+      .where(eq(newsArticles.slug, slug))
+      .get();
+    if (!article) return c.json({ error: "Article not found" }, 404);
+
+    const threadId = randomUUID();
+    const commentId = randomUUID();
+    db.insert(claimThreads)
+      .values({
+        id: threadId,
+        articleId: article.id,
+        authorId: user.id,
+        exact,
+        prefix,
+        suffix,
+        targetKind: "news_article",
+        targetId: article.id,
+      })
+      .run();
+    db.insert(newsComments)
+      .values({
+        id: commentId,
+        articleId: article.id,
+        parentId: null,
+        userId: user.id,
+        content: body,
+        claimThreadId: threadId,
+        targetKind: "news_article",
+        targetId: article.id,
+      })
+      .run();
+
+    // Notify the article author when someone else opens a thread on
+    // their work — but only once the thread is started. Subsequent
+    // replies notify the thread author + prior repliers (handled in
+    // the reply route below).
+    if (article.authorId !== user.id) {
+      // Mention notifs first so we can dedupe.
+      const mentioned = await notifyMentions({
+        body,
+        actorId: user.id,
+        subjectType: "claim_thread",
+        subjectId: threadId,
+        contextSlug: slug,
+        preview: previewFrom(body),
+      });
+      if (!mentioned.has(article.authorId)) {
+        await notify({
+          recipientId: article.authorId,
+          actorId: user.id,
+          kind: "claim_thread_reply",
+          subjectType: "claim_thread",
+          subjectId: threadId,
+          contextSlug: slug,
+          preview: previewFrom(`Claimed: "${exact.slice(0, 80)}"`),
+        });
+      }
+    } else {
+      // Author starting a thread on their own article — only run
+      // mention notifs.
+      await notifyMentions({
+        body,
+        actorId: user.id,
+        subjectType: "claim_thread",
+        subjectId: threadId,
+        contextSlug: slug,
+        preview: previewFrom(body),
+      });
+    }
+
+    return c.json({ threadId, commentId }, 201);
+  },
+);
+
+newsRouter.get("/:slug/claim-threads", async (c) => {
+  const slug = c.req.param("slug")!;
+  const db = getDb();
+
+  const article = db
+    .select({ id: newsArticles.id })
+    .from(newsArticles)
+    .where(eq(newsArticles.slug, slug))
+    .get();
+  if (!article) return c.json({ error: "Article not found" }, 404);
+
+  const threads = db
+    .select({
+      id: claimThreads.id,
+      articleId: claimThreads.articleId,
+      authorId: claimThreads.authorId,
+      authorUsername: users.username,
+      exact: claimThreads.exact,
+      prefix: claimThreads.prefix,
+      suffix: claimThreads.suffix,
+      createdAt: claimThreads.createdAt,
+    })
+    .from(claimThreads)
+    .innerJoin(users, eq(claimThreads.authorId, users.id))
+    .where(eq(claimThreads.articleId, article.id))
+    .orderBy(asc(claimThreads.createdAt))
+    .all();
+
+  if (threads.length === 0) return c.json({ threads: [] });
+
+  // Pull all replies for these threads in one query, then bucket per
+  // thread on the client side. Cheaper than N+1 lookups even for tiny
+  // thread counts.
+  const threadIds = threads.map((t) => t.id);
+  const replyRows = db
+    .select({
+      id: newsComments.id,
+      threadId: newsComments.claimThreadId,
+      userId: newsComments.userId,
+      username: users.username,
+      content: newsComments.content,
+      editedAt: newsComments.editedAt,
+      createdAt: newsComments.createdAt,
+    })
+    .from(newsComments)
+    .innerJoin(users, eq(newsComments.userId, users.id))
+    .where(
+      and(
+        eq(newsComments.articleId, article.id),
+        // Manual IN clause via OR: drizzle's inArray is fine but we keep
+        // raw SQL minimal here. For up to ~100 threads on a popular
+        // article this remains fast.
+        sql`${newsComments.claimThreadId} IN (${sql.join(
+          threadIds.map((id) => sql`${id}`),
+          sql`, `,
+        )})`,
+      ),
+    )
+    .orderBy(asc(newsComments.createdAt))
+    .all();
+
+  const repliesByThread = new Map<string, typeof replyRows>();
+  for (const r of replyRows) {
+    if (!r.threadId) continue;
+    const list = repliesByThread.get(r.threadId);
+    if (list) list.push(r);
+    else repliesByThread.set(r.threadId, [r]);
+  }
+
+  return c.json({
+    threads: threads.map((t) => ({
+      id: t.id,
+      authorId: t.authorId,
+      authorUsername: t.authorUsername,
+      exact: t.exact,
+      prefix: t.prefix,
+      suffix: t.suffix,
+      createdAt: t.createdAt,
+      replies: (repliesByThread.get(t.id) ?? []).map((r) => ({
+        id: r.id,
+        userId: r.userId,
+        username: r.username,
+        content: r.content,
+        editedAt: r.editedAt,
+        createdAt: r.createdAt,
+      })),
+    })),
+  });
+});
+
+const claimThreadReplySchema = z.object({
+  content: z.string().min(1).max(5000),
+});
+
+newsRouter.post(
+  "/:slug/claim-threads/:threadId/replies",
+  requireAuth,
+  zValidator("json", claimThreadReplySchema),
+  async (c) => {
+    const slug = c.req.param("slug")!;
+    const threadId = c.req.param("threadId")!;
+    const user = c.get("user")!;
+    const { content } = c.req.valid("json");
+    const db = getDb();
+
+    const article = db
+      .select({ id: newsArticles.id })
+      .from(newsArticles)
+      .where(eq(newsArticles.slug, slug))
+      .get();
+    if (!article) return c.json({ error: "Article not found" }, 404);
+
+    const thread = db
+      .select({
+        id: claimThreads.id,
+        articleId: claimThreads.articleId,
+        authorId: claimThreads.authorId,
+      })
+      .from(claimThreads)
+      .where(eq(claimThreads.id, threadId))
+      .get();
+    if (!thread || thread.articleId !== article.id) {
+      return c.json({ error: "Thread not found" }, 404);
+    }
+
+    const id = randomUUID();
+    db.insert(newsComments)
+      .values({
+        id,
+        articleId: article.id,
+        parentId: null,
+        userId: user.id,
+        content,
+        claimThreadId: threadId,
+        targetKind: "news_article",
+        targetId: article.id,
+      })
+      .run();
+
+    // Mention notifs first; they take precedence over reply notifs.
+    const mentioned = await notifyMentions({
+      body: content,
+      actorId: user.id,
+      subjectType: "claim_thread",
+      subjectId: threadId,
+      contextSlug: slug,
+      preview: previewFrom(content),
+    });
+
+    // Notify everyone else who's already in the thread (the author +
+    // prior repliers), deduped against mentions and the actor.
+    const participants = db
+      .select({ userId: newsComments.userId })
+      .from(newsComments)
+      .where(eq(newsComments.claimThreadId, threadId))
+      .all();
+    const recipients = new Set<string>([thread.authorId]);
+    for (const p of participants) recipients.add(p.userId);
+    recipients.delete(user.id);
+    for (const m of mentioned) recipients.delete(m);
+
+    for (const recipientId of recipients) {
+      await notify({
+        recipientId,
+        actorId: user.id,
+        kind: "claim_thread_reply",
+        subjectType: "claim_thread",
+        subjectId: threadId,
+        contextSlug: slug,
+        preview: previewFrom(content),
+      });
+    }
+
+    return c.json({ commentId: id }, 201);
+  },
+);
+
+// --- Reproducibility receipts (Sprint 15) ---------------------------
+//
+// Authors attach runnable artifacts (Colab, GitHub, Docker, dataset,
+// arXiv, other) to their published article. Other researchers submit
+// "Reproduced ✓" receipts with a status + optional notes / evidence
+// URL. The article view shows a "Reproduced by N" badge once any
+// receipts exist; the article author gets an article_reproduced
+// notification each time someone submits one.
+
+const ARTIFACT_KINDS = ["github", "colab", "docker", "dataset", "arxiv", "other"] as const;
+
+const artifactSchema = z.object({
+  kind: z.enum(ARTIFACT_KINDS),
+  url: z.string().url().max(500),
+  label: z.string().min(1).max(120),
+  description: z.string().max(800).optional(),
+});
+
+newsRouter.post(
+  "/:slug/artifacts",
+  requireAuth,
+  zValidator("json", artifactSchema),
+  async (c) => {
+    const slug = c.req.param("slug")!;
+    const user = c.get("user")!;
+    const { kind, url, label, description } = c.req.valid("json");
+    const db = getDb();
+
+    const article = db
+      .select({
+        id: newsArticles.id,
+        authorId: newsArticles.authorId,
+        coauthorsJson: newsArticles.coauthorsJson,
+      })
+      .from(newsArticles)
+      .where(eq(newsArticles.slug, slug))
+      .get();
+    if (!article) return c.json({ error: "Article not found" }, 404);
+
+    const isAuthor = article.authorId === user.id;
+    const isCoauthor = parseCoauthors(article.coauthorsJson).includes(
+      user.username,
+    );
+    if (!isAuthor && !isCoauthor) {
+      return c.json({ error: "Only the author or coauthors can attach artifacts." }, 403);
+    }
+
+    const id = randomUUID();
+    db.insert(runnableArtifacts)
+      .values({
+        id,
+        articleId: article.id,
+        kind,
+        url,
+        label: label.trim(),
+        description: description?.trim() || null,
+        targetKind: "news_article",
+        targetId: article.id,
+      })
+      .run();
+    return c.json({ artifactId: id }, 201);
+  },
+);
+
+newsRouter.delete("/:slug/artifacts/:id", requireAuth, async (c) => {
+  const slug = c.req.param("slug")!;
+  const id = c.req.param("id")!;
+  const user = c.get("user")!;
+  const db = getDb();
+
+  const article = db
+    .select({
+      id: newsArticles.id,
+      authorId: newsArticles.authorId,
+      coauthorsJson: newsArticles.coauthorsJson,
+    })
+    .from(newsArticles)
+    .where(eq(newsArticles.slug, slug))
+    .get();
+  if (!article) return c.json({ error: "Article not found" }, 404);
+
+  const isAuthor = article.authorId === user.id;
+  const isCoauthor = parseCoauthors(article.coauthorsJson).includes(
+    user.username,
+  );
+  if (!isAuthor && !isCoauthor) {
+    return c.json({ error: "Only the author or coauthors can remove artifacts." }, 403);
+  }
+
+  const existing = db
+    .select({ id: runnableArtifacts.id, articleId: runnableArtifacts.articleId })
+    .from(runnableArtifacts)
+    .where(eq(runnableArtifacts.id, id))
+    .get();
+  if (!existing) return c.json({ error: "Artifact not found" }, 404);
+  if (existing.articleId !== article.id) {
+    return c.json({ error: "Artifact does not belong to this article" }, 400);
+  }
+
+  db.delete(runnableArtifacts).where(eq(runnableArtifacts.id, id)).run();
+  return c.json({ ok: true });
+});
+
+newsRouter.get("/:slug/artifacts", async (c) => {
+  const slug = c.req.param("slug")!;
+  const db = getDb();
+  const article = db
+    .select({ id: newsArticles.id })
+    .from(newsArticles)
+    .where(eq(newsArticles.slug, slug))
+    .get();
+  if (!article) return c.json({ error: "Article not found" }, 404);
+
+  const rows = db
+    .select({
+      id: runnableArtifacts.id,
+      kind: runnableArtifacts.kind,
+      url: runnableArtifacts.url,
+      label: runnableArtifacts.label,
+      description: runnableArtifacts.description,
+      createdAt: runnableArtifacts.createdAt,
+    })
+    .from(runnableArtifacts)
+    .where(eq(runnableArtifacts.articleId, article.id))
+    .orderBy(asc(runnableArtifacts.createdAt))
+    .all();
+  return c.json({ artifacts: rows });
+});
+
+const reproductionSchema = z.object({
+  artifactId: z.string().optional(),
+  status: z.enum(["success", "partial", "failed"]),
+  notes: z.string().max(2000).optional(),
+  evidenceUrl: z.string().url().max(500).optional(),
+});
+
+newsRouter.post(
+  "/:slug/reproductions",
+  requireAuth,
+  zValidator("json", reproductionSchema),
+  async (c) => {
+    const slug = c.req.param("slug")!;
+    const user = c.get("user")!;
+    const { artifactId, status, notes, evidenceUrl } = c.req.valid("json");
+    const db = getDb();
+
+    const article = db
+      .select({
+        id: newsArticles.id,
+        title: newsArticles.title,
+        authorId: newsArticles.authorId,
+      })
+      .from(newsArticles)
+      .where(eq(newsArticles.slug, slug))
+      .get();
+    if (!article) return c.json({ error: "Article not found" }, 404);
+
+    if (article.authorId === user.id) {
+      return c.json({ error: "You can't reproduce your own article." }, 400);
+    }
+
+    if (artifactId) {
+      const a = db
+        .select({ id: runnableArtifacts.id, articleId: runnableArtifacts.articleId })
+        .from(runnableArtifacts)
+        .where(eq(runnableArtifacts.id, artifactId))
+        .get();
+      if (!a || a.articleId !== article.id) {
+        return c.json({ error: "Artifact not found on this article" }, 400);
+      }
+    }
+
+    // Enforce one receipt per (article, user). The unique index would
+    // throw on a duplicate insert; we surface a clearer error first.
+    const existing = db
+      .select({ id: reproductions.id })
+      .from(reproductions)
+      .where(
+        and(
+          eq(reproductions.articleId, article.id),
+          eq(reproductions.reproducerId, user.id),
+        ),
+      )
+      .get();
+    if (existing) {
+      return c.json(
+        { error: "You've already submitted a receipt for this article." },
+        409,
+      );
+    }
+
+    const id = randomUUID();
+    db.insert(reproductions)
+      .values({
+        id,
+        articleId: article.id,
+        artifactId: artifactId ?? null,
+        reproducerId: user.id,
+        status,
+        notes: notes?.trim() || null,
+        evidenceUrl: evidenceUrl ?? null,
+        targetKind: "news_article",
+        targetId: article.id,
+      })
+      .run();
+
+    const verdict =
+      status === "success" ? "✓ reproduced" : status === "partial" ? "~ partial" : "✗ failed";
+    await notify({
+      recipientId: article.authorId,
+      actorId: user.id,
+      kind: "article_reproduced",
+      subjectType: "reproduction",
+      subjectId: id,
+      contextSlug: slug,
+      preview: previewFrom(`${verdict}: "${article.title}"`),
+    });
+
+    return c.json({ reproductionId: id }, 201);
+  },
+);
+
+newsRouter.get("/:slug/reproductions", async (c) => {
+  const slug = c.req.param("slug")!;
+  const db = getDb();
+  const article = db
+    .select({ id: newsArticles.id })
+    .from(newsArticles)
+    .where(eq(newsArticles.slug, slug))
+    .get();
+  if (!article) return c.json({ error: "Article not found" }, 404);
+
+  const rows = db
+    .select({
+      id: reproductions.id,
+      artifactId: reproductions.artifactId,
+      reproducerId: reproductions.reproducerId,
+      reproducerUsername: users.username,
+      status: reproductions.status,
+      notes: reproductions.notes,
+      evidenceUrl: reproductions.evidenceUrl,
+      createdAt: reproductions.createdAt,
+    })
+    .from(reproductions)
+    .innerJoin(users, eq(reproductions.reproducerId, users.id))
+    .where(eq(reproductions.articleId, article.id))
+    .orderBy(desc(reproductions.createdAt))
+    .all();
+
+  const stats = { total: rows.length, success: 0, partial: 0, failed: 0 };
+  for (const r of rows) {
+    if (r.status === "success") stats.success++;
+    else if (r.status === "partial") stats.partial++;
+    else if (r.status === "failed") stats.failed++;
+  }
+
+  return c.json({ reproductions: rows, stats });
 });

@@ -346,7 +346,7 @@ export function MasteryPathPage() {
                             </span>
                           )}
                         </div>
-                        <div className="flex gap-1.5 mt-1">
+                        <div className="flex gap-1.5 mt-1 flex-wrap items-center">
                           {node.pageIds.map((pageSlug: string) => (
                             <Link
                               key={pageSlug}
@@ -356,6 +356,20 @@ export function MasteryPathPage() {
                               {pageSlug}
                             </Link>
                           ))}
+                          {/* Sprint 16 — surface the most active forum
+                              thread tagged to this node's wiki pages.
+                              The chip links straight to the topic. */}
+                          {node.linkedTopics && node.linkedTopics.length > 0 && (
+                            <Link
+                              to={`/forum/topics/${node.linkedTopics[0].slug}`}
+                              className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider px-1.5 py-px rounded bg-muted text-muted-foreground hover:text-foreground hover:bg-accent/40"
+                              title={`${node.linkedTopics.length} discussion${node.linkedTopics.length > 1 ? "s" : ""}`}
+                            >
+                              💬 Discuss
+                              {node.linkedTopics.length > 1 &&
+                                ` · ${node.linkedTopics.length}`}
+                            </Link>
+                          )}
                         </div>
                       </div>
                     </div>
