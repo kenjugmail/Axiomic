@@ -57,6 +57,8 @@ import type {
   UpdateMilestoneRequest,
   SubmitMilestoneRequest,
   CapstoneSubmission,
+  WeakConceptsResponse,
+  PrereqXrayResponse,
   PaperOutlineRequest,
   PaperDraftSectionRequest,
   PaperVizSuggestionsResponse,
@@ -813,6 +815,18 @@ export const api = {
       ),
     artifact: (artifactSlug: string) =>
       request<CapstoneArtifactPageResponse>(`/capstones/c/${artifactSlug}`),
+  },
+  me: {
+    weakConcepts: () => request<WeakConceptsResponse>("/me/weak-concepts"),
+    refreshWeakConcepts: () =>
+      request<{ upserts: number }>("/me/weak-concepts/refresh", { method: "POST" }),
+    dismissWeakConcept: (id: string) =>
+      request<OkResponse>(`/me/weak-concepts/${id}/dismiss`, { method: "POST" }),
+    prereqStatus: (wikiSlugs: string[]) => {
+      const sp = new URLSearchParams();
+      sp.set("wikiSlugs", wikiSlugs.join(","));
+      return request<PrereqXrayResponse>(`/me/prereq-status?${sp.toString()}`);
+    },
   },
   flashcards: {
     save: (data: { pageSlug: string; pageTitle: string; front: string; back: string }) =>

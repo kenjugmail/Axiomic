@@ -168,6 +168,9 @@ const CapstoneWorkspacePage = lazy(() =>
 const CapstoneArtifactPageView = lazy(() =>
   import("./pages/CapstoneArtifactPage").then((m) => ({ default: m.CapstoneArtifactPageView })),
 );
+const WeakConceptsPage = lazy(() =>
+  import("./pages/WeakConceptsPage").then((m) => ({ default: m.WeakConceptsPage })),
+);
 
 function PageFallback() {
   return (
@@ -260,6 +263,7 @@ export function App() {
           <Route path="/capstones/:slug" element={<CapstonePage />} />
           <Route path="/capstones/:slug/edit" element={<CapstoneEditPage />} />
           <Route path="/capstones/:slug/work" element={<CapstoneWorkspacePage />} />
+          <Route path="/me/weak-concepts" element={<WeakConceptsPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

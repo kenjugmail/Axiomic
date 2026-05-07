@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "attention",
+  "key": "attention-is-concatenation",
+  "label": "Multi-head attention concatenates heads instead of mixing values",
+  "description": "Multi-head attention is often confused with simple feature concatenation. It's not. Each head computes its own attention(Q_h, K_h, V_h) over the SAME input, producing a context-dependent weighted SUM of values. The 'concat' step at the end joins the per-head outputs along the feature dimension, then a linear projection mixes them. The mixing inside each head — the softmax-weighted sum — is the actual mechanism.\n\nThe trap: thinking 'multiple heads' = 'multiple input streams concatenated and processed in parallel'. That's not it. The same Q/K/V projections happen in every head, but with different learned weight matrices.",
+  "probeQuestions": [
+    "In multi-head attention, what's the role of the final linear projection after concat?",
+    "If we set n_heads=1 with the same total d_model, what changes?"
+  ],
+  "correctionPromptTemplate": "The learner thinks multi-head attention concatenates input streams rather than mixing values via softmax-weighted sums. Walk through: each head computes attention(Q_h, K_h, V_h) — the SAME input, different projection matrices. The concat at the end joins outputs; the mixing is in the softmax-weighted sum. Ask a probe question first."
+}

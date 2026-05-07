@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "residual-connections",
+  "key": "residual-is-skip-connection-only",
+  "label": "Residuals are 'just' skip connections; their math is incidental",
+  "description": "Residuals (`y = x + F(x)`) are often dismissed as a hack to fight vanishing gradients. They do that — but the deeper consequence is that gradients can flow directly from the loss to ANY block, with the residual path acting as an identity passthrough. This means deep networks behave more like ensembles of shallow paths than like sequential composition.\n\nVeit et al. (2016) showed that removing individual residual blocks at inference barely hurts performance; removing whole 'paths' degrades it gradually. The math (y = x + F(x)) is the mechanism, not the metaphor.",
+  "probeQuestions": [
+    "What's the gradient of `y = x + F(x)` with respect to `x` at every block?",
+    "Why does residual depth not show the same fragility as plain-deep networks?"
+  ],
+  "correctionPromptTemplate": "The learner is treating residual connections as a vanishing-gradient hack rather than the mechanism that lets networks behave like ensembles. Probe first; then walk through the gradient calculation showing dy/dx = I + dF/dx, and the ensemble interpretation."
+}

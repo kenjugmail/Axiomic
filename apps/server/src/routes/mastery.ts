@@ -20,6 +20,7 @@ import { eq, and, desc, inArray, ne, asc, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { notify } from "../lib/notifications";
+import { fireDetectorForUserAsync } from "../lib/misconceptionDetector";
 import { recordActivityAndEvaluate } from "../lib/achievements";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import { forumTopicsForNode } from "../lib/crossLinks";
@@ -1299,6 +1300,13 @@ mastery.post("/quiz/:nodeId", requireAuth, zValidator("json", quizSubmitSchema),
         .where(eq(quizMistakes.id, existing.id))
         .run();
     }
+  }
+
+  // Sprint 29 — kick off misconception detection in the background.
+  // Non-blocking; failures are swallowed so a detector hiccup never
+  // breaks the quiz submission response.
+  if (wrongIds.length > 0) {
+    fireDetectorForUserAsync(user.id);
   }
 
   // Auto-create flashcards for newly missed multiple-choice questions

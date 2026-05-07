@@ -12,6 +12,7 @@ import {
   newsArticles,
   capstones,
   capstoneMilestones,
+  misconceptionCatalog,
 } from "./index";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -99,6 +100,9 @@ async function seed() {
 
   // Sprint 28 — load capstones from seed-content/capstones/*.json.
   await seedCapstones();
+
+  // Sprint 29 — load misconception catalog.
+  seedMisconceptionCatalog();
 
   console.log("Seeding complete.");
 }
@@ -838,6 +842,49 @@ async function seedCapstones() {
     count++;
   }
   console.log(`  Seeded ${count} capstone(s).`);
+}
+
+// Sprint 29 — load misconception_catalog from seed-content/misconceptions/*.json.
+function seedMisconceptionCatalog() {
+  const dir = path.join(import.meta.dir, "../../../seed-content/misconceptions");
+  if (!fs.existsSync(dir)) return;
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith(".json"));
+  let count = 0;
+  for (const f of files) {
+    let parsed: any;
+    try {
+      parsed = JSON.parse(fs.readFileSync(path.join(dir, f), "utf-8"));
+    } catch {
+      continue;
+    }
+    if (!parsed?.conceptSlug || !parsed?.key) continue;
+
+    const existing = db
+      .select({ id: misconceptionCatalog.id })
+      .from(misconceptionCatalog)
+      .where(eq(misconceptionCatalog.key, parsed.key))
+      .get();
+    const values = {
+      conceptSlug: parsed.conceptSlug,
+      key: parsed.key,
+      label: parsed.label,
+      description: parsed.description ?? "",
+      probeQuestionsJson: JSON.stringify(parsed.probeQuestions ?? []),
+      correctionPromptTemplate: parsed.correctionPromptTemplate ?? "",
+    };
+    if (existing) {
+      db.update(misconceptionCatalog)
+        .set(values)
+        .where(eq(misconceptionCatalog.id, existing.id))
+        .run();
+    } else {
+      db.insert(misconceptionCatalog)
+        .values({ id: randomUUID(), ...values })
+        .run();
+    }
+    count++;
+  }
+  console.log(`  Seeded ${count} misconception catalog entr${count === 1 ? "y" : "ies"}.`);
 }
 
 seed().catch(console.error);
