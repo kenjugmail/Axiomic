@@ -7,7 +7,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { CheckCircle2, Pencil, Sparkles } from "lucide-react";
+import { BookMarked, CheckCircle2, Pencil, Sparkles } from "lucide-react";
 import type {
   ClaimThread,
   ResearchPaper,
@@ -25,6 +25,7 @@ import { ReproduceDialog } from "../components/news/ReproduceDialog";
 import { ReproductionsBadge } from "../components/news/ReproductionsBadge";
 import { TierToggle } from "../components/research/TierToggle";
 import { PrereqXray } from "../components/prereq/PrereqXray";
+import { CiteDialog } from "../components/citations/CiteDialog";
 import { findTextQuote, type TextQuote } from "../lib/textQuote";
 
 const FORMAT_LABEL: Record<string, string> = {
@@ -66,6 +67,7 @@ export function ResearchPaperPage() {
   const [paper, setPaper] = useState<ResearchPaper | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reproDialogOpen, setReproDialogOpen] = useState(false);
+  const [citeOpen, setCiteOpen] = useState(false);
   const [threads, setThreads] = useState<ClaimThread[]>([]);
   const [pendingThreadQuote, setPendingThreadQuote] =
     useState<TextQuote | null>(null);
@@ -257,8 +259,8 @@ export function ResearchPaperPage() {
         )}
       </div>
 
-      {paper.isAuthor && (
-        <div className="flex items-center gap-2 mt-4">
+      <div className="flex flex-wrap items-center gap-2 mt-4">
+        {paper.isAuthor && (
           <Link
             to={`/research/${paper.slug}/edit`}
             className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40 inline-flex items-center gap-1.5"
@@ -266,13 +268,23 @@ export function ResearchPaperPage() {
             <Pencil className="w-3 h-3" strokeWidth={2} />
             Edit
           </Link>
-          {paper.status === "draft" && (
-            <span className="text-xs px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/40">
-              Draft · only you see this
-            </span>
-          )}
-        </div>
-      )}
+        )}
+        {paper.status === "published" && (
+          <button
+            type="button"
+            onClick={() => setCiteOpen(true)}
+            className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40 inline-flex items-center gap-1.5"
+          >
+            <BookMarked className="w-3 h-3" strokeWidth={2} />
+            Cite
+          </button>
+        )}
+        {paper.isAuthor && paper.status === "draft" && (
+          <span className="text-xs px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/40">
+            Draft · only you see this
+          </span>
+        )}
+      </div>
 
       {/* Tier toggle (sticky on scroll) */}
       <div className="mt-6">
@@ -572,6 +584,14 @@ export function ResearchPaperPage() {
               // ignore
             }
           }}
+        />
+      )}
+
+      {citeOpen && slug && (
+        <CiteDialog
+          kind="paper"
+          slug={slug}
+          onClose={() => setCiteOpen(false)}
         />
       )}
     </div>

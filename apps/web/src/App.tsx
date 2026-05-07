@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Navigate, Routes, Route, useParams } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
@@ -273,9 +273,25 @@ export function App() {
           <Route path="/capstones/:slug/work" element={<CapstoneWorkspacePage />} />
           <Route path="/me/weak-concepts" element={<WeakConceptsPage />} />
           <Route path="/me/mri" element={<KnowledgeMRIPage />} />
+          <Route path="/cite/p/:author/:slug" element={<CitePaperRedirect />} />
+          <Route path="/cite/c/:author/:slug" element={<CiteCapstoneRedirect />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
     </Suspense>
   );
+}
+
+// Sprint 34 — DOI-style citation permalinks. Stable URLs
+// /cite/{p|c}/<author>/<slug> bounce to the canonical content page so
+// external citations keep resolving even if the canonical surface
+// moves later.
+function CitePaperRedirect() {
+  const { slug } = useParams<{ slug: string }>();
+  return <Navigate to={`/research/${slug}`} replace />;
+}
+
+function CiteCapstoneRedirect() {
+  const { slug } = useParams<{ slug: string }>();
+  return <Navigate to={`/capstones/${slug}`} replace />;
 }

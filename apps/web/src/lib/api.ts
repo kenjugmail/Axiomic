@@ -427,6 +427,32 @@ export const api = {
         users: Array<{ username: string; displayName: string | null }>;
       }>(`/users?q=${encodeURIComponent(q)}`),
   },
+  citations: {
+    paper: (slug: string) =>
+      request<{
+        slug: string;
+        title: string;
+        authors: string[];
+        year: number;
+        url: string;
+        permalink: string;
+        bibtex: string;
+        ris: string;
+        plain: string;
+      }>(`/research/${slug}/cite`),
+    capstone: (slug: string) =>
+      request<{
+        slug: string;
+        title: string;
+        authors: string[];
+        year: number;
+        url: string;
+        permalink: string;
+        bibtex: string;
+        ris: string;
+        plain: string;
+      }>(`/capstones/${slug}/cite`),
+  },
   search: {
     query: (q: string, limit?: number) => {
       const sp = new URLSearchParams({ q });

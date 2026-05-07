@@ -7,7 +7,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { GraduationCap, ChevronRight, Sparkles, Lock, ListChecks } from "lucide-react";
+import { BookMarked, GraduationCap, ChevronRight, Sparkles, Lock, ListChecks } from "lucide-react";
 import type { Capstone, CapstoneTier } from "@axiomic/types";
 import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
@@ -15,6 +15,7 @@ import { Skeleton } from "../components/ui";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { TierToggle } from "../components/research/TierToggle";
 import { PrereqXray } from "../components/prereq/PrereqXray";
+import { CiteDialog } from "../components/citations/CiteDialog";
 
 export function CapstonePage() {
   const { slug = "" } = useParams<{ slug: string }>();
@@ -24,6 +25,7 @@ export function CapstonePage() {
   const [tier, setTier] = useState<CapstoneTier>("undergrad");
   const [error, setError] = useState<string | null>(null);
   const [enrolling, setEnrolling] = useState(false);
+  const [citeOpen, setCiteOpen] = useState(false);
 
   useEffect(() => {
     setCapstone(null);
@@ -136,10 +138,24 @@ export function CapstonePage() {
               · #{t}
             </span>
           ))}
+          {capstone.status === "published" && (
+            <button
+              type="button"
+              onClick={() => setCiteOpen(true)}
+              className={`text-xs px-2 py-1 rounded border border-border hover:bg-accent/40 inline-flex items-center gap-1 ${
+                capstone.isAuthor ? "" : "ml-auto"
+              }`}
+            >
+              <BookMarked className="w-3 h-3" strokeWidth={2} />
+              Cite
+            </button>
+          )}
           {capstone.isAuthor && (
             <Link
               to={`/capstones/${capstone.slug}/edit`}
-              className="ml-auto text-xs px-2 py-1 rounded border border-border hover:bg-accent/40"
+              className={`text-xs px-2 py-1 rounded border border-border hover:bg-accent/40 ${
+                capstone.status === "published" ? "" : "ml-auto"
+              }`}
             >
               Edit
             </Link>
@@ -319,6 +335,14 @@ export function CapstonePage() {
             Edit capstone & milestones
           </Link>
         </div>
+      )}
+
+      {citeOpen && (
+        <CiteDialog
+          kind="capstone"
+          slug={capstone.slug}
+          onClose={() => setCiteOpen(false)}
+        />
       )}
     </div>
   );

@@ -27,6 +27,12 @@ import { requireAuth, getSessionUser } from "../middleware/auth";
 import { notify, notifyMentions } from "../lib/notifications";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import { extractReferencedWikiSlugs } from "../lib/crossLinks";
+import {
+  toBibtex,
+  toRis,
+  toPlainText,
+  type CitationSource,
+} from "../lib/citations";
 import type { Env } from "../env";
 
 export const researchRouter = new Hono<Env>();
@@ -471,6 +477,78 @@ researchRouter.get("/:slug", async (c) => {
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     },
+  });
+});
+
+// Sprint 34 — Citation export. BibTeX / RIS / plain-text formatters
+// + JSON bundle. Resolves authors via authorUsername + coauthors and
+// derives the canonical URL from the paper slug.
+researchRouter.get("/:slug/cite", async (c) => {
+  const slug = c.req.param("slug")!;
+  const format = c.req.query("format") ?? "json";
+  const db = getDb();
+  const row = db
+    .select({
+      slug: researchPapers.slug,
+      title: researchPapers.title,
+      summary: researchPapers.summary,
+      abstract: researchPapers.abstract,
+      coauthorsJson: researchPapers.coauthorsJson,
+      authorUsername: users.username,
+      authorDisplayName: users.displayName,
+      status: researchPapers.status,
+      createdAt: researchPapers.createdAt,
+      updatedAt: researchPapers.updatedAt,
+    })
+    .from(researchPapers)
+    .innerJoin(users, eq(researchPapers.authorId, users.id))
+    .where(eq(researchPapers.slug, slug))
+    .get();
+  if (!row) return c.json({ error: "Paper not found" }, 404);
+  if (row.status !== "published") {
+    return c.json({ error: "Citations are only available for published papers" }, 404);
+  }
+
+  const coauthors = safeParseStrArray(row.coauthorsJson);
+  const primary = row.authorDisplayName || row.authorUsername;
+  const url = `https://axiomic.app/research/${row.slug}`;
+  const src: CitationSource = {
+    kind: "paper",
+    slug: row.slug,
+    title: row.title,
+    authors: [primary, ...coauthors],
+    year: new Date(row.createdAt).getUTCFullYear(),
+    url,
+    abstract: row.abstract || row.summary,
+    publishedAt: row.createdAt,
+  };
+
+  if (format === "bibtex" || format === "bib") {
+    return new Response(toBibtex(src), {
+      headers: {
+        "content-type": "application/x-bibtex; charset=utf-8",
+        "content-disposition": `inline; filename=\"${row.slug}.bib\"`,
+      },
+    });
+  }
+  if (format === "ris") {
+    return new Response(toRis(src), {
+      headers: {
+        "content-type": "application/x-research-info-systems; charset=utf-8",
+        "content-disposition": `inline; filename=\"${row.slug}.ris\"`,
+      },
+    });
+  }
+  return c.json({
+    slug: src.slug,
+    title: src.title,
+    authors: src.authors,
+    year: src.year,
+    url: src.url,
+    permalink: `/cite/p/${row.authorUsername}/${row.slug}`,
+    bibtex: toBibtex(src),
+    ris: toRis(src),
+    plain: toPlainText(src),
   });
 });
 

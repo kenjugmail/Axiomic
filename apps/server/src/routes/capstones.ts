@@ -30,6 +30,12 @@ import {
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import { gradeMilestoneSubmission } from "../lib/capstoneGrader";
+import {
+  toBibtex,
+  toRis,
+  toPlainText,
+  type CitationSource,
+} from "../lib/citations";
 import type { Env } from "../env";
 
 export const capstonesRouter = new Hono<Env>();
@@ -424,6 +430,79 @@ capstonesRouter.get("/:slug", async (c) => {
   const dto = await loadCapstoneDto(cap.id, tier, session?.id);
   if (!dto) return c.json({ error: "Capstone not found" }, 404);
   return c.json({ capstone: dto });
+});
+
+// Sprint 34 — Citation export. Mirrors /research/:slug/cite. Renders
+// the capstone author + summary as a citeable artifact.
+capstonesRouter.get("/:slug/cite", async (c) => {
+  const slug = c.req.param("slug")!;
+  const format = c.req.query("format") ?? "json";
+  const db = getDb();
+  const row = db
+    .select({
+      slug: capstones.slug,
+      title: capstones.title,
+      summary: capstones.summary,
+      authorId: capstones.authorId,
+      status: capstones.status,
+      createdAt: capstones.createdAt,
+    })
+    .from(capstones)
+    .where(eq(capstones.slug, slug))
+    .get();
+  if (!row) return c.json({ error: "Capstone not found" }, 404);
+  if (row.status !== "published") {
+    return c.json(
+      { error: "Citations are only available for published capstones" },
+      404,
+    );
+  }
+  const author = db
+    .select({ username: users.username, displayName: users.displayName })
+    .from(users)
+    .where(eq(users.id, row.authorId))
+    .get();
+  const primary = author?.displayName || author?.username || "Anonymous";
+
+  const url = `https://axiomic.app/capstones/${row.slug}`;
+  const src: CitationSource = {
+    kind: "capstone",
+    slug: row.slug,
+    title: row.title,
+    authors: [primary],
+    year: new Date(row.createdAt).getUTCFullYear(),
+    url,
+    abstract: row.summary,
+    publishedAt: row.createdAt,
+  };
+
+  if (format === "bibtex" || format === "bib") {
+    return new Response(toBibtex(src), {
+      headers: {
+        "content-type": "application/x-bibtex; charset=utf-8",
+        "content-disposition": `inline; filename=\"${row.slug}.bib\"`,
+      },
+    });
+  }
+  if (format === "ris") {
+    return new Response(toRis(src), {
+      headers: {
+        "content-type": "application/x-research-info-systems; charset=utf-8",
+        "content-disposition": `inline; filename=\"${row.slug}.ris\"`,
+      },
+    });
+  }
+  return c.json({
+    slug: src.slug,
+    title: src.title,
+    authors: src.authors,
+    year: src.year,
+    url: src.url,
+    permalink: `/cite/c/${author?.username ?? "anon"}/${row.slug}`,
+    bibtex: toBibtex(src),
+    ris: toRis(src),
+    plain: toPlainText(src),
+  });
 });
 
 // POST /capstones — create.
