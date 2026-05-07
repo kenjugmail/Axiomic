@@ -43,7 +43,7 @@ function ensureWikiPage(slug: string, title: string) {
     db.insert(pageVersions).values({
       id: randomUUID(),
       pageId: id,
-      authorId: sys.id,
+      editedBy: sys.id,
       version: 1,
       contentIntro: `Stub page for ${title}.`,
       contentUndergrad: `Stub page for ${title}.`,
@@ -99,7 +99,6 @@ function ensureNodeForSlug(slug: string, suffix: string) {
     order: 0,
     pageIds: JSON.stringify([slug]),
     level: "apprentice",
-    quizQuestions: "[]",
   }).run();
   return nodeId;
 }

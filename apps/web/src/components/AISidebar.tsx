@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Sparkles } from "lucide-react";
-import type { CoachSuggestion } from "@axiomic/types";
+import type { CoachSuggestion, TutorMode } from "@axiomic/types";
 import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { MarkdownRenderer } from "./MarkdownRenderer";
@@ -22,6 +22,7 @@ interface Message {
 
 export function AISidebar({ pageSlug, pageTitle, tier, isOpen, onClose }: AISidebarProps) {
   const user = useAuthStore((s) => s.user);
+  const [searchParams] = useSearchParams();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -31,6 +32,17 @@ export function AISidebar({ pageSlug, pageTitle, tier, isOpen, onClose }: AISide
   const [suggestions, setSuggestions] = useState<CoachSuggestion[] | null>(null);
   const [dueCards, setDueCards] = useState<number>(0);
   const [dismissed, setDismissed] = useState<Set<number>>(new Set());
+  // Sprint 30 — tutor mode + per-mode context. URL params `aiMode` +
+  // `diagnosisId` / `forumTopicId` auto-pick a mode (e.g. clicking
+  // "Coach me" on /me/weak-concepts deep-links into misconception mode).
+  const urlMode = searchParams.get("aiMode") as TutorMode | null;
+  const [mode, setMode] = useState<TutorMode>(
+    urlMode && ["socratic", "misconception", "bridge", "debate", "contribution"].includes(urlMode)
+      ? urlMode
+      : "socratic",
+  );
+  const diagnosisId = searchParams.get("diagnosisId") ?? undefined;
+  const forumTopicId = searchParams.get("forumTopicId") ?? undefined;
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -83,7 +95,13 @@ export function AISidebar({ pageSlug, pageTitle, tier, isOpen, onClose }: AISide
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pageSlug, tier, messages: newMessages }),
+        body: JSON.stringify({
+          pageSlug,
+          tier,
+          messages: newMessages,
+          mode,
+          modeContext: { diagnosisId, forumTopicId, pageSlug },
+        }),
       });
 
       if (!res.ok || !res.body) throw new Error("Stream failed");
@@ -165,6 +183,14 @@ export function AISidebar({ pageSlug, pageTitle, tier, isOpen, onClose }: AISide
           </svg>
         </button>
       </div>
+
+      {/* Sprint 30 — tutor mode picker */}
+      <TutorModePicker
+        mode={mode}
+        onChange={setMode}
+        canMisconception={!!diagnosisId}
+        canDebate={!!forumTopicId}
+      />
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
@@ -273,6 +299,66 @@ export function AISidebar({ pageSlug, pageTitle, tier, isOpen, onClose }: AISide
             Send
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+const MODE_LABELS: Record<TutorMode, string> = {
+  socratic: "Socratic",
+  misconception: "Misconception",
+  bridge: "Bridge",
+  debate: "Debate",
+  contribution: "Contribute",
+};
+
+const MODE_HINTS: Record<TutorMode, string> = {
+  socratic: "Asks one question first.",
+  misconception: "Probes a diagnosed misunderstanding.",
+  bridge: "Anchors to what you already know.",
+  debate: "Argues the opposite to stress-test you.",
+  contribution: "Suggests where you could write.",
+};
+
+function TutorModePicker({
+  mode,
+  onChange,
+  canMisconception,
+  canDebate,
+}: {
+  mode: TutorMode;
+  onChange: (m: TutorMode) => void;
+  canMisconception: boolean;
+  canDebate: boolean;
+}) {
+  const all: TutorMode[] = ["socratic", "misconception", "bridge", "debate", "contribution"];
+  return (
+    <div className="px-4 py-2 border-b border-border bg-muted/20">
+      <div className="flex gap-1 flex-wrap">
+        {all.map((m) => {
+          const enabled =
+            (m === "misconception" ? canMisconception : true) &&
+            (m === "debate" ? canDebate : true);
+          const active = mode === m;
+          return (
+            <button
+              key={m}
+              type="button"
+              disabled={!enabled}
+              onClick={() => enabled && onChange(m)}
+              title={MODE_HINTS[m]}
+              className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border transition-colors ${
+                active
+                  ? "border-primary bg-primary/15 text-primary"
+                  : enabled
+                    ? "border-border text-muted-foreground hover:text-foreground"
+                    : "border-border/40 text-muted-foreground/40 cursor-not-allowed"
+              }`}
+            >
+              {MODE_LABELS[m]}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
