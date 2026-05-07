@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { GraduationCap, MessageSquare } from "lucide-react";
+import { CheckCircle2, GraduationCap, MessageSquare } from "lucide-react";
 import { api } from "../lib/api";
 import { Skeleton } from "../components/ui";
 import type {
@@ -11,12 +11,15 @@ import type {
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { AiArticleHelpers } from "../components/news/AiArticleHelpers";
 import { ArticleTOC } from "../components/news/ArticleTOC";
+import { ArtifactsSection } from "../components/news/ArtifactsSection";
 import { ClaimSelectionPopover } from "../components/news/ClaimSelectionPopover";
 import { ClaimThreadPanel } from "../components/news/ClaimThreadPanel";
 import { LessonFromArticleDialog } from "../components/news/LessonFromArticleDialog";
 import { NewsComments } from "../components/news/NewsComments";
 import { NewsCover } from "../components/news/NewsCover";
 import { RelatedNewsRail } from "../components/news/RelatedNewsRail";
+import { ReproduceDialog } from "../components/news/ReproduceDialog";
+import { ReproductionsBadge } from "../components/news/ReproductionsBadge";
 import { BookmarkButton } from "../components/social/BookmarkButton";
 import { ReactionStrip } from "../components/social/ReactionStrip";
 import { useLiveEvents } from "../hooks/useLiveEvents";
@@ -39,6 +42,7 @@ export function NewsArticlePage() {
   const [reacting, setReacting] = useState(false);
   const [bookmarking, setBookmarking] = useState(false);
   const [lessonDialogOpen, setLessonDialogOpen] = useState(false);
+  const [reproDialogOpen, setReproDialogOpen] = useState(false);
   const [threads, setThreads] = useState<ClaimThread[]>([]);
   const [pendingThreadQuote, setPendingThreadQuote] =
     useState<TextQuote | null>(null);
@@ -246,6 +250,12 @@ export function NewsArticlePage() {
               </span>
             </>
           )}
+        {slug && article.reproStats.total > 0 && (
+          <>
+            <span>·</span>
+            <ReproductionsBadge articleSlug={slug} stats={article.reproStats} />
+          </>
+        )}
       </div>
 
       {/* Author actions: edit + review pending proposals + turn into lesson. */}
@@ -301,6 +311,24 @@ export function NewsArticlePage() {
           articleSlug={article.slug}
           articleTitle={article.title}
           onClose={() => setLessonDialogOpen(false)}
+        />
+      )}
+
+      {reproDialogOpen && slug && (
+        <ReproduceDialog
+          articleSlug={slug}
+          artifacts={article.artifacts}
+          onClose={() => setReproDialogOpen(false)}
+          onSubmitted={async () => {
+            setReproDialogOpen(false);
+            // Re-fetch the article to refresh the badge + mine flag.
+            try {
+              const fresh = await api.news.get(slug);
+              setArticle(fresh.article);
+            } catch {
+              // ignore
+            }
+          }}
         />
       )}
 
@@ -372,6 +400,36 @@ export function NewsArticlePage() {
             ))}
           </ol>
         </section>
+      )}
+
+      {/* Sprint 15 — runnable artifacts + reproduce CTA. Section hides
+          itself for anonymous viewers when there's nothing attached. */}
+      {slug && (
+        <ArtifactsSection
+          articleSlug={slug}
+          initialArtifacts={article.artifacts}
+          canEdit={article.isAuthor}
+          onChange={(artifacts) => setArticle({ ...article, artifacts })}
+        />
+      )}
+
+      {user && !article.isAuthor && (
+        <div className="mt-6">
+          {article.reproStats.mine ? (
+            <p className="text-xs text-muted-foreground italic">
+              ✓ You've already filed a reproduction receipt for this article.
+            </p>
+          ) : (
+            <button
+              onClick={() => setReproDialogOpen(true)}
+              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10"
+              title="File a reproduction receipt for this article"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2} />
+              I reproduced this
+            </button>
+          )}
+        </div>
       )}
 
       {/* Reactions + bookmark */}

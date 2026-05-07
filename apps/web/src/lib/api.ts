@@ -35,6 +35,10 @@ import type {
   ClaimThreadsResponse,
   CreateClaimThreadRequest,
   CreateClaimThreadReplyRequest,
+  CreateRunnableArtifactRequest,
+  CreateReproductionRequest,
+  RunnableArtifactsResponse,
+  ReproductionsResponse,
   NewsListResponse,
   NewsProposalsResponse,
   NewsReactionKind,
@@ -572,6 +576,22 @@ export const api = {
         `/news/${slug}/claim-threads/${threadId}/replies`,
         { method: "POST", body: JSON.stringify(body) },
       ),
+    listArtifacts: (slug: string) =>
+      request<RunnableArtifactsResponse>(`/news/${slug}/artifacts`),
+    addArtifact: (slug: string, body: CreateRunnableArtifactRequest) =>
+      request<{ artifactId: string }>(`/news/${slug}/artifacts`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    deleteArtifact: (slug: string, id: string) =>
+      request<OkResponse>(`/news/${slug}/artifacts/${id}`, { method: "DELETE" }),
+    listReproductions: (slug: string) =>
+      request<ReproductionsResponse>(`/news/${slug}/reproductions`),
+    addReproduction: (slug: string, body: CreateReproductionRequest) =>
+      request<{ reproductionId: string }>(`/news/${slug}/reproductions`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
   },
   flashcards: {
     save: (data: { pageSlug: string; pageTitle: string; front: string; back: string }) =>

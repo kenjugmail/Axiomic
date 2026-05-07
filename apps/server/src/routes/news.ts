@@ -11,6 +11,8 @@ import {
   newsComments,
   newsEditProposals,
   newsReactions,
+  reproductions,
+  runnableArtifacts,
   userFollows,
   users,
 } from "@axiomic/db";
@@ -356,6 +358,42 @@ newsRouter.get("/:slug", async (c) => {
     myBookmark = !!bookmark;
   }
 
+  // Sprint 15 — runnable artifacts + reproduction stats. Both surface
+  // inline on the article view: artifacts as a "How to reproduce"
+  // section, stats as the byline badge "Reproduced by N researchers".
+  const artifacts = db
+    .select({
+      id: runnableArtifacts.id,
+      kind: runnableArtifacts.kind,
+      url: runnableArtifacts.url,
+      label: runnableArtifacts.label,
+      description: runnableArtifacts.description,
+      createdAt: runnableArtifacts.createdAt,
+    })
+    .from(runnableArtifacts)
+    .where(eq(runnableArtifacts.articleId, row.id))
+    .orderBy(asc(runnableArtifacts.createdAt))
+    .all();
+
+  const reproRows = db
+    .select({ status: reproductions.status, reproducerId: reproductions.reproducerId })
+    .from(reproductions)
+    .where(eq(reproductions.articleId, row.id))
+    .all();
+  const reproStats = {
+    total: reproRows.length,
+    success: 0,
+    partial: 0,
+    failed: 0,
+    // Whether the requester (if any) has already submitted a receipt.
+    mine: session ? reproRows.some((r) => r.reproducerId === session.id) : false,
+  };
+  for (const r of reproRows) {
+    if (r.status === "success") reproStats.success++;
+    else if (r.status === "partial") reproStats.partial++;
+    else if (r.status === "failed") reproStats.failed++;
+  }
+
   return c.json({
     article: {
       id: row.id,
@@ -381,6 +419,8 @@ newsRouter.get("/:slug", async (c) => {
       isAuthor,
       myBookmark,
       derivedLesson,
+      artifacts,
+      reproStats,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     },
@@ -1846,3 +1886,258 @@ newsRouter.post(
     return c.json({ commentId: id }, 201);
   },
 );
+
+// --- Reproducibility receipts (Sprint 15) ---------------------------
+//
+// Authors attach runnable artifacts (Colab, GitHub, Docker, dataset,
+// arXiv, other) to their published article. Other researchers submit
+// "Reproduced ✓" receipts with a status + optional notes / evidence
+// URL. The article view shows a "Reproduced by N" badge once any
+// receipts exist; the article author gets an article_reproduced
+// notification each time someone submits one.
+
+const ARTIFACT_KINDS = ["github", "colab", "docker", "dataset", "arxiv", "other"] as const;
+
+const artifactSchema = z.object({
+  kind: z.enum(ARTIFACT_KINDS),
+  url: z.string().url().max(500),
+  label: z.string().min(1).max(120),
+  description: z.string().max(800).optional(),
+});
+
+newsRouter.post(
+  "/:slug/artifacts",
+  requireAuth,
+  zValidator("json", artifactSchema),
+  async (c) => {
+    const slug = c.req.param("slug")!;
+    const user = c.get("user")!;
+    const { kind, url, label, description } = c.req.valid("json");
+    const db = getDb();
+
+    const article = db
+      .select({
+        id: newsArticles.id,
+        authorId: newsArticles.authorId,
+        coauthorsJson: newsArticles.coauthorsJson,
+      })
+      .from(newsArticles)
+      .where(eq(newsArticles.slug, slug))
+      .get();
+    if (!article) return c.json({ error: "Article not found" }, 404);
+
+    const isAuthor = article.authorId === user.id;
+    const isCoauthor = parseCoauthors(article.coauthorsJson).includes(
+      user.username,
+    );
+    if (!isAuthor && !isCoauthor) {
+      return c.json({ error: "Only the author or coauthors can attach artifacts." }, 403);
+    }
+
+    const id = randomUUID();
+    db.insert(runnableArtifacts)
+      .values({
+        id,
+        articleId: article.id,
+        kind,
+        url,
+        label: label.trim(),
+        description: description?.trim() || null,
+      })
+      .run();
+    return c.json({ artifactId: id }, 201);
+  },
+);
+
+newsRouter.delete("/:slug/artifacts/:id", requireAuth, async (c) => {
+  const slug = c.req.param("slug")!;
+  const id = c.req.param("id")!;
+  const user = c.get("user")!;
+  const db = getDb();
+
+  const article = db
+    .select({
+      id: newsArticles.id,
+      authorId: newsArticles.authorId,
+      coauthorsJson: newsArticles.coauthorsJson,
+    })
+    .from(newsArticles)
+    .where(eq(newsArticles.slug, slug))
+    .get();
+  if (!article) return c.json({ error: "Article not found" }, 404);
+
+  const isAuthor = article.authorId === user.id;
+  const isCoauthor = parseCoauthors(article.coauthorsJson).includes(
+    user.username,
+  );
+  if (!isAuthor && !isCoauthor) {
+    return c.json({ error: "Only the author or coauthors can remove artifacts." }, 403);
+  }
+
+  const existing = db
+    .select({ id: runnableArtifacts.id, articleId: runnableArtifacts.articleId })
+    .from(runnableArtifacts)
+    .where(eq(runnableArtifacts.id, id))
+    .get();
+  if (!existing) return c.json({ error: "Artifact not found" }, 404);
+  if (existing.articleId !== article.id) {
+    return c.json({ error: "Artifact does not belong to this article" }, 400);
+  }
+
+  db.delete(runnableArtifacts).where(eq(runnableArtifacts.id, id)).run();
+  return c.json({ ok: true });
+});
+
+newsRouter.get("/:slug/artifacts", async (c) => {
+  const slug = c.req.param("slug")!;
+  const db = getDb();
+  const article = db
+    .select({ id: newsArticles.id })
+    .from(newsArticles)
+    .where(eq(newsArticles.slug, slug))
+    .get();
+  if (!article) return c.json({ error: "Article not found" }, 404);
+
+  const rows = db
+    .select({
+      id: runnableArtifacts.id,
+      kind: runnableArtifacts.kind,
+      url: runnableArtifacts.url,
+      label: runnableArtifacts.label,
+      description: runnableArtifacts.description,
+      createdAt: runnableArtifacts.createdAt,
+    })
+    .from(runnableArtifacts)
+    .where(eq(runnableArtifacts.articleId, article.id))
+    .orderBy(asc(runnableArtifacts.createdAt))
+    .all();
+  return c.json({ artifacts: rows });
+});
+
+const reproductionSchema = z.object({
+  artifactId: z.string().optional(),
+  status: z.enum(["success", "partial", "failed"]),
+  notes: z.string().max(2000).optional(),
+  evidenceUrl: z.string().url().max(500).optional(),
+});
+
+newsRouter.post(
+  "/:slug/reproductions",
+  requireAuth,
+  zValidator("json", reproductionSchema),
+  async (c) => {
+    const slug = c.req.param("slug")!;
+    const user = c.get("user")!;
+    const { artifactId, status, notes, evidenceUrl } = c.req.valid("json");
+    const db = getDb();
+
+    const article = db
+      .select({
+        id: newsArticles.id,
+        title: newsArticles.title,
+        authorId: newsArticles.authorId,
+      })
+      .from(newsArticles)
+      .where(eq(newsArticles.slug, slug))
+      .get();
+    if (!article) return c.json({ error: "Article not found" }, 404);
+
+    if (article.authorId === user.id) {
+      return c.json({ error: "You can't reproduce your own article." }, 400);
+    }
+
+    if (artifactId) {
+      const a = db
+        .select({ id: runnableArtifacts.id, articleId: runnableArtifacts.articleId })
+        .from(runnableArtifacts)
+        .where(eq(runnableArtifacts.id, artifactId))
+        .get();
+      if (!a || a.articleId !== article.id) {
+        return c.json({ error: "Artifact not found on this article" }, 400);
+      }
+    }
+
+    // Enforce one receipt per (article, user). The unique index would
+    // throw on a duplicate insert; we surface a clearer error first.
+    const existing = db
+      .select({ id: reproductions.id })
+      .from(reproductions)
+      .where(
+        and(
+          eq(reproductions.articleId, article.id),
+          eq(reproductions.reproducerId, user.id),
+        ),
+      )
+      .get();
+    if (existing) {
+      return c.json(
+        { error: "You've already submitted a receipt for this article." },
+        409,
+      );
+    }
+
+    const id = randomUUID();
+    db.insert(reproductions)
+      .values({
+        id,
+        articleId: article.id,
+        artifactId: artifactId ?? null,
+        reproducerId: user.id,
+        status,
+        notes: notes?.trim() || null,
+        evidenceUrl: evidenceUrl ?? null,
+      })
+      .run();
+
+    const verdict =
+      status === "success" ? "✓ reproduced" : status === "partial" ? "~ partial" : "✗ failed";
+    await notify({
+      recipientId: article.authorId,
+      actorId: user.id,
+      kind: "article_reproduced",
+      subjectType: "reproduction",
+      subjectId: id,
+      contextSlug: slug,
+      preview: previewFrom(`${verdict}: "${article.title}"`),
+    });
+
+    return c.json({ reproductionId: id }, 201);
+  },
+);
+
+newsRouter.get("/:slug/reproductions", async (c) => {
+  const slug = c.req.param("slug")!;
+  const db = getDb();
+  const article = db
+    .select({ id: newsArticles.id })
+    .from(newsArticles)
+    .where(eq(newsArticles.slug, slug))
+    .get();
+  if (!article) return c.json({ error: "Article not found" }, 404);
+
+  const rows = db
+    .select({
+      id: reproductions.id,
+      artifactId: reproductions.artifactId,
+      reproducerId: reproductions.reproducerId,
+      reproducerUsername: users.username,
+      status: reproductions.status,
+      notes: reproductions.notes,
+      evidenceUrl: reproductions.evidenceUrl,
+      createdAt: reproductions.createdAt,
+    })
+    .from(reproductions)
+    .innerJoin(users, eq(reproductions.reproducerId, users.id))
+    .where(eq(reproductions.articleId, article.id))
+    .orderBy(desc(reproductions.createdAt))
+    .all();
+
+  const stats = { total: rows.length, success: 0, partial: 0, failed: 0 };
+  for (const r of rows) {
+    if (r.status === "success") stats.success++;
+    else if (r.status === "partial") stats.partial++;
+    else if (r.status === "failed") stats.failed++;
+  }
+
+  return c.json({ reproductions: rows, stats });
+});

@@ -911,6 +911,189 @@ describe("news claim threads (Sprint 14 — claim-anchored discussion)", () => {
   });
 });
 
+describe("news reproducibility receipts (Sprint 15)", () => {
+  async function makeArticle(authorCookie: string, slug: string) {
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(authorCookie) },
+      body: JSON.stringify({
+        slug,
+        title: "Reproducibility test",
+        summary: "",
+        body: "Some body.",
+      }),
+    });
+  }
+
+  test("only author/coauthor can attach artifacts", async () => {
+    const author = await signup("rep_a");
+    const stranger = await signup("rep_s");
+    const slug = `rep-art-${testId}`;
+    await makeArticle(author.cookie, slug);
+
+    const denied = await req(`/news/${slug}/artifacts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(stranger.cookie) },
+      body: JSON.stringify({
+        kind: "github",
+        url: "https://github.com/x/y",
+        label: "Code",
+      }),
+    });
+    expect(denied.status).toBe(403);
+
+    const ok = await req(`/news/${slug}/artifacts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({
+        kind: "github",
+        url: "https://github.com/x/y",
+        label: "Training code",
+        description: "Run with python train.py",
+      }),
+    });
+    expect(ok.status).toBe(201);
+
+    // Article view exposes artifacts.
+    const fetched = await req(`/news/${slug}`);
+    const ab = (await fetched.json()) as { article: any };
+    expect(ab.article.artifacts.length).toBe(1);
+    expect(ab.article.artifacts[0].label).toBe("Training code");
+  });
+
+  test("rejects malformed urls + invalid artifact kinds", async () => {
+    const author = await signup("rep_v");
+    const slug = `rep-v-${testId}`;
+    await makeArticle(author.cookie, slug);
+
+    const badUrl = await req(`/news/${slug}/artifacts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ kind: "github", url: "not-a-url", label: "Code" }),
+    });
+    expect(badUrl.status).toBe(400);
+
+    const badKind = await req(`/news/${slug}/artifacts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({
+        kind: "tarball",
+        url: "https://x.com/y",
+        label: "Code",
+      }),
+    });
+    expect(badKind.status).toBe(400);
+  });
+
+  test("author cannot file a receipt on their own article", async () => {
+    const author = await signup("rep_self");
+    const slug = `rep-self-${testId}`;
+    await makeArticle(author.cookie, slug);
+    const res = await req(`/news/${slug}/reproductions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ status: "success" }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  test("happy path: receipt updates stats + article author gets notified; second receipt by same user is rejected", async () => {
+    const author = await signup("rep_h_a");
+    const reader = await signup("rep_h_r");
+    const slug = `rep-h-${testId}`;
+    await makeArticle(author.cookie, slug);
+
+    const filed = await req(`/news/${slug}/reproductions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(reader.cookie) },
+      body: JSON.stringify({
+        status: "partial",
+        notes: "Worked at fp32 but not fp16.",
+      }),
+    });
+    expect(filed.status).toBe(201);
+
+    const fetched = await req(`/news/${slug}`, {
+      headers: cookieHeader(reader.cookie),
+    });
+    const ab = (await fetched.json()) as { article: any };
+    expect(ab.article.reproStats.total).toBe(1);
+    expect(ab.article.reproStats.partial).toBe(1);
+    expect(ab.article.reproStats.mine).toBe(true);
+
+    // Article author should have a notification.
+    const notif = await req("/notifications", {
+      headers: cookieHeader(author.cookie),
+    });
+    expect(notif.status).toBe(200);
+    const nb = (await notif.json()) as { notifications: any[] };
+    expect(
+      nb.notifications.some(
+        (n) =>
+          n.kind === "article_reproduced" && n.subjectType === "reproduction",
+      ),
+    ).toBe(true);
+
+    // Duplicate from the same user → 409.
+    const dup = await req(`/news/${slug}/reproductions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(reader.cookie) },
+      body: JSON.stringify({ status: "success" }),
+    });
+    expect(dup.status).toBe(409);
+
+    // Public listing.
+    const list = await req(`/news/${slug}/reproductions`);
+    expect(list.status).toBe(200);
+    const lb = (await list.json()) as { reproductions: any[]; stats: any };
+    expect(lb.reproductions.length).toBe(1);
+    expect(lb.stats.partial).toBe(1);
+  });
+
+  test("delete artifact: only author/coauthor; cross-article ID is rejected", async () => {
+    const author1 = await signup("rep_d_1");
+    const author2 = await signup("rep_d_2");
+    const slug1 = `rep-d-1-${testId}`;
+    const slug2 = `rep-d-2-${testId}`;
+    await makeArticle(author1.cookie, slug1);
+    await makeArticle(author2.cookie, slug2);
+
+    const created = (await (
+      await req(`/news/${slug1}/artifacts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(author1.cookie) },
+        body: JSON.stringify({
+          kind: "github",
+          url: "https://github.com/x/y",
+          label: "Code",
+        }),
+      })
+    ).json()) as { artifactId: string };
+
+    // author2 tries to delete via slug2 — wrong article, 400
+    // because the artifact belongs to slug1.
+    const wrongArticle = await req(
+      `/news/${slug2}/artifacts/${created.artifactId}`,
+      { method: "DELETE", headers: cookieHeader(author2.cookie) },
+    );
+    expect(wrongArticle.status).toBe(400);
+
+    // author2 tries via slug1 — not the author/coauthor.
+    const denied = await req(
+      `/news/${slug1}/artifacts/${created.artifactId}`,
+      { method: "DELETE", headers: cookieHeader(author2.cookie) },
+    );
+    expect(denied.status).toBe(403);
+
+    // author1 can delete.
+    const ok = await req(
+      `/news/${slug1}/artifacts/${created.artifactId}`,
+      { method: "DELETE", headers: cookieHeader(author1.cookie) },
+    );
+    expect(ok.status).toBe(200);
+  });
+});
+
 describe("news related", () => {
   test("returns up to 4 articles, excluding the current one", async () => {
     const author = await signup("rel_a");

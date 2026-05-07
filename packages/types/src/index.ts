@@ -855,6 +855,14 @@ export interface NewsArticle extends NewsArticleSummary {
     nodeSlug: string;
     pathSlug: string;
   } | null;
+  // Sprint 15 — reproducibility receipts. `artifacts` is the list of
+  // runnable links the author has attached (Colab/GitHub/Docker/etc).
+  // `reproStats` is an aggregate of all submitted receipts; the
+  // article view turns total > 0 into a "Reproduced by N" badge in the
+  // byline, and `mine` controls whether the "I reproduced this" button
+  // is shown vs replaced with a "you already filed a receipt" hint.
+  artifacts: RunnableArtifact[];
+  reproStats: ReproStats;
 }
 
 export interface NewsTagCount {
@@ -1036,6 +1044,76 @@ export interface CreateClaimThreadRequest {
 
 export interface CreateClaimThreadReplyRequest {
   content: string;
+}
+
+// --- Reproducibility receipts (Sprint 15) -------------------------
+
+export type RunnableArtifactKind =
+  | "github"
+  | "colab"
+  | "docker"
+  | "dataset"
+  | "arxiv"
+  | "other";
+
+export interface RunnableArtifact {
+  id: string;
+  kind: RunnableArtifactKind;
+  url: string;
+  label: string;
+  description: string | null;
+  createdAt: string;
+}
+
+export interface RunnableArtifactsResponse {
+  artifacts: RunnableArtifact[];
+}
+
+export interface CreateRunnableArtifactRequest {
+  kind: RunnableArtifactKind;
+  url: string;
+  label: string;
+  description?: string;
+}
+
+export type ReproductionStatus = "success" | "partial" | "failed";
+
+export interface Reproduction {
+  id: string;
+  artifactId: string | null;
+  reproducerId: string;
+  reproducerUsername: string;
+  status: ReproductionStatus;
+  notes: string | null;
+  evidenceUrl: string | null;
+  createdAt: string;
+}
+
+export interface ReproductionsResponse {
+  reproductions: Reproduction[];
+  stats: {
+    total: number;
+    success: number;
+    partial: number;
+    failed: number;
+  };
+}
+
+export interface ReproStats {
+  total: number;
+  success: number;
+  partial: number;
+  failed: number;
+  // Whether the requesting user has already filed a receipt. False
+  // for anonymous viewers.
+  mine: boolean;
+}
+
+export interface CreateReproductionRequest {
+  artifactId?: string;
+  status: ReproductionStatus;
+  notes?: string;
+  evidenceUrl?: string;
 }
 
 // --- Forum reactions / bookmarks / polls / follows ---

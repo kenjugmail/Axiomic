@@ -437,6 +437,56 @@ export const claimThreads = sqliteTable(
   }),
 );
 
+// Reproducibility receipts (Sprint 15). Authors attach runnable
+// artifacts (Colab notebook, GitHub repo, Docker image, dataset hash,
+// arXiv link) to their published articles; other researchers submit a
+// reproduction receipt with status (success/partial/failed) and
+// optional notes. The article view shows a "Reproduced by N" badge
+// once any receipts exist.
+export const runnableArtifacts = sqliteTable(
+  "runnable_artifacts",
+  {
+    id: text("id").primaryKey(),
+    articleId: text("article_id").notNull().references(() => newsArticles.id),
+    // 'github' | 'colab' | 'docker' | 'dataset' | 'arxiv' | 'other'
+    kind: text("kind").notNull(),
+    url: text("url").notNull(),
+    label: text("label").notNull(),
+    description: text("description"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    articleIdx: index("runnable_artifacts_article_idx").on(t.articleId, t.createdAt),
+  }),
+);
+
+export const reproductions = sqliteTable(
+  "reproductions",
+  {
+    id: text("id").primaryKey(),
+    articleId: text("article_id").notNull().references(() => newsArticles.id),
+    // Optional: which specific artifact this receipt covers. Null means
+    // the receipt is for the article as a whole (e.g. the author
+    // attached no formal artifacts but the reader still reproduced).
+    artifactId: text("artifact_id").references(() => runnableArtifacts.id),
+    reproducerId: text("reproducer_id").notNull().references(() => users.id),
+    // 'success' | 'partial' | 'failed'
+    status: text("status").notNull(),
+    notes: text("notes"),
+    evidenceUrl: text("evidence_url"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    articleIdx: index("reproductions_article_idx").on(t.articleId, t.createdAt),
+    // One receipt per (article, user) so a single researcher can't
+    // inflate the badge count.
+    uniquePerUser: uniqueIndex("reproductions_unique_per_user").on(
+      t.articleId,
+      t.reproducerId,
+    ),
+  }),
+);
+
 // Save-for-later. Unique on (user, article) so toggling is safe.
 export const newsBookmarks = sqliteTable(
   "news_bookmarks",
