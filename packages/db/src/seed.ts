@@ -10,6 +10,8 @@ import {
   forumPosts,
   forumVotes,
   newsArticles,
+  capstones,
+  capstoneMilestones,
 } from "./index";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -90,10 +92,13 @@ async function seed() {
   seedMasteryPaths();
 
   // Seed forum (domains, demo users, topics, replies, votes)
-  seedForum();
+  await seedForum();
 
   // Seed news (article-style posts with covers + viz embeds)
   seedNews();
+
+  // Sprint 28 — load capstones from seed-content/capstones/*.json.
+  await seedCapstones();
 
   console.log("Seeding complete.");
 }
@@ -604,7 +609,7 @@ function parseForumTopic(file: string, content: string): ForumTopicFrontmatter |
   return { title, postType, domainSlug, wikiPageSlug, author, replies };
 }
 
-function seedForum() {
+async function seedForum() {
   // Skip if already seeded.
   const anyTopic = db.select().from(forumTopics).get();
   if (anyTopic) {
@@ -726,6 +731,113 @@ function seedForum() {
   console.log(
     `  Seeded forum: ${topicCount} topics, ${postCount} replies, ${voteCount} votes.`
   );
+}
+
+// Sprint 28 — load capstones from seed-content/capstones/*.json. Each
+// JSON is a self-contained brief + ordered milestones (with rubrics +
+// optional runnable tests). Authored by the seeded `system` user;
+// upserted on slug.
+async function seedCapstones() {
+  const capstonesDir = path.join(import.meta.dir, "../../../seed-content/capstones");
+  if (!fs.existsSync(capstonesDir)) {
+    return;
+  }
+
+  // Find or create the `system` author. Reuse if a real user owns the
+  // username (rare but possible); the seed deliberately doesn't
+  // overwrite a real account.
+  let systemUser = db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.username, "system"))
+    .get();
+  if (!systemUser) {
+    const id = randomUUID();
+    db.insert(users)
+      .values({
+        id,
+        username: "system",
+        email: "system@axiomic.local",
+        passwordHash: FORUM_SEED_PASSWORD_HASH,
+        displayName: "Axiomic system",
+        bio: "Authored capstones + reference content shipped with the platform.",
+      })
+      .run();
+    systemUser = { id };
+  }
+
+  const files = fs.readdirSync(capstonesDir).filter((f) => f.endsWith(".json"));
+  let count = 0;
+  for (const file of files) {
+    const raw = fs.readFileSync(path.join(capstonesDir, file), "utf-8");
+    let parsed: any;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (e) {
+      console.warn(`  Skipping capstone ${file}: invalid JSON.`);
+      continue;
+    }
+
+    if (!parsed?.slug || !parsed?.title) continue;
+
+    const existing = db
+      .select({ id: capstones.id })
+      .from(capstones)
+      .where(eq(capstones.slug, parsed.slug))
+      .get();
+
+    let capstoneId: string;
+    const values = {
+      slug: parsed.slug,
+      title: parsed.title,
+      summary: parsed.summary ?? "",
+      contentIntro: parsed.contentIntro ?? "",
+      contentUndergrad: parsed.contentUndergrad ?? "",
+      contentGrad: parsed.contentGrad ?? "",
+      canonicalTier: parsed.canonicalTier ?? "undergrad",
+      estimatedWeeks: parsed.estimatedWeeks ?? 6,
+      prerequisiteWikiSlugs: JSON.stringify(parsed.prerequisiteWikiSlugs ?? []),
+      prerequisiteNodeIds: JSON.stringify(parsed.prerequisiteNodeIds ?? []),
+      tags: JSON.stringify(parsed.tags ?? []),
+      coverEmoji: parsed.coverEmoji ?? "🎓",
+      accentColor: parsed.accentColor ?? "violet",
+      status: parsed.status ?? "published",
+      authorId: systemUser.id,
+    };
+    if (existing) {
+      capstoneId = existing.id;
+      db.update(capstones)
+        .set({ ...values, updatedAt: new Date().toISOString() })
+        .where(eq(capstones.id, existing.id))
+        .run();
+      // Wipe + rewrite milestones so seed updates reflect cleanly.
+      db.delete(capstoneMilestones)
+        .where(eq(capstoneMilestones.capstoneId, capstoneId))
+        .run();
+    } else {
+      capstoneId = randomUUID();
+      db.insert(capstones).values({ id: capstoneId, ...values }).run();
+    }
+
+    const milestones: any[] = Array.isArray(parsed.milestones) ? parsed.milestones : [];
+    for (let i = 0; i < milestones.length; i++) {
+      const m = milestones[i];
+      if (!m?.title) continue;
+      db.insert(capstoneMilestones).values({
+        id: randomUUID(),
+        capstoneId,
+        order: i,
+        title: m.title,
+        description: m.description ?? "",
+        rubricJson: JSON.stringify(m.rubric ?? { criteria: [], passingScore: 0.6 }),
+        requiredArtifactKinds: JSON.stringify(m.requiredArtifactKinds ?? []),
+        runnableTests: m.runnableTests ?? null,
+        estimatedDays: m.estimatedDays ?? 7,
+      }).run();
+    }
+    count++;
+  }
+  console.log(`  Seeded ${count} capstone(s).`);
 }
 
 seed().catch(console.error);

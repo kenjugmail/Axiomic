@@ -7,6 +7,7 @@ import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import { Link } from "react-router-dom";
 import { useRef } from "react";
 import { VizEmbed } from "./VizEmbed";
+import { LabEmbed } from "./LabEmbed";
 import { ConceptLink } from "./cross/ConceptLink";
 import { CodeCell, type CodeCellHandle } from "./code/CodeCell";
 import { CodeCellsToolbar } from "./code/CodeCellsToolbar";
@@ -97,25 +98,27 @@ export function findCodeDirective(
   };
 }
 
-// Inline single-line `:::viz[name]` / `:::video[id=...]` directive.
+// Inline single-line `:::viz[name]` / `:::video[id=...]` / `:::lab[name]`
+// directive. Sprint 28 added `lab` to the regex; the renderer dispatches
+// labs to LabEmbed.
 export interface InlineDirectiveMatch {
   index: number;
   end: number;
-  kind: "viz" | "video";
+  kind: "viz" | "video" | "lab";
   inner: string;
 }
 export function findInlineDirective(
   content: string,
   from: number,
 ): InlineDirectiveMatch | null {
-  const re = /:+(viz|video)\[([^\]]+)\]/g;
+  const re = /:+(viz|video|lab)\[([^\]]+)\]/g;
   re.lastIndex = from;
   const m = re.exec(content);
   if (!m) return null;
   return {
     index: m.index,
     end: m.index + m[0].length,
-    kind: m[1] as "viz" | "video",
+    kind: m[1] as "viz" | "video" | "lab",
     inner: m[2],
   };
 }
@@ -315,7 +318,8 @@ export function MarkdownRenderer({
     | { type: "markdown"; content: string }
     | { type: "viz"; content: string }
     | { type: "video"; id: string }
-    | { type: "code"; lang: string; code: string };
+    | { type: "code"; lang: string; code: string }
+    | { type: "lab"; name: string };
   const parts: Part[] = [];
 
   // Walk the content scanning for the longest directive at each
@@ -353,6 +357,8 @@ export function MarkdownRenderer({
         if (idMatch) parts.push({ type: "video", id: idMatch[1] });
       } else if ("kind" in next && next.kind === "viz") {
         parts.push({ type: "viz", content: next.inner });
+      } else if ("kind" in next && next.kind === "lab") {
+        parts.push({ type: "lab", name: next.inner });
       } else if ("lang" in next) {
         parts.push({ type: "code", lang: next.lang, code: next.code });
       }
@@ -435,6 +441,9 @@ export function MarkdownRenderer({
                 {figLabel("Code")}
               </figure>
             );
+          }
+          if (part.type === "lab") {
+            return <LabEmbed key={i} name={part.name} />;
           }
           return (
             <ReactMarkdown

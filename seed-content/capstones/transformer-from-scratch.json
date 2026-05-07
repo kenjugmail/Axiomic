@@ -1,0 +1,191 @@
+{
+  "slug": "transformer-from-scratch",
+  "title": "Build a transformer from scratch",
+  "summary": "Implement every block of a tiny transformer in numpy + train it on a toy task — an 8-week capstone.",
+  "estimatedWeeks": 8,
+  "coverEmoji": "🧠",
+  "accentColor": "violet",
+  "tags": ["transformers", "deep-learning"],
+  "prerequisiteWikiSlugs": ["softmax", "attention"],
+  "canonicalTier": "undergrad",
+  "contentIntro": "## What you'll build\n\nA tiny transformer — small enough to train on your laptop, complete enough to teach you how every block works. Six milestones: tokenizer, attention, multi-head, the full block, training, sampling.\n\nNo magic libraries. Numpy + a little PyTorch where it makes the writeup clearer. By the end, you'll have a runnable model + a portfolio page that proves you can build one.\n\n[[attention]] is the wedge — once you can derive scaled dot-product attention, the rest of the architecture clicks into place.",
+  "contentUndergrad": "## What you'll build\n\nA 2-layer transformer that learns a copy task. You'll author every primitive — BPE tokenizer, scaled dot-product attention, multi-head attention, FFN + residual + layer norm, training loop, sampling — in a working notebook + writeup combination.\n\n## Format\n\nSix milestones, ~10-14 days each. Each milestone has:\n\n- A **runnable test harness** (Pyodide-executable assertions on your code)\n- A **rubric** the AI grader uses to score correctness, derivation rigor, and writeup depth\n- An optional **lab** for the conceptual piece (e.g. a heatmap that updates as you tweak Q/K/V)\n\nWhen all six pass, your public artifact page goes live at `/capstones/c/${username}-transformer-from-scratch` — share it as portfolio.\n\n## Why this capstone\n\nReading attention papers gives you a feel; building it gives you the mechanism. The grader doesn't care about your hyperparameters — it cares whether your writeup demonstrates you can derive √d_k scaling, explain residuals, and notice when training diverges.\n\n[[attention]] · [[softmax]]",
+  "contentGrad": "## What you'll build\n\nA from-scratch transformer rebuilt around the small-model regime: enough parameters to verify scaling laws don't dominate, simple enough to ablate every architectural choice. The defense (claim-thread Q&A on the artifact page) is part of the rubric — be ready to argue why scaled dot-product attention beats additive, why pre-norm beats post-norm in the regime you trained, and what your training curve says about the underlying optimization landscape.\n\n[[attention]] is necessary but not sufficient. Reviewers will probe your understanding of induction heads, your ablations on head count, and the empirical behavior of your loss curve.",
+  "milestones": [
+    {
+      "title": "Tokens & embeddings",
+      "description": "Implement a byte-pair-encoding tokenizer + embedding lookup table.\n\n- Start with character-level vocab\n- Merge the most frequent adjacent pair, repeat for N merges\n- Embed each token to a `d_model`-dimensional vector\n- Show the token-count drop curve as you increase merges\n\n:::lab[tokenizer-playground-lab]\n\nIn your writeup: explain why subword tokens beat both characters and whitespace tokens for English. Include a diagram or chart from your tokenizer in action.",
+      "rubric": {
+        "criteria": [
+          {
+            "id": "correctness",
+            "weight": 0.5,
+            "description": "Tokenizer produces correct merges + embedding lookup is correct.",
+            "aiPrompt": "Score whether the artifacts (GitHub / writeup) demonstrate a correct BPE merge loop + a working embedding lookup."
+          },
+          {
+            "id": "writeup",
+            "weight": 0.3,
+            "description": "Explanation of why subword tokens.",
+            "aiPrompt": "Score the depth of the writeup's argument for subword tokenization vs character / whitespace alternatives."
+          },
+          {
+            "id": "viz",
+            "weight": 0.2,
+            "description": "Demonstrated the tokenizer with a chart.",
+            "aiPrompt": "Score whether the submission includes a chart or diagram showing the tokenizer in action (token count curve, merge progression, etc.)."
+          }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 10
+    },
+    {
+      "title": "Scaled dot-product attention",
+      "description": "Implement `attention(Q, K, V)` from scratch in numpy. The math:\n\n$$\\text{Attention}(Q, K, V) = \\text{softmax}\\left(\\frac{QK^T}{\\sqrt{d_k}}\\right)V$$\n\n:::lab[attention-weights-lab]\n\nVisualize the attention weights on a 6-token sequence. In your writeup: derive the √d_k scaling factor + explain why it matters. Show what happens to the softmax when you remove it (gradient saturation).",
+      "rubric": {
+        "criteria": [
+          {
+            "id": "correctness",
+            "weight": 0.4,
+            "description": "Attention math is correct.",
+            "aiPrompt": "Score correctness of the scaled dot-product attention implementation including the √d_k scaling."
+          },
+          {
+            "id": "derivation",
+            "weight": 0.4,
+            "description": "Derives the √d_k scaling.",
+            "aiPrompt": "Score the rigor of the writeup's derivation of why √d_k scaling is needed (variance of dot products, softmax saturation)."
+          },
+          {
+            "id": "viz",
+            "weight": 0.2,
+            "description": "Heatmap or weight visualization.",
+            "aiPrompt": "Score whether the submission visualizes attention weights on a concrete sequence."
+          }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "runnableTests": "# Pyodide test harness — your `attention(Q, K, V)` should pass these.\n# import numpy as np\n# from solution import attention\n# Q = np.random.randn(4, 8)\n# K = np.random.randn(4, 8)\n# V = np.random.randn(4, 8)\n# out = attention(Q, K, V)\n# assert out.shape == (4, 8), 'output must preserve sequence length + d_v'\n# # Self-attention sanity: when Q==K, the diagonal should dominate.\n# selfattn = attention(Q, Q, V)\n# assert np.allclose(selfattn.sum(axis=1, keepdims=True), V.sum(axis=0, keepdims=True), atol=1e-1) is False  # not the same; just demoing\nprint('Stub assertions — replace with your actual tests.')",
+      "estimatedDays": 12
+    },
+    {
+      "title": "Multi-head attention",
+      "description": "Extend single-head attention to multi-head:\n\n- Split `d_model` into `n_heads × d_head`\n- Run attention independently per head\n- Concatenate + linear-project back to `d_model`\n\nAblate `n_heads` ∈ {1, 2, 4, 8}. Plot training loss vs head count on the toy copy task.\n\nIn your writeup: explain why multi-head helps. (Hint: it's not parameter count.)",
+      "rubric": {
+        "criteria": [
+          {
+            "id": "correctness",
+            "weight": 0.4,
+            "description": "Multi-head split + concat is correct.",
+            "aiPrompt": "Score whether MHA correctly splits the d_model dimension into heads, runs attention per head, and concatenates back."
+          },
+          {
+            "id": "ablation",
+            "weight": 0.4,
+            "description": "Ran an ablation on head count.",
+            "aiPrompt": "Score whether the submission includes an ablation on n_heads + an interpretation of the result."
+          },
+          {
+            "id": "writeup",
+            "weight": 0.2,
+            "description": "Explains the why.",
+            "aiPrompt": "Score the writeup's argument for why multi-head attention helps beyond a single big head."
+          }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 12
+    },
+    {
+      "title": "FFN + residual + layer norm",
+      "description": "Build the rest of the transformer block:\n\n- Position-wise feedforward (linear → GELU → linear)\n- Residual connections around each sub-layer\n- Layer norm (pre- or post-norm — your choice; defend it in the writeup)\n\nVisualize gradient flow through the block during training. Show what happens when you remove the residual.\n\nIn your writeup: explain the role of residual connections + why layer norm beats batch norm here.",
+      "rubric": {
+        "criteria": [
+          {
+            "id": "correctness",
+            "weight": 0.4,
+            "description": "Full block assembled correctly.",
+            "aiPrompt": "Score whether the submission's full transformer block (FFN + residual + LN) is correctly assembled."
+          },
+          {
+            "id": "gradient",
+            "weight": 0.3,
+            "description": "Showed gradient flow.",
+            "aiPrompt": "Score whether the submission visualizes or analyzes gradient flow through the block."
+          },
+          {
+            "id": "writeup",
+            "weight": 0.3,
+            "description": "Defends pre/post norm + LN vs BN.",
+            "aiPrompt": "Score the writeup's argument for the chosen norm placement + LN vs BN."
+          }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 12
+    },
+    {
+      "title": "Train on a toy task",
+      "description": "Train your 2-layer transformer on a toy copy task: input is a sequence of N random tokens, target is the same sequence reversed (or copied — your choice).\n\n- Hold-out a validation set\n- Plot training + val loss curves\n- Show 5+ sample outputs from the trained model\n\nIn your writeup: tell the training story. What surprised you? Did you have to tune learning rate, batch size, sequence length? What does the loss curve say?",
+      "rubric": {
+        "criteria": [
+          {
+            "id": "convergence",
+            "weight": 0.4,
+            "description": "Model learns the task.",
+            "aiPrompt": "Score whether the model demonstrates convergence on the toy task (val loss drops, sample outputs are reasonable)."
+          },
+          {
+            "id": "samples",
+            "weight": 0.3,
+            "description": "Sample quality is meaningful.",
+            "aiPrompt": "Score whether the included sample outputs demonstrate the model has learned the task."
+          },
+          {
+            "id": "story",
+            "weight": 0.3,
+            "description": "Training story is honest + insightful.",
+            "aiPrompt": "Score whether the writeup tells a real story about training (what was tried, what failed, what was learned)."
+          }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 14
+    },
+    {
+      "title": "Sample + reflect",
+      "description": "Implement greedy + temperature sampling. Show side-by-side outputs at temperatures {0.1, 0.7, 1.5}.\n\n:::lab[sampling-temperature-lab]\n\nFinal reflection: what did this capstone teach you that reading papers couldn't? What would you do differently? Where do you think your model fails — and why?",
+      "rubric": {
+        "criteria": [
+          {
+            "id": "correctness",
+            "weight": 0.3,
+            "description": "Sampling code is correct.",
+            "aiPrompt": "Score correctness of greedy + temperature sampling implementations."
+          },
+          {
+            "id": "comparison",
+            "weight": 0.3,
+            "description": "Compared temperatures meaningfully.",
+            "aiPrompt": "Score whether the submission includes a meaningful comparison across temperatures."
+          },
+          {
+            "id": "reflection",
+            "weight": 0.4,
+            "description": "Depth of final reflection.",
+            "aiPrompt": "Score the depth of the final reflection. Reward concrete, honest observations about what was learned and where the model fails. Penalise generic 'I learned a lot' filler."
+          }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 8
+    }
+  ]
+}
