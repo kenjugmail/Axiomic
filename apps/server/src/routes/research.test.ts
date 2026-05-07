@@ -316,3 +316,182 @@ describe("research paper comments (Sprint 23 — polymorphic on news_comments)",
     expect(bReply.status).toBe(400);
   });
 });
+
+describe("research paper attachments — claim threads / artifacts / reproductions (Sprint 23.5)", () => {
+  async function makePaper(authorCookie: string, slug: string) {
+    await req("/research", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(authorCookie) },
+      body: JSON.stringify({
+        slug,
+        title: slug,
+        contentUndergrad: "Body about embeddings and softmax mechanisms.",
+        status: "published",
+      }),
+    });
+  }
+
+  test("claim threads on a research paper round-trip with replies", async () => {
+    const author = await signup("rct_a");
+    const reader = await signup("rct_r");
+    const slug = `rct-${testId}`;
+    await makePaper(author.cookie, slug);
+
+    const create = await req(`/research/${slug}/claim-threads`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(reader.cookie) },
+      body: JSON.stringify({
+        exact: "embeddings",
+        prefix: "about ",
+        suffix: " and ",
+        body: "Why this token?",
+      }),
+    });
+    expect(create.status).toBe(201);
+    const cb = (await create.json()) as { threadId: string };
+
+    // List should return the thread + the kickoff comment.
+    const list = await req(`/research/${slug}/claim-threads`);
+    const lb = (await list.json()) as { threads: any[] };
+    expect(lb.threads.length).toBe(1);
+    expect(lb.threads[0].replies.length).toBe(1);
+
+    // Reply lands a second comment under the thread.
+    const replier = await signup("rct_x");
+    await req(`/research/${slug}/claim-threads/${cb.threadId}/replies`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(replier.cookie) },
+      body: JSON.stringify({ content: "Follow-up." }),
+    });
+    const list2 = await req(`/research/${slug}/claim-threads`);
+    const lb2 = (await list2.json()) as { threads: any[] };
+    expect(lb2.threads[0].replies.length).toBe(2);
+
+    // Cross-paper: a different paper's thread list is empty.
+    const otherSlug = `rct-other-${testId}`;
+    await makePaper(author.cookie, otherSlug);
+    const otherList = await req(`/research/${otherSlug}/claim-threads`);
+    const ob = (await otherList.json()) as { threads: any[] };
+    expect(ob.threads.length).toBe(0);
+  });
+
+  test("artifacts: only author/coauthor can attach; cross-paper delete returns 400", async () => {
+    const author1 = await signup("rart_1");
+    const author2 = await signup("rart_2");
+    const stranger = await signup("rart_s");
+    const slug1 = `rart-1-${testId}`;
+    const slug2 = `rart-2-${testId}`;
+    await makePaper(author1.cookie, slug1);
+    await makePaper(author2.cookie, slug2);
+
+    const denied = await req(`/research/${slug1}/artifacts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(stranger.cookie) },
+      body: JSON.stringify({
+        kind: "github",
+        url: "https://github.com/x/y",
+        label: "Code",
+      }),
+    });
+    expect(denied.status).toBe(403);
+
+    const created = (await (
+      await req(`/research/${slug1}/artifacts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(author1.cookie) },
+        body: JSON.stringify({
+          kind: "github",
+          url: "https://github.com/x/y",
+          label: "Training code",
+        }),
+      })
+    ).json()) as { artifactId: string };
+
+    // Cross-paper delete via slug2 — artifact belongs to slug1 — 400.
+    const wrongPaper = await req(
+      `/research/${slug2}/artifacts/${created.artifactId}`,
+      { method: "DELETE", headers: cookieHeader(author2.cookie) },
+    );
+    expect(wrongPaper.status).toBe(400);
+
+    // Author1 can delete via the right slug.
+    const ok = await req(
+      `/research/${slug1}/artifacts/${created.artifactId}`,
+      { method: "DELETE", headers: cookieHeader(author1.cookie) },
+    );
+    expect(ok.status).toBe(200);
+  });
+
+  test("GET /research/:slug bundles artifacts + reproStats", async () => {
+    const author = await signup("rart_b");
+    const slug = `rart-b-${testId}`;
+    await makePaper(author.cookie, slug);
+    await req(`/research/${slug}/artifacts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({
+        kind: "colab",
+        url: "https://colab.research.google.com/x",
+        label: "Eval notebook",
+      }),
+    });
+    const fetched = await req(`/research/${slug}`);
+    const fb = (await fetched.json()) as { paper: any };
+    expect(fb.paper.artifacts.length).toBe(1);
+    expect(fb.paper.artifacts[0].label).toBe("Eval notebook");
+    expect(fb.paper.reproStats).toEqual({
+      total: 0,
+      success: 0,
+      partial: 0,
+      failed: 0,
+      mine: false,
+    });
+  });
+
+  test("reproductions: self-reproduction blocked; happy path + duplicate 409", async () => {
+    const author = await signup("rrp_a");
+    const reader = await signup("rrp_r");
+    const slug = `rrp-${testId}`;
+    await makePaper(author.cookie, slug);
+
+    const self = await req(`/research/${slug}/reproductions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ status: "success" }),
+    });
+    expect(self.status).toBe(400);
+
+    const ok = await req(`/research/${slug}/reproductions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(reader.cookie) },
+      body: JSON.stringify({ status: "partial", notes: "Worked at fp32." }),
+    });
+    expect(ok.status).toBe(201);
+
+    // Duplicate from same user → 409.
+    const dup = await req(`/research/${slug}/reproductions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(reader.cookie) },
+      body: JSON.stringify({ status: "success" }),
+    });
+    expect(dup.status).toBe(409);
+
+    // GET /research/:slug now reports stats + mine.
+    const fetched = await req(`/research/${slug}`, {
+      headers: cookieHeader(reader.cookie),
+    });
+    const fb = (await fetched.json()) as { paper: any };
+    expect(fb.paper.reproStats.total).toBe(1);
+    expect(fb.paper.reproStats.partial).toBe(1);
+    expect(fb.paper.reproStats.mine).toBe(true);
+
+    // Same user has no receipt on a different paper.
+    const otherSlug = `rrp-other-${testId}`;
+    await makePaper(author.cookie, otherSlug);
+    const fetchedOther = await req(`/research/${otherSlug}`, {
+      headers: cookieHeader(reader.cookie),
+    });
+    const fbOther = (await fetchedOther.json()) as { paper: any };
+    expect(fbOther.paper.reproStats.mine).toBe(false);
+  });
+});

@@ -692,6 +692,40 @@ export const api = {
         method: "POST",
         body: JSON.stringify(data),
       }),
+    listClaimThreads: (slug: string) =>
+      request<ClaimThreadsResponse>(`/research/${slug}/claim-threads`),
+    createClaimThread: (slug: string, body: CreateClaimThreadRequest) =>
+      request<{ threadId: string; commentId: string }>(
+        `/research/${slug}/claim-threads`,
+        { method: "POST", body: JSON.stringify(body) },
+      ),
+    replyToClaimThread: (
+      slug: string,
+      threadId: string,
+      body: CreateClaimThreadReplyRequest,
+    ) =>
+      request<{ commentId: string }>(
+        `/research/${slug}/claim-threads/${threadId}/replies`,
+        { method: "POST", body: JSON.stringify(body) },
+      ),
+    listArtifacts: (slug: string) =>
+      request<RunnableArtifactsResponse>(`/research/${slug}/artifacts`),
+    addArtifact: (slug: string, body: CreateRunnableArtifactRequest) =>
+      request<{ artifactId: string }>(`/research/${slug}/artifacts`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    deleteArtifact: (slug: string, id: string) =>
+      request<OkResponse>(`/research/${slug}/artifacts/${id}`, {
+        method: "DELETE",
+      }),
+    listReproductions: (slug: string) =>
+      request<ReproductionsResponse>(`/research/${slug}/reproductions`),
+    addReproduction: (slug: string, body: CreateReproductionRequest) =>
+      request<{ reproductionId: string }>(`/research/${slug}/reproductions`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
   },
   flashcards: {
     save: (data: { pageSlug: string; pageTitle: string; front: string; back: string }) =>

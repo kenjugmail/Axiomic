@@ -196,6 +196,10 @@ export interface ResearchPaper extends ResearchPaperSummary {
   lastEditorUsername: string | null;
   readingMinutes: number;
   isAuthor: boolean;
+  // Sprint 23.5 — runnable artifacts + reproStats bundled in the
+  // GET /:slug response so the reader renders in one round-trip.
+  artifacts: RunnableArtifact[];
+  reproStats: ReproStats;
 }
 
 export interface ResearchPapersListResponse {

@@ -5,16 +5,26 @@
 // for the body so :::viz embeds + [[concept-link]] popovers + LaTeX
 // + code highlighting all just work.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { Pencil, Sparkles } from "lucide-react";
-import type { ResearchPaper, ResearchPaperTier } from "@axiomic/types";
+import { CheckCircle2, Pencil, Sparkles } from "lucide-react";
+import type {
+  ClaimThread,
+  ResearchPaper,
+  ResearchPaperTier,
+} from "@axiomic/types";
 import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
+import { ArtifactsSection } from "../components/news/ArtifactsSection";
+import { ClaimSelectionPopover } from "../components/news/ClaimSelectionPopover";
+import { ClaimThreadPanel } from "../components/news/ClaimThreadPanel";
 import { NewsComments } from "../components/news/NewsComments";
+import { ReproduceDialog } from "../components/news/ReproduceDialog";
+import { ReproductionsBadge } from "../components/news/ReproductionsBadge";
 import { TierToggle } from "../components/research/TierToggle";
+import { findTextQuote, type TextQuote } from "../lib/textQuote";
 
 const FORMAT_LABEL: Record<string, string> = {
   research: "Research",
@@ -54,6 +64,13 @@ export function ResearchPaperPage() {
 
   const [paper, setPaper] = useState<ResearchPaper | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [reproDialogOpen, setReproDialogOpen] = useState(false);
+  const [threads, setThreads] = useState<ClaimThread[]>([]);
+  const [pendingThreadQuote, setPendingThreadQuote] =
+    useState<TextQuote | null>(null);
+  const [openThreadId, setOpenThreadId] = useState<string | null>(null);
+  const [anchorLostIds, setAnchorLostIds] = useState<Set<string>>(new Set());
+  const articleBodyRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!slug) return;
@@ -62,6 +79,57 @@ export function ResearchPaperPage() {
       .then((r) => setPaper(r.paper))
       .catch((e) => setError(e?.message ?? "Failed to load paper"));
   }, [slug, tier]);
+
+  // Sprint 23.5 — claim threads. Same pattern as NewsArticlePage:
+  // fetch on mount, register Ranges via the CSS Highlight API where
+  // supported, mark anchor-lost threads for sidebar navigation.
+  const refreshThreads = () => {
+    if (!slug) return;
+    api.research
+      .listClaimThreads(slug)
+      .then((r) => setThreads(r.threads))
+      .catch(() => {
+        // Silent fail — paper still renders without threads.
+      });
+  };
+
+  useEffect(() => {
+    refreshThreads();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug]);
+
+  useEffect(() => {
+    const root = articleBodyRef.current;
+    if (!root || threads.length === 0 || !paper) return;
+    const ranges: Range[] = [];
+    const lost = new Set<string>();
+    for (const t of threads) {
+      const r = findTextQuote(root, {
+        exact: t.exact,
+        prefix: t.prefix,
+        suffix: t.suffix,
+      });
+      if (r) ranges.push(r);
+      else lost.add(t.id);
+    }
+    setAnchorLostIds(lost);
+    const supported =
+      typeof (window as any).CSS !== "undefined" &&
+      "highlights" in (window as any).CSS &&
+      typeof (window as any).Highlight === "function";
+    if (!supported) return;
+    try {
+      const h = new (window as any).Highlight(...ranges);
+      (window as any).CSS.highlights.set("claim-thread", h);
+    } catch {
+      // Some browsers throw on duplicate registrations.
+    }
+    return () => {
+      try {
+        (window as any).CSS.highlights.delete("claim-thread");
+      } catch {}
+    };
+  }, [threads, paper]);
 
   // Persist + reflect in URL.
   useEffect(() => {
@@ -176,6 +244,16 @@ export function ResearchPaperPage() {
               </span>
             </>
           )}
+        {slug && paper.reproStats.total > 0 && (
+          <>
+            <span>·</span>
+            <ReproductionsBadge
+              articleSlug={slug}
+              stats={paper.reproStats}
+              surface="research"
+            />
+          </>
+        )}
       </div>
 
       {paper.isAuthor && (
@@ -253,7 +331,7 @@ export function ResearchPaperPage() {
       )}
 
       {/* Body */}
-      <article className="mt-8 prose-sm max-w-none">
+      <article ref={articleBodyRef} className="mt-8 prose-sm max-w-none">
         {paper.content ? (
           <MarkdownRenderer
             content={paper.content}
@@ -305,6 +383,99 @@ export function ResearchPaperPage() {
         </section>
       )}
 
+      {/* Sprint 23.5 — runnable artifacts + reproduce CTA. */}
+      {slug && (
+        <ArtifactsSection
+          articleSlug={slug}
+          initialArtifacts={paper.artifacts}
+          canEdit={paper.isAuthor}
+          surface="research"
+          onChange={(artifacts) => setPaper({ ...paper, artifacts })}
+        />
+      )}
+
+      {user && !paper.isAuthor && (
+        <div className="mt-6">
+          {paper.reproStats.mine ? (
+            <p className="text-xs text-muted-foreground italic">
+              ✓ You've already filed a reproduction receipt for this paper.
+            </p>
+          ) : (
+            <button
+              onClick={() => setReproDialogOpen(true)}
+              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10"
+              title="File a reproduction receipt for this paper"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2} />
+              I reproduced this
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Claim-thread sidebar listing — same shape as NewsArticlePage. */}
+      {threads.length > 0 && (
+        <section className="mt-10 pt-6 border-t border-border">
+          <h2 className="text-[10px] uppercase tracking-wider text-muted-foreground mb-3">
+            Claim threads · {threads.length}
+          </h2>
+          <ul className="space-y-1.5 text-sm">
+            {threads.map((t) => {
+              const lost = anchorLostIds.has(t.id);
+              return (
+                <li key={t.id}>
+                  <button
+                    onClick={() => {
+                      setOpenThreadId(t.id);
+                      const root = articleBodyRef.current;
+                      if (root) {
+                        const r = findTextQuote(root, {
+                          exact: t.exact,
+                          prefix: t.prefix,
+                          suffix: t.suffix,
+                        });
+                        if (r) {
+                          const anchorNode =
+                            r.startContainer.parentElement ?? null;
+                          if (anchorNode) {
+                            anchorNode.scrollIntoView({
+                              behavior: "smooth",
+                              block: "center",
+                            });
+                            anchorNode.classList.add("claim-flash");
+                            setTimeout(
+                              () =>
+                                anchorNode.classList.remove("claim-flash"),
+                              900,
+                            );
+                          }
+                        }
+                      }
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-md border border-border hover:bg-accent/40 transition-colors duration-fast"
+                  >
+                    <div className="flex items-baseline gap-2 text-xs text-muted-foreground mb-0.5">
+                      <span className="text-foreground font-medium">
+                        @{t.authorUsername}
+                      </span>
+                      <span>· {t.replies.length} repl{t.replies.length === 1 ? "y" : "ies"}</span>
+                      {lost && (
+                        <span className="text-amber-600 dark:text-amber-400">
+                          · anchor lost
+                        </span>
+                      )}
+                    </div>
+                    <div className="italic text-foreground/80 line-clamp-2">
+                      “{t.exact}”
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
       {/* Tags */}
       {paper.tags.length > 0 && (
         <div className="mt-10 pt-4 border-t border-border flex items-center gap-1.5 flex-wrap">
@@ -330,6 +501,68 @@ export function ResearchPaperPage() {
         Research papers on Axiomic embed runnable code cells, interactive viz,
         and tier-aware reading. <Link to="/research" className="text-primary hover:underline">Browse more</Link>.
       </div>
+
+      {slug && (
+        <ClaimSelectionPopover
+          rootRef={articleBodyRef}
+          signedIn={!!user}
+          onStart={(quote) => setPendingThreadQuote(quote)}
+        />
+      )}
+
+      {pendingThreadQuote && slug && (
+        <ClaimThreadPanel
+          mode="create"
+          exact={pendingThreadQuote.exact}
+          onClose={() => setPendingThreadQuote(null)}
+          onSubmit={async (body) => {
+            await api.research.createClaimThread(slug, {
+              exact: pendingThreadQuote.exact,
+              prefix: pendingThreadQuote.prefix,
+              suffix: pendingThreadQuote.suffix,
+              body,
+            });
+            setPendingThreadQuote(null);
+            window.getSelection()?.removeAllRanges();
+            refreshThreads();
+          }}
+        />
+      )}
+
+      {openThreadId && slug && (() => {
+        const t = threads.find((x) => x.id === openThreadId);
+        if (!t) return null;
+        return (
+          <ClaimThreadPanel
+            mode="view"
+            thread={t}
+            anchorLost={anchorLostIds.has(t.id)}
+            onClose={() => setOpenThreadId(null)}
+            onSubmitReply={async (content) => {
+              await api.research.replyToClaimThread(slug, t.id, { content });
+              refreshThreads();
+            }}
+          />
+        );
+      })()}
+
+      {reproDialogOpen && slug && (
+        <ReproduceDialog
+          articleSlug={slug}
+          artifacts={paper.artifacts}
+          surface="research"
+          onClose={() => setReproDialogOpen(false)}
+          onSubmitted={async () => {
+            setReproDialogOpen(false);
+            try {
+              const fresh = await api.research.get(slug, tier);
+              setPaper(fresh.paper);
+            } catch {
+              // ignore
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
