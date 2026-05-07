@@ -325,7 +325,8 @@ export function ResearchPaperEditor({ draft, onChange, slugEditable }: Props) {
           value={tierContent}
           onChange={setTierContent}
           rows={20}
-          placeholder={`${TIER_TABS.find((t) => t.tier === activeTier)?.label} body — markdown + LaTeX, plus :::viz[name] embeds and [[concept-slug]] hover cards.`}
+          showCodeButton
+          placeholder={`${TIER_TABS.find((t) => t.tier === activeTier)?.label} body — markdown + LaTeX, plus :::viz[name] embeds, [[concept-slug]] hover cards, and :::code[python] runnable cells.`}
         />
       </div>
 

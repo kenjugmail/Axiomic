@@ -254,7 +254,10 @@ export function ResearchPaperPage() {
       {/* Body */}
       <article className="mt-8 prose-sm max-w-none">
         {paper.content ? (
-          <MarkdownRenderer content={paper.content} />
+          <MarkdownRenderer
+            content={paper.content}
+            codeKernelKey={`paper:${paper.slug}`}
+          />
         ) : (
           <p className="text-sm text-muted-foreground italic">
             No content at this tier yet.

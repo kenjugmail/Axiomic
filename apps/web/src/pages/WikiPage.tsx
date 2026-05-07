@@ -165,7 +165,10 @@ export function WikiPage() {
             </div>
           </div>
 
-          <MarkdownRenderer content={content} />
+          <MarkdownRenderer
+            content={content}
+            codeKernelKey={slug ? `wiki:${slug}` : null}
+          />
 
           {/* Quiz me on this page (AI). */}
           {slug && <PracticePanel pageSlug={slug} tier={tier} />}

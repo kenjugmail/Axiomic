@@ -142,8 +142,9 @@ export function NewsEditor({ draft, onChange, slugEditable }: Props) {
         value={draft.body}
         onChange={(body) => set("body", body)}
         rows={18}
+        showCodeButton
         placeholder={
-          "Markdown supported, plus $LaTeX$, fenced code, and ::viz[name] embeds.\n\nTip: drop a heatmap or tokenizer into the middle of an article with the viz button in the toolbar."
+          "Markdown supported, plus $LaTeX$, fenced code, ::viz[name] embeds, and :::code[python] runnable cells.\n\nTip: drop a heatmap or runnable code block from the toolbar."
         }
       />
     </div>

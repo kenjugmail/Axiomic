@@ -15,6 +15,10 @@ interface Props {
   compact?: boolean;
   // The viz button defaults on; comment-style surfaces may want it off.
   showVizButton?: boolean;
+  // Sprint 22 — opt-in code-cell insertion. Trusted editor surfaces
+  // (research paper, news, lesson, wiki) flip this on; comments stay
+  // off so untrusted authors can't ship runnable code.
+  showCodeButton?: boolean;
   // Whether @mention autocomplete is wired. Off for surfaces with no
   // social context (none today, but a knob for future).
   enableMentions?: boolean;
@@ -30,6 +34,7 @@ export function RichComposer({
   rows = 6,
   compact = false,
   showVizButton = true,
+  showCodeButton = false,
   enableMentions = true,
 }: Props) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -211,6 +216,7 @@ export function RichComposer({
           textareaRef={textareaRef}
           onChange={onChange}
           showVizButton={showVizButton}
+          showCodeButton={showCodeButton}
         />
         {!compact && (
           <div className="flex gap-1 p-0.5 rounded-md bg-muted text-xs">

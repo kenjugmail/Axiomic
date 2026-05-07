@@ -592,7 +592,10 @@ export function LessonPage() {
                 }
               >
                 <div className="font-serif text-lg leading-relaxed [&_p]:mb-4 [&_h3]:font-sans [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mt-6 [&_h3]:mb-3">
-                  <MarkdownRenderer content={slide.body} />
+                  <MarkdownRenderer
+                    content={slide.body}
+                    codeKernelKey={node ? `lesson:${node.id}` : null}
+                  />
                 </div>
                 {slide.viz && (
                   <div className="lg:sticky lg:top-32">

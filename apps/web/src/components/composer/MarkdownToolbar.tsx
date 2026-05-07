@@ -12,6 +12,7 @@ import {
   Paperclip,
   Quote,
   Sparkles,
+  Terminal,
 } from "lucide-react";
 import { VizPicker, type VizCatalogEntry } from "../lesson/VizPicker";
 import { uploadFile, type UploadResult } from "../../lib/uploads";
@@ -30,6 +31,10 @@ interface Props {
   // Whether file/image upload buttons should be visible. Forum/wiki
   // both want this.
   showUploadButton?: boolean;
+  // Sprint 22 — opt-in code-cell insertion button. Off by default;
+  // surfaces that render their content with a trusted codeKernelKey
+  // (research papers, news articles, lessons, wiki) flip this on.
+  showCodeButton?: boolean;
   // Trailing slot — used to drop in AI helper buttons.
   trailing?: React.ReactNode;
 }
@@ -87,6 +92,7 @@ export function MarkdownToolbar({
   onChange,
   showVizButton = true,
   showUploadButton = true,
+  showCodeButton = false,
   trailing,
 }: Props) {
   const [vizOpen, setVizOpen] = useState(false);
@@ -190,6 +196,22 @@ export function MarkdownToolbar({
   const onPickViz = (entry: VizCatalogEntry) => {
     if (!ta()) return;
     const snippet = `\n\n:::viz[${entry.name}]\n\n`;
+    const t = ta()!;
+    const value = t.value;
+    const pos = t.selectionEnd;
+    onChange(value.slice(0, pos) + snippet + value.slice(pos));
+    requestAnimationFrame(() => {
+      t.focus();
+      const cursor = pos + snippet.length;
+      t.setSelectionRange(cursor, cursor);
+    });
+  };
+
+  // Sprint 22 — insert an empty :::code[python] block at the caret.
+  // The reader runs it via the embedded CodeCell once published.
+  const onInsertCodeCell = () => {
+    if (!ta()) return;
+    const snippet = `\n\n:::code[python]\n# Edit and run\nimport numpy as np\nx = np.linspace(0, 1, 5)\nprint(x)\n:::\n\n`;
     const t = ta()!;
     const value = t.value;
     const pos = t.selectionEnd;
@@ -379,6 +401,21 @@ export function MarkdownToolbar({
           >
             <Sparkles className="w-3.5 h-3.5" strokeWidth={2} />
             <span className="text-[11px]">viz</span>
+          </button>
+        </>
+      )}
+
+      {showCodeButton && (
+        <>
+          <div className="w-px h-5 bg-border mx-1" />
+          <button
+            type="button"
+            title="Insert runnable Python cell"
+            onClick={onInsertCodeCell}
+            className={`${btnClass} inline-flex items-center gap-1`}
+          >
+            <Terminal className="w-3.5 h-3.5" strokeWidth={2} />
+            <span className="text-[11px]">code</span>
           </button>
         </>
       )}

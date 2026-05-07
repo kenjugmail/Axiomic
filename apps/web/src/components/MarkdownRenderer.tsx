@@ -7,6 +7,7 @@ import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import { Link } from "react-router-dom";
 import { VizEmbed } from "./VizEmbed";
 import { ConceptLink } from "./cross/ConceptLink";
+import { CodeCell } from "./code/CodeCell";
 import "katex/dist/katex.min.css";
 
 interface MarkdownRendererProps {
@@ -20,6 +21,12 @@ interface MarkdownRendererProps {
   // so users can't surprise readers by embedding interactive widgets in
   // a high-volume, low-friction surface.
   allowViz?: boolean;
+  // Sprint 22 — Jupyter-style runnable code cells via the
+  // `:::code[python]\n...\n:::` directive. Defaults off; surfaces opt
+  // in by passing a non-null `codeKernelKey` (typically
+  // `paper:${slug}` or `lesson:${nodeId}` so cells in the same
+  // document share Python state).
+  codeKernelKey?: string | null;
 }
 
 const SAFE_PROTOCOLS = ["http:", "https:", "mailto:"];
@@ -36,6 +43,62 @@ const MENTION_RE = /(^|[^A-Za-z0-9_])@([A-Za-z0-9_]{3,32})(?=$|[^A-Za-z0-9_])/g;
 // tests can verify the parser independently.
 export const CONCEPT_LINK_RE =
   /\[\[([a-z0-9][a-z0-9-]{0,80})(?:\|([^\]\n]{1,80}))?\]\]/g;
+
+// Sprint 22 — block-form `:::code[lang]\n...\n:::` directive scanner.
+// Returns the next match at or after `from`, or null. Exported for
+// tests so the parser stays verified independently of the renderer.
+export interface CodeDirectiveMatch {
+  index: number;
+  end: number;
+  lang: string;
+  code: string;
+}
+export function findCodeDirective(
+  content: string,
+  from: number,
+): CodeDirectiveMatch | null {
+  // Allow optional leading newline so `\n:::code[python]\n` is matched
+  // either at start-of-string or after a newline.
+  const open = /:::code\[([a-z][a-z0-9+-]*)\]\s*\n/g;
+  open.lastIndex = from;
+  const m = open.exec(content);
+  if (!m) return null;
+  const start = m.index;
+  const bodyStart = m.index + m[0].length;
+  // Find the closing `:::` on its own line.
+  const close = content.indexOf("\n:::", bodyStart);
+  if (close === -1) return null;
+  const code = content.slice(bodyStart, close);
+  return {
+    index: start,
+    end: close + "\n:::".length,
+    lang: m[1],
+    code,
+  };
+}
+
+// Inline single-line `:::viz[name]` / `:::video[id=...]` directive.
+export interface InlineDirectiveMatch {
+  index: number;
+  end: number;
+  kind: "viz" | "video";
+  inner: string;
+}
+export function findInlineDirective(
+  content: string,
+  from: number,
+): InlineDirectiveMatch | null {
+  const re = /:+(viz|video)\[([^\]]+)\]/g;
+  re.lastIndex = from;
+  const m = re.exec(content);
+  if (!m) return null;
+  return {
+    index: m.index,
+    end: m.index + m[0].length,
+    kind: m[1] as "viz" | "video",
+    inner: m[2],
+  };
+}
 
 // Walk a text node and inject <Link> elements for any @mentions and
 // inline ConceptLink popovers for any [[slug]] references. Both
@@ -188,43 +251,61 @@ export function MarkdownRenderer({
   className,
   untrusted,
   allowViz = true,
+  codeKernelKey,
 }: MarkdownRendererProps) {
-  // Split content by viz + video directives and render them inline.
-  // The opt-in `allowViz` flag is independent of `untrusted` — forum
-  // posts run with HTML sanitization on but with vizes allowed,
-  // while comments disable vizes entirely.
+  // Split content by viz + video + code directives and render them
+  // inline. Code cells only render when the surface explicitly opts
+  // in via `codeKernelKey` so a user can't run code from a comment
+  // they didn't write.
   type Part =
     | { type: "markdown"; content: string }
     | { type: "viz"; content: string }
-    | { type: "video"; id: string };
+    | { type: "video"; id: string }
+    | { type: "code"; lang: string; code: string };
   const parts: Part[] = [];
-  if (allowViz) {
-    // Match either `:::viz[name]` (1+ colons, the historical form) or
-    // `:::video[id=xxx]` for uploaded video attachments.
-    const directivePattern = /:+(viz|video)\[([^\]]+)\]/g;
-    let lastIndex = 0;
-    let match;
 
-    while ((match = directivePattern.exec(content)) !== null) {
-      if (match.index > lastIndex) {
+  // Walk the content scanning for the longest directive at each
+  // position. We process code directives first because they're block-
+  // form (multi-line) and may contain `:::` inside them; viz/video
+  // are single-line so we'd match nested noise without this ordering.
+  if (allowViz || codeKernelKey) {
+    let cursor = 0;
+    while (cursor < content.length) {
+      // Look for the next directive starting at or after `cursor`.
+      const codeMatch = codeKernelKey
+        ? findCodeDirective(content, cursor)
+        : null;
+      const inlineMatch = allowViz
+        ? findInlineDirective(content, cursor)
+        : null;
+
+      // Pick the earliest match (or stop if neither matched).
+      let next: typeof codeMatch | typeof inlineMatch = null;
+      if (codeMatch && inlineMatch) {
+        next = codeMatch.index <= inlineMatch.index ? codeMatch : inlineMatch;
+      } else {
+        next = codeMatch ?? inlineMatch;
+      }
+      if (!next) break;
+
+      if (next.index > cursor) {
         parts.push({
           type: "markdown",
-          content: content.slice(lastIndex, match.index),
+          content: content.slice(cursor, next.index),
         });
       }
-      const kind = match[1];
-      const inner = match[2];
-      if (kind === "video") {
-        // Inner shape: id=<uuid>
-        const idMatch = inner.match(/id\s*=\s*([0-9a-f-]+)/i);
+      if ("kind" in next && next.kind === "video") {
+        const idMatch = next.inner.match(/id\s*=\s*([0-9a-f-]+)/i);
         if (idMatch) parts.push({ type: "video", id: idMatch[1] });
-      } else {
-        parts.push({ type: "viz", content: inner });
+      } else if ("kind" in next && next.kind === "viz") {
+        parts.push({ type: "viz", content: next.inner });
+      } else if ("lang" in next) {
+        parts.push({ type: "code", lang: next.lang, code: next.code });
       }
-      lastIndex = match.index + match[0].length;
+      cursor = next.end;
     }
-    if (lastIndex < content.length) {
-      parts.push({ type: "markdown", content: content.slice(lastIndex) });
+    if (cursor < content.length) {
+      parts.push({ type: "markdown", content: content.slice(cursor) });
     }
   }
 
@@ -250,6 +331,12 @@ export function MarkdownRenderer({
             preload="metadata"
             className="my-4 max-w-full rounded-lg border border-border"
             src={`/api/v1/uploads/${part.id}`}
+          />
+        ) : part.type === "code" ? (
+          <CodeCell
+            key={i}
+            initialCode={part.code}
+            kernelKey={codeKernelKey || "scratch"}
           />
         ) : (
           <ReactMarkdown
