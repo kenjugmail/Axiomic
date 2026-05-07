@@ -998,6 +998,46 @@ export interface UpdateNewsCommentRequest {
   content: string;
 }
 
+// Claim-anchored discussion thread. Pinned to a passage in the article
+// via text-quote (W3C model: exact + prefix + suffix). Replies are
+// stored as news_comments with claimThreadId set.
+export interface ClaimThreadReply {
+  id: string;
+  userId: string;
+  username: string;
+  content: string;
+  editedAt: string | null;
+  createdAt: string;
+}
+
+export interface ClaimThread {
+  id: string;
+  authorId: string;
+  authorUsername: string;
+  // The W3C TextQuoteSelector triple. Used by the client to locate the
+  // passage in the rendered article via a fuzzy DOM walk.
+  exact: string;
+  prefix: string;
+  suffix: string;
+  createdAt: string;
+  replies: ClaimThreadReply[];
+}
+
+export interface ClaimThreadsResponse {
+  threads: ClaimThread[];
+}
+
+export interface CreateClaimThreadRequest {
+  exact: string;
+  prefix?: string;
+  suffix?: string;
+  body: string;
+}
+
+export interface CreateClaimThreadReplyRequest {
+  content: string;
+}
+
 // --- Forum reactions / bookmarks / polls / follows ---
 
 export type ForumReactionKind = NewsReactionKind;

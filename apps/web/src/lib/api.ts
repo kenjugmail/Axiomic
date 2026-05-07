@@ -32,6 +32,9 @@ import type {
   NewsArticleResponse,
   NewsBookmarksResponse,
   NewsCommentsResponse,
+  ClaimThreadsResponse,
+  CreateClaimThreadRequest,
+  CreateClaimThreadReplyRequest,
   NewsListResponse,
   NewsProposalsResponse,
   NewsReactionKind,
@@ -551,6 +554,22 @@ export const api = {
     deriveLesson: (slug: string, body: { slides: any[] }) =>
       request<{ nodeId: string; nodeSlug: string; pathSlug: string }>(
         `/news/${slug}/derive-lesson`,
+        { method: "POST", body: JSON.stringify(body) },
+      ),
+    listClaimThreads: (slug: string) =>
+      request<ClaimThreadsResponse>(`/news/${slug}/claim-threads`),
+    createClaimThread: (slug: string, body: CreateClaimThreadRequest) =>
+      request<{ threadId: string; commentId: string }>(
+        `/news/${slug}/claim-threads`,
+        { method: "POST", body: JSON.stringify(body) },
+      ),
+    replyToClaimThread: (
+      slug: string,
+      threadId: string,
+      body: CreateClaimThreadReplyRequest,
+    ) =>
+      request<{ commentId: string }>(
+        `/news/${slug}/claim-threads/${threadId}/replies`,
         { method: "POST", body: JSON.stringify(body) },
       ),
   },

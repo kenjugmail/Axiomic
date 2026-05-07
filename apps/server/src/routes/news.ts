@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import {
+  claimThreads,
   getDb,
   masteryNodes,
   masteryPaths,
@@ -13,7 +14,7 @@ import {
   userFollows,
   users,
 } from "@axiomic/db";
-import { and, count, desc, eq, max, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, isNull, max, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { notify, notifyMentions } from "../lib/notifications";
@@ -976,7 +977,15 @@ newsRouter.get("/:slug/comments", async (c) => {
     })
     .from(newsComments)
     .innerJoin(users, eq(newsComments.userId, users.id))
-    .where(eq(newsComments.articleId, article.id))
+    .where(
+      and(
+        eq(newsComments.articleId, article.id),
+        // Exclude claim-thread replies — those render in their own
+        // panel pinned to the article passage they discuss, not in
+        // the article-level comment list.
+        isNull(newsComments.claimThreadId),
+      ),
+    )
     .orderBy(desc(newsComments.createdAt))
     .all();
 
@@ -1564,5 +1573,276 @@ newsRouter.post(
       .run();
 
     return c.json({ nodeId, nodeSlug, pathSlug: FROM_ARTICLES_PATH_SLUG });
+  },
+);
+
+// --- Claim-anchored discussion threads ------------------------------
+//
+// Pin a thread to a specific passage in the article. Anchoring is a
+// W3C-style text-quote (exact + prefix + suffix). Replies live in
+// `news_comments` with claimThreadId set so they share the same
+// editing/notification plumbing as regular article comments.
+
+const claimThreadCreateSchema = z.object({
+  exact: z.string().min(4).max(2000),
+  prefix: z.string().max(80).optional().default(""),
+  suffix: z.string().max(80).optional().default(""),
+  body: z.string().min(1).max(5000),
+});
+
+newsRouter.post(
+  "/:slug/claim-threads",
+  requireAuth,
+  zValidator("json", claimThreadCreateSchema),
+  async (c) => {
+    const slug = c.req.param("slug")!;
+    const user = c.get("user")!;
+    const { exact, prefix, suffix, body } = c.req.valid("json");
+    const db = getDb();
+
+    const article = db
+      .select({ id: newsArticles.id, authorId: newsArticles.authorId })
+      .from(newsArticles)
+      .where(eq(newsArticles.slug, slug))
+      .get();
+    if (!article) return c.json({ error: "Article not found" }, 404);
+
+    const threadId = randomUUID();
+    const commentId = randomUUID();
+    db.insert(claimThreads)
+      .values({
+        id: threadId,
+        articleId: article.id,
+        authorId: user.id,
+        exact,
+        prefix,
+        suffix,
+      })
+      .run();
+    db.insert(newsComments)
+      .values({
+        id: commentId,
+        articleId: article.id,
+        parentId: null,
+        userId: user.id,
+        content: body,
+        claimThreadId: threadId,
+      })
+      .run();
+
+    // Notify the article author when someone else opens a thread on
+    // their work — but only once the thread is started. Subsequent
+    // replies notify the thread author + prior repliers (handled in
+    // the reply route below).
+    if (article.authorId !== user.id) {
+      // Mention notifs first so we can dedupe.
+      const mentioned = await notifyMentions({
+        body,
+        actorId: user.id,
+        subjectType: "claim_thread",
+        subjectId: threadId,
+        contextSlug: slug,
+        preview: previewFrom(body),
+      });
+      if (!mentioned.has(article.authorId)) {
+        await notify({
+          recipientId: article.authorId,
+          actorId: user.id,
+          kind: "claim_thread_reply",
+          subjectType: "claim_thread",
+          subjectId: threadId,
+          contextSlug: slug,
+          preview: previewFrom(`Claimed: "${exact.slice(0, 80)}"`),
+        });
+      }
+    } else {
+      // Author starting a thread on their own article — only run
+      // mention notifs.
+      await notifyMentions({
+        body,
+        actorId: user.id,
+        subjectType: "claim_thread",
+        subjectId: threadId,
+        contextSlug: slug,
+        preview: previewFrom(body),
+      });
+    }
+
+    return c.json({ threadId, commentId }, 201);
+  },
+);
+
+newsRouter.get("/:slug/claim-threads", async (c) => {
+  const slug = c.req.param("slug")!;
+  const db = getDb();
+
+  const article = db
+    .select({ id: newsArticles.id })
+    .from(newsArticles)
+    .where(eq(newsArticles.slug, slug))
+    .get();
+  if (!article) return c.json({ error: "Article not found" }, 404);
+
+  const threads = db
+    .select({
+      id: claimThreads.id,
+      articleId: claimThreads.articleId,
+      authorId: claimThreads.authorId,
+      authorUsername: users.username,
+      exact: claimThreads.exact,
+      prefix: claimThreads.prefix,
+      suffix: claimThreads.suffix,
+      createdAt: claimThreads.createdAt,
+    })
+    .from(claimThreads)
+    .innerJoin(users, eq(claimThreads.authorId, users.id))
+    .where(eq(claimThreads.articleId, article.id))
+    .orderBy(asc(claimThreads.createdAt))
+    .all();
+
+  if (threads.length === 0) return c.json({ threads: [] });
+
+  // Pull all replies for these threads in one query, then bucket per
+  // thread on the client side. Cheaper than N+1 lookups even for tiny
+  // thread counts.
+  const threadIds = threads.map((t) => t.id);
+  const replyRows = db
+    .select({
+      id: newsComments.id,
+      threadId: newsComments.claimThreadId,
+      userId: newsComments.userId,
+      username: users.username,
+      content: newsComments.content,
+      editedAt: newsComments.editedAt,
+      createdAt: newsComments.createdAt,
+    })
+    .from(newsComments)
+    .innerJoin(users, eq(newsComments.userId, users.id))
+    .where(
+      and(
+        eq(newsComments.articleId, article.id),
+        // Manual IN clause via OR: drizzle's inArray is fine but we keep
+        // raw SQL minimal here. For up to ~100 threads on a popular
+        // article this remains fast.
+        sql`${newsComments.claimThreadId} IN (${sql.join(
+          threadIds.map((id) => sql`${id}`),
+          sql`, `,
+        )})`,
+      ),
+    )
+    .orderBy(asc(newsComments.createdAt))
+    .all();
+
+  const repliesByThread = new Map<string, typeof replyRows>();
+  for (const r of replyRows) {
+    if (!r.threadId) continue;
+    const list = repliesByThread.get(r.threadId);
+    if (list) list.push(r);
+    else repliesByThread.set(r.threadId, [r]);
+  }
+
+  return c.json({
+    threads: threads.map((t) => ({
+      id: t.id,
+      authorId: t.authorId,
+      authorUsername: t.authorUsername,
+      exact: t.exact,
+      prefix: t.prefix,
+      suffix: t.suffix,
+      createdAt: t.createdAt,
+      replies: (repliesByThread.get(t.id) ?? []).map((r) => ({
+        id: r.id,
+        userId: r.userId,
+        username: r.username,
+        content: r.content,
+        editedAt: r.editedAt,
+        createdAt: r.createdAt,
+      })),
+    })),
+  });
+});
+
+const claimThreadReplySchema = z.object({
+  content: z.string().min(1).max(5000),
+});
+
+newsRouter.post(
+  "/:slug/claim-threads/:threadId/replies",
+  requireAuth,
+  zValidator("json", claimThreadReplySchema),
+  async (c) => {
+    const slug = c.req.param("slug")!;
+    const threadId = c.req.param("threadId")!;
+    const user = c.get("user")!;
+    const { content } = c.req.valid("json");
+    const db = getDb();
+
+    const article = db
+      .select({ id: newsArticles.id })
+      .from(newsArticles)
+      .where(eq(newsArticles.slug, slug))
+      .get();
+    if (!article) return c.json({ error: "Article not found" }, 404);
+
+    const thread = db
+      .select({
+        id: claimThreads.id,
+        articleId: claimThreads.articleId,
+        authorId: claimThreads.authorId,
+      })
+      .from(claimThreads)
+      .where(eq(claimThreads.id, threadId))
+      .get();
+    if (!thread || thread.articleId !== article.id) {
+      return c.json({ error: "Thread not found" }, 404);
+    }
+
+    const id = randomUUID();
+    db.insert(newsComments)
+      .values({
+        id,
+        articleId: article.id,
+        parentId: null,
+        userId: user.id,
+        content,
+        claimThreadId: threadId,
+      })
+      .run();
+
+    // Mention notifs first; they take precedence over reply notifs.
+    const mentioned = await notifyMentions({
+      body: content,
+      actorId: user.id,
+      subjectType: "claim_thread",
+      subjectId: threadId,
+      contextSlug: slug,
+      preview: previewFrom(content),
+    });
+
+    // Notify everyone else who's already in the thread (the author +
+    // prior repliers), deduped against mentions and the actor.
+    const participants = db
+      .select({ userId: newsComments.userId })
+      .from(newsComments)
+      .where(eq(newsComments.claimThreadId, threadId))
+      .all();
+    const recipients = new Set<string>([thread.authorId]);
+    for (const p of participants) recipients.add(p.userId);
+    recipients.delete(user.id);
+    for (const m of mentioned) recipients.delete(m);
+
+    for (const recipientId of recipients) {
+      await notify({
+        recipientId,
+        actorId: user.id,
+        kind: "claim_thread_reply",
+        subjectType: "claim_thread",
+        subjectId: threadId,
+        contextSlug: slug,
+        preview: previewFrom(content),
+      });
+    }
+
+    return c.json({ commentId: id }, 201);
   },
 );

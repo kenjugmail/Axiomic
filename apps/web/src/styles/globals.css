@@ -309,3 +309,21 @@ pre code {
 .wiki-content th {
   @apply bg-muted font-sans font-semibold;
 }
+
+
+/* Claim-anchored discussion threads (Sprint 14). Highlights passages
+   with active threads. Subtle so it does not fight reading; clicking
+   anywhere in the highlight opens the thread panel via JS. */
+::highlight(claim-thread) {
+  background-color: rgb(245 158 11 / 0.18);
+  text-decoration: underline wavy rgb(245 158 11 / 0.5);
+  text-underline-offset: 3px;
+}
+
+/* Temporary flash applied to a Range when scrolling to a thread from
+   the sidebar — gives a visual landmark even when CSS Highlight API
+   is unsupported. */
+.claim-flash {
+  background-color: rgb(245 158 11 / 0.35);
+  transition: background-color 0.8s ease-out;
+}

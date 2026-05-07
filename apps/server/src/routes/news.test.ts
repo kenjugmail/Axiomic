@@ -734,6 +734,183 @@ describe("news derive-lesson (Paper → Lesson pipeline)", () => {
   });
 });
 
+describe("news claim threads (Sprint 14 — claim-anchored discussion)", () => {
+  async function makeArticle(authorCookie: string, slug: string) {
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(authorCookie) },
+      body: JSON.stringify({
+        slug,
+        title: "T",
+        summary: "",
+        body: "Some passage about transformers and attention.",
+      }),
+    });
+  }
+
+  test("requires authentication to start a thread", async () => {
+    const author = await signup("ct_anon");
+    const slug = `ct-anon-${testId}`;
+    await makeArticle(author.cookie, slug);
+    const res = await req(`/news/${slug}/claim-threads`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        exact: "attention",
+        prefix: "and ",
+        suffix: ".",
+        body: "Hot take",
+      }),
+    });
+    expect(res.status).toBe(401);
+  });
+
+  test("creates a thread with a first comment, listing returns the pair", async () => {
+    const author = await signup("ct_owner");
+    const reader = await signup("ct_reader");
+    const slug = `ct-ok-${testId}`;
+    await makeArticle(author.cookie, slug);
+    const create = await req(`/news/${slug}/claim-threads`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(reader.cookie) },
+      body: JSON.stringify({
+        exact: "attention",
+        prefix: "and ",
+        suffix: ".",
+        body: "Why attention here?",
+      }),
+    });
+    expect(create.status).toBe(201);
+    const cb = (await create.json()) as { threadId: string; commentId: string };
+
+    const list = await req(`/news/${slug}/claim-threads`);
+    expect(list.status).toBe(200);
+    const lb = (await list.json()) as {
+      threads: Array<{
+        id: string;
+        exact: string;
+        authorUsername: string;
+        replies: any[];
+      }>;
+    };
+    expect(lb.threads.length).toBe(1);
+    expect(lb.threads[0].id).toBe(cb.threadId);
+    expect(lb.threads[0].exact).toBe("attention");
+    expect(lb.threads[0].authorUsername).toBe(reader.username);
+    expect(lb.threads[0].replies.length).toBe(1);
+    expect(lb.threads[0].replies[0].content).toBe("Why attention here?");
+  });
+
+  test("article-level comments listing excludes claim-thread replies", async () => {
+    const author = await signup("ct_excl");
+    const reader = await signup("ct_excl_r");
+    const slug = `ct-excl-${testId}`;
+    await makeArticle(author.cookie, slug);
+    // Regular comment.
+    await req(`/news/${slug}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(reader.cookie) },
+      body: JSON.stringify({ content: "Article-level comment." }),
+    });
+    // Claim thread + its reply.
+    const ct = (await (
+      await req(`/news/${slug}/claim-threads`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(reader.cookie) },
+        body: JSON.stringify({
+          exact: "transformers",
+          prefix: "about ",
+          suffix: " and ",
+          body: "Pinned to a passage.",
+        }),
+      })
+    ).json()) as { threadId: string };
+
+    await req(`/news/${slug}/claim-threads/${ct.threadId}/replies`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(reader.cookie) },
+      body: JSON.stringify({ content: "Follow-up reply." }),
+    });
+
+    const cmts = await req(`/news/${slug}/comments`);
+    const cb = (await cmts.json()) as { comments: any[] };
+    expect(cb.comments.length).toBe(1);
+    expect(cb.comments[0].content).toBe("Article-level comment.");
+  });
+
+  test("reply route rejects mismatched thread id", async () => {
+    const author = await signup("ct_mm");
+    const slug = `ct-mm-${testId}`;
+    await makeArticle(author.cookie, slug);
+    const res = await req(`/news/${slug}/claim-threads/does-not-exist/replies`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ content: "Hi" }),
+    });
+    expect(res.status).toBe(404);
+  });
+
+  test("reply notifies the thread author + prior repliers, not the actor", async () => {
+    const author = await signup("ctn_o");
+    const opener = await signup("ctn_p");
+    const replier = await signup("ctn_r");
+    const slug = `ct-notif-${testId}`;
+    await makeArticle(author.cookie, slug);
+
+    const ct = (await (
+      await req(`/news/${slug}/claim-threads`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(opener.cookie) },
+        body: JSON.stringify({
+          exact: "attention",
+          prefix: "and ",
+          suffix: ".",
+          body: "Why this framing?",
+        }),
+      })
+    ).json()) as { threadId: string };
+
+    // Replier joins. Should notify both the article author (who is also
+    // the thread participant by virtue of authoring the article? no —
+    // the thread author is the opener; article author got notified at
+    // thread-create) and the opener.
+    await req(`/news/${slug}/claim-threads/${ct.threadId}/replies`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(replier.cookie) },
+      body: JSON.stringify({ content: "I think so too." }),
+    });
+
+    // Opener should have a claim_thread_reply notification.
+    const openerNotifs = await req("/notifications", {
+      headers: cookieHeader(opener.cookie),
+    });
+    expect(openerNotifs.status).toBe(200);
+    const ob = (await openerNotifs.json()) as { notifications?: any[] };
+    expect(Array.isArray(ob.notifications)).toBe(true);
+    expect(
+      (ob.notifications ?? []).some(
+        (n) =>
+          n.kind === "claim_thread_reply" &&
+          n.subjectType === "claim_thread" &&
+          n.subjectId === ct.threadId,
+      ),
+    ).toBe(true);
+
+    // Replier should NOT have notified themselves.
+    const replierNotifs = await req("/notifications", {
+      headers: cookieHeader(replier.cookie),
+    });
+    expect(replierNotifs.status).toBe(200);
+    const rb = (await replierNotifs.json()) as { notifications?: any[] };
+    expect(
+      (rb.notifications ?? []).some(
+        (n) =>
+          n.kind === "claim_thread_reply" && n.subjectId === ct.threadId,
+      ),
+    ).toBe(false);
+  });
+});
+
 describe("news related", () => {
   test("returns up to 4 articles, excluding the current one", async () => {
     const author = await signup("rel_a");

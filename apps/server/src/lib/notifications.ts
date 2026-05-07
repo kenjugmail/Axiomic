@@ -8,6 +8,7 @@ export type NotificationKind =
   | "topic_reply"
   | "post_reply"
   | "comment_reply"
+  | "claim_thread_reply"
   | "mastery_level_up"
   | "news_edit_proposed"
   | "news_edit_approved"
@@ -22,7 +23,8 @@ export type NotificationSubject =
   | "mastery_node"
   | "news_article"
   | "news_proposal"
-  | "news_comment";
+  | "news_comment"
+  | "claim_thread";
 
 const MAX_MENTIONS_PER_BODY = 10;
 const PREVIEW_MAX = 140;
@@ -100,6 +102,7 @@ function kindGate(
     case "topic_reply":
     case "post_reply":
     case "comment_reply":
+    case "claim_thread_reply":
       return "notifyReplies";
     case "mastery_level_up":
       return "notifyMastery";

@@ -393,6 +393,10 @@ export const newsReactions = sqliteTable(
 // Inline threaded comments scoped to a news article. Mirrors the wiki
 // `comments` table shape but anchored to news_articles.id so the two
 // surfaces stay decoupled and can evolve independently.
+//
+// `claimThreadId` is set when this comment lives inside a claim-anchored
+// discussion thread (Sprint 14 — like hypothes.is or Genius). When null,
+// the comment is a regular article-level comment under the article body.
 export const newsComments = sqliteTable(
   "news_comments",
   {
@@ -401,11 +405,35 @@ export const newsComments = sqliteTable(
     parentId: text("parent_id"),
     userId: text("user_id").notNull().references(() => users.id),
     content: text("content").notNull(),
+    claimThreadId: text("claim_thread_id"),
     editedAt: text("edited_at"),
     createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   },
   (t) => ({
     articleIdx: index("news_comments_article_idx").on(t.articleId, t.createdAt),
+    claimThreadIdx: index("news_comments_claim_thread_idx").on(t.claimThreadId),
+  }),
+);
+
+// Claim-anchored discussion threads. A thread is pinned to a specific
+// passage in an article via text-quote annotation (W3C model). `exact`
+// is the highlighted text; `prefix` / `suffix` are short snippets around
+// it for fuzzy disambiguation when the text appears multiple times or
+// the article is later edited. Replies live in `news_comments` with
+// claimThreadId set.
+export const claimThreads = sqliteTable(
+  "claim_threads",
+  {
+    id: text("id").primaryKey(),
+    articleId: text("article_id").notNull().references(() => newsArticles.id),
+    authorId: text("author_id").notNull().references(() => users.id),
+    exact: text("exact").notNull(),
+    prefix: text("prefix").notNull().default(""),
+    suffix: text("suffix").notNull().default(""),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    articleIdx: index("claim_threads_article_idx").on(t.articleId, t.createdAt),
   }),
 );
 
