@@ -54,6 +54,63 @@ export interface MasteryPath {
   description: string;
 }
 
+// Sprint 18 — AI active coach. Compact per-user state surfaced in
+// the AI sidebar and folded into the chat system prompt to make the
+// tutor Socratic + state-aware.
+export interface CoachContextMistake {
+  questionId: string;
+  nodeId: string;
+  nodeSlug: string;
+  pathSlug: string;
+  questionText: string;
+  occurrences: number;
+  lastWrongAt: string;
+}
+
+export interface CoachContextLessonProgress {
+  nodeId: string;
+  nodeSlug: string;
+  pathSlug: string;
+  pathTitle: string;
+  title: string;
+  slideIdx: number;
+  totalSlides: number;
+  updatedAt: string;
+}
+
+export interface CoachContextPrereqGap {
+  nodeId: string;
+  nodeSlug: string;
+  pathSlug: string;
+  title: string;
+}
+
+export interface CoachContext {
+  recentMistakes: CoachContextMistake[];
+  dueFlashcards: number;
+  weakConcepts: string[];
+  currentLessonProgress: CoachContextLessonProgress | null;
+  prerequisiteGaps: CoachContextPrereqGap[];
+}
+
+export type CoachSuggestionKind =
+  | "review_prereq"
+  | "review_mistake"
+  | "spaced_rep"
+  | "next_node"
+  | "primer";
+
+export interface CoachSuggestion {
+  kind: CoachSuggestionKind;
+  title: string;
+  body: string;
+  ctaUrl: string;
+}
+
+export interface CoachSuggestionsResponse {
+  suggestions: CoachSuggestion[];
+}
+
 // Sprint 17 — Concept preview payload. Cheap subset of the full
 // wiki page response; powers the hover card rendered anywhere a
 // `[[slug]]` reference appears in markdown.

@@ -40,6 +40,8 @@ import type {
   RunnableArtifactsResponse,
   ReproductionsResponse,
   ConceptPreview,
+  CoachContext,
+  CoachSuggestionsResponse,
   NewsListResponse,
   NewsProposalsResponse,
   NewsReactionKind,
@@ -479,6 +481,15 @@ export const api = {
       }),
     relatedNewsSemantic: (slug: string) =>
       request<NewsRelatedResponse>(`/ai/news/related-semantic/${slug}`),
+    coachContext: (pageSlug?: string) => {
+      const qs = pageSlug ? `?pageSlug=${encodeURIComponent(pageSlug)}` : "";
+      return request<CoachContext>(`/ai/coach/context${qs}`);
+    },
+    coachSuggest: (pageSlug?: string) =>
+      request<CoachSuggestionsResponse>("/ai/coach/suggest", {
+        method: "POST",
+        body: JSON.stringify({ pageSlug }),
+      }),
   },
   achievements: {
     catalog: () => request<AchievementCatalogResponse>("/achievements/catalog"),

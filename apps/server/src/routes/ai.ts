@@ -4,7 +4,8 @@ import { z } from "zod";
 import { getAIProvider } from "@axiomic/ai";
 import { getDb, wikiPages, pageVersions, newsArticles, users } from "@axiomic/db";
 import { eq, desc, sql } from "drizzle-orm";
-import { getSessionUser } from "../middleware/auth";
+import { getSessionUser, requireAuth } from "../middleware/auth";
+import { buildCoachContext, summarizeCoachContext } from "../lib/userContext";
 
 const ai = new Hono();
 
@@ -69,6 +70,20 @@ ai.post("/chat", zValidator("json", chatSchema), async (c) => {
     }
   }
 
+  // Sprint 18 — fold the user's coaching context into the system
+  // prompt when we have a session. Keeps the chat behavior identical
+  // for anonymous viewers; signed-in users with mistakes / weak
+  // concepts get a Socratic, state-aware tutor.
+  let coachSummary = "";
+  if (user) {
+    try {
+      const ctx = buildCoachContext(user.id, { pageSlug });
+      coachSummary = summarizeCoachContext(ctx);
+    } catch {
+      // ignore — fall back to the generic prompt
+    }
+  }
+
   const system = `You are an AI tutor on the Axiomic learning platform. You are helping the user understand the topic "${pageTitle}".
 
 page: ${pageSlug}
@@ -82,7 +97,9 @@ Guidelines:
 - Reference specific parts of the page content when relevant
 - Be encouraging but precise
 - If asked to quiz, generate relevant questions
-- Format responses with markdown and LaTeX where appropriate`;
+- Format responses with markdown and LaTeX where appropriate${
+    coachSummary ? `\n\n${coachSummary}` : ""
+  }`;
 
   // SSE stream
   const stream = new ReadableStream({
@@ -866,5 +883,109 @@ Constraints:
     return streamingResponse(system, body.slice(0, 8000));
   },
 );
+
+// --- Coach: per-user context + ranked proactive suggestions --------
+//
+// Sprint 18. The sidebar calls /coach/context on mount to render a
+// "Quick checks" header (mistakes, due flashcards, prereq gaps) and
+// /coach/suggest to get 3-5 ranked CTAs. Both are auth-only because
+// the entire payload is per-user state.
+
+ai.get("/coach/context", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const pageSlug = c.req.query("pageSlug") || undefined;
+  const lite = c.req.query("lite") === "1";
+  const ctx = buildCoachContext(user.id, { pageSlug, lite });
+  return c.json(ctx);
+});
+
+const coachSuggestSchema = z.object({
+  pageSlug: z.string().optional(),
+});
+
+ai.post(
+  "/coach/suggest",
+  requireAuth,
+  zValidator("json", coachSuggestSchema),
+  async (c) => {
+    const user = c.get("user")!;
+    const { pageSlug } = c.req.valid("json");
+    if (!checkRateLimit(`coach-suggest:${user.id}`, 30, 60_000)) {
+      return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+    }
+
+    const ctx = buildCoachContext(user.id, { pageSlug });
+    const suggestions = rankSuggestions(ctx);
+    return c.json({ suggestions });
+  },
+);
+
+interface CoachSuggestion {
+  kind:
+    | "review_prereq"
+    | "review_mistake"
+    | "spaced_rep"
+    | "next_node"
+    | "primer";
+  title: string;
+  body: string;
+  ctaUrl: string;
+}
+
+// Rule-based ranker. Cheap, deterministic, and good enough — the LLM
+// gets to lean Socratic in the chat itself, but the suggestions are
+// just "what to do next" routed straight to the right URL. We cap at
+// 3 to keep the sidebar's quick-checks list short.
+function rankSuggestions(ctx: ReturnType<typeof buildCoachContext>): CoachSuggestion[] {
+  const out: CoachSuggestion[] = [];
+
+  if (ctx.prerequisiteGaps.length > 0) {
+    const gap = ctx.prerequisiteGaps[0];
+    out.push({
+      kind: "review_prereq",
+      title: `Brush up on ${gap.title} first`,
+      body:
+        "This page assumes some background you haven't completed yet. A quick lesson should make the rest land.",
+      ctaUrl: `/paths/${gap.pathSlug}/lessons/${gap.nodeSlug}`,
+    });
+  }
+
+  if (ctx.recentMistakes.length > 0) {
+    const m = ctx.recentMistakes[0];
+    out.push({
+      kind: "review_mistake",
+      title: `Replay a mistake from ${m.nodeSlug}`,
+      body: m.questionText
+        ? `You missed "${m.questionText}" ${m.occurrences}× recently.`
+        : `Open question that's tripped you up ${m.occurrences}×. Take another shot.`,
+      ctaUrl: `/paths/${m.pathSlug}/lessons/${m.nodeSlug}`,
+    });
+  }
+
+  if (ctx.dueFlashcards > 0) {
+    out.push({
+      kind: "spaced_rep",
+      title: `Review ${ctx.dueFlashcards} due card${ctx.dueFlashcards === 1 ? "" : "s"}`,
+      body: "5 minutes of spaced repetition keeps last week's lesson sticky.",
+      ctaUrl: "/flashcards",
+    });
+  }
+
+  if (ctx.currentLessonProgress) {
+    const { title, slideIdx, totalSlides, pathSlug, nodeSlug } =
+      ctx.currentLessonProgress;
+    out.push({
+      kind: "next_node",
+      title: `Pick up "${title}"`,
+      body:
+        totalSlides > 0
+          ? `You stopped on slide ${slideIdx + 1} of ${totalSlides}.`
+          : "You have an in-flight lesson — resume where you left off.",
+      ctaUrl: `/paths/${pathSlug}/lessons/${nodeSlug}`,
+    });
+  }
+
+  return out.slice(0, 3);
+}
 
 export { ai as aiRouter };

@@ -1,5 +1,11 @@
 import { useState, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Sparkles } from "lucide-react";
+import type { CoachSuggestion } from "@axiomic/types";
+import { api } from "../lib/api";
+import { useAuthStore } from "../stores/auth";
 import { MarkdownRenderer } from "./MarkdownRenderer";
+import { CoachSuggestionCard } from "./ai/CoachSuggestionCard";
 
 interface AISidebarProps {
   pageSlug: string;
@@ -15,9 +21,16 @@ interface Message {
 }
 
 export function AISidebar({ pageSlug, pageTitle, tier, isOpen, onClose }: AISidebarProps) {
+  const user = useAuthStore((s) => s.user);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
+  // Sprint 18 — proactive coach suggestions + due-flashcards CTA. The
+  // sidebar fetches both on open (signed-in only); failed loads stay
+  // silent so the chat behavior degrades cleanly to the older form.
+  const [suggestions, setSuggestions] = useState<CoachSuggestion[] | null>(null);
+  const [dueCards, setDueCards] = useState<number>(0);
+  const [dismissed, setDismissed] = useState<Set<number>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -28,6 +41,30 @@ export function AISidebar({ pageSlug, pageTitle, tier, isOpen, onClose }: AISide
   useEffect(() => {
     if (isOpen) inputRef.current?.focus();
   }, [isOpen]);
+
+  // Fetch coach context + ranked suggestions on open. We collapse them
+  // into a single API call each — buildCoachContext on the server is
+  // cheap, and the data is only valuable while the sidebar is open.
+  useEffect(() => {
+    if (!isOpen || !user) return;
+    let cancelled = false;
+    Promise.all([
+      api.ai.coachContext(pageSlug),
+      api.ai.coachSuggest(pageSlug),
+    ])
+      .then(([ctx, sug]) => {
+        if (cancelled) return;
+        setDueCards(ctx.dueFlashcards);
+        setSuggestions(sug.suggestions);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setSuggestions([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, user, pageSlug]);
 
   const handleSend = async () => {
     if (!input.trim() || streaming) return;
@@ -95,12 +132,22 @@ export function AISidebar({ pageSlug, pageTitle, tier, isOpen, onClose }: AISide
     }
   };
 
-  const suggestions = [
+  // Static fallback prompts, used when there's no proactive suggestion
+  // (e.g. signed-out viewers, or signed-in users with no mistakes /
+  // weak concepts yet). The proactive set takes precedence when
+  // present.
+  const fallbackPrompts = [
     "Explain this topic simply",
     "Quiz me on this",
     "What are the prerequisites?",
     "Give me a practice problem",
   ];
+
+  // Visible suggestions = ranked set minus anything the user dismissed
+  // this session. Memoize-light: cheap enough to recompute on render.
+  const visibleSuggestions = (suggestions ?? []).filter(
+    (_, i) => !dismissed.has(i),
+  );
 
   if (!isOpen) return null;
 
@@ -121,13 +168,49 @@ export function AISidebar({ pageSlug, pageTitle, tier, isOpen, onClose }: AISide
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
+        {/* Sprint 18 — proactive "Quick checks" header. Renders above
+            the empty-state prompt list so the user sees what to do
+            next before they have to type. Suggestions are ranked by
+            buildCoachContext / rankSuggestions on the server. */}
+        {messages.length === 0 && user && visibleSuggestions.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-primary">
+              <Sparkles className="w-3 h-3" strokeWidth={2} />
+              Quick checks for you
+            </div>
+            <div className="space-y-1.5">
+              {visibleSuggestions.map((s, i) => (
+                <CoachSuggestionCard
+                  key={`${s.kind}-${i}`}
+                  suggestion={s}
+                  onDismiss={() =>
+                    setDismissed((prev) => {
+                      const next = new Set(prev);
+                      next.add(suggestions!.indexOf(s));
+                      return next;
+                    })
+                  }
+                />
+              ))}
+            </div>
+            {dueCards > 0 && (
+              <Link
+                to="/flashcards"
+                className="block text-center text-xs px-3 py-2 rounded-md border border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20"
+              >
+                ⏰ Review {dueCards} due card{dueCards === 1 ? "" : "s"} (~5 min)
+              </Link>
+            )}
+          </div>
+        )}
+
         {messages.length === 0 && (
-          <div className="text-center py-8">
+          <div className="text-center py-4">
             <p className="text-muted-foreground text-sm mb-4">
               Ask me anything about <strong>{pageTitle}</strong>
             </p>
             <div className="space-y-2">
-              {suggestions.map((s) => (
+              {fallbackPrompts.map((s) => (
                 <button
                   key={s}
                   onClick={() => {
