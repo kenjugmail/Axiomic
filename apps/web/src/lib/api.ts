@@ -39,6 +39,7 @@ import type {
   CreateReproductionRequest,
   RunnableArtifactsResponse,
   ReproductionsResponse,
+  ConceptPreview,
   NewsListResponse,
   NewsProposalsResponse,
   NewsReactionKind,
@@ -592,6 +593,10 @@ export const api = {
         method: "POST",
         body: JSON.stringify(body),
       }),
+  },
+  concepts: {
+    preview: (slug: string) =>
+      request<ConceptPreview>(`/concepts/${slug}/preview`),
   },
   flashcards: {
     save: (data: { pageSlug: string; pageTitle: string; front: string; back: string }) =>

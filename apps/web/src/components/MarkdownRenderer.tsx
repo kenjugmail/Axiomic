@@ -6,6 +6,7 @@ import rehypeHighlight from "rehype-highlight";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import { Link } from "react-router-dom";
 import { VizEmbed } from "./VizEmbed";
+import { ConceptLink } from "./cross/ConceptLink";
 import "katex/dist/katex.min.css";
 
 interface MarkdownRendererProps {
@@ -28,30 +29,87 @@ const SAFE_PROTOCOLS = ["http:", "https:", "mailto:"];
 // server-side extractor in apps/server/src/lib/notifications.ts.
 const MENTION_RE = /(^|[^A-Za-z0-9_])@([A-Za-z0-9_]{3,32})(?=$|[^A-Za-z0-9_])/g;
 
-// Walk a text node and inject <Link> elements for any @mentions. This
-// runs only on prose text nodes (react-markdown calls `text` for these),
-// so inline code, fenced blocks, and KaTeX subtrees pass through
-// untouched.
+// Sprint 17 — `[[concept-slug]]` and `[[concept-slug|display text]]`
+// references. Slug rule mirrors the wiki-page constraint (lowercase
+// kebab-case starting with a letter or digit). Optional pipe-delimited
+// display text overrides what's shown in the link body. Exported so
+// tests can verify the parser independently.
+export const CONCEPT_LINK_RE =
+  /\[\[([a-z0-9][a-z0-9-]{0,80})(?:\|([^\]\n]{1,80}))?\]\]/g;
+
+// Walk a text node and inject <Link> elements for any @mentions and
+// inline ConceptLink popovers for any [[slug]] references. Both
+// patterns run on the same prose text nodes so inline code, fenced
+// blocks, and KaTeX subtrees pass through untouched.
 function renderTextWithMentions(text: string): (string | JSX.Element)[] {
-  if (!text || !text.includes("@")) return [text];
+  if (!text) return [text];
+  const hasMention = text.includes("@");
+  const hasConcept = text.includes("[[");
+  if (!hasMention && !hasConcept) return [text];
+
+  // Two-pass scan: collect every match (mention OR concept) with its
+  // [start, end) range and replacement node, then weave them back into
+  // the original string in order. Avoids double-wrapping when a match
+  // would overlap, and keeps the existing mention behavior intact.
+  type Hit = {
+    start: number;
+    end: number;
+    node: JSX.Element;
+  };
+  const hits: Hit[] = [];
+
+  if (hasMention) {
+    MENTION_RE.lastIndex = 0;
+    let m: RegExpExecArray | null;
+    while ((m = MENTION_RE.exec(text)) !== null) {
+      const [full, lead, name] = m;
+      const start = m.index + lead.length;
+      const end = m.index + full.length;
+      hits.push({
+        start,
+        end,
+        node: (
+          <Link
+            key={`m-${start}`}
+            to={`/profile/${name}`}
+            className="text-primary hover:underline"
+          >
+            @{name}
+          </Link>
+        ),
+      });
+    }
+  }
+
+  if (hasConcept) {
+    CONCEPT_LINK_RE.lastIndex = 0;
+    let m: RegExpExecArray | null;
+    while ((m = CONCEPT_LINK_RE.exec(text)) !== null) {
+      const [full, slug, display] = m;
+      hits.push({
+        start: m.index,
+        end: m.index + full.length,
+        node: (
+          <ConceptLink
+            key={`c-${m.index}`}
+            slug={slug}
+            display={display}
+          />
+        ),
+      });
+    }
+  }
+
+  if (hits.length === 0) return [text];
+  hits.sort((a, b) => a.start - b.start);
+
   const parts: (string | JSX.Element)[] = [];
   let lastIdx = 0;
-  let m: RegExpExecArray | null;
-  MENTION_RE.lastIndex = 0;
-  while ((m = MENTION_RE.exec(text)) !== null) {
-    const [full, lead, name] = m;
-    const start = m.index + lead.length;
-    if (start > lastIdx) parts.push(text.slice(lastIdx, start));
-    parts.push(
-      <Link
-        key={`m-${start}`}
-        to={`/profile/${name}`}
-        className="text-primary hover:underline"
-      >
-        @{name}
-      </Link>,
-    );
-    lastIdx = m.index + full.length;
+  for (const h of hits) {
+    if (h.start < lastIdx) continue; // skip overlapping (shouldn't happen)
+    if (h.start > lastIdx) parts.push(text.slice(lastIdx, h.start));
+    parts.push(h.node);
+    lastIdx = h.end;
   }
   if (lastIdx < text.length) parts.push(text.slice(lastIdx));
   return parts;

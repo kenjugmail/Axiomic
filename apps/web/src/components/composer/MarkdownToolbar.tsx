@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Bold,
+  BookOpen,
   Code,
   Heading,
   Image as ImageIcon,
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 import { VizPicker, type VizCatalogEntry } from "../lesson/VizPicker";
 import { uploadFile, type UploadResult } from "../../lib/uploads";
+import { api } from "../../lib/api";
 
 interface Props {
   // The textarea / contenteditable to insert into. We keep this loose
@@ -89,6 +91,49 @@ export function MarkdownToolbar({
 }: Props) {
   const [vizOpen, setVizOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  // Sprint 17 — concept-link picker. Clicking the button drops a
+  // small floating search box; selecting a result inserts a
+  // `[[slug]]` snippet at the caret. Reuses the existing wiki search
+  // endpoint (apps/server/src/routes/wiki.ts).
+  const [conceptPickerOpen, setConceptPickerOpen] = useState(false);
+  const [conceptQuery, setConceptQuery] = useState("");
+  const [conceptResults, setConceptResults] = useState<
+    Array<{ slug: string; title: string }>
+  >([]);
+  const conceptDebounceRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!conceptPickerOpen) {
+      setConceptResults([]);
+      return;
+    }
+    if (conceptDebounceRef.current) {
+      window.clearTimeout(conceptDebounceRef.current);
+    }
+    const q = conceptQuery.trim();
+    if (q.length < 2) {
+      setConceptResults([]);
+      return;
+    }
+    conceptDebounceRef.current = window.setTimeout(() => {
+      api.wiki
+        .search(q)
+        .then((r) =>
+          setConceptResults(
+            r.results.slice(0, 6).map((p: any) => ({
+              slug: p.slug,
+              title: p.title,
+            })),
+          ),
+        )
+        .catch(() => setConceptResults([]));
+    }, 150);
+    return () => {
+      if (conceptDebounceRef.current) {
+        window.clearTimeout(conceptDebounceRef.current);
+      }
+    };
+  }, [conceptQuery, conceptPickerOpen]);
 
   const ta = () => textareaRef.current;
 
@@ -118,6 +163,28 @@ export function MarkdownToolbar({
     } finally {
       setUploading(false);
     }
+  };
+
+  const onPickConcept = (slug: string) => {
+    if (!ta()) return;
+    const t = ta()!;
+    const value = t.value;
+    const start = t.selectionStart;
+    const end = t.selectionEnd;
+    const selected = value.slice(start, end);
+    // Selected text becomes the display label; otherwise just the slug.
+    const snippet =
+      selected && selected !== slug ? `[[${slug}|${selected}]]` : `[[${slug}]]`;
+    const next = value.slice(0, start) + snippet + value.slice(end);
+    onChange(next);
+    setConceptPickerOpen(false);
+    setConceptQuery("");
+    setConceptResults([]);
+    requestAnimationFrame(() => {
+      t.focus();
+      const cursor = start + snippet.length;
+      t.setSelectionRange(cursor, cursor);
+    });
   };
 
   const onPickViz = (entry: VizCatalogEntry) => {
@@ -243,6 +310,63 @@ export function MarkdownToolbar({
           </label>
         </>
       )}
+
+      <div className="w-px h-5 bg-border mx-1" />
+      {/* Sprint 17 — concept-link picker. Inserts `[[slug]]` (or
+          `[[slug|selected text]]` when there's a selection) so prose
+          across wiki / forum / news / lessons cross-links to wiki
+          concepts with hover previews. */}
+      <div className="relative">
+        <button
+          type="button"
+          title="Link to a concept"
+          onClick={() => setConceptPickerOpen((v) => !v)}
+          className={`${btnClass} inline-flex items-center gap-1`}
+        >
+          <BookOpen className="w-3.5 h-3.5" strokeWidth={2} />
+          <span className="text-[11px]">concept</span>
+        </button>
+        {conceptPickerOpen && (
+          <div className="absolute top-full left-0 mt-1 z-30 w-64 rounded-md border border-border bg-card shadow-floating p-1.5">
+            <input
+              autoFocus
+              value={conceptQuery}
+              onChange={(e) => setConceptQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  setConceptPickerOpen(false);
+                  setConceptQuery("");
+                }
+              }}
+              placeholder="Search concepts…"
+              className="w-full px-2 py-1 rounded border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            <div className="mt-1 max-h-56 overflow-y-auto">
+              {conceptResults.length === 0 ? (
+                <p className="text-xs text-muted-foreground p-2 italic">
+                  {conceptQuery.length < 2
+                    ? "Type to search wiki pages."
+                    : "No matches."}
+                </p>
+              ) : (
+                conceptResults.map((r) => (
+                  <button
+                    key={r.slug}
+                    type="button"
+                    onClick={() => onPickConcept(r.slug)}
+                    className="w-full text-left px-2 py-1 rounded hover:bg-accent/40"
+                  >
+                    <div className="text-sm font-medium">{r.title}</div>
+                    <div className="text-[10px] font-mono text-muted-foreground">
+                      [[{r.slug}]]
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+      </div>
 
       {showVizButton && (
         <>

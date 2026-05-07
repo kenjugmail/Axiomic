@@ -54,6 +54,39 @@ export interface MasteryPath {
   description: string;
 }
 
+// Sprint 17 — Concept preview payload. Cheap subset of the full
+// wiki page response; powers the hover card rendered anywhere a
+// `[[slug]]` reference appears in markdown.
+export type ConceptMasteryStatus =
+  | "not_started"
+  | "in_progress"
+  | "completed";
+
+export interface ConceptPreview {
+  slug: string;
+  title: string;
+  category: string;
+  // First non-empty paragraph of the intro tier, stripped of markdown.
+  // Empty string when no intro content yet.
+  oneLineDef: string;
+  // Number of forum threads tagged to this wiki page.
+  threadCount: number;
+  // The first mastery node teaching this concept (when one exists),
+  // used for the "Practice this" CTA inside the card.
+  nodeRef: {
+    nodeId: string;
+    nodeSlug: string;
+    pathSlug: string;
+    pathTitle: string;
+    title: string;
+    level: string;
+    hasLesson: boolean;
+  } | null;
+  // Per-user mastery on the linked node — null for anonymous viewers
+  // or when no mastery node references this concept.
+  masteryStatus: ConceptMasteryStatus | null;
+}
+
 // Lightweight forum topic shape used in cross-link rails (no
 // per-topic vote counts or scores; just enough for the chip).
 export interface LinkedTopicLite {
