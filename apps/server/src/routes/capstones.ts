@@ -17,12 +17,13 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import {
   capstoneEnrollments,
   capstoneMilestones,
   capstoneSubmissions,
+  capstoneVersions,
   capstones,
   getDb,
   users,
@@ -36,6 +37,7 @@ import {
   toPlainText,
   type CitationSource,
 } from "../lib/citations";
+import { snapshotCapstone } from "../lib/versionSnapshots";
 import type { Env } from "../env";
 
 export const capstonesRouter = new Hono<Env>();
@@ -553,6 +555,9 @@ capstonesRouter.post(
       .run();
 
     invalidateSearchIndex();
+    if (data.status === "published") {
+      snapshotCapstone(id, { editedBy: user.id, editMessage: "Initial publication" });
+    }
     return c.json({ capstoneId: id, slug: data.slug }, 201);
   },
 );
@@ -569,7 +574,11 @@ capstonesRouter.put(
     const db = getDb();
 
     const existing = db
-      .select({ id: capstones.id, authorId: capstones.authorId })
+      .select({
+        id: capstones.id,
+        authorId: capstones.authorId,
+        status: capstones.status,
+      })
       .from(capstones)
       .where(eq(capstones.slug, slug))
       .get();
@@ -606,9 +615,123 @@ capstonesRouter.put(
       .run();
 
     invalidateSearchIndex();
+    const nowPublished =
+      (data.status ?? existing.status) === "published";
+    if (nowPublished) {
+      snapshotCapstone(existing.id, {
+        editedBy: user.id,
+        editMessage:
+          existing.status !== "published" && data.status === "published"
+            ? "Initial publication"
+            : null,
+      });
+    }
     return c.json({ ok: true });
   },
 );
+
+// Sprint 35 — Versions list + per-version snapshot endpoints.
+capstonesRouter.get("/:slug/versions", async (c) => {
+  const slug = c.req.param("slug")!;
+  const db = getDb();
+  const cap = db
+    .select({
+      id: capstones.id,
+      status: capstones.status,
+      currentVersion: capstones.currentVersion,
+    })
+    .from(capstones)
+    .where(eq(capstones.slug, slug))
+    .get();
+  if (!cap || cap.status !== "published") {
+    return c.json({ error: "Capstone not found" }, 404);
+  }
+  const rows = db
+    .select({
+      version: capstoneVersions.version,
+      title: capstoneVersions.title,
+      editedBy: capstoneVersions.editedBy,
+      editMessage: capstoneVersions.editMessage,
+      createdAt: capstoneVersions.createdAt,
+    })
+    .from(capstoneVersions)
+    .where(eq(capstoneVersions.capstoneId, cap.id))
+    .orderBy(asc(capstoneVersions.version))
+    .all();
+  const editorIds = [
+    ...new Set(rows.map((r) => r.editedBy).filter((x): x is string => !!x)),
+  ];
+  const editors = editorIds.length
+    ? db
+        .select({ id: users.id, username: users.username })
+        .from(users)
+        .where(inArray(users.id, editorIds))
+        .all()
+    : [];
+  const usernameById = new Map(editors.map((e) => [e.id, e.username]));
+  return c.json({
+    currentVersion: cap.currentVersion,
+    versions: rows.map((r) => ({
+      version: r.version,
+      title: r.title,
+      editorUsername: r.editedBy ? usernameById.get(r.editedBy) ?? null : null,
+      editMessage: r.editMessage,
+      createdAt: r.createdAt,
+    })),
+  });
+});
+
+capstonesRouter.get("/:slug/versions/:n", async (c) => {
+  const slug = c.req.param("slug")!;
+  const n = parseInt(c.req.param("n") ?? "0", 10);
+  if (!Number.isFinite(n) || n < 1) {
+    return c.json({ error: "Invalid version" }, 400);
+  }
+  const db = getDb();
+  const cap = db
+    .select({ id: capstones.id, status: capstones.status })
+    .from(capstones)
+    .where(eq(capstones.slug, slug))
+    .get();
+  if (!cap || cap.status !== "published") {
+    return c.json({ error: "Capstone not found" }, 404);
+  }
+  const v = db
+    .select()
+    .from(capstoneVersions)
+    .where(
+      and(
+        eq(capstoneVersions.capstoneId, cap.id),
+        eq(capstoneVersions.version, n),
+      ),
+    )
+    .get();
+  if (!v) return c.json({ error: "Version not found" }, 404);
+  let milestones: any[] = [];
+  try {
+    const parsed = JSON.parse(v.milestonesJson);
+    if (Array.isArray(parsed)) milestones = parsed;
+  } catch {}
+  const editor = v.editedBy
+    ? db
+        .select({ username: users.username })
+        .from(users)
+        .where(eq(users.id, v.editedBy))
+        .get()
+    : null;
+  return c.json({
+    version: v.version,
+    title: v.title,
+    summary: v.summary,
+    contentIntro: v.contentIntro,
+    contentUndergrad: v.contentUndergrad,
+    contentGrad: v.contentGrad,
+    milestones,
+    editorUsername: editor?.username ?? null,
+    editMessage: v.editMessage,
+    createdAt: v.createdAt,
+  });
+});
 
 // --- milestones ----------------------------------------------------
 
@@ -998,6 +1121,7 @@ async function loadCapstoneDto(
       coverEmoji: capstones.coverEmoji,
       accentColor: capstones.accentColor,
       status: capstones.status,
+      currentVersion: capstones.currentVersion,
       authorId: capstones.authorId,
       authorUsername: users.username,
       authorDisplayName: users.displayName,
@@ -1084,6 +1208,7 @@ async function loadCapstoneDto(
       createdAt: m.createdAt,
     })),
     myEnrollment,
+    currentVersion: row.currentVersion,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };

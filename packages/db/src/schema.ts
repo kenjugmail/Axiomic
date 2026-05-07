@@ -867,6 +867,9 @@ export const researchPapers = sqliteTable("research_papers", {
   // 'draft' | 'published'
   status: text("status").notNull().default("draft"),
   tags: text("tags").notNull().default("[]"),
+  // Sprint 35 — bumped each time a published paper is edited; tracked
+  // alongside the per-version snapshot in research_paper_versions.
+  currentVersion: integer("current_version").notNull().default(1),
   authorId: text("author_id").notNull().references(() => users.id),
   lastEditorId: text("last_editor_id").references(() => users.id),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
@@ -874,6 +877,33 @@ export const researchPapers = sqliteTable("research_papers", {
 }, (t) => ({
   authorIdx: index("research_papers_author_idx").on(t.authorId, t.createdAt),
   statusIdx: index("research_papers_status_idx").on(t.status, t.createdAt),
+}));
+
+// Sprint 35 — Versioned research papers. Snapshot every published
+// edit so external citations can pin to a specific version (`v=2`)
+// and readers can diff versions side-by-side. Drafts do NOT create
+// versions; a version row is appended only when the paper transitions
+// to / re-publishes the 'published' status.
+export const researchPaperVersions = sqliteTable("research_paper_versions", {
+  id: text("id").primaryKey(),
+  paperId: text("paper_id")
+    .notNull()
+    .references(() => researchPapers.id, { onDelete: "cascade" }),
+  version: integer("version").notNull(),
+  title: text("title").notNull(),
+  summary: text("summary").notNull().default(""),
+  abstract: text("abstract").notNull().default(""),
+  contentIntro: text("content_intro").notNull().default(""),
+  contentUndergrad: text("content_undergrad").notNull().default(""),
+  contentGrad: text("content_grad").notNull().default(""),
+  paperStructureJson: text("paper_structure_json").notNull().default("{}"),
+  referencesJson: text("references_json").notNull().default("[]"),
+  editedBy: text("edited_by").references(() => users.id),
+  editMessage: text("edit_message"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  pk: uniqueIndex("research_paper_versions_pk").on(t.paperId, t.version),
+  paperIdx: index("research_paper_versions_paper_idx").on(t.paperId, t.version),
 }));
 
 // Capstones (Sprint 26). A capstone is a thesis-scale (4-12 week)
@@ -909,6 +939,8 @@ export const capstones = sqliteTable("capstones", {
   accentColor: text("accent_color").notNull().default("violet"),
   // 'draft' | 'published'
   status: text("status").notNull().default("draft"),
+  // Sprint 35 — bumped each time a published capstone is edited.
+  currentVersion: integer("current_version").notNull().default(1),
   authorId: text("author_id").notNull().references(() => users.id),
   lastEditorId: text("last_editor_id").references(() => users.id),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
@@ -916,6 +948,32 @@ export const capstones = sqliteTable("capstones", {
 }, (t) => ({
   authorIdx: index("capstones_author_idx").on(t.authorId, t.createdAt),
   statusIdx: index("capstones_status_idx").on(t.status, t.createdAt),
+}));
+
+// Sprint 35 — Versioned capstones. Snapshots the brief on every
+// published edit so external citations can pin to a specific version
+// and the artifact page reader can show what changed since enrollment.
+export const capstoneVersions = sqliteTable("capstone_versions", {
+  id: text("id").primaryKey(),
+  capstoneId: text("capstone_id")
+    .notNull()
+    .references(() => capstones.id, { onDelete: "cascade" }),
+  version: integer("version").notNull(),
+  title: text("title").notNull(),
+  summary: text("summary").notNull().default(""),
+  contentIntro: text("content_intro").notNull().default(""),
+  contentUndergrad: text("content_undergrad").notNull().default(""),
+  contentGrad: text("content_grad").notNull().default(""),
+  // Snapshot of the milestone list at this version (JSON: array of
+  // milestones with title + description + rubric). Lets readers diff
+  // structural changes, not just brief copy.
+  milestonesJson: text("milestones_json").notNull().default("[]"),
+  editedBy: text("edited_by").references(() => users.id),
+  editMessage: text("edit_message"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  pk: uniqueIndex("capstone_versions_pk").on(t.capstoneId, t.version),
+  capstoneIdx: index("capstone_versions_capstone_idx").on(t.capstoneId, t.version),
 }));
 
 // Per-capstone milestone. Ordered linearly via `order`. Each milestone

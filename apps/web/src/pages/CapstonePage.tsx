@@ -7,7 +7,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { BookMarked, GraduationCap, ChevronRight, Sparkles, Lock, ListChecks } from "lucide-react";
+import { BookMarked, GraduationCap, ChevronRight, History, Sparkles, Lock, ListChecks } from "lucide-react";
 import type { Capstone, CapstoneTier } from "@axiomic/types";
 import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
@@ -150,6 +150,17 @@ export function CapstonePage() {
               Cite
             </button>
           )}
+          {capstone.status === "published" &&
+            capstone.currentVersion &&
+            capstone.currentVersion > 1 && (
+              <Link
+                to={`/capstones/${capstone.slug}/versions`}
+                className="text-xs px-2 py-1 rounded border border-border hover:bg-accent/40 inline-flex items-center gap-1"
+              >
+                <History className="w-3 h-3" strokeWidth={2} />
+                v{capstone.currentVersion}
+              </Link>
+            )}
           {capstone.isAuthor && (
             <Link
               to={`/capstones/${capstone.slug}/edit`}

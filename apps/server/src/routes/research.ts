@@ -12,13 +12,14 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { and, asc, desc, eq, isNull, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import {
   claimThreads,
   getDb,
   newsComments,
   researchPapers,
+  researchPaperVersions,
   reproductions,
   runnableArtifacts,
   users,
@@ -33,6 +34,7 @@ import {
   toPlainText,
   type CitationSource,
 } from "../lib/citations";
+import { snapshotResearchPaper } from "../lib/versionSnapshots";
 import type { Env } from "../env";
 
 export const researchRouter = new Hono<Env>();
@@ -347,6 +349,7 @@ researchRouter.get("/:slug", async (c) => {
       contentIntro: researchPapers.contentIntro,
       contentUndergrad: researchPapers.contentUndergrad,
       contentGrad: researchPapers.contentGrad,
+      currentVersion: researchPapers.currentVersion,
       canonicalTier: researchPapers.canonicalTier,
       paperStructureJson: researchPapers.paperStructureJson,
       referencesJson: researchPapers.referencesJson,
@@ -469,6 +472,7 @@ researchRouter.get("/:slug", async (c) => {
       authorUsername: row.authorUsername,
       authorDisplayName: row.authorDisplayName,
       lastEditorUsername: editor?.username ?? null,
+      currentVersion: row.currentVersion,
       readingMinutes: readingMinutes(picked.content),
       isAuthor,
       artifacts,
@@ -605,6 +609,11 @@ researchRouter.post(
       .run();
 
     invalidateSearchIndex();
+    if (data.status === "published") {
+      // First publish gets the version-1 snapshot. snapshotResearchPaper
+      // is a no-op for non-published rows, so this is safe.
+      snapshotResearchPaper(id, { editedBy: user.id, editMessage: "Initial publication" });
+    }
     return c.json({ paperId: id, slug: data.slug }, 201);
   },
 );
@@ -620,7 +629,11 @@ researchRouter.put(
     const db = getDb();
 
     const existing = db
-      .select({ id: researchPapers.id, authorId: researchPapers.authorId })
+      .select({
+        id: researchPapers.id,
+        authorId: researchPapers.authorId,
+        status: researchPapers.status,
+      })
       .from(researchPapers)
       .where(eq(researchPapers.slug, slug))
       .get();
@@ -662,9 +675,132 @@ researchRouter.put(
       .run();
 
     invalidateSearchIndex();
+
+    // Sprint 35 — snapshot a new version when the row is currently
+    // published OR when this update transitions a draft to published.
+    const nowPublished =
+      (data.status ?? existing.status) === "published";
+    if (nowPublished) {
+      snapshotResearchPaper(existing.id, {
+        editedBy: user.id,
+        editMessage:
+          existing.status !== "published" && data.status === "published"
+            ? "Initial publication"
+            : null,
+      });
+    }
     return c.json({ ok: true });
   },
 );
+
+// Sprint 35 — Versions list + per-version snapshot endpoints.
+//
+// GET /research/:slug/versions returns the version history for a
+// published paper (oldest → newest). Each entry carries a slim
+// summary; full content is fetched via .../versions/:n.
+researchRouter.get("/:slug/versions", async (c) => {
+  const slug = c.req.param("slug")!;
+  const db = getDb();
+  const paper = db
+    .select({
+      id: researchPapers.id,
+      status: researchPapers.status,
+      currentVersion: researchPapers.currentVersion,
+    })
+    .from(researchPapers)
+    .where(eq(researchPapers.slug, slug))
+    .get();
+  if (!paper) return c.json({ error: "Paper not found" }, 404);
+  if (paper.status !== "published") {
+    return c.json({ error: "Paper not found" }, 404);
+  }
+
+  const rows = db
+    .select({
+      version: researchPaperVersions.version,
+      title: researchPaperVersions.title,
+      editedBy: researchPaperVersions.editedBy,
+      editMessage: researchPaperVersions.editMessage,
+      createdAt: researchPaperVersions.createdAt,
+    })
+    .from(researchPaperVersions)
+    .where(eq(researchPaperVersions.paperId, paper.id))
+    .orderBy(asc(researchPaperVersions.version))
+    .all();
+
+  const editorIds = [
+    ...new Set(rows.map((r) => r.editedBy).filter((x): x is string => !!x)),
+  ];
+  const editors = editorIds.length
+    ? db
+        .select({ id: users.id, username: users.username })
+        .from(users)
+        .where(inArray(users.id, editorIds))
+        .all()
+    : [];
+  const usernameById = new Map(editors.map((e) => [e.id, e.username]));
+
+  return c.json({
+    currentVersion: paper.currentVersion,
+    versions: rows.map((r) => ({
+      version: r.version,
+      title: r.title,
+      editorUsername: r.editedBy ? usernameById.get(r.editedBy) ?? null : null,
+      editMessage: r.editMessage,
+      createdAt: r.createdAt,
+    })),
+  });
+});
+
+researchRouter.get("/:slug/versions/:n", async (c) => {
+  const slug = c.req.param("slug")!;
+  const n = parseInt(c.req.param("n") ?? "0", 10);
+  if (!Number.isFinite(n) || n < 1) {
+    return c.json({ error: "Invalid version" }, 400);
+  }
+  const db = getDb();
+  const paper = db
+    .select({ id: researchPapers.id, status: researchPapers.status })
+    .from(researchPapers)
+    .where(eq(researchPapers.slug, slug))
+    .get();
+  if (!paper) return c.json({ error: "Paper not found" }, 404);
+  if (paper.status !== "published") {
+    return c.json({ error: "Paper not found" }, 404);
+  }
+  const v = db
+    .select()
+    .from(researchPaperVersions)
+    .where(
+      and(
+        eq(researchPaperVersions.paperId, paper.id),
+        eq(researchPaperVersions.version, n),
+      ),
+    )
+    .get();
+  if (!v) return c.json({ error: "Version not found" }, 404);
+  const editor = v.editedBy
+    ? db
+        .select({ username: users.username })
+        .from(users)
+        .where(eq(users.id, v.editedBy))
+        .get()
+    : null;
+  return c.json({
+    version: v.version,
+    title: v.title,
+    summary: v.summary,
+    abstract: v.abstract,
+    contentIntro: v.contentIntro,
+    contentUndergrad: v.contentUndergrad,
+    contentGrad: v.contentGrad,
+    paperStructure: safeParsePaperStructure(v.paperStructureJson),
+    references: parseReferences(v.referencesJson),
+    editorUsername: editor?.username ?? null,
+    editMessage: v.editMessage,
+    createdAt: v.createdAt,
+  });
+});
 
 // --- Sprint 23 — research-paper comments (polymorphic on news_comments)
 //

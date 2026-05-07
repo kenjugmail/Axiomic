@@ -60,6 +60,9 @@ import type {
   WeakConceptsResponse,
   PrereqXrayResponse,
   KnowledgeMri,
+  VersionListResponse,
+  ResearchPaperVersionResponse,
+  CapstoneVersionResponse,
   PortfolioResponse,
   PaperOutlineRequest,
   PaperDraftSectionRequest,
@@ -426,6 +429,20 @@ export const api = {
       request<{
         users: Array<{ username: string; displayName: string | null }>;
       }>(`/users?q=${encodeURIComponent(q)}`),
+  },
+  versions: {
+    paperList: (slug: string) =>
+      request<VersionListResponse>(`/research/${slug}/versions`),
+    paperGet: (slug: string, version: number) =>
+      request<ResearchPaperVersionResponse>(
+        `/research/${slug}/versions/${version}`,
+      ),
+    capstoneList: (slug: string) =>
+      request<VersionListResponse>(`/capstones/${slug}/versions`),
+    capstoneGet: (slug: string, version: number) =>
+      request<CapstoneVersionResponse>(
+        `/capstones/${slug}/versions/${version}`,
+      ),
   },
   citations: {
     paper: (slug: string) =>

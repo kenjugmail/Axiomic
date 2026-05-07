@@ -179,6 +179,13 @@ const WeakConceptsPage = lazy(() =>
 const KnowledgeMRIPage = lazy(() =>
   import("./pages/KnowledgeMRIPage").then((m) => ({ default: m.KnowledgeMRIPage })),
 );
+// Sprint 35 — version history + frozen-version snapshot reader.
+const VersionsPage = lazy(() =>
+  import("./pages/VersionsPage").then((m) => ({ default: m.VersionsPage })),
+);
+const PaperVersionPage = lazy(() =>
+  import("./pages/PaperVersionPage").then((m) => ({ default: m.PaperVersionPage })),
+);
 
 function PageFallback() {
   return (
@@ -264,6 +271,9 @@ export function App() {
           <Route path="/research/me/drafts" element={<ResearchDraftsPage />} />
           <Route path="/research/:slug" element={<ResearchPaperPage />} />
           <Route path="/research/:slug/edit" element={<ResearchEditPage />} />
+          <Route path="/research/:slug/versions" element={<VersionsPage />} />
+          <Route path="/research/:slug/v/:n" element={<PaperVersionPage />} />
+          <Route path="/capstones/:slug/versions" element={<VersionsPage />} />
           <Route path="/flashcards" element={<FlashcardsPage />} />
           <Route path="/capstones" element={<CapstonesListPage />} />
           <Route path="/capstones/new" element={<CapstoneNewPage />} />

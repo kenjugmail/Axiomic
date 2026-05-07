@@ -203,6 +203,58 @@ export interface ResearchPaper extends ResearchPaperSummary {
   // Sprint 32 — wiki slugs referenced from the body. Renders the
   // PrereqXray strip above the abstract.
   prereqWikiSlugs?: string[];
+  // Sprint 35 — current published version number. Increments on each
+  // publish; older versions accessible via /research/:slug/versions.
+  currentVersion?: number;
+}
+
+// Sprint 35 — version metadata.
+export interface VersionListEntry {
+  version: number;
+  title: string;
+  editorUsername: string | null;
+  editMessage: string | null;
+  createdAt: string;
+}
+
+export interface VersionListResponse {
+  currentVersion: number;
+  versions: VersionListEntry[];
+}
+
+export interface ResearchPaperVersionResponse {
+  version: number;
+  title: string;
+  summary: string;
+  abstract: string;
+  contentIntro: string;
+  contentUndergrad: string;
+  contentGrad: string;
+  paperStructure: ResearchPaperStructure;
+  references: ResearchPaperReference[];
+  editorUsername: string | null;
+  editMessage: string | null;
+  createdAt: string;
+}
+
+export interface CapstoneVersionResponse {
+  version: number;
+  title: string;
+  summary: string;
+  contentIntro: string;
+  contentUndergrad: string;
+  contentGrad: string;
+  milestones: Array<{
+    id: string;
+    order: number;
+    title: string;
+    description: string;
+    rubricJson: string;
+    requiredArtifactKinds: string;
+  }>;
+  editorUsername: string | null;
+  editMessage: string | null;
+  createdAt: string;
 }
 
 export interface ResearchPapersListResponse {
@@ -1867,6 +1919,7 @@ export interface Capstone {
   isAuthor: boolean;
   milestones: CapstoneMilestone[];
   myEnrollment: CapstoneMyEnrollmentSummary | null;
+  currentVersion?: number;
   createdAt: string;
   updatedAt: string;
 }

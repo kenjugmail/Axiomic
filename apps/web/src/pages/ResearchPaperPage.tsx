@@ -7,7 +7,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { BookMarked, CheckCircle2, Pencil, Sparkles } from "lucide-react";
+import { BookMarked, CheckCircle2, History, Pencil, Sparkles } from "lucide-react";
 import type {
   ClaimThread,
   ResearchPaper,
@@ -279,6 +279,17 @@ export function ResearchPaperPage() {
             Cite
           </button>
         )}
+        {paper.status === "published" &&
+          paper.currentVersion &&
+          paper.currentVersion > 1 && (
+            <Link
+              to={`/research/${paper.slug}/versions`}
+              className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40 inline-flex items-center gap-1.5"
+            >
+              <History className="w-3 h-3" strokeWidth={2} />
+              v{paper.currentVersion} · history
+            </Link>
+          )}
         {paper.isAuthor && paper.status === "draft" && (
           <span className="text-xs px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/40">
             Draft · only you see this
