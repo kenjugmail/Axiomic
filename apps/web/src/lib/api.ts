@@ -42,6 +42,11 @@ import type {
   ConceptPreview,
   CoachContext,
   CoachSuggestionsResponse,
+  CreateResearchPaperRequest,
+  ResearchPaperResponse,
+  ResearchPapersDraftsResponse,
+  ResearchPapersListResponse,
+  UpdateResearchPaperRequest,
   NewsListResponse,
   NewsProposalsResponse,
   NewsReactionKind,
@@ -608,6 +613,33 @@ export const api = {
   concepts: {
     preview: (slug: string) =>
       request<ConceptPreview>(`/concepts/${slug}/preview`),
+  },
+  research: {
+    list: (params?: { tag?: string; format?: string }) => {
+      const sp = new URLSearchParams();
+      if (params?.tag) sp.set("tag", params.tag);
+      if (params?.format) sp.set("format", params.format);
+      const qs = sp.toString();
+      return request<ResearchPapersListResponse>(
+        `/research${qs ? `?${qs}` : ""}`,
+      );
+    },
+    drafts: () =>
+      request<ResearchPapersDraftsResponse>("/research/me/drafts"),
+    get: (slug: string, tier?: "intro" | "undergrad" | "grad") => {
+      const qs = tier ? `?tier=${tier}` : "";
+      return request<ResearchPaperResponse>(`/research/${slug}${qs}`);
+    },
+    create: (data: CreateResearchPaperRequest) =>
+      request<{ paperId: string; slug: string }>("/research", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    update: (slug: string, data: UpdateResearchPaperRequest) =>
+      request<OkResponse>(`/research/${slug}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
   },
   flashcards: {
     save: (data: { pageSlug: string; pageTitle: string; front: string; back: string }) =>

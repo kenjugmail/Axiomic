@@ -768,3 +768,57 @@ export const attachments = sqliteTable(
     ownerIdx: index("attachments_owner_idx").on(t.ownerId, t.createdAt),
   }),
 );
+
+// Research papers (Sprint 20). Distinct from news_articles in three
+// concrete ways:
+//
+//   - Tiered content: intro / undergrad / grad bodies stored side by
+//     side, like wiki_pages. The reader picks a tier; the author
+//     marks one as canonical.
+//   - Paper-structure metadata: optional research question, hypothesis,
+//     method, results, discussion, future-work fields rendered as a
+//     structured panel above the body.
+//   - Format flag: research / explainer / survey / opinion drives a
+//     handful of default sections + visual flourishes.
+//
+// Otherwise mirrors the news_articles shape (abstract, references,
+// coauthors, status, tags, slug, accent + emoji) so the existing
+// authoring patterns port cleanly. Comments / claim threads /
+// artifacts / reproductions do NOT yet attach to research papers in
+// v1 — those come back in a follow-up sprint once readers exist.
+export const researchPapers = sqliteTable("research_papers", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  summary: text("summary").notNull().default(""),
+  // 'research' | 'explainer' | 'survey' | 'opinion'
+  format: text("format").notNull().default("research"),
+  // Long-form intro paragraph rendered above the tier bodies.
+  abstract: text("abstract").notNull().default(""),
+  // The three-tier bodies. Either or both of intro / grad may be empty
+  // when the author hasn't drafted them yet — the reader's tier toggle
+  // hides empty tiers gracefully.
+  contentIntro: text("content_intro").notNull().default(""),
+  contentUndergrad: text("content_undergrad").notNull().default(""),
+  contentGrad: text("content_grad").notNull().default(""),
+  // Which tier is the source of truth — used by the wizard's
+  // derive-tier step. 'intro' | 'undergrad' | 'grad'.
+  canonicalTier: text("canonical_tier").notNull().default("undergrad"),
+  // Optional structured metadata: { researchQuestion, hypothesis,
+  // method, results, discussion, futureWork }. JSON.
+  paperStructureJson: text("paper_structure_json").notNull().default("{}"),
+  referencesJson: text("references_json").notNull().default("[]"),
+  coauthorsJson: text("coauthors_json").notNull().default("[]"),
+  coverEmoji: text("cover_emoji").notNull().default("📄"),
+  accentColor: text("accent_color").notNull().default("violet"),
+  // 'draft' | 'published'
+  status: text("status").notNull().default("draft"),
+  tags: text("tags").notNull().default("[]"),
+  authorId: text("author_id").notNull().references(() => users.id),
+  lastEditorId: text("last_editor_id").references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  authorIdx: index("research_papers_author_idx").on(t.authorId, t.createdAt),
+  statusIdx: index("research_papers_status_idx").on(t.status, t.createdAt),
+}));

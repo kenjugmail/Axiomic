@@ -129,6 +129,21 @@ const AttachmentsPage = lazy(() =>
 const DemoAttentionPage = lazy(() =>
   import("./pages/DemoAttentionPage").then((m) => ({ default: m.DemoAttentionPage })),
 );
+const ResearchListPage = lazy(() =>
+  import("./pages/ResearchListPage").then((m) => ({ default: m.ResearchListPage })),
+);
+const ResearchPaperPage = lazy(() =>
+  import("./pages/ResearchPaperPage").then((m) => ({ default: m.ResearchPaperPage })),
+);
+const ResearchNewPage = lazy(() =>
+  import("./pages/ResearchNewPage").then((m) => ({ default: m.ResearchNewPage })),
+);
+const ResearchEditPage = lazy(() =>
+  import("./pages/ResearchEditPage").then((m) => ({ default: m.ResearchEditPage })),
+);
+const ResearchDraftsPage = lazy(() =>
+  import("./pages/ResearchDraftsPage").then((m) => ({ default: m.ResearchDraftsPage })),
+);
 const FlashcardsPage = lazy(() =>
   import("./pages/FlashcardsPage").then((m) => ({ default: m.FlashcardsPage })),
 );
@@ -211,6 +226,11 @@ export function App() {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/settings/attachments" element={<AttachmentsPage />} />
           <Route path="/demo/attention" element={<DemoAttentionPage />} />
+          <Route path="/research" element={<ResearchListPage />} />
+          <Route path="/research/new" element={<ResearchNewPage />} />
+          <Route path="/research/me/drafts" element={<ResearchDraftsPage />} />
+          <Route path="/research/:slug" element={<ResearchPaperPage />} />
+          <Route path="/research/:slug/edit" element={<ResearchEditPage />} />
           <Route path="/flashcards" element={<FlashcardsPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>

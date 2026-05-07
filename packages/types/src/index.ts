@@ -111,6 +111,142 @@ export interface CoachSuggestionsResponse {
   suggestions: CoachSuggestion[];
 }
 
+// Sprint 20 — Research papers. A first-class authoring surface
+// distinct from news: tiered content (intro / undergrad / grad)
+// stored side-by-side, paper-structure metadata fields, and a format
+// flag (research / explainer / survey / opinion).
+export type ResearchPaperTier = "intro" | "undergrad" | "grad";
+export type ResearchPaperFormat =
+  | "research"
+  | "explainer"
+  | "survey"
+  | "opinion";
+export type ResearchPaperStatus = "draft" | "published";
+export type ResearchPaperAccent =
+  | "indigo"
+  | "emerald"
+  | "rose"
+  | "amber"
+  | "sky"
+  | "violet";
+
+export interface ResearchPaperReference {
+  label?: string;
+  text: string;
+  url?: string;
+}
+
+export interface ResearchPaperStructure {
+  researchQuestion?: string;
+  hypothesis?: string;
+  method?: string;
+  results?: string;
+  discussion?: string;
+  futureWork?: string;
+}
+
+export interface ResearchPaperSummary {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  format: ResearchPaperFormat;
+  abstract: string;
+  coverEmoji: string;
+  accentColor: ResearchPaperAccent;
+  tags: string[];
+  authorId: string;
+  authorUsername: string;
+  authorDisplayName: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ResearchPaperDraftSummary {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  format: ResearchPaperFormat;
+  coverEmoji: string;
+  accentColor: ResearchPaperAccent;
+  tags: string[];
+  updatedAt: string;
+}
+
+export interface ResearchPaper extends ResearchPaperSummary {
+  // The body resolved at the requested tier (with sensible fallback).
+  content: string;
+  // Which tier the server ended up returning content from. May differ
+  // from `requestedTier` if the asked-for tier was empty.
+  tier: ResearchPaperTier;
+  requestedTier: ResearchPaperTier;
+  // Tiers with non-empty content. Drives the toggle's enabled state.
+  availableTiers: ResearchPaperTier[];
+  allContent: {
+    intro: string;
+    undergrad: string;
+    grad: string;
+  };
+  canonicalTier: ResearchPaperTier;
+  paperStructure: ResearchPaperStructure;
+  references: ResearchPaperReference[];
+  coauthors: string[];
+  status: ResearchPaperStatus;
+  lastEditorUsername: string | null;
+  readingMinutes: number;
+  isAuthor: boolean;
+}
+
+export interface ResearchPapersListResponse {
+  papers: ResearchPaperSummary[];
+}
+
+export interface ResearchPapersDraftsResponse {
+  papers: ResearchPaperDraftSummary[];
+}
+
+export interface ResearchPaperResponse {
+  paper: ResearchPaper;
+}
+
+export interface CreateResearchPaperRequest {
+  slug: string;
+  title: string;
+  summary?: string;
+  format?: ResearchPaperFormat;
+  abstract?: string;
+  contentIntro?: string;
+  contentUndergrad?: string;
+  contentGrad?: string;
+  canonicalTier?: ResearchPaperTier;
+  paperStructure?: ResearchPaperStructure;
+  references?: ResearchPaperReference[];
+  coauthors?: string[];
+  coverEmoji?: string;
+  accentColor?: ResearchPaperAccent;
+  tags?: string[];
+  status?: ResearchPaperStatus;
+}
+
+export interface UpdateResearchPaperRequest {
+  title?: string;
+  summary?: string;
+  format?: ResearchPaperFormat;
+  abstract?: string;
+  contentIntro?: string;
+  contentUndergrad?: string;
+  contentGrad?: string;
+  canonicalTier?: ResearchPaperTier;
+  paperStructure?: ResearchPaperStructure;
+  references?: ResearchPaperReference[];
+  coauthors?: string[];
+  coverEmoji?: string;
+  accentColor?: ResearchPaperAccent;
+  tags?: string[];
+  status?: ResearchPaperStatus;
+}
+
 // Sprint 17 — Concept preview payload. Cheap subset of the full
 // wiki page response; powers the hover card rendered anywhere a
 // `[[slug]]` reference appears in markdown.

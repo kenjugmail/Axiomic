@@ -1,0 +1,485 @@
+// Sprint 20 — Research papers router.
+//
+// Distinct from /news: tiered content (intro/undergrad/grad), paper-
+// structure metadata, format flag. Mirrors the news_articles authoring
+// shape for everything else (slug, title, abstract, references,
+// coauthors, status, tags, accent + emoji) so existing patterns port.
+//
+// v1 scope: CRUD + per-tier read + drafts list. Comments / claim
+// threads / artifacts / reproductions on research papers come back in
+// a follow-up sprint.
+
+import { Hono } from "hono";
+import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
+import { and, desc, eq, or } from "drizzle-orm";
+import { randomUUID } from "crypto";
+import { getDb, researchPapers, users } from "@axiomic/db";
+import { requireAuth, getSessionUser } from "../middleware/auth";
+import type { Env } from "../env";
+
+export const researchRouter = new Hono<Env>();
+
+// --- helpers ---------------------------------------------------------
+
+function readingMinutes(body: string): number {
+  const words = (body || "").split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 220));
+}
+
+function safeParseStrArray(json: string): string[] {
+  try {
+    const arr = JSON.parse(json);
+    if (!Array.isArray(arr)) return [];
+    return arr.filter((s): s is string => typeof s === "string");
+  } catch {
+    return [];
+  }
+}
+
+interface ReferenceEntry {
+  label?: string;
+  text: string;
+  url?: string;
+}
+
+function parseReferences(json: string): ReferenceEntry[] {
+  try {
+    const arr = JSON.parse(json);
+    if (!Array.isArray(arr)) return [];
+    return arr.filter(
+      (r): r is ReferenceEntry =>
+        r != null && typeof r === "object" && typeof r.text === "string",
+    );
+  } catch {
+    return [];
+  }
+}
+
+function safeParsePaperStructure(json: string): Record<string, string> {
+  try {
+    const obj = JSON.parse(json);
+    if (!obj || typeof obj !== "object" || Array.isArray(obj)) return {};
+    const out: Record<string, string> = {};
+    for (const [k, v] of Object.entries(obj)) {
+      if (typeof v === "string" && v.trim().length > 0) out[k] = v;
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+// Pick the tier the reader asked for, falling back to the canonical
+// tier when their requested tier is empty (so a paper that only has
+// `undergrad` content isn't blank when accessed with `?tier=intro`).
+type Tier = "intro" | "undergrad" | "grad";
+const TIERS: Tier[] = ["intro", "undergrad", "grad"];
+
+function pickContent(
+  paper: {
+    contentIntro: string;
+    contentUndergrad: string;
+    contentGrad: string;
+    canonicalTier: string;
+  },
+  requested: Tier,
+): { tier: Tier; content: string } {
+  const map: Record<Tier, string> = {
+    intro: paper.contentIntro,
+    undergrad: paper.contentUndergrad,
+    grad: paper.contentGrad,
+  };
+  if (map[requested] && map[requested].trim().length > 0) {
+    return { tier: requested, content: map[requested] };
+  }
+  // Fall back to the canonical tier (may itself be the requested one).
+  const canonical = (TIERS as string[]).includes(paper.canonicalTier)
+    ? (paper.canonicalTier as Tier)
+    : "undergrad";
+  if (map[canonical].trim().length > 0) {
+    return { tier: canonical, content: map[canonical] };
+  }
+  // Final fallback: any non-empty tier.
+  for (const t of TIERS) {
+    if (map[t].trim().length > 0) return { tier: t, content: map[t] };
+  }
+  return { tier: requested, content: "" };
+}
+
+// --- shared validation ---------------------------------------------
+
+const slugSchema = z
+  .string()
+  .min(1)
+  .max(120)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case");
+
+const tagSchema = z.array(z.string().min(1).max(40)).max(8).optional();
+
+const formatSchema = z
+  .enum(["research", "explainer", "survey", "opinion"])
+  .optional()
+  .default("research");
+
+const tierSchema = z.enum(["intro", "undergrad", "grad"]);
+
+const referenceSchema = z.object({
+  label: z.string().max(40).optional(),
+  text: z.string().min(1).max(500),
+  url: z.string().url().max(500).optional(),
+});
+
+const paperStructureSchema = z
+  .object({
+    researchQuestion: z.string().max(500).optional(),
+    hypothesis: z.string().max(1000).optional(),
+    method: z.string().max(2000).optional(),
+    results: z.string().max(2000).optional(),
+    discussion: z.string().max(2000).optional(),
+    futureWork: z.string().max(1000).optional(),
+  })
+  .optional();
+
+function normalizeTags(input: string[] | undefined): string[] {
+  if (!input) return [];
+  const seen = new Set<string>();
+  for (const raw of input) {
+    const t = raw.trim().toLowerCase().replace(/\s+/g, "-");
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(t)) continue;
+    seen.add(t);
+    if (seen.size >= 8) break;
+  }
+  return [...seen];
+}
+
+const createSchema = z.object({
+  slug: slugSchema,
+  title: z.string().min(1).max(200),
+  summary: z.string().max(500).optional().default(""),
+  format: formatSchema,
+  abstract: z.string().max(8000).optional().default(""),
+  contentIntro: z.string().max(50000).optional().default(""),
+  contentUndergrad: z.string().max(50000).optional().default(""),
+  contentGrad: z.string().max(50000).optional().default(""),
+  canonicalTier: tierSchema.optional().default("undergrad"),
+  paperStructure: paperStructureSchema,
+  references: z.array(referenceSchema).max(200).optional(),
+  coauthors: z.array(z.string().min(1).max(50)).max(20).optional(),
+  coverEmoji: z.string().max(8).optional(),
+  accentColor: z
+    .enum(["indigo", "emerald", "rose", "amber", "sky", "violet"])
+    .optional(),
+  tags: tagSchema,
+  status: z.enum(["draft", "published"]).optional().default("draft"),
+});
+
+const updateSchema = createSchema.partial().extend({
+  // slug is immutable for now — drop it from PUT to avoid stale links.
+  slug: z.never().optional(),
+});
+
+// --- routes ---------------------------------------------------------
+
+// GET /research — list published papers, optionally filtered by tag /
+// format. Returns ordered by createdAt desc.
+researchRouter.get("/", async (c) => {
+  const db = getDb();
+  const tag = c.req.query("tag")?.toLowerCase();
+  const format = c.req.query("format");
+  let rows = db
+    .select({
+      id: researchPapers.id,
+      slug: researchPapers.slug,
+      title: researchPapers.title,
+      summary: researchPapers.summary,
+      format: researchPapers.format,
+      abstract: researchPapers.abstract,
+      coverEmoji: researchPapers.coverEmoji,
+      accentColor: researchPapers.accentColor,
+      tags: researchPapers.tags,
+      authorId: researchPapers.authorId,
+      authorUsername: users.username,
+      authorDisplayName: users.displayName,
+      createdAt: researchPapers.createdAt,
+      updatedAt: researchPapers.updatedAt,
+    })
+    .from(researchPapers)
+    .innerJoin(users, eq(researchPapers.authorId, users.id))
+    .where(eq(researchPapers.status, "published"))
+    .orderBy(desc(researchPapers.createdAt))
+    .all();
+  if (format) {
+    rows = rows.filter((r) => r.format === format);
+  }
+  if (tag) {
+    rows = rows.filter((r) => safeParseStrArray(r.tags).includes(tag));
+  }
+  return c.json({
+    papers: rows.map((r) => ({
+      id: r.id,
+      slug: r.slug,
+      title: r.title,
+      summary: r.summary,
+      format: r.format,
+      abstract: r.abstract,
+      coverEmoji: r.coverEmoji,
+      accentColor: r.accentColor,
+      tags: safeParseStrArray(r.tags),
+      authorId: r.authorId,
+      authorUsername: r.authorUsername,
+      authorDisplayName: r.authorDisplayName,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    })),
+  });
+});
+
+// GET /research/me/drafts — author's own drafts.
+researchRouter.get("/me/drafts", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const db = getDb();
+  const rows = db
+    .select({
+      id: researchPapers.id,
+      slug: researchPapers.slug,
+      title: researchPapers.title,
+      summary: researchPapers.summary,
+      format: researchPapers.format,
+      coverEmoji: researchPapers.coverEmoji,
+      accentColor: researchPapers.accentColor,
+      tags: researchPapers.tags,
+      updatedAt: researchPapers.updatedAt,
+    })
+    .from(researchPapers)
+    .where(
+      and(
+        eq(researchPapers.authorId, user.id),
+        eq(researchPapers.status, "draft"),
+      ),
+    )
+    .orderBy(desc(researchPapers.updatedAt))
+    .all();
+  return c.json({
+    papers: rows.map((r) => ({
+      ...r,
+      tags: safeParseStrArray(r.tags),
+    })),
+  });
+});
+
+// GET /research/:slug — single paper at a chosen tier. Drafts are
+// only visible to their author.
+researchRouter.get("/:slug", async (c) => {
+  const slug = c.req.param("slug")!;
+  const requestedTier = (c.req.query("tier") as Tier) || "undergrad";
+  const tier: Tier = (TIERS as string[]).includes(requestedTier)
+    ? requestedTier
+    : "undergrad";
+  const db = getDb();
+  const session = await getSessionUser(c);
+
+  const row = db
+    .select({
+      id: researchPapers.id,
+      slug: researchPapers.slug,
+      title: researchPapers.title,
+      summary: researchPapers.summary,
+      format: researchPapers.format,
+      abstract: researchPapers.abstract,
+      contentIntro: researchPapers.contentIntro,
+      contentUndergrad: researchPapers.contentUndergrad,
+      contentGrad: researchPapers.contentGrad,
+      canonicalTier: researchPapers.canonicalTier,
+      paperStructureJson: researchPapers.paperStructureJson,
+      referencesJson: researchPapers.referencesJson,
+      coauthorsJson: researchPapers.coauthorsJson,
+      coverEmoji: researchPapers.coverEmoji,
+      accentColor: researchPapers.accentColor,
+      status: researchPapers.status,
+      tags: researchPapers.tags,
+      authorId: researchPapers.authorId,
+      authorUsername: users.username,
+      authorDisplayName: users.displayName,
+      lastEditorId: researchPapers.lastEditorId,
+      createdAt: researchPapers.createdAt,
+      updatedAt: researchPapers.updatedAt,
+    })
+    .from(researchPapers)
+    .innerJoin(users, eq(researchPapers.authorId, users.id))
+    .where(eq(researchPapers.slug, slug))
+    .get();
+  if (!row) return c.json({ error: "Paper not found" }, 404);
+
+  if (row.status === "draft" && (!session || session.id !== row.authorId)) {
+    return c.json({ error: "Paper not found" }, 404);
+  }
+
+  const editor = row.lastEditorId
+    ? db
+        .select({ username: users.username })
+        .from(users)
+        .where(eq(users.id, row.lastEditorId))
+        .get()
+    : null;
+
+  const picked = pickContent(row, tier);
+  const isAuthor = !!session && session.id === row.authorId;
+
+  // Tier availability — used by the toggle to mute empty tiers.
+  const availableTiers: Tier[] = [];
+  if (row.contentIntro.trim().length > 0) availableTiers.push("intro");
+  if (row.contentUndergrad.trim().length > 0) availableTiers.push("undergrad");
+  if (row.contentGrad.trim().length > 0) availableTiers.push("grad");
+
+  return c.json({
+    paper: {
+      id: row.id,
+      slug: row.slug,
+      title: row.title,
+      summary: row.summary,
+      format: row.format,
+      abstract: row.abstract,
+      content: picked.content,
+      tier: picked.tier,
+      requestedTier: tier,
+      availableTiers,
+      allContent: {
+        intro: row.contentIntro,
+        undergrad: row.contentUndergrad,
+        grad: row.contentGrad,
+      },
+      canonicalTier: row.canonicalTier,
+      paperStructure: safeParsePaperStructure(row.paperStructureJson),
+      references: parseReferences(row.referencesJson),
+      coauthors: safeParseStrArray(row.coauthorsJson),
+      coverEmoji: row.coverEmoji,
+      accentColor: row.accentColor,
+      status: row.status,
+      tags: safeParseStrArray(row.tags),
+      authorId: row.authorId,
+      authorUsername: row.authorUsername,
+      authorDisplayName: row.authorDisplayName,
+      lastEditorUsername: editor?.username ?? null,
+      readingMinutes: readingMinutes(picked.content),
+      isAuthor,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    },
+  });
+});
+
+// POST /research — create a new paper (defaults to draft).
+researchRouter.post(
+  "/",
+  requireAuth,
+  zValidator("json", createSchema),
+  async (c) => {
+    const user = c.get("user")!;
+    const data = c.req.valid("json");
+    const db = getDb();
+
+    const collision = db
+      .select({ id: researchPapers.id })
+      .from(researchPapers)
+      .where(eq(researchPapers.slug, data.slug))
+      .get();
+    if (collision) {
+      return c.json({ error: "Slug already in use" }, 409);
+    }
+
+    // Require at least one non-empty tier.
+    const hasContent =
+      (data.contentIntro?.trim().length ?? 0) > 0 ||
+      (data.contentUndergrad?.trim().length ?? 0) > 0 ||
+      (data.contentGrad?.trim().length ?? 0) > 0;
+    if (!hasContent && data.status === "published") {
+      return c.json({ error: "Cannot publish an empty paper" }, 400);
+    }
+
+    const id = randomUUID();
+    db.insert(researchPapers)
+      .values({
+        id,
+        slug: data.slug,
+        title: data.title.trim(),
+        summary: data.summary?.trim() ?? "",
+        format: data.format,
+        abstract: data.abstract?.trim() ?? "",
+        contentIntro: data.contentIntro ?? "",
+        contentUndergrad: data.contentUndergrad ?? "",
+        contentGrad: data.contentGrad ?? "",
+        canonicalTier: data.canonicalTier,
+        paperStructureJson: JSON.stringify(data.paperStructure ?? {}),
+        referencesJson: JSON.stringify(data.references ?? []),
+        coauthorsJson: JSON.stringify(data.coauthors ?? []),
+        coverEmoji: data.coverEmoji?.slice(0, 8) || "📄",
+        accentColor: data.accentColor ?? "violet",
+        status: data.status,
+        tags: JSON.stringify(normalizeTags(data.tags)),
+        authorId: user.id,
+      })
+      .run();
+
+    return c.json({ paperId: id, slug: data.slug }, 201);
+  },
+);
+
+// PUT /research/:slug — update an existing paper. Author-only.
+researchRouter.put(
+  "/:slug",
+  requireAuth,
+  zValidator("json", updateSchema),
+  async (c) => {
+    const slug = c.req.param("slug")!;
+    const user = c.get("user")!;
+    const db = getDb();
+
+    const existing = db
+      .select({ id: researchPapers.id, authorId: researchPapers.authorId })
+      .from(researchPapers)
+      .where(eq(researchPapers.slug, slug))
+      .get();
+    if (!existing) return c.json({ error: "Paper not found" }, 404);
+    if (existing.authorId !== user.id) {
+      return c.json({ error: "Only the author can edit this paper." }, 403);
+    }
+
+    const data = c.req.valid("json");
+    const patch: Record<string, unknown> = {
+      updatedAt: new Date().toISOString(),
+      lastEditorId: user.id,
+    };
+    if (data.title != null) patch.title = data.title.trim();
+    if (data.summary != null) patch.summary = data.summary.trim();
+    if (data.format != null) patch.format = data.format;
+    if (data.abstract != null) patch.abstract = data.abstract.trim();
+    if (data.contentIntro != null) patch.contentIntro = data.contentIntro;
+    if (data.contentUndergrad != null) patch.contentUndergrad = data.contentUndergrad;
+    if (data.contentGrad != null) patch.contentGrad = data.contentGrad;
+    if (data.canonicalTier != null) patch.canonicalTier = data.canonicalTier;
+    if (data.paperStructure != null) {
+      patch.paperStructureJson = JSON.stringify(data.paperStructure);
+    }
+    if (data.references != null) {
+      patch.referencesJson = JSON.stringify(data.references);
+    }
+    if (data.coauthors != null) {
+      patch.coauthorsJson = JSON.stringify(data.coauthors);
+    }
+    if (data.coverEmoji != null) patch.coverEmoji = data.coverEmoji.slice(0, 8) || "📄";
+    if (data.accentColor != null) patch.accentColor = data.accentColor;
+    if (data.tags != null) patch.tags = JSON.stringify(normalizeTags(data.tags));
+    if (data.status != null) patch.status = data.status;
+
+    db.update(researchPapers)
+      .set(patch)
+      .where(eq(researchPapers.id, existing.id))
+      .run();
+
+    return c.json({ ok: true });
+  },
+);
+
+// Suppress unused-import warnings.
+void or;
