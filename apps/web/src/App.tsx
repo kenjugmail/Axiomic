@@ -186,6 +186,10 @@ const VersionsPage = lazy(() =>
 const PaperVersionPage = lazy(() =>
   import("./pages/PaperVersionPage").then((m) => ({ default: m.PaperVersionPage })),
 );
+// Sprint 36 — Argument map: forum thread as a DAG.
+const ArgumentMapPage = lazy(() =>
+  import("./pages/ArgumentMapPage").then((m) => ({ default: m.ArgumentMapPage })),
+);
 
 function PageFallback() {
   return (
@@ -241,6 +245,7 @@ export function App() {
           <Route path="/forum/new" element={<NewTopicPage />} />
           <Route path="/forum/bookmarks" element={<ForumBookmarksPage />} />
           <Route path="/forum/t/:slug" element={<ForumTopicPage />} />
+          <Route path="/forum/graph" element={<ArgumentMapPage />} />
           <Route path="/forum/:domain" element={<ForumListPage />} />
           <Route path="/news" element={<NewsListPage />} />
           <Route path="/news/new" element={<NewsNewPage />} />

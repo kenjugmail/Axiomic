@@ -63,6 +63,7 @@ import type {
   VersionListResponse,
   ResearchPaperVersionResponse,
   CapstoneVersionResponse,
+  ArgumentMapResponse,
   PortfolioResponse,
   PaperOutlineRequest,
   PaperDraftSectionRequest,
@@ -429,6 +430,12 @@ export const api = {
       request<{
         users: Array<{ username: string; displayName: string | null }>;
       }>(`/users?q=${encodeURIComponent(q)}`),
+  },
+  argumentMap: {
+    topic: (slug: string) =>
+      request<ArgumentMapResponse>(
+        `/forum/graph?slug=${encodeURIComponent(slug)}`,
+      ),
   },
   versions: {
     paperList: (slug: string) =>

@@ -1109,6 +1109,36 @@ export interface SearchNavigatorResponse {
   groups: SearchNavigatorGroups;
 }
 
+// --- Argument map (Sprint 36) ---------------------------------------
+// Topology of a forum thread: nodes are posts, edges follow parentId.
+// Returned by GET /forum/graph?slug=<topicSlug>.
+
+export interface ArgumentMapTopic {
+  id: string;
+  slug: string;
+  title: string;
+  postType: string;
+  authorUsername: string;
+  domainSlug: string;
+  createdAt: string;
+  bodySnippet: string;
+}
+
+export interface ArgumentMapPost {
+  id: string;
+  parentId: string | null;
+  authorUsername: string;
+  bodySnippet: string;
+  replyCount: number;
+  score: number;
+  createdAt: string;
+}
+
+export interface ArgumentMapResponse {
+  topic: ArgumentMapTopic;
+  posts: ArgumentMapPost[];
+}
+
 // --- Settings & user preferences ---
 
 export type ThemePreference =
