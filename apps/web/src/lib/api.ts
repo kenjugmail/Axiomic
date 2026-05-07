@@ -685,6 +685,13 @@ export const api = {
         method: "PUT",
         body: JSON.stringify(data),
       }),
+    listComments: (slug: string) =>
+      request<NewsCommentsResponse>(`/research/${slug}/comments`),
+    addComment: (slug: string, data: CreateNewsCommentRequest) =>
+      request<{ commentId: string }>(`/research/${slug}/comments`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
   },
   flashcards: {
     save: (data: { pageSlug: string; pageTitle: string; front: string; back: string }) =>

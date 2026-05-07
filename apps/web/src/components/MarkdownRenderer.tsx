@@ -5,9 +5,11 @@ import rehypeKatex from "rehype-katex";
 import rehypeHighlight from "rehype-highlight";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import { Link } from "react-router-dom";
+import { useRef } from "react";
 import { VizEmbed } from "./VizEmbed";
 import { ConceptLink } from "./cross/ConceptLink";
-import { CodeCell } from "./code/CodeCell";
+import { CodeCell, type CodeCellHandle } from "./code/CodeCell";
+import { CodeCellsToolbar } from "./code/CodeCellsToolbar";
 import "katex/dist/katex.min.css";
 
 interface MarkdownRendererProps {
@@ -27,6 +29,11 @@ interface MarkdownRendererProps {
   // `paper:${slug}` or `lesson:${nodeId}` so cells in the same
   // document share Python state).
   codeKernelKey?: string | null;
+  // Sprint 23 — author / viewer usernames for the code-cell trust
+  // banner. When set + author !== viewer, a one-time notice appears
+  // before the first run on the page.
+  codeAuthorUsername?: string | null;
+  codeViewerUsername?: string | null;
 }
 
 const SAFE_PROTOCOLS = ["http:", "https:", "mailto:"];
@@ -252,7 +259,14 @@ export function MarkdownRenderer({
   untrusted,
   allowViz = true,
   codeKernelKey,
+  codeAuthorUsername,
+  codeViewerUsername,
 }: MarkdownRendererProps) {
+  // Sprint 23 — refs for every CodeCell rendered in this pass, so a
+  // document-level Run-all toolbar can sequence them in document
+  // order. Reset on every render and refilled as cells mount.
+  const codeCellRefs = useRef<Array<CodeCellHandle | null>>([]);
+  codeCellRefs.current = [];
   // Split content by viz + video + code directives and render them
   // inline. Code cells only render when the surface explicitly opts
   // in via `codeKernelKey` so a user can't run code from a comment
@@ -319,8 +333,18 @@ export function MarkdownRenderer({
   const rehypePlugins: any[] = [rehypeKatex, rehypeHighlight];
   if (untrusted) rehypePlugins.push([rehypeSanitize, sanitizeSchema]);
 
+  const hasCodeCells = parts.some((p) => p.type === "code");
+
   return (
     <div className={`wiki-content ${className || ""}`}>
+      {hasCodeCells && codeKernelKey && (
+        <CodeCellsToolbar
+          kernelKey={codeKernelKey}
+          cellRefs={codeCellRefs}
+          authorUsername={codeAuthorUsername ?? null}
+          viewerUsername={codeViewerUsername ?? null}
+        />
+      )}
       {parts.map((part, i) =>
         part.type === "viz" ? (
           <VizEmbed key={i} name={part.content} />
@@ -335,6 +359,9 @@ export function MarkdownRenderer({
         ) : part.type === "code" ? (
           <CodeCell
             key={i}
+            ref={(h) => {
+              if (h) codeCellRefs.current.push(h);
+            }}
             initialCode={part.code}
             kernelKey={codeKernelKey || "scratch"}
           />

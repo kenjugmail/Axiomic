@@ -129,10 +129,50 @@ interface KernelState {
   // The Python `dict` used as globals when running cells under this
   // key. Stored as a JS-side proxy via `runtime.globals.get("...")`.
   namespaceVar: string;
+  // Sprint 23 — Jupyter-style In/Out execution counter. Starts at 0;
+  // increments on every successful (non-throwing) run().
+  runCount: number;
 }
 
 const STATES = new Map<string, KernelState>();
+// Sprint 23 — listeners notified when a kernel's runCount changes
+// (after a successful run() or reset()). Used by the toolbar to
+// re-render its banner without polling.
+const LISTENERS = new Map<string, Set<() => void>>();
 let harnessInstalled: Promise<void> | null = null;
+
+function notify(key: string): void {
+  const set = LISTENERS.get(key);
+  if (!set) return;
+  for (const fn of set) {
+    try {
+      fn();
+    } catch {
+      // listener error shouldn't break run flow
+    }
+  }
+}
+
+export function subscribeKernel(key: string, fn: () => void): () => void {
+  let set = LISTENERS.get(key);
+  if (!set) {
+    set = new Set();
+    LISTENERS.set(key, set);
+  }
+  set.add(fn);
+  return () => {
+    set!.delete(fn);
+    if (set!.size === 0) LISTENERS.delete(key);
+  };
+}
+
+export function getRunCount(key: string): number {
+  return STATES.get(key)?.runCount ?? 0;
+}
+
+export function isKernelBooted(key: string): boolean {
+  return STATES.has(key) && harnessInstalled !== null;
+}
 
 async function ensureHarness(runtime: PyodideRuntime): Promise<void> {
   if (harnessInstalled) return harnessInstalled;
@@ -151,6 +191,7 @@ function namespaceVarFor(key: string): string {
 async function ensureKernel(key: string): Promise<{
   runtime: PyodideRuntime;
   namespaceVar: string;
+  state: KernelState;
 }> {
   const runtime = await getPyodide();
   await ensureHarness(runtime);
@@ -163,24 +204,24 @@ async function ensureKernel(key: string): Promise<{
       // uses `if __name__ == "__main__":` works.
       await runtime.runPythonAsync(`${namespaceVar} = {"__name__": "__main__"}`);
     })();
-    state = { ready, namespaceVar };
+    state = { ready, namespaceVar, runCount: 0 };
     STATES.set(key, state);
   }
   await state.ready;
-  return { runtime, namespaceVar: state.namespaceVar };
+  return { runtime, namespaceVar: state.namespaceVar, state };
 }
 
 export interface PyodideKernel {
-  run(code: string): Promise<RunResult>;
+  run(code: string): Promise<RunResult & { runIndex: number }>;
   reset(): Promise<void>;
 }
 
 export function getKernel(key: string): PyodideKernel {
   return {
-    async run(code: string): Promise<RunResult> {
+    async run(code: string): Promise<RunResult & { runIndex: number }> {
       const t0 = performance.now();
       try {
-        const { runtime, namespaceVar } = await ensureKernel(key);
+        const { runtime, namespaceVar, state } = await ensureKernel(key);
         // Use globals.set to ferry user code without escaping.
         runtime.globals.set("_axiomic_user_code", code);
         const resultJson = (await runtime.runPythonAsync(
@@ -192,12 +233,17 @@ export function getKernel(key: string): PyodideKernel {
           displays: Display[];
           error: string | null;
         };
+        // Increment the kernel's run counter — Jupyter-style "In [N]"
+        // marker. Errors still increment so the user sees ordering.
+        state.runCount += 1;
+        notify(key);
         return {
           stdout: parsed.stdout,
           stderr: parsed.stderr,
           displays: parsed.displays,
           error: parsed.error ?? undefined,
           durationMs: performance.now() - t0,
+          runIndex: state.runCount,
         };
       } catch (e: any) {
         return {
@@ -206,6 +252,7 @@ export function getKernel(key: string): PyodideKernel {
           displays: [],
           error: e?.message ?? "Pyodide kernel error",
           durationMs: performance.now() - t0,
+          runIndex: STATES.get(key)?.runCount ?? 0,
         };
       }
     },
@@ -216,6 +263,8 @@ export function getKernel(key: string): PyodideKernel {
       await runtime.runPythonAsync(
         `${state.namespaceVar} = {"__name__": "__main__"}`,
       );
+      state.runCount = 0;
+      notify(key);
     },
   };
 }

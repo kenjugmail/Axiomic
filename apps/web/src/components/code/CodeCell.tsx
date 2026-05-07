@@ -8,7 +8,7 @@
 // v1 uses a plain monospace textarea as the editor. Tab inserts two
 // spaces; ⌘/Ctrl+Enter runs the cell. CodeMirror is a follow-up.
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useImperativeHandle, useRef, useState, forwardRef } from "react";
 import { Loader2, Play, RotateCcw, Terminal } from "lucide-react";
 import { getKernel, type Display, type RunResult } from "../../lib/pyodideKernel";
 
@@ -21,10 +21,19 @@ interface Props {
   kernelKey: string;
 }
 
-export function CodeCell({ initialCode, kernelKey }: Props) {
+// Sprint 23 — exposed via the forwarded ref so the document-level
+// Run-all toolbar can sequence cells in document order.
+export interface CodeCellHandle {
+  run: () => Promise<{ ok: boolean }>;
+}
+
+export const CodeCell = forwardRef<CodeCellHandle, Props>(function CodeCell(
+  { initialCode, kernelKey },
+  ref,
+) {
   const [code, setCode] = useState(initialCode);
   const [running, setRunning] = useState(false);
-  const [result, setResult] = useState<RunResult | null>(null);
+  const [result, setResult] = useState<(RunResult & { runIndex: number }) | null>(null);
   const taRef = useRef<HTMLTextAreaElement | null>(null);
 
   // Sync `code` when initialCode changes (e.g. the parent re-renders
@@ -35,17 +44,22 @@ export function CodeCell({ initialCode, kernelKey }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const run = async () => {
-    if (running) return;
+  const run = async (): Promise<{ ok: boolean }> => {
+    if (running) return { ok: false };
     setRunning(true);
     try {
       const kernel = getKernel(kernelKey);
       const r = await kernel.run(code);
       setResult(r);
+      return { ok: !r.error };
     } finally {
       setRunning(false);
     }
   };
+
+  // Expose run() to the parent so a document-level "Run all" can
+  // sequence cells. Memoized via useImperativeHandle.
+  useImperativeHandle(ref, () => ({ run }), [run]);
 
   const reset = () => {
     setCode(initialCode);
@@ -88,10 +102,22 @@ export function CodeCell({ initialCode, kernelKey }: Props) {
       result.displays.length > 0 ||
       result.error);
 
+  // In/Out marker — empty before the cell has ever run, dot during
+  // the run, the run-index number after.
+  const inMarker = running
+    ? "[…]"
+    : result
+      ? `[${result.runIndex}]`
+      : "[ ]";
+
   return (
     <div className="my-4 rounded-lg border border-border bg-card overflow-hidden">
       <div className="flex items-center justify-between gap-2 px-3 py-1.5 border-b border-border bg-muted/30">
-        <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+        <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-muted-foreground">
+          <span className="font-mono tabular-nums text-primary/80">
+            In {inMarker}
+          </span>
+          <span className="opacity-50">·</span>
           <Terminal className="w-3 h-3" strokeWidth={2} />
           Python
         </div>
@@ -159,7 +185,7 @@ export function CodeCell({ initialCode, kernelKey }: Props) {
       )}
     </div>
   );
-}
+});
 
 function DisplayBlock({ d }: { d: Display }) {
   if (d.kind === "image_png") {

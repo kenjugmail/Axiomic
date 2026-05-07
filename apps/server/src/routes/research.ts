@@ -12,10 +12,16 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { and, desc, eq, or } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, or } from "drizzle-orm";
 import { randomUUID } from "crypto";
-import { getDb, researchPapers, users } from "@axiomic/db";
+import {
+  getDb,
+  newsComments,
+  researchPapers,
+  users,
+} from "@axiomic/db";
 import { requireAuth, getSessionUser } from "../middleware/auth";
+import { notify, notifyMentions } from "../lib/notifications";
 import type { Env } from "../env";
 
 export const researchRouter = new Hono<Env>();
@@ -481,5 +487,203 @@ researchRouter.put(
   },
 );
 
+// --- Sprint 23 — research-paper comments (polymorphic on news_comments)
+//
+// Reuses the news_comments table via the (target_kind, target_id)
+// discriminator added in migration 0023. Article-id stays null on
+// these rows. Reading + writing follows the same shape as
+// /news/:slug/comments but scoped to target_kind='research_paper'.
+
+function previewSnippet(text: string, max = 140): string {
+  if (!text) return "";
+  const flat = text
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/`[^`\n]*`/g, " ")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/[*_>~]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return flat.length > max ? flat.slice(0, max - 1) + "…" : flat;
+}
+
+researchRouter.get("/:slug/comments", async (c) => {
+  const slug = c.req.param("slug")!;
+  const db = getDb();
+
+  const paper = db
+    .select({ id: researchPapers.id })
+    .from(researchPapers)
+    .where(eq(researchPapers.slug, slug))
+    .get();
+  if (!paper) return c.json({ error: "Paper not found" }, 404);
+
+  const rows = db
+    .select({
+      id: newsComments.id,
+      parentId: newsComments.parentId,
+      userId: newsComments.userId,
+      username: users.username,
+      displayName: users.displayName,
+      content: newsComments.content,
+      editedAt: newsComments.editedAt,
+      createdAt: newsComments.createdAt,
+    })
+    .from(newsComments)
+    .innerJoin(users, eq(newsComments.userId, users.id))
+    .where(
+      and(
+        eq(newsComments.targetKind, "research_paper"),
+        eq(newsComments.targetId, paper.id),
+        // Exclude claim-thread replies — those render in their own
+        // panel pinned to the article passage they discuss, not in
+        // the paper-level comment list.
+        isNull(newsComments.claimThreadId),
+      ),
+    )
+    .orderBy(desc(newsComments.createdAt))
+    .all();
+
+  // Tree builder mirrors the one in /news/:slug/comments.
+  type Node = {
+    id: string;
+    articleId: string;
+    parentId: string | null;
+    userId: string;
+    username: string;
+    displayName: string | null;
+    content: string;
+    editedAt: string | null;
+    createdAt: string;
+    children: Node[];
+  };
+  const byId = new Map<string, Node>();
+  for (const r of rows) {
+    byId.set(r.id, {
+      id: r.id,
+      articleId: paper.id,
+      parentId: r.parentId,
+      userId: r.userId,
+      username: r.username,
+      displayName: r.displayName,
+      content: r.content,
+      editedAt: r.editedAt,
+      createdAt: r.createdAt,
+      children: [],
+    });
+  }
+  const roots: Node[] = [];
+  for (const node of byId.values()) {
+    if (node.parentId && byId.has(node.parentId)) {
+      byId.get(node.parentId)!.children.push(node);
+    } else {
+      roots.push(node);
+    }
+  }
+  return c.json({ comments: roots });
+});
+
+const researchCommentSchema = z.object({
+  content: z.string().min(1).max(5000),
+  parentId: z.string().optional(),
+});
+
+researchRouter.post(
+  "/:slug/comments",
+  requireAuth,
+  zValidator("json", researchCommentSchema),
+  async (c) => {
+    const slug = c.req.param("slug")!;
+    const { content, parentId } = c.req.valid("json");
+    const user = c.get("user")!;
+    const db = getDb();
+
+    const paper = db
+      .select({ id: researchPapers.id, authorId: researchPapers.authorId })
+      .from(researchPapers)
+      .where(eq(researchPapers.slug, slug))
+      .get();
+    if (!paper) return c.json({ error: "Paper not found" }, 404);
+
+    let parentAuthorId: string | null = null;
+    if (parentId) {
+      const parent = db
+        .select({
+          id: newsComments.id,
+          targetKind: newsComments.targetKind,
+          targetId: newsComments.targetId,
+          userId: newsComments.userId,
+        })
+        .from(newsComments)
+        .where(eq(newsComments.id, parentId))
+        .get();
+      if (
+        !parent ||
+        parent.targetKind !== "research_paper" ||
+        parent.targetId !== paper.id
+      ) {
+        return c.json({ error: "Parent comment not found" }, 400);
+      }
+      parentAuthorId = parent.userId;
+    }
+
+    const id = randomUUID();
+    db.insert(newsComments)
+      .values({
+        id,
+        articleId: null,
+        parentId: parentId ?? null,
+        userId: user.id,
+        content,
+        targetKind: "research_paper",
+        targetId: paper.id,
+      })
+      .run();
+
+    // Mention notifications first so we can dedupe.
+    const mentioned = await notifyMentions({
+      body: content,
+      actorId: user.id,
+      // Reuse the existing news_comment subject type — clients deep-
+      // link via contextSlug, which carries the slug regardless of
+      // whether it's a news article or a research paper.
+      subjectType: "news_comment",
+      subjectId: id,
+      contextSlug: slug,
+      preview: previewSnippet(content),
+    });
+
+    if (parentAuthorId && !mentioned.has(parentAuthorId)) {
+      await notify({
+        recipientId: parentAuthorId,
+        actorId: user.id,
+        kind: "comment_reply",
+        subjectType: "news_comment",
+        subjectId: id,
+        contextSlug: slug,
+        preview: previewSnippet(content),
+      });
+    } else if (
+      !parentAuthorId &&
+      paper.authorId !== user.id &&
+      !mentioned.has(paper.authorId)
+    ) {
+      await notify({
+        recipientId: paper.authorId,
+        actorId: user.id,
+        kind: "comment_reply",
+        subjectType: "news_comment",
+        subjectId: id,
+        contextSlug: slug,
+        preview: previewSnippet(content),
+      });
+    }
+
+    return c.json({ commentId: id }, 201);
+  },
+);
+
 // Suppress unused-import warnings.
 void or;
+void asc;

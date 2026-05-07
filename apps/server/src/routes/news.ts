@@ -1100,6 +1100,8 @@ newsRouter.post(
       parentId: parentId ?? null,
       userId: user.id,
       content,
+      targetKind: "news_article",
+      targetId: article.id,
     }).run();
 
     // Fire mention notifications first so we can avoid double-notifying
@@ -1662,6 +1664,8 @@ newsRouter.post(
         exact,
         prefix,
         suffix,
+        targetKind: "news_article",
+        targetId: article.id,
       })
       .run();
     db.insert(newsComments)
@@ -1672,6 +1676,8 @@ newsRouter.post(
         userId: user.id,
         content: body,
         claimThreadId: threadId,
+        targetKind: "news_article",
+        targetId: article.id,
       })
       .run();
 
@@ -1851,6 +1857,8 @@ newsRouter.post(
         userId: user.id,
         content,
         claimThreadId: threadId,
+        targetKind: "news_article",
+        targetId: article.id,
       })
       .run();
 
@@ -1948,6 +1956,8 @@ newsRouter.post(
         url,
         label: label.trim(),
         description: description?.trim() || null,
+        targetKind: "news_article",
+        targetId: article.id,
       })
       .run();
     return c.json({ artifactId: id }, 201);
@@ -2091,6 +2101,8 @@ newsRouter.post(
         status,
         notes: notes?.trim() || null,
         evidenceUrl: evidenceUrl ?? null,
+        targetKind: "news_article",
+        targetId: article.id,
       })
       .run();
 

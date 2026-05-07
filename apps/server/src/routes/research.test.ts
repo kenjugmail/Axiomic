@@ -220,3 +220,99 @@ describe("research papers — CRUD + tier reader (Sprint 20)", () => {
     expect(aSlugs).not.toContain(`rp-dlb-${testId}`);
   });
 });
+
+describe("research paper comments (Sprint 23 — polymorphic on news_comments)", () => {
+  test("comments scoped to research paper round-trip; isolated from same-slug news article", async () => {
+    const author = await signup("rcm_a");
+    const slug = `rcm-${testId}`;
+    // Create research paper.
+    await req("/research", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({
+        slug,
+        title: "Cross-kind comments",
+        contentUndergrad: "Body.",
+        status: "published",
+      }),
+    });
+    // Create news article with the SAME slug — they must not share comments.
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({
+        slug,
+        title: "News with same slug",
+        summary: "",
+        body: "News body.",
+      }),
+    });
+
+    // Post a comment on each surface.
+    const reader = await signup("rcm_r");
+    await req(`/research/${slug}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(reader.cookie) },
+      body: JSON.stringify({ content: "Researchy take." }),
+    });
+    await req(`/news/${slug}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(reader.cookie) },
+      body: JSON.stringify({ content: "Newsy take." }),
+    });
+
+    // Each side reads only its own comment.
+    const rRes = await req(`/research/${slug}/comments`);
+    const rBody = (await rRes.json()) as { comments: Array<{ content: string }> };
+    expect(rBody.comments.length).toBe(1);
+    expect(rBody.comments[0].content).toBe("Researchy take.");
+
+    const nRes = await req(`/news/${slug}/comments`);
+    const nBody = (await nRes.json()) as { comments: Array<{ content: string }> };
+    expect(nBody.comments.length).toBe(1);
+    expect(nBody.comments[0].content).toBe("Newsy take.");
+  });
+
+  test("posting a comment on an unknown research slug returns 404", async () => {
+    const { cookie } = await signup("rcm_404");
+    const res = await req(`/research/no-such-paper-${testId}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(cookie) },
+      body: JSON.stringify({ content: "Hi" }),
+    });
+    expect(res.status).toBe(404);
+  });
+
+  test("threaded reply respects the research-paper scope (rejects parent from another paper)", async () => {
+    const author = await signup("rcm_th_a");
+    const reader = await signup("rcm_th_r");
+    const slugA = `rcm-th-a-${testId}`;
+    const slugB = `rcm-th-b-${testId}`;
+    for (const slug of [slugA, slugB]) {
+      await req("/research", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+        body: JSON.stringify({
+          slug,
+          title: slug,
+          contentUndergrad: "Body.",
+          status: "published",
+        }),
+      });
+    }
+    // Comment on paper A.
+    const aPost = await req(`/research/${slugA}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(reader.cookie) },
+      body: JSON.stringify({ content: "Top-level on A." }),
+    });
+    const { commentId: aCommentId } = (await aPost.json()) as { commentId: string };
+    // Try to reply to A's comment under paper B's URL — should 400.
+    const bReply = await req(`/research/${slugB}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(reader.cookie) },
+      body: JSON.stringify({ content: "Reply", parentId: aCommentId }),
+    });
+    expect(bReply.status).toBe(400);
+  });
+});

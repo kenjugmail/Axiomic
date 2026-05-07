@@ -19,9 +19,13 @@ function timeAgo(iso: string): string {
 
 interface Props {
   articleSlug: string;
+  // Sprint 23 — when set to "research_paper", calls hit /research/:slug/*
+  // instead of /news/:slug/*. NewsComments shares the underlying
+  // news_comments table via the polymorphic targetKind discriminator.
+  surface?: "news" | "research";
 }
 
-export function NewsComments({ articleSlug }: Props) {
+export function NewsComments({ articleSlug, surface = "news" }: Props) {
   const user = useAuthStore((s) => s.user);
   const [comments, setComments] = useState<NewsCommentNode[] | null>(null);
   const [draft, setDraft] = useState("");
@@ -32,19 +36,26 @@ export function NewsComments({ articleSlug }: Props) {
   const [editDraft, setEditDraft] = useState("");
 
   const refresh = () => {
-    api.news
-      .listComments(articleSlug)
+    const fetcher =
+      surface === "research"
+        ? api.research.listComments(articleSlug)
+        : api.news.listComments(articleSlug);
+    fetcher
       .then((r) => setComments(r.comments))
       .catch(() => setComments([]));
   };
 
-  useEffect(refresh, [articleSlug]);
+  useEffect(refresh, [articleSlug, surface]);
 
   const post = async (content: string, parentId?: string) => {
     if (!content.trim() || submitting) return;
     setSubmitting(true);
     try {
-      await api.news.addComment(articleSlug, {
+      const adder =
+        surface === "research"
+          ? api.research.addComment
+          : api.news.addComment;
+      await adder(articleSlug, {
         content: content.trim(),
         parentId,
       });

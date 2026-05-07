@@ -362,7 +362,12 @@ export function NewsArticlePage() {
 
       {/* Body. Trusted markdown — viz directives render inline. */}
       <article ref={articleBodyRef} className="mt-8 prose-sm max-w-none">
-        <MarkdownRenderer content={article.body} codeKernelKey={`article:${article.slug}`} />
+        <MarkdownRenderer
+          content={article.body}
+          codeKernelKey={`article:${article.slug}`}
+          codeAuthorUsername={article.authorUsername}
+          codeViewerUsername={user?.username ?? null}
+        />
       </article>
 
       {/* Numbered references list. Each entry is a one-liner with an

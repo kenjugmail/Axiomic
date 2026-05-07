@@ -401,17 +401,26 @@ export const newsComments = sqliteTable(
   "news_comments",
   {
     id: text("id").primaryKey(),
-    articleId: text("article_id").notNull().references(() => newsArticles.id),
+    // Legacy reference. Nullable since Sprint 23: research-paper-
+    // targeted rows leave this null and use (targetKind, targetId).
+    articleId: text("article_id").references(() => newsArticles.id),
     parentId: text("parent_id"),
     userId: text("user_id").notNull().references(() => users.id),
     content: text("content").notNull(),
     claimThreadId: text("claim_thread_id"),
+    // Sprint 23 — polymorphism columns. `targetKind` discriminates
+    // 'news_article' (default) vs 'research_paper'; `targetId` carries
+    // the foreign id within that kind. `articleId` stays for legacy +
+    // backfill.
+    targetKind: text("target_kind").notNull().default("news_article"),
+    targetId: text("target_id").notNull().default(""),
     editedAt: text("edited_at"),
     createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   },
   (t) => ({
     articleIdx: index("news_comments_article_idx").on(t.articleId, t.createdAt),
     claimThreadIdx: index("news_comments_claim_thread_idx").on(t.claimThreadId),
+    targetIdx: index("news_comments_target_idx").on(t.targetKind, t.targetId, t.createdAt),
   }),
 );
 
@@ -425,8 +434,12 @@ export const claimThreads = sqliteTable(
   "claim_threads",
   {
     id: text("id").primaryKey(),
-    articleId: text("article_id").notNull().references(() => newsArticles.id),
+    // Nullable since Sprint 23 — see news_comments.articleId comment.
+    articleId: text("article_id").references(() => newsArticles.id),
     authorId: text("author_id").notNull().references(() => users.id),
+    // Sprint 23 — polymorphism: 'news_article' (default) vs 'research_paper'.
+    targetKind: text("target_kind").notNull().default("news_article"),
+    targetId: text("target_id").notNull().default(""),
     exact: text("exact").notNull(),
     prefix: text("prefix").notNull().default(""),
     suffix: text("suffix").notNull().default(""),
@@ -434,6 +447,7 @@ export const claimThreads = sqliteTable(
   },
   (t) => ({
     articleIdx: index("claim_threads_article_idx").on(t.articleId, t.createdAt),
+    targetIdx: index("claim_threads_target_idx").on(t.targetKind, t.targetId, t.createdAt),
   }),
 );
 
@@ -447,7 +461,11 @@ export const runnableArtifacts = sqliteTable(
   "runnable_artifacts",
   {
     id: text("id").primaryKey(),
-    articleId: text("article_id").notNull().references(() => newsArticles.id),
+    // Nullable since Sprint 23.
+    articleId: text("article_id").references(() => newsArticles.id),
+    // Sprint 23 — polymorphism: 'news_article' (default) vs 'research_paper'.
+    targetKind: text("target_kind").notNull().default("news_article"),
+    targetId: text("target_id").notNull().default(""),
     // 'github' | 'colab' | 'docker' | 'dataset' | 'arxiv' | 'other'
     kind: text("kind").notNull(),
     url: text("url").notNull(),
@@ -457,6 +475,7 @@ export const runnableArtifacts = sqliteTable(
   },
   (t) => ({
     articleIdx: index("runnable_artifacts_article_idx").on(t.articleId, t.createdAt),
+    targetIdx: index("runnable_artifacts_target_idx").on(t.targetKind, t.targetId, t.createdAt),
   }),
 );
 
@@ -464,7 +483,11 @@ export const reproductions = sqliteTable(
   "reproductions",
   {
     id: text("id").primaryKey(),
-    articleId: text("article_id").notNull().references(() => newsArticles.id),
+    // Nullable since Sprint 23.
+    articleId: text("article_id").references(() => newsArticles.id),
+    // Sprint 23 — polymorphism: 'news_article' (default) vs 'research_paper'.
+    targetKind: text("target_kind").notNull().default("news_article"),
+    targetId: text("target_id").notNull().default(""),
     // Optional: which specific artifact this receipt covers. Null means
     // the receipt is for the article as a whole (e.g. the author
     // attached no formal artifacts but the reader still reproduced).
@@ -484,6 +507,13 @@ export const reproductions = sqliteTable(
       t.articleId,
       t.reproducerId,
     ),
+    // One receipt per (target, user) — the modern polymorphic version.
+    uniquePerUserKind: uniqueIndex("reproductions_unique_per_user_kind").on(
+      t.targetKind,
+      t.targetId,
+      t.reproducerId,
+    ),
+    targetIdx: index("reproductions_target_idx").on(t.targetKind, t.targetId, t.createdAt),
   }),
 );
 

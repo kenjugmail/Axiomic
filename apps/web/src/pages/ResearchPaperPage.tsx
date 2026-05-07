@@ -13,6 +13,7 @@ import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
+import { NewsComments } from "../components/news/NewsComments";
 import { TierToggle } from "../components/research/TierToggle";
 
 const FORMAT_LABEL: Record<string, string> = {
@@ -257,6 +258,8 @@ export function ResearchPaperPage() {
           <MarkdownRenderer
             content={paper.content}
             codeKernelKey={`paper:${paper.slug}`}
+            codeAuthorUsername={paper.authorUsername}
+            codeViewerUsername={user?.username ?? null}
           />
         ) : (
           <p className="text-sm text-muted-foreground italic">
@@ -316,6 +319,10 @@ export function ResearchPaperPage() {
           ))}
         </div>
       )}
+
+      {/* Sprint 23 — comments scoped to this paper. Reuses the
+          news_comments table via the targetKind discriminator. */}
+      <NewsComments articleSlug={paper.slug} surface="research" />
 
       {/* Footer CTA — link out to news side */}
       <div className="mt-10 pt-6 border-t border-border text-xs text-muted-foreground">
