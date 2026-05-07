@@ -59,6 +59,7 @@ import type {
   CapstoneSubmission,
   WeakConceptsResponse,
   PrereqXrayResponse,
+  KnowledgeMri,
   PortfolioResponse,
   PaperOutlineRequest,
   PaperDraftSectionRequest,
@@ -838,6 +839,7 @@ export const api = {
       sp.set("wikiSlugs", wikiSlugs.join(","));
       return request<PrereqXrayResponse>(`/me/prereq-status?${sp.toString()}`);
     },
+    knowledgeMri: () => request<KnowledgeMri>("/me/knowledge-mri"),
   },
   flashcards: {
     save: (data: { pageSlug: string; pageTitle: string; front: string; back: string }) =>

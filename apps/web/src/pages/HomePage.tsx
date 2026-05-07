@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Target } from "lucide-react";
+import { Brain, Target } from "lucide-react";
 import {
   api,
   type ForumTopicSummary,
@@ -311,7 +311,7 @@ export function HomePage() {
             </div>
 
             {/* Daily challenge nudge — single line so it doesn't crowd the dashboard. */}
-            <div className="mt-4">
+            <div className="mt-4 grid sm:grid-cols-2 gap-3">
               <Link
                 to="/challenge"
                 className="block rounded-xl border border-primary/30 bg-gradient-to-r from-primary/10 to-transparent px-4 py-3 hover:from-primary/15 transition-colors"
@@ -327,6 +327,25 @@ export function HomePage() {
                     </div>
                   </div>
                   <span className="text-primary text-sm font-medium">Play →</span>
+                </div>
+              </Link>
+              <Link
+                to="/me/mri"
+                className="block rounded-xl border border-violet-500/30 bg-gradient-to-r from-violet-500/10 to-transparent px-4 py-3 hover:from-violet-500/15 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-violet-500/15 text-violet-700 dark:text-violet-300">
+                    <Brain className="w-5 h-5" strokeWidth={2} />
+                  </span>
+                  <div className="flex-1">
+                    <div className="text-sm font-semibold">Knowledge MRI</div>
+                    <div className="text-xs text-muted-foreground">
+                      Concept-level diagnostic across every path.
+                    </div>
+                  </div>
+                  <span className="text-violet-600 dark:text-violet-400 text-sm font-medium">
+                    View →
+                  </span>
                 </div>
               </Link>
             </div>

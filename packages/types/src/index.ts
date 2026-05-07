@@ -2039,6 +2039,59 @@ export interface WeakConceptsResponse {
   diagnoses: MisconceptionDiagnosis[];
 }
 
+// --- Knowledge MRI (Sprint 33) -------------------------------------
+// Concept-level diagnostic snapshot. Builds on existing tables — no
+// new schema. Returned by GET /api/v1/me/knowledge-mri.
+
+export type KnowledgeMriStatus = "mastered" | "in_progress" | "untouched";
+
+export interface KnowledgeMriNode {
+  nodeId: string;
+  nodeSlug: string;
+  title: string;
+  level: string;
+  // The first wiki page slug backing this node (most nodes have a 1:1
+  // mapping; mathy clusters carry several).
+  pageSlug: string | null;
+  pageTitle: string | null;
+  status: KnowledgeMriStatus;
+  quizScore: number | null;
+  activeDiagnoses: number;
+  unresolvedMistakes: number;
+  // Mean SM-2 rating in [0,1] over the last 30 days, or null when no
+  // recent reviews.
+  flashcardRetention: number | null;
+  lastTouchedAt: string | null;
+  prereqsMet: boolean;
+}
+
+export interface KnowledgeMriPathSummary {
+  totalNodes: number;
+  completedNodes: number;
+  averageQuizScore: number;
+  activeDiagnoses: number;
+}
+
+export interface KnowledgeMriPath {
+  slug: string;
+  title: string;
+  summary: KnowledgeMriPathSummary;
+  nodes: KnowledgeMriNode[];
+}
+
+export interface KnowledgeMriOverall {
+  mastered: number;
+  inProgress: number;
+  untouched: number;
+  activeDiagnoses: number;
+  hottestPath: { slug: string; title: string } | null;
+}
+
+export interface KnowledgeMri {
+  paths: KnowledgeMriPath[];
+  overall: KnowledgeMriOverall;
+}
+
 // --- AI tutor modes (Sprint 30) --------------------------------------
 
 export type TutorMode =

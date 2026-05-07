@@ -175,6 +175,10 @@ const CapstoneArtifactPageView = lazy(() =>
 const WeakConceptsPage = lazy(() =>
   import("./pages/WeakConceptsPage").then((m) => ({ default: m.WeakConceptsPage })),
 );
+// Sprint 33 — Knowledge MRI lives next to the weak-concepts page.
+const KnowledgeMRIPage = lazy(() =>
+  import("./pages/KnowledgeMRIPage").then((m) => ({ default: m.KnowledgeMRIPage })),
+);
 
 function PageFallback() {
   return (
@@ -268,6 +272,7 @@ export function App() {
           <Route path="/capstones/:slug/edit" element={<CapstoneEditPage />} />
           <Route path="/capstones/:slug/work" element={<CapstoneWorkspacePage />} />
           <Route path="/me/weak-concepts" element={<WeakConceptsPage />} />
+          <Route path="/me/mri" element={<KnowledgeMRIPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

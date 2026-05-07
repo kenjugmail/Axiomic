@@ -18,6 +18,7 @@ import {
 } from "@axiomic/db";
 import { requireAuth } from "../middleware/auth";
 import { runDetectorForUser } from "../lib/misconceptionDetector";
+import { buildKnowledgeMri } from "../lib/knowledgeMri";
 import type { Env } from "../env";
 
 export const meRouter = new Hono<Env>();
@@ -95,6 +96,16 @@ meRouter.get("/weak-concepts", requireAuth, async (c) => {
       };
     }),
   });
+});
+
+// Sprint 33 — Knowledge MRI. Returns a concept-level diagnostic
+// snapshot composing user_progress + misconception_diagnoses +
+// quiz_mistakes + flashcard_reviews + mastery_paths/nodes. Pure
+// aggregator; no new schema.
+meRouter.get("/knowledge-mri", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const mri = await buildKnowledgeMri(user.id);
+  return c.json(mri);
 });
 
 meRouter.post("/weak-concepts/refresh", requireAuth, async (c) => {

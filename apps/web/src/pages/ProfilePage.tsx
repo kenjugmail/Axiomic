@@ -206,6 +206,16 @@ export function ProfilePage() {
       </div>
 
       <div className="space-y-6">
+        {isOwnProfile && (
+          <div className="flex justify-end">
+            <Link
+              to="/me/mri"
+              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300 hover:bg-violet-500/15 transition-colors"
+            >
+              View Knowledge MRI →
+            </Link>
+          </div>
+        )}
         {/* Sprint 31 — public mastery portfolio: capstones + research +
             authored wiki + reproductions. Pulled in a single
             aggregate request from /users/:username/portfolio. */}
