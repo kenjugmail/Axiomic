@@ -3,6 +3,7 @@ import { Eye, Pencil } from "lucide-react";
 import { api } from "../../lib/api";
 import { MarkdownRenderer } from "../MarkdownRenderer";
 import { MarkdownToolbar } from "./MarkdownToolbar";
+import { uploadFile, type UploadResult } from "../../lib/uploads";
 
 interface Props {
   value: string;
@@ -33,6 +34,8 @@ export function RichComposer({
 }: Props) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [view, setView] = useState<"edit" | "preview">("edit");
+  const [dragOver, setDragOver] = useState(false);
+  const [uploadingDrop, setUploadingDrop] = useState(false);
 
   // @mention state. We track the partial token after the most recent
   // unescaped "@" relative to the cursor, query the user-search endpoint
@@ -106,6 +109,71 @@ export function RichComposer({
       const pos = i + 1 + username.length + 1;
       ta.setSelectionRange(pos, pos);
     });
+  };
+
+  const ALLOWED_DROP_MIME = new Set([
+    "image/png",
+    "image/jpeg",
+    "image/gif",
+    "image/webp",
+    "image/svg+xml",
+    "video/mp4",
+    "video/webm",
+    "application/pdf",
+  ]);
+
+  const insertUploadAtCaret = (r: UploadResult) => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    const snippet =
+      r.kind === "image"
+        ? `\n\n![${r.originalName}](${r.url})\n\n`
+        : r.kind === "video"
+          ? `\n\n:::video[id=${r.id}]\n\n`
+          : `\n\n[${r.originalName}](${r.url})\n\n`;
+    const text = ta.value;
+    const pos = ta.selectionEnd;
+    const next = text.slice(0, pos) + snippet + text.slice(pos);
+    onChange(next);
+    requestAnimationFrame(() => {
+      ta.focus();
+      const cursor = pos + snippet.length;
+      ta.setSelectionRange(cursor, cursor);
+    });
+  };
+
+  const handleFiles = async (files: File[]) => {
+    const accepted = files.filter((f) => ALLOWED_DROP_MIME.has(f.type));
+    if (accepted.length === 0) return;
+    setUploadingDrop(true);
+    try {
+      for (const f of accepted) {
+        try {
+          const r = await uploadFile(f);
+          insertUploadAtCaret(r);
+        } catch (e: any) {
+          alert(e?.message ?? `Upload failed: ${f.name}`);
+        }
+      }
+    } finally {
+      setUploadingDrop(false);
+    }
+  };
+
+  const onDrop = (e: React.DragEvent<HTMLTextAreaElement>) => {
+    if (!e.dataTransfer?.files?.length) return;
+    e.preventDefault();
+    setDragOver(false);
+    handleFiles(Array.from(e.dataTransfer.files));
+  };
+
+  const onPaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const files = e.clipboardData?.files;
+    if (!files || files.length === 0) return;
+    const list = Array.from(files).filter((f) => ALLOWED_DROP_MIME.has(f.type));
+    if (list.length === 0) return;
+    e.preventDefault();
+    handleFiles(list);
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -203,10 +271,28 @@ export function RichComposer({
                 setMentionResults([]);
               }, 150)
             }
+            onDragOver={(e) => {
+              if (e.dataTransfer?.types?.includes("Files")) {
+                e.preventDefault();
+                setDragOver(true);
+              }
+            }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={onDrop}
+            onPaste={onPaste}
             placeholder={placeholder}
             rows={rows}
-            className="w-full p-3 rounded-md border border-input bg-background text-sm font-mono resize-y focus:outline-none focus:ring-2 focus:ring-ring"
+            className={`w-full p-3 rounded-md border bg-background text-sm font-mono resize-y focus:outline-none focus:ring-2 focus:ring-ring transition-colors ${
+              dragOver
+                ? "border-primary ring-2 ring-primary/30"
+                : "border-input"
+            }`}
           />
+        )}
+        {uploadingDrop && (
+          <div className="absolute top-2 right-2 z-30 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary text-primary-foreground">
+            Uploading…
+          </div>
         )}
 
         {view === "edit" && mentionResults.length > 0 && (

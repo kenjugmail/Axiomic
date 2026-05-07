@@ -11,7 +11,6 @@ export function NewsEditPage() {
   const { user, loading: authLoading } = useAuthStore();
   const [article, setArticle] = useState<NewsArticle | null>(null);
   const [draft, setDraft] = useState<NewsDraft | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -153,13 +152,7 @@ export function NewsEditPage() {
           </button>
         </div>
       </div>
-      <NewsEditor
-        draft={draft}
-        onChange={setDraft}
-        slugEditable={false}
-        showPreview={showPreview}
-        onTogglePreview={() => setShowPreview((v) => !v)}
-      />
+      <NewsEditor draft={draft} onChange={setDraft} slugEditable={false} />
     </div>
   );
 }
