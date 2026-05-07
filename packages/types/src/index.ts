@@ -374,6 +374,14 @@ export interface Lesson {
 
 export interface LessonResponse {
   lesson: Lesson | null;    // null when the node has no authored lesson
+  // Set when the lesson was derived from a published news article via
+  // the Paper→Lesson pipeline. The page renders a "Sourced from
+  // @author's article" footer when this is non-null.
+  sourceArticle?: {
+    slug: string;
+    title: string;
+    authorUsername: string;
+  } | null;
 }
 
 export interface QuizSubmitResponse {
@@ -838,6 +846,15 @@ export interface NewsArticle extends NewsArticleSummary {
   pendingProposalCount: number;
   isAuthor: boolean;
   myBookmark: boolean;
+  // Set when this article has been turned into a lesson via the
+  // Paper→Lesson pipeline. Null when no lesson has been derived. The
+  // article view shows a "📚 Lesson available" badge that links to
+  // /paths/{pathSlug}/lessons/{nodeSlug} when this is non-null.
+  derivedLesson: {
+    nodeId: string;
+    nodeSlug: string;
+    pathSlug: string;
+  } | null;
 }
 
 export interface NewsTagCount {

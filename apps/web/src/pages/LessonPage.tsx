@@ -132,6 +132,11 @@ export function LessonPage() {
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [node, setNode] = useState<MasteryNode | null>(null);
   const [pathTitle, setPathTitle] = useState("");
+  const [sourceArticle, setSourceArticle] = useState<{
+    slug: string;
+    title: string;
+    authorUsername: string;
+  } | null>(null);
   const [recommendedNext, setRecommendedNext] = useState<{
     slug: string;
     title: string;
@@ -190,6 +195,7 @@ export function LessonPage() {
           api.mastery.getLessonProgress(found.id).catch(() => ({ slideIdx: 0 })),
         ]).then(([lr, prog]) => {
           if (cancelled) return;
+          setSourceArticle(lr.sourceArticle ?? null);
           if (!lr.lesson || lr.lesson.slides.length === 0) {
             setPhase("no-lesson");
             return;
@@ -505,6 +511,21 @@ export function LessonPage() {
 
         {/* Main content */}
         <div ref={mainRef} className="px-4 sm:px-8 py-8 overflow-y-auto">
+          {sourceArticle && phase !== "loading" && (
+            <div className="max-w-3xl mx-auto mb-6">
+              <Link
+                to={`/news/${sourceArticle.slug}`}
+                className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border border-border bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-colors"
+              >
+                <BookOpen className="w-3 h-3" strokeWidth={2} />
+                Sourced from{" "}
+                <span className="font-medium">@{sourceArticle.authorUsername}</span>
+                's article ·{" "}
+                <span className="text-foreground">{sourceArticle.title}</span>
+              </Link>
+            </div>
+          )}
+
           {phase === "loading" && (
             <div className="max-w-3xl mx-auto space-y-4">
               <div className="h-8 animate-pulse bg-muted rounded w-1/3" />

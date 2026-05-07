@@ -818,4 +818,53 @@ ai.get("/news/related-semantic/:slug", async (c) => {
   return c.json({ articles: top });
 });
 
+// --- Paper → Lesson pipeline ----------------------------------------
+//
+// Streams a `{slides: LessonSlide[]}` JSON payload that turns a published
+// news article into a teachable lesson scaffold. The author edits + saves
+// via the existing lesson editor; on save the article + lesson get
+// cross-linked via news_articles.derived_lesson_node_id and
+// mastery_nodes.source_article_id (see /news/:slug/derive-lesson).
+const lessonFromArticleSchema = z.object({
+  slug: z.string().min(1).max(200),
+  textSlides: z.number().int().min(2).max(8).optional(),
+  questionSlides: z.number().int().min(0).max(6).optional(),
+});
+
+ai.post(
+  "/lesson/from-article",
+  zValidator("json", lessonFromArticleSchema),
+  async (c) => {
+    const { slug, textSlides = 5, questionSlides = 3 } = c.req.valid("json");
+    const user = await getSessionUser(c);
+    const rateLimitKey =
+      user?.id || c.req.header("x-forwarded-for") || "anonymous";
+    if (!checkRateLimit(`lesson-from-article:${rateLimitKey}`, 8, 60_000)) {
+      return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+    }
+
+    const body = await loadNewsBody(slug);
+    if (!body) return c.json({ error: "Article not found" }, 404);
+
+    const system = `You convert a published research article on the Axiomic learning platform into an interactive lesson. Output a single JSON object and nothing else (no prose, no code fences, no commentary):
+
+{"slides": [
+  {"kind": "text", "title": "Short Title", "body": "markdown body"},
+  ...
+  {"kind": "question", "question": {"id": "q-1", "kind": "multiple_choice", "question": "...", "options": ["...","...","...","..."], "correctIndex": 0, "explanation": "..."}}
+]}
+
+Constraints:
+- Produce exactly ${textSlides} text slides followed by exactly ${questionSlides} question slides.
+- Text slides: title ≤ 6 words headline-cased; body 80-180 words of markdown; one short paragraph optionally followed by a tiny bullet list; LaTeX via $...$ is fine.
+- Question slides: kind="multiple_choice"; exactly 4 options; correctIndex is 0-3; one-sentence question ≤ 30 words; explanation one or two sentences.
+- Question ids must be unique within the lesson (q-1, q-2, ...).
+- Cover the article's main thread: derive concepts in order, then check understanding with the questions.
+- Don't invent facts not supported by the article.
+- The output must be valid JSON parseable by JSON.parse.`;
+
+    return streamingResponse(system, body.slice(0, 8000));
+  },
+);
+
 export { ai as aiRouter };

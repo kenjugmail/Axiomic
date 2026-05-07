@@ -8,6 +8,7 @@ import {
   lessonVersions,
   lessonEditReports,
   lessonSlideEvents,
+  newsArticles,
   userProgress,
   users,
   lessonProgress,
@@ -465,16 +466,39 @@ mastery.get("/lesson/:nodeId", async (c) => {
   const nodeId = c.req.param("nodeId");
   const db = getDb();
   const node = db
-    .select({ lessonData: masteryNodes.lessonData })
+    .select({
+      lessonData: masteryNodes.lessonData,
+      sourceArticleId: masteryNodes.sourceArticleId,
+    })
     .from(masteryNodes)
     .where(eq(masteryNodes.id, nodeId))
     .get();
   if (!node) return c.json({ error: "Node not found" }, 404);
-  if (!node.lessonData) return c.json({ lesson: null });
+
+  // Look up the source article (if any) so the lesson page can render
+  // a "Sourced from @author's article" footer without a second fetch.
+  let sourceArticle:
+    | { slug: string; title: string; authorUsername: string }
+    | null = null;
+  if (node.sourceArticleId) {
+    const a = db
+      .select({
+        slug: newsArticles.slug,
+        title: newsArticles.title,
+        authorUsername: users.username,
+      })
+      .from(newsArticles)
+      .innerJoin(users, eq(newsArticles.authorId, users.id))
+      .where(eq(newsArticles.id, node.sourceArticleId))
+      .get();
+    if (a) sourceArticle = a;
+  }
+
+  if (!node.lessonData) return c.json({ lesson: null, sourceArticle });
   try {
-    return c.json({ lesson: JSON.parse(node.lessonData) });
+    return c.json({ lesson: JSON.parse(node.lessonData), sourceArticle });
   } catch {
-    return c.json({ lesson: null });
+    return c.json({ lesson: null, sourceArticle });
   }
 });
 

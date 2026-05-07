@@ -562,6 +562,178 @@ describe("news drafts + tags", () => {
   });
 });
 
+describe("news derive-lesson (Paper → Lesson pipeline)", () => {
+  function validSlides() {
+    return [
+      { kind: "text", title: "Setup", body: "Intro paragraph." },
+      { kind: "text", title: "Concept", body: "Core idea." },
+      {
+        kind: "question",
+        question: {
+          id: "q-1",
+          kind: "multiple_choice",
+          question: "Which is right?",
+          options: ["a", "b", "c", "d"],
+          correctIndex: 1,
+          explanation: "Because b.",
+        },
+      },
+    ];
+  }
+
+  test("requires authentication", async () => {
+    const author = await signup("dl_anon_a");
+    const slug = `dl-anon-${testId}`;
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ slug, title: "T", summary: "", body: "Body" }),
+    });
+    const res = await req(`/news/${slug}/derive-lesson`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slides: validSlides() }),
+    });
+    expect(res.status).toBe(401);
+  });
+
+  test("non-author, non-coauthor cannot derive a lesson", async () => {
+    const author = await signup("dl_owner");
+    const stranger = await signup("dl_stranger");
+    const slug = `dl-strict-${testId}`;
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ slug, title: "T", summary: "", body: "Body" }),
+    });
+    const res = await req(`/news/${slug}/derive-lesson`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(stranger.cookie) },
+      body: JSON.stringify({ slides: validSlides() }),
+    });
+    expect(res.status).toBe(403);
+  });
+
+  test("author derives a lesson, article + lesson are cross-linked", async () => {
+    const author = await signup("dl_ok");
+    const slug = `dl-ok-${testId}`;
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({
+        slug,
+        title: "FlashAttention",
+        summary: "Why it's fast",
+        body: "Long body about the memory hierarchy.",
+      }),
+    });
+
+    const derive = await req(`/news/${slug}/derive-lesson`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ slides: validSlides() }),
+    });
+    expect(derive.status).toBe(200);
+    const dr = (await derive.json()) as {
+      nodeId: string;
+      nodeSlug: string;
+      pathSlug: string;
+    };
+    expect(dr.pathSlug).toBe("from-articles");
+    expect(dr.nodeSlug).toBe(slug);
+
+    const fetched = await req(`/news/${slug}`);
+    const ab = (await fetched.json()) as { article: any };
+    expect(ab.article.derivedLesson).toBeTruthy();
+    expect(ab.article.derivedLesson.pathSlug).toBe("from-articles");
+    expect(ab.article.derivedLesson.nodeSlug).toBe(slug);
+
+    const lessonRes = await req(`/mastery/lesson/${dr.nodeId}`);
+    expect(lessonRes.status).toBe(200);
+    const lessonBody = (await lessonRes.json()) as {
+      lesson: { slides: any[] } | null;
+      sourceArticle: { slug: string; authorUsername: string } | null;
+    };
+    expect(lessonBody.lesson?.slides.length).toBe(3);
+    expect(lessonBody.sourceArticle?.slug).toBe(slug);
+    expect(lessonBody.sourceArticle?.authorUsername).toBe(author.username);
+  });
+
+  test("calling derive-lesson twice updates the same node", async () => {
+    const author = await signup("dl_idem");
+    const slug = `dl-idem-${testId}`;
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ slug, title: "T", summary: "", body: "Body" }),
+    });
+    const first = (await (
+      await req(`/news/${slug}/derive-lesson`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+        body: JSON.stringify({ slides: validSlides() }),
+      })
+    ).json()) as { nodeId: string };
+
+    const updatedSlides = [
+      ...validSlides(),
+      { kind: "text", title: "Extra", body: "One more." },
+    ];
+    const second = (await (
+      await req(`/news/${slug}/derive-lesson`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+        body: JSON.stringify({ slides: updatedSlides }),
+      })
+    ).json()) as { nodeId: string };
+
+    expect(second.nodeId).toBe(first.nodeId);
+
+    const lessonRes = await req(`/mastery/lesson/${first.nodeId}`);
+    const lessonBody = (await lessonRes.json()) as { lesson: { slides: any[] } };
+    expect(lessonBody.lesson.slides.length).toBe(4);
+  });
+
+  test("rejects duplicate question ids", async () => {
+    const author = await signup("dl_dup");
+    const slug = `dl-dup-${testId}`;
+    await req("/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ slug, title: "T", summary: "", body: "Body" }),
+    });
+    const dupSlides = [
+      { kind: "text", title: "S", body: "B" },
+      {
+        kind: "question",
+        question: {
+          id: "q-dup",
+          kind: "multiple_choice",
+          question: "?",
+          options: ["a", "b", "c", "d"],
+          correctIndex: 0,
+        },
+      },
+      {
+        kind: "question",
+        question: {
+          id: "q-dup",
+          kind: "multiple_choice",
+          question: "?",
+          options: ["a", "b", "c", "d"],
+          correctIndex: 0,
+        },
+      },
+    ];
+    const res = await req(`/news/${slug}/derive-lesson`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ slides: dupSlides }),
+    });
+    expect(res.status).toBe(400);
+  });
+});
+
 describe("news related", () => {
   test("returns up to 4 articles, excluding the current one", async () => {
     const author = await signup("rel_a");

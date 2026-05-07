@@ -110,6 +110,10 @@ export const masteryNodes = sqliteTable("mastery_nodes", {
   draftLessonData: text("draft_lesson_data"),
   draftUpdatedAt: text("draft_updated_at"),
   draftEditorId: text("draft_editor_id").references(() => users.id),
+  // Set when this node's lesson was derived from a news article via the
+  // Paper→Lesson pipeline. Surfaces a "Sourced from @author's article"
+  // link on the lesson page.
+  sourceArticleId: text("source_article_id"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
 });
 
@@ -326,6 +330,10 @@ export const newsArticles = sqliteTable("news_articles", {
   // Tracks the most recent applied edit (the author's direct edit, or
   // an approved proposal). Null on a fresh article — same as authorId.
   lastEditorId: text("last_editor_id").references(() => users.id),
+  // Set when an author has used Paper→Lesson to derive a teaching
+  // lesson from this article. Surfaces a "📚 Lesson available" badge on
+  // the article view that deep-links to the lesson.
+  derivedLessonNodeId: text("derived_lesson_node_id"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
 });

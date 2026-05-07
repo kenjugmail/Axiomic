@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { GraduationCap } from "lucide-react";
 import { api } from "../lib/api";
 import { Skeleton } from "../components/ui";
 import type { NewsArticle, NewsReactionKind } from "@axiomic/types";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { AiArticleHelpers } from "../components/news/AiArticleHelpers";
 import { ArticleTOC } from "../components/news/ArticleTOC";
+import { LessonFromArticleDialog } from "../components/news/LessonFromArticleDialog";
 import { NewsComments } from "../components/news/NewsComments";
 import { NewsCover } from "../components/news/NewsCover";
 import { RelatedNewsRail } from "../components/news/RelatedNewsRail";
@@ -29,6 +31,7 @@ export function NewsArticlePage() {
   const [error, setError] = useState<string | null>(null);
   const [reacting, setReacting] = useState(false);
   const [bookmarking, setBookmarking] = useState(false);
+  const [lessonDialogOpen, setLessonDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!slug) return;
@@ -173,9 +176,9 @@ export function NewsArticlePage() {
           )}
       </div>
 
-      {/* Author actions: edit + review pending proposals. */}
+      {/* Author actions: edit + review pending proposals + turn into lesson. */}
       {article.isAuthor && (
-        <div className="flex items-center gap-2 mt-4">
+        <div className="flex items-center gap-2 mt-4 flex-wrap">
           <Link
             to={`/news/${article.slug}/edit`}
             className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40"
@@ -194,7 +197,39 @@ export function NewsArticlePage() {
               ? `Review ${article.pendingProposalCount} pending edit${article.pendingProposalCount === 1 ? "" : "s"}`
               : "Review proposals"}
           </Link>
+          {article.status === "published" && (
+            <button
+              onClick={() => setLessonDialogOpen(true)}
+              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border border-primary/40 text-primary hover:bg-primary/10"
+              title="Generate a Brilliant-style lesson from this article"
+            >
+              <GraduationCap className="w-3.5 h-3.5" strokeWidth={2} />
+              {article.derivedLesson ? "Regenerate lesson" : "Turn into lesson"}
+            </button>
+          )}
         </div>
+      )}
+
+      {/* Lesson-available badge: visible to everyone once a lesson has
+          been derived. Author sees it too — confirms the link is live. */}
+      {article.derivedLesson && (
+        <div className="mt-4">
+          <Link
+            to={`/paths/${article.derivedLesson.pathSlug}/lessons/${article.derivedLesson.nodeSlug}`}
+            className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20"
+          >
+            <GraduationCap className="w-3.5 h-3.5" strokeWidth={2} />
+            Lesson available — practice the concepts
+          </Link>
+        </div>
+      )}
+
+      {lessonDialogOpen && (
+        <LessonFromArticleDialog
+          articleSlug={article.slug}
+          articleTitle={article.title}
+          onClose={() => setLessonDialogOpen(false)}
+        />
       )}
 
       {!article.isAuthor && user && (

@@ -548,6 +548,11 @@ export const api = {
     bookmarks: () => request<NewsBookmarksResponse>("/news/me/bookmarks"),
     related: (slug: string) =>
       request<NewsRelatedResponse>(`/news/${slug}/related`),
+    deriveLesson: (slug: string, body: { slides: any[] }) =>
+      request<{ nodeId: string; nodeSlug: string; pathSlug: string }>(
+        `/news/${slug}/derive-lesson`,
+        { method: "POST", body: JSON.stringify(body) },
+      ),
   },
   flashcards: {
     save: (data: { pageSlug: string; pageTitle: string; front: string; back: string }) =>
