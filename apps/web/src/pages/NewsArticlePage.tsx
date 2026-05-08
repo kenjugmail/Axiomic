@@ -9,6 +9,7 @@ import type {
   NewsReactionKind,
 } from "@axiomic/types";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
+import { TutorMount } from "../components/ai/TutorMount";
 import { AiArticleHelpers } from "../components/news/AiArticleHelpers";
 import { ArticleTOC } from "../components/news/ArticleTOC";
 import { ArtifactsSection } from "../components/news/ArtifactsSection";
@@ -585,6 +586,11 @@ export function NewsArticlePage() {
           />
         );
       })()}
+
+      {/* Sprint 63h — AI tutor mount. Selection-to-chat is disabled
+          here because ClaimSelectionPopover already owns selection on
+          this surface; unifying the two popovers is a follow-up. */}
+      <TutorMount pageSlug={article.slug} pageTitle={article.title} tier="news" />
     </div>
   );
 }

@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Bell } from "lucide-react";
 import { api, type Notification } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { notificationLink } from "../components/NotificationBell";
+import { EmptyState } from "../components/ui/EmptyState";
 
 type Filter = "all" | "unread";
 
@@ -140,9 +142,19 @@ export function NotificationsPage() {
           ))}
         </div>
       ) : items.length === 0 ? (
-        <div className="py-16 text-center text-muted-foreground">
-          {filter === "unread" ? "No unread notifications." : "No notifications yet."}
-        </div>
+        <EmptyState
+          icon={Bell}
+          title={
+            filter === "unread"
+              ? "No unread notifications"
+              : "No notifications yet"
+          }
+          description={
+            filter === "unread"
+              ? "All caught up. Switch the filter to All to review past notifications."
+              : "When someone replies, mentions you, or your work is reviewed, the alert will land here."
+          }
+        />
       ) : (
         <ul className="divide-y divide-border border border-border rounded-lg overflow-hidden">
           {items.map((n) => (

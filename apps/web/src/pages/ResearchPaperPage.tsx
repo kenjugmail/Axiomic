@@ -17,6 +17,7 @@ import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
+import { TutorMount } from "../components/ai/TutorMount";
 import { ArtifactsSection } from "../components/news/ArtifactsSection";
 import { ClaimSelectionPopover } from "../components/news/ClaimSelectionPopover";
 import { ClaimThreadPanel } from "../components/news/ClaimThreadPanel";
@@ -68,6 +69,8 @@ export function ResearchPaperPage() {
   const [error, setError] = useState<string | null>(null);
   const [reproDialogOpen, setReproDialogOpen] = useState(false);
   const [citeOpen, setCiteOpen] = useState(false);
+  // Sprint 63h — root for the selection-to-chat popover.
+  const paperBodyRef = useRef<HTMLDivElement | null>(null);
   const [threads, setThreads] = useState<ClaimThread[]>([]);
   const [pendingThreadQuote, setPendingThreadQuote] =
     useState<TextQuote | null>(null);
@@ -176,7 +179,7 @@ export function ResearchPaperPage() {
   const fellBack = paper.tier !== paper.requestedTier;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div ref={paperBodyRef} className="max-w-3xl mx-auto px-4 py-8">
       <Link
         to="/research"
         className="text-sm text-muted-foreground hover:text-foreground"
@@ -605,6 +608,15 @@ export function ResearchPaperPage() {
           onClose={() => setCiteOpen(false)}
         />
       )}
+
+      {/* Sprint 63h — AI tutor mount. Selection-to-chat is enabled
+          across the whole paper body (abstract + sections). */}
+      <TutorMount
+        pageSlug={paper.slug}
+        pageTitle={paper.title}
+        tier="research"
+        articleRef={paperBodyRef}
+      />
     </div>
   );
 }

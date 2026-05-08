@@ -1,4 +1,9 @@
-import type { AIProvider, StreamOptions, SummarizeThreadOptions } from "../provider";
+import type {
+  AIProvider,
+  ModelInfo,
+  StreamOptions,
+  SummarizeThreadOptions,
+} from "../provider";
 import { MockProvider } from "./mock";
 
 export class OllamaProvider implements AIProvider {
@@ -8,6 +13,10 @@ export class OllamaProvider implements AIProvider {
   private embedModel: string;
   private fallback: MockProvider;
   private available: boolean | null = null;
+  // Sprint 63f — cache the /api/tags response for 5 minutes so the
+  // picker doesn't hammer the host on every sidebar open.
+  private modelsCache: { ts: number; models: ModelInfo[] } | null = null;
+  private static readonly MODELS_TTL_MS = 5 * 60 * 1000;
 
   constructor() {
     this.host = process.env.OLLAMA_HOST || "http://localhost:11434";
@@ -41,11 +50,17 @@ export class OllamaProvider implements AIProvider {
         ...opts.messages,
       ];
 
+      // Sprint 63f — honor per-request model override; fall back to the
+      // configured default.
+      const effectiveModel = opts.model && opts.model.trim().length > 0
+        ? opts.model
+        : this.chatModel;
+
       const res = await fetch(`${this.host}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: this.chatModel,
+          model: effectiveModel,
           messages,
           stream: true,
         }),
@@ -137,5 +152,45 @@ Produce a markdown summary with three short sections: (1) the core question/clai
     } catch {
       return this.fallback.embed(text);
     }
+  }
+
+  // Sprint 63f — returns Ollama-installed models via /api/tags. Falls
+  // back to a single-entry list with the configured default when the
+  // host is unreachable.
+  async listModels(): Promise<{ available: ModelInfo[]; default: string }> {
+    const now = Date.now();
+    if (
+      this.modelsCache &&
+      now - this.modelsCache.ts < OllamaProvider.MODELS_TTL_MS
+    ) {
+      return { available: this.modelsCache.models, default: this.chatModel };
+    }
+
+    let models: ModelInfo[] = [];
+    try {
+      const res = await fetch(`${this.host}/api/tags`, {
+        signal: AbortSignal.timeout(2000),
+      });
+      if (res.ok) {
+        const data = (await res.json()) as { models?: Array<{ name?: string }> };
+        models = (data.models ?? [])
+          .map((m) => m?.name)
+          .filter((n): n is string => typeof n === "string" && n.length > 0)
+          .map((id) => ({ id }));
+      }
+    } catch {
+      // fall through to default-only
+    }
+
+    if (models.length === 0) {
+      models = [{ id: this.chatModel }];
+    } else if (!models.some((m) => m.id === this.chatModel)) {
+      // Make sure the configured default appears even if /api/tags didn't
+      // mention it (e.g. on a fresh host before the model is pulled).
+      models = [{ id: this.chatModel }, ...models];
+    }
+
+    this.modelsCache = { ts: now, models };
+    return { available: models, default: this.chatModel };
   }
 }

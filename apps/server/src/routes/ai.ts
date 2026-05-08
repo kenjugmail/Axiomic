@@ -5,7 +5,13 @@ import { getAIProvider } from "@axiomic/ai";
 import { getDb, wikiPages, pageVersions, newsArticles, researchPapers, users } from "@axiomic/db";
 import { eq, desc, sql } from "drizzle-orm";
 import { getSessionUser, requireAuth } from "../middleware/auth";
-import { buildCoachContext, summarizeCoachContext } from "../lib/userContext";
+import {
+  buildCoachContext,
+  summarizeCoachContext,
+  GOAL_LABELS,
+  GOAL_CTA_URLS,
+  GOAL_CTA_LABELS,
+} from "../lib/userContext";
 import { getOrEmbed } from "../lib/embeddingCache";
 import { buildTutorModePrompt } from "../lib/tutorModes";
 import { logger } from "../lib/logger";
@@ -50,10 +56,14 @@ const chatSchema = z.object({
       pageSlug: z.string().optional(),
     })
     .optional(),
+  // Sprint 63f — optional per-request model override. The picker in
+  // AISidebar passes whatever the user selected; falls back to the
+  // provider's configured default when omitted.
+  model: z.string().min(1).max(120).optional(),
 });
 
 ai.post("/chat", zValidator("json", chatSchema), async (c) => {
-  const { pageSlug, tier, messages, mode, modeContext } = c.req.valid("json");
+  const { pageSlug, tier, messages, mode, modeContext, model } = c.req.valid("json");
   const user = await getSessionUser(c);
   const rateLimitKey = user?.id || c.req.header("x-forwarded-for") || "anonymous";
 
@@ -140,6 +150,7 @@ Guidelines:
         await provider.stream({
           system,
           messages,
+          model,
           onToken: (token) => {
             tokenCount++;
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`));
@@ -173,6 +184,44 @@ Guidelines:
       Connection: "keep-alive",
     },
   });
+});
+
+// Sprint 63f — list available chat models for the configured provider.
+// AIModelPicker calls this once per sidebar mount + caches client-side.
+// The AI_AVAILABLE_MODELS env var (comma-separated) overrides whatever
+// the provider's listModels() returns when ops want to curate the picker.
+// Cache key includes the env value so changing it (in tests or hot
+// reload) busts the cache automatically.
+let _modelsCache: { ts: number; key: string; payload: any } | null = null;
+const MODELS_CACHE_MS = 5 * 60 * 1000;
+
+ai.get("/models", async (c) => {
+  const override = process.env.AI_AVAILABLE_MODELS?.trim() ?? "";
+  const cacheKey = `override=${override}`;
+  const now = Date.now();
+  if (
+    _modelsCache &&
+    _modelsCache.key === cacheKey &&
+    now - _modelsCache.ts < MODELS_CACHE_MS
+  ) {
+    return c.json(_modelsCache.payload);
+  }
+  const provider = getAIProvider();
+  const { available, default: defaultModel } = await provider.listModels();
+  let models = available;
+  if (override) {
+    const ids = override.split(",").map((s) => s.trim()).filter(Boolean);
+    if (ids.length > 0) {
+      models = ids.map((id) => ({ id }));
+    }
+  }
+  const payload = {
+    available: models,
+    default: defaultModel,
+    provider: provider.name,
+  };
+  _modelsCache = { ts: now, key: cacheKey, payload };
+  return c.json(payload);
 });
 
 // Related pages via embeddings
@@ -1025,6 +1074,20 @@ function rankSuggestions(ctx: ReturnType<typeof buildCoachContext>): CoachSugges
           ? `You stopped on slide ${slideIdx + 1} of ${totalSlides}.`
           : "You have an in-flight lesson — resume where you left off.",
       ctaUrl: `/paths/${pathSlug}/lessons/${nodeSlug}`,
+    });
+  }
+
+  // Sprint 63b — when the suggestion list is sparse and the user has a
+  // stated goal, append a primer pointing at the goal's home. Lets the
+  // coach surface "you said you wanted to publish a paper — try the
+  // wizard" when nothing more urgent is on the stack.
+  if (out.length < 3 && ctx.onboardingGoal) {
+    const goal = ctx.onboardingGoal;
+    out.push({
+      kind: "primer",
+      title: GOAL_CTA_LABELS[goal],
+      body: `${GOAL_LABELS[goal]} — your stated goal. Pick up here when you're not sure what to work on.`,
+      ctaUrl: GOAL_CTA_URLS[goal],
     });
   }
 

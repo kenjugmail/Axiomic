@@ -17,12 +17,49 @@ import {
   masteryPaths,
   quizMistakes,
   userProgress,
+  users,
   wikiPages,
   type Db,
 } from "@axiomic/db";
 
 const RECENT_MISTAKE_DAYS = 30;
 const RECENT_MISTAKE_LIMIT = 5;
+
+// Sprint 54 enum mirror (the type lives client-side at apps/web/src/lib/api.ts;
+// the column is `text` so we can't import it from drizzle).
+export type OnboardingGoal =
+  | "complete_track"
+  | "finish_path"
+  | "publish_paper"
+  | "join_cohort"
+  | "ship_misconception";
+
+// Sprint 63b — single source for goal labels. Kept in lock-step with
+// the frontend's GOAL_META in HomePage.tsx so the AI prompt and the
+// dashboard chip never drift.
+export const GOAL_LABELS: Record<OnboardingGoal, string> = {
+  complete_track: "Complete a capstone track",
+  finish_path: "Finish a mastery path",
+  publish_paper: "Publish a research paper",
+  join_cohort: "Join a cohort",
+  ship_misconception: "Ship a misconception",
+};
+
+export const GOAL_CTA_URLS: Record<OnboardingGoal, string> = {
+  complete_track: "/tracks",
+  finish_path: "/paths",
+  publish_paper: "/research/new/wizard",
+  join_cohort: "/cohorts",
+  ship_misconception: "/misconceptions",
+};
+
+export const GOAL_CTA_LABELS: Record<OnboardingGoal, string> = {
+  complete_track: "Browse tracks",
+  finish_path: "View paths",
+  publish_paper: "Start a paper",
+  join_cohort: "Browse cohorts",
+  ship_misconception: "Open marketplace",
+};
 
 export interface CoachContextMistake {
   questionId: string;
@@ -71,6 +108,11 @@ export interface CoachContext {
   // hasn't completed. Empty when no page slug was passed or the page
   // isn't tied to any node.
   prerequisiteGaps: CoachContextPrereqGap[];
+  // Sprint 63b — the user's stated onboarding goal (S54). When set,
+  // the coach's system prompt nudges the user toward this goal when
+  // they're uncertain, and the suggestion ranker prioritizes a primer
+  // pointing at the goal's surface.
+  onboardingGoal: OnboardingGoal | null;
 }
 
 // Strip markdown / formatting from a question stem so the LLM sees
@@ -237,13 +279,35 @@ export function buildCoachContext(
     prerequisiteGaps = computePrereqGaps(userId, opts.pageSlug, db);
   }
 
+  // Sprint 63b — pull the user's stated goal so the AI tutor can
+  // reference it. One indexed lookup; cheap.
+  const goalRow = db
+    .select({ goal: users.onboardingGoal })
+    .from(users)
+    .where(eq(users.id, userId))
+    .get();
+  const onboardingGoal = isOnboardingGoal(goalRow?.goal ?? null)
+    ? (goalRow!.goal as OnboardingGoal)
+    : null;
+
   return {
     recentMistakes,
     dueFlashcards,
     weakConcepts,
     currentLessonProgress,
     prerequisiteGaps,
+    onboardingGoal,
   };
+}
+
+function isOnboardingGoal(value: string | null): value is OnboardingGoal {
+  return (
+    value === "complete_track" ||
+    value === "finish_path" ||
+    value === "publish_paper" ||
+    value === "join_cohort" ||
+    value === "ship_misconception"
+  );
 }
 
 // Walk one hop into prerequisites: pick the mastery node teaching the
@@ -350,6 +414,11 @@ export function summarizeCoachContext(ctx: CoachContext): string {
   }
   if (ctx.dueFlashcards > 0) {
     lines.push(`${ctx.dueFlashcards} flashcards due for review.`);
+  }
+  if (ctx.onboardingGoal) {
+    lines.push(
+      `Active goal: ${GOAL_LABELS[ctx.onboardingGoal]}. When the user is uncertain about what to do next, gently steer toward this goal.`,
+    );
   }
   if (lines.length === 0) return "";
   return [

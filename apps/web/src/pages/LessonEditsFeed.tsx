@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Flag, RotateCcw, Sparkles } from "lucide-react";
+import { Flag, RotateCcw, Sparkles, FileEdit } from "lucide-react";
 import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
+import { EmptyState } from "../components/ui/EmptyState";
 import { ReportEditModal } from "../components/lesson/ReportEditModal";
 
 interface Edit {
@@ -121,7 +122,11 @@ export function LessonEditsFeed() {
           ))}
         </div>
       ) : edits.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No edits yet.</p>
+        <EmptyState
+          icon={FileEdit}
+          title="No lesson edits yet"
+          description="When community contributors edit a lesson, the change shows up here for review."
+        />
       ) : (
         <ul className="space-y-2">
           {edits.map((e) => {

@@ -18,6 +18,15 @@ export default defineConfig({
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
+    // Sprint 63e — mobile project. Smoke flows that assert no
+    // horizontal scroll on the busiest surfaces. Runs only against
+    // mobile.spec.ts so we don't have to make every E2E test
+    // mobile-aware.
+    {
+      name: "mobile-chrome",
+      use: { ...devices["Pixel 7"] },
+      testMatch: /mobile\.spec\.ts/,
+    },
   ],
   webServer: {
     command: "bun run dev",

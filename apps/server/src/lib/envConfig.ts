@@ -61,6 +61,20 @@ const envSchema = z.object({
   // Sprint 53 — Structured logger level. Defaults to 'info' in prod,
   // 'debug' otherwise.
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).optional(),
+
+  // Sprint 63d — error sampler observability. The sampler keeps an
+  // in-process ring buffer (sized via ERROR_SAMPLER_BUFFER_SIZE) for
+  // the /admin/error-stats dashboard; ERROR_LOG_DESTINATION controls
+  // whether sampled errors also emit a structured JSON line on stdout
+  // for external aggregators (Loki, Datadog, etc.).
+  ERROR_LOG_DESTINATION: z
+    .enum(["memory", "stdout", "both"])
+    .default("both"),
+  ERROR_SAMPLER_BUFFER_SIZE: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(200),
 });
 
 export type Env = z.infer<typeof envSchema>;

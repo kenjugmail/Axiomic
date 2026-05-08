@@ -6,9 +6,10 @@
 
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Sparkles, X, RotateCw, Brain } from "lucide-react";
+import { Sparkles, X, RotateCw, Brain, ShieldCheck } from "lucide-react";
 import type { MisconceptionDiagnosis } from "@axiomic/types";
 import { api } from "../lib/api";
+import { EmptyState } from "../components/ui/EmptyState";
 import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
 
@@ -76,10 +77,11 @@ export function WeakConceptsPage() {
           ))}
         </div>
       ) : diagnoses.length === 0 ? (
-        <div className="text-center py-12 text-sm text-muted-foreground">
-          <Sparkles className="w-8 h-8 mx-auto text-muted-foreground mb-3" />
-          No active misconceptions detected. Keep practicing — the detector runs after each quiz.
-        </div>
+        <EmptyState
+          icon={ShieldCheck}
+          title="No active misconceptions detected"
+          description="The detector runs after each quiz. Keep practicing — diagnoses appear here when patterns emerge."
+        />
       ) : (
         <ul className="space-y-3">
           {diagnoses.map((d) => (

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Layers, MessageSquare, Pencil } from "lucide-react";
 import {
@@ -18,6 +18,12 @@ import { PracticePanel } from "../components/wiki/PracticePanel";
 import { TableOfContents } from "../components/TableOfContents";
 import { TierSwitcher } from "../components/TierSwitcher";
 import { AISidebar } from "../components/AISidebar";
+import { SelectionPopover } from "../components/SelectionPopover";
+import {
+  ASK_TUTOR_EVENT,
+  askTutorAction,
+  type AskTutorEventDetail,
+} from "../components/ai/askTutorAction";
 import { PrereqXray } from "../components/prereq/PrereqXray";
 import { Comments } from "../components/Comments";
 import { FlashcardViewer } from "../components/FlashcardViewer";
@@ -36,6 +42,8 @@ export function WikiPage() {
   const [error, setError] = useState("");
   const [showHistory, setShowHistory] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
+  const [seedQuote, setSeedQuote] = useState<string | null>(null);
+  const articleRef = useRef<HTMLElement | null>(null);
   const [flashcardsOpen, setFlashcardsOpen] = useState(false);
   const [relatedPages, setRelatedPages] = useState<WikiPageType[]>([]);
   const [discussions, setDiscussions] = useState<ForumTopicSummary[]>([]);
@@ -95,6 +103,20 @@ export function WikiPage() {
     }
   };
 
+  // Sprint 63g — listen for the global "ask tutor about this" event
+  // and route it into the local sidebar. Only the active page's
+  // listener fires (other pages aren't mounted), so no global state.
+  useEffect(() => {
+    function handle(event: Event) {
+      const detail = (event as CustomEvent<AskTutorEventDetail>).detail;
+      if (!detail || !detail.quote) return;
+      setSeedQuote(detail.quote);
+      setAiOpen(true);
+    }
+    window.addEventListener(ASK_TUTOR_EVENT, handle);
+    return () => window.removeEventListener(ASK_TUTOR_EVENT, handle);
+  }, []);
+
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12">
@@ -121,7 +143,7 @@ export function WikiPage() {
     <div className={`max-w-7xl mx-auto px-4 py-8 ${aiOpen ? "lg:mr-96" : ""}`}>
       <div className="flex gap-8">
         {/* Main content */}
-        <article className="flex-1 min-w-0">
+        <article ref={articleRef} className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-4 mb-6">
             <div>
               <div className="text-sm text-muted-foreground mb-1">
@@ -322,6 +344,16 @@ export function WikiPage() {
         </aside>
       </div>
 
+      {/* Sprint 63g — selection-to-chat popover. Watches the article
+          body; when the user selects ≥4 chars + clicks "Ask tutor",
+          dispatches the global ask-tutor event which we catch above. */}
+      {user && (
+        <SelectionPopover
+          rootRef={articleRef}
+          actions={[askTutorAction({ sourcePageSlug: page.slug })]}
+        />
+      )}
+
       {/* AI Sidebar */}
       <AISidebar
         pageSlug={page.slug}
@@ -329,6 +361,8 @@ export function WikiPage() {
         tier={tier}
         isOpen={aiOpen}
         onClose={() => setAiOpen(false)}
+        seedQuote={seedQuote}
+        onSeedConsumed={() => setSeedQuote(null)}
       />
 
       {/* Flashcard viewer */}

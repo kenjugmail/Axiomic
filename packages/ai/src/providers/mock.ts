@@ -125,6 +125,16 @@ export class MockProvider implements AIProvider {
     this.defaultIdf = Math.log(N + 1) + 1;
   }
 
+  // Sprint 63f — sentinel models so the picker has options in dev + tests.
+  // The mock provider doesn't actually branch behavior on model; the names
+  // exist purely to exercise the UI + endpoint contract.
+  async listModels(): Promise<{ available: { id: string }[]; default: string }> {
+    return {
+      available: [{ id: "mock-fast" }, { id: "mock-thoughtful" }],
+      default: "mock-fast",
+    };
+  }
+
   async stream(opts: StreamOptions): Promise<void> {
     this.loadResponses();
 

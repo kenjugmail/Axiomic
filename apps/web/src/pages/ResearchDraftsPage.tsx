@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { FilePlus } from "lucide-react";
 import type { ResearchPaperDraftSummary } from "@axiomic/types";
 import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
+import { EmptyState } from "../components/ui/EmptyState";
 
 export function ResearchDraftsPage() {
   const { user, loading } = useAuthStore();
@@ -44,12 +46,19 @@ export function ResearchDraftsPage() {
           ))}
         </div>
       ) : drafts.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-12 text-center">
-          No drafts yet.{" "}
-          <Link to="/research/new" className="text-primary hover:underline">
-            Start one
-          </Link>.
-        </p>
+        <EmptyState
+          icon={FilePlus}
+          title="No drafts yet"
+          description="Drafts you save without publishing live here. The wizard scaffolds title, abstract, and section drafts in one go."
+          cta={
+            <Link
+              to="/research/new/wizard"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md bg-foreground text-background text-sm font-medium hover:bg-foreground/90"
+            >
+              Start a paper
+            </Link>
+          }
+        />
       ) : (
         <ul className="mt-6 divide-y divide-border border border-border rounded-md">
           {drafts.map((d) => (
