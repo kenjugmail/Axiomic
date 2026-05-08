@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "kv-cache",
+  "key": "kv-cache-eliminates-quadratic-memory",
+  "label": "KV cache eliminates the quadratic-memory cost of attention",
+  "description": "A common simplification: 'KV cache makes attention O(N), no longer O(N²).' This is partly right and partly misleading.\n\nWhat KV cache eliminates: the **redundant computation** of K and V across decode steps. Without the cache, each step recomputes all prior K and V — that's the O(N²) work over a generation of length N. With the cache, each new token only computes its own new K and V, then does attention against the cached prior K/V. Per-step work drops from O(N²) to O(N).\n\nWhat KV cache does NOT eliminate: the **memory** for the cache itself, which still grows linearly in N. For a 70B model with d_model=8192 at fp16, the cache is roughly 0.6 MB per token per layer. Across 80 layers and a 32K context, that's tens of GB just for the cache — often dominating the model weights.\n\nThe common confusion: 'linear in N' is much better than 'quadratic in N,' and KV cache really does eliminate the quadratic *time*. But it doesn't eliminate the linear *memory*. Long contexts (32K, 128K, 1M+ tokens) are bottlenecked on cache memory, which is why GQA, MQA, and PagedAttention exist.",
+  "probeQuestions": [
+    "For a 32K context, where does most of the GPU memory go — the model weights or the KV cache?",
+    "Why does grouped-query attention (GQA) directly help inference at long context?"
+  ],
+  "correctionPromptTemplate": "The learner thinks KV cache makes long context cheap. Walk through: KV cache eliminates redundant *computation* (O(N²) → O(N) per step), not *memory* (still O(context × layers × heads)). At 32K context the cache can be 10-50 GB per request. Mention GQA as the mitigation. Ask first — 'why are LLM inference servers so memory-constrained at long context if KV cache solved everything?'"
+}

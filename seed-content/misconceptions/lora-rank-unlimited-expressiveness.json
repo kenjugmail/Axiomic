@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "lora",
+  "key": "lora-rank-unlimited-expressiveness",
+  "label": "Higher LoRA rank = unlimited adaptation capacity",
+  "description": "Many learners assume that more LoRA rank always helps, with capacity scaling linearly. Empirically, the curve is sub-linear and saturates. r=16 captures 90%+ of full fine-tuning gains for typical tasks; r=64 has diminishing returns; r=256 rarely justifies the extra parameters and memory.\n\nThe theoretical reason: LoRA's design assumption is that task-specific weight updates lie in a low-dimensional subspace. This is empirically true for most tasks — they don't need a full-rank update. So a low-rank approximation captures essentially the same information. Increasing rank beyond what the task actually requires just trains parameters that don't help.\n\nThe practical implication: pick r based on task complexity, not 'more is always better.' For most fine-tuning, r=16 is a strong default. Increase only if your eval shows undertraining at lower rank.",
+  "probeQuestions": [
+    "If a fine-tune with LoRA r=16 achieves 90% of full-fine-tune quality, how much more should you expect from r=64?",
+    "Why does the LoRA paper argue that 'task-specific updates are intrinsically low-rank'?"
+  ],
+  "correctionPromptTemplate": "The learner thinks higher LoRA rank means proportionally more adaptation capacity. Walk through: empirically the curve saturates around r=16-64. Show concretely — at r=16 most tasks reach 85-95% of full-fine-tune quality; r=64 takes you to 95-98%; r=256 rarely passes 99%. Tie this to the original paper's claim that task-specific weight updates are intrinsically low-rank. Ask first — 'if rank were unbounded in helpfulness, why is r=8 the typical default in production recipes?'"
+}

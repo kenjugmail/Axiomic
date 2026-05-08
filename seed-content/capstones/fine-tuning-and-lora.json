@@ -1,0 +1,132 @@
+{
+  "slug": "fine-tuning-and-lora",
+  "title": "Fine-tuning and LoRA at scale",
+  "summary": "Compare full fine-tuning, LoRA, and QLoRA on a domain dataset. Measure the rank-vs-quality tradeoff. Ship a production-shaped fine-tune of an open model with proper evaluation.",
+  "estimatedWeeks": 4,
+  "coverEmoji": "🎯",
+  "accentColor": "amber",
+  "tags": ["fine-tuning", "lora", "production"],
+  "prerequisiteWikiSlugs": ["fine-tuning", "lora", "training-objectives"],
+  "canonicalTier": "undergrad",
+  "contentIntro": "## What you'll build\n\nA fine-tuned version of a 7B-class open model (LLaMA-3-8B, Mistral-7B, Qwen-2-7B) on a domain dataset of your choice. By the end, you'll have:\n\n- Three trained models: full fine-tune (or QLoRA approximation), LoRA at one rank, LoRA at three ranks\n- An evaluation harness comparing all four (base + 3 fine-tunes) on a held-out set\n- A defensible decision about which fine-tune to ship\n\n[[fine-tuning]] · [[lora]]",
+  "contentUndergrad": "## What you'll build\n\nA real fine-tune of a 7B-class open model on a real domain dataset, with the engineering discipline to compare alternatives and pick the right one for production.\n\n## Format\n\nFour milestones, ~4 weeks. Each milestone has a deliverable (notebook + writeup), a rubric, and a graded review.\n\nYou'll need access to a single GPU (24GB+ memory recommended for QLoRA on a 7B model). Cloud GPUs (A100, H100, RTX 4090) all work; Colab Pro can stretch.\n\n## Why this capstone\n\nFine-tuning is where most teams' first real LLM project lives. The technical mistakes are big: picking the wrong base model, over-fitting on tiny datasets, evaluating on the training distribution, training for too long. Going through the full cycle once — with proper ablations — gives you the muscle memory to avoid all of these on the next one.\n\n[[fine-tuning]] · [[lora]] · [[training-objectives]]",
+  "contentGrad": "## What you'll build\n\nA production-ready fine-tune with the engineering discipline of ablation studies, proper evaluation, and an honest report on the LoRA rank tradeoff curve.\n\nDefense (claim-thread Q&A on the artifact page) is part of the rubric. Be ready to argue why you picked your rank, why your data scaled the way it did, and where your fine-tune still degrades vs the base model.",
+  "milestones": [
+    {
+      "title": "Dataset curation",
+      "description": "Pick a fine-tuning task and curate a dataset for it.\n\nRequirements:\n- Real domain (not 'general assistant'). Examples: medical Q&A, legal contract clauses, customer-support replies, code completion in a specific framework.\n- ≥ 1,000 (instruction, response) examples after filtering. ≥ 10,000 ideal.\n- Held-out test set (10-20% of data) that the model never sees during training.\n- Format consistency: every example follows the same `{prompt, response}` schema.\n\nIn your writeup:\n- Describe your data source and why this domain matters\n- Show 5 representative examples\n- Discuss data quality issues you found and filtered out\n- Justify the train/test split\n\nCommon failure mode: people pick a hand-curated dataset of 100-500 examples, then are surprised the fine-tune barely changes the base. Get the data volume right.",
+      "rubric": {
+        "criteria": [
+          {
+            "id": "data_quality",
+            "weight": 0.5,
+            "description": "Dataset is large enough, real, and well-formatted.",
+            "aiPrompt": "Score whether the dataset is appropriate for fine-tuning: real domain, sufficient volume (≥1K examples), proper instruction-response format, clear train/test split."
+          },
+          {
+            "id": "curation_judgment",
+            "weight": 0.3,
+            "description": "Discussion of data quality issues + filtering.",
+            "aiPrompt": "Score the depth of the data curation discussion. Did the learner find real quality issues and filter them out? Are the decisions defended?"
+          },
+          {
+            "id": "writeup",
+            "weight": 0.2,
+            "description": "Clarity of the dataset description.",
+            "aiPrompt": "Score the writeup's clarity. Are the examples representative? Is the domain well-motivated?"
+          }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 6
+    },
+    {
+      "title": "Baseline fine-tune (full or QLoRA)",
+      "description": "Train a baseline fine-tune to compare against.\n\nIf you have multiple GPUs and 80GB+ memory: do a full fine-tune of a 7B model.\nIf you have a single 24GB GPU: do QLoRA with int4 quantization, large rank (e.g., r=64), targeting all linear layers. Treat this as your 'most capable' baseline.\n\nUse `transformers + peft + bitsandbytes` (or unsloth, or axolotl). LR ~ 2e-5 for full FT, 2e-4 for QLoRA. 1-3 epochs. Cosine LR decay.\n\nIn your writeup:\n- Report training curve: loss vs steps, on both train and held-out validation\n- Show 5 generated examples on the held-out test set\n- Compare to the base model's responses on the same examples\n- Identify at least one regression: a case where the fine-tune is *worse* than the base. (There's always at least one. Find it.)",
+      "rubric": {
+        "criteria": [
+          {
+            "id": "training_correctness",
+            "weight": 0.4,
+            "description": "Training run completes correctly with a loss curve that makes sense.",
+            "aiPrompt": "Score whether the training run is correctly configured (LR, schedule, epochs) and produces a sensible loss curve. Did the learner monitor train + val loss separately?"
+          },
+          {
+            "id": "evaluation",
+            "weight": 0.3,
+            "description": "Compares fine-tune to base on held-out examples.",
+            "aiPrompt": "Score the rigor of the comparison: are there enough examples? Are they really held-out? Is the comparison fair?"
+          },
+          {
+            "id": "honesty",
+            "weight": 0.3,
+            "description": "Identifies a real regression.",
+            "aiPrompt": "Score whether the learner found and discussed at least one case where the fine-tune is worse than the base. This is a critical engineering skill."
+          }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "title": "LoRA at three ranks",
+      "description": "Train LoRA fine-tunes at three different ranks: r=4, r=16, r=64 (or different values if your domain calls for it).\n\nKeep all other hyperparameters constant — same LR, same data, same number of epochs. Target the same set of layers (typically all attention W_Q, W_K, W_V, W_O + FFN W_1, W_2).\n\nIn your writeup:\n- Plot training curves (loss vs steps) for all three\n- Plot a 'rank vs eval score' chart on your held-out test set. Use the same eval used in milestone 2.\n- The curve should saturate somewhere in the middle. Identify where.\n- Compare the best LoRA to your milestone-2 baseline (full FT or QLoRA-r=64). Is there a quality gap? Is it worth the parameter savings?",
+      "rubric": {
+        "criteria": [
+          {
+            "id": "training_correctness",
+            "weight": 0.3,
+            "description": "All three LoRA ranks train correctly with consistent setup.",
+            "aiPrompt": "Score whether the three LoRA runs are properly controlled (same data, schedule, target layers, just different rank)."
+          },
+          {
+            "id": "ablation",
+            "weight": 0.4,
+            "description": "Rank-vs-quality curve identified and analyzed.",
+            "aiPrompt": "Score the rigor of the rank ablation. Is there a clear chart showing eval score vs rank? Does the learner identify the saturation point?"
+          },
+          {
+            "id": "comparison",
+            "weight": 0.3,
+            "description": "Comparison to baseline.",
+            "aiPrompt": "Score the comparison between best LoRA and baseline. Is the quality gap quantified? Is the parameter-savings tradeoff discussed?"
+          }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 8
+    },
+    {
+      "title": "Production decision + write-up",
+      "description": "Pick which fine-tune you'd ship to production and defend the choice.\n\nIn your final writeup, cover:\n\n- **Final eval table**: base, baseline, LoRA at three ranks, with metrics on the held-out set\n- **Resource costs**: training time + memory for each. Inference latency for each.\n- **Recommendation**: which fine-tune would you ship, given the eval results, the parameter overhead, and the inference cost?\n- **The case against your choice**: what's the strongest argument for shipping a different one? Address it.\n- **Open questions**: what would you want to test before deploying for real? What kinds of inputs might still degrade?\n\nThis is the milestone where engineering judgment shows. Score is mostly on completeness and honesty.",
+      "rubric": {
+        "criteria": [
+          {
+            "id": "completeness",
+            "weight": 0.3,
+            "description": "Final table + resource costs + recommendation + counter-argument.",
+            "aiPrompt": "Score whether the writeup covers all required sections: eval table, resource costs, recommendation, case against, open questions."
+          },
+          {
+            "id": "judgment",
+            "weight": 0.4,
+            "description": "Quality of the engineering recommendation.",
+            "aiPrompt": "Score the depth of the production recommendation. Is the reasoning grounded in eval + resource data? Does it engage seriously with tradeoffs?"
+          },
+          {
+            "id": "self_critique",
+            "weight": 0.3,
+            "description": "Honest discussion of limitations and open questions.",
+            "aiPrompt": "Score the self-critique. Does the learner acknowledge the strongest argument against their choice? Do they list real open questions?"
+          }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    }
+  ]
+}

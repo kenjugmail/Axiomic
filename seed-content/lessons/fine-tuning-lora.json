@@ -1,0 +1,61 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What fine-tuning actually does",
+      "body": "Pretraining gives you a model that knows a lot about language but doesn't know your specific task or domain. **Fine-tuning** is continued training on a smaller, more targeted dataset.\n\nFine-tuning isn't one thing. It's a spectrum:\n\n- **Full fine-tuning**: update every parameter. Maximum capacity to adapt; needs ~as much memory as training from scratch.\n- **LoRA** (low-rank adaptation): freeze the base model; train small low-rank adapter matrices alongside it. Maybe 0.1-3% of total parameters trainable.\n- **Adapters / IA³ / prefix-tuning**: variants of 'add a small number of trainable parameters in specific places.'\n- **Linear probe**: freeze everything; train a single linear layer on top. The smallest possible fine-tune.\n\nThese aren't ranked best to worst. They're tradeoffs between *how much you can change*, *how much memory it costs*, and *how easily you can compose multiple fine-tunes*."
+    },
+    {
+      "kind": "text",
+      "title": "How LoRA works",
+      "body": "LoRA's trick: for a weight matrix `W` of shape `[d, k]`, the fine-tuned version is `W + ΔW`. Hu et al. observed that for most tasks, `ΔW` is **low-rank**. So instead of training a full-rank `ΔW`, train a low-rank approximation:\n\n$$\\Delta W = B \\cdot A, \\quad B \\in \\mathbb{R}^{d \\times r}, \\; A \\in \\mathbb{R}^{r \\times k}$$\n\nWhere `r << min(d, k)`. Typical `r` is 8, 16, or 64. For a 4096×4096 weight matrix, training rank-16 LoRA means training `4096×16 + 16×4096 = 131K` parameters instead of `16M` parameters.\n\nThe base model `W` stays frozen. Only `A` and `B` are trained. At inference, you can either:\n- Compute `Wx + (BA)x` (apply LoRA at inference time, slightly slower)\n- Merge `W + BA` into a new weight matrix (zero inference cost; can't easily switch adapters)\n\nMost serving systems load the base + adapter pair separately so different adapters can be hot-swapped per request."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ft_q1",
+        "kind": "multiple_choice",
+        "question": "When people say 'fine-tuning means freezing the base model and training adapters,' is that always true?",
+        "options": [
+          "Yes — fine-tuning by definition freezes the base",
+          "No — fine-tuning is a family of techniques. Full fine-tuning updates every parameter; LoRA / adapters / linear probing all freeze various amounts of the base. Each is appropriate in different contexts",
+          "Only true for LoRA",
+          "Only true if the base is over 1B parameters"
+        ],
+        "correctIndex": 1,
+        "explanation": "This is one of the most common misconceptions about fine-tuning. The term covers a spectrum from full fine-tune (update everything) to linear probe (only the final layer). LoRA happens to be the most popular middle-ground today because it's parameter-efficient and the adapter is composable, but it's not the *definition* of fine-tuning."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "When to use what",
+      "body": "Practical guidance:\n\n**Full fine-tune** when:\n- You have lots of compute (16+ GPUs) and lots of data (10K+ examples)\n- The target task is far from the pretraining distribution\n- You want maximum capacity to adapt — no architectural ceiling\n\n**LoRA** when:\n- You have one GPU and want to adapt a 7B+ model\n- You want to keep multiple adapters around for different tasks/customers\n- The target task is close enough to pretraining that low-rank updates suffice (most tasks)\n\n**QLoRA** (quantize the base + LoRA) when:\n- You want to fine-tune a 70B model on a 24GB GPU\n- You're willing to take a small quality hit from int4 quantization of the frozen base\n\n**Adapters or prefix-tuning** when:\n- You want each fine-tune to live in clearly-bounded parameters (debugging, audit)\n\n**Linear probe** when:\n- You're using the base model as a feature extractor for classification/retrieval and have only a final layer to learn\n\nIn practice, **LoRA** is the default for most modern fine-tuning workflows. QLoRA when memory is tight."
+    },
+    {
+      "kind": "text",
+      "title": "What LoRA can't do",
+      "body": "Two limits worth knowing:\n\n**1. Higher rank doesn't always help.** People often assume bigger `r` means better adaptation. The curve is sub-linear: r=8 captures most tasks, r=64 is rarely worth the extra parameters, r=256 almost never. The 'low-rank' assumption is empirically validated; very high-rank LoRA approaches full fine-tune cost without much quality gain.\n\n**2. Not all weights need adapters.** The original LoRA paper applied it to attention's W_Q and W_V. Modern recipes apply it more broadly (all attention projections + FFN). But LoRA on every weight matrix doesn't help proportionally — diminishing returns kick in fast. Decisions about *which* layers to adapt are part of the recipe.\n\n**Multi-adapter composition.** A nice property: you can stack LoRA adapters. Train one for code; one for medical Q&A; serve both at runtime by adding their `ΔW`s. **But** they don't compose perfectly — the interaction between adapters can degrade quality. Treat 'mix adapters' as 'try and validate,' not as a guarantee."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ft_q2",
+        "kind": "multiple_choice",
+        "question": "Does increasing LoRA rank monotonically improve task performance?",
+        "options": [
+          "Yes — higher rank means more expressive adapter",
+          "No — empirically there are diminishing returns past r=16-64 for most tasks. Higher rank costs more parameters and memory without proportional quality gains",
+          "Higher rank only helps for vision tasks",
+          "Higher rank is required for any task with more than 1000 training examples"
+        ],
+        "correctIndex": 1,
+        "explanation": "The 'low-rank' part of LoRA is the key empirical claim: task-specific weight updates lie in a low-dimensional subspace. Higher rank is more expressive in theory, but in practice diminishing returns set in fast. This is one of the most common misconceptions about LoRA — assuming more rank is always better."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Fine-tuning is how you take a generic pretrained model and adapt it to your task, your domain, your customer's data. LoRA + QLoRA have made it cheap enough to do on a single GPU.\n\nThe next conceptual layer is [[rlhf]] — preference fine-tuning, where the model learns from human feedback rather than supervised demonstrations. After that, [[rag]] — using retrieval at inference time to ground the model in external knowledge instead of (or in addition to) baking it into weights.\n\nKey takeaways:\n- Fine-tuning is a spectrum, not just LoRA\n- LoRA: train a low-rank update, keep the base frozen\n- QLoRA: int4-quantize the frozen base + LoRA on top — tiny memory footprint\n- Higher LoRA rank doesn't always help; r=16-64 is the typical sweet spot\n- Multi-adapter composition is a useful trick but not a guarantee"
+    }
+  ]
+}

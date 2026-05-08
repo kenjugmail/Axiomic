@@ -1,0 +1,61 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What language models actually optimize",
+      "body": "Stripped to the math: a language model is a function that takes a sequence of tokens `[x_1, x_2, ..., x_t]` and outputs a probability distribution over the next token: `P(x_{t+1} | x_1, ..., x_t)`.\n\nThe **training objective** is to make this distribution match what we see in the training corpus. Concretely, the loss is the **negative log-likelihood** of the next token:\n\n$$\\mathcal{L} = -\\sum_t \\log P(x_{t+1} | x_1, \\ldots, x_t)$$\n\nThis is **cross-entropy loss** between the model's predicted distribution and the one-hot 'true next token' distribution. Minimizing it is equivalent to maximizing the likelihood of the training data under the model — **maximum likelihood estimation (MLE)**.\n\nEverything else — pretraining, fine-tuning, in-context learning — is a variant of this same idea."
+    },
+    {
+      "kind": "text",
+      "title": "Causal LM vs masked LM",
+      "body": "The two main pretraining objectives:\n\n**Causal LM (CLM)** — predict the next token from all previous tokens. Used by GPT-2/3/4, LLaMA, every modern decoder-only LLM. The model learns to generate.\n\n**Masked LM (MLM)** — randomly mask 15% of tokens in the input and predict the masked positions from the surrounding context. Used by BERT-family models. The model learns rich bidirectional representations but doesn't naturally generate.\n\nBoth use cross-entropy loss; they differ in *which* tokens the loss is computed over and *what* context the model sees:\n\n```\nCLM: predict x_t from [x_1 ... x_{t-1}]      (causal mask, autoregressive)\nMLM: predict x_t from [x_1 ... x_{t-1}, x_{t+1} ... x_N]  (no mask, bidirectional)\n```\n\nIn 2024+, decoder-only CLM has won for general-purpose LLMs. Scale + simplicity + the ability to generate arbitrary text make it the winning approach."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "to_q1",
+        "kind": "multiple_choice",
+        "question": "A language model has been trained with cross-entropy loss on next-token prediction. What does minimizing this loss mathematically correspond to?",
+        "options": [
+          "Maximizing the model's accuracy on a held-out test set",
+          "Maximum likelihood estimation: maximizing the probability that the model assigns to the actual training data",
+          "Minimizing the variance of the predicted distribution",
+          "Maximizing the entropy of the predicted distribution"
+        ],
+        "correctIndex": 1,
+        "explanation": "Cross-entropy loss is the negative log-likelihood. Minimizing it is exactly maximum likelihood: find parameters that make the training data most probable under the model. Note that MLE doesn't directly optimize accuracy or entropy — it optimizes data likelihood, and accuracy / entropy follow as side effects."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Three phases of training a chat model",
+      "body": "A modern chat model goes through three training phases:\n\n**1. Pretraining (CLM).** Learn next-token prediction on a huge corpus (web text, books, code). Trillions of tokens. This is where the model learns language, facts, common sense, basic reasoning. Cross-entropy loss across all positions.\n\n**2. Supervised fine-tuning (SFT).** Continue training on a curated dataset of (instruction, response) pairs. Same loss (CLM cross-entropy on the response tokens), but the data is high-quality demonstrations of helpful behavior. Tens of thousands to a few million examples.\n\n**3. Preference fine-tuning (RLHF or DPO).** Now the loss changes shape. We have pairs of (prompt, chosen_response, rejected_response) and want the model to assign higher probability to chosen than rejected. RLHF uses a reward model + PPO; DPO does this directly with a preference loss. (See [[rlhf]] for details.)\n\nThe first phase does ~99% of the compute and learns the underlying capabilities. The next two phases shape behavior — make the model helpful, harmless, instruction-following — without (mostly) adding new knowledge."
+    },
+    {
+      "kind": "text",
+      "title": "Why CLM is so efficient",
+      "body": "CLM is the most data-efficient and compute-efficient pretraining objective we know of. Why?\n\n**Every position contributes a loss.** A 4096-token sequence produces 4096 next-token predictions. Every one of those predictions has a target (the next actual token), and gradients flow from every position. No wasted forward-pass work.\n\n**No special architectural support needed.** With causal masking, the same forward pass that produces position N's prediction also produces position N-1's, N-2's, ..., all in parallel.\n\n**Self-supervised.** The labels (next tokens) come for free from the corpus. No human annotation. This is what enables training on trillions of tokens.\n\nMLM is less efficient because only the ~15% masked positions contribute to the loss; the other 85% of the forward pass is 'wasted' on positions whose loss is 0. (You could argue the unmasked positions still help by providing context, but they don't directly receive gradient signal.)\n\nThis efficiency is part of why decoder-only CLM scaled so much better than encoder-only MLM."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "to_q2",
+        "kind": "multiple_choice",
+        "question": "Why does SFT (supervised fine-tuning on instruction-response pairs) typically use much less compute than pretraining?",
+        "options": [
+          "SFT uses smaller model architectures",
+          "SFT runs on smaller datasets — instruction data is curated and limited (tens of thousands to a few million examples) vs trillions of tokens for pretraining",
+          "SFT uses a different loss that converges faster",
+          "SFT skips backpropagation"
+        ],
+        "correctIndex": 1,
+        "explanation": "SFT and pretraining use the same model and the same cross-entropy loss. The difference is data volume: pretraining sees ~1-15 trillion tokens; SFT typically sees ~10M-1B tokens of curated instruction data. The compute scales linearly with tokens seen, so SFT is 1000-100,000× cheaper than pretraining for the same model."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Now you know what 'training a language model' actually means: minimize cross-entropy loss over next-token predictions, then fine-tune on instructions, then optimize for human preferences.\n\nCommon misconceptions:\n- *More than one loss function?* No — even RLHF / DPO are still ultimately log-likelihood-based, just over different distributions.\n- *Models 'memorize' the training data?* Not exactly. They learn a probability distribution that *includes* high probability for verbatim training sequences but generalizes beyond them. Whether that's memorization or learning is partly philosophical.\n\nNext: [[sampling-decoding]] — once you have a probability distribution over next tokens, how do you actually pick which one to generate?"
+    }
+  ]
+}

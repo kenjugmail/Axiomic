@@ -1,0 +1,63 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What sampling actually does",
+      "body": "After softmax, the model gives you a probability distribution over the vocabulary. For a 50K-token vocab, that's a 50K-dimensional vector with entries summing to 1.\n\nNow you have to pick a token. **How** you pick changes everything about the model's output:\n\n- **Greedy** (argmax): always pick the most probable token. Deterministic but boring.\n- **Random sampling** from the full distribution: too wild — long-tail tokens occasionally get picked and produce nonsense.\n- **Temperature**: rescale the distribution to be sharper or flatter.\n- **Top-k**: only sample from the top k most probable tokens.\n- **Top-p (nucleus)**: only sample from the smallest set of tokens whose probabilities sum to ≥ p.\n\nThese aren't theoretical: 'temperature 0.7, top-p 0.9' is the practical default for most generation today, and it's a tradeoff dial between coherence and creativity.",
+      "viz": "sampling-temperature-lab"
+    },
+    {
+      "kind": "text",
+      "title": "Temperature",
+      "body": "Temperature scales the logits before softmax:\n\n$$P(x_i) = \\frac{\\exp(z_i / T)}{\\sum_j \\exp(z_j / T)}$$\n\nWhere `z_i` is the logit for token `i` and `T` is the temperature.\n\n- `T = 1`: standard softmax. The probabilities are what the model thinks they are.\n- `T < 1` (e.g., 0.5): **sharpens** the distribution. The most probable tokens get even higher weight; the long tail flattens further.\n- `T > 1` (e.g., 2): **flattens** the distribution. Long-tail tokens become more competitive.\n- `T → 0`: argmax — collapses to the single most probable token (deterministic).\n- `T → ∞`: uniform distribution.\n\nIntuition: temperature is a dial between 'cautious / repetitive' and 'creative / risky.' Most modern chat models default to ~0.7 — sharpened enough to stay coherent but not so sharp that outputs become repetitive."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sd_q1",
+        "kind": "multiple_choice",
+        "question": "If you raise the temperature in softmax sampling, does the model become more deterministic or more random?",
+        "options": [
+          "More deterministic",
+          "More random — higher temperature flattens the distribution, making lower-probability tokens more likely to be sampled",
+          "Behavior depends on the input",
+          "Temperature has no effect on randomness"
+        ],
+        "correctIndex": 1,
+        "explanation": "Higher T flattens. The intuition is that T appears in the denominator inside `exp`, so larger T shrinks the differences between logits. With T → 0 you get argmax (fully deterministic); with T → ∞ you get uniform sampling (maximally random). This is one of the most common misconceptions — many learners flip the relationship."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Top-k and top-p",
+      "body": "Even with temperature, the long tail of low-probability tokens is annoying. Even at T=0.7, there's a tiny but nonzero chance of sampling a wildly inappropriate token.\n\n**Top-k** truncates the distribution to the top `k` most probable tokens, then renormalizes. With `k=50`, you only ever sample from the 50 most likely options. Simple and effective. Downside: `k` is fixed regardless of how peaked or flat the distribution is. Sometimes 50 is too many; sometimes it's too few.\n\n**Top-p (nucleus sampling)** is adaptive: keep adding tokens to the candidate set in order of probability until their total probability exceeds `p`. With `p=0.9`, you keep just enough top tokens to cover 90% of the mass. When the model is confident (peaked distribution), the candidate set is small. When the model is uncertain (flat distribution), the set is larger.\n\nIn practice, **top-p with temperature** is the standard combination. `T=0.7, p=0.9` is the default in most production deployments.",
+      "viz": "sampling-temperature-lab"
+    },
+    {
+      "kind": "text",
+      "title": "When to use what",
+      "body": "Practical guidance:\n\n- **Code generation, math, factual lookup**: temperature 0–0.2. You want the most likely answer, not creative alternatives. Greedy or near-greedy decoding.\n- **Chat / general conversation**: temperature 0.6–0.8 with top-p 0.9. Coherent but varied.\n- **Creative writing, brainstorming**: temperature 0.8–1.0 with top-p 0.95. Allow more risk.\n- **Search / retrieval**: temperature 0 + top-1 (greedy). Determinism so the output is reproducible.\n\nTwo less common knobs:\n\n- **Repetition penalty / presence penalty**: divide logits for tokens already in the output. Helps with the 'rambling repetition' failure mode.\n- **Min-p**: similar to top-p but with a fixed minimum probability threshold. Recently popular for code-like outputs.\n\nThe best sampling parameters are task-dependent. Run a small sweep on your eval before shipping."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sd_q2",
+        "kind": "multiple_choice",
+        "question": "Why is top-p often preferred over top-k for general generation?",
+        "options": [
+          "Top-p uses fewer GPU operations",
+          "Top-p is adaptive: when the model is confident, the candidate set is small; when uncertain, it's larger. Top-k uses a fixed set size regardless of distribution shape",
+          "Top-p produces shorter outputs",
+          "Top-k produces incorrect probabilities"
+        ],
+        "correctIndex": 1,
+        "explanation": "Top-k's fixed size is its weakness. If the model assigns 99.99% probability to one token, top-k with k=50 still keeps 49 essentially-irrelevant tokens. Top-p with p=0.9 would correctly keep just the one. Conversely, when the model is uncertain (probability spread across many options), top-p adapts by keeping more candidates."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Sampling is where the model's probability distribution becomes actual generated text. It's a tunable layer that doesn't change the model's weights — you can swap sampling strategies at inference time without retraining.\n\nNext: [[kv-cache]] — the optimization that makes autoregressive generation actually fast in practice.\n\nKey takeaways:\n- Temperature: scale logits, flatten or sharpen the distribution\n- Higher T → flatter (more random); lower T → sharper (more deterministic)\n- Top-p adaptively keeps only the top tokens covering p% of mass\n- Default: temperature 0.7 + top-p 0.9 for general generation\n- Code / math: temperature 0; creative: temperature 0.8+"
+    }
+  ]
+}

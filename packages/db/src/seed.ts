@@ -297,6 +297,48 @@ A signed transcript survives both. The bytes are public; anyone can re-host them
 
 If you completed a capstone before this week, your existing artifact page has been retroactively signed under our current key. The signature surface is now part of the platform's contract: we can rotate the key, but old transcripts under the old key keep verifying as long as the public key is preserved.`,
     },
+    {
+      slug: "five-new-capstones-for-ml-engineers",
+      title: "Five new capstones for ML engineers",
+      summary:
+        "RAG pipelines, fine-tuning, training stability, mechanistic interpretability, inference optimization. The capstone library just expanded for ML engineers ramping up on modern systems.",
+      coverEmoji: "🚢",
+      accentColor: "indigo",
+      authorId: aliceId,
+      body: `If you're an ML engineer trying to level up — or hiring one and wondering what they should be able to do — the capstone library just got a lot more useful.
+
+Five new capstones, each ~4-6 weeks, each producing a public artifact page with a signed transcript at the end:
+
+## [RAG pipeline from scratch](/capstones/rag-pipeline-from-scratch) (6 weeks)
+
+Build the entire stack: chunking, embeddings, vector search, cross-encoder reranking, generation with citations, and an end-to-end evaluation harness. Five milestones. By the end, you'll have shipped a real RAG system over a corpus of your choice with a defended decision about which components mattered.
+
+The point isn't to recreate LangChain. It's to make every architectural choice yourself so you understand the failure modes when (not if) your production RAG system breaks.
+
+[[rag]] · [[retrieval-evaluation]] · [[function-calling]]
+
+## [Fine-tuning and LoRA at scale](/capstones/fine-tuning-and-lora) (4 weeks)
+
+Take a 7B-class open model. Fine-tune it three ways: full (or QLoRA), LoRA at one rank, LoRA at three ranks. Compare empirically. Decide what to ship.
+
+The most common mistake in fine-tuning is treating it as a single-knob problem. Different ranks, different layers to adapt, different data quantities all matter. After this capstone you'll have made all those choices once and have an empirical eval table to defend each.
+
+[[fine-tuning]] · [[lora]]
+
+## Three more on the way
+
+- **Training stability at scale** — diagnose and fix real training failures (NaN gradients, dead activations, learning-rate thrashing). Reproduce a small scaling-law experiment.
+- **Mechanistic interpretability: induction heads** — reverse-engineer the actual circuit in a small transformer that implements in-context learning.
+- **Inference optimization: KV cache + INT8 quantization** — take a small open model and make it fast enough to serve. Measure the quality-vs-speed tradeoff.
+
+Each new capstone is wired into the [Knowledge MRI](/me/mri) — completing one updates your concept-level mastery across the prerequisite topics. And each completed capstone produces a [signed transcript](/verify) anyone can verify with our public key.
+
+## Why these specifically
+
+Pick 1-2 from this list and you'll see real ML engineering judgment land. RAG is the dominant LLM application pattern; fine-tuning is the dominant adaptation pattern; mech-interp is the credibility frontier. The other two are systems-level work that ML engineers running production deployments do every week.
+
+Browse the [full capstone catalog](/capstones) or jump straight into one. Each capstone has a tiered brief — pick the depth that matches where you are.`,
+    },
   ];
 
   for (const a of articles) {

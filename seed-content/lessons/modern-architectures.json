@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What every modern LLM has in common",
+      "body": "Open the model card for LLaMA-3, Mistral, Qwen-2, or Gemma. The architectures look almost identical:\n\n- **Decoder-only transformer** (we covered this in [[encoder-decoder]])\n- **RMSNorm** instead of LayerNorm\n- **Pre-norm** placement\n- **RoPE** for positional encoding\n- **SwiGLU** activation in the FFN\n- **Grouped-query attention (GQA)** for inference efficiency\n\nNone of these are the original transformer. The original used LayerNorm, learned positional embeddings, ReLU, and standard multi-head attention. Each component has been replaced with a variant that's slightly better.\n\nThis lesson is a tour of those variants — what each one buys you, and why they've become the new default."
+    },
+    {
+      "kind": "text",
+      "title": "RoPE — relative position via rotation",
+      "body": "We covered the math in [[positional-encoding]]. The summary: instead of adding a position vector to the embeddings, RoPE rotates Q and K by an angle proportional to position. The dot product `Q · K` then depends only on the **relative** offset between positions.\n\nWhy this won:\n\n1. **Extrapolation.** Learned absolute embeddings memorize the positions seen at training. Ask for position 8000 after training only on positions 1-4000 and the model has no embedding to use. RoPE is parametric in position, so it generalizes.\n\n2. **Long-context tricks compose.** NTK-aware interpolation, YaRN, and similar long-context extension techniques all build on RoPE. They work by modifying the rotation frequencies. The space of post-training context-window extension is dense with RoPE-based tricks.\n\nLLaMA, Mistral, Qwen, Gemma all use RoPE. Some variants tune the base frequency; the algorithm itself is universal."
+    },
+    {
+      "kind": "text",
+      "title": "GQA — sharing K and V across heads",
+      "body": "Multi-head attention has `h` separate sets of (Q, K, V) projections. **Grouped-query attention (GQA)** keeps `h` query projections but uses fewer K and V projections, with each KV-projection shared across a group of query heads.\n\n```\nstandard MHA:    32 heads, 32 KV heads\nGQA-8:           32 heads,  8 KV heads (4 query heads share 1 KV head)\nMQA (extreme):   32 heads,  1 KV head  (all heads share)\n```\n\nWhy this matters at *inference*: the KV cache size scales with KV-head count, not query-head count. GQA-8 has a 4× smaller cache than full MHA. At long context this is the difference between fitting a request in memory and not.\n\nQuality cost is small — sometimes negligible on standard evals. LLaMA-2 70B, Mistral, Qwen all use GQA with 8 KV heads. MQA (1 KV head) is more aggressive; quality cost varies by task.\n\nThis is one of the most successful 'free lunch' optimizations in recent LLM design."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ma_q1",
+        "kind": "multiple_choice",
+        "question": "Why does GQA reduce inference memory but not training compute?",
+        "options": [
+          "GQA only applies during inference",
+          "GQA shares K and V projections across head groups, so the inference KV-cache is smaller. Training-time forward + backward FLOPs are dominated by other operations and barely change",
+          "GQA uses lower precision than MHA",
+          "GQA reduces the number of training steps"
+        ],
+        "correctIndex": 1,
+        "explanation": "GQA's win is the KV-cache, which only exists at inference time. Training does forward + backward over the full sequence in parallel; the KV cache isn't materialized. So training compute barely changes; inference memory drops 4× (or 32× with MQA). This is why every modern serving-focused model uses GQA."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "SwiGLU — gated FFN",
+      "body": "Recall the standard FFN: `FFN(x) = W_2 · activation(W_1 · x)`. SwiGLU replaces this with a **gated** variant.\n\nSplit the up-projection into two halves. Apply Swish (a sigmoid-like activation) to one half. Multiply elementwise by the other half. Then down-project:\n\n$$\\text{SwiGLU}(x) = (W_2)(\\text{Swish}(W_1 x) \\odot W_3 x)$$\n\nThe gating means the model can **selectively activate** features based on the input — some features are 'turned on' for this token, others are 'gated off.'\n\nEmpirically, SwiGLU consistently beats GELU at the same compute budget. The cost: an extra projection (W_3). LLaMA compensates by using a smaller expansion factor (~2.7× instead of 4×) so the parameter count stays similar.\n\nLLaMA, Mistral, Qwen all use SwiGLU. It's the default activation in 2024+ transformers."
+    },
+    {
+      "kind": "text",
+      "title": "RMSNorm — simpler layer norm",
+      "body": "Standard LayerNorm subtracts the mean and divides by the standard deviation:\n\n$$\\text{LN}(x) = \\gamma \\cdot \\frac{x - \\mu}{\\sigma + \\epsilon} + \\beta$$\n\n**RMSNorm** drops the mean subtraction:\n\n$$\\text{RMSNorm}(x) = \\gamma \\cdot \\frac{x}{\\sqrt{\\frac{1}{d}\\sum x_i^2 + \\epsilon}}$$\n\nIt only normalizes the magnitude (root-mean-square), not the centering.\n\nWhy this works: the mean-subtraction term in standard LN doesn't seem to do much for transformers. Empirically RMSNorm matches or beats LN at slightly lower compute (one less sum + subtract per token).\n\nLLaMA, Mistral, Qwen all use RMSNorm. The choice between LN and RMSNorm is one of the simpler ones in the modern recipe — most teams just use RMSNorm now and don't think about it."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ma_q2",
+        "kind": "multiple_choice",
+        "question": "Why have so many modern LLMs converged on the same architectural details (RoPE + RMSNorm + SwiGLU + GQA)?",
+        "options": [
+          "Patent reasons",
+          "Each component is a small but real improvement over its predecessor; the bundle is empirically the best-known-recipe and there's no incentive to deviate without a specific reason",
+          "Hugging Face won't accept models without these",
+          "The transformer architecture has been mathematically proven optimal"
+        ],
+        "correctIndex": 1,
+        "explanation": "These choices aren't dramatic; each is a 1-3% improvement over the previous-generation choice, and they compose well. The 2020-2024 era was the 'recipe convergence' phase: lots of small architectural improvements got identified, validated at scale, and adopted as the new defaults. Future LLMs will probably converge on a different recipe (maybe SSM-based, maybe attention-free at scale), but for now this is the stable point."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "You now know the modern transformer recipe. RoPE + RMSNorm + SwiGLU + GQA + decoder-only + causal mask is what every recent open LLM uses, with minor variations.\n\nThe next set of lessons covers what comes *after* pretraining: [[fine-tuning-lora]] (adapt a pretrained model to your data), [[rlhf]] (align with human preferences), and [[rag]] (use retrieval to ground generation in external knowledge).\n\nKey takeaways:\n- RoPE: relative-position via Q/K rotation; extrapolates to long context\n- GQA: shares K/V across head groups; shrinks the inference KV-cache\n- SwiGLU: gated FFN activation; consistently beats GELU\n- RMSNorm: drops the mean-subtraction from LayerNorm; matches at lower cost\n- These are the 2024-era defaults — every recent open model uses this combination"
+    }
+  ]
+}

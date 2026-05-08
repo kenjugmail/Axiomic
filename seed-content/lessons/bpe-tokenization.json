@@ -1,0 +1,72 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why subword tokens beat words and characters",
+      "body": "Before a language model sees text, the text gets cut into **tokens**. There are three obvious ways to do it:\n\n- **Word-level**: one token per word. Vocabulary explodes (English alone has hundreds of thousands of forms), and any word the model didn't see in training becomes `<UNK>`. Misspellings, names, novel compounds — all unknown.\n- **Character-level**: one token per character. Vocabulary is tiny (~100 for ASCII), but sequences become 4-5× longer for the same text. Models burn most of their compute predicting whitespace.\n- **Subword (BPE)**: a fixed-size vocabulary of frequent character sequences. Common words get a single token; rare words decompose into pieces the model has seen elsewhere.\n\nBPE is the compromise that won. GPT-2/3/4, LLaMA, and most other modern LLMs use it (or a close variant like SentencePiece).",
+      "viz": "tokenizer-playground"
+    },
+    {
+      "kind": "text",
+      "title": "The merge-pair algorithm",
+      "body": "BPE training is greedy and simple:\n\n1. **Start** with a vocabulary of all individual characters.\n2. **Count** every adjacent pair of tokens in the corpus.\n3. **Merge** the most frequent pair into a new token; add it to the vocabulary.\n4. **Repeat** for N merges (typical N: 30k–100k).\n\nWith English text, the first merges produce things like `t h → th`, `i n → in`, `e r → er`. After thousands of merges, common whole words emerge as single tokens.\n\nAt inference, the same merges are applied greedily: longest-match first.\n\n```\nMerge 1: 'th' (most frequent pair: 't'+'h')\nMerge 2: 'in' (most frequent pair: 'i'+'n')\nMerge 3: 'the' (most frequent pair: 'th'+'e')\n...\n```"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "bpe_q1",
+        "kind": "multiple_choice",
+        "question": "A BPE tokenizer trained on English encounters the word `tokenization` for the first time. What's the most likely outcome?",
+        "options": [
+          "The word is replaced with a single `<UNK>` token",
+          "The word is split into characters: `t o k e n i z a t i o n`",
+          "The word is split into subword pieces like `token` + `ization`",
+          "The word is added to the vocabulary on the fly"
+        ],
+        "correctIndex": 2,
+        "explanation": "BPE never sees `<UNK>` because every character is in the base vocabulary, and any sequence of characters can be encoded by some sequence of merges. Common subwords like `token` and `ization` are likely already in the vocabulary, so the word decomposes cleanly."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Tokenizer surprises",
+      "body": "Two facts that bite people in production:\n\n**Leading spaces are part of the token.** `\" the\"` and `\"the\"` are different tokens in most BPE tokenizers. This is why prompts that start mid-sentence sometimes produce off-by-one weirdness — the model hasn't seen `\"the\"` (no leading space) often, so it treats it as rare.\n\n**Numbers are split inconsistently.** `\"3.14159\"` might tokenize as `[\"3\", \".\", \"14\", \"159\"]` or `[\"3\", \".1\", \"4159\"]` depending on the tokenizer. This is one of the reasons LLMs are bad at arithmetic — the digits don't have stable identities.\n\nIf your model is failing at character-level tasks (counting letters, reversing strings, syllable rhyming), suspect tokenization first.",
+      "viz": "tokenizer-playground"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "bpe_q2",
+        "kind": "multiple_choice",
+        "question": "A model uses a 50,000-token BPE vocabulary trained on English. Roughly how many tokens does a typical 1,000-word English document take?",
+        "options": [
+          "Around 200 tokens (1 token covers ~5 words)",
+          "Around 1,300 tokens (1 token ≈ 0.75 words)",
+          "Around 5,000 tokens (1 token ≈ 5 characters)",
+          "Around 50,000 tokens (one token per character)"
+        ],
+        "correctIndex": 1,
+        "explanation": "The rule of thumb for English BPE is ~0.75 words per token, or about 4 characters per token. This is why a 'Tokenizer' tab will show 1,300 tokens for what feels like 1,000 words — leading spaces, punctuation, and rare-word splits add up."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Where to next",
+      "body": "BPE is the workhorse, but it's not the only option. **WordPiece** (BERT) uses likelihood-based merging instead of frequency. **Unigram** (T5, sentencepiece default) starts from a large vocabulary and prunes. **Tiktoken** (GPT-4) is BPE with byte-level fallback, so any sequence of bytes can be tokenized — even non-UTF-8 input.\n\nOnce you have tokens, the next step is [[embeddings]]: each token id becomes a `d_model`-dimensional vector that the rest of the network operates on. Then [[attention]] takes over.\n\nIn practice, you'll rarely train a tokenizer from scratch. You'll inherit one from a base model — and then debug the surprising things it does to your inputs."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "bpe_q3",
+        "kind": "explain_back",
+        "question": "Explain in 2-3 sentences why BPE outperforms both word-level and character-level tokenization for modern LLMs. Touch on vocabulary size, out-of-vocabulary handling, and sequence length.",
+        "rubricCriteria": [
+          { "id": "vocab", "description": "Mentions BPE keeps vocabulary fixed-size (vs unbounded for word-level)" },
+          { "id": "oov", "description": "Mentions BPE handles unseen words by decomposing into subwords (vs word-level UNK)" },
+          { "id": "length", "description": "Mentions BPE sequences are shorter than character-level for the same text" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}

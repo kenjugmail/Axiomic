@@ -1,0 +1,61 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What mechanistic interpretability is",
+      "body": "**Mechanistic interpretability** (mech-interp) is the program of reverse-engineering trained neural networks — figuring out what specific weights *compute*, not just what behaviors they exhibit.\n\nThe distinction matters. Behavioral evaluation asks 'how often does the model do X?' Mech-interp asks 'what is the model doing internally that causes X?'\n\nA mech-interp claim is structural: 'these specific attention heads form a circuit that implements task Y.' It's testable by ablation: knock out the circuit, watch the behavior disappear. This kind of claim survives distribution shift and adversarial inputs in a way that 'the model gets 95% on benchmark Z' doesn't.\n\nThe pioneers of the field (Chris Olah, Anthropic, OpenAI's interp team, Neel Nanda's lab) framed it this way: if you don't understand how a model works mechanistically, you only have black-box guarantees about its behavior."
+    },
+    {
+      "kind": "text",
+      "title": "Induction heads",
+      "body": "The canonical mech-interp finding (Olsson et al. 2022): a small two-layer attention circuit that explains a large fraction of in-context learning.\n\nGiven the prefix `\"... A B ... A\"`, transformers tend to predict `B` next. The circuit:\n\n1. **Previous-token head** in layer L: writes 'previous token' info into the residual stream at each position. Easy to find — looks like an attention pattern offset by 1.\n\n2. **Induction head** in layer L+1: attends from the current position back to *prior occurrences of the same token*. Reads the value from one position *after* that prior occurrence — which, courtesy of layer L's previous-token head, contains 'what came after.'\n\nComposed: the model finds the previous occurrence of `A`, then 'reads' the token that came after it (`B`), then writes that into the residual stream. Next-token prediction surfaces `B`.\n\nThis circuit forms during training around the same time in-context learning capability appears. The correlation is suggestive: induction heads might be a *substrate* for ICL."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mi_q1",
+        "kind": "multiple_choice",
+        "question": "What's the empirical claim Olsson et al. make about induction heads?",
+        "options": [
+          "Induction heads are present in every transformer architecture by default",
+          "The formation of induction heads during training coincides with the emergence of in-context learning, suggesting they're a key substrate for ICL behavior",
+          "Induction heads are unique to GPT-2",
+          "Induction heads are responsible for all reasoning in LLMs"
+        ],
+        "correctIndex": 1,
+        "explanation": "The paper's headline finding: induction-head formation tracks with in-context learning capability. This doesn't prove causation — induction heads might co-emerge with ICL for some other reason — but the correlation is strong and the circuit is mechanistically explainable. It became the canonical example of mech-interp giving a structural account of a behavioral capability."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Superposition",
+      "body": "Mech-interp ran into a wall: you'd hope each neuron in a network corresponded to a clean concept. They don't. Instead, **superposition** — packing many features into the same neurons.\n\nWhy does the network pack? Two reasons:\n\n1. **Sparsity.** Most features are rare. Only a few of them are 'active' for any given input. A neuron can carry information about feature A *or* feature B without confusion as long as A and B don't typically co-occur.\n\n2. **Capacity pressure.** A model with `d` dimensions can represent at most `d` orthogonal features. But we'd like it to handle far more. Superposition is a form of compression: encode `>d` features in `d` dimensions by accepting some interference between rarely-co-occurring features.\n\nElhage et al.'s 'Toy Models of Superposition' (2022) formalized this. The implication: most attempts to interpret single neurons fail because the neuron is *not the right unit*. The right unit is some sparse decomposition of the activation space — which is exactly what sparse autoencoders try to find."
+    },
+    {
+      "kind": "text",
+      "title": "Sparse autoencoders",
+      "body": "If features live in superposition, the trick to find them is to *decompress*. **Sparse autoencoders (SAEs)** learn a wider 'feature dictionary' that the model's activations can be expressed as a sparse combination of.\n\nGiven activations `x ∈ R^d` from some layer, learn:\n\n$$f = \\text{ReLU}(W_e x), \\quad \\hat{x} = W_d f$$\n\nWith a sparsity penalty on `f`. The dictionary `W_d` has many more rows than `d` (typically 8-256× expansion), but the activations `f` are sparse — only a few of them fire at any time.\n\nWhen this works, the rows of `W_d` correspond to interpretable features: things like 'this is code,' 'this is the start of a quotation,' 'this is reasoning about temporal sequences.' Anthropic's 2024 'Scaling Monosemanticity' work demonstrated SAEs on Claude Sonnet at scale and identified ~10 million features.\n\nSAEs are still rough. They're imperfect (some 'features' are still polysemantic), they don't capture all of the model's behavior, and the choice of where to put them is still a research question. But they're the most successful method to date for getting at the model's internal language."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mi_q2",
+        "kind": "multiple_choice",
+        "question": "Why do mech-interp researchers prefer sparse autoencoders over interpreting individual neurons?",
+        "options": [
+          "Neurons are too big to interpret",
+          "Most neurons don't correspond to a single clean concept due to superposition — the model packs many features into shared neurons. SAEs decompress these into a wider, sparser feature dictionary where each feature is more interpretable",
+          "Sparse autoencoders are faster to compute",
+          "Individual neurons can't be probed"
+        ],
+        "correctIndex": 1,
+        "explanation": "Superposition is the structural fact that breaks naive neuron-level interpretation. A neuron lights up for many unrelated concepts because the model is packing capacity. SAEs are the response: learn a wider feature space where the model's activations decompose sparsely, and identify the model's actual 'concepts' in that wider space."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Mech-interp is a slow methodology. Finding one clean circuit takes months; understanding a full forward pass at frontier scale is still open. The trade-off is that mech-interp claims constrain a much larger input space than benchmark scores do.\n\nKey takeaways:\n- Mech-interp = reverse-engineer the *mechanism*, not just measure behavior\n- Induction heads are the canonical example: a small circuit explains a large capability\n- Superposition: models pack more features than dimensions, so individual neurons are polysemantic\n- Sparse autoencoders learn a wider, sparser feature dictionary that's more interpretable\n- The methodology is slow but produces structural claims that survive distribution shift\n\nThis was the last lesson in the ml-engineer path. From [[tokens]] through mechanistic interpretability, you've covered the full conceptual stack of modern LLMs. The remaining lessons in other paths (math, physics, ai-researcher) build on or alongside this content."
+    }
+  ]
+}

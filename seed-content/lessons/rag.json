@@ -1,0 +1,61 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What RAG is and why",
+      "body": "**RAG** (Retrieval-Augmented Generation) is a pattern for grounding LLM outputs in external knowledge. Instead of relying entirely on what the model learned during pretraining, fetch relevant context at inference time and put it in the prompt.\n\nThe pipeline:\n\n```\nuser query\n  → embed query\n  → vector search over a knowledge base\n  → retrieve top-k chunks\n  → assemble prompt: [retrieved chunks] + [query]\n  → LLM generates answer\n```\n\nWhy this matters:\n\n1. **Knowledge updates without retraining.** Add documents to the knowledge base; they're immediately available. No fine-tune required.\n2. **Citations.** The retrieval step gives you a list of source chunks. The model can cite them. Hallucinations become detectable because they don't trace back to the retrieved set.\n3. **Domain-specific grounding.** A general-purpose model with RAG over your company docs becomes a domain expert without fine-tuning the model itself."
+    },
+    {
+      "kind": "text",
+      "title": "The retrieval part",
+      "body": "Three substeps:\n\n**1. Chunking.** Split your documents into chunks. Too small and you lose context; too large and you can't retrieve precisely. Typical: 500-1500 tokens per chunk, with some overlap. The right chunk size depends on the question type — factual lookup wants smaller chunks; reasoning over passages wants larger.\n\n**2. Embedding.** Run each chunk through an embedding model. The output is a fixed-size vector (typically 384, 768, or 1024 dimensions) that represents 'what this chunk is about.' Same model is used to embed the query at inference time.\n\n**3. Vector search.** Use cosine similarity (or dot product) to find the chunks whose embeddings are closest to the query embedding. For small corpora (~10K chunks), brute force is fine. For larger corpora, use an approximate-nearest-neighbor index: HNSW, IVF, or any of the FAISS / Pinecone / Weaviate / pgvector implementations.\n\nThe quality of retrieval *bounds* RAG quality. If the retriever doesn't surface the right chunk, the generator can't reach it."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "rag_q1",
+        "kind": "multiple_choice",
+        "question": "If RAG's retriever is perfect — always returns the most relevant chunks for every query — can the generator still fail?",
+        "options": [
+          "No — perfect retrieval guarantees perfect output",
+          "Yes — generation can ignore the retrieved context, misinterpret it, or hallucinate beyond it. Both retrieval and generation are sources of failure; perfect retrieval bounds the system but doesn't guarantee the answer",
+          "Only if the chunks are too long",
+          "Only if the LLM is small"
+        ],
+        "correctIndex": 1,
+        "explanation": "A common misconception: 'just improve retrieval and RAG works.' In practice, the generator can ignore retrieved context (especially if the model isn't trained to attend to it), misread it, or override it with prior knowledge from pretraining. End-to-end RAG quality is the joint of retrieval and generation, and both need to be evaluated."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Reranking",
+      "body": "Vector search gives you a fast, fuzzy 'top-k by embedding similarity.' But the embedding model wasn't necessarily optimized for the specific query you're asking. Two-stage retrieval is common:\n\n**Stage 1: vector search** for the top-50 or top-100 candidates. Fast.\n\n**Stage 2: rerank** with a cross-encoder. The cross-encoder takes (query, candidate) as input and outputs a relevance score. It's slower per query — runs the full transformer on every (query, candidate) pair — but more accurate. Use it on the top-50 from stage 1.\n\nCommon rerankers: Cohere Rerank, BGE-reranker, mxbai-rerank.\n\nThe quality jump from adding a reranker is often larger than the jump from upgrading the embedding model. Worth doing for any serious RAG deployment."
+    },
+    {
+      "kind": "text",
+      "title": "Evaluating RAG",
+      "body": "RAG eval is harder than LLM eval. You're scoring two stages:\n\n**Retrieval metrics.**\n- **Hit rate**: did the relevant chunk appear in top-k?\n- **MRR** (mean reciprocal rank): how high in the top-k did it appear?\n- **nDCG**: graded relevance averaged across queries.\n\nThese require labeled query→chunk relevance. Building this dataset is the hard part — annotation is expensive, and the labels generalize poorly across domains.\n\n**End-to-end metrics.**\n- **Faithfulness**: does the generated answer say only things supported by retrieved chunks?\n- **Answer relevance**: does the answer address the query?\n- **Context recall**: did retrieval surface enough context to answer correctly?\n\nLLM-as-judge has become the practical default for the end-to-end metrics. Frameworks like RAGAS, TruLens, and DeepEval implement these.\n\nSee [[retrieval-evaluation]] for the deeper dive on retrieval-only eval."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "rag_q2",
+        "kind": "multiple_choice",
+        "question": "Why is reranking with a cross-encoder often a bigger quality win than upgrading the embedding model?",
+        "options": [
+          "Cross-encoders are always better than bi-encoders",
+          "Embedding models compress query and document independently into vectors, losing the joint structure. A cross-encoder reads both together and can judge relevance with full attention — it just costs more per query so it's only used on the top-k after vector search",
+          "Embedding models are universally bad",
+          "Reranking removes duplicate chunks"
+        ],
+        "correctIndex": 1,
+        "explanation": "Bi-encoders (the embedding model used for vector search) encode query and chunks separately, then compare via cosine similarity. The encoding step has to compress everything into a single vector. Cross-encoders see (query, chunk) together and run full attention over the pair — strictly more information available. The cost is they can't be precomputed into an index, so they're used as a second stage on small candidate sets."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "RAG is the dominant pattern for connecting LLMs to external knowledge in 2024+. Vector search + retrieval-augmented prompting is in nearly every production deployment.\n\nThe next conceptual frontier is [[mechanistic-interp]] — actually understanding *what* a model is computing, beyond benchmarks and behavioral evals. RAG is for grounding behavior; mech-interp is for understanding mechanism.\n\nKey takeaways:\n- RAG = retrieve relevant context + prompt the LLM with it\n- Three substeps: chunk, embed, search\n- Reranking with a cross-encoder is often the biggest single quality win\n- End-to-end eval covers both retrieval (hit rate / MRR) and generation (faithfulness / relevance)\n- Perfect retrieval doesn't guarantee perfect output — generation can still fail"
+    }
+  ]
+}
