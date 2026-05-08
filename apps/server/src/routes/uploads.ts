@@ -5,15 +5,17 @@ import { mkdir, writeFile, readFile, unlink } from "fs/promises";
 import path from "path";
 import { getDb, attachments, users } from "@axiomic/db";
 import { requireAuth } from "../middleware/auth";
+import { env } from "../lib/envConfig";
 import type { Env } from "../env";
 
 export const uploadsRouter = new Hono<Env>();
 
-// Storage layout: <repo-root>/uploads/<yyyy>/<mm>/<id>.<ext>. Files are
-// served by GET /uploads/:id. In production this would point at object
-// storage (S3/R2); local FS is fine for dev + small self-hosts.
+// Storage layout: <root>/<yyyy>/<mm>/<id>.<ext>. Files are served by
+// GET /uploads/:id. Root defaults to <repo-cwd>/uploads; deploys with
+// an ephemeral filesystem can override via UPLOADS_STORAGE_PATH so
+// uploads survive restarts. S3/R2 backends are a future swap.
 function uploadsRoot(): string {
-  return path.join(process.cwd(), "uploads");
+  return env.UPLOADS_STORAGE_PATH ?? path.join(process.cwd(), "uploads");
 }
 
 const MAX_BYTES = 10 * 1024 * 1024; // 10 MB per file

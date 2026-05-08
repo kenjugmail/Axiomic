@@ -17,11 +17,12 @@ import {
   sign as cryptoSign,
   verify as cryptoVerify,
 } from "crypto";
+import { env } from "./envConfig";
 
 let cached: { privateKey: KeyObject; publicKey: KeyObject; publicKeyHex: string } | null = null;
 
 function loadFromEnv(): KeyObject | null {
-  const hex = process.env.AXIOMIC_SIGNING_PRIVATE_KEY_HEX;
+  const hex = env.AXIOMIC_SIGNING_PRIVATE_KEY_HEX;
   if (!hex) return null;
   const seed = Buffer.from(hex.trim(), "hex");
   if (seed.length !== 32) {
@@ -47,7 +48,7 @@ function ensureKeys(): NonNullable<typeof cached> {
     const pair = generateKeyPairSync("ed25519");
     privateKey = pair.privateKey;
     publicKey = pair.publicKey;
-    if (process.env.NODE_ENV !== "test") {
+    if (env.NODE_ENV !== "test") {
       console.warn(
         "AXIOMIC_SIGNING_PRIVATE_KEY_HEX not set — using an ephemeral signing key. " +
           "Transcripts will not be verifiable across server restarts.",

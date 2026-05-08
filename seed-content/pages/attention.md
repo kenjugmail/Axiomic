@@ -29,6 +29,8 @@ Say a translation model is translating "The cat sat on the mat" into French. Whe
 
 ::viz[attention-heatmap]
 
+:::lab[attention-weights-lab]
+
 ## Scaled Dot-Product Attention
 
 The specific attention used in transformers compares queries and keys using a **dot product** (a measure of how similar two vectors point — see [linear algebra foundations](/wiki/linear-algebra-foundations) for the inner-product structure that makes this work). The result is then scaled down (divided by a number) to keep values from getting too extreme, and passed through [softmax](/wiki/softmax) to create proper weights that sum to 1. These weights are multiplied with the values to produce the output.

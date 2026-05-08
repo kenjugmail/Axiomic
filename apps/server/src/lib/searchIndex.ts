@@ -252,11 +252,38 @@ async function buildIndex(): Promise<IndexedItem[]> {
   return items;
 }
 
+// Sprint 50 — last build telemetry. Surfaced via /admin/reindex so an
+// operator can confirm prewarm finished and read the item count
+// without scraping logs.
+let lastBuild: {
+  durationMs: number;
+  itemCount: number;
+  builtAt: string;
+} | null = null;
+
+export function getLastBuildStats(): {
+  durationMs: number;
+  itemCount: number;
+  builtAt: string;
+} | null {
+  return lastBuild;
+}
+
 export async function getSearchIndex(): Promise<IndexedItem[]> {
   if (cache) return cache;
   if (building) return building;
   building = (async () => {
+    const t0 = performance.now();
     const items = await buildIndex();
+    const durationMs = Math.round(performance.now() - t0);
+    lastBuild = {
+      durationMs,
+      itemCount: items.length,
+      builtAt: new Date().toISOString(),
+    };
+    console.log(
+      `[search] index built in ${durationMs}ms (${items.length} items)`,
+    );
     cache = items;
     building = null;
     return items;

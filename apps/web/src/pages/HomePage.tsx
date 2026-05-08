@@ -1,6 +1,12 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Brain, Target } from "lucide-react";
+import {
+  Brain,
+  Eye,
+  Lightbulb,
+  Target,
+  Users,
+} from "lucide-react";
 import {
   api,
   type ForumTopicSummary,
@@ -346,6 +352,65 @@ export function HomePage() {
                   <span className="text-violet-600 dark:text-violet-400 text-sm font-medium">
                     View →
                   </span>
+                </div>
+              </Link>
+            </div>
+
+            {/* Sprint 47 — Discoverability cards. Surfaces 3 community-
+                facing flows (cohorts / misconception marketplace / peer
+                review queue) one click from the dashboard so signed-in
+                users can find them without deep links. */}
+            <div className="mt-3 grid sm:grid-cols-3 gap-3">
+              <Link
+                to="/cohorts"
+                className="block rounded-xl border border-border bg-card px-4 py-3 hover:bg-accent/30 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                    <Users className="w-5 h-5" strokeWidth={2} />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold">Cohorts</div>
+                    <div className="text-[11px] text-muted-foreground line-clamp-2">
+                      Join a small group working through material together.
+                    </div>
+                  </div>
+                </div>
+              </Link>
+              <Link
+                to="/misconceptions"
+                className="block rounded-xl border border-border bg-card px-4 py-3 hover:bg-accent/30 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-300">
+                    <Lightbulb className="w-5 h-5" strokeWidth={2} />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold">
+                      Misconception marketplace
+                    </div>
+                    <div className="text-[11px] text-muted-foreground line-clamp-2">
+                      Spot a gap in the catalog? Propose one and let the
+                      community vote.
+                    </div>
+                  </div>
+                </div>
+              </Link>
+              <Link
+                to="/capstones/review-queue"
+                className="block rounded-xl border border-border bg-card px-4 py-3 hover:bg-accent/30 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-sky-500/10 text-sky-700 dark:text-sky-300">
+                    <Eye className="w-5 h-5" strokeWidth={2} />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold">Peer review</div>
+                    <div className="text-[11px] text-muted-foreground line-clamp-2">
+                      Endorse someone's capstone — your review folds into
+                      their signed transcript.
+                    </div>
+                  </div>
                 </div>
               </Link>
             </div>

@@ -39,6 +39,8 @@ Setting temperature is more art than science. Too low and you get boring, repeti
 
 Temperature is often combined with other sampling strategies like [Top-k and Top-p](/wiki/top-k-top-p) to get even more control over generation quality.
 
+:::lab[sampling-temperature-lab]
+
 ## Related Topics
 
 - [Top-k and Top-p Sampling](/wiki/top-k-top-p) — other ways to control randomness
