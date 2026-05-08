@@ -62,10 +62,22 @@ import {
   verifyWithPublicKey,
 } from "./lib/signing";
 import type { Env } from "./env";
+import { env, warnOnInsecureConfig } from "./lib/envConfig";
 
 const app = new Hono<Env>().basePath("/api/v1");
 
-app.use("*", cors({ origin: "http://localhost:5173", credentials: true }));
+// Sprint 45 — CORS origin(s) come from CORS_ORIGIN. Comma-separated
+// for multi-origin deploys (prod + staging + dev sharing one server).
+const corsOrigins = env.CORS_ORIGIN.split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+app.use(
+  "*",
+  cors({
+    origin: corsOrigins.length === 1 ? corsOrigins[0] : corsOrigins,
+    credentials: true,
+  }),
+);
 app.use("*", logger());
 
 app.get("/health", (c) => c.json({ status: "ok", timestamp: new Date().toISOString() }));
@@ -175,19 +187,16 @@ prewarmSearchIndex();
 
 export { app };
 
-const port = parseInt(process.env.PORT || "3000");
+const port = env.PORT;
 
 if (import.meta.main) {
   console.log(`Axiomic server starting on port ${port}`);
-  if (
-    process.env.DEV_AUTH_BYPASS === "1" &&
-    process.env.NODE_ENV !== "production"
-  ) {
-    const u = process.env.DEV_AUTH_BYPASS_USER || "alice";
+  if (env.DEV_AUTH_BYPASS === "1" && env.NODE_ENV !== "production") {
     console.warn(
-      `⚠️  DEV_AUTH_BYPASS enabled — every request is authed as "${u}". DO NOT USE IN PRODUCTION.`
+      `⚠️  DEV_AUTH_BYPASS enabled — every request is authed as "${env.DEV_AUTH_BYPASS_USER}". DO NOT USE IN PRODUCTION.`,
     );
   }
+  warnOnInsecureConfig();
 }
 
 // Bun.serve passes (req, server) when a `websocket` handler is set.

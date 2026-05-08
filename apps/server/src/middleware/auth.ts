@@ -4,6 +4,7 @@ import { getDb, sessions, users } from "@axiomic/db";
 import { eq, and, gt } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import type { Env } from "../env";
+import { env } from "../lib/envConfig";
 
 const SESSION_COOKIE = "axiomic_session";
 const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
@@ -48,9 +49,7 @@ const SESSION_USER_COLUMNS = {
 } as const;
 
 function devBypassEnabled(): boolean {
-  return (
-    process.env.DEV_AUTH_BYPASS === "1" && process.env.NODE_ENV !== "production"
-  );
+  return env.DEV_AUTH_BYPASS === "1" && env.NODE_ENV !== "production";
 }
 
 // Resolve a session-cookie's owning user from a raw Cookie header.
@@ -59,7 +58,7 @@ function devBypassEnabled(): boolean {
 export function userFromCookieHeader(cookieHeader: string | null): string | null {
   if (!cookieHeader) {
     if (devBypassEnabled()) {
-      const username = process.env.DEV_AUTH_BYPASS_USER || "alice";
+      const username = env.DEV_AUTH_BYPASS_USER;
       const db = getDb();
       const u = db
         .select({ id: users.id })
@@ -104,7 +103,7 @@ export async function getSessionUser(c: Context) {
   }
 
   if (devBypassEnabled()) {
-    const username = process.env.DEV_AUTH_BYPASS_USER || "alice";
+    const username = env.DEV_AUTH_BYPASS_USER;
     const result = db
       .select(SESSION_USER_COLUMNS)
       .from(users)
