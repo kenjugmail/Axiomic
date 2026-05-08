@@ -25,6 +25,7 @@ import { recordActivityAndEvaluate } from "../lib/achievements";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import { forumTopicsForNode } from "../lib/crossLinks";
 import { publishToDraft } from "../lib/liveBus";
+import { createProposal, isApprovalGateEnabled } from "../lib/approvals";
 import type { Env } from "../env";
 
 const mastery = new Hono<Env>();
@@ -733,6 +734,11 @@ mastery.get("/nodes/:nodeId/lesson/draft", async (c) => {
 // POST /mastery/nodes/:nodeId/lesson/publish-draft — promote whatever
 // is in draftLessonData into a real version. Same path as the
 // non-draft PUT but doesn't take a body: the draft IS the body.
+//
+// Sprint 52 — When CONTENT_APPROVAL_ENABLED=1, route through the
+// approval gate instead of writing directly. Admin proposers
+// auto-approve their own proposals (so the gate is only visible to
+// non-admin authors).
 mastery.post(
   "/nodes/:nodeId/lesson/publish-draft",
   requireAuth,
@@ -753,6 +759,52 @@ mastery.post(
     if (!node) return c.json({ error: "Node not found" }, 404);
     if (!node.draftLessonData) {
       return c.json({ error: "No draft to publish" }, 400);
+    }
+
+    if (isApprovalGateEnabled()) {
+      const result = createProposal({
+        kind: "lesson_publish",
+        targetId: nodeId,
+        proposerId: user.id,
+        payloadJson: node.draftLessonData,
+      });
+      if (result.status === "pending") {
+        return c.json({
+          status: "pending",
+          proposalId: result.id,
+          message: "Submitted for review",
+        });
+      }
+      // status === 'approved' (admin proposer auto-approved); apply
+      // already happened. Refresh the node's currentLessonVersion to
+      // include in the response.
+      const refreshed = db
+        .select({
+          currentLessonVersion: masteryNodes.currentLessonVersion,
+          lessonData: masteryNodes.lessonData,
+        })
+        .from(masteryNodes)
+        .where(eq(masteryNodes.id, nodeId))
+        .get();
+      const newAchievements = recordActivityAndEvaluate(user.id, "lesson_edit");
+      const now = new Date().toISOString();
+      publishToDraft("lesson", nodeId, {
+        type: "draft_published",
+        kind: "lesson",
+        targetId: nodeId,
+        version: refreshed?.currentLessonVersion ?? 0,
+        editorUsername: user.username,
+        publishedAt: now,
+      });
+      return c.json({
+        lesson: refreshed?.lessonData
+          ? JSON.parse(refreshed.lessonData)
+          : null,
+        version: refreshed?.currentLessonVersion ?? 0,
+        newAchievements,
+        proposalId: result.id,
+        status: "approved",
+      });
     }
 
     const nextVersion = node.currentLessonVersion + 1;

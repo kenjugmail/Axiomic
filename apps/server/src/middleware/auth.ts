@@ -45,6 +45,7 @@ const SESSION_USER_COLUMNS = {
   email: users.email,
   displayName: users.displayName,
   bio: users.bio,
+  role: users.role,
   createdAt: users.createdAt,
 } as const;
 

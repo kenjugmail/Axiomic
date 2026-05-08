@@ -12,6 +12,7 @@ import { and, desc, eq, ne, or, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import {
   capstones,
+  cohortInvitations,
   cohortMembers,
   cohorts,
   getDb,
@@ -19,7 +20,14 @@ import {
   users,
 } from "@axiomic/db";
 import { requireAuth, getSessionUser } from "../middleware/auth";
+import { notifyCohortInvitation } from "../lib/notifications";
 import type { Env } from "../env";
+
+// Sprint 52 — URL-safe token generator for cohort invitations.
+function newInviteToken(): string {
+  // 22 chars of base64url-ish randomness (~128 bits).
+  return randomUUID().replace(/-/g, "") + randomUUID().replace(/-/g, "").slice(0, 6);
+}
 
 export const cohortsRouter = new Hono<Env>();
 export const mentorsRouter = new Hono<Env>();
@@ -276,6 +284,187 @@ cohortsRouter.post("/:slug/leave", requireAuth, async (c) => {
     .run();
   return c.json({ ok: true });
 });
+
+// --- Sprint 52: Cohort invitations (organizer-side) ----------------
+
+const inviteSchema = z.object({
+  emails: z.array(z.string().email()).min(1).max(50),
+  message: z.string().max(2000).optional(),
+});
+
+cohortsRouter.post(
+  "/:slug/invitations",
+  requireAuth,
+  zValidator("json", inviteSchema),
+  async (c) => {
+    const me = c.get("user")!;
+    const slug = c.req.param("slug")!;
+    const body = c.req.valid("json");
+    const db = getDb();
+
+    const cohort = db
+      .select()
+      .from(cohorts)
+      .where(eq(cohorts.slug, slug))
+      .get();
+    if (!cohort) return c.json({ error: "Cohort not found" }, 404);
+
+    // Only organizers can invite.
+    const role = db
+      .select({ role: cohortMembers.role })
+      .from(cohortMembers)
+      .where(
+        and(eq(cohortMembers.cohortId, cohort.id), eq(cohortMembers.userId, me.id)),
+      )
+      .get();
+    const isOrganizer = role?.role === "organizer" || cohort.creatorId === me.id;
+    if (!isOrganizer) {
+      return c.json({ error: "Only organizers can invite" }, 403);
+    }
+
+    // Dedup: skip emails that already have a pending or accepted invite
+    // for this cohort. Returning the full set so the client knows what
+    // happened.
+    const lowered = body.emails.map((e) => e.toLowerCase());
+    const existingRows = db
+      .select()
+      .from(cohortInvitations)
+      .where(eq(cohortInvitations.cohortId, cohort.id))
+      .all();
+    const blocked = new Set(
+      existingRows
+        .filter(
+          (r) => r.status === "pending" || r.status === "accepted",
+        )
+        .map((r) => r.email.toLowerCase()),
+    );
+
+    const created: Array<{ email: string; token: string; status: string }> = [];
+    const skipped: Array<{ email: string; reason: string }> = [];
+
+    for (const email of lowered) {
+      if (blocked.has(email)) {
+        skipped.push({ email, reason: "already invited" });
+        continue;
+      }
+      const token = newInviteToken();
+      const id = randomUUID();
+      db.insert(cohortInvitations).values({
+        id,
+        cohortId: cohort.id,
+        inviterId: me.id,
+        email,
+        token,
+        message: body.message ?? "",
+      }).run();
+      created.push({ email, token, status: "pending" });
+      blocked.add(email);
+
+      // If the invitee already has an account with this email, drop
+      // a notification in their bell.
+      const existingUser = db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.email, email))
+        .get();
+      if (existingUser) {
+        notifyCohortInvitation(existingUser.id, me.id, id, token, cohort.name);
+      }
+    }
+
+    return c.json({ created, skipped });
+  },
+);
+
+cohortsRouter.get("/:slug/invitations", requireAuth, async (c) => {
+  const me = c.get("user")!;
+  const slug = c.req.param("slug")!;
+  const db = getDb();
+
+  const cohort = db
+    .select()
+    .from(cohorts)
+    .where(eq(cohorts.slug, slug))
+    .get();
+  if (!cohort) return c.json({ error: "Cohort not found" }, 404);
+
+  const role = db
+    .select({ role: cohortMembers.role })
+    .from(cohortMembers)
+    .where(
+      and(eq(cohortMembers.cohortId, cohort.id), eq(cohortMembers.userId, me.id)),
+    )
+    .get();
+  const isOrganizer = role?.role === "organizer" || cohort.creatorId === me.id;
+  if (!isOrganizer) {
+    return c.json({ error: "Only organizers can list invitations" }, 403);
+  }
+
+  const rows = db
+    .select()
+    .from(cohortInvitations)
+    .where(eq(cohortInvitations.cohortId, cohort.id))
+    .orderBy(desc(cohortInvitations.createdAt))
+    .all();
+  return c.json({
+    invitations: rows.map((r) => ({
+      id: r.id,
+      email: r.email,
+      token: r.token,
+      status: r.status,
+      message: r.message,
+      createdAt: r.createdAt,
+      decidedAt: r.decidedAt,
+    })),
+  });
+});
+
+cohortsRouter.post(
+  "/:slug/invitations/:id/revoke",
+  requireAuth,
+  async (c) => {
+    const me = c.get("user")!;
+    const slug = c.req.param("slug")!;
+    const id = c.req.param("id")!;
+    const db = getDb();
+
+    const cohort = db
+      .select()
+      .from(cohorts)
+      .where(eq(cohorts.slug, slug))
+      .get();
+    if (!cohort) return c.json({ error: "Cohort not found" }, 404);
+
+    const role = db
+      .select({ role: cohortMembers.role })
+      .from(cohortMembers)
+      .where(
+        and(eq(cohortMembers.cohortId, cohort.id), eq(cohortMembers.userId, me.id)),
+      )
+      .get();
+    const isOrganizer = role?.role === "organizer" || cohort.creatorId === me.id;
+    if (!isOrganizer) {
+      return c.json({ error: "Only organizers can revoke invitations" }, 403);
+    }
+
+    const invite = db
+      .select()
+      .from(cohortInvitations)
+      .where(eq(cohortInvitations.id, id))
+      .get();
+    if (!invite || invite.cohortId !== cohort.id) {
+      return c.json({ error: "Invitation not found" }, 404);
+    }
+    if (invite.status !== "pending") {
+      return c.json({ error: `Already ${invite.status}` }, 409);
+    }
+    db.update(cohortInvitations)
+      .set({ status: "revoked", decidedAt: new Date().toISOString() })
+      .where(eq(cohortInvitations.id, id))
+      .run();
+    return c.json({ ok: true });
+  },
+);
 
 // --- Mentors -------------------------------------------------------
 

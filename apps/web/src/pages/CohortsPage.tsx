@@ -21,6 +21,16 @@ interface CohortListItem {
   createdAt: string;
 }
 
+interface InvitationRow {
+  id: string;
+  email: string;
+  token: string;
+  status: "pending" | "accepted" | "declined" | "revoked";
+  message: string;
+  createdAt: string;
+  decidedAt: string | null;
+}
+
 export function CohortsPage() {
   const user = useAuthStore((s) => s.user);
   const [items, setItems] = useState<CohortListItem[] | null>(null);
@@ -181,6 +191,9 @@ export function CohortsPage() {
                   )}
                 </div>
               </div>
+              {user && c.creatorUsername === user.username && (
+                <CohortInvitePanel slug={c.slug} cohortName={c.name} />
+              )}
             </li>
           ))}
         </ul>
@@ -334,5 +347,193 @@ function CreateCohortForm({
         </button>
       </div>
     </form>
+  );
+}
+
+// Sprint 52 — Inline organizer-only invite panel rendered under each
+// owned cohort. Collapsed by default; expanding loads the existing
+// invitations list. "Send invitations" creates one row per email and
+// surfaces the resulting URL list (the organizer copies + emails
+// these themselves; SMTP integration is post-v1).
+function CohortInvitePanel({
+  slug,
+  cohortName,
+}: {
+  slug: string;
+  cohortName: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [items, setItems] = useState<InvitationRow[] | null>(null);
+  const [emails, setEmails] = useState("");
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  const load = async () => {
+    setError("");
+    try {
+      const r = await fetch(`/api/v1/cohorts/${slug}/invitations`, {
+        credentials: "include",
+      });
+      if (!r.ok) {
+        if (r.status === 403) return; // not organizer; no panel
+        throw new Error(`Failed to load invitations (${r.status})`);
+      }
+      const data = (await r.json()) as { invitations: InvitationRow[] };
+      setItems(data.invitations);
+    } catch (e: any) {
+      setError(e?.message ?? "Load failed");
+    }
+  };
+
+  const onToggle = async () => {
+    setOpen((v) => !v);
+    if (!open && items === null) {
+      await load();
+    }
+  };
+
+  const onSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+    try {
+      const list = emails
+        .split(/[\s,;]+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (list.length === 0) {
+        setError("Enter at least one email.");
+        return;
+      }
+      const r = await fetch(`/api/v1/cohorts/${slug}/invitations`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emails: list, message: message || undefined }),
+      });
+      if (!r.ok) {
+        const data = await r.json().catch(() => ({}));
+        throw new Error(data?.error ?? `Send failed (${r.status})`);
+      }
+      setEmails("");
+      setMessage("");
+      await load();
+    } catch (e: any) {
+      setError(e?.message ?? "Send failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onRevoke = async (id: string) => {
+    setBusy(true);
+    setError("");
+    try {
+      await fetch(`/api/v1/cohorts/${slug}/invitations/${id}/revoke`, {
+        method: "POST",
+        credentials: "include",
+      });
+      await load();
+    } catch (e: any) {
+      setError(e?.message ?? "Revoke failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="mt-2 border-t border-border pt-2">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="text-[11px] text-muted-foreground hover:text-foreground"
+      >
+        {open ? "Hide invitations ▴" : "Manage invitations ▾"}
+      </button>
+      {open && (
+        <div className="mt-2 space-y-2">
+          <form onSubmit={onSend} className="space-y-2">
+            <textarea
+              value={emails}
+              onChange={(e) => setEmails(e.target.value)}
+              placeholder={`Emails to invite to ${cohortName} (comma, space, or newline separated)`}
+              rows={2}
+              className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+            <input
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Optional personal message"
+              className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={busy || !emails.trim()}
+                className="text-xs px-3 py-1 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              >
+                {busy ? "Sending…" : "Send invitations"}
+              </button>
+            </div>
+          </form>
+          {error && (
+            <p className="text-xs text-rose-600 dark:text-rose-400">{error}</p>
+          )}
+          {items && items.length > 0 && (
+            <ul className="space-y-1.5">
+              {items.map((inv) => {
+                const url = `${typeof window !== "undefined" ? window.location.origin : ""}/invitations/${inv.token}`;
+                return (
+                  <li
+                    key={inv.id}
+                    className="rounded border border-border px-2 py-1.5 text-xs flex items-center justify-between gap-2 flex-wrap"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium">{inv.email}</div>
+                      <div className="text-[10px] text-muted-foreground">
+                        {inv.status}
+                        {" · "}
+                        {inv.status === "pending" ? (
+                          <button
+                            type="button"
+                            onClick={() => navigator.clipboard.writeText(url)}
+                            className="underline hover:text-foreground"
+                            title="Copy invite URL"
+                          >
+                            copy URL
+                          </button>
+                        ) : (
+                          <span>
+                            decided{" "}
+                            {inv.decidedAt
+                              ? new Date(inv.decidedAt).toLocaleDateString()
+                              : ""}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {inv.status === "pending" && (
+                      <button
+                        type="button"
+                        onClick={() => onRevoke(inv.id)}
+                        className="text-[10px] px-2 py-0.5 rounded border border-border hover:bg-accent/40"
+                      >
+                        Revoke
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          {items && items.length === 0 && (
+            <p className="text-[11px] text-muted-foreground">
+              No invitations yet.
+            </p>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

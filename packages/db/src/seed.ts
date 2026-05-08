@@ -12,6 +12,8 @@ import {
   newsArticles,
   capstones,
   capstoneMilestones,
+  capstoneTracks,
+  capstoneTrackCapstones,
   misconceptionCatalog,
   researchPapers,
 } from "./index";
@@ -107,6 +109,9 @@ async function seed() {
 
   // Sprint 49 — load research papers from seed-content/research/*.json.
   seedResearchPapers();
+
+  // Sprint 52 — load capstone tracks (depend on capstones existing).
+  await seedCapstoneTracks();
 
   console.log("Seeding complete.");
 }
@@ -1206,6 +1211,93 @@ function seedResearchPapers() {
     count++;
   }
   console.log(`  Seeded ${count} research paper${count === 1 ? "" : "s"}.`);
+}
+
+// Sprint 52 — load capstone tracks from seed-content/tracks/*.json.
+// Each track JSON has { slug, title, summary, ..., capstones: [{slug,
+// optional?}] }. The loader resolves capstone slugs to IDs and
+// upserts the (track, capstone) join rows.
+async function seedCapstoneTracks() {
+  const dir = path.join(import.meta.dir, "../../../seed-content/tracks");
+  if (!fs.existsSync(dir)) return;
+
+  let systemUser = db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.username, "system"))
+    .get();
+  if (!systemUser) return; // capstones loader didn't run; nothing to attach
+
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith(".json"));
+  let count = 0;
+  for (const file of files) {
+    let parsed: any;
+    try {
+      parsed = JSON.parse(fs.readFileSync(path.join(dir, file), "utf-8"));
+    } catch {
+      continue;
+    }
+    if (!parsed?.slug || !parsed?.title) continue;
+
+    const existing = db
+      .select({ id: capstoneTracks.id })
+      .from(capstoneTracks)
+      .where(eq(capstoneTracks.slug, parsed.slug))
+      .get();
+
+    let trackId: string;
+    const values = {
+      slug: parsed.slug,
+      title: parsed.title,
+      summary: parsed.summary ?? "",
+      contentIntro: parsed.contentIntro ?? "",
+      contentUndergrad: parsed.contentUndergrad ?? "",
+      contentGrad: parsed.contentGrad ?? "",
+      canonicalTier: parsed.canonicalTier ?? "undergrad",
+      coverEmoji: parsed.coverEmoji ?? "🎯",
+      accentColor: parsed.accentColor ?? "violet",
+      tags: JSON.stringify(parsed.tags ?? []),
+      status: parsed.status ?? "published",
+      authorId: systemUser.id,
+    };
+    if (existing) {
+      trackId = existing.id;
+      db.update(capstoneTracks)
+        .set({ ...values, updatedAt: new Date().toISOString() })
+        .where(eq(capstoneTracks.id, existing.id))
+        .run();
+      db.delete(capstoneTrackCapstones)
+        .where(eq(capstoneTrackCapstones.trackId, trackId))
+        .run();
+    } else {
+      trackId = randomUUID();
+      db.insert(capstoneTracks).values({ id: trackId, ...values }).run();
+    }
+
+    const items: any[] = Array.isArray(parsed.capstones) ? parsed.capstones : [];
+    for (let i = 0; i < items.length; i++) {
+      const it = items[i];
+      const slug = typeof it === "string" ? it : it?.slug;
+      if (!slug) continue;
+      const cap = db
+        .select({ id: capstones.id })
+        .from(capstones)
+        .where(eq(capstones.slug, slug))
+        .get();
+      if (!cap) {
+        console.warn(`  track ${parsed.slug}: capstone "${slug}" not found, skipping.`);
+        continue;
+      }
+      db.insert(capstoneTrackCapstones).values({
+        trackId,
+        capstoneId: cap.id,
+        order: typeof it === "object" && typeof it.order === "number" ? it.order : i,
+        optional: typeof it === "object" && it.optional ? 1 : 0,
+      }).run();
+    }
+    count++;
+  }
+  console.log(`  Seeded ${count} capstone track${count === 1 ? "" : "s"}.`);
 }
 
 seed().catch(console.error);

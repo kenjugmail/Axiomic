@@ -52,6 +52,11 @@ const envSchema = z.object({
     .int()
     .positive()
     .default(1_048_576),
+
+  // Sprint 52 — Content approval gate. When "1", lessons / wiki edits
+  // route through content_proposals and require admin approval before
+  // landing. Default off so local dev + tests publish-immediately.
+  CONTENT_APPROVAL_ENABLED: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

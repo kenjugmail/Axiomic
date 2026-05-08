@@ -20,6 +20,10 @@ export const users = sqliteTable("users", {
   // Optional preferred starting path (slug) chosen during onboarding.
   // Used to seed the dashboard's "Continue learning" tile.
   startingPathSlug: text("starting_path_slug"),
+  // Sprint 52 — content approval gate. 'admin' can review proposals;
+  // 'member' is everyone else. One admin is bootstrapped from the
+  // BOOTSTRAP_ADMIN_USERNAME env var on cold start if no admin exists.
+  role: text("role").notNull().default("member"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
 });
@@ -1300,3 +1304,137 @@ export const misconceptionSubmissionVotes = sqliteTable(
     userIdx: index("misconception_submission_votes_user_idx").on(t.userId),
   }),
 );
+
+// Sprint 52 — Capstone tracks. A track bundles several capstones into a
+// single curated path (the "ML Engineer track" wrapping
+// transformer-from-scratch + fine-tuning + training-stability +
+// inference-optimization). Completion auto-mints a signed manifest
+// containing the user, the track, and the per-capstone artifact slugs.
+export const capstoneTracks = sqliteTable("capstone_tracks", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  summary: text("summary").notNull().default(""),
+  // Tiered description mirrors capstones / research_papers.
+  contentIntro: text("content_intro").notNull().default(""),
+  contentUndergrad: text("content_undergrad").notNull().default(""),
+  contentGrad: text("content_grad").notNull().default(""),
+  canonicalTier: text("canonical_tier").notNull().default("undergrad"),
+  coverEmoji: text("cover_emoji").notNull().default("🎯"),
+  accentColor: text("accent_color").notNull().default("violet"),
+  tags: text("tags").notNull().default("[]"),
+  // 'draft' | 'published'
+  status: text("status").notNull().default("draft"),
+  authorId: text("author_id").notNull().references(() => users.id),
+  lastEditorId: text("last_editor_id").references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  authorIdx: index("capstone_tracks_author_idx").on(t.authorId, t.createdAt),
+  statusIdx: index("capstone_tracks_status_idx").on(t.status, t.createdAt),
+}));
+
+// Join between tracks and capstones. `optional = 1` enables "any 4 of
+// these 6" tracks; the completion threshold is computed from required
+// + an optional minimum (default: complete all required).
+export const capstoneTrackCapstones = sqliteTable("capstone_track_capstones", {
+  trackId: text("track_id")
+    .notNull()
+    .references(() => capstoneTracks.id, { onDelete: "cascade" }),
+  capstoneId: text("capstone_id")
+    .notNull()
+    .references(() => capstones.id, { onDelete: "cascade" }),
+  order: integer("order").notNull(),
+  // 0 = required, 1 = optional
+  optional: integer("optional").notNull().default(0),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  pk: uniqueIndex("capstone_track_capstones_pk").on(t.trackId, t.capstoneId),
+  trackIdx: index("capstone_track_capstones_track_idx").on(t.trackId, t.order),
+}));
+
+// One row per (track, learner) when the threshold is hit. The
+// `signedTranscriptJson` is an ed25519-signed manifest of the
+// completion: track slug + learner username + ordered list of the
+// learner's capstone artifact slugs.
+export const capstoneTrackCompletions = sqliteTable("capstone_track_completions", {
+  id: text("id").primaryKey(),
+  trackId: text("track_id")
+    .notNull()
+    .references(() => capstoneTracks.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id),
+  completedAt: text("completed_at").default(sql`(datetime('now'))`).notNull(),
+  // Format: `${username}-${trackSlug}`. The public artifact lives at
+  // /tracks/c/:artifactPageSlug.
+  artifactPageSlug: text("artifact_page_slug").notNull(),
+  signedTranscriptJson: text("signed_transcript_json").notNull().default(""),
+}, (t) => ({
+  pk: uniqueIndex("capstone_track_completions_pk").on(t.trackId, t.userId),
+  artifactSlugIdx: uniqueIndex("capstone_track_completions_artifact_slug_idx").on(
+    t.artifactPageSlug,
+  ),
+  userIdx: index("capstone_track_completions_user_idx").on(t.userId, t.completedAt),
+}));
+
+// Sprint 52 — Cohort invitations. Organizers issue invites by email
+// (one row per email), the invitee accepts by token, and the cohort
+// membership row is created as a side effect. Email send is offline
+// in v1 (organizer copies the URL); SMTP integration is a follow-up.
+export const cohortInvitations = sqliteTable("cohort_invitations", {
+  id: text("id").primaryKey(),
+  cohortId: text("cohort_id")
+    .notNull()
+    .references(() => cohorts.id, { onDelete: "cascade" }),
+  inviterId: text("inviter_id").notNull().references(() => users.id),
+  email: text("email").notNull(),
+  // Random URL-safe token used in /invitations/:token.
+  token: text("token").notNull().unique(),
+  // 'pending' | 'accepted' | 'declined' | 'revoked'
+  status: text("status").notNull().default("pending"),
+  message: text("message").notNull().default(""),
+  // Set on accept.
+  acceptedUserId: text("accepted_user_id").references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  expiresAt: text("expires_at"),
+  decidedAt: text("decided_at"),
+}, (t) => ({
+  cohortStatusIdx: index("cohort_invitations_cohort_status_idx").on(
+    t.cohortId,
+    t.status,
+  ),
+  emailStatusIdx: index("cohort_invitations_email_status_idx").on(
+    t.email,
+    t.status,
+  ),
+}));
+
+// Sprint 52 — Content approval gate. Lessons / news articles / wiki
+// edits route through this table instead of writing directly. Admins
+// review at /admin/approvals; approval dispatches to per-kind apply
+// functions (publish lesson / create-or-update news / write wiki).
+// Wiki edits apply immediately and revert on reject; lessons + news
+// stay private until approved.
+export const contentProposals = sqliteTable("content_proposals", {
+  id: text("id").primaryKey(),
+  // 'lesson_publish' | 'news_publish' | 'news_edit' | 'wiki_edit'
+  kind: text("kind").notNull(),
+  // nodeId for lesson, articleId for news_edit, pageId for wiki_edit;
+  // null for new news_publish (filled in on apply).
+  targetId: text("target_id"),
+  proposerId: text("proposer_id").notNull().references(() => users.id),
+  // Proposed payload (slides JSON for lessons; article fields JSON for
+  // news; tiered body JSON for wiki).
+  payloadJson: text("payload_json").notNull(),
+  // Prior state for revertable kinds (wiki). Null for lessons + news,
+  // which simply discard on reject.
+  priorSnapshotJson: text("prior_snapshot_json"),
+  // 'pending' | 'approved' | 'rejected'
+  status: text("status").notNull().default("pending"),
+  reviewerId: text("reviewer_id").references(() => users.id),
+  reviewNote: text("review_note"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  decidedAt: text("decided_at"),
+}, (t) => ({
+  statusIdx: index("content_proposals_status_idx").on(t.status, t.createdAt),
+  proposerIdx: index("content_proposals_proposer_idx").on(t.proposerId, t.status),
+}));

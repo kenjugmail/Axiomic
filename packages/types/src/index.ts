@@ -10,6 +10,8 @@ export interface User {
   email: string;
   displayName: string | null;
   bio?: string | null;
+  // Sprint 52 — 'admin' unlocks the approval queue; 'member' for everyone else.
+  role?: string;
   createdAt?: string;
 }
 

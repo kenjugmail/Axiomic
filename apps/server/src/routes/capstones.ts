@@ -41,6 +41,8 @@ import {
 import { snapshotCapstone } from "../lib/versionSnapshots";
 import { buildTranscriptManifest } from "../lib/transcripts";
 import { canonicalJson, publicKeyHex, sign } from "../lib/signing";
+import { maybeMintTrackCompletions } from "../lib/capstoneTrackCompletion";
+import { notifyTrackCompletion } from "../lib/notifications";
 import type { Env } from "../env";
 
 export const capstonesRouter = new Hono<Env>();
@@ -1639,4 +1641,16 @@ async function maybeCompleteEnrollment(
     })
     .where(eq(capstoneEnrollments.id, enrollmentId))
     .run();
+
+  // Sprint 52 — completing this capstone may have crossed a track's
+  // threshold. Mint any newly-eligible track completions and notify
+  // the learner.
+  try {
+    const minted = maybeMintTrackCompletions(user.id);
+    for (const m of minted) {
+      notifyTrackCompletion(user.id, m.trackId, m.trackSlug, m.artifactPageSlug);
+    }
+  } catch (err) {
+    console.warn("[capstones] track-completion mint failed", err);
+  }
 }

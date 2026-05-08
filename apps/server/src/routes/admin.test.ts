@@ -1,7 +1,12 @@
 // Sprint 50 — admin endpoints.
+//
+// Sprint 52 promotes these to require role='admin'. Tests now
+// promote a user to admin before hitting the gated routes.
 
 import { describe, test, expect } from "bun:test";
+import { eq } from "drizzle-orm";
 import { app } from "../index";
+import { getDb, users } from "@axiomic/db";
 
 async function req(path: string, opts?: RequestInit): Promise<Response> {
   return await app.fetch(new Request(`http://localhost/api/v1${path}`, opts));
@@ -28,14 +33,32 @@ async function signup(suffix: string) {
   return { cookie, username };
 }
 
+function promoteAdmin(username: string) {
+  getDb()
+    .update(users)
+    .set({ role: "admin" })
+    .where(eq(users.username, username))
+    .run();
+}
+
 describe("Sprint 50 — admin endpoints", () => {
   test("/admin/reindex requires auth", async () => {
     const res = await req("/admin/reindex", { method: "POST" });
     expect(res.status).toBe(401);
   });
 
+  test("/admin/reindex rejects non-admin signed-in users", async () => {
+    const me = await signup("nonadmin");
+    const res = await req("/admin/reindex", {
+      method: "POST",
+      headers: cookieHeader(me.cookie),
+    });
+    expect(res.status).toBe(403);
+  });
+
   test("/admin/reindex rebuilds the search index and returns stats", async () => {
     const me = await signup("rebuild");
+    promoteAdmin(me.username);
     const res = await req("/admin/reindex", {
       method: "POST",
       headers: cookieHeader(me.cookie),
@@ -50,6 +73,7 @@ describe("Sprint 50 — admin endpoints", () => {
 
   test("/admin/search-stats returns lastBuild after a reindex", async () => {
     const me = await signup("stats");
+    promoteAdmin(me.username);
     await req("/admin/reindex", { method: "POST", headers: cookieHeader(me.cookie) });
     const res = await req("/admin/search-stats", { headers: cookieHeader(me.cookie) });
     expect(res.status).toBe(200);

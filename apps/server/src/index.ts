@@ -29,8 +29,11 @@ import { kernelFilesRouter } from "./routes/kernelFiles";
 import { cohortsRouter, mentorsRouter } from "./routes/cohorts";
 import { serverExecRouter } from "./routes/serverExec";
 import { adminRouter } from "./routes/admin";
+import { capstoneTracksRouter } from "./routes/capstoneTracks";
+import { cohortInvitationsRouter } from "./routes/cohortInvitations";
 import { meRouter } from "./routes/me";
 import { usersRouter } from "./routes/users";
+import { bootstrapAdmin } from "./lib/bootstrapAdmin";
 import { prewarmSearchIndex } from "./lib/searchIndex";
 import { userFromCookieHeader } from "./middleware/auth";
 import {
@@ -189,12 +192,17 @@ app.route("/cohorts", cohortsRouter);
 app.route("/mentors", mentorsRouter);
 app.route("/server-exec", serverExecRouter);
 app.route("/admin", adminRouter);
+app.route("/tracks", capstoneTracksRouter);
+app.route("/cohort-invitations", cohortInvitationsRouter);
 app.route("/me", meRouter);
 app.route("/users", usersRouter);
 
 // Pre-warm the search index in the background so the first user query
 // doesn't pay the embedding-build cost.
 prewarmSearchIndex();
+
+// Sprint 52 — promote the configured user to admin if no admin exists.
+bootstrapAdmin(env.BOOTSTRAP_ADMIN_USERNAME);
 
 export { app };
 
