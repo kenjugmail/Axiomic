@@ -169,7 +169,7 @@ export function ForumTopicPage() {
         <span>{new Date(topic.createdAt.replace(" ", "T") + "Z").toLocaleDateString()}</span>
         <span>·</span>
         <span>{topic.postCount} replies</span>
-        {topic.postCount >= 3 && (
+        {topic.postCount >= 2 && (
           <>
             <span>·</span>
             <Link

@@ -27,12 +27,18 @@ const PRIMARY_NAV: Array<{ to: string; label: string }> = [
 const SECONDARY_NAV_PUBLIC: Array<{ to: string; label: string }> = [
   { to: "/challenge", label: "Daily challenge" },
   { to: "/leaderboard", label: "Leaderboard" },
+  { to: "/cohorts", label: "Cohorts" },
+  { to: "/misconceptions", label: "Misconception marketplace" },
+  { to: "/capstones/review-queue", label: "Peer review queue" },
+  { to: "/verify", label: "Verify a transcript" },
 ];
 
 const SECONDARY_NAV_USER: Array<{ to: string; label: string }> = [
   { to: "/feed", label: "Feed" },
   { to: "/flashcards", label: "Flashcards" },
   { to: "/review/mistakes", label: "Review mistakes" },
+  { to: "/me/mri", label: "Knowledge MRI" },
+  { to: "/me/weak-concepts", label: "Weak concepts" },
 ];
 
 export function Layout() {
