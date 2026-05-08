@@ -1,0 +1,61 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why position matters",
+      "body": "Attention has a problem: it's **permutation-invariant**. If you shuffle the input tokens, attention computes exactly the same set of pairwise scores — just reordered. To attention, `\"dog bites man\"` and `\"man bites dog\"` look identical.\n\nThis is fine for set-valued data (treat tokens as a bag) but disastrous for language. The model needs to know that `\"the\"` came before `\"cat\"`, and that the third token is three steps after the first.\n\n**Positional encoding** adds position information into the input embeddings so attention can recover order. Three flavors dominate today: sinusoidal, learned absolute, and rotary (RoPE)."
+    },
+    {
+      "kind": "text",
+      "title": "Sinusoidal — the original recipe",
+      "body": "The original transformer paper used fixed sine/cosine waves at different frequencies:\n\n$$PE_{pos, 2i} = \\sin\\left(\\frac{pos}{10000^{2i/d}}\\right), \\quad PE_{pos, 2i+1} = \\cos\\left(\\frac{pos}{10000^{2i/d}}\\right)$$\n\nEvery position gets a unique vector; nearby positions get similar vectors; far positions get dissimilar ones. The resulting `d_model`-dimensional positional vector is **added** to the token embedding before the first attention layer.\n\nWhy sinusoids? Linear combinations of sines at different frequencies can encode any position offset. The model can, in principle, learn to attend to \"the token 5 positions back\" by learning the right linear projection. In practice, **learned positional embeddings** (BERT, GPT-2) often outperform sinusoidal — until the context length grows past training, where sinusoidal extrapolates better."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "pe_q1",
+        "kind": "multiple_choice",
+        "question": "Why does attention need positional encoding at all?",
+        "options": [
+          "Attention can't compute dot products without position information",
+          "Attention is permutation-invariant — it sees all token pairs but doesn't know their order",
+          "Positional encoding is required for the softmax to converge",
+          "Without it, the model can't be trained with backpropagation"
+        ],
+        "correctIndex": 1,
+        "explanation": "Attention treats tokens as a set: shuffling the inputs reorders the outputs but doesn't change the underlying computation. Position has to be injected into the inputs (via embeddings added at the start, or rotated into Q/K via RoPE) so the model can reason about order."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "RoPE — the modern default",
+      "body": "Rotary Position Embedding (RoPE) is what every recent open model uses (LLaMA, Mistral, Qwen). The trick: instead of adding position vectors to embeddings, **rotate** the Q and K vectors by an angle proportional to position.\n\nFor each pair of dimensions in Q (and the same pair in K), apply a 2D rotation:\n\n$$\\begin{bmatrix} q'_{2i} \\\\ q'_{2i+1} \\end{bmatrix} = \\begin{bmatrix} \\cos(\\theta_{pos,i}) & -\\sin(\\theta_{pos,i}) \\\\ \\sin(\\theta_{pos,i}) & \\cos(\\theta_{pos,i}) \\end{bmatrix} \\begin{bmatrix} q_{2i} \\\\ q_{2i+1} \\end{bmatrix}$$\n\nWhy this works: the dot product `q' · k'` between two RoPE-rotated vectors only depends on their **relative** position (how far apart they are), not their absolute positions. This is the property you want — `\"the cat\"` and `\"... the cat\"` (with the same two words at different absolute positions) attend the same way.\n\nRoPE also extrapolates surprisingly well to longer contexts than were seen at training, especially with frequency tricks like NTK-aware interpolation."
+    },
+    {
+      "kind": "text",
+      "title": "What breaks without positional encoding",
+      "body": "If you ablate positional encoding (turn it off entirely), three things happen:\n\n1. **The model becomes a bag-of-words.** It can still classify sentiment from word presence, but it can't parse syntax.\n2. **Attention patterns become uniform across positions.** The attention heatmap stops showing diagonals or local-window structure.\n3. **Generation collapses.** Autoregressive sampling produces the same token over and over — no way to know what came before.\n\nThis is sometimes useful as a sanity check: train a small transformer with PE turned off, watch the loss plateau much higher than the same model with PE. The gap is what positional encoding is buying you."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "pe_q2",
+        "kind": "multiple_choice",
+        "question": "What's the main practical advantage of RoPE over learned absolute positional embeddings?",
+        "options": [
+          "RoPE uses fewer parameters",
+          "RoPE encodes relative position into Q · K dot products and extrapolates better to longer contexts than were seen at training",
+          "RoPE is faster to compute",
+          "RoPE doesn't need the model to be trained at all"
+        ],
+        "correctIndex": 1,
+        "explanation": "Learned absolute position embeddings memorize the positions seen at training; if you ask for position 8000 after training only on lengths up to 4000, the embedding is undefined. RoPE's rotation is parametric in position, so it generalizes — and the dot product structure means the model only ever 'sees' relative offsets."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Positional encoding is the bridge between [[tokens]] and [[attention]]. With position information injected, attention can finally tell `\"dog bites man\"` from `\"man bites dog\"`.\n\nPicking a positional encoding scheme is one of the few architectural choices that meaningfully affects a model's behavior at long context. RoPE has become the default for LLMs because of its extrapolation properties; **ALiBi** (Press et al.) is another common choice that biases attention by relative distance directly.\n\nNext: [[multi-head-attention]], where multiple parallel attention heads each learn different patterns over the same positionally-aware input."
+    }
+  ]
+}

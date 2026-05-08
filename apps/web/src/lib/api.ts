@@ -1,3 +1,11 @@
+// Sprint 54 — onboarding-stated goals.
+export type OnboardingGoal =
+  | "complete_track"
+  | "finish_path"
+  | "publish_paper"
+  | "join_cohort"
+  | "ship_misconception";
+
 import type {
   AuthResponse,
   Comment,
@@ -536,17 +544,22 @@ export const api = {
   },
   onboarding: {
     status: () =>
-      request<{ onboarded: boolean; startingPathSlug: string | null }>(
-        "/onboarding/status",
-      ),
-    complete: (pathSlug?: string) =>
+      request<{
+        onboarded: boolean;
+        startingPathSlug: string | null;
+        onboardingGoal: OnboardingGoal | null;
+      }>("/onboarding/status"),
+    complete: (pathSlug?: string, goal?: OnboardingGoal) =>
       request<{
         onboarded: true;
         startingPathSlug: string | null;
         firstNodeSlug: string | null;
       }>("/onboarding", {
         method: "POST",
-        body: JSON.stringify(pathSlug ? { pathSlug } : {}),
+        body: JSON.stringify({
+          ...(pathSlug ? { pathSlug } : {}),
+          ...(goal ? { goal } : {}),
+        }),
       }),
   },
   notifications: {
@@ -931,6 +944,158 @@ export const api = {
       );
     },
   },
+  tracks: {
+    list: () =>
+      request<{
+        tracks: Array<{
+          id: string;
+          slug: string;
+          title: string;
+          summary: string;
+          coverEmoji: string;
+          accentColor: string;
+          tags: string[];
+          capstoneCount: number;
+          requiredCount: number;
+          optionalCount: number;
+          earnedBy: number;
+          updatedAt: string;
+        }>;
+      }>("/tracks"),
+    get: (slug: string, tier?: "intro" | "undergrad" | "grad") => {
+      const qs = tier ? `?tier=${tier}` : "";
+      return request<{
+        track: {
+          id: string;
+          slug: string;
+          title: string;
+          summary: string;
+          coverEmoji: string;
+          accentColor: string;
+          tags: string[];
+          status: string;
+          authorId: string;
+          canonicalTier: string;
+          tier: "intro" | "undergrad" | "grad";
+          content: string;
+          allContent: { intro: string; undergrad: string; grad: string };
+          totalEstimatedWeeks: number;
+          createdAt: string;
+          updatedAt: string;
+        };
+        capstones: Array<{
+          slug: string;
+          title: string;
+          summary: string;
+          coverEmoji: string;
+          accentColor: string;
+          estimatedWeeks: number;
+          order: number;
+          optional: boolean;
+          status: "completed" | "in_progress" | "not_started";
+          artifactPageSlug: string | null;
+        }>;
+        myCompletion: {
+          artifactPageSlug: string;
+          completedAt: string;
+        } | null;
+      }>(`/tracks/${slug}${qs}`);
+    },
+    create: (data: {
+      slug: string;
+      title: string;
+      summary?: string;
+      contentIntro?: string;
+      contentUndergrad?: string;
+      contentGrad?: string;
+      canonicalTier?: "intro" | "undergrad" | "grad";
+      coverEmoji?: string;
+      accentColor?: string;
+      tags?: string[];
+      status?: "draft" | "published";
+    }) =>
+      request<{ id: string; slug: string }>("/tracks", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    update: (
+      slug: string,
+      data: Partial<{
+        title: string;
+        summary: string;
+        contentIntro: string;
+        contentUndergrad: string;
+        contentGrad: string;
+        canonicalTier: "intro" | "undergrad" | "grad";
+        coverEmoji: string;
+        accentColor: string;
+        tags: string[];
+        status: "draft" | "published";
+      }>,
+    ) =>
+      request<OkResponse>(`/tracks/${slug}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    attach: (
+      slug: string,
+      body: { capstoneSlug: string; order?: number; optional?: boolean },
+    ) =>
+      request<OkResponse>(`/tracks/${slug}/capstones`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    detach: (slug: string, capstoneSlug: string) =>
+      request<OkResponse>(
+        `/tracks/${slug}/capstones/${encodeURIComponent(capstoneSlug)}`,
+        { method: "DELETE" },
+      ),
+    artifact: (artifactSlug: string) =>
+      request<{
+        artifactPageSlug: string;
+        completedAt: string;
+        track: {
+          slug: string;
+          title: string;
+          summary: string;
+          coverEmoji: string;
+          accentColor: string;
+        };
+        learner: { username: string; displayName: string | null };
+        manifest: unknown;
+        signature: string | null;
+      }>(`/tracks/c/${artifactSlug}`),
+  },
+  cohortInvitations: {
+    peek: (token: string) =>
+      request<{
+        invitation: {
+          id: string;
+          status: "pending" | "accepted" | "declined" | "revoked";
+          email: string;
+          message: string;
+          createdAt: string;
+          decidedAt: string | null;
+        };
+        cohort: {
+          slug: string;
+          name: string;
+          description: string;
+          visibility: "open" | "invite";
+          capstoneSlug: string | null;
+        };
+        inviter: { username: string; displayName: string | null };
+      }>(`/cohort-invitations/${token}`),
+    accept: (token: string) =>
+      request<{ ok: boolean; cohortSlug: string | null }>(
+        `/cohort-invitations/${token}/accept`,
+        { method: "POST" },
+      ),
+    decline: (token: string) =>
+      request<OkResponse>(`/cohort-invitations/${token}/decline`, {
+        method: "POST",
+      }),
+  },
   users: {
     portfolio: (username: string) =>
       request<PortfolioResponse>(`/users/${encodeURIComponent(username)}/portfolio`),
@@ -947,6 +1112,19 @@ export const api = {
       return request<PrereqXrayResponse>(`/me/prereq-status?${sp.toString()}`);
     },
     knowledgeMri: () => request<KnowledgeMri>("/me/knowledge-mri"),
+    trackCompletions: () =>
+      request<{
+        completions: Array<{
+          id: string;
+          trackId: string;
+          artifactPageSlug: string;
+          completedAt: string;
+          trackSlug: string;
+          trackTitle: string;
+          coverEmoji: string;
+          accentColor: string;
+        }>;
+      }>("/me/track-completions"),
   },
   flashcards: {
     save: (data: { pageSlug: string; pageTitle: string; front: string; back: string }) =>

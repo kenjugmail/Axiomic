@@ -1,0 +1,61 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What 'emergent' is supposed to mean",
+      "body": "**Emergent capability** is the claim that some abilities appear *suddenly* at certain scales — flat or near-zero performance at smaller models, then sharp transitions to good performance at some threshold. The Wei et al. 2022 paper coined the term and argued that capabilities like multi-step arithmetic, in-context learning, and chain-of-thought reasoning showed this pattern.\n\nThe original claim was strong: emergence is *unpredictable from smaller-scale runs*. You can't extrapolate the loss curve to predict when a capability will appear. This made deciding what scale to train at much harder — you might not know whether your model has a capability until you've spent the compute.\n\nThe claim has been substantially revised since. The current understanding:\n\n- Some capabilities really do show sharp transitions, but...\n- Many 'emergent' transitions are artifacts of the metric used (e.g., exact-match accuracy on multiple-choice questions). Smooth log-likelihood improvements look like sudden capability appearance when projected through a sharp metric.\n- Whether 'emergence' is a discontinuity in the underlying capability or a discontinuity in our measurement is contested — and it matters for safety arguments."
+    },
+    {
+      "kind": "text",
+      "title": "Schaeffer et al. — 'mirage' critique",
+      "body": "Schaeffer, Miranda, and Koyejo (NeurIPS 2023, 'Are Emergent Abilities of Large Language Models a Mirage?') made a careful argument: many emergent transitions in published benchmarks are **artifacts of nonlinear metrics**, not the underlying capability.\n\nThe argument:\n\n- Per-token cross-entropy improves smoothly with scale.\n- Multi-step task accuracy = (per-token correctness)^(N steps). For N=4 and per-token accuracy of 0.7, task accuracy is 0.24; per-token 0.9 → task 0.66. Sharp transition from 'bad' to 'good' at the task level despite smooth improvement underneath.\n- If you measure with a metric that *isn't* sharply nonlinear (e.g., per-step partial credit), the curve looks smooth.\n\nImplication: the headline 'X capability emerged at scale Y' may be a measurement artifact. The underlying capability was building gradually; the chosen metric just happened to reach its visibility threshold at Y.\n\nThis doesn't mean 'emergence isn't real.' It means **what we mean by emergence depends on the metric**, and many high-profile emergent claims need re-examination."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ec_q1",
+        "kind": "multiple_choice",
+        "question": "Why might 'multi-step arithmetic accuracy' show emergent behavior even when 'per-token correctness' improves smoothly with scale?",
+        "options": [
+          "The two metrics measure different things",
+          "Multi-step task accuracy compounds per-step error: even 90% per-step gives only ~66% task accuracy at 4 steps. A smooth improvement in per-step accuracy can show as a sharp visibility transition in task accuracy",
+          "Multi-step arithmetic genuinely requires emergence",
+          "Per-token correctness isn't a real metric"
+        ],
+        "correctIndex": 1,
+        "explanation": "Compound metrics are nonlinear in the underlying skill. Multi-step task accuracy = product of per-step success rates over N steps. Even when per-step accuracy improves smoothly from 0.5 → 0.9 with scale, the task accuracy goes from ~6% (at 0.5^4) to ~66% (at 0.9^4) — looking like a sharp transition, despite smooth underlying improvement. This is the Schaeffer et al. 'mirage' argument."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's actually surprising about scale",
+      "body": "Setting aside the metric debate, some things really do look qualitatively different at scale:\n\n**In-context learning.** Small models barely benefit from few-shot examples in the prompt. Large models can pick up patterns from 3-5 examples and generalize. This isn't subtle — it's a sharp behavioral change with scale, and induction-head circuits (see [[interpretability]]) form to enable it.\n\n**Chain-of-thought.** Asking a model to 'think step by step' improves accuracy substantially on multi-step problems — but mostly only at scale. Below ~10B parameters, CoT prompting often *hurts* performance (the model can't actually reason through steps). Above some threshold, it helps.\n\n**Instruction following.** Smaller models barely follow instructions; larger models do. The transition isn't perfectly sharp, but the qualitative gap between 'gets the gist of an instruction' and 'follows multi-step structured instructions' is real.\n\n**Self-correction.** Larger models can re-read their own output, identify errors, and correct them. Smaller models can't — they often double down on errors instead.\n\nFor each of these, you can argue 'it's a smooth improvement + a metric threshold' — and that's partly true. The honest framing is: the *capability has been improving smoothly*, but the *user-visible behavior changes sharply* once it crosses a usability threshold."
+    },
+    {
+      "kind": "text",
+      "title": "Implications for safety and forecasting",
+      "body": "If capabilities emerged truly unpredictably, frontier-lab planning would be impossible — you couldn't guess whether your next model would have a particular capability until after training. The 'mirage' result is comforting: capabilities improve smoothly; we can extrapolate.\n\nBut there are catches:\n\n- **Smooth in capability ≠ smooth in deployment-relevant behavior**. A capability that's been smoothly improving for a year might cross a deployment threshold quickly when it does become user-visible.\n- **Compositional capabilities can still surprise**. Even if each component improves smoothly, novel combinations of components can produce qualitatively new behaviors that weren't predicted.\n- **Latent capabilities** — abilities the model has but isn't *expressing* by default — can be elicited by better prompting, fine-tuning, or scaffolding. The capability was there earlier; we just didn't notice.\n\nFor forecasting: scaling laws predict loss reasonably well. They predict downstream task performance less well — but better than no signal. They don't predict latent capabilities or the timing of deployment-threshold crossings.\n\nFor safety: 'emergence is a mirage' should not be taken as 'capabilities never surprise us.' The smooth-underlying-capability + sharp-deployment-threshold pattern is exactly the regime where we should expect to be surprised by *what becomes possible*, even when we shouldn't be surprised by *the underlying smooth improvement*."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ec_q2",
+        "kind": "multiple_choice",
+        "question": "Even if capabilities improve smoothly with scale (the 'mirage' argument), why might frontier capability still surprise us?",
+        "options": [
+          "Because the laws of physics aren't smooth",
+          "Smooth underlying capability can still cross deployment-relevant thresholds sharply (e.g., 'good enough to use'), compositional capabilities can produce qualitatively new behaviors, and latent capabilities exist that weren't surfaced until elicited via prompting / fine-tuning",
+          "Because GPUs aren't reliable",
+          "Smooth scaling means no surprises are possible"
+        ],
+        "correctIndex": 1,
+        "explanation": "The mirage argument is about underlying capability. Practical surprise comes from three sources: deployment-threshold crossings (gradual underlying improvement, sharp practical visibility), compositional novelty (smooth components, novel combinations), and latent capability (abilities present earlier than they were noticed). 'Smooth scaling' doesn't preclude any of these."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Emergent capabilities is one of the more contested topics in current ML research. The 'mirage' literature has substantially revised the original strong claims; the underlying reality is that capabilities improve smoothly but their practical visibility can change sharply.\n\nKey takeaways:\n- The original 'emergent capabilities' claim was that capabilities appear unpredictably at scale\n- Schaeffer et al. argue many emergent transitions are metric artifacts; underlying capability improves smoothly\n- ICL, CoT, instruction-following, self-correction all show sharp practical transitions\n- For forecasting: smooth underlying capability + sharp deployment thresholds is the right mental model\n\nNext: [[research-frontiers]] — how to read frontier ML papers critically."
+    }
+  ]
+}

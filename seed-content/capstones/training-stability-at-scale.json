@@ -1,0 +1,72 @@
+{
+  "slug": "training-stability-at-scale",
+  "title": "Training stability at scale",
+  "summary": "Diagnose and fix real training failures: NaN gradients, dead neurons, learning-rate thrashing. Reproduce a small scaling-law experiment. The capstone for ML engineers moving from 'I trained a model' to 'I shipped a model that actually trains.'",
+  "estimatedWeeks": 4,
+  "coverEmoji": "📈",
+  "accentColor": "rose",
+  "tags": ["training", "optimization", "production"],
+  "prerequisiteWikiSlugs": ["gradient-descent", "optimization-theory", "scaling-laws"],
+  "canonicalTier": "undergrad",
+  "contentIntro": "## What you'll build\n\nA training-instrumentation toolkit + a series of experiments where you deliberately break a training run and bring it back. By the end you'll have a notebook that:\n\n- Logs loss + gradient norms + activation magnitudes per step\n- Reproduces a small scaling-law experiment\n- Recovers from at least 3 failure modes (NaN gradient, dead neurons, LR thrashing)\n\nThe capstone signals to employers that you can run training experiments responsibly — not just launch and hope.\n\n[[gradient-descent]] · [[optimization-theory]] · [[scaling-laws]]",
+  "contentUndergrad": "## What you'll build\n\nFour milestones, ~4 weeks. Each milestone is a notebook + a writeup of what you observed. The model is small (a 100M-parameter transformer is plenty) — the value is in the methodology, not the scale.\n\n## Format\n\nYou need a single GPU (16GB+). Cloud is fine. The lessons aren't about scale-up; they're about diagnostic discipline that transfers to any scale.\n\n[[gradient-descent]] · [[scaling-laws]] · [[optimization-theory]]",
+  "contentGrad": "## What you'll build\n\nA training-discipline toolkit you'd hand to a junior engineer to use. Defense (claim-thread Q&A on the artifact page) covers: why training instabilities arise, what each diagnostic signal indicates, and how the recipe choices in modern open models (mixed precision, grad clipping, warmup) were arrived at empirically.",
+  "milestones": [
+    {
+      "title": "Instrument the training loop",
+      "description": "Build a training script that logs:\n\n- Train loss + held-out val loss per epoch (and per N steps)\n- Gradient norm per step (clip at 1.0 by default; log the pre-clip norm)\n- Per-layer gradient norms (so you can spot vanishing/exploding gradients)\n- Activation statistics (mean + std of activations at each layer)\n- Learning rate per step (verify the schedule is doing what you expected)\n\nUse Weights & Biases, TensorBoard, or even matplotlib + JSON logs. Pick a small architecture (100M-parameter transformer is plenty) and a small dataset (tinystories, code samples, anything stable).\n\nIn your writeup: a single dashboard image showing all your signals during a healthy run. Annotate what each signal looks like in the steady-state.",
+      "rubric": {
+        "criteria": [
+          { "id": "instrumentation", "weight": 0.5, "description": "All five signals logged correctly.", "aiPrompt": "Score whether the instrumentation captures train+val loss, gradient norms (pre-clip + per-layer), activation statistics, and LR schedule. Is the dashboard readable?" },
+          { "id": "writeup", "weight": 0.3, "description": "Annotated steady-state dashboard.", "aiPrompt": "Score the annotation depth: does the learner identify what each signal looks like in healthy training?" },
+          { "id": "reproducibility", "weight": 0.2, "description": "Code is reproducible.", "aiPrompt": "Score whether the script + config are reproducible by another engineer." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "title": "Recover from three failure modes",
+      "description": "Deliberately break the training run in three specific ways. For each: identify the failure from your instrumentation; explain what happened; show the fix.\n\n**1. NaN gradient**: train at LR 5× too high (or remove gradient clipping with a noisy minibatch). Show the run NaNs. Identify the diagnostic signature (gradient norm spikes before the NaN). Show the fix (lower LR + enable clipping).\n\n**2. Dead neurons**: use ReLU with bad init (positive bias). Run for a few epochs. Show that some neurons never activate. Identify them in your activation logs. Apply the fix (Kaiming init, or switch to GELU/SwiGLU).\n\n**3. LR thrashing**: pick a schedule that's too aggressive (cosine to a high LR after a short warmup). Show the loss bouncing around without converging. Show the fix (longer warmup, gentler schedule).\n\nIn your writeup: three before/after dashboards with annotations. The grader scores on diagnostic depth, not just whether you fixed it.",
+      "rubric": {
+        "criteria": [
+          { "id": "diagnosis", "weight": 0.5, "description": "Each failure mode is diagnosed from the instrumentation, not just observed.", "aiPrompt": "Score whether the learner identifies each failure mode from specific signals (gradient norm spike, dead-neuron activation profile, LR thrashing pattern), not just from external behavior." },
+          { "id": "fixes", "weight": 0.3, "description": "Fixes are applied and verified.", "aiPrompt": "Score whether the proposed fixes actually fix the failures, with evidence in the dashboard." },
+          { "id": "writeup", "weight": 0.2, "description": "Annotated dashboards.", "aiPrompt": "Score the writeup's clarity in showing before/after comparisons." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 8
+    },
+    {
+      "title": "Reproduce a small scaling-law experiment",
+      "description": "Train your small model at three sizes (e.g., 30M, 100M, 300M params) on the same dataset for the same number of tokens. Plot loss vs parameter count on a log-log scale.\n\nYou should see a power-law relationship — small loss differences but consistent shape. Fit a curve to the points. Compare your fitted exponent to the Kaplan / Chinchilla literature (it'll likely be different because your dataset and recipe are different — that's the point).\n\nIn your writeup: the log-log plot, the fitted exponent, and a discussion of why your number differs from the literature (LR schedule, data quality, model size range, etc.).\n\nThis milestone is about building empirical intuition for scaling laws — that they're recipe-dependent, not universal constants.",
+      "rubric": {
+        "criteria": [
+          { "id": "experiment", "weight": 0.5, "description": "Three model sizes trained correctly with comparable settings.", "aiPrompt": "Score whether the three runs are properly controlled (same data, same token count, same recipe except for model size)." },
+          { "id": "analysis", "weight": 0.3, "description": "Power-law fit + discussion.", "aiPrompt": "Score the rigor of the scaling-law analysis. Is the fit reasonable? Does the discussion engage with why the exponent differs from published values?" },
+          { "id": "writeup", "weight": 0.2, "description": "Plot quality + discussion clarity.", "aiPrompt": "Score the plot's readability and the writeup's depth on what scaling laws do and don't tell you." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 8
+    },
+    {
+      "title": "Propose and validate one optimization",
+      "description": "Pick one optimization from this list (or another you can defend):\n\n- **Mixed precision (bf16 or fp16)**: implement it; measure speedup + memory savings; report any quality delta\n- **Gradient accumulation**: enable it; verify effective batch size scales as expected; report any training-dynamics differences\n- **Cosine LR schedule with warmup**: replace the default linear schedule; measure final-loss difference at fixed compute\n- **Gradient checkpointing**: enable it; measure activation-memory savings + step-time overhead\n- **Compiled model (torch.compile)**: apply it; measure step-time speedup + any compatibility issues\n\nIn your writeup: explain the optimization, show the before/after measurements, discuss any tradeoffs you found. Include at least one *negative result* — something you tried that didn't help.\n\nThe scoring rewards engineering judgment. A clean negative result is as good as a clean positive result.",
+      "rubric": {
+        "criteria": [
+          { "id": "experiment", "weight": 0.4, "description": "Chosen optimization is implemented + measured.", "aiPrompt": "Score whether the optimization is correctly implemented and the measurements are meaningful (right metric, fair comparison, sensible scale)." },
+          { "id": "tradeoffs", "weight": 0.3, "description": "Tradeoff discussion.", "aiPrompt": "Score the depth of the tradeoff discussion. Does the learner identify both the wins and the costs? Is the negative result substantive?" },
+          { "id": "judgment", "weight": 0.3, "description": "Engineering recommendation.", "aiPrompt": "Score the final engineering judgment: would the learner ship this optimization in production? Why or why not?" }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    }
+  ]
+}

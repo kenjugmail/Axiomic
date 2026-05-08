@@ -9,6 +9,10 @@
 import { Hono } from "hono";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import {
+  capstoneTrackCompletions,
+  capstoneTracks,
+  contentProposals,
+  cohortInvitations,
   getDb,
   masteryNodes,
   misconceptionCatalog,
@@ -22,6 +26,87 @@ import { buildKnowledgeMri } from "../lib/knowledgeMri";
 import type { Env } from "../env";
 
 export const meRouter = new Hono<Env>();
+
+// Sprint 52 — A signed-in author's own content proposals (pending +
+// recently decided) so the lesson / news / wiki editors can render an
+// "Awaiting review" banner.
+meRouter.get("/proposals", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const db = getDb();
+  const rows = db
+    .select()
+    .from(contentProposals)
+    .where(eq(contentProposals.proposerId, user.id))
+    .orderBy(desc(contentProposals.createdAt))
+    .limit(50)
+    .all();
+  return c.json({
+    proposals: rows.map((p) => ({
+      id: p.id,
+      kind: p.kind,
+      targetId: p.targetId,
+      status: p.status,
+      reviewNote: p.reviewNote,
+      createdAt: p.createdAt,
+      decidedAt: p.decidedAt,
+    })),
+  });
+});
+
+// Sprint 54 — capstone-track completions for the caller. Powers the
+// "Tracks earned" card on the home dashboard + the profile portfolio.
+meRouter.get("/track-completions", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const db = getDb();
+  const rows = db
+    .select({
+      id: capstoneTrackCompletions.id,
+      trackId: capstoneTrackCompletions.trackId,
+      artifactPageSlug: capstoneTrackCompletions.artifactPageSlug,
+      completedAt: capstoneTrackCompletions.completedAt,
+      trackSlug: capstoneTracks.slug,
+      trackTitle: capstoneTracks.title,
+      coverEmoji: capstoneTracks.coverEmoji,
+      accentColor: capstoneTracks.accentColor,
+    })
+    .from(capstoneTrackCompletions)
+    .innerJoin(
+      capstoneTracks,
+      eq(capstoneTrackCompletions.trackId, capstoneTracks.id),
+    )
+    .where(eq(capstoneTrackCompletions.userId, user.id))
+    .orderBy(desc(capstoneTrackCompletions.completedAt))
+    .all();
+  return c.json({ completions: rows });
+});
+
+// Sprint 52 — Pending invitations matching the caller's email so the
+// home page can surface a "You've been invited to cohort X" banner.
+meRouter.get("/cohort-invitations", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const db = getDb();
+  const rows = db
+    .select()
+    .from(cohortInvitations)
+    .where(
+      and(
+        eq(cohortInvitations.email, user.email.toLowerCase()),
+        eq(cohortInvitations.status, "pending"),
+      ),
+    )
+    .orderBy(desc(cohortInvitations.createdAt))
+    .limit(20)
+    .all();
+  return c.json({
+    invitations: rows.map((r) => ({
+      id: r.id,
+      cohortId: r.cohortId,
+      token: r.token,
+      message: r.message,
+      createdAt: r.createdAt,
+    })),
+  });
+});
 
 meRouter.get("/weak-concepts", requireAuth, async (c) => {
   const user = c.get("user")!;

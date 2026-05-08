@@ -1,0 +1,61 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Self-attention vs cross-attention",
+      "body": "Standard transformer attention is **self-attention**: Q, K, and V all come from the same sequence. Every token in the sequence attends to every other token in the same sequence.\n\n**Cross-attention** is the same mechanism with one twist: Q comes from sequence A, while K and V come from sequence B.\n\n```\nself-attention (decoder):\n  Q, K, V = decoder_state, decoder_state, decoder_state\n\ncross-attention (encoder-decoder):\n  Q       = decoder_state    # what's the decoder asking?\n  K, V    = encoder_output   # what does the encoder offer?\n```\n\nThe shape of the computation is identical (`softmax(QK^T/√d_k)V`); only the source of K and V differs.\n\nCross-attention is what lets a decoder 'look at' an encoder's output during generation. It's the bridge that makes encoder-decoder models work."
+    },
+    {
+      "kind": "text",
+      "title": "Where cross-attention lives",
+      "body": "In an encoder-decoder transformer like T5 or BART, each decoder block has **three** sublayers (instead of the decoder-only's two):\n\n```\ndecoder block:\n  1. causal self-attention (Q, K, V all from decoder)\n  2. cross-attention (Q from decoder, K/V from encoder output)\n  3. FFN\n```\n\nEach sublayer has its own residual + layer norm. The encoder's output is the same for every decoder layer — encoder states are computed once per input, then 'broadcast' across all decoder steps.\n\nDuring generation, the decoder calls cross-attention every step. As it predicts each new output token, it can reference the encoder's representation of the input. This is why translation works well with this architecture: at every output step, the decoder sees the full source sentence's contextualized representation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ca_q1",
+        "kind": "multiple_choice",
+        "question": "In cross-attention between a decoder and an encoder, where do Q, K, and V come from?",
+        "options": [
+          "Q, K, V all come from the encoder",
+          "Q, K, V all come from the decoder",
+          "Q from the decoder, K and V from the encoder",
+          "Q from the encoder, K and V from the decoder"
+        ],
+        "correctIndex": 2,
+        "explanation": "Q is the 'query' — what the current step is asking for. The decoder is generating, so the decoder produces Q. K and V are 'what's available to look at' — the encoded input. So K and V come from the encoder. The decoder asks; the encoder answers."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Use cases",
+      "body": "Cross-attention is the right tool whenever you have a clean separation between **what the model should consult** and **what the model is producing**:\n\n- **Translation.** Encoder reads English; decoder generates French while cross-attending to the encoder.\n- **Summarization.** Encoder reads the article; decoder generates the summary.\n- **Conditional image captioning.** Encoder is a vision model producing image features; decoder generates text while cross-attending to image patches.\n- **Multimodal models** (Flamingo-style). Cross-attention layers interleave between text-decoder layers, pulling in vision features at specific points.\n\nThe pattern: encoder produces a fixed set of K, V vectors representing 'what to consult.' The decoder generates while cross-attending, freely referencing the encoder's output without reproducing it."
+    },
+    {
+      "kind": "text",
+      "title": "Cross-attention vs decoder-only with concatenation",
+      "body": "An alternative to encoder-decoder is to just concatenate the input and output and run a decoder-only model:\n\n```\nencoder-decoder:    encode(input) → cross-attend → decode(output)\ndecoder-only:       decoder([input || output])\n```\n\nWith decoder-only and concatenation, the model 'sees' the input via causal self-attention as it generates the output. There's no explicit cross-attention sublayer.\n\nPros of decoder-only with concatenation:\n- Simpler architecture\n- Single set of weights\n- Generalizes better to instruction-following / chat / few-shot prompting\n\nPros of encoder-decoder with cross-attention:\n- Encoder is bidirectional, so input representation is richer\n- Computation is amortized: encoder runs once, decoder steps reuse the encoder output\n\nIn 2024+, most general-purpose LLMs are decoder-only with concatenation. Encoder-decoder still wins for narrow tasks like translation where the bidirectional encoder helps and the structured input/output is a natural fit. For multimodal models, hybrid architectures with selective cross-attention layers (Flamingo, Gemini) split the difference."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ca_q2",
+        "kind": "multiple_choice",
+        "question": "Which of these tasks is the strongest fit for encoder-decoder with cross-attention?",
+        "options": [
+          "Free-form chat assistant",
+          "Document classification",
+          "Machine translation, where the bidirectional encoder builds rich input representations and the decoder cross-attends as it generates",
+          "Image generation"
+        ],
+        "correctIndex": 2,
+        "explanation": "Translation is the canonical fit: a fixed input sentence to translate, a known output language to generate, and the decoder benefits from referring back to the bidirectional encoder's output throughout generation. T5 and BART (both encoder-decoder) consistently match or beat decoder-only models at translation despite being smaller."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Cross-attention generalizes the attention mechanism to two distinct sequences. It's the key insight behind encoder-decoder architectures, and it shows up in modern multimodal models that need to fuse different data types.\n\nNext we'll cover [[training-objectives]] — what loss the model actually optimizes during training, and the difference between MLM (masked LM) for encoders and CLM (causal LM) for decoders.\n\nKey takeaways:\n- Cross-attention: Q from decoder, K/V from encoder (or any other 'source' sequence)\n- Same math as self-attention; different source for K/V\n- Decoder-only models with concatenation have largely replaced encoder-decoder for general tasks\n- Cross-attention is still the right tool for translation, summarization, multimodal fusion"
+    }
+  ]
+}

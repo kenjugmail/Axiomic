@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why train in lower precision",
+      "body": "Modern training runs in **mixed precision** by default — bf16 or fp16 for matmuls + activations, fp32 for optimizer state and a master copy of the weights. Three reasons:\n\n1. **Tensor cores demand it.** H100 hits ~989 TFLOPS at bf16, ~67 TFLOPS at fp32. Skipping the tensor cores costs 15× throughput.\n2. **Memory.** bf16 halves weight + gradient storage vs fp32. Bigger batches fit; bigger models fit.\n3. **Bandwidth.** Half the bytes on every HBM round-trip.\n\nThe catch: lower precision narrows dynamic range. Naive fp16 training underflows tiny gradients to zero, the model stops learning, and you don't notice until validation loss flatlines. Mixed precision is *engineered around* this; it works because of two specific choices.\n\nThis lesson covers the three options (fp16, bf16, fp8), what loss scaling does, and when each precision choice breaks."
+    },
+    {
+      "kind": "text",
+      "title": "fp16, bf16, fp8 — the trade-offs",
+      "body": "All three are 16-bit or smaller. The key difference is how the bits split between **range** (exponent) and **precision** (mantissa).\n\n| Format | Bits | Exponent | Mantissa | Range | Precision |\n|---|---|---|---|---|---|\n| fp32 | 32 | 8 | 23 | ~1e-38 to ~1e38 | high |\n| fp16 | 16 | 5 | 10 | ~6e-5 to ~6e4 | medium |\n| bf16 | 16 | 8 | 7 | ~1e-38 to ~3e38 | low |\n| fp8 (E4M3) | 8 | 4 | 3 | ~2e-3 to ~448 | very low |\n| fp8 (E5M2) | 8 | 5 | 2 | ~6e-5 to ~6e4 | very low |\n\n**bf16** keeps fp32's exponent. Same dynamic range, less mantissa precision. **It rarely needs loss scaling** because gradients don't underflow.\n\n**fp16** has narrower range. Small gradients (`< 6e-5`) flush to zero. Loss scaling fixes this by multiplying the loss before backward (so gradients land in the representable range), then unscaling before the optimizer step.\n\n**fp8** is even tighter. Two encodings: E4M3 for forward pass (more precision, less range), E5M2 for gradients (more range, less precision). H100 supports it natively; A100 doesn't.\n\n**Practical rule**: bf16 on Ampere+ for training. fp8 for hot paths on Hopper+. fp16 when you must (older hardware), with loss scaling."
+    },
+    {
+      "kind": "text",
+      "title": "Loss scaling, in detail",
+      "body": "The standard fp16 recipe:\n\n```\nloss = forward_pass(...)\nscaled_loss = loss * scale\nscaled_loss.backward()           # gradients in fp16, scaled\noptimizer.step()                  # unscale + apply in fp32\n```\n\nThe `scale` (typically 65536) shifts the gradient magnitude up by 16 bits, so values that would underflow in raw fp16 land in the representable range. Before the optimizer step, gradients are unscaled (divided by `scale`) into fp32 buffers.\n\n**Dynamic loss scaling** (PyTorch's `GradScaler`):\n- Start with a high scale (e.g. 65536).\n- If any gradient overflows (Inf/NaN detected), skip the step and halve the scale.\n- After N steps with no overflow, double the scale.\n\nThis adapts to whatever the model needs. Early training may overflow; late training has tiny gradients that need a big scale.\n\nbf16 doesn't need this. The exponent matches fp32, so gradients don't underflow — they just lose mantissa precision. Most modern recipes pick bf16 for exactly this simplicity."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mp_q1",
+        "kind": "multiple_choice",
+        "question": "You're training a transformer on an A100 and gradients keep underflowing in fp16 even with loss scaling at 65536. What's the cleanest fix?",
+        "options": [
+          "Increase loss scale to 1 million",
+          "Switch to bf16. A100 supports it natively, the dynamic range matches fp32, and loss scaling becomes unnecessary — gradients won't underflow. The trade-off is slightly less mantissa precision, which models tolerate well",
+          "Train in fp32",
+          "Use a smaller learning rate"
+        ],
+        "correctIndex": 1,
+        "explanation": "bf16 is the standard answer for Ampere+ hardware. It removes the loss-scaling dance entirely and gives you the same compute throughput as fp16 on tensor cores. The reduced mantissa precision (7 bits vs fp16's 10) is a small cost — most networks are robust to it. fp16 made sense when bf16 wasn't supported; on modern hardware it's a legacy choice."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Master weights and the standard recipe",
+      "body": "Even when matmuls run in bf16, the **master weights** stay in fp32. Why?\n\nUpdates are tiny: `w += lr * grad`. With `lr = 1e-4` and `grad ~ 1e-4`, the update is `1e-8`. Add that to a bf16 weight at scale `~1` and you lose the update entirely — bf16 only has ~7 bits of precision.\n\nThe fix: keep an fp32 copy of every weight. Apply updates in fp32. Cast back to bf16 before the next forward pass. This is what `torch.cuda.amp.autocast` + `GradScaler` (or PyTorch's `bfloat16` recipe) does under the hood.\n\nMemory accounting per parameter, standard recipe:\n- bf16 weight: 2 bytes\n- fp32 master weight: 4 bytes\n- bf16 gradient: 2 bytes\n- Adam fp32 momentum + variance: 8 bytes\n- **Total: 16 bytes/parameter**\n\nFSDP (Sprint 55, model-parallelism lesson) shards this 16-bytes-per-param across N GPUs. With 8 GPUs you pay 2 bytes/parameter per GPU + a factor for the all-gather. That's how 7B and 70B models train on commodity clusters."
+    },
+    {
+      "kind": "text",
+      "title": "fp8 — the new frontier",
+      "body": "H100 introduced native fp8 (E4M3 + E5M2). Compared to bf16:\n\n- **Throughput**: ~2× more TFLOPS. H100 hits ~1979 TFLOPS at fp8 vs ~989 at bf16.\n- **Memory**: cuts the bf16 weights/grads in half again (2 → 1 byte).\n- **Quality**: most networks tolerate fp8 *if* you use per-tensor or per-channel scaling (each tensor gets its own scale factor, computed on the fly, so the dynamic range is exploited per-tensor instead of per-format).\n\nWhen fp8 breaks: very small batches (insufficient samples to estimate the scale), unusual activation distributions (LayerNorm outputs, attention weights with extreme outliers), tiny embedding gradients (E4M3 underflows where bf16 would still resolve).\n\nThe practical recipe (e.g. NVIDIA Transformer Engine, FP8-LM):\n\n1. Forward in E4M3 with per-tensor scaling.\n2. Backward in E5M2 (more range, less precision — gradients have wider dynamic range).\n3. Master weights still fp32.\n4. Loss scaling becomes per-tensor scaling (more sophisticated than global fp16 scaling).\n\nResult: 1.5-2× throughput improvement on H100, with comparable final loss. Frontier-scale runs use it; smaller training jobs often don't bother because the engineering complexity isn't worth it below billions of parameters."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mp_q2",
+        "kind": "multiple_choice",
+        "question": "Why does fp8 use two different formats (E4M3 + E5M2) for forward vs backward?",
+        "options": [
+          "It's an arbitrary convention",
+          "Forward activations need precision more than range (values are bounded post-norm); gradients need range more than precision (they span many orders of magnitude). E4M3 (more mantissa) for forward, E5M2 (more exponent) for backward, hits both constraints with 8 bits each",
+          "Backward needs more bits than forward",
+          "E5M2 is faster than E4M3"
+        ],
+        "correctIndex": 1,
+        "explanation": "Forward activations after LayerNorm have a relatively bounded range — high precision gives crisp matmul outputs. Gradients during backward span many orders of magnitude — high range avoids over/underflow. Splitting the formats matches each pass to its actual numerical needs. This is why bf16 (high range, low precision) is often used end-to-end as a simpler fallback when fp8's per-tensor scaling is too much engineering."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Mixed precision is foundational. Every other systems-engineer lesson assumes you've picked the right precision and configured the recipe correctly.\n\nNext: [[data-parallelism]] — synchronizing gradients across multiple GPUs.\n\nKey takeaways:\n- bf16 is the modern default for Ampere+; same range as fp32, no loss scaling needed\n- fp16 needs dynamic loss scaling to avoid gradient underflow\n- Master weights stay in fp32 — bf16 precision can't represent small updates\n- Memory budget per parameter: ~16 bytes for standard mixed-precision Adam\n- fp8 (Hopper+) doubles throughput again, with per-tensor scaling and E4M3/E5M2 split"
+    }
+  ]
+}

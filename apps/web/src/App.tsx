@@ -157,6 +157,32 @@ const FlashcardsPage = lazy(() =>
 const CapstonesListPage = lazy(() =>
   import("./pages/CapstonesListPage").then((m) => ({ default: m.CapstonesListPage })),
 );
+const CapstoneTracksListPage = lazy(() =>
+  import("./pages/CapstoneTracksListPage").then((m) => ({
+    default: m.CapstoneTracksListPage,
+  })),
+);
+const CapstoneTrackPage = lazy(() =>
+  import("./pages/CapstoneTrackPage").then((m) => ({ default: m.CapstoneTrackPage })),
+);
+const CapstoneTrackArtifactPage = lazy(() =>
+  import("./pages/CapstoneTrackArtifactPage").then((m) => ({
+    default: m.CapstoneTrackArtifactPage,
+  })),
+);
+const CohortInvitationAcceptPage = lazy(() =>
+  import("./pages/CohortInvitationAcceptPage").then((m) => ({
+    default: m.CohortInvitationAcceptPage,
+  })),
+);
+const AdminApprovalsPage = lazy(() =>
+  import("./pages/AdminApprovalsPage").then((m) => ({ default: m.AdminApprovalsPage })),
+);
+const AdminErrorStatsPage = lazy(() =>
+  import("./pages/AdminErrorStatsPage").then((m) => ({
+    default: m.AdminErrorStatsPage,
+  })),
+);
 const CapstonePage = lazy(() =>
   import("./pages/CapstonePage").then((m) => ({ default: m.CapstonePage })),
 );
@@ -316,6 +342,12 @@ export function App() {
           <Route path="/capstones/:slug" element={<CapstonePage />} />
           <Route path="/capstones/:slug/edit" element={<CapstoneEditPage />} />
           <Route path="/capstones/:slug/work" element={<CapstoneWorkspacePage />} />
+          <Route path="/tracks" element={<CapstoneTracksListPage />} />
+          <Route path="/tracks/c/:artifactSlug" element={<CapstoneTrackArtifactPage />} />
+          <Route path="/tracks/:slug" element={<CapstoneTrackPage />} />
+          <Route path="/invitations/:token" element={<CohortInvitationAcceptPage />} />
+          <Route path="/admin/approvals" element={<AdminApprovalsPage />} />
+          <Route path="/admin/errors" element={<AdminErrorStatsPage />} />
           <Route path="/me/weak-concepts" element={<WeakConceptsPage />} />
           <Route path="/me/mri" element={<KnowledgeMRIPage />} />
           <Route path="/cite/p/:author/:slug" element={<CitePaperRedirect />} />

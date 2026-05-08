@@ -1,0 +1,72 @@
+{
+  "slug": "build-a-protein-language-model",
+  "title": "Build a protein language model from scratch",
+  "summary": "Train a small ESM-style protein LM via masked-residue prediction. Use it for variant effect prediction + functional embedding extraction. Compare against ESM-2. The capstone for understanding bio-ML by building it.",
+  "estimatedWeeks": 6,
+  "coverEmoji": "🧬",
+  "accentColor": "emerald",
+  "tags": ["bio", "protein-lm", "esm", "from-scratch"],
+  "prerequisiteWikiSlugs": ["esm", "protein-lms", "protein-sequence", "central-dogma"],
+  "canonicalTier": "undergrad",
+  "contentIntro": "## What you'll build\n\nFour milestones: a working ESM-style protein language model + an embedding-extraction baseline + a variant effect predictor + an analysis vs ESM-2.\n\n- Masked-residue pretraining on UniRef\n- Embedding extraction + downstream classifier\n- Variant effect prediction\n- Comparison with ESM-2\n\nBy the end you understand exactly how protein LMs work because you've trained one.\n\n[[esm]] · [[protein-lms]] · [[protein-sequence]]",
+  "contentUndergrad": "## What you'll build\n\nFour milestones, ~6 weeks. PyTorch + a single GPU (16-24GB recommended). Train a small protein LM (~30M parameters) on a subset of UniRef. The model is small; the experiment is the point.\n\n[[esm]] · [[protein-lms]] · [[central-dogma]]",
+  "contentGrad": "## What you'll build\n\nA reference protein LM implementation + understanding of when bio-LMs help vs when they don't. Defense covers: why structural information emerges from sequence-only pretraining, the practical use cases (embeddings, variant effects, design), and where pLMs are headed (multimodal foundation models like ESM-3).",
+  "milestones": [
+    {
+      "title": "Masked-residue pretraining",
+      "description": "Implement an ESM-style protein LM:\n\n1. **Tokenizer**: 20 amino acids + 5 special tokens (PAD, MASK, BOS, EOS, UNK). Vocab=25.\n2. **Architecture**: standard transformer encoder. ~12 layers; d_model = 384; heads = 6. ~30M params.\n3. **Training data**: download UniRef50 (or a subset, ~1M sequences if compute is tight).\n4. **Objective**: BERT-style masked-residue prediction. Mask 15% of residues; predict masked tokens.\n5. **Training**: AdamW, lr 1e-4, batch size 64, sequence length 512. Train for ~1-2 epochs.\n\nMeasure:\n- Per-step loss curve.\n- Held-out perplexity on UniRef sequences not in training.\n- Time to convergence (loss plateau).\n\nIn your writeup: training curves; the masked-residue accuracy at convergence (typically 30-40%); commentary on why structural information might emerge from this objective.",
+      "rubric": {
+        "criteria": [
+          { "id": "implementation", "weight": 0.5, "description": "Working pLM with masked-residue pretraining.", "aiPrompt": "Score whether the implementation is correct: tokenizer, transformer encoder, masked-residue objective with proper masking strategy (15% mask, 80% mask token / 10% random / 10% unchanged)." },
+          { "id": "training", "weight": 0.3, "description": "Training converges.", "aiPrompt": "Score whether training is stable and converges to non-trivial masked-residue accuracy." },
+          { "id": "writeup", "weight": 0.2, "description": "Discussion of emergent capability.", "aiPrompt": "Score the writeup's discussion of why sequence-only pretraining might capture structural information." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 12
+    },
+    {
+      "title": "Embedding extraction + downstream classifier",
+      "description": "Use your trained pLM as a frozen feature extractor for a downstream task.\n\nPick a task with available labeled data:\n- **Subcellular localization** (DeepLoc dataset): predict protein's cellular compartment.\n- **Enzyme function (EC number)** classification: predict enzymatic activity from sequence.\n- **Stability prediction**: predict thermal stability from sequence.\n\nPipeline:\n1. Pass labeled proteins through your frozen pLM.\n2. Extract per-residue features (or pool to per-protein).\n3. Train a small MLP classifier on top.\n4. Evaluate on held-out test set.\n\nCompare with:\n- **Random baseline**: classifier on random features. Sanity check.\n- **ESM-2 (small)** features: same pipeline with ESM-2-650M frozen.\n- **One-hot + classifier**: just amino-acid identity, no learned features.\n\nReport accuracy/F1 across all four. Expected: your pLM > one-hot > random. ESM-2 > your pLM (ESM-2 trained on much more data).\n\nIn your writeup: comparison table + discussion of where your model matches ESM-2 vs lags.",
+      "rubric": {
+        "criteria": [
+          { "id": "downstream_task", "weight": 0.5, "description": "Working downstream classifier.", "aiPrompt": "Score whether the downstream pipeline is correct: frozen pLM feature extraction, MLP classifier, proper train/test split." },
+          { "id": "comparison", "weight": 0.3, "description": "Comparison across baselines.", "aiPrompt": "Score whether the comparison table covers all four conditions and the analysis is fair." },
+          { "id": "writeup", "weight": 0.2, "description": "Discussion of ESM-2 gap.", "aiPrompt": "Score the writeup's analysis of why ESM-2 outperforms (data scale + architecture)." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 8
+    },
+    {
+      "title": "Variant effect prediction",
+      "description": "Adapt your pLM to predict the effect of mutations.\n\n**Method**: log-likelihood ratio between wild-type and mutant.\n\n```\nfor each variant (wild-type → mutant):\n    score_wt = pLM(wild_type)  # log-likelihood at the mutated position\n    score_mut = pLM(mutant)\n    effect_score = score_wt - score_mut  # higher → more disruptive\n```\n\nDataset: ProteinGym (substitutions; ~1.5M variants across ~80 proteins) or a subset.\n\nMeasure:\n- **Spearman correlation** between predicted effect score and experimental fitness.\n- **AUROC** on classifying functional vs neutral variants.\n\nCompare against:\n- **BLOSUM62 score**: simplest baseline (pure substitution-matrix score for the substitution).\n- **ESM-2** with the same scoring procedure.\n\nIn your writeup: per-protein and aggregate Spearman correlations. Where does your pLM beat the BLOSUM baseline? Where does ESM-2 beat your pLM?",
+      "rubric": {
+        "criteria": [
+          { "id": "implementation", "weight": 0.5, "description": "Variant effect scoring works.", "aiPrompt": "Score whether the LL-ratio scoring is implemented correctly and applied to a real variant dataset." },
+          { "id": "comparison", "weight": 0.3, "description": "Comparison vs baselines.", "aiPrompt": "Score whether the comparison includes BLOSUM62 and ESM-2 with proper Spearman + AUROC metrics." },
+          { "id": "analysis", "weight": 0.2, "description": "Per-protein analysis.", "aiPrompt": "Score whether the writeup breaks down performance per protein (where does the pLM excel? Where does it fail?)." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 10
+    },
+    {
+      "title": "Final analysis + recommendation",
+      "description": "Synthesis. Final report covering:\n\n1. **Comparison table**: rows = (random, your pLM, ESM-2-650M, one-hot baseline). Columns = pretraining loss, downstream task accuracy, variant prediction Spearman, training compute.\n\n2. **Where your pLM matches ESM-2**: which tasks does scale not matter for? Why?\n\n3. **Where your pLM lags**: which tasks does scale + data matter for? What would close the gap?\n\n4. **Engineering recommendation**: for a hypothetical lab choosing between (a) using off-the-shelf ESM-2, (b) training their own small pLM, (c) fine-tuning ESM-2 on their data — which would you pick for what use case?\n\n5. **What's next**: structural pretraining (ProstT5, ESM-3), generative pLMs (ProtGPT2), domain-specific pLMs. For each, briefly: what would it buy you?\n\nThis milestone is the synthesis. The grader looks for engineering judgment + clear understanding of when scale + data + architecture matter for bio-ML.",
+      "rubric": {
+        "criteria": [
+          { "id": "comparison", "weight": 0.4, "description": "Complete comparison table.", "aiPrompt": "Score whether the comparison covers all four conditions on the four metrics consistently." },
+          { "id": "recommendation", "weight": 0.3, "description": "Defensible recommendation per use case.", "aiPrompt": "Score whether the recommendation engages with real trade-offs (when is training your own worth it vs using ESM-2)." },
+          { "id": "future_directions", "weight": 0.3, "description": "Discussion of next steps.", "aiPrompt": "Score the depth of the discussion of structural pretraining, generative pLMs, etc." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why Lagrangian mechanics",
+      "body": "Newton's laws give one perfectly good way to do mechanics: write `F = ma` for every particle, sum the forces, integrate. The trouble is that for any non-Cartesian setup — a pendulum constrained to a circle, a bead on a spinning wire, a double pendulum — you spend most of your time bookkeeping constraint forces that don't even contribute to the motion.\n\n**Lagrangian mechanics** sidesteps this. Instead of forces, it works with two scalar quantities — kinetic energy `T` and potential energy `U` — and a single principle: **the system follows the path that makes a certain integral stationary**. That integral is the *action*; the principle is *least action*.\n\nThe payoff is huge:\n- Constraints are absorbed into your choice of coordinates (called *generalized coordinates*) — you never write a constraint force again.\n- The same machinery works for fields, relativistic systems, and quantum mechanics (Feynman's path integral is least action with `e^(iS/ℏ)` instead of just `e^(-S)`).\n- The structure makes symmetries visible — and Noether's theorem turns each continuous symmetry into a conservation law.\n\nThis lesson covers the action principle, the Euler-Lagrange equations, generalized coordinates, and a worked example."
+    },
+    {
+      "kind": "text",
+      "title": "The action and least action",
+      "body": "Define the **Lagrangian** of a system:\n\n$$L(q, \\dot{q}, t) = T - U$$\n\nWhere `q` is the configuration (position, angle, whatever) and `q̇` is its time derivative.\n\nThe **action** for a path between times `t_1` and `t_2` is:\n\n$$S[q(t)] = \\int_{t_1}^{t_2} L(q, \\dot{q}, t)\\, dt$$\n\n**Hamilton's principle (least action)**: the actual physical trajectory is the one that makes `S` stationary — `δS = 0` for any small variation of `q(t)` that vanishes at the endpoints.\n\n'Stationary' usually means a minimum, but technically it just means the first variation is zero (could be a saddle in some cases). The physics is: nature picks the path where the action neither goes up nor down to first order in nearby paths.\n\nThis is a bizarre re-statement of `F = ma`. But it's equivalent. And the equations you get out are much cleaner."
+    },
+    {
+      "kind": "text",
+      "title": "Euler-Lagrange equations",
+      "body": "Apply the calculus of variations to `δS = 0`. The condition that `S` is stationary for any allowed variation gives, for each generalized coordinate `q_i`:\n\n$$\\frac{d}{dt}\\frac{\\partial L}{\\partial \\dot{q}_i} - \\frac{\\partial L}{\\partial q_i} = 0$$\n\nThese are the **Euler-Lagrange equations**. One per coordinate. The recipe:\n\n1. Pick generalized coordinates that respect the constraints. (Pendulum on a circle → angle `θ`. Bead on a wire → arc length. You don't need x, y, z.)\n2. Write `T` and `U` in those coordinates.\n3. Form `L = T - U`.\n4. Apply the equation above for each `q_i`.\n\nFor the simple pendulum: `L = (1/2) m ℓ² θ̇² - m g ℓ (1 - cos θ)`. Plug in:\n- `∂L/∂θ̇ = m ℓ² θ̇`, then `d/dt(m ℓ² θ̇) = m ℓ² θ̈`\n- `∂L/∂θ = -m g ℓ sin θ`\n- Equation: `m ℓ² θ̈ + m g ℓ sin θ = 0`, i.e. `θ̈ = -(g/ℓ) sin θ` — the pendulum equation. No tension, no constraint forces; the constraint is built into using `θ` as the coordinate."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "lag_q1",
+        "kind": "multiple_choice",
+        "question": "Why does choosing generalized coordinates simplify constrained mechanics?",
+        "options": [
+          "The math is faster to type",
+          "Generalized coordinates already respect the constraints — the constraint surface is built into the parameterization, so constraint forces (which do no work along the allowed motion) drop out of the equations entirely",
+          "Constraint forces become equal to gravity",
+          "There are no constraints in Lagrangian mechanics"
+        ],
+        "correctIndex": 1,
+        "explanation": "A pendulum's bob is constrained to a circle. Use Cartesian (x, y) and you need a tension force λ to keep it on the circle. Use the angle θ instead — the parameterization x = ℓ sin θ, y = -ℓ cos θ never leaves the circle, so there's nothing to constrain. The Lagrangian written in θ has no λ. This is why generalized coordinates are powerful: they trade book-keeping constraint forces for one-time geometric setup."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Conjugate momenta and conservation",
+      "body": "From the Lagrangian, define the **conjugate momentum** to coordinate `q_i`:\n\n$$p_i = \\frac{\\partial L}{\\partial \\dot{q}_i}$$\n\nFor a free particle in Cartesian coordinates, `L = (1/2)mv²`, so `p = mv` — the usual momentum. For the pendulum, `p_θ = m ℓ² θ̇` — angular momentum.\n\n**The conservation rule**: if `L` doesn't depend on coordinate `q_i`, then `dp_i/dt = 0` — `p_i` is conserved. (Reason: the Euler-Lagrange equation says `dp_i/dt = ∂L/∂q_i`. If that derivative is zero, momentum doesn't change.)\n\nA coordinate that doesn't appear in `L` is called *cyclic* (or *ignorable*). Examples:\n- Free particle: `L` doesn't depend on `x` → linear momentum `p_x` conserved.\n- Central potential `U(r)`: `L` written in `(r, θ)` has no `θ` dependence (only `θ̇`) → angular momentum conserved.\n- Time-independent Lagrangian → energy conserved.\n\nThis is the seed of **Noether's theorem**: every continuous symmetry of `L` produces a conserved quantity. Translation symmetry → momentum. Rotation symmetry → angular momentum. Time-translation symmetry → energy. The pattern is universal across physics."
+    },
+    {
+      "kind": "text",
+      "title": "Why this matters for ML and beyond",
+      "body": "The Lagrangian framework reappears outside mechanics:\n\n**Field theories**. Quantum field theory writes a Lagrangian density `ℒ` over fields and runs the same machinery. The Standard Model is a Lagrangian.\n\n**Optimal control + reinforcement learning**. Trajectory optimization (LQR, model-predictive control, trajectory transformers in robotics) sets up an action-like cost `∫ ℓ(state, control) dt` and finds the stationary path. Pontryagin's principle is the controlled-system analog of Euler-Lagrange.\n\n**Variational methods in ML**. The variational autoencoder's loss is a stationary-action condition on the variational parameters. The 'evidence lower bound' (ELBO) is exactly an action-like functional you make stationary in `q(z)`. Same math, different application.\n\n**Path integral diffusion / score matching**. Modern generative models often have a path-integral interpretation. Each generated sample is a 'classical trajectory' through noise space; the score function is the gradient of an effective Lagrangian.\n\nLearning Lagrangian mechanics gives you a unifying lens that compounds across these — the same framework, with different `T - U`."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "lag_q2",
+        "kind": "multiple_choice",
+        "question": "What does Noether's theorem say in one sentence?",
+        "options": [
+          "Energy is always conserved",
+          "Every continuous symmetry of the Lagrangian corresponds to a conserved quantity — translation symmetry gives momentum conservation, rotation symmetry gives angular momentum conservation, time-translation symmetry gives energy conservation",
+          "Constraints reduce degrees of freedom",
+          "All physical laws are reversible"
+        ],
+        "correctIndex": 1,
+        "explanation": "Noether's theorem (1918) is one of the deepest results in physics. The Lagrangian framework makes it transparent: a symmetry means `L` doesn't change under some transformation; that's exactly the condition for the corresponding momentum to satisfy `dp/dt = 0`. Each symmetry → conserved quantity. The unification it provides is why Lagrangian mechanics is taught even when Newtonian methods would solve a particular problem faster."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Lagrangian mechanics is the abstraction layer that turns local force-balancing into a global optimization principle. Same physics, much cleaner machinery — and the principle generalizes far beyond particles.\n\nKey takeaways:\n- Lagrangian: `L = T - U`. Action: `S = ∫ L dt`. Principle: `δS = 0`.\n- Euler-Lagrange equation: `d/dt(∂L/∂q̇) = ∂L/∂q` for each coordinate.\n- Generalized coordinates absorb constraints — no constraint forces appear.\n- Cyclic coordinates → conserved conjugate momenta.\n- Noether: every continuous symmetry → conservation law.\n- Same machinery powers field theory, optimal control, variational ML.\n\nNext: [[nonlinear-dynamics]] — what happens when systems aren't linear and the simple harmonic oscillator approximation breaks down."
+    }
+  ]
+}

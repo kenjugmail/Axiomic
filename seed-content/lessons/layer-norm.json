@@ -1,0 +1,61 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The problem layer norm solves",
+      "body": "Train a deep network without normalization and watch the activations drift. Layer 5's outputs are 100× larger than layer 1's; layer 20's are 100× smaller. Gradient flow gets weird, the loss plateaus, and you can't train at any reasonable learning rate.\n\n**Layer normalization** keeps activations on a stable scale. For each token's vector at each layer, it:\n1. Computes the **mean** and **standard deviation** across the feature dimension.\n2. Subtracts the mean, divides by the std (so the result has mean 0, std 1).\n3. Applies learned **scale** and **shift** parameters (`γ` and `β`) to recover whatever scale the model wants.\n\n$$\\text{LN}(x) = \\gamma \\cdot \\frac{x - \\mu}{\\sigma + \\epsilon} + \\beta$$\n\nThe key property: layer norm operates **per token, across features**. This is different from batch norm — and the difference matters a lot in practice."
+    },
+    {
+      "kind": "text",
+      "title": "Layer norm vs batch norm",
+      "body": "It's easy to confuse the two. Both normalize. They normalize over **different axes**:\n\n- **Batch norm** normalizes each *feature* across the *batch*. Mean and std are computed for feature `f` across all examples in the minibatch.\n- **Layer norm** normalizes each *example* across its *features*. Mean and std are computed per token, across all `d_model` features.\n\nThis matters for two reasons:\n\n**Inference behavior.** Batch norm has different stats at training (per-batch) and inference (running averages). Get the mode wrong and your predictions are corrupted. Layer norm is identical at training and inference — there's no batch dependence.\n\n**Sequence length variation.** Transformers process sequences of variable length. Batch norm gets confused when sequences are padded or batches mix lengths. Layer norm doesn't care."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ln_q1",
+        "kind": "multiple_choice",
+        "question": "A model uses batch norm at training. At inference, batch_size = 1. What goes wrong?",
+        "options": [
+          "Nothing — batch norm works the same way at any batch size",
+          "With batch_size = 1, the per-batch statistics become extremely noisy unless the layer is in 'eval mode' using running averages from training; forgetting to switch modes silently corrupts predictions",
+          "The model becomes faster",
+          "The activations explode regardless of mode"
+        ],
+        "correctIndex": 1,
+        "explanation": "Batch norm uses two different stats sources: per-batch (training) and running averages (inference). At batch_size = 1, per-batch stats are useless — the 'mean' is just the input itself. PyTorch's `model.eval()` toggles to running averages; forgetting it is one of the most common deployment bugs. Layer norm avoids this entirely."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Pre-norm vs post-norm",
+      "body": "Where you put layer norm relative to the residual connection matters more than people initially realized.\n\n**Post-norm** (original transformer):\n\n```\noutput = LayerNorm(x + Attention(x))\n```\n\n**Pre-norm** (modern, GPT-2 onward):\n\n```\noutput = x + Attention(LayerNorm(x))\n```\n\nThe difference: in post-norm, the residual stream is normalized at every layer, so the pure 'identity' path through the network gets disrupted. In pre-norm, the residual stream is untouched by LN — only the inputs to attention/FFN are normalized.\n\n**Pre-norm trains more stably** especially at deep depths. GPT-3+ all use pre-norm. The tradeoff: post-norm sometimes wins on the final loss when it does train. For most modern recipes, pre-norm is the safe choice; deeper models really need it."
+    },
+    {
+      "kind": "text",
+      "title": "RMSNorm — the simpler variant",
+      "body": "Layer norm has two parts: subtract the mean, divide by the std. **RMSNorm** drops the mean subtraction:\n\n$$\\text{RMSNorm}(x) = \\gamma \\cdot \\frac{x}{\\sqrt{\\frac{1}{d}\\sum x_i^2}}$$\n\nIt only normalizes the magnitude (the root-mean-square), not the centering. Empirically, the mean-subtraction part of layer norm doesn't seem to do much for transformers — RMSNorm matches or beats LayerNorm at modest compute savings.\n\nLLaMA, Mistral, and most other modern open models use RMSNorm. If you see `RMSNorm` in a model card, it's just LN minus the mean-centering term."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ln_q2",
+        "kind": "multiple_choice",
+        "question": "Which axis does layer norm compute its mean and std over, for an input of shape `[batch, seq_len, d_model]`?",
+        "options": [
+          "Across the batch dimension",
+          "Across the seq_len dimension",
+          "Across the d_model dimension (i.e., per-token, per-example)",
+          "Across all three dimensions"
+        ],
+        "correctIndex": 2,
+        "explanation": "Layer norm operates per token: for each `(batch, seq_len)` position, the mean and std are computed across the `d_model` feature axis. This is what makes it independent of batch size and sequence length, which is the whole point — it works the same at training and inference."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Layer norm is the stabilizer. Combined with [[residual-connections]], it's what makes deep transformer stacks (50, 100+ layers) trainable at all.\n\nMental model:\n- **Residual connections** preserve the gradient signal across depth\n- **Layer norm** keeps activation magnitudes from drifting\n- **Pre-norm placement** keeps the residual stream's identity-path intact\n\nNext: the [[transformer-block]] — putting attention + FFN + norm + residual together into the unit that gets stacked N times to make a real model."
+    }
+  ]
+}

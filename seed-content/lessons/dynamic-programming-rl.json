@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "When you know the model",
+      "body": "**Dynamic programming (DP)** for RL: when you know the transition dynamics `P(s'|s,a)` and reward `R(s,a)`, you can solve the MDP exactly without ever interacting with the environment.\n\nIn most real problems you don't know `P` or `R` — you only have samples. But DP is still essential because:\n\n1. It's the **simplest illustration** of the Bellman equation in action.\n2. **Model-based RL** learns `P` and `R` from data, then uses DP-style planning on the learned model.\n3. **Theoretical baselines** for sample-based methods derive from DP: the convergence proofs of Q-learning trace back to value iteration's contraction.\n4. Some applications genuinely have known models: gridworlds, simulators, board games.\n\nTwo classical DP algorithms: value iteration and policy iteration. Both rely on the Bellman operator being a `γ`-contraction; both converge to `V*` and `π*`."
+    },
+    {
+      "kind": "text",
+      "title": "Value iteration",
+      "body": "Initialize `V_0(s) = 0` for all states. Then iterate:\n\n$$V_{k+1}(s) = \\max_a \\sum_{s'} P(s'|s,a) \\left[R(s,a,s') + \\gamma V_k(s')\\right]$$\n\nThis is just **applying the optimal Bellman operator `T*`** repeatedly. Each iteration brings `V_k` a factor `γ` closer to `V*` (in sup-norm).\n\n**Convergence rate**: to reach an `ε`-accurate `V*`, you need roughly `log(1/ε) / log(1/γ)` iterations. With `γ = 0.99`, this is ~459 iterations for `ε = 0.01`. With `γ = 0.9`, only ~44 iterations.\n\n**Extracting the policy**: once `V*` is known, the optimal policy is greedy:\n\n$$\\pi^*(s) = \\arg\\max_a \\sum_{s'} P(s'|s,a) \\left[R + \\gamma V^*(s')\\right]$$\n\n**Cost per iteration**: `O(|S|² · |A|)` for the full update (sum over `s'`). Tractable for small MDPs (gridworlds, toy domains); breaks down past a few thousand states. Modern variants use samples + approximation to scale.\n\nValue iteration is the algorithm you should be able to implement in 20 lines. Every modern value-based RL method is a sampled, approximated, parameterized version of it."
+    },
+    {
+      "kind": "text",
+      "title": "Policy iteration",
+      "body": "An alternative pattern: alternate between **policy evaluation** (compute `V^π` for the current policy) and **policy improvement** (greedify with respect to `V^π`).\n\n```\nπ_0 = arbitrary policy\nrepeat:\n    # Policy evaluation\n    V^{π_k} = solve V = T_{π_k} V    (iterate the Bellman operator until convergence)\n    \n    # Policy improvement\n    π_{k+1}(s) = argmax_a Σ_{s'} P(s'|s,a) [R + γ V^{π_k}(s')]\n    \n    if π_{k+1} == π_k: stop\n```\n\n**Theorem (policy improvement)**: `V^{π_{k+1}}(s) ≥ V^{π_k}(s)` for all `s`. Each iteration produces a strictly better policy unless the current policy is already optimal.\n\n**Termination**: in finite MDPs, there are only finitely many deterministic policies (`|A|^|S|`). Policy iteration must terminate at the optimal policy.\n\n**Trade-off vs value iteration**:\n- Policy iteration: **fewer outer iterations** (often just a handful) but each iteration includes a full inner policy-evaluation loop.\n- Value iteration: **more outer iterations** but each is just one Bellman update.\n\nFor most practical purposes, value iteration is faster. But policy iteration's *clean separation* (evaluate, then improve) is a useful conceptual pattern that recurs in actor-critic methods."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dp_q1",
+        "kind": "multiple_choice",
+        "question": "You're solving an MDP via value iteration with γ = 0.95. After 100 iterations, |V_100 - V_99| in sup-norm is 0.02. Roughly how close is V_100 to V*?",
+        "options": [
+          "Within 0.02",
+          "Within 0.4 (specifically, ε ≤ |V_k - V_{k-1}| · γ / (1 - γ) ≈ 0.02 · 0.95 / 0.05 = 0.38). The Bellman contraction lets you bound the distance to V* from observed iterate-to-iterate change. Useful as a stopping criterion when you don't know V* in advance",
+          "Within 100 · 0.02 = 2",
+          "There's no way to know without computing V*"
+        ],
+        "correctIndex": 1,
+        "explanation": "The contraction property gives you a quantitative stopping criterion. If consecutive iterates differ by δ, then ‖V_k - V*‖ ≤ δ · γ / (1-γ). With γ=0.95 and δ=0.02, that's ~0.38. This is the standard convergence test in value iteration: stop when the iterate-to-iterate change is small enough that the bound on distance to V* is acceptable. No need to compute V* directly."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "When DP scales — and when it doesn't",
+      "body": "DP's complexity is `O(|S|² · |A|)` per iteration. For small MDPs (a 5×5 gridworld, 100 states, 4 actions: 40,000 ops per iteration) this is instantaneous. For Atari-scale problems (~10^6 states represented as images), enumerating `S` is impossible.\n\nThree paths past the curse of dimensionality:\n\n1. **Function approximation**. Replace the table `V(s)` with a parameterized function `V_θ(s)` (a neural network, linear regression, decision tree). Train `θ` to satisfy the Bellman equation in expectation. This is the foundation of DQN, Atari RL, and modern deep RL.\n\n2. **Sample-based Bellman updates**. Instead of summing over all `s'` (requires knowing `P`), sample a transition `(s, a, r, s')` from the environment and do an expected-update via single-sample estimate. This is **temporal difference (TD) learning** — next lesson.\n\n3. **Hierarchical decomposition / state abstraction**. If the MDP has structure (a grid that decomposes into rooms; a chess game that decomposes into opening / middlegame / endgame), exploit it. Specialized; problem-dependent.\n\nThe practical evolution: tabular DP → linear function approximation → deep neural networks. At each step, the algorithms get more practical and lose some theoretical guarantees. Modern deep RL (DQN, PPO) is in regime 1 + 2 simultaneously: sampled updates with neural-network function approximation."
+    },
+    {
+      "kind": "text",
+      "title": "The tabular gridworld example",
+      "body": "Concrete example you can implement in 30 lines of NumPy:\n\n```\nGridworld: 5×5 grid, 25 states, 4 actions (up/down/left/right).\nReward: -1 per step, +10 for reaching goal at (4,4), -10 for falling in pit at (2,2).\nγ = 0.95.\n```\n\nValue iteration in pseudocode:\n\n```python\nV = np.zeros(25)\nfor it in range(1000):\n    V_new = np.zeros(25)\n    for s in range(25):\n        if s == GOAL or s == PIT: continue  # terminal states\n        action_values = []\n        for a in range(4):\n            s_next = transition(s, a)\n            r = reward(s, a, s_next)\n            action_values.append(r + γ * V[s_next])\n        V_new[s] = max(action_values)\n    if np.max(np.abs(V_new - V)) < 1e-6: break\n    V = V_new\n\n# Extract policy\nπ = np.argmax(action_values_for_each_state, axis=1)\n```\n\nRun this and you get the optimal value function in seconds. Visualize `V` as a heatmap over the grid: high values near the goal, low values near the pit, decay toward the corners.\n\nThis is the simplest possible RL algorithm. Every other algorithm in this path is a more clever, more scalable version of the same idea — propagate the Bellman recursion until you know the value function."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dp_q2",
+        "kind": "multiple_choice",
+        "question": "Why doesn't tabular value iteration scale to Atari-style RL problems?",
+        "options": [
+          "Atari rewards are too sparse",
+          "The state space is too large to enumerate. Atari frames are images with millions of possible states; you can't store V(s) as a table. The fix: parameterize V (or Q) as a neural network V_θ(s), trained to satisfy the Bellman equation in expectation. This is what DQN does",
+          "γ is too high in Atari",
+          "The Markov property doesn't hold for Atari"
+        ],
+        "correctIndex": 1,
+        "explanation": "Tabular DP enumerates the state space; Atari has effectively infinite states (each unique image). Function approximation generalizes V (or Q) across similar states via a neural net. DQN's contribution was demonstrating that this works for image-based RL, despite the loss of tabular convergence guarantees. The Bellman equation is still the engine; the table becomes a neural net."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "DP solves MDPs when you know the model. In the real world, you don't. The next lesson covers how to learn value functions from samples.\n\nNext: [[temporal-difference]] — Q-learning, SARSA, and how sample-based Bellman updates work.\n\nKey takeaways:\n- Value iteration: iterate the optimal Bellman operator until convergence\n- Policy iteration: alternate evaluation and improvement; fewer outer iterations\n- Both rely on the γ-contraction; both have provable convergence in tabular MDPs\n- DP scales to small MDPs (~thousands of states); past that, use function approximation + sampling\n- Modern deep RL = function approximation + sampled Bellman updates"
+    }
+  ]
+}

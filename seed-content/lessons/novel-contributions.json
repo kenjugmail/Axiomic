@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What counts as a research contribution",
+      "body": "ML research papers are evaluated on whether they contribute something new. 'New' is a fuzzy bar — and many papers fail to clear it despite getting published.\n\nThree categories of legitimate contribution:\n\n- **Empirical**: a new result that's well-supported. ('Method X achieves Y on benchmark Z; here's a careful study of when it works.')\n- **Methodological**: a new technique or framework. ('We introduce method M, which generalizes existing methods A and B.')\n- **Theoretical**: a new analysis or proof. ('We prove that under conditions C, technique T converges at rate R.')\n\nMost ML papers are empirical. The bar for empirical contribution is more nuanced than 'we got a higher number on a benchmark' — and the field has, mostly, gotten more sophisticated about what counts.\n\nThis lesson is about scoping your own work to make a real contribution."
+    },
+    {
+      "kind": "text",
+      "title": "What's NOT a contribution (alone)",
+      "body": "Things that often don't clear the bar by themselves:\n\n**+0.5% on a benchmark.** Without confidence intervals showing the gap is real, this is a metric tweak, not a contribution. Reviewers in 2024+ are increasingly aware of this.\n\n**A new architecture variant.** 'We replaced LayerNorm with RMSNorm' is interesting; it's not a paper unless you have a deeper story (why this works, how it generalizes, what problems it solves).\n\n**Application of existing methods to a new domain.** 'We trained BERT on legal text' isn't a contribution unless the application reveals something about the method or the domain that wasn't known.\n\n**A larger version of an existing model.** Scaling existing recipes 10× isn't a research contribution unless you measure something new about the scale (which scaling-laws papers do).\n\n**A clever prompt that improves benchmark performance.** Useful, but not a paper unless the prompt reveals a structural property of the model or task.\n\nNone of these are *bad work*. Many are useful engineering or applied research. They just don't clear the 'novel research contribution' bar by themselves."
+    },
+    {
+      "kind": "text",
+      "title": "What does count",
+      "body": "Real contributions usually have at least one of:\n\n**A non-obvious result.** The headline finding is something a thoughtful person wouldn't have predicted before reading the paper. ('Larger LR works better than the convex theory predicted'; 'small models trained longer beat large models trained shorter at the same compute.')\n\n**A new framework or unification.** A way of seeing the field that organizes existing work. ('Information bottleneck unifies VAEs and contrastive learning'; 'circuit complexity bounds in-context learning capability.')\n\n**A new failure mode.** Identifying and characterizing a specific way models break. ('Models trained with method X are vulnerable to attack Y in this measurable way.') This is one of the underrated contribution types — often higher-impact than benchmark improvements.\n\n**A method that composes.** A technique others can adopt without buying the rest of the paper. Residual connections, attention itself, dropout, batch norm — all famous because they composed.\n\n**Honest negative results.** 'We tried X; it didn't work; here's what we learned.' These are rare in ML but increasingly recognized as valuable. The negative result paper saves the next ten labs from making the same mistake."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "nc_q1",
+        "kind": "multiple_choice",
+        "question": "Which of these is most likely to clear the 'novel research contribution' bar?",
+        "options": [
+          "Trained a 70B model on legal documents and report 88% on a legal-benchmark",
+          "Identified a specific failure mode in current RLHF (e.g., 'reward hacking has signature X that can be detected reliably with Y') and characterized it carefully",
+          "Achieved 91.2% on a public benchmark, vs the previous best of 90.7%",
+          "Scaled an existing architecture from 7B to 70B parameters"
+        ],
+        "correctIndex": 1,
+        "explanation": "Identifying and characterizing a specific failure mode is one of the highest-value contribution types. It's non-obvious (the mode wasn't widely known), composable (others can use the detection method), and self-correcting for the field. The other three are useful engineering or scale-ups but don't clear the 'novel research' bar by themselves under modern review standards."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Scoping your own research",
+      "body": "If you're starting a research project, ask:\n\n**1. What's the question?** Specifically. Not 'I want to improve LLM accuracy.' Something like: 'Does method X reduce hallucinations on out-of-domain inputs more than method Y, controlling for compute?'\n\n**2. What's the smallest experiment that could answer it?** If your first experiment requires 100 GPUs, you're scoped wrong. Find the small-scale toy version that gives a directional signal first.\n\n**3. What would the result look like?** Sketch the figure you'd put in the paper. If you can't sketch a figure that makes the point, you don't yet have a clear question.\n\n**4. What are the alternative hypotheses?** What else could explain the result you'd see? Designing for differential predictions (only your hypothesis predicts X; the alternatives predict Y) is the hallmark of strong empirical work.\n\n**5. What's the failure case?** If your hypothesis is wrong, what would you see? Are you prepared to publish that result? If not, your work has a confirmation-bias risk built in.\n\nGood research project scoping is more like product design than like a homework problem. You're crafting an experiment to maximize information gained per unit of compute spent."
+    },
+    {
+      "kind": "text",
+      "title": "Publishing strategy",
+      "body": "Some practical heuristics for getting your work read:\n\n**Make the figure first.** The single best figure should communicate the result without reading the paper. If you can't make that figure, the result isn't clear enough.\n\n**Be honest about scale.** A result on 100M-parameter models is interesting if you say so; the same result claimed for frontier scale (without testing it) is a credibility-destroyer when others fail to replicate.\n\n**Acknowledge limitations explicitly.** A 'limitations' section that says 'we don't know if this generalizes to X' is strictly better than reviewers finding the limitation themselves and using it to reject.\n\n**Release code + checkpoints.** Reproducibility is increasingly a publication norm. A paper without code released within 2 months of acceptance doesn't get cited as much as it would have otherwise.\n\n**Contribute to the discussion.** Mech-interp findings, scaling laws, and alignment ideas are evolving conversations. Papers that engage with prior arguments get cited; isolated 'we did X' papers don't.\n\nFinally: **most papers are forgotten**. Don't optimize for any single submission. Optimize for sustained presence — high-quality work, regular pace, compounding reputation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "nc_q2",
+        "kind": "multiple_choice",
+        "question": "Why is sketching the result figure *before* running the experiment a useful research practice?",
+        "options": [
+          "To save time on figures later",
+          "It forces the question to be specific enough to answer with a figure. If you can't sketch a figure that makes your hypothesis testable, you don't yet have a well-scoped research question. The sketching exercise reveals scope ambiguity",
+          "Reviewers prefer pre-registered figures",
+          "It's required by NeurIPS"
+        ],
+        "correctIndex": 1,
+        "explanation": "Sketching the result figure forces you to be specific: what's on the x-axis, what's on the y-axis, what shape would the result take if your hypothesis is true vs false? If you can't sketch a figure, your question is too vague. This is a research-design hygiene practice; combined with thinking through alternative hypotheses, it sharply increases the experimental yield."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "This lesson is the last in the AI Researcher path. From [[math-foundations]] through novel contributions, you've covered the conceptual stack of ML research.\n\nThe practical takeaway: **research is craft work**. The tools (math, ML, reading, scoping) are learnable. The taste — for which questions are worth asking, which results are worth chasing, which contributions are real — develops over years of practice. The capstone projects on Axiomic ([[mech-interp-induction-heads]] in particular) are designed to give you that practice in a structured way.\n\nKey takeaways:\n- Most novel contributions fall into: empirical (with rigor), methodological, or theoretical\n- '+0.5% on a benchmark' is not a contribution by itself\n- Failure-mode papers are underrated; they're often the most valuable\n- Scope by sketching the figure first; design for differential predictions\n- Publish honestly; acknowledge limitations; release code; engage the discussion\n- Most papers are forgotten — optimize for sustained presence, not any single submission"
+    }
+  ]
+}

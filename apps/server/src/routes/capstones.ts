@@ -41,6 +41,8 @@ import {
 import { snapshotCapstone } from "../lib/versionSnapshots";
 import { buildTranscriptManifest } from "../lib/transcripts";
 import { canonicalJson, publicKeyHex, sign } from "../lib/signing";
+import { maybeMintTrackCompletions } from "../lib/capstoneTrackCompletion";
+import { notifyTrackCompletion } from "../lib/notifications";
 import type { Env } from "../env";
 
 export const capstonesRouter = new Hono<Env>();
@@ -391,6 +393,7 @@ capstonesRouter.get("/c/:artifactSlug", async (c) => {
       startedAt: capstoneEnrollments.startedAt,
       completedAt: capstoneEnrollments.completedAt,
       artifactPageSlug: capstoneEnrollments.artifactPageSlug,
+      doi: capstoneEnrollments.doi,
     })
     .from(capstoneEnrollments)
     .where(eq(capstoneEnrollments.artifactPageSlug, artifactSlug))
@@ -466,6 +469,7 @@ capstonesRouter.get("/c/:artifactSlug", async (c) => {
         artifactPageSlug: enrollment.artifactPageSlug!,
         startedAt: enrollment.startedAt,
         completedAt: enrollment.completedAt,
+        doi: enrollment.doi,
       },
       learner: {
         id: learner.id,
@@ -806,6 +810,7 @@ capstonesRouter.get("/:slug/cite", async (c) => {
       authorId: capstones.authorId,
       status: capstones.status,
       createdAt: capstones.createdAt,
+      doi: capstones.doi,
     })
     .from(capstones)
     .where(eq(capstones.slug, slug))
@@ -832,6 +837,7 @@ capstonesRouter.get("/:slug/cite", async (c) => {
     authors: [primary],
     year: new Date(row.createdAt).getUTCFullYear(),
     url,
+    doi: row.doi,
     abstract: row.summary,
     publishedAt: row.createdAt,
   };
@@ -1480,6 +1486,7 @@ async function loadCapstoneDto(
       accentColor: capstones.accentColor,
       status: capstones.status,
       currentVersion: capstones.currentVersion,
+      doi: capstones.doi,
       authorId: capstones.authorId,
       authorUsername: users.username,
       authorDisplayName: users.displayName,
@@ -1549,6 +1556,7 @@ async function loadCapstoneDto(
     coverEmoji: row.coverEmoji,
     accentColor: row.accentColor,
     status: row.status,
+    doi: row.doi,
     authorId: row.authorId,
     authorUsername: row.authorUsername,
     authorDisplayName: row.authorDisplayName,
@@ -1639,4 +1647,16 @@ async function maybeCompleteEnrollment(
     })
     .where(eq(capstoneEnrollments.id, enrollmentId))
     .run();
+
+  // Sprint 52 — completing this capstone may have crossed a track's
+  // threshold. Mint any newly-eligible track completions and notify
+  // the learner.
+  try {
+    const minted = maybeMintTrackCompletions(user.id);
+    for (const m of minted) {
+      notifyTrackCompletion(user.id, m.trackId, m.trackSlug, m.artifactPageSlug);
+    }
+  } catch (err) {
+    console.warn("[capstones] track-completion mint failed", err);
+  }
 }

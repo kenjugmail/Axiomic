@@ -1,0 +1,46 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why bio-ML evaluation is its own discipline",
+      "body": "Bio-ML benchmarks have unique pitfalls. The field has been burned repeatedly by methods that 'beat the SOTA' but turn out to be exploiting data leakage.\n\nThe pattern:\n- Train and test sets share homologous sequences.\n- Models memorize training homologs; perform poorly on truly novel inputs.\n- Reported benchmark scores conflate generalization with memorization.\n\nClassical bioinformatics has decades of experience handling this. Modern bio-ML often imports generic ML evaluation practices that don't match biological data structure. This lesson covers the specific failure modes and how rigorous bio-ML benchmarks are designed.\n\nThe canonical example: **CASP** (Critical Assessment of Structure Prediction), the protein-folding competition. CASP's design philosophy is the gold standard — strict separation of train + test by both time and sequence similarity. AlphaFold's 2020 breakthrough was credible because it was on CASP data, not on a homology-leaky benchmark."
+    },
+    {
+      "kind": "text",
+      "title": "Sequence-similarity leakage",
+      "body": "**The problem**: most protein databases are highly redundant. Many sequences are 90%+ identical; a 50%-identical homolog is common. If train + test are split randomly, the test set will likely contain close homologs of training proteins.\n\n**Why this matters**: a model that memorizes training sequences (and substitutions thereof) will trivially predict the test set. It hasn't learned generalizable biology; it's essentially a lookup table.\n\n**The fix**: split train + test by **sequence-similarity clustering**.\n\n```\n1. Cluster all sequences with mmseqs2 (or CD-HIT) at 30% identity.\n2. Each cluster goes entirely to train OR test, not both.\n3. Test now contains no sequences > 30% similar to any training sequence.\n```\n\nThis is the standard for serious protein-ML benchmarks (TAPE, ProteinNet, FLIP). 30% identity is a hard cutoff because below that, structural homology is no longer reliable.\n\n**The reality check**: if your held-out validation accuracy is much higher than test accuracy, leakage is the likely culprit. Always verify the split.\n\n**Stricter variants**: 'novel fold' splits — test set contains protein structures from CATH/SCOP folds not in training. Very rare in practice but the gold standard for structure prediction generalization."
+    },
+    {
+      "kind": "text",
+      "title": "Time-based splits",
+      "body": "Beyond sequence-similarity, **time-based splits** are essential for benchmarks where the field is rapidly accumulating data.\n\nFor structure prediction: the PDB is updated weekly. Training on 'all structures before time T' and testing on 'structures deposited after T' simulates the realistic prediction setting (predicting structures that haven't yet been determined).\n\nThis is what CASP does:\n- Targets are protein structures recently solved by experimentalists.\n- Targets are released to the community; predictions submitted blind.\n- Experimental structures revealed only after predictions close.\n\nNo training data peek. Even if every team trains on the public PDB, the CASP targets are guaranteed to be new.\n\nFor sequence-only tasks: time-split based on database release dates. UniProt releases are timestamped; train on UniProt 2020-01, test on sequences added after. Standard for protein language model benchmarks.\n\n**Why both splits**: sequence-similarity catches homology leakage; time-based catches database leakage (a model trained on the latest UniProt will have seen everything). Use both for the strongest evaluation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "bioml_eval_q1",
+        "kind": "multiple_choice",
+        "question": "Why do strict sequence-similarity splits typically use 30% identity as the cutoff for 'related vs unrelated' proteins?",
+        "options": [
+          "30% is a number chosen for convenience",
+          "Below ~30% sequence identity, two proteins may or may not share a common ancestor; the alignment-based homology signal is unreliable. Above 30%, sequence identity reliably implies structural + often functional similarity. The cutoff isolates the 'truly novel' regime: below 30% identity, the test sequences are structurally + functionally distinct from training. This is biology-specific — different cutoffs apply for different data types (e.g., 50-60% for closely-related orthologs)",
+          "30% is required by mmseqs2",
+          "30% matches the average sequence identity in nature"
+        ],
+        "correctIndex": 1,
+        "explanation": "The 30% cutoff is the long-standing 'twilight zone' boundary in bioinformatics — below it, sequence similarity stops being a reliable indicator of homology. Test sequences below 30% identity to anything in training are the closest thing to 'truly novel' you can engineer in a benchmark. This is biology-specific knowledge that generic ML evaluation practices don't import. Rigorous bio-ML benchmarks always use this kind of biology-aware split."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Evaluation metrics for bio-ML",
+      "body": "**Structure prediction**:\n- **GDT_TS** (Global Distance Test): % of residues within X Å of the true position, averaged over multiple X. Range 0-100; CASP14's AlphaFold scored 92 (effective ceiling for current experimental error).\n- **lDDT**: local-distance test; pair-wise distance comparisons. Less sensitive to overall rotation; good for fragment-level accuracy.\n- **TM-score**: structural similarity; 0-1; > 0.5 means same fold.\n\n**Function prediction** (binding, activity, etc.): standard ML metrics (AUROC, AUPRC, Spearman) applied to protein-specific tasks. Watch for class imbalance — bind vs not-bind has typical 1:99 ratios.\n\n**Variant effect prediction**:\n- Spearman correlation between predicted scores + experimental fitness.\n- ROC/AUC for clinically actionable variants vs non-actionable.\n\n**Generative models** (protein design):\n- **Sample diversity**: are generated proteins different from each other?\n- **Foldability**: do they actually fold? Run AlphaFold on samples to check.\n- **Activity**: experimentally test! Some generative protein models have produced functional novel enzymes; the gold standard is 'we synthesized this designed protein and it works'.\n\nEach metric has known failure modes. Multiple metrics + careful evaluation of failure cases are the bioinformatics standard.",
+      "extra": ""
+    },
+    {
+      "kind": "text",
+      "title": "The end of the path",
+      "body": "Bio-ML evaluation is the discipline that keeps the field honest. The pitfalls are real and have caught major papers; rigorous evaluation requires biology-aware splits, time-based holdouts, and domain-appropriate metrics.\n\nThis is the last lesson in the comp-biologist path. From [[dna-rna-protein]] through bio-ML evaluation, you've covered the full conceptual stack of modern computational biology + ML.\n\nThe path has covered:\n- **Substrates**: DNA, RNA, proteins, sequence representations.\n- **Classical methods**: alignment, phylogenetics, structure conventions.\n- **Modern ML**: AlphaFold, protein language models, scRNA-seq deep learning, ML-accelerated MD.\n- **Evaluation**: how the field stays honest about generalization.\n\nKey takeaways:\n- Sequence-similarity splits at 30% identity prevent homology leakage\n- Time-based splits prevent database leakage\n- CASP is the gold-standard structure prediction benchmark\n- Metrics: GDT_TS, lDDT, TM-score for structure; biology-specific extensions for function + variants + design\n- Rigorous bio-ML eval is its own skill; generic ML practices aren't enough\n\nFor a team building bio-ML in 2026: invest in evaluation infrastructure as much as in models. The field has been burned repeatedly by leaky benchmarks. Be the team that doesn't repeat the mistake."
+    }
+  ]
+}

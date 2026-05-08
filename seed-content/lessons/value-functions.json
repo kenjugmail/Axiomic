@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What's a value function",
+      "body": "A **value function** answers the question: *how good is it to be in state `s` (or to take action `a` in state `s`)?*\n\nTwo flavors:\n\n- **State value `V^π(s)`**: expected discounted return starting from state `s` and following policy `π` thereafter.\n  $$V^\\pi(s) = \\mathbb{E}_\\pi\\left[\\sum_{k=0}^{\\infty} \\gamma^k r_{t+k} \\;\\middle|\\; s_t = s\\right]$$\n- **Action value `Q^π(s, a)`**: expected discounted return starting from `s`, taking action `a`, and following `π` afterwards.\n  $$Q^\\pi(s, a) = \\mathbb{E}_\\pi\\left[\\sum_{k=0}^{\\infty} \\gamma^k r_{t+k} \\;\\middle|\\; s_t = s, a_t = a\\right]$$\n\nThe two are tied: `V^π(s) = Σ_a π(a|s) · Q^π(s, a)`.\n\nA value function is **defined relative to a policy**. Different policies give different values. The **optimal value function** `V*(s) = max_π V^π(s)` is the best you can possibly do; the optimal `Q*(s, a)` is the best return from taking action `a` in `s` and behaving optimally thereafter.\n\nWhy value functions matter: if you know `Q*`, you know the optimal policy. Pick `argmax_a Q*(s, a)`. Done.\n\nMost of RL is one of two things: estimate `V^π` / `Q^π` from data (policy evaluation), or improve toward `V*` / `Q*` (control). The Bellman equation is the engine for both."
+    },
+    {
+      "kind": "text",
+      "title": "The Bellman equation",
+      "body": "Value functions satisfy a **recursive consistency**: the value of a state equals the immediate reward plus the discounted value of where you end up next.\n\nFor a fixed policy `π`:\n\n$$V^\\pi(s) = \\sum_a \\pi(a|s) \\sum_{s'} P(s'|s,a) \\left[R(s,a,s') + \\gamma V^\\pi(s')\\right]$$\n\nIn words: average over the actions the policy would take, average over the resulting next states, and the value of `s` is the immediate reward plus `γ` times the value of `s'`.\n\nFor `Q^π`:\n\n$$Q^\\pi(s,a) = \\sum_{s'} P(s'|s,a) \\left[R(s,a,s') + \\gamma \\sum_{a'} \\pi(a'|s') Q^\\pi(s',a')\\right]$$\n\nThe **Bellman optimality equation** for `V*`:\n\n$$V^*(s) = \\max_a \\sum_{s'} P(s'|s,a) \\left[R(s,a,s') + \\gamma V^*(s')\\right]$$\n\n(Same as `V^π` but with `max_a` instead of expected over `π`.)\n\n**Why these matter**: every value-based RL algorithm — policy iteration, value iteration, Q-learning, DQN — is solving (or approximating) one of these Bellman equations. The Bellman equation is the recursive structure that makes RL tractable."
+    },
+    {
+      "kind": "text",
+      "title": "Bellman as a fixed-point operator",
+      "body": "Define the **Bellman operator** `T` (for a fixed `π`):\n\n$$(TV)(s) = \\sum_a \\pi(a|s) \\sum_{s'} P(s'|s,a) [R + \\gamma V(s')]$$\n\nThe Bellman equation says `V^π = T V^π` — `V^π` is a *fixed point* of `T`.\n\n**Key fact**: `T` is a **contraction mapping** with contraction factor `γ` (under sup norm). That means:\n\n- For any starting `V`, the sequence `V, TV, T²V, T³V, ...` converges to `V^π`.\n- The convergence is geometric: each application of `T` brings us a factor `γ` closer to `V^π`.\n- The fixed point is unique.\n\n**Why this matters**: it gives us an algorithm. Start with arbitrary `V_0`, repeatedly apply `T`, and after `~log(1/ε) / (1-γ)` iterations you have an `ε`-accurate `V^π`. This is **iterative policy evaluation**, the foundation of dynamic-programming RL.\n\nThe same idea works for the optimal Bellman operator `T*` (with `max_a` instead of expectation over `π`): repeated application converges to `V*`. This is **value iteration**.\n\nThe contraction property is what makes RL theoretically tractable. Without it, we'd have no guarantee that any of these recursive estimators converge."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "vf_q1",
+        "kind": "multiple_choice",
+        "question": "Why is the Bellman optimality equation written with `max_a` instead of an expected value over `π`?",
+        "options": [
+          "It's just a notational convention",
+          "Because `V*` is the value of the *optimal* policy, which always takes the action that maximizes expected return. The `π` averaging step is replaced by `max` because the optimal policy is greedy with respect to `Q*` — there's no randomization. This is what makes the equation define an optimal value rather than a policy-dependent value",
+          "The max is computationally faster than the expectation",
+          "Optimal policies are always stochastic"
+        ],
+        "correctIndex": 1,
+        "explanation": "The Bellman equation for V^π averages over the policy's action distribution. The Bellman optimality equation replaces that average with a max because the optimal policy doesn't average — it picks the best. This connects directly to Q*: the optimal policy is `argmax_a Q*(s, a)`. Optimal policies in deterministic MDPs are deterministic; the max captures this."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Two algorithmic patterns",
+      "body": "Every value-based RL algorithm fits one of two patterns:\n\n**Policy evaluation + policy improvement** (policy iteration family):\n\n1. Pick a policy `π`.\n2. Compute `V^π` (policy evaluation, using Bellman fixed point).\n3. Improve: define `π'(s) = argmax_a Q^π(s, a)`. The new policy is at least as good as the old.\n4. Repeat with `π = π'` until no improvement.\n\nGuaranteed to converge to `π*` in finite iterations on finite MDPs. Beautiful theoretically; expensive practically (each policy evaluation is its own iterative loop).\n\n**Value iteration** (the shortcut):\n\n1. `V_0(s) = 0` for all `s`.\n2. `V_{k+1}(s) = max_a Σ_{s'} P(s'|s,a)[R + γ V_k(s')]`.\n3. Repeat until convergence.\n\nDoesn't separate evaluation from improvement; just iterates the optimal Bellman operator. Same guarantees; usually faster.\n\n**Q-learning** (the model-free shortcut):\n\nWe don't actually know `P` or `R` in most real problems — we only see samples. Q-learning replaces the full Bellman update with a **sample-based stochastic approximation**:\n\n`Q(s, a) ← Q(s, a) + α · [r + γ · max_{a'} Q(s', a') - Q(s, a)]`\n\nThis is the foundation of [[temporal-difference]] learning, the next lesson."
+    },
+    {
+      "kind": "text",
+      "title": "Why this is the engine of RL",
+      "body": "Knowing the Bellman equation is non-negotiable for understanding any RL paper. Three reasons:\n\n1. **Every value-based method is solving a Bellman equation.** Q-learning, DQN, double-Q, dueling networks — all are different ways of estimating the same fixed point.\n\n2. **Every actor-critic method uses a value function as a baseline.** The 'critic' learns `V^π`; the 'actor' uses it to compute advantages. The Bellman equation governs how the critic is trained.\n\n3. **TD-error = Bellman residual.** The single most important quantity in modern RL is `δ_t = r_t + γ V(s_{t+1}) - V(s_t)`. This is exactly the Bellman residual — how much the value estimate disagrees with itself. Reducing TD-error is what training is doing.\n\nIf you can write down the Bellman equation for any new RL setup (POMDPs, multi-agent, hierarchical RL), you've already got 80% of the theoretical machinery. Most of the rest is engineering.\n\nNext we'll see how to *solve* Bellman equations: dynamic programming when the model is known, temporal difference when it isn't."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "vf_q2",
+        "kind": "multiple_choice",
+        "question": "Why does the Bellman operator's `γ`-contraction property matter for RL algorithms?",
+        "options": [
+          "It makes the math prettier",
+          "It guarantees convergence: starting from any initial value function and repeatedly applying the Bellman operator drives the value toward the true V^π geometrically (factor γ per iteration). This is why iterative algorithms like value iteration and Q-learning converge — the underlying operator is a contraction. Without it, no convergence guarantee",
+          "It enables tensor-core acceleration",
+          "It's only relevant for finite MDPs"
+        ],
+        "correctIndex": 1,
+        "explanation": "Contraction mappings have unique fixed points reachable by iteration. The γ-contraction of the Bellman operator means iterative algorithms (value iteration, Q-learning, TD methods) provably converge to V^π — the unique fixed point. The contraction factor γ also tells you the rate. This is the theoretical foundation that makes RL algorithms not just empirically useful but provably correct in the tabular case."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Value functions + the Bellman equation are the engine. The next two lessons cover how to *solve* the Bellman equation — first when you know the model (dynamic programming), then when you don't (temporal difference).\n\nNext: [[dynamic-programming-rl]] — value iteration and policy iteration on small MDPs.\n\nKey takeaways:\n- `V^π(s)` and `Q^π(s,a)`: expected return from `s` (or `s,a`) under `π`\n- Bellman equation: value satisfies a recursive consistency over one step + the value of where you end up\n- Bellman optimality equation: replace the policy average with `max_a` for `V*`\n- Bellman operator is a γ-contraction → iterative algorithms converge\n- TD-error = Bellman residual; reducing it is what training does"
+    }
+  ]
+}

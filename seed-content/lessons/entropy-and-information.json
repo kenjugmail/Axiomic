@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Two entropies, one formula",
+      "body": "**Boltzmann (1872)**: in thermodynamics, the entropy of a macrostate is `S = k_B log Ω`, where `Ω` is the number of microscopic states consistent with that macrostate.\n\n**Shannon (1948)**: in communication theory, the entropy of a probability distribution is `H = -Σ p_i log p_i`, measuring the average information content of a symbol drawn from that distribution (in bits if `log = log_2`, nats if natural log).\n\nThese were proposed for completely different purposes — Boltzmann to explain why heat flows from hot to cold; Shannon to bound how efficiently you can encode messages over a noisy channel. Yet the formulas are **identical** up to a multiplicative constant `k_B`.\n\nThis lesson is about why that's not a coincidence: thermodynamic entropy *is* information entropy. The connection isn't analogy — it's the same quantity, measured in different units, applied to different probability distributions.\n\nUnderstanding the bridge unlocks: maximum-entropy methods in physics and ML, the link between cross-entropy loss and statistical mechanics, why Landauer's principle (erasing a bit costs energy) is rigorous, and why generative models look like physical systems."
+    },
+    {
+      "kind": "text",
+      "title": "Shannon's setup",
+      "body": "You have a source emitting symbols from an alphabet, with probabilities `p_1, p_2, ..., p_n`. How many bits, on average, do you need to encode each symbol losslessly?\n\nShannon proved the answer is the **entropy**:\n\n$$H = -\\sum_i p_i \\log_2 p_i$$\n\n(Measured in bits; with natural log, in nats.)\n\nIntuition:\n- A perfectly predictable source (one symbol with probability 1) has `H = 0` — no information per symbol.\n- A uniform source over `n` symbols has `H = log_2 n` — maximum information; you need `log_2 n` bits.\n- A skewed source has `H < log_2 n` — you can compress because some symbols are more common.\n\nKey properties:\n- `H ≥ 0`, with equality iff the distribution is concentrated on one outcome.\n- `H ≤ log n`, with equality iff uniform — entropy is maximized at uniform.\n- `H` is additive for independent sources: `H(X, Y) = H(X) + H(Y)` if `X ⊥ Y`.\n- For dependent sources: `H(X, Y) = H(X) + H(Y|X)` (chain rule).\n\nShannon's source coding theorem makes the bound operational: any lossless code uses at least `H` bits per symbol on average, and there exist codes that approach `H + ε` for any `ε > 0`. Entropy is the fundamental compression limit."
+    },
+    {
+      "kind": "text",
+      "title": "The Boltzmann ↔ Shannon bridge",
+      "body": "Consider a thermodynamic system in the canonical ensemble. The Gibbs entropy formula:\n\n$$S = -k_B \\sum_s p_s \\log p_s$$\n\nThis is *literally* `k_B` times Shannon entropy of the microstate distribution. Setting aside the unit factor, **Gibbs entropy = Shannon entropy of the Boltzmann distribution.**\n\nThe equivalence becomes operational via:\n\n**Maximum entropy principle**: the equilibrium distribution `p(s) = exp(-βE_s)/Z` is the *unique* probability distribution that maximizes Shannon entropy subject to a constraint on the average energy. Lagrange multipliers give exactly that form. Inverse temperature `β` is the Lagrange multiplier; thermodynamic temperature emerges from the optimization.\n\n**Landauer's principle**: erasing one bit of information requires dissipating at least `k_B T ln 2` of heat to the environment. This was once controversial, now experimentally verified — physical bit-erasure has a thermodynamic cost. Information becomes physical.\n\n**Maxwell's demon**: Maxwell's thought experiment seemed to violate the second law by sorting molecules. The resolution: the demon must store information about each molecule, and erasing that storage (the demon has finite memory) generates exactly enough entropy to save the second law. The accounting works only if information has a thermodynamic cost — Landauer's principle.\n\nIn short: physical entropy and information entropy aren't analogies. They're the same quantity expressed in different units, operating on the same kinds of probability distributions."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ei_q1",
+        "kind": "multiple_choice",
+        "question": "What does the maximum entropy principle tell us about the Boltzmann distribution?",
+        "options": [
+          "It's the lowest-energy distribution",
+          "It's the highest-energy distribution",
+          "Among all probability distributions over microstates with a given average energy, the Boltzmann distribution has the highest Shannon entropy. Equivalently, it's the 'least informative' distribution consistent with the energy constraint — it assumes nothing beyond what's known",
+          "It's the only distribution with bounded variance"
+        ],
+        "correctIndex": 2,
+        "explanation": "Max-ent: maximize H[p] = -Σ p_s log p_s subject to (i) Σ p_s = 1 and (ii) Σ p_s E_s = ⟨E⟩ fixed. Lagrange multipliers give p(s) = exp(-βE_s)/Z. β is the multiplier on the energy constraint; it equals 1/(k_B T) at thermodynamic equilibrium. The principle is also the rigorous justification for many ML models — softmax, exponential families, energy-based models all emerge from max-ent under different constraints."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Cross-entropy and KL divergence",
+      "body": "Two derived quantities used everywhere in ML:\n\n**Cross-entropy** of a true distribution `p` against a model distribution `q`:\n\n$$H(p, q) = -\\sum_i p_i \\log q_i$$\n\nThis is the average number of bits you'd need to encode samples from `p` if your code is optimized for `q`. It's at least `H(p)` (Shannon entropy of `p`); equality iff `p = q`.\n\n**KL divergence** (relative entropy):\n\n$$D_{KL}(p || q) = H(p, q) - H(p) = \\sum_i p_i \\log \\frac{p_i}{q_i}$$\n\nThe extra cost from using a code optimized for `q` instead of `p`. Always `≥ 0`; equals zero iff `p = q`.\n\nBoth are foundational in ML:\n\n- **Cross-entropy loss** in classification minimizes `-Σ p_i log q_i` where `p` is the one-hot true label and `q` is the predicted softmax. This is *literally* maximum-likelihood estimation.\n- **KL regularization** in RLHF (PPO with KL penalty) penalizes the policy from straying too far from a reference. Originating in statistical mechanics: it's the free-energy difference between two ensembles.\n- **Variational inference**: minimize `D_KL(q(z) || p(z|x))` over `q`. Equivalent to minimizing the variational free energy. The ELBO (evidence lower bound) is a free-energy expression imported wholesale from statistical mechanics.\n- **Diffusion models**: training objective is a sum of KL divergences between forward-noising and learned-denoising distributions. The continuous-time formulation (score matching) becomes a stochastic differential equation — exactly the Langevin equation from statistical mechanics."
+    },
+    {
+      "kind": "text",
+      "title": "Information geometry",
+      "body": "If probability distributions form a space, what's its geometry? **Information geometry** answers: the natural metric is the **Fisher information matrix**:\n\n$$g_{ij}(\\theta) = \\mathbb{E}\\left[\\frac{\\partial \\log p_\\theta(x)}{\\partial \\theta_i} \\cdot \\frac{\\partial \\log p_\\theta(x)}{\\partial \\theta_j}\\right]$$\n\nThis tells you how 'far apart' two distributions parametrized by `θ` and `θ + dθ` are, in terms of how distinguishable they are by sampling.\n\nKey results:\n- KL divergence is the second-order expansion of distance in this metric: `D_KL(p_θ || p_{θ+dθ}) ≈ (1/2) dθ^T g(θ) dθ`.\n- **Natural gradient** in optimization is `∇_natural = g^(-1) ∇` — the gradient corrected for the geometry of the parameter space. Mathematically optimal for likelihood maximization; computationally expensive at scale.\n- **K-FAC and other approximations** (Martens & Grosse) approximate `g^(-1)` with block structure for large neural nets; second-order training methods derived from the Fisher metric.\n\nIn statistical-mechanics language, the Fisher information is also the susceptibility — how much an observable responds to a tiny change in a thermodynamic parameter. Same matrix, different names. Physicists computed it for decades before ML rediscovered it for variance reduction in policy gradients.\n\nThis is why physics intuition is portable to ML: probability distributions are the substrate, and the natural geometry on that substrate is the same wherever you find it."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ei_q2",
+        "kind": "multiple_choice",
+        "question": "Why is cross-entropy loss the right objective for classification?",
+        "options": [
+          "It's mathematically convenient",
+          "Minimizing cross-entropy H(p_data, p_model) is equivalent to maximum-likelihood estimation: it's the negative log-likelihood under the model, averaged over the data. The minimum is at p_model = p_data with value H(p_data) — and the gap above the minimum equals the KL divergence between data and model",
+          "It's bounded between 0 and 1",
+          "It works only for binary classification"
+        ],
+        "correctIndex": 1,
+        "explanation": "Cross-entropy loss = -Σ p_data(y) log p_model(y) is the negative log-likelihood when p_data is one-hot. Minimizing it = maximizing log-likelihood = best-fitting probability model in the maximum likelihood sense. The fact that the same quantity also bounds the optimal compression rate (Shannon's source coding theorem) is the deep reason it 'feels right' — you're minimizing the number of bits needed to communicate samples from the data distribution if your code is optimized to your model."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Boltzmann and Shannon meet in the same formula because they describe the same thing: how distributed a probability distribution is. Once you see the bridge, much of ML stops being arbitrary and starts feeling like applied statistical mechanics.\n\nKey takeaways:\n- Shannon entropy and Gibbs/Boltzmann entropy are the same quantity in different units\n- The Boltzmann distribution is the maximum-entropy distribution given an energy constraint\n- Cross-entropy loss = maximum-likelihood estimation = Shannon source-coding bound\n- KL divergence quantifies the cost of using the wrong distribution; appears in RLHF, VAEs, diffusion\n- Landauer's principle makes information physical: erasing a bit costs `k_B T ln 2` of heat\n- Information geometry (Fisher metric) gives natural gradients in ML; same as susceptibilities in physics\n\nThis is the last lesson in the physicist path. From [[mechanics-foundations]] through entropy ↔ information, you've covered the conceptual stack that connects classical mechanics to statistical inference and modern ML.\n\nKey throughline: physics and ML share substrate (probability distributions, optimization, conservation laws under symmetry, energy minimization). Physics intuition transfers."
+    }
+  ]
+}

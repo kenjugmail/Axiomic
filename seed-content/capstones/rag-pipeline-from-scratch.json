@@ -1,0 +1,161 @@
+{
+  "slug": "rag-pipeline-from-scratch",
+  "title": "RAG pipeline from scratch",
+  "summary": "Build a complete retrieval-augmented generation system end-to-end: chunking, embeddings, vector search, generation, and evaluation. A 6-week capstone for ML engineers who want to understand the full stack.",
+  "estimatedWeeks": 6,
+  "coverEmoji": "🔎",
+  "accentColor": "indigo",
+  "tags": ["rag", "retrieval", "embeddings", "production"],
+  "prerequisiteWikiSlugs": ["rag", "embeddings", "fine-tuning"],
+  "canonicalTier": "undergrad",
+  "contentIntro": "## What you'll build\n\nA working RAG system over a corpus of your choice — typically the documentation for a tool you use, a set of research papers, or a company knowledge base. By the end, you'll have:\n\n- A chunking + embedding pipeline that turns documents into a searchable vector index\n- A retriever with reranking\n- A generator with prompt assembly + citation\n- An evaluation harness that lets you compare system variants\n\nThe goal isn't to recreate LangChain. The goal is to build every piece yourself so you understand the failure modes of each.\n\n[[rag]] · [[embeddings]] · [[retrieval-evaluation]]",
+  "contentUndergrad": "## What you'll build\n\nA production-shaped RAG system, written by you. Five milestones, ~6 weeks, ~10-15 hours per week.\n\n## Format\n\nEach milestone has:\n- A deliverable (code in a GitHub repo + a writeup explaining your decisions)\n- A rubric the AI grader uses to score correctness, depth, and engineering judgment\n- Optional runnable tests for the algorithmic milestones\n\nWhen all five pass, your public artifact page goes live. Use it as portfolio; the signed transcript is independently verifiable.\n\n## Why this capstone\n\nRAG is the dominant pattern for grounding LLM outputs. Every production deployment uses some variant. The difference between a good and bad RAG system is not the LLM — it's the chunking, retrieval, reranking, and eval choices that build up around it. By the end of this capstone, you'll have made every one of those choices yourself.\n\n[[rag]] · [[embeddings]] · [[retrieval-evaluation]] · [[function-calling]]",
+  "contentGrad": "## What you'll build\n\nA RAG system with the production discipline of a serving deployment: chunking strategy validated against retrieval evals, hybrid retrieval (vector + lexical), cross-encoder reranking, faithfulness scoring, and ablation studies on every component.\n\nDefense (claim-thread Q&A on the artifact page) is part of the rubric. Be ready to argue why your chunking strategy beat the alternatives, what your retrieval-eval set looks like, and where your system still fails.\n\n[[rag]] · [[retrieval-evaluation]] · [[preference-optimization]]",
+  "milestones": [
+    {
+      "title": "Chunking + embedding store",
+      "description": "Build the document ingestion pipeline.\n\n- Pick a corpus (research papers, docs for a tool you use, etc.) — at least 50 documents\n- Chunk: write a chunker that splits on semantic boundaries (sections, paragraphs) with overlap. Compare 2-3 chunk sizes empirically.\n- Embed: pick an open embedding model (sentence-transformers/all-mpnet-base-v2 or BGE) and embed every chunk\n- Store: index the chunks in any vector store (FAISS, Chroma, pgvector, or just numpy + cosine similarity)\n\nIn your writeup: explain *why* you picked your chunk size. Show a small ablation: how does retrieval quality change as chunk size varies? You'll need a small eval set (10-20 questions with expected chunks) to measure this — building that set is part of the milestone.",
+      "rubric": {
+        "criteria": [
+          {
+            "id": "correctness",
+            "weight": 0.5,
+            "description": "Chunking + embedding + storage pipeline works end-to-end on the chosen corpus.",
+            "aiPrompt": "Score whether the artifacts demonstrate a working ingestion pipeline: chunking with overlap, embedding via a real model, indexing in a vector store. Does the writeup show an actual run on a real corpus?"
+          },
+          {
+            "id": "ablation",
+            "weight": 0.3,
+            "description": "Chunk-size ablation with a small evaluation set.",
+            "aiPrompt": "Score the rigor of the chunk-size comparison. Did the learner build an eval set (even small) and measure how chunk size affects retrieval? Did they reach a defended conclusion?"
+          },
+          {
+            "id": "writeup",
+            "weight": 0.2,
+            "description": "Explanation of design choices.",
+            "aiPrompt": "Score the writeup's depth on chunking strategy and embedding model choice."
+          }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 8
+    },
+    {
+      "title": "Retrieval (vector search + reranker)",
+      "description": "Build a two-stage retrieval pipeline.\n\n- **Stage 1**: vector search returns top-50 candidates by cosine similarity\n- **Stage 2**: cross-encoder rerank the top-50 down to top-5\n\nUse any open cross-encoder (BAAI/bge-reranker-base, ms-marco-MiniLM, or Cohere Rerank if you have an API key). Build a small eval set of (query, expected-relevant-chunks) pairs and measure:\n\n- Hit rate @ top-5 with vector-only\n- Hit rate @ top-5 with vector + rerank\n- MRR for both\n\nIn your writeup: report the delta. Reranking should give a measurable lift; quantify it. If it doesn't help, explain why (small corpus, queries already match embeddings well).",
+      "rubric": {
+        "criteria": [
+          {
+            "id": "correctness",
+            "weight": 0.5,
+            "description": "Two-stage retrieval works end-to-end with a real cross-encoder reranker.",
+            "aiPrompt": "Score whether the retrieval pipeline correctly implements both stages — vector search + cross-encoder reranking — and produces sensible results on the chosen corpus."
+          },
+          {
+            "id": "evaluation",
+            "weight": 0.3,
+            "description": "Eval set + retrieval metrics (hit rate, MRR) reported.",
+            "aiPrompt": "Score the rigor of the retrieval evaluation. Are hit rate and MRR computed on a real eval set? Is the vector-only vs. vector+rerank delta quantified?"
+          },
+          {
+            "id": "writeup",
+            "weight": 0.2,
+            "description": "Analysis of when reranking helps and when it doesn't.",
+            "aiPrompt": "Score the writeup's depth on the role of reranking. Does the learner explain *why* the cross-encoder helps (or doesn't) for their corpus and query distribution?"
+          }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "title": "Generation with citations",
+      "description": "Wire the retriever to an LLM.\n\n- Assemble a prompt: `[system prompt with citation instruction] + [retrieved chunks with chunk IDs] + [user query]`\n- Generate with any LLM (open: LLaMA-3-8B; API: GPT-4o-mini or Claude Haiku)\n- Parse the model's output to extract citations and verify they reference real chunk IDs\n- If a generated answer cites chunks that weren't in the retrieved set, flag it as a faithfulness failure\n\nIn your writeup: show 5-10 example queries with the assembled prompt, the model's answer, and the citation correctness check. At least one should be a failure case (the model citing wrongly or hallucinating beyond the chunks). Discuss what you'd do to mitigate.",
+      "rubric": {
+        "criteria": [
+          {
+            "id": "correctness",
+            "weight": 0.4,
+            "description": "Generation pipeline assembles prompts correctly and verifies citations.",
+            "aiPrompt": "Score whether the generation pipeline correctly assembles retrieved chunks into a prompt, generates answers, and verifies citations against the retrieved set."
+          },
+          {
+            "id": "failure_analysis",
+            "weight": 0.4,
+            "description": "Demonstrates and analyzes failure modes (hallucination, mis-citation).",
+            "aiPrompt": "Score the depth of the failure-mode analysis. Does the learner show real failure cases? Do they propose mitigations (better retrieval, prompt changes, smaller chunks)?"
+          },
+          {
+            "id": "writeup",
+            "weight": 0.2,
+            "description": "Quality of the example walkthrough.",
+            "aiPrompt": "Score the writeup's clarity on showing concrete example queries through the pipeline."
+          }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "title": "End-to-end evaluation harness",
+      "description": "Build a harness that scores the entire system on:\n\n- **Faithfulness**: does the generated answer say only things supported by retrieved chunks? (LLM-as-judge or RAGAS-style)\n- **Answer relevance**: does the answer address the query? (LLM-as-judge)\n- **Context recall**: did retrieval surface enough context to answer correctly? (LLM-as-judge with ground truth)\n\nUse a framework like RAGAS or roll your own. Run it on at least 30 queries.\n\nIn your writeup: present the metrics for the system as a whole + an ablation showing how each component contributes. Specifically, what happens if you skip the reranker? What happens if you halve the number of retrieved chunks?",
+      "rubric": {
+        "criteria": [
+          {
+            "id": "harness_correctness",
+            "weight": 0.4,
+            "description": "End-to-end eval harness runs and produces sensible metrics.",
+            "aiPrompt": "Score whether the eval harness correctly implements faithfulness / answer-relevance / context-recall metrics and runs on a non-trivial test set."
+          },
+          {
+            "id": "ablation",
+            "weight": 0.4,
+            "description": "Ablation study of system components.",
+            "aiPrompt": "Score the rigor of the component ablation. Are at least two ablations (e.g., no rerank, fewer chunks, different embed model) reported? Are the deltas quantified?"
+          },
+          {
+            "id": "writeup",
+            "weight": 0.2,
+            "description": "Discussion of metric interpretation.",
+            "aiPrompt": "Score the writeup's depth on what each metric measures and where the system is bottlenecked."
+          }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 8
+    },
+    {
+      "title": "Production write-up + deployment notes",
+      "description": "Document the system as if you were handing it off to another engineer.\n\nIn your final writeup, cover:\n\n- **Architecture diagram**: chunking → embedding → vector store → retrieval → reranking → generation → eval\n- **Resource footprint**: how much memory does the index take? How long is the typical query latency? How does it scale with corpus size?\n- **Failure modes you found**: what fails reliably? What's brittle?\n- **What you'd change**: if you had another month, what would you improve, and why\n- **Honest limitations**: what kinds of queries does the system handle poorly?\n\nThis is the milestone where you demonstrate engineering judgment. The grader scores on completeness and honesty more than on numerical results.",
+      "rubric": {
+        "criteria": [
+          {
+            "id": "completeness",
+            "weight": 0.4,
+            "description": "Covers architecture, resources, failure modes, and limitations.",
+            "aiPrompt": "Score whether the writeup covers all required sections: architecture, resource footprint, failure modes, proposed improvements, and honest limitations."
+          },
+          {
+            "id": "judgment",
+            "weight": 0.4,
+            "description": "Demonstrates engineering judgment.",
+            "aiPrompt": "Score the depth of engineering judgment shown. Does the learner identify real failure modes? Do their proposed improvements show understanding of the system's bottlenecks?"
+          },
+          {
+            "id": "honesty",
+            "weight": 0.2,
+            "description": "Acknowledges limitations.",
+            "aiPrompt": "Score whether the writeup honestly describes what the system does poorly, not just what works."
+          }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 5
+    }
+  ]
+}

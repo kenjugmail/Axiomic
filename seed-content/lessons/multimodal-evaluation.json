@@ -1,0 +1,45 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why multimodal eval is hard",
+      "body": "Single-modality eval has well-trodden paths: ImageNet for image classification, GLUE/MMLU for language, WER for speech. Multimodal eval is messier because:\n\n1. **There's often no single correct answer.** 'What's happening in this image?' has many valid descriptions.\n2. **Failure modes are subtle.** A model that hallucinates objects passes most automatic metrics. A model that's correctly grounded but verbose loses on length-sensitive scores.\n3. **Benchmarks contaminate fast.** VQAv2, COCO captioning — both are old enough that frontier models have likely seen them in training.\n4. **Modality-specific failures don't generalize.** Strong on VQA doesn't mean strong on document reading; strong on natural images doesn't mean strong on medical or scientific imagery.\n\nThis lesson covers the standard benchmark suites, where they fail, and how production teams supplement them with custom evaluations."
+    },
+    {
+      "kind": "text",
+      "title": "The benchmark suite",
+      "body": "**Standard benchmarks for VLMs**:\n\n- **VQAv2**: open-ended visual question answering. ~250K image-question-answer triples. Image of dog → 'is the dog brown?' → 'yes'. Saturated; modern VLMs hit 85%+.\n- **GQA**: compositional VQA (counting, relationships). Harder than VQAv2; less saturated.\n- **TextVQA**: questions about text in images. Tests OCR + reasoning.\n- **DocVQA / ChartQA**: document understanding. Critical for enterprise use cases.\n- **MMMU**: multi-discipline understanding (medical, business, art). Designed to be uncontaminated; current frontier models around 70-80%.\n- **MathVista**: math problems with visual context. Tests visual math reasoning.\n- **MM-Vet**: 16 capability categories (recognition, OCR, knowledge, math, spatial). Capability matrix rather than aggregate score.\n- **Hallucination benchmarks**: POPE (Polling-based Object Probing Evaluation) — does the model hallucinate non-existent objects? Critical safety metric.\n\nFor image generation:\n- **FID / KID**: distance between generated and real image distributions. Standard but blunt.\n- **CLIP score**: how well the generated image matches the prompt (CLIP embedding similarity).\n- **Human eval**: pairwise preference. Slow + expensive; the only way to measure real quality.\n\nFor speech:\n- **WER (word error rate)**: standard for ASR.\n- **MOS (mean opinion score)**: standard for TTS naturalness; requires human annotators."
+    },
+    {
+      "kind": "text",
+      "title": "Hallucination — the dominant failure mode",
+      "body": "VLMs hallucinate. They describe objects that aren't in the image, count things that aren't there, attribute properties incorrectly. **Hallucination is the most important practical failure mode for multimodal models in production.**\n\nWhy it happens:\n- Training data is web-scraped; captions often contain content not visible in the image (context, opinions, mentions of objects elsewhere). The model learns to generate similar 'plausible context' even when ungrounded.\n- LLMs are pretrained to maximize fluency; visual grounding is a soft constraint added later via fine-tuning.\n- Beam search / temperature sampling can amplify confident-but-wrong assertions.\n\n**Detection methods**:\n\n- **POPE**: ask 'is there a {object} in the image?' for objects in and not in the image. Compute precision/recall.\n- **CHAIR**: count hallucinated objects in generated captions vs ground-truth annotations.\n- **LLM-as-judge**: separate LLM compares generation to image; flags inconsistencies.\n- **Object-grounded validation**: run a separate object detector; cross-reference with the VLM's claims.\n\n**Mitigation**:\n- Better training data (clean captions; remove context-only mentions).\n- RLHF on hallucination preferences.\n- Constrained decoding (e.g., RAG-style retrieval before generation).\n- Smaller models are sometimes safer (less confident; harder to hallucinate fluently)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mm_eval_q1",
+        "kind": "multiple_choice",
+        "question": "Why does benchmark contamination matter for multimodal evaluation specifically?",
+        "options": [
+          "Multimodal benchmarks are easier to leak",
+          "Most multimodal benchmarks (VQAv2, COCO) are public and on the web. Models trained on web-scraped image-text data have likely seen the test images and the answers. Reported benchmark scores conflate generalization ability with memorization. Newer benchmarks (MMMU, MM-Vet, EgoSchema) are designed with contamination resistance — but they too will leak over time. The half-life of a clean benchmark is now measured in months",
+          "VLMs don't use training data",
+          "Contamination only affects language benchmarks"
+        ],
+        "correctIndex": 1,
+        "explanation": "Web-scale data + public benchmarks = inevitable leakage. A frontier VLM training on 5B+ images has almost certainly seen VQAv2's images during pretraining. Scores on contaminated benchmarks measure memorization + generalization, not generalization alone. The whole field has moved toward private holdouts (vendor-specific evals) and frequently-refreshed public benchmarks. Treat all reported benchmark numbers with skepticism; trust your own held-out evaluation set."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Production eval — beyond benchmarks",
+      "body": "Production multimodal apps need more than aggregate benchmark scores. Three additional layers:\n\n**1. Custom held-out set.** 100-500 examples curated for your specific task. Examples that exercise the failure modes you care about — your customers' edge cases, regulatory requirements, brand-specific rules. Run before every model update; track score over time.\n\n**2. Online evaluation.** Sample 1-5% of production traffic; score with an LLM-as-judge or human review. Detects drift, deployment issues, regressions that don't show up offline.\n\n**3. Adversarial probing.** Specific test cases for known failure modes:\n- Hallucination probes (is there a non-existent object?).\n- Refusal calibration (refuses harmful queries; doesn't over-refuse safe queries).\n- Robustness (small image perturbations don't change answers; rotated/cropped images still work).\n- Multi-image reasoning (compares two images; counts across a sequence).\n\n**Metric design tips**:\n- **Anti-cheating**: include 'unanswerable' questions to measure willingness-to-decline. Frontier models often answer everything; a strong VLM should refuse when the image doesn't support a claim.\n- **Capability decomposition**: measure separately (perception, OCR, knowledge, reasoning, generation) rather than one score. A 70% aggregate can hide a 90% perception + 30% reasoning split.\n- **Length normalization**: VLMs reward verbose outputs on automatic metrics. Length-normalize or use exact-match scoring on short answers."
+    },
+    {
+      "kind": "text",
+      "title": "The end of the path",
+      "body": "Multimodal models are the natural extension of LLMs to other modalities. The architecture story is largely settled (transformers + attention + appropriate encoders); the eval story is much messier.\n\nFor a team deploying multimodal: **measure your specific use case**. Public benchmarks are useful for tracking the field, but they're not your evaluation. Build a custom held-out set, log online eval, probe for hallucination explicitly, and treat reported leaderboard scores with skepticism.\n\nThe full multimodal toolkit you've built in this path:\n\n- **Image foundations** + **Vision Transformers**: the substrate.\n- **Contrastive learning** + **CLIP**: the joint embedding space.\n- **Diffusion** + **text-to-image**: image generation.\n- **Audio + speech**: the third modality.\n- **Multimodal fusion**: how to combine modalities in different architectures.\n- **Multimodal evaluation**: how to measure all of this.\n\nThis was the last lesson in the multimodal-engineer path. From [[image-foundations]] through evaluation, you've covered the full multimodal stack of modern ML.\n\nKey takeaways:\n- Standard benchmarks (VQAv2, COCO, MMMU) are useful but contaminated\n- Hallucination is the dominant practical failure mode; measure with POPE/CHAIR\n- Production needs: custom held-out + online eval + adversarial probing\n- Decompose capabilities; don't trust aggregate scores\n- The field is converging architecturally; eval is where the pain is"
+    }
+  ]
+}

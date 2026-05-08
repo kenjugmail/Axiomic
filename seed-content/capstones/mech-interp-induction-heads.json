@@ -1,0 +1,72 @@
+{
+  "slug": "mech-interp-induction-heads",
+  "title": "Mechanistic interpretability: induction heads",
+  "summary": "Reverse-engineer the actual circuit in a small transformer that implements in-context learning. By the end you'll have an activation-patching pipeline, a circuit identification, and a write-up with falsifiable ablation results.",
+  "estimatedWeeks": 5,
+  "coverEmoji": "🔬",
+  "accentColor": "violet",
+  "tags": ["mechanistic-interpretability", "research"],
+  "prerequisiteWikiSlugs": ["mechanistic-interpretability", "induction-heads", "multi-head-attention"],
+  "canonicalTier": "undergrad",
+  "contentIntro": "## What you'll build\n\nA mech-interp project at researcher quality: identify the induction circuit in a small open transformer, validate it with activation patching, and write up the result with the rigor of a published paper.\n\nFour milestones, ~5 weeks. By the end you'll have:\n\n- A working TransformerLens-based analysis pipeline\n- Identification of the previous-token + induction head pair in a 2-layer transformer\n- Causal-mediation evidence (activation patching) showing the heads are responsible\n- A write-up with falsifiable ablation claims\n\n[[mechanistic-interpretability]] · [[induction-heads]] · [[multi-head-attention]]",
+  "contentUndergrad": "## What you'll build\n\nFour milestones, each producing a notebook + writeup. By the end your artifact page is a research-quality reverse-engineering of a small transformer's induction circuit.\n\n## Format\n\nUse TransformerLens (the standard mech-interp library) and an open small model (Pythia-160M, GPT-2 small, or a model you train yourself in milestone 1). Single GPU is plenty.\n\n## Why this capstone\n\nMech-interp is one of the most credible research areas in AI safety + alignment. It's also a slow-publication area where one well-validated finding makes a real contribution. This capstone walks you through the canonical example (induction heads) with full methodological depth — so you can read frontier interp papers + design your own follow-ups.\n\n[[mechanistic-interpretability]] · [[induction-heads]]",
+  "contentGrad": "## What you'll build\n\nA reproduction of Olsson et al. 2022's induction-heads result on a 2-layer model of your own choosing, with full methodological discipline. Defense covers: why you trust the evidence, what alternative interpretations exist, what the result generalizes to.",
+  "milestones": [
+    {
+      "title": "Pick (or train) a 2-layer transformer + set up TransformerLens",
+      "description": "Either: (a) load a small open model — Pythia-160M, GPT-2 small — that already shows induction-like behavior, or (b) train your own 2-layer transformer on a copy task or simple text dataset.\n\nVerify the model exhibits the induction pattern: prompt with `\"A B ... A\"` and confirm the model assigns higher probability to `B` next than to alternatives. This is your *behavior* — the thing you'll explain mechanically.\n\nBuild a TransformerLens-compatible loader for your model. Run a small evaluation set (50-100 prompts) to establish baseline behavior.\n\nWriteup: explain why you picked this model, show the behavioral evaluation, and demonstrate your TransformerLens pipeline working on a single example.",
+      "rubric": {
+        "criteria": [
+          { "id": "model_choice", "weight": 0.3, "description": "Reasonable model + behavior verified.", "aiPrompt": "Score whether the chosen model exhibits the induction behavior and the behavioral baseline is established." },
+          { "id": "tooling", "weight": 0.4, "description": "TransformerLens pipeline works.", "aiPrompt": "Score whether the TransformerLens setup is working: can the learner extract attention patterns, intermediate activations, and run interventions?" },
+          { "id": "writeup", "weight": 0.3, "description": "Setup writeup is reproducible.", "aiPrompt": "Score the writeup's clarity in explaining the setup choice and providing reproducible code." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 8
+    },
+    {
+      "title": "Identify previous-token heads in layer L",
+      "description": "Find the heads in your model's first layer (layer L) that implement 'attend to the previous token.'\n\nMethodology:\n- For each head, compute the attention pattern on a sample of inputs\n- Score each head by how much weight it puts on position-1 (the previous token) on average\n- Identify the head(s) with the strongest previous-token pattern\n\nVisualize the attention patterns of your top candidates as heatmaps. The pattern should be a diagonal shifted by one — clearly distinct from generic local-attention heads.\n\nWriteup: show the candidate heads, the heatmaps, and your scoring method. Be honest about ambiguity — if multiple heads have weak previous-token patterns rather than one having a strong one, say so.",
+      "rubric": {
+        "criteria": [
+          { "id": "methodology", "weight": 0.5, "description": "Scoring approach is principled.", "aiPrompt": "Score whether the previous-token-head identification is methodologically sound. Is the scoring metric defensible? Are multiple heads compared rather than just confirming a hypothesis?" },
+          { "id": "visualization", "weight": 0.3, "description": "Attention heatmaps are clear.", "aiPrompt": "Score the quality of the attention pattern visualizations." },
+          { "id": "honesty", "weight": 0.2, "description": "Acknowledges ambiguity.", "aiPrompt": "Score whether the writeup honestly characterizes the strength of the evidence." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 8
+    },
+    {
+      "title": "Identify induction heads in layer L+1",
+      "description": "Find the heads in layer L+1 that compose with the previous-token heads to implement induction.\n\nMethodology:\n- For each head in layer L+1, score its attention pattern on inputs of the form `\"A B ... A\"`\n- The head should attend from the second `A` *back to* the first `A` (the matching token)\n- Critically, it should attend to position `i` such that token at position `i` matches the current token — this is content-based attention\n\nVisualize the attention patterns. Confirm at least one head shows the matching-token pattern.\n\nWriteup: show the identified head, characterize how strongly it implements induction, and discuss the composition with the previous-token head from milestone 2.",
+      "rubric": {
+        "criteria": [
+          { "id": "methodology", "weight": 0.5, "description": "Induction-head identification.", "aiPrompt": "Score whether the induction head is correctly identified by content-based attention to matching tokens, not just generic patterns." },
+          { "id": "composition", "weight": 0.3, "description": "Discussion of cross-layer composition.", "aiPrompt": "Score whether the writeup explains how the L+1 induction head composes with the L previous-token head to produce the observed behavior." },
+          { "id": "writeup", "weight": 0.2, "description": "Visualization quality.", "aiPrompt": "Score the clarity of the writeup and figures." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 9
+    },
+    {
+      "title": "Activation patching + falsifiable ablation",
+      "description": "Run activation patching to causally validate the circuit:\n\n- For each candidate head (previous-token + induction), patch its activations from a *different* input. If the head is causally responsible for induction, patching should disrupt the behavior.\n- Score how much the model's induction probability degrades when each head is patched.\n- The two heads identified in milestones 2 and 3 should be the highest-impact heads.\n\nThen do explicit ablation: zero out (or noise out) the candidate heads and confirm the induction behavior breaks.\n\nIn your writeup, present a falsifiable claim: 'Heads X and Y are causally responsible for induction in this model. Ablating either removes the behavior.' Show the supporting evidence + acknowledge the alternative interpretations (could other heads do the same thing redundantly?).\n\nThis is the milestone where engineering meets research. The grader looks for methodological discipline, not just 'we found a circuit.'",
+      "rubric": {
+        "criteria": [
+          { "id": "patching", "weight": 0.4, "description": "Activation patching done correctly.", "aiPrompt": "Score whether activation patching is set up correctly: appropriate replacement source, proper measurement of the downstream effect, full sweep over candidate heads." },
+          { "id": "ablation", "weight": 0.3, "description": "Ablation experiments confirm causality.", "aiPrompt": "Score the ablation evidence: do the experiments support a causal claim? Are alternative interpretations addressed?" },
+          { "id": "rigor", "weight": 0.3, "description": "Falsifiable claim + acknowledgment of limitations.", "aiPrompt": "Score the rigor of the final claim. Is it falsifiable? Are limitations acknowledged? Is the methodology defensible?" }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 10
+    }
+  ]
+}

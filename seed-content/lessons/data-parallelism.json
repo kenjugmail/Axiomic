@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why parallelize across GPUs",
+      "body": "A 7B-parameter model trains in bf16 + Adam at ~16 bytes per parameter — 112 GB of weights+grads+optimizer state. Plus activations. One H100 (80 GB) doesn't fit it. Either the model has to shrink, the precision has to drop, or you go multi-GPU.\n\n**Data parallelism (DP)** is the simplest answer: replicate the model on every GPU, give each GPU a different slice of the batch, average the gradients across GPUs after every step. Same training dynamics as a single GPU with a larger effective batch size, just spread across hardware.\n\nThe naive version is `nn.DataParallel`. It works on a single host but is slow because the master GPU bottlenecks gradient aggregation. Modern training uses `DistributedDataParallel` (DDP) — every GPU runs an independent process, gradients are averaged via NCCL all-reduce, no master.\n\nThis lesson is the DDP recipe end-to-end."
+    },
+    {
+      "kind": "text",
+      "title": "The DDP step, in pseudocode",
+      "body": "```\nfor batch in dataloader:\n    # 1. Each GPU gets a different shard of the batch.\n    local_batch = batch[rank :: world_size]\n\n    # 2. Forward pass in parallel — every GPU computes its own loss.\n    loss = model(local_batch)\n\n    # 3. Backward pass — each GPU computes its own gradients.\n    loss.backward()\n\n    # 4. All-reduce: average gradients across all GPUs.\n    #    DDP fires this automatically per parameter, overlapped with backward.\n    #    After all-reduce, every GPU has identical gradients.\n\n    # 5. Optimizer step in parallel — every GPU updates its weights identically.\n    optimizer.step()\n    optimizer.zero_grad()\n```\n\nKey property: after step 4, every GPU's gradients are byte-identical (mod floating-point order-of-summation). After step 5, every GPU's weights are byte-identical. The model stays in sync without ever materializing on a single device.\n\nDDP overlaps the all-reduce with the backward pass. As soon as a layer's gradient is computed, its all-reduce kicks off — while the next layer's backward is still running. This hides ~80% of the communication cost behind compute on a well-tuned setup."
+    },
+    {
+      "kind": "text",
+      "title": "All-reduce: ring vs tree",
+      "body": "All-reduce is the workhorse collective — every GPU has a tensor; every GPU ends up with the elementwise sum (or mean) of all of them. NCCL implements it efficiently.\n\n**Ring all-reduce**: GPUs arranged in a ring. The reduce-scatter phase circulates partial sums around the ring; the all-gather phase distributes the result. Each GPU sends roughly `2(N-1)/N · tensor_size` bytes. Bandwidth-optimal for large messages.\n\n**Tree all-reduce**: GPUs arranged as a tree. Reduce up to root, broadcast down. Latency-optimal for small messages.\n\nNCCL picks dynamically. The bandwidth bound: a ring all-reduce of 1 GB across 8 H100s on NVLink (~900 GB/s per link) takes ~2 ms theoretically. In practice you get 3-5 ms with overhead. This sets a floor on per-step communication cost.\n\n**Cross-host scaling** is where it gets tough. NVLink within a host: ~900 GB/s. Inter-host network (InfiniBand): ~25-50 GB/s — 20× slower. Multi-host DDP runs are bandwidth-constrained on inter-host links unless you use **gradient accumulation** (do K micro-batches per all-reduce, paying the comm cost once per K steps)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dp_q1",
+        "kind": "multiple_choice",
+        "question": "Why is `nn.DataParallel` slower than `DistributedDataParallel` (DDP) on the same hardware?",
+        "options": [
+          "DDP uses faster GPU kernels",
+          "nn.DataParallel does master-worker gradient aggregation through Python — the master GPU receives all gradients, sums them, and broadcasts back. This serializes communication and bottlenecks on the master. DDP runs an independent process per GPU and uses NCCL all-reduce, which is symmetric and overlaps with backward",
+          "DDP uses fewer parameters",
+          "nn.DataParallel only works on CPUs"
+        ],
+        "correctIndex": 1,
+        "explanation": "nn.DataParallel is single-process multi-GPU. The Python GIL plus master-worker comm pattern bottlenecks on a single GPU and a single process. DDP is one-process-per-GPU; NCCL handles symmetric collectives in C++ outside the GIL; it overlaps gradient comm with backward computation. Modern PyTorch deprecates DataParallel in favor of DDP for any non-trivial workload."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Effective batch size and convergence",
+      "body": "DDP scales the effective batch size by `world_size`. With per-GPU batch 8 and 64 GPUs, the effective batch is 512. Two convergence implications:\n\n**Linear LR scaling rule** (Goyal et al. 2017): for SGD, scaling batch size by K should be paired with scaling learning rate by K to maintain training dynamics. With Adam, the scaling is sub-linear (often `√K`) but the principle holds — batch size and LR are coupled.\n\n**LR warmup** is critical at large batch sizes. The first ~1000 steps with a cold optimizer are unstable; ramping LR linearly from 0 over those steps avoids gradient explosions. Most modern recipes use 1-5% of total steps as warmup.\n\n**Gradient noise scale** (McCandlish et al. 2018): batches above the critical batch size give diminishing returns — you're paying for compute that isn't accelerating training. The critical batch size grows during training (early loss is noisy → small batches OK; late loss has small gradient noise → bigger batches help). For LLMs, the critical batch size at full convergence is millions of tokens; you genuinely benefit from large-batch training.\n\nPractical rule: scale batch size by world_size; scale LR sub-linearly with batch (`√K` for Adam); warm up over 1-5% of steps; if loss explodes early, the warmup is too aggressive."
+    },
+    {
+      "kind": "text",
+      "title": "When DP isn't enough",
+      "body": "DP replicates the entire model on every GPU. Three scenarios where it breaks:\n\n**1. Model doesn't fit on one GPU.** A 13B model in bf16 with Adam needs ~208 GB just for weights+grads+optimizer. DP doesn't help — every GPU still needs the full ~208 GB. You need to *shard* the state, not replicate it. → **FSDP / ZeRO-3** (next lesson).\n\n**2. Activations dominate memory.** Long-context training (8K, 32K, 128K) generates massive activation memory that scales with seq_len. Even a 7B model can OOM at 32K context. → **Sequence parallelism**, **gradient checkpointing**.\n\n**3. Communication cost dominates.** Multi-host DDP with InfiniBand interconnect can spend 50%+ of the step time in all-reduce. → **Gradient accumulation** (do K micro-batches per all-reduce), or **tensor parallelism** within a host (Megatron-style).\n\nEach of these gets its own treatment in the model-parallelism lesson. The big picture: DP is the right answer when the model fits and comm is cheap. Past those bounds, you mix DP with other parallelism strategies — usually DP across hosts and TP within a host."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dp_q2",
+        "kind": "multiple_choice",
+        "question": "You're scaling DDP from 8 GPUs on one node to 64 GPUs across 8 nodes. The per-step time gets worse, not better, despite 8× the compute. What's the most likely cause?",
+        "options": [
+          "The model is too large",
+          "Inter-host bandwidth (typically 25-50 GB/s on InfiniBand) is much lower than intra-host NVLink (~900 GB/s). All-reduce is now bottlenecked on the network, and the comm cost no longer overlaps with compute. Either reduce comm volume (gradient accumulation, gradient compression) or use a hierarchical reduction strategy",
+          "DDP doesn't support multi-node training",
+          "Adam optimizer doesn't scale to many GPUs"
+        ],
+        "correctIndex": 1,
+        "explanation": "This is the canonical multi-host scaling pain. NVLink intra-host bandwidth is 20× the inter-host network bandwidth. A model that fully overlaps comm + compute on one host suddenly waits on the network across hosts. Mitigations: gradient accumulation (fewer all-reduces per epoch), gradient compression (FP8 grads, top-k sparsification), hierarchical reductions (reduce within host first, then across), and TP within host + DP across host. ZeRO-1 only shards optimizer state and reduces communication footprint compared to ZeRO-3."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "DDP is the floor. Every modern training setup starts here and adds parallelism strategies on top.\n\nNext: [[fsdp]] — sharding the model state across GPUs when DP can't fit it.\n\nKey takeaways:\n- DDP: replicate model on each GPU, all-reduce gradients, identical weights at every step\n- NCCL ring all-reduce is bandwidth-optimal for large gradients; tree for small\n- DDP overlaps gradient comm with backward — hides ~80% of comm cost on well-tuned setups\n- Effective batch size = per-GPU batch × world_size; scale LR sub-linearly\n- DP fails when the model is too big (use FSDP), activations are too big (use grad checkpoint), or comm is too slow (use grad accumulation + TP)"
+    }
+  ]
+}

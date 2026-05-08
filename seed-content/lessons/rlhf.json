@@ -1,0 +1,61 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why we need RLHF",
+      "body": "After pretraining and supervised fine-tuning (SFT), the model can complete text. It can't (yet) reliably *be helpful* — give the response a user actually wanted, refuse harmful requests, follow instructions consistently. Why?\n\nSFT teaches by demonstration: 'when given input X, produce output Y.' But for tasks like 'give a balanced answer to this controversial question' or 'be helpful but not sycophantic,' we don't have a single canonical Y. We have a sense of which responses are *better* than others.\n\n**RLHF** (Reinforcement Learning from Human Feedback) bridges this gap. Humans provide *preferences* between candidate responses — 'A is better than B' — and the model is trained to produce responses humans would prefer.\n\nThis is what turned GPT-3 (impressive but unreliable) into ChatGPT (usable for chat). The same recipe applies to LLaMA-Chat, Claude, Gemini."
+    },
+    {
+      "kind": "text",
+      "title": "The 3-stage pipeline",
+      "body": "Classical RLHF has three stages:\n\n**Stage 1: SFT.** Fine-tune the pretrained base on a curated dataset of high-quality (instruction, response) pairs. This teaches the model to produce responses *shaped* like good outputs (paragraph format, plausible reasoning, etc.). Same loss as pretraining (next-token cross-entropy) but on better data.\n\n**Stage 2: Reward model training.** Collect pairs of model outputs `(y_chosen, y_rejected)` for the same prompt. Humans label which is better. Train a *reward model* — usually the SFT model with a scalar head — to predict which response humans prefer. The reward model takes (prompt, response) and outputs a scalar.\n\n**Stage 3: Policy optimization.** Use reinforcement learning (typically PPO) to optimize the SFT model to maximize reward-model scores, while staying close (KL divergence) to the SFT model so it doesn't drift into reward-hacking nonsense.\n\nThe critical thing: **human preferences are NOT the reward**. The reward model *predicts* preferences. The policy optimizes against the reward model. The two layers are different — and reward hacking is exactly when the policy finds responses the reward model loves but humans don't."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "rlhf_q1",
+        "kind": "multiple_choice",
+        "question": "In RLHF, what's the relationship between human preferences and the reward signal?",
+        "options": [
+          "Human preferences ARE the reward — the model directly optimizes against per-example human votes",
+          "Human preferences are training data for a reward model. The policy optimizes against the reward model's predictions. Reward hacking is when the policy diverges from human intent because the reward model is imperfect",
+          "Human preferences only matter for SFT, not for RL",
+          "The reward model is human-written, not learned"
+        ],
+        "correctIndex": 1,
+        "explanation": "This is the most-confused part of RLHF. Humans label preferences (offline). A reward model is trained on those labels. The policy then optimizes against the *reward model* (online). Reward hacking — where the policy finds outputs the reward model loves but humans dislike — is a property of the *reward model* diverging from human intent, not of the preferences being wrong."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "DPO — direct preference optimization",
+      "body": "PPO is heavy: you need an active reward model + a value model + KL regularization to a reference policy. Memory and complexity are real costs.\n\n**DPO** (Direct Preference Optimization, Rafailov et al. 2023) sidesteps the explicit reward model. Given preference pairs `(y_chosen, y_rejected)`, train the policy directly to assign higher likelihood to chosen vs rejected, with a regularizer toward the reference (SFT) policy.\n\n$$\\mathcal{L}_{DPO} = -\\log \\sigma\\left(\\beta \\log \\frac{\\pi(y_w | x)}{\\pi_{ref}(y_w | x)} - \\beta \\log \\frac{\\pi(y_l | x)}{\\pi_{ref}(y_l | x)}\\right)$$\n\nThe loss is differentiable, simpler to implement, and doesn't need an active reward model. You just need preference pairs and a reference policy.\n\nDPO has become the practical default for many open-model post-training pipelines. The original PPO recipe is still used at frontier labs because it allows online sampling from the policy during training, which DPO doesn't. For most teams: start with DPO, escalate to PPO if you have the infrastructure and a reason."
+    },
+    {
+      "kind": "text",
+      "title": "What RLHF doesn't fix",
+      "body": "RLHF reliably improves response style, instruction-following, and refusal behavior. It doesn't:\n\n- **Fix factuality.** RLHF can teach the model to *sound* confident, but it can't add knowledge. Hallucinations persist, sometimes get worse (model becomes more confident in wrong answers).\n- **Add reasoning.** Reasoning capability comes from pretraining + SFT. RLHF can shape *when* the model uses reasoning (e.g., chain-of-thought style) but doesn't improve underlying capability much.\n- **Eliminate jailbreaks.** RLHF makes refusal behavior more robust on the inputs labeled 'should refuse.' Adversarial prompts not seen in training often slip through.\n\nThe other big concern: **the human preferences are biased**. Annotators have their own preferences, often biased toward longer, more confident-sounding answers. Models trained with RLHF often become more verbose and more sycophantic — both real artifacts of the human preference signal."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "rlhf_q2",
+        "kind": "multiple_choice",
+        "question": "Does RLHF teach a model new factual knowledge?",
+        "options": [
+          "Yes — RLHF lets the model absorb new facts from human feedback",
+          "No — RLHF shapes behavior (response style, refusal, instruction-following) but doesn't add facts. Factual knowledge comes from pretraining; hallucinations often persist or get worse after RLHF",
+          "Only for facts within the SFT dataset",
+          "Only if PPO is used (not DPO)"
+        ],
+        "correctIndex": 1,
+        "explanation": "RLHF is a behavior-shaping mechanism. The model learns 'this kind of response is preferred' but can't really learn 'this fact is true.' Facts live in the pretraining weights. This is one of the more important misconceptions to correct: RLHF doesn't make a model 'smarter' in any deep sense; it makes the model's existing capabilities more accessible and aligned with human preferences."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "RLHF / DPO is what makes 'a model that completes text' into 'a model that's actually helpful in chat.' It's the third leg of the modern post-training stool: pretraining + SFT + preference optimization.\n\nNext: [[rag]] — using retrieval at inference time to ground the model in external knowledge. RAG is one of the few ways to address the factuality limit RLHF can't.\n\nKey takeaways:\n- RLHF turns capability into helpfulness — instruction-following, refusal, style\n- 3 stages: SFT → reward model → policy optimization (PPO)\n- DPO simplifies the pipeline by skipping the explicit reward model\n- Human preferences ≠ reward — the reward model is the layer that gets optimized\n- RLHF doesn't add knowledge or reasoning; it shapes behavior"
+    }
+  ]
+}

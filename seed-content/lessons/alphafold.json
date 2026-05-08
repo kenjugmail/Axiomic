@@ -1,0 +1,45 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "AlphaFold — what it does",
+      "body": "**AlphaFold** (Jumper et al. 2020, DeepMind) takes a protein's amino-acid sequence and predicts its 3D structure with atomic-resolution accuracy. By 2024 (AlphaFold 3), predictions match experiment within ~0.96 Å for most proteins — comparable to experimental error.\n\nThis was the breakthrough that effectively solved the 50-year-old protein folding problem. CASP14 (2020) saw AlphaFold's median GDT_TS jump from ~60 (previous SOTA) to ~92.\n\nThe architecture is a complex multi-stage pipeline that combines:\n- **Multiple Sequence Alignment (MSA)** input — evolutionary information.\n- **Pair representation** — pairwise residue features.\n- **Evoformer** — attention-based block that processes both MSA and pair features jointly.\n- **Structure module** — converts pair representation into 3D coordinates.\n\nThis lesson covers the pipeline. The takeaway: AlphaFold isn't 'just a transformer' — it's a careful integration of attention + structural priors + extensive training data."
+    },
+    {
+      "kind": "text",
+      "title": "The pipeline",
+      "body": "```\nInput: protein sequence\n\nStep 1: Build MSA\n  Search sequence databases (UniRef, BFD)\n  Extract homologous sequences via JackHMMER + HHblits\n  Result: ~thousands of related sequences aligned to the query\n\nStep 2: Build pair features\n  Initial representation of pairwise residue features\n  Includes: sequence relative position, residue identity\n\nStep 3: Evoformer (48 blocks)\n  Each block updates both MSA representation (rows × cols) and pair representation (residue × residue)\n  MSA self-attention: row-wise (across sequences) and column-wise (across positions)\n  Pair self-attention with triangular updates\n  Information flows between MSA and pair via outer-product mean\n\nStep 4: Structure module (8 cycles)\n  Input: pair representation + first-row MSA (the query's representation)\n  Output: 3D coordinates per residue\n  Iterative refinement: predict frames + side chains, recompute features, repeat\n\nStep 5: Recycling (3 cycles)\n  Run the whole network 3 times, feeding output back as input\n  Refines predictions iteratively\n```\n\nTotal: ~93M parameters. Trained on ~170K PDB structures + lots of MSA data. Inference takes ~minutes per protein on a GPU."
+    },
+    {
+      "kind": "text",
+      "title": "Evoformer — the heart of AlphaFold",
+      "body": "The **evoformer** is a 48-block stack that processes two representations:\n\n**MSA representation**: shape `(N_seq, N_res, channels)`. Rows are sequences in the MSA; columns are residue positions; channels are learned features.\n\n**Pair representation**: shape `(N_res, N_res, channels)`. Each `(i, j)` cell encodes features about the pair of residues `i` and `j`.\n\nEach evoformer block does:\n\n1. **MSA row-wise attention** (with bias from pair representation): each MSA row attends to itself; the pair representation biases the attention. Sequences influence residue-pair geometry.\n\n2. **MSA column-wise attention**: each MSA column attends to itself. Conserved positions emerge.\n\n3. **MSA transition (FFN)**: standard FFN on MSA.\n\n4. **Outer product mean**: combine MSA features into pair representation. `mean over rows of (msa_i^T · msa_j)` updates the pair representation. **This is where co-evolution information flows from MSA into pair representation.**\n\n5. **Triangular updates** on pair representation: for each `(i, j)`, update using all `(i, k) and (k, j)` pairs. Encodes triangle inequality-like geometric constraints.\n\n6. **Pair attention**: starts/ends. Self-attention over pair tokens, biased by triangular updates.\n\n7. **Pair transition (FFN)**.\n\nThe key insight: **both representations interact**. MSA improves pair; pair biases MSA attention. The model learns to extract co-evolution patterns (which positions co-vary in the MSA) and turn them into geometric constraints (which residues are physically close in 3D)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "af_q1",
+        "kind": "multiple_choice",
+        "question": "Why does AlphaFold work so well even on proteins with no homologs (where the MSA is shallow or empty)?",
+        "options": [
+          "AlphaFold doesn't actually need an MSA",
+          "AlphaFold uses extensive pretraining + extensive structural priors. Even for orphan proteins, the structure module's geometric constraints, the trained pair representation, and the network's exposure to ~170K structures during training carry over. Performance degrades for low-MSA-depth queries (especially for novel-fold proteins) but stays useful — the model has learned protein structure as a generalizable representation, not just a function from MSAs to structure",
+          "AlphaFold falls back to homology modeling",
+          "Orphan proteins are usually simple"
+        ],
+        "correctIndex": 1,
+        "explanation": "The MSA is one of AlphaFold's strongest signals; performance degrades when it's absent. But the network has learned protein-structure constraints from its training set; the structure module's geometric priors are general; and the pair representation captures structural patterns even without strong evolutionary signal. AlphaFold-Multimer + AlphaFold 3 further improve on low-MSA cases. ESM-Fold (uses no MSA, just a large protein LM) gets 80-90% of AlphaFold's quality on average, demonstrating that some of the structural prior is learnable from sequence alone."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Structure module + recycling",
+      "body": "**Structure module**: takes pair representation + first-row MSA representation, outputs 3D coordinates per residue.\n\nIts core: **Invariant Point Attention (IPA)** — an SE(3)-equivariant attention mechanism that operates on residue 'frames' (each residue has a position + orientation). IPA respects rotational symmetry: rotating the whole input rotates the output equivalently.\n\nThe structure module iterates 8 times (with parameters partially shared between iterations), refining the structure each time. Output: 3D coordinates for every atom (backbone + side chains).\n\n**Recycling**: the entire network runs 3 times. The output of the previous run (predicted coordinates → pairwise distances → updated pair representation) becomes input to the next. Empirically: each recycling iteration improves quality; 3 iterations is the sweet spot.\n\n**Confidence prediction**: AlphaFold also outputs a per-residue confidence (pLDDT, predicted Local Distance Difference Test). pLDDT > 90 is reliable; 70-90 is medium confidence; below 70 should be treated cautiously. Critical for downstream applications: 'this part of the structure is reliable; that part is uncertain'.\n\n**AlphaFold-Multimer + AlphaFold 3**: extensions for multi-chain complexes (protein-protein, protein-ligand, protein-DNA). AlphaFold 3 (2024) is the current SOTA for predicting any complex of biomolecules."
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "AlphaFold is the canonical example of attention-based bio-ML. Next: protein language models — adapting GPT-style pretraining to proteins.\n\nNext: [[protein-language-models]] — ESM, masked-residue pretraining.\n\nKey takeaways:\n- AlphaFold takes sequence + MSA → 3D structure with atomic accuracy\n- Architecture: build MSA → evoformer (attention on MSA + pair) → structure module (SE(3) IPA) → recycling\n- Evoformer extracts co-evolution + builds geometric constraints\n- Structure module is SE(3)-equivariant; respects rotational symmetry\n- pLDDT confidence per residue tells you which predictions to trust\n- AlphaFold 3 extends to multi-molecule complexes"
+    }
+  ]
+}

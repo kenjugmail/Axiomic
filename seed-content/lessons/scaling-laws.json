@@ -1,0 +1,61 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What scaling laws are",
+      "body": "A **scaling law** is an empirical claim that a model's loss falls as a power law in some resource. Three resources matter most:\n\n- **N**: number of model parameters\n- **D**: number of training tokens\n- **C**: total compute, roughly C ≈ 6ND for transformers\n\nKaplan et al. 2020 plotted loss vs. each of these on a log-log scale and got straight lines:\n\n$$L(N) \\approx (N_c / N)^{\\alpha_N}$$\n\nThe exponents were stable across model families. Doubling N reduced loss by ~5%. Same shape for D and C.\n\nScaling laws aren't a theory; they're a curve fit. But they predict: train at small scale, fit the law, extrapolate to predict the loss at 100× scale before spending the compute. That's how decisions like 'GPT-3 is going to be 175B parameters' get made."
+    },
+    {
+      "kind": "text",
+      "title": "Kaplan vs Chinchilla",
+      "body": "Two scaling-law papers, two different conclusions about how to spend a compute budget.\n\n**Kaplan et al. 2020.** From a sweep of models, fit:\n```\nL(N, D) ≈ irreducible + A/N^0.076 + B/D^0.103\n```\n\nFor a fixed compute budget C, this predicts the loss-minimizing N is *much* larger than D. Kaplan suggested ~2 tokens per parameter at the optimum. GPT-3 175B was trained on ~300B tokens (1.7 tokens/param), roughly following Kaplan.\n\n**Hoffmann et al. 2022 (Chinchilla).** Re-fit on a wider sweep with cosine LR decay. Got bigger exponents. Optimal allocation became:\n```\n~20 tokens per parameter\n```\n\nChinchilla 70B was trained on 1.4 *trillion* tokens. Despite being 4× smaller than Gopher 280B (similar compute), Chinchilla outperformed on basically every benchmark. The implication: **most pre-2022 frontier models were under-trained**.\n\nWhy did the two papers disagree? The big factor turned out to be the **LR schedule**. Kaplan used constant LR; Chinchilla used cosine decay to the end of training. The latter benefits longer training disproportionately, shifting the optimal D upward."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_q1",
+        "kind": "multiple_choice",
+        "question": "According to Chinchilla scaling, what's the optimal ratio of training tokens to parameters?",
+        "options": [
+          "About 2 tokens per parameter (the Kaplan ratio)",
+          "About 20 tokens per parameter — order of magnitude more than Kaplan's estimate",
+          "About 200 tokens per parameter",
+          "The ratio doesn't matter; all that matters is total compute"
+        ],
+        "correctIndex": 1,
+        "explanation": "Chinchilla's headline result: ~20 tokens per parameter at the compute-optimal point. Frontier labs largely under-trained models pre-2022 (LR schedule misalignment was a big factor). LLaMA, Mistral, and most modern open models train at 20-50+ tokens per parameter — and increasingly more, because of inference economics."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Why the ratio keeps shifting",
+      "body": "Chinchilla wasn't the end. Recent work argues for **even more tokens per parameter** when you account for inference cost.\n\nThe argument: if you're going to serve a model T times after training, you should account for inference compute too. A smaller model trained on more tokens (over-trained) is cheaper to serve — every inference call uses fewer FLOPs. Over millions of inference calls, the savings dominate.\n\nMeta's LLaMA-2 7B trained on 2T tokens (286 tokens/param) and LLaMA-3 8B trained on 15T tokens (~1900 tokens/param) follow this trend. They're over-trained relative to Chinchilla's prescription, deliberately, because the deployment economics favor it.\n\nThe takeaway: **scaling laws aren't fixed**. Their exact form depends on the LR schedule, the data quality, the use case (training-only vs inference-amortized cost), and the model family. The qualitative pattern (loss falls as a power law) is robust; the specific exponents shift with the recipe."
+    },
+    {
+      "kind": "text",
+      "title": "What scaling laws don't tell you",
+      "body": "Three important caveats:\n\n**Loss isn't capability.** A 5% lower perplexity isn't always 5% better at downstream tasks. Some capabilities ([[in-context-learning]], chain-of-thought reasoning) appear at specific scales — sometimes called 'emergent.' Whether emergence is a scaling-law artifact or a real discontinuity is contested.\n\n**Data quality matters.** Scaling laws assume D is uniform-quality tokens. Heavy filtering (deduplication, quality classifiers) shifts the curve down — same D, lower loss. The 'effective D' is what the law predicts on, not the raw count.\n\n**Multi-epoch training has diminishing returns.** Repeating data is cheaper than collecting fresh tokens but only goes so far. Past 2-4 epochs the marginal benefit drops sharply.\n\n**Architecture changes break the law.** Mixture-of-experts (MoE) doesn't follow C = 6ND. Different architectures need different scaling treatments."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_q2",
+        "kind": "multiple_choice",
+        "question": "Why are 2024+ open models like LLaMA-3 trained at 1000+ tokens per parameter — over-trained relative to Chinchilla's prescription?",
+        "options": [
+          "Chinchilla's analysis was wrong",
+          "Inference economics: a smaller, over-trained model is cheaper to serve over millions of inference calls than a larger, Chinchilla-optimal one",
+          "Tokens are now free",
+          "Larger models are too hard to train"
+        ],
+        "correctIndex": 1,
+        "explanation": "Chinchilla optimized for *training* compute. Once you account for the cost of *serving* the model — inference compute summed over its operating lifetime — the optimum shifts to smaller-but-over-trained. Meta, Mistral, and others all do this. The principle isn't that Chinchilla was wrong; it's that the optimization target is different."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Scaling laws are predictive. The constants shift; the qualitative claims hold. Use them to: estimate before you train, sanity-check after you train, and avoid building a deeply under-trained model.\n\nNext: [[modern-architectures]] — RoPE, GQA, SwiGLU. The architectural details that all modern open models share, beyond the basic transformer.\n\nKey takeaways:\n- Loss falls as a power law in N, D, and C\n- Chinchilla: ~20 tokens per parameter is compute-optimal\n- Modern open models over-train (1000+ tokens/param) for inference economics\n- LR schedule, data quality, and architecture all shift the law's constants"
+    }
+  ]
+}

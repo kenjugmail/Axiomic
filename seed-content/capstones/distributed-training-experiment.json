@@ -1,0 +1,72 @@
+{
+  "slug": "distributed-training-experiment",
+  "title": "Distributed training experiment",
+  "summary": "Train the same small model under DDP, FSDP, and FSDP+offload on multi-GPU hardware. Measure throughput, memory, and final loss; produce a defensible engineering recommendation.",
+  "estimatedWeeks": 4,
+  "coverEmoji": "🌐",
+  "accentColor": "indigo",
+  "tags": ["systems", "distributed-training", "fsdp", "production"],
+  "prerequisiteWikiSlugs": ["data-parallelism", "fsdp", "tensor-parallelism", "nccl-collective"],
+  "canonicalTier": "undergrad",
+  "contentIntro": "## What you'll build\n\nFour milestones: scale the same training run from one GPU to multi-GPU under three different parallelism strategies, then write a comparison report.\n\n- Single-GPU baseline\n- DDP\n- FSDP\n- FSDP + CPU offload\n\nBy the end you have a clear empirical picture of how each strategy trades memory for throughput, and which strategy your team should default to at what scale.\n\n[[data-parallelism]] · [[fsdp]] · [[tensor-parallelism]]",
+  "contentUndergrad": "## What you'll build\n\nFour milestones, ~4 weeks. You'll need at least 2 GPUs (more is better — 4-8 ideal). Cloud is fine.\n\nThe model is small (~100M-300M parameters) on purpose. The experiment is about parallelism mechanics, not raw scale. Lessons transfer.\n\n[[data-parallelism]] · [[fsdp]] · [[nccl-collective]]",
+  "contentGrad": "## What you'll build\n\nA training-discipline reference your team would consult before scaling a new training run. Defense covers: the bandwidth tax of each parallelism strategy, the memory-throughput Pareto frontier, when to add gradient checkpointing, when to add CPU offload, and when to graduate to TP+PP for frontier scale.",
+  "milestones": [
+    {
+      "title": "Single-GPU baseline + benchmark harness",
+      "description": "Pick a small architecture (~100M-300M parameter transformer) and a small dataset (TinyStories, a code corpus, anything stable). Train for 5000-10000 steps. Measure:\n\n- Throughput (tokens/sec).\n- Peak GPU memory (with `torch.cuda.max_memory_allocated()` and `nvidia-smi`).\n- Final loss after N steps.\n- Step time breakdown (forward, backward, optimizer).\n\nThis is the floor. Every subsequent milestone reports relative to this.\n\nIn the writeup: a baseline table + a single chart showing time-per-step vs step number (catches any ramp-up effects).",
+      "rubric": {
+        "criteria": [
+          { "id": "baseline", "weight": 0.5, "description": "Working single-GPU training run with proper measurements.", "aiPrompt": "Score whether the baseline is reproducible: model architecture documented, dataset specified, all four metrics (throughput, memory, loss, step time) reported with clear methodology." },
+          { "id": "harness", "weight": 0.3, "description": "Reusable benchmark harness.", "aiPrompt": "Score whether the harness is written so the next milestones can swap in DDP/FSDP without rebuilding the measurement code." },
+          { "id": "writeup", "weight": 0.2, "description": "Reproducibility.", "aiPrompt": "Is hardware (GPU type, count), software (PyTorch + CUDA versions), and dataset specified clearly?" }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 6
+    },
+    {
+      "title": "DDP scale-out",
+      "description": "Add `DistributedDataParallel`. Run on 2, 4, and 8 GPUs (whatever you have). Per-GPU batch unchanged; effective batch scales with world size; LR scaled appropriately for the new effective batch.\n\nMeasure:\n- Throughput (tokens/sec/GPU and aggregate).\n- Per-GPU memory.\n- Final loss after the same number of total steps.\n- Wall-clock time to reach a target loss.\n\nProvide a scaling-efficiency chart: throughput vs world_size. Linear scaling = ideal; sub-linear = bandwidth or load imbalance.\n\n**Common failure mode**: forgetting `DistributedSampler` for the dataloader. Each rank sees the same data; gradients aren't averaging different examples; effective batch is just one rank's batch repeated. Verify by logging `batch[0]` from each rank for the first few steps.",
+      "rubric": {
+        "criteria": [
+          { "id": "implementation", "weight": 0.4, "description": "DDP correctly wired (sampler, init, gradient sync).", "aiPrompt": "Score the DDP implementation: process group init, DistributedSampler usage, correct gradient overlap." },
+          { "id": "scaling_chart", "weight": 0.4, "description": "Scaling efficiency vs world size.", "aiPrompt": "Score the scaling chart and the discussion of where efficiency drops below linear and why." },
+          { "id": "writeup", "weight": 0.2, "description": "Comparison with baseline.", "aiPrompt": "Score the writeup's comparison: is the same target loss reached in less wall-clock time? Is the cost (per-GPU memory, network) characterized?" }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 8
+    },
+    {
+      "title": "FSDP with shard offload",
+      "description": "Replace DDP with FSDP. Configure `transformer_auto_wrap_policy` so each transformer block is its own shard. Use the same model + dataset + hardware as the DDP milestone.\n\nMeasure (vs DDP at the same world size):\n- Throughput.\n- Per-GPU memory (should be much lower).\n- Final loss (should match DDP, mod floating-point).\n- Wall-clock to target loss.\n\nThen experiment: increase the model size to one that wouldn't fit DDP. Show that FSDP fits it. Train it for a few hundred steps; verify loss is descending.\n\nFinally, add CPU offload (`OffloadParams` policy or `cpu_offload=CPUOffload(offload_params=True)`). Measure the memory and throughput trade-off.\n\nIn the writeup: a Pareto-frontier chart with model_size on x, peak GPU memory on y, color-coded by strategy (DDP, FSDP, FSDP+offload). Discuss when each strategy is the right answer.",
+      "rubric": {
+        "criteria": [
+          { "id": "implementation", "weight": 0.4, "description": "FSDP correctly wired with auto-wrap policy.", "aiPrompt": "Score whether FSDP is implemented with correct auto-wrap policy at transformer-block granularity." },
+          { "id": "memory_demonstration", "weight": 0.3, "description": "Demonstrate the memory benefit at scale.", "aiPrompt": "Score whether the experiment demonstrates a model-size that DDP can't fit but FSDP can. Are the actual memory numbers reported?" },
+          { "id": "pareto", "weight": 0.3, "description": "Pareto-frontier analysis.", "aiPrompt": "Score the Pareto-frontier chart and the engineering discussion of when each strategy wins." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 8
+    },
+    {
+      "title": "Final report: ablation + recommendation",
+      "description": "Synthesis. Produce a final report with:\n\n**1. Comparison table**: rows = strategy (single-GPU, DDP, FSDP, FSDP+offload). Columns = peak memory per GPU, throughput aggregate, throughput per GPU, scaling efficiency, final loss, wall-clock to target loss.\n\n**2. Failure modes encountered**: bugs, OOMs, NaN spikes, scaling cliffs. What did you fix? What was the lesson?\n\n**3. Engineering recommendation**: given a hypothetical team training a 1B-, 7B-, 70B-parameter model on N GPUs, what strategy would you pick? Defend with the data above.\n\n**4. What's next**: tensor parallelism (Megatron-LM), pipeline parallelism, 3D parallelism. For each, briefly: when does it become load-bearing?\n\nThis is the closing milestone. The grader is looking for engineering judgment, not raw benchmark numbers. Show that you can read a benchmark + recommend an action.",
+      "rubric": {
+        "criteria": [
+          { "id": "comparison", "weight": 0.4, "description": "Complete comparison table.", "aiPrompt": "Score whether the comparison table is complete (all four strategies, all the requested columns) and the measurements are fair (same hardware, same dataset, same recipe except for the parallelism strategy)." },
+          { "id": "recommendation", "weight": 0.3, "description": "Defensible engineering recommendation.", "aiPrompt": "Score the recommendation: does the learner pick a sensible strategy per scale, and does the choice match the empirical evidence?" },
+          { "id": "next_steps", "weight": 0.3, "description": "Future-strategy analysis.", "aiPrompt": "Score the discussion of TP, PP, and 3D parallelism — what they'd buy, when they'd be needed, and what experiments would test the hypothesis." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 6
+    }
+  ]
+}

@@ -6,12 +6,16 @@
 // available.
 
 export interface CitationSource {
-  kind: "paper" | "capstone";
+  kind: "paper" | "capstone" | "track";
   slug: string;
   title: string;
   authors: string[];        // ordered; first author printed first
   year: number;
   url: string;              // canonical URL (DOI-style permalink)
+  // Sprint 54 — DOI permalink. When present, BibTeX gets a `doi`
+  // field and RIS gets `DO  -`. Real Crossref DOIs are routed through
+  // doi.org; synthetic ones (10.5555/...) are platform-internal.
+  doi?: string | null;
   abstract?: string;
   publishedAt: string;      // ISO date
 }
@@ -48,17 +52,28 @@ export function toBibtex(src: CitationSource): string {
   const key = citeKey(src);
   const authors = src.authors.length > 0 ? src.authors.join(" and ") : "Anonymous";
   const entryType = src.kind === "paper" ? "misc" : "misc";
+  const noteLabel =
+    src.kind === "paper"
+      ? "research paper"
+      : src.kind === "track"
+        ? "capstone track"
+        : "capstone";
   const lines = [
     `@${entryType}{${key},`,
     `  author = {${bibEscape(authors)}},`,
     `  title = {${bibEscape(src.title)}},`,
     `  year = {${src.year}},`,
     `  url = {${src.url}},`,
-    `  note = {Axiomic ${src.kind === "paper" ? "research paper" : "capstone"}, accessed ${new Date()
+  ];
+  if (src.doi) {
+    lines.push(`  doi = {${bibEscape(src.doi)}},`);
+  }
+  lines.push(
+    `  note = {Axiomic ${noteLabel}, accessed ${new Date()
       .toISOString()
       .slice(0, 10)}},`,
     `}`,
-  ];
+  );
   return lines.join("\n");
 }
 
@@ -74,6 +89,7 @@ export function toRis(src: CitationSource): string {
   lines.push(`PY  - ${src.year}`);
   lines.push(`DA  - ${src.publishedAt.slice(0, 10).replace(/-/g, "/")}`);
   lines.push(`UR  - ${src.url}`);
+  if (src.doi) lines.push(`DO  - ${src.doi}`);
   if (src.abstract) {
     lines.push(`AB  - ${src.abstract.replace(/\s+/g, " ").trim().slice(0, 1000)}`);
   }

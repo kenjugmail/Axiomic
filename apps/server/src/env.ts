@@ -4,6 +4,8 @@ export interface SessionUser {
   email: string;
   displayName: string | null;
   bio: string | null;
+  // Sprint 52 — 'admin' unlocks /admin/* routes; 'member' is everyone else.
+  role: string;
   createdAt: string;
 }
 

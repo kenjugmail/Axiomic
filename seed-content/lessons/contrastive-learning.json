@@ -1,0 +1,67 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why contrastive learning",
+      "body": "Self-supervised learning trains models from unlabeled data by inventing a pretext task. **Contrastive learning** is the most successful family of pretext tasks for vision (and many other modalities).\n\nThe core idea: produce two augmented views of the same image. Train the model so that the two views map to similar representations, while different images map to different representations.\n\n```\npositive pair: (random_crop_1(x), random_crop_2(x))   # same image, different augmentations\nnegative pair: (random_crop(x), random_crop(y))        # different images\n```\n\nObjective: pull positives together, push negatives apart in representation space. The result is a feature extractor that ignores augmentation noise but preserves semantic content.\n\nUnlocks pretraining on huge unlabeled image corpora — billions of images. Downstream tasks (classification, detection, segmentation) need only thousands of labeled examples for fine-tuning."
+    },
+    {
+      "kind": "text",
+      "title": "InfoNCE — the standard loss",
+      "body": "**InfoNCE** (Information Noise-Contrastive Estimation) is the loss function that powers SimCLR, CLIP, and most modern contrastive methods.\n\nGiven a query `q` and a candidate set with one positive `k+` and many negatives `{k_1, k_2, ..., k_N}`:\n\n$$L_{InfoNCE} = -\\log \\frac{\\exp(q \\cdot k^+ / \\tau)}{\\sum_i \\exp(q \\cdot k_i / \\tau)}$$\n\nThis is **softmax classification**: the positive vs N negatives, where the 'class' is which one is the positive. Temperature `τ` (typically 0.07 or 0.1) controls how peaked the softmax is.\n\nKey properties:\n- More negatives = better gradient signal. SimCLR uses large batch sizes (4096) so each query sees 4094 in-batch negatives.\n- The temperature critically affects training. Too low → gradient saturates on hardest negative. Too high → loss is too soft to discriminate.\n\nIn information-theoretic terms: InfoNCE lower-bounds the mutual information between query and key. Maximizing it = maximizing `I(q; k+)` = the model captures the shared information between the two views."
+    },
+    {
+      "kind": "text",
+      "title": "SimCLR + MoCo — practical recipes",
+      "body": "**SimCLR** (Chen 2020): the simplest contrastive recipe.\n\n```\n1. Take batch B of images.\n2. Apply two random augmentations to each → 2B views.\n3. Encode each via shared encoder → 2B representations.\n4. Project via MLP head → projection space.\n5. InfoNCE loss: each augmented pair is positive; everything else is negative.\n```\n\nWorks. Needs **large batch sizes** (1024-4096) for enough negatives. The projection head is critical — InfoNCE in projection space, but downstream tasks use the encoder's output (before projection) for better generalization.\n\n**MoCo** (He 2019): contrastive learning with a **momentum-updated key encoder**.\n\n```\nq = encoder(image_query)\nk = momentum_encoder(image_key)        # slow-update copy of encoder\nL_InfoNCE(q, k, queue)                 # queue holds many past keys as extra negatives\n```\n\nThe queue lets MoCo accumulate many negatives without huge batch sizes. The momentum encoder ensures the negatives in the queue are still consistent (they were encoded by similar weights). MoCo trains on small batch sizes; SimCLR needs large.\n\n**BYOL** (Grill 2020): contrastive learning *without negatives*. Just pull positives together via a predictor + stop-gradient. Surprisingly works. Subsequent analysis (DINO, EsViT) shows similar approaches dominate self-supervised vision today.",
+      "extra": "..."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "cl_q1",
+        "kind": "multiple_choice",
+        "question": "Why does InfoNCE require many negatives per positive?",
+        "options": [
+          "To slow down training",
+          "InfoNCE's lower bound on mutual information is tighter when the candidate set has more negatives. With only 1 negative, the model can shortcut by picking up on trivial differences. With thousands of negatives, the gradient signal forces the model to extract genuinely discriminative features. SimCLR's large-batch requirement is exactly this: more in-batch negatives → tighter MI bound → better representations",
+          "Negatives are computationally cheap",
+          "More negatives reduce overfitting"
+        ],
+        "correctIndex": 1,
+        "explanation": "The MI bound `log(N+1) - L_InfoNCE ≤ I(q; k+)` becomes tighter as N grows. With small N, the bound is loose and InfoNCE only weakly maximizes MI. SimCLR's 4096-batch is in service of this. MoCo's queue and BYOL's predictor are alternative ways to get the gradient signal of many negatives without paying the batch-size cost."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Augmentations matter (a lot)",
+      "body": "The augmentations used to create the two views determine what the model considers 'the same'. Choose well.\n\n**Standard SimCLR augmentations**:\n- Random crop + resize.\n- Random horizontal flip.\n- Color jitter (brightness, contrast, saturation, hue).\n- Random grayscale.\n- Gaussian blur.\n\nEach augmentation says: 'a model should treat the augmented version as semantically equivalent to the original'. If you augment too aggressively, you remove information the model needs. If too weakly, the model finds shortcuts (e.g., matching images by exact pixel values).\n\n**Removing augmentations breaks contrastive learning.** SimCLR's ablation: remove color jitter, performance drops 5-10 ImageNet points. Remove crop+resize, drops 10-20. The augmentations are doing most of the conceptual work; the InfoNCE loss is just how they're enforced.\n\n**For other modalities** (audio, video, text): the right augmentations are domain-specific. CLIP for images uses standard SimCLR augmentations on the image side; for the text side, augmentation is implicit (the same image's caption is the positive). Domain-specific augmentation design is one of the key engineering levers in contrastive pretraining."
+    },
+    {
+      "kind": "text",
+      "title": "Why this matters for everything else",
+      "body": "Contrastive learning doesn't just produce good vision representations. It's the foundation for:\n\n- **CLIP**: contrastive on (image, text) pairs. The next lesson.\n- **CLAP**: contrastive on (audio, text) pairs.\n- **VideoCLIP / X-CLIP**: contrastive on (video, text) pairs.\n- **Code embeddings**: contrastive on (function body, docstring) pairs.\n- **Representation learning broadly**: any pair of related items can train a contrastive model.\n\nThe abstraction: 'two views of the same thing should embed close; different things embed far' generalizes to anywhere you have paired data. This is why contrastive pretraining is the most successful self-supervised technique outside of language modeling.\n\nFor the multimodal path specifically: every modern VLM (GPT-4V, LLaVA, Gemini) traces back through CLIP-style contrastive pretraining. Understand the contrastive substrate and the rest follows."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "cl_q2",
+        "kind": "multiple_choice",
+        "question": "Why is the projection head used in SimCLR but discarded for downstream tasks?",
+        "options": [
+          "The projection head is corrupted by overfitting",
+          "InfoNCE in projection space optimizes for distinguishing augmented views, which can encode features that are good for that specific objective but not great for downstream tasks. The encoder's output (before projection) is a less specialized representation, generalizes better. Empirically the encoder's pre-projection features beat the projection-space features for transfer learning by 5-10 ImageNet points",
+          "Projection heads are too small",
+          "The projection head's gradients are unstable"
+        ],
+        "correctIndex": 1,
+        "explanation": "The projection head shapes the encoder for the InfoNCE objective specifically — augmentation invariance, dot-product discrimination. These features aren't always optimal for downstream tasks. The encoder's pre-projection output is a more general representation; that's what gets transferred. SimCLR's discovery of this asymmetry was an important practical insight; it's now standard."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Contrastive learning is the foundation. Apply it to (image, text) pairs and you get CLIP — the canonical multimodal model.\n\nNext: [[clip-and-vlms]] — joint embedding spaces and modern vision-language models.\n\nKey takeaways:\n- Contrastive learning: pull positive pairs together, push negatives apart\n- InfoNCE: softmax-style loss with N negatives. Tighter MI bound with larger N\n- SimCLR: large batches for negatives. MoCo: momentum-encoder queue\n- Augmentations are doing most of the conceptual work\n- Projection head: trained on; discarded for downstream. Encoder features generalize better\n- Foundation for CLIP, CLAP, and most modern multimodal pretraining"
+    }
+  ]
+}

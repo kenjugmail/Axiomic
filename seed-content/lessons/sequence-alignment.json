@@ -1,0 +1,45 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why align sequences",
+      "body": "Two protein sequences are 'related' if they share evolutionary ancestry. The most direct evidence: their sequences are similar — perhaps with insertions, deletions, and substitutions accumulated over evolutionary time.\n\n**Sequence alignment** finds the optimal correspondence between two sequences. Output: which positions in sequence A correspond to which positions in sequence B, with gaps for insertions/deletions.\n\nWhy this matters:\n- **Function inference**: proteins with similar sequences usually have similar functions. Alignment + database search lets you identify what an unknown protein does.\n- **Evolutionary distance**: percent sequence identity correlates with how recently two species diverged.\n- **Structure prediction**: aligning a sequence to one with a known structure (homology modeling) gave us protein structures decades before AlphaFold.\n- **AlphaFold inputs**: its 'multiple sequence alignment' (MSA) input is a stack of sequences aligned to the query, encoding evolutionary information.\n\nClassical alignment algorithms (Smith-Waterman, Needleman-Wunsch, BLAST) are 30+ years old and still fundamental."
+    },
+    {
+      "kind": "text",
+      "title": "Smith-Waterman — local alignment",
+      "body": "**Smith-Waterman** (1981) finds the optimal local alignment between two sequences. Dynamic programming over a `(|A| + 1) × (|B| + 1)` matrix.\n\nFor each cell `H[i, j]`, the optimal score for an alignment ending at `(i, j)`:\n\n```\nH[i, j] = max(\n    0,                              # start a new alignment\n    H[i-1, j-1] + s(a_i, b_j),     # match/mismatch\n    H[i-1, j] - gap_penalty,        # gap in B\n    H[i, j-1] - gap_penalty         # gap in A\n)\n```\n\nWhere `s(a, b)` is the score for matching `a` with `b` (positive for matches, negative for mismatches). Gap penalty is typically negative; some variants distinguish gap-open vs gap-extend.\n\nThe optimal alignment is found by tracing back from the highest-scoring cell. `O(|A| · |B|)` time and space.\n\n**Substitution matrices**: for proteins, BLOSUM62 (or PAM250) gives biologically-meaningful scores. Identical residues score positively; conservative substitutions (chemically similar) less; non-conservative substitutions negatively.\n\n**Gap penalties**: open + extend. Realistic: gap_open = -10, gap_extend = -1. Reflects that opening a gap is costly (rare event); extending is cheap (single mutation can elongate)."
+    },
+    {
+      "kind": "text",
+      "title": "BLAST — alignment at scale",
+      "body": "Smith-Waterman is exact but slow. For querying a database of millions of sequences, you need approximations.\n\n**BLAST** (Basic Local Alignment Search Tool, Altschul 1990) is the canonical heuristic. The pipeline:\n\n1. **Word indexing**: for the query, list all 3-letter words (or k-mers).\n2. **Database scan**: find database sequences containing high-scoring matches to query words. (Pre-indexed for speed.)\n3. **Extension**: for each hit, extend the alignment in both directions until the score drops too far.\n4. **E-value computation**: compute expected number of random hits with this score. Low E-value = significant hit.\n\n**E-value** is the most-used number in bioinformatics:\n```\nE = m · n · 2^(-S)\n```\n\nwhere `m` and `n` are sequence lengths, `S` is the alignment score. `E < 0.001` is usually significant; `E < 1e-50` is highly significant.\n\nBLAST runs in sub-seconds against databases of 100M+ sequences. 30+ years old; still the workhorse for 'what's this protein?'\n\n**Modern alternatives**: MMseqs2, DIAMOND (faster than BLAST). Foldseek for structure-based search. ESM-based search (vector retrieval over learned protein embeddings) is emerging."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "align_q1",
+        "kind": "multiple_choice",
+        "question": "Why does sequence alignment use substitution matrices (e.g., BLOSUM62) instead of just match/mismatch scoring?",
+        "options": [
+          "BLOSUM62 is computationally faster",
+          "Different amino acid pairs are biologically equivalent to different degrees. Leucine ↔ Isoleucine (very similar chemically; common evolutionary substitution) should score higher than Glycine ↔ Tryptophan (very different). BLOSUM62 was learned from observed conservative substitutions in evolutionarily-related protein blocks. Match/mismatch scoring loses this biological signal — equivalent to BLOSUM where all non-identity scores are equal",
+          "Match/mismatch doesn't work for protein sequences",
+          "BLOSUM62 reduces gap penalties"
+        ],
+        "correctIndex": 1,
+        "explanation": "BLOSUM62 (or PAM250) encodes the biological reality that some substitutions are 'almost neutral' (chemical properties preserved) and others are dramatic (e.g., Glycine, the smallest amino acid, replaced with Tryptophan, the largest). Using a learned substitution matrix turns alignment into a biologically-informed similarity measure. This is what separates 'two related proteins' from 'two random sequences with the same composition'."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Multiple sequence alignment (MSA)",
+      "body": "Beyond pairwise: align *N* related sequences simultaneously. Output: a matrix where rows are sequences and columns are aligned positions.\n\n**Why MSAs matter**:\n- **Conservation**: positions identical or near-identical across many species are evolutionarily conserved → likely structurally / functionally important.\n- **Co-evolution**: positions that vary together (Alanine in one position correlates with Glutamate in another) are often physically close in the 3D structure.\n- **AlphaFold input**: its key input is the MSA of the target protein. The MSA + co-evolution patterns are why AlphaFold works.\n\n**Algorithms**:\n- **Progressive alignment** (Clustal Omega, MUSCLE): build a guide tree, align sequences pairwise progressively. Fast; not always optimal.\n- **Profile HMMs** (HMMER): probabilistic models that capture position-specific substitution patterns. Used for searching sequence databases for distant homologs.\n- **MMseqs2 + JackHMMER**: fast iterative search to build deep MSAs. Standard preprocessing for AlphaFold.\n\nA deep MSA can have thousands of sequences. The columns become a rich evolutionary signal that pure sequence-only methods miss.\n\n**For ML**: AlphaFold's evoformer treats the MSA as a 2D input (sequences × positions) and processes it via attention. ESM-MSA and similar models also use MSA columns as inputs. The MSA is the key informative feature for many bio-ML tasks."
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Sequence alignment is the classical foundation. Next: how alignment + co-evolution combine to give us protein structure prediction.\n\nNext: [[phylogenetics]] — inferring evolutionary trees from aligned sequences.\n\nKey takeaways:\n- Smith-Waterman: optimal local pairwise alignment via dynamic programming\n- BLAST: heuristic for fast database search; E-value measures statistical significance\n- BLOSUM62 substitution matrix encodes biological similarity (conservative vs dramatic substitutions)\n- Multiple sequence alignment (MSA): N sequences aligned simultaneously; reveals conservation + co-evolution\n- AlphaFold's evoformer takes an MSA as input; the MSA is one of the most informative features in bio-ML"
+    }
+  ]
+}

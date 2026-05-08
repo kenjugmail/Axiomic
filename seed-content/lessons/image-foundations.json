@@ -1,0 +1,45 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Pixels, channels, tensors",
+      "body": "An image is a tensor. For a 224×224 RGB image: shape `(3, 224, 224)` — 3 channels (red, green, blue), 224 height, 224 width. Each entry is a number in `[0, 255]` (or normalized to `[0, 1]` or `[-1, 1]`).\n\nFor a batch: `(B, 3, 224, 224)`. The batch dimension is first by convention in PyTorch (NCHW); TensorFlow uses NHWC (channel last). Most ML libraries support both with a flag.\n\nWhy this representation:\n- **Channels** capture color. Grayscale images are 1 channel; RGB 3; RGBA 4 (with alpha); some scientific images have 10+ channels (multispectral).\n- **Spatial dims** capture geometry. Position in the image carries information.\n- **Tensor format** lets GPUs do matmul-style operations on whole images at once.\n\nNormalization matters: subtract per-channel mean, divide by per-channel std. ImageNet-style: mean=`[0.485, 0.456, 0.406]`, std=`[0.229, 0.224, 0.225]`. Roughly centers the data around 0; helps optimization."
+    },
+    {
+      "kind": "text",
+      "title": "Convolutions: the local-receptive-field operation",
+      "body": "A **convolution** slides a small filter (typically 3×3 or 5×5) across the image, computing a dot product between the filter weights and the local pixel patch at each location.\n\n```\nFor each output position (i, j):\n    output[i, j] = Σ_{di, dj} filter[di, dj] · input[i+di, j+dj]\n```\n\n(Plus a bias and possibly a stride or dilation.) For multi-channel: the filter has shape `(C_in, kH, kW)`; you produce `C_out` output channels by stacking `C_out` filters.\n\n**Why convolutions for images**:\n\n1. **Translation equivariance**: a feature in the top-left of the image is recognized the same as a feature in the bottom-right. Same filter applied everywhere.\n2. **Parameter efficiency**: a 3×3 filter has 9 parameters per channel vs 224×224=50k parameters per channel for a fully-connected layer.\n3. **Local structure**: nearby pixels are correlated; a small filter captures that locality.\n\nStacking convolutions builds a hierarchy: early layers detect edges, mid layers detect textures, later layers detect parts/objects. This is the core inductive bias of CNNs.\n\nMatmul-equivalent reformulation: convolutions can be expressed as matmul via `im2col`. This is what makes them GPU-friendly — they're matmul under the hood."
+    },
+    {
+      "kind": "text",
+      "title": "Pooling, normalization, and the CNN block",
+      "body": "Beyond convolutions, three other operations recur in CNNs:\n\n**Pooling**: downsample the spatial dimensions. Max-pool (`2×2` stride 2) takes the max over each 2×2 window, halving height and width. Average pooling does the same with averages. Pooling reduces compute and gives a degree of translation invariance.\n\n**Batch normalization** (BN): normalize each channel's activations within a batch to mean 0, std 1. Stabilizes training; allows higher learning rates. Has well-known issues at small batch sizes; layer norm is a robust alternative.\n\n**Activation functions**: ReLU, GELU, SiLU. Apply elementwise. Introduce nonlinearity.\n\nA standard CNN block:\n```\ninput → conv → batch_norm → ReLU → conv → batch_norm → ReLU → maxpool → output\n```\n\nResNet adds residual connections around the conv blocks (the `output += input` shortcut). This is why ResNet trains 100+ layer networks reliably — gradients flow through the residuals.\n\nFor 5+ years (2015-2020), CNNs dominated computer vision. Then vision transformers showed up."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "if_q1",
+        "kind": "multiple_choice",
+        "question": "Why are convolutions parameter-efficient compared to fully-connected layers for images?",
+        "options": [
+          "They use lower precision",
+          "They share weights across spatial positions. A 3×3 filter has 9 parameters and is applied at every (i, j) location, exploiting translation equivariance. A fully-connected layer would have a separate parameter for every (input_pixel, output_pixel) pair — orders of magnitude more parameters for the same expressive power on images",
+          "They run on tensor cores",
+          "They have a smaller receptive field"
+        ],
+        "correctIndex": 1,
+        "explanation": "Weight sharing is the magic of convolutions. The same 3×3 filter is reused at every spatial location. This both reduces the parameter count (9 instead of millions) and bakes in translation equivariance — a feature looks the same wherever it appears. Fully-connected layers don't have this prior; they'd need to learn the same feature at every position from scratch."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Beyond CNNs: what made vision transformers possible",
+      "body": "CNNs were the standard for vision until 2020. Why did vision transformers (ViTs) replace them at scale?\n\n**The CNN inductive bias is sometimes a constraint.** Translation equivariance is correct for images; locality is correct for many tasks. But:\n\n- Long-range dependencies (a feature on the left side affecting the right) are hard to model with small convolutions; need many layers stacked.\n- Object-level reasoning (parts and wholes) doesn't decompose cleanly into 3×3 patches.\n- Multimodal models (vision-language) need to align spatial features with text tokens; transformers' global attention does this naturally.\n\n**Transformers' attention is more flexible.** A self-attention layer over image patches lets every patch attend to every other patch — global context in one operation. The cost is more parameters and more compute, which scaling has made tractable.\n\n**The trade-off**:\n- CNNs are sample-efficient on small datasets (the inductive bias acts as regularization).\n- ViTs are data-hungry but scale better with model size and data.\n\nAt the data scales of modern foundation models (millions to billions of images), ViTs win. At smaller scales, CNNs are still competitive — and `ConvNeXt`-style architectures show that CNNs can match ViTs with the right architectural updates.\n\nFor this path, we'll focus on ViTs because they're the foundation of modern multimodal models. The next lesson covers them in detail."
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Image foundations are the substrate. Next lesson: vision transformers — the modern non-text-LLM architecture.\n\nNext: [[vision-transformers]] — patch embeddings, ViT architecture, why it works.\n\nKey takeaways:\n- Images are tensors `(C, H, W)` per item, `(B, C, H, W)` for a batch\n- Convolutions exploit translation equivariance + locality; weight sharing is the parameter win\n- Standard CNN block: conv → norm → activation → maybe-pool, repeat with residuals\n- CNNs dominated 2015-2020; ViTs took over at scale\n- The trade-off: CNN inductive bias is a regularizer at small scale, a constraint at large scale"
+    }
+  ]
+}

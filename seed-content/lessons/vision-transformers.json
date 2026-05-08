@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Vision Transformer — the architecture",
+      "body": "A **Vision Transformer (ViT)** treats an image as a sequence of patches and runs a standard transformer encoder over them. The radical move: drop convolutions entirely.\n\n**The pipeline**:\n\n1. **Patchify**: split the image into non-overlapping 16×16 patches. A 224×224 image becomes 14×14 = 196 patches.\n2. **Linear embed**: each 16×16×3 patch (768 numbers) is flattened and projected to a `d_model`-dim vector. Linear projection; same as token embeddings in NLP.\n3. **Add position**: each patch gets a learned positional embedding (or sinusoidal). Encodes spatial position.\n4. **Prepend [CLS]**: a learnable [CLS] token at position 0, used for classification readout.\n5. **Transformer encoder**: standard self-attention + FFN blocks, stacked. Same architecture as BERT.\n6. **Classify**: take the [CLS] token's output; pass through a final MLP to class logits.\n\nThat's it. No convolutions. The transformer learns spatial structure from data + positional encodings.\n\nIntroduced in Dosovitskiy et al. 2020. Surprised the field by matching CNNs at scale despite no built-in image inductive bias."
+    },
+    {
+      "kind": "text",
+      "title": "Why patches, why 16×16",
+      "body": "The patch decomposition is the key design choice. 16×16 is somewhat arbitrary — variants use 8×8, 14×14, 32×32. Trade-offs:\n\n**Smaller patches**:\n- More patches per image (more sequence length).\n- Finer spatial detail.\n- Quadratic attention cost in sequence length → big compute increase.\n\n**Larger patches**:\n- Fewer patches; cheaper attention.\n- Coarser spatial detail; loses fine-grained features.\n- Requires larger embedding dim to capture per-patch info.\n\n16×16 is the sweet spot for 224×224 images at standard sizes. For higher-resolution images (512×512), use 32×32 patches to keep sequence length manageable. For very-fine-grained tasks, smaller patches help.\n\n**The patch-as-token analogy**: the patches play the role of tokens in language models. An image becomes a 'sentence' of patches; the transformer learns relationships between them via attention. Same architecture, different modality."
+    },
+    {
+      "kind": "text",
+      "title": "Position embeddings",
+      "body": "Self-attention is permutation-invariant — it doesn't know where each patch is in the image without help. Position embeddings provide that help.\n\nThree variants:\n\n**1. Learned 1D position embeddings**: assign each patch position (0 to 195 for 14×14 patches) a learned vector. Add to the patch embedding. Used in original ViT.\n\n**2. Learned 2D position embeddings**: separate row and column embeddings. Slightly more inductive bias.\n\n**3. Sinusoidal 2D**: deterministic sin/cos encoding of (row, col). Generalizes to unseen image sizes.\n\nIn practice, learned 1D works fine for fixed-size training. Sinusoidal helps when you want the same model to work on multiple resolutions.\n\n**Relative position** (used in some recent ViT variants): instead of absolute position embeddings, modify the attention computation to depend on relative offsets between patches. Stronger inductive bias for translation equivariance — recovers some of CNN's structural prior.\n\nThe trend: position embeddings are getting more sophisticated. RoPE-style approaches from NLP are being adapted to 2D. Each variant is a small win at some compute cost."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "vit_q1",
+        "kind": "multiple_choice",
+        "question": "Why does ViT use a [CLS] token for classification readout instead of pooling over all patch tokens?",
+        "options": [
+          "It's required by the transformer architecture",
+          "The [CLS] token is a learnable token that attends to all patches and aggregates information for the classification objective. Pooling over all patches is also a viable strategy (and some ViT variants use mean-pooling instead), but the [CLS] design preserves the BERT-style readout pattern and gives the model an explicit place to encode classification-specific features",
+          "Pooling doesn't work with attention",
+          "It's faster to compute"
+        ],
+        "correctIndex": 1,
+        "explanation": "[CLS] readout is borrowed directly from BERT. The [CLS] token has no direct correspondence to any image patch; it's a learnable summary. Through attention layers, it gathers information from all patches. The classification head reads only [CLS]. Mean-pooling over patches is a viable alternative; ViT variants experiment with both. The [CLS] choice is mostly historical; performance differences are small."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Why ViT was a surprise",
+      "body": "The conventional wisdom before 2020:\n\n- Convolutions are necessary for vision because images have spatial locality + translation equivariance.\n- Attention is good for NLP because language doesn't have these strong spatial priors.\n- Vision and NLP architectures should be different.\n\nViT showed all three were wrong (or at least, only true at small data scales).\n\n**Why it worked**:\n\n1. **Scale beats inductive bias.** With enough data (300M+ images, ViT-Large), the transformer's flexibility outweighs the missing CNN priors. The model learns the spatial structure from data.\n\n2. **Transfer learning amplifies scale.** ViTs pretrained on JFT-300M (Google's internal 300M-image dataset) and fine-tuned on ImageNet beat CNNs by a substantial margin.\n\n3. **Compute is the constraint.** ViTs are slightly more expensive than CNNs per FLOP-of-quality, but they scale better — adding more parameters and more data continues to improve them long after CNNs plateau.\n\n**The concession**: at small data scales (<10M images, ImageNet-only), CNNs still match or beat ViTs because the inductive bias serves as regularization. Modern hybrid approaches (CoAtNet, SwinTransformer, ConvNeXt) blend the two — convolutions for early layers, attention for late layers.\n\nThe broader lesson for ML: inductive biases that help at small scale can hurt at large scale by limiting flexibility. This is the 'bitter lesson' (Sutton 2019) playing out in vision."
+    },
+    {
+      "kind": "text",
+      "title": "Modern variants",
+      "body": "ViT spawned a family of architectures:\n\n**Swin Transformer** (Liu 2021): hierarchical ViT with **windowed attention** (only patches in the same local window attend to each other). Cuts attention's quadratic cost; recovers some locality. Standard for object detection and segmentation.\n\n**DeiT** (Touvron 2021): ViT trained with extensive data augmentation + a distillation token from a CNN teacher. Matches or beats ViT-Large on ImageNet using only ImageNet — no JFT-300M needed. Showed that ViTs aren't intrinsically data-hungry.\n\n**MAE / BEiT**: ViT pretraining via masked patch modeling (mask out patches, predict the missing ones). Self-supervised; similar to BERT's masked language modeling. The dominant ViT pretraining method by 2022+.\n\n**ConvNeXt** (Liu 2022): a modernized CNN that matches ViT performance. Showed that CNNs aren't dead — they just need updated training recipes. Useful argument for the 'inductive bias still matters' camp.\n\n**Hybrid models** (CoAtNet, MaxViT): conv for early layers, attention for late layers. Best of both. Used in some production deployments.\n\nFor most current applications: ViT-Base/Large pretrained with MAE on ImageNet-21K, fine-tuned on the target task. Standard recipe; reproducible; well-tested."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "vit_q2",
+        "kind": "multiple_choice",
+        "question": "Why does Swin Transformer use windowed attention instead of full self-attention?",
+        "options": [
+          "Windowed attention is more accurate",
+          "Full self-attention is O(N²) in the number of patches. For 224×224 images at 16×16 patches that's 196² ≈ 39k pairs (cheap). For 1024×1024 images at 16×16 it's 4096² ≈ 16M pairs — quadratic blow-up. Windowed attention restricts each patch to attending within a small local window (e.g., 7×7), making cost linear in image size. Trade-off: gives up global attention; recovered partially by shifting windows between layers",
+          "Swin uses windowed attention because it's simpler",
+          "Windowed attention has more parameters"
+        ],
+        "correctIndex": 1,
+        "explanation": "The quadratic-attention problem is what prevents ViT from scaling cleanly to high-resolution images. Swin's windowed attention is the canonical fix: local within each window, global via shifting between layers. Cost becomes linear in the image area. This made ViTs tractable for object detection (typically 800×800+ inputs) and segmentation (per-pixel outputs). Most modern vision transformers use some form of windowed or sparse attention beyond standard 224×224 inputs."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "ViT is the architecture. The next lessons cover what to do with it: contrastive pretraining, joint vision-language models, and image generation.\n\nNext: [[contrastive-learning]] — how SimCLR and CLIP learn representations from unlabeled data.\n\nKey takeaways:\n- ViT: image → 16×16 patches → linear embed + position → standard transformer\n- Patch size trades off detail vs sequence length; 16×16 is the standard for 224×224\n- [CLS] token aggregates info for the classification head\n- ViT works because scale beats inductive bias at large data sizes\n- Modern variants: Swin (windowed attention), MAE (self-supervised), ConvNeXt (modernized CNN), hybrids\n- Standard recipe for production: ViT-Base/Large pretrained with MAE, fine-tuned on target"
+    }
+  ]
+}

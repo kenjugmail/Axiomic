@@ -1,0 +1,67 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Text-to-image — adding language conditioning",
+      "body": "Plain diffusion generates images from random noise without any control. **Text-to-image** diffusion adds language conditioning: the user supplies a prompt, the model generates an image matching it.\n\nStable Diffusion, DALL-E, Imagen, Midjourney, FLUX — all are conditioned diffusion models. The architecture differs in details; the recipe is fundamentally:\n\n1. Encode the prompt with a text encoder (CLIP-style or T5).\n2. Feed the text embedding into the diffusion U-Net via cross-attention.\n3. Train on (image, caption) pairs: diffusion loss + the cross-attention learns to align text features with image features.\n4. Sample with classifier-free guidance for sharper alignment to the prompt.\n\nThis lesson covers the conditioning mechanism, classifier-free guidance, and the Stable Diffusion architecture as the canonical example."
+    },
+    {
+      "kind": "text",
+      "title": "Cross-attention conditioning",
+      "body": "The diffusion U-Net needs a way to consume the text embedding. The standard approach: **cross-attention**.\n\nRecall: in self-attention, queries, keys, and values all come from the same sequence. In **cross-attention**, the queries come from one sequence (the image features in the U-Net) and the keys + values come from another (the text encoder's output).\n\n```\nQ = image_features @ W_Q\nK = text_features @ W_K\nV = text_features @ W_V\nattn = softmax(Q K^T / sqrt(d)) @ V\n```\n\nEach image-feature position can attend to all text tokens. The cross-attention layer learns which text tokens matter for which spatial regions.\n\n**Where it's inserted**: every level of the U-Net (encoder + decoder, multiple scales). Roughly half the U-Net's parameters are dedicated to cross-attention with text.\n\n**The text encoder**: Stable Diffusion 1.x uses CLIP's text encoder (frozen). SDXL uses CLIP-L + CLIP-G ensembled. Imagen uses T5-XXL (frozen, 4.6B parameters — much larger than CLIP). Larger/stronger text encoders → better prompt following."
+    },
+    {
+      "kind": "text",
+      "title": "Classifier-free guidance",
+      "body": "**Classifier-free guidance (CFG)** (Ho & Salimans 2022) is the trick that makes text-to-image actually follow prompts.\n\nThe problem: a diffusion model trained with text conditioning still has the option to ignore the text (the model's `ε_θ(x_t, t, c)` can have low gradient on `c`). Vanilla sampling produces images that *kind of* match the prompt.\n\nThe trick: train the model to handle *both* conditional `ε_θ(x_t, t, c)` and unconditional `ε_θ(x_t, t, ∅)` (with the prompt randomly dropped during training, ~10% of the time).\n\nAt sampling time, **extrapolate**:\n\n$$\\hat{\\epsilon} = \\epsilon_\\theta(x_t, t, \\emptyset) + s \\cdot (\\epsilon_\\theta(x_t, t, c) - \\epsilon_\\theta(x_t, t, \\emptyset))$$\n\nwhere `s` is the **guidance scale** (typically 7-12 for Stable Diffusion).\n\n**Intuition**: amplify the difference between 'with prompt' and 'without prompt' direction. The model is pushed harder along the conditioning direction than vanilla sampling would do.\n\n**Trade-off**: higher guidance scale → stronger prompt following but also more saturation, less diversity, sometimes artifacts. Lower → softer prompt following but more naturalistic outputs. Most production prompts use scales 7-9 as the sweet spot.\n\nCFG is what makes 'a photo of a corgi wearing a hat' actually produce a corgi wearing a hat. Without CFG, you get *some* dog, *some* hat, sometimes together but often not."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "txt2img_q1",
+        "kind": "multiple_choice",
+        "question": "Why does training-time prompt dropping enable classifier-free guidance?",
+        "options": [
+          "It prevents overfitting",
+          "By randomly dropping the prompt during training (replacing with a null token ~10% of the time), the same model learns both p(x | prompt) and p(x) (the unconditional distribution). At sampling time you can compute both conditional and unconditional noise predictions from the same network and extrapolate. Without prompt dropping, you'd need a separate unconditional model — twice the parameters",
+          "Dropping prompts speeds up training",
+          "The model needs to learn to ignore prompts sometimes"
+        ],
+        "correctIndex": 1,
+        "explanation": "Prompt dropping is the elegant trick that lets a single model serve both conditional and unconditional sampling. Without it, you'd need two models (or two heads). With it, your existing diffusion training loop just sometimes feeds in the empty conditioning token, and you get two distributions for free. CFG then extrapolates between them at sampling time."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Stable Diffusion in detail",
+      "body": "Stable Diffusion (Rombach 2022) is the canonical open-source text-to-image model. Components:\n\n**1. VAE encoder + decoder**: compress 512×512×3 image to 64×64×4 latent. ~48× downsampling.\n\n**2. Diffusion U-Net (~860M params for SD 1.5)**: operates on the latent. Cross-attention with text features at multiple levels.\n\n**3. Text encoder (CLIP ViT-L/14)**: encodes the prompt. Frozen during training.\n\n**Training**: 800M+ image-caption pairs (LAION-2B subset). Standard diffusion loss with random prompt dropping for CFG.\n\n**Sampling**:\n```\nlatent = N(0, I)\ntext_emb = clip_text_encoder(prompt)\nfor t in reversed(timesteps):\n    eps_cond = unet(latent, t, text_emb)\n    eps_uncond = unet(latent, t, empty_text_emb)\n    eps = eps_uncond + cfg_scale * (eps_cond - eps_uncond)\n    latent = ddim_step(latent, eps, t)\nimage = vae_decoder(latent)\n```\n\n**SDXL** (2023): ~3.5B params. Two text encoders (CLIP-L + CLIP-G). Higher base resolution (1024×1024). Refiner step. Better quality, ~3× slower.\n\n**SD3** (2024): rectified-flow-style training. Better prompt-following. Text-rendering improvements.\n\n**FLUX** (2024): rectified flow, cleaner CFG, 12B params. Currently considered SOTA among open-source for quality."
+    },
+    {
+      "kind": "text",
+      "title": "Editing, control, and the ecosystem",
+      "body": "Modern text-to-image isn't just 'generate from scratch'. Three productivity-focused extensions:\n\n**Image-to-image** (img2img): start from an existing image, partially noise it, sample with a different prompt. The structure of the original carries through but content changes.\n\n**Inpainting**: mask part of an image, use the masked region as the diffusion target. The unmasked region conditions the generation. Powers tools like 'replace this object with X'.\n\n**ControlNet** (Zhang 2023): a separate copy of the U-Net's encoder accepts an extra control input (depth map, edge map, pose skeleton, segmentation mask). The model preserves the spatial structure of the control while following the text prompt. Massively expanded the practical utility of text-to-image: you can now control composition, pose, framing.\n\n**LoRA fine-tunes**: cheap LoRA adapters specialize Stable Diffusion to particular styles, characters, concepts. Communities (CivitAI, HuggingFace) host thousands. End users can compose multiple LoRAs at inference time for fine-grained control.\n\n**Inversion**: 'find the noise + prompt that would generate this image'. Used for editing — invert an existing photo, modify the prompt slightly, regenerate to make targeted changes.\n\nThe ecosystem around Stable Diffusion is enormous. Most production text-to-image deployments are SD or SDXL with custom LoRAs + ControlNets — not the base model on its own.",
+      "extra": ""
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "txt2img_q2",
+        "kind": "multiple_choice",
+        "question": "Why is classifier-free guidance scale `s` typically tuned to 7-12 rather than higher?",
+        "options": [
+          "Higher s causes numerical instability",
+          "There's a quality-fidelity trade-off. Higher s → stronger prompt adherence but increasingly saturated colors, less diversity, characteristic artifacts (over-smoothed surfaces, repeated features). Past s=12 the artifacts dominate. The sweet spot 7-9 follows prompts well while preserving naturalistic variation in outputs",
+          "Higher s makes generation slower",
+          "The model doesn't support s > 12"
+        ],
+        "correctIndex": 1,
+        "explanation": "CFG scale is a quality knob, not just a 'higher is better' parameter. Beyond ~12, the extrapolation pushes outputs into a region the model wasn't trained on; outputs become stylized in characteristic ways (oversaturation, plastic surfaces, repeated patterns). The 7-9 range balances prompt-following with naturalism. SDXL's recommended scale is ~7; SD 1.5 around 7.5."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Text-to-image is the high-profile application. The next lesson moves to a different modality: audio + speech.\n\nNext: [[audio-and-speech]] — spectrograms, Whisper, modern TTS.\n\nKey takeaways:\n- Text-to-image: diffusion U-Net + cross-attention with a text encoder\n- Classifier-free guidance: extrapolate between conditional and unconditional. Scale 7-12 typical\n- Stable Diffusion: latent diffusion + CLIP text encoder + 860M U-Net\n- Modern variants: SDXL (3.5B + dual text encoders), FLUX (12B + rectified flow)\n- Ecosystem: img2img, inpainting, ControlNet, LoRA. Mostly more useful than the base model alone"
+    }
+  ]
+}

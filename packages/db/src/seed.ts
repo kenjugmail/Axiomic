@@ -12,6 +12,8 @@ import {
   newsArticles,
   capstones,
   capstoneMilestones,
+  capstoneTracks,
+  capstoneTrackCapstones,
   misconceptionCatalog,
   researchPapers,
 } from "./index";
@@ -107,6 +109,9 @@ async function seed() {
 
   // Sprint 49 — load research papers from seed-content/research/*.json.
   seedResearchPapers();
+
+  // Sprint 52 — load capstone tracks (depend on capstones existing).
+  await seedCapstoneTracks();
 
   console.log("Seeding complete.");
 }
@@ -296,6 +301,371 @@ A signed transcript survives both. The bytes are public; anyone can re-host them
 [Peer review](/capstones/review-queue) counts already fold into the signed manifest, so the credibility claim covers both AI grading and community endorsement. We're considering DOI-style permalinks for the artifact pages themselves so academic citation flows just work.
 
 If you completed a capstone before this week, your existing artifact page has been retroactively signed under our current key. The signature surface is now part of the platform's contract: we can rotate the key, but old transcripts under the old key keep verifying as long as the public key is preserved.`,
+    },
+    {
+      slug: "five-new-capstones-for-ml-engineers",
+      title: "Five new capstones for ML engineers",
+      summary:
+        "RAG pipelines, fine-tuning, training stability, mechanistic interpretability, inference optimization. The capstone library just expanded for ML engineers ramping up on modern systems.",
+      coverEmoji: "🚢",
+      accentColor: "indigo",
+      authorId: aliceId,
+      body: `If you're an ML engineer trying to level up — or hiring one and wondering what they should be able to do — the capstone library just got a lot more useful.
+
+Five new capstones, each ~4-6 weeks, each producing a public artifact page with a signed transcript at the end:
+
+## [RAG pipeline from scratch](/capstones/rag-pipeline-from-scratch) (6 weeks)
+
+Build the entire stack: chunking, embeddings, vector search, cross-encoder reranking, generation with citations, and an end-to-end evaluation harness. Five milestones. By the end, you'll have shipped a real RAG system over a corpus of your choice with a defended decision about which components mattered.
+
+The point isn't to recreate LangChain. It's to make every architectural choice yourself so you understand the failure modes when (not if) your production RAG system breaks.
+
+[[rag]] · [[retrieval-evaluation]] · [[function-calling]]
+
+## [Fine-tuning and LoRA at scale](/capstones/fine-tuning-and-lora) (4 weeks)
+
+Take a 7B-class open model. Fine-tune it three ways: full (or QLoRA), LoRA at one rank, LoRA at three ranks. Compare empirically. Decide what to ship.
+
+The most common mistake in fine-tuning is treating it as a single-knob problem. Different ranks, different layers to adapt, different data quantities all matter. After this capstone you'll have made all those choices once and have an empirical eval table to defend each.
+
+[[fine-tuning]] · [[lora]]
+
+## Three more on the way
+
+- **Training stability at scale** — diagnose and fix real training failures (NaN gradients, dead activations, learning-rate thrashing). Reproduce a small scaling-law experiment.
+- **Mechanistic interpretability: induction heads** — reverse-engineer the actual circuit in a small transformer that implements in-context learning.
+- **Inference optimization: KV cache + INT8 quantization** — take a small open model and make it fast enough to serve. Measure the quality-vs-speed tradeoff.
+
+Each new capstone is wired into the [Knowledge MRI](/me/mri) — completing one updates your concept-level mastery across the prerequisite topics. And each completed capstone produces a [signed transcript](/verify) anyone can verify with our public key.
+
+## Why these specifically
+
+Pick 1-2 from this list and you'll see real ML engineering judgment land. RAG is the dominant LLM application pattern; fine-tuning is the dominant adaptation pattern; mech-interp is the credibility frontier. The other two are systems-level work that ML engineers running production deployments do every week.
+
+Browse the [full capstone catalog](/capstones) or jump straight into one. Each capstone has a tiered brief — pick the depth that matches where you are.`,
+    },
+    {
+      slug: "the-misconception-catalog-learned-about-rag-and-lora",
+      title: "The misconception catalog learned about RAG, LoRA, and KV-cache",
+      summary:
+        "Six new entries in the misconception catalog, each on a frontier topic where engineer intuitions reliably go wrong.",
+      coverEmoji: "🛠️",
+      accentColor: "amber",
+      authorId: aliceId,
+      body: `Most of what makes a good ML engineer isn't knowing a long list of facts — it's knowing which of your intuitions are wrong. The [misconception catalog](/misconceptions) tracks the second category.
+
+Six new entries this week, all on frontier topics:
+
+## LoRA rank → unbounded capacity
+
+The intuition: more rank = better adaptation. The reality: empirically, LoRA's quality curve saturates around r=16-64 for most tasks. Higher rank doesn't proportionally help. The whole point of LoRA is the low-rank assumption — that task-specific weight updates lie in a low-dimensional subspace. If you find yourself reaching for r=256 by default, you've missed the design intent.
+
+## RAG: perfect retrieval → perfect output
+
+The intuition: if you fix retrieval, RAG works. The reality: even with perfect retrieval, the generator can ignore retrieved context, misread it, or hallucinate beyond it. End-to-end RAG quality is the joint of retrieval AND generation. Fixing one without measuring the other is the classic 'I improved retrieval and the system still hallucinates' debugging story.
+
+## KV-cache eliminates quadratic memory
+
+The intuition: KV cache makes attention O(N), so long context is cheap. The reality: KV cache eliminates redundant *computation* (O(N²) → O(N) per generation step), not *memory* (still O(context × layers × heads)). At 32K context the cache can be tens of GB per request. This is why GQA and PagedAttention exist.
+
+## FlashAttention is approximate
+
+The intuition: FlashAttention drops some computation for speed. The reality: it computes *exact* attention. The speedup comes from IO-aware tiling that avoids materializing the full N×N attention matrix in HBM, not from any approximation.
+
+## Chinchilla's 20:1 ratio is universal
+
+The intuition: 20 tokens per parameter is the optimal training data ratio for any model. The reality: the ratio depends on the LR schedule and on whether you're optimizing training-only or inference-amortized cost. LLaMA-3 8B was trained on 15T tokens (~1900:1) — deliberately over-trained because the inference economics favor it.
+
+## Mech-interp circuits are clean subgraphs
+
+The intuition: a circuit is a small, identifiable group of attention heads + MLP neurons. The reality: superposition means individual neurons carry many features. Most circuits are distributed across many heads and layers, with each contributing partially. This is why sparse autoencoders have become the workhorse of modern mech-interp.
+
+## How they got here
+
+Each of these entries followed the same path: someone proposed it in the [marketplace](/misconceptions), it accumulated five upvotes, and it auto-merged into the production catalog. From there, the [misconception detector](/me/weak-concepts) starts firing on quiz mistakes that match the pattern, and the AI tutor's misconception mode probes them when learners hit them.
+
+The catalog grows by community input. If you're confident a misconception trips up engineers and isn't yet in the catalog, [propose it](/misconceptions). Five votes from peers and it's in.`,
+    },
+    {
+      slug: "frontier-topic-wiki-seven-new-pages",
+      title: "Frontier-topic wiki: seven new pages, all with labs where they earn one",
+      summary:
+        "Prompt injection, retrieval evaluation, function calling, preference optimization, speculative decoding, quantization, distillation. The wiki just got the topics ML engineers actually work with daily.",
+      coverEmoji: "📚",
+      accentColor: "indigo",
+      authorId: carolId,
+      body: `When you're building production LLM systems, you don't need another transformer-architecture explainer. You need the topics nobody covers cleanly: prompt injection defenses, RAG evaluation methodology, the actual difference between DPO and PPO, what FP8 quantization gets you on H100s.
+
+Seven new wiki pages, all three-tier (intro / undergrad / grad):
+
+## [[prompt-injection]]
+
+Direct vs indirect attacks; defenses (input filtering, output monitoring, sandboxing tool calls, privilege separation); why this is currently unsolvable in the strong sense and what 'defense in depth' looks like in practice. The class of bug that doesn't have a clean fix.
+
+## [[retrieval-evaluation]]
+
+Hit rate, MRR, nDCG, BEIR, MTEB. How to build an evaluation set without leakage. Why LLM-as-judge has biases and how to validate against human ones. The metric layer that bounds [[rag]] system quality.
+
+## [[function-calling]]
+
+Schema design (the description fields are the most important part). Multi-step planning loops. Error recovery. Trained vs prompted function calling. The MCP ecosystem. Where the security perimeter actually lives.
+
+## [[preference-optimization]]
+
+DPO, IPO, KTO, ORPO, SimPO. Why the field has largely migrated off PPO except at frontier scale. The implementation cost difference. When each variant is worth the complexity.
+
+## [[speculative-decoding]]
+
+The trick: small fast model proposes K tokens; big model verifies all K in parallel. The math: produces a sample from the target model's distribution exactly (not approximately). Variants: Medusa, Lookahead, EAGLE, tree-based. 2-3× speedup at zero quality cost.
+
+## [[quantization]]
+
+INT8 weights are nearly free. INT4 with AWQ is the production sweet spot. FP8 on H100 hardware. QLoRA for memory-constrained fine-tuning. Where the quality cost actually lands.
+
+## [[distillation]]
+
+Soft labels, temperature, the Hinton recipe. Modern variants: on-policy distillation, MiniLLM, Distill-Step-by-Step. What distillation transfers and what it doesn't.
+
+## Why these specifically
+
+Each of these is a topic where the median engineer's intuition is wrong about something specific. The wiki pages encode the things that aren't obvious. Pair them with the [misconception marketplace](/misconceptions) — every wiki page now has corresponding misconception catalog entries — and you get the negative-knowledge half of the curriculum.`,
+    },
+    {
+      slug: "ml-engineer-ramp-up-end-to-end",
+      title: "ML engineer ramp-up, end-to-end: a 12-week path through Axiomic",
+      summary:
+        "If you're an engineer learning modern ML systems, here's a curated 12-week path through the platform. Lessons + capstones + wiki pages, ordered. The fastest way from 'I've heard of attention' to 'I can ship a production inference stack.'",
+      coverEmoji: "🗺️",
+      accentColor: "emerald",
+      authorId: carolId,
+      body: `The platform now has enough content for a complete ML-engineer ramp-up. This article is the curated map: which lessons in which order, when to drop into a wiki page for depth, when to start which capstone.
+
+Twelve weeks, three phases. Each phase ends with a capstone that turns the conceptual content into a defensible artifact. The whole path produces three signed transcripts at \`/verify\` and a [Knowledge MRI](/me/mri) that shows your concept-level coverage.
+
+## Weeks 1-4: Foundations + the transformer
+
+The goal of phase one is to understand what's actually happening inside a transformer at the math level. Not 'attention attends'; rather 'this matmul produces these gradients which update these weights.'
+
+Lessons (in order):
+
+1. [Tokens & embeddings](/paths/ml-engineer/lessons/tokens-basics) — what the model actually sees
+2. [BPE tokenization](/paths/ml-engineer/lessons/bpe-tokenization) — the merge-pair algorithm
+3. [Softmax basics](/paths/ml-engineer/lessons/softmax-basics) — the universal classifier head
+4. [Self-attention intro](/paths/ml-engineer/lessons/self-attention) and [scaled dot-product](/paths/ml-engineer/lessons/attention-intro)
+5. [Multi-head attention](/paths/ml-engineer/lessons/multi-head-attention) and [positional encoding](/paths/ml-engineer/lessons/positional-encoding)
+6. [FFN](/paths/ml-engineer/lessons/ffn), [layer norm](/paths/ml-engineer/lessons/layer-norm), [residual connections](/paths/ml-engineer/lessons/residual-connections)
+7. [Transformer block](/paths/ml-engineer/lessons/transformer-block) — putting it together
+
+Wiki side trips: [[attention]], [[softmax]], [[layer-normalization]] for depth. Hover the [[concept-cards]] inline for previews.
+
+**Capstone**: [Build a transformer from scratch](/capstones/transformer-from-scratch) (8 weeks if you take it slow; 4 if you focus). Output: a 2-layer transformer in numpy that trains on a copy task. You'll know exactly what each weight does.
+
+## Weeks 5-8: Modern systems + training
+
+Phase two: the modern recipe. RoPE, grouped-query attention, SwiGLU, AdamW, LoRA, RLHF. The lessons cover *what changed since the original transformer paper* and *why*.
+
+Lessons:
+
+1. [Modern architectures](/paths/ml-engineer/lessons/modern-architectures) — RoPE + GQA + SwiGLU
+2. [Training objectives](/paths/ml-engineer/lessons/training-objectives) and [sampling-decoding](/paths/ml-engineer/lessons/sampling-decoding)
+3. [Scaling laws](/paths/ml-engineer/lessons/scaling-laws) — Kaplan vs Chinchilla; tokens-per-parameter
+4. [Fine-tuning + LoRA](/paths/ml-engineer/lessons/fine-tuning-lora) — full vs LoRA vs adapters
+5. [RLHF](/paths/ml-engineer/lessons/rlhf) — the 3-stage pipeline; reward hacking; the move to DPO
+6. [RAG](/paths/ml-engineer/lessons/rag) — retrieval, generation, evaluation
+
+Wiki side trips: [[lora]], [[rlhf]], [[preference-optimization]], [[retrieval-evaluation]]. The [misconception catalog](/misconceptions) entries on LoRA rank, RAG perfect-retrieval, and Chinchilla universality are worth reading explicitly — these are the gotchas that trip up the median engineer.
+
+**Capstone choice** (pick one): [RAG pipeline from scratch](/capstones/rag-pipeline-from-scratch) (6 weeks) if you're heading into retrieval-system territory; [Fine-tuning + LoRA](/capstones/fine-tuning-and-lora) (4 weeks) if you're heading into model adaptation; [Training stability at scale](/capstones/training-stability-at-scale) (4 weeks) if you're heading into pretraining ops.
+
+## Weeks 9-12: Production inference + frontier topics
+
+Phase three: shipping. The lessons here are about what runs in production — KV-caching, FlashAttention, quantization, serving. Plus the frontier-topic primers (mech interp, alignment) so you can read papers at the level they're written.
+
+Lessons:
+
+1. [KV-cache](/paths/ml-engineer/lessons/kv-cache) and the [flash-attention] wiki
+2. [Mechanistic interpretability](/paths/ml-engineer/lessons/mechanistic-interp) — induction heads + superposition + SAEs
+3. (For ai-researcher path) [Interpretability](/paths/ai-researcher/lessons/interpretability), [Alignment frontier](/paths/ai-researcher/lessons/alignment-frontier), [Emergent capabilities](/paths/ai-researcher/lessons/emergent-capabilities)
+
+Wiki side trips: [[quantization]], [[speculative-decoding]], [[function-calling]], [[prompt-injection]]. These are the topics most production engineers operate on without ever reading a coherent treatment of.
+
+**Capstone choice**: [Inference optimization: KV-cache + quantization](/capstones/inference-optimization-kvcache-quant) (5 weeks) is the production-systems capstone. End state: a single-GPU inference server with measured tokens-per-second, peak memory, and held-out quality across baseline → KV-cache → INT8 → both. If you're heading into a research direction instead, [Mech-interp induction heads](/capstones/mech-interp-induction-heads) (5 weeks) is the alternative.
+
+## What you'll have at the end
+
+Three signed transcripts. A [portfolio page](/profile) that surfaces all three. A Knowledge MRI heatmap that's emerald across the ML-engineer path. And — assuming you defended a few claim threads on your artifact pages — a public discussion record that prospective employers can read.
+
+The platform's [coach](/me/weak-concepts) will keep flagging misconceptions as they surface. The [argument maps](/forum) will keep showing where your peers are stuck. And the [research papers](/research) keep arriving — same authoring loop, same tier toggle, same runnable cells if the paper has them.
+
+Ship the path, then write a paper about something you noticed along the way. That's the loop.`,
+    },
+    {
+      slug: "systems-engineer-path-launch",
+      title: "Systems engineer path: from a single GPU to a serving stack",
+      summary:
+        "The infrastructure half of ML now has a path. Eight lessons + 16 wiki pages + two capstones covering distributed training, FSDP, vLLM, monitoring, and the production failure modes that bite teams in their first quarter at scale.",
+      coverEmoji: "⚙️",
+      accentColor: "sky",
+      authorId: carolId,
+      body: `When we started Axiomic, we wrote about the math of transformers, the architecture of attention, and the dynamics of training. Necessary content; not sufficient. About 80% of production ML practitioners spend the bulk of their time on **systems** — distributed training, GPU memory accounting, serving infrastructure, monitoring, the rollback playbook for the day everything breaks.
+
+That content didn't exist on the platform. As of today it does.
+
+## What landed
+
+The new [systems engineer path](/paths/systems-engineer) covers the production-engineering stack end-to-end:
+
+1. [GPU architecture](/paths/systems-engineer/lessons/gpu-architecture) — tensor cores, HBM, the memory-vs-compute roofline.
+2. [Mixed precision](/paths/systems-engineer/lessons/mixed-precision-training) — bf16, fp16, fp8 + when each is the right call.
+3. [Data parallelism](/paths/systems-engineer/lessons/data-parallelism) — DDP, NCCL, scaling efficiency.
+4. [Model parallelism + FSDP](/paths/systems-engineer/lessons/model-parallelism) — when DDP isn't enough.
+5. [MLOps + experiment tracking](/paths/systems-engineer/lessons/mlops-experiment-tracking) — the discipline that turns research-style runs into a reproducible lineage.
+6. [Inference serving](/paths/systems-engineer/lessons/inference-serving) — vLLM, PagedAttention, continuous batching.
+7. [Monitoring + observability](/paths/systems-engineer/lessons/monitoring-observability) — drift, online eval, SLOs.
+8. [Production failure modes](/paths/systems-engineer/lessons/production-failure-modes) — the playbook for when reality hits.
+
+Plus 16 new wiki pages covering each subsystem in three-tier depth, six new misconceptions catching the median engineer's wrong intuitions, a survey paper on the [serving-stack frontier](/research/serving-stack-frontier-2026), and a new [systems forum domain](/forum/systems) for discussion.
+
+## Two capstones
+
+[Build a serving stack](/capstones/build-a-serving-stack) (5 weeks): implement a production-grade LLM inference server with KV cache management + continuous batching + monitoring. Benchmark against vLLM. Output: a public artifact showing where you matched it, where you didn't, and which optimizations account for the gaps.
+
+[Distributed training experiment](/capstones/distributed-training-experiment) (4 weeks): scale the same training run from one GPU through DDP, FSDP, and FSDP+offload on multi-GPU hardware. Measure the throughput-vs-memory Pareto frontier. Recommend a strategy for hypothetical 1B / 7B / 70B models.
+
+Both produce signed transcripts that paint a defensible picture of "this engineer can run a production ML system" — exactly the credential that's hard to demonstrate from a degree alone.
+
+## Why it matters
+
+Hiring managers tell us this is the gap they have the hardest time filling. There's no shortage of candidates who can train a transformer. There's a real shortage of candidates who can keep one running in production: diagnose an OOM at scale, recover from a NaN training spike at step 47000, design a rollback procedure that takes minutes instead of hours.
+
+The systems-engineer path is built around exactly those scenarios. The capstones produce the receipts. The misconceptions surface the wrong intuitions before they bite.
+
+For ML engineers ramping up: pair this path with the existing [ML engineer ramp-up](/news/ml-engineer-ramp-up-end-to-end) content. Foundation + frontier topics + production engineering — the stack that gets you from "I trained a model" to "I shipped one and kept it running."`,
+    },
+    {
+      slug: "rl-foundations-path-launch",
+      title: "RL foundations: from MDPs to PPO, then onward to RLHF",
+      summary:
+        "The missing ladder for understanding modern RL. Ten lessons + 15 wiki pages walk you from MDP fundamentals through value functions, TD learning, policy gradients, actor-critic, PPO, exploration, and model-based RL — ending at RLHF for language model alignment.",
+      coverEmoji: "🎯",
+      accentColor: "rose",
+      authorId: carolId,
+      body: `RLHF is famous; the foundations that make it work are not. Most ML engineers can recite "PPO + reward model + KL penalty" without being clear on what the policy gradient theorem says, why GAE matters, or what TRPO solved that PPO simplified. The new [reinforcement-learner path](/paths/reinforcement-learner) supplies that ladder.
+
+## What landed
+
+Ten lessons covering the full RL conceptual stack:
+
+1. [MDP foundations](/paths/reinforcement-learner/lessons/mdp-foundations) — states, actions, rewards, the discount factor.
+2. [Value functions](/paths/reinforcement-learner/lessons/value-functions) — V, Q, the Bellman equation.
+3. [Dynamic programming](/paths/reinforcement-learner/lessons/dynamic-programming-rl) — value iteration, policy iteration when you know the model.
+4. [Temporal difference learning](/paths/reinforcement-learner/lessons/temporal-difference) — Q-learning, SARSA, DQN.
+5. [Policy gradients](/paths/reinforcement-learner/lessons/policy-gradients) — REINFORCE and GAE.
+6. [Actor-critic](/paths/reinforcement-learner/lessons/actor-critic) — combining the two.
+7. [PPO and TRPO](/paths/reinforcement-learner/lessons/ppo-trpo) — the trust-region family.
+8. [Exploration vs exploitation](/paths/reinforcement-learner/lessons/exploration-exploitation) — the practical wall.
+9. [Model-based RL](/paths/reinforcement-learner/lessons/model-based-rl) — Dreamer, MuZero, sample efficiency.
+10. [RLHF and beyond](/paths/reinforcement-learner/lessons/rl-from-human-feedback) — bringing it back to LLMs.
+
+Plus 15 new wiki pages covering each subsystem, 5 new misconceptions, a survey paper on the [policy-optimization frontier in 2026](/research/pg-vs-trust-region-2026), and a new [RL forum domain](/forum/rl).
+
+## The capstone
+
+[Solve CartPole and LunarLander from scratch](/capstones/solve-cartpole-from-scratch) (4 weeks): implement REINFORCE → REINFORCE+baseline → A2C → PPO from numpy + PyTorch. End with a working PPO that solves CartPole in <30k steps and LunarLander in <1M. Compare against \`stable-baselines3\` on the same hyperparameters.
+
+The capstone produces a public artifact showing your PPO matched (or didn't quite match) the reference implementation, with a defensible analysis of which engineering details account for any gap. The signed transcript is the credential — you've built the modern RL workhorse from scratch and understand exactly why each component is there.
+
+## Why it matters now
+
+RLHF training compute is one of the largest deployment classes of RL today. ChatGPT, Claude, Gemini all run modified PPO in their alignment loops. Without the foundations — what's a value function, why does the policy gradient theorem work, what does GAE buy you — RLHF is folklore.
+
+This path supplies the foundations. Combined with the existing ml-engineer path's RLHF lesson, you've got the full ladder from MDPs through frontier-scale alignment.
+
+For learners on the [AI Researcher path](/paths/ai-researcher): this is the missing prereq. Read the RL foundations alongside the alignment-frontier lesson; pair the capstone with the ai-researcher's evaluation-rigor and interpretability lessons.`,
+    },
+    {
+      slug: "multimodal-path-launch",
+      title: "Multimodal path: ViTs, CLIP, diffusion, and the modern VLM stack",
+      summary:
+        "Widening the platform from text-only LLMs to vision, audio, and multimodal. Nine lessons + 13 wiki pages cover ViTs, CLIP, diffusion, classifier-free guidance, audio + Whisper, and the multimodal-fusion design space.",
+      coverEmoji: "🖼️",
+      accentColor: "violet",
+      authorId: carolId,
+      body: `Modern ML is no longer text-only. ViTs, CLIP, Stable Diffusion, GPT-4V — the multimodal frontier is where most production AI work happens. The new [multimodal-engineer path](/paths/multimodal-engineer) covers it.
+
+## What landed
+
+Nine lessons covering the full multimodal stack:
+
+1. [Image foundations](/paths/multimodal-engineer/lessons/image-foundations) — pixels, channels, convolutions.
+2. [Vision Transformers](/paths/multimodal-engineer/lessons/vision-transformers) — ViT, patch embeddings.
+3. [Contrastive learning](/paths/multimodal-engineer/lessons/contrastive-learning) — InfoNCE, SimCLR, MoCo.
+4. [CLIP and VLMs](/paths/multimodal-engineer/lessons/clip-and-vlms) — joint embedding spaces, modern VLMs.
+5. [Diffusion models](/paths/multimodal-engineer/lessons/diffusion-models) — forward + reverse, score matching.
+6. [Text-to-image](/paths/multimodal-engineer/lessons/text-to-image) — Stable Diffusion + classifier-free guidance.
+7. [Audio + speech](/paths/multimodal-engineer/lessons/audio-and-speech) — spectrograms, Whisper, modern TTS.
+8. [Multimodal fusion](/paths/multimodal-engineer/lessons/multimodal-fusion) — early vs late vs cross-attention.
+9. [Multimodal evaluation](/paths/multimodal-engineer/lessons/multimodal-evaluation) — benchmarks + hallucination probes.
+
+Plus 13 new wiki pages, 6 new misconceptions, a survey paper on the [multimodal-fusion frontier in 2026](/research/multimodal-fusion-frontier-2026), and a new [multimodal forum domain](/forum/multimodal).
+
+## Two capstones
+
+[Train a Vision Transformer from scratch](/capstones/train-a-vit-from-scratch) (5 weeks): implement ViT-Tiny on CIFAR-10, compare against CNN, do MAE pretraining, scale to ImageNet-100. Output: an empirical analysis of when each architecture wins.
+
+[Build a CLIP-style image-text retriever](/capstones/clip-style-retriever) (4 weeks): dual-encoder + InfoNCE on COCO Captions. Hard-negative mining, retrieval eval at scale (Recall@K, MRR), working similarity-search demo.
+
+## Why it matters now
+
+Vision and multimodal are no longer optional for the modern ML engineer. Every team eventually has to handle images, screenshots, documents, charts, video frames. Understanding the architecture (ViT + CLIP + VLMs + diffusion) is the foundation for shipping any multimodal application.
+
+For learners on the ml-engineer path: this is the natural extension. Multimodal is built on the transformer + attention foundations you already know; the vision-specific concepts (patches, contrastive pretraining, latent diffusion) layer on top.
+
+For learners on the [Reinforcement Learner path](/paths/reinforcement-learner): VLMs and RLHF combine — modern multimodal alignment uses RLHF with image conditioning. The two paths complement.`,
+    },
+    {
+      slug: "comp-bio-path-launch",
+      title: "Computational biology path: from sequence alignment to AlphaFold",
+      summary:
+        "ML × biology gets its own path. Nine lessons + 13 wiki pages cover DNA/RNA/protein, sequence alignment, AlphaFold, protein language models, single-cell genomics, and molecular dynamics. The most differentiated cross-domain on the platform.",
+      coverEmoji: "🧬",
+      accentColor: "emerald",
+      authorId: carolId,
+      body: `The 2020 AlphaFold breakthrough opened a new era for biology. Protein structure prediction — open for 50 years — was effectively solved. Since then, the field has expanded: ESM-3 generates novel functional proteins; single-cell foundation models embed millions of cells; AlphaFold 3 extends to multi-molecule complexes. The new [comp-biologist path](/paths/comp-biologist) covers it.
+
+## What landed
+
+Nine lessons covering the modern bio-ML stack:
+
+1. [DNA, RNA, Protein](/paths/comp-biologist/lessons/dna-rna-protein) — the central dogma + computational representation.
+2. [Sequence alignment](/paths/comp-biologist/lessons/sequence-alignment) — Smith-Waterman, BLAST, MSA.
+3. [Phylogenetics](/paths/comp-biologist/lessons/phylogenetics) — distance methods, ML phylogenetics, evolutionary trees.
+4. [Protein structure](/paths/comp-biologist/lessons/protein-structure) — primary, secondary, tertiary, quaternary.
+5. [AlphaFold](/paths/comp-biologist/lessons/alphafold) — Evoformer, structure module, MSA.
+6. [Protein language models](/paths/comp-biologist/lessons/protein-language-models) — ESM, masked-residue pretraining.
+7. [Single-cell RNA-seq](/paths/comp-biologist/lessons/single-cell-rna-seq) — scRNA-seq, dimensionality reduction, foundation models.
+8. [Molecular dynamics](/paths/comp-biologist/lessons/molecular-dynamics) — force fields, ML potentials.
+9. [Bio-ML evaluation](/paths/comp-biologist/lessons/bio-ml-evaluation) — CASP, contamination, leakage.
+
+Plus 13 new wiki pages, 6 new misconceptions, a survey paper on the [bio-ML state of the art in 2026](/research/bio-ml-state-of-art-2026), and a new [bio forum domain](/forum/bio).
+
+## The capstone
+
+[Build a protein language model from scratch](/capstones/build-a-protein-language-model) (6 weeks): train a small ESM-style protein LM via masked-residue prediction. Use it for variant effect prediction + functional embedding extraction. Compare against ESM-2.
+
+The output is a public artifact showing your protein LM matched (or didn't quite match) ESM-2 on specific tasks, with engineering analysis of the gaps. Defensible bio-ML credential.
+
+## Why this path is different
+
+Compared to the other six paths (ml-engineer, ai-researcher, mathematician, physicist, systems-engineer, reinforcement-learner, multimodal-engineer), comp-bio is the most domain-specific. Concepts like sequence alignment, phylogenetics, and protein structure are biology-specific; methods like AlphaFold are bio-ML-specific.
+
+But the ML substrate is the same: transformers, attention, contrastive learning, foundation models, careful evaluation. Bio-ML is what happens when modern ML methods meet biology's specific data structures + biological priors.
+
+For learners interested in cross-domain ML: comp-bio is one of the highest-leverage application areas. Frontier-class progress (AlphaFold, ESM-3, scGPT) happens at the intersection of ML scaling laws + biological data + biology-specific adaptations.
+
+## What this completes
+
+This is the fourth and final new mastery path of the S55-S58 batch. From [systems engineer](/news/systems-engineer-path-launch) through [RL foundations](/news/rl-foundations-path-launch) to [multimodal](/news/multimodal-path-launch) and now comp-bio, the platform has 7 mastery paths covering the modern ML practitioner's toolkit end-to-end.`,
     },
   ];
 
@@ -551,6 +921,93 @@ function seedMasteryPaths() {
       { slug: "entropy-and-information", title: "Entropy ↔ Information", level: "expert", order: 8, pages: ["information-theory"], prereqs: ["statistical-mechanics"], description: "Boltzmann's H meets Shannon's H — the bridge between the two." },
     ],
   });
+
+  // Sprint 55 — Systems engineer path. Distributed training, serving,
+  // monitoring. Closest sibling to ml-engineer; assumes transformer
+  // familiarity (cross-path prereqs link back where relevant in the
+  // lesson bodies).
+  seedMasteryPath({
+    slug: "systems-engineer",
+    title: "Systems Engineer",
+    description:
+      "Distributed training, GPU memory accounting, production serving, monitoring. The infrastructure half of modern ML.",
+    nodes: [
+      { slug: "gpu-architecture", title: "GPU Architecture", level: "apprentice", order: 1, pages: ["gpu-architecture", "tensor-cores", "hbm-memory"], prereqs: [], description: "Tensor cores, HBM bandwidth, memory hierarchy — the substrate everything else runs on." },
+      { slug: "mixed-precision-training", title: "Mixed Precision", level: "apprentice", order: 2, pages: ["mixed-precision", "loss-scaling"], prereqs: ["gpu-architecture"], description: "fp16 vs bf16 vs fp8, loss scaling, gradient stability." },
+      { slug: "data-parallelism", title: "Data Parallelism", level: "practitioner", order: 3, pages: ["data-parallelism", "nccl-collective"], prereqs: ["mixed-precision-training"], description: "DDP, gradient sync, NCCL — the workhorse of multi-GPU training." },
+      { slug: "model-parallelism", title: "Model Parallelism & FSDP", level: "practitioner", order: 4, pages: ["tensor-parallelism", "pipeline-parallelism", "fsdp"], prereqs: ["data-parallelism"], description: "Tensor + pipeline parallelism, FSDP. When the model doesn't fit on one GPU." },
+      { slug: "mlops-experiment-tracking", title: "MLOps & Experiment Tracking", level: "specialist", order: 5, pages: ["mlflow", "experiment-tracking"], prereqs: ["data-parallelism"], description: "Reproducibility, hyperparameter sweeps, the discipline of remembering what you ran." },
+      { slug: "inference-serving", title: "Inference Serving", level: "specialist", order: 6, pages: ["vllm", "paged-attention", "dynamic-batching"], prereqs: ["model-parallelism"], description: "vLLM, PagedAttention, dynamic batching — turning a checkpoint into a service." },
+      { slug: "monitoring-observability", title: "Monitoring & Observability", level: "expert", order: 7, pages: ["model-monitoring", "drift-detection", "slo-budget"], prereqs: ["inference-serving"], description: "Drift, online evaluation, latency SLOs. What 'shipped' actually means." },
+      { slug: "production-failure-modes", title: "Production Failure Modes", level: "expert", order: 8, pages: ["production-failures", "rollback-playbooks"], prereqs: ["monitoring-observability", "mlops-experiment-tracking"], description: "OOM, NaN gradients, silent corruption, rollback playbooks. The list of things that break in production." },
+    ],
+  });
+
+  // Sprint 56 — Reinforcement Learning path. RLHF in ml-engineer is
+  // covered as a depth-jump; this path supplies the missing ladder of
+  // foundations from MDPs through PPO.
+  seedMasteryPath({
+    slug: "reinforcement-learner",
+    title: "Reinforcement Learner",
+    description:
+      "From MDPs to PPO and onward to RLHF. The RL foundations the rest of modern AI assumes you have.",
+    nodes: [
+      { slug: "mdp-foundations", title: "MDP Foundations", level: "apprentice", order: 1, pages: ["mdp", "markov-property"], prereqs: [], description: "States, actions, rewards, transitions — the formal substrate of every RL algorithm." },
+      { slug: "value-functions", title: "Value Functions", level: "apprentice", order: 2, pages: ["value-function", "bellman-equation"], prereqs: ["mdp-foundations"], description: "V(s), Q(s,a), and the Bellman equation that ties them together." },
+      { slug: "dynamic-programming-rl", title: "Dynamic Programming", level: "practitioner", order: 3, pages: ["value-iteration", "policy-iteration"], prereqs: ["value-functions"], description: "Value iteration, policy iteration. Solving small MDPs exactly." },
+      { slug: "temporal-difference", title: "Temporal Difference Learning", level: "practitioner", order: 4, pages: ["td-learning", "q-learning"], prereqs: ["value-functions"], description: "TD(0), SARSA, Q-learning. Learning value functions from samples." },
+      { slug: "policy-gradients", title: "Policy Gradients", level: "practitioner", order: 5, pages: ["policy-gradient", "reinforce", "gae"], prereqs: ["value-functions"], description: "REINFORCE, baselines, GAE — optimizing the policy directly via gradient ascent on expected return." },
+      { slug: "actor-critic", title: "Actor-Critic Methods", level: "specialist", order: 6, pages: ["actor-critic"], prereqs: ["policy-gradients", "temporal-difference"], description: "A2C, A3C — combining policy gradients with a learned value baseline." },
+      { slug: "ppo-trpo", title: "PPO & TRPO", level: "specialist", order: 7, pages: ["ppo", "trpo"], prereqs: ["actor-critic"], description: "Trust regions, clipped surrogate objectives. The workhorse algorithms of modern RL." },
+      { slug: "exploration-exploitation", title: "Exploration vs Exploitation", level: "specialist", order: 8, pages: ["exploration-strategies", "intrinsic-rewards"], prereqs: ["temporal-difference"], description: "ε-greedy, UCB, intrinsic motivation, curiosity. Why pure exploitation gets stuck." },
+      { slug: "model-based-rl", title: "Model-Based RL", level: "expert", order: 9, pages: ["model-based-rl", "world-models"], prereqs: ["ppo-trpo"], description: "Learn a world model; plan with it. Dreamer, MuZero, the sample-efficiency frontier." },
+      { slug: "rl-from-human-feedback", title: "RLHF & Beyond", level: "expert", order: 10, pages: ["rlhf"], prereqs: ["ppo-trpo"], description: "Bridge to ml-engineer's RLHF lesson. Why it's PPO with a learned reward model, where DPO simplifies, where the alignment problem actually lives." },
+    ],
+  });
+
+  // Sprint 57 — Multimodal / Vision path. Widens the platform from
+  // text-only LLMs to ViTs, CLIP, diffusion, audio, and modern VLMs.
+  // Assumes transformer familiarity (cross-path prereqs link to
+  // ml-engineer's multi-head-attention lesson).
+  seedMasteryPath({
+    slug: "multimodal-engineer",
+    title: "Multimodal Engineer",
+    description:
+      "From pixels to vision transformers, CLIP, diffusion, audio, and modern VLMs. The non-text half of the modern ML stack.",
+    nodes: [
+      { slug: "image-foundations", title: "Image Foundations", level: "apprentice", order: 1, pages: ["convolutions", "image-tensors"], prereqs: [], description: "Pixels, channels, convolutions — the substrate every vision model builds on." },
+      { slug: "vision-transformers", title: "Vision Transformers", level: "apprentice", order: 2, pages: ["vit", "patch-embeddings"], prereqs: ["image-foundations"], description: "ViT, patch embeddings, position. The architecture that brought transformers to vision." },
+      { slug: "contrastive-learning", title: "Contrastive Learning", level: "practitioner", order: 3, pages: ["contrastive-loss", "infonce"], prereqs: [], description: "InfoNCE, SimCLR, hard negatives — the loss that powers self-supervised representation learning." },
+      { slug: "clip-and-vlms", title: "CLIP & Vision-Language Models", level: "practitioner", order: 4, pages: ["clip", "vision-language-models"], prereqs: ["vision-transformers", "contrastive-learning"], description: "Joint embedding spaces, CLIP's contrastive pretraining, modern VLMs (GPT-4V, LLaVA)." },
+      { slug: "diffusion-models", title: "Diffusion Models", level: "specialist", order: 5, pages: ["diffusion", "ddpm", "score-matching"], prereqs: ["image-foundations"], description: "Forward and reverse process, DDPM, score matching. The architecture behind Stable Diffusion + DALL-E." },
+      { slug: "text-to-image", title: "Text-to-Image", level: "specialist", order: 6, pages: ["stable-diffusion", "classifier-free-guidance"], prereqs: ["diffusion-models", "clip-and-vlms"], description: "Stable Diffusion's latent diffusion + CLIP conditioning + classifier-free guidance." },
+      { slug: "audio-and-speech", title: "Audio & Speech", level: "specialist", order: 7, pages: ["mel-spectrogram", "whisper"], prereqs: [], description: "Spectrograms, Whisper, modern TTS. Audio as another modality." },
+      { slug: "multimodal-fusion", title: "Multimodal Fusion", level: "expert", order: 8, pages: ["multimodal-fusion"], prereqs: ["clip-and-vlms"], description: "Early vs late vs attention-based fusion. How modern VLMs actually combine modalities." },
+      { slug: "multimodal-evaluation", title: "Multimodal Evaluation", level: "expert", order: 9, pages: ["mmlu-multimodal"], prereqs: ["multimodal-fusion"], description: "VQA benchmarks, hallucination detection, eval methodology when there's no single ground truth." },
+    ],
+  });
+
+  // Sprint 58 — Computational Biology path. The most differentiated
+  // cross-domain: ML × biology. AlphaFold, protein language models,
+  // sequence modeling. Cross-references ml-engineer's attention work
+  // explicitly (AlphaFold's evoformer is attention-based).
+  seedMasteryPath({
+    slug: "comp-biologist",
+    title: "Computational Biologist",
+    description:
+      "ML × biology: from DNA/RNA/protein to AlphaFold, protein language models, and the bio-ML frontier.",
+    nodes: [
+      { slug: "dna-rna-protein", title: "DNA, RNA, Protein", level: "apprentice", order: 1, pages: ["central-dogma", "protein-sequence"], prereqs: [], description: "The central dogma, sequence representations, and what 'biological data' actually means computationally." },
+      { slug: "sequence-alignment", title: "Sequence Alignment", level: "apprentice", order: 2, pages: ["sequence-alignment", "blast"], prereqs: ["dna-rna-protein"], description: "Smith-Waterman, BLAST, multiple sequence alignment. The classical bioinformatics that ML built on." },
+      { slug: "phylogenetics", title: "Phylogenetics", level: "practitioner", order: 3, pages: ["phylogenetic-tree"], prereqs: ["sequence-alignment"], description: "Distance methods, maximum likelihood, evolutionary trees. How relatedness is inferred from sequence." },
+      { slug: "protein-structure", title: "Protein Structure", level: "practitioner", order: 4, pages: ["protein-structure", "secondary-structure"], prereqs: ["dna-rna-protein"], description: "Primary → secondary → tertiary → quaternary. The folding problem and why it took until 2020 to crack." },
+      { slug: "alphafold", title: "AlphaFold", level: "specialist", order: 5, pages: ["alphafold", "evoformer", "msa-attention"], prereqs: ["protein-structure", "sequence-alignment"], description: "Evoformer, structure module, MSA. Why attention + co-evolution gave us protein structure prediction." },
+      { slug: "protein-language-models", title: "Protein Language Models", level: "specialist", order: 6, pages: ["esm", "protein-lms"], prereqs: ["protein-structure"], description: "ESM, masked-residue pretraining. Transformer LMs adapted to protein sequences." },
+      { slug: "single-cell-rna-seq", title: "Single-Cell RNA-Seq", level: "specialist", order: 7, pages: ["scrna-seq", "umap-tsne"], prereqs: ["dna-rna-protein"], description: "Sequencing individual cells. Dimensionality reduction, cell-type clustering, the geneticist's microscope." },
+      { slug: "molecular-dynamics", title: "Molecular Dynamics", level: "expert", order: 8, pages: ["molecular-dynamics"], prereqs: ["protein-structure"], description: "Force fields, Langevin sampling, simulating biomolecules at the atomic level." },
+      { slug: "bio-ml-evaluation", title: "Bio-ML Evaluation", level: "expert", order: 9, pages: ["casp"], prereqs: ["alphafold", "protein-language-models"], description: "CASP, contamination, leakage. How bio-ML benchmarks stay (or fail to stay) honest." },
+    ],
+  });
 }
 
 // --- Forum seeding -------------------------------------------------------
@@ -580,6 +1037,30 @@ const SEED_DOMAINS = [
     slug: "physics",
     title: "Physics",
     description: "Statistical mechanics, dynamical systems, and beyond.",
+  },
+  {
+    slug: "systems",
+    title: "Systems",
+    description:
+      "Distributed training, serving, monitoring, the infrastructure half of ML.",
+  },
+  {
+    slug: "rl",
+    title: "Reinforcement Learning",
+    description:
+      "MDPs, value functions, policy gradients, PPO, RLHF, model-based RL.",
+  },
+  {
+    slug: "multimodal",
+    title: "Multimodal & Vision",
+    description:
+      "Vision transformers, CLIP, diffusion, audio, VLMs — non-text ML.",
+  },
+  {
+    slug: "bio",
+    title: "Computational Biology",
+    description:
+      "ML × biology: protein folding, sequence modeling, AlphaFold + ESM.",
   },
 ];
 
@@ -1009,6 +1490,93 @@ function seedResearchPapers() {
     count++;
   }
   console.log(`  Seeded ${count} research paper${count === 1 ? "" : "s"}.`);
+}
+
+// Sprint 52 — load capstone tracks from seed-content/tracks/*.json.
+// Each track JSON has { slug, title, summary, ..., capstones: [{slug,
+// optional?}] }. The loader resolves capstone slugs to IDs and
+// upserts the (track, capstone) join rows.
+async function seedCapstoneTracks() {
+  const dir = path.join(import.meta.dir, "../../../seed-content/tracks");
+  if (!fs.existsSync(dir)) return;
+
+  let systemUser = db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.username, "system"))
+    .get();
+  if (!systemUser) return; // capstones loader didn't run; nothing to attach
+
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith(".json"));
+  let count = 0;
+  for (const file of files) {
+    let parsed: any;
+    try {
+      parsed = JSON.parse(fs.readFileSync(path.join(dir, file), "utf-8"));
+    } catch {
+      continue;
+    }
+    if (!parsed?.slug || !parsed?.title) continue;
+
+    const existing = db
+      .select({ id: capstoneTracks.id })
+      .from(capstoneTracks)
+      .where(eq(capstoneTracks.slug, parsed.slug))
+      .get();
+
+    let trackId: string;
+    const values = {
+      slug: parsed.slug,
+      title: parsed.title,
+      summary: parsed.summary ?? "",
+      contentIntro: parsed.contentIntro ?? "",
+      contentUndergrad: parsed.contentUndergrad ?? "",
+      contentGrad: parsed.contentGrad ?? "",
+      canonicalTier: parsed.canonicalTier ?? "undergrad",
+      coverEmoji: parsed.coverEmoji ?? "🎯",
+      accentColor: parsed.accentColor ?? "violet",
+      tags: JSON.stringify(parsed.tags ?? []),
+      status: parsed.status ?? "published",
+      authorId: systemUser.id,
+    };
+    if (existing) {
+      trackId = existing.id;
+      db.update(capstoneTracks)
+        .set({ ...values, updatedAt: new Date().toISOString() })
+        .where(eq(capstoneTracks.id, existing.id))
+        .run();
+      db.delete(capstoneTrackCapstones)
+        .where(eq(capstoneTrackCapstones.trackId, trackId))
+        .run();
+    } else {
+      trackId = randomUUID();
+      db.insert(capstoneTracks).values({ id: trackId, ...values }).run();
+    }
+
+    const items: any[] = Array.isArray(parsed.capstones) ? parsed.capstones : [];
+    for (let i = 0; i < items.length; i++) {
+      const it = items[i];
+      const slug = typeof it === "string" ? it : it?.slug;
+      if (!slug) continue;
+      const cap = db
+        .select({ id: capstones.id })
+        .from(capstones)
+        .where(eq(capstones.slug, slug))
+        .get();
+      if (!cap) {
+        console.warn(`  track ${parsed.slug}: capstone "${slug}" not found, skipping.`);
+        continue;
+      }
+      db.insert(capstoneTrackCapstones).values({
+        trackId,
+        capstoneId: cap.id,
+        order: typeof it === "object" && typeof it.order === "number" ? it.order : i,
+        optional: typeof it === "object" && it.optional ? 1 : 0,
+      }).run();
+    }
+    count++;
+  }
+  console.log(`  Seeded ${count} capstone track${count === 1 ? "" : "s"}.`);
 }
 
 seed().catch(console.error);

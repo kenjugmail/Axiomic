@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "data-parallelism",
+  "key": "data-parallel-scales-linearly",
+  "label": "Data parallelism scales linearly with GPU count",
+  "description": "A natural-but-wrong belief: doubling the number of GPUs in a DDP setup roughly doubles training throughput. In reality, DDP scales **sub-linearly**, and the loss is sometimes dramatic.\n\nWhy:\n\n1. **Communication tax**. Each step needs an all-reduce of all gradients. NCCL does this as fast as the network allows, but the network isn't free. On NVLink within a host (~900 GB/s), the all-reduce is cheap; across hosts on InfiniBand (~25-50 GB/s), it can take 50%+ of the step time.\n\n2. **Convergence dynamics at large batch**. DDP scales the *effective batch size* by world_size. With 64 GPUs at per-GPU batch 8, the effective batch is 512. Past a critical batch size, gradients have low noise and you're paying for compute that doesn't accelerate convergence (McCandlish 2018). Reaching the same loss takes more total tokens.\n\n3. **Load imbalance + variable step time**. The slowest GPU per step bottlenecks the whole step. Stragglers (driver hiccups, tail-latency on data loading) hurt aggregate throughput.\n\nTypical scaling efficiency:\n- 1→8 GPUs intra-host on NVLink: 90-95% (near-linear).\n- 8→64 GPUs across 8 hosts on InfiniBand: 70-85%.\n- 64→512 GPUs across 64 hosts on slower interconnect: 50-70%, sometimes worse.\n\nMitigations: gradient accumulation (skip all-reduce on intermediate steps), gradient compression, hierarchical reductions, switching to TP intra-host + DP across hosts (3D parallelism). Without those, naive DDP at 256+ GPUs leaves substantial throughput on the table.",
+  "probeQuestions": [
+    "If you double GPUs in DDP, how much do you actually expect throughput to improve?",
+    "Why does multi-host DDP scale worse than intra-host DDP?"
+  ],
+  "correctionPromptTemplate": "The learner expects linear scaling from DDP. Walk through the three reasons it's sub-linear: (1) communication tax (all-reduce bandwidth), (2) convergence dynamics at large batch (critical batch size), (3) load imbalance from stragglers. Ground each in the bandwidth math: NVLink ~900 GB/s vs InfiniBand ~25-50 GB/s. Ask first — 'have you tried to predict the throughput at 8 GPUs based on a 1-GPU baseline? Was it close?'"
+}

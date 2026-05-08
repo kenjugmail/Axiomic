@@ -1,0 +1,72 @@
+{
+  "slug": "build-a-serving-stack",
+  "title": "Build a serving stack",
+  "summary": "Implement a production-grade LLM inference server with continuous batching, PagedAttention-style KV management, and a monitoring layer. Ship a single-GPU deployment that hits competitive throughput against vLLM at small scale.",
+  "estimatedWeeks": 5,
+  "coverEmoji": "⚙️",
+  "accentColor": "sky",
+  "tags": ["systems", "inference", "serving", "production"],
+  "prerequisiteWikiSlugs": ["vllm", "paged-attention", "dynamic-batching", "kv-cache"],
+  "canonicalTier": "undergrad",
+  "contentIntro": "## What you'll build\n\nA single-GPU LLM inference server that takes HTTP requests and returns generated text. Four milestones, each producing measurable artifacts.\n\n- Baseline single-stream server\n- KV cache + per-request slots\n- Continuous batching\n- Monitoring layer\n\nBy the end you understand exactly why vLLM is 10× faster than a naive `model.generate()` loop, because you've built the same primitives yourself.\n\n[[vllm]] · [[paged-attention]] · [[dynamic-batching]]",
+  "contentUndergrad": "## What you'll build\n\nFour milestones, ~5 weeks. Each milestone is code + a benchmark report. Use a small open model (Qwen 1.5-1.8B, TinyLlama-1.1B, anything you can run on a single 16-24GB GPU). The lessons aren't about raw throughput; they're about understanding *why* each optimization helps.\n\n## Format\n\nSingle GPU. PyTorch + a thin HTTP server (FastAPI, Hono, anything). Avoid using vLLM directly — that defeats the point. You'll benchmark against vLLM at the end.\n\n[[vllm]] · [[paged-attention]] · [[dynamic-batching]] · [[kv-cache]]",
+  "contentGrad": "## What you'll build\n\nA reference inference engine you'd hand to a backend engineer to use as a baseline before reaching for vLLM. Defense (claim-thread Q&A on the artifact page) covers: where the latency budget goes per token, the memory accounting for KV cache + weights + activations, the throughput-vs-latency Pareto frontier, and how each optimization composes (or doesn't) with the others.",
+  "milestones": [
+    {
+      "title": "Baseline single-stream server",
+      "description": "Build the simplest possible serving loop: take a prompt over HTTP, run `model.generate()`, return the text. No batching, no KV management beyond the framework default. Measure:\n\n- Tokens-per-second under single-user load.\n- Tokens-per-second at concurrency 4 (just queue requests in FIFO).\n- Peak GPU memory.\n- Latency distribution.\n\nIn your writeup: a baseline table + one breakdown chart showing where time is spent (prefill vs decode, attention vs FFN). Use `torch.profiler` or NVIDIA Nsight to attribute time.\n\nThis baseline is the floor everything else compares against.",
+      "rubric": {
+        "criteria": [
+          { "id": "implementation", "weight": 0.4, "description": "Working baseline server.", "aiPrompt": "Score whether the baseline server is functional, takes HTTP requests, and returns generated text correctly." },
+          { "id": "measurements", "weight": 0.4, "description": "Baseline measurements + breakdown.", "aiPrompt": "Score whether the benchmark reports tokens-per-second at multiple concurrency levels, peak memory, and a time-attribution breakdown by layer type." },
+          { "id": "writeup", "weight": 0.2, "description": "Reproducible setup.", "aiPrompt": "Score the writeup's clarity. Is the model + hardware + benchmark methodology documented well enough that another engineer can rerun?" }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "title": "Implement KV cache + per-request slots",
+      "description": "Add explicit KV cache management. Implementation steps:\n\n1. Pre-allocate a fixed pool of KV cache slots (e.g., enough for 16 concurrent requests at max sequence length).\n2. On each request, allocate a slot; release on completion.\n3. Modify the generation loop to read/write into the assigned slot.\n4. Reject requests that exceed the slot's max length.\n\nVerify correctness: outputs should match the baseline (modulo floating-point order).\n\nRe-run benchmarks. Per-token latency should drop dramatically. Peak memory should rise (the KV pool itself is the new memory cost).\n\nIn your writeup: a memory accounting table showing where the bytes go (model weights + activations + KV pool). Compare your throughput-per-output-token before and after.\n\n**Common pitfall**: the KV pool memory grows quadratically with concurrency × sequence length. For a 1.5B model at seq_len 4096 with 16 slots: multiple GBs. Surface this trade-off explicitly.",
+      "rubric": {
+        "criteria": [
+          { "id": "correctness", "weight": 0.4, "description": "KV-cached outputs match baseline.", "aiPrompt": "Score whether the KV-cache implementation produces outputs that match the baseline within floating-point tolerance. Is there an explicit correctness test?" },
+          { "id": "implementation", "weight": 0.3, "description": "Slot-based pool, well-structured.", "aiPrompt": "Score the implementation: is the slot pool correctly sized, are slots correctly allocated/released, is the code organized cleanly?" },
+          { "id": "memory_analysis", "weight": 0.3, "description": "Memory accounting + throughput delta.", "aiPrompt": "Score the writeup's depth on memory accounting and the explanation of where the throughput gain comes from." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 10
+    },
+    {
+      "title": "Continuous batching",
+      "description": "Replace the FIFO single-stream loop with continuous batching. Per step:\n\n1. Run forward over all active sequences in parallel (the batch).\n2. For each sequence: if it sampled EOS or hit max length, mark finished, free its slot, emit tokens to the user.\n3. Admit new requests from the queue into freed slots.\n\nThe key engineering challenges:\n\n- **Padding-free attention**: sequences in the batch have different lengths. Either pad and mask (simple, wasteful) or use ragged-batch attention kernels (FlashAttention's `varlen` variants, or a custom kernel).\n- **Position handling**: each sequence is at a different position. Track per-sequence step indices.\n- **Scheduling**: when more requests are queued than slots free, what's the policy? FIFO is fine for v1; document it.\n\nRe-run benchmarks under heterogeneous load (mix of short and long requests). Throughput should improve 2-5×.\n\nIn your writeup: a chart of tokens-per-second vs concurrency level, comparing baseline → KV-cached → continuous-batched.",
+      "rubric": {
+        "criteria": [
+          { "id": "implementation", "weight": 0.5, "description": "Continuous batching works under heterogeneous load.", "aiPrompt": "Score whether continuous batching is correctly implemented: variable-length sequences in the same batch, slot recycling on completion, admission of new requests." },
+          { "id": "throughput_gain", "weight": 0.3, "description": "Measured throughput gain on heterogeneous workload.", "aiPrompt": "Score whether the heterogeneous-load benchmark demonstrates a measurable throughput gain over the static-batch baseline." },
+          { "id": "writeup", "weight": 0.2, "description": "Engineering tradeoffs.", "aiPrompt": "Score the writeup's discussion of engineering challenges (padding, position handling, scheduling) and the choices made." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 10
+    },
+    {
+      "title": "Monitoring + load-test report",
+      "description": "Add a minimum monitoring layer + write the final comparison report.\n\n**Monitoring**:\n\n1. Per-request latency histogram (p50, p95, p99).\n2. Throughput in tokens/sec (rolling 10-second average).\n3. KV slot utilization (fraction of slots in use).\n4. GPU memory + GPU utilization.\n5. Queue depth (requests waiting for a slot).\n\nExpose as Prometheus metrics + a simple Grafana dashboard, or roll your own /metrics endpoint + plotting script.\n\n**Load-test report**:\n\nWrite a final report comparing:\n- Your baseline → KV-cached → continuous-batched server\n- vLLM (via `vllm serve` on the same model + hardware)\n\nMetrics: throughput at various concurrencies (1, 4, 16, 64), p95 latency, peak memory, quality (eval the output of one fixed prompt and verify it's identical between your server and vLLM, mod floating-point).\n\nDiscussion: where is your stack within X% of vLLM? Where is it 5× slower? What feature(s) of vLLM (PagedAttention, speculative decoding, optimized kernels) account for the gap?\n\nThis closing milestone is the synthesis. The grader is looking for engineering judgment — not raw matches to vLLM, but clear understanding of *why* the gaps exist.",
+      "rubric": {
+        "criteria": [
+          { "id": "monitoring", "weight": 0.3, "description": "Working monitoring layer.", "aiPrompt": "Score whether the monitoring exposes the requested metrics in a usable format (Prometheus, Grafana, or equivalent)." },
+          { "id": "comparison", "weight": 0.4, "description": "Comparison with vLLM is rigorous.", "aiPrompt": "Score the comparison: are metrics measured fairly (same model, same hardware, same prompts), are confidence intervals computed, is the gap quantified?" },
+          { "id": "judgment", "weight": 0.3, "description": "Engineering analysis of the gap.", "aiPrompt": "Score the discussion of why the gap exists: does the learner identify which vLLM optimizations account for the throughput difference?" }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 8
+    }
+  ]
+}

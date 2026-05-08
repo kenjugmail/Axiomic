@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What math you actually need for ML research",
+      "body": "Reading ML papers requires a specific mathematical vocabulary. Not all of math — a focused subset that shows up in nearly every paper.\n\n- **Linear algebra**: vectors, matrices, dot products, norms, eigendecomposition. The shape language of ML.\n- **Calculus**: derivatives, gradients, chain rule. The mechanics of training.\n- **Probability**: random variables, expectations, distributions, Bayes' rule. The model of uncertainty.\n- **Statistics**: estimation, MLE, hypothesis testing. How we turn data into claims.\n- **Information theory**: entropy, KL divergence, mutual information. The vocabulary of ML losses.\n\nThis lesson is a tour. Each topic gets one slide of essentials — enough to know what you're missing if a paper assumes it. Each links out to a deeper foundations page."
+    },
+    {
+      "kind": "text",
+      "title": "Linear algebra essentials",
+      "body": "The four operations you'll see constantly:\n\n**Matrix-vector product** `Wx`. Linear combination of W's columns weighted by x.\n\n**Matrix-matrix product** `AB`. Each entry `(AB)[i,j] = Σ_k A[i,k] · B[k,j]`. Order matters: `AB ≠ BA` in general.\n\n**Dot product** `x · y = Σ x_i y_i`. Measures how 'aligned' two vectors are. Equals `|x| |y| cos(θ)`. The dot product *is* what attention computes when comparing queries to keys.\n\n**Norm** `||x||`. The most common is L2: `||x||_2 = √(Σ x_i²)`. L1 is `Σ |x_i|`. Norms quantify 'size' of a vector.\n\nTwo decompositions worth knowing by name:\n\n- **Eigendecomposition** `A = QΛQ^(-1)`. Eigenvectors and eigenvalues. The eigenbasis is where A looks like a scaling.\n- **Singular Value Decomposition (SVD)** `A = UΣV^T`. Generalizes eigendecomposition to non-square matrices. Underlies LoRA, PCA, and many dimension-reduction methods.\n\nIf you can compute matrix shapes by hand and know what 'rank' means, you can read most ML papers. See [[linear-algebra-foundations]]."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mf_q1",
+        "kind": "multiple_choice",
+        "question": "If A is [m×n] and B is [n×p], what's the shape of AB?",
+        "options": [
+          "[m×p]",
+          "[n×n]",
+          "[m×n]",
+          "Undefined — only square matrices can multiply"
+        ],
+        "correctIndex": 0,
+        "explanation": "Matrix multiplication chains the inner dimensions. A is [m×n], B is [n×p]; the n's cancel; result is [m×p]. This is the most-used shape rule in ML — knowing it cold lets you sanity-check architecture diagrams in seconds."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Calculus + chain rule",
+      "body": "ML training is calculus on weights. The model defines a loss as a function of weights `L(W)`; you compute the gradient `∂L/∂W`; you take a step in the direction of negative gradient.\n\nThe **chain rule** is the engine:\n\n$$\\frac{d}{dx}f(g(x)) = f'(g(x)) \\cdot g'(x)$$\n\nApplied to deep networks, chain rule is what propagates gradients backward through every layer. Get the chain rule wrong and your gradients are wrong. (See [[backpropagation]].)\n\nMultivariable extension: the gradient of a scalar function of a vector is a vector of partial derivatives:\n\n$$\\nabla_x f(x) = \\left[\\frac{\\partial f}{\\partial x_1}, \\frac{\\partial f}{\\partial x_2}, \\ldots\\right]$$\n\nGradient descent: `W ← W - η · ∇_W L`.\n\nThe **Hessian** is the matrix of second derivatives. It tells you about local curvature. Most modern optimizers (Adam, etc.) approximate Hessian information without computing it explicitly. See [[calculus-foundations]] and [[optimization-theory]]."
+    },
+    {
+      "kind": "text",
+      "title": "Probability + statistics",
+      "body": "**Random variables, expectations, variance**: the basic vocabulary. `E[X]` is what you'd get on average; `Var[X]` is how spread out it is.\n\n**Distributions you'll see constantly**:\n\n- Bernoulli (coin flip)\n- Categorical (one-of-K)\n- Normal / Gaussian — appears everywhere because of the central limit theorem\n- Multinomial — sample from K classes\n\n**Conditional probability** `P(A|B)` is the basis of Bayes' rule:\n\n$$P(A|B) = \\frac{P(B|A) \\cdot P(A)}{P(B)}$$\n\nFlipping conditioning. **Critical**: `P(A|B) ≠ P(B|A)` in general. The base-rate fallacy is exactly the confusion between these.\n\n**Maximum likelihood estimation (MLE)**: given data, find parameters that make the data most probable under the model. Cross-entropy loss minimization is MLE. (See [[statistics-foundations]] and [[probability-foundations]].)"
+    },
+    {
+      "kind": "text",
+      "title": "Information theory",
+      "body": "**Entropy** `H(X) = -Σ p(x) log p(x)`. The expected number of bits needed to encode X. High entropy means the distribution is spread out (uncertain); low entropy means it's concentrated.\n\n**KL divergence** `KL(P || Q) = Σ p(x) log(p(x) / q(x))`. Measures how 'different' two distributions are. Asymmetric: `KL(P||Q) ≠ KL(Q||P)`. Used in RLHF, VAEs, and basically everywhere distributions are compared.\n\n**Cross-entropy** `H(P, Q) = -Σ p(x) log q(x)`. The standard ML loss. Also asymmetric. The next-token-prediction loss is cross-entropy between the true distribution (one-hot for the actual next token) and the model's predicted distribution.\n\n**Mutual information** `I(X; Y) = H(X) - H(X|Y)`. How much knowing Y reduces uncertainty about X. Foundation of representation learning objectives.\n\nIf you only learn one of these deeply: **KL divergence**. It shows up in policy regularization (RLHF), generative modeling, and information bottleneck arguments throughout ML. See [[information-theory]]."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mf_q2",
+        "kind": "multiple_choice",
+        "question": "Why is cross-entropy loss the standard objective for next-token prediction?",
+        "options": [
+          "It's the simplest loss function",
+          "It's equivalent to maximum likelihood estimation: minimizing cross-entropy = maximizing the likelihood that the model assigns to the actual training data",
+          "It always converges fastest",
+          "It's required for backpropagation"
+        ],
+        "correctIndex": 1,
+        "explanation": "Cross-entropy is `-Σ p_true(x) log p_model(x)`. With p_true being one-hot (the actual next token), this becomes `-log p_model(actual_token)`, which is exactly the negative log-likelihood. Minimizing cross-entropy IS maximum likelihood estimation. This is one of the most important conceptual unifications in ML."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "These five areas are the math substrate for ML research. The rest of the AI Researcher path builds on them:\n\n- [[info-theory-basics]] — entropy, KL, mutual information at applied depth\n- [[statistics-for-ml]] — estimation, hypothesis testing, calibration\n- [[transformer-deep-dive]] — the architecture, with these tools\n- [[training-dynamics]] — what loss curves and gradient norms mean\n\nKey takeaways:\n- Linear algebra: dot products, matrix shapes, eigendecomposition / SVD\n- Calculus: chain rule, gradients, gradient descent\n- Probability: Bayes, expectation, common distributions\n- Statistics: MLE, hypothesis testing\n- Information theory: entropy, KL, cross-entropy\n\nIf any of these feels rusty, the foundations pages have full lessons. If they all feel familiar, you're ready for the rest of the path."
+    }
+  ]
+}

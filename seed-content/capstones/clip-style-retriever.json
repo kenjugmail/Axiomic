@@ -1,0 +1,72 @@
+{
+  "slug": "clip-style-retriever",
+  "title": "Build a CLIP-style image-text retriever",
+  "summary": "Train a CLIP-style dual encoder on a small image-caption corpus. Hard-negative mining, evaluation on retrieval metrics, and a working similarity-search demo. The capstone for understanding modern multimodal alignment by building it.",
+  "estimatedWeeks": 4,
+  "coverEmoji": "🔍",
+  "accentColor": "indigo",
+  "tags": ["multimodal", "clip", "contrastive", "retrieval"],
+  "prerequisiteWikiSlugs": ["clip", "contrastive-loss", "infonce", "vit"],
+  "canonicalTier": "undergrad",
+  "contentIntro": "## What you'll build\n\nFour milestones: a dual-encoder image-text retriever trained from scratch + a hard-negative-mining experiment + retrieval eval + a demo.\n\n- Dual encoder + InfoNCE loss\n- Hard-negative mining\n- Retrieval eval (Recall@K, MRR)\n- Similarity search demo\n\nBy the end you understand exactly why CLIP works because you've trained one on a small dataset and seen the failure modes.\n\n[[clip]] · [[contrastive-loss]] · [[infonce]]",
+  "contentUndergrad": "## What you'll build\n\nFour milestones, ~4 weeks. PyTorch + a single GPU. Dataset: COCO Captions (~118K image-caption pairs) or Conceptual Captions (3M; subset of 200K). Training fits on a single GPU at small encoder sizes.\n\n[[clip]] · [[contrastive-loss]] · [[infonce]]",
+  "contentGrad": "## What you'll build\n\nA reference image-text retrieval system + a working understanding of CLIP-style training internals. Defense covers: why InfoNCE needs many negatives, what hard-negative mining actually does, retrieval evaluation methodology, and the failure modes (long-tail concepts, fine-grained distinctions, OCR).",
+  "milestones": [
+    {
+      "title": "Dual encoder + InfoNCE",
+      "description": "Build the basic CLIP architecture:\n\n1. **Image encoder**: a small ViT (use the reference from `train-a-vit-from-scratch` if you've done that capstone, or a pretrained ViT-Tiny / ResNet-18).\n2. **Text encoder**: a small transformer (6 layers, d_model=256). Tokenize captions with a BPE tokenizer (HuggingFace's CLIP tokenizer is fine).\n3. **Projection heads**: linear layers projecting both encoders' outputs to a shared embedding dim (e.g., 256). L2-normalize.\n4. **Loss**: symmetric InfoNCE across the batch. Temperature 0.07 (or learnable).\n\nTrain on COCO Captions for 30-50 epochs, batch size 256-512.\n\nMeasure during training:\n- Recall@1, Recall@5 on validation set (image-to-text and text-to-image).\n- Mean Reciprocal Rank.\n\nExpected: R@1 ~10-15%, R@5 ~30-40% on COCO val. Worse than full CLIP (which trained on 400M pairs); the framework matters more than absolute numbers.",
+      "rubric": {
+        "criteria": [
+          { "id": "dual_encoder", "weight": 0.5, "description": "Working dual encoder + InfoNCE.", "aiPrompt": "Score whether the dual encoder is implemented correctly: separate image and text towers, projection heads with L2 norm, symmetric InfoNCE across batches." },
+          { "id": "training", "weight": 0.3, "description": "Training converges.", "aiPrompt": "Score whether training converges to non-trivial Recall@K (significantly above random)." },
+          { "id": "eval", "weight": 0.2, "description": "Retrieval metrics computed.", "aiPrompt": "Score whether Recall@1, Recall@5, and MRR are computed correctly for both directions." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "title": "Hard-negative mining",
+      "description": "Implement hard-negative mining to improve representations.\n\nThree strategies:\n\n**1. Larger batches**: increase batch size from 256 to 1024 (or as much as memory allows). More in-batch negatives → more hard negatives by construction.\n\n**2. Memory queue (MoCo-style)**: maintain a FIFO queue of past keys (e.g., 4096 keys). Each query attends to the queue's keys as additional negatives. Add a momentum-updated key encoder.\n\n**3. Cross-batch hard negatives**: compute similarity matrix across multiple batches; sample the hardest negatives explicitly.\n\nPick one (or compare two). Re-train; measure retrieval metrics.\n\nExpected: Recall@1 improves by 2-5%. Documentation: how does the harder training affect the loss curve? Do you see the loss going DOWN over training (good) or oscillating (bad)?",
+      "rubric": {
+        "criteria": [
+          { "id": "implementation", "weight": 0.5, "description": "Working hard-negative mining.", "aiPrompt": "Score whether the hard-negative strategy is implemented correctly. Common bugs: queue stale-ness, momentum encoder not properly updated, training instability from too-hard negatives." },
+          { "id": "experiment", "weight": 0.3, "description": "Quantitative improvement measured.", "aiPrompt": "Score whether the comparison shows a measurable improvement in Recall@K." },
+          { "id": "writeup", "weight": 0.2, "description": "Discussion of the trade-off.", "aiPrompt": "Score the writeup's discussion of when hard-negative mining helps vs hurts." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "title": "Retrieval eval at scale",
+      "description": "Build a proper evaluation pipeline:\n\n1. **Index a large gallery**: encode all 5,000 COCO val images. Store in a dense vector index (Faiss is the standard).\n2. **Query with text**: encode val captions. Retrieve top-K nearest images.\n3. **Compute metrics**: Recall@1, Recall@5, Recall@10, MRR.\n4. **Reverse**: index the captions; query with images.\n\nFor scale: try indexing 100K+ images from a larger dataset (Conceptual Captions or LAION subset). Measure retrieval latency at scale.\n\nIn your writeup: a Recall@K table for both directions; latency numbers; comparison with off-the-shelf CLIP (OpenAI ViT-B/16) on the same eval.\n\n**Stretch**: implement two-stage retrieval — your model for fast first-pass retrieval, then a re-ranking with OpenAI CLIP on the top-100. Common production pattern.",
+      "rubric": {
+        "criteria": [
+          { "id": "evaluation", "weight": 0.5, "description": "Proper retrieval eval.", "aiPrompt": "Score whether the retrieval eval is correct: indexed gallery, separate queries, Recall@K and MRR computed both directions." },
+          { "id": "comparison", "weight": 0.3, "description": "Compared with off-the-shelf CLIP.", "aiPrompt": "Score whether the experiment compares against a known reference (OpenAI CLIP or OpenCLIP) on the same eval set." },
+          { "id": "scale", "weight": 0.2, "description": "Scale measurements.", "aiPrompt": "Score whether retrieval at scale (100K+ images) is measured for both quality and latency." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "title": "Similarity search demo + final report",
+      "description": "Build a working demo: a web UI (or CLI) that takes a text query, retrieves the top-K images from your indexed gallery, and displays them.\n\n**Components**:\n- Pre-indexed gallery (Faiss + your trained model).\n- Text encoding endpoint.\n- Top-K retrieval + image rendering.\n\n**Final report**:\n\n1. **Failure mode analysis**: pick 10 query categories. For each, manually inspect top-5 retrievals. Where does your model succeed? Fail? Off-the-shelf CLIP fail?\n2. **Quantitative comparison table**: your model vs OpenAI CLIP on Recall@K, latency.\n3. **Engineering recommendations**: for production retrieval, what would you ship? Pretrained CLIP for robustness; your trained model for domain-specific recall; or hybrid?\n4. **What's next**: if you had 100× more compute / data, what would you change?\n\nThis milestone is the synthesis. The grader looks for engineering judgment + a working artifact.",
+      "rubric": {
+        "criteria": [
+          { "id": "demo", "weight": 0.4, "description": "Working demo.", "aiPrompt": "Score whether the demo is functional and the artifact is publicly viewable." },
+          { "id": "analysis", "weight": 0.3, "description": "Failure mode analysis.", "aiPrompt": "Score the depth of the failure mode analysis: are specific failure types identified? Does it generalize to a useful taxonomy?" },
+          { "id": "recommendation", "weight": 0.3, "description": "Engineering recommendation.", "aiPrompt": "Score the recommendation: is it defensible from the data, and does it engage with the trade-offs?" }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    }
+  ]
+}

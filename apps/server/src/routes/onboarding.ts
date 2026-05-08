@@ -19,6 +19,17 @@ const bodySchema = z.object({
   // wizard without committing to a path; we still mark onboardedAt to
   // stop re-prompting.
   pathSlug: z.string().min(1).max(120).optional(),
+  // Sprint 54 — stated goal. Surfaces as a chip on the home dashboard
+  // and feeds the AI coach's system prompt.
+  goal: z
+    .enum([
+      "complete_track",
+      "finish_path",
+      "publish_paper",
+      "join_cohort",
+      "ship_misconception",
+    ])
+    .optional(),
 });
 
 // GET /api/v1/onboarding/status — has the current user already
@@ -31,6 +42,7 @@ onboardingRouter.get("/status", requireAuth, async (c) => {
     .select({
       onboardedAt: users.onboardedAt,
       startingPathSlug: users.startingPathSlug,
+      onboardingGoal: users.onboardingGoal,
     })
     .from(users)
     .where(eq(users.id, user.id))
@@ -38,6 +50,7 @@ onboardingRouter.get("/status", requireAuth, async (c) => {
   return c.json({
     onboarded: !!row?.onboardedAt,
     startingPathSlug: row?.startingPathSlug ?? null,
+    onboardingGoal: row?.onboardingGoal ?? null,
   });
 });
 
@@ -51,7 +64,7 @@ onboardingRouter.post(
   zValidator("json", bodySchema),
   async (c) => {
     const user = c.get("user")!;
-    const { pathSlug } = c.req.valid("json");
+    const { pathSlug, goal } = c.req.valid("json");
     const db = getDb();
 
     // Resolve the path slug to an id when present. Reject unknown slugs
@@ -67,12 +80,16 @@ onboardingRouter.post(
       pathId = path.id;
     }
 
+    const updates: Record<string, unknown> = {
+      onboardedAt: new Date().toISOString(),
+      startingPathSlug: pathSlug ?? null,
+      updatedAt: new Date().toISOString(),
+    };
+    if (goal !== undefined) {
+      updates.onboardingGoal = goal;
+    }
     db.update(users)
-      .set({
-        onboardedAt: new Date().toISOString(),
-        startingPathSlug: pathSlug ?? null,
-        updatedAt: new Date().toISOString(),
-      })
+      .set(updates as typeof users.$inferInsert)
       .where(eq(users.id, user.id))
       .run();
 

@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What breaks in production ML, ranked",
+      "body": "After three years on a production ML team, the failures cluster:\n\n1. **OOM at the worst moment** — model fits in dev, hits a long-context request in production, OOMs the GPU, kills the process, takes the service down briefly while it restarts.\n2. **NaN / inf weights** — training run silently produces a checkpoint with NaN values that pass smoke tests but break inference on certain inputs.\n3. **Silent corruption** — a config change two months ago accidentally swapped two preprocessing steps; nothing crashed; output quality slowly degraded.\n4. **Rollback impossible** — the production model was retrained from scratch; the old checkpoint was deleted; the old data lake was overwritten. No way to revert.\n5. **Data pipeline drift** — upstream data source changed schema; everything still runs, but a feature that used to be 'is_logged_in' now occasionally contains a username string.\n6. **Cascading retries** — a slow downstream service times out; the upstream retries; the load triples; everything melts.\n\nThis lesson is the playbook. Each failure mode has a specific shape, a specific prevention, and a specific mitigation. The discipline of having all three written down — *before* the failure happens — is what separates production ML from research ML."
+    },
+    {
+      "kind": "text",
+      "title": "OOM under load",
+      "body": "**Failure shape**: a request with unusual context length (e.g., 32K tokens when most are 2K) lands; KV cache plus activations exceed available HBM; CUDA OOMs; the worker dies. If the request was the only thing in flight, just that user sees an error. If 30 other requests were sharing the worker, all 30 see errors. With process-per-GPU serving, the worker restart can take 30s during which no requests are served.\n\n**Prevention**:\n- Set a hard max context limit at the request router, lower than the model's theoretical max (e.g., 16K for an 8K-trained model with RoPE extrapolation; 100K for a 200K-trained model).\n- Estimate per-request memory cost as a function of input length + max_new_tokens. Reject requests that would exceed remaining KV cache budget.\n- Use PagedAttention so KV cache utilization is high but bounded.\n- Reserve a memory headroom (e.g., 5% of HBM) as a safety margin; the OOMs that happen are usually the ones that exceeded the margin you forgot you needed.\n\n**Mitigation**:\n- Out-of-memory exception handler in the worker: cancel the offending request, free its slot, return a clean error to the caller, *do not crash the worker*.\n- Liveness check on the worker so the orchestrator restarts it if it does crash, with bounded restart rate.\n- Alert on OOM rate; treat as a class-1 quality issue, not a class-3 latency blip."
+    },
+    {
+      "kind": "text",
+      "title": "NaN / inf in training",
+      "body": "**Failure shape**: training loss spikes to NaN at step ~12000. The optimizer applies a NaN update; weights become NaN. Subsequent steps continue to produce NaN gradients. Training silently produces a useless checkpoint.\n\n**Prevention**:\n- Gradient norm clipping (`torch.nn.utils.clip_grad_norm_`, typical value 1.0). Bounds the update magnitude regardless of gradient explosion.\n- Logit clamping (`torch.clamp(logits, -50, 50)`) before softmax. Prevents `exp(very_large_number)` from overflowing.\n- Loss scaling for fp16 (covered in mixed-precision lesson). Avoids gradient underflow that masquerades as a stuck training run.\n- Warmup the LR over the first few thousand steps. Cold optimizer + high LR is the canonical NaN trigger.\n\n**Mitigation**:\n- Detect NaN in the training loop: `if torch.isnan(loss): rollback_optimizer_step(); skip_batch()`. PyTorch's `GradScaler` does this automatically for fp16.\n- Save checkpoints every N steps (typical: every 30 minutes of training, every 1000 steps). On NaN detected, roll back to the most recent clean checkpoint, lower the LR by 10×, restart from there.\n- Log per-layer gradient norms. NaNs almost always start in one specific layer; the log tells you which.\n- A 'first NaN' alarm during a long training run is a class-1 issue. Don't ignore it."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "pf_q1",
+        "kind": "multiple_choice",
+        "question": "Your training run NaNs at step 14000 of 50000. Per-layer gradient logs show layer 23 had a 100× gradient norm spike right before the NaN. What's the most likely cause?",
+        "options": [
+          "GPU memory error",
+          "Layer 23 has an outlier activation pattern that triggered an attention overflow or LayerNorm divide-by-near-zero. Roll back to the last clean checkpoint, halve the LR, and either add gradient clipping (if not already present) or investigate that specific layer's activation distribution",
+          "PyTorch bug",
+          "Random seed problem"
+        ],
+        "correctIndex": 1,
+        "explanation": "100× spike in one specific layer is almost always an outlier in the activations or attention pattern flowing through that layer. Gradient clipping at 1.0 would have blunted the spike. Halving LR after the rollback prevents the same step from re-triggering. The per-layer log is what makes diagnosis possible — you know exactly which layer to instrument, not 'somewhere in the model'. Hardware errors (memory, ECC) produce isolated single-bit flips that don't repeat at the same step, very different signature."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Silent corruption — the worst failure mode",
+      "body": "Visible failures (OOM, NaN, 5xx errors) are easy to debug. **Silent corruption** is the engineer's nightmare: the system runs cleanly, throws no errors, passes all health checks, and produces wrong results.\n\nClassic shapes:\n\n- **Preprocessing drift.** A new dependency version subtly changed how unicode normalization works; some emojis now tokenize differently; eval scores drop 1% on emoji-heavy inputs that nobody routinely tests.\n- **Feature schema change.** Upstream data pipeline started emitting a feature in cents instead of dollars; model output is silently 100× too large on revenue predictions.\n- **A/B test contamination.** Treatment and control groups overlap because of a buggy hash; A/B results are noise.\n- **Model swap.** A retraining job produced a new checkpoint; production loaded it; nobody noticed it was the wrong checkpoint (different fine-tune objective).\n\n**Prevention**:\n- **Log + diff inputs and outputs day-over-day**. Any silent change shows up as a distribution shift on a daily diff dashboard.\n- **Smoke-test eval set in prod**. Run a fixed 100-question eval set through the production model every hour. Any degradation in the smoke score means something silently broke.\n- **Checkpoint hashing**. Every loaded checkpoint logs its SHA256. The hash is cross-referenced against a registry of approved checkpoints; mismatches alarm.\n- **Schema validation**. Use `pydantic` or `pandera` on every model input and output. Catch type drift at the boundary, not 12 layers downstream.\n\nMost mature ML teams have been bitten by silent corruption at least once. The lesson stays: build systems that *diff* and *validate* every input + output rather than trusting that nothing changed."
+    },
+    {
+      "kind": "text",
+      "title": "Rollback playbooks",
+      "body": "When things break, a written rollback playbook is the difference between 5 minutes of degradation and 5 hours.\n\n**Playbook ingredients**:\n\n1. **Trigger criteria**: \"if p99 latency > 8s for 5 consecutive minutes\", \"if eval smoke score drops below 0.85\", \"if OOM rate > 1%\". Pre-decided so the engineer on call doesn't have to negotiate the threshold under pressure.\n\n2. **Rollback target**: the previous known-good checkpoint, kept as `model:stable` in the registry. Always exists. Always loads cleanly. Latency-tested at last release.\n\n3. **Rollback procedure**: a single command (or a runbook). `kubectl set image deployment/llm-server llm-server=registry/llm-server:stable`. Tested in staging at least once a quarter so the engineer running it has muscle memory.\n\n4. **Post-incident**: even a successful rollback gets a 30-minute incident review the same day. Why did monitoring catch this? (Or fail to?) What's the regression test that would have caught it pre-deploy? When does the actual fix ship?\n\n**Anti-patterns**:\n- 'Roll forward' instead of rolling back. 'Just push the fix.' This is how 5-minute incidents become 5-hour incidents.\n- Discarding the previous checkpoint after a successful deploy. Now there's nothing to roll back to.\n- Tribal knowledge of the rollback procedure. The senior engineer is on vacation; the on-call doesn't know how. Disaster.\n\nMature teams **rehearse rollback** in staging quarterly. The drill is cheap and the muscle memory pays for itself the first time it's needed in earnest."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "pf_q2",
+        "kind": "multiple_choice",
+        "question": "Why is 'roll forward' (push a fix on top of the broken version) usually worse than 'roll back' (revert to the previous good version)?",
+        "options": [
+          "Roll forward is technically harder",
+          "Roll back has a known target (the previous version was working). Roll forward asks an under-pressure engineer to write + ship + test a fix faster than the broken version can be reverted. Time-to-recovery for rollback is minutes; for roll-forward it's hours, during which users see degraded service. Standard incident response: roll back first, ship the actual fix calmly later",
+          "Roll forward requires more CI/CD",
+          "Roll forward causes data loss"
+        ],
+        "correctIndex": 1,
+        "explanation": "The rollback discipline is core SRE practice but ML teams often skip it. The previous version was working (you have evidence!), so reverting is the lowest-risk path back to known-good. Writing a fix in the heat of an incident produces fixes that are themselves bug-prone — the engineer is rushed, the test cases are incomplete, the change goes through abbreviated review. Roll back. Restore service. Then fix carefully, test thoroughly, ship through normal deploy cadence."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Production failure modes are the closing lesson of the systems-engineer path. After this you've covered the full lifecycle: training infrastructure, serving infrastructure, monitoring, and the playbooks for when reality hits.\n\nKey takeaways:\n- OOM under load: per-request memory budget at the router, OOM handler in the worker, never crash the whole process\n- NaN in training: gradient clipping + logit clamp + per-layer norm logs + checkpoint rollback\n- Silent corruption is the worst class; mitigate with input/output diffs, smoke evals, checkpoint hashing, schema validation\n- Rollback playbooks: pre-decided triggers, known-good target, single-command procedure, rehearsed in staging\n- Roll back first, fix later — the discipline that limits time-to-recovery\n\nThis was the last lesson in the systems-engineer path. From [[gpu-architecture]] through production failure modes, you've covered the full infrastructure stack of modern ML."
+    }
+  ]
+}

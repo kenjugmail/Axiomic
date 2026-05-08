@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "rag",
+  "key": "rag-perfect-retrieval-perfect-output",
+  "label": "Perfect retrieval implies perfect generation",
+  "description": "A common assumption when debugging a RAG system: if the retriever is perfect (always returns the most relevant chunks), the generator will produce a perfect answer. This is wrong.\n\nGeneration has its own failure modes independent of retrieval:\n\n- **The model can ignore retrieved context.** Especially smaller models, or models that weren't trained to ground their answers in provided context. The retrieved chunks sit in the prompt but the model answers from pretraining anyway.\n- **The model can misinterpret the chunks.** Even with the right information present, the model can read it wrong — confuse two named entities, miss a negation, ignore qualifications.\n- **The model can hallucinate beyond the chunks.** Generates facts that 'sound right' but aren't actually in the retrieved text.\n- **The model can over-cite.** Cite chunks that don't actually support the claim, just because they're in the prompt.\n\nEnd-to-end RAG quality is a *joint* property of retrieval AND generation. Both need to be evaluated. Faithfulness metrics (does the answer trace to retrieved chunks?) are how the field measures this. The fix for generation failures is rarely 'better retrieval'; it's prompt design, model choice, or fine-tuning the model to attend to context.",
+  "probeQuestions": [
+    "If retrieval perfectly returns the right chunks but the model still hallucinates, where is the bug?",
+    "Why does increasing retrieval quality eventually have diminishing returns on end-to-end RAG accuracy?"
+  ],
+  "correctionPromptTemplate": "The learner thinks RAG quality is bounded by retrieval quality alone. Walk through: end-to-end RAG = retrieval × generation. Even with perfect retrieval, generation can ignore, misread, or hallucinate beyond context. Mention faithfulness as the metric that catches this. Ask first — 'if your retriever is perfect but the model still hallucinates, what would you change?'"
+}

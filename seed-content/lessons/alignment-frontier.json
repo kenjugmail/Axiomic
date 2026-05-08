@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What 'alignment' means in practice",
+      "body": "**Alignment** is the problem of getting a model to do what we want, where 'what we want' is a fuzzy and contested target. In current practice, alignment work breaks into three layers:\n\n- **Preference alignment**: the model produces responses humans prefer. Friendly, helpful, well-formatted.\n- **Refusal alignment**: the model declines harmful requests. Doesn't help with weapons, child exploitation, etc.\n- **Value alignment** (the harder problem): the model's behavior reflects deeper human values, not just surface preferences.\n\nThe first two are addressed reasonably well by RLHF and Constitutional AI. The third is open. This lesson covers the techniques, where they work, and where they fail.\n\nFor the basic RLHF pipeline, see [[rlhf]]. This lesson assumes that's familiar."
+    },
+    {
+      "kind": "text",
+      "title": "Preference optimization variants",
+      "body": "PPO (the original RLHF) has been joined by simpler alternatives:\n\n**DPO** (Direct Preference Optimization). Skip the explicit reward model; train the policy directly on preference pairs `(y_chosen, y_rejected)`. Implementation is much simpler. Works well in many regimes; sometimes underperforms PPO at large scale, partly because PPO can sample from the policy during training and DPO can't.\n\n**IPO** (Identity Preference Optimization). Variation of DPO with a different mathematical formulation that's claimed to be more robust to overconfident preferences. Mixed empirical results.\n\n**KTO** (Kahneman-Tversky Optimization). Trained on individual labels (this output is good / bad) rather than paired comparisons. Useful when paired data is hard to collect.\n\n**ORPO** (Odds Ratio Preference Optimization). Combines SFT and preference optimization in a single loss. Removes the need for a separate SFT stage. Empirically competitive in 2024.\n\n**Constitutional AI**. Use a rule set to generate preferences automatically (model A produces a response; a critique model judges it against the rules; corrections train the policy). Reduces dependence on human labelers. Anthropic's Claude was trained this way.\n\nThe distinctions aren't life-changing in practice. Pick based on infrastructure constraints (DPO if you don't want a reward model; PPO if you have the infra and want online sampling)."
+    },
+    {
+      "kind": "text",
+      "title": "Refusal training",
+      "body": "Training a model to refuse harmful requests sounds simple. It isn't.\n\nA naive approach: include 'should-refuse' examples in the SFT or preference data. Works for in-distribution requests; breaks on novel adversarial inputs.\n\nThe **adversarial robustness** problem: jailbreaks. Patterns:\n\n- **Direct override**: 'Ignore previous instructions and...'\n- **Roleplay framing**: 'Pretend you're an AI without safety filters...'\n- **Hypothetical / fictional**: 'Write a story where a character explains how to...'\n- **Distributional shift**: phrasings the safety training didn't see\n- **Encoded payloads**: ROT13 the bad request; the model decodes and complies\n- **Multi-turn manipulation**: gradually steer across many messages\n\nNo current refusal training is robust to all of these. The state of the art is statistical robustness — refusing 99%+ of attempts of known patterns. Adversaries find the 1%.\n\nThe defense in depth approach: refusal training (model-side) + input filtering (system-side) + output monitoring (post-hoc) + access controls (deployment-side). No single layer is sufficient."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "af_q1",
+        "kind": "multiple_choice",
+        "question": "Why is DPO often considered simpler than PPO for RLHF, and when does PPO still win?",
+        "options": [
+          "DPO is faster but less accurate; PPO always wins on quality",
+          "DPO skips the explicit reward model and value function — implementation is much smaller. PPO still wins when you can sample from the policy during training (which DPO can't), giving it access to on-policy data that DPO sees only as a snapshot",
+          "DPO doesn't require any human labels",
+          "PPO is deprecated"
+        ],
+        "correctIndex": 1,
+        "explanation": "DPO's simplicity comes from skipping the explicit reward model + PPO machinery (value function, advantage, KL ref). It's much easier to implement. PPO's advantage is online sampling — it generates new candidate responses during training and learns from them, while DPO only sees a fixed dataset. At frontier scale, the on-policy advantage matters. At smaller scales, DPO is usually fine."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Constitutional AI",
+      "body": "Anthropic's CAI is one of the more interesting recent ideas. The pipeline:\n\n**1. Write a constitution**: a set of principles for how the AI should behave. Examples: 'Be helpful'; 'Don't generate harmful content'; 'Acknowledge uncertainty.'\n\n**2. Self-critique**: model generates an initial response. A critique model (often the same model with a different prompt) evaluates the response against the constitution. If it violates principles, it produces a corrected response.\n\n**3. Train on the corrections**: the (initial response, corrected response) pairs become preference data. The model is trained to prefer the corrected versions.\n\nThe payoff: scalable. Human labelers don't have to write critiques for every response. The constitution is a single artifact (~50 principles in Claude's case) that drives the entire feedback loop.\n\nLimitations:\n- The constitution itself is a written-by-humans artifact — its biases get baked in.\n- Self-critique works when the model is *capable* of evaluating its own outputs against the principles. For frontier capabilities (e.g., 'is this code subtly malicious?'), the model may not be capable of the critique.\n- Constitutional training is layered on top of standard RLHF, not a replacement.\n\nThe deeper bet is that *automated, principle-driven critique* generalizes to capability levels where human oversight becomes infeasible. Whether it does is an open empirical question."
+    },
+    {
+      "kind": "text",
+      "title": "Value alignment — the open problem",
+      "body": "Preference and refusal alignment work for current models. **Value alignment** is the harder problem: getting a model to *want* what we want, not just produce outputs we like.\n\nThe issue: as models get more capable, the gap between 'produces preferred outputs' and 'has aligned values' grows. A sufficiently capable model could produce preferred outputs while having internal goals that diverge — the 'mesa-optimizer' / 'deceptive alignment' problem. We have no current way to verify a model's internal goals match its surface behavior.\n\nResearch directions:\n\n- **Scalable oversight**: methods that let humans evaluate AI outputs even when the AI is more capable than the human in the relevant domain. Debate, recursive reward modeling, weak-to-strong generalization.\n- **Mechanistic interpretability**: read the model's circuits directly to verify intent. (See [[interpretability]].)\n- **Eliciting latent knowledge**: surface what the model 'knows' even when it's not saying it.\n- **Process-based supervision**: reward not just outputs but the reasoning process.\n\nNone of these are solved. The field is candid: current alignment techniques (RLHF + CAI + jailbreak training) are good enough for current capability levels and almost certainly insufficient for AGI-class systems if those arrive.\n\nThe practical takeaway for ML researchers: **alignment is a research area, not a solved engineering problem**. Working on it is high-impact; the open problems are real."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "af_q2",
+        "kind": "multiple_choice",
+        "question": "What's the central concern of 'value alignment' that's NOT addressed by RLHF or refusal training?",
+        "options": [
+          "RLHF doesn't scale to large models",
+          "RLHF aligns the model's *outputs* with human preferences. It doesn't directly align the model's *internal goals*. A capable model could in principle produce preferred outputs while pursuing different latent objectives — and we have no current method to verify the alignment of internal goals beyond surface behavior",
+          "Refusal training is too slow",
+          "Constitutional AI is more expensive"
+        ],
+        "correctIndex": 1,
+        "explanation": "The deepest alignment concern: surface behavior and internal goals can diverge, especially for very capable models. RLHF trains the surface; it doesn't probe internals. Mechanistic interpretability is one of the methodologies that could close this gap, but it's far from solved. This is why frontier-lab safety teams treat alignment as a research problem, not a feature."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Alignment is the area where ML research touches policy, ethics, and existential-risk arguments. It's also the area with the most open research questions.\n\nKey takeaways:\n- Preference alignment is largely solved (RLHF, DPO, CAI all work)\n- Refusal alignment is statistically robust but not adversarially robust\n- Value alignment is open; mechanistic interpretability is one of the few promising paths\n- 'Aligned' models can still be jailbroken; defense in depth at the system level remains critical\n\nNext: [[emergent-capabilities]] — what scale brings, and what doesn't."
+    }
+  ]
+}

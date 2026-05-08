@@ -1,0 +1,61 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why we need a mask",
+      "body": "Standard self-attention lets every token attend to every other token. For a decoder model that generates text one token at a time, this is a problem: at position `t`, the model would 'see' tokens `t+1, t+2, ...` — the answer it's supposed to predict.\n\nThe **causal mask** (or 'autoregressive mask') prevents this leak. The rule: token at position `i` can only attend to positions `j ≤ i`.\n\nIn matrix form, the attention scores `S = Q · K^T` are masked so that all upper-triangular entries (where `j > i`) are set to `-inf` before softmax:\n\n```\n    j=0  j=1  j=2  j=3\ni=0  s    -∞   -∞   -∞\ni=1  s    s    -∞   -∞\ni=2  s    s    s    -∞\ni=3  s    s    s    s\n```\n\nWith `-inf` going through softmax, those positions get weight 0 — equivalent to ignoring them entirely."
+    },
+    {
+      "kind": "text",
+      "title": "Why -inf, not 0?",
+      "body": "A common confusion: why mask with `-inf` and not just zero out the entries?\n\nBecause masking happens **before** softmax. If you set masked entries to 0, the softmax would still produce nonzero weight for those positions (`exp(0) = 1`). You'd be giving 'nothing' tokens nonzero attention.\n\nUsing `-inf` makes `exp(-inf) = 0`, so after softmax those positions have exactly zero weight. The remaining (unmasked) entries normalize cleanly.\n\nIn implementations, people often use a 'large negative number' like `-1e9` or `-1e4` instead of `-inf` for numerical stability. The effect is the same — softmax pushes those entries to (effectively) zero."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ma_q1",
+        "kind": "multiple_choice",
+        "question": "Why is the causal mask applied *before* softmax with `-inf`, rather than after softmax with multiplication by 0?",
+        "options": [
+          "Multiplication by 0 is slower than `-inf` masking",
+          "After softmax, masking with 0 would leave the weights unnormalized; pre-softmax `-inf` masking integrates cleanly with the softmax normalization",
+          "There's no real difference; both work fine",
+          "Softmax doesn't accept `-inf` inputs"
+        ],
+        "correctIndex": 1,
+        "explanation": "Softmax normalizes by dividing by the sum of exp(scores). If you mask post-softmax with 0, the unmasked weights still sum to 1 — you're not actually removing the masked positions' contribution to the normalization. Pre-softmax `-inf` makes those positions contribute 0 to the sum, so the unmasked positions normalize over only the valid neighbors."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Why this enables efficient training",
+      "body": "The clever thing about causal masking: it lets you train on all positions of a sequence in **a single forward pass**.\n\nAt each position `t`, the model is computing `P(token_{t+1} | tokens_{1..t})`. With causal masking, position `t`'s computation is unaffected by anything at position `t+1, t+2, ...`. So during training, you can:\n\n1. Run the full sequence through the model in one forward pass.\n2. The loss is the sum of `-log P(token_{t+1} | tokens_{1..t})` for every position `t`.\n3. Gradients flow back. Done.\n\nThis is why GPT-style models train so efficiently: one forward pass produces N next-token predictions (one per position), and the causal mask guarantees each prediction is based only on its allowed context.\n\nWithout the causal mask, you'd need a separate forward pass per training position. That's an N× slowdown."
+    },
+    {
+      "kind": "text",
+      "title": "Inference: KV-cache and the mask",
+      "body": "At inference (generation) time, the model is already only seeing left context — there's nothing in the future yet. So why keep the mask?\n\nTwo reasons:\n\n1. **Behavior consistency.** The model was trained with the mask; removing it at inference would give the model strange new attention patterns it never saw.\n\n2. **KV-cache efficiency.** With causal attention, the K and V vectors for previous tokens never change as you append new ones. You compute K_i and V_i once, cache them, and reuse them for every subsequent token. (See [[kv-cache]] for more.)\n\nIn practice, the mask is implicit at inference: you're generating one token at a time, so position `t` only has access to positions `1..t-1` anyway. The mask is critical at *training time*, where the full sequence is processed in parallel."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ma_q2",
+        "kind": "multiple_choice",
+        "question": "Why does causal masking let GPT-style training process all N positions in a single forward pass?",
+        "options": [
+          "Because GPUs are fast",
+          "Because each position's prediction only depends on earlier positions; the mask ensures parallel computation is equivalent to N sequential autoregressive predictions",
+          "Because attention is permutation-invariant",
+          "Because the loss is computed only at the last position"
+        ],
+        "correctIndex": 1,
+        "explanation": "Causal masking is what enables 'one forward pass, N next-token predictions.' Each position computes its own loss against its own next token, and the mask ensures position t's computation doesn't depend on anything at position t+1 onward. This is the single biggest efficiency win of decoder-only models over older RNN-style sequence models."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Causal masking is the small architectural detail that makes autoregressive generation possible and efficient. Combined with [[multi-head-attention]] and the rest of the [[transformer-block]], you have a working decoder.\n\nNext: [[cross-attention]] — the encoder-decoder bridge — and [[training-objectives]], where we look at exactly what loss the model is minimizing.\n\nKey takeaways:\n- Causal mask sets `S[i, j] = -inf` for `j > i` before softmax\n- It enables training on all N positions in a single forward pass\n- It also enables the KV-cache at inference time"
+    }
+  ]
+}

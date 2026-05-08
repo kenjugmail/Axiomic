@@ -1,0 +1,61 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why naive autoregressive generation is slow",
+      "body": "Generate token N+1 from a context of N tokens. Then generate token N+2 from the context of N+1 tokens. Then N+3 from N+2 tokens. Repeat.\n\nNaively, each step recomputes the whole attention pass over the whole context. To generate 1000 tokens from a 1000-token prompt, you'd do roughly:\n\n```\nstep 1:    attention over 1000 tokens\nstep 2:    attention over 1001 tokens\nstep 3:    attention over 1002 tokens\n  ...\nstep 1000: attention over 2000 tokens\n```\n\nThat's ~ 1.5 billion attention operations on tokens you've already processed. Most of that work is redundant: the attention computation for token 5 is the same in step 1, step 2, step 3, ...\n\nThe **KV cache** fixes this. Cache the K and V vectors for every token once, reuse them on every subsequent step."
+    },
+    {
+      "kind": "text",
+      "title": "What gets cached",
+      "body": "Recall attention: `softmax(Q · K^T / √d_k) · V`.\n\nFor token at position `t`:\n- Compute `Q_t` from the latest token's embedding.\n- For attention, we need `K_1 ... K_t` and `V_1 ... V_t`.\n\nObservation: with **causal masking**, the K and V vectors at position `i` only depend on tokens `1..i`. They never change as new tokens are appended.\n\nSo we cache them. After processing the prompt, we have:\n```\ncache:\n  K = [K_1, K_2, ..., K_N]   # N is the prompt length\n  V = [V_1, V_2, ..., V_N]\n```\n\nTo generate token N+1: compute `Q_{N+1}`, do attention with cached K/V, compute the new `K_{N+1}` and `V_{N+1}`, **append** them to the cache. To generate token N+2: same thing, with one more cached entry.\n\nNet result: per token, we do *O(seq_len)* attention work instead of *O(seq_len²)* — a huge win at long context."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "kv_q1",
+        "kind": "multiple_choice",
+        "question": "Why can K and V be cached but not Q?",
+        "options": [
+          "Q is the only thing that changes between generation steps",
+          "Q values are computed from the most recent token's embedding, which changes every step; K and V are computed once per token and never change because of causal masking",
+          "Q is too memory-intensive to cache",
+          "Q is computed differently from K and V"
+        ],
+        "correctIndex": 1,
+        "explanation": "At step t, you need Q_t (the query for the *new* token you're predicting). You also need K_1..K_t and V_1..V_t. The K and V at every prior position are fixed — causal masking guarantees they don't depend on future tokens. So those can be cached and reused. Only the new Q changes per step."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "The memory cost",
+      "body": "The KV cache is fast — but memory-hungry. For a model with `L` layers, `h` heads, `d_k` per-head dim, and a context of `N` tokens, the cache size is:\n\n$$\\text{cache size} = 2 \\cdot N \\cdot L \\cdot h \\cdot d_k \\cdot \\text{bytes-per-value}$$\n\n(Factor of 2 for K and V both. Bytes-per-value is 2 for fp16, 4 for fp32.)\n\nLet's plug in LLaMA-2 70B: L=80, h=64, d_k=128, fp16. For a 4K context:\n```\n2 × 4096 × 80 × 64 × 128 × 2 bytes = 10.7 GB per request\n```\n\nFor 32K context, that's 86 GB just for the cache. This is the dominant memory cost in serving — much larger than the model weights themselves at long context.\n\nThis is why **GQA / MQA** (grouped/multi-query attention, see [[multi-head-attention]]) matter so much: they share K and V across head groups, shrinking the cache 4-8×.\n\nIt's also why the cache is the bottleneck, not the weights, for high-batch-size serving."
+    },
+    {
+      "kind": "text",
+      "title": "PagedAttention and continuous batching",
+      "body": "Two production tricks that fall out of caching:\n\n**PagedAttention** (vLLM, HuggingFace TGI): the cache for one request is split into fixed-size 'pages' (typically 16 tokens each). Different requests' pages can interleave in memory. This is the same idea as virtual memory in operating systems — allocate granular chunks instead of contiguous regions per request. Solves memory fragmentation when requests have wildly different context lengths.\n\n**Continuous batching**: instead of waiting for every request in a batch to finish, swap in new requests as old ones complete. Each request maintains its own cache; the server schedules forward passes opportunistically. With PagedAttention, this is efficient.\n\nThese two together are why vLLM and TGI achieve 10-20× higher throughput than naive batched inference. The KV cache is the central data structure they're managing."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "kv_q2",
+        "kind": "multiple_choice",
+        "question": "Does the KV cache eliminate quadratic memory growth in attention as the context grows?",
+        "options": [
+          "Yes — KV caching makes everything O(1)",
+          "No — the cache itself grows linearly with context length, so memory is O(context). The cache just removes the redundant *computation*, not the memory growth",
+          "Only with FlashAttention",
+          "Only at fp32 precision"
+        ],
+        "correctIndex": 1,
+        "explanation": "A common misconception is that KV cache makes context cheap. The cache is what saves recomputation, but the cache size grows with context. At 32K context the cache can be tens of gigabytes per request. Solutions like PagedAttention manage it more efficiently, but the fundamental linear growth remains."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "The KV cache is the practical optimization that makes autoregressive generation efficient. Without it, generating long outputs would be O(N²) work per output token; with it, it's O(N).\n\nThe cache memory cost is the dominant constraint at long context — leading to GQA, PagedAttention, and tools like vLLM that manage it carefully.\n\nNext: [[scaling-laws]] — how loss, parameters, and tokens trade off, and what that means for picking the right model size.\n\nKey takeaways:\n- Cache K and V vectors for every token; reuse across generation steps\n- Q is computed fresh per step; K and V are append-only\n- Cache memory is linear in context length × layers × heads — often dominates\n- GQA and PagedAttention are the most important optimizations on top of basic caching"
+    }
+  ]
+}

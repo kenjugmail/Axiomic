@@ -15,7 +15,12 @@ export type NotificationKind =
   | "news_edit_rejected"
   | "news_published"
   | "article_reproduced"
-  | "forum_topic_posted";
+  | "forum_topic_posted"
+  // Sprint 52
+  | "track_completed"
+  | "cohort_invitation"
+  | "proposal_approved"
+  | "proposal_rejected";
 
 export type NotificationSubject =
   | "topic"
@@ -26,7 +31,11 @@ export type NotificationSubject =
   | "news_proposal"
   | "news_comment"
   | "claim_thread"
-  | "reproduction";
+  | "reproduction"
+  // Sprint 52
+  | "capstone_track"
+  | "cohort_invitation"
+  | "content_proposal";
 
 const MAX_MENTIONS_PER_BODY = 10;
 const PREVIEW_MAX = 140;
@@ -114,7 +123,12 @@ function kindGate(
     case "news_published":
     case "article_reproduced":
     case "forum_topic_posted":
-      // News flow + follow events are direct + low-volume — always on.
+    case "track_completed":
+    case "cohort_invitation":
+    case "proposal_approved":
+    case "proposal_rejected":
+      // News flow + follow events + admin pipeline are direct +
+      // low-volume — always on.
       return null;
   }
 }
@@ -251,4 +265,63 @@ export async function notifyMentions(
 // Convenience: resolve a single user by ID. Returns null if missing.
 export function findUserById(userId: string, db: Db = getDb()) {
   return db.select({ id: users.id }).from(users).where(eq(users.id, userId)).get();
+}
+
+// Sprint 52 — A learner just earned a capstone track. Best-effort
+// notify; the artifact slug doubles as the deep-link target.
+export function notifyTrackCompletion(
+  userId: string,
+  trackId: string,
+  trackSlug: string,
+  artifactPageSlug: string,
+): void {
+  void notify({
+    recipientId: userId,
+    actorId: null,
+    kind: "track_completed",
+    subjectType: "capstone_track",
+    subjectId: trackId,
+    contextSlug: artifactPageSlug,
+    preview: `You earned the ${trackSlug} track`,
+  });
+}
+
+// Sprint 52 — Notify the invitee (when they have an account with the
+// matching email). The contextSlug is the invitation token so the bell
+// can deep-link to /invitations/:token.
+export function notifyCohortInvitation(
+  recipientId: string,
+  inviterId: string,
+  invitationId: string,
+  token: string,
+  cohortName: string,
+): void {
+  void notify({
+    recipientId,
+    actorId: inviterId,
+    kind: "cohort_invitation",
+    subjectType: "cohort_invitation",
+    subjectId: invitationId,
+    contextSlug: token,
+    preview: `Invited to cohort: ${cohortName}`,
+  });
+}
+
+// Sprint 52 — Approval / rejection of a content proposal.
+export function notifyProposalDecision(
+  recipientId: string,
+  reviewerId: string,
+  proposalId: string,
+  approved: boolean,
+  preview: string,
+): void {
+  void notify({
+    recipientId,
+    actorId: reviewerId,
+    kind: approved ? "proposal_approved" : "proposal_rejected",
+    subjectType: "content_proposal",
+    subjectId: proposalId,
+    contextSlug: null,
+    preview,
+  });
 }

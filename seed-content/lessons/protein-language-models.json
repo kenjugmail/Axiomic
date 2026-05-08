@@ -1,0 +1,47 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why a language model for proteins",
+      "body": "A protein language model (pLM) is a transformer trained on protein sequences via masked-residue prediction (BERT-style) or autoregressive generation (GPT-style). The most successful: **ESM** (Evolutionary Scale Modeling, Meta AI 2019-2023).\n\nThe core idea: protein sequences are 'languages' with their own grammar (which residue follows which, which co-occur). A transformer that learns this grammar acquires a representation of proteins that captures structural and functional information — without ever being explicitly trained on structure.\n\nDownstream uses: protein function prediction, structure prediction without MSA (ESMFold), variant effect prediction, protein design via embeddings + decoders. Increasingly, **the protein LM is the foundation model for biology** — the BERT/GPT-equivalent for life sciences.",
+      "extra": ""
+    },
+    {
+      "kind": "text",
+      "title": "ESM training",
+      "body": "**ESM-1b (2019)**: BERT-style. 33-layer transformer; 650M params. Trained on UniRef50 (~30M protein sequences) via masked-residue prediction.\n\n**ESM-2 (2022)**: same architecture, more data (UniRef90 + extras), larger sizes. Released in 8M to 15B parameter variants.\n\n**ESM-3 (2024)**: multimodal — sequence + structure + function tokens in one model. ~98B params. Generative; can design new proteins.\n\nTraining objective for ESM-1/2:\n\n```\nmask 15% of residues randomly\npredict masked tokens given context\nloss: cross-entropy on masked positions\n```\n\nIdentical recipe to BERT, applied to protein sequences. The model learns:\n- Statistical patterns (which residues are common in α-helices vs β-sheets).\n- Co-evolution-like patterns (which residues co-occur or substitute together).\n- Structure-relevant features (residues forming binding sites, conserved positions).\n\n**Crucially**: ESM-2 was trained on sequences alone, no MSA, no structure labels. The structural information emerges implicitly. ESMFold (a small structure prediction module trained on top of ESM-2) achieves ~80-90% of AlphaFold's structure prediction accuracy without using MSAs at all."
+    },
+    {
+      "kind": "text",
+      "title": "What pLMs are useful for",
+      "body": "**1. Embedding extraction**. Pass a protein through ESM; take per-residue features (or a pooled whole-protein vector). Use these as input to a smaller downstream model (regression / classification / clustering). This 'frozen embeddings + MLP head' recipe is the standard pattern for many bio-ML tasks: protein function classification, subcellular localization, post-translational modification site prediction, etc.\n\n**2. Variant effect prediction**. For a mutation (one residue change), compare the wild-type and mutant likelihoods under the pLM. Functional mutations typically reduce likelihood; neutral ones don't. ESM-1v (variant prediction variant) achieves clinical-grade accuracy on some pathogenicity datasets.\n\n**3. Structure prediction without MSA**. ESMFold = ESM-2 + a small structure module. Predicts structures from sequence alone. Faster than AlphaFold (no MSA search), ~10-15% lower accuracy on average. Useful for high-throughput screens or orphan proteins where MSA is shallow.\n\n**4. Protein design**. Generate new sequences with desired properties. Conditional generation: 'design a sequence that folds into this structure', 'design a sequence with this binding partner'. Generative pLMs (ProtGPT2, ProGen) trained autoregressively can sample from the protein-sequence distribution.\n\n**5. Functional inference**. Find proteins similar to a query in pLM embedding space. Faster than BLAST and captures more semantic similarity. Foldseek + ESM together is becoming a standard 'sequence search at scale' tool.",
+      "extra": ""
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "plm_q1",
+        "kind": "multiple_choice",
+        "question": "Why does ESM-2 capture structural information despite never being trained on structure?",
+        "options": [
+          "It uses an explicit structure module",
+          "Co-evolution patterns in the training data implicitly encode structural constraints. Residues physically close in 3D often co-vary across evolution; residues that substitute compatibly often share structural roles. By learning to predict masked residues from context, ESM-2 implicitly learns these patterns. Probing the embeddings reveals attention heads that specifically capture distance + secondary structure — emerged from sequence-only pretraining",
+          "Pretraining on protein sequences requires structure",
+          "ESM uses synthetic structure data"
+        ],
+        "correctIndex": 1,
+        "explanation": "This is the core empirical finding of pLMs: structure emerges from sequence pretraining alone. The training distribution of protein sequences carries co-evolution signal; learning to predict residues forces the model to use this signal. Probing experiments (Rao 2020) showed specific attention heads capture residue contact maps, secondary structure assignments, etc. Sequence + scale → structure is one of the most striking 'emergent capability' results in bio-ML."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "ESM-3 and the future",
+      "body": "**ESM-3 (2024, Hayes et al.)** is the current frontier protein LM. Key shifts:\n\n**Multimodal**: instead of just sequence, ESM-3 trains on sequence + structure + function tokens. Each modality has its own tokenizer:\n- **Sequence tokens**: 20 amino acids + specials.\n- **Structure tokens**: the 3D structure is discretized via a learned codec into ~4000 structural tokens (similar to image tokens in image-LM).\n- **Function tokens**: binding sites, post-translational modifications, etc.\n\nThe model learns to predict any modality given any subset of others. So you can:\n- Generate sequence given structure → 'design a protein that folds like this'.\n- Predict structure given sequence → like AlphaFold/ESMFold.\n- Generate function given sequence → predict what a protein does.\n- Generate sequence + structure given a partial 'mask' specification.\n\n**Scale**: ~98B params for the largest variant. Trained on billions of (sequence, structure, function) tokens.\n\n**Practical capability**: ESM-3 was used to generate novel functional proteins ('Esm-fold-generated antibodies', 'esmGFP' — a fluorescent protein with no natural homolog). The protein-design problem is now within reach.\n\nThe pattern: protein LMs are catching up to AlphaFold's structure-prediction accuracy while adding generative capability AlphaFold doesn't have. The next 5 years of bio-ML will likely be dominated by multimodal protein foundation models."
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Protein LMs are the foundation models for biology. Next: how single-cell biology uses ML for a different challenge — high-dim, sparse data per cell.\n\nNext: [[single-cell-rna-seq]] — scRNA-seq, dimensionality reduction, cell-type clustering.\n\nKey takeaways:\n- Protein LMs: BERT/GPT for proteins\n- ESM-1/2: masked-residue pretraining on UniRef\n- Structural information emerges from sequence-only pretraining (co-evolution implicit in data)\n- Use cases: embeddings for downstream tasks, variant effect prediction, MSA-free structure (ESMFold), protein design\n- ESM-3: multimodal (sequence + structure + function); generative; can design novel proteins\n- Protein foundation models are catching up to AlphaFold while adding generation"
+    }
+  ]
+}

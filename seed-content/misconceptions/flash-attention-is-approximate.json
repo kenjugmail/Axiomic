@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "flash-attention",
+  "key": "flash-attention-is-approximate",
+  "label": "FlashAttention trades accuracy for speed",
+  "description": "A surprisingly common belief: FlashAttention is faster because it approximates attention — drops some computation, uses lower precision, or skips small attention scores. None of those are true.\n\n**FlashAttention computes exact attention.** The mathematical output is bit-for-bit identical to standard attention (modulo floating-point reordering, which is a tiny numerical difference, not an approximation).\n\nThe speedup comes from **IO awareness**, not algorithmic shortcuts:\n\n- Standard attention materializes the full N×N attention matrix in HBM (high-bandwidth memory), then reads it back. For long sequences, this is O(N²) memory reads/writes.\n- FlashAttention tiles the attention matrix into blocks small enough to fit in SRAM (the GPU's fast on-chip memory), computes each block's softmax in-place, and never writes the full N×N matrix to HBM.\n\nResult: same math, much less HBM bandwidth, much faster wall-clock — especially at long sequence lengths where memory bandwidth dominates.\n\nThe related (and approximate) thing is **sparse attention** or **linear attention**, which DO approximate full attention to get sub-quadratic compute. FlashAttention is exact. The two ideas are sometimes confused.",
+  "probeQuestions": [
+    "If FlashAttention is exact, why is it faster than standard PyTorch attention?",
+    "What's the difference between FlashAttention and linear attention?"
+  ],
+  "correctionPromptTemplate": "The learner thinks FlashAttention is an approximation. Walk through: FlashAttention computes exact attention via IO-aware tiling, not by dropping any computation. The speedup is bandwidth-side: avoid materializing the N×N matrix in HBM. Contrast with linear/sparse attention which DO approximate. Ask first — 'if FlashAttention dropped any FLOPs, why does the math come out identical to standard attention?'"
+}

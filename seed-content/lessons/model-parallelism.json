@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "When DP doesn't fit the model",
+      "body": "Data parallelism replicates the model on every GPU. That's fine until the model itself is too big for one GPU. A 70B-parameter model in bf16 with Adam: ~1120 GB of weights + grads + optimizer state. Eighty H100s, even? They each still need to hold the full state — DP doesn't share it.\n\n**Model parallelism** shards the model itself across GPUs. Three flavors, each attacking a different axis:\n\n1. **Tensor parallelism (TP)**: split each layer's weight matrix across GPUs. Every GPU does a slice of every matmul, with collective ops to glue partial results.\n2. **Pipeline parallelism (PP)**: split the layers themselves across GPUs. GPU 0 has layers 1-10, GPU 1 has 11-20, etc. Pass activations forward through the pipeline.\n3. **Fully Sharded Data Parallel (FSDP) / ZeRO**: the magic of the last few years. Shard weights, gradients, and optimizer state across GPUs while keeping the per-step compute pattern of vanilla DDP.\n\nReal frontier-scale runs combine all three: TP within a host, PP across pipeline stages, DP/FSDP across replicas. This lesson covers each + when to use which."
+    },
+    {
+      "kind": "text",
+      "title": "Tensor parallelism (TP) — Megatron-style",
+      "body": "Take a transformer's FFN: `out = (gelu(x @ W1) @ W2)`. With TP=4, split `W1` along its output dimension into 4 column shards, distribute one shard per GPU. Each GPU computes its column shard of `gelu(x @ W1)`. Then split `W2` along its input dimension correspondingly. Each GPU computes a partial sum of the output. An **all-reduce** across the 4 GPUs sums those partials.\n\nResult: every GPU does 1/4 the matmul work; the model fits in 1/4 the memory; one all-reduce per FFN block.\n\nFor multi-head attention, the natural split is **across heads**. With 32 heads and TP=4, each GPU owns 8 heads. The Q/K/V projections shard cleanly along the head dimension; the output projection's input dimension matches.\n\nWhen TP works:\n- High-bandwidth interconnect within a host (NVLink ~900 GB/s).\n- TP degree fits within a single node.\n- Layers are large enough that the matmul work matters more than the all-reduce overhead.\n\nWhen TP breaks:\n- Across hosts (inter-host bandwidth too low; the per-layer all-reduce dominates).\n- For tiny layers (overhead exceeds compute saved).\n- TP > 8 (most cluster topologies have only 8 GPUs per host on NVLink)."
+    },
+    {
+      "kind": "text",
+      "title": "Pipeline parallelism (PP)",
+      "body": "TP splits *within* a layer. PP splits *across* layers. With 32 transformer blocks and 4 GPUs in a pipeline, GPU 0 holds blocks 1-8, GPU 1 holds 9-16, etc.\n\nNaively: GPU 0 forwards on a batch, sends activations to GPU 1, GPU 1 forwards, etc. Then backward in reverse. While GPU 0 is forwarding, GPUs 1-3 are idle. **Pipeline bubbles** waste compute.\n\n**Micro-batching** (GPipe / 1F1B / interleaved): split each batch into K micro-batches. As soon as GPU 0 finishes micro-batch 1, it starts micro-batch 2 — and GPU 1 is now busy on micro-batch 1. With enough micro-batches in flight, the bubble shrinks proportionally.\n\nPipeline bubble fraction is roughly `(P-1) / (M + P - 1)` where P is pipeline depth and M is micro-batch count. P=4, M=16 → bubble ~16%. P=4, M=4 → bubble ~43%.\n\nWhen PP works:\n- Across hosts. PP needs only point-to-point activation transfer between adjacent stages — much less bandwidth than all-reduce.\n- Models with many similar layers (transformers map cleanly to PP).\n- Combined with TP within stages: TP intra-host (NVLink), PP inter-host (slow interconnect).\n\nWhen PP breaks:\n- Tiny micro-batches → bubble dominates.\n- Variable layer cost (e.g., MoE) → load imbalance across pipeline stages."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mp_q1",
+        "kind": "multiple_choice",
+        "question": "You're training a 70B model on 32 H100s spread across 4 nodes (8 GPUs per node, NVLink within node, InfiniBand across). What's a sensible parallelism mix?",
+        "options": [
+          "DDP across all 32 GPUs",
+          "TP across all 32 GPUs",
+          "TP=8 within each node (NVLink-bound), PP=4 across nodes (low cross-node bandwidth tolerated by PP's lighter comm pattern). Optionally DP on top across replicas if memory allows. This matches each parallelism strategy to the right interconnect tier",
+          "PP=32 across all GPUs"
+        ],
+        "correctIndex": 2,
+        "explanation": "The classic '3D parallelism' recipe. TP wants high bandwidth (NVLink), so it lives within a host. PP wants point-to-point activation transfer (much cheaper than all-reduce), so it spans hosts. DDP/FSDP layers replicate or shard across the resulting groups. Megatron-LM's published recipes for 530B+ models use exactly this layout."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "FSDP / ZeRO — sharded data parallelism",
+      "body": "FSDP (PyTorch) and ZeRO (DeepSpeed) attack the same problem from a different angle: keep the per-step compute pattern of DDP, but shard the *state* — weights, gradients, and optimizer state — across GPUs.\n\nThe ZeRO progression:\n- **ZeRO-1**: shard optimizer state across DP replicas. Saves ~50% of training memory (Adam state is 8 bytes/param vs 2 for weights).\n- **ZeRO-2**: shard optimizer state + gradients. Saves ~75%.\n- **ZeRO-3 / FSDP**: shard everything (weights, grads, optimizer). Saves ~90%+.\n\nFSDP's per-step pattern:\n1. **All-gather** the weights for the next layer (each GPU sends its shard, receives the rest).\n2. **Forward** through the layer using full weights (which now exist briefly on every GPU).\n3. **Free** the gathered weights — only the local shard remains.\n4. **Backward**: same pattern. All-gather, compute, free.\n5. **Reduce-scatter** gradients: every GPU ends up with the sum of its shard's gradients.\n6. **Optimizer step** locally on the shard.\n\nNet result: per GPU memory ~ `model_size / world_size`, plus a small buffer for the actively-gathered layer. Training a 70B model on 64 GPUs is ~1.75 GB per GPU for weights/grads/optimizer + ~few GB for the active layer + activations.\n\nBandwidth cost: roughly 2× DDP's all-reduce volume (the all-gather + reduce-scatter of weights, on top of the gradient reduce-scatter). PyTorch overlaps these with compute aggressively. Net throughput is competitive with DDP when you can't fit DDP at all."
+    },
+    {
+      "kind": "text",
+      "title": "Picking your strategy",
+      "body": "A practical decision tree for choosing parallelism:\n\n```\nDoes the model fit on one GPU with DDP?\n├── Yes → use DDP. Done.\n└── No\n    ├── Use FSDP (default modern choice for single-host or close-coupled multi-host)\n    │   ├── Memory still tight? Add gradient checkpointing\n    │   └── Throughput too low? Increase per-GPU batch + use mixed precision\n    └── Frontier scale (>10B params, >32 GPUs)?\n        ├── Add TP within host (8-way TP standard)\n        ├── Add PP across hosts (4-8 stages)\n        └── DP across pipeline replicas\n```\n\nNot a religion. The right answer depends on hardware topology, model size, and target throughput. Megatron-LM's 530B run, GPT-NeoX's 20B run, and Llama's 70B run all use slightly different mixes. The principle: each parallelism degree has a bandwidth tax that should match the available interconnect at that degree's level.\n\nFor most teams, FSDP alone gets you to 70B. TP + PP becomes load-bearing past a few hundred billion parameters or for inference latency optimization (tensor parallelism on a single host is also the dominant *inference* parallelism — that's the next lesson)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mp_q2",
+        "kind": "multiple_choice",
+        "question": "What does FSDP do that DDP doesn't?",
+        "options": [
+          "FSDP runs on more GPUs",
+          "FSDP shards weights, gradients, and optimizer state across GPUs (only the locally-owned shard persists between layers); DDP keeps a full replica of all of these on every GPU. FSDP enables training models 8-16× larger than DDP fits, at the cost of additional all-gather traffic for weights",
+          "FSDP doesn't use NCCL",
+          "FSDP is only for fine-tuning"
+        ],
+        "correctIndex": 1,
+        "explanation": "FSDP's per-GPU memory scales as `1/world_size` for weights+grads+optimizer, while DDP scales as O(1). The trade-off: FSDP all-gathers weights for each layer's forward + backward, doubling-ish the bandwidth volume. With well-tuned overlapping, FSDP throughput is competitive with DDP, and it's the difference between training a 70B model and not training it at all."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Model parallelism is the foundation for any frontier-scale training. After this lesson the rest of the systems-engineer path is about putting it into production.\n\nNext: [[mlops-experiment-tracking]] — keeping experiments reproducible across many parallelism configurations.\n\nKey takeaways:\n- DP replicates; TP shards within layers; PP shards across layers; FSDP shards state\n- TP needs high bandwidth (NVLink within host)\n- PP tolerates low bandwidth (across hosts)\n- FSDP shards everything cheaply via all-gather + reduce-scatter\n- 3D parallelism: TP intra-host + PP inter-host + DP across replicas\n- For most teams, FSDP alone reaches 70B; TP+PP is frontier-scale only"
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why ML practitioners need to understand GPUs",
+      "body": "You can train a transformer without understanding what's happening under the hood. You can also train it 10× slower than necessary, OOM at sequence length 4096, and have no idea why your batch size of 8 fits but 12 doesn't.\n\nThis lesson is the substrate. Three things modern GPUs care about:\n\n1. **Compute units** — tensor cores do the matmul; CUDA cores handle elementwise ops. Different operations hit different units, with very different throughput.\n2. **Memory hierarchy** — registers (per-thread) → shared memory (per-SM) → HBM (global). Each tier is ~10× larger and ~10× slower than the next.\n3. **Bandwidth** — moving bytes in and out of HBM is often the bottleneck, not arithmetic. A poorly fused kernel can spend 90% of its time waiting on memory.\n\nThe practical implication: matmul (compute-bound) and softmax/layernorm (memory-bound) live in different regimes. Optimization tactics differ. FlashAttention's whole point is reducing HBM round-trips by tiling — not making attention any faster arithmetically."
+    },
+    {
+      "kind": "text",
+      "title": "Tensor cores and FLOPS",
+      "body": "Modern GPUs (A100, H100, B200) have **tensor cores** — specialized matrix-multiply units that do small block matmuls in a single cycle. Numbers worth knowing for an H100 SXM:\n\n- bf16 matmul: ~989 TFLOPS\n- fp8 matmul: ~1979 TFLOPS\n- fp32 (CUDA cores, no tensor cores): ~67 TFLOPS\n\nThat's a ~15× ratio between matmul on tensor cores and matmul on CUDA cores. Two consequences:\n\n- **Use the tensor cores.** That means reduced precision (bf16, fp16, fp8) for matmuls. PyTorch + cuDNN do this automatically when you use `autocast`.\n- **Tensor core matmuls have shape constraints.** Dimensions should be multiples of 16 (bf16) or 32 (fp8). A model with `d_model = 768` (multiple of 16) hits the fast path; `d_model = 1000` does not, and quietly leaves performance on the table.\n\n**Compute-bound vs memory-bound.** A kernel is compute-bound when it spends most of its time doing arithmetic (e.g. large matmul); memory-bound when it spends most of its time loading bytes from HBM (e.g. softmax over a long sequence). Profilers (Nsight, `torch.profiler`) tell you which regime you're in."
+    },
+    {
+      "kind": "text",
+      "title": "HBM, bandwidth, and the memory wall",
+      "body": "HBM (high-bandwidth memory) is the GPU's main pool — typically 40 / 80 / 192 GB on modern accelerators. Bandwidth from HBM to the SMs caps how fast data can move:\n\n- A100 80GB: ~2 TB/s\n- H100 80GB: ~3.35 TB/s\n- H100 NVL (94 GB): ~3.9 TB/s\n\nThis matters because a deep network's runtime decomposes into compute + memory traffic. Roofline analysis: a kernel's max throughput is `min(peak_FLOPS, bandwidth × arithmetic_intensity)`. If your arithmetic intensity (FLOPS per byte loaded) is below the ridge, you're memory-bound.\n\nFor a typical transformer block:\n- Matmuls (Q, K, V projections, FFN) are compute-bound on a long context.\n- Attention softmax + LayerNorm + activation are memory-bound.\n- The memory-bound ops can dominate runtime if they're not fused with adjacent compute.\n\n**FlashAttention** is the canonical example: rearrange the attention computation to fuse softmax with the matmul, reducing HBM round-trips from `O(N²)` to `O(N)`. Same arithmetic, very different runtime."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ga_q1",
+        "kind": "multiple_choice",
+        "question": "Your training loop is at 30% MFU (model FLOPs utilization). What's the most likely cause to investigate first?",
+        "options": [
+          "Your model is too small to saturate the GPU",
+          "Memory-bound ops dominate runtime — check the profiler for time spent in softmax, layernorm, or unfused elementwise kernels, and look at HBM bandwidth utilization. The matmuls might be fast but you're paying for memory traffic between them",
+          "Your batch size is too large",
+          "Tensor cores are disabled"
+        ],
+        "correctIndex": 1,
+        "explanation": "30% MFU on a modern GPU usually means memory traffic, not compute. The matmuls are likely already on tensor cores; what's eating time is the surrounding ops (norm, activation, attention softmax, copy). Profile and fuse. Smaller batch size helps when memory bandwidth is the bottleneck (better cache reuse); larger doesn't always help."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Memory accounting for training",
+      "body": "When training a model with `P` parameters in fp16/bf16, the rough memory budget per parameter is:\n\n- **Weights**: 2 bytes (fp16/bf16)\n- **Gradients**: 2 bytes (matched precision)\n- **Optimizer state (Adam)**: 8 bytes (fp32 momentum + variance)\n- **Master weights**: 4 bytes (fp32 copy for stable updates)\n\nTotal: **~16 bytes per parameter** for plain mixed-precision training with Adam.\n\nA 1B-parameter model: ~16 GB just for weights+grads+optimizer. An 80GB H100 fits that with room for activations. A 7B-parameter model: ~112 GB — doesn't fit on one H100. You need either:\n\n1. **ZeRO/FSDP**: shard the optimizer state, gradients, weights across GPUs.\n2. **Gradient checkpointing**: trade compute for memory by recomputing activations during backward.\n3. **CPU offload**: stash optimizer state on the host, pull as needed.\n4. **Lower precision**: fp8 matmuls cut weights+grads to 1 byte each.\n\nActivations are extra and depend on `(batch, seq_len, layers, hidden)`. For a 7B model at seq_len 8K with batch 1, activations alone can be 20-40 GB. Gradient checkpointing reduces this dramatically (10-20%) at the cost of one extra forward pass per step."
+    },
+    {
+      "kind": "text",
+      "title": "Why this matters in practice",
+      "body": "Three failure modes that all stem from GPU illiteracy:\n\n**1. Silent slowdowns.** Use a non-multiple-of-16 hidden dimension and your tensor cores fall off the fast path. The model trains; you just paid 2× more compute than you needed to. The training script doesn't print an error.\n\n**2. OOM at sequence length you didn't expect.** Activations grow with `O(batch × seq_len × layers × hidden)`. Doubling seq_len from 4K to 8K can quadruple activation memory because attention activations are quadratic in seq_len (without FlashAttention). Now you understand why FlashAttention's linear-memory claim matters.\n\n**3. Inference throughput collapses at long context.** A 7B model serving 128K context spends most of its time in attention rather than FFN. The KV cache alone is multiple GB. If your serving framework doesn't use PagedAttention (vLLM-style), throughput at long context will be 5-10× worse than at short context.\n\nYou'll see all three on the systems path. Each is grounded in the bandwidth-vs-compute roofline and the memory accounting above. Build the muscle to read a profiler trace and you can diagnose any of them in minutes."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ga_q2",
+        "kind": "multiple_choice",
+        "question": "Why does Adam optimizer state cost 8 bytes per parameter even when weights are bf16?",
+        "options": [
+          "Adam needs 8 bytes for arithmetic precision",
+          "Adam stores per-parameter momentum (m) and variance (v), each typically in fp32 to avoid numerical drift over thousands of updates. Two fp32 values = 8 bytes. Fp16 momentum is unstable; the standard mixed-precision recipe keeps optimizer state in fp32",
+          "It's a CUDA limitation",
+          "PyTorch doesn't support fp16 optimizers"
+        ],
+        "correctIndex": 1,
+        "explanation": "Standard mixed-precision keeps optimizer state in fp32 because the running averages can accumulate large dynamic range over training. Cutting Adam to fp16 has been explored (8-bit Adam, AdaFactor, Lion) but isn't the default in PyTorch. ZeRO/FSDP shards this state across GPUs so the per-GPU cost stays manageable."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Now you have the substrate. Next lessons drill into how training and serving exploit it:\n\n- [[mixed-precision]] — what each precision actually buys you\n- [[data-parallelism]] — synchronizing gradients across GPUs\n- [[fsdp]] — sharding state when the model doesn't fit\n- [[vllm]] — turning a checkpoint into a high-throughput service\n\nKey takeaways:\n- Tensor cores do matmul fast at reduced precision; CUDA cores are 10-15× slower\n- HBM bandwidth caps memory-bound kernels (softmax, layernorm); compute is rarely the limit on small ops\n- Adam training memory: ~16 bytes per parameter (weights + grads + optimizer state)\n- FlashAttention, FSDP, gradient checkpointing all attack different parts of the same memory wall\n- MFU < 50% almost always means memory traffic, not compute"
+    }
+  ]
+}
