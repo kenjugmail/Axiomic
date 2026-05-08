@@ -173,6 +173,17 @@ export function CapstonesListPage() {
           ))}
         </ul>
       )}
+
+      <div className="mt-10 pt-6 border-t border-border text-sm text-muted-foreground">
+        Already shipped a capstone?{" "}
+        <Link
+          to="/capstones/review-queue"
+          className="text-primary hover:underline"
+        >
+          Review someone else's →
+        </Link>{" "}
+        Peer endorsements get folded into the signed transcript.
+      </div>
     </div>
   );
 }

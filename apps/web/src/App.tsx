@@ -200,6 +200,12 @@ const MisconceptionMarketplacePage = lazy(() =>
     default: m.MisconceptionMarketplacePage,
   })),
 );
+// Sprint 39 — Capstone peer review queue.
+const CapstoneReviewQueuePage = lazy(() =>
+  import("./pages/CapstoneReviewQueuePage").then((m) => ({
+    default: m.CapstoneReviewQueuePage,
+  })),
+);
 
 function PageFallback() {
   return (
@@ -260,6 +266,10 @@ export function App() {
           <Route
             path="/misconceptions"
             element={<MisconceptionMarketplacePage />}
+          />
+          <Route
+            path="/capstones/review-queue"
+            element={<CapstoneReviewQueuePage />}
           />
           <Route path="/forum/:domain" element={<ForumListPage />} />
           <Route path="/news" element={<NewsListPage />} />

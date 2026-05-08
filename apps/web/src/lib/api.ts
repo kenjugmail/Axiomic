@@ -64,6 +64,9 @@ import type {
   ResearchPaperVersionResponse,
   CapstoneVersionResponse,
   ArgumentMapResponse,
+  CapstonePeerReviewsResponse,
+  CapstoneReviewQueueResponse,
+  PeerReviewStatus,
   MisconceptionSubmissionListResponse,
   MisconceptionSubmissionDetailResponse,
   MisconceptionVoteResponse,
@@ -907,6 +910,26 @@ export const api = {
       ),
     artifact: (artifactSlug: string) =>
       request<CapstoneArtifactPageResponse>(`/capstones/c/${artifactSlug}`),
+    artifactReviews: (artifactSlug: string) =>
+      request<CapstonePeerReviewsResponse>(
+        `/capstones/c/${artifactSlug}/reviews`,
+      ),
+    submitPeerReview: (
+      submissionId: string,
+      body: { status: PeerReviewStatus; score: number; feedback: string },
+    ) =>
+      request<{ id: string; updated: boolean }>(
+        `/capstones/submissions/${submissionId}/reviews`,
+        { method: "POST", body: JSON.stringify(body) },
+      ),
+    deletePeerReview: (id: string) =>
+      request<OkResponse>(`/capstones/reviews/${id}`, { method: "DELETE" }),
+    reviewQueue: (limit?: number) => {
+      const qs = limit ? `?limit=${limit}` : "";
+      return request<CapstoneReviewQueueResponse>(
+        `/capstones/review-queue${qs}`,
+      );
+    },
   },
   users: {
     portfolio: (username: string) =>

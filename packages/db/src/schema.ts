@@ -1140,6 +1140,34 @@ export const misconceptionSubmissions = sqliteTable("misconception_submissions",
   ),
 }));
 
+// Sprint 39 — Capstone peer reviews. Anyone other than the
+// submission author can endorse or request changes on a passed
+// submission. The transcript (S37) folds in counts + average score so
+// the signed claim covers both AI grading and peer validation.
+export const capstonePeerReviews = sqliteTable("capstone_peer_reviews", {
+  id: text("id").primaryKey(),
+  submissionId: text("submission_id")
+    .notNull()
+    .references(() => capstoneSubmissions.id, { onDelete: "cascade" }),
+  reviewerId: text("reviewer_id").notNull().references(() => users.id),
+  // 'endorsed' | 'requested_changes'
+  status: text("status").notNull(),
+  // 0..1 normalized score the reviewer gave to the milestone work.
+  score: real("score").notNull(),
+  feedback: text("feedback").notNull().default(""),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  pk: uniqueIndex("capstone_peer_reviews_pk").on(t.submissionId, t.reviewerId),
+  submissionIdx: index("capstone_peer_reviews_submission_idx").on(
+    t.submissionId,
+    t.createdAt,
+  ),
+  reviewerIdx: index("capstone_peer_reviews_reviewer_idx").on(
+    t.reviewerId,
+    t.createdAt,
+  ),
+}));
+
 // One row per (submissionId, userId). Vote = +1 / -1; row absence
 // means no vote. The marketplace re-aggregates voteScore after each
 // upsert.

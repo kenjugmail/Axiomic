@@ -6,10 +6,11 @@
 // which capstone version, which milestones passed at what scores, and
 // when.
 
-import { eq } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import {
   capstoneEnrollments,
   capstoneMilestones,
+  capstonePeerReviews,
   capstoneSubmissions,
   capstones,
   getDb,
@@ -43,6 +44,14 @@ export interface TranscriptManifest {
   completedAt: string;
   // ISO timestamp of when the manifest was issued (signing time).
   issuedAt: string;
+  // Sprint 39 — peer review summary across all milestones. Folded
+  // into the signed bytes so the credibility claim covers both AI
+  // grading + community review counts at signing time.
+  peerReviews: {
+    totalReviews: number;
+    totalEndorsed: number;
+    averageScore: number | null;
+  };
 }
 
 const ISSUER = "axiomic.app";
@@ -92,6 +101,7 @@ export function buildTranscriptManifest(
 
   const subRows = db
     .select({
+      id: capstoneSubmissions.id,
       milestoneId: capstoneSubmissions.milestoneId,
       status: capstoneSubmissions.status,
       aiGradeJson: capstoneSubmissions.aiGradeJson,
@@ -102,6 +112,25 @@ export function buildTranscriptManifest(
     .where(eq(capstoneSubmissions.enrollmentId, enrollment.id))
     .all();
   const subByMilestone = new Map(subRows.map((s) => [s.milestoneId, s]));
+
+  // Sprint 39 — peer review aggregation across all milestones in
+  // this enrollment. Single GROUP BY across the submission set.
+  const submissionIds = subRows.map((s) => s.id);
+  const reviewAgg =
+    submissionIds.length > 0
+      ? db
+          .select({
+            n: sql<number>`COUNT(*)`,
+            endorsed: sql<number>`SUM(CASE WHEN ${capstonePeerReviews.status} = 'endorsed' THEN 1 ELSE 0 END)`,
+            avg: sql<number>`AVG(${capstonePeerReviews.score})`,
+          })
+          .from(capstonePeerReviews)
+          .where(inArray(capstonePeerReviews.submissionId, submissionIds))
+          .get()
+      : { n: 0, endorsed: 0, avg: null };
+  const totalReviews = Number(reviewAgg?.n ?? 0);
+  const totalEndorsed = Number(reviewAgg?.endorsed ?? 0);
+  const averageScore = totalReviews > 0 ? Number(reviewAgg?.avg ?? 0) : null;
 
   const milestones: TranscriptManifest["milestones"] = milestoneRows.map(
     (m) => {
@@ -148,5 +177,10 @@ export function buildTranscriptManifest(
     startedAt: enrollment.startedAt,
     completedAt: enrollment.completedAt,
     issuedAt: new Date().toISOString(),
+    peerReviews: {
+      totalReviews,
+      totalEndorsed,
+      averageScore,
+    },
   };
 }

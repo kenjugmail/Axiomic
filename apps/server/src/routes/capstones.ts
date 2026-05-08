@@ -17,11 +17,12 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import {
   capstoneEnrollments,
   capstoneMilestones,
+  capstonePeerReviews,
   capstoneSubmissions,
   capstoneVersions,
   capstones,
@@ -423,6 +424,40 @@ capstonesRouter.get("/c/:artifactSlug", async (c) => {
     .where(eq(capstoneSubmissions.enrollmentId, enrollment.id))
     .all();
 
+  // Sprint 39 — bundle peer-review summary (counts + average score)
+  // so the artifact header can render the credibility chip without
+  // a follow-up request.
+  const submissionIds = subs.map((s) => s.id);
+  const reviewSummaryRows =
+    submissionIds.length > 0
+      ? db
+          .select({
+            submissionId: capstonePeerReviews.submissionId,
+            n: sql<number>`COUNT(*)`,
+            endorsed: sql<number>`SUM(CASE WHEN ${capstonePeerReviews.status} = 'endorsed' THEN 1 ELSE 0 END)`,
+            avgScore: sql<number>`AVG(${capstonePeerReviews.score})`,
+          })
+          .from(capstonePeerReviews)
+          .where(inArray(capstonePeerReviews.submissionId, submissionIds))
+          .groupBy(capstonePeerReviews.submissionId)
+          .all()
+      : [];
+  const reviewBySubmission = new Map(
+    reviewSummaryRows.map((r) => [r.submissionId, r]),
+  );
+  const peerReviewSummary = {
+    totalReviews: reviewSummaryRows.reduce((s, r) => s + Number(r.n), 0),
+    totalEndorsed: reviewSummaryRows.reduce(
+      (s, r) => s + Number(r.endorsed),
+      0,
+    ),
+    averageScore:
+      reviewSummaryRows.length > 0
+        ? reviewSummaryRows.reduce((s, r) => s + Number(r.avgScore), 0) /
+          reviewSummaryRows.length
+        : null,
+  };
+
   return c.json({
     artifact: {
       capstone: capstoneDto,
@@ -437,9 +472,297 @@ capstonesRouter.get("/c/:artifactSlug", async (c) => {
         username: learner.username,
         displayName: learner.displayName,
       },
-      submissions: subs.map(toSubmissionDto),
+      submissions: subs.map((s) => ({
+        ...toSubmissionDto(s),
+        peerReview: (() => {
+          const r = reviewBySubmission.get(s.id);
+          if (!r) return { count: 0, endorsed: 0, averageScore: null };
+          return {
+            count: Number(r.n),
+            endorsed: Number(r.endorsed),
+            averageScore: Number(r.avgScore),
+          };
+        })(),
+      })),
+      peerReviewSummary,
     },
   });
+});
+
+// Sprint 39 — Peer review queue. Lists completed enrollments
+// ordered by review-deficit (enrollments with the fewest peer
+// reviews surface first). Public read so anyone can hop in to
+// review.
+capstonesRouter.get("/review-queue", async (c) => {
+  const db = getDb();
+  const limit = Math.min(
+    50,
+    Math.max(1, parseInt(c.req.query("limit") ?? "20", 10) || 20),
+  );
+
+  // Pull completed enrollments + their capstone + author. We compute
+  // peer review counts in JS rather than a complex JOIN — the queue
+  // is small enough.
+  const rows = db
+    .select({
+      enrollmentId: capstoneEnrollments.id,
+      artifactPageSlug: capstoneEnrollments.artifactPageSlug,
+      capstoneSlug: capstones.slug,
+      capstoneTitle: capstones.title,
+      coverEmoji: capstones.coverEmoji,
+      learnerId: capstoneEnrollments.userId,
+      learnerUsername: users.username,
+      learnerDisplayName: users.displayName,
+      completedAt: capstoneEnrollments.completedAt,
+    })
+    .from(capstoneEnrollments)
+    .innerJoin(capstones, eq(capstoneEnrollments.capstoneId, capstones.id))
+    .innerJoin(users, eq(capstoneEnrollments.userId, users.id))
+    .where(
+      and(
+        sql`${capstoneEnrollments.completedAt} IS NOT NULL`,
+        sql`${capstoneEnrollments.artifactPageSlug} IS NOT NULL`,
+      ),
+    )
+    .orderBy(desc(capstoneEnrollments.completedAt))
+    .limit(limit * 3) // pull a wider candidate set; rank in JS
+    .all();
+
+  if (rows.length === 0) {
+    return c.json({ artifacts: [] });
+  }
+
+  const enrollmentIds = rows.map((r) => r.enrollmentId);
+  // Submissions for these enrollments — to map submissionIds back to
+  // enrollments, then count peer reviews per submission and roll up.
+  const subRows = db
+    .select({
+      id: capstoneSubmissions.id,
+      enrollmentId: capstoneSubmissions.enrollmentId,
+    })
+    .from(capstoneSubmissions)
+    .where(inArray(capstoneSubmissions.enrollmentId, enrollmentIds))
+    .all();
+
+  const submissionToEnrollment = new Map(
+    subRows.map((s) => [s.id, s.enrollmentId]),
+  );
+  const submissionIds = subRows.map((s) => s.id);
+  const reviewCountRows =
+    submissionIds.length > 0
+      ? db
+          .select({
+            submissionId: capstonePeerReviews.submissionId,
+            n: sql<number>`COUNT(*)`,
+          })
+          .from(capstonePeerReviews)
+          .where(inArray(capstonePeerReviews.submissionId, submissionIds))
+          .groupBy(capstonePeerReviews.submissionId)
+          .all()
+      : [];
+
+  const reviewCountByEnrollment = new Map<string, number>();
+  for (const r of reviewCountRows) {
+    const e = submissionToEnrollment.get(r.submissionId);
+    if (!e) continue;
+    reviewCountByEnrollment.set(
+      e,
+      (reviewCountByEnrollment.get(e) ?? 0) + Number(r.n),
+    );
+  }
+
+  const ranked = rows
+    .map((r) => ({
+      ...r,
+      reviewCount: reviewCountByEnrollment.get(r.enrollmentId) ?? 0,
+    }))
+    .sort((a, b) => {
+      if (a.reviewCount !== b.reviewCount) {
+        return a.reviewCount - b.reviewCount;
+      }
+      return (
+        new Date(b.completedAt!).getTime() -
+        new Date(a.completedAt!).getTime()
+      );
+    })
+    .slice(0, limit);
+
+  return c.json({
+    artifacts: ranked.map((r) => ({
+      artifactPageSlug: r.artifactPageSlug!,
+      capstoneSlug: r.capstoneSlug,
+      capstoneTitle: r.capstoneTitle,
+      coverEmoji: r.coverEmoji,
+      learnerUsername: r.learnerUsername,
+      learnerDisplayName: r.learnerDisplayName,
+      completedAt: r.completedAt!,
+      peerReviewCount: r.reviewCount,
+    })),
+  });
+});
+
+// GET /capstones/c/:artifactSlug/reviews — public list of peer
+// reviews for an artifact, grouped by milestone.
+capstonesRouter.get("/c/:artifactSlug/reviews", async (c) => {
+  const artifactSlug = c.req.param("artifactSlug")!;
+  const db = getDb();
+
+  const enrollment = db
+    .select({ id: capstoneEnrollments.id })
+    .from(capstoneEnrollments)
+    .where(eq(capstoneEnrollments.artifactPageSlug, artifactSlug))
+    .get();
+  if (!enrollment) return c.json({ error: "Artifact not found" }, 404);
+
+  const subs = db
+    .select({
+      id: capstoneSubmissions.id,
+      milestoneId: capstoneSubmissions.milestoneId,
+    })
+    .from(capstoneSubmissions)
+    .where(eq(capstoneSubmissions.enrollmentId, enrollment.id))
+    .all();
+  if (subs.length === 0) return c.json({ reviews: [] });
+
+  const submissionIds = subs.map((s) => s.id);
+  const submissionToMilestone = new Map(
+    subs.map((s) => [s.id, s.milestoneId]),
+  );
+
+  const reviewRows = db
+    .select({
+      id: capstonePeerReviews.id,
+      submissionId: capstonePeerReviews.submissionId,
+      reviewerId: capstonePeerReviews.reviewerId,
+      reviewerUsername: users.username,
+      status: capstonePeerReviews.status,
+      score: capstonePeerReviews.score,
+      feedback: capstonePeerReviews.feedback,
+      createdAt: capstonePeerReviews.createdAt,
+    })
+    .from(capstonePeerReviews)
+    .innerJoin(users, eq(capstonePeerReviews.reviewerId, users.id))
+    .where(inArray(capstonePeerReviews.submissionId, submissionIds))
+    .orderBy(desc(capstonePeerReviews.createdAt))
+    .all();
+
+  return c.json({
+    reviews: reviewRows.map((r) => ({
+      id: r.id,
+      submissionId: r.submissionId,
+      milestoneId: submissionToMilestone.get(r.submissionId) ?? null,
+      reviewerUsername: r.reviewerUsername,
+      status: r.status,
+      score: r.score,
+      feedback: r.feedback,
+      createdAt: r.createdAt,
+    })),
+  });
+});
+
+const peerReviewSchema = z.object({
+  status: z.enum(["endorsed", "requested_changes"]),
+  score: z.number().min(0).max(1),
+  feedback: z.string().min(20).max(4000),
+});
+
+// POST /capstones/submissions/:submissionId/reviews — submit a peer
+// review. Author of the submission cannot review themselves;
+// duplicate review by the same reviewer overwrites the prior row.
+capstonesRouter.post(
+  "/submissions/:submissionId/reviews",
+  requireAuth,
+  zValidator("json", peerReviewSchema),
+  async (c) => {
+    const user = c.get("user")!;
+    const submissionId = c.req.param("submissionId")!;
+    const data = c.req.valid("json");
+    const db = getDb();
+
+    const submission = db
+      .select({
+        id: capstoneSubmissions.id,
+        enrollmentId: capstoneSubmissions.enrollmentId,
+        status: capstoneSubmissions.status,
+      })
+      .from(capstoneSubmissions)
+      .where(eq(capstoneSubmissions.id, submissionId))
+      .get();
+    if (!submission) return c.json({ error: "Submission not found" }, 404);
+
+    const enrollment = db
+      .select({ userId: capstoneEnrollments.userId })
+      .from(capstoneEnrollments)
+      .where(eq(capstoneEnrollments.id, submission.enrollmentId))
+      .get();
+    if (!enrollment) return c.json({ error: "Submission not found" }, 404);
+    if (enrollment.userId === user.id) {
+      return c.json({ error: "You cannot review your own submission." }, 400);
+    }
+    if (submission.status !== "passed") {
+      return c.json(
+        {
+          error:
+            "Peer review is only available on submissions that have already passed AI grading.",
+        },
+        400,
+      );
+    }
+
+    const existing = db
+      .select({ id: capstonePeerReviews.id })
+      .from(capstonePeerReviews)
+      .where(
+        and(
+          eq(capstonePeerReviews.submissionId, submissionId),
+          eq(capstonePeerReviews.reviewerId, user.id),
+        ),
+      )
+      .get();
+
+    if (existing) {
+      db.update(capstonePeerReviews)
+        .set({
+          status: data.status,
+          score: data.score,
+          feedback: data.feedback,
+          createdAt: new Date().toISOString(),
+        })
+        .where(eq(capstonePeerReviews.id, existing.id))
+        .run();
+      return c.json({ id: existing.id, updated: true });
+    }
+    const id = randomUUID();
+    db.insert(capstonePeerReviews).values({
+      id,
+      submissionId,
+      reviewerId: user.id,
+      status: data.status,
+      score: data.score,
+      feedback: data.feedback,
+    }).run();
+    return c.json({ id, updated: false }, 201);
+  },
+);
+
+// DELETE /capstones/reviews/:id — withdraw your own review.
+capstonesRouter.delete("/reviews/:id", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const id = c.req.param("id")!;
+  const db = getDb();
+  const row = db
+    .select({ reviewerId: capstonePeerReviews.reviewerId })
+    .from(capstonePeerReviews)
+    .where(eq(capstonePeerReviews.id, id))
+    .get();
+  if (!row) return c.json({ error: "Review not found" }, 404);
+  if (row.reviewerId !== user.id) {
+    return c.json({ error: "You can only withdraw your own review." }, 403);
+  }
+  db.delete(capstonePeerReviews)
+    .where(eq(capstonePeerReviews.id, id))
+    .run();
+  return c.json({ ok: true });
 });
 
 // GET /capstones/:slug — full brief + milestones (drafts are

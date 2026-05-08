@@ -1109,6 +1109,46 @@ export interface SearchNavigatorResponse {
   groups: SearchNavigatorGroups;
 }
 
+// --- Peer review (Sprint 39) ----------------------------------------
+
+export type PeerReviewStatus = "endorsed" | "requested_changes";
+
+export interface CapstonePeerReview {
+  id: string;
+  submissionId: string;
+  milestoneId: string | null;
+  reviewerUsername: string;
+  status: PeerReviewStatus;
+  score: number;
+  feedback: string;
+  createdAt: string;
+}
+
+export interface CapstonePeerReviewsResponse {
+  reviews: CapstonePeerReview[];
+}
+
+export interface CapstonePeerReviewSummary {
+  count: number;
+  endorsed: number;
+  averageScore: number | null;
+}
+
+export interface CapstoneReviewQueueItem {
+  artifactPageSlug: string;
+  capstoneSlug: string;
+  capstoneTitle: string;
+  coverEmoji: string;
+  learnerUsername: string;
+  learnerDisplayName: string | null;
+  completedAt: string;
+  peerReviewCount: number;
+}
+
+export interface CapstoneReviewQueueResponse {
+  artifacts: CapstoneReviewQueueItem[];
+}
+
 // --- Misconception marketplace (Sprint 38) ---------------------------
 
 export type MisconceptionSubmissionStatus =
@@ -2046,6 +2086,9 @@ export interface CapstoneSubmission {
   labState: Record<string, unknown> | null;
   submittedAt: string;
   gradedAt: string | null;
+  // Sprint 39 — peer review summary, only present on the artifact
+  // page response. Other capstone reads (workspace, list) omit it.
+  peerReview?: CapstonePeerReviewSummary;
 }
 
 export interface CapstoneEnrollmentDetail {
@@ -2075,6 +2118,11 @@ export interface CapstoneArtifactPage {
     displayName: string | null;
   };
   submissions: CapstoneSubmission[];
+  peerReviewSummary?: {
+    totalReviews: number;
+    totalEndorsed: number;
+    averageScore: number | null;
+  };
 }
 
 export interface CapstonesListResponse {

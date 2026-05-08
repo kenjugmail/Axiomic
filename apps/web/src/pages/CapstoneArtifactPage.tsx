@@ -10,20 +10,30 @@ import { useParams, Link } from "react-router-dom";
 import { CheckCircle2, Share2 } from "lucide-react";
 import type { CapstoneArtifactPage } from "@axiomic/types";
 import { api } from "../lib/api";
+import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { VerifiedBadge } from "../components/transcripts/VerifiedBadge";
+import { PeerReviewSection } from "../components/capstones/PeerReviewSection";
 
 export function CapstoneArtifactPageView() {
   const { artifactSlug = "" } = useParams<{ artifactSlug: string }>();
+  const user = useAuthStore((s) => s.user);
   const [artifact, setArtifact] = useState<CapstoneArtifactPage | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const reload = async () => {
+    try {
+      const r = await api.capstones.artifact(artifactSlug);
+      setArtifact(r.artifact);
+    } catch (e: any) {
+      setError(e?.message ?? "Failed to load artifact");
+    }
+  };
+
   useEffect(() => {
-    api.capstones
-      .artifact(artifactSlug)
-      .then((r) => setArtifact(r.artifact))
-      .catch((e) => setError(e?.message ?? "Failed to load artifact"));
+    reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [artifactSlug]);
 
   if (error) {
@@ -88,6 +98,24 @@ export function CapstoneArtifactPageView() {
             </span>
           </div>
           <VerifiedBadge artifactSlug={enrollment.artifactPageSlug} />
+          {artifact.peerReviewSummary && artifact.peerReviewSummary.totalReviews > 0 && (
+            <div className="rounded-md bg-violet-500/10 border border-violet-500/30 px-3 py-2 inline-flex items-center gap-2 text-xs">
+              <span className="text-violet-700 dark:text-violet-300">
+                {artifact.peerReviewSummary.totalEndorsed}/
+                {artifact.peerReviewSummary.totalReviews} peer endorsement
+                {artifact.peerReviewSummary.totalReviews === 1 ? "" : "s"}
+                {artifact.peerReviewSummary.averageScore != null && (
+                  <>
+                    {" · "}
+                    {Math.round(
+                      artifact.peerReviewSummary.averageScore * 100,
+                    )}
+                    % avg
+                  </>
+                )}
+              </span>
+            </div>
+          )}
         </div>
       </header>
 
@@ -206,6 +234,17 @@ export function CapstoneArtifactPageView() {
                       </details>
                     )}
                   </>
+                )}
+                {sub && sub.status === "passed" && (
+                  <div className="mt-3" id={i === 0 ? "peer-review" : undefined}>
+                    <PeerReviewSection
+                      submissionId={sub.id}
+                      milestoneTitle={m.title}
+                      isOwnSubmission={user?.username === learner.username}
+                      artifactSlug={enrollment.artifactPageSlug}
+                      onChange={reload}
+                    />
+                  </div>
                 )}
               </li>
             );
