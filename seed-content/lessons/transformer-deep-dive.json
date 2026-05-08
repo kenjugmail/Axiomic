@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What we're building toward",
+      "body": "You've seen the pieces in the ml-engineer path: [[attention]], [[multi-head-attention]], [[feed-forward-networks]], [[residual-connections]], [[layer-normalization]], [[transformer-block]]. This lesson is the integrated read for someone who'll build, debug, or critique transformers seriously.\n\nWe'll cover:\n\n- How the residual stream actually works as a shared communication bus\n- What the parameter count of a transformer block buys you\n- The numerical stability tricks that aren't obvious from the equations\n- How to read a transformer architecture diagram efficiently\n\nIf you've read 'Attention is All You Need' and felt it was clear, this lesson should still teach you something. The original paper described the architecture; this lesson describes the *computation*."
+    },
+    {
+      "kind": "text",
+      "title": "The residual stream as communication bus",
+      "body": "At every position `t`, the model carries a vector `x_t ∈ R^{d_model}`. This vector is the **residual stream** — every attention sublayer reads from it and writes back; every FFN sublayer reads from it and writes back; the final unembedding reads from it.\n\n```\nresidual_stream[t]  = embed(token_t) + position_t  (shape: d_model)\nfor each block i:\n    residual_stream[t] += attention_i(LayerNorm(residual_stream))[t]\n    residual_stream[t] += ffn_i(LayerNorm(residual_stream[t]))\nlogits[t] = unembed(LayerNorm(residual_stream[t]))\n```\n\nThe residual stream is a high-bandwidth, position-indexed shared bus. Layers communicate by adding to it. Mech-interp researchers talk about layers 'writing to' and 'reading from' specific *subspaces* of the stream — the model partitions `d_model` dimensions among different functional roles.\n\nThe induction-head circuit (Olsson et al.) is exactly a 'one layer writes the previous-token info into a subspace; the next layer reads that subspace' pattern. This kind of circuit is only sensible because the stream persists across layers."
+    },
+    {
+      "kind": "text",
+      "title": "Parameter accounting per block",
+      "body": "For a transformer block with `d_model = d`, `n_heads = h`, `d_k = d/h`, FFN expansion `4d`:\n\n**Attention**:\n- `W_Q`, `W_K`, `W_V`: each [d, d] = d² params each, 3d² total\n- `W_O`: [d, d] = d²\n- Subtotal: 4d² params\n\n**FFN**:\n- `W_1`: [d, 4d] = 4d²\n- `W_2`: [4d, d] = 4d²\n- Subtotal: 8d²\n\n**Norms** (γ + β each): negligible, ~4d total.\n\n**Per block: 12d² parameters.** Two-thirds in the FFN, one-third in attention.\n\nFor a 32-block model with d=4096:\n```\nblocks: 32 × 12 × 4096² ≈ 6.4B params\nembedding + unembedding: 2 × 50000 × 4096 ≈ 400M params\ntotal: ~6.8B  (matches LLaMA-2 7B)\n```\n\nThis kind of calculation should be reflexive when you see a model card. Parameter count, depth, width — all related by simple ratios."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "td_q1",
+        "kind": "multiple_choice",
+        "question": "For a transformer block with d_model = d (and standard MHA + 4× FFN expansion), how do attention parameters and FFN parameters compare?",
+        "options": [
+          "Attention has more parameters than FFN",
+          "Roughly equal",
+          "FFN has about 2× the parameters of attention (4d² vs 8d²)",
+          "FFN has 10× the parameters of attention"
+        ],
+        "correctIndex": 2,
+        "explanation": "Attention: 4d² (Q, K, V, O projections). FFN: 8d² (up + down with 4× expansion). The 2:1 ratio is consistent across model sizes. This is why FFN dominates the parameter budget — and why MoE (which scales FFN selectively) is the architectural lever for adding capacity efficiently."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Numerical stability — what's not obvious",
+      "body": "Three stability tricks that aren't visible in the equations:\n\n**1. The √d_k scaling in attention.** Without it, dot products of Q and K grow with √d_k as dimension increases. Softmax of large values pushes toward one-hot — saturated, with zero gradient. The scaling keeps logits bounded, gradients alive.\n\n**2. Pre-norm vs post-norm.** Pre-norm wraps LN around the input to attention/FFN; post-norm wraps LN around the residual output. Pre-norm trains more stably at depth because the residual stream's identity path stays unscaled. Post-norm sometimes wins on final loss but requires more careful warmup. GPT-2+ uses pre-norm; original transformer used post-norm.\n\n**3. Mixed-precision training.** Forward + backward in fp16/bf16; weights and gradients in fp32. Without this, large models OOM. With this (and the right loss scaling), training is stable. Modern hardware (A100, H100) has fp16/bf16 tensor cores that are 2-4× faster than fp32; the scaling tricks are non-negotiable.\n\nBonus: **gradient clipping.** Sudden spikes in gradient norm (during data anomalies, learning rate transitions) destabilize training. Clipping norms above 1.0 is standard. Without it, you get NaN losses unpredictably."
+    },
+    {
+      "kind": "text",
+      "title": "Reading an architecture diagram efficiently",
+      "body": "When you encounter a paper describing a 'new architecture,' check these questions in order:\n\n1. **Is it decoder-only, encoder-only, or encoder-decoder?** (From the diagram or first paragraph.) This pins the use case.\n2. **What's `d_model`, depth, and head count?** Compute parameter count by hand.\n3. **What positional encoding?** Sinusoidal, learned, RoPE, ALiBi, none. Each implies different long-context behavior.\n4. **What attention variant?** Standard MHA, GQA, MQA, sliding window, sparse, linear. This often dominates inference cost and quality.\n5. **What activation in FFN?** ReLU, GELU, SwiGLU, GEGLU. Recent papers use SwiGLU (or close variant).\n6. **What norm?** LayerNorm vs RMSNorm. Pre vs post.\n7. **Initialization scheme?** Truncated normal, scaled-init, μP. Matters for training stability.\n8. **Anything actually new?** Most 'new architectures' are bundles of small modifications to the items above. The narrative might emphasize one but the lift comes from the bundle.\n\nWith 5 minutes and these questions, you can extract most of the architectural content from any transformer paper."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "td_q2",
+        "kind": "multiple_choice",
+        "question": "Why does pre-norm tend to train more stably than post-norm at large depth?",
+        "options": [
+          "Pre-norm uses fewer parameters",
+          "In pre-norm, the residual stream's identity path is never normalized. The unscaled identity flow preserves gradient magnitude across depth. In post-norm, every layer's residual sum gets re-normalized, which tends to destabilize the gradient",
+          "Pre-norm is faster",
+          "Post-norm doesn't work in mixed precision"
+        ],
+        "correctIndex": 1,
+        "explanation": "Pre-norm: `x → x + Attn(LN(x))`. The residual path is `x → x` unscaled. Post-norm: `x → LN(x + Attn(x))`. The residual path goes through LN every layer, which compresses signal magnitudes and accumulates instability over depth. GPT-2 onward standardized on pre-norm specifically because of this stability gap."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "You now have an integrated picture of the transformer: residual stream as bus, parameter accounting, stability tricks, architecture-reading recipe.\n\nThe rest of the AI Researcher path uses this foundation:\n\n- [[training-dynamics]]: what the loss curve and gradient norms tell you\n- [[evaluation-rigor]]: how to evaluate models without fooling yourself\n- [[interpretability]]: reverse-engineering what the residual stream actually carries\n- [[alignment-frontier]]: RLHF + DPO + Constitutional AI\n\nKey takeaways:\n- Residual stream = shared bus across layers; circuits live in subspaces of it\n- 12d² params per block; 2:1 split between FFN and attention\n- Pre-norm + RMSNorm + RoPE + GQA + SwiGLU is the modern recipe\n- Architecture reading checklist: norm placement, attention variant, activation, init"
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What training dynamics actually means",
+      "body": "When researchers say 'training dynamics,' they mean: what happens to the loss, gradients, and activations as training proceeds. This isn't a metric — it's a way of thinking about training as a process whose health you can monitor.\n\nThe practical question: when you launch a training run, how do you know whether it's going well, stuck, or about to diverge? Answer: read the curves.\n\nFour signals to track:\n\n- **Loss** (train + held-out)\n- **Gradient norm** per step\n- **Activation magnitudes** at each layer\n- **Learning rate** vs. its schedule\n\nThis lesson is about how to interpret these signals — what 'healthy training' looks like, and what specific failure patterns mean."
+    },
+    {
+      "kind": "text",
+      "title": "The healthy loss curve",
+      "body": "Healthy training loss is **noisy but trending downward on a moving average**. The noise is intrinsic to SGD — each minibatch's gradient is a noisy estimate of the true gradient, so per-step loss bounces around the trend.\n\nWhat to expect at different scales:\n\n- **Early training** (first ~1% of steps): loss drops fast. The model goes from random initialization to anything-better-than-random in a small fraction of total compute.\n- **Mid-training** (10-50%): slow, steady decline. Power-law-shaped on a log-log plot of loss vs steps.\n- **Late training** (50%+): the curve flattens. Diminishing returns. Most of the final-loss improvement is squeezed from this phase.\n\n**A spike upward** mid-training is normal if it self-corrects within a few hundred steps. A sustained upward trend means something broke — usually a learning rate that's too high or a data issue.\n\n**A plateau early** (loss drops then stalls) usually means the LR is too low for the current model state. This can self-resolve as the LR schedule decays, or it can stall the run permanently if the LR is genuinely too low."
+    },
+    {
+      "kind": "text",
+      "title": "The train-vs-val gap",
+      "body": "Track training loss AND held-out validation loss separately. Common patterns:\n\n**Both falling together, no gap**: healthy. Model is generalizing.\n\n**Train falls, val falls slower with growing gap**: healthy at first; eventually, **overfitting**. The point where val loss bottoms out and starts rising is when you should stop (or apply more regularization).\n\n**Train falls, val flat**: model is overfitting from the start. Either too much capacity for the data, or the val set isn't representative.\n\n**Train flat, val flat**: training is broken. Bad data, bad LR, bad architecture. Stop and debug.\n\nA common misconception: 'low train loss = overfitting.' Wrong. Overfitting is a *gap* between train and val, not low train loss alone. A model with train loss 0.1 and val loss 0.1 is just well-trained, not overfit. The diagnostic is the gap, never train loss alone."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "td_q1",
+        "kind": "multiple_choice",
+        "question": "Train loss is 0.05; validation loss is 0.05. Is the model overfitting?",
+        "options": [
+          "Yes — any low train loss indicates overfitting",
+          "No — overfitting is a *gap* between train and val. With both at 0.05, the model is generalizing; it's just well-trained",
+          "Cannot tell without knowing the test loss",
+          "Yes, because the model has memorized the training data"
+        ],
+        "correctIndex": 1,
+        "explanation": "Overfitting requires a gap. Train and val both at 0.05 means the model is reaching the same loss on data it has and hasn't seen — which is exactly what we want. This is one of the most common misconceptions in early ML training. Low train loss alone is not evidence of overfitting; it's evidence of learning."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Gradient norm as a health signal",
+      "body": "Gradient norm = `||∇_W L||` summed over all parameters. Track it per step. Healthy patterns:\n\n- Initial spike (first ~100 steps), then decay to a ~stable range\n- Mild fluctuation around the stable range\n- A small (≤ 2×) increase across LR warmup\n\nUnhealthy patterns:\n\n- **Sudden spikes (>10× the running average)**: usually a data anomaly (very long sequence, garbage input). With gradient clipping, the spike is mitigated; without, training diverges.\n- **Sustained growth**: divergence in progress. LR too high, or initialization too aggressive, or the model is degenerating.\n- **Sustained decay to ~0**: vanishing gradients. Earlier layers aren't getting useful signal. Common in too-deep networks without proper residuals + LN, or with a bad init.\n\n**Gradient clipping** (clip to norm 1.0 or so) is essentially universal in modern training. It bounds the worst case without affecting normal steps. Skip it and one bad batch can NaN your run.\n\nAdvanced: track gradient norm **per layer**. If layer 1 has tiny gradients while layer 30 has large ones, you have a layer-wise vanishing problem — diagnostic for residual or LN issues."
+    },
+    {
+      "kind": "text",
+      "title": "Common failure modes",
+      "body": "Specific patterns and what they mean:\n\n**NaN loss after step N.** Almost always: gradient explosion → underflow / overflow somewhere. Check for overflow in mixed precision (an fp16 forward producing inf), then for missing gradient clipping. Resume from the last checkpoint with lower LR or with clipping enabled.\n\n**Loss plateaus at a value much higher than expected.** Either: data too easy / too hard (so the loss is at the floor or ceiling for that dataset), LR too low, or model has insufficient capacity. Compare to a known baseline at the same scale.\n\n**Loss keeps decreasing on train but val flattens / rises.** Overfitting. Stop training, add data, or add regularization (dropout, weight decay).\n\n**Loss is constant (zero gradient signal).** Almost certainly a bug. Check: is the optimizer stepping? Are gradients computed? Is the loss function correct? Is the model in train mode?\n\n**Loss is fine but downstream eval is bad.** The model is minimizing the loss you gave it, which isn't quite the loss you wanted. Common in distillation (matching a teacher's logits doesn't always equal beating the teacher on tasks) and RLHF (reward model isn't quite the human preference)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "td_q2",
+        "kind": "multiple_choice",
+        "question": "Training has been running fine for 50K steps. Suddenly the loss spikes to NaN. Most likely cause?",
+        "options": [
+          "Random hardware error",
+          "Gradient explosion → numerical overflow somewhere in the forward or backward. Often triggered by an unusual batch (long sequence, garbage data). Gradient clipping mitigates this; mixed-precision training without clipping is especially vulnerable",
+          "The model has finished learning",
+          "Learning rate decay went wrong"
+        ],
+        "correctIndex": 1,
+        "explanation": "NaN is almost always a numerical-overflow signature. A normal-sized batch produces a normal gradient; an outlier batch (long sequence, anomalous tokens) produces a huge gradient that overflows fp16 → NaN propagates. Gradient clipping is the standard mitigation. The fix when this happens: lower LR for the next attempt, enable clipping, and re-examine your data pipeline for anomalies."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Reading training dynamics is what separates 'fired up the training script' from 'ran a training experiment.' Once you can read the curves, you can debug runs and run real ablations.\n\nKey takeaways:\n- Healthy loss is noisy but trends down on a moving average\n- Overfitting is a *gap* between train and val, not low train loss\n- Track gradient norm per step + per layer; clip at norm 1.0\n- NaN losses are usually gradient overflow; LR + clipping mitigations\n- Loss plateaus aren't always 'finished training' — could be a bug or capacity issue\n\nNext: [[evaluation-rigor]] — how to evaluate trained models without fooling yourself."
+    }
+  ]
+}

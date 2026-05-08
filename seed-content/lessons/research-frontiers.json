@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Reading frontier ML research critically",
+      "body": "Reading research papers is a skill. ML in particular has a high hype-to-content ratio: many papers claim more than they show, and many claims that seemed important at publication don't survive replication.\n\nThis lesson is about reading frontier ML research with the right priors:\n\n- What to read first vs last in a paper\n- Common rhetorical patterns that signal weak claims\n- Reproducibility expectations and red flags\n- How to identify which papers will matter in 2 years and which will fade\n\nThe goal isn't cynicism. It's calibration. Most published work is decent; some is excellent; some is overclaim. You want to read with eyes open."
+    },
+    {
+      "kind": "text",
+      "title": "What to read in what order",
+      "body": "Don't read papers top to bottom. Read in this order:\n\n**1. Title + abstract**: 30 seconds. Get the headline claim.\n**2. Figures + tables**: 2 minutes. The empirical work lives here. If the figures don't show what the abstract claims, the paper is overclaim.\n**3. Conclusions**: 1 minute. What do the authors think they showed?\n**4. Methodology section**: 5-10 minutes if the figures look credible. How did they get the numbers?\n**5. Related work**: skip on first read; come back if you want context.\n**6. Body text**: only if the paper is worth deeper investment.\n\nSpending 15 minutes on a paper this way tells you whether it's worth a full read. Most aren't.\n\nAggressive: many papers have one main result and one main figure. The figure is the result. If you can't extract the result from the figure in 60 seconds, the figure is poorly designed (or the result isn't actually clear)."
+    },
+    {
+      "kind": "text",
+      "title": "Rhetorical red flags",
+      "body": "Patterns that signal a weak or oversold claim:\n\n**'State-of-the-art on benchmark X.'** Does it report confidence intervals? Does it acknowledge contamination on public benchmarks? Is the gap to the previous SOTA larger than the typical run-to-run noise? Without these, 'SOTA' is a marketing term.\n\n**'Outperforms GPT-4.'** On what? With what prompting? At what task? At what scale of inference compute? 'Outperforms' usually means 'on this specific benchmark, with this specific prompt, this specific number is higher.'\n\n**'The model can do X.'** Is X demonstrated in the paper, or is it a cherry-picked example? Find the failure cases — every model has them. If the paper doesn't show any, it's not being honest.\n\n**'Closed-source models can't be evaluated.'** A paper that uses this as an excuse to not benchmark against GPT-4 / Claude is acknowledging it can't compete on the headline number. The result might still be interesting on other axes.\n\n**'A new architecture.'** As covered in [[modern-architectures]], most 'new architectures' are bundles of small modifications. The narrative emphasizes one; the lift comes from the bundle. The paper isn't always being fully transparent about which component does what.\n\n**'Simple and effective.'** Often code that's easy to write and a result that's hard to replicate due to undocumented hyperparameter sensitivity."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "rf_q1",
+        "kind": "multiple_choice",
+        "question": "A paper reports a new model achieving 95.3% on benchmark X, vs the previous best of 94.8%. What's the most important question to ask?",
+        "options": [
+          "How can I download the weights?",
+          "Is the 0.5% difference statistically significant given the variance, and is benchmark X contaminated in either model's training set? Without confidence intervals + contamination analysis, the headline number isn't interpretable",
+          "Are they using PyTorch or JAX?",
+          "How long did it take to train?"
+        ],
+        "correctIndex": 1,
+        "explanation": "Most ML benchmark papers don't report confidence intervals. A 0.5% improvement on a benchmark of 1000 examples is roughly within the standard error of the difference; it's often not statistically meaningful. Combined with contamination concerns on public benchmarks, headline 'SOTA' improvements should be interpreted skeptically until the proper statistical and contamination work is shown."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Reproducibility expectations",
+      "body": "Reproducibility used to be aspirational in ML. It's now table stakes for serious work. What to look for:\n\n**Released code**. The paper has a public repo with the training code, eval scripts, and all hyperparameters. If not, the work is hard to verify.\n\n**Released weights** (where applicable). Frontier-scale work won't release training data or compute, but checkpoints + eval code is enough to validate downstream claims.\n\n**Reasonable hyperparameter discussion**. The paper acknowledges what was tuned and what wasn't. A paper that hides hyperparameter sweeps in a sentence is cherry-picking.\n\n**Multiple seeds**. Important results are reported across multiple training seeds with mean + variance. Single-seed claims are at risk of being noise.\n\n**Stated compute**. How long did it take, on what hardware. Lets you estimate replication cost.\n\nRed flags: 'Code released soon' (often: not). 'Trained on internal data' (not reproducible by design). 'Single training run' (no idea about variance). 'Hyperparameters tuned to validation' (overfit by definition).\n\nAfter the paper, look for **independent replications**. If three months have passed and no one else has reproduced the result on a similar setup, that's information. If the original lab has retracted or quietly walked back the claim, that's information."
+    },
+    {
+      "kind": "text",
+      "title": "Which papers will matter",
+      "body": "Two years later, most papers are forgotten. A few become foundational. The ones that become foundational tend to share traits:\n\n**Mechanism, not just metric.** Papers that explain *why* something works survive better than ones that just show *that* it works. 'Attention is All You Need' explained the architecture; many follow-up benchmark-chasing papers didn't survive.\n\n**Reproducible at small scale.** A claim that requires frontier compute to validate has a tiny audience. Claims that work at small scale (so a grad student can replicate) get widely tested and trusted.\n\n**Composes well.** Mechanisms that other people can adopt without buying the whole paper. Layer norm, residual connections, attention itself — all became foundational because everyone could just bolt them onto their existing systems.\n\n**Acknowledges limitations.** Papers that are honest about where their result fails get cited even when challenged. Papers that overclaim get torn down later.\n\nReverse: papers that don't survive tend to (1) require huge compute to replicate, (2) lack a clear mechanistic explanation, (3) have results that depend sensitively on undocumented hyperparameters, (4) overclaim relative to what the figures show.\n\nThe practical implication for your reading list: **don't try to keep up with every paper**. Read deeply on the ones that look like they'll compose. Skim the rest."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "rf_q2",
+        "kind": "multiple_choice",
+        "question": "Which trait is most predictive of a paper still being cited 2 years after publication?",
+        "options": [
+          "It claimed state-of-the-art at the time",
+          "It explained the *mechanism* behind its result, was reproducible at small scale, composed well with other techniques, and acknowledged its limitations honestly",
+          "It was published at a top conference",
+          "It had famous authors"
+        ],
+        "correctIndex": 1,
+        "explanation": "Conference and authorship correlate with citations but don't predict long-term value. The features that predict surviving relevance: mechanism (not just metric), small-scale reproducibility, compositional usefulness (other people can adopt the technique), and honest limitations. Foundational papers tend to have all four; SOTA-chasing papers often have none."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Reading frontier research is a skill that compounds. Doing it well over years is what separates 'someone who's read a lot of papers' from 'someone who has a working mental model of ML research.'\n\nKey takeaways:\n- Read in figure-first order, not paper-front-to-back\n- Watch for rhetorical red flags (SOTA without CI, 'simple and effective,' 'closed-source models can't be evaluated')\n- Reproducibility expectations are now table stakes; demand released code + multiple seeds\n- Survival predictors: mechanism, small-scale reproducibility, compositionality, honest limitations\n\nNext: [[novel-contributions]] — what makes a research contribution actually novel, and how to scope your own work."
+    }
+  ]
+}

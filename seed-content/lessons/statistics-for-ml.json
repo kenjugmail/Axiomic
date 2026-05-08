@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What statistics gives you for ML",
+      "body": "Statistics is the discipline of turning data into claims. For ML researchers, the relevant statistics aren't the textbook hypothesis tests — they're a specific subset:\n\n- **Estimation theory**: how to fit a distribution to data. MLE, MAP, Bayesian inference.\n- **Hypothesis testing**: when can we say model A is better than model B?\n- **Calibration**: when the model says '90% probability,' is it right 90% of the time?\n- **Uncertainty quantification**: how confident should we be in a model's prediction?\n- **The base-rate problem**: why benchmark accuracy can mislead.\n\nThis lesson is the applied version — estimation, testing, and the failure modes you actually encounter when evaluating models."
+    },
+    {
+      "kind": "text",
+      "title": "Maximum likelihood estimation",
+      "body": "Given data `D = {x_1, x_2, ...}` and a parametric model `p(x | θ)`, **MLE** finds the parameters that make the data most probable:\n\n$$\\hat{\\theta}_{MLE} = \\arg\\max_\\theta \\prod_i p(x_i | \\theta) = \\arg\\max_\\theta \\sum_i \\log p(x_i | \\theta)$$\n\nThe log is just for numerical stability — the product of many probabilities underflows; the sum of log-probabilities doesn't.\n\nMLE is what training a neural net does. The cross-entropy loss is `-log p(y | x; θ)` summed over training examples. Gradient descent on this loss = MLE.\n\nProperties:\n- **Consistent**: as data → ∞, MLE → true parameters (under regularity conditions).\n- **Asymptotically efficient**: lowest possible variance among consistent estimators.\n- **NOT unbiased in general**: MLE for variance underestimates by a known factor.\n- **Sensitive to model misspecification**: if the parametric family doesn't include the truth, MLE finds the closest member of the family — which might be far from truth."
+    },
+    {
+      "kind": "text",
+      "title": "Hypothesis testing for model comparison",
+      "body": "You trained model A and model B. A scores 0.873 on the test set; B scores 0.881. Is B actually better, or is the difference noise?\n\nThe right question isn't 'is the difference real' — it's 'how often would I see a difference this large if both models were equally good?' That's a p-value.\n\nFor classification accuracy: paired bootstrap test. Resample test examples with replacement; compute the difference in accuracy on each resample; the distribution of differences gives you a confidence interval.\n\nFor language model perplexity / loss: same idea, paired over tokens (or, more honestly, over evaluation examples).\n\n**Critical**: the bootstrap test only validates that the difference is statistically significant. It doesn't tell you the difference is **practically meaningful** or that B will outperform A on a different dataset (generalization gap).\n\nMost ML benchmark papers don't report confidence intervals. This is a problem. A 0.5% accuracy difference is often within bootstrap CI of zero — meaning the headline 'A beats B' is statistically indistinguishable from 'A and B are equivalent.'"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "stat_q1",
+        "kind": "multiple_choice",
+        "question": "Model A scores 0.872 on a 10K-example test set. Model B scores 0.880 on the same set. Which is more likely to indicate a real difference in capability?",
+        "options": [
+          "B is clearly better — 0.8% accuracy difference",
+          "Hard to say without knowing the variance — a 0.8% difference on 10K examples could easily be within the bootstrap confidence interval of zero",
+          "B is clearly better, but you'd want more decimals",
+          "A is better because it's more conservative"
+        ],
+        "correctIndex": 1,
+        "explanation": "On 10K examples, the standard error of accuracy is roughly √(p(1-p)/n) ≈ √(0.13/10000) ≈ 0.0036. A 0.8% (0.008) difference is about 2 standard errors — borderline statistically significant on a paired test, but barely. Most ML papers don't report this; the field's headline numbers often overstate the gap between models."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Calibration",
+      "body": "A model is **calibrated** if its predicted probabilities match observed frequencies. When the model says '90%,' the prediction should be right 90% of the time.\n\nCalibration is NOT the same as accuracy:\n- A model can be 100% accurate but uncalibrated (always says 60% confidence, but is right 100% of the time).\n- A model can be 60% accurate and calibrated (says 60% confidence, right 60% of the time).\n\nWhy this matters: if the model's confidence is wrong, downstream decisions based on the confidence are wrong. Risk-weighted decisions, abstention thresholds, ensembling — all assume calibration.\n\nMeasure with a **reliability diagram**: bin predictions by their confidence; plot mean confidence vs accuracy in each bin. A perfectly calibrated model produces the diagonal y=x line. **Expected Calibration Error (ECE)** is the bin-weighted average distance from the diagonal.\n\nNeural networks tend to be **overconfident**: they say 99% when they're 80% accurate. Temperature scaling (post-hoc calibration: divide logits by a learned temperature) is the cheapest fix. More principled approaches exist but are rarely used in production."
+    },
+    {
+      "kind": "text",
+      "title": "The base-rate fallacy",
+      "body": "A medical test has 99% sensitivity (true positive rate) and 95% specificity (true negative rate). A patient tests positive. What's the probability they have the disease?\n\nDepends on the **base rate**. If the disease affects 1 in 10,000 people:\n\n- Prior: P(disease) = 0.0001\n- P(positive | disease) = 0.99\n- P(positive | no disease) = 0.05\n- P(positive) ≈ 0.05 (dominated by the false positive rate × no-disease population)\n- P(disease | positive) = 0.99 × 0.0001 / 0.05 ≈ 0.002 = 0.2%\n\n**A 99% sensitive test with a 5% false-positive rate, applied to a rare condition, gives 0.2% probability of disease given positive.** The headline number 'sensitivity is 99%!' is meaningless without the base rate.\n\nThis comes up constantly in ML evaluation:\n\n- A spam classifier with 99% accuracy is great if 50% of email is spam, useless if 0.1% is.\n- A medical diagnosis model is misleading without the prevalence.\n- A safety classifier on rare adversarial inputs has its precision dominated by the false-positive rate, not the model's quality on the positive class.\n\nThe lesson: **always know the base rate**. Conditional probability is asymmetric (`P(disease | positive) ≠ P(positive | disease)`). One of the most consistent confusions in applied statistics."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "stat_q2",
+        "kind": "multiple_choice",
+        "question": "What's a model that's 'calibrated but inaccurate'?",
+        "options": [
+          "A contradiction — calibration implies accuracy",
+          "A model that says '60% confidence' on inputs where it's right 60% of the time. The confidence is well-tuned even though raw accuracy is low",
+          "A model with no probability outputs",
+          "A model trained for too long"
+        ],
+        "correctIndex": 1,
+        "explanation": "Calibration is about confidence matching frequency. A model that's 60% accurate but reliably reports 60% confidence is calibrated. Calibration and accuracy are independent axes of model quality — both matter, neither implies the other."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Statistics is the discipline of being honest with data. ML papers without confidence intervals, calibration, and base-rate awareness are doing it wrong.\n\nKey takeaways:\n- MLE is what training does. Cross-entropy minimization = MLE.\n- A 0.5-1% difference in accuracy on a benchmark is often statistically indistinguishable from noise. Confidence intervals matter.\n- Calibration ≠ accuracy. A model can be one without the other.\n- Base rates flip the answer. P(disease | positive) ≠ P(positive | disease) in general.\n\nNext: [[transformer-deep-dive]] — the integrated read of the transformer architecture, with these tools."
+    }
+  ]
+}

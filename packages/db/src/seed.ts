@@ -339,6 +339,92 @@ Pick 1-2 from this list and you'll see real ML engineering judgment land. RAG is
 
 Browse the [full capstone catalog](/capstones) or jump straight into one. Each capstone has a tiered brief — pick the depth that matches where you are.`,
     },
+    {
+      slug: "the-misconception-catalog-learned-about-rag-and-lora",
+      title: "The misconception catalog learned about RAG, LoRA, and KV-cache",
+      summary:
+        "Six new entries in the misconception catalog, each on a frontier topic where engineer intuitions reliably go wrong.",
+      coverEmoji: "🛠️",
+      accentColor: "amber",
+      authorId: aliceId,
+      body: `Most of what makes a good ML engineer isn't knowing a long list of facts — it's knowing which of your intuitions are wrong. The [misconception catalog](/misconceptions) tracks the second category.
+
+Six new entries this week, all on frontier topics:
+
+## LoRA rank → unbounded capacity
+
+The intuition: more rank = better adaptation. The reality: empirically, LoRA's quality curve saturates around r=16-64 for most tasks. Higher rank doesn't proportionally help. The whole point of LoRA is the low-rank assumption — that task-specific weight updates lie in a low-dimensional subspace. If you find yourself reaching for r=256 by default, you've missed the design intent.
+
+## RAG: perfect retrieval → perfect output
+
+The intuition: if you fix retrieval, RAG works. The reality: even with perfect retrieval, the generator can ignore retrieved context, misread it, or hallucinate beyond it. End-to-end RAG quality is the joint of retrieval AND generation. Fixing one without measuring the other is the classic 'I improved retrieval and the system still hallucinates' debugging story.
+
+## KV-cache eliminates quadratic memory
+
+The intuition: KV cache makes attention O(N), so long context is cheap. The reality: KV cache eliminates redundant *computation* (O(N²) → O(N) per generation step), not *memory* (still O(context × layers × heads)). At 32K context the cache can be tens of GB per request. This is why GQA and PagedAttention exist.
+
+## FlashAttention is approximate
+
+The intuition: FlashAttention drops some computation for speed. The reality: it computes *exact* attention. The speedup comes from IO-aware tiling that avoids materializing the full N×N attention matrix in HBM, not from any approximation.
+
+## Chinchilla's 20:1 ratio is universal
+
+The intuition: 20 tokens per parameter is the optimal training data ratio for any model. The reality: the ratio depends on the LR schedule and on whether you're optimizing training-only or inference-amortized cost. LLaMA-3 8B was trained on 15T tokens (~1900:1) — deliberately over-trained because the inference economics favor it.
+
+## Mech-interp circuits are clean subgraphs
+
+The intuition: a circuit is a small, identifiable group of attention heads + MLP neurons. The reality: superposition means individual neurons carry many features. Most circuits are distributed across many heads and layers, with each contributing partially. This is why sparse autoencoders have become the workhorse of modern mech-interp.
+
+## How they got here
+
+Each of these entries followed the same path: someone proposed it in the [marketplace](/misconceptions), it accumulated five upvotes, and it auto-merged into the production catalog. From there, the [misconception detector](/me/weak-concepts) starts firing on quiz mistakes that match the pattern, and the AI tutor's misconception mode probes them when learners hit them.
+
+The catalog grows by community input. If you're confident a misconception trips up engineers and isn't yet in the catalog, [propose it](/misconceptions). Five votes from peers and it's in.`,
+    },
+    {
+      slug: "frontier-topic-wiki-seven-new-pages",
+      title: "Frontier-topic wiki: seven new pages, all with labs where they earn one",
+      summary:
+        "Prompt injection, retrieval evaluation, function calling, preference optimization, speculative decoding, quantization, distillation. The wiki just got the topics ML engineers actually work with daily.",
+      coverEmoji: "📚",
+      accentColor: "indigo",
+      authorId: carolId,
+      body: `When you're building production LLM systems, you don't need another transformer-architecture explainer. You need the topics nobody covers cleanly: prompt injection defenses, RAG evaluation methodology, the actual difference between DPO and PPO, what FP8 quantization gets you on H100s.
+
+Seven new wiki pages, all three-tier (intro / undergrad / grad):
+
+## [[prompt-injection]]
+
+Direct vs indirect attacks; defenses (input filtering, output monitoring, sandboxing tool calls, privilege separation); why this is currently unsolvable in the strong sense and what 'defense in depth' looks like in practice. The class of bug that doesn't have a clean fix.
+
+## [[retrieval-evaluation]]
+
+Hit rate, MRR, nDCG, BEIR, MTEB. How to build an evaluation set without leakage. Why LLM-as-judge has biases and how to validate against human ones. The metric layer that bounds [[rag]] system quality.
+
+## [[function-calling]]
+
+Schema design (the description fields are the most important part). Multi-step planning loops. Error recovery. Trained vs prompted function calling. The MCP ecosystem. Where the security perimeter actually lives.
+
+## [[preference-optimization]]
+
+DPO, IPO, KTO, ORPO, SimPO. Why the field has largely migrated off PPO except at frontier scale. The implementation cost difference. When each variant is worth the complexity.
+
+## [[speculative-decoding]]
+
+The trick: small fast model proposes K tokens; big model verifies all K in parallel. The math: produces a sample from the target model's distribution exactly (not approximately). Variants: Medusa, Lookahead, EAGLE, tree-based. 2-3× speedup at zero quality cost.
+
+## [[quantization]]
+
+INT8 weights are nearly free. INT4 with AWQ is the production sweet spot. FP8 on H100 hardware. QLoRA for memory-constrained fine-tuning. Where the quality cost actually lands.
+
+## [[distillation]]
+
+Soft labels, temperature, the Hinton recipe. Modern variants: on-policy distillation, MiniLLM, Distill-Step-by-Step. What distillation transfers and what it doesn't.
+
+## Why these specifically
+
+Each of these is a topic where the median engineer's intuition is wrong about something specific. The wiki pages encode the things that aren't obvious. Pair them with the [misconception marketplace](/misconceptions) — every wiki page now has corresponding misconception catalog entries — and you get the negative-knowledge half of the curriculum.`,
+    },
   ];
 
   for (const a of articles) {

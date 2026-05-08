@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why information theory matters for ML",
+      "body": "Information theory was developed by Shannon in 1948 to study communication systems. It turns out the same math is the natural vocabulary for ML losses, generative modeling, and representation learning.\n\nThe core unit is the **bit** — one yes-or-no question. The core question information theory asks: how much information is in this signal? Or: how different are these two distributions?\n\nIf you know what entropy, KL divergence, and cross-entropy are, you can read most generative modeling papers. If you know mutual information, you can read most representation learning papers."
+    },
+    {
+      "kind": "text",
+      "title": "Entropy",
+      "body": "**Entropy** of a distribution P:\n\n$$H(P) = -\\sum_x p(x) \\log p(x)$$\n\nWith log base 2, this is bits. Intuitively: the average number of yes/no questions you'd need to ask to determine X.\n\n- Uniform over 4 outcomes: H = 2 bits. (Two binary questions narrow it down.)\n- Uniform over 8 outcomes: H = 3 bits.\n- Concentrated on one outcome (P[a] = 1): H = 0. No questions needed.\n- Bernoulli with p = 0.5: H = 1 bit. (One coin flip.)\n- Bernoulli with p = 0.99: H ≈ 0.08 bits. (Almost no information; you can guess correctly almost always.)\n\nIn ML: a perfectly-confident model has zero entropy in its predictions; a maximally-uncertain model has max entropy. **Entropy of the model's output** is a useful diagnostic — too high means the model isn't decisive; too low can mean overfitting."
+    },
+    {
+      "kind": "text",
+      "title": "KL divergence",
+      "body": "**Kullback-Leibler (KL) divergence** measures how 'far' distribution Q is from P:\n\n$$D_{KL}(P || Q) = \\sum_x p(x) \\log \\frac{p(x)}{q(x)}$$\n\nProperties:\n- `D_KL(P || Q) ≥ 0`, with equality iff P = Q.\n- **Asymmetric**: `D_KL(P||Q) ≠ D_KL(Q||P)` in general.\n- Not a metric (no triangle inequality).\n\nThe asymmetry matters. `D_KL(P || Q)` weights by P; if Q has zero mass somewhere P is nonzero, the divergence is infinite. So:\n\n- **Forward KL** `D_KL(P_data || P_model)`: model is penalized infinitely for missing modes of the data. Mode-covering.\n- **Reverse KL** `D_KL(P_model || P_data)`: model is penalized for putting mass where data has none. Mode-seeking.\n\nGenerative modeling and variational inference choose between these depending on what failure mode they want to avoid."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "it_q1",
+        "kind": "multiple_choice",
+        "question": "Compute the entropy of a Bernoulli distribution with p = 0.5 (a fair coin), in bits.",
+        "options": [
+          "0 bits",
+          "0.5 bits",
+          "1 bit",
+          "2 bits"
+        ],
+        "correctIndex": 2,
+        "explanation": "H(p=0.5) = -(0.5 · log₂(0.5) + 0.5 · log₂(0.5)) = -(0.5 · (-1) + 0.5 · (-1)) = 1 bit. A fair coin has exactly 1 bit of entropy — one yes/no question fully determines it."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Cross-entropy",
+      "body": "**Cross-entropy** of distribution Q relative to P:\n\n$$H(P, Q) = -\\sum_x p(x) \\log q(x)$$\n\nDecomposes as:\n\n$$H(P, Q) = H(P) + D_{KL}(P || Q)$$\n\nThe first term `H(P)` is data entropy — fixed for a given dataset. The second is KL divergence — what we want to minimize. Minimizing cross-entropy = minimizing KL divergence (up to a constant).\n\n**This is why ML uses cross-entropy as its standard loss.** For classification: P is the one-hot true label, Q is the model's predicted distribution. Cross-entropy is `-log q(true_class)`, the negative log-likelihood. Minimizing it = MLE.\n\nLanguage model loss is cross-entropy between the true next-token (one-hot) and the model's predicted distribution. Same exact framework, scaled to a vocab of 50K tokens.\n\nMisconception: cross-entropy is *not* symmetric. `H(P, Q) ≠ H(Q, P)` in general. The first arg is the 'truth' (gets weighted); the second is the 'estimate' (gets logged)."
+    },
+    {
+      "kind": "text",
+      "title": "Mutual information",
+      "body": "**Mutual information** between random variables X and Y:\n\n$$I(X; Y) = H(X) - H(X|Y) = D_{KL}(P_{XY} || P_X \\otimes P_Y)$$\n\nIntuitively: how much knowing Y reduces your uncertainty about X. Or equivalently: how 'far' the joint distribution is from the product of marginals.\n\nProperties:\n- `I(X; Y) = I(Y; X)` — symmetric.\n- `I(X; Y) ≥ 0`, with equality iff X and Y are independent.\n- `I(X; Y) = 0` iff X ⊥ Y.\n\nUse in ML:\n\n- **Information bottleneck principle**: a good representation Z of X retains high `I(Z; Y)` (predictive of the label) and low `I(Z; X)` (compressed). Frames a lot of representation learning.\n- **InfoNCE / contrastive learning**: maximize a lower bound on mutual information between two views of the same datapoint.\n- **Mutual-information-based regularization**: penalize models for having predictions that depend too strongly on spurious features."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "it_q2",
+        "kind": "multiple_choice",
+        "question": "If two random variables X and Y are independent, what is their mutual information?",
+        "options": [
+          "Infinite",
+          "Equal to H(X)",
+          "Zero",
+          "Equal to the entropy of the joint distribution"
+        ],
+        "correctIndex": 2,
+        "explanation": "Independence means P(X,Y) = P(X)P(Y). Plugging into the definition: I(X;Y) = D_KL(P(X,Y) || P(X)P(Y)) = D_KL(P(X)P(Y) || P(X)P(Y)) = 0. Mutual information is exactly the divergence from independence; if the variables ARE independent, MI = 0."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Information theory shows up everywhere in ML — sometimes explicitly (KL regularization, mutual information bounds), sometimes implicitly (cross-entropy loss, label smoothing).\n\nKey takeaways:\n- Entropy: average bits to describe. H = 0 means certain; H = log(K) means uniform over K outcomes.\n- KL divergence: 'distance' between distributions. Asymmetric. Forward vs reverse KL trade off mode-covering vs mode-seeking.\n- Cross-entropy = entropy + KL. Minimizing cross-entropy = MLE for classification / language modeling.\n- Mutual information: how much one variable reduces uncertainty about another. Symmetric. Zero iff independent.\n\nNext: [[statistics-for-ml]] — applied estimation theory. The next layer up from probability."
+    }
+  ]
+}

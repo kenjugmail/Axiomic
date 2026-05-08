@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Interpretability at researcher depth",
+      "body": "The ml-engineer path covered [[mechanistic-interpretability]] as a tour: induction heads, superposition, sparse autoencoders. This lesson is the researcher version — what to actually do if you want to find a circuit, validate it, or build on the existing work.\n\nMech-interp has roughly three eras:\n\n- **2021-2022 (foundational)**: Olah, Elhage et al. lay out the framework. Induction heads are identified. The 'mathematical framework for transformer circuits' paper is read by everyone.\n- **2023-2024 (scaling)**: Anthropic's 'Toy Models of Superposition' formalizes why neuron-level interpretation fails. Sparse autoencoders emerge as the workhorse. Scaling-monosemanticity (Anthropic 2024) demonstrates SAE-based feature dictionaries on Sonnet.\n- **2024-now (productionization)**: SAE training becomes mature. Feature dictionaries become a regular tool for safety analysis. The field is still wide open."
+    },
+    {
+      "kind": "text",
+      "title": "Methodology — finding a circuit",
+      "body": "If you want to find a clean circuit (like induction heads), the recipe roughly is:\n\n**1. Identify a behavior** — something the model does reliably on a specific kind of input. Examples: copying tokens, completing repeated patterns, named-entity disambiguation.\n\n**2. Build an evaluation set** — a few hundred inputs where you know what the right behavior is.\n\n**3. Logit attribution** — for each input, decompose the final logits into contributions from each layer / head. Layers that contribute most to the correct answer are candidates for being 'where the work happens.'\n\n**4. Activation patching (causal mediation)** — replace the activations of one component (head, layer) at a time with its activations from a different input, and measure how much that breaks the behavior. The components whose patching most degrades the behavior are the load-bearing parts.\n\n**5. Verify with ablation** — zero out (or noise out) the candidate components and confirm the behavior disappears. If ablating part X kills the behavior, X is causally responsible.\n\nThe induction-heads paper followed this exact pattern. Steps 3-4 are the workhorses; step 5 is the proof.\n\nTools: TransformerLens (the standard library) implements all of this. Neel Nanda's tutorials walk through the methodology with running code."
+    },
+    {
+      "kind": "text",
+      "title": "Sparse autoencoders in detail",
+      "body": "An SAE is a 1-hidden-layer autoencoder that targets sparse activations.\n\n```\nencoder: f = ReLU(W_e @ x + b_e)\ndecoder: x_hat = W_d @ f + b_d\nloss: |x_hat - x|² + λ |f|_1\n```\n\nWhere `f ∈ R^d_sparse` and `d_sparse >> d_model`. Typical: `d_sparse = 16 × d_model`. The L1 penalty pushes most entries of `f` toward zero — hence 'sparse.'\n\nWhen this works, the rows of `W_d` correspond to interpretable features. Look at the top inputs that activate each feature, and you'll see it lights up for things like 'this passage is in French,' 'this is a question about a date,' 'this is the start of a quotation.'\n\n**Sparsity-vs-reconstruction tradeoff.** Higher λ → fewer active features per input → cleaner interpretability, worse reconstruction. The sweet spot depends on what you're using the SAE for. Anthropic's recipes use L0 ≈ 30-100 (number of active features per input).\n\n**Where to insert the SAE.** Common: residual stream after a specific block. Less common: MLP outputs directly. Different insertion points capture different feature distributions.\n\n**Limitations.** SAEs are imperfect (some features are still polysemantic). They don't capture all of the model's behavior. They sometimes fail to find rare-but-important features. The methodology is still maturing.\n\nGoogle DeepMind's Gemma Scope, Anthropic's published SAEs on Claude — both are now public, both let you experiment without training your own."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "int_q1",
+        "kind": "multiple_choice",
+        "question": "What's the role of activation patching in identifying a circuit?",
+        "options": [
+          "It's a way to make models faster",
+          "It substitutes one component's activations with those from a different input and measures the resulting behavioral change. Components whose patching most disrupts the target behavior are the causally-responsible ones",
+          "It's used during training to regularize",
+          "It's a kind of attention mechanism"
+        ],
+        "correctIndex": 1,
+        "explanation": "Activation patching is the causal-mediation tool. Instead of just correlating activations with outputs, it intervenes: change one component, see how the output changes. This is the tightest form of evidence in mech-interp because it shows direct causal involvement. Tools like TransformerLens make this routine."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What mech-interp can and can't claim",
+      "body": "**What it can claim**:\n\n- 'These specific attention heads implement copying behavior; ablating them kills the behavior.' (Structural, falsifiable.)\n- 'This SAE feature consistently activates on inputs of type X; ablating the feature changes the model's behavior on those inputs.' (Feature-level claim with intervention evidence.)\n- 'This circuit composes across two layers in this specific way.' (Architectural claim.)\n\n**What it can't claim** (yet):\n\n- 'This is the only circuit responsible for behavior Y.' Most behaviors involve multiple, partially-redundant circuits.\n- 'This feature is monosemantic.' Even with SAEs, some features remain polysemantic. The clean ones are special.\n- 'We have a complete account of what the model does.' Frontier models have ~100M+ features per layer in SAE decompositions; comprehensive interpretation isn't here.\n\nThe current state of the field: islands of mechanistic understanding in a sea of behavioral evaluation. The islands are growing. They don't yet cover any complete frontier-class model."
+    },
+    {
+      "kind": "text",
+      "title": "The case for and against mech-interp",
+      "body": "**Case for**:\n\n- Mechanistic claims survive distribution shift. A circuit that implements copying behavior does so on inputs the model never saw at training. Behavioral evals don't generalize this cleanly.\n- It's the only methodology that can verify alignment claims. 'The model says it's aligned' is cheap; 'the model's reward circuit fires only on actually-good responses' is mechanistically verifiable in principle.\n- It produces compositional understanding. Knowing what each component does means you can predict combinations.\n\n**Case against**:\n\n- Slow. Finding a clean circuit takes months. Frontier models have hundreds of millions of features.\n- Imperfect. Even at the best, mech-interp claims have residual ambiguity (superposition isn't fully solved).\n- May not generalize across architectures. A circuit found in a 2024 transformer may not exist in a 2027 model with a different recipe.\n\nThe honest position: mech-interp is the best methodology we have for high-stakes capability and safety claims. It's not yet good enough to be load-bearing for frontier deployment decisions. But the field is moving fast, and the decade ahead may close the gap."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "int_q2",
+        "kind": "multiple_choice",
+        "question": "Why have sparse autoencoders become more popular than direct neuron-level interpretation?",
+        "options": [
+          "They're faster to compute",
+          "Superposition means individual neurons are typically polysemantic — they encode multiple unrelated features. SAEs decompress activations into a wider, sparser feature space where features are more often monosemantic and interpretable",
+          "They're easier to train than the model itself",
+          "Sparse autoencoders are required for activation patching"
+        ],
+        "correctIndex": 1,
+        "explanation": "Polysemantic neurons (one neuron carrying multiple unrelated features) is the structural reason individual-neuron interpretation often fails. SAEs are the response: learn a wider, sparser feature dictionary. The decoder rows of the SAE correspond more cleanly to interpretable features. Anthropic's 2024 'Scaling Monosemanticity' work demonstrated this at frontier scale."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Mech-interp is a slow methodology with a strong long-term value proposition. If you're going into ML research and care about capability claims that survive distribution shift, this is the area to invest in.\n\nResources to go deeper:\n- TransformerLens documentation + Neel Nanda's tutorials\n- Anthropic's transformer-circuits.pub publications\n- ARENA's curriculum (intensive program for mech-interp researchers)\n- The Mechanistic Interpretability discord and Twitter community\n\nKey takeaways:\n- Methodology: identify behavior → logit attribution → activation patching → ablation\n- Sparse autoencoders are the workhorse for finding interpretable features\n- Mech-interp claims are causal and survive distribution shift, unlike behavioral metrics\n- The field is real but slow; frontier-scale full interpretation is far\n\nNext: [[alignment-frontier]] — RLHF, DPO, Constitutional AI, and the harder safety questions."
+    }
+  ]
+}

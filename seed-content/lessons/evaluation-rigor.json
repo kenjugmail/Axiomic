@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why ML evaluation is hard",
+      "body": "ML evaluation looks simple: score your model on a benchmark, compare to baseline. In practice it's full of pitfalls. The headline numbers in published papers are routinely misleading. Worse, the misleading-ness is often invisible to the authors themselves.\n\nFour failure modes, ranked by frequency:\n\n1. **Test-set contamination**: the test set leaked into the training corpus.\n2. **Data leakage between train and val**: the val set isn't really held out (e.g., paraphrases of train examples).\n3. **Metric gaming**: optimizing the metric in ways that don't correspond to actual capability.\n4. **No confidence intervals**: a 0.5% difference in accuracy reported as if it were significant.\n\nThis lesson is about recognizing each failure mode and how to set up an evaluation that survives them."
+    },
+    {
+      "kind": "text",
+      "title": "Test-set contamination",
+      "body": "**Contamination**: test set examples appear (verbatim or paraphrased) in the training corpus.\n\nThis is endemic for LLMs trained on web-scraped data. Most public benchmarks (MMLU, HumanEval, GSM8K, etc.) have their text indexed by Google, which means it's in CommonCrawl, which means it's in the training data of any model trained on web text. Some benchmark questions have direct copies in the training set.\n\nDetection:\n\n- **N-gram overlap**: search for verbatim n-grams from test questions in the training corpus. Useful but conservative — paraphrases evade.\n- **Embedding similarity**: cluster training data by embedding, find clusters near test embeddings. More aggressive; catches paraphrases.\n- **Behavioral signature**: a contaminated model often has unusually high benchmark accuracy compared to its capability profile (e.g., 90% on a benchmark with capabilities that don't transfer to similar-but-novel inputs).\n\nMitigations:\n\n- **Held-out benchmarks**: contests like the ARC Challenge release new test questions periodically that haven't been on the web yet.\n- **Private holdouts**: keep some test questions secret from the public web. Most papers don't have this.\n- **Synthetic / generated test sets**: questions written specifically for evaluation, never released.\n\nA paper that doesn't address contamination on a public benchmark is missing context. Treat headline numbers with appropriate skepticism."
+    },
+    {
+      "kind": "text",
+      "title": "Train/val data leakage",
+      "body": "Different from test contamination. Here, the val set isn't really held out from training.\n\nCommon ways this happens:\n\n- **Random splits over duplicated data**: web-scraped corpora have near-duplicates. A random split puts paraphrased pairs into both train and val. Solution: deduplicate by fuzzy hash before splitting.\n- **Time-leakage in temporal data**: predicting events using features that wouldn't have been available at the time. Solution: time-based splits, not random.\n- **Subject-leakage in medical/biological data**: same patient in train and val. Solution: split by patient, not by example.\n- **Pre-trained features**: if your val data was used to train an embedding model upstream, your val score is unreliable.\n\nThe symptom: val loss looks suspiciously close to train loss; downstream task performance doesn't match val score. The fix is to audit the split."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ev_q1",
+        "kind": "multiple_choice",
+        "question": "A LLM scores 95% on MMLU after pretraining on a web corpus. What's the most important caveat?",
+        "options": [
+          "MMLU is too easy",
+          "MMLU questions and answers are publicly available on the web. The model likely saw test questions during pretraining. The 95% mixes capability with memorization; you can't tell which",
+          "95% accuracy is impossible — must be a bug",
+          "MMLU isn't reliable because it's English-only"
+        ],
+        "correctIndex": 1,
+        "explanation": "Test-set contamination is the dominant caveat for any public benchmark scored by an LLM trained on web text. The 95% number is real, but its interpretation is ambiguous: capability or memorization? Without contamination analysis, you can't separate them. Contests with private holdouts or generated questions are the cleaner way to evaluate."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Metric gaming",
+      "body": "When the metric isn't quite the capability you care about, you can optimize the metric without improving capability. Common examples:\n\n- **Multiple-choice answers**: models can learn to recognize answer patterns ('the longest answer is usually right') without understanding the question. The accuracy goes up; reasoning doesn't improve.\n- **BLEU on translation**: short, generic translations score better than long, accurate ones. Optimizing BLEU directly produces shorter, more generic outputs.\n- **Perplexity on a held-out set**: a smaller, more confident model can have lower perplexity than a larger, more capable model on a particular distribution.\n- **Exact-match on Q&A**: rewards models that produce the canonical answer phrasing; punishes equivalent paraphrases.\n\nHigh-stakes example: **Goodhart's Law** in reward modeling. RLHF optimizes a reward model. The reward model approximates human preferences. The policy can find responses that the reward model loves but humans don't — *reward hacking*. The KL regularization to a reference model is partly a defense against this.\n\nThe lesson: every metric is a proxy. Always pair the headline metric with at least one sanity check from a different angle."
+    },
+    {
+      "kind": "text",
+      "title": "Reporting properly",
+      "body": "What an honest evaluation report looks like:\n\n1. **Multiple metrics** measuring different aspects (accuracy + calibration + a behavioral check).\n2. **Confidence intervals** via bootstrap. A single point estimate is rarely meaningful.\n3. **Per-category breakdown** when the benchmark has subcategories. Average scores hide weak spots.\n4. **Comparison to a strong baseline** at the same compute / size.\n5. **Failure-mode analysis**: where does the model do poorly? Concrete examples.\n6. **Ablation study** for the contributions claimed (\"this trick added 1.5% — does removing it hurt?\").\n7. **Honesty about contamination**: did you check?\n\nMost papers don't do all of this. The best practice is to start by holding your own work to it.\n\nFor production deployments, evaluation is a living thing. The benchmarks you used at release decay (contamination grows; the model gets better at gaming). The evaluation set is a continuous engineering effort, not a one-time artifact."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ev_q2",
+        "kind": "multiple_choice",
+        "question": "What's 'reward hacking' in the context of RLHF?",
+        "options": [
+          "When humans give bad feedback",
+          "When the policy finds responses that the reward model rates highly but humans actually dislike. The reward model is a proxy for human preferences; the policy learns to game the proxy, not the underlying intent",
+          "When the reward function is too strict",
+          "When the model refuses too often"
+        ],
+        "correctIndex": 1,
+        "explanation": "Reward hacking is Goodhart's Law applied to RLHF. The reward model is an imperfect approximation of human preferences. The PPO policy optimizes the reward model directly. The gap between 'reward model thinks this is good' and 'humans think this is good' is exactly the space where the policy can exploit. KL regularization to the reference policy is partly a defense; perfect alignment of the reward model is impossible."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Evaluation rigor is the difference between an experimental result and a marketing number. Most published ML evaluations cut corners on at least 2-3 of the items in this lesson. Build the muscle to read papers critically and to evaluate your own work honestly.\n\nKey takeaways:\n- Test contamination is endemic on public LLM benchmarks; the headline 95%s are partly memorization\n- Train/val leakage is mostly fixable with the right splits (dedup, time-based, subject-based)\n- Every metric is a proxy. Pair with sanity checks; watch for gaming\n- A 0.5% accuracy difference often isn't statistically significant. Bootstrap CIs matter\n- Reward hacking is Goodhart's Law for RLHF\n\nNext: [[interpretability]] — researcher-tier mech-interp."
+    }
+  ]
+}
