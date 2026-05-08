@@ -1,0 +1,75 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Potential outcomes — the framework",
+      "body": "The potential-outcomes (Rubin causal model) framework: each unit `i` has two potential outcomes:\n\n- `Y_i(0)`: the outcome if unit `i` is NOT treated\n- `Y_i(1)`: the outcome if unit `i` IS treated\n\nThe **individual treatment effect** is `Y_i(1) - Y_i(0)`. The fundamental problem: you only ever observe ONE of the two. The other is the **counterfactual** — what would have happened.\n\nThis framework is what most modern causal-inference papers use. Pearl's DAG framework and Rubin's potential-outcomes framework are largely equivalent — different vocabularies for the same underlying structure."
+    },
+    {
+      "kind": "text",
+      "title": "ATE, ATT, ATC",
+      "body": "Since we can't observe individual treatment effects, we work with averages.\n\n**Average Treatment Effect (ATE)**: `E[Y(1) - Y(0)]` over the entire population. \"If we treated everyone, what would the average effect be?\"\n\n**Average Treatment Effect on the Treated (ATT)**: `E[Y(1) - Y(0) | T = 1]` — the effect among those who actually got treated. Useful when treatment isn't randomly assigned.\n\n**Average Treatment Effect on the Controls (ATC)**: `E[Y(1) - Y(0) | T = 0]` — the effect that would have occurred among those who didn't get treated, if they had.\n\nThese are different quantities. They coincide under randomization (the treated and controls are exchangeable). They diverge when treatment assignment depends on features that also affect outcomes."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "po_q1",
+        "kind": "multiple_choice",
+        "question": "You run a sales-training program. Your data shows that trained employees have 30% higher sales than untrained employees. Which of the following is closest to a valid causal claim?",
+        "options": [
+          "Training caused 30% more sales — that's the ATE",
+          "30% is the difference in observed outcomes; the ATE requires that the trained and untrained groups would have had the same untreated outcome on average. If managers selected high-performers for training (which is normal), the trained group's untreated outcome would already be higher, and the 30% overstates the causal effect. Without randomization, you can't claim ATE from observed differences",
+          "It's the ATT",
+          "It's the LATE"
+        ],
+        "correctIndex": 1,
+        "explanation": "This is selection bias. The naive comparison of trained vs untrained people gives an associational difference, not a causal effect. The trained group is selected on factors that predict performance even without training. Without randomization or careful adjustment, you can't separate the two."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "The fundamental problem of causal inference",
+      "body": "**Holland's 1986 framing**: causal inference is fundamentally a missing-data problem. For each unit you observe one potential outcome and miss the other. You can't compute the individual treatment effect; you can only estimate population averages.\n\nThis sounds defeatist but it's actually liberating. It tells you what causal inference is for: estimating counterfactuals from observed data + assumptions. The assumptions are what do the work.\n\n**Three core assumptions** for identifying ATE from observational data:\n\n1. **SUTVA (Stable Unit Treatment Value Assumption)**: no interference between units (your treatment doesn't affect my outcome) + no hidden treatment versions. Plausible in many settings; broken in network / spillover settings.\n\n2. **Ignorability / Unconfoundedness**: `(Y(0), Y(1)) ⊥ T | X`. Given observed covariates `X`, treatment is as good as random. The strongest assumption — and the most often wrong.\n\n3. **Positivity / Overlap**: `0 < P(T = 1 | X = x) < 1` for all `x`. Every covariate value has a non-zero probability of being treated and untreated. Without overlap, some counterfactuals are unestimable.\n\nWhen these three hold, you can identify ATE from observational data. When they don't, you can't — without further assumptions or experimental data."
+    },
+    {
+      "kind": "text",
+      "title": "Treatment assignment mechanisms",
+      "body": "Three ways treatment gets assigned, in order of how easy causal inference becomes:\n\n**1. Randomization**. `T ⊥ (Y(0), Y(1))`. Treatment is independent of potential outcomes by design. ATE is estimable directly: `E[Y | T=1] - E[Y | T=0]`. RCTs work.\n\n**2. Conditional randomization** (\"selection on observables\"). Treatment depends on covariates `X`, but conditional on `X`, treatment is random. `T ⊥ (Y(0), Y(1)) | X`. ATE is estimable via adjustment for `X` (regression, propensity scores, IPW, doubly-robust estimators).\n\n**3. Confounded assignment**. Treatment depends on unobserved factors. ATE is NOT identifiable from observational data without further assumptions. Need: instrumental variables, regression discontinuity, or assumptions on the unobserved confounder's structure.\n\nMost ML training data lives in case 3. Most ML papers act as if it's case 1 or 2."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "po_q2",
+        "kind": "multiple_choice",
+        "question": "An A/B test randomly assigns users to control or treatment. What does randomization buy you?",
+        "options": [
+          "Higher statistical power",
+          "Treatment is independent of all potential confounders, observed AND unobserved. The difference in observed outcomes is an unbiased estimate of the ATE, no adjustment needed. This is why RCTs are the gold standard — they handle the unobserved-confounder problem by construction",
+          "Lower variance",
+          "Bayesian inference becomes valid"
+        ],
+        "correctIndex": 1,
+        "explanation": "Randomization severs the link between treatment and any potential confounder, observed or unobserved. This is the unique value of an RCT: you don't need to know what the confounders are, you don't need to measure them, you don't need to adjust for them. The randomization handles them all."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "When you can't randomize",
+      "body": "Many real questions can't be tested with RCTs:\n\n- **Ethics**: you can't randomly assign people to smoke for 20 years.\n- **Cost**: A/B testing every UI change costs revenue at scale.\n- **Logistics**: a national policy can't be randomized across states; one is implemented or it isn't.\n- **Already-deployed systems**: you have observational logs, no parallel control universe.\n\nFor these, the causal-inference toolkit gives you:\n\n- **Selection-on-observables methods** (regression, matching, propensity scores, IPW, doubly-robust): assume ignorability conditional on observed `X`. Strong assumption.\n- **Instrumental variables**: find a variable that affects treatment but doesn't directly affect outcome. Estimates LATE for compliers.\n- **Regression discontinuity**: when treatment is assigned by a threshold rule, comparison just-above vs just-below is locally randomized.\n- **Difference-in-differences**: compare changes over time across treated and untreated groups. Assumes parallel trends.\n- **Synthetic controls**: build a weighted combination of untreated units that matches the treated unit's pre-treatment trajectory.\n\nEach has assumptions; each gives a different causal estimand. Picking the right method is half the work."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "po_explain",
+        "kind": "explain_back",
+        "prompt": "Explain in your own words why we estimate AVERAGE treatment effects (ATE) instead of individual treatment effects, and what the 'fundamental problem of causal inference' means.",
+        "rubricCriteria": [
+          { "id": "missing-data-framing", "description": "Frames it as a missing-data problem (observe one of two potential outcomes per unit)" },
+          { "id": "average-rationale", "description": "Explains why averages are estimable but individual effects aren't" },
+          { "id": "consequence", "description": "Names a consequence — e.g., that causal inference always rests on assumptions about unobserved counterfactuals" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}

@@ -1069,6 +1069,29 @@ function seedMasteryPaths() {
       { slug: "bias-and-fairness", title: "Bias & Fairness", level: "expert", order: 8, pages: ["demographic-parity", "fairness-accuracy-frontier"], prereqs: ["uncertainty-quantification"], description: "Demographic parity, equalized odds, the fairness-accuracy trade-off. The applied side of ML ethics." },
     ],
   });
+
+  // Sprint 60 — Causality. Pearl-style structural causal models, DAGs,
+  // do-calculus, instrumental variables. Goes deeper than the
+  // applied-stats causal-inference-basics node, which is intentional —
+  // most ML practitioners hit causal-inference once and bounce; this
+  // path is for the ones who need to actually do it.
+  seedMasteryPath({
+    slug: "causal-scientist",
+    title: "Causal Scientist",
+    description:
+      "Pearl-style causal inference: DAGs, do-calculus, counterfactuals, instrumental variables, mediation, heterogeneous effects. The discipline that turns correlations into actionable claims.",
+    nodes: [
+      { slug: "correlation-vs-causation", title: "Correlation vs Causation", level: "apprentice", order: 1, pages: ["correlation-vs-causation", "spurious-correlation", "simpson-paradox"], prereqs: [], description: "Why 'correlation does not imply causation' is more than a slogan. Simpson's paradox, confounders, the failure modes of naive prediction." },
+      { slug: "potential-outcomes", title: "Potential Outcomes Framework", level: "apprentice", order: 2, pages: ["potential-outcomes", "ate-att", "treatment-assignment"], prereqs: ["correlation-vs-causation"], description: "Rubin's Y(0)/Y(1) framework, ATE, ATT, the fundamental problem of causal inference. The vocabulary every causal-inference paper uses." },
+      { slug: "dags-and-d-separation", title: "DAGs and d-Separation", level: "practitioner", order: 3, pages: ["dag", "d-separation", "backdoor-criterion"], prereqs: ["correlation-vs-causation"], description: "Directed acyclic graphs as causal models. d-separation, backdoor paths, and how DAGs let you read off conditional independencies." },
+      { slug: "do-calculus", title: "Do-Calculus", level: "practitioner", order: 4, pages: ["do-operator", "do-calculus-rules", "identifiability"], prereqs: ["dags-and-d-separation"], description: "Pearl's do-operator, the three rules of do-calculus, identifiability. Going from observational data to interventional claims." },
+      { slug: "rcts-and-quasi-experiments", title: "RCTs & Quasi-Experiments", level: "practitioner", order: 5, pages: ["rct-design", "natural-experiment", "regression-discontinuity"], prereqs: ["potential-outcomes"], description: "Randomization as the gold standard. When you can't randomize: regression discontinuity, difference-in-differences, natural experiments." },
+      { slug: "instrumental-variables", title: "Instrumental Variables", level: "specialist", order: 6, pages: ["instrumental-variable", "two-stage-least-squares", "exclusion-restriction"], prereqs: ["do-calculus", "rcts-and-quasi-experiments"], description: "Estimating causal effects when the treatment is endogenous. 2SLS, exclusion restriction, the LATE." },
+      { slug: "mediation-analysis", title: "Mediation Analysis", level: "specialist", order: 7, pages: ["mediation", "direct-indirect-effects", "mediation-assumptions"], prereqs: ["do-calculus"], description: "Decomposing a causal effect into direct + indirect paths. The natural-direct/natural-indirect framework." },
+      { slug: "heterogeneous-treatment-effects", title: "Heterogeneous Treatment Effects", level: "specialist", order: 8, pages: ["hte", "causal-forests", "uplift-modeling"], prereqs: ["potential-outcomes"], description: "Effects that vary across the population. Causal forests, meta-learners, uplift modeling. Where ML and causal inference meet." },
+      { slug: "causal-discovery", title: "Causal Discovery", level: "expert", order: 9, pages: ["causal-discovery", "pc-algorithm", "fci-algorithm"], prereqs: ["dags-and-d-separation"], description: "Learning causal structure from data. PC, FCI, score-based methods. The hardest problem in the field; how far it can go and where it can't." },
+    ],
+  });
 }
 
 // --- Forum seeding -------------------------------------------------------
@@ -1128,6 +1151,12 @@ const SEED_DOMAINS = [
     title: "Applied Statistics",
     description:
       "Hypothesis testing, A/B experiments, calibration, fairness — production statistics.",
+  },
+  {
+    slug: "causal",
+    title: "Causality",
+    description:
+      "DAGs, do-calculus, counterfactuals, instrumental variables — Pearl-style causal inference.",
   },
 ];
 

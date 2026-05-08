@@ -1,0 +1,75 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Beyond the average",
+      "body": "The Average Treatment Effect (ATE) tells you the mean effect across the population. **Heterogeneous treatment effects (HTE)** ask: does the effect differ across subgroups?\n\nReal-world treatment effects are almost always heterogeneous. A diabetes drug works dramatically better for some patients than others. A scholarship's effect on graduation depends on income + first-gen status + program. An A/B-tested feature helps power users + hurts new users.\n\nWhy ATE alone is insufficient:\n\n- **Targeted interventions**: knowing who benefits most lets you target the intervention.\n- **Hidden harm**: an ATE of zero might mean 'no effect' or 'helps half, hurts half'. The latter is action-relevant.\n- **Personalization**: HTE is the substrate of personalized medicine, personalized education, personalized recommendations.\n\nThe ML-causal-inference intersection lives here. Modern HTE methods are an active frontier."
+    },
+    {
+      "kind": "text",
+      "title": "Defining HTE",
+      "body": "**Conditional Average Treatment Effect (CATE)**: the ATE conditional on covariates `X`.\n\n`τ(x) = E[Y(1) - Y(0) | X = x]`\n\nThis is a function of the covariates. The ATE is its average: `ATE = E[τ(X)]`. The function `τ(x)` describes who benefits more or less.\n\n**Why CATE estimation is hard**:\n\n- Each unit only has one observed potential outcome — you can't directly estimate `Y(1) - Y(0)` for a single person.\n- Estimating a function over `X` (rather than a scalar) requires more data + more careful regularization.\n- Confounding is harder when treatment effects are heterogeneous: different subgroups may have different treatment-assignment mechanisms.\n\n**Two approaches**: meta-learners (re-purposing supervised ML for CATE estimation) and direct methods (causal forests, double-ML)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "hte_q1",
+        "kind": "multiple_choice",
+        "question": "An A/B test shows ATE = 0 with statistical significance. What's the right interpretation?",
+        "options": [
+          "The intervention does nothing",
+          "The AVERAGE effect is zero, but this is consistent with: (a) no effect on anyone, (b) positive effect on half the users + negative effect on the other half, (c) positive effect on most users + a small group with negative effect that cancels. HTE analysis (per-segment effects, causal forests) would distinguish these. ATE alone doesn't",
+          "Type I error",
+          "Underpowered test"
+        ],
+        "correctIndex": 1,
+        "explanation": "This is one of the most common failure modes in industry A/B tests. A 'null result' on ATE can hide large heterogeneous effects that net out to zero. Per-segment analysis (with proper multiple-testing correction) is essential before declaring an intervention ineffective."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Meta-learners",
+      "body": "Meta-learners are recipes for using any supervised ML algorithm to estimate CATE.\n\n**S-learner (Single)**: train one model `μ(t, x) = E[Y | T = t, X = x]`. CATE estimate: `μ̂(1, x) - μ̂(0, x)`.\n\nPro: simple. Con: regularization can shrink the treatment effect toward zero, especially when treatment is rare.\n\n**T-learner (Two)**: train one model on treated (`μ_1(x) = E[Y | T = 1, X = x]`) and one on controls (`μ_0(x) = E[Y | T = 0, X = x]`). CATE: `μ̂_1(x) - μ̂_0(x)`.\n\nPro: each model is unconstrained. Con: no shared structure; can be inefficient when treatment effect is small.\n\n**X-learner (Künzel-Sekhon-Bickel-Yu)**: hybrid. Fit T-learner first; then impute missing potential outcomes; train a second-stage model to predict the imputed effects directly.\n\nPro: efficient when treatment is rare or treatment effect is small. Con: more complex; more hyperparameters.\n\n**R-learner (Nie-Wager)**: uses Robinson decomposition. Fit nuisance functions for `E[Y | X]` and `P(T | X)`; then fit CATE on residuals. Doubly-robust property: consistent if either nuisance model is consistent.\n\nThe meta-learner zoo is extensive; pick based on data shape (treatment rare? treatment effect small? high-dimensional X?)."
+    },
+    {
+      "kind": "text",
+      "title": "Causal forests",
+      "body": "**Causal forests** (Wager-Athey 2018): random-forest-style estimator specifically designed for CATE.\n\n**Key innovations**:\n\n- Splits chosen to maximize heterogeneity in treatment effects (not just predictive accuracy).\n- Honest splits (sample-splitting): use one half of the data to choose splits, the other to estimate effects. This gives valid asymptotic confidence intervals.\n- Local CATE estimates with confidence intervals — the forest gives you not just `τ̂(x)` but uncertainty.\n\n**Why this matters for production**: causal forests give you per-user CATE estimates with valid uncertainty. You can rank users by predicted effect, target the top-K, and report calibrated confidence on the targeting.\n\n**Tooling**: the `grf` R package + the `econml.dml.CausalForestDML` Python class implement this. Mature, well-documented, used in industry.\n\n**Compared to meta-learners**: causal forests are direct (one estimator, no two-stage); typically more sample-efficient when high-dimensional `X`; provide built-in uncertainty quantification."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "hte_q2",
+        "kind": "multiple_choice",
+        "question": "Why is multiple-testing correction critical when reporting CATE estimates across many segments?",
+        "options": [
+          "It's just convention",
+          "If you slice the data into many segments and report per-segment CATE estimates, you'll find spurious 'significant' segments by chance. Without correction (Bonferroni for confirmatory; FDR / BH for screening), you'll claim heterogeneity where none exists. This is a common failure mode in industry HTE analysis",
+          "It only matters for binary outcomes",
+          "Only when N is small"
+        ],
+        "correctIndex": 1,
+        "explanation": "Naive per-segment HTE analysis is one of the most common ways to overstate findings. Pre-register segments OR use multiple-testing-aware methods (BH for screening, structured causal forests for honest CIs). The 'we sliced 20 ways and 1 segment was significant' claim is a fishing expedition unless it's pre-specified."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Uplift modeling — the production framing",
+      "body": "**Uplift modeling** is the marketing-industry term for HTE estimation, focused on the actionable quantity: who would respond differently if treated?\n\n**Four user types**:\n\n- **Persuadables**: would buy if treated; wouldn't if untreated. The targeting goal.\n- **Sure things**: buy regardless. Treatment is wasted.\n- **Lost causes**: don't buy regardless. Treatment is wasted.\n- **Sleeping dogs**: would buy untreated; wouldn't if treated (perverse effect). Treatment harms.\n\nUplift models estimate `τ(x)` and rank users; you target the top-N predicted persuadables.\n\n**Production case**: a marketing team running discount campaigns. Naive 'who's likely to buy' targeting wastes discounts on sure-things. Uplift targeting wastes fewer discounts on people who would have bought anyway, and avoids sleeping-dogs.\n\n**Eval metric**: Qini curve / cumulative gain — area under the curve when ranking users by predicted uplift. Higher is better; pure-random targeting is the diagonal.\n\nTools: CausalML (Uber), EconML (Microsoft), pylift, CausalLift."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "hte_explain",
+        "kind": "explain_back",
+        "prompt": "Describe a real-world case where you'd care about HTE more than ATE. Walk through: what's the treatment? What subgroup might respond differently? What action would HTE estimates inform that ATE wouldn't?",
+        "rubricCriteria": [
+          { "id": "concrete-case", "description": "Names a specific intervention with plausible HTE" },
+          { "id": "subgroup-reasoning", "description": "Names a subgroup that might respond differently and why" },
+          { "id": "action-relevance", "description": "Explains the action HTE estimates enable that ATE wouldn't" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}

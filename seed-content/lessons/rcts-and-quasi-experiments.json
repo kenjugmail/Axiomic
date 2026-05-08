@@ -1,0 +1,75 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why RCTs are the gold standard",
+      "body": "An RCT (randomized controlled trial) randomizes which units receive treatment. Randomization breaks the link between treatment and any potential confounder, observed or unobserved.\n\n**The math**: under randomization, `T ⊥ (Y(0), Y(1))`. So `E[Y | T = 1] - E[Y | T = 0] = E[Y(1) - Y(0)]`. The difference in means is an unbiased estimate of the ATE — no adjustment, no DAG, no assumptions about unobserved confounders.\n\n**The cost**: you need to actually be able to randomize. Many causal questions can't be answered with RCTs because of ethics, cost, logistics, or because the system was already deployed. For these cases, you need quasi-experimental methods.\n\n**The middle ground**: even when full randomization isn't possible, **partial randomization** can help. Cluster RCTs, encouragement designs, stepped-wedge trials all provide some randomization where full randomization is impractical."
+    },
+    {
+      "kind": "text",
+      "title": "Natural experiments",
+      "body": "A **natural experiment** is a setting where some external event randomly (or quasi-randomly) assigned treatment without anyone planning it. The randomness comes from the world, not the researcher.\n\nClassic examples:\n\n- **Vietnam draft lottery (Angrist 1990)**: random birth dates determined draft eligibility. The lottery effectively randomized who served, allowing causal estimation of military service on later earnings.\n- **Israeli school class size (Angrist & Lavy 1999)**: Maimonides' rule capped class size at 40 — a class of 41 had to be split. Schools just above and just below 40 were near-randomly different in class size.\n- **Boston public schools' lottery**: oversubscribed schools admitted by lottery, randomizing who attended.\n- **Weather variation**: rain on election day affects turnout differentially across regions, providing variation independent of voter preferences.\n\nThe key: identify the source of randomness, defend that it's truly random with respect to your outcome, and exploit it. The hard part is convincingly defending the randomization."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "rct_q1",
+        "kind": "multiple_choice",
+        "question": "You want to estimate the effect of a job training program. Random assignment is unethical (you can't withhold training from those who need it). What's the most defensible alternative?",
+        "options": [
+          "Compare trained vs untrained outcomes directly",
+          "Find a quasi-experimental source of variation: maybe oversubscribed program assigned by lottery; or a policy change that expanded eligibility; or a regression-discontinuity around an income threshold; or an instrumental variable for participation. The choice depends on which random source is defensible in your context",
+          "Use linear regression with controls",
+          "Run a Bayesian model"
+        ],
+        "correctIndex": 1,
+        "explanation": "Quasi-experimental designs find causal identification when full randomization isn't feasible. Each design exploits a different source of as-if random variation. Linear regression with controls assumes ignorability, which is rarely defensible for selection-on-takeup."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Regression discontinuity (RDD)",
+      "body": "When treatment is assigned by a sharp **threshold rule** on an observable, RDD compares units just above vs just below the threshold.\n\n**Idea**: units near the threshold are very similar except for treatment status. If the cutoff is sharp, the local effect is causally identified.\n\n**Example**: students with a test score ≥ 80 get a scholarship; students with score < 80 don't. The students at 79 and 81 are nearly indistinguishable except in scholarship status. Comparing their later outcomes estimates the local causal effect of the scholarship.\n\n**Sharp vs fuzzy**: sharp RDD has a deterministic cutoff (≥ 80 → treatment, definite). Fuzzy RDD has a probabilistic jump (eligibility increases, but not all eligible take up). Fuzzy RDD requires an IV-style adjustment.\n\n**Assumption**: at the cutoff, all other variables are continuous — no other treatment changes at exactly the same threshold. Bandwidth selection (how close to the cutoff do you compare?) is a methodological choice; modern RDD uses local linear regression with optimal bandwidth (Imbens-Kalyanaraman)."
+    },
+    {
+      "kind": "text",
+      "title": "Difference-in-differences (DiD)",
+      "body": "DiD compares **change over time** between treated and untreated groups.\n\n**Setup**: pre-treatment, observe both groups. Treatment is applied to one group. Post-treatment, observe both. The DiD estimate is `(Y_treat_post - Y_treat_pre) - (Y_control_post - Y_control_pre)`.\n\n**Assumption**: parallel trends. Absent treatment, the two groups would have followed parallel trajectories. Plausible when groups are similar pre-treatment; testable in pre-treatment periods.\n\n**Classic example**: Card & Krueger (1994) studied minimum-wage effects on employment by comparing fast-food restaurants in NJ (where minimum wage rose) vs PA (where it didn't). Found minimum wage didn't reduce employment — counter to standard theory at the time.\n\n**Modern variants**: synthetic controls (Abadie) build a weighted average of untreated units to match the treated unit's pre-treatment trajectory. Staggered DiD methods (Callaway-Sant'Anna, de Chaisemartin-D'Haultfoeuille) handle treatment timing variation properly when groups are treated at different times."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "rct_q2",
+        "kind": "multiple_choice",
+        "question": "Why is the parallel-trends assumption central to difference-in-differences?",
+        "options": [
+          "It's just convention",
+          "DiD identifies the causal effect by comparing post-pre changes between treatment and control. If the control group's trend differs from what the treatment group's would have been absent treatment, the comparison conflates 'treatment effect' with 'differential trend'. Parallel trends is the assumption that differential trends are zero — without it, DiD is biased",
+          "It's about variance",
+          "It's a Bayesian assumption"
+        ],
+        "correctIndex": 1,
+        "explanation": "Parallel trends is THE identifying assumption for DiD. It's testable in pre-treatment periods (do the trends look parallel before?) but the assumption requires they'd have STAYED parallel absent treatment, which is fundamentally untestable. Modern DiD papers spend significant space defending this assumption."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Picking among methods",
+      "body": "**RCT**: when you can randomize. Cleanest causal claims. Most expensive.\n\n**RDD**: when there's a sharp threshold rule. Local causal effect at the cutoff. Need bandwidth selection.\n\n**DiD**: when you have pre-post data on treated and untreated groups. Need parallel trends.\n\n**IV**: when there's a variable that affects treatment but not the outcome directly. Estimates LATE for compliers (next lesson covers this).\n\n**Synthetic controls**: when there's one or few treated units with rich pre-treatment data and many candidate controls.\n\n**Selection on observables (regression / matching / IPW / DR)**: when you can defend that all relevant confounders are observed. Strongest assumption.\n\n**Hybrid**: papers often combine multiple approaches as robustness checks. If RDD, DiD, and IV all agree on the magnitude, the causal claim is more credible than any single method's.\n\nNo method is universally best. Pick the one whose assumptions are most defensible in your context."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "rct_explain",
+        "kind": "explain_back",
+        "prompt": "Pick ONE of (RDD, DiD, IV) and explain in your own words: what's the identifying assumption, when it's plausible, and when it would break.",
+        "rubricCriteria": [
+          { "id": "names-assumption", "description": "Correctly names the identifying assumption" },
+          { "id": "plausibility-context", "description": "Describes a context where the assumption is plausible" },
+          { "id": "failure-mode", "description": "Describes a context where the assumption would break, with reasoning" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}
