@@ -63,6 +63,15 @@ import {
 } from "./lib/signing";
 import type { Env } from "./env";
 import { env, warnOnInsecureConfig } from "./lib/envConfig";
+import { setServerExecBackend } from "./lib/serverExec";
+import { localProcessBackend } from "./lib/serverExecLocal";
+
+// Sprint 46 — opt into the local-process executor when configured.
+// Default stays 'stub' (returns not_enabled), so this is a no-op in
+// dev unless the operator explicitly enables it.
+if (env.SERVER_EXEC_BACKEND === "local") {
+  setServerExecBackend(localProcessBackend);
+}
 
 const app = new Hono<Env>().basePath("/api/v1");
 
