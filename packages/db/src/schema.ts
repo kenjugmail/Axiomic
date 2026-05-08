@@ -24,6 +24,11 @@ export const users = sqliteTable("users", {
   // 'member' is everyone else. One admin is bootstrapped from the
   // BOOTSTRAP_ADMIN_USERNAME env var on cold start if no admin exists.
   role: text("role").notNull().default("member"),
+  // Sprint 54 — onboarding-stated goal. One of:
+  //   'complete_track' | 'finish_path' | 'publish_paper' |
+  //   'join_cohort' | 'ship_misconception' | null. Feeds the AI
+  //   coach's system prompt and the home dashboard "next step" CTA.
+  onboardingGoal: text("onboarding_goal"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
 });
@@ -874,6 +879,12 @@ export const researchPapers = sqliteTable("research_papers", {
   // Sprint 35 — bumped each time a published paper is edited; tracked
   // alongside the per-version snapshot in research_paper_versions.
   currentVersion: integer("current_version").notNull().default(1),
+  // Sprint 54 — DOI permalink for academic citation. v1: synthetic
+  // `10.5555/axiomic.research.<short-hash>`. Hook is in place for a
+  // future Crossref integration.
+  doi: text("doi"),
+  citationCount: integer("citation_count").notNull().default(0),
+  lastCitedAt: text("last_cited_at"),
   authorId: text("author_id").notNull().references(() => users.id),
   lastEditorId: text("last_editor_id").references(() => users.id),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
@@ -945,6 +956,10 @@ export const capstones = sqliteTable("capstones", {
   status: text("status").notNull().default("draft"),
   // Sprint 35 — bumped each time a published capstone is edited.
   currentVersion: integer("current_version").notNull().default(1),
+  // Sprint 54 — DOI permalink for capstone citations.
+  doi: text("doi"),
+  citationCount: integer("citation_count").notNull().default(0),
+  lastCitedAt: text("last_cited_at"),
   authorId: text("author_id").notNull().references(() => users.id),
   lastEditorId: text("last_editor_id").references(() => users.id),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
@@ -1023,6 +1038,9 @@ export const capstoneEnrollments = sqliteTable("capstone_enrollments", {
   completedAt: text("completed_at"),
   // Set when the enrollment completes. Format: `${username}-${capstoneSlug}`.
   artifactPageSlug: text("artifact_page_slug"),
+  // Sprint 54 — DOI on the public artifact page. Minted by an admin
+  // via /admin/mint-doi.
+  doi: text("doi"),
 }, (t) => ({
   pk: uniqueIndex("capstone_enrollments_pk").on(t.capstoneId, t.userId),
   userIdx: index("capstone_enrollments_user_idx").on(t.userId, t.startedAt),
@@ -1325,6 +1343,10 @@ export const capstoneTracks = sqliteTable("capstone_tracks", {
   tags: text("tags").notNull().default("[]"),
   // 'draft' | 'published'
   status: text("status").notNull().default("draft"),
+  // Sprint 54 — DOI permalink for the track-level credential.
+  doi: text("doi"),
+  citationCount: integer("citation_count").notNull().default(0),
+  lastCitedAt: text("last_cited_at"),
   authorId: text("author_id").notNull().references(() => users.id),
   lastEditorId: text("last_editor_id").references(() => users.id),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),

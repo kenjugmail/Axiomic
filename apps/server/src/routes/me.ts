@@ -9,6 +9,8 @@
 import { Hono } from "hono";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import {
+  capstoneTrackCompletions,
+  capstoneTracks,
   contentProposals,
   cohortInvitations,
   getDb,
@@ -49,6 +51,33 @@ meRouter.get("/proposals", requireAuth, async (c) => {
       decidedAt: p.decidedAt,
     })),
   });
+});
+
+// Sprint 54 — capstone-track completions for the caller. Powers the
+// "Tracks earned" card on the home dashboard + the profile portfolio.
+meRouter.get("/track-completions", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const db = getDb();
+  const rows = db
+    .select({
+      id: capstoneTrackCompletions.id,
+      trackId: capstoneTrackCompletions.trackId,
+      artifactPageSlug: capstoneTrackCompletions.artifactPageSlug,
+      completedAt: capstoneTrackCompletions.completedAt,
+      trackSlug: capstoneTracks.slug,
+      trackTitle: capstoneTracks.title,
+      coverEmoji: capstoneTracks.coverEmoji,
+      accentColor: capstoneTracks.accentColor,
+    })
+    .from(capstoneTrackCompletions)
+    .innerJoin(
+      capstoneTracks,
+      eq(capstoneTrackCompletions.trackId, capstoneTracks.id),
+    )
+    .where(eq(capstoneTrackCompletions.userId, user.id))
+    .orderBy(desc(capstoneTrackCompletions.completedAt))
+    .all();
+  return c.json({ completions: rows });
 });
 
 // Sprint 52 — Pending invitations matching the caller's email so the

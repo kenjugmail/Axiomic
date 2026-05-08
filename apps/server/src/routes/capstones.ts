@@ -393,6 +393,7 @@ capstonesRouter.get("/c/:artifactSlug", async (c) => {
       startedAt: capstoneEnrollments.startedAt,
       completedAt: capstoneEnrollments.completedAt,
       artifactPageSlug: capstoneEnrollments.artifactPageSlug,
+      doi: capstoneEnrollments.doi,
     })
     .from(capstoneEnrollments)
     .where(eq(capstoneEnrollments.artifactPageSlug, artifactSlug))
@@ -468,6 +469,7 @@ capstonesRouter.get("/c/:artifactSlug", async (c) => {
         artifactPageSlug: enrollment.artifactPageSlug!,
         startedAt: enrollment.startedAt,
         completedAt: enrollment.completedAt,
+        doi: enrollment.doi,
       },
       learner: {
         id: learner.id,
@@ -808,6 +810,7 @@ capstonesRouter.get("/:slug/cite", async (c) => {
       authorId: capstones.authorId,
       status: capstones.status,
       createdAt: capstones.createdAt,
+      doi: capstones.doi,
     })
     .from(capstones)
     .where(eq(capstones.slug, slug))
@@ -834,6 +837,7 @@ capstonesRouter.get("/:slug/cite", async (c) => {
     authors: [primary],
     year: new Date(row.createdAt).getUTCFullYear(),
     url,
+    doi: row.doi,
     abstract: row.summary,
     publishedAt: row.createdAt,
   };
@@ -1482,6 +1486,7 @@ async function loadCapstoneDto(
       accentColor: capstones.accentColor,
       status: capstones.status,
       currentVersion: capstones.currentVersion,
+      doi: capstones.doi,
       authorId: capstones.authorId,
       authorUsername: users.username,
       authorDisplayName: users.displayName,
@@ -1551,6 +1556,7 @@ async function loadCapstoneDto(
     coverEmoji: row.coverEmoji,
     accentColor: row.accentColor,
     status: row.status,
+    doi: row.doi,
     authorId: row.authorId,
     authorUsername: row.authorUsername,
     authorDisplayName: row.authorDisplayName,

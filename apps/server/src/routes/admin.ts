@@ -11,11 +11,15 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { and, desc, eq } from "drizzle-orm";
 import {
+  capstoneEnrollments,
+  capstoneTracks,
+  capstones,
   contentProposals,
   getDb,
   masteryNodes,
   masteryPaths,
   newsArticles,
+  researchPapers,
   users,
   wikiPages,
 } from "@axiomic/db";
@@ -243,5 +247,97 @@ adminRouter.post(
     const result = rejectProposal(id, me.id, note);
     if (!result.ok) return c.json({ error: result.error }, 400);
     return c.json({ ok: true });
+  },
+);
+
+// --- Sprint 54: DOI minting -----------------------------------------
+//
+// v1 mints synthetic identifiers in the test prefix (10.5555). Real
+// Crossref integration replaces this body without changing the
+// surface — same response shape; just the wire to the DOI registrar.
+
+const mintDoiSchema = z.object({
+  kind: z.enum(["research", "capstone", "track", "artifact"]),
+  id: z.string().min(1),
+});
+
+function mintSyntheticDoi(kind: string, slug: string): string {
+  const hash = Buffer.from(slug)
+    .toString("hex")
+    .slice(0, 8)
+    .padEnd(8, "0");
+  return `10.5555/axiomic.${kind}.${hash}`;
+}
+
+adminRouter.post(
+  "/mint-doi",
+  requireAdmin,
+  zValidator("json", mintDoiSchema),
+  async (c) => {
+    const { kind, id } = c.req.valid("json");
+    const db = getDb();
+    let doi: string | null = null;
+    let displaySlug = "";
+
+    if (kind === "research") {
+      const row = db
+        .select()
+        .from(researchPapers)
+        .where(eq(researchPapers.id, id))
+        .get();
+      if (!row) return c.json({ error: "Paper not found" }, 404);
+      if (row.doi) return c.json({ doi: row.doi, alreadyMinted: true });
+      displaySlug = row.slug;
+      doi = mintSyntheticDoi("research", row.slug);
+      db.update(researchPapers)
+        .set({ doi })
+        .where(eq(researchPapers.id, id))
+        .run();
+    } else if (kind === "capstone") {
+      const row = db
+        .select()
+        .from(capstones)
+        .where(eq(capstones.id, id))
+        .get();
+      if (!row) return c.json({ error: "Capstone not found" }, 404);
+      if (row.doi) return c.json({ doi: row.doi, alreadyMinted: true });
+      displaySlug = row.slug;
+      doi = mintSyntheticDoi("capstone", row.slug);
+      db.update(capstones).set({ doi }).where(eq(capstones.id, id)).run();
+    } else if (kind === "track") {
+      const row = db
+        .select()
+        .from(capstoneTracks)
+        .where(eq(capstoneTracks.id, id))
+        .get();
+      if (!row) return c.json({ error: "Track not found" }, 404);
+      if (row.doi) return c.json({ doi: row.doi, alreadyMinted: true });
+      displaySlug = row.slug;
+      doi = mintSyntheticDoi("track", row.slug);
+      db.update(capstoneTracks)
+        .set({ doi })
+        .where(eq(capstoneTracks.id, id))
+        .run();
+    } else if (kind === "artifact") {
+      // id here is the artifactPageSlug.
+      const row = db
+        .select()
+        .from(capstoneEnrollments)
+        .where(eq(capstoneEnrollments.artifactPageSlug, id))
+        .get();
+      if (!row) return c.json({ error: "Artifact not found" }, 404);
+      if (!row.completedAt) {
+        return c.json({ error: "Artifact has no completion to cite" }, 400);
+      }
+      if (row.doi) return c.json({ doi: row.doi, alreadyMinted: true });
+      displaySlug = row.artifactPageSlug ?? id;
+      doi = mintSyntheticDoi("artifact", displaySlug);
+      db.update(capstoneEnrollments)
+        .set({ doi })
+        .where(eq(capstoneEnrollments.id, row.id))
+        .run();
+    }
+
+    return c.json({ doi, kind, displaySlug, alreadyMinted: false });
   },
 );

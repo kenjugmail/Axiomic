@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
+  Award,
   Brain,
   Eye,
+  GraduationCap,
   Lightbulb,
+  MessageSquare,
   Target,
   Users,
 } from "lucide-react";
@@ -11,6 +14,7 @@ import {
   api,
   type ForumTopicSummary,
   type MasteryPath,
+  type OnboardingGoal,
   type PostType,
   type WikiPage,
 } from "../lib/api";
@@ -61,6 +65,17 @@ export function HomePage() {
   const [nextLoading, setNextLoading] = useState(false);
   const [dueCount, setDueCount] = useState<number | null>(null);
   const [activity, setActivity] = useState<RecentActivityEvent[]>([]);
+  // Sprint 54 — differentiator surfaces.
+  const [activeCapstone, setActiveCapstone] = useState<{
+    slug: string;
+    title: string;
+    coverEmoji: string;
+  } | null>(null);
+  const [tracksEarned, setTracksEarned] = useState<number>(0);
+  const [tracksAvailable, setTracksAvailable] = useState<number>(0);
+  const [onboardingGoal, setOnboardingGoal] = useState<OnboardingGoal | null>(
+    null,
+  );
 
   useEffect(() => {
     api.wiki.list().then((data) => {
@@ -81,6 +96,10 @@ export function HomePage() {
       setNextNode(null);
       setDueCount(null);
       setActivity([]);
+      setActiveCapstone(null);
+      setTracksEarned(0);
+      setTracksAvailable(0);
+      setOnboardingGoal(null);
       return;
     }
     setNextLoading(true);
@@ -97,6 +116,32 @@ export function HomePage() {
       .recent(user.username, 5)
       .then((r) => setActivity(r.events))
       .catch(() => setActivity([]));
+    // Sprint 54 — capstone in flight, tracks earned, stated goal.
+    api.capstones
+      .enrollments()
+      .then((r) => {
+        const inFlight = r.enrollments.find((e) => !e.completedAt);
+        if (inFlight) {
+          setActiveCapstone({
+            slug: inFlight.capstoneSlug,
+            title: inFlight.capstoneTitle,
+            coverEmoji: inFlight.capstoneCoverEmoji,
+          });
+        }
+      })
+      .catch(() => {});
+    api.me
+      .trackCompletions()
+      .then((r) => setTracksEarned(r.completions.length))
+      .catch(() => {});
+    api.tracks
+      .list()
+      .then((r) => setTracksAvailable(r.tracks.length))
+      .catch(() => {});
+    api.onboarding
+      .status()
+      .then((r) => setOnboardingGoal(r.onboardingGoal))
+      .catch(() => {});
   }, [user]);
 
   // First path is the default "Start Learning" CTA target for signed-out.
@@ -415,6 +460,95 @@ export function HomePage() {
               </Link>
             </div>
 
+            {/* Sprint 54 — Differentiator surfacing. Three cards: the
+                user's in-flight capstone, tracks earned (or available),
+                and a tile linking to the busiest argument map. Each
+                lights up only when relevant content exists. */}
+            <div className="mt-3 grid sm:grid-cols-3 gap-3">
+              {activeCapstone ? (
+                <Link
+                  to={`/capstones/${activeCapstone.slug}/work`}
+                  className="block rounded-xl border border-border bg-card px-4 py-3 hover:bg-accent/30 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-violet-500/10 text-2xl">
+                      {activeCapstone.coverEmoji}
+                    </span>
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold">
+                        Capstone in flight
+                      </div>
+                      <div className="text-[11px] text-muted-foreground line-clamp-2">
+                        Continue {activeCapstone.title} →
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ) : (
+                <Link
+                  to="/capstones"
+                  className="block rounded-xl border border-border bg-card px-4 py-3 hover:bg-accent/30 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-violet-500/10 text-violet-700 dark:text-violet-300">
+                      <GraduationCap className="w-5 h-5" strokeWidth={2} />
+                    </span>
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold">Capstones</div>
+                      <div className="text-[11px] text-muted-foreground line-clamp-2">
+                        Pick a thesis-scale project; ship a signed transcript.
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              )}
+              <Link
+                to="/tracks"
+                className="block rounded-xl border border-border bg-card px-4 py-3 hover:bg-accent/30 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                    <Award className="w-5 h-5" strokeWidth={2} />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold">
+                      {tracksEarned > 0
+                        ? `Tracks earned · ${tracksEarned}`
+                        : "Capstone tracks"}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground line-clamp-2">
+                      {tracksEarned > 0
+                        ? "View your bundled credentials."
+                        : tracksAvailable > 0
+                          ? `${tracksAvailable} curated bundle${tracksAvailable === 1 ? "" : "s"} available.`
+                          : "Curated bundles of capstones earn one signed credential."}
+                    </div>
+                  </div>
+                </div>
+              </Link>
+              <Link
+                to="/forum"
+                className="block rounded-xl border border-border bg-card px-4 py-3 hover:bg-accent/30 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-rose-500/10 text-rose-700 dark:text-rose-300">
+                    <MessageSquare className="w-5 h-5" strokeWidth={2} />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold">Argument maps</div>
+                    <div className="text-[11px] text-muted-foreground line-clamp-2">
+                      Browse forum threads as DAGs of claims, critiques, and
+                      synthesis posts.
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </div>
+
+            {onboardingGoal && (
+              <GoalChip goal={onboardingGoal} />
+            )}
+
             {/* Recent activity strip */}
             {activity.length > 0 && (
               <div className="mt-6">
@@ -616,3 +750,55 @@ function PracticeCard({
     </Link>
   );
 }
+
+// Sprint 54 — Render the user's onboarding-stated goal as a chip with a
+// "next step" CTA computed per goal. Lives at the bottom of the
+// dashboard as a soft nudge, not a gate.
+function GoalChip({ goal }: { goal: OnboardingGoal }) {
+  const meta = GOAL_META[goal];
+  if (!meta) return null;
+  return (
+    <div className="mt-4 rounded-xl border border-border bg-card px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="text-xs flex items-center gap-2 min-w-0">
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            Your goal
+          </span>
+          <span className="text-sm font-medium truncate">{meta.label}</span>
+        </div>
+        <Link
+          to={meta.cta.to}
+          className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 font-medium shrink-0"
+        >
+          {meta.cta.label} →
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+const GOAL_META: Record<
+  OnboardingGoal,
+  { label: string; cta: { label: string; to: string } }
+> = {
+  complete_track: {
+    label: "Complete a capstone track",
+    cta: { label: "Browse tracks", to: "/tracks" },
+  },
+  finish_path: {
+    label: "Finish a mastery path",
+    cta: { label: "View paths", to: "/paths" },
+  },
+  publish_paper: {
+    label: "Publish a research paper",
+    cta: { label: "Start a paper", to: "/research/new/wizard" },
+  },
+  join_cohort: {
+    label: "Join a cohort",
+    cta: { label: "Browse cohorts", to: "/cohorts" },
+  },
+  ship_misconception: {
+    label: "Ship a misconception",
+    cta: { label: "Open marketplace", to: "/misconceptions" },
+  },
+};

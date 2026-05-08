@@ -1,3 +1,11 @@
+// Sprint 54 — onboarding-stated goals.
+export type OnboardingGoal =
+  | "complete_track"
+  | "finish_path"
+  | "publish_paper"
+  | "join_cohort"
+  | "ship_misconception";
+
 import type {
   AuthResponse,
   Comment,
@@ -536,17 +544,22 @@ export const api = {
   },
   onboarding: {
     status: () =>
-      request<{ onboarded: boolean; startingPathSlug: string | null }>(
-        "/onboarding/status",
-      ),
-    complete: (pathSlug?: string) =>
+      request<{
+        onboarded: boolean;
+        startingPathSlug: string | null;
+        onboardingGoal: OnboardingGoal | null;
+      }>("/onboarding/status"),
+    complete: (pathSlug?: string, goal?: OnboardingGoal) =>
       request<{
         onboarded: true;
         startingPathSlug: string | null;
         firstNodeSlug: string | null;
       }>("/onboarding", {
         method: "POST",
-        body: JSON.stringify(pathSlug ? { pathSlug } : {}),
+        body: JSON.stringify({
+          ...(pathSlug ? { pathSlug } : {}),
+          ...(goal ? { goal } : {}),
+        }),
       }),
   },
   notifications: {
@@ -1099,6 +1112,19 @@ export const api = {
       return request<PrereqXrayResponse>(`/me/prereq-status?${sp.toString()}`);
     },
     knowledgeMri: () => request<KnowledgeMri>("/me/knowledge-mri"),
+    trackCompletions: () =>
+      request<{
+        completions: Array<{
+          id: string;
+          trackId: string;
+          artifactPageSlug: string;
+          completedAt: string;
+          trackSlug: string;
+          trackTitle: string;
+          coverEmoji: string;
+          accentColor: string;
+        }>;
+      }>("/me/track-completions"),
   },
   flashcards: {
     save: (data: { pageSlug: string; pageTitle: string; front: string; back: string }) =>

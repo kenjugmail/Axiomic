@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Check, Sparkles } from "lucide-react";
-import { api, type MasteryPath } from "../lib/api";
+import { api, type MasteryPath, type OnboardingGoal } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
 
@@ -10,6 +10,40 @@ const ACCENTS = [
   "bg-accent-emerald",
   "bg-accent-rose",
   "bg-accent-amber",
+];
+
+// Sprint 54 — onboarding goals. Surfaces both at signup and as a chip
+// on the home dashboard ("Your goal: …").
+const GOALS: Array<{
+  id: OnboardingGoal;
+  label: string;
+  description: string;
+}> = [
+  {
+    id: "complete_track",
+    label: "Complete a capstone track",
+    description: "Bundle 4-6 capstones into a single signed credential.",
+  },
+  {
+    id: "finish_path",
+    label: "Finish a mastery path",
+    description: "Walk a path from apprentice to expert.",
+  },
+  {
+    id: "publish_paper",
+    label: "Publish a research paper",
+    description: "Author a tiered article with runnable code cells.",
+  },
+  {
+    id: "join_cohort",
+    label: "Join a cohort",
+    description: "Work alongside others on the same material.",
+  },
+  {
+    id: "ship_misconception",
+    label: "Ship a misconception",
+    description: "Spot a common gap and propose a correction to the catalog.",
+  },
 ];
 
 // Three-step welcome wizard: intro → path picker → confirm. Optional
@@ -21,6 +55,7 @@ export function OnboardingPage() {
   const [paths, setPaths] = useState<MasteryPath[] | null>(null);
   const [step, setStep] = useState<0 | 1 | 2>(0);
   const [picked, setPicked] = useState<MasteryPath | null>(null);
+  const [goal, setGoal] = useState<OnboardingGoal | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,7 +87,7 @@ export function OnboardingPage() {
     setSubmitting(true);
     setError(null);
     try {
-      const r = await api.onboarding.complete(chosen?.slug);
+      const r = await api.onboarding.complete(chosen?.slug, goal ?? undefined);
       if (chosen && r.firstNodeSlug) {
         navigate(`/paths/${chosen.slug}/lessons/${r.firstNodeSlug}`, {
           replace: true,
@@ -215,14 +250,37 @@ export function OnboardingPage() {
             <h2 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight leading-tight mb-3">
               You're starting with {picked.title}.
             </h2>
-            <p className="text-sm text-muted-foreground mb-6">
-              We'll drop you into the first lesson. You can come back to the
-              path overview any time, or switch paths from{" "}
-              <Link to="/paths" className="text-primary hover:underline">
-                Paths
-              </Link>
-              .
+            <p className="text-sm text-muted-foreground mb-5">
+              Optional: pick a first goal so the AI coach can keep you pointed
+              at it. You can change this later.
             </p>
+            <div className="grid sm:grid-cols-2 gap-2 mb-5">
+              {GOALS.map((g) => {
+                const active = goal === g.id;
+                return (
+                  <button
+                    key={g.id}
+                    type="button"
+                    onClick={() => setGoal(active ? null : g.id)}
+                    className={`text-left rounded-lg border p-3 transition-colors duration-fast ${
+                      active
+                        ? "border-primary ring-1 ring-primary/40 bg-primary/5"
+                        : "border-border hover:bg-accent/30"
+                    }`}
+                  >
+                    <div className="text-sm font-medium flex items-center gap-1.5">
+                      {g.label}
+                      {active && (
+                        <Check className="w-3.5 h-3.5 text-primary" strokeWidth={2.5} />
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {g.description}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
             <div className="flex items-center gap-3 flex-wrap">
               <button
                 onClick={() => finish(picked)}

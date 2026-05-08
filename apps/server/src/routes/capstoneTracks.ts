@@ -244,6 +244,7 @@ capstoneTracksRouter.get("/:slug", async (c) => {
       accentColor: track.accentColor,
       tags: safeParseStrArray(track.tags),
       status: track.status,
+      doi: track.doi,
       authorId: track.authorId,
       canonicalTier: track.canonicalTier,
       content: picked.content,
@@ -551,6 +552,7 @@ capstoneTracksRouter.get("/c/:artifactSlug", async (c) => {
       summary: track.summary,
       coverEmoji: track.coverEmoji,
       accentColor: track.accentColor,
+      doi: track.doi,
     },
     learner: {
       username: learner.username,

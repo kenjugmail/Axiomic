@@ -358,6 +358,7 @@ researchRouter.get("/:slug", async (c) => {
       accentColor: researchPapers.accentColor,
       status: researchPapers.status,
       tags: researchPapers.tags,
+      doi: researchPapers.doi,
       authorId: researchPapers.authorId,
       authorUsername: users.username,
       authorDisplayName: users.displayName,
@@ -501,6 +502,7 @@ researchRouter.get("/:slug/cite", async (c) => {
       authorUsername: users.username,
       authorDisplayName: users.displayName,
       status: researchPapers.status,
+      doi: researchPapers.doi,
       createdAt: researchPapers.createdAt,
       updatedAt: researchPapers.updatedAt,
     })
@@ -523,6 +525,7 @@ researchRouter.get("/:slug/cite", async (c) => {
     authors: [primary, ...coauthors],
     year: new Date(row.createdAt).getUTCFullYear(),
     url,
+    doi: row.doi,
     abstract: row.abstract || row.summary,
     publishedAt: row.createdAt,
   };
