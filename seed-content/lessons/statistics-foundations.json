@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What statistics gives you",
+      "body": "Statistics is the discipline of turning data into claims. Without it, you can collect data forever and never quite know what it means.\n\nThe core moves:\n\n- **Estimation**: given a sample, what's the population parameter (mean, variance, slope)?\n- **Hypothesis testing**: given two samples, are they meaningfully different?\n- **Confidence intervals**: how uncertain is your estimate?\n- **Maximum likelihood**: the unifying framework that connects estimation to ML training\n\nThis lesson is the math foundations version. For ML-applied statistics (calibration, base-rate fallacy, contamination) see [[statistics-for-ml]]."
+    },
+    {
+      "kind": "text",
+      "title": "Estimation",
+      "body": "You have a sample `x_1, x_2, ..., x_n` from some distribution. You want to estimate properties of that distribution.\n\nSample mean: $\\bar{x} = \\frac{1}{n} \\sum_i x_i$ — your best guess for the population mean.\n\nSample variance: $s^2 = \\frac{1}{n-1} \\sum_i (x_i - \\bar{x})^2$. The `n-1` (not `n`) is Bessel's correction — using the sample mean instead of the true mean introduces a small bias that this correction removes.\n\n**Standard error** of the mean: $SE = s/\\sqrt{n}$. As n grows, the SE shrinks; you trust the estimate more.\n\n**Bias-variance tradeoff** in estimators: an estimator can be **unbiased** (correct on average) but high-variance (very noisy on any single sample), or **biased** (consistently off) but low-variance. The ideal is both unbiased and low-variance, but in practice you sometimes trade them off."
+    },
+    {
+      "kind": "text",
+      "title": "Maximum likelihood estimation (MLE)",
+      "body": "Given data `D = {x_1, ..., x_n}` and a parametric model `p(x | θ)`, **MLE** finds the θ that makes the data most probable:\n\n$$\\hat{\\theta}_{MLE} = \\arg\\max_\\theta \\sum_i \\log p(x_i | \\theta)$$\n\nThe sum-of-log-probabilities (rather than product-of-probabilities) avoids underflow when n is large — they're equivalent up to monotonic transform.\n\nMLE is **asymptotically efficient**: as n → ∞, MLE has the lowest possible variance among consistent estimators (Cramér-Rao lower bound). For finite n, MLE may not be optimal but is a strong default.\n\nIn ML: cross-entropy loss minimization is MLE. The 'training' you do is MLE on the training data, with the loss function corresponding to log-likelihood under the model's predicted distribution. See [[loss-functions]]."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "stat_q1",
+        "kind": "multiple_choice",
+        "question": "Why does the sample variance formula use 1/(n-1) instead of 1/n?",
+        "options": [
+          "It's a convention with no real reason",
+          "Bessel's correction: using the sample mean (rather than the true population mean) in the variance computation introduces a small bias; dividing by n-1 corrects for it, making the estimator unbiased",
+          "It speeds up the computation",
+          "It's required for the central limit theorem to hold"
+        ],
+        "correctIndex": 1,
+        "explanation": "Using the sample mean creates a slight underestimate of variance because the sample mean is, by construction, the value that minimizes the sum of squared deviations from the data. Dividing by n-1 instead of n compensates. With known true mean, dividing by n is correct."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Hypothesis testing",
+      "body": "You have two samples (or one sample and a hypothesized value). Are they consistent with chance, or do they differ meaningfully?\n\nThe framework:\n\n1. **Null hypothesis (H₀)**: the boring claim — no difference, no effect.\n2. **Alternative hypothesis (H₁)**: the interesting claim.\n3. Compute a **test statistic** that quantifies the observed effect.\n4. Compute a **p-value**: under H₀, how likely is a test statistic at least this extreme?\n5. If p < α (typically 0.05), reject H₀.\n\nCommon tests:\n- **t-test**: compare means of two samples\n- **chi-squared**: compare frequencies / contingency tables\n- **bootstrap test**: nonparametric — resample to get the test statistic's distribution\n\n**Critical caveat**: a small p-value means 'this would be rare under the null' — it does NOT mean the alternative is true with probability (1-p). Bayesian inference makes the latter claim; frequentist testing only addresses the former.\n\nMost ML benchmarks don't report confidence intervals or p-values. A 0.5% accuracy difference often isn't statistically significant; the headline 'A beats B' may be noise."
+    },
+    {
+      "kind": "text",
+      "title": "Bayes' rule",
+      "body": "The most important formula in probability and inference:\n\n$$P(H | D) = \\frac{P(D | H) \\cdot P(H)}{P(D)}$$\n\nIn words: the **posterior** probability of hypothesis H given data D equals the **likelihood** of D given H, times the **prior** probability of H, divided by the marginal probability of D.\n\nThe key conceptual point: `P(H | D) ≠ P(D | H)` in general. Confusing the two is the **base-rate fallacy**.\n\nExample: a test is 99% sensitive (P[positive | disease] = 0.99) and 95% specific (P[positive | no disease] = 0.05). Patient tests positive. What's P(disease | positive)? Depends on the prior:\n\n- If P(disease) = 0.5: P(disease | positive) ≈ 0.95\n- If P(disease) = 0.01: P(disease | positive) ≈ 0.17\n- If P(disease) = 0.0001: P(disease | positive) ≈ 0.002\n\nBase rate dominates. A 99% sensitive test on a rare condition gives 0.2% probability of disease given positive. The headline number ('test is 99% sensitive') is meaningless without the base rate."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "stat_q2",
+        "kind": "multiple_choice",
+        "question": "A test has 99% sensitivity (true positive rate) and 95% specificity (true negative rate). It's applied to a population where 1 in 10,000 people have the disease. A patient tests positive. What's the approximate probability they have the disease?",
+        "options": [
+          "About 99%",
+          "About 95%",
+          "About 0.2% — the base rate dominates because the disease is rare and false positives outnumber true positives",
+          "Cannot be determined without more information"
+        ],
+        "correctIndex": 2,
+        "explanation": "P(disease | positive) = P(positive | disease) · P(disease) / P(positive). With prior 0.0001 and false positive rate 0.05, P(positive) ≈ 0.05 (dominated by false positives). P(disease | positive) ≈ 0.99 × 0.0001 / 0.05 ≈ 0.002. The base-rate fallacy is exactly the assumption that high sensitivity implies high P(disease|positive)."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Statistics is the bridge between probability theory and ML practice. The math foundations here connect to:\n\n- [[loss-functions]]: cross-entropy as MLE\n- [[gradient-descent]]: optimization on the log-likelihood surface\n- [[statistics-for-ml]]: applied statistics for evaluating models\n\nKey takeaways:\n- Sample statistics estimate population parameters; standard errors quantify uncertainty\n- MLE is the asymptotically efficient default for parameter estimation\n- p-values measure rarity under the null, NOT the probability of the alternative\n- Bayes' rule converts P(D|H) to P(H|D) — they're rarely equal"
+    }
+  ]
+}

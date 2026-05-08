@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Beyond linearity",
+      "body": "**Linear systems** obey superposition: if `x_1(t)` and `x_2(t)` are solutions, so is any combination `αx_1 + βx_2`. That's why Fourier analysis and matrix decompositions work — once you understand each mode, you understand all motion as a sum.\n\n**Nonlinear systems** don't superpose. The pendulum at small angle is approximately linear (`sin θ ≈ θ`), so it acts like a simple harmonic oscillator. At large angle the `sin θ` matters — the period actually depends on amplitude, two such pendulums coupled can become chaotic, and you can't just sum simple-harmonic modes to find the answer.\n\nNonlinearity is where most interesting behavior lives:\n- Bifurcations — qualitative changes when a parameter crosses a threshold.\n- Limit cycles — sustained oscillations that aren't sinusoidal.\n- Chaos — sensitive dependence on initial conditions; deterministic but unpredictable.\n- Multistability — multiple stable states; small perturbations can flip between them.\n\nThis lesson covers the basic phenomena: bifurcations, limit cycles, the double pendulum as a case study, and where nonlinearity shows up in ML."
+    },
+    {
+      "kind": "text",
+      "title": "Bifurcations",
+      "body": "A **bifurcation** is a qualitative change in the system's behavior as a parameter `μ` passes a critical value. The fixed points (steady states) appear, disappear, or change stability.\n\n**Saddle-node bifurcation**. `ẋ = μ - x²`. For `μ > 0`, two fixed points (stable and unstable). At `μ = 0`, they merge. For `μ < 0`, no fixed points — the system has nowhere to settle.\n\n**Pitchfork bifurcation**. `ẋ = μx - x³`. For `μ < 0`, one stable fixed point at `x = 0`. At `μ = 0`, it becomes unstable, and two new stable points appear at `±√μ`. The system 'breaks symmetry' — it has to choose one.\n\n**Hopf bifurcation**. A fixed point loses stability and a stable limit cycle is born. The system goes from settling to a steady state to oscillating. This is how a quiet circuit can suddenly start generating waves as you turn up the gain.\n\nBifurcations are everywhere: phase transitions in physics (boiling, magnetism), neuron firing onset, ecosystem collapse, training-loss instability spikes when you push the learning rate too high. The math is identical even when the physics looks unrelated."
+    },
+    {
+      "kind": "text",
+      "title": "Limit cycles",
+      "body": "A **limit cycle** is a closed orbit in phase space that the system approaches from nearby initial conditions. Unlike a linear oscillator (where any amplitude orbit is allowed), a limit cycle has a *specific* amplitude that the dynamics finds and locks onto.\n\nClassic example: the **van der Pol oscillator**:\n\n$$\\ddot{x} - \\mu(1 - x^2)\\dot{x} + x = 0$$\n\nFor small `x`, the damping is negative — the system gains energy. For large `x`, the damping is positive — the system loses energy. The two effects balance at a particular amplitude: a stable limit cycle.\n\nLimit cycles power:\n- Heart pacemakers (cardiac cells fire on a stable cycle)\n- Neuron action potentials (Hodgkin-Huxley dynamics)\n- Predator-prey populations (Lotka-Volterra at the boundary case)\n- Self-sustaining oscillators in electronics (the original van der Pol motivation: triode tubes)\n\nThe key contrast with simple harmonic motion: in SHM the amplitude is set by initial conditions and stays there forever. In a limit cycle, *any* nearby start converges to the same amplitude — the system has a preferred energy level."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "nl_q1",
+        "kind": "multiple_choice",
+        "question": "A van der Pol oscillator is started from rest at small displacement. What happens?",
+        "options": [
+          "It stays at rest — small displacement is below the threshold",
+          "It oscillates with the small initial amplitude forever",
+          "Its amplitude grows toward the limit cycle, then settles into oscillation at that fixed amplitude — independent of where it started",
+          "It blows up to infinity"
+        ],
+        "correctIndex": 2,
+        "explanation": "Limit cycles are attractors. Small-amplitude motion is amplified by the negative damping term (energy gained); large-amplitude motion is suppressed by the positive damping term (energy lost). The dynamics finds the balance and locks on. This is why hearts beat at roughly the same amplitude regardless of perturbations — the underlying limit cycle is robust."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Chaos and the double pendulum",
+      "body": "A **double pendulum** — one pendulum hanging from another — is a fully deterministic system with two degrees of freedom. The Lagrangian is straightforward to write down (kinetic energies of both bobs, potential energies in gravity, coupled through the constraint of the second arm). The motion is computable to arbitrary precision given exact initial conditions.\n\nAnd yet: two double pendulums started from initial conditions that differ by 0.001 radians look identical for a few swings, then diverge wildly. By 30 seconds in, one is rotating clockwise and the other is in a totally different configuration.\n\nThis is **chaos**: deterministic dynamics with **sensitive dependence on initial conditions**. Tiny errors in initial conditions grow exponentially in time, so long-term prediction is impossible even though the underlying laws are perfectly known.\n\nKey diagnostics of chaos:\n- **Lyapunov exponent** `λ`: nearby trajectories diverge as `e^(λt)`. Positive `λ` means chaos.\n- **Strange attractors**: trajectories don't settle to a fixed point or limit cycle, but they don't escape to infinity either. They wander forever on a fractal set in phase space (the Lorenz attractor is the canonical example).\n- **Mixing**: any region of initial conditions, no matter how small, eventually spreads everywhere on the attractor.\n\nChaos doesn't require complicated rules. The Lorenz system has just three variables and quadratic nonlinearities. The double pendulum is just two bobs and gravity. The complexity is *emergent* from the nonlinearity."
+    },
+    {
+      "kind": "text",
+      "title": "Where this lands in ML",
+      "body": "Nonlinearity is constitutive of ML, but most of the analytic tools used to *understand* training are linear (NTK, Fisher information, second-order methods). The interesting failure modes are usually nonlinear:\n\n**Loss-landscape bifurcations**. Tiny LR or batch-size changes can flip a training run from convergent to divergent. The transition is sharp — bifurcation-like.\n\n**Edge of stability**. Recent training-dynamics work (Cohen et al.) shows that the largest Hessian eigenvalue λ_max often hovers right at `2/η` (the linear-stability threshold). Loss decreases despite occasional overshoots — a bona fide nonlinear regime where linear-theory bounds say things should diverge but don't.\n\n**Mode collapse in GANs / diffusion**. Generator + discriminator dynamics resemble two-population predator-prey ecology. Periodic mode collapse is a limit-cycle phenomenon, not an optimization failure in the convex sense.\n\n**Chaos in RNN training**. Recurrent networks have well-known chaotic regimes; gradient explosion / vanishing in the original LSTM motivation is exactly the linear stability of the recurrence Jacobian. Past the bifurcation, you get genuine chaos in hidden states.\n\n**In-context learning + feedback loops**. As LLMs are deployed iteratively (e.g., chain-of-thought, agent loops, recursive self-improvement), the system becomes a discrete-time dynamical system — and many of the failure modes look exactly like fixed-point bifurcations or limit cycles seen in physics."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "nl_q2",
+        "kind": "multiple_choice",
+        "question": "What's the practical consequence of positive Lyapunov exponents for a chaotic system?",
+        "options": [
+          "The system is random",
+          "The dynamics violate energy conservation",
+          "Long-term prediction is impossible in practice — even arbitrarily small uncertainty in the initial state grows exponentially fast, so prediction horizons are bounded by how precisely you measure the start. The system is deterministic but practically unpredictable",
+          "The system has no fixed points"
+        ],
+        "correctIndex": 2,
+        "explanation": "Lyapunov-positive systems amplify initial-condition uncertainty by `e^(λt)`. If you know x₀ to one part per million, your usable prediction horizon is roughly `(1/λ) × ln(10⁶)`. After that, you might as well guess. This is why weather is ~14 day predictable — Lyapunov time of the atmosphere is ~3 days, and the chain of error magnification puts a hard ceiling on forecasting. Deterministic ≠ predictable."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Nonlinear dynamics is where physics — and ML, and biology, and economics — gets interesting. The same handful of phenomena (bifurcations, limit cycles, chaos) recur across vastly different domains because they're consequences of nonlinearity itself, not specific equations.\n\nKey takeaways:\n- Nonlinearity breaks superposition; linear-mode decomposition is no longer enough\n- Bifurcations: qualitative behavior changes at parameter thresholds\n- Limit cycles: stable oscillations with system-determined amplitude\n- Chaos: deterministic dynamics with positive Lyapunov exponent → bounded prediction horizon\n- Strange attractors: fractal, never-repeating, never-escaping orbits\n- Same patterns reappear in ML — training instabilities, GAN mode collapse, RNN explosion are all nonlinear-dynamics phenomena\n\nNext: [[statistical-mechanics]] — what happens when you have so many particles that you stop tracking individuals and start tracking distributions."
+    }
+  ]
+}

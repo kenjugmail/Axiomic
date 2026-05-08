@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What a loss function does",
+      "body": "A **loss function** quantifies how wrong the model's prediction is. Training is the process of adjusting weights to minimize loss. The choice of loss isn't cosmetic — it determines what the model learns.\n\nThe loss must be:\n- **Differentiable** with respect to the model's parameters (so gradients can be computed)\n- **Aligned with the actual goal** (so minimizing loss → improving the desired outcome)\n\nThree losses cover most of ML:\n\n- **Cross-entropy** for classification / language modeling\n- **MSE (mean squared error)** for regression\n- **Negative log-likelihood (NLL)** as the unifying framework — both of the above are special cases\n\nThis lesson covers each, the relationships between them, and the misconceptions to avoid."
+    },
+    {
+      "kind": "text",
+      "title": "Cross-entropy",
+      "body": "For a classification problem with C classes, the model outputs a probability distribution `q = (q_1, ..., q_C)`. The true label is one-hot: `p` has a 1 at the correct class, 0 elsewhere.\n\n**Cross-entropy** is:\n\n$$H(p, q) = -\\sum_c p_c \\log q_c$$\n\nWith one-hot p, this simplifies to:\n\n$$H(p, q) = -\\log q_{\\text{correct class}}$$\n\nThis is the **negative log-likelihood** of the correct class under the model's predicted distribution. Minimizing cross-entropy = MLE. (See [[info-theory-basics]] for the cross-entropy decomposition.)\n\n**Critical**: cross-entropy is **asymmetric**. `H(p, q) ≠ H(q, p)`. The first arg is the truth (gets weighted); the second is the prediction (gets logged).\n\nFor language modeling: same exact framework, with `p` being the one-hot true next token and `q` being the model's predicted distribution over the vocabulary."
+    },
+    {
+      "kind": "text",
+      "title": "MSE — and why it's wrong for classification",
+      "body": "**Mean squared error** for a regression target `y_true` and prediction `y_pred`:\n\n$$\\text{MSE} = \\frac{1}{n} \\sum_i (y_{\\text{true},i} - y_{\\text{pred},i})^2$$\n\nThis is the standard loss for continuous-valued outputs.\n\n**Why MSE is wrong for classification**: composed with sigmoid or softmax (which produce probabilities in [0, 1]), MSE has a **gradient saturation problem**.\n\nFor sigmoid + MSE: when the prediction is far from target (e.g., predicting 0.99 when the label is 0), the sigmoid's derivative is tiny, so the gradient w.r.t. the logit is tiny — the model can't learn from these examples. Cross-entropy + softmax avoids this: the gradient w.r.t. the logit is just `(predicted - target)`, which is large when the prediction is wrong.\n\nThis is one of the foundational results of modern deep learning. **Use cross-entropy for classification; use MSE for regression**. Mixing them is a common bug."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "lf_q1",
+        "kind": "multiple_choice",
+        "question": "Why is MSE typically the wrong loss for classification with sigmoid/softmax outputs?",
+        "options": [
+          "MSE doesn't compute correctly with probability outputs",
+          "MSE composed with sigmoid/softmax has gradient saturation: when the prediction is far from target, the gradient becomes tiny and the model stops learning. Cross-entropy avoids this — the gradient w.r.t. the logit is (predicted - target)",
+          "MSE is too slow",
+          "Cross-entropy is required for backpropagation"
+        ],
+        "correctIndex": 1,
+        "explanation": "Saturation is the issue. With sigmoid output and MSE loss, when the model predicts 0.01 and the label is 1, the sigmoid's derivative at that logit is tiny — the gradient through MSE × sigmoid is essentially zero. Cross-entropy + softmax produces a clean (predicted - target) gradient at the logit, which is large when the model is wrong. This is the structural reason classification uses cross-entropy."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Cross-entropy is asymmetric",
+      "body": "A common confusion: assuming `H(p, q) = H(q, p)`. It isn't.\n\n$$H(p, q) = -\\sum_c p_c \\log q_c \\neq -\\sum_c q_c \\log p_c = H(q, p)$$\n\nThe first argument weights; the second argument is logged. Swapping them changes both which distribution is used as weights AND which is fed through `log`.\n\nThis matters in:\n\n- **VAE training**: the ELBO has terms that are forward and reverse KL — different optimization properties.\n- **Distillation**: distilling student to match teacher (`student || teacher`) is mode-covering; distilling teacher to match student would be mode-seeking. (See [[distillation]].)\n- **RLHF**: the KL regularization in PPO is `KL(policy || reference)`, not the reverse — and this choice has empirical implications.\n\nThe asymmetry is why **forward KL** (mode-covering) and **reverse KL** (mode-seeking) get treated as different objectives. Same math; different result."
+    },
+    {
+      "kind": "text",
+      "title": "Other losses worth knowing",
+      "body": "Losses you'll see in specific contexts:\n\n**Huber loss** (regression): quadratic for small errors, linear for large ones. Robust to outliers.\n\n**Hinge loss** (SVM, max-margin): zero if correctly classified with margin; linearly increasing otherwise. Used in classical SVMs, occasionally in neural nets.\n\n**Triplet loss** (metric learning): for `(anchor, positive, negative)` triples, push anchor-positive close and anchor-negative apart. Used in embedding models.\n\n**Contrastive loss / InfoNCE**: for pairs (or sets) of examples, push positive pairs together and negative pairs apart. Foundation of self-supervised learning (CLIP, SimCLR).\n\n**Focal loss** (Lin et al., RetinaNet): cross-entropy weighted by `(1 - p_correct)^γ`. Down-weights easy examples; focuses learning on hard ones. Used in dense detection problems with extreme class imbalance.\n\nFor language modeling specifically: cross-entropy, scaled by sequence length, is essentially universal."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "lf_q2",
+        "kind": "multiple_choice",
+        "question": "Compute H(p, q) and H(q, p) for p = [0.9, 0.1] and q = [0.5, 0.5]. Are they equal?",
+        "options": [
+          "Yes — cross-entropy is always symmetric",
+          "No — H(p, q) ≈ 0.69 and H(q, p) ≈ 1.20. They differ because the first argument weights and the second is logged, so swapping changes the result",
+          "Yes — both equal H(p) + H(q)",
+          "Cannot be computed without more information"
+        ],
+        "correctIndex": 1,
+        "explanation": "H(p, q) = -[0.9·log(0.5) + 0.1·log(0.5)] = -log(0.5) = 0.69 (in nats). H(q, p) = -[0.5·log(0.9) + 0.5·log(0.1)] = -[0.5(-0.105) + 0.5(-2.30)] ≈ 1.20. Not equal. The asymmetry is real and important; it's why forward vs reverse KL produce different solutions in optimization."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Loss functions are the bridge between math and learning. The choice of loss determines what the model can learn.\n\nKey takeaways:\n- Cross-entropy for classification (and language modeling) — equivalent to MLE\n- MSE for regression — gradient saturates with sigmoid/softmax, so wrong for classification\n- Cross-entropy is asymmetric: forward vs reverse KL produce different solutions\n- Specialized losses (triplet, contrastive, focal, Huber) for specific use cases\n\nNext: [[gradient-descent]] — using gradients to actually minimize the loss."
+    }
+  ]
+}

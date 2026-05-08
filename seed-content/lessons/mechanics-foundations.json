@@ -1,0 +1,45 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why physics for ML researchers",
+      "body": "If you're an ML person reading a physics path, you're probably here for one of two reasons:\n\n1. **Mathematical analogies that transfer**. Statistical mechanics maps onto inference (free energy, partition functions, entropy → losses). Dynamical systems intuition transfers to training dynamics. Phase transitions show up in scaling laws and emergent capabilities.\n\n2. **Working with physicists**. Physics-informed ML, scientific ML, climate / molecular dynamics — these areas need bilingual researchers.\n\nThis path is the mechanics foundations: Newton's laws, conservation, oscillations, phase space, chaos. Each has structural parallels with ML you'll see in later lessons.\n\nNot a complete physics education. A focused subset that makes the rest of the path readable."
+    },
+    {
+      "kind": "text",
+      "title": "Newton's laws",
+      "body": "Newton's three laws are the spine of classical mechanics:\n\n**1. Inertia.** A body at rest stays at rest; a body in motion continues at constant velocity, unless acted on by a force.\n\n**2. F = ma.** The acceleration of a body is proportional to the net force, inversely proportional to its mass. In modern notation:\n\n$$\\vec{F} = m\\frac{d^2\\vec{x}}{dt^2}$$\n\n**3. Action-reaction.** For every force, an equal and opposite force on the other body.\n\nFrom these three, you can derive the entire mechanics of point particles. Things get more elaborate (rigid bodies, fluids, fields) but the foundation is `F = ma`."
+    },
+    {
+      "kind": "text",
+      "title": "Conservation laws",
+      "body": "Three quantities that are conserved (don't change with time) under various conditions:\n\n**Momentum** `p = mv`. Conserved when the total external force is zero. The cornerstone of analyzing collisions and rocket propulsion.\n\n**Energy** `E = (1/2)mv² + U(x)`. Conserved when forces are conservative (the force is the gradient of a potential function `U`). Kinetic energy + potential energy = constant for an isolated conservative system.\n\n**Angular momentum** `L = r × p`. Conserved when no external torque acts. The reason ice skaters spin faster when they pull their arms in.\n\nThe deep theorem (Noether's): each conservation law corresponds to a continuous symmetry of the equations of motion. Time-translation symmetry → energy conservation. Spatial-translation symmetry → momentum conservation. Rotational symmetry → angular momentum conservation.\n\nAnalogy in ML: training dynamics has its own conservation-like quantities. The total 'flow' through layers, normalization-preserving updates, etc. — physics-style symmetry analysis sometimes lights up the structure."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mf_q1",
+        "kind": "multiple_choice",
+        "question": "Which conservation law corresponds to spatial-translation symmetry of a system's equations of motion?",
+        "options": [
+          "Energy conservation",
+          "Momentum conservation",
+          "Angular momentum conservation",
+          "Mass conservation"
+        ],
+        "correctIndex": 1,
+        "explanation": "Noether's theorem: continuous symmetries imply conservation laws. Time-translation → energy; spatial-translation → momentum; rotational symmetry → angular momentum. This is one of the most beautiful results in classical physics, and analogous arguments appear in ML (e.g., translational equivariance in convolutions corresponds to specific representation-preserving structure)."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Energy as a unifying concept",
+      "body": "Energy is the through-line of mechanics. Two flavors:\n\n**Kinetic energy** `T = (1/2)mv²`. The energy a body has by virtue of its motion.\n\n**Potential energy** `U(x)`. The energy stored in a configuration. For a spring with stiffness `k` displaced by `x`: `U = (1/2)kx²`. For gravity near Earth: `U = mgh`.\n\nFor conservative systems, `T + U` is conserved. As the body moves, kinetic and potential energy interconvert; the total stays the same.\n\nMore powerfully: the **Lagrangian** `L = T - U` (kinetic minus potential) is the basis of Lagrangian mechanics. The path a particle takes minimizes the action `S = ∫L dt`. This is the **principle of least action** — the deep reformulation that becomes the basis of all of theoretical physics.\n\nAnalogy in ML: the loss function plays a role like potential energy. Optimization (gradient descent) is like a particle rolling down a potential surface. SGD adds noise to this picture; momentum optimizers add inertia. Statistical-mechanics-style arguments map directly onto training dynamics."
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Mechanics foundations gives you the vocabulary: positions, velocities, forces, energy, conservation. The next physics lessons build on this:\n\n- [[oscillations]] — simple harmonic motion, damped + driven oscillators, resonance\n- [[phase-space]] — visualizing dynamics in (x, p) space, fixed points, stability\n- [[lagrangian-mechanics]] — generalizing Newton via least action\n- [[chaos-and-sensitivity]] — when deterministic systems become unpredictable\n- [[statistical-mechanics]] — moving from one particle to many (the microscale → macroscale link)\n- [[entropy-and-information]] — connecting Boltzmann's H to Shannon's H\n\nKey takeaways:\n- Newton's three laws are the foundation: F = ma is the workhorse\n- Conservation laws (momentum, energy, angular momentum) come from symmetries\n- Energy as kinetic + potential, with the Lagrangian L = T - U as the unifying object\n- Mechanics intuitions transfer to ML training: loss as potential, optimization as motion"
+    }
+  ]
+}

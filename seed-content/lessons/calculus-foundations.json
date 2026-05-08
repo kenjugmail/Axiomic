@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why calculus for ML",
+      "body": "ML training is calculus on weights. The model defines a loss as a function of weights `L(W)`; you compute the gradient `∂L/∂W`; you take a step in the direction of negative gradient. Without calculus, training is impossible.\n\nThe specific calculus you need:\n\n- **Derivatives** of single-variable functions\n- **Chain rule** for composed functions\n- **Partial derivatives** for multi-variable functions\n- **Gradients** as vectors of partials\n\nThis lesson covers each in turn. We won't prove anything — focus is on operational understanding."
+    },
+    {
+      "kind": "text",
+      "title": "Derivatives",
+      "body": "The derivative of `f(x)` is the rate of change at a point:\n\n$$f'(x) = \\frac{df}{dx} = \\lim_{h \\to 0} \\frac{f(x+h) - f(x)}{h}$$\n\nIntuitively: if I nudge x by a tiny bit, how much does f change?\n\nA few derivatives you should have memorized:\n\n- `d/dx[x^n] = n·x^(n-1)`\n- `d/dx[e^x] = e^x`\n- `d/dx[ln x] = 1/x`\n- `d/dx[sin x] = cos x`, `d/dx[cos x] = -sin x`\n- `d/dx[c·f(x)] = c·f'(x)` (constant rule)\n- `d/dx[f(x) + g(x)] = f'(x) + g'(x)` (sum rule)\n- `d/dx[f(x)·g(x)] = f'(x)g(x) + f(x)g'(x)` (product rule)\n\nThese cover most of what you'll see in ML papers."
+    },
+    {
+      "kind": "text",
+      "title": "Chain rule",
+      "body": "The most important rule for ML. If `f(x) = g(h(x))`:\n\n$$\\frac{d}{dx}[g(h(x))] = g'(h(x)) \\cdot h'(x)$$\n\n**The outer derivative is evaluated at `h(x)`, not at `x`.** This is the most common mistake when people first apply the chain rule.\n\nExample: `f(x) = sin(x²)`. The outer function is `g(u) = sin(u)`; the inner is `h(x) = x²`.\n- `g'(u) = cos(u)` evaluated at `u = h(x) = x²` → `cos(x²)`\n- `h'(x) = 2x`\n- `f'(x) = cos(x²) · 2x`\n\n**Not** `cos(x) · 2x`. The outer derivative gets evaluated at the inner function's value.\n\nFor compositions of more than two functions: keep applying chain rule recursively. `f(g(h(x)))` differentiates to `f'(g(h(x))) · g'(h(x)) · h'(x)`.\n\nNeural networks are deeply nested function compositions. [[backpropagation]] is the chain rule applied systematically through the network's computation graph."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "calc_q1",
+        "kind": "multiple_choice",
+        "question": "What is the derivative of f(x) = sin(x²) with respect to x?",
+        "options": [
+          "cos(x) · 2x",
+          "cos(x²) · 2x",
+          "sin(x) · cos(x)",
+          "2x · sin(x²)"
+        ],
+        "correctIndex": 1,
+        "explanation": "Chain rule: outer is sin, inner is x². Derivative of outer (cos) is evaluated AT x² (not at x), times the derivative of the inner (2x). Many learners confuse this with cos(x) · 2x, which forgets the inner-evaluation step."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Partial derivatives",
+      "body": "When `f` is a function of multiple variables, each variable has its own derivative. The **partial derivative** `∂f/∂x` is the derivative with respect to `x`, treating all other variables as constants.\n\nFor `f(x, y) = x² + xy + y²`:\n\n$$\\frac{\\partial f}{\\partial x} = 2x + y \\quad \\text{(treat y as constant)}$$\n\n$$\\frac{\\partial f}{\\partial y} = x + 2y \\quad \\text{(treat x as constant)}$$\n\nIn ML, weights are vectors / matrices / tensors, and the loss is a scalar function of all of them. The gradient is the vector of partial derivatives, one per weight."
+    },
+    {
+      "kind": "text",
+      "title": "Gradients as vectors",
+      "body": "The **gradient** of a scalar function `f` of a vector `x` is the vector of all partial derivatives:\n\n$$\\nabla_x f(x) = \\begin{bmatrix} \\frac{\\partial f}{\\partial x_1} \\\\ \\frac{\\partial f}{\\partial x_2} \\\\ \\vdots \\\\ \\frac{\\partial f}{\\partial x_n} \\end{bmatrix}$$\n\nThe gradient points in the direction of **steepest ascent** — the direction in which `f` increases fastest. Its magnitude is the rate of increase.\n\nGradient descent uses this directly: to minimize `f`, take a step in the direction of `-∇f`:\n\n$$x \\leftarrow x - \\eta \\nabla_x f(x)$$\n\nWhere `η` is the learning rate.\n\nFor neural networks: weights `W`, loss `L(W)`, gradient `∇_W L(W)`. Computed via backpropagation (the chain rule applied through the network). Update via `W ← W - η · ∇_W L(W)`. Done. Modern optimizers (Adam, AdamW, etc.) refine this — see [[gradient-descent]] — but the core is unchanged."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "calc_q2",
+        "kind": "multiple_choice",
+        "question": "What does the gradient ∇_x f(x) point in the direction of?",
+        "options": [
+          "Steepest descent (where f decreases fastest)",
+          "Steepest ascent (where f increases fastest)",
+          "The minimum of f",
+          "The origin"
+        ],
+        "correctIndex": 1,
+        "explanation": "The gradient points toward steepest ASCENT — direction of fastest increase. Gradient descent moves in the OPPOSITE direction (-∇f) to minimize f. This is one of the most common conceptual confusions; remembering 'gradient = ascent; descent goes against it' is the fix."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Calculus is the engine of ML. Three concepts to remember:\n\n- The chain rule: outer derivative evaluated at the inner function's value\n- Partial derivatives: differentiate w.r.t. one variable, hold others fixed\n- Gradient: vector of all partial derivatives, points uphill\n\nNext lessons in the math path:\n\n- [[statistics-foundations]] — turning data into claims\n- [[gradient-descent]] — using gradients to find minima\n- [[backpropagation]] — applying chain rule systematically through a network"
+    }
+  ]
+}

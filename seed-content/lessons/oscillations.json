@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why oscillations matter",
+      "body": "**Oscillations** — periodic motion around an equilibrium — are everywhere in physics. Pendulums, springs, electrical circuits, light waves, quantum states, atomic vibrations: all governed by oscillator equations.\n\nThe simplest case is the **simple harmonic oscillator** (SHO). It's worth deeply understanding because:\n\n1. Many systems near equilibrium look like SHOs (Taylor-expand any potential around its minimum and the leading term is quadratic — same as a spring)\n2. Linear superposition lets you build up complex motion from simple harmonics (Fourier analysis)\n3. The math reappears in ML: oscillating training loss, sinusoidal positional embeddings, signal processing on activations\n\nThis lesson covers SHO, damped + driven oscillators, and resonance."
+    },
+    {
+      "kind": "text",
+      "title": "Simple harmonic motion",
+      "body": "A mass on a spring, with spring constant `k` and mass `m`. The spring exerts a restoring force proportional to displacement: `F = -kx`. Newton's law gives:\n\n$$m\\ddot{x} = -kx$$\n\nDefining `ω² = k/m`:\n\n$$\\ddot{x} = -\\omega^2 x$$\n\nThe solution is sinusoidal:\n\n$$x(t) = A \\cos(\\omega t + \\phi)$$\n\nWhere `A` is amplitude, `φ` is phase, and `ω` is angular frequency. Period `T = 2π/ω`.\n\nThe energy decomposes:\n- Kinetic: `T = (1/2)mv² = (1/2)mA²ω²sin²(ωt + φ)`\n- Potential: `U = (1/2)kx² = (1/2)kA²cos²(ωt + φ)`\n- Total `E = (1/2)kA²` (conserved, oscillates between K and U).\n\nThis is the canonical undamped oscillator. Energy is conserved; motion continues forever at constant amplitude."
+    },
+    {
+      "kind": "text",
+      "title": "Damped oscillations",
+      "body": "Add friction: a force opposing velocity, `F_damp = -bv`. The equation becomes:\n\n$$m\\ddot{x} + b\\dot{x} + kx = 0$$\n\nThree regimes depending on the ratio of damping to stiffness:\n\n**Underdamped** (small b): oscillates but with decaying amplitude. `x(t) = A e^(-γt) cos(ω' t + φ)`. The oscillation gradually dies away.\n\n**Critically damped**: returns to equilibrium as fast as possible without overshooting. The boundary case. Used in shock absorbers, door dampers — anywhere you want a fast settle without ringing.\n\n**Overdamped** (large b): returns to equilibrium slowly without oscillating. Looks like exponential decay rather than oscillation.\n\nIn ML training: too-aggressive learning rates produce underdamped oscillations in the loss curve. The right LR + momentum often corresponds to slightly-damped behavior — fast convergence without too much ringing."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "osc_q1",
+        "kind": "multiple_choice",
+        "question": "A door has a damper. You want it to close as fast as possible without slamming or bouncing back. What damping regime should it be in?",
+        "options": [
+          "Underdamped",
+          "Critically damped",
+          "Overdamped",
+          "Undamped"
+        ],
+        "correctIndex": 1,
+        "explanation": "Critically damped is exactly the regime that minimizes settling time without oscillation. Underdamped would bounce; overdamped would close slowly; undamped would oscillate forever. This is why physical dampers (door closers, shock absorbers) target critical damping by design."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Driven oscillators and resonance",
+      "body": "Now apply an external sinusoidal force `F = F_0 cos(ω_d t)`. The equation:\n\n$$m\\ddot{x} + b\\dot{x} + kx = F_0 \\cos(\\omega_d t)$$\n\nAt steady state, the oscillator oscillates at the **driving frequency** `ω_d`, not its natural frequency. The amplitude depends on how close `ω_d` is to the natural frequency `ω = √(k/m)`.\n\n**Resonance**: when `ω_d ≈ ω`, the amplitude becomes large. With low damping, the resonance peak is sharp and tall; with high damping, it broadens out.\n\nResonance is everywhere: tuning forks, microwave ovens, MRI machines, the Tacoma Narrows Bridge collapse, why pushing a swing at the right time amplifies its motion. Engineering systems either exploit resonance (radio receivers tuning to a station) or carefully avoid it (designing structures so resonant frequencies don't match expected wind / vibration patterns).\n\nIn ML: the analog of resonance is sometimes seen in training instabilities where periodic input patterns cause cascading gradient amplification. Less common in mainstream training, but a real phenomenon."
+    },
+    {
+      "kind": "text",
+      "title": "Linear systems and superposition",
+      "body": "A key property of the linear oscillator equation: solutions **superpose**. If `x_1(t)` and `x_2(t)` are both solutions to the linear ODE, so is any combination `αx_1(t) + βx_2(t)`.\n\nThis is the foundation of **Fourier analysis**: any reasonably-behaved periodic function can be written as a sum of sinusoids at integer multiples of a base frequency. Combine that with linear superposition, and the response of a linear system to a complex input is the sum of its responses to each sinusoidal component.\n\nThis is why sinusoidal positional embeddings in transformers work: the sinusoids form a linear combination basis the model can use to encode position. The original Vaswani-et-al. positional encoding leans on exactly this idea — Fourier features for position.\n\n**RoPE** (rotary position embedding) takes this further: the position-rotated Q and K vectors interact in a way that depends only on relative position, exploiting the structure of complex exponentials. See [[positional-encoding]]."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "osc_q2",
+        "kind": "multiple_choice",
+        "question": "Why do many physical systems near equilibrium look like simple harmonic oscillators?",
+        "options": [
+          "They're all literally springs",
+          "Taylor-expand any potential function U(x) around its minimum: the leading term is quadratic in displacement, giving a linear restoring force — exactly the SHO equation. The harmonic approximation is the natural local description of any potential well",
+          "Because of energy conservation",
+          "It's a mathematical coincidence"
+        ],
+        "correctIndex": 1,
+        "explanation": "U(x) ≈ U(x₀) + U'(x₀)(x-x₀) + (1/2)U''(x₀)(x-x₀)² + ... near the minimum, U'(x₀) = 0 (it's an equilibrium), so the leading term is the quadratic. That gives a force `-U''(x₀)·(x-x₀)`, which is the SHO equation with k = U''(x₀). Any smooth potential well looks harmonic at the bottom — which is why oscillators appear everywhere."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Oscillations are the universal local description of any system near equilibrium. The math (sinusoidal solutions, exponential decay, resonance peaks) reappears in dozens of contexts.\n\nNext: [[phase-space]] — a powerful visualization tool for understanding any dynamical system, including the oscillator, by plotting (position, momentum) instead of (position, time).\n\nKey takeaways:\n- SHO equation: ẍ = -ω²x; sinusoidal solutions; energy oscillates between kinetic and potential\n- Damping regimes: underdamped (rings), critically damped (fast settle), overdamped (slow exponential)\n- Resonance: driving at the natural frequency amplifies the response\n- Superposition + Fourier: linear systems decompose complex inputs into sinusoidal components\n- Local approximation: any system near equilibrium looks like an oscillator"
+    }
+  ]
+}

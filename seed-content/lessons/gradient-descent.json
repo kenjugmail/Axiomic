@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The basic algorithm",
+      "body": "**Gradient descent** is the algorithm that powers training. Given a loss function `L(W)`, repeatedly:\n\n1. Compute the gradient `g = ∇_W L(W)`\n2. Update weights: `W ← W - η · g`\n3. Repeat\n\nWhere `η` (eta) is the **learning rate** — how big a step to take.\n\nIntuition: the gradient points in the direction of steepest *increase* of the loss; we step in the *opposite* direction to decrease it. With a small enough step size, each iteration reduces loss until we reach a minimum.\n\nFor neural networks, the gradient is computed via [[backpropagation]] — the chain rule applied through the network's computation graph. The optimizer's job is to use that gradient effectively."
+    },
+    {
+      "kind": "text",
+      "title": "Stochastic gradient descent (SGD)",
+      "body": "Computing the gradient over the entire dataset at each step is expensive. **Stochastic gradient descent** uses minibatches: at each step, compute the gradient over a small random subset (a batch) of the data.\n\nThe minibatch gradient is a **noisy estimate** of the true gradient. Steps are noisier than 'true' gradient descent — but you take many more steps per unit of compute, and the noise itself can help escape shallow local minima.\n\nKey property: **SGD steps are individually noisy but trend toward the same minimum on average**. If you watch the loss curve, you see noise on top of a smooth trend. The noise is not a bug; it's the signature of stochastic optimization.\n\nMisconception: 'training loss should decrease every step.' Wrong. SGD's per-step gradient is a noisy estimator; per-step loss can go up. What matters is the *trend* on a moving average over many steps."
+    },
+    {
+      "kind": "text",
+      "title": "Momentum",
+      "body": "Vanilla SGD takes the gradient of the current minibatch as its update direction. **Momentum** improves this by maintaining a running average of past gradients:\n\n$$v_t = \\beta v_{t-1} + (1 - \\beta) g_t$$\n\n$$W \\leftarrow W - \\eta v_t$$\n\nWith `β = 0.9`, the velocity `v` accumulates ~10 steps of gradient direction. Why this helps:\n\n- **Long valleys**: if the loss surface has a long valley with steep walls, vanilla SGD bounces between the walls without making progress along the valley. Momentum accumulates speed in the consistent direction (along the valley) and damps the oscillating component.\n- **Saddle points**: at a saddle point, the gradient is zero but the surface is not at a minimum. Momentum lets the optimizer 'roll through' saddle points using accumulated speed.\n\nMisconception: 'momentum is just a moving average of gradients.' Not quite — momentum maintains a *velocity* that gets carried forward; a pure moving average of gradients doesn't track previous velocity, just past gradient values."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_q1",
+        "kind": "multiple_choice",
+        "question": "If SGD's per-step loss spikes upward but the moving average is still falling, is training broken?",
+        "options": [
+          "Yes — every step should decrease loss in healthy training",
+          "No — SGD's per-batch gradient is a noisy estimator; per-step jitter is normal. What matters is the trend, not individual steps",
+          "Only if the spike is more than 5%",
+          "Only with small learning rates"
+        ],
+        "correctIndex": 1,
+        "explanation": "Per-step jitter is intrinsic to SGD. The gradient on one batch is a noisy estimate of the true gradient over the full dataset. Healthy training is noisy on top of a downward trend, not monotonically decreasing. Sustained upward trends are real failures; per-step bumps are not."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Adam — the modern default",
+      "body": "**Adam** (Adaptive Moment Estimation, Kingma & Ba 2014) is the dominant optimizer for deep learning. It maintains two running averages:\n\n- First moment `m_t` (running average of gradients, like momentum)\n- Second moment `v_t` (running average of squared gradients, capturing per-parameter scale)\n\nThe update rule:\n\n$$W \\leftarrow W - \\eta \\cdot \\frac{m_t}{\\sqrt{v_t} + \\epsilon}$$\n\nThe `1/√v_t` term **adapts the effective learning rate per parameter**. Parameters with consistently large gradients get smaller effective steps; parameters with small gradients get larger effective steps.\n\nWhy this matters: in deep networks, different parameters have wildly different gradient magnitudes. A single global learning rate either steps too aggressively for some parameters (causing instability) or too cautiously for others (slow learning). Adam's per-parameter scaling fixes this.\n\n**AdamW** is the variant universally used today. It decouples weight decay from the gradient update — addresses a subtle bug in vanilla Adam where weight decay's effective strength varies per parameter."
+    },
+    {
+      "kind": "text",
+      "title": "Learning rate schedules",
+      "body": "Even with adaptive optimizers, the global learning rate `η` matters. Common patterns:\n\n**Constant LR**: simple but suboptimal. Fine for short runs.\n\n**Step decay**: drop LR by 10× at fixed step counts. Old-school but effective.\n\n**Cosine decay** (modern default): smoothly decay from initial LR to ~0 over the entire training run. Used by GPT-2 onward, LLaMA, most modern recipes.\n\n**Warmup + cosine**: linearly increase LR from 0 to peak over the first ~5-10% of steps, then cosine decay. Critical for transformer training — without warmup, large initial gradients destabilize the model. With warmup + cosine, training is reliably stable.\n\n**One-cycle**: warmup → high LR → cooldown to ~0. Used in CV; less common for LLMs.\n\nCommon misconception: 'larger learning rate = faster convergence.' The actual relationship is U-shaped — too small and you crawl, too large and you bounce off the walls or diverge. The optimal LR depends on local curvature; for transformers, the optimal LR shrinks as the model grows. See [[scaling-laws]] for the empirical relationships."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_q2",
+        "kind": "multiple_choice",
+        "question": "Why does training with Adam still benefit from learning rate warmup?",
+        "options": [
+          "Adam doesn't need warmup",
+          "Adam adapts the per-parameter scale, but it does NOT eliminate the role of the global LR. At training start, Adam's running averages are not yet stable; large initial steps with the global LR can destabilize the model. Warmup gives the running averages time to settle",
+          "Warmup is only needed for SGD",
+          "Adam requires it for the second-moment estimate"
+        ],
+        "correctIndex": 1,
+        "explanation": "Adam's adaptivity is per-parameter (the `1/√v_t` term). The global LR scaling still matters. At training start, the second-moment estimate `v_t` hasn't accumulated enough data; the adaptive scaling is unreliable. Warmup gives those running averages a few thousand steps to stabilize before taking large steps. The misconception that Adam removes the need for LR tuning is one of the most common in modern ML."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Gradient descent is the engine of modern ML training. The basic algorithm hasn't changed since the 1960s; what has changed is the optimizer (Adam → AdamW), the schedule (cosine + warmup), and the scale of the data + parameters.\n\nKey takeaways:\n- SGD is gradient descent on minibatches; per-step noise is normal\n- Momentum maintains velocity across steps; helps escape shallow minima and traverse long valleys\n- Adam adapts per-parameter scale; AdamW with cosine + warmup is the modern default\n- Learning rate matters; the right value depends on model size, data, and schedule\n\nNext: [[backpropagation]] — how gradients are computed efficiently in deep networks."
+    }
+  ]
+}

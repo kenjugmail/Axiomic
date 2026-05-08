@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why statistical mechanics",
+      "body": "A glass of water has ~10²⁵ molecules. You will never write down their positions and velocities. And yet: the pressure, temperature, and density of the water are perfectly well-defined and predictable. The macroscopic state is *insensitive* to the microscopic details.\n\n**Statistical mechanics** is the framework that makes this rigorous. Instead of tracking individual particles, you track **probability distributions** over microscopic states, and derive thermodynamic quantities (pressure, energy, free energy) as expectations under those distributions.\n\nTwo conceptual jumps:\n\n1. **Ensembles, not single systems.** Don't ask 'what's the state of *this* system right now?' Ask 'what fraction of all systems prepared the same way are in each microscopic state?' Statistical mechanics computes those fractions.\n\n2. **Entropy as counting.** A macroscopic state is consistent with many microscopic states. The number of microscopic states (the *multiplicity*) is the entropy. High-entropy macrostates are exponentially more likely than low-entropy ones, simply because there are more of them.\n\nThis is the toolkit that connects 'particles bouncing around' to 'thermodynamics works.' It also connects directly to information theory and ML."
+    },
+    {
+      "kind": "text",
+      "title": "The Boltzmann distribution",
+      "body": "Consider a system with a fixed number of particles, in contact with a heat bath at temperature `T`. The system can occupy various microstates `s`, each with energy `E_s`. **What's the probability of finding it in state `s`?**\n\nAnswer: the **Boltzmann distribution**:\n\n$$p(s) = \\frac{1}{Z} e^{-E_s / k_B T}$$\n\nWhere `k_B` is the Boltzmann constant and `Z` is the **partition function**:\n\n$$Z = \\sum_s e^{-E_s / k_B T}$$\n\n`Z` normalizes the distribution. Not just a normalizer though — almost every thermodynamic quantity is a derivative of `log Z`:\n\n- Average energy: `⟨E⟩ = -∂(log Z)/∂β` where `β = 1/(k_B T)`\n- Free energy: `F = -k_B T log Z`\n- Entropy: `S = -k_B Σ p(s) log p(s)` (the Gibbs entropy formula)\n- Heat capacity, susceptibilities, etc., from second derivatives\n\nThe Boltzmann distribution is *the* answer to 'system in contact with a heat bath.' Everything in equilibrium thermodynamics flows from this one equation. It's why you only need one number — temperature — to summarize a thermodynamic state at equilibrium: temperature picks the distribution."
+    },
+    {
+      "kind": "text",
+      "title": "Ensembles",
+      "body": "Three standard ensembles, each appropriate for different physical setups:\n\n**Microcanonical (NVE)**. Isolated system; fixed number of particles `N`, volume `V`, total energy `E`. All accessible microstates are equally probable. Entropy is `S = k_B log Ω(E)` where `Ω(E)` is the number of accessible microstates. This is Boltzmann's tombstone formula.\n\n**Canonical (NVT)**. System in contact with a heat bath at temperature `T`; fixed `N`, `V`, but energy fluctuates. The distribution is the Boltzmann distribution. Most everyday physics chemistry / biology uses this.\n\n**Grand canonical (μVT)**. System exchanges both energy and particles with a bath; fixed chemical potential `μ`, volume, temperature. Used for adsorption problems, phase coexistence, and many quantum-statistical setups.\n\nIn the **thermodynamic limit** (`N → ∞`), expectation values become equal across ensembles. So you pick whichever is mathematically easiest.\n\nFor most introductory problems and for the link to ML, the **canonical ensemble + Boltzmann distribution** is what you need."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sm_q1",
+        "kind": "multiple_choice",
+        "question": "Why is the Boltzmann distribution the answer for a system in contact with a heat bath?",
+        "options": [
+          "It's an arbitrary modeling choice",
+          "It maximizes the system's energy",
+          "It maximizes the entropy of the system + bath subject to the constraint that the average energy is fixed — equivalently, it's the maximum-entropy distribution given a constraint on ⟨E⟩",
+          "It minimizes free energy directly"
+        ],
+        "correctIndex": 2,
+        "explanation": "Apply the maximum entropy principle: among all probability distributions over microstates, find the one that maximizes Shannon entropy subject to the constraint ⟨E⟩ = fixed. Lagrange multipliers give exactly p(s) = exp(-βE_s)/Z. β is the Lagrange multiplier; it turns out to equal 1/(k_B T) once you identify the dual variable with thermodynamic temperature. This is the deep reason ML's softmax — itself a max-entropy distribution given a constraint — has the same form as the Boltzmann distribution."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Entropy and free energy",
+      "body": "Two key thermodynamic quantities, restated through statistical mechanics:\n\n**Entropy** is logarithmic counting: `S = k_B log Ω(E)` for an isolated system, or `S = -k_B Σ p_s log p_s` (Gibbs) more generally. Entropy measures the *number* of microstates consistent with the macroscopic constraints. High-entropy macrostates are more likely simply because they contain more microstates.\n\nThe **second law of thermodynamics** is then a statistical statement: an isolated system spontaneously evolves toward macrostates of higher multiplicity, because there are more of them. It's not a fundamental law — it's a probability statement about huge `N`.\n\n**Free energy**: in the canonical ensemble:\n\n$$F = U - TS = -k_B T \\log Z$$\n\nFree energy is the quantity systems *minimize* at fixed temperature. Equivalently, the Boltzmann distribution is the one that minimizes free energy.\n\nThe analog appears all over ML:\n- **Variational free energy** in VAEs / variational inference: minimize `KL(q || p) - log p(data)` — exactly a free-energy minimization.\n- **Energy-based models**: Boltzmann machines, Hopfield networks, modern denoising-diffusion-as-energy interpretations.\n- **Free-energy principle** (Karl Friston): brains minimize a sensory-state free energy. Whether or not you buy the cosmology, the mathematical structure is statistical mechanics through and through."
+    },
+    {
+      "kind": "text",
+      "title": "Worked example: two-state system",
+      "body": "Consider a single magnetic spin in a magnetic field `B`. Two microstates:\n- Up: energy `-μB`\n- Down: energy `+μB`\n\nPartition function:\n\n$$Z = e^{\\beta\\mu B} + e^{-\\beta\\mu B} = 2\\cosh(\\beta \\mu B)$$\n\nProbability of up:\n\n$$p_\\uparrow = \\frac{e^{\\beta\\mu B}}{2\\cosh(\\beta\\mu B)} = \\frac{1}{1 + e^{-2\\beta\\mu B}}$$\n\nThat's exactly the **sigmoid function** with effective input `2βμB`. Statistical mechanics predicts the two-state populations as a sigmoid in `(field × inverse-temperature)`.\n\nNow scale up: `N` non-interacting spins. The total magnetization `M` is the sum of their individual states, and `M/N` is the average — a sigmoid in `βμB`. As `B → 0`, `M/N → 0` (random alignment). As `B → ∞`, `M/N → 1` (saturation).\n\nThis is exactly the **logistic regression** model. The 'temperature' becomes the inverse softmax temperature in classification. Cross-entropy loss is the negative log-likelihood under the same kind of distribution.\n\nThe rest of statistical mechanics — Ising models with interaction, mean-field theory, phase transitions — generalizes from this. ML's energy-based models inherit the framework directly."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sm_q2",
+        "kind": "multiple_choice",
+        "question": "What's the relationship between the softmax function and the Boltzmann distribution?",
+        "options": [
+          "They're unrelated",
+          "Softmax is the multiclass analog of the Boltzmann distribution. Given energies (logits) {E_i}, the probability of class i is exp(-βE_i)/Z, with β = 1 (or temperature parameter). Both are maximum-entropy distributions over a discrete state space subject to a single energy constraint",
+          "Softmax is the reciprocal of Boltzmann",
+          "Softmax is for classification; Boltzmann is for physics"
+        ],
+        "correctIndex": 1,
+        "explanation": "Softmax is the Boltzmann distribution. ML calls the energy 'logits' and the inverse temperature 'temperature parameter,' but the math is identical: p_i ∝ exp(-βE_i). At low β (high temperature), the distribution is uniform (entropy maximized); at high β (low temperature), it concentrates on the lowest-energy class (energy minimized). The softmax temperature in language model decoding is *literally* the same temperature as in statistical mechanics."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Statistical mechanics gives us a bridge from microscopic dynamics to macroscopic thermodynamic behavior — and along the way produces the same exponential-family / max-entropy distributions ML uses for classification and generative modeling.\n\nKey takeaways:\n- Statistical mechanics tracks distributions over microstates rather than tracking individual particles\n- Boltzmann distribution: `p(s) = exp(-E_s/k_BT)/Z` is the equilibrium distribution at temperature T\n- Partition function Z is the central object — derivatives give all thermodynamics\n- Entropy = log of multiplicity; the second law is a counting argument about huge N\n- Free energy F = -k_BT log Z is what systems minimize at fixed temperature\n- Softmax in ML and Boltzmann in physics are the same distribution, with different names\n\nNext: [[entropy-and-information]] — completing the bridge by showing that Boltzmann's thermodynamic entropy and Shannon's information entropy are the same quantity."
+    }
+  ]
+}

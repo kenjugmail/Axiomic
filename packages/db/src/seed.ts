@@ -425,6 +425,75 @@ Soft labels, temperature, the Hinton recipe. Modern variants: on-policy distilla
 
 Each of these is a topic where the median engineer's intuition is wrong about something specific. The wiki pages encode the things that aren't obvious. Pair them with the [misconception marketplace](/misconceptions) — every wiki page now has corresponding misconception catalog entries — and you get the negative-knowledge half of the curriculum.`,
     },
+    {
+      slug: "ml-engineer-ramp-up-end-to-end",
+      title: "ML engineer ramp-up, end-to-end: a 12-week path through Axiomic",
+      summary:
+        "If you're an engineer learning modern ML systems, here's a curated 12-week path through the platform. Lessons + capstones + wiki pages, ordered. The fastest way from 'I've heard of attention' to 'I can ship a production inference stack.'",
+      coverEmoji: "🗺️",
+      accentColor: "emerald",
+      authorId: carolId,
+      body: `The platform now has enough content for a complete ML-engineer ramp-up. This article is the curated map: which lessons in which order, when to drop into a wiki page for depth, when to start which capstone.
+
+Twelve weeks, three phases. Each phase ends with a capstone that turns the conceptual content into a defensible artifact. The whole path produces three signed transcripts at \`/verify\` and a [Knowledge MRI](/me/mri) that shows your concept-level coverage.
+
+## Weeks 1-4: Foundations + the transformer
+
+The goal of phase one is to understand what's actually happening inside a transformer at the math level. Not 'attention attends'; rather 'this matmul produces these gradients which update these weights.'
+
+Lessons (in order):
+
+1. [Tokens & embeddings](/paths/ml-engineer/lessons/tokens-basics) — what the model actually sees
+2. [BPE tokenization](/paths/ml-engineer/lessons/bpe-tokenization) — the merge-pair algorithm
+3. [Softmax basics](/paths/ml-engineer/lessons/softmax-basics) — the universal classifier head
+4. [Self-attention intro](/paths/ml-engineer/lessons/self-attention) and [scaled dot-product](/paths/ml-engineer/lessons/attention-intro)
+5. [Multi-head attention](/paths/ml-engineer/lessons/multi-head-attention) and [positional encoding](/paths/ml-engineer/lessons/positional-encoding)
+6. [FFN](/paths/ml-engineer/lessons/ffn), [layer norm](/paths/ml-engineer/lessons/layer-norm), [residual connections](/paths/ml-engineer/lessons/residual-connections)
+7. [Transformer block](/paths/ml-engineer/lessons/transformer-block) — putting it together
+
+Wiki side trips: [[attention]], [[softmax]], [[layer-normalization]] for depth. Hover the [[concept-cards]] inline for previews.
+
+**Capstone**: [Build a transformer from scratch](/capstones/transformer-from-scratch) (8 weeks if you take it slow; 4 if you focus). Output: a 2-layer transformer in numpy that trains on a copy task. You'll know exactly what each weight does.
+
+## Weeks 5-8: Modern systems + training
+
+Phase two: the modern recipe. RoPE, grouped-query attention, SwiGLU, AdamW, LoRA, RLHF. The lessons cover *what changed since the original transformer paper* and *why*.
+
+Lessons:
+
+1. [Modern architectures](/paths/ml-engineer/lessons/modern-architectures) — RoPE + GQA + SwiGLU
+2. [Training objectives](/paths/ml-engineer/lessons/training-objectives) and [sampling-decoding](/paths/ml-engineer/lessons/sampling-decoding)
+3. [Scaling laws](/paths/ml-engineer/lessons/scaling-laws) — Kaplan vs Chinchilla; tokens-per-parameter
+4. [Fine-tuning + LoRA](/paths/ml-engineer/lessons/fine-tuning-lora) — full vs LoRA vs adapters
+5. [RLHF](/paths/ml-engineer/lessons/rlhf) — the 3-stage pipeline; reward hacking; the move to DPO
+6. [RAG](/paths/ml-engineer/lessons/rag) — retrieval, generation, evaluation
+
+Wiki side trips: [[lora]], [[rlhf]], [[preference-optimization]], [[retrieval-evaluation]]. The [misconception catalog](/misconceptions) entries on LoRA rank, RAG perfect-retrieval, and Chinchilla universality are worth reading explicitly — these are the gotchas that trip up the median engineer.
+
+**Capstone choice** (pick one): [RAG pipeline from scratch](/capstones/rag-pipeline-from-scratch) (6 weeks) if you're heading into retrieval-system territory; [Fine-tuning + LoRA](/capstones/fine-tuning-and-lora) (4 weeks) if you're heading into model adaptation; [Training stability at scale](/capstones/training-stability-at-scale) (4 weeks) if you're heading into pretraining ops.
+
+## Weeks 9-12: Production inference + frontier topics
+
+Phase three: shipping. The lessons here are about what runs in production — KV-caching, FlashAttention, quantization, serving. Plus the frontier-topic primers (mech interp, alignment) so you can read papers at the level they're written.
+
+Lessons:
+
+1. [KV-cache](/paths/ml-engineer/lessons/kv-cache) and the [flash-attention] wiki
+2. [Mechanistic interpretability](/paths/ml-engineer/lessons/mechanistic-interp) — induction heads + superposition + SAEs
+3. (For ai-researcher path) [Interpretability](/paths/ai-researcher/lessons/interpretability), [Alignment frontier](/paths/ai-researcher/lessons/alignment-frontier), [Emergent capabilities](/paths/ai-researcher/lessons/emergent-capabilities)
+
+Wiki side trips: [[quantization]], [[speculative-decoding]], [[function-calling]], [[prompt-injection]]. These are the topics most production engineers operate on without ever reading a coherent treatment of.
+
+**Capstone choice**: [Inference optimization: KV-cache + quantization](/capstones/inference-optimization-kvcache-quant) (5 weeks) is the production-systems capstone. End state: a single-GPU inference server with measured tokens-per-second, peak memory, and held-out quality across baseline → KV-cache → INT8 → both. If you're heading into a research direction instead, [Mech-interp induction heads](/capstones/mech-interp-induction-heads) (5 weeks) is the alternative.
+
+## What you'll have at the end
+
+Three signed transcripts. A [portfolio page](/profile) that surfaces all three. A Knowledge MRI heatmap that's emerald across the ML-engineer path. And — assuming you defended a few claim threads on your artifact pages — a public discussion record that prospective employers can read.
+
+The platform's [coach](/me/weak-concepts) will keep flagging misconceptions as they surface. The [argument maps](/forum) will keep showing where your peers are stuck. And the [research papers](/research) keep arriving — same authoring loop, same tier toggle, same runnable cells if the paper has them.
+
+Ship the path, then write a paper about something you noticed along the way. That's the loop.`,
+    },
   ];
 
   for (const a of articles) {

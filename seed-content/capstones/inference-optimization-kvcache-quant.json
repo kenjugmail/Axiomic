@@ -1,0 +1,72 @@
+{
+  "slug": "inference-optimization-kvcache-quant",
+  "title": "Inference optimization: KV-cache + quantization",
+  "summary": "Take a small open model from baseline to production-grade serving. Implement KV-caching, INT8 weight quantization, and measure the tokens-per-second + quality delta on a real eval. The capstone for engineers crossing from 'I can train' to 'I can serve.'",
+  "estimatedWeeks": 5,
+  "coverEmoji": "⚡",
+  "accentColor": "amber",
+  "tags": ["inference", "optimization", "production", "quantization"],
+  "prerequisiteWikiSlugs": ["kv-cache", "flash-attention", "quantization"],
+  "canonicalTier": "undergrad",
+  "contentIntro": "## What you'll build\n\nA single-GPU inference server for a small open model that goes through four optimization stages, each measured before and after. By the end you'll have:\n\n- A reproducible benchmark harness (latency, throughput, memory, quality)\n- A KV-cache implementation built from scratch\n- An INT8-quantized model with measured quality preservation\n- A final report comparing all four stages on tokens-per-second, peak memory, and held-out eval score\n\nThe capstone signals to employers that you understand the full inference stack — not just 'I plugged into vLLM.'\n\n[[kv-cache]] · [[flash-attention]] · [[quantization]]",
+  "contentUndergrad": "## What you'll build\n\nFour milestones, ~5 weeks. Each milestone is code + measurements + a writeup. Use a small open model (Qwen 1.5-1.8B, Pythia-1.4B, TinyLlama-1.1B — anything you can run on a single 16-24GB GPU). The lessons aren't about scale; they're about understanding *why* each optimization helps.\n\n## Format\n\nSingle GPU. PyTorch is fine for the from-scratch implementations; Transformers library is fine for baselines. Avoid using vLLM / TGI / TensorRT — those are great in production but they hide what this capstone is teaching. Build it yourself.\n\n[[kv-cache]] · [[flash-attention]] · [[quantization]]",
+  "contentGrad": "## What you'll build\n\nA mini inference engine you'd hand to a backend engineer to use as a baseline before reaching for vLLM. Defense (claim-thread Q&A on the artifact page) covers: where the latency budget goes per token, the memory accounting for KV-cache + weights + activations, the quality-vs-throughput Pareto frontier of quantization, and how each optimization composes (or doesn't) with the others.",
+  "milestones": [
+    {
+      "title": "Baseline serving + benchmark harness",
+      "description": "Pick a small open model (~1-2B params) and write a serving loop that takes a prompt and generates N tokens. No optimizations yet — straightforward forward-pass-per-token, recompute everything. Measure:\n\n- **Latency per token** (prefill latency for the prompt + decode latency per output token)\n- **Throughput** in tokens-per-second under N=1 (single user) and a small batch (N=4)\n- **Peak GPU memory** during a 256-prompt, 256-output-token run\n- **Quality**: pick a small eval (LM-eval-harness BoolQ or HellaSwag, or a custom 100-prompt set). Score the model's output\n\nIn your writeup: a baseline table + one breakdown chart showing where time is spent (prefill vs decode, attention vs FFN). Use `torch.cuda.Event` or `nvtx` markers to attribute time.\n\nThis milestone is about building the measurement scaffold the rest of the capstone hangs on. Get it right and the next three milestones become before-vs-after comparisons.",
+      "rubric": {
+        "criteria": [
+          { "id": "harness", "weight": 0.5, "description": "Benchmark harness measures latency, throughput, memory, and quality correctly.", "aiPrompt": "Score whether the benchmark harness reports prefill + decode latency separately, throughput at multiple batch sizes, peak memory accurately, and a quality eval score. Are the measurements reproducible?" },
+          { "id": "breakdown", "weight": 0.3, "description": "Time-attribution breakdown.", "aiPrompt": "Score whether the writeup attributes time to prefill vs decode and to attention vs FFN. Does the learner explain where the latency budget actually goes?" },
+          { "id": "writeup", "weight": 0.2, "description": "Reproducible setup.", "aiPrompt": "Score whether the setup (model choice, eval, hardware) is documented well enough that another engineer can rerun." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 8
+    },
+    {
+      "title": "Implement KV-cache from scratch",
+      "description": "Add KV-caching to your serving loop. The key insight: during decode, the K and V tensors for past positions don't change. Store them in a cache (one buffer per layer per head) and append the new K and V at each step instead of recomputing from scratch.\n\nImplementation steps:\n\n1. Pre-allocate the cache buffers with shape `[batch, num_kv_heads, max_seq_len, head_dim]` per layer.\n2. Modify your model's attention forward pass to accept a position index + cache reference.\n3. At each decode step, write the new K, V to position `t` and read all positions `0..t` for attention.\n4. Verify correctness: outputs should be bit-identical (or floating-point-close) to the no-cache baseline.\n5. Re-run the benchmarks: latency per output token should drop dramatically; peak memory should *rise* (the cache itself is the new memory cost).\n\nIn your writeup: a memory-accounting table showing where the bytes go (model weights + activations + KV-cache). Compare your throughput-per-output-token before and after.\n\n**Common pitfall**: the cache memory grows as `2 × num_layers × num_kv_heads × head_dim × seq_len × 2_bytes_fp16`. For a 1.5B model at seq_len 4096, this is multiple GBs — easy to OOM. Surface this trade-off explicitly.",
+      "rubric": {
+        "criteria": [
+          { "id": "correctness", "weight": 0.4, "description": "Cached outputs match the uncached baseline.", "aiPrompt": "Score whether the KV-cache produces outputs that match the uncached baseline within floating-point tolerance. Is there an explicit correctness test?" },
+          { "id": "implementation", "weight": 0.3, "description": "Implementation is from scratch and well-structured.", "aiPrompt": "Score the implementation: is it actually from-scratch (not just calling Transformers' built-in cache), and is the code organized cleanly?" },
+          { "id": "memory_analysis", "weight": 0.3, "description": "Memory accounting + throughput delta.", "aiPrompt": "Score the writeup's depth on memory accounting and the explanation of where the throughput gain comes from. Does the learner identify the memory-vs-speed tradeoff?" }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 10
+    },
+    {
+      "title": "INT8 weight quantization",
+      "description": "Quantize the model's linear-layer weights from FP16 to INT8 using a per-channel symmetric scheme. Activations stay in FP16. Steps:\n\n1. For each `nn.Linear` weight matrix `W` of shape `[out, in]`, compute per-output-channel scales: `scale_i = max(|W_i,:|) / 127`. Quantize: `W_q = round(W / scale)`. Store `W_q` (INT8) and `scale` (FP16).\n2. Replace each linear layer with a custom `Int8Linear`: dequantize on the fly during forward (`W ≈ W_q × scale`) and matmul in FP16. (Optional stretch: use INT8 matmul kernels — `torch.int8` ops or a custom CUDA kernel — to also speed up the matmul.)\n3. Verify: model loads, generates coherent text, doesn't NaN.\n4. Re-run quality eval. Compare to baseline + KV-cached versions.\n5. Re-run benchmarks: peak memory should drop (weights are 2× smaller); per-token latency may or may not improve depending on whether you used INT8 kernels.\n\nIn your writeup: quality delta vs FP16 (it should be small — single-digit % on most evals); memory savings; and a discussion of *why* INT8 quantization preserves quality (the rank of the weight matrix doesn't change; you're just losing low-order bits that the network was robust to).\n\n**Stretch**: implement a simple per-tensor activation quantization too, and compare to weight-only.",
+      "rubric": {
+        "criteria": [
+          { "id": "implementation", "weight": 0.4, "description": "INT8 quantization implemented correctly with per-channel scales.", "aiPrompt": "Score whether the INT8 quantization is implemented correctly: per-channel symmetric scales, INT8 storage, FP16 dequant on the fly. Is the dequant math right?" },
+          { "id": "quality", "weight": 0.3, "description": "Quality delta is measured + small.", "aiPrompt": "Score whether the eval quality delta is reported and small (single-digit % degradation is the typical bar). Are the measurements meaningful?" },
+          { "id": "writeup", "weight": 0.3, "description": "Memory savings + reasoning.", "aiPrompt": "Score the writeup's depth on memory savings and the explanation of why INT8 weight quantization tends to preserve model quality." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 10
+    },
+    {
+      "title": "Final report: tokens-per-second + quality delta",
+      "description": "Produce the final report comparing all four stages: baseline → KV-cache → INT8 quantization → both combined. For each stage, report:\n\n- Tokens-per-second at batch=1 and batch=4\n- Peak GPU memory\n- Quality eval score\n- Time-attribution breakdown (prefill vs decode, attention vs FFN)\n\nThe table should make the engineering tradeoffs visible: KV-cache buys throughput but costs memory; INT8 buys memory but may cost a small amount of quality. Combined, they should win on both axes.\n\nThen write a *production recommendation* section: given a constraint (e.g., 'I have a 24GB GPU and need to serve 8 concurrent users at 50 tokens/sec each'), which combination would you ship? Show the math.\n\nFinally, identify two optimizations you didn't implement but would consider next: candidates include FlashAttention, INT4 quantization (GPTQ / AWQ), speculative decoding, paged-attention. For each, write 2-3 sentences on what it'd buy you and where it'd fit in your stack.\n\nThis milestone is the synthesis. The grader is looking for engineering judgment — not just numbers, but the ability to *interpret* the numbers and recommend an action.",
+      "rubric": {
+        "criteria": [
+          { "id": "comparison", "weight": 0.4, "description": "Four-stage comparison table is complete and accurate.", "aiPrompt": "Score whether the four-stage comparison reports tokens/sec, memory, quality, and breakdown for each stage with comparable measurements." },
+          { "id": "recommendation", "weight": 0.3, "description": "Production recommendation with reasoning.", "aiPrompt": "Score the production recommendation: does the learner pick a sensible deployment given a stated constraint, and back it with the numbers from their experiments?" },
+          { "id": "next_steps", "weight": 0.3, "description": "Future-optimization analysis.", "aiPrompt": "Score the discussion of two optimizations not implemented. Does the learner show real understanding of where each optimization fits and what it would buy?" }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    }
+  ]
+}

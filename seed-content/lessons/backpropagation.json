@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What backprop actually is",
+      "body": "**Backpropagation** is the algorithm for computing gradients of a loss with respect to every parameter in a neural network. It's the chain rule applied systematically through the network's computation graph, in **reverse-mode**.\n\nWithout backprop, training neural networks is impractical. Computing gradients via numerical differentiation (finite differences) is feasible for tiny networks but scales terribly: each parameter requires a separate forward pass to estimate its derivative. With millions or billions of parameters, this is impossible.\n\nBackprop computes all gradients in roughly **two forward passes' worth of work**, regardless of how many parameters there are. This is the algorithmic breakthrough that made deep learning practical.\n\nMisconception: 'backprop is a second forward pass.' Wrong. It's a *reverse* pass over the computation graph, applying the chain rule and accumulating gradients in each node."
+    },
+    {
+      "kind": "text",
+      "title": "Forward + backward",
+      "body": "Training one batch consists of two passes:\n\n**Forward pass**: compute the output of every layer in order. Cache each layer's input + output. The final layer's output is compared to the target via the loss function.\n\n**Backward pass**: compute gradients in reverse order. Starting from the loss (which is a scalar, so its gradient w.r.t. itself is 1), use the chain rule to propagate the gradient backward through each layer.\n\nFor a layer with input `x`, weights `W`, output `y = f(W, x)`:\n- We're given `∂L/∂y` from the layer above\n- Compute `∂L/∂W = (∂L/∂y) · (∂y/∂W)` — what the gradient of the loss is w.r.t. THIS layer's weights\n- Compute `∂L/∂x = (∂L/∂y) · (∂y/∂x)` — what the gradient is w.r.t. THIS layer's input, which is the next-lower layer's output\n\nPropagate `∂L/∂x` to the layer below; repeat. Done when you've reached the input.\n\nKey insight: `∂L/∂x` is exactly the upstream gradient that the previous layer needs. The structure is recursive."
+    },
+    {
+      "kind": "text",
+      "title": "Reverse-mode = chain rule, applied right",
+      "body": "There are two ways to apply the chain rule through a long composition `f(g(h(x)))`:\n\n**Forward-mode**: `df/dx = df/dg · dg/dh · dh/dx`. Compute right-to-left. For each input dimension, do one pass. **Linear in the number of inputs.**\n\n**Reverse-mode**: same chain, computed left-to-right. For each output dimension, do one pass. **Linear in the number of outputs.**\n\nFor neural networks, the loss is one number (one output), and there are millions of parameters (millions of inputs). **Reverse-mode is the right choice**: one pass to compute the gradient w.r.t. all parameters.\n\nThis is the algorithmic asymmetry that makes deep learning feasible. Forward-mode autodiff would require one pass per parameter — impossible at modern scale."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "bp_q1",
+        "kind": "multiple_choice",
+        "question": "Why does backprop store cached forward-pass activations?",
+        "options": [
+          "For caching purposes — it's an optimization",
+          "Computing gradients via the chain rule requires the values of intermediate activations from the forward pass. Without them, you'd have to recompute the forward pass while doing the backward pass, doubling memory bandwidth",
+          "To avoid numerical errors",
+          "Only specific architectures need this"
+        ],
+        "correctIndex": 1,
+        "explanation": "The chain rule term `∂y/∂x` for layer y = f(W, x) typically depends on the value of x (or y, or both). To compute the gradient w.r.t. that layer's parameters, you need those activations. Without caching, the backward pass would need to redo the forward pass — possible (gradient checkpointing) but at higher compute cost. Standard backprop trades memory (caching activations) for compute speed."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What backprop computes — and what it doesn't",
+      "body": "Backprop computes `∂L/∂W` for every trainable parameter `W` in the network. That's it.\n\n**Backprop does NOT compute** the gradient of the loss w.r.t. inputs by default. The input gradient `∂L/∂x` exists but is usually thrown away — most autograd frameworks compute it transiently during the backward pass and don't store it.\n\nWhen you DO want it (input attribution, saliency maps, adversarial example generation), you have to ask the framework explicitly. PyTorch: `x.requires_grad_(True)` before the forward pass.\n\nAlso: backprop computes gradients of a *scalar* loss with respect to (vector / matrix / tensor) parameters. For a scalar input and scalar output, it's the standard 1D derivative. For everything else, the gradient is a tensor with the same shape as the parameter.\n\nMisconception: 'backprop computes derivatives of inputs.' Default behavior is gradients w.r.t. *parameters*, not inputs. Both are possible; the default is parameters."
+    },
+    {
+      "kind": "text",
+      "title": "Memory and gradient checkpointing",
+      "body": "Backprop's memory cost: caching activations from the forward pass. For a deep network, this is roughly `(activation size per layer) × (number of layers)`. For LLMs at long context, this dominates training memory.\n\n**Gradient checkpointing** trades memory for compute: only cache activations every `K` layers. During the backward pass, when a needed activation isn't cached, recompute from the nearest checkpoint by running the forward pass again from there. Memory drops by ~`K`×; compute increases by ~33% (one extra forward pass).\n\nFor large transformers, gradient checkpointing is the difference between fitting a training run on hardware and not. LLaMA-2 70B training uses it; almost every fine-tune at meaningful scale uses it.\n\n**FlashAttention** is partly a gradient-checkpointing trick applied to attention specifically — recompute the attention matrix in the backward pass rather than caching it. (See [[flash-attention]].)"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "bp_q2",
+        "kind": "multiple_choice",
+        "question": "Why does gradient checkpointing reduce memory at the cost of compute?",
+        "options": [
+          "Checkpointing uses lower precision",
+          "Standard backprop caches all forward-pass activations to use during the backward pass. Gradient checkpointing only caches every Kth layer's activations; intermediate activations are recomputed during the backward pass. Memory drops, compute increases by ~33%",
+          "It uses fewer parameters",
+          "Compute and memory are unrelated"
+        ],
+        "correctIndex": 1,
+        "explanation": "The exchange is direct: cache fewer things, recompute more things. For activations that aren't cached, the backward pass redoes the forward pass from the nearest checkpoint to reconstruct them. Memory savings scale roughly with checkpoint frequency; compute cost is roughly one extra forward pass per training step. Standard for large transformer training."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Backprop is the algorithm that makes neural networks practical. The chain rule is mechanical; what makes backprop work at scale is the structural choice of reverse-mode autodiff and the engineering tricks (caching, checkpointing, FlashAttention) that manage the memory cost.\n\nThis lesson is the last in the math foundations path. From [[linear-algebra-foundations]] through [[probability-foundations]], [[statistics-foundations]], [[calculus-foundations]], [[loss-functions]], [[gradient-descent]], to backpropagation, you've covered the math substrate of modern ML.\n\nKey takeaways:\n- Backprop is reverse-mode autodiff applied through the network's computation graph\n- It's chain rule applied systematically — not a 'second forward pass'\n- One backward pass computes gradients w.r.t. all parameters; this is what makes deep learning feasible\n- Memory cost from caching activations; gradient checkpointing trades memory for compute\n- Default computes gradients w.r.t. parameters, NOT inputs (you have to ask explicitly for input gradients)"
+    }
+  ]
+}
