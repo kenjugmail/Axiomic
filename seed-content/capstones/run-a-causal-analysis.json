@@ -1,0 +1,78 @@
+{
+  "slug": "run-a-causal-analysis",
+  "title": "Run a Defensible Causal Analysis on Observational Data",
+  "summary": "From a research question to a published causal estimate, with explicit DAG, identifiability check, sensitivity analysis, and a defended decision against an explicit list of alternative explanations.",
+  "format": "research",
+  "estimatedWeeks": 7,
+  "coverEmoji": "🔗",
+  "accentColor": "#7C3AED",
+  "canonicalTier": "undergrad",
+  "contentIntro": "## What you'll build\n\nOne complete observational causal analysis: question → DAG → identifiability check → estimation → sensitivity analysis → final defense. The output is a portfolio piece that demonstrates you can do real causal inference, not just regression-with-controls.\n\nThis capstone bridges the applied-stats path (where causal inference shows up as one node) and the full causality path. Treat the work as if a senior epidemiologist or applied econometrician would peer-review the output.\n\n## What you'll demonstrate\n\n- You can frame an observational research question with explicit treatment, outcome, and confounders.\n- You can draw a defensible DAG and apply the backdoor criterion (or front-door, or IV) to derive an identifying expression.\n- You can implement multiple estimators (regression, IPW, doubly-robust, causal forest) and report agreement / disagreement.\n- You can run sensitivity analysis (E-values, confounder bounds, placebo tests) and interpret the results.\n- You can defend the conclusion against alternative interpretations.",
+  "contentUndergrad": "## Why this capstone\n\nMost ML practitioners read causal-inference papers but don't run causal analyses themselves. This capstone changes that. By the end, you'll have one defensible causal artifact: a research question + DAG + identification strategy + multiple estimators + sensitivity analysis + a defended decision report.\n\n## Picking a question\n\nThree offered scenarios (or propose your own):\n\n- **Education**: estimate the effect of a tutoring program on test scores using observational data from a school district. Selection on unobserved motivation is the central concern.\n- **Healthcare**: estimate the effect of a smoking-cessation intervention on lung-function outcomes from electronic-health-record data. Confounding by severity-of-disease is the central concern.\n- **Product**: estimate the effect of a feature-adoption campaign on user retention from observational logs. Self-selection into adoption is the central concern.\n\nAll three give you: a clear treatment, a measurable outcome, plausible confounders, and the kind of selection-on-unobservables problem that makes the analysis non-trivial.\n\n## Tools\n\n- Python (pandas, scikit-learn, statsmodels) or R (tidyverse, dagitty, ipw, mediation).\n- DoWhy (Python) or `dagitty` (R + browser) for DAG-based identification.\n- EconML for HTE / causal-forest estimators.\n- Sensitivity-analysis tools: `sensemakr`, `EValue`, `tipr`.\n\n## Pacing\n\n7 weeks at ~3-5 hrs/week. Most of the time lands in milestones 2 (DAG + identification) and 5 (sensitivity + defense). Milestones 3-4 are mechanical once the design is right.",
+  "contentGrad": "## Notes for the experienced\n\nIf you've published causal-inference papers already, the value of this capstone is the **rigor pass + replication artifact**: forcing yourself to walk through every step explicitly, with the rubric demanding you defend each choice.\n\nLikely places where production / academic practitioners are sloppy:\n\n- Skipping the DAG (going directly from regression to causal claim).\n- Adjusting for post-treatment variables (introducing M-bias).\n- Reporting only one estimator (no cross-method robustness check).\n- No sensitivity analysis (presenting estimates as definitive).\n- HTE analysis as p-hacking instead of pre-registration.\n\nThe rubric specifically rewards naming when you would have done it differently in a less-rigorous setting and why the rigor matters here.\n\n## Variants\n\n- **IV variant**: focus on instrumental-variable identification with explicit weak-instrument diagnostics + Anderson-Rubin inference.\n- **RDD variant**: scenario with a sharp threshold; bandwidth selection + manipulation tests + RDD plot.\n- **Mediation variant**: estimate natural direct + indirect effects with sensitivity analysis on the M-Y unconfoundedness assumption.\n- **HTE variant**: estimate CATE with causal forests; report per-segment effects with proper multiple-testing protection.\n\nAuthor approval required for any variant — keep the rubric matching what you actually delivered.",
+  "prerequisiteWikiSlugs": [
+    "correlation-vs-causation",
+    "potential-outcomes",
+    "dag",
+    "d-separation",
+    "backdoor-criterion",
+    "do-operator",
+    "identifiability",
+    "rct-design",
+    "instrumental-variable",
+    "exclusion-restriction",
+    "hte",
+    "causal-forests"
+  ],
+  "tags": ["causality", "causal-inference", "observational-study", "DAG", "production"],
+  "milestones": [
+    {
+      "order": 1,
+      "title": "Research question + data audit",
+      "description": "Pick your scenario. Write down: the research question (what causal effect do you want to estimate?), the population, the treatment, the outcome, the time window. Audit the data: sample size, missingness, time order of variables, plausible measurement error.\n\n**Deliverables**: a `question.md` writeup framing the causal question + a Python/R notebook with descriptive statistics + a missingness analysis. Include a 'why observational' section explaining why an RCT isn't feasible.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"question-clarity\",\"weight\":0.4,\"description\":\"Question is causal and specific\",\"aiPrompt\":\"Score 0-1. Is the research question framed as a causal question (about an intervention) rather than just predictive? Is the treatment, outcome, population, and time window specified?\"},{\"id\":\"data-audit\",\"weight\":0.3,\"description\":\"Data adequacy is checked\",\"aiPrompt\":\"Score 0-1. Does the audit cover sample size, missingness, time order of variables, and plausible measurement error? Are concerns acknowledged before running analyses?\"},{\"id\":\"why-observational\",\"weight\":0.3,\"description\":\"Defended choice of observational vs experimental\",\"aiPrompt\":\"Score 0-1. Does the writeup explain why an RCT isn't feasible (cost, ethics, logistics)? Is the framing of the question matched to the kind of data that's available?\"}],\"passingScore\":0.6,\"notes\":\"Reward clear thinking about why observational analysis is needed and what's at stake. Penalize prediction-framed questions disguised as causal.\"}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 5
+    },
+    {
+      "order": 2,
+      "title": "DAG + identification strategy",
+      "description": "Draw the causal DAG. Include: treatment, outcome, observed confounders, suspected unobserved confounders, mediators, post-treatment variables you'll AVOID conditioning on. Apply the backdoor criterion (or front-door, or instrumental). Derive the identifying expression. State the assumptions you're making.\n\n**Deliverables**: a `dag.md` writeup (with the DAG visualized via `dagitty` or hand-drawn). A list of testable conditional independencies derived from d-separation. A defended adjustment set + identifying expression.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"dag-justified\",\"weight\":0.4,\"description\":\"DAG encodes defensible assumptions\",\"aiPrompt\":\"Score 0-1. Does the DAG include the obvious confounders + plausible unobserved ones? Does the writeup defend each arrow's direction with domain knowledge?\"},{\"id\":\"identification-correct\",\"weight\":0.3,\"description\":\"Identifying expression is correct\",\"aiPrompt\":\"Score 0-1. Does the chosen adjustment set actually satisfy the backdoor criterion (no descendants of T; blocks all backdoor paths)? Or for non-backdoor strategies, is the identification argument sound?\"},{\"id\":\"testable-implications\",\"weight\":0.3,\"description\":\"Testable conditional independencies listed\",\"aiPrompt\":\"Score 0-1. Are 3-5 testable d-separation implications listed? Are they actually checkable from the data and informative about the DAG's correctness?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "order": 3,
+      "title": "Multiple-estimator analysis",
+      "description": "Implement at least three estimators: (1) regression-based adjustment, (2) inverse-probability weighting (IPW) with propensity score, (3) doubly-robust (AIPW or TMLE), and either (4) causal forest for HTE or (5) IV/RDD if applicable. Report each estimate with confidence intervals.\n\n**Deliverables**: an `analysis.ipynb` with each estimator + a results table comparing estimates + a discussion of agreement / disagreement.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"three-estimators\",\"weight\":0.4,\"description\":\"At least three different estimators implemented\",\"aiPrompt\":\"Score 0-1. Are at least three distinct estimators implemented (not just three different parameterizations of the same one)? Are they correctly applied?\"},{\"id\":\"reported-with-cis\",\"weight\":0.3,\"description\":\"Confidence intervals reported correctly\",\"aiPrompt\":\"Score 0-1. Are CIs reported for each estimator? Are they computed correctly (e.g., bootstrap or analytical SE adjustments for IPW, valid IV CIs)?\"},{\"id\":\"discussion-agreement\",\"weight\":0.3,\"description\":\"Discussion of estimator agreement / disagreement\",\"aiPrompt\":\"Score 0-1. Does the writeup discuss whether the estimators agree? If they disagree, is the disagreement diagnosed (overlap issues, model misspecification, exogeneity violations)?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 8
+    },
+    {
+      "order": 4,
+      "title": "Heterogeneous treatment effects",
+      "description": "Estimate CATE using a causal forest (or X-learner / R-learner). Report per-subgroup effects WITH multiple-testing correction. Pre-register the subgroups before running the analysis (or explicitly mark which were exploratory). Plot the CATE distribution.\n\n**Deliverables**: a `hte.ipynb` with the causal forest output + a Qini-style ranking of subgroups + a written interpretation of who benefits more or less.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"hte-implementation\",\"weight\":0.3,\"description\":\"CATE estimator correctly implemented\",\"aiPrompt\":\"Score 0-1. Is the causal forest (or alternative) correctly applied? Are CIs computed with honesty / cross-fitting?\"},{\"id\":\"multiple-testing\",\"weight\":0.4,\"description\":\"Multiple-testing protection or pre-registration\",\"aiPrompt\":\"Score 0-1. Are subgroups pre-registered? If exploratory, is multiple-testing correction (Bonferroni, BH) applied? Does the writeup distinguish confirmatory from exploratory findings?\"},{\"id\":\"interpretation\",\"weight\":0.3,\"description\":\"Subgroup interpretation is calibrated\",\"aiPrompt\":\"Score 0-1. Does the writeup interpret subgroup effects without overstating? Does it acknowledge that observed heterogeneity could reflect noise + multiple comparisons?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "order": 5,
+      "title": "Sensitivity analysis",
+      "description": "Compute an E-value for the main estimate. Apply Conley-Hansen-Rossi bounds if using IV. Run placebo tests on outcomes that shouldn't be affected. Report how strong an unobserved confounder would need to be to overturn the conclusion.\n\n**Deliverables**: a `sensitivity.md` writeup + a Python/R notebook implementing each test + a clear bottom-line summary of how robust the conclusion is.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"e-value\",\"weight\":0.3,\"description\":\"E-value computed correctly\",\"aiPrompt\":\"Score 0-1. Is the E-value (or equivalent sensitivity measure) computed correctly? Is the interpretation calibrated?\"},{\"id\":\"placebo-tests\",\"weight\":0.4,\"description\":\"Placebo tests are meaningful\",\"aiPrompt\":\"Score 0-1. Are placebo tests run on outcomes that SHOULDN'T be affected by the treatment? Are they actually informative (not just trivial)? What does the result tell us about confounding?\"},{\"id\":\"robustness-summary\",\"weight\":0.3,\"description\":\"Bottom-line robustness statement\",\"aiPrompt\":\"Score 0-1. Does the writeup explicitly state how robust the conclusion is to plausible unobserved-confounder strengths? Is the statement neither overconfident nor a hedge?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "order": 6,
+      "title": "Defense + decision report",
+      "description": "Write the final defense report. Include: a one-paragraph executive summary, the main estimate, the multiple-estimator agreement, the sensitivity bounds, and an EXPLICIT list of alternative interpretations of the data with reasoning for why the chosen one is best.\n\nThe writeup is the artifact that goes in your portfolio. Treat it as something a senior statistician + a senior domain expert would BOTH review.\n\n**Deliverables**: a `defense.md` (~2000 words) covering all of the above + an executive summary + a 'what would have changed my mind' section.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"clear-conclusion\",\"weight\":0.3,\"description\":\"Conclusion is unambiguous\",\"aiPrompt\":\"Score 0-1. Is the recommendation / claim clear? Or does the writeup hedge so much that the reader can't tell what to believe?\"},{\"id\":\"alternative-interpretations\",\"weight\":0.4,\"description\":\"Acknowledges multiple readings\",\"aiPrompt\":\"Score 0-1. Does the writeup name specific alternative interpretations (selection bias, unobserved confounder, mediator misspecification) and explain why each is more or less plausible?\"},{\"id\":\"would-have-changed-mind\",\"weight\":0.3,\"description\":\"States falsifiability conditions\",\"aiPrompt\":\"Score 0-1. Does the writeup specify what observation would have changed the conclusion? What's the most fragile assumption?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["writeup"],
+      "estimatedDays": 7
+    }
+  ]
+}

@@ -708,6 +708,48 @@ The mathematician path covers theory; this path covers the production-flavored a
 
 For the broader picture of where the field is heading, see the new survey paper: [The Evaluation Rigor Frontier 2026](/research/evaluation-rigor-frontier-2026). Where sequential testing, calibration, and fairness have converged, where they haven't, and where the next decade probably lands.`,
     },
+    {
+      slug: "causality-path-launch",
+      title: "Causality path: from correlation-vs-causation to do-calculus and causal forests",
+      summary:
+        "A new mastery path covering Pearl-style causal inference end-to-end: DAGs, d-separation, do-calculus, RCTs, instrumental variables, mediation, heterogeneous treatment effects, causal discovery. The discipline that turns observational correlations into actionable claims.",
+      coverEmoji: "🔗",
+      accentColor: "violet",
+      authorId: aliceId,
+      body: `Most ML predictions answer the wrong question. \`P(Y | X)\` is correlational; \`P(Y | do(X))\` is causal. They differ whenever there's confounding — almost always in observational data. The new [causal-scientist path](/paths/causal-scientist) covers the discipline that distinguishes them.
+
+## What landed
+
+Nine lessons spanning the modern causal-inference toolkit:
+
+1. [Correlation vs Causation](/paths/causal-scientist/lessons/correlation-vs-causation) — why the slogan matters in production ML.
+2. [Potential Outcomes](/paths/causal-scientist/lessons/potential-outcomes) — Rubin's framework, ATE/ATT, the fundamental problem.
+3. [DAGs and d-Separation](/paths/causal-scientist/lessons/dags-and-d-separation) — Pearl's framework, conditional independencies, the backdoor criterion.
+4. [Do-Calculus](/paths/causal-scientist/lessons/do-calculus) — the do-operator, the three rules, identifiability.
+5. [RCTs and Quasi-Experiments](/paths/causal-scientist/lessons/rcts-and-quasi-experiments) — when to randomize and when you can't.
+6. [Instrumental Variables](/paths/causal-scientist/lessons/instrumental-variables) — 2SLS, the exclusion restriction, LATE.
+7. [Mediation Analysis](/paths/causal-scientist/lessons/mediation-analysis) — direct + indirect effects, identifiability assumptions.
+8. [Heterogeneous Treatment Effects](/paths/causal-scientist/lessons/heterogeneous-treatment-effects) — meta-learners, causal forests, uplift modeling.
+9. [Causal Discovery](/paths/causal-scientist/lessons/causal-discovery) — PC, FCI, NOTEARS, LiNGAM. What can and can't be learned.
+
+Plus 22 new wiki pages — [DAG](/wiki/dag), [d-separation](/wiki/d-separation), [backdoor criterion](/wiki/backdoor-criterion), [do-operator](/wiki/do-operator), [identifiability](/wiki/identifiability), [instrumental variable](/wiki/instrumental-variable), [exclusion restriction](/wiki/exclusion-restriction), [HTE](/wiki/hte), [causal forests](/wiki/causal-forests), [PC algorithm](/wiki/pc-algorithm), [FCI algorithm](/wiki/fci-algorithm), and 11 more — providing dense reference coverage for every concept in the path. Six new misconceptions cover the high-impact mistakes (regression-with-controls is causal, DAG must fit data, IV estimates ATE, randomization fixes everything, mediation is just controlling for the mediator, causal discovery finds truth). A new [causal forum domain](/forum/causal) gives discussion a home.
+
+## The capstone
+
+[Run a Defensible Causal Analysis on Observational Data](/capstones/run-a-causal-analysis) (7 weeks): one full observational causal analysis, defensible against a senior epidemiologist's review.
+
+Six milestones: research question + data audit → DAG + identifying expression → multiple-estimator analysis (regression + IPW + doubly-robust + causal forest) → HTE analysis with multiple-testing protection → sensitivity analysis (E-values, placebo tests) → final defense report. By the end you have one portfolio piece demonstrating you can do real causal inference, not just regression-with-controls.
+
+## Why this path is different
+
+Compared to the [applied-statistician path](/paths/applied-statistician), this path goes deeper into causal-specific methodology. Applied stats has a 'causal inference basics' node; the causal-scientist path is for practitioners who actually need to identify causal effects from observational data and defend the result.
+
+For ML practitioners specifically: the gap between 'my model predicts well' and 'this prediction is causally meaningful' is the entire content of this path. ML accuracy metrics are silent on causality. Causal-aware ML methods (DML, causal forests, meta-learners, causal-aware mech-interp) are what bridge the two. This path covers the foundations + the modern frontier.
+
+## Where the field is going
+
+For the broader picture, see the new survey: [Causal Inference and ML in 2026: The Two Disciplines That Have Started Talking](/research/causal-inference-and-ml-2026). Three convergence trends (DML, causal forests + meta-learners, mech-interp + causal-discovery), 2035 predictions, recommended reading.`,
+    },
   ];
 
   for (const a of articles) {
