@@ -1,0 +1,81 @@
+{
+  "slug": "build-and-benchmark-a-quantum-algorithm",
+  "title": "Build and Benchmark a Quantum Algorithm",
+  "summary": "Implement a quantum algorithm end-to-end (Grover, VQE, or QAOA), run it on simulator + real hardware, characterize noise, apply error mitigation, compare to classical baseline.",
+  "format": "research",
+  "estimatedWeeks": 6,
+  "coverEmoji": "⚛️",
+  "accentColor": "#7C3AED",
+  "canonicalTier": "undergrad",
+  "contentIntro": "## What you'll build\n\nOne quantum algorithm taken end-to-end: theoretical analysis, simulator implementation, real-hardware execution, noise characterization, error mitigation, classical-baseline comparison.\n\nThis capstone is the synthesis of the quantum-engineer path. It exercises everything: gate-level circuits, simulators, hardware, NISQ noise, classical comparisons.\n\n## What you'll demonstrate\n\n- You can implement a quantum algorithm in Qiskit / Cirq / PennyLane.\n- You can analyze its theoretical speedup + practical limits.\n- You can run on real quantum hardware (IBM Quantum, IonQ, etc.) — free tiers available.\n- You can characterize hardware noise + apply error mitigation.\n- You can produce a defended report comparing quantum vs classical performance.",
+  "contentUndergrad": "## Why this capstone\n\nMost quantum-computing learning is theoretical. Real quantum work involves: circuit compilation, hardware noise, mitigation, and honest classical comparisons. This capstone forces you to do all of it.\n\nBy the end you have one full quantum-algorithm artifact: working code, simulator + real-hardware results, noise analysis, classical comparison, defended report. Portfolio-worthy.\n\n## Algorithm choices\n\nPick one (or propose another with author approval):\n\n**A: Grover's search**:\n- Implement Grover for a small problem (5-10 qubits).\n- Test on simulator + real hardware.\n- Compare classical search vs quantum at the achievable scale.\n- Demonstrate quadratic-speedup mechanism (despite no actual advantage at small scale).\n\n**B: VQE for H₂ or LiH**:\n- Encode the molecular Hamiltonian.\n- Implement hardware-efficient or UCC ansatz.\n- Run VQE on simulator + real hardware.\n- Compare against classical CCSD or full CI.\n\n**C: QAOA for MaxCut**:\n- Pick a small graph (8-15 nodes).\n- Implement QAOA at p=1, p=2, p=3.\n- Run on simulator + real hardware.\n- Compare against Goemans-Williamson + simulated annealing.\n\n## Hardware access\n\nFree tier options:\n- **IBM Quantum Experience** (free tier): up to 127 qubits.\n- **IonQ Cloud** via AWS Braket: limited free credits.\n- **Quantinuum** via cloud: trial access.\n- **PennyLane** with cloud backends: convenient interface.\n\nLocal simulation works for any milestone; hardware access is required for milestones 4-5.\n\n## Pacing\n\n6 weeks at ~5-8 hrs/week. Most time: milestones 3 (real-hardware execution) + 5 (noise + mitigation). Milestones 1-2 are setup.\n\n## Tools\n\n- **Qiskit** (Python, IBM ecosystem): standard.\n- **Cirq** (Python, Google): alternative.\n- **PennyLane** (Python, hardware-agnostic): convenient.\n- **Q#** (.NET, Microsoft): for Microsoft Azure Quantum.\n- **NumPy + SciPy**: classical baselines.",
+  "contentGrad": "## Notes for the experienced\n\nIf you've worked with quantum hardware professionally, the value is the **rigorous benchmarking + honest reporting**. Many published quantum demos are subtly cherry-picked. The rubric specifically rewards honest classical comparison + acknowledgment of limitations.\n\nLikely places where quantum researchers cut corners:\n- Cherry-picked classical baselines.\n- Insufficient noise characterization on real hardware.\n- Overstating advantage from small-scale demos.\n- Missing post-selection + measurement-error effects.\n\n## Variants\n\n- **Quantum-supremacy variant**: implement a small random-circuit-sampling experiment; estimate classical-simulation cost.\n- **QML variant**: train a variational quantum classifier on a small dataset (Iris, MNIST 4-classes).\n- **Quantum simulation variant**: simulate a small lattice model (Ising, Hubbard).\n- **Quantum chemistry variant**: VQE for a small molecule beyond H₂.\n\nAuthor approval required.",
+  "prerequisiteWikiSlugs": [
+    "qubit",
+    "quantum-superposition",
+    "bloch-sphere",
+    "quantum-gates",
+    "hadamard-gate",
+    "cnot-gate",
+    "entanglement",
+    "quantum-fourier-transform",
+    "phase-estimation",
+    "grover-algorithm",
+    "vqe",
+    "qaoa",
+    "nisq",
+    "decoherence",
+    "error-mitigation"
+  ],
+  "tags": ["quantum", "QML", "VQE", "QAOA", "Grover", "NISQ", "production"],
+  "milestones": [
+    {
+      "order": 1,
+      "title": "Algorithm choice + theoretical analysis",
+      "description": "Pick your algorithm. Write down: theoretical speedup vs classical, problem size, expected behavior, success criteria. Implement a tiny version on simulator (3-5 qubits) to verify understanding.\n\n**Deliverables**: a `theory.md` writeup analyzing the algorithm + an initial Qiskit/Cirq notebook running it on a small problem.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"theory-clear\",\"weight\":0.4,\"description\":\"Theoretical analysis is correct\",\"aiPrompt\":\"Score 0-1. Does the writeup explain the algorithm's mechanism + speedup correctly? Is the problem-size scaling honest?\"},{\"id\":\"working-toy\",\"weight\":0.3,\"description\":\"Toy implementation works\",\"aiPrompt\":\"Score 0-1. Does the simulator run produce expected outputs? Is the code clean + reproducible?\"},{\"id\":\"success-criteria\",\"weight\":0.3,\"description\":\"Success criteria pre-specified\",\"aiPrompt\":\"Score 0-1. Are success metrics defined upfront? Is the success-failure boundary unambiguous?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "order": 2,
+      "title": "Simulator implementation + scaling",
+      "description": "Scale up to the largest size that's classically simulable (10-25 qubits typical). Run the algorithm without noise (statevector simulator). Verify scaling matches theoretical predictions.\n\n**Deliverables**: cleaned-up implementation + a `simulator.md` writeup with scaling results.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"scaling-correct\",\"weight\":0.4,\"description\":\"Scaling matches theory\",\"aiPrompt\":\"Score 0-1. Does the algorithm's scaling on simulator match theoretical predictions? Are deviations explained?\"},{\"id\":\"clean-code\",\"weight\":0.3,\"description\":\"Code is reproducible + maintainable\",\"aiPrompt\":\"Score 0-1. Is the code organized + readable? Can a reader run it?\"},{\"id\":\"largest-feasible\",\"weight\":0.3,\"description\":\"Reaches realistic scale\",\"aiPrompt\":\"Score 0-1. Is the simulated size reasonable (10-25 qubits)? Or did you stop too small?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "order": 3,
+      "title": "Real-hardware execution",
+      "description": "Run the algorithm on real quantum hardware (IBM Quantum, IonQ, etc.). Pick a problem size that fits real-hardware noise budget (typically much smaller than simulator). Document: hardware platform, qubit selection, gate-error rates, coherence times.\n\n**Deliverables**: real-hardware results + a `hardware.md` writeup describing setup + observed performance.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"actual-hardware\",\"weight\":0.4,\"description\":\"Ran on real quantum hardware\",\"aiPrompt\":\"Score 0-1. Does the run actually use real hardware (not just simulator)? Are platform + qubit choices documented?\"},{\"id\":\"hardware-aware\",\"weight\":0.3,\"description\":\"Choices match hardware constraints\",\"aiPrompt\":\"Score 0-1. Is the problem size appropriate for the hardware's noise budget? Or did you ignore decoherence?\"},{\"id\":\"performance-reported\",\"weight\":0.3,\"description\":\"Performance metrics reported\",\"aiPrompt\":\"Score 0-1. Are success rates, fidelities, runtimes reported? Are error sources identified?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 10
+    },
+    {
+      "order": 4,
+      "title": "Noise characterization",
+      "description": "Characterize the noise affecting your hardware execution. Measure: gate fidelities (via randomized benchmarking or process tomography), coherence times (T₁, T₂), readout errors. Quantify how much each noise source affects your algorithm's success rate.\n\n**Deliverables**: characterization data + a `noise.md` writeup attributing observed errors to specific sources.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"comprehensive-characterization\",\"weight\":0.4,\"description\":\"Multiple noise sources characterized\",\"aiPrompt\":\"Score 0-1. Are gate, readout, and coherence errors all measured? Are the methods (RB, T1/T2 measurement) appropriate?\"},{\"id\":\"attribution\",\"weight\":0.4,\"description\":\"Noise sources connected to algorithm performance\",\"aiPrompt\":\"Score 0-1. Does the writeup explain which noise sources caused which performance degradations? Is the attribution honest?\"},{\"id\":\"reproducible\",\"weight\":0.2,\"description\":\"Methodology is reproducible\",\"aiPrompt\":\"Score 0-1. Could a reader repeat the characterization? Are scripts + data shared?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "order": 5,
+      "title": "Error mitigation",
+      "description": "Apply at least two error-mitigation techniques: readout error mitigation + zero-noise extrapolation (or similar). Quantify the improvement.\n\n**Deliverables**: mitigation code + a `mitigation.md` writeup with before/after comparisons.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"two-techniques\",\"weight\":0.3,\"description\":\"Multiple mitigation techniques applied\",\"aiPrompt\":\"Score 0-1. Are at least two distinct mitigation techniques applied? Are they correctly implemented?\"},{\"id\":\"quantitative-improvement\",\"weight\":0.4,\"description\":\"Improvement is quantified\",\"aiPrompt\":\"Score 0-1. Is the improvement from mitigation reported quantitatively? Are limits acknowledged?\"},{\"id\":\"insight\",\"weight\":0.3,\"description\":\"Mitigation choices justified\",\"aiPrompt\":\"Score 0-1. Does the writeup explain why these techniques (vs others)? Are the trade-offs (cost vs benefit) discussed?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "order": 6,
+      "title": "Classical baseline + final report",
+      "description": "Implement a strong classical baseline for the same problem. Compare runtimes + accuracy honestly. Write the final defense report: theoretical speedup vs practical advantage, hardware noise as the dominant constraint, path to potential future advantage.\n\n**Deliverables**: classical baseline code + a `defense.md` (~1500 words) covering theoretical, simulator, hardware, mitigation, classical-comparison results + an honest assessment of where the field is.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"strong-classical-baseline\",\"weight\":0.4,\"description\":\"Classical baseline is strong\",\"aiPrompt\":\"Score 0-1. Is the classical method a strong choice (not a strawman)? Or is it a deliberately weak comparison to make quantum look better?\"},{\"id\":\"honest-comparison\",\"weight\":0.3,\"description\":\"Comparison is honest\",\"aiPrompt\":\"Score 0-1. Is the runtime + accuracy comparison fair? Are scales matched? Are quantum's limits acknowledged?\"},{\"id\":\"context-aware-conclusion\",\"weight\":0.3,\"description\":\"Conclusion is calibrated\",\"aiPrompt\":\"Score 0-1. Does the conclusion honestly assess current capability + future trajectory? Avoids overclaim?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    }
+  ]
+}

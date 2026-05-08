@@ -798,6 +798,54 @@ For where the field is heading, see the new survey: [The Robotics Frontier in 20
 
 This is the last new mastery path in the S55-S61 batch. The platform now has 11 mastery paths covering ml-engineer, ai-researcher, mathematician, physicist, systems-engineer, reinforcement-learner, multimodal-engineer, comp-biologist, applied-statistician, causal-scientist, and roboticist. End-to-end coverage from foundations through frontier across the modern ML + applied-stats + robotics practitioner's toolkit.`,
     },
+    {
+      slug: "quantum-engineer-path-launch",
+      title: "Quantum Engineer path: from qubits to NISQ + variational + QML",
+      summary:
+        "A new mastery path covering quantum computing end-to-end: qubits, gates, entanglement, Grover, Shor, error correction, NISQ-era variational methods, and quantum machine learning.",
+      coverEmoji: "⚛️",
+      accentColor: "violet",
+      authorId: aliceId,
+      body: `Quantum computing has been '10 years away' for 50 years. The 2022-2026 stretch may finally be the breakthrough — or another false dawn. Quantum supremacy demonstrated multiple times; fault-tolerant logical qubits emerging; cryptanalytic Shor remains decades away but drives PQC migration NOW. The new [quantum-engineer path](/paths/quantum-engineer) covers the discipline that handles 'when does this become real'.
+
+## What landed
+
+Nine lessons spanning qubits through quantum machine learning:
+
+1. [Quantum Foundations](/paths/quantum-engineer/lessons/quantum-foundations) — qubits, superposition, measurement.
+2. [Quantum Gates](/paths/quantum-engineer/lessons/quantum-gates) — Hadamard, CNOT, universal gate sets, circuits.
+3. [Entanglement](/paths/quantum-engineer/lessons/entanglement) — Bell states, no-cloning theorem, the resource powering advantage.
+4. [Quantum Algorithms](/paths/quantum-engineer/lessons/quantum-algorithms) — Deutsch-Jozsa, QFT, phase estimation.
+5. [Grover's Algorithm](/paths/quantum-engineer/lessons/grover-search) — quadratic speedup for unstructured search.
+6. [Shor's Algorithm](/paths/quantum-engineer/lessons/shor-factoring) — polynomial-time factoring, the cryptanalytic threat.
+7. [Quantum Error Correction](/paths/quantum-engineer/lessons/quantum-error-correction) — surface code, fault-tolerance, magic state distillation.
+8. [NISQ Era + Mitigation](/paths/quantum-engineer/lessons/nisq-era) — current hardware noise, error mitigation, what's possible today.
+9. [Variational Algorithms + QML](/paths/quantum-engineer/lessons/variational-and-qml) — VQE, QAOA, quantum machine learning, the frontier.
+
+Plus 22 new wiki pages — [qubit](/wiki/qubit), [Bloch sphere](/wiki/bloch-sphere), [Hadamard gate](/wiki/hadamard-gate), [CNOT gate](/wiki/cnot-gate), [QFT](/wiki/quantum-fourier-transform), [phase estimation](/wiki/phase-estimation), [Grover's algorithm](/wiki/grover-algorithm), [Shor's algorithm](/wiki/shor-algorithm), [post-quantum cryptography](/wiki/post-quantum-cryptography), [surface code](/wiki/surface-code), [VQE](/wiki/vqe), [QAOA](/wiki/qaoa), and 10 more. Six misconceptions cover the high-impact mistakes (qubit is just a probabilistic bit; quantum tries all paths in parallel; entanglement allows FTL; quantum breaks all cryptography; more qubits = more powerful; QML revolutionizes ML). A new [quantum forum domain](/forum/quantum) gives discussion a home.
+
+## The capstone
+
+[Build and Benchmark a Quantum Algorithm](/capstones/build-and-benchmark-a-quantum-algorithm) (6 weeks): one quantum algorithm taken end-to-end through theory, simulator, real hardware (free tiers available), noise characterization, error mitigation, and honest classical comparison.
+
+Six milestones: theoretical analysis → simulator scaling → real-hardware execution → noise characterization → error mitigation → defended report with classical baseline. The output is a portfolio-worthy artifact demonstrating real quantum-computing engineering, not just textbook knowledge.
+
+## Why this path is different
+
+Compared to the 11 prior paths, the quantum path bridges physics + computer science + complexity theory. The most distinct cross-domain on the platform.
+
+For ML practitioners: quantum machine learning is mostly hype today, but understanding the framework matters. Cryptanalysis (Shor) drives post-quantum-cryptography migration NOW.
+
+For researchers: quantum is one of the few computing frontiers where genuine new physics + algorithms keep emerging.
+
+## The honest 2026 message
+
+For where the field is heading, see the new survey: [The Quantum Computing Frontier in 2026: NISQ to Fault-Tolerance](/research/quantum-frontier-2026). Quantum supremacy demonstrated; quantum advantage on useful problems still elusive; fault-tolerance approaching but not yet here. Realistic 2030-2040 forecast.
+
+## What this completes
+
+The platform now has 12 mastery paths covering ML, foundations, systems, and cross-domain frontiers. End-to-end coverage from first principles through cutting-edge research across the modern computational practitioner's toolkit.`,
+    },
   ];
 
   for (const a of articles) {
