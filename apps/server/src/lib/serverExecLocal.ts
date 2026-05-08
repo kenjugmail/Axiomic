@@ -18,6 +18,7 @@ import {
   getDb,
   kernelFiles,
 } from "@axiomic/db";
+import { logger } from "./logger";
 import { env } from "./envConfig";
 import type {
   ServerExecBackend,
@@ -211,6 +212,14 @@ export const localProcessBackend: ServerExecBackend = async (
     const err = clipBytes(stderrBuf, maxBytes);
 
     if (timedOut) {
+      logger.warn({
+        kind: "exec_timeout",
+        backend: "local",
+        language: run.language,
+        kernelKey: run.kernelKey,
+        timeoutMs,
+        durationMs: Math.round(performance.now() - start),
+      });
       return {
         status: "failed",
         exitCode: null,
@@ -219,6 +228,16 @@ export const localProcessBackend: ServerExecBackend = async (
         error: `Timed out after ${Math.round(timeoutMs / 1000)}s`,
         durationMs: Math.round(performance.now() - start),
       };
+    }
+    if (exitCode !== 0) {
+      logger.warn({
+        kind: "exec_nonzero_exit",
+        backend: "local",
+        language: run.language,
+        kernelKey: run.kernelKey,
+        exitCode,
+        durationMs: Math.round(performance.now() - start),
+      });
     }
     return {
       status: exitCode === 0 ? "succeeded" : "failed",
@@ -229,6 +248,13 @@ export const localProcessBackend: ServerExecBackend = async (
       durationMs: Math.round(performance.now() - start),
     };
   } catch (e: any) {
+    logger.error({
+      kind: "exec_backend_threw",
+      backend: "local",
+      language: run.language,
+      kernelKey: run.kernelKey,
+      errorMessage: e?.message ?? String(e),
+    });
     return {
       status: "failed",
       exitCode: null,

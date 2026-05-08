@@ -178,6 +178,11 @@ const CohortInvitationAcceptPage = lazy(() =>
 const AdminApprovalsPage = lazy(() =>
   import("./pages/AdminApprovalsPage").then((m) => ({ default: m.AdminApprovalsPage })),
 );
+const AdminErrorStatsPage = lazy(() =>
+  import("./pages/AdminErrorStatsPage").then((m) => ({
+    default: m.AdminErrorStatsPage,
+  })),
+);
 const CapstonePage = lazy(() =>
   import("./pages/CapstonePage").then((m) => ({ default: m.CapstonePage })),
 );
@@ -342,6 +347,7 @@ export function App() {
           <Route path="/tracks/:slug" element={<CapstoneTrackPage />} />
           <Route path="/invitations/:token" element={<CohortInvitationAcceptPage />} />
           <Route path="/admin/approvals" element={<AdminApprovalsPage />} />
+          <Route path="/admin/errors" element={<AdminErrorStatsPage />} />
           <Route path="/me/weak-concepts" element={<WeakConceptsPage />} />
           <Route path="/me/mri" element={<KnowledgeMRIPage />} />
           <Route path="/cite/p/:author/:slug" element={<CitePaperRedirect />} />

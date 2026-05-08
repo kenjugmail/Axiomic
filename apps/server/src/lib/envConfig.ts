@@ -57,6 +57,10 @@ const envSchema = z.object({
   // route through content_proposals and require admin approval before
   // landing. Default off so local dev + tests publish-immediately.
   CONTENT_APPROVAL_ENABLED: z.string().optional(),
+
+  // Sprint 53 — Structured logger level. Defaults to 'info' in prod,
+  // 'debug' otherwise.
+  LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

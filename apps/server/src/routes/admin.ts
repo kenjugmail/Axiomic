@@ -26,6 +26,7 @@ import {
   invalidateSearchIndex,
 } from "../lib/searchIndex";
 import { approveProposal, rejectProposal } from "../lib/approvals";
+import { getCounters, getRecentErrors } from "../lib/errorSampler";
 import type { Env } from "../env";
 
 export const adminRouter = new Hono<Env>();
@@ -45,6 +46,17 @@ adminRouter.post("/reindex", requireAdmin, async (c) => {
     rebuilt: true,
     durationMs,
     itemCount: items.length,
+  });
+});
+
+// Sprint 53 — Error sampler. Surfaces the most-recent N entries the
+// logger has seen plus per-kind totals. Memory-only; resets on restart.
+adminRouter.get("/error-stats", requireAdmin, async (c) => {
+  const limitParam = c.req.query("limit");
+  const limit = limitParam ? Math.min(200, Math.max(1, Number(limitParam) || 50)) : 50;
+  return c.json({
+    counters: getCounters(),
+    recent: getRecentErrors(limit),
   });
 });
 

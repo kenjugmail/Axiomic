@@ -8,6 +8,7 @@ import { getSessionUser, requireAuth } from "../middleware/auth";
 import { buildCoachContext, summarizeCoachContext } from "../lib/userContext";
 import { getOrEmbed } from "../lib/embeddingCache";
 import { buildTutorModePrompt } from "../lib/tutorModes";
+import { logger } from "../lib/logger";
 
 const ai = new Hono();
 
@@ -134,16 +135,29 @@ Guidelines:
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();
+      let tokenCount = 0;
       try {
         await provider.stream({
           system,
           messages,
           onToken: (token) => {
+            tokenCount++;
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`));
           },
         });
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
       } catch (err) {
+        const e = err as Error | undefined;
+        logger.error({
+          kind: "ai_stream_failed",
+          endpoint: "/ai/chat",
+          pageSlug,
+          tier,
+          mode,
+          tokenCount,
+          errorClass: e?.name ?? "unknown",
+          errorMessage: e?.message ?? String(err),
+        });
         controller.enqueue(
           encoder.encode(`data: ${JSON.stringify({ error: "Stream failed" })}\n\n`)
         );

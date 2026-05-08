@@ -45,6 +45,17 @@ function ensureKeys(): NonNullable<typeof cached> {
   let privateKey = loadFromEnv();
   let publicKey: KeyObject;
   if (!privateKey) {
+    // Sprint 53 — refuse ephemeral keys in production. A transcript
+    // signed under an ephemeral key stops verifying after every
+    // restart, silently invalidating every issued credential. In
+    // production this is a configuration bug, not a soft warning.
+    if (env.NODE_ENV === "production") {
+      throw new Error(
+        "AXIOMIC_SIGNING_PRIVATE_KEY_HEX is required in production. " +
+          "Generate one with `bash scripts/generate-signing-key.sh` " +
+          "and set it in your environment before starting the server.",
+      );
+    }
     const pair = generateKeyPairSync("ed25519");
     privateKey = pair.privateKey;
     publicKey = pair.publicKey;
