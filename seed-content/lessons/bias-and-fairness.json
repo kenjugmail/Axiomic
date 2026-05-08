@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why fairness matters in ML",
+      "body": "ML systems make decisions that affect lives: loan approvals, hiring shortlists, medical triage, content moderation, criminal-justice risk scores. When the system performs differently for different demographic groups, the harm isn't just statistical — it's legal, ethical, and reputational.\n\n**The 2016 ProPublica investigation of COMPAS** (a recidivism-prediction system used by US courts): white defendants were significantly more often rated 'low risk' but later reoffended; Black defendants more often rated 'high risk' but later didn't. Wildly different error rates across groups.\n\n**The 2018 Amazon hiring tool**: trained on historical resumes (mostly male engineers), the system penalized resumes with the word 'women's' (e.g., 'women's chess club captain'). Discriminated by gender. Scrapped before deployment.\n\nThese aren't edge cases. ML systems learn historical patterns — including discriminatory ones. Without explicit fairness considerations, they encode and amplify bias.\n\nThis lesson covers the formalisms (demographic parity, equalized odds, individual fairness), the trade-offs, and where applied stats meets ethics."
+    },
+    {
+      "kind": "text",
+      "title": "Fairness definitions — incompatible by design",
+      "body": "Multiple fairness criteria; **most are mutually exclusive** (Chouldechova 2017, Kleinberg 2017). A system can satisfy at most one or two simultaneously when base rates differ across groups.\n\n**Demographic parity (DP)**: prediction rate equal across groups. `P(Ŷ = 1 | A = 0) = P(Ŷ = 1 | A = 1)`. Same approval rate regardless of protected attribute. Used in fair lending compliance.\n\n**Equalized odds (EOd)**: error rates equal across groups. `P(Ŷ = 1 | Y = 1, A = a)` and `P(Ŷ = 1 | Y = 0, A = a)` independent of `a`. Same true-positive and false-positive rates per group.\n\n**Equal opportunity**: weaker than equalized odds. Just true-positive rate equal: `P(Ŷ = 1 | Y = 1, A = a)` independent of `a`. Most useful when the harm is missed-positives (medical screening, loan approvals).\n\n**Calibration by group**: `P(Y = 1 | Ŝ = s, A = a)` independent of `a`. Predicted probabilities mean the same thing in each group.\n\n**Counterfactual fairness**: 'would the model have made the same prediction if the protected attribute had been different, holding other things equal?' Counterfactual question; needs causal model.\n\n**The impossibility theorem**: when base rates differ across groups, calibration + equalized odds can't both hold simultaneously (except in degenerate cases). You have to pick.\n\n**Practical implication**: there's no universally 'fair' model. Fairness is a choice; pick the criterion that matches the deployment context."
+    },
+    {
+      "kind": "text",
+      "title": "Fairness-accuracy frontier",
+      "body": "Most fairness constraints come at some accuracy cost. The accuracy-fairness frontier:\n\n- Maximum accuracy: ignore fairness; might be very unfair.\n- Maximum fairness: equalize across groups; might lose accuracy.\n- Pareto frontier: the trade-off between the two.\n\n**Methods to navigate the frontier**:\n\n**1. Pre-processing** (modify training data): reweight examples, transform features, or remove sensitive attributes. Simple; sometimes effective; sometimes loses information.\n\n**2. In-processing** (modify training objective): add a fairness penalty to the loss. Adversarial fairness (train a discriminator that tries to predict the protected attribute from features; train the main model to fool it). Adds complexity; sometimes works.\n\n**3. Post-processing** (modify predictions): adjust decision thresholds per group to satisfy a fairness criterion. Cheap; doesn't require retraining; can sacrifice accuracy.\n\n**Practical**: post-processing is often the right starting point. Add per-group thresholds to satisfy your chosen fairness criterion. If accuracy loss is unacceptable, escalate to in-processing.\n\n**Don't forget**: fairness isn't always achievable through algorithms. Sometimes the data itself is biased — unfair labels, unrepresentative training data, historical discrimination encoded in features. Algorithmic fixes mask but don't solve these.\n\n**Audit even when you're not constrained**: even without legal/regulatory pressure, bias-aware evaluation catches unintended consequences. Per-group accuracy + per-group error rate analysis is cheap and informative."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "fair_q1",
+        "kind": "multiple_choice",
+        "question": "Why is it provably impossible for an ML model to satisfy both equalized odds and calibration by group simultaneously when base rates differ?",
+        "options": [
+          "It's a fundamental law of physics",
+          "When the base rate of the positive class differs across groups, calibration by group requires P(Y=1 | score, A) to be the same function of score across groups — but this constrains the score distribution per group such that error rates can't also be equal. Mathematical theorem (Chouldechova, Kleinberg). Practical implication: you can satisfy one fairness criterion at the cost of others. There's no neutral 'fair' algorithm",
+          "Modern optimizers can't handle multi-objective",
+          "Fairness criteria are arbitrary"
+        ],
+        "correctIndex": 1,
+        "explanation": "The impossibility theorem is one of the most important results in algorithmic fairness. When base rates differ (e.g., the actual recidivism rate differs across groups), no algorithm can be both calibrated by group AND have equal error rates per group. You must pick. This isn't a research limitation; it's mathematical reality. Implications: any 'fairness audit' that demands both is asking for the impossible; choosing a fairness criterion is a values question, not a technical one."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Per-group evaluation",
+      "body": "Even without explicit fairness constraints, **always evaluate per group**:\n\n```\noverall_accuracy = mean(predictions == labels)\n\nfor group in groups:\n    group_accuracy = mean(predictions[A == group] == labels[A == group])\n    group_error_rate = ...\n    group_FPR = false_positive_rate per group\n    group_FNR = false_negative_rate per group\n```\n\nReport per-group metrics. The aggregate often hides important variation.\n\n**Common patterns**:\n- Model accuracy 92% overall.\n- Per-group: 95% on majority group, 80% on minority group.\n- Decision: ship anyway? Mitigate? Investigate why?\n\nWithout per-group evaluation, you'd ship without knowing.\n\n**Fairness datasets**: standard benchmarks (Adult/Census, COMPAS, German Credit, Bank Marketing) for testing fairness algorithms. Useful for research; not always representative of real deployment data.\n\n**Audit toolkits**:\n- **Aequitas**: fairness audit toolkit. Computes multiple fairness metrics per group.\n- **Fairlearn** (Microsoft): toolkit for fairness assessment + mitigation.\n- **AIF360** (IBM): broader fairness toolkit.\n\nFor most projects: per-group accuracy + per-group error analysis is enough to catch most issues. Add explicit fairness mitigation when warranted."
+    },
+    {
+      "kind": "text",
+      "title": "Fairness in practice",
+      "body": "Real fairness work in production requires:\n\n**1. Define protected attributes**. What groups matter for your application? Race, gender, age, disability, geography, language. Often legal requirement (US: race + sex + national origin + ...) but extends to product-relevant groups.\n\n**2. Audit the training data**. Check label distribution by group; check data sufficiency per group; identify biased labels (annotators systematically unfair).\n\n**3. Per-group evaluation**. Always.\n\n**4. Choose a fairness criterion**. Demographic parity? Equalized odds? Equal opportunity? Match to the deployment.\n\n**5. Mitigate via in-processing or post-processing**. Per-group thresholds are cheap and effective.\n\n**6. Document trade-offs**. When you choose criterion A, what's degraded? Be explicit; don't hide trade-offs.\n\n**7. Monitor in production**. Drift in group distributions changes fairness over time. Re-audit periodically.\n\n**Beyond algorithms**: fairness sometimes requires non-algorithmic interventions. Data-collection changes (label more minority-group data). Process changes (human review of edge cases). Product changes (don't deploy to context where fairness can't be guaranteed).\n\nThe end of the path: you've covered hypothesis testing, A/B testing, causal inference, uncertainty, and fairness. Together: the applied-statistics toolkit for production ML."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "fair_q2",
+        "kind": "multiple_choice",
+        "question": "What's the right reaction when an ML system shows 95% accuracy overall but only 80% on a minority group?",
+        "options": [
+          "Ship it; overall accuracy is high",
+          "Investigate. The 15-point gap is large; possible causes include data scarcity in the minority group, feature representations that work less well, biased labels, distribution shift. Decide based on the deployment context: is this gap acceptable? Mitigate via in/post-processing. Always document the gap regardless of decision",
+          "Always require equal accuracy across groups",
+          "Per-group differences don't matter for ML"
+        ],
+        "correctIndex": 1,
+        "explanation": "Per-group performance gaps are signals, not necessarily failures. Investigate root cause (data, features, labels). Decide based on deployment context: a 15-point gap in entertainment recommendations might be acceptable; a 15-point gap in loan approvals isn't. Mitigation strategies (more training data, per-group thresholds, fairness constraints) are available. The minimum is documenting the gap; never silently ship it. Most real production ML failures around fairness come from teams that didn't do this evaluation."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "End of the applied-stats path",
+      "body": "From frequentist foundations through fairness, you've covered the full applied-statistics toolkit for production ML evaluation.\n\nThe path covered:\n- Frequentist foundations (sampling distributions, MLE, bootstrap)\n- Hypothesis testing (p-values, multiple testing)\n- Bayesian inference (priors, MCMC, VI)\n- Experiment design (power analysis, randomization, blocking)\n- A/B testing (sequential testing, HTEs, OEC)\n- Causal inference (counterfactuals, RCTs, observational methods)\n- Uncertainty quantification (calibration, conformal prediction)\n- Bias and fairness (impossibility theorem, mitigation)\n\nFor a team building production ML: invest in this toolkit alongside your modeling skills. Most ML failures in production aren't from bad models; they're from bad evaluation. Applied statistics is what makes evaluation honest.\n\nKey takeaways across the path:\n- ML evaluation is a statistics problem; treat it as one\n- Confidence intervals, multiple testing correction, power analysis are non-negotiable\n- A/B testing requires sequential testing protections; never naively peek\n- Causal claims require RCTs or strong assumptions; observational ML can mislead\n- Calibration + uncertainty estimates are needed for high-stakes decisions\n- Per-group evaluation is the minimum fairness audit\n- The discipline of rigorous evaluation is what separates ML papers that replicate from those that don't"
+    }
+  ]
+}

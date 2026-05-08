@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why experiment design matters",
+      "body": "An underpowered or poorly-designed experiment can't answer your question regardless of how clever the analysis is. The most common ML evaluation pathology: **the experiment was never going to detect the effect at the sample size used.**\n\nExperiment design is the discipline of planning experiments that actually produce useful evidence. Three pillars:\n\n1. **Power analysis**: figure out how big a sample you need to detect the effect you care about.\n2. **Randomization**: protect against confounders by random assignment.\n3. **Blocking + stratification**: reduce variance by grouping similar units.\n\nWell-designed experiments have a real chance of answering the question. Poorly-designed experiments waste resources + produce noise that gets misinterpreted as signal."
+    },
+    {
+      "kind": "text",
+      "title": "Power analysis",
+      "body": "**Statistical power**: the probability of correctly rejecting H₀ when H₁ is true. `Power = 1 - β` where β is the Type II error rate.\n\nFour quantities are linked:\n- **α** (Type I rate, typically 0.05).\n- **Power** (typically 0.80 — meaning 80% chance to detect a real effect).\n- **Effect size** (the magnitude of difference you care about detecting).\n- **Sample size** (n).\n\nSpecify three; the fourth is determined.\n\n**Formula** (for a two-sample t-test with equal groups, normal data):\n\n$$n \\approx \\frac{2 (z_{\\alpha/2} + z_\\beta)^2 \\sigma^2}{\\delta^2}$$\n\nwhere `δ` is the effect size (mean difference) and `σ²` is the within-group variance.\n\n**Example**: detecting a 1% accuracy improvement with α=0.05, power=0.80, on a binary classification task. With p₁ = 0.85, p₂ = 0.86: n ≈ ~28K per group. Big number!\n\nMost ML evaluations don't run power analysis. Result: 'we tried it on a 1000-example test set and didn't see significant improvement' is usually 'the test was severely underpowered to detect the realistic-sized effect'.\n\n**Effect size** is the most-overlooked input. People worry about α and β; rarely think about 'what's the smallest effect we'd care about?'. Without this, power analysis is impossible."
+    },
+    {
+      "kind": "text",
+      "title": "Randomization",
+      "body": "Randomization is the foundation of causal inference. By randomly assigning units (users, examples, etc.) to treatment vs control, you ensure that — in expectation — the two groups are balanced on all confounders, including ones you didn't measure.\n\nWithout randomization: confounders threaten your conclusions. 'Users who saw the new feature also tended to be heavy users — was the lift due to the feature or due to who was already engaged?' Randomization breaks this.\n\n**Implementation in ML**:\n- **Train/test split**: random shuffle before splitting. Standard.\n- **A/B testing**: hash users via stable identifier; assign by hash bucket. Sticky assignment (same user always gets same treatment).\n- **Cross-validation**: random fold assignment.\n\n**When randomization fails**:\n- **Stratified sampling**: when classes are imbalanced, random assignment can put all of one class in test. Stratify by class.\n- **Time-based sampling**: when data is temporal (today vs yesterday), random assignment violates the temporal order. Time-based holdouts.\n- **Cluster effects**: if users from the same household share an account, treating them as independent biases inference. Cluster-randomize at the household level.\n\nFor ML: random splits + stable hashing + stratification handle most needs. Get the randomization right; the analysis is much easier."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "design_q1",
+        "kind": "multiple_choice",
+        "question": "Why is it crucial to specify the minimum effect size you'd care about detecting before running an experiment?",
+        "options": [
+          "It's required by journals",
+          "Without an effect size, you can't compute the sample size needed for adequate power. An experiment that's powered to detect a 10% improvement is wildly underpowered for detecting a 1% improvement; running with too few samples means you'll likely fail to reject H₀ even when a real (smaller) effect exists. The minimum interesting effect is the rate-determining input to sample-size calculations",
+          "Effect size is the same as p-value",
+          "It's optional for most experiments"
+        ],
+        "correctIndex": 1,
+        "explanation": "Effect size + α + power → required sample size. Without specifying the effect size you care about, you can't plan an experiment that has a real chance of detecting it. The most common ML evaluation pathology: testing on 1000 examples when detecting a 1% difference requires ~30K. The experiment was doomed before it started; null results are uninformative. The fix is to start with 'what's the smallest effect that would change my decision?' and work backward to sample size."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Blocking and stratification",
+      "body": "Random assignment is great in expectation, but a single random assignment can be unbalanced by chance. **Blocking** ensures balance on key variables.\n\n**Block design**: identify variables you expect to affect the outcome (gender, region, device type, etc.). Within each block (combination of values), randomize independently.\n\n**Example for ML eval**:\n- Variable: difficulty (easy / medium / hard examples).\n- Without blocking: random split might give one model lots of easy examples in test, the other lots of hard.\n- With blocking: stratify the test split so each model sees the same easy/medium/hard distribution.\n\n**Stratified sampling** is the most common implementation. Most ML libraries support it.\n\n**Why this matters**: blocking reduces variance in the estimated effect. The same true effect is detected with smaller samples in a blocked design than in a fully randomized design. Practical: 2-5× sample-size savings on heterogeneous populations.\n\n**Latin squares + factorial designs**: more complex blocking strategies for designs with multiple variables. Used in agricultural + clinical research; rare in ML.\n\nFor ML evaluation: stratify by class label; stratify by difficulty if available; stratify by domain (medical vs general) if your test set spans them. This is one of the cheapest ways to improve experimental sensitivity."
+    },
+    {
+      "kind": "text",
+      "title": "Common pitfalls",
+      "body": "Mistakes that recur in ML evaluation:\n\n**1. Over-running and stopping when significant** (peeking). The Type I rate is no longer α if you peek at the data and stop when p < α. Effective α inflates dramatically.\n\n**2. HARKing** (Hypothesizing After Results are Known). Choose the hypothesis to test based on what looks interesting in the data. Inflates Type I error without bound.\n\n**3. P-hacking**. Run many analyses; report only the significant ones. Same problem as multiple testing; 'just enough' is too vague to control.\n\n**4. Selection bias**. Train + test sets are sampled differently. The model is evaluated on a different distribution than it was trained for; reported metrics don't generalize.\n\n**5. Underpowered designs** (the most common). Tested at sample sizes that can't detect realistic effects. Null results are uninformative.\n\n**6. Cluster correlation ignored**. Treating dependent observations (multiple from the same user) as independent inflates effective sample size; biases inference.\n\n**Fixes**:\n- Pre-register hypotheses + analyses (or use a fresh test set for the final eval).\n- Power analysis up front.\n- Stratified sampling.\n- Sequential testing methods (next lesson) to enable safe peeking.\n- Cluster-aware standard errors when units are nested.\n\nThe difference between a credible and a non-credible ML evaluation is mostly experiment design discipline."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "design_q2",
+        "kind": "multiple_choice",
+        "question": "Why does 'peeking' at A/B test data and stopping when significant inflate the Type I error rate?",
+        "options": [
+          "The math doesn't permit early stopping",
+          "Each peek is an opportunity to falsely reject H₀. With α = 0.05 and infinite peeks, the probability of *eventually* crossing the threshold approaches 1 — even with no real effect. This is the multiple-testing problem playing out in time. Sequential testing methods (alpha-spending, Bayesian inference, group sequential designs) handle peeking properly; naive peeking inflates Type I to ~30-50% in practice",
+          "Naive peeking is fine; the textbooks are wrong",
+          "The problem only appears with very small samples"
+        ],
+        "correctIndex": 1,
+        "explanation": "Peeking is the multiple-testing problem in time. Every peek is a hypothesis test; the family-wise error rate over many peeks dramatically exceeds α. Empirically, peeking 5-10 times inflates the false-positive rate from 5% to ~30%. Solutions: pre-specified sample size + analysis only at the end (the conservative choice), or sequential testing (alpha-spending, group sequential, Bayesian) that explicitly accounts for the peeks. A/B platforms like Optimizely and VWO build this in; rolling your own without these protections is a common bug."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Experiment design is the planning discipline. Next: A/B testing — applying experiment design to live production traffic.\n\nNext: [[ab-testing]] — online experiments, sequential testing, peeking at scale.\n\nKey takeaways:\n- Power analysis: effect size + α + power → required sample size\n- Randomization: protects against confounders by ensuring expected balance\n- Blocking / stratification: reduces variance in known sources of heterogeneity\n- Common pitfalls: peeking, HARKing, p-hacking, selection bias, underpowered designs, cluster correlation\n- Pre-register, plan sample size, stratify by relevant variables — the basics that catch most issues"
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why ML needs to know what it doesn't know",
+      "body": "A classifier outputs class probabilities. The user reads those as confidence: 'the model is 95% sure'. But is it actually 95% likely to be right when it says 95%? Often not.\n\n**Calibration** is the property that predicted probabilities match empirical frequencies. A well-calibrated model that says '70% confident' is right 70% of the time when it does so. Most modern neural networks are poorly calibrated — they're overconfident.\n\n**Why this matters**:\n- **Decision-making**: a hospital uses model predictions for treatment. Treating an 80% probability of disease as actually 80% changes the decision.\n- **Stratifying interventions**: send the discount only to users with > 60% churn probability. Wrong probabilities → wrong segmentation.\n- **Combining models**: ensembling badly-calibrated models compounds the calibration error.\n- **Active learning**: select examples for labeling based on uncertainty. Garbage uncertainty → wasted labels.\n\nThis lesson covers calibration, conformal prediction, and the toolkit for honest uncertainty in production ML."
+    },
+    {
+      "kind": "text",
+      "title": "Calibration",
+      "body": "**Reliability diagram**: bin predictions by confidence (e.g., 0-10%, 10-20%, ...); plot mean confidence vs empirical accuracy per bin.\n\nA perfectly-calibrated model has a 45° line. Modern deep nets often show:\n- Bin '90%+ confident': empirical accuracy ~80% — overconfident.\n- Bin '50% confident': empirical accuracy ~55% — about right.\n\nThe overconfidence at the top is characteristic. Classification cross-entropy training without explicit calibration produces this systematically.\n\n**Expected Calibration Error (ECE)**: mean absolute difference between confidence and accuracy across bins. ECE = 0 means perfect calibration. Modern neural nets typically have ECE = 5-15%.\n\n**Calibration methods**:\n\n**Temperature scaling** (Guo 2017): post-hoc. Divide logits by a learned scalar `T > 1` (or < 1). Reduces overconfidence; preserves accuracy. Trained on a held-out set with cross-entropy loss. Cheap; effective; the standard.\n\n**Platt scaling**: logistic regression on top of model outputs. Same idea, more flexible.\n\n**Isotonic regression**: non-parametric. Fits a monotone non-decreasing function from confidence to calibrated confidence.\n\n**During training**: focal loss, label smoothing, mixup all induce some calibration. Less reliable than post-hoc methods.\n\n**Practical**: temperature scaling on a held-out validation set. One scalar parameter; ~1 minute to train; fixes 90% of calibration problems."
+    },
+    {
+      "kind": "text",
+      "title": "Conformal prediction",
+      "body": "**Conformal prediction** (Vovk 2005): a distribution-free framework for prediction intervals with finite-sample coverage guarantees.\n\nFor a regression task: output a prediction *interval* `[ŷ_lo, ŷ_hi]` rather than a point estimate `ŷ`. The interval is guaranteed (under exchangeability) to cover the true value `y` with probability `1 - α`.\n\nFor classification: output a *set* of plausible classes rather than the top-1.\n\n**Why this is special**: no distribution assumption, no specific model, valid in finite samples. Works on top of any prediction model.\n\n**Procedure (split conformal)**:\n```\nSplit data into train, calibration, test.\n1. Train any model M on the training set.\n2. On calibration set: compute residuals r_i = |y_i - M(x_i)|.\n3. Compute the (1 - α)-quantile q of the residuals.\n4. For new x_test: output interval [M(x_test) - q, M(x_test) + q].\n```\n\n**Theorem**: under exchangeability, this interval covers `y_test` with probability `≥ 1 - α`. Proven via a clean exchangeability argument.\n\nFor classification: instead of residuals, use 'nonconformity scores' (e.g., 1 - softmax probability of true class). The output set is all classes with score below the q-quantile.\n\n**In production**: distribution shift breaks the exchangeability assumption. Adaptive conformal prediction methods address this — recalibrate as the distribution shifts."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "uq_q1",
+        "kind": "multiple_choice",
+        "question": "Why is temperature scaling so often the right answer for fixing neural-network miscalibration?",
+        "options": [
+          "It always achieves perfect calibration",
+          "Modern neural nets tend to be systematically overconfident — the softmax distribution is too peaked. Temperature scaling divides logits by T > 1, smoothing the distribution. With one parameter trained on a held-out set, you can dramatically reduce ECE without changing accuracy. It's the cheapest, simplest, most effective post-hoc calibration method; this is why it's the standard recipe",
+          "Temperature scaling has more parameters than other methods",
+          "Other methods require retraining"
+        ],
+        "correctIndex": 1,
+        "explanation": "The systematic overconfidence of modern nets is well-documented. The fix is structurally simple: divide logits by a temperature > 1 to smooth the softmax. Optimizing one parameter on held-out data via cross-entropy is fast and effective. Other methods (Platt, isotonic) work too but offer marginal gains for more complexity. For ~90% of cases, temperature scaling is the right answer. Use it whenever you serve probabilities from a deep network."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Bayesian deep learning",
+      "body": "Beyond point predictions + calibration: maintain explicit posteriors over model parameters. **Bayesian deep learning**.\n\n**Approaches**:\n\n**1. Variational Bayes**: learn parameter posteriors via VI. The forward pass samples from the posterior; multiple samples → multiple predictions → uncertainty estimate.\n\n**2. MC Dropout** (Gal 2016): keep dropout active at inference time. Multiple stochastic forward passes give predictive distribution. Cheap; approximate; underestimates uncertainty.\n\n**3. Deep ensembles** (Lakshminarayanan 2017): train K models with different random seeds. Average predictions; variance gives uncertainty. Empirically superior to MC dropout. Expensive (K× training).\n\n**4. Stochastic weight averaging (SWA)**: average weights from multiple SGD trajectories. Cheap improvement over single-point estimates. Doesn't fully give Bayesian uncertainty but often improves calibration.\n\n**Trade-offs**:\n- **Cost**: ensembles 5-10× train cost; MC dropout free; VI in between.\n- **Quality**: ensembles > MC dropout > single point.\n- **Storage**: ensembles K× model size; MC dropout 1×.\n\n**For production**: deep ensembles for high-stakes uncertainty; temperature scaling alone for typical needs. The right answer depends on cost vs uncertainty quality.\n\nThe field is shifting: in 2024+, conformal prediction has emerged as the cleanest solution for many production needs. It's distribution-free, gives guaranteed coverage, and works on top of any base model. Bayesian deep learning is theoretically nicer but practically harder to deploy."
+    },
+    {
+      "kind": "text",
+      "title": "Practical UQ recipes",
+      "body": "A decision tree for uncertainty in production ML:\n\n**Need calibrated probabilities** (e.g., for thresholding decisions): **temperature scaling** on a held-out set. One scalar parameter. Done.\n\n**Need prediction intervals for regression** (e.g., 'predict house price ± uncertainty'): **conformal prediction**. Distribution-free; guaranteed coverage; cheap.\n\n**Need top-K prediction sets for classification** (e.g., 'this could be any of these 3 diagnoses'): **conformal classification sets**. Same framework.\n\n**Need probabilistic predictions over sequences** (e.g., language models): **token-level entropy** or sequence-level perplexity. Built into LM training.\n\n**Need full posterior over model parameters**: **deep ensembles** (5-10 models) or **Bayesian neural networks**. Expensive; reserve for high-stakes use.\n\n**Need to detect out-of-distribution inputs**: **density estimation** (Gaussian on penultimate features) + threshold; or **softmax max-class probability** + threshold; or modern OOD detection methods (energy-based, ODIN).\n\n**Anti-patterns**:\n- 'Just trust the softmax' — uncalibrated by default.\n- Reporting accuracy alone — needs CI; needs calibration check.\n- Using ML for high-stakes decisions without UQ — invites catastrophic mistakes.\n\nMature ML production stacks have UQ baked in. The 90% case is temperature scaling + conformal intervals; that's enough for most projects."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "uq_q2",
+        "kind": "multiple_choice",
+        "question": "Why is conformal prediction increasingly the default for uncertainty quantification in production ML?",
+        "options": [
+          "It always gives the smallest intervals",
+          "Distribution-free + finite-sample coverage guarantees + works with any base model. You can wrap any classifier or regressor in conformal prediction and get prediction intervals (or sets) with provable coverage. No assumptions about Gaussian errors, no need to retrain, no expensive ensembles. Compare with Bayesian neural networks (theoretical guarantees only asymptotically; expensive) — conformal is just simpler",
+          "It only works for classification",
+          "It's required by GDPR"
+        ],
+        "correctIndex": 1,
+        "explanation": "Conformal prediction has emerged as the practical default because it's distribution-free, provides finite-sample coverage guarantees, and wraps any base model. You don't need to retrain, you don't need Bayesian methods, you don't need to commit to a noise model. The trade-off: intervals are sometimes wider than ideal because the framework is conservative. For most production needs, the 'guaranteed coverage with minimal assumptions' is exactly the right tradeoff."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Uncertainty quantification is the technical side of honest ML. Next: the social side — fairness and bias.\n\nNext: [[bias-and-fairness]] — demographic parity, equalized odds.\n\nKey takeaways:\n- Calibration: predicted probabilities should match empirical frequencies\n- Modern neural nets are systematically overconfident; temperature scaling is the cheap fix\n- Conformal prediction: distribution-free intervals/sets with finite-sample coverage. The new default\n- Bayesian deep learning (ensembles, MC dropout, VI) gives parameter uncertainty\n- For most production: temperature scaling + conformal is enough. Reserve Bayesian for high-stakes"
+    }
+  ]
+}

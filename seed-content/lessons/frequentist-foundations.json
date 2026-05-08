@@ -1,0 +1,45 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why frequentist statistics matters for ML",
+      "body": "Most ML teams reach for statistics when they need to defend a number. 'Is this 1% accuracy improvement real?' 'Is this customer-engagement lift significant?' 'How precise is this confidence interval?' These are statistical questions with statistical answers.\n\n**Frequentist statistics** treats parameters as fixed unknown quantities and data as random. The core conceptual move: imagine running the same experiment many times; what's the distribution of statistics you'd compute?\n\nKey constructs:\n- **Sampling distribution**: the distribution of a statistic across hypothetical repeated experiments.\n- **Standard error**: the standard deviation of a sampling distribution.\n- **Confidence interval**: an interval that, in repeated experiments, would contain the true parameter X% of the time.\n\nFrequentist statistics is the dominant flavor in industry ML evaluation. Every reported 'p < 0.05' is a frequentist statement. Understanding the foundations is non-negotiable for anyone who designs experiments or interprets ML evaluation results."
+    },
+    {
+      "kind": "text",
+      "title": "Maximum likelihood estimation (MLE)",
+      "body": "**MLE**: given a parameterized statistical model `p(x | θ)` and observed data `x_1, ..., x_n`, find the `θ` that maximizes the likelihood:\n\n$$\\hat{\\theta}_{MLE} = \\arg\\max_\\theta \\prod_i p(x_i | \\theta) = \\arg\\max_\\theta \\sum_i \\log p(x_i | \\theta)$$\n\nThe second form (log-likelihood) is what you actually optimize — sum is more numerically stable than product.\n\n**Why MLE is everywhere in ML**:\n- **Cross-entropy loss** is the negative log-likelihood for classification under a categorical model.\n- **MSE** is the negative log-likelihood for regression under a Gaussian-noise model.\n- **Logistic regression** maximizes log-likelihood under Bernoulli observations.\n- **Language model training**: maximize log-likelihood of the next token given context.\n\nML's loss functions are MLE in disguise. Understanding the statistical framing helps you read papers + design new objectives.\n\n**Properties**:\n- **Consistent**: as `n → ∞`, `Ŝ_MLE → θ_true` (under regularity conditions).\n- **Asymptotically normal**: `√n (Ŝ_MLE - θ) → N(0, I^{-1}(θ))` where `I` is the Fisher information.\n- **Asymptotically efficient**: achieves the Cramer-Rao lower bound on variance.\n\nThese are theoretical guarantees about large-sample behavior. Small-sample performance can deviate; MLE on tiny datasets is biased + high-variance."
+    },
+    {
+      "kind": "text",
+      "title": "The bootstrap",
+      "body": "How do you estimate the sampling distribution of a statistic when you don't know the underlying distribution? **Resample your data with replacement.**\n\n**Bootstrap procedure**:\n\n```\noriginal_data = (x_1, x_2, ..., x_n)\n\nfor b in range(B):                    # B = 1000+ typical\n    bootstrap_sample = sample(original_data, n, replace=True)\n    statistic_b = compute(bootstrap_sample)\n\nbootstrap_distribution = (statistic_1, statistic_2, ..., statistic_B)\n```\n\nThe distribution of bootstrap statistics approximates the sampling distribution of the original statistic.\n\n**What you can compute**:\n- **Standard error**: `std(bootstrap_distribution)`.\n- **Confidence interval**: `(2.5th percentile, 97.5th percentile)` for a 95% CI.\n- **Bias**: `mean(bootstrap_distribution) - statistic(original)`.\n\n**Why this is magical**: no parametric assumptions. No 'assume the data is Gaussian'. Works for any well-behaved statistic — the median, the IQR, ratios, regression coefficients.\n\nIn ML evaluation: **always bootstrap your benchmark scores**. Reporting 'accuracy = 0.873' without an interval is statistically meaningless. Reporting 'accuracy = 0.873 ± 0.011 (95% CI)' is honest.\n\nWhen bootstrap fails: very small samples (~n < 30), heavy-tailed distributions where the variance doesn't exist. Edge cases; not common in ML evaluation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "freq_q1",
+        "kind": "multiple_choice",
+        "question": "Why is reporting an ML benchmark accuracy without a confidence interval statistically meaningless?",
+        "options": [
+          "Single numbers are unprofessional",
+          "Accuracy is a sample statistic; its true value depends on which test set was sampled. Without an interval (or standard error), you can't tell whether two reported accuracies — say, 0.873 vs 0.881 — are statistically different or noise. The interval is the difference between 'we beat the baseline' and 'maybe we did, maybe we didn't'",
+          "Bootstrap is computationally expensive",
+          "Reviewers always reject papers without intervals"
+        ],
+        "correctIndex": 1,
+        "explanation": "Sample statistics have sampling distributions. The point estimate is the most likely value; the interval tells you the uncertainty. Two methods reporting 0.873 vs 0.881 might be indistinguishable (overlapping 95% CIs) or genuinely different (disjoint CIs). Without intervals, you can't tell. Bootstrap is the universal solution; it costs ~1000× a single eval but is cheap compared to model training. Most ML papers underreport this; the field has been getting better."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Sampling distributions in detail",
+      "body": "The **sampling distribution** of a statistic is *the* core frequentist concept. Imagine running your experiment many times. Each experiment produces data `x_1, ..., x_n` and a statistic (e.g., the sample mean). The distribution of statistics across these hypothetical repetitions is the sampling distribution.\n\n**Central Limit Theorem (CLT)**: for many statistics (sample means, regression coefficients), the sampling distribution is approximately Gaussian as `n → ∞`. Mean = the true parameter; std = standard error.\n\nThis is why so many statistical methods assume Gaussian errors: not because data is Gaussian, but because *sampling distributions* are. The CLT is the workhorse of frequentist inference.\n\n**Standard error**: the standard deviation of the sampling distribution. For the sample mean: `SE = σ / √n`. So:\n- Bigger sample → smaller SE → more precise estimate.\n- Bigger underlying variance → bigger SE.\n\n**Confidence intervals**: under CLT, `(estimate ± 1.96 · SE)` covers the true parameter ~95% of the time across hypothetical repeats. Note: the interval 'covers the parameter'; the parameter doesn't 'fall in the interval' — common confusion.\n\nFor ML benchmarks: the SE on accuracy `p` is `√(p(1-p)/n)`. For a 1000-example test set with `p = 0.85`: `SE ≈ 0.011`. So accuracies of 0.847 and 0.853 are likely within sampling noise.\n\nBootstrap is more general than CLT-based formulas — works for any statistic, not just means. But CLT-based formulas are cheap closed forms that work for the common cases."
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Frequentist foundations are the substrate. Next: hypothesis testing — the formal machinery for deciding 'is this difference real or noise?'.\n\nNext: [[hypothesis-testing]] — null hypotheses, p-values, multiple testing.\n\nKey takeaways:\n- Sampling distribution: distribution of a statistic across hypothetical repeated experiments\n- MLE: maximize log-likelihood; underlies cross-entropy, MSE, logistic regression\n- Bootstrap: resample with replacement; estimate sampling distribution non-parametrically\n- CLT: sampling distribution is Gaussian for large n; SE = `σ/√n` for the mean\n- ML benchmarks need confidence intervals; point estimates alone are statistically meaningless"
+    }
+  ]
+}

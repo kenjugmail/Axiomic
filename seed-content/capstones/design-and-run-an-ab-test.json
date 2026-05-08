@@ -1,0 +1,66 @@
+{
+  "slug": "design-and-run-an-ab-test",
+  "title": "Design and Run a Real A/B Test",
+  "summary": "From hypothesis to power analysis to sequential-testing protocol to a defended decision. Production statistics applied to one experiment end-to-end.",
+  "format": "research",
+  "estimatedWeeks": 5,
+  "coverEmoji": "📊",
+  "accentColor": "#0EA5E9",
+  "canonicalTier": "undergrad",
+  "contentIntro": "## What you'll build\n\nOne complete, defensible A/B test. You will pick a metric, compute the sample size needed to detect a realistic effect, choose a sequential-testing protocol so you can stop early without breaking the math, run a simulated experiment, analyze the results with multiple-testing protections, and defend your final decision in a written report that another statistician would sign off on.\n\nThis capstone is the production substrate. ML evaluation in real teams is mostly this exact loop.\n\n## What you'll demonstrate\n\n- You can frame a hypothesis as a testable statistical question.\n- You understand power vs Type I error vs Type II error trade-offs.\n- You can design a randomization scheme with appropriate stratification.\n- You can run sequential testing without inflating Type I error.\n- You can interpret confidence intervals in their actual frequentist meaning.\n- You can spot and correct for multiple testing.",
+  "contentUndergrad": "## Why this capstone\n\nA/B testing is the production-statistics application that ML teams use most. Unlike research-paper-style analysis, A/B tests live under three constraints: (1) you can't peek at results without protections; (2) you need to make a real decision at the end, not just publish a finding; (3) downstream business teams will ask 'what does this mean for revenue / latency / retention'.\n\nBy the end you'll have one full A/B-test artifact in your portfolio, defensible against a senior statistician's review.\n\n## Domain\n\nPick one of the three offered scenarios (or propose your own with author approval):\n\n- **Recommendation system**: testing a new ranking model against the current production model on click-through rate.\n- **Onboarding flow**: testing a new signup wizard against the existing one on activation rate.\n- **API latency**: testing a new caching layer against the existing on p99 latency.\n\nAll three give you a clear primary metric, plausible effect sizes, and a realistic decision context.\n\n## Tools\n\nPython with scipy.stats / statsmodels for the math, matplotlib / seaborn for the visualizations, the platform's runnable code cells for inline analysis. No specific frameworks required — the goal is to prove you can reason about the statistics, not to use a fancy library.\n\n## Pacing\n\n5 weeks at ~3-5 hrs/week. Most of the time is in milestones 1 (setup + power) and 4 (analysis + writeup). Milestones 2-3 are mechanical once the design is right.",
+  "contentGrad": "## Notes for the experienced\n\nIf you've run A/B tests in production already, the value of this capstone is the **rigor pass**: forcing yourself to write down each decision and defend it. Likely places where production practitioners are sloppy:\n\n- Sequential testing without proper protections (peeking).\n- Multiple-testing correction skipped on secondary metrics.\n- HTE analysis as p-hacking instead of pre-registration.\n- Confidence intervals interpreted Bayesian-style.\n\nThe rubric specifically rewards naming when you would have done it differently in a less-rigorous setting and why the rigor matters here.\n\n## Variants\n\n- **Sequential-only variant**: focus the entire capstone on always-valid inference (mSPRT, AVCI). Skip the multiple-testing milestone.\n- **HTE-only variant**: focus on heterogeneous treatment effects via causal forests. Skip the sequential-testing milestone.\n- **Bayesian variant**: do the same experiment with a Bayesian framing (priors, posterior, decision rule) and compare to the frequentist analysis.\n\nAuthor approval required for any variant — keep the rubric matching what you actually delivered.",
+  "prerequisiteWikiSlugs": [
+    "p-value",
+    "type-i-ii-errors",
+    "power-analysis",
+    "randomization",
+    "ab-test",
+    "sequential-testing",
+    "peeking-bias",
+    "multiple-testing"
+  ],
+  "tags": ["statistics", "ab-testing", "experiment-design", "production"],
+  "milestones": [
+    {
+      "order": 1,
+      "title": "Hypothesis + power analysis",
+      "description": "Pick a scenario. Write down: the null hypothesis, the alternative, the primary metric, the minimum detectable effect (MDE) you care about, the desired Type I error rate (α), and the desired power (1 - β). Compute the required sample size per arm. Document why the MDE you chose is the minimum effect that would change the business decision.\n\n**Deliverables**: a `hypothesis.md` writeup + a Python notebook computing the sample size with the math shown. Include a sensitivity table showing sample size at α ∈ {0.01, 0.05, 0.1} × power ∈ {0.7, 0.8, 0.9}.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"hypothesis-clarity\",\"weight\":0.4,\"description\":\"Hypothesis is testable and specific\",\"aiPrompt\":\"Score 0-1. Is the null hypothesis specific enough to be falsified? Does the writeup distinguish null from alternative cleanly? Is the primary metric well-defined and measurable?\"},{\"id\":\"mde-justification\",\"weight\":0.3,\"description\":\"MDE is justified by business context\",\"aiPrompt\":\"Score 0-1. Does the writeup explain why the chosen MDE is the smallest effect worth detecting? Is the justification grounded in the decision the experiment will inform?\"},{\"id\":\"sample-size-math\",\"weight\":0.3,\"description\":\"Sample-size calculation correct + sensitivity\",\"aiPrompt\":\"Score 0-1. Is the sample-size formula correct for the chosen test? Is the sensitivity table sensible? Does the writeup explain the trade-offs across rows/columns?\"}],\"passingScore\":0.6,\"notes\":\"Reward clear thinking about what would change the decision. Penalize MDEs that are clearly chasing what's detectable rather than what matters.\"}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "order": 2,
+      "title": "Randomization + stratification design",
+      "description": "Design the randomization scheme. Pick a stratification variable (or argue why no stratification is needed). Implement randomization in code that's robust to user duplicates, returning visitors, and cohort-effects. Document any deliberately broken assumptions (e.g., 'we randomize at signup time, so existing users see a single arm').\n\n**Deliverables**: `randomization.py` + a writeup explaining the design + a simulation showing the randomization produces balanced arms across the chosen strata.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"randomization-correctness\",\"weight\":0.5,\"description\":\"Randomization is unbiased + robust\",\"aiPrompt\":\"Score 0-1. Does the implementation produce uniform random assignment? Does it handle duplicates correctly (same user → same arm)? Does it respect the chosen unit of randomization?\"},{\"id\":\"stratification-justified\",\"weight\":0.3,\"description\":\"Stratification choice has a reason\",\"aiPrompt\":\"Score 0-1. Is the stratification variable picked for the right reason (predicts the outcome, varies in the population)? Or if no stratification, is that defended?\"},{\"id\":\"balance-check\",\"weight\":0.2,\"description\":\"Balance simulation shows the design works\",\"aiPrompt\":\"Score 0-1. Does the simulation actually verify balance across strata? Are the diagnostics meaningful (not just 'mean is similar')?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 5
+    },
+    {
+      "order": 3,
+      "title": "Sequential-testing protocol",
+      "description": "Pick a sequential-testing approach: classical group sequential (O'Brien-Fleming, Pocock), always-valid (mSPRT, AVCI), or fixed-horizon (no peeking). Defend the choice. Implement the stopping rule. Simulate 1000 experiments under both null and alternative; verify the actual Type I error matches the nominal α.\n\n**Deliverables**: `sequential_protocol.py` + a writeup defending the choice + a simulation report showing the empirical Type I error matches the nominal rate.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"protocol-choice\",\"weight\":0.4,\"description\":\"The chosen protocol fits the use case\",\"aiPrompt\":\"Score 0-1. Does the writeup explain why this approach (group sequential vs always-valid vs fixed) is right for this experiment? Are the trade-offs (decision speed vs analytical complexity) named?\"},{\"id\":\"correct-implementation\",\"weight\":0.3,\"description\":\"Stopping rule correctly implemented\",\"aiPrompt\":\"Score 0-1. Does the code correctly compute the stopping boundary at each interim look? Are the inputs (interim n, prior looks) handled correctly?\"},{\"id\":\"empirical-validation\",\"weight\":0.3,\"description\":\"Simulated Type I error matches nominal\",\"aiPrompt\":\"Score 0-1. Does the simulation show the empirical false-positive rate is close to α? Is the simulation realistic (enough trials, realistic distribution)?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "order": 4,
+      "title": "Run + analyze the simulated experiment",
+      "description": "Use a synthetic data generator (provided in the seed) to simulate users entering the experiment over 4 simulated weeks. Apply your sequential-testing protocol; stop when the rule says stop. Analyze the results: point estimate, confidence interval, p-value (with appropriate adjustment), and per-segment HTE analysis on at least 2 secondary segments (correcting for multiple testing).\n\n**Deliverables**: `analysis.ipynb` + plots of the test statistic over time + a results table + per-segment HTE analysis with multiple-testing protection.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"protocol-followed\",\"weight\":0.3,\"description\":\"You actually followed the protocol\",\"aiPrompt\":\"Score 0-1. Did the analysis stop when the protocol said? Did the analyst peek and stop early outside the protocol? Document any deviations and explain.\"},{\"id\":\"ci-interpretation\",\"weight\":0.3,\"description\":\"CI interpreted in correct frequentist terms\",\"aiPrompt\":\"Score 0-1. Does the writeup interpret the confidence interval correctly (95% of such intervals contain the true effect, NOT 95% probability the effect is in this interval)? Does the writeup acknowledge what the CI doesn't say?\"},{\"id\":\"hte-multiple-testing\",\"weight\":0.4,\"description\":\"HTE analysis with multiple-testing protection\",\"aiPrompt\":\"Score 0-1. Does the per-segment analysis use Bonferroni / BH / similar correction? Does it pre-register the segments or acknowledge the data-driven exploration? Does it correctly distinguish 'significant after correction' from 'p < 0.05'?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 8
+    },
+    {
+      "order": 5,
+      "title": "Decision + writeup",
+      "description": "Write the final decision report. Recommend ship / don't-ship / extend-the-test. Defend the recommendation against an explicit list of alternative interpretations. Include: what would have changed your mind, what risks remain, what you'd monitor post-launch.\n\nThe writeup is the artifact that goes in your portfolio. Treat it as something a senior statistician would review.\n\n**Deliverables**: `decision-report.md` (~1500 words) covering all of the above + a one-paragraph executive summary.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"clear-recommendation\",\"weight\":0.3,\"description\":\"Recommendation is unambiguous\",\"aiPrompt\":\"Score 0-1. Is there a single clear ship / no-ship / extend recommendation? Or does the writeup hedge so much that the reader can't tell what to do?\"},{\"id\":\"alternative-interpretations\",\"weight\":0.4,\"description\":\"Acknowledges what could have gone differently\",\"aiPrompt\":\"Score 0-1. Does the writeup name specific alternative interpretations of the data and explain why the chosen one is best? Does it acknowledge uncertainty without using uncertainty as a hedge?\"},{\"id\":\"production-readiness\",\"weight\":0.3,\"description\":\"Post-launch monitoring named\",\"aiPrompt\":\"Score 0-1. Does the writeup specify what to monitor post-launch? What would trigger a rollback? What's the planned re-evaluation window?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["writeup"],
+      "estimatedDays": 5
+    }
+  ]
+}

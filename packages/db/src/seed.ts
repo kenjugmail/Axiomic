@@ -1008,6 +1008,26 @@ function seedMasteryPaths() {
       { slug: "bio-ml-evaluation", title: "Bio-ML Evaluation", level: "expert", order: 9, pages: ["casp"], prereqs: ["alphafold", "protein-language-models"], description: "CASP, contamination, leakage. How bio-ML benchmarks stay (or fail to stay) honest." },
     ],
   });
+
+  // Sprint 59 — Applied Statistics. Distinct from the mathematician
+  // path: production-flavored statistics, A/B testing, evaluation
+  // rigor, fairness. The substrate every ML team eventually needs.
+  seedMasteryPath({
+    slug: "applied-statistician",
+    title: "Applied Statistician",
+    description:
+      "Production-flavored statistics: hypothesis testing, A/B experiments, uncertainty quantification, fairness. The substrate ML evaluation actually needs.",
+    nodes: [
+      { slug: "frequentist-foundations", title: "Frequentist Foundations", level: "apprentice", order: 1, pages: ["sampling-distribution", "bootstrap", "mle"], prereqs: [], description: "Sampling distributions, MLE, the bootstrap. The frequentist worldview." },
+      { slug: "hypothesis-testing", title: "Hypothesis Testing", level: "apprentice", order: 2, pages: ["p-value", "type-i-ii-errors", "multiple-testing"], prereqs: ["frequentist-foundations"], description: "Null hypotheses, p-values, multiple testing correction. The standard inferential toolkit." },
+      { slug: "bayesian-inference", title: "Bayesian Inference", level: "practitioner", order: 3, pages: ["prior-likelihood-posterior", "mcmc", "credible-interval"], prereqs: ["frequentist-foundations"], description: "Priors, posteriors, credible intervals, MCMC. When and why to go Bayesian." },
+      { slug: "experiment-design", title: "Experiment Design", level: "practitioner", order: 4, pages: ["power-analysis", "randomization", "blocking-stratification"], prereqs: ["hypothesis-testing"], description: "Power analysis, randomization, blocking. Designing experiments that actually answer the question." },
+      { slug: "ab-testing", title: "A/B Testing", level: "specialist", order: 5, pages: ["ab-test", "sequential-testing", "peeking-bias"], prereqs: ["experiment-design"], description: "Online experiments, sequential testing, the peeking problem. Production A/B at scale." },
+      { slug: "causal-inference-basics", title: "Causal Inference Basics", level: "specialist", order: 6, pages: ["counterfactual", "rct"], prereqs: ["experiment-design"], description: "Counterfactuals, RCTs, the gap between correlation and cause. Bridges to the causality path." },
+      { slug: "uncertainty-quantification", title: "Uncertainty Quantification", level: "expert", order: 7, pages: ["calibration", "conformal-prediction", "prediction-interval"], prereqs: ["bayesian-inference"], description: "Calibration, conformal prediction, prediction intervals. ML systems that know what they don't know." },
+      { slug: "bias-and-fairness", title: "Bias & Fairness", level: "expert", order: 8, pages: ["demographic-parity", "fairness-accuracy-frontier"], prereqs: ["uncertainty-quantification"], description: "Demographic parity, equalized odds, the fairness-accuracy trade-off. The applied side of ML ethics." },
+    ],
+  });
 }
 
 // --- Forum seeding -------------------------------------------------------
@@ -1061,6 +1081,12 @@ const SEED_DOMAINS = [
     title: "Computational Biology",
     description:
       "ML × biology: protein folding, sequence modeling, AlphaFold + ESM.",
+  },
+  {
+    slug: "stats",
+    title: "Applied Statistics",
+    description:
+      "Hypothesis testing, A/B experiments, calibration, fairness — production statistics.",
   },
 ];
 
