@@ -667,6 +667,47 @@ For learners interested in cross-domain ML: comp-bio is one of the highest-lever
 
 This is the fourth and final new mastery path of the S55-S58 batch. From [systems engineer](/news/systems-engineer-path-launch) through [RL foundations](/news/rl-foundations-path-launch) to [multimodal](/news/multimodal-path-launch) and now comp-bio, the platform has 7 mastery paths covering the modern ML practitioner's toolkit end-to-end.`,
     },
+    {
+      slug: "applied-stats-path-launch",
+      title: "Applied Statistics path: the substrate ML evaluation actually needs",
+      summary:
+        "A new mastery path covering the production-statistics toolkit: hypothesis testing, A/B experiments, sequential analysis, calibration, fairness. The discipline that separates ML papers that replicate from those that don't.",
+      coverEmoji: "📊",
+      accentColor: "sky",
+      authorId: aliceId,
+      body: `Most ML failures in production aren't from bad models. They're from sloppy evaluation. The new [applied-statistician path](/paths/applied-statistician) covers the production-statistics toolkit that makes ML decisions defensible.
+
+## What landed
+
+Eight lessons spanning the frequentist + Bayesian + experiment-design + uncertainty + fairness toolkit:
+
+1. [Frequentist foundations](/paths/applied-statistician/lessons/frequentist-foundations) — sampling distributions, MLE, the bootstrap.
+2. [Hypothesis testing](/paths/applied-statistician/lessons/hypothesis-testing) — p-values, Type I / II errors, multiple-testing correction.
+3. [Bayesian inference](/paths/applied-statistician/lessons/bayesian-inference) — priors, posteriors, MCMC, when to go Bayesian.
+4. [Experiment design](/paths/applied-statistician/lessons/experiment-design) — power analysis, randomization, blocking, stratification.
+5. [A/B testing](/paths/applied-statistician/lessons/ab-testing) — sequential testing, peeking bias, HTE, OEC.
+6. [Causal inference basics](/paths/applied-statistician/lessons/causal-inference-basics) — counterfactuals, RCTs, observational methods.
+7. [Uncertainty quantification](/paths/applied-statistician/lessons/uncertainty-quantification) — calibration, conformal prediction, Bayesian deep learning.
+8. [Bias & fairness](/paths/applied-statistician/lessons/bias-and-fairness) — demographic parity, equalized odds, the impossibility theorem.
+
+Plus 22 new wiki pages — [p-value](/wiki/p-value), [bootstrap](/wiki/bootstrap), [MCMC](/wiki/mcmc), [power analysis](/wiki/power-analysis), [sequential testing](/wiki/sequential-testing), [conformal prediction](/wiki/conformal-prediction), [demographic parity](/wiki/demographic-parity), and 15 more — providing the densest reference cluster on the platform. Six new misconceptions cover the high-impact mistakes (p-value as P(null | data), peeking with Bonferroni, calibration ≠ accuracy, …). A new [applied-statistics forum domain](/forum/stats) gives discussion a home.
+
+## The capstone
+
+[Design and Run a Real A/B Test](/capstones/design-and-run-an-ab-test) (5 weeks): one full A/B-test artifact, defensible against a senior statistician's review.
+
+Five milestones — hypothesis + power analysis → randomization design → sequential-testing protocol → analysis with multiple-testing protection → final decision report. By the end you have a single portfolio piece that demonstrates you can frame a hypothesis, choose an MDE, design randomization, run sequential testing without inflating Type I error, interpret confidence intervals correctly, and defend a production decision.
+
+## Why this path is different
+
+Compared to the seven other paths (ml-engineer, ai-researcher, mathematician, physicist, systems-engineer, reinforcement-learner, multimodal-engineer, comp-biologist), applied-statistician is the most universally applicable. Every ML team needs it. Most teams don't have it.
+
+The mathematician path covers theory; this path covers the production-flavored applications: how to run an A/B test that won't reverse when run longer, how to report calibration alongside accuracy, how to audit fairness without falling for the impossibility theorem. It's where applied stats meets ML evaluation in the wild.
+
+## The evaluation rigor frontier
+
+For the broader picture of where the field is heading, see the new survey paper: [The Evaluation Rigor Frontier 2026](/research/evaluation-rigor-frontier-2026). Where sequential testing, calibration, and fairness have converged, where they haven't, and where the next decade probably lands.`,
+    },
   ];
 
   for (const a of articles) {
