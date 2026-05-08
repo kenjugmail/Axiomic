@@ -1,0 +1,75 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What motion planning is",
+      "body": "**Motion planning**: given a start state, a goal state, and constraints (obstacles, dynamics, joint limits), compute a trajectory from start to goal.\n\n**Examples**:\n\n- A robot arm reaching to grasp a cup, avoiding obstacles + self-collisions.\n- A self-driving car planning a lane change in traffic.\n- A drone navigating a forest.\n- A warehouse robot routing through aisles + other robots.\n\n**Two flavors**:\n\n- **Configuration space (C-space) planning**: plan in the joint-space of the robot. Standard for manipulation.\n- **Workspace / SE(3) planning**: plan in the world frame. Standard for navigation.\n\n**Three method families**:\n\n1. **Search-based**: discretize space; A*, D*, Dijkstra. Optimal in finite spaces.\n2. **Sampling-based**: random sampling + connection. RRT, RRT*, PRM. Scale to high dimensions.\n3. **Trajectory optimization**: formulate as constrained optimization. iLQR, CHOMP, TrajOpt. Smooth + dynamically feasible."
+    },
+    {
+      "kind": "text",
+      "title": "A* search",
+      "body": "Discretize the space into a grid. Each cell is a node. Edges connect adjacent cells.\n\nA* searches for the shortest path from start to goal:\n\n- `g(n)`: actual cost from start to node `n`.\n- `h(n)`: heuristic estimate of cost from `n` to goal.\n- `f(n) = g(n) + h(n)`: total estimated cost via `n`.\n\nExpand nodes in order of `f(n)`. Optimal if `h` is admissible (never overestimates).\n\n**For navigation**: 2D grid; `h` = Euclidean distance. Works well.\n\n**For high-dimensional configuration spaces**: A* is intractable (curse of dimensionality). 7-DOF arm: even 10 cells per dim = 10^7 cells. Memory + time blow up.\n\n**D* + variants**: dynamic A* re-uses computation when the world changes. Used in legacy autonomous-vehicle planners.\n\nA* is used heavily in 2D / 3D navigation; less so in high-DOF manipulation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "plan_q1",
+        "kind": "multiple_choice",
+        "question": "Why does A* work poorly for a 7-DOF robot arm?",
+        "options": [
+          "Robot arms are too slow",
+          "Curse of dimensionality. Discretizing 7-D configuration space requires exponentially many cells. Even 20 cells per dimension is 20^7 ≈ 10^9 cells — too many to store or search. Sampling-based methods (RRT, RRT*) scale to high dimensions because they don't discretize",
+          "A* needs gradient",
+          "It's not differentiable"
+        ],
+        "correctIndex": 1,
+        "explanation": "A* scales poorly with dimension because grid-based discretization is exponential. Sampling-based methods avoid this by random sampling — coverage is probabilistic, not exhaustive. This is why RRT-family methods are the workhorse of high-DOF manipulation."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "RRT — Rapidly-exploring Random Tree",
+      "body": "Sampling-based planner. Builds a tree from start toward random samples in configuration space.\n\n**Algorithm**:\n\n1. Initialize tree with start node.\n2. Sample a random point `q_rand` (with bias toward goal, e.g., 5%).\n3. Find the nearest tree node `q_near`.\n4. Extend toward `q_rand` by a small step `q_new`. If valid (no collision), add to tree.\n5. If `q_new` is close to goal, connect; return path.\n6. Repeat.\n\n**Strengths**:\n\n- Scales to high dimensions (used routinely in 7-DOF manipulation, 12-DOF humanoids).\n- Probabilistically complete: as samples → ∞, finds a path if one exists.\n- Implementation-simple.\n\n**Limits**:\n\n- Not optimal — paths are often jagged, suboptimal length.\n- Performance depends on sampling distribution.\n\n**RRT***: a variant that asymptotically produces optimal paths by rewiring nearby tree nodes. Standard improvement.\n\n**RRT-Connect** (bidirectional): grow trees from start AND goal; merge when they meet. Faster.\n\n**OMPL** (Open Motion Planning Library): C++ + Python implementations of all major sampling-based planners. Standard library."
+    },
+    {
+      "kind": "text",
+      "title": "Trajectory optimization",
+      "body": "Search-based + sampling-based methods produce paths. Production robots need **trajectories**: time-parameterized + dynamically feasible (smooth velocities, accelerations, torques).\n\n**Trajectory optimization**: formulate as nonlinear constrained optimization.\n\nMinimize: cost over trajectory (smoothness, energy, time).\nSubject to: dynamics, obstacle avoidance, joint limits, start + goal.\n\n**Methods**:\n\n- **CHOMP** (Covariant Hamiltonian Optimization for Motion Planning): gradient descent on a smoothness + obstacle cost. Smooth output but local minima.\n- **STOMP** (Stochastic Trajectory Optimization): noise-injection variant. Less prone to bad local minima.\n- **TrajOpt** (Sequential Convex Optimization): formulates as sequential QPs. Handles constraints natively.\n- **iLQR** (iterative LQR): when system is differentiable, locally-optimal trajectory via dynamic programming + linearization.\n\n**Use case**: iLQR + variants are the modern workhorses for vehicle motion planning, drone trajectory optimization, manipulation.\n\n**Hybrid approach**: sampling-based planner produces a coarse path → trajectory optimizer smooths + makes it dynamically feasible. This is the standard production stack."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "plan_q2",
+        "kind": "multiple_choice",
+        "question": "Why do production motion planners often combine sampling-based planning with trajectory optimization?",
+        "options": [
+          "Redundancy",
+          "Sampling-based methods scale to high dimensions and find feasible paths through complex environments, but produce jagged + dynamically-infeasible trajectories. Trajectory optimization smooths them and ensures dynamic feasibility (joint velocities + accelerations within actuator limits) but suffers from local minima without a good initial guess. Combining them gets coverage + smoothness",
+          "It's tradition",
+          "More research papers"
+        ],
+        "correctIndex": 1,
+        "explanation": "Hybrid is the production stack. Sampling-based gets you a feasible (rough) path through the obstacle field. Trajectory optimization polishes it into a dynamically-executable trajectory. Either alone has limits; the combination overcomes them."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Real-time planning + replanning",
+      "body": "Robots operate in dynamic environments. The planned trajectory must be re-evaluated as the world changes:\n\n- **Continuous replanning**: re-solve the planning problem at high frequency (10+ Hz). MPC-style.\n- **Trigger-based replanning**: re-plan only when obstacles change or trajectory deviates.\n- **Anytime planners**: provide best-found-so-far solution, improving with more compute. ARA*, AnyTime RRT*.\n\n**Production stacks**:\n\n- **Autonomous vehicles** (Waymo, Cruise): MPC-style trajectory optimization at ~10 Hz. Inner loop: low-level motion controller. Outer loop: behavior + route planning.\n- **Industrial manipulation** (KUKA, ABB, Franka): cartesian-space planners + RRT-Connect for unstructured environments.\n- **Drones** (DJI, autonomous racing): Newton-Euler-based MPC; trajectory polynomials (minimum-snap).\n\n**Modern frontier**: integrating ML — learned cost functions, learned planners, behavior cloning. Diffusion policies (next lessons) + transformer policies (nano-policies) blur the line between planning + control.\n\n**Plan to control to perception**: in real systems, planning isn't isolated. It interfaces with perception (uncertain world model) + control (executes the plan). Errors compound across the stack; production teams co-design all three."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "plan_explain",
+        "kind": "explain_back",
+        "prompt": "Pick a concrete robot example (manipulator, drone, autonomous vehicle, mobile robot). Walk through what motion planner you'd choose and why. Address: dimensionality, dynamic vs static obstacles, real-time constraints.",
+        "rubricCriteria": [
+          { "id": "specific-example", "description": "Names a specific robot type with concrete planning needs" },
+          { "id": "method-rationale", "description": "Justifies the planner choice (RRT-family, A*, MPC, hybrid) based on the system's properties" },
+          { "id": "tradeoffs", "description": "Names trade-offs (computational cost, optimality, real-time)" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}

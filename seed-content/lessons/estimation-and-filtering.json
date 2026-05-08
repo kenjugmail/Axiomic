@@ -1,0 +1,75 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why estimation matters",
+      "body": "Robots have sensors that measure their state — but sensors are noisy, biased, and sometimes don't observe the full state directly.\n\n**Concrete examples**:\n\n- A drone has IMU (acceleration + angular rate), GPS (position), and barometer (altitude). None directly measures velocity. To know velocity, you have to integrate IMU, but IMU drifts. To stop drift, you fuse GPS — but GPS is slow and inaccurate. The combination needs careful weighting.\n- A robot arm has joint encoders (high precision) and force-torque sensor (noisy). Estimating the load on the gripper requires combining both.\n- A self-driving car has LIDAR, cameras, radar, GPS, IMU. None alone gives accurate position; the fusion does.\n\n**Estimation** = computing the most likely state given (noisy) measurements + a model of the dynamics.\n\nThe canonical algorithm: the **Kalman filter** (1960). Optimal for linear systems with Gaussian noise. Workhorse of every modern aerospace + robotics system."
+    },
+    {
+      "kind": "text",
+      "title": "Kalman filter — the recursive Bayesian update",
+      "body": "Given:\n\n- Linear dynamics: `x_{k+1} = F x_k + B u_k + w_k`, `w_k ∼ N(0, Q)`.\n- Linear measurement: `z_k = H x_k + v_k`, `v_k ∼ N(0, R)`.\n\nThe Kalman filter maintains a Gaussian estimate of state `(x̂_k, P_k)`:\n\n**Predict**:\n- `x̂_{k+1|k} = F x̂_{k|k} + B u_k`\n- `P_{k+1|k} = F P_{k|k} F^T + Q`\n\n**Update** (when measurement `z_{k+1}` arrives):\n- Kalman gain: `K = P_{k+1|k} H^T (H P_{k+1|k} H^T + R)^{-1}`\n- `x̂_{k+1|k+1} = x̂_{k+1|k} + K (z_{k+1} - H x̂_{k+1|k})`\n- `P_{k+1|k+1} = (I - KH) P_{k+1|k}`\n\nThe gain `K` is the optimal weighting: trust the measurement more when measurement noise is small or prior uncertainty is large.\n\nThis is exactly Bayesian inference for the linear-Gaussian case, computed recursively (no need to keep history)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "est_q1",
+        "kind": "multiple_choice",
+        "question": "What does the Kalman gain K do as the measurement noise R increases?",
+        "options": [
+          "K increases",
+          "K decreases — the filter trusts the measurement less when measurement noise is larger. In the limit R → ∞, K → 0, the filter ignores measurements entirely and propagates only the dynamic prediction. This is the sensor-fusion intuition: weight measurements by their reliability",
+          "K stays constant",
+          "K becomes complex"
+        ],
+        "correctIndex": 1,
+        "explanation": "K trades off prior uncertainty (P) against measurement noise (R). Higher R → less weight on measurement. Higher P → more weight on measurement. The math automatically handles the right blend."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Extended Kalman Filter (EKF)",
+      "body": "Real systems are nonlinear. The KF assumes linear dynamics + measurement; in nonlinear cases, **linearize** at each step and apply KF formulas.\n\n**EKF procedure**:\n\n1. Linearize dynamics + measurement around current estimate: `F = ∂f/∂x|_{x̂}`, `H = ∂h/∂x|_{x̂}`.\n2. Apply KF predict + update with these Jacobians.\n3. The state estimate uses nonlinear `f` and `h`; only the covariance update uses linearized matrices.\n\n**Strengths**: workhorse of legacy aerospace + robotics. Cheap, well-understood.\n\n**Limits**:\n\n- Linearization errors accumulate; bad for highly nonlinear systems.\n- Requires Jacobians (analytic or autodiff).\n- Can diverge if linearization is poor or initial estimate is far from truth.\n\n**Modern alternatives**:\n\n- **Unscented Kalman Filter (UKF)**: propagates 'sigma points' through the nonlinear dynamics; better captures nonlinearity. No Jacobian needed.\n- **Particle filter**: Monte Carlo. Handles non-Gaussian + multimodal beliefs. More expensive but more flexible.\n- **Optimization-based estimation** (factor graphs): formulate as nonlinear least squares; solve via Levenberg-Marquardt or Gauss-Newton. Used in modern SLAM."
+    },
+    {
+      "kind": "text",
+      "title": "Particle filters",
+      "body": "When dynamics or measurements are highly nonlinear, multimodal, or non-Gaussian, KF/EKF fails. **Particle filter (sequential Monte Carlo)** represents the belief as a set of weighted samples (particles).\n\n**Procedure**:\n\n1. Maintain `N` particles `{x_k^{(i)}, w_k^{(i)}}`.\n2. **Predict**: propagate each particle through nonlinear dynamics + add noise.\n3. **Update**: weight each particle by `p(z_k | x_k^{(i)})` × prior weight.\n4. **Resample**: draw `N` particles with replacement proportional to weights. Prevents weight degeneracy.\n\n**Strengths**: handles arbitrary nonlinearity, multimodality, non-Gaussian noise. Used in robotics localization (Monte Carlo Localization), tracking, recursive Bayesian inference.\n\n**Limits**:\n\n- Computational cost scales with particles + dimension. Curse of dimensionality.\n- Particle depletion: in narrow likelihood regions, most particles get zero weight; need lots of particles or careful proposal distributions.\n- Real-time use limited to low-dimensional state spaces (~10).\n\n**Modern variants**: rao-blackwellized PF (analytical marginalization for parts of the state), particle MCMC, particle smoothing."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "est_q2",
+        "kind": "multiple_choice",
+        "question": "When would you use a particle filter instead of an extended Kalman filter?",
+        "options": [
+          "Always, particle filters are better",
+          "When the state distribution is multimodal (multiple plausible hypotheses), the dynamics or measurements are highly nonlinear, or noise is non-Gaussian. Robotics localization often has multiple plausible positions until measurements disambiguate — PF handles this. EKF assumes Gaussian unimodal beliefs and would collapse to one mode prematurely",
+          "When you have GPU acceleration",
+          "Particle filters are obsolete"
+        ],
+        "correctIndex": 1,
+        "explanation": "Multimodal beliefs are the classical motivation for PF. A robot in a long hallway might genuinely not know which end it's at; PF maintains both hypotheses and lets later measurements disambiguate. EKF would collapse to one mode and might commit to the wrong one."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Practical considerations",
+      "body": "**Sensor calibration**: estimation algorithms assume known noise statistics (Q, R). In practice, these are tuned. Allan variance for IMUs, calibration runs for cameras + LIDAR.\n\n**Time synchronization**: when fusing multiple sensors at different rates, careful timestamp alignment matters. Microsecond-level errors degrade fusion.\n\n**Outlier rejection**: real sensors have outliers (GPS multipath, LIDAR specular reflections). KF can be destabilized; use robust variants (Mahalanobis distance gating, M-estimators, MAP-based filters).\n\n**Filter health monitoring**: track innovation (`z_k - H x̂_k`) statistics. Persistent biases or growing innovations indicate filter failure or model mismatch.\n\n**Sensor failure handling**: when a sensor fails, the filter should detect + reject its measurements rather than letting bad data corrupt the state. ROS provides standard frameworks (`robot_localization`, `gtsam`).\n\n**Rule of thumb**: estimation is half the battle in robotics. Hardware that doesn't have good sensors + software for fusing them won't perform regardless of how good the planner + controller are."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "est_explain",
+        "kind": "explain_back",
+        "prompt": "Explain in your own words how a Kalman filter combines a noisy measurement with a noisy prediction. Use the Kalman gain to walk through the intuition.",
+        "rubricCriteria": [
+          { "id": "weighting-mechanism", "description": "Names that K weights the measurement vs prediction by their relative noise" },
+          { "id": "gaussian-update", "description": "Connects to Bayesian inference (prior × likelihood ∝ posterior, all Gaussians)" },
+          { "id": "limit-cases", "description": "Mentions a limit case (R → ∞ → ignore measurement; R → 0 → trust measurement entirely)" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}

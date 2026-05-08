@@ -1,0 +1,80 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why sim-to-real",
+      "body": "Training robot policies in the real world is hard:\n\n- **Slow**: each rollout takes seconds-to-minutes of wall-clock time.\n- **Expensive**: hardware wear, electricity, human supervision.\n- **Unsafe**: random exploratory actions can damage hardware or hurt people.\n- **Hard to parallelize**: one robot, one stream of experience.\n\nSimulation fixes these:\n\n- **Fast**: 1000s of parallel environments at 100x real-time.\n- **Cheap**: GPU compute is cheaper than hardware time.\n- **Safe**: no hardware damage from bad policies.\n- **Reproducible**: identical scenarios, no environmental drift.\n\nThe catch: **the reality gap**. Policies trained in simulation often fail on real hardware because the simulator doesn't match reality exactly.\n\n**Sim-to-real**: the discipline of training in simulation while ensuring real-hardware deployment works."
+    },
+    {
+      "kind": "text",
+      "title": "Sources of the reality gap",
+      "body": "**Dynamics mismatch**:\n\n- Friction coefficients (especially for contact-rich tasks).\n- Mass + inertia parameters.\n- Actuator delays + nonlinearities.\n- Compliance + flexibility (real arms aren't rigid).\n\n**Sensor mismatch**:\n\n- Camera intrinsics + extrinsics.\n- Image noise, lighting, motion blur.\n- IMU bias drift.\n- LIDAR specular returns + atmospheric effects.\n\n**Environment mismatch**:\n\n- Object shapes (real-world clutter vs simulator's synthetic objects).\n- Surface materials (texture, gloss).\n- Lighting conditions.\n- Other agents (humans, other robots).\n\n**System integration mismatch**:\n\n- Network latency.\n- Frame-rate variations.\n- Hardware-software timing.\n\nClosing the gap requires addressing all of these. Different problems have different dominant sources."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "s2r_q1",
+        "kind": "multiple_choice",
+        "question": "Why might a robot manipulation policy that achieves 95% success in simulation fail completely on a real robot?",
+        "options": [
+          "Hardware noise",
+          "Friction + contact dynamics in the real world differ from the simulator's. Manipulation depends critically on contact behavior; small errors compound into total failure. Domain randomization (training on a distribution of physics parameters) and system identification (calibrating the simulator to match reality) are standard fixes",
+          "Algorithmic bug",
+          "Network issues"
+        ],
+        "correctIndex": 1,
+        "explanation": "Contact dynamics is the biggest reality gap for manipulation. A small friction-coefficient error means objects slip in real life that didn't slip in simulation. Domain randomization (vary friction over a range during training) makes the policy robust to the uncertainty."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Domain randomization",
+      "body": "**Domain randomization (DR)** (Tobin et al. 2017): train across a wide distribution of simulator parameters. The policy learns to be robust to the variation. Real-world parameters are presumed to be one sample from this distribution.\n\n**Parameters to randomize**:\n\n- **Physics**: masses, inertias, friction, damping.\n- **Visuals**: textures, colors, lighting, camera parameters.\n- **Sensor noise**: pixel noise, motion blur, IMU bias.\n- **Latencies**: control frequency, sensor delays.\n- **Initial conditions**: object positions, robot pose.\n\n**Tradeoffs**:\n\n- **Wide DR**: more robust but harder to learn (more variation to handle).\n- **Narrow DR**: easier to learn but smaller robustness margin.\n\n**OpenAI's Dactyl** (2018): solved Rubik's cube in-hand with a robot hand by training in simulation with extreme DR. Reality gap closed.\n\n**Modern variants**:\n\n- **Adaptive DR**: start narrow; widen as the policy becomes competent.\n- **Calibrated DR**: use real-data to calibrate the DR ranges. Tighter than random, broader than nominal.\n- **Visual DR via diffusion / GANs**: synthesize photorealistic variations.\n\nDR is the workhorse of modern sim-to-real. Most learned policies use it."
+    },
+    {
+      "kind": "text",
+      "title": "System identification",
+      "body": "Alternative to DR: **system identification (SysID)** — measure real-world parameters and use them in simulation.\n\n**Procedure**:\n\n1. Run controlled experiments on the real robot.\n2. Estimate parameters (friction, mass, damping) from the data.\n3. Use the calibrated simulator for training.\n\n**Strengths**:\n\n- Tighter sim-to-real gap when parameters are well-identified.\n- Faster training (don't waste capacity on irrelevant variation).\n\n**Limits**:\n\n- Some parameters can't be measured directly (especially nonlinear friction, contact mechanics).\n- Drift over time: as hardware ages, calibration goes stale.\n- Doesn't generalize to novel hardware.\n\n**Hybrid: SysID + narrow DR**:\n- Identify nominal parameters via SysID.\n- Add narrow DR around the identified values to handle uncertainty.\n\nThis is the modern standard. Pure DR is too broad; pure SysID is too brittle."
+    },
+    {
+      "kind": "text",
+      "title": "Real-world fine-tuning",
+      "body": "Sim-to-real often doesn't fully close the gap. The fix: **fine-tune on real data**.\n\n**Procedure**:\n\n1. Pretrain in simulation with DR.\n2. Deploy on real hardware.\n3. Collect real rollouts (expert demonstrations or RL on hardware).\n4. Fine-tune the policy on the real data.\n\n**Why it works**:\n\n- Pretraining provides a strong prior.\n- Fine-tuning corrects sim-to-real residuals.\n- Sample-efficient: 100s of real rollouts vs millions in pure-real RL.\n\n**Challenges**:\n\n- Hardware wear during real rollouts.\n- Safety during exploration (bad policies break things).\n- Catastrophic forgetting: fine-tuning overfits to the specific real environment, loses simulation-robustness.\n\n**Modern approaches**:\n\n- **Offline RL**: fine-tune from pre-collected demonstrations + offline RL. No exploratory hardware risk.\n- **Imitation + RL hybrids**: human demonstrations bootstrap; RL refines.\n- **Sim-to-real residual learning**: pretrain a base policy in sim; learn a residual policy on real data that corrects sim-to-real errors."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "s2r_q2",
+        "kind": "multiple_choice",
+        "question": "Why might pure simulation-based training (no real-world fine-tuning) be sufficient for some tasks but not others?",
+        "options": [
+          "It's about computer power",
+          "Tasks with low contact complexity (navigation, broad-stroke manipulation) are mostly determined by kinematics and broad dynamics, which simulators handle well. Tasks with high contact complexity (insertion, dexterous manipulation, slippery objects) require fine contact dynamics that simulators model poorly. Sim is sufficient for the former; the latter needs real-world fine-tuning",
+          "Some hardware is just better",
+          "It's a research question only"
+        ],
+        "correctIndex": 1,
+        "explanation": "The reality gap is largest for contact-rich tasks. Simulators handle kinematic + broad-stroke dynamics well; they struggle with friction, contact normals, deformation. So navigation policies often transfer well; manipulation policies less so. Real-world fine-tuning closes the residual gap."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "The modern stack",
+      "body": "Production sim-to-real combines multiple techniques:\n\n**Simulators**: NVIDIA Isaac Sim (formerly Isaac Gym), MuJoCo, Drake, PyBullet, Gazebo. Domain-specific (Genesis for differentiable, Habitat for navigation).\n\n**Photorealistic rendering**: NeRF-based + Gaussian-Splatting environments. The simulator's visual side is now nearly indistinguishable from real for some tasks.\n\n**Physics engines**: MuJoCo (academic standard, high accuracy), PhysX (used in Isaac Sim, fast), Bullet (open-source). Each has different contact-dynamics tradeoffs.\n\n**Domain randomization frameworks**: built into Isaac Lab + RL frameworks.\n\n**Real-world data integration**: RT-2, OpenVLA, π-0 train on combinations of simulation + teleoperation + real-world data.\n\n**Foundation-model-based zero-shot**: pretrain VLMs on diverse internet data + curated robot data; deploy with limited fine-tuning. The new direction; immature but promising.\n\n**Practical observations**:\n\n- Pure-sim policies are deployable for navigation (~80% of cases).\n- Manipulation usually needs real-world fine-tuning.\n- Dexterous manipulation needs both extreme DR + real-world fine-tuning + tactile feedback.\n\nThe sim-to-real gap is closing but not closed. Production systems still spend significant engineering effort on it."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "s2r_explain",
+        "kind": "explain_back",
+        "prompt": "Explain why domain randomization is a popular sim-to-real technique. Walk through: what's randomized, why, and the tradeoff between wide and narrow randomization.",
+        "rubricCriteria": [
+          { "id": "what-randomized", "description": "Names what's randomized (physics, visuals, sensor noise)" },
+          { "id": "robustness-rationale", "description": "Explains that DR makes the policy robust to a distribution that hopefully includes reality" },
+          { "id": "wide-vs-narrow-tradeoff", "description": "Names the tradeoff (wide = robust but hard to learn; narrow = easy but fragile)" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}

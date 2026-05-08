@@ -1134,6 +1134,27 @@ function seedMasteryPaths() {
       { slug: "causal-discovery", title: "Causal Discovery", level: "expert", order: 9, pages: ["causal-discovery", "pc-algorithm", "fci-algorithm"], prereqs: ["dags-and-d-separation"], description: "Learning causal structure from data. PC, FCI, score-based methods. The hardest problem in the field; how far it can go and where it can't." },
     ],
   });
+
+  // Sprint 61 — Robotics + Control. Classical control through modern
+  // ML-driven robotics. The other half of the embodied-AI stack.
+  // Cross-references RL via cross-path prereqs.
+  seedMasteryPath({
+    slug: "roboticist",
+    title: "Roboticist",
+    description:
+      "From classical control to modern ML-driven robotics: PID, state-space, Kalman filters, SLAM, motion planning, manipulation, sim-to-real, and end-to-end policies.",
+    nodes: [
+      { slug: "control-foundations", title: "Control Foundations", level: "apprentice", order: 1, pages: ["pid-control", "feedback-loops", "stability"], prereqs: [], description: "PID controllers, feedback loops, stability analysis. The substrate of every control system." },
+      { slug: "state-space-control", title: "State-Space Control", level: "apprentice", order: 2, pages: ["state-space", "linear-systems", "lqr"], prereqs: ["control-foundations"], description: "State-space representations, linear systems, LQR. The modern formalism for control." },
+      { slug: "estimation-and-filtering", title: "Estimation & Filtering", level: "practitioner", order: 3, pages: ["kalman-filter", "extended-kalman-filter", "particle-filter"], prereqs: ["state-space-control"], description: "Kalman, EKF, particle filters. How robots reason about state under sensor noise." },
+      { slug: "slam", title: "SLAM", level: "practitioner", order: 4, pages: ["slam", "loop-closure", "factor-graphs"], prereqs: ["estimation-and-filtering"], description: "Simultaneous localization and mapping. From EKF-SLAM to factor-graph methods to ORB-SLAM." },
+      { slug: "motion-planning", title: "Motion Planning", level: "specialist", order: 5, pages: ["motion-planning", "rrt", "a-star"], prereqs: ["state-space-control"], description: "Sampling-based (RRT, RRT*), search-based (A*), trajectory optimization. Getting from A to B without hitting things." },
+      { slug: "manipulation", title: "Manipulation", level: "specialist", order: 6, pages: ["forward-kinematics", "inverse-kinematics", "grasp-planning"], prereqs: ["motion-planning"], description: "Forward / inverse kinematics, grasp planning, dexterous manipulation. The hand-eye coordination problem." },
+      { slug: "sim-to-real", title: "Sim-to-Real", level: "specialist", order: 7, pages: ["sim-to-real", "domain-randomization", "system-identification"], prereqs: ["motion-planning"], description: "Training in simulation; deploying on hardware. Domain randomization, system ID, the reality gap." },
+      { slug: "learning-based-control", title: "Learning-Based Control", level: "expert", order: 8, pages: ["model-based-rl-robotics", "imitation-learning", "diffusion-policy"], prereqs: ["sim-to-real"], description: "Model-based RL, behavior cloning, diffusion policies, transformer policies. Where ML meets control." },
+      { slug: "embodied-ai-frontier", title: "Embodied AI Frontier", level: "expert", order: 9, pages: ["foundation-models-robotics", "vision-language-action", "real-world-deployment"], prereqs: ["learning-based-control"], description: "RT-2, OpenVLA, π-0, the foundation-models-for-robotics era. End-to-end policies + the deployment realities." },
+    ],
+  });
 }
 
 // --- Forum seeding -------------------------------------------------------
@@ -1199,6 +1220,12 @@ const SEED_DOMAINS = [
     title: "Causality",
     description:
       "DAGs, do-calculus, counterfactuals, instrumental variables — Pearl-style causal inference.",
+  },
+  {
+    slug: "robotics",
+    title: "Robotics & Control",
+    description:
+      "PID through SLAM, manipulation, sim-to-real, and end-to-end ML policies — the embodied-AI stack.",
   },
 ];
 

@@ -1,0 +1,80 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Where ML meets control",
+      "body": "Classical control (PID, LQR, MPC) gets you far. ML adds capabilities classical methods can't:\n\n- **Learning from demonstrations**: behavior cloning humans + experts.\n- **Adapting to novel situations**: policies that generalize to unseen objects, layouts, dynamics.\n- **Handling unstructured perception**: directly learning from images instead of hand-engineered features.\n- **Learning skills without explicit reward design**: imitation learning + offline RL.\n\nThe modern robotics stack is **hybrid**: classical control as the safety substrate (low-level joint controllers, MPC for vehicles) + ML for the high-level perception + decision-making.\n\nThis lesson covers: imitation learning, model-based RL, diffusion policies, transformer policies."
+    },
+    {
+      "kind": "text",
+      "title": "Imitation learning + behavior cloning",
+      "body": "**Behavior cloning (BC)**: collect expert demonstrations `{(state_t, action_t)}`. Train a model to predict `action_t` from `state_t`. Supervised learning.\n\n**Strengths**:\n\n- Sample-efficient: hundreds-to-thousands of demos suffice for many tasks.\n- No reward function needed.\n- Stable training (just supervised learning).\n\n**Limits**:\n\n- **Distribution shift**: at deployment, the policy makes errors → encounters states not seen during training → errors compound.\n- **Compounding errors**: each step's error puts the next step further out-of-distribution.\n\n**Fixes**:\n\n- **DAgger** (Ross-Gordon-Bagnell 2011): iteratively collect demos in states the current policy reaches; retrain. Reduces distribution shift.\n- **Action chunking** (ACT): predict a sequence of actions instead of one; less compounding.\n- **Diffusion policies** (next slide): generate full trajectories; smoother + more robust.\n\n**Modern BC**: most production policies (pre-foundation-model era) used BC + DAgger. Tesla Autopilot's earlier versions, Boston Dynamics' Stretch, Amazon Sparrow.\n\n**Data scale**: BC scales with demo data. RT-1 (2022) used 130k demos; RT-2 (2023) used the same + internet data. π-0 (2024) used 10k+ hours of teleoperation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "lbc_q1",
+        "kind": "multiple_choice",
+        "question": "Why does naive behavior cloning often fail at deployment time despite training-time success?",
+        "options": [
+          "Wrong loss function",
+          "Distribution shift: at deployment, small policy errors push the robot into states never seen during training. The policy's predictions there are out-of-distribution and unreliable. Errors compound. DAgger fixes this by iteratively collecting expert demos in the states the current policy actually reaches",
+          "Optimizer issues",
+          "Hardware noise"
+        ],
+        "correctIndex": 1,
+        "explanation": "Distribution shift is the central BC failure mode. Training data shows the expert's trajectory; deployment states drift off that trajectory after errors compound. Pure BC works for short episodes; long episodes need DAgger or alternatives like diffusion policies."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Diffusion policies",
+      "body": "**Diffusion policies** (Chi et al. 2023): use diffusion models to generate action sequences.\n\n**Idea**: instead of predicting a single action `a_t`, generate the next `H` actions `(a_t, a_{t+1}, ..., a_{t+H})`. Model this distribution with a denoising-diffusion model conditioned on the observation.\n\n**Why it helps**:\n\n- **Multimodal action distributions**: when there are multiple ways to do the same task, diffusion captures all modes. Single-action regression averages them and gets stuck.\n- **Action-sequence generation**: sequence-level coherence (no jagged action transitions).\n- **Smooth + dynamically feasible**: better than per-step BC.\n\n**Production status**: state-of-the-art in many manipulation benchmarks. Used in research at most major robotics labs; deployment in commercial systems is starting (Toyota Research, Tesla, Anthropic-affiliated robotics partners).\n\n**Modern variants**:\n\n- **Diffusion Policy with Visual Diffusion** (Octo, OpenVLA): joint vision + action diffusion.\n- **Conditional flow matching**: alternative to diffusion; faster + sometimes better."
+    },
+    {
+      "kind": "text",
+      "title": "Model-based RL for robots",
+      "body": "**Model-based RL**: learn a dynamics model `s_{t+1} = f(s_t, a_t)`; plan or train policies using the model.\n\n**Why MBRL is appealing for robotics**:\n\n- **Sample efficiency**: learning a dynamics model from data is much cheaper than learning a policy directly.\n- **Generalization**: a learned dynamics model + planner can generalize to new tasks (different reward functions) without re-learning.\n- **Safety**: plan offline before executing; verify safety.\n\n**Methods**:\n\n- **PETS** (Chua et al. 2018): probabilistic ensemble of dynamics models + MPC for planning. Strong baseline.\n- **PILCO** (Deisenroth-Rasmussen 2011): Gaussian-process dynamics + analytical policy gradients. Sample-efficient on low-dim tasks.\n- **Dreamer / DreamerV3** (Hafner et al. 2020-2023): learn a latent-space dynamics model; train policy in imagination. Strong on diverse benchmarks.\n- **MuZero** (Schrittwieser et al. 2020): learn an abstract dynamics model + value/policy heads; tree search at planning time. State-of-the-art on Atari + Go.\n\n**Limits**:\n\n- Model errors compound during long-horizon planning.\n- Model + policy must be jointly trained carefully.\n- For high-dim state (images): learning accurate dynamics is hard.\n\n**Modern view**: MBRL competes with model-free RL (PPO, SAC) + IL. No universal winner; depends on data shape + task."
+    },
+    {
+      "kind": "text",
+      "title": "Transformer policies + VLAs",
+      "body": "**Vision-Language-Action (VLA) models**: large transformers that take vision + language (instructions) as input and output robot actions. The 2023+ frontier.\n\n**Architecture**: Vision encoder (e.g., DINOv2 or CLIP-style) + language encoder + transformer backbone + action decoder.\n\n**Training**: combination of internet data (web images + text) + curated robot demonstrations. Scaling laws kick in: more data → broader generalization.\n\n**Notable models**:\n\n- **RT-1 (2022, Google)**: first transformer policy at scale. 130k demos; 700 tasks.\n- **RT-2 (2023, Google DeepMind)**: VLM-augmented; transfers internet knowledge to robot tasks.\n- **OpenVLA (2024)**: open-weight VLA. 7B params; trained on diverse robot data.\n- **π-0 (2024, Physical Intelligence)**: flow-matching VLA. Generalizes to dexterous tasks.\n- **OpenVLA-ACT, RT-2-ACT, MOOPT**: action-chunking variants.\n\n**Production status**: research frontier moving rapidly. Few production deployments as of 2026; most are research demos. The clearest commercial-deployment trajectory: foundation models for warehouse manipulation, then home robots, then dexterous-task robots.\n\n**Open challenges**:\n\n- **Generalization across embodiments**: a policy trained on one robot working on a different one.\n- **Long-horizon tasks**: 10+ subtasks chained.\n- **Tactile + force feedback integration**: most VLAs are vision-only.\n- **Real-time inference**: 7B+ models at high frequency requires distillation or chunked inference."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "lbc_q2",
+        "kind": "multiple_choice",
+        "question": "Why do diffusion policies outperform single-action regression on multimodal action distributions?",
+        "options": [
+          "More compute",
+          "Diffusion models capture full distributions including multiple modes. Single-action regression (MSE loss) trained on multimodal expert data averages the modes — landing between them, which is often a bad action. Diffusion samples one of the modes coherently. This is why human demo data with multiple valid solutions to a task works much better with diffusion than regression",
+          "Better dataset",
+          "It's just regularization"
+        ],
+        "correctIndex": 1,
+        "explanation": "Multimodal action distributions are common in human demonstrations: different demonstrators take different paths, all of which work. Naive regression averages them, yielding a (usually wrong) intermediate action. Diffusion + flow matching capture the full distribution, sampling a coherent valid mode."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's new vs what's old",
+      "body": "**The hybrid stack still wins** in production:\n\n- **Low-level**: classical PID / LQR for joint control. Microsecond loop times, deterministic.\n- **Mid-level**: classical motion planning + MPC for trajectories.\n- **High-level**: ML for perception, scene understanding, behavior selection, task planning.\n\nML doesn't replace classical control; it sits on top.\n\n**The frontier shift**: the high-level layer is getting end-to-end. RT-2 / π-0 style policies do perception + behavior + low-level action in one pass. The classical low-level controller might still be there as a safety wrapper.\n\n**Open questions**:\n\n- **Will end-to-end policies replace the entire stack?** Probably partially. Safety-critical settings (autonomous vehicles, surgery) will keep classical safety wrappers indefinitely.\n- **What's the right interface between ML + classical?** Force / torque setpoints? Trajectory waypoints? Joint positions? Active research.\n- **Can ML policies be formally verified?** Mostly no, today. Limits ML's role in highest-stakes deployments.\n\nThe next lesson covers the embodied-AI frontier explicitly: foundation models, RT-2, OpenVLA, the road to general-purpose robot policies."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "lbc_explain",
+        "kind": "explain_back",
+        "prompt": "Pick one: imitation learning, model-based RL, or transformer policies. Walk through what makes the approach attractive AND what its current limits are for production deployment.",
+        "rubricCriteria": [
+          { "id": "method-overview", "description": "Cleanly describes how the method works" },
+          { "id": "strengths", "description": "Names 1-2 specific strengths" },
+          { "id": "limits", "description": "Names 1-2 specific deployment limits" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}

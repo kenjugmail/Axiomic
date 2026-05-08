@@ -1,0 +1,80 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Manipulation — what's hard",
+      "body": "Robotic manipulation: making the robot do useful things WITH its hand. Sounds simple; isn't.\n\n**Why it's hard**:\n\n- **Forward + inverse kinematics**: from joint angles to end-effector pose, and back. Inverse kinematics has multiple solutions, singularities, and non-convexity.\n- **Contact dynamics**: when the hand touches an object, friction, contact normals, slip — all matter. Hard to model + simulate.\n- **Grasping**: predicting which grasp will succeed requires understanding object shape, mass, friction, and finger biomechanics.\n- **Dexterous manipulation**: in-hand manipulation (rotating an object, writing with a pen) requires precise force + position control.\n\n**Why it's a frontier**: humans do this trivially; robots have struggled for 50+ years. Recent ML approaches (RT-2, OpenVLA, π-0, diffusion policies) are the first to handle unstructured manipulation in real settings."
+    },
+    {
+      "kind": "text",
+      "title": "Forward kinematics (FK)",
+      "body": "**Forward kinematics**: given joint angles `q = [q_1, q_2, ..., q_n]`, compute the end-effector pose `T(q)`.\n\nUse a kinematic chain: each joint contributes a transformation; chain them via matrix multiplication.\n\n`T(q) = T_1(q_1) · T_2(q_2) · ... · T_n(q_n)`\n\nEach `T_i` is a 4×4 homogeneous transformation matrix.\n\n**Denavit-Hartenberg parameters**: a standardized way to assign coordinate frames to each link, simplifying the math. Every kinematics textbook has the conventions.\n\n**FK is fast + unique**: given `q`, the end-effector pose is uniquely determined.\n\n**Tooling**: `pinocchio` (C++/Python), KDL, MoveIt all implement FK. URDF (Unified Robot Description Format) is the standard way to specify the robot's geometry."
+    },
+    {
+      "kind": "text",
+      "title": "Inverse kinematics (IK)",
+      "body": "**Inverse kinematics**: given a desired end-effector pose `T_target`, find joint angles `q` such that `FK(q) = T_target`.\n\n**Why it's harder**:\n\n- **Multiple solutions**: a 7-DOF arm typically has infinitely many `q` for a given pose. Pick which one?\n- **Singularities**: at certain `q`, the robot loses a degree of freedom (Jacobian rank drops). Velocities blow up.\n- **No closed-form for most arms**: 6-DOF arms with specific geometry (Pieper arms) have closed-form. 7-DOF arms need iterative methods.\n- **Joint limits**: not every `q` is feasible.\n\n**Methods**:\n\n- **Closed-form** (when geometry permits): analytic solution.\n- **Newton-Raphson on the kinematic equations**: iterative; fast when initial guess is good.\n- **Damped least squares (DLS)**: regularized version that handles singularities.\n- **Optimization-based** (TRAC-IK, KDL-IK): minimize `||FK(q) - T_target||²` subject to joint limits.\n\nIK is solved at every control step in production; computation budget is microseconds. Caching last solution as initial guess is essential."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "manip_q1",
+        "kind": "multiple_choice",
+        "question": "Why does a 7-DOF robot arm typically have infinitely many IK solutions for a given end-effector pose?",
+        "options": [
+          "Numerical precision",
+          "It's redundant — 7 joints + 6 task-space dimensions = 1 redundant DOF. The 'elbow swivel' can be anywhere in a circle without affecting the end-effector pose. The redundancy is useful (for avoiding obstacles + singularities) but means IK isn't unique. Solving must include a way to pick one solution",
+          "Wrong number of joints",
+          "Joint coupling"
+        ],
+        "correctIndex": 1,
+        "explanation": "7-DOF arms are popular precisely because of redundancy. 6-DOF is the minimum to reach any pose; 7-DOF gives you a 1-D 'null space' to use for secondary objectives (avoiding obstacles, staying away from joint limits, energy minimization). The cost: IK must specify how to use the redundancy."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Grasping",
+      "body": "**Grasp planning**: where + how to grip an object so that picking it up succeeds.\n\n**Classical methods**:\n\n- **Form-closure**: contact points that fully constrain the object geometrically. Strong but rare.\n- **Force-closure**: contact points + friction can resist any external wrench. The standard for parallel-jaw grippers.\n- **Sampling-based**: sample candidate grasps; score by force-closure + reachability + clearance.\n\n**ML-based grasping**:\n\n- **Dex-Net**: train CNN to predict grasp success from depth images. Worked on cluttered scenes.\n- **6-DoF GraspNet**: dense grasp prediction in 3D. Better generalization than 4-DoF planar grasping.\n- **Diffusion-based grasping**: model the distribution of successful grasps; sample from it.\n\n**Modern reality**: vision-based ML grasp prediction works well on novel objects in cluttered scenes. Used at Amazon (Sparrow), Boston Dynamics (Stretch), warehouse-automation startups.\n\n**Open challenges**:\n\n- Dexterous (multi-finger) grasping: harder optimization; less data; few production systems.\n- Soft / deformable objects: contact models break down.\n- High-precision assembly: requires force feedback + millimeter-precision control."
+    },
+    {
+      "kind": "text",
+      "title": "Dexterous + contact-rich manipulation",
+      "body": "Beyond pick-and-place, harder tasks:\n\n- **Insertion** (peg-in-hole, USB plugs): millimeter precision; force feedback essential.\n- **In-hand manipulation**: rotating, sliding, regrasping. Requires multi-finger dexterity.\n- **Tool use**: using a hammer, screwdriver, pen.\n- **Bimanual + multi-arm**: two arms cooperating.\n\n**Why these are hard**:\n\n- **Contact dynamics**: highly nonlinear; hard to simulate accurately.\n- **Friction uncertainty**: same finger on the same object slips differently every time.\n- **Visual occlusion**: the hand occludes its own contacts; vision feedback insufficient.\n\n**Modern approaches**:\n\n- **Sim-to-real with domain randomization**: train in simulation; randomize physics + visuals; transfer to real.\n- **Hierarchical RL**: learn high-level policy in simulation; low-level controller from human demonstrations.\n- **Tactile sensing**: GelSight, DIGIT-style high-resolution tactile sensors give the robot 'fingertips'.\n- **Diffusion policies**: model the distribution over action sequences; sample policies that handle contact uncertainty.\n\n**Production status**:\n\n- Pick-and-place: solved for many cases.\n- Insertion: solved for known geometries with force feedback; harder for novel objects.\n- General dexterous manipulation: research frontier. RT-2, π-0, Tesla Optimus all aimed here."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "manip_q2",
+        "kind": "multiple_choice",
+        "question": "Why is contact-rich manipulation (insertion, dexterous tasks) harder than pick-and-place?",
+        "options": [
+          "More joints involved",
+          "Contact dynamics are highly nonlinear and hard to model + simulate. Friction is uncertain; small position errors cause large force changes; vision is occluded by the hand. Pick-and-place mostly avoids continuous contact (open-grip → close → lift), so the hard contact problem is brief. Insertion + dexterous tasks live in continuous contact",
+          "Hardware is the issue",
+          "It's just more expensive"
+        ],
+        "correctIndex": 1,
+        "explanation": "Continuous contact is the central difficulty. Friction, contact normals, slip, deformation all matter and all are hard to model. Sim-to-real for contact-rich tasks requires more careful domain randomization and often tactile feedback. This is why production manipulators do pick-and-place well + dexterous tasks poorly."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "The path forward",
+      "body": "Manipulation has been the slowest-progressing area of robotics for decades. The recent shift:\n\n**Old paradigm** (2010s): hand-engineered controllers + carefully-engineered tasks. Brittle; doesn't transfer.\n\n**New paradigm** (2020s): learn end-to-end policies from demonstrations + RL. Vision-Language-Action (VLA) models like RT-2, OpenVLA, π-0 trained on diverse robot data. Transfer across objects, tasks, embodiments — to a degree.\n\n**Open frontiers**:\n\n- **Generalization across embodiments**: a policy trained on one robot working on a different robot.\n- **Long-horizon tasks**: a policy that plans + executes 10+ subtasks.\n- **Few-shot adaptation**: novel object + novel task, learned from a single demonstration.\n- **Tactile-vision-language fusion**: integrating tactile feedback with vision + language commands.\n- **Common-sense physical reasoning**: knowing that pushing one block knocks over its neighbor.\n\nThe next lesson covers learning-based control more broadly. The frontier lesson at the end of the path covers the foundation-models-for-robotics era explicitly."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "manip_explain",
+        "kind": "explain_back",
+        "prompt": "Pick a manipulation task (pick-and-place, insertion, in-hand rotation, tool use). Walk through what makes it hard from the robotics perspective. Address: kinematics, dynamics, sensing, modeling.",
+        "rubricCriteria": [
+          { "id": "specific-task", "description": "Names a specific manipulation task" },
+          { "id": "challenges", "description": "Identifies 2-3 specific challenges (contact uncertainty, occlusion, dynamics, kinematic redundancy)" },
+          { "id": "modern-approach", "description": "Names how modern systems address it (vision-based grasp learning, force feedback, sim-to-real)" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}
