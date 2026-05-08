@@ -1102,3 +1102,63 @@ export const misconceptionDiagnoses = sqliteTable("misconception_diagnoses", {
   ),
   userIdx: index("misconception_diagnoses_user_idx").on(t.userId, t.status),
 }));
+
+// Sprint 38 — Misconception marketplace. Anyone can propose a new
+// catalog entry; the community votes; once a submission crosses a
+// score threshold it auto-promotes into misconception_catalog and
+// the detector picks it up on the next run. Rejected submissions
+// stay readable so the discussion isn't lost.
+export const misconceptionSubmissions = sqliteTable("misconception_submissions", {
+  id: text("id").primaryKey(),
+  proposerId: text("proposer_id").notNull().references(() => users.id),
+  conceptSlug: text("concept_slug").notNull(),
+  // Stable short id mirroring misconception_catalog.key once promoted.
+  key: text("key").notNull(),
+  label: text("label").notNull(),
+  description: text("description").notNull().default(""),
+  probeQuestionsJson: text("probe_questions_json").notNull().default("[]"),
+  correctionPromptTemplate: text("correction_prompt_template").notNull().default(""),
+  // 'open' | 'approved' | 'rejected' | 'merged'
+  // 'merged' is the terminal state once the entry is also written
+  // into misconception_catalog (so the marketplace shows it as live).
+  status: text("status").notNull().default("open"),
+  // Cached sum of votes; recomputed by the vote handler in the same
+  // transaction so the threshold-promote check is cheap.
+  voteScore: integer("vote_score").notNull().default(0),
+  catalogId: text("catalog_id").references(() => misconceptionCatalog.id),
+  decidedAt: text("decided_at"),
+  decidedBy: text("decided_by").references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  // (conceptSlug, key) uniqueness mirrors the catalog so duplicate
+  // proposals aren't allowed at submission time.
+  pk: uniqueIndex("misconception_submissions_pk").on(t.conceptSlug, t.key),
+  statusIdx: index("misconception_submissions_status_idx").on(
+    t.status,
+    t.voteScore,
+  ),
+}));
+
+// One row per (submissionId, userId). Vote = +1 / -1; row absence
+// means no vote. The marketplace re-aggregates voteScore after each
+// upsert.
+export const misconceptionSubmissionVotes = sqliteTable(
+  "misconception_submission_votes",
+  {
+    id: text("id").primaryKey(),
+    submissionId: text("submission_id")
+      .notNull()
+      .references(() => misconceptionSubmissions.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull().references(() => users.id),
+    value: integer("value").notNull(), // +1 or -1
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    pk: uniqueIndex("misconception_submission_votes_pk").on(
+      t.submissionId,
+      t.userId,
+    ),
+    userIdx: index("misconception_submission_votes_user_idx").on(t.userId),
+  }),
+);

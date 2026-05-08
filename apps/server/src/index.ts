@@ -24,6 +24,7 @@ import { uploadsRouter } from "./routes/uploads";
 import { conceptsRouter } from "./routes/concepts";
 import { researchRouter } from "./routes/research";
 import { capstonesRouter } from "./routes/capstones";
+import { misconceptionsRouter } from "./routes/misconceptions";
 import { meRouter } from "./routes/me";
 import { usersRouter } from "./routes/users";
 import { prewarmSearchIndex } from "./lib/searchIndex";
@@ -135,6 +136,7 @@ app.route("/uploads", uploadsRouter);
 app.route("/concepts", conceptsRouter);
 app.route("/research", researchRouter);
 app.route("/capstones", capstonesRouter);
+app.route("/misconceptions", misconceptionsRouter);
 app.route("/me", meRouter);
 app.route("/users", usersRouter);
 

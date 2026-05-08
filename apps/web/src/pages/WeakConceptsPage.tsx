@@ -134,6 +134,17 @@ export function WeakConceptsPage() {
           ))}
         </ul>
       )}
+
+      <div className="mt-10 pt-6 border-t border-border text-sm text-muted-foreground">
+        Don't see a misconception that matches what tripped you up?{" "}
+        <Link
+          to="/misconceptions"
+          className="text-primary hover:underline"
+        >
+          Propose one →
+        </Link>{" "}
+        Once five learners agree, the AI tutor and detector start using it.
+      </div>
     </div>
   );
 }

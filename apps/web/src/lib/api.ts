@@ -64,6 +64,9 @@ import type {
   ResearchPaperVersionResponse,
   CapstoneVersionResponse,
   ArgumentMapResponse,
+  MisconceptionSubmissionListResponse,
+  MisconceptionSubmissionDetailResponse,
+  MisconceptionVoteResponse,
   PortfolioResponse,
   PaperOutlineRequest,
   PaperDraftSectionRequest,
@@ -436,6 +439,37 @@ export const api = {
       request<ArgumentMapResponse>(
         `/forum/graph?slug=${encodeURIComponent(slug)}`,
       ),
+  },
+  misconceptions: {
+    list: (params?: { sort?: "votes" | "recent" | "decided"; status?: string; limit?: number }) => {
+      const sp = new URLSearchParams();
+      if (params?.sort) sp.set("sort", params.sort);
+      if (params?.status) sp.set("status", params.status);
+      if (params?.limit) sp.set("limit", String(params.limit));
+      const qs = sp.toString();
+      return request<MisconceptionSubmissionListResponse>(
+        `/misconceptions${qs ? `?${qs}` : ""}`,
+      );
+    },
+    get: (id: string) =>
+      request<MisconceptionSubmissionDetailResponse>(`/misconceptions/${id}`),
+    submit: (data: {
+      conceptSlug: string;
+      key: string;
+      label: string;
+      description: string;
+      probeQuestions?: string[];
+      correctionPromptTemplate?: string;
+    }) =>
+      request<{ id: string; voteScore: number }>("/misconceptions", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    vote: (id: string, value: -1 | 0 | 1) =>
+      request<MisconceptionVoteResponse>(`/misconceptions/${id}/vote`, {
+        method: "POST",
+        body: JSON.stringify({ value }),
+      }),
   },
   versions: {
     paperList: (slug: string) =>

@@ -1109,6 +1109,65 @@ export interface SearchNavigatorResponse {
   groups: SearchNavigatorGroups;
 }
 
+// --- Misconception marketplace (Sprint 38) ---------------------------
+
+export type MisconceptionSubmissionStatus =
+  | "open"
+  | "approved"
+  | "rejected"
+  | "merged";
+
+export interface MisconceptionSubmissionListItem {
+  id: string;
+  conceptSlug: string;
+  conceptTitle: string | null;
+  key: string;
+  label: string;
+  descriptionPreview: string;
+  status: MisconceptionSubmissionStatus;
+  voteScore: number;
+  proposerUsername: string;
+  myVote: number; // -1 | 0 | +1
+  catalogId: string | null;
+  createdAt: string;
+  decidedAt: string | null;
+}
+
+export interface MisconceptionSubmissionListResponse {
+  submissions: MisconceptionSubmissionListItem[];
+  promotionThreshold: number;
+}
+
+export interface MisconceptionSubmissionDetail {
+  id: string;
+  conceptSlug: string;
+  key: string;
+  label: string;
+  description: string;
+  probeQuestions: string[];
+  correctionPromptTemplate: string;
+  status: MisconceptionSubmissionStatus;
+  voteScore: number;
+  catalogId: string | null;
+  proposerUsername: string;
+  myVote: number;
+  createdAt: string;
+  decidedAt: string | null;
+}
+
+export interface MisconceptionSubmissionDetailResponse {
+  submission: MisconceptionSubmissionDetail;
+  promotionThreshold: number;
+}
+
+export interface MisconceptionVoteResponse {
+  voteScore: number;
+  myVote: number;
+  promoted: boolean;
+  catalogId: string | null;
+  threshold: number;
+}
+
 // --- Argument map (Sprint 36) ---------------------------------------
 // Topology of a forum thread: nodes are posts, edges follow parentId.
 // Returned by GET /forum/graph?slug=<topicSlug>.

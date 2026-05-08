@@ -194,6 +194,12 @@ const ArgumentMapPage = lazy(() =>
 const VerifyPage = lazy(() =>
   import("./pages/VerifyPage").then((m) => ({ default: m.VerifyPage })),
 );
+// Sprint 38 — Misconception marketplace (community-curated catalog).
+const MisconceptionMarketplacePage = lazy(() =>
+  import("./pages/MisconceptionMarketplacePage").then((m) => ({
+    default: m.MisconceptionMarketplacePage,
+  })),
+);
 
 function PageFallback() {
   return (
@@ -251,6 +257,10 @@ export function App() {
           <Route path="/forum/t/:slug" element={<ForumTopicPage />} />
           <Route path="/forum/graph" element={<ArgumentMapPage />} />
           <Route path="/verify" element={<VerifyPage />} />
+          <Route
+            path="/misconceptions"
+            element={<MisconceptionMarketplacePage />}
+          />
           <Route path="/forum/:domain" element={<ForumListPage />} />
           <Route path="/news" element={<NewsListPage />} />
           <Route path="/news/new" element={<NewsNewPage />} />
