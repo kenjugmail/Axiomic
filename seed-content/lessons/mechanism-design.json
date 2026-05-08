@@ -1,0 +1,75 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Reverse game theory",
+      "body": "Standard game theory: given a game, find the equilibrium.\n\n**Mechanism design**: given a desired outcome, design the rules so the equilibrium produces it.\n\nThe canonical question: how do you allocate a scarce resource among bidders with private valuations, in a way that's both **efficient** (item goes to who values it most) and **incentive-compatible** (bidders don't want to lie about their valuations)?\n\nMechanism design is mechanism design *before* equilibrium analysis — design the game so the equilibrium is what you want.\n\nApplications:\n- Online ad auctions (Google, Meta, Amazon).\n- Spectrum auctions (FCC, Ofcom).\n- Kidney exchange (algorithmic matching).\n- School choice (NYC, Boston).\n- AI alignment ([[principal-agent]]) — increasingly important."
+    },
+    {
+      "kind": "text",
+      "title": "The setup",
+      "body": "**Players**: $n$ agents, each with a private **type** $t_i$ (a valuation, cost, capability — known to themselves, not to others).\n\n**Designer**: specifies a mechanism $(g, p)$:\n- $g(\\hat{t})$: an **allocation rule** — who gets what.\n- $p(\\hat{t})$: a **payment rule** — who pays what.\n\n**Players** report types $\\hat{t}_i$. They don't have to report truthfully — they'll report whatever maximizes their payoff.\n\n**Designer** commits to executing $g(\\hat{t})$ + $p(\\hat{t})$ given the reports.\n\nThe mechanism is **truthful** (incentive-compatible) iff truth-telling is a dominant strategy for every player. If so, the designer can trust the reports."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "md_q1",
+        "kind": "multiple_choice",
+        "question": "Why is **truthfulness** the desirable property for a mechanism?",
+        "options": [
+          "Truthful players are nicer",
+          "Truthfulness lets the designer reason about the mechanism's outcome without modeling each player's strategic deception — the designer can take reports at face value, and the equilibrium outcome equals the outcome under true types",
+          "Truthful mechanisms are always the most efficient",
+          "Truthfulness eliminates collusion"
+        ],
+        "correctIndex": 1,
+        "explanation": "Truthful mechanisms collapse the strategic-modeling problem. Without truthfulness, the designer must reason about complex Bayesian Nash equilibria; with it, just take reports as given. Note: truthfulness does NOT imply efficiency or collusion-resistance — those are separate properties."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "The revelation principle",
+      "body": "**Revelation principle (Myerson 1979)**: any social choice function implementable by *some* mechanism in Bayesian Nash equilibrium is also implementable by a *direct truthful* mechanism.\n\nIn plain English: if you want to design a mechanism producing outcome $X$ in equilibrium, you can WLOG restrict attention to mechanisms that simply ask each agent for their type and use it directly — making truth-telling the optimal strategy.\n\nThis collapses the design space. Instead of searching over all possible mechanisms × all equilibrium concepts, search over allocation rules + payment rules satisfying:\n- **Incentive constraints**: truth-telling is best response.\n- **Individual rationality**: participation is profitable.\n\nBoth are linear constraints; the optimization is solvable via standard techniques. The revelation principle is what makes mechanism design tractable as a mathematical theory."
+    },
+    {
+      "kind": "text",
+      "title": "VCG: the canonical truthful mechanism",
+      "body": "The **Vickrey-Clarke-Groves (VCG)** mechanism is the canonical truthful mechanism for any allocation problem with quasi-linear utilities.\n\nEach agent's payment = the **externality** they impose on others. Specifically: pay the difference between others' total surplus in this allocation vs others' surplus if you didn't exist.\n\n**Single-item special case**: VCG = second-price auction. Bid your true valuation; if you win, pay the second-highest bid. Truthful by dominant strategy.\n\n**Multi-item case**: more complex but the principle is the same. Online ad auctions descend from VCG.\n\n**What VCG guarantees**:\n- Truthful (dominant strategy).\n- Efficient (item goes to highest-valuer).\n- Individually rational (no losses).\n\n**What VCG does NOT guarantee**:\n- Revenue-optimal (Myerson's optimal auction is better).\n- Collusion-resistant.\n- Computationally tractable for combinatorial auctions (NP-hard winner determination)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "md_q2",
+        "kind": "multiple_choice",
+        "question": "Three bidders compete for a single item: A values it at 10, B at 7, C at 5. They bid truthfully in a Vickrey (second-price) auction. Who wins, and what do they pay?",
+        "options": [
+          "A wins, pays 10",
+          "A wins, pays 7 — winner pays the second-highest bid; truthful by dominant strategy because bidding above 10 risks paying more than valuation, bidding below risks losing when they'd profit",
+          "A wins, pays 5",
+          "B wins, pays 5"
+        ],
+        "correctIndex": 1,
+        "explanation": "Vickrey: highest bidder wins, pays second-highest bid. A bids 10 and wins; pays B's bid of 7. Why is this truthful? Bidding above 10 doesn't help (you still win when you would've, and risk paying more than your valuation). Bidding below 10 doesn't help (you might lose to B at 7 — even though you'd profit). Truthful = dominant strategy."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Connection to AI alignment",
+      "body": "Mechanism design is the technical framework for thinking about **AI alignment**:\n\n- **Reward model design** (RLHF) is mechanism design — design the reward so the trained policy's equilibrium matches human values.\n- **Constitutional AI** is mechanism design — multi-principal mechanism with an internal AI auditor.\n- **Mesa-optimization concerns** (Hubinger et al.) are principal-agent problems ([[principal-agent]]) — the trainer's 'agent' (the inner optimizer) has its own private information + may pursue its own objectives.\n\nIf you don't like what AI training produces, change the rules. That's mechanism design — applied to ML training procedures.\n\nThe intersection of mechanism design + AI safety is one of the most active areas of theoretical AI research in 2026.\n\nNext: auction theory ([[auction-theory]]) — the most-deployed special case of mechanism design."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "md_q3",
+        "kind": "explain_back",
+        "prompt": "Why might 'truthful + efficient + individually rational' (i.e., VCG) NOT be sufficient for a real-world auction? Name at least two limitations.",
+        "rubricCriteria": [
+          { "id": "revenue", "description": "Mentions that VCG isn't revenue-optimal — Myerson's mechanism does better" },
+          { "id": "collusion", "description": "Mentions that VCG is vulnerable to collusion (bidder coalitions)" },
+          { "id": "computational", "description": "Mentions computational complexity for combinatorial auctions, OR mentions a third real-world limitation (collusion via coalitions, robustness to misspecified prior, complexity of explaining VCG to bidders)" }
+        ],
+        "passingScore": 0.5
+      }
+    }
+  ]
+}

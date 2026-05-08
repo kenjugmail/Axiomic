@@ -846,6 +846,52 @@ For where the field is heading, see the new survey: [The Quantum Computing Front
 
 The platform now has 12 mastery paths covering ML, foundations, systems, and cross-domain frontiers. End-to-end coverage from first principles through cutting-edge research across the modern computational practitioner's toolkit.`,
     },
+    {
+      slug: "game-theorist-path-launch",
+      title: "Game Theorist path: from Nash to multi-agent RL + alignment",
+      summary:
+        "A new mastery path covering game theory end-to-end: zero-sum + Nash, sequential + Bayesian games, cooperative + Shapley, mechanism design + auctions, multi-agent RL, and alignment-as-game-theory.",
+      coverEmoji: "♟️",
+      accentColor: "violet",
+      authorId: aliceId,
+      body: `Game theory is the missing connector between three existing paths: reinforcement-learner, ai-researcher, and applied-statistician. Multi-agent RL converges to *what* exactly? Reward hacking is which kind of equilibrium? Alignment is a principal-agent problem at scale. The new [game-theorist path](/paths/game-theorist) supplies the connecting language.
+
+## What landed
+
+Nine lessons spanning zero-sum games through alignment-as-game-theory:
+
+1. [Zero-sum games](/paths/game-theorist/lessons/zero-sum-games) — payoff matrices, minimax theorem, the cleanest case.
+2. [Nash equilibrium](/paths/game-theorist/lessons/nash-equilibrium) — best responses, mixed strategies, Nash's existence theorem.
+3. [Sequential games](/paths/game-theorist/lessons/sequential-games) — extensive form, backward induction, subgame perfection.
+4. [Bayesian games](/paths/game-theorist/lessons/bayesian-games) — incomplete information, types, Harsanyi's transformation.
+5. [Cooperative games](/paths/game-theorist/lessons/cooperative-games) — coalitions, the core, Shapley value (= SHAP for ML).
+6. [Mechanism design](/paths/game-theorist/lessons/mechanism-design) — designing rules so equilibria produce desired outcomes.
+7. [Auction theory](/paths/game-theorist/lessons/auction-theory) — VCG, second-price, online ad auctions.
+8. [Multi-agent RL](/paths/game-theorist/lessons/multi-agent-rl) — self-play, PSRO, league play, and where convergence guarantees apply.
+9. [Alignment as game theory](/paths/game-theorist/lessons/alignment-game-theory) — principal-agent problems, mesa-optimization, mechanism design for AI training.
+
+Plus 13 new wiki pages — [zero-sum](/wiki/zero-sum), [minimax](/wiki/minimax), [Nash equilibrium](/wiki/nash-equilibrium), [mixed strategy](/wiki/mixed-strategy), [extensive form](/wiki/extensive-form), [subgame perfect](/wiki/subgame-perfect), [Bayesian game](/wiki/bayesian-game), [Shapley value](/wiki/shapley-value), [the core](/wiki/core-solution), [mechanism design](/wiki/mechanism-design), [revelation principle](/wiki/revelation-principle), [auction theory](/wiki/auction-theory), [VCG auction](/wiki/vcg-auction), [multi-agent RL](/wiki/multi-agent-rl), [self-play](/wiki/self-play), [principal-agent](/wiki/principal-agent), [incomplete info](/wiki/incomplete-info). Five misconceptions cover the high-impact gaps (Nash ≠ Pareto, dominance is the exception not the rule, VCG ≠ revenue-optimal, MARL self-play ≠ Nash convergence, truthful ≠ collusion-proof). A new [game-theory forum domain](/forum/game-theory) gives discussion a home.
+
+## The capstone
+
+[Build a Multi-Agent RL Tournament](/capstones/build-a-multi-agent-rl-tournament) (4 weeks): a structured progression from tabular Nash + LP solver through REINFORCE self-play, A2C on a stochastic game, and PPO + opponent modeling on a Bayesian game. Each milestone produces working code + a quantitative convergence + cycling diagnostic + a tournament report.
+
+## Why this matters
+
+Compared to the 12 prior paths, the game-theorist path is the **incentives layer** that the rest assume exists. Multi-agent RL makes no sense without [[nash-equilibrium]]. Alignment is a [[mechanism-design]] problem. RLHF is implicit Bayesian persuasion. Reward hacking is Goodhart's law in equilibrium form.
+
+For ML practitioners: this is the missing 5% of theory that makes the rest of the work cohere.
+
+For researchers: the intersection of game theory + alignment is one of the most active areas of AI safety theory.
+
+## The honest 2026 message
+
+For the deep dive on multi-agent RL convergence: [Multi-Agent RL in 2026: Self-Play, PSRO, and the Convergence Question](/research/multi-agent-rl-frontier-2026). Two-player zero-sum is solved; general-sum is engineering-heavy without convergence guarantees; cooperative MARL has strong empirical results via CTDE. Theoretical convergence for general-sum remains open.
+
+## What this completes
+
+The platform now has 13 mastery paths. The game-theorist path is the connector — it bridges reinforcement-learner (multi-agent), ai-researcher (alignment), comp-biologist (evolutionary games), and applied-statistician (mechanism design). End-to-end coverage from first principles through cutting-edge research across the modern computational practitioner's toolkit, including the strategic-interaction half that the rest assume exists.`,
+    },
   ];
 
   for (const a of articles) {
@@ -1271,6 +1317,28 @@ function seedMasteryPaths() {
       { slug: "variational-and-qml", title: "Variational Algorithms + QML", level: "expert", order: 9, pages: ["vqe", "qaoa", "quantum-machine-learning", "quantum-advantage"], prereqs: ["nisq-era"], description: "VQE, QAOA, parameterized circuits, quantum machine learning. The frontier of useful quantum computation." },
     ],
   });
+
+  // Sprint 66e — Game Theory + Mechanism Design path. Bridges
+  // reinforcement-learner (multi-agent, self-play), ai-researcher
+  // (alignment, mesa-optimization), and comp-biologist (evolutionary
+  // games). The "incentives" half of modern AI.
+  seedMasteryPath({
+    slug: "game-theorist",
+    title: "Game Theorist",
+    description:
+      "From Nash equilibria + auctions through multi-agent RL + alignment. The strategic-interaction half of modern AI.",
+    nodes: [
+      { slug: "zero-sum-games", title: "Zero-Sum Games & Minimax", level: "apprentice", order: 1, pages: ["zero-sum", "minimax"], prereqs: [], description: "Two-player zero-sum, payoff matrices, the minimax theorem. Where game theory historically starts." },
+      { slug: "nash-equilibrium", title: "Nash Equilibrium", level: "apprentice", order: 2, pages: ["nash-equilibrium", "mixed-strategy"], prereqs: ["zero-sum-games"], description: "Best response, mixed strategies, the existence theorem. The central solution concept." },
+      { slug: "sequential-games", title: "Sequential Games", level: "practitioner", order: 3, pages: ["extensive-form", "subgame-perfect"], prereqs: ["nash-equilibrium"], description: "Game trees, backward induction, subgame perfection. When timing matters." },
+      { slug: "bayesian-games", title: "Bayesian Games", level: "practitioner", order: 4, pages: ["bayesian-game", "incomplete-info"], prereqs: ["nash-equilibrium"], description: "Type spaces, Bayesian Nash equilibrium. Strategic interaction under uncertainty about opponents." },
+      { slug: "cooperative-games", title: "Cooperative Games & Shapley", level: "specialist", order: 5, pages: ["shapley-value", "core-solution"], prereqs: ["nash-equilibrium"], description: "Coalitions, the core, Shapley value. Fair division when binding agreements are possible." },
+      { slug: "mechanism-design", title: "Mechanism Design", level: "specialist", order: 6, pages: ["mechanism-design", "revelation-principle"], prereqs: ["bayesian-games"], description: "Truthful mechanisms, the revelation principle, incentive compatibility. Designing rules so equilibria produce what you want." },
+      { slug: "auction-theory", title: "Auction Theory", level: "specialist", order: 7, pages: ["auction-theory", "vcg-auction"], prereqs: ["mechanism-design"], description: "First-price, second-price, VCG. The most-deployed application of mechanism design." },
+      { slug: "multi-agent-rl", title: "Multi-Agent Reinforcement Learning", level: "expert", order: 8, pages: ["multi-agent-rl", "self-play"], prereqs: ["nash-equilibrium"], description: "Self-play, opponent modeling, population-based training. Bridge to the reinforcement-learner path." },
+      { slug: "alignment-game-theory", title: "Alignment as Game Theory", level: "expert", order: 9, pages: ["principal-agent"], prereqs: ["mechanism-design", "multi-agent-rl"], description: "Mesa-optimization, principal-agent problems, why incentive structures determine outcomes more than capabilities. The frontier connection." },
+    ],
+  });
 }
 
 // --- Forum seeding -------------------------------------------------------
@@ -1348,6 +1416,12 @@ const SEED_DOMAINS = [
     title: "Quantum Computing",
     description:
       "Qubits, gates, Shor + Grover, error correction, NISQ-era variational algorithms, QML.",
+  },
+  {
+    slug: "game-theory",
+    title: "Game Theory & Mechanism Design",
+    description:
+      "Nash, mechanism design, auctions, multi-agent RL, alignment as a game-theoretic problem.",
   },
 ];
 

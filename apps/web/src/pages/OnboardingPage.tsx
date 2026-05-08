@@ -4,6 +4,7 @@ import { ArrowRight, Check, Sparkles } from "lucide-react";
 import { api, type MasteryPath, type OnboardingGoal } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
+import { toast } from "../stores/toast";
 
 const ACCENTS = [
   "bg-accent-indigo",
@@ -57,7 +58,6 @@ export function OnboardingPage() {
   const [picked, setPicked] = useState<MasteryPath | null>(null);
   const [goal, setGoal] = useState<OnboardingGoal | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     api.mastery
@@ -85,7 +85,6 @@ export function OnboardingPage() {
   const finish = async (chosen?: MasteryPath) => {
     if (submitting) return;
     setSubmitting(true);
-    setError(null);
     try {
       const r = await api.onboarding.complete(chosen?.slug, goal ?? undefined);
       if (chosen && r.firstNodeSlug) {
@@ -98,7 +97,7 @@ export function OnboardingPage() {
         navigate("/", { replace: true });
       }
     } catch (e: any) {
-      setError(e?.message ?? "Couldn't finish onboarding.");
+      toast.error(e?.message ?? "Couldn't finish onboarding.");
     } finally {
       setSubmitting(false);
     }
@@ -118,12 +117,6 @@ export function OnboardingPage() {
       </div>
 
       <div className="rounded-xl border border-border bg-card p-6 sm:p-8 shadow-soft animate-fade-in">
-        {error && (
-          <div className="mb-4 p-3 rounded-md bg-destructive/10 text-destructive text-sm">
-            {error}
-          </div>
-        )}
-
         {step === 0 && (
           <>
             <div className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-primary mb-2">

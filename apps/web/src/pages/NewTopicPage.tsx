@@ -3,10 +3,10 @@ import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { api, type ForumDomain, type PostType } from "../lib/api";
 import { POST_TYPES } from "@axiomic/types";
 import { useAuthStore } from "../stores/auth";
-import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { RichComposer } from "../components/composer/RichComposer";
 import { PostTypeBadge } from "../components/PostTypeBadge";
 import { PollBuilder } from "../components/forum/PollBuilder";
+import { toast } from "../stores/toast";
 
 const POST_TYPE_HINTS: Record<PostType, string> = {
   claim: "Stake out a position. State the claim sharply and offer your strongest evidence.",
@@ -34,7 +34,6 @@ export function NewTopicPage() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [pollQuestion, setPollQuestion] = useState("");
   const [pollOptions, setPollOptions] = useState<string[]>(["", ""]);
@@ -70,7 +69,6 @@ export function NewTopicPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submitting) return;
-    setError(null);
     setSubmitting(true);
     try {
       let topic;
@@ -95,7 +93,7 @@ export function NewTopicPage() {
       }
       navigate(`/forum/t/${topic.slug}`);
     } catch (err: any) {
-      setError(err?.message || "Failed to create topic");
+      toast.error(err?.message || "Failed to create topic");
       setSubmitting(false);
     }
   };
@@ -212,7 +210,6 @@ export function NewTopicPage() {
           </div>
         </div>
 
-        {error && <p className="text-sm text-destructive">{error}</p>}
 
         <div className="flex gap-2">
           <button

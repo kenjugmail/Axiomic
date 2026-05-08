@@ -75,6 +75,14 @@ const envSchema = z.object({
     .int()
     .positive()
     .default(200),
+
+  // Sprint 66c — Sentry SDK shim. When SENTRY_DSN is set, the
+  // observability layer initializes @sentry/node and forwards
+  // `captureError` calls to it; otherwise everything stays in the
+  // existing in-memory error sampler. Optional in dev / tests.
+  SENTRY_DSN: z.string().optional(),
+  SENTRY_ENVIRONMENT: z.string().optional(),
+  SENTRY_TRACES_SAMPLE_RATE: z.coerce.number().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

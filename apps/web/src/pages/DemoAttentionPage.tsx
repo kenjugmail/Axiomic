@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { VizEmbed } from "../components/VizEmbed";
-import { AISidebar } from "../components/AISidebar";
+import { TutorMount } from "../components/ai/TutorMount";
 import { useAuthStore } from "../stores/auth";
 
 // Inline story copy — kept here so the demo is self-contained and
@@ -351,12 +351,16 @@ export function DemoAttentionPage() {
         )}
       </div>
 
-      <AISidebar
+      {/* Sprint 66d — consolidated to TutorMount so the demo gains
+          per-page session history + selection-to-chat + settings popover
+          for free, matching every other content surface. */}
+      <TutorMount
         pageSlug="attention"
         pageTitle="Attention Mechanism"
         tier="intro"
-        isOpen={coachOpen}
-        onClose={() => setCoachOpen(false)}
+        hideButton
+        open={coachOpen}
+        onOpenChange={setCoachOpen}
       />
     </div>
   );

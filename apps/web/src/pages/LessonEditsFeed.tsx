@@ -6,6 +6,7 @@ import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ReportEditModal } from "../components/lesson/ReportEditModal";
+import { toast } from "../stores/toast";
 
 interface Edit {
   versionId: string;
@@ -39,7 +40,6 @@ export function LessonEditsFeed() {
 
   const [edits, setEdits] = useState<Edit[] | null>(null);
   const [reverting, setReverting] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [reporting, setReporting] = useState<{
     nodeId: string;
     version: number;
@@ -61,19 +61,19 @@ export function LessonEditsFeed() {
   const revertTo = async (e: Edit) => {
     if (reverting) return;
     if (e.version <= 1) {
-      setError("There's no earlier version to revert to.");
+      toast.error("There's no earlier version to revert to.");
       return;
     }
     if (!confirm(`Revert ${e.nodeTitle} from v${e.version} back to v${e.version - 1}?`)) {
       return;
     }
     setReverting(e.versionId);
-    setError(null);
     try {
       await api.mastery.restoreLessonVersion(e.nodeId, e.version - 1);
+      toast.success(`Reverted ${e.nodeTitle} to v${e.version - 1}`);
       load();
     } catch (err: any) {
-      setError(err?.message ?? "Revert failed");
+      toast.error(err?.message ?? "Revert failed");
     } finally {
       setReverting(null);
     }
@@ -108,12 +108,6 @@ export function LessonEditsFeed() {
           </>
         )}
       </p>
-
-      {error && (
-        <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm mb-4">
-          {error}
-        </div>
-      )}
 
       {edits === null ? (
         <div className="space-y-2">

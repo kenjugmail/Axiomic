@@ -2,6 +2,7 @@ import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
+import jsxA11y from "eslint-plugin-jsx-a11y";
 
 export default [
   {
@@ -57,6 +58,7 @@ export default [
     plugins: {
       react,
       "react-hooks": reactHooks,
+      "jsx-a11y": jsxA11y,
     },
     languageOptions: {
       globals: {
@@ -87,6 +89,17 @@ export default [
       "react/prop-types": "off",
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
+      // Sprint 66c — accessibility baseline. We start permissive ("warn"
+      // for the three checks most likely to surface real defects) so
+      // this lands without forcing a refactor sprint; tightening to
+      // "error" is a follow-up once existing violations are triaged.
+      "jsx-a11y/alt-text": "warn",
+      "jsx-a11y/anchor-is-valid": "warn",
+      "jsx-a11y/aria-props": "warn",
+      "jsx-a11y/aria-proptypes": "warn",
+      "jsx-a11y/aria-unsupported-elements": "warn",
+      "jsx-a11y/role-has-required-aria-props": "warn",
+      "jsx-a11y/role-supports-aria-props": "warn",
     },
   },
 ];
