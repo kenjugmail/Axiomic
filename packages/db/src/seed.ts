@@ -750,6 +750,54 @@ For ML practitioners specifically: the gap between 'my model predicts well' and 
 
 For the broader picture, see the new survey: [Causal Inference and ML in 2026: The Two Disciplines That Have Started Talking](/research/causal-inference-and-ml-2026). Three convergence trends (DML, causal forests + meta-learners, mech-interp + causal-discovery), 2035 predictions, recommended reading.`,
     },
+    {
+      slug: "robotics-path-launch",
+      title: "Robotics + Control path: from PID to embodied AI",
+      summary:
+        "A new mastery path covering classical control through modern ML-driven robotics: PID, state-space, Kalman filters, SLAM, motion planning, manipulation, sim-to-real, and end-to-end VLA policies. The other half of the embodied-AI stack.",
+      coverEmoji: "🤖",
+      accentColor: "emerald",
+      authorId: carolId,
+      body: `LLMs handle language; vision models handle images; robotics handles the messy intersection of perception + reasoning + action in the physical world. The 2022-2026 stretch saw foundation models (RT-2, OpenVLA, π-0) bring transformer-scale generalization to robotics. The new [roboticist path](/paths/roboticist) covers everything from PID through the embodied-AI frontier.
+
+## What landed
+
+Nine lessons spanning the modern robotics stack:
+
+1. [Control Foundations](/paths/roboticist/lessons/control-foundations) — PID, feedback loops, stability.
+2. [State-Space Control](/paths/roboticist/lessons/state-space-control) — state-space, linear systems, LQR.
+3. [Estimation & Filtering](/paths/roboticist/lessons/estimation-and-filtering) — Kalman, EKF, particle filters.
+4. [SLAM](/paths/roboticist/lessons/slam) — simultaneous localization + mapping; factor graphs; loop closure.
+5. [Motion Planning](/paths/roboticist/lessons/motion-planning) — RRT, A*, trajectory optimization.
+6. [Manipulation](/paths/roboticist/lessons/manipulation) — forward + inverse kinematics, grasp planning, dexterous manipulation.
+7. [Sim-to-Real](/paths/roboticist/lessons/sim-to-real) — domain randomization, system ID, real-world fine-tuning.
+8. [Learning-Based Control](/paths/roboticist/lessons/learning-based-control) — imitation learning, model-based RL, diffusion policies, VLAs.
+9. [Embodied AI Frontier](/paths/roboticist/lessons/embodied-ai-frontier) — RT-X, OpenVLA, π-0, the foundation-models-for-robotics era.
+
+Plus 22 new wiki pages — [PID control](/wiki/pid-control), [Kalman filter](/wiki/kalman-filter), [SLAM](/wiki/slam), [factor graphs](/wiki/factor-graphs), [RRT](/wiki/rrt), [forward kinematics](/wiki/forward-kinematics), [domain randomization](/wiki/domain-randomization), [diffusion policy](/wiki/diffusion-policy), [VLAs](/wiki/vision-language-action), and 13 more — providing dense reference coverage for every concept in the path. Six new misconceptions cover the high-impact mistakes (PID tuning is just art, Kalman handles everything, SLAM is solved, sim-to-real = wide DR, IL is just supervised learning, VLAs replace classical control). A new [robotics forum domain](/forum/robotics) gives discussion a home.
+
+## The capstone
+
+[Build a Mobile Manipulator](/capstones/build-a-mobile-manipulator) (10 weeks): end-to-end robot system, simulation through hardware (or hardware-in-the-loop).
+
+Seven milestones: robot design + simulation → low-level control + IK → SLAM + estimation → motion planning → perception + grasping → sim-to-real protocol → end-to-end task. By the end you have one full mobile-manipulator artifact: working code, simulation videos, real (or HIL) hardware demos, defended report. Portfolio-worthy.
+
+## Why this path is different
+
+Robotics is the discipline where control + estimation + planning + ML + hardware all interact. Most ML practitioners never touch this — but the embodied-AI revolution (foundation-model VLAs, humanoid platforms, dexterous manipulation) makes it increasingly important.
+
+This path doesn't replace dedicated robotics curricula. It bridges the ML practitioner's perspective with classical robotics: enough theory to read papers + understand systems, enough practice to build something real.
+
+For ML practitioners specifically: this is where 'foundation models do everything' meets 'physics, hardware, and real-time constraints don't care about your transformer.' The hybrid stack (classical control + ML perception + ML high-level reasoning) is the production reality.
+
+## The frontier
+
+For where the field is heading, see the new survey: [The Robotics Frontier in 2026: Foundation Models Meet Classical Control](/research/robotics-frontier-2026). Scaling laws for robotics, hybrid production stacks, persistent gaps in dexterous + long-horizon manipulation, 2030 forecast.
+
+## What's next on the platform
+
+This is the last new mastery path in the S55-S61 batch. The platform now has 11 mastery paths covering ml-engineer, ai-researcher, mathematician, physicist, systems-engineer, reinforcement-learner, multimodal-engineer, comp-biologist, applied-statistician, causal-scientist, and roboticist. End-to-end coverage from foundations through frontier across the modern ML + applied-stats + robotics practitioner's toolkit.`,
+    },
   ];
 
   for (const a of articles) {
