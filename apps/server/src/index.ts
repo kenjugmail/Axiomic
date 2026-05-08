@@ -28,6 +28,7 @@ import { misconceptionsRouter } from "./routes/misconceptions";
 import { kernelFilesRouter } from "./routes/kernelFiles";
 import { cohortsRouter, mentorsRouter } from "./routes/cohorts";
 import { serverExecRouter } from "./routes/serverExec";
+import { adminRouter } from "./routes/admin";
 import { meRouter } from "./routes/me";
 import { usersRouter } from "./routes/users";
 import { prewarmSearchIndex } from "./lib/searchIndex";
@@ -187,6 +188,7 @@ app.route("/kernel-files", kernelFilesRouter);
 app.route("/cohorts", cohortsRouter);
 app.route("/mentors", mentorsRouter);
 app.route("/server-exec", serverExecRouter);
+app.route("/admin", adminRouter);
 app.route("/me", meRouter);
 app.route("/users", usersRouter);
 
