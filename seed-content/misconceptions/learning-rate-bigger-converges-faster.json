@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "gradient-descent",
+  "key": "learning-rate-bigger-converges-faster",
+  "label": "Bigger learning rate always means faster convergence",
+  "description": "It's tempting to think 'larger LR = faster training'. The truth is U-shaped: too small and you crawl, too large and you bounce off the walls of the loss valley or diverge entirely. The optimal LR depends on the local curvature — for a quadratic, the largest LR that still converges is roughly 2 / λ_max, where λ_max is the largest eigenvalue of the Hessian.\n\nIn practice this is why warmup schedules exist: you start small to let the loss landscape stabilize, ramp up while in the well, then decay as you fine-tune. Adam's adaptive per-parameter LRs help but do not eliminate this curve.",
+  "probeQuestions": [
+    "If you 10x the learning rate and loss explodes on step 3, what does that tell you about the Hessian?",
+    "Why does a learning-rate warmup phase exist in most modern training schedules?"
+  ],
+  "correctionPromptTemplate": "The learner thinks bigger LR = faster convergence. Walk through the U-shape: too small crawls, too large diverges. Mention the 2/λ_max bound for quadratics. Ask first — e.g. 'what would happen on a 1D parabola if you set LR = 3/λ?' before giving the math."
+}

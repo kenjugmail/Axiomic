@@ -196,6 +196,65 @@ export interface ResearchPaper extends ResearchPaperSummary {
   lastEditorUsername: string | null;
   readingMinutes: number;
   isAuthor: boolean;
+  // Sprint 23.5 — runnable artifacts + reproStats bundled in the
+  // GET /:slug response so the reader renders in one round-trip.
+  artifacts: RunnableArtifact[];
+  reproStats: ReproStats;
+  // Sprint 32 — wiki slugs referenced from the body. Renders the
+  // PrereqXray strip above the abstract.
+  prereqWikiSlugs?: string[];
+  // Sprint 35 — current published version number. Increments on each
+  // publish; older versions accessible via /research/:slug/versions.
+  currentVersion?: number;
+}
+
+// Sprint 35 — version metadata.
+export interface VersionListEntry {
+  version: number;
+  title: string;
+  editorUsername: string | null;
+  editMessage: string | null;
+  createdAt: string;
+}
+
+export interface VersionListResponse {
+  currentVersion: number;
+  versions: VersionListEntry[];
+}
+
+export interface ResearchPaperVersionResponse {
+  version: number;
+  title: string;
+  summary: string;
+  abstract: string;
+  contentIntro: string;
+  contentUndergrad: string;
+  contentGrad: string;
+  paperStructure: ResearchPaperStructure;
+  references: ResearchPaperReference[];
+  editorUsername: string | null;
+  editMessage: string | null;
+  createdAt: string;
+}
+
+export interface CapstoneVersionResponse {
+  version: number;
+  title: string;
+  summary: string;
+  contentIntro: string;
+  contentUndergrad: string;
+  contentGrad: string;
+  milestones: Array<{
+    id: string;
+    order: number;
+    title: string;
+    description: string;
+    rubricJson: string;
+    requiredArtifactKinds: string;
+  }>;
+  editorUsername: string | null;
+  editMessage: string | null;
+  createdAt: string;
 }
 
 export interface ResearchPapersListResponse {
@@ -734,6 +793,9 @@ export interface LessonResponse {
     title: string;
     authorUsername: string;
   } | null;
+  // Sprint 32 — wiki slugs derived from this node's prereq mastery
+  // nodes. Editor preview uses this to render PrereqXray.
+  prereqWikiSlugs?: string[];
 }
 
 export interface QuizSubmitResponse {
@@ -990,14 +1052,190 @@ export interface SearchLessonResult {
   matchedBy: SearchMatchedBy;
 }
 
+export interface SearchNewsResult {
+  kind: "news";
+  id: string;
+  slug: string;
+  title: string;
+  snippet: string;
+  score: number;
+  matchedBy: SearchMatchedBy;
+}
+
+export interface SearchResearchResult {
+  kind: "research";
+  id: string;
+  slug: string;
+  title: string;
+  format: string;
+  snippet: string;
+  score: number;
+  matchedBy: SearchMatchedBy;
+}
+
 export type SearchResultItem =
   | SearchPageResult
   | SearchTopicResult
-  | SearchLessonResult;
+  | SearchLessonResult
+  | SearchNewsResult
+  | SearchResearchResult;
 
 export interface SearchResponse {
   query: string;
   results: SearchResultItem[];
+}
+
+// Sprint 31/32 — Knowledge Navigator: intent-grouped search.
+export interface SearchCapstoneBuildHit {
+  kind: "capstone";
+  slug: string;
+  title: string;
+  snippet: string;
+  estimatedWeeks: number;
+  completionCount: number;
+}
+
+export interface SearchNavigatorGroups {
+  define: SearchResultItem[];
+  practice: SearchResultItem[];
+  discuss: SearchResultItem[];
+  read: SearchResultItem[];
+  build: SearchCapstoneBuildHit[];
+}
+
+export interface SearchNavigatorResponse {
+  query: string;
+  navigator: true;
+  groups: SearchNavigatorGroups;
+}
+
+// --- Peer review (Sprint 39) ----------------------------------------
+
+export type PeerReviewStatus = "endorsed" | "requested_changes";
+
+export interface CapstonePeerReview {
+  id: string;
+  submissionId: string;
+  milestoneId: string | null;
+  reviewerUsername: string;
+  status: PeerReviewStatus;
+  score: number;
+  feedback: string;
+  createdAt: string;
+}
+
+export interface CapstonePeerReviewsResponse {
+  reviews: CapstonePeerReview[];
+}
+
+export interface CapstonePeerReviewSummary {
+  count: number;
+  endorsed: number;
+  averageScore: number | null;
+}
+
+export interface CapstoneReviewQueueItem {
+  artifactPageSlug: string;
+  capstoneSlug: string;
+  capstoneTitle: string;
+  coverEmoji: string;
+  learnerUsername: string;
+  learnerDisplayName: string | null;
+  completedAt: string;
+  peerReviewCount: number;
+}
+
+export interface CapstoneReviewQueueResponse {
+  artifacts: CapstoneReviewQueueItem[];
+}
+
+// --- Misconception marketplace (Sprint 38) ---------------------------
+
+export type MisconceptionSubmissionStatus =
+  | "open"
+  | "approved"
+  | "rejected"
+  | "merged";
+
+export interface MisconceptionSubmissionListItem {
+  id: string;
+  conceptSlug: string;
+  conceptTitle: string | null;
+  key: string;
+  label: string;
+  descriptionPreview: string;
+  status: MisconceptionSubmissionStatus;
+  voteScore: number;
+  proposerUsername: string;
+  myVote: number; // -1 | 0 | +1
+  catalogId: string | null;
+  createdAt: string;
+  decidedAt: string | null;
+}
+
+export interface MisconceptionSubmissionListResponse {
+  submissions: MisconceptionSubmissionListItem[];
+  promotionThreshold: number;
+}
+
+export interface MisconceptionSubmissionDetail {
+  id: string;
+  conceptSlug: string;
+  key: string;
+  label: string;
+  description: string;
+  probeQuestions: string[];
+  correctionPromptTemplate: string;
+  status: MisconceptionSubmissionStatus;
+  voteScore: number;
+  catalogId: string | null;
+  proposerUsername: string;
+  myVote: number;
+  createdAt: string;
+  decidedAt: string | null;
+}
+
+export interface MisconceptionSubmissionDetailResponse {
+  submission: MisconceptionSubmissionDetail;
+  promotionThreshold: number;
+}
+
+export interface MisconceptionVoteResponse {
+  voteScore: number;
+  myVote: number;
+  promoted: boolean;
+  catalogId: string | null;
+  threshold: number;
+}
+
+// --- Argument map (Sprint 36) ---------------------------------------
+// Topology of a forum thread: nodes are posts, edges follow parentId.
+// Returned by GET /forum/graph?slug=<topicSlug>.
+
+export interface ArgumentMapTopic {
+  id: string;
+  slug: string;
+  title: string;
+  postType: string;
+  authorUsername: string;
+  domainSlug: string;
+  createdAt: string;
+  bodySnippet: string;
+}
+
+export interface ArgumentMapPost {
+  id: string;
+  parentId: string | null;
+  authorUsername: string;
+  bodySnippet: string;
+  replyCount: number;
+  score: number;
+  createdAt: string;
+}
+
+export interface ArgumentMapResponse {
+  topic: ArgumentMapTopic;
+  posts: ArgumentMapPost[];
 }
 
 // --- Settings & user preferences ---
@@ -1672,12 +1910,41 @@ export interface AiPracticeQuestionsResponse {
 
 // --- WebSocket envelope ---
 
+// Sprint 40 — draft collaboration channel kinds.
+export type LiveDraftKind = "lesson" | "paper" | "capstone";
+
 export type LiveEvent =
   | { kind: "notification"; notification: Notification }
   | {
       kind: "reaction_update";
       articleSlug: string;
       reactionCounts: Record<NewsReactionKind, number>;
+    }
+  // The server emits these with `type` rather than `kind` so they
+  // share a discriminator with future broadcast event shapes.
+  | {
+      type: "draft_update";
+      kind: LiveDraftKind;
+      targetId: string;
+      slides?: unknown;
+      content?: string;
+      editorUsername: string;
+      updatedAt: string;
+    }
+  | {
+      type: "draft_published";
+      kind: LiveDraftKind;
+      targetId: string;
+      version: number;
+      editorUsername: string;
+      publishedAt: string;
+    }
+  | {
+      type: "draft_presence";
+      kind: LiveDraftKind;
+      targetId: string;
+      userIds: string[];
+      usernames: string[];
     };
 
 // --- Learning-path enrichments ---
@@ -1706,4 +1973,422 @@ export interface QuizMistakeEntry {
 
 export interface QuizMistakesResponse {
   mistakes: QuizMistakeEntry[];
+}
+
+// --- Capstones (Sprint 26-28) ----------------------------------------
+
+export type CapstoneTier = "intro" | "undergrad" | "grad";
+export type CapstoneStatus = "draft" | "published";
+export type CapstoneAccent = ResearchPaperAccent;
+export type CapstoneArtifactKind =
+  | "github"
+  | "colab"
+  | "docker"
+  | "dataset"
+  | "writeup"
+  | "arxiv"
+  | "other";
+
+export interface CapstoneArtifact {
+  kind: CapstoneArtifactKind;
+  url: string;
+  label: string;
+  description?: string;
+}
+
+export interface CapstoneRubricCriterion {
+  id: string;
+  weight: number;
+  description: string;
+  aiPrompt: string;
+}
+
+export interface CapstoneRubric {
+  criteria: CapstoneRubricCriterion[];
+  passingScore: number;
+  notes?: string;
+}
+
+export interface CapstoneMilestone {
+  id: string;
+  capstoneId: string;
+  order: number;
+  title: string;
+  description: string;
+  rubric: CapstoneRubric;
+  requiredArtifactKinds: CapstoneArtifactKind[];
+  runnableTests: string | null;
+  estimatedDays: number;
+  createdAt: string;
+}
+
+export interface CapstoneSummary {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  estimatedWeeks: number;
+  coverEmoji: string;
+  accentColor: CapstoneAccent;
+  tags: string[];
+  authorId: string;
+  authorUsername: string;
+  authorDisplayName: string | null;
+  milestoneCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CapstoneMyEnrollmentSummary {
+  id: string;
+  startedAt: string;
+  completedAt: string | null;
+  artifactPageSlug: string | null;
+  passedMilestoneIds: string[];
+  pendingMilestoneIds: string[];
+  needsRevisionMilestoneIds: string[];
+}
+
+export interface Capstone {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  brief: string;
+  tier: CapstoneTier;
+  requestedTier: CapstoneTier;
+  availableTiers: CapstoneTier[];
+  allContent: {
+    intro: string;
+    undergrad: string;
+    grad: string;
+  };
+  canonicalTier: CapstoneTier;
+  estimatedWeeks: number;
+  prerequisiteWikiSlugs: string[];
+  prerequisiteNodeIds: string[];
+  tags: string[];
+  coverEmoji: string;
+  accentColor: CapstoneAccent;
+  status: CapstoneStatus;
+  authorId: string;
+  authorUsername: string;
+  authorDisplayName: string | null;
+  isAuthor: boolean;
+  milestones: CapstoneMilestone[];
+  myEnrollment: CapstoneMyEnrollmentSummary | null;
+  currentVersion?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CapstoneSubmissionStatus = "pending" | "passed" | "needs_revision";
+
+export interface CapstoneAiGradePerCriterion {
+  criterionId: string;
+  score: number;
+  feedback: string;
+}
+
+export interface CapstoneAiGrade {
+  score: number;
+  perCriterion: CapstoneAiGradePerCriterion[];
+  summary: string;
+  gradedBy?: string;
+}
+
+export interface CapstoneRunnableTestResult {
+  name: string;
+  passed: boolean;
+  message?: string;
+}
+
+export interface CapstoneSubmission {
+  id: string;
+  enrollmentId: string;
+  milestoneId: string;
+  artifacts: CapstoneArtifact[];
+  writeup: string;
+  status: CapstoneSubmissionStatus;
+  aiGrade: CapstoneAiGrade | null;
+  runnableTestResults: CapstoneRunnableTestResult[] | null;
+  labState: Record<string, unknown> | null;
+  submittedAt: string;
+  gradedAt: string | null;
+  // Sprint 39 — peer review summary, only present on the artifact
+  // page response. Other capstone reads (workspace, list) omit it.
+  peerReview?: CapstonePeerReviewSummary;
+}
+
+export interface CapstoneEnrollmentDetail {
+  id: string;
+  capstoneId: string;
+  capstoneSlug: string;
+  capstoneTitle: string;
+  capstoneCoverEmoji: string;
+  capstoneAccentColor: CapstoneAccent;
+  startedAt: string;
+  completedAt: string | null;
+  artifactPageSlug: string | null;
+  submissions: CapstoneSubmission[];
+}
+
+export interface CapstoneArtifactPage {
+  capstone: Capstone;
+  enrollment: {
+    id: string;
+    artifactPageSlug: string;
+    startedAt: string;
+    completedAt: string;
+  };
+  learner: {
+    id: string;
+    username: string;
+    displayName: string | null;
+  };
+  submissions: CapstoneSubmission[];
+  peerReviewSummary?: {
+    totalReviews: number;
+    totalEndorsed: number;
+    averageScore: number | null;
+  };
+}
+
+export interface CapstonesListResponse {
+  capstones: CapstoneSummary[];
+}
+
+export interface CapstoneResponse {
+  capstone: Capstone;
+}
+
+export interface CapstoneEnrollmentsResponse {
+  enrollments: CapstoneEnrollmentDetail[];
+}
+
+export interface CapstoneArtifactPageResponse {
+  artifact: CapstoneArtifactPage;
+}
+
+export interface CreateCapstoneRequest {
+  slug: string;
+  title: string;
+  summary?: string;
+  contentIntro?: string;
+  contentUndergrad?: string;
+  contentGrad?: string;
+  canonicalTier?: CapstoneTier;
+  estimatedWeeks?: number;
+  prerequisiteWikiSlugs?: string[];
+  prerequisiteNodeIds?: string[];
+  tags?: string[];
+  coverEmoji?: string;
+  accentColor?: CapstoneAccent;
+  status?: CapstoneStatus;
+}
+
+export interface UpdateCapstoneRequest {
+  title?: string;
+  summary?: string;
+  contentIntro?: string;
+  contentUndergrad?: string;
+  contentGrad?: string;
+  canonicalTier?: CapstoneTier;
+  estimatedWeeks?: number;
+  prerequisiteWikiSlugs?: string[];
+  prerequisiteNodeIds?: string[];
+  tags?: string[];
+  coverEmoji?: string;
+  accentColor?: CapstoneAccent;
+  status?: CapstoneStatus;
+}
+
+export interface CreateMilestoneRequest {
+  title: string;
+  description?: string;
+  rubric?: CapstoneRubric;
+  requiredArtifactKinds?: CapstoneArtifactKind[];
+  runnableTests?: string | null;
+  estimatedDays?: number;
+  order?: number;
+}
+
+export interface UpdateMilestoneRequest {
+  title?: string;
+  description?: string;
+  rubric?: CapstoneRubric;
+  requiredArtifactKinds?: CapstoneArtifactKind[];
+  runnableTests?: string | null;
+  estimatedDays?: number;
+  order?: number;
+}
+
+export interface SubmitMilestoneRequest {
+  artifacts: CapstoneArtifact[];
+  writeup: string;
+  runnableTestResults?: CapstoneRunnableTestResult[];
+  labState?: Record<string, unknown>;
+}
+
+// --- Misconception coaching (Sprint 29) ------------------------------
+
+export type MisconceptionStatus = "active" | "coached" | "resolved" | "dismissed";
+
+export interface MisconceptionEvidence {
+  kind: "quiz_mistake" | "lesson_slide" | "forum_reply" | "other";
+  refId: string;
+  snippet: string;
+}
+
+export interface MisconceptionDiagnosis {
+  id: string;
+  conceptSlug: string;
+  conceptTitle: string | null;
+  misconceptionKey: string;
+  label: string;
+  description: string;
+  evidence: MisconceptionEvidence[];
+  confidence: number;
+  status: MisconceptionStatus;
+  firstSeenAt: string;
+  lastSeenAt: string;
+}
+
+export interface WeakConceptsResponse {
+  diagnoses: MisconceptionDiagnosis[];
+}
+
+// --- Knowledge MRI (Sprint 33) -------------------------------------
+// Concept-level diagnostic snapshot. Builds on existing tables — no
+// new schema. Returned by GET /api/v1/me/knowledge-mri.
+
+export type KnowledgeMriStatus = "mastered" | "in_progress" | "untouched";
+
+export interface KnowledgeMriNode {
+  nodeId: string;
+  nodeSlug: string;
+  title: string;
+  level: string;
+  // The first wiki page slug backing this node (most nodes have a 1:1
+  // mapping; mathy clusters carry several).
+  pageSlug: string | null;
+  pageTitle: string | null;
+  status: KnowledgeMriStatus;
+  quizScore: number | null;
+  activeDiagnoses: number;
+  unresolvedMistakes: number;
+  // Mean SM-2 rating in [0,1] over the last 30 days, or null when no
+  // recent reviews.
+  flashcardRetention: number | null;
+  lastTouchedAt: string | null;
+  prereqsMet: boolean;
+}
+
+export interface KnowledgeMriPathSummary {
+  totalNodes: number;
+  completedNodes: number;
+  averageQuizScore: number;
+  activeDiagnoses: number;
+}
+
+export interface KnowledgeMriPath {
+  slug: string;
+  title: string;
+  summary: KnowledgeMriPathSummary;
+  nodes: KnowledgeMriNode[];
+}
+
+export interface KnowledgeMriOverall {
+  mastered: number;
+  inProgress: number;
+  untouched: number;
+  activeDiagnoses: number;
+  hottestPath: { slug: string; title: string } | null;
+}
+
+export interface KnowledgeMri {
+  paths: KnowledgeMriPath[];
+  overall: KnowledgeMriOverall;
+}
+
+// --- AI tutor modes (Sprint 30) --------------------------------------
+
+export type TutorMode =
+  | "socratic"
+  | "misconception"
+  | "bridge"
+  | "debate"
+  | "contribution";
+
+export interface TutorModeContext {
+  diagnosisId?: string;
+  forumTopicId?: string;
+  capstoneSlug?: string;
+  milestoneId?: string;
+  pageSlug?: string;
+}
+
+// --- Knowledge Navigator (Sprint 31) ---------------------------------
+
+export type NavigatorIntent = "define" | "practice" | "discuss" | "read" | "build";
+
+export interface NavigatorGroup<T = unknown> {
+  intent: NavigatorIntent;
+  items: T[];
+  total: number;
+}
+
+export interface PrereqXrayEntry {
+  conceptSlug: string;
+  conceptTitle: string | null;
+  status: "mastered" | "in_progress" | "untouched";
+  nodeId?: string;
+  nodeSlug?: string;
+  pathSlug?: string;
+}
+
+export interface PrereqXrayResponse {
+  entries: PrereqXrayEntry[];
+}
+
+export interface PortfolioEntryCapstone {
+  kind: "capstone";
+  capstoneSlug: string;
+  capstoneTitle: string;
+  artifactPageSlug: string;
+  completedAt: string;
+  coverEmoji: string;
+  accentColor: CapstoneAccent;
+}
+
+export interface PortfolioEntryResearch {
+  kind: "research";
+  slug: string;
+  title: string;
+  summary: string;
+  format: ResearchPaperFormat;
+  publishedAt: string;
+}
+
+export interface PortfolioEntryWiki {
+  kind: "wiki";
+  slug: string;
+  title: string;
+  authoredFraction: number;
+}
+
+export interface PortfolioEntryReproduction {
+  kind: "reproduction";
+  count: number;
+}
+
+export type PortfolioEntry =
+  | PortfolioEntryCapstone
+  | PortfolioEntryResearch
+  | PortfolioEntryWiki
+  | PortfolioEntryReproduction;
+
+export interface PortfolioResponse {
+  username: string;
+  entries: PortfolioEntry[];
 }

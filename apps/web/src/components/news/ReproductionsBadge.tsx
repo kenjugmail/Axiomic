@@ -10,29 +10,41 @@ import type {
 interface Props {
   articleSlug: string;
   stats: ReproStats;
+  // Sprint 23.5 — switches the listing fetch between
+  // /news/:slug/reproductions and /research/:slug/reproductions.
+  surface?: "news" | "research";
 }
 
 // Small chip in the byline that opens a modal listing receipts. Hidden
 // when there are no receipts at all (the article has nothing to brag
 // about yet).
-export function ReproductionsBadge({ articleSlug, stats }: Props) {
+export function ReproductionsBadge({ articleSlug, stats, surface = "news" }: Props) {
   if (stats.total === 0) return null;
   const tone =
     stats.success >= stats.failed
       ? "text-emerald-700 dark:text-emerald-300 border-emerald-500/40 bg-emerald-500/10"
       : "text-amber-700 dark:text-amber-300 border-amber-500/40 bg-amber-500/10";
 
-  return <BadgeButton articleSlug={articleSlug} stats={stats} tone={tone} />;
+  return (
+    <BadgeButton
+      articleSlug={articleSlug}
+      stats={stats}
+      tone={tone}
+      surface={surface}
+    />
+  );
 }
 
 function BadgeButton({
   articleSlug,
   stats,
   tone,
+  surface,
 }: {
   articleSlug: string;
   stats: ReproStats;
   tone: string;
+  surface: "news" | "research";
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -48,27 +60,36 @@ function BadgeButton({
         researcher{stats.total === 1 ? "" : "s"}
       </button>
 
-      {open && <ReproductionsListModal articleSlug={articleSlug} onClose={() => setOpen(false)} />}
+      {open && (
+        <ReproductionsListModal
+          articleSlug={articleSlug}
+          surface={surface}
+          onClose={() => setOpen(false)}
+        />
+      )}
     </>
   );
 }
 
 function ReproductionsListModal({
   articleSlug,
+  surface,
   onClose,
 }: {
   articleSlug: string;
+  surface: "news" | "research";
   onClose: () => void;
 }) {
   const [data, setData] = useState<ReproductionsResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.news
+    const apiSurface = surface === "research" ? api.research : api.news;
+    apiSurface
       .listReproductions(articleSlug)
       .then(setData)
       .catch((e) => setError(e?.message ?? "Failed to load"));
-  }, [articleSlug]);
+  }, [articleSlug, surface]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh]">

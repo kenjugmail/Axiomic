@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "dropout",
+  "key": "dropout-on-at-inference",
+  "label": "Dropout stays on at inference time",
+  "description": "Dropout is active during training and OFF during inference (unless you're explicitly doing Monte Carlo Dropout for uncertainty estimation). At inference, the network uses all activations; the standard implementation rescales by 1/(1-p) during training (inverted dropout) so the expected output magnitude stays the same.\n\nGetting this wrong silently degrades inference quality. If you forget to set `model.eval()` in PyTorch, dropout (and batch-norm running stats) behave the wrong way and predictions become noisy. The same issue trips people up with weight averaging, EMA models, and any layer with separate train/eval semantics.",
+  "probeQuestions": [
+    "What does PyTorch's `model.eval()` actually toggle? Name two layer types affected.",
+    "Why does inverted dropout rescale by 1/(1-p) during training instead of multiplying by (1-p) at inference?"
+  ],
+  "correctionPromptTemplate": "The learner thinks dropout stays on at inference. Walk through: dropout is a training-time regularizer that's turned OFF for prediction. Mention the inverted-dropout 1/(1-p) rescaling and why it preserves expected magnitude. Note MC Dropout as the deliberate exception. Ask first — 'why would leaving dropout on at inference hurt accuracy?'"
+}

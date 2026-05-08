@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "layer-normalization",
+  "key": "layer-norm-is-batch-norm",
+  "label": "Layer norm and batch norm normalize the same way",
+  "description": "Layer norm normalizes ACROSS THE FEATURE DIMENSION for each individual sample. Batch norm normalizes ACROSS THE BATCH DIMENSION for each individual feature. They have different statistics, different inference behavior, and different practical implications.\n\nWhy this matters in transformers: at inference, batch norm needs running averages from training (or batch_size > 1); layer norm doesn't. Sequence-length variation breaks batch norm in subtle ways; layer norm is invariant to it. This is a big reason layer norm dominates in NLP architectures.",
+  "probeQuestions": [
+    "Across which dimension does layer norm compute mean and variance?",
+    "Why does batch norm cause headaches at inference time when batch_size = 1?"
+  ],
+  "correctionPromptTemplate": "The learner is conflating layer norm with batch norm. Lead with a probe — ask them to identify the normalization axis for each. Then walk through why LN's per-sample stats are inference-friendly and batch-size-invariant."
+}

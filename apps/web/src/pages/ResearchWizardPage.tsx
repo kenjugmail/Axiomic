@@ -37,6 +37,7 @@ import type {
   PaperReferenceSuggestion,
   PaperVizSuggestion,
   ResearchPaperFormat,
+  ResearchPaperReference,
   ResearchPaperTier,
 } from "@axiomic/types";
 import { api } from "../lib/api";
@@ -57,6 +58,8 @@ interface WizardState {
   // Step 2.
   sections: PaperOutlineSection[];
   // Step 3 lives inside sections[].body.
+  // Step 4 — references picked from suggest-references.
+  references: ResearchPaperReference[];
   // Step 5.
   slug: string;
   coverEmoji: string;
@@ -71,6 +74,7 @@ const EMPTY_STATE: WizardState = {
   tier: "undergrad",
   length: "medium",
   sections: [],
+  references: [],
   slug: "",
   coverEmoji: "📄",
 };
@@ -391,7 +395,7 @@ function StepTopic({
         <label className="block text-xs font-medium text-muted-foreground mb-2">
           Format
         </label>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
           {FORMATS.map((f) => (
             <button
               key={f.value}
@@ -416,7 +420,7 @@ function StepTopic({
         <label className="block text-xs font-medium text-muted-foreground mb-2">
           Reading depth (the canonical tier the wizard drafts)
         </label>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           {TIERS.map((t) => (
             <button
               key={t.value}
@@ -441,7 +445,7 @@ function StepTopic({
         <label className="block text-xs font-medium text-muted-foreground mb-2">
           Length target
         </label>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           {LENGTHS.map((l) => (
             <button
               key={l.value}
@@ -504,6 +508,7 @@ function StepOutline({
   const [raw, setRaw] = useState("");
   const [autoDraftRunning, setAutoDraftRunning] = useState(false);
   const [autoDraftStatus, setAutoDraftStatus] = useState<string>("");
+  const [autoDraftSnippet, setAutoDraftSnippet] = useState<string>("");
 
   const runOutline = async (): Promise<{ sections: PaperOutlineSection[] } | null> => {
     setStreaming(true);
@@ -579,7 +584,17 @@ function StepOutline({
         const result = await streamTokens({
           url: "",
           body: undefined,
-          onToken: () => {},
+          onToken: (_t, acc) => {
+            // Live-update the in-progress section so the author can see
+            // the AI typing rather than guessing whether the chain hung.
+            setField("sections", [
+              ...drafted,
+              { ...s, body: acc },
+              ...outline.sections.slice(i + 1),
+            ]);
+            // Surface the last 80 chars next to the spinner.
+            setAutoDraftSnippet(acc.slice(-80));
+          },
           existingResponse: res,
         });
         const body = result.text.trim();
@@ -660,11 +675,16 @@ function StepOutline({
       </div>
 
       {(streaming || autoDraftRunning) && (
-        <div className="flex items-center gap-2 text-xs text-primary">
-          <Loader2 className="w-3 h-3 animate-spin" strokeWidth={2} />
-          {autoDraftRunning
-            ? autoDraftStatus
-            : "Streaming outline…"}
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-xs text-primary">
+            <Loader2 className="w-3 h-3 animate-spin" strokeWidth={2} />
+            {autoDraftRunning ? autoDraftStatus : "Streaming outline…"}
+          </div>
+          {autoDraftSnippet && (
+            <div className="text-[10px] font-mono text-muted-foreground truncate pl-5">
+              …{autoDraftSnippet}
+            </div>
+          )}
         </div>
       )}
 
@@ -1136,42 +1156,86 @@ function StepEnrich({
         )}
       </section>
 
-      {/* References */}
+      {/* References — author-side picker that appends into state.references. */}
       <section>
-        <h3 className="text-[10px] uppercase tracking-wider text-primary mb-2">
-          Suggested references
-        </h3>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-[10px] uppercase tracking-wider text-primary">
+            Suggested references ({state.references.length} added)
+          </h3>
+          {refSuggestions !== null && refSuggestions.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                const fresh = refSuggestions.filter(
+                  (r) => !state.references.some((ref) => ref.url === r.url),
+                );
+                if (fresh.length === 0) return;
+                setField("references", [
+                  ...state.references,
+                  ...fresh.map((r) => ({ text: r.title, url: r.url })),
+                ]);
+              }}
+              className="text-xs px-2.5 py-1 rounded-md border border-primary/40 text-primary hover:bg-primary/10"
+            >
+              Add all
+            </button>
+          )}
+        </div>
         {refSuggestions === null ? null : refSuggestions.length === 0 ? (
           <p className="text-xs text-muted-foreground italic">
             No close matches in the platform corpus yet.
           </p>
         ) : (
           <ul className="space-y-1.5">
-            {refSuggestions.map((r) => (
-              <li
-                key={r.slug}
-                className="text-sm flex items-start gap-2 px-3 py-2 rounded-md border border-border"
-              >
-                <span className="text-[10px] uppercase tracking-wider text-muted-foreground flex-shrink-0 mt-0.5">
-                  {r.kind}
-                </span>
-                <Link
-                  to={r.url}
-                  target="_blank"
-                  className="flex-1 hover:underline"
+            {refSuggestions.map((r) => {
+              const added = state.references.some((ref) => ref.url === r.url);
+              return (
+                <li
+                  key={r.slug}
+                  className="text-sm flex items-start gap-2 px-3 py-2 rounded-md border border-border"
                 >
-                  {r.title}
-                </Link>
-                <span className="text-[10px] text-muted-foreground tabular-nums">
-                  {(r.score * 100).toFixed(0)}%
-                </span>
-              </li>
-            ))}
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground flex-shrink-0 mt-0.5">
+                    {r.kind}
+                  </span>
+                  <Link
+                    to={r.url}
+                    target="_blank"
+                    className="flex-1 hover:underline"
+                  >
+                    {r.title}
+                  </Link>
+                  <span className="text-[10px] text-muted-foreground tabular-nums">
+                    {(r.score * 100).toFixed(0)}%
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      added
+                        ? setField(
+                            "references",
+                            state.references.filter((ref) => ref.url !== r.url),
+                          )
+                        : setField("references", [
+                            ...state.references,
+                            { text: r.title, url: r.url },
+                          ])
+                    }
+                    className={`text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded transition-colors ${
+                      added
+                        ? "border border-emerald-500/40 bg-emerald-500/5 text-emerald-700 dark:text-emerald-300"
+                        : "border border-border hover:bg-accent/40 text-muted-foreground"
+                    }`}
+                  >
+                    {added ? "✓ Added" : "+ Add"}
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         )}
         <p className="text-[11px] text-muted-foreground mt-2 italic">
-          References show in the editor's Reference list — copy any of these
-          there manually if you want to cite them.
+          Added references land in the editor's Reference list when you save
+          the draft.
         </p>
       </section>
 
@@ -1251,6 +1315,7 @@ function StepReview({
         contentIntro: "",
         contentUndergrad: "",
         contentGrad: "",
+        references: state.references,
       };
       create[tierKey] = fullBody;
       await api.research.create(create);

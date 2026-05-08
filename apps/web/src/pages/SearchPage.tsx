@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { Hammer, Clock } from "lucide-react";
 import { api } from "../lib/api";
-import type { SearchResultItem } from "@axiomic/types";
+import type {
+  SearchCapstoneBuildHit,
+  SearchResultItem,
+} from "@axiomic/types";
 import { SearchResultRow } from "../components/SearchResultRow";
 
 type Filter = "all" | "pages" | "topics" | "lessons";
@@ -14,6 +18,7 @@ export function SearchPage() {
   const initial = searchParams.get("q") ?? "";
   const [query, setQuery] = useState(initial);
   const [results, setResults] = useState<SearchResultItem[]>([]);
+  const [capstoneHits, setCapstoneHits] = useState<SearchCapstoneBuildHit[]>([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
   const [semanticOnly, setSemanticOnly] = useState(false);
@@ -32,16 +37,23 @@ export function SearchPage() {
   }, [query]);
 
   // Run the search. Separate timer so empty queries clear immediately.
+  // Also pulls the Navigator's `build` group so capstone results show
+  // up alongside pages / topics / lessons.
   useEffect(() => {
     if (!query.trim()) {
       setResults([]);
+      setCapstoneHits([]);
       return;
     }
     setLoading(true);
     const t = setTimeout(async () => {
       try {
-        const data = await api.search.query(query, 30);
-        setResults(data.results);
+        const [flat, nav] = await Promise.all([
+          api.search.query(query, 30),
+          api.search.navigator(query, 30).catch(() => null),
+        ]);
+        setResults(flat.results);
+        setCapstoneHits(nav?.groups?.build ?? []);
       } catch {
         // ignore
       } finally {
@@ -149,6 +161,36 @@ export function SearchPage() {
             <div className="space-y-1">
               {lessons.map((r) => (
                 <SearchResultRow key={r.id} result={r} />
+              ))}
+            </div>
+          </section>
+        )}
+        {filter === "all" && capstoneHits.length > 0 && (
+          <section>
+            <h2 className="text-xs uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+              <Hammer className="w-3 h-3" strokeWidth={2} />
+              Build
+            </h2>
+            <div className="space-y-1">
+              {capstoneHits.map((c) => (
+                <Link
+                  key={c.slug}
+                  to={`/capstones/${c.slug}`}
+                  className="block rounded-md border border-border p-3 hover:bg-accent/40 transition-colors"
+                >
+                  <div className="flex items-baseline justify-between gap-3">
+                    <div className="font-medium text-sm">{c.title}</div>
+                    <div className="text-[10px] text-muted-foreground inline-flex items-center gap-1 shrink-0">
+                      <Clock className="w-3 h-3" strokeWidth={2} />
+                      {c.estimatedWeeks}w · {c.completionCount} done
+                    </div>
+                  </div>
+                  {c.snippet && (
+                    <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                      {c.snippet}
+                    </div>
+                  )}
+                </Link>
               ))}
             </div>
           </section>

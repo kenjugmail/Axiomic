@@ -12,16 +12,29 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { and, asc, desc, eq, isNull, or } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import {
+  claimThreads,
   getDb,
   newsComments,
   researchPapers,
+  researchPaperVersions,
+  reproductions,
+  runnableArtifacts,
   users,
 } from "@axiomic/db";
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { notify, notifyMentions } from "../lib/notifications";
+import { invalidateSearchIndex } from "../lib/searchIndex";
+import { extractReferencedWikiSlugs } from "../lib/crossLinks";
+import {
+  toBibtex,
+  toRis,
+  toPlainText,
+  type CitationSource,
+} from "../lib/citations";
+import { snapshotResearchPaper } from "../lib/versionSnapshots";
 import type { Env } from "../env";
 
 export const researchRouter = new Hono<Env>();
@@ -241,6 +254,46 @@ researchRouter.get("/", async (c) => {
   });
 });
 
+// GET /research/by-author/:username — published papers by one user.
+researchRouter.get("/by-author/:username", async (c) => {
+  const username = c.req.param("username")!;
+  const db = getDb();
+  const author = db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.username, username))
+    .get();
+  if (!author) return c.json({ papers: [] });
+
+  const rows = db
+    .select({
+      id: researchPapers.id,
+      slug: researchPapers.slug,
+      title: researchPapers.title,
+      summary: researchPapers.summary,
+      format: researchPapers.format,
+      coverEmoji: researchPapers.coverEmoji,
+      accentColor: researchPapers.accentColor,
+      tags: researchPapers.tags,
+      createdAt: researchPapers.createdAt,
+    })
+    .from(researchPapers)
+    .where(
+      and(
+        eq(researchPapers.authorId, author.id),
+        eq(researchPapers.status, "published"),
+      ),
+    )
+    .orderBy(desc(researchPapers.createdAt))
+    .all();
+  return c.json({
+    papers: rows.map((r) => ({
+      ...r,
+      tags: safeParseStrArray(r.tags),
+    })),
+  });
+});
+
 // GET /research/me/drafts — author's own drafts.
 researchRouter.get("/me/drafts", requireAuth, async (c) => {
   const user = c.get("user")!;
@@ -296,6 +349,7 @@ researchRouter.get("/:slug", async (c) => {
       contentIntro: researchPapers.contentIntro,
       contentUndergrad: researchPapers.contentUndergrad,
       contentGrad: researchPapers.contentGrad,
+      currentVersion: researchPapers.currentVersion,
       canonicalTier: researchPapers.canonicalTier,
       paperStructureJson: researchPapers.paperStructureJson,
       referencesJson: researchPapers.referencesJson,
@@ -338,6 +392,57 @@ researchRouter.get("/:slug", async (c) => {
   if (row.contentUndergrad.trim().length > 0) availableTiers.push("undergrad");
   if (row.contentGrad.trim().length > 0) availableTiers.push("grad");
 
+  // Sprint 23.5 — bundle artifacts + reproStats so the reader renders
+  // in one round-trip, mirroring the news article shape.
+  const artifacts = db
+    .select({
+      id: runnableArtifacts.id,
+      kind: runnableArtifacts.kind,
+      url: runnableArtifacts.url,
+      label: runnableArtifacts.label,
+      description: runnableArtifacts.description,
+      createdAt: runnableArtifacts.createdAt,
+    })
+    .from(runnableArtifacts)
+    .where(
+      and(
+        eq(runnableArtifacts.targetKind, "research_paper"),
+        eq(runnableArtifacts.targetId, row.id),
+      ),
+    )
+    .orderBy(asc(runnableArtifacts.createdAt))
+    .all();
+
+  const reproRows = db
+    .select({
+      status: reproductions.status,
+      reproducerId: reproductions.reproducerId,
+    })
+    .from(reproductions)
+    .where(
+      and(
+        eq(reproductions.targetKind, "research_paper"),
+        eq(reproductions.targetId, row.id),
+      ),
+    )
+    .all();
+  const reproStats = {
+    total: reproRows.length,
+    success: 0,
+    partial: 0,
+    failed: 0,
+    mine: session ? reproRows.some((r) => r.reproducerId === session.id) : false,
+  };
+  for (const r of reproRows) {
+    if (r.status === "success") reproStats.success++;
+    else if (r.status === "partial") reproStats.partial++;
+    else if (r.status === "failed") reproStats.failed++;
+  }
+
+  const prereqWikiSlugs = extractReferencedWikiSlugs(
+    `${row.abstract}\n${row.contentIntro}\n${row.contentUndergrad}\n${row.contentGrad}`,
+  );
+
   return c.json({
     paper: {
       id: row.id,
@@ -367,11 +472,87 @@ researchRouter.get("/:slug", async (c) => {
       authorUsername: row.authorUsername,
       authorDisplayName: row.authorDisplayName,
       lastEditorUsername: editor?.username ?? null,
+      currentVersion: row.currentVersion,
       readingMinutes: readingMinutes(picked.content),
       isAuthor,
+      artifacts,
+      reproStats,
+      prereqWikiSlugs,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     },
+  });
+});
+
+// Sprint 34 — Citation export. BibTeX / RIS / plain-text formatters
+// + JSON bundle. Resolves authors via authorUsername + coauthors and
+// derives the canonical URL from the paper slug.
+researchRouter.get("/:slug/cite", async (c) => {
+  const slug = c.req.param("slug")!;
+  const format = c.req.query("format") ?? "json";
+  const db = getDb();
+  const row = db
+    .select({
+      slug: researchPapers.slug,
+      title: researchPapers.title,
+      summary: researchPapers.summary,
+      abstract: researchPapers.abstract,
+      coauthorsJson: researchPapers.coauthorsJson,
+      authorUsername: users.username,
+      authorDisplayName: users.displayName,
+      status: researchPapers.status,
+      createdAt: researchPapers.createdAt,
+      updatedAt: researchPapers.updatedAt,
+    })
+    .from(researchPapers)
+    .innerJoin(users, eq(researchPapers.authorId, users.id))
+    .where(eq(researchPapers.slug, slug))
+    .get();
+  if (!row) return c.json({ error: "Paper not found" }, 404);
+  if (row.status !== "published") {
+    return c.json({ error: "Citations are only available for published papers" }, 404);
+  }
+
+  const coauthors = safeParseStrArray(row.coauthorsJson);
+  const primary = row.authorDisplayName || row.authorUsername;
+  const url = `https://axiomic.app/research/${row.slug}`;
+  const src: CitationSource = {
+    kind: "paper",
+    slug: row.slug,
+    title: row.title,
+    authors: [primary, ...coauthors],
+    year: new Date(row.createdAt).getUTCFullYear(),
+    url,
+    abstract: row.abstract || row.summary,
+    publishedAt: row.createdAt,
+  };
+
+  if (format === "bibtex" || format === "bib") {
+    return new Response(toBibtex(src), {
+      headers: {
+        "content-type": "application/x-bibtex; charset=utf-8",
+        "content-disposition": `inline; filename=\"${row.slug}.bib\"`,
+      },
+    });
+  }
+  if (format === "ris") {
+    return new Response(toRis(src), {
+      headers: {
+        "content-type": "application/x-research-info-systems; charset=utf-8",
+        "content-disposition": `inline; filename=\"${row.slug}.ris\"`,
+      },
+    });
+  }
+  return c.json({
+    slug: src.slug,
+    title: src.title,
+    authors: src.authors,
+    year: src.year,
+    url: src.url,
+    permalink: `/cite/p/${row.authorUsername}/${row.slug}`,
+    bibtex: toBibtex(src),
+    ris: toRis(src),
+    plain: toPlainText(src),
   });
 });
 
@@ -427,6 +608,12 @@ researchRouter.post(
       })
       .run();
 
+    invalidateSearchIndex();
+    if (data.status === "published") {
+      // First publish gets the version-1 snapshot. snapshotResearchPaper
+      // is a no-op for non-published rows, so this is safe.
+      snapshotResearchPaper(id, { editedBy: user.id, editMessage: "Initial publication" });
+    }
     return c.json({ paperId: id, slug: data.slug }, 201);
   },
 );
@@ -442,7 +629,11 @@ researchRouter.put(
     const db = getDb();
 
     const existing = db
-      .select({ id: researchPapers.id, authorId: researchPapers.authorId })
+      .select({
+        id: researchPapers.id,
+        authorId: researchPapers.authorId,
+        status: researchPapers.status,
+      })
       .from(researchPapers)
       .where(eq(researchPapers.slug, slug))
       .get();
@@ -483,9 +674,133 @@ researchRouter.put(
       .where(eq(researchPapers.id, existing.id))
       .run();
 
+    invalidateSearchIndex();
+
+    // Sprint 35 — snapshot a new version when the row is currently
+    // published OR when this update transitions a draft to published.
+    const nowPublished =
+      (data.status ?? existing.status) === "published";
+    if (nowPublished) {
+      snapshotResearchPaper(existing.id, {
+        editedBy: user.id,
+        editMessage:
+          existing.status !== "published" && data.status === "published"
+            ? "Initial publication"
+            : null,
+      });
+    }
     return c.json({ ok: true });
   },
 );
+
+// Sprint 35 — Versions list + per-version snapshot endpoints.
+//
+// GET /research/:slug/versions returns the version history for a
+// published paper (oldest → newest). Each entry carries a slim
+// summary; full content is fetched via .../versions/:n.
+researchRouter.get("/:slug/versions", async (c) => {
+  const slug = c.req.param("slug")!;
+  const db = getDb();
+  const paper = db
+    .select({
+      id: researchPapers.id,
+      status: researchPapers.status,
+      currentVersion: researchPapers.currentVersion,
+    })
+    .from(researchPapers)
+    .where(eq(researchPapers.slug, slug))
+    .get();
+  if (!paper) return c.json({ error: "Paper not found" }, 404);
+  if (paper.status !== "published") {
+    return c.json({ error: "Paper not found" }, 404);
+  }
+
+  const rows = db
+    .select({
+      version: researchPaperVersions.version,
+      title: researchPaperVersions.title,
+      editedBy: researchPaperVersions.editedBy,
+      editMessage: researchPaperVersions.editMessage,
+      createdAt: researchPaperVersions.createdAt,
+    })
+    .from(researchPaperVersions)
+    .where(eq(researchPaperVersions.paperId, paper.id))
+    .orderBy(asc(researchPaperVersions.version))
+    .all();
+
+  const editorIds = [
+    ...new Set(rows.map((r) => r.editedBy).filter((x): x is string => !!x)),
+  ];
+  const editors = editorIds.length
+    ? db
+        .select({ id: users.id, username: users.username })
+        .from(users)
+        .where(inArray(users.id, editorIds))
+        .all()
+    : [];
+  const usernameById = new Map(editors.map((e) => [e.id, e.username]));
+
+  return c.json({
+    currentVersion: paper.currentVersion,
+    versions: rows.map((r) => ({
+      version: r.version,
+      title: r.title,
+      editorUsername: r.editedBy ? usernameById.get(r.editedBy) ?? null : null,
+      editMessage: r.editMessage,
+      createdAt: r.createdAt,
+    })),
+  });
+});
+
+researchRouter.get("/:slug/versions/:n", async (c) => {
+  const slug = c.req.param("slug")!;
+  const n = parseInt(c.req.param("n") ?? "0", 10);
+  if (!Number.isFinite(n) || n < 1) {
+    return c.json({ error: "Invalid version" }, 400);
+  }
+  const db = getDb();
+  const paper = db
+    .select({ id: researchPapers.id, status: researchPapers.status })
+    .from(researchPapers)
+    .where(eq(researchPapers.slug, slug))
+    .get();
+  if (!paper) return c.json({ error: "Paper not found" }, 404);
+  if (paper.status !== "published") {
+    return c.json({ error: "Paper not found" }, 404);
+  }
+  const v = db
+    .select()
+    .from(researchPaperVersions)
+    .where(
+      and(
+        eq(researchPaperVersions.paperId, paper.id),
+        eq(researchPaperVersions.version, n),
+      ),
+    )
+    .get();
+  if (!v) return c.json({ error: "Version not found" }, 404);
+  const editor = v.editedBy
+    ? db
+        .select({ username: users.username })
+        .from(users)
+        .where(eq(users.id, v.editedBy))
+        .get()
+    : null;
+  return c.json({
+    version: v.version,
+    title: v.title,
+    summary: v.summary,
+    abstract: v.abstract,
+    contentIntro: v.contentIntro,
+    contentUndergrad: v.contentUndergrad,
+    contentGrad: v.contentGrad,
+    paperStructure: safeParsePaperStructure(v.paperStructureJson),
+    references: parseReferences(v.referencesJson),
+    editorUsername: editor?.username ?? null,
+    editMessage: v.editMessage,
+    createdAt: v.createdAt,
+  });
+});
 
 // --- Sprint 23 — research-paper comments (polymorphic on news_comments)
 //
@@ -684,6 +999,547 @@ researchRouter.post(
   },
 );
 
+// --- Sprint 23.5 — claim-anchored discussion threads (polymorphic on claim_threads + news_comments)
+
+const claimThreadCreateSchema = z.object({
+  exact: z.string().min(4).max(2000),
+  prefix: z.string().max(80).optional().default(""),
+  suffix: z.string().max(80).optional().default(""),
+  body: z.string().min(1).max(5000),
+});
+
+researchRouter.post(
+  "/:slug/claim-threads",
+  requireAuth,
+  zValidator("json", claimThreadCreateSchema),
+  async (c) => {
+    const slug = c.req.param("slug")!;
+    const user = c.get("user")!;
+    const { exact, prefix, suffix, body } = c.req.valid("json");
+    const db = getDb();
+
+    const paper = db
+      .select({ id: researchPapers.id, authorId: researchPapers.authorId })
+      .from(researchPapers)
+      .where(eq(researchPapers.slug, slug))
+      .get();
+    if (!paper) return c.json({ error: "Paper not found" }, 404);
+
+    const threadId = randomUUID();
+    const commentId = randomUUID();
+    db.insert(claimThreads)
+      .values({
+        id: threadId,
+        articleId: null,
+        authorId: user.id,
+        exact,
+        prefix,
+        suffix,
+        targetKind: "research_paper",
+        targetId: paper.id,
+      })
+      .run();
+    db.insert(newsComments)
+      .values({
+        id: commentId,
+        articleId: null,
+        parentId: null,
+        userId: user.id,
+        content: body,
+        claimThreadId: threadId,
+        targetKind: "research_paper",
+        targetId: paper.id,
+      })
+      .run();
+
+    if (paper.authorId !== user.id) {
+      const mentioned = await notifyMentions({
+        body,
+        actorId: user.id,
+        subjectType: "claim_thread",
+        subjectId: threadId,
+        contextSlug: slug,
+        preview: previewSnippet(body),
+      });
+      if (!mentioned.has(paper.authorId)) {
+        await notify({
+          recipientId: paper.authorId,
+          actorId: user.id,
+          kind: "claim_thread_reply",
+          subjectType: "claim_thread",
+          subjectId: threadId,
+          contextSlug: slug,
+          preview: previewSnippet(`Claimed: "${exact.slice(0, 80)}"`),
+        });
+      }
+    } else {
+      await notifyMentions({
+        body,
+        actorId: user.id,
+        subjectType: "claim_thread",
+        subjectId: threadId,
+        contextSlug: slug,
+        preview: previewSnippet(body),
+      });
+    }
+
+    return c.json({ threadId, commentId }, 201);
+  },
+);
+
+researchRouter.get("/:slug/claim-threads", async (c) => {
+  const slug = c.req.param("slug")!;
+  const db = getDb();
+
+  const paper = db
+    .select({ id: researchPapers.id })
+    .from(researchPapers)
+    .where(eq(researchPapers.slug, slug))
+    .get();
+  if (!paper) return c.json({ error: "Paper not found" }, 404);
+
+  const threads = db
+    .select({
+      id: claimThreads.id,
+      authorId: claimThreads.authorId,
+      authorUsername: users.username,
+      exact: claimThreads.exact,
+      prefix: claimThreads.prefix,
+      suffix: claimThreads.suffix,
+      createdAt: claimThreads.createdAt,
+    })
+    .from(claimThreads)
+    .innerJoin(users, eq(claimThreads.authorId, users.id))
+    .where(
+      and(
+        eq(claimThreads.targetKind, "research_paper"),
+        eq(claimThreads.targetId, paper.id),
+      ),
+    )
+    .orderBy(asc(claimThreads.createdAt))
+    .all();
+
+  if (threads.length === 0) return c.json({ threads: [] });
+
+  const threadIds = threads.map((t) => t.id);
+  const replyRows = db
+    .select({
+      id: newsComments.id,
+      threadId: newsComments.claimThreadId,
+      userId: newsComments.userId,
+      username: users.username,
+      content: newsComments.content,
+      editedAt: newsComments.editedAt,
+      createdAt: newsComments.createdAt,
+    })
+    .from(newsComments)
+    .innerJoin(users, eq(newsComments.userId, users.id))
+    .where(
+      and(
+        eq(newsComments.targetKind, "research_paper"),
+        eq(newsComments.targetId, paper.id),
+        sql`${newsComments.claimThreadId} IN (${sql.join(
+          threadIds.map((id) => sql`${id}`),
+          sql`, `,
+        )})`,
+      ),
+    )
+    .orderBy(asc(newsComments.createdAt))
+    .all();
+
+  const repliesByThread = new Map<string, typeof replyRows>();
+  for (const r of replyRows) {
+    if (!r.threadId) continue;
+    const list = repliesByThread.get(r.threadId);
+    if (list) list.push(r);
+    else repliesByThread.set(r.threadId, [r]);
+  }
+
+  return c.json({
+    threads: threads.map((t) => ({
+      id: t.id,
+      authorId: t.authorId,
+      authorUsername: t.authorUsername,
+      exact: t.exact,
+      prefix: t.prefix,
+      suffix: t.suffix,
+      createdAt: t.createdAt,
+      replies: (repliesByThread.get(t.id) ?? []).map((r) => ({
+        id: r.id,
+        userId: r.userId,
+        username: r.username,
+        content: r.content,
+        editedAt: r.editedAt,
+        createdAt: r.createdAt,
+      })),
+    })),
+  });
+});
+
+const claimThreadReplySchema = z.object({
+  content: z.string().min(1).max(5000),
+});
+
+researchRouter.post(
+  "/:slug/claim-threads/:threadId/replies",
+  requireAuth,
+  zValidator("json", claimThreadReplySchema),
+  async (c) => {
+    const slug = c.req.param("slug")!;
+    const threadId = c.req.param("threadId")!;
+    const user = c.get("user")!;
+    const { content } = c.req.valid("json");
+    const db = getDb();
+
+    const paper = db
+      .select({ id: researchPapers.id })
+      .from(researchPapers)
+      .where(eq(researchPapers.slug, slug))
+      .get();
+    if (!paper) return c.json({ error: "Paper not found" }, 404);
+
+    const thread = db
+      .select({
+        id: claimThreads.id,
+        targetKind: claimThreads.targetKind,
+        targetId: claimThreads.targetId,
+        authorId: claimThreads.authorId,
+      })
+      .from(claimThreads)
+      .where(eq(claimThreads.id, threadId))
+      .get();
+    if (
+      !thread ||
+      thread.targetKind !== "research_paper" ||
+      thread.targetId !== paper.id
+    ) {
+      return c.json({ error: "Thread not found" }, 404);
+    }
+
+    const id = randomUUID();
+    db.insert(newsComments)
+      .values({
+        id,
+        articleId: null,
+        parentId: null,
+        userId: user.id,
+        content,
+        claimThreadId: threadId,
+        targetKind: "research_paper",
+        targetId: paper.id,
+      })
+      .run();
+
+    const mentioned = await notifyMentions({
+      body: content,
+      actorId: user.id,
+      subjectType: "claim_thread",
+      subjectId: threadId,
+      contextSlug: slug,
+      preview: previewSnippet(content),
+    });
+
+    const participants = db
+      .select({ userId: newsComments.userId })
+      .from(newsComments)
+      .where(eq(newsComments.claimThreadId, threadId))
+      .all();
+    const recipients = new Set<string>([thread.authorId]);
+    for (const p of participants) recipients.add(p.userId);
+    recipients.delete(user.id);
+    for (const m of mentioned) recipients.delete(m);
+
+    for (const recipientId of recipients) {
+      await notify({
+        recipientId,
+        actorId: user.id,
+        kind: "claim_thread_reply",
+        subjectType: "claim_thread",
+        subjectId: threadId,
+        contextSlug: slug,
+        preview: previewSnippet(content),
+      });
+    }
+
+    return c.json({ commentId: id }, 201);
+  },
+);
+
+// --- Sprint 23.5 — runnable artifacts (polymorphic on runnable_artifacts)
+
+const ARTIFACT_KINDS = ["github", "colab", "docker", "dataset", "arxiv", "other"] as const;
+
+const artifactSchema = z.object({
+  kind: z.enum(ARTIFACT_KINDS),
+  url: z.string().url().max(500),
+  label: z.string().min(1).max(120),
+  description: z.string().max(800).optional(),
+});
+
+researchRouter.post(
+  "/:slug/artifacts",
+  requireAuth,
+  zValidator("json", artifactSchema),
+  async (c) => {
+    const slug = c.req.param("slug")!;
+    const user = c.get("user")!;
+    const { kind, url, label, description } = c.req.valid("json");
+    const db = getDb();
+
+    const paper = db
+      .select({
+        id: researchPapers.id,
+        authorId: researchPapers.authorId,
+        coauthorsJson: researchPapers.coauthorsJson,
+      })
+      .from(researchPapers)
+      .where(eq(researchPapers.slug, slug))
+      .get();
+    if (!paper) return c.json({ error: "Paper not found" }, 404);
+
+    const isAuthor = paper.authorId === user.id;
+    const coauthors = safeParseStrArray(paper.coauthorsJson);
+    const isCoauthor = coauthors.includes(user.username);
+    if (!isAuthor && !isCoauthor) {
+      return c.json({ error: "Only the author or coauthors can attach artifacts." }, 403);
+    }
+
+    const id = randomUUID();
+    db.insert(runnableArtifacts)
+      .values({
+        id,
+        articleId: null,
+        kind,
+        url,
+        label: label.trim(),
+        description: description?.trim() || null,
+        targetKind: "research_paper",
+        targetId: paper.id,
+      })
+      .run();
+    return c.json({ artifactId: id }, 201);
+  },
+);
+
+researchRouter.delete("/:slug/artifacts/:id", requireAuth, async (c) => {
+  const slug = c.req.param("slug")!;
+  const id = c.req.param("id")!;
+  const user = c.get("user")!;
+  const db = getDb();
+
+  const paper = db
+    .select({
+      id: researchPapers.id,
+      authorId: researchPapers.authorId,
+      coauthorsJson: researchPapers.coauthorsJson,
+    })
+    .from(researchPapers)
+    .where(eq(researchPapers.slug, slug))
+    .get();
+  if (!paper) return c.json({ error: "Paper not found" }, 404);
+
+  const isAuthor = paper.authorId === user.id;
+  const coauthors = safeParseStrArray(paper.coauthorsJson);
+  const isCoauthor = coauthors.includes(user.username);
+  if (!isAuthor && !isCoauthor) {
+    return c.json({ error: "Only the author or coauthors can remove artifacts." }, 403);
+  }
+
+  const existing = db
+    .select({
+      id: runnableArtifacts.id,
+      targetKind: runnableArtifacts.targetKind,
+      targetId: runnableArtifacts.targetId,
+    })
+    .from(runnableArtifacts)
+    .where(eq(runnableArtifacts.id, id))
+    .get();
+  if (!existing) return c.json({ error: "Artifact not found" }, 404);
+  if (
+    existing.targetKind !== "research_paper" ||
+    existing.targetId !== paper.id
+  ) {
+    return c.json({ error: "Artifact does not belong to this paper" }, 400);
+  }
+
+  db.delete(runnableArtifacts).where(eq(runnableArtifacts.id, id)).run();
+  return c.json({ ok: true });
+});
+
+researchRouter.get("/:slug/artifacts", async (c) => {
+  const slug = c.req.param("slug")!;
+  const db = getDb();
+  const paper = db
+    .select({ id: researchPapers.id })
+    .from(researchPapers)
+    .where(eq(researchPapers.slug, slug))
+    .get();
+  if (!paper) return c.json({ error: "Paper not found" }, 404);
+
+  const rows = db
+    .select({
+      id: runnableArtifacts.id,
+      kind: runnableArtifacts.kind,
+      url: runnableArtifacts.url,
+      label: runnableArtifacts.label,
+      description: runnableArtifacts.description,
+      createdAt: runnableArtifacts.createdAt,
+    })
+    .from(runnableArtifacts)
+    .where(
+      and(
+        eq(runnableArtifacts.targetKind, "research_paper"),
+        eq(runnableArtifacts.targetId, paper.id),
+      ),
+    )
+    .orderBy(asc(runnableArtifacts.createdAt))
+    .all();
+  return c.json({ artifacts: rows });
+});
+
+// --- Sprint 23.5 — reproductions (polymorphic on reproductions)
+
+const reproductionSchema = z.object({
+  artifactId: z.string().optional(),
+  status: z.enum(["success", "partial", "failed"]),
+  notes: z.string().max(2000).optional(),
+  evidenceUrl: z.string().url().max(500).optional(),
+});
+
+researchRouter.post(
+  "/:slug/reproductions",
+  requireAuth,
+  zValidator("json", reproductionSchema),
+  async (c) => {
+    const slug = c.req.param("slug")!;
+    const user = c.get("user")!;
+    const { artifactId, status, notes, evidenceUrl } = c.req.valid("json");
+    const db = getDb();
+
+    const paper = db
+      .select({
+        id: researchPapers.id,
+        title: researchPapers.title,
+        authorId: researchPapers.authorId,
+      })
+      .from(researchPapers)
+      .where(eq(researchPapers.slug, slug))
+      .get();
+    if (!paper) return c.json({ error: "Paper not found" }, 404);
+
+    if (paper.authorId === user.id) {
+      return c.json({ error: "You can't reproduce your own paper." }, 400);
+    }
+
+    if (artifactId) {
+      const a = db
+        .select({
+          id: runnableArtifacts.id,
+          targetKind: runnableArtifacts.targetKind,
+          targetId: runnableArtifacts.targetId,
+        })
+        .from(runnableArtifacts)
+        .where(eq(runnableArtifacts.id, artifactId))
+        .get();
+      if (
+        !a ||
+        a.targetKind !== "research_paper" ||
+        a.targetId !== paper.id
+      ) {
+        return c.json({ error: "Artifact not found on this paper" }, 400);
+      }
+    }
+
+    const existing = db
+      .select({ id: reproductions.id })
+      .from(reproductions)
+      .where(
+        and(
+          eq(reproductions.targetKind, "research_paper"),
+          eq(reproductions.targetId, paper.id),
+          eq(reproductions.reproducerId, user.id),
+        ),
+      )
+      .get();
+    if (existing) {
+      return c.json(
+        { error: "You've already submitted a receipt for this paper." },
+        409,
+      );
+    }
+
+    const id = randomUUID();
+    db.insert(reproductions)
+      .values({
+        id,
+        articleId: null,
+        artifactId: artifactId ?? null,
+        reproducerId: user.id,
+        status,
+        notes: notes?.trim() || null,
+        evidenceUrl: evidenceUrl ?? null,
+        targetKind: "research_paper",
+        targetId: paper.id,
+      })
+      .run();
+
+    const verdict =
+      status === "success" ? "✓ reproduced" : status === "partial" ? "~ partial" : "✗ failed";
+    await notify({
+      recipientId: paper.authorId,
+      actorId: user.id,
+      kind: "article_reproduced",
+      subjectType: "reproduction",
+      subjectId: id,
+      contextSlug: slug,
+      preview: previewSnippet(`${verdict}: "${paper.title}"`),
+    });
+
+    return c.json({ reproductionId: id }, 201);
+  },
+);
+
+researchRouter.get("/:slug/reproductions", async (c) => {
+  const slug = c.req.param("slug")!;
+  const db = getDb();
+  const paper = db
+    .select({ id: researchPapers.id })
+    .from(researchPapers)
+    .where(eq(researchPapers.slug, slug))
+    .get();
+  if (!paper) return c.json({ error: "Paper not found" }, 404);
+
+  const rows = db
+    .select({
+      id: reproductions.id,
+      artifactId: reproductions.artifactId,
+      reproducerId: reproductions.reproducerId,
+      reproducerUsername: users.username,
+      status: reproductions.status,
+      notes: reproductions.notes,
+      evidenceUrl: reproductions.evidenceUrl,
+      createdAt: reproductions.createdAt,
+    })
+    .from(reproductions)
+    .innerJoin(users, eq(reproductions.reproducerId, users.id))
+    .where(
+      and(
+        eq(reproductions.targetKind, "research_paper"),
+        eq(reproductions.targetId, paper.id),
+      ),
+    )
+    .orderBy(desc(reproductions.createdAt))
+    .all();
+
+  const stats = { total: rows.length, success: 0, partial: 0, failed: 0 };
+  for (const r of rows) {
+    if (r.status === "success") stats.success++;
+    else if (r.status === "partial") stats.partial++;
+    else if (r.status === "failed") stats.failed++;
+  }
+
+  return c.json({ reproductions: rows, stats });
+});
+
 // Suppress unused-import warnings.
 void or;
-void asc;

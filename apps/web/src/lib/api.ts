@@ -47,6 +47,30 @@ import type {
   ResearchPapersDraftsResponse,
   ResearchPapersListResponse,
   UpdateResearchPaperRequest,
+  CapstonesListResponse,
+  CapstoneResponse,
+  CapstoneEnrollmentsResponse,
+  CapstoneArtifactPageResponse,
+  CreateCapstoneRequest,
+  UpdateCapstoneRequest,
+  CreateMilestoneRequest,
+  UpdateMilestoneRequest,
+  SubmitMilestoneRequest,
+  CapstoneSubmission,
+  WeakConceptsResponse,
+  PrereqXrayResponse,
+  KnowledgeMri,
+  VersionListResponse,
+  ResearchPaperVersionResponse,
+  CapstoneVersionResponse,
+  ArgumentMapResponse,
+  CapstonePeerReviewsResponse,
+  CapstoneReviewQueueResponse,
+  PeerReviewStatus,
+  MisconceptionSubmissionListResponse,
+  MisconceptionSubmissionDetailResponse,
+  MisconceptionVoteResponse,
+  PortfolioResponse,
   PaperOutlineRequest,
   PaperDraftSectionRequest,
   PaperVizSuggestionsResponse,
@@ -91,6 +115,7 @@ import type {
   NotificationsListResponse,
   OkResponse,
   SearchResponse,
+  SearchNavigatorResponse,
   SearchResultItem,
   SettingsResponse,
   SettingsUpdateInput,
@@ -412,11 +437,93 @@ export const api = {
         users: Array<{ username: string; displayName: string | null }>;
       }>(`/users?q=${encodeURIComponent(q)}`),
   },
+  argumentMap: {
+    topic: (slug: string) =>
+      request<ArgumentMapResponse>(
+        `/forum/graph?slug=${encodeURIComponent(slug)}`,
+      ),
+  },
+  misconceptions: {
+    list: (params?: { sort?: "votes" | "recent" | "decided"; status?: string; limit?: number }) => {
+      const sp = new URLSearchParams();
+      if (params?.sort) sp.set("sort", params.sort);
+      if (params?.status) sp.set("status", params.status);
+      if (params?.limit) sp.set("limit", String(params.limit));
+      const qs = sp.toString();
+      return request<MisconceptionSubmissionListResponse>(
+        `/misconceptions${qs ? `?${qs}` : ""}`,
+      );
+    },
+    get: (id: string) =>
+      request<MisconceptionSubmissionDetailResponse>(`/misconceptions/${id}`),
+    submit: (data: {
+      conceptSlug: string;
+      key: string;
+      label: string;
+      description: string;
+      probeQuestions?: string[];
+      correctionPromptTemplate?: string;
+    }) =>
+      request<{ id: string; voteScore: number }>("/misconceptions", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    vote: (id: string, value: -1 | 0 | 1) =>
+      request<MisconceptionVoteResponse>(`/misconceptions/${id}/vote`, {
+        method: "POST",
+        body: JSON.stringify({ value }),
+      }),
+  },
+  versions: {
+    paperList: (slug: string) =>
+      request<VersionListResponse>(`/research/${slug}/versions`),
+    paperGet: (slug: string, version: number) =>
+      request<ResearchPaperVersionResponse>(
+        `/research/${slug}/versions/${version}`,
+      ),
+    capstoneList: (slug: string) =>
+      request<VersionListResponse>(`/capstones/${slug}/versions`),
+    capstoneGet: (slug: string, version: number) =>
+      request<CapstoneVersionResponse>(
+        `/capstones/${slug}/versions/${version}`,
+      ),
+  },
+  citations: {
+    paper: (slug: string) =>
+      request<{
+        slug: string;
+        title: string;
+        authors: string[];
+        year: number;
+        url: string;
+        permalink: string;
+        bibtex: string;
+        ris: string;
+        plain: string;
+      }>(`/research/${slug}/cite`),
+    capstone: (slug: string) =>
+      request<{
+        slug: string;
+        title: string;
+        authors: string[];
+        year: number;
+        url: string;
+        permalink: string;
+        bibtex: string;
+        ris: string;
+        plain: string;
+      }>(`/capstones/${slug}/cite`),
+  },
   search: {
     query: (q: string, limit?: number) => {
       const sp = new URLSearchParams({ q });
       if (limit) sp.set("limit", String(limit));
       return request<SearchResponse>(`/search?${sp.toString()}`);
+    },
+    navigator: (q: string, limit?: number) => {
+      const sp = new URLSearchParams({ q, navigator: "1" });
+      if (limit) sp.set("limit", String(limit));
+      return request<SearchNavigatorResponse>(`/search?${sp.toString()}`);
     },
   },
   settings: {
@@ -671,6 +778,20 @@ export const api = {
     },
     drafts: () =>
       request<ResearchPapersDraftsResponse>("/research/me/drafts"),
+    byAuthor: (username: string) =>
+      request<{
+        papers: Array<{
+          id: string;
+          slug: string;
+          title: string;
+          summary: string;
+          format: string;
+          coverEmoji: string;
+          accentColor: string;
+          tags: string[];
+          createdAt: string;
+        }>;
+      }>(`/research/by-author/${encodeURIComponent(username)}`),
     get: (slug: string, tier?: "intro" | "undergrad" | "grad") => {
       const qs = tier ? `?tier=${tier}` : "";
       return request<ResearchPaperResponse>(`/research/${slug}${qs}`);
@@ -692,6 +813,140 @@ export const api = {
         method: "POST",
         body: JSON.stringify(data),
       }),
+    listClaimThreads: (slug: string) =>
+      request<ClaimThreadsResponse>(`/research/${slug}/claim-threads`),
+    createClaimThread: (slug: string, body: CreateClaimThreadRequest) =>
+      request<{ threadId: string; commentId: string }>(
+        `/research/${slug}/claim-threads`,
+        { method: "POST", body: JSON.stringify(body) },
+      ),
+    replyToClaimThread: (
+      slug: string,
+      threadId: string,
+      body: CreateClaimThreadReplyRequest,
+    ) =>
+      request<{ commentId: string }>(
+        `/research/${slug}/claim-threads/${threadId}/replies`,
+        { method: "POST", body: JSON.stringify(body) },
+      ),
+    listArtifacts: (slug: string) =>
+      request<RunnableArtifactsResponse>(`/research/${slug}/artifacts`),
+    addArtifact: (slug: string, body: CreateRunnableArtifactRequest) =>
+      request<{ artifactId: string }>(`/research/${slug}/artifacts`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    deleteArtifact: (slug: string, id: string) =>
+      request<OkResponse>(`/research/${slug}/artifacts/${id}`, {
+        method: "DELETE",
+      }),
+    listReproductions: (slug: string) =>
+      request<ReproductionsResponse>(`/research/${slug}/reproductions`),
+    addReproduction: (slug: string, body: CreateReproductionRequest) =>
+      request<{ reproductionId: string }>(`/research/${slug}/reproductions`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+  },
+  capstones: {
+    list: (params?: { tag?: string }) => {
+      const sp = new URLSearchParams();
+      if (params?.tag) sp.set("tag", params.tag);
+      const qs = sp.toString();
+      return request<CapstonesListResponse>(`/capstones${qs ? `?${qs}` : ""}`);
+    },
+    drafts: () =>
+      request<{
+        capstones: Array<{
+          id: string;
+          slug: string;
+          title: string;
+          summary: string;
+          estimatedWeeks: number;
+          coverEmoji: string;
+          accentColor: string;
+          tags: string[];
+          updatedAt: string;
+        }>;
+      }>("/capstones/me/drafts"),
+    enrollments: () =>
+      request<CapstoneEnrollmentsResponse>("/capstones/me/enrollments"),
+    get: (slug: string, tier?: "intro" | "undergrad" | "grad") => {
+      const qs = tier ? `?tier=${tier}` : "";
+      return request<CapstoneResponse>(`/capstones/${slug}${qs}`);
+    },
+    create: (data: CreateCapstoneRequest) =>
+      request<{ capstoneId: string; slug: string }>("/capstones", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    update: (slug: string, data: UpdateCapstoneRequest) =>
+      request<OkResponse>(`/capstones/${slug}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    addMilestone: (slug: string, data: CreateMilestoneRequest) =>
+      request<{ milestoneId: string }>(`/capstones/${slug}/milestones`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    updateMilestone: (slug: string, id: string, data: UpdateMilestoneRequest) =>
+      request<OkResponse>(`/capstones/${slug}/milestones/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    deleteMilestone: (slug: string, id: string) =>
+      request<OkResponse>(`/capstones/${slug}/milestones/${id}`, {
+        method: "DELETE",
+      }),
+    enroll: (slug: string) =>
+      request<{ enrollmentId: string }>(`/capstones/${slug}/enroll`, {
+        method: "POST",
+      }),
+    submit: (slug: string, milestoneId: string, data: SubmitMilestoneRequest) =>
+      request<{ submission: CapstoneSubmission }>(
+        `/capstones/${slug}/milestones/${milestoneId}/submit`,
+        { method: "POST", body: JSON.stringify(data) },
+      ),
+    artifact: (artifactSlug: string) =>
+      request<CapstoneArtifactPageResponse>(`/capstones/c/${artifactSlug}`),
+    artifactReviews: (artifactSlug: string) =>
+      request<CapstonePeerReviewsResponse>(
+        `/capstones/c/${artifactSlug}/reviews`,
+      ),
+    submitPeerReview: (
+      submissionId: string,
+      body: { status: PeerReviewStatus; score: number; feedback: string },
+    ) =>
+      request<{ id: string; updated: boolean }>(
+        `/capstones/submissions/${submissionId}/reviews`,
+        { method: "POST", body: JSON.stringify(body) },
+      ),
+    deletePeerReview: (id: string) =>
+      request<OkResponse>(`/capstones/reviews/${id}`, { method: "DELETE" }),
+    reviewQueue: (limit?: number) => {
+      const qs = limit ? `?limit=${limit}` : "";
+      return request<CapstoneReviewQueueResponse>(
+        `/capstones/review-queue${qs}`,
+      );
+    },
+  },
+  users: {
+    portfolio: (username: string) =>
+      request<PortfolioResponse>(`/users/${encodeURIComponent(username)}/portfolio`),
+  },
+  me: {
+    weakConcepts: () => request<WeakConceptsResponse>("/me/weak-concepts"),
+    refreshWeakConcepts: () =>
+      request<{ upserts: number }>("/me/weak-concepts/refresh", { method: "POST" }),
+    dismissWeakConcept: (id: string) =>
+      request<OkResponse>(`/me/weak-concepts/${id}/dismiss`, { method: "POST" }),
+    prereqStatus: (wikiSlugs: string[]) => {
+      const sp = new URLSearchParams();
+      sp.set("wikiSlugs", wikiSlugs.join(","));
+      return request<PrereqXrayResponse>(`/me/prereq-status?${sp.toString()}`);
+    },
+    knowledgeMri: () => request<KnowledgeMri>("/me/knowledge-mri"),
   },
   flashcards: {
     save: (data: { pageSlug: string; pageTitle: string; front: string; back: string }) =>

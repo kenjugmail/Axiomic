@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "linear-algebra-foundations",
+  "key": "eigenvectors-always-orthogonal",
+  "label": "Eigenvectors of a matrix are always orthogonal",
+  "description": "Eigenvectors of a symmetric (or Hermitian) matrix corresponding to distinct eigenvalues are orthogonal. Eigenvectors of a general (non-symmetric) matrix are NOT in general orthogonal — they can be at any angle and may not even be linearly independent (defective matrices).\n\nThis matters because PCA, the spectral theorem, and a lot of intuition come from the symmetric case (covariance matrices, gram matrices, Laplacians) where the eigenbasis is orthonormal. The moment you work with a general transition matrix, a Jacobian, or any non-symmetric operator, that orthogonality property is gone — and projecting onto a non-orthonormal eigenbasis changes the math substantially.",
+  "probeQuestions": [
+    "Construct a 2×2 non-symmetric matrix and compute its eigenvectors. Are they orthogonal?",
+    "Why is PCA's eigenbasis guaranteed to be orthogonal?"
+  ],
+  "correctionPromptTemplate": "The learner thinks eigenvectors are always orthogonal. Walk through: that's the spectral theorem for SYMMETRIC matrices. Hand them a 2x2 like [[1,1],[0,2]] and ask them to compute eigenvectors and check orthogonality. Then tie it to PCA's symmetric covariance matrix as the special case where the assumption is justified."
+}

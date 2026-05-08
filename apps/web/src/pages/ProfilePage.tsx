@@ -11,6 +11,7 @@ import type {
   ReputationByDomain,
 } from "@axiomic/types";
 import { AchievementsGallery } from "../components/AchievementsGallery";
+import { MasteryPortfolio } from "../components/profile/MasteryPortfolio";
 import { ActivityHeatmap } from "../components/ActivityHeatmap";
 import { FollowButton } from "../components/FollowButton";
 import { SkillTree } from "../components/profile/SkillTree";
@@ -94,6 +95,18 @@ export function ProfilePage() {
   const [streak, setStreak] = useState(0);
   const [heatmap, setHeatmap] = useState<ActivityHeatmapCell[]>([]);
   const [notFound, setNotFound] = useState(false);
+  // Sprint 25 — research papers by this author. Loaded in parallel
+  // with the existing summary fetches.
+  const [researchPapers, setResearchPapers] = useState<
+    Array<{
+      id: string;
+      slug: string;
+      title: string;
+      summary: string;
+      format: string;
+      coverEmoji: string;
+    }>
+  >([]);
 
   useEffect(() => {
     if (!username) return;
@@ -137,6 +150,10 @@ export function ProfilePage() {
       .catalog()
       .then((r) => setCatalog(r.achievements))
       .catch(() => {});
+    api.research
+      .byAuthor(username)
+      .then((r) => setResearchPapers(r.papers))
+      .catch(() => setResearchPapers([]));
   }, [username, isOwnProfile]);
 
   if (!username) {
@@ -189,6 +206,21 @@ export function ProfilePage() {
       </div>
 
       <div className="space-y-6">
+        {isOwnProfile && (
+          <div className="flex justify-end">
+            <Link
+              to="/me/mri"
+              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300 hover:bg-violet-500/15 transition-colors"
+            >
+              View Knowledge MRI →
+            </Link>
+          </div>
+        )}
+        {/* Sprint 31 — public mastery portfolio: capstones + research +
+            authored wiki + reproductions. Pulled in a single
+            aggregate request from /users/:username/portfolio. */}
+        <MasteryPortfolio username={username} />
+
         <section>
           <h2 className="text-lg font-semibold mb-3">Reputation</h2>
           {reputation === null ? (
@@ -240,6 +272,42 @@ export function ProfilePage() {
             </div>
           )}
         </section>
+
+        {/* Sprint 25 — research papers authored by this user. Hidden
+            entirely when there are none. */}
+        {researchPapers.length > 0 && (
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold">Research papers</h2>
+              <span className="text-xs text-muted-foreground">
+                {researchPapers.length} published
+              </span>
+            </div>
+            <ul className="grid sm:grid-cols-2 gap-2.5">
+              {researchPapers.map((p) => (
+                <li key={p.id}>
+                  <Link
+                    to={`/research/${p.slug}`}
+                    className="block px-3 py-2.5 rounded-md border border-border hover:bg-accent/30 transition-colors"
+                  >
+                    <div className="flex items-baseline gap-2 text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">
+                      <span>{p.coverEmoji}</span>
+                      <span className="text-primary font-medium">{p.format}</span>
+                    </div>
+                    <div className="text-sm font-medium leading-snug truncate">
+                      {p.title}
+                    </div>
+                    {p.summary && (
+                      <div className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                        {p.summary}
+                      </div>
+                    )}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {/* Activity heatmap — visible on any profile, gives even the
             public view a pulse. */}

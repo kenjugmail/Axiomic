@@ -6,6 +6,8 @@ import { getDb, wikiPages, pageVersions, newsArticles, researchPapers, users } f
 import { eq, desc, sql } from "drizzle-orm";
 import { getSessionUser, requireAuth } from "../middleware/auth";
 import { buildCoachContext, summarizeCoachContext } from "../lib/userContext";
+import { getOrEmbed } from "../lib/embeddingCache";
+import { buildTutorModePrompt } from "../lib/tutorModes";
 
 const ai = new Hono();
 
@@ -34,10 +36,23 @@ const chatSchema = z.object({
       content: z.string(),
     })
   ),
+  // Sprint 30 — optional tutor mode + per-mode context.
+  mode: z
+    .enum(["socratic", "misconception", "bridge", "debate", "contribution"])
+    .optional(),
+  modeContext: z
+    .object({
+      diagnosisId: z.string().optional(),
+      forumTopicId: z.string().optional(),
+      capstoneSlug: z.string().optional(),
+      milestoneId: z.string().optional(),
+      pageSlug: z.string().optional(),
+    })
+    .optional(),
 });
 
 ai.post("/chat", zValidator("json", chatSchema), async (c) => {
-  const { pageSlug, tier, messages } = c.req.valid("json");
+  const { pageSlug, tier, messages, mode, modeContext } = c.req.valid("json");
   const user = await getSessionUser(c);
   const rateLimitKey = user?.id || c.req.header("x-forwarded-for") || "anonymous";
 
@@ -84,6 +99,20 @@ ai.post("/chat", zValidator("json", chatSchema), async (c) => {
     }
   }
 
+  // Sprint 30 — optional tutor-mode addendum on top of the base prompt.
+  let modePrompt = "";
+  if (mode) {
+    const result = buildTutorModePrompt(
+      mode,
+      { ...(modeContext ?? {}), pageSlug },
+      user?.id ?? null,
+    );
+    if (result.invalid) {
+      return c.json({ error: result.invalid }, 400);
+    }
+    modePrompt = result.prompt;
+  }
+
   const system = `You are an AI tutor on the Axiomic learning platform. You are helping the user understand the topic "${pageTitle}".
 
 page: ${pageSlug}
@@ -99,7 +128,7 @@ Guidelines:
 - If asked to quiz, generate relevant questions
 - Format responses with markdown and LaTeX where appropriate${
     coachSummary ? `\n\n${coachSummary}` : ""
-  }`;
+  }${modePrompt ? `\n\n${modePrompt}` : ""}`;
 
   // SSE stream
   const stream = new ReadableStream({
@@ -1209,44 +1238,43 @@ ai.post(
 
     const db = getDb();
     const haystack = body.toLowerCase();
-    const haystackTokens = new Set(
-      haystack
-        .split(/[^a-z0-9]+/)
-        .filter((t) => t.length > 3),
-    );
+
+    // Sprint 25 — embedding-backed ranking against the wiki corpus.
+    // We embed the query body once, then score each wiki page via the
+    // cache so subsequent calls hit precomputed vectors.
+    const provider = getAIProvider();
+    const queryEmbed = await provider.embed(body.slice(0, 2000));
 
     const pages = db
       .select({
+        id: wikiPages.id,
         slug: wikiPages.slug,
         title: wikiPages.title,
       })
       .from(wikiPages)
       .all();
 
-    const scored = pages
-      .map((p) => {
-        const titleTokens = p.title
-          .toLowerCase()
-          .split(/[^a-z0-9]+/)
-          .filter((t) => t.length > 3);
-        const slugTokens = p.slug
-          .toLowerCase()
-          .split(/-/)
-          .filter((t) => t.length > 3);
-        let score = 0;
-        for (const t of titleTokens) if (haystackTokens.has(t)) score += 2;
-        for (const t of slugTokens) if (haystackTokens.has(t)) score += 1;
-        // Already linked? Skip — author has it.
-        if (haystack.includes(`[[${p.slug}]]`) || haystack.includes(`[[${p.slug}|`)) {
-          score = 0;
-        }
-        return { slug: p.slug, title: p.title, score };
-      })
-      .filter((p) => p.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 6);
-
-    return c.json({ suggestions: scored });
+    const scored: Array<{ slug: string; title: string; score: number }> = [];
+    for (const p of pages) {
+      // Already linked? Skip — author has it.
+      if (
+        haystack.includes(`[[${p.slug}]]`) ||
+        haystack.includes(`[[${p.slug}|`)
+      ) {
+        continue;
+      }
+      const e = await getOrEmbed(
+        "wiki_page",
+        p.id,
+        `${p.title}\n${p.slug.replace(/-/g, " ")}`,
+      );
+      const score = cosineSimilarity(queryEmbed, e);
+      if (score > 0.18) {
+        scored.push({ slug: p.slug, title: p.title, score });
+      }
+    }
+    scored.sort((a, b) => b.score - a.score);
+    return c.json({ suggestions: scored.slice(0, 6) });
   },
 );
 
@@ -1296,6 +1324,8 @@ ai.post(
       .all();
     const corpus = [...articles, ...papers];
 
+    // Sprint 25 — go through the embedding cache instead of
+    // re-computing every corpus embedding on every wizard call.
     const scored: Array<{
       title: string;
       slug: string;
@@ -1303,7 +1333,11 @@ ai.post(
       score: number;
     }> = [];
     for (const item of corpus) {
-      const e = await provider.embed(`${item.title}\n${item.summary}`);
+      const e = await getOrEmbed(
+        item.kind === "news" ? "news_article" : "research_paper",
+        item.id,
+        `${item.title}\n${item.summary}`,
+      );
       scored.push({
         title: item.title,
         slug: item.slug,
@@ -1374,5 +1408,132 @@ Output rules:
 function tierRank(t: "intro" | "undergrad" | "grad"): number {
   return t === "intro" ? 1 : t === "undergrad" ? 2 : 3;
 }
+
+// Sprint 30 — Explain-it-back grader. Takes a learner's free-text
+// answer + an author-provided rubric and returns a per-criterion grade
+// with feedback. Same shape as the capstone grader (S27) — reuse the
+// underlying provider call so behavior stays consistent.
+const explainBackSchema = z.object({
+  prompt: z.string().min(1).max(2000),
+  answer: z.string().min(1).max(8000),
+  rubric: z.object({
+    criteria: z
+      .array(
+        z.object({
+          id: z.string().min(1).max(40),
+          description: z.string().min(1).max(400),
+          weight: z.number().min(0).max(1).optional(),
+        }),
+      )
+      .min(1)
+      .max(8),
+    passingScore: z.number().min(0).max(1).optional().default(0.6),
+  }),
+});
+
+ai.post(
+  "/explain-back/grade",
+  zValidator("json", explainBackSchema),
+  async (c) => {
+    const user = await getSessionUser(c);
+    if (!user) return c.json({ error: "Sign in to grade explain-back." }, 401);
+    if (!checkRateLimit(`explainback:${user.id}`, 60, 60000)) {
+      return c.json({ error: "Rate limited." }, 429);
+    }
+    const { prompt, answer, rubric } = c.req.valid("json");
+    const provider = getAIProvider();
+
+    const system = `You grade an "explain-it-back" answer against a rubric. \
+Reply with ONLY a single JSON object:
+
+{
+  "perCriterion": [{"criterionId": string, "score": 0..1, "feedback": string}],
+  "summary": string
+}
+
+Be specific. Reward concrete examples + correct mechanism. Penalise vague restatement.`;
+
+    const criteriaBlock = rubric.criteria
+      .map((cr) => `- (${cr.id}) ${cr.description}`)
+      .join("\n");
+    const userMessage = `Question: ${prompt}\n\nLearner answer:\n${answer}\n\nRubric:\n${criteriaBlock}\n\nReply with ONLY the JSON.`;
+
+    let raw = "";
+    try {
+      await provider.stream({
+        system,
+        messages: [{ role: "user", content: userMessage }],
+        onToken: (t) => {
+          raw += t;
+        },
+      });
+    } catch {
+      raw = "";
+    }
+
+    // Best-effort parse with heuristic fallback identical in shape.
+    const start = raw.indexOf("{");
+    const end = raw.lastIndexOf("}");
+    let perCriterion: Array<{ criterionId: string; score: number; feedback: string }> = [];
+    let summary = "";
+    if (start >= 0 && end > start) {
+      try {
+        const parsed = JSON.parse(raw.slice(start, end + 1));
+        if (Array.isArray(parsed.perCriterion)) {
+          perCriterion = parsed.perCriterion.filter(
+            (x: any) =>
+              typeof x?.criterionId === "string" &&
+              typeof x?.score === "number" &&
+              typeof x?.feedback === "string",
+          );
+        }
+        if (typeof parsed.summary === "string") summary = parsed.summary;
+      } catch {
+        // ignore — heuristic below.
+      }
+    }
+
+    if (perCriterion.length === 0) {
+      // Heuristic: score on length + presence of explanation cues.
+      const words = answer.split(/\s+/).filter(Boolean).length;
+      const lengthScore = Math.min(1, words / 100);
+      const cueScore = /because|therefore|so that|which means|the reason/i.test(answer)
+        ? 1
+        : 0.4;
+      const score = Math.max(0, Math.min(1, 0.7 * lengthScore + 0.3 * cueScore));
+      perCriterion = rubric.criteria.map((cr) => ({
+        criterionId: cr.id,
+        score,
+        feedback:
+          words < 30
+            ? "Answer is short — explain the mechanism, not just the conclusion."
+            : "Reasoning is present; cite a concrete example to push the score up.",
+      }));
+      summary = score >= rubric.passingScore
+        ? "Heuristic pass — a human grader could sharpen the per-criterion scores."
+        : "Heuristic flag — answer needs more concrete reasoning.";
+    }
+
+    const totalWeight =
+      rubric.criteria.reduce((s, c) => s + (c.weight ?? 1), 0) || 1;
+    const byId = new Map(perCriterion.map((c) => [c.criterionId, c]));
+    let weighted = 0;
+    for (const cr of rubric.criteria) {
+      const got = byId.get(cr.id);
+      const score = got?.score ?? 0;
+      weighted += score * (cr.weight ?? 1);
+    }
+    const score = Math.max(0, Math.min(1, weighted / totalWeight));
+
+    return c.json({
+      grade: {
+        score,
+        perCriterion,
+        summary,
+        passed: score >= rubric.passingScore,
+      },
+    });
+  },
+);
 
 export { ai as aiRouter };

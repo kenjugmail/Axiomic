@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "probability-foundations",
+  "key": "bayes-rule-symmetric",
+  "label": "P(A|B) equals P(B|A)",
+  "description": "Conditional probabilities are not symmetric. P(A|B) = P(A,B)/P(B), and P(B|A) = P(A,B)/P(A). They share a numerator but their denominators differ. The whole point of Bayes' rule — P(A|B) = P(B|A)·P(A)/P(B) — is to convert between the two via the marginals.\n\nThe medical-test trap: P(positive | disease) is often near 1 for a sensitive test, but P(disease | positive) can be tiny if the disease is rare. Confusing the two is the base-rate fallacy and shows up everywhere from screenings to spam filters.",
+  "probeQuestions": [
+    "If a test has 99% sensitivity for a disease that affects 1 in 10,000 people, roughly what fraction of positive results actually have the disease?",
+    "Write Bayes' rule from scratch starting from the definition of joint probability."
+  ],
+  "correctionPromptTemplate": "The learner is treating P(A|B) and P(B|A) as the same. Walk through the medical-test base-rate example concretely with prevalence = 1/10000, sensitivity = 0.99, specificity = 0.95 — show the post-test probability is tiny. Ask first — 'how could a test with 99% sensitivity have only a few percent post-test probability?'"
+}

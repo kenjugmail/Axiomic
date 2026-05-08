@@ -12,6 +12,9 @@ interface Props {
   // GitHub, etc). Submitting with no scope means "I reproduced the
   // overall result" — useful when no artifacts are attached.
   artifacts: RunnableArtifact[];
+  // Sprint 23.5 — switches between /news/:slug/reproductions and
+  // /research/:slug/reproductions (same shape, polymorphic table).
+  surface?: "news" | "research";
   onClose: () => void;
   onSubmitted: () => void;
 }
@@ -49,9 +52,11 @@ const STATUS_OPTIONS: Array<{
 export function ReproduceDialog({
   articleSlug,
   artifacts,
+  surface = "news",
   onClose,
   onSubmitted,
 }: Props) {
+  const apiSurface = surface === "research" ? api.research : api.news;
   const [status, setStatus] = useState<ReproductionStatus>("success");
   const [artifactId, setArtifactId] = useState<string>("");
   const [notes, setNotes] = useState("");
@@ -64,7 +69,7 @@ export function ReproduceDialog({
     setBusy(true);
     setError(null);
     try {
-      await api.news.addReproduction(articleSlug, {
+      await apiSurface.addReproduction(articleSlug, {
         artifactId: artifactId || undefined,
         status,
         notes: notes.trim() || undefined,

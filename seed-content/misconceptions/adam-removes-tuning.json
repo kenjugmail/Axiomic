@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "optimization-theory",
+  "key": "adam-removes-tuning",
+  "label": "Adam removes the need to tune the learning rate",
+  "description": "Adam's per-parameter adaptive scaling makes training more forgiving than vanilla SGD, but it does NOT eliminate LR tuning. Adam still has a global LR multiplier (the `lr` you pass in), and the difference between `1e-3` and `1e-4` is often the difference between a great run and a divergent one for transformers.\n\nThe deeper point: Adam adapts the *direction* and the *per-parameter scale* of updates, but the global step magnitude is still a hyperparameter you set. The β1, β2, ε also matter; the defaults (0.9, 0.999, 1e-8) work for many problems but break in others (e.g. some RL setups want higher ε).",
+  "probeQuestions": [
+    "If Adam adapts per-parameter scale, why do transformer recipes still specify 'lr=3e-4 with cosine decay'?",
+    "What does the ε term in Adam's denominator actually control?"
+  ],
+  "correctionPromptTemplate": "The learner thinks Adam means 'set and forget' on the learning rate. Walk through: Adam adapts direction and per-parameter scale, but the global LR multiplier still matters. Cite the canonical 3e-4 + warmup + cosine recipe. Ask first — 'what does β2=0.999 mean for the second-moment estimate's effective window?'"
+}

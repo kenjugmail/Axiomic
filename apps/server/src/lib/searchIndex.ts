@@ -7,6 +7,8 @@ import {
   forumTopics,
   masteryNodes,
   masteryPaths,
+  newsArticles,
+  researchPapers,
 } from "@axiomic/db";
 
 // Hybrid keyword + semantic search index.
@@ -54,7 +56,31 @@ export interface IndexedLesson {
   vector: number[];
 }
 
-export type IndexedItem = IndexedPage | IndexedTopic | IndexedLesson;
+export interface IndexedNewsArticle {
+  kind: "news";
+  id: string;
+  slug: string;
+  title: string;
+  snippet: string;
+  vector: number[];
+}
+
+export interface IndexedResearchPaper {
+  kind: "research";
+  id: string;
+  slug: string;
+  title: string;
+  format: string;
+  snippet: string;
+  vector: number[];
+}
+
+export type IndexedItem =
+  | IndexedPage
+  | IndexedTopic
+  | IndexedLesson
+  | IndexedNewsArticle
+  | IndexedResearchPaper;
 
 let cache: IndexedItem[] | null = null;
 let building: Promise<IndexedItem[]> | null = null;
@@ -145,6 +171,79 @@ async function buildIndex(): Promise<IndexedItem[]> {
       nodeSlug: node.slug,
       slug: node.slug,
       title: node.title,
+      snippet,
+      vector,
+    });
+  }
+
+  // Sprint 25 — news articles + research papers. Both surface the
+  // same metadata shape; we index title + summary + abstract + body
+  // (truncated) so a search for "attention" picks up both prose
+  // articles and tiered research papers.
+  const articles = db
+    .select({
+      id: newsArticles.id,
+      slug: newsArticles.slug,
+      title: newsArticles.title,
+      summary: newsArticles.summary,
+      abstract: newsArticles.abstract,
+      body: newsArticles.body,
+    })
+    .from(newsArticles)
+    .where(eq(newsArticles.status, "published"))
+    .all();
+  for (const a of articles) {
+    const snippet = (a.summary || a.abstract || a.body).slice(0, 500);
+    const vector = await provider.embed(
+      `${a.title} ${a.summary} ${a.abstract.slice(0, 600)} ${a.body.slice(0, 1500)}`,
+    );
+    items.push({
+      kind: "news",
+      id: a.id,
+      slug: a.slug,
+      title: a.title,
+      snippet,
+      vector,
+    });
+  }
+
+  const papers = db
+    .select({
+      id: researchPapers.id,
+      slug: researchPapers.slug,
+      title: researchPapers.title,
+      summary: researchPapers.summary,
+      abstract: researchPapers.abstract,
+      contentIntro: researchPapers.contentIntro,
+      contentUndergrad: researchPapers.contentUndergrad,
+      contentGrad: researchPapers.contentGrad,
+      canonicalTier: researchPapers.canonicalTier,
+      format: researchPapers.format,
+    })
+    .from(researchPapers)
+    .where(eq(researchPapers.status, "published"))
+    .all();
+  for (const p of papers) {
+    const canonicalBody =
+      p.canonicalTier === "intro"
+        ? p.contentIntro
+        : p.canonicalTier === "grad"
+          ? p.contentGrad
+          : p.contentUndergrad;
+    const fallback =
+      canonicalBody.trim().length > 0
+        ? canonicalBody
+        : p.contentUndergrad || p.contentIntro || p.contentGrad;
+    const snippet = (p.summary || p.abstract || fallback).slice(0, 500);
+    const vector = await provider.embed(
+      `${p.title} ${p.summary} ${p.abstract.slice(0, 600)} ${fallback.slice(0, 1500)}`,
+    );
+    items.push({
+      kind: "research",
+      id: p.id,
+      slug: p.slug,
+      title: p.title,
+      format: p.format,
       snippet,
       vector,
     });

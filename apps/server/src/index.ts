@@ -23,9 +23,44 @@ import { onboardingRouter } from "./routes/onboarding";
 import { uploadsRouter } from "./routes/uploads";
 import { conceptsRouter } from "./routes/concepts";
 import { researchRouter } from "./routes/research";
+import { capstonesRouter } from "./routes/capstones";
+import { misconceptionsRouter } from "./routes/misconceptions";
+import { kernelFilesRouter } from "./routes/kernelFiles";
+import { cohortsRouter, mentorsRouter } from "./routes/cohorts";
+import { serverExecRouter } from "./routes/serverExec";
+import { meRouter } from "./routes/me";
+import { usersRouter } from "./routes/users";
 import { prewarmSearchIndex } from "./lib/searchIndex";
 import { userFromCookieHeader } from "./middleware/auth";
-import { attachUser, detach, subscribeArticle } from "./lib/liveBus";
+import {
+  attachUser,
+  broadcastDraftPresence,
+  detach,
+  setUsernameResolver,
+  subscribeArticle,
+  subscribeDraft,
+} from "./lib/liveBus";
+import type { DraftKind } from "./lib/liveBus";
+import { users as usersTable } from "@axiomic/db";
+import { inArray } from "drizzle-orm";
+
+// Sprint 40 — let liveBus resolve userIds → usernames for presence
+// events without pulling in @axiomic/db (which would form a cycle).
+setUsernameResolver((ids: string[]) => {
+  if (ids.length === 0) return new Map();
+  const rows = getDb()
+    .select({ id: usersTable.id, username: usersTable.username })
+    .from(usersTable)
+    .where(inArray(usersTable.id, ids))
+    .all();
+  return new Map(rows.map((r) => [r.id, r.username]));
+});
+import {
+  canonicalJson,
+  publicKeyHex,
+  verify,
+  verifyWithPublicKey,
+} from "./lib/signing";
 import type { Env } from "./env";
 
 const app = new Hono<Env>().basePath("/api/v1");
@@ -34,6 +69,46 @@ app.use("*", cors({ origin: "http://localhost:5173", credentials: true }));
 app.use("*", logger());
 
 app.get("/health", (c) => c.json({ status: "ok", timestamp: new Date().toISOString() }));
+
+// Sprint 37 — Public signing key for transcript verification.
+// Returns the raw 32-byte ed25519 public key as lowercase hex so any
+// external verifier can re-check a transcript signature without the
+// server's involvement.
+app.get("/keys/signing", (c) =>
+  c.json({ algorithm: "ed25519", publicKey: publicKeyHex() }),
+);
+
+// Sprint 37 — Verify a posted transcript bundle. Accepts the same
+// shape returned by /capstones/c/:slug/transcript: { manifest,
+// signature, publicKey? }. When `publicKey` is present we verify
+// against that key (so a verifier can confirm a manifest matches a
+// specific instance's pinned key); otherwise we use this server's key.
+app.post("/keys/verify", async (c) => {
+  let body: any;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ valid: false, error: "Invalid JSON body" }, 400);
+  }
+  const manifest = body?.manifest;
+  const signature = body?.signature;
+  const claimedPublicKey: string | undefined = body?.publicKey;
+  if (!manifest || typeof signature !== "string") {
+    return c.json(
+      { valid: false, error: "Missing manifest or signature" },
+      400,
+    );
+  }
+  const payload = canonicalJson(manifest);
+  const valid = claimedPublicKey
+    ? verifyWithPublicKey(payload, signature, claimedPublicKey)
+    : verify(payload, signature);
+  return c.json({
+    valid,
+    publicKey: claimedPublicKey ?? publicKeyHex(),
+    canonicalPayload: payload,
+  });
+});
 
 app.get("/ready", async (c) => {
   let dbOk = false;
@@ -85,6 +160,14 @@ app.route("/onboarding", onboardingRouter);
 app.route("/uploads", uploadsRouter);
 app.route("/concepts", conceptsRouter);
 app.route("/research", researchRouter);
+app.route("/capstones", capstonesRouter);
+app.route("/misconceptions", misconceptionsRouter);
+app.route("/kernel-files", kernelFilesRouter);
+app.route("/cohorts", cohortsRouter);
+app.route("/mentors", mentorsRouter);
+app.route("/server-exec", serverExecRouter);
+app.route("/me", meRouter);
+app.route("/users", usersRouter);
 
 // Pre-warm the search index in the background so the first user query
 // doesn't pay the embedding-build cost.
@@ -129,13 +212,22 @@ export default {
       if (data?.userId) attachUser(ws, data.userId);
     },
     message(ws: any, raw: string | Uint8Array) {
-      // Clients can subscribe to per-article reaction streams. Other
-      // message kinds are ignored for v1.
+      // Clients can subscribe to per-article reaction streams or to
+      // per-draft collaboration channels (Sprint 40). Other message
+      // kinds are ignored for v1.
       try {
         const text = typeof raw === "string" ? raw : new TextDecoder().decode(raw);
         const msg = JSON.parse(text);
         if (msg && msg.type === "subscribe_article" && typeof msg.slug === "string") {
           subscribeArticle(ws, msg.slug);
+        } else if (
+          msg &&
+          msg.type === "subscribe_draft" &&
+          (msg.kind === "lesson" || msg.kind === "paper" || msg.kind === "capstone") &&
+          typeof msg.targetId === "string"
+        ) {
+          subscribeDraft(ws, msg.kind as DraftKind, msg.targetId);
+          broadcastDraftPresence(msg.kind as DraftKind, msg.targetId);
         }
       } catch {
         // ignore malformed frames

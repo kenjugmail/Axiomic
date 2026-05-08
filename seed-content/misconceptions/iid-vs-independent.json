@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "statistics-foundations",
+  "key": "iid-vs-independent",
+  "label": "iid just means independent",
+  "description": "iid is short for 'independent and identically distributed'. The 'identically distributed' half is doing as much work as the 'independent' half. Two coin flips of different biased coins are independent but not iid; samples from a single distribution drawn one-at-a-time without replacement are identically distributed marginally but not independent.\n\nIn ML, the iid assumption underwrites empirical risk minimization (your validation loss is an unbiased estimate of test loss only if test points are iid samples from the same distribution), the central limit theorem on minibatch gradients, and most concentration bounds. Distribution shift breaks the 'identically distributed' part; temporal correlation breaks the 'independent' part. The two failure modes need different fixes.",
+  "probeQuestions": [
+    "Give an example of a sequence of random variables that is independent but not identically distributed.",
+    "Give an example of a sequence that is identically distributed but not independent."
+  ],
+  "correctionPromptTemplate": "The learner conflates iid with independence. Walk through both halves separately with concrete examples: independent-but-not-id (two different-bias coins), id-but-not-independent (sampling without replacement, time-series). Tie back to ML — distribution shift breaks 'id', temporal correlation breaks 'i'. Ask first — 'which half does distribution shift break?'"
+}

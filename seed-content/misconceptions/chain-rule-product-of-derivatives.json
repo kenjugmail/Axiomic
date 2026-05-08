@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "calculus-foundations",
+  "key": "chain-rule-product-of-derivatives",
+  "label": "The chain rule says (f∘g)'(x) = f'(x)·g'(x)",
+  "description": "The chain rule is (f∘g)'(x) = f'(g(x))·g'(x), NOT f'(x)·g'(x). The outer derivative is evaluated at g(x), not at x. Forgetting the inner-evaluation point is one of the most common backprop bugs.\n\nFor multivariable composition, the chain rule generalizes to a product of Jacobians: ∂(f∘g)/∂x = J_f(g(x))·J_g(x). The dimensions tell you the order: J_f is (output × middle), J_g is (middle × input), and you multiply them in that exact order. Get the order wrong and you'll silently compute the wrong gradient.",
+  "probeQuestions": [
+    "Differentiate f(x) = sin(x²). Where does the chain rule say to evaluate the outer derivative?",
+    "For a 2-layer network y = f(W2·g(W1·x)), what's the order of the Jacobian product when computing ∂y/∂x?"
+  ],
+  "correctionPromptTemplate": "The learner is treating the chain rule as a simple product of derivatives without the inner-evaluation step. Walk through f(x) = sin(x²) explicitly: f'(x) = cos(x²)·2x, NOT cos(x)·2x. Then generalize to Jacobian product order for a 2-layer network. Ask the sin(x²) probe first."
+}

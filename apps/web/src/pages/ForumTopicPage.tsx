@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { Network } from "lucide-react";
 import {
   api,
   type ForumPost,
@@ -168,6 +169,18 @@ export function ForumTopicPage() {
         <span>{new Date(topic.createdAt.replace(" ", "T") + "Z").toLocaleDateString()}</span>
         <span>·</span>
         <span>{topic.postCount} replies</span>
+        {topic.postCount >= 3 && (
+          <>
+            <span>·</span>
+            <Link
+              to={`/forum/graph?slug=${encodeURIComponent(topic.slug)}`}
+              className="hover:text-foreground inline-flex items-center gap-1"
+            >
+              <Network className="w-3 h-3" strokeWidth={2} />
+              View as graph
+            </Link>
+          </>
+        )}
       </div>
 
       <div className="flex gap-4">

@@ -6,7 +6,11 @@ import { eq, like, or, desc, sql, count } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { requireAuth } from "../middleware/auth";
 import { invalidateSearchIndex } from "../lib/searchIndex";
-import { nodesForWikiSlug, articlesForWikiSlug } from "../lib/crossLinks";
+import {
+  nodesForWikiSlug,
+  articlesForWikiSlug,
+  prereqWikiSlugsForSlug,
+} from "../lib/crossLinks";
 import type { Env } from "../env";
 
 const wiki = new Hono<Env>();
@@ -175,6 +179,7 @@ wiki.get("/:slug", async (c) => {
   // at 5 server-side; client paginates with a "see all" search query.
   const linkedNodes = nodesForWikiSlug(page.slug);
   const linkedArticles = articlesForWikiSlug(page.slug);
+  const prereqWikiSlugs = prereqWikiSlugsForSlug(page.slug);
 
   return c.json({
     page,
@@ -184,6 +189,7 @@ wiki.get("/:slug", async (c) => {
     linkedTopics,
     linkedNodes,
     linkedArticles,
+    prereqWikiSlugs,
   });
 });
 

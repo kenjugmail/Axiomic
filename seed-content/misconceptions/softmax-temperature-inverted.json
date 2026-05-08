@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "softmax",
+  "key": "softmax-temperature-inverted",
+  "label": "Higher softmax temperature → sharper distribution",
+  "description": "Some learners flip the relationship between temperature and distribution sharpness. Higher temperature actually FLATTENS the softmax (more uniform, more random sampling); lower temperature SHARPENS it (more peaked, more deterministic). The intuition: T appears in the denominator inside the exp, so larger T shrinks the differences between logits.\n\nA quick check: T → 0 means argmax (deterministic). T → ∞ means uniform.",
+  "probeQuestions": [
+    "If you raise the temperature in softmax sampling, does the model become more deterministic or more random?",
+    "What happens to the softmax output as temperature → 0?"
+  ],
+  "correctionPromptTemplate": "The learner believes higher temperature sharpens the softmax. Walk them through the math: softmax(x_i / T) — show what happens at T=0.1 vs T=10 with concrete logits. Don't dump the answer; ask a calibrated question first."
+}

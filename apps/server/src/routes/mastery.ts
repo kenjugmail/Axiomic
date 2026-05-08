@@ -20,9 +20,11 @@ import { eq, and, desc, inArray, ne, asc, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { notify } from "../lib/notifications";
+import { fireDetectorForUserAsync } from "../lib/misconceptionDetector";
 import { recordActivityAndEvaluate } from "../lib/achievements";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import { forumTopicsForNode } from "../lib/crossLinks";
+import { publishToDraft } from "../lib/liveBus";
 import type { Env } from "../env";
 
 const mastery = new Hono<Env>();
@@ -474,11 +476,41 @@ mastery.get("/lesson/:nodeId", async (c) => {
     .select({
       lessonData: masteryNodes.lessonData,
       sourceArticleId: masteryNodes.sourceArticleId,
+      prerequisiteNodeIds: masteryNodes.prerequisiteNodeIds,
     })
     .from(masteryNodes)
     .where(eq(masteryNodes.id, nodeId))
     .get();
   if (!node) return c.json({ error: "Node not found" }, 404);
+
+  // Sprint 32 — walk prerequisite mastery nodes to surface the wiki
+  // slugs that gate this lesson. Lets the editor preview render a
+  // PrereqXray showing which prereqs the learner has actually mastered.
+  let prereqWikiSlugs: string[] = [];
+  try {
+    const prereqIds: string[] = JSON.parse(node.prerequisiteNodeIds);
+    if (Array.isArray(prereqIds) && prereqIds.length > 0) {
+      const prereqNodes = db
+        .select({ pageIds: masteryNodes.pageIds })
+        .from(masteryNodes)
+        .where(inArray(masteryNodes.id, prereqIds))
+        .all();
+      const seen = new Set<string>();
+      for (const p of prereqNodes) {
+        try {
+          const slugs = JSON.parse(p.pageIds);
+          if (Array.isArray(slugs)) {
+            for (const s of slugs) {
+              if (typeof s === "string" && !seen.has(s)) {
+                seen.add(s);
+                prereqWikiSlugs.push(s);
+              }
+            }
+          }
+        } catch {}
+      }
+    }
+  } catch {}
 
   // Look up the source article (if any) so the lesson page can render
   // a "Sourced from @author's article" footer without a second fetch.
@@ -499,11 +531,15 @@ mastery.get("/lesson/:nodeId", async (c) => {
     if (a) sourceArticle = a;
   }
 
-  if (!node.lessonData) return c.json({ lesson: null, sourceArticle });
+  if (!node.lessonData) return c.json({ lesson: null, sourceArticle, prereqWikiSlugs });
   try {
-    return c.json({ lesson: JSON.parse(node.lessonData), sourceArticle });
+    return c.json({
+      lesson: JSON.parse(node.lessonData),
+      sourceArticle,
+      prereqWikiSlugs,
+    });
   } catch {
-    return c.json({ lesson: null, sourceArticle });
+    return c.json({ lesson: null, sourceArticle, prereqWikiSlugs });
   }
 });
 
@@ -599,6 +635,18 @@ mastery.put(
         })
         .where(eq(masteryNodes.id, nodeId))
         .run();
+
+      // Sprint 40 — fan out the draft state to every connected
+      // collaborator so peers can pull changes or merge silently
+      // depending on local dirty-state.
+      publishToDraft("lesson", nodeId, {
+        type: "draft_update",
+        kind: "lesson",
+        targetId: nodeId,
+        slides,
+        editorUsername: user.username,
+        updatedAt: now,
+      });
 
       return c.json({
         draft: true,
@@ -736,6 +784,17 @@ mastery.post(
 
     const newAchievements = recordActivityAndEvaluate(user.id, "lesson_edit");
     invalidateSearchIndex();
+
+    // Sprint 40 — broadcast that the draft has gone live so every
+    // collaborator's editor reloads from the new published state.
+    publishToDraft("lesson", nodeId, {
+      type: "draft_published",
+      kind: "lesson",
+      targetId: nodeId,
+      version: nextVersion,
+      editorUsername: user.username,
+      publishedAt: now,
+    });
 
     return c.json({
       lesson: JSON.parse(node.draftLessonData),
@@ -1299,6 +1358,13 @@ mastery.post("/quiz/:nodeId", requireAuth, zValidator("json", quizSubmitSchema),
         .where(eq(quizMistakes.id, existing.id))
         .run();
     }
+  }
+
+  // Sprint 29 — kick off misconception detection in the background.
+  // Non-blocking; failures are swallowed so a detector hiccup never
+  // breaks the quiz submission response.
+  if (wrongIds.length > 0) {
+    fireDetectorForUserAsync(user.id);
   }
 
   // Auto-create flashcards for newly missed multiple-choice questions

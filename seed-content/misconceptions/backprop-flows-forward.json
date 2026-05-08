@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "backpropagation",
+  "key": "backprop-flows-forward",
+  "label": "Backprop is a second forward pass",
+  "description": "Backpropagation is NOT another forward pass. It's a reverse-mode application of the chain rule: gradients flow from the loss output back through every operation in the reverse order they were applied. The forward pass produces and caches activations; the backward pass walks the computation graph in reverse, multiplying upstream gradients by local Jacobians.\n\nA related confusion: backprop computes ∂loss/∂(parameters), not ∂loss/∂(inputs). Most autograd frameworks accumulate gradients into the .grad field of trainable parameters; the input gradient exists but is usually thrown away unless you're doing input-attribution work. The direction (reverse) and the target (parameters by default) are both load-bearing.",
+  "probeQuestions": [
+    "If a network has L layers, how many cached intermediate values does backprop need to store? Why?",
+    "What does ∂loss/∂x (gradient w.r.t. the input) get used for, when it isn't discarded?"
+  ],
+  "correctionPromptTemplate": "The learner thinks backprop runs forward again, or that it computes gradients of inputs by default. Walk through: it's reverse-mode autodiff — it multiplies Jacobians from the loss back to each parameter using cached forward activations. Ask first — 'why does backprop have to store activations from the forward pass?'"
+}

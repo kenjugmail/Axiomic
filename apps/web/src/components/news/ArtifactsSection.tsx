@@ -56,6 +56,9 @@ interface Props {
   // True when the current viewer can author/delete artifacts (article
   // author or coauthor).
   canEdit: boolean;
+  // Sprint 23.5 — when "research", calls hit /research/:slug/artifacts
+  // (polymorphic on runnable_artifacts via target_kind discriminator).
+  surface?: "news" | "research";
   onChange?: (next: RunnableArtifact[]) => void;
 }
 
@@ -63,8 +66,10 @@ export function ArtifactsSection({
   articleSlug,
   initialArtifacts,
   canEdit,
+  surface = "news",
   onChange,
 }: Props) {
+  const apiSurface = surface === "research" ? api.research : api.news;
   const [artifacts, setArtifacts] = useState<RunnableArtifact[]>(initialArtifacts);
   const [adding, setAdding] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -90,7 +95,7 @@ export function ArtifactsSection({
     setBusy(true);
     setError(null);
     try {
-      const r = await api.news.addArtifact(articleSlug, {
+      const r = await apiSurface.addArtifact(articleSlug, {
         kind: draft.kind,
         url: draft.url.trim(),
         label: draft.label.trim(),
@@ -118,7 +123,7 @@ export function ArtifactsSection({
     if (!confirm("Remove this artifact? Receipts that referenced it stay attached to the article.")) return;
     setBusy(true);
     try {
-      await api.news.deleteArtifact(articleSlug, id);
+      await apiSurface.deleteArtifact(articleSlug, id);
       sync(artifacts.filter((a) => a.id !== id));
     } catch (e: any) {
       alert(e?.message ?? "Delete failed");

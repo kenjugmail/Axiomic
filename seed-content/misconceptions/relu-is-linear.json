@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "activation-functions",
+  "key": "relu-is-linear",
+  "label": "ReLU is effectively linear since it's piecewise linear",
+  "description": "ReLU is piecewise linear, but it is NOT linear in the algebraic sense — and the kink at zero is precisely what gives a stack of ReLU layers their representational power. A composition of linear maps collapses to a single linear map; a composition of ReLU + linear is a piecewise-linear function with up to exponentially many regions in depth.\n\nThe practical implication: a network with all-linear activations, no matter how deep, is mathematically equivalent to a single matrix W. The nonlinearity at zero is the *only* reason a deep ReLU MLP can approximate non-linear functions. Per-region the network is linear; across regions it is not.",
+  "probeQuestions": [
+    "If you replaced every ReLU in a 12-layer MLP with the identity function, how many distinct effective layers would you have?",
+    "Roughly how many linear regions can a depth-L width-W ReLU network express in 1D input?"
+  ],
+  "correctionPromptTemplate": "The learner thinks ReLU stacks must collapse to a linear function because each piece is linear. Walk through: piecewise-linear is NOT linear. A linear stack collapses to one matrix; a ReLU + linear stack carves the input into many linear regions, each with its own affine map. Ask first — 'what would a deep network with identity activations be equivalent to?'"
+}

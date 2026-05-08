@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "scaling-laws",
+  "key": "overfit-from-low-train-loss",
+  "label": "Low training loss means you're overfitting",
+  "description": "Overfitting is a *gap* between training and validation performance, not a property of low training loss alone. A model can have very low train loss AND very low validation loss — that's just a model that learned the task well. The diagnostic for overfitting is the train/val gap (or, equivalently, val loss going up while train loss keeps falling).\n\nThis confusion shows up in the era of large pre-trained models, where train loss is often quite low across enormous corpora and the relevant question is held-out perplexity / downstream task performance. Modern scaling laws also show that for under-parameterized regimes, you may need MORE training (bigger model, more data, longer schedule) to fit the train set well — premature 'overfitting' worry leads to undertrained models.",
+  "probeQuestions": [
+    "If train loss is 0.1 and validation loss is also 0.1, are you overfitting?",
+    "What's the empirical signature of overfitting on a loss curve plot of train and val together?"
+  ],
+  "correctionPromptTemplate": "The learner is calling 'low train loss' overfitting. Walk through: overfitting is a GAP between train and val performance. Low train loss alone is just learning. Show the canonical loss-curve picture: train falling, val rising = overfitting. Train and val both falling together = healthy. Ask the train=val=0.1 probe first."
+}

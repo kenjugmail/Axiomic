@@ -799,6 +799,29 @@ export const attachments = sqliteTable(
   }),
 );
 
+// Sprint 25 — embedding cache. Stores per-(corpusKind, corpusId)
+// vector embeddings keyed by a content hash so the wizard's
+// suggest-references / suggest-concepts endpoints don't re-embed the
+// entire corpus on every call. Cache misses fall back to live
+// embed-and-store.
+export const cachedEmbeddings = sqliteTable(
+  "cached_embeddings",
+  {
+    corpusKind: text("corpus_kind").notNull(),
+    corpusId: text("corpus_id").notNull(),
+    // Hash of (title + body slice) — when the source content changes
+    // the hash changes too, so a stale cache entry is detected and
+    // re-embedded on the next read.
+    contentHash: text("content_hash").notNull(),
+    // JSON-serialized number[] vector.
+    vectorJson: text("vector_json").notNull(),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    pk: uniqueIndex("cached_embeddings_pk").on(t.corpusKind, t.corpusId),
+  }),
+);
+
 // Research papers (Sprint 20). Distinct from news_articles in three
 // concrete ways:
 //
@@ -844,6 +867,9 @@ export const researchPapers = sqliteTable("research_papers", {
   // 'draft' | 'published'
   status: text("status").notNull().default("draft"),
   tags: text("tags").notNull().default("[]"),
+  // Sprint 35 — bumped each time a published paper is edited; tracked
+  // alongside the per-version snapshot in research_paper_versions.
+  currentVersion: integer("current_version").notNull().default(1),
   authorId: text("author_id").notNull().references(() => users.id),
   lastEditorId: text("last_editor_id").references(() => users.id),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
@@ -852,3 +878,425 @@ export const researchPapers = sqliteTable("research_papers", {
   authorIdx: index("research_papers_author_idx").on(t.authorId, t.createdAt),
   statusIdx: index("research_papers_status_idx").on(t.status, t.createdAt),
 }));
+
+// Sprint 35 — Versioned research papers. Snapshot every published
+// edit so external citations can pin to a specific version (`v=2`)
+// and readers can diff versions side-by-side. Drafts do NOT create
+// versions; a version row is appended only when the paper transitions
+// to / re-publishes the 'published' status.
+export const researchPaperVersions = sqliteTable("research_paper_versions", {
+  id: text("id").primaryKey(),
+  paperId: text("paper_id")
+    .notNull()
+    .references(() => researchPapers.id, { onDelete: "cascade" }),
+  version: integer("version").notNull(),
+  title: text("title").notNull(),
+  summary: text("summary").notNull().default(""),
+  abstract: text("abstract").notNull().default(""),
+  contentIntro: text("content_intro").notNull().default(""),
+  contentUndergrad: text("content_undergrad").notNull().default(""),
+  contentGrad: text("content_grad").notNull().default(""),
+  paperStructureJson: text("paper_structure_json").notNull().default("{}"),
+  referencesJson: text("references_json").notNull().default("[]"),
+  editedBy: text("edited_by").references(() => users.id),
+  editMessage: text("edit_message"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  pk: uniqueIndex("research_paper_versions_pk").on(t.paperId, t.version),
+  paperIdx: index("research_paper_versions_paper_idx").on(t.paperId, t.version),
+}));
+
+// Capstones (Sprint 26). A capstone is a thesis-scale (4-12 week)
+// project a learner builds end-to-end and ships as a public artifact
+// page. Authors publish a brief + ordered milestones + a per-milestone
+// AI-graded rubric; learners enroll, submit each milestone, and on
+// completion get a permanent public URL that proves what they built.
+//
+// Read this row alongside `capstone_milestones` to understand the
+// shape; the brief is tiered (intro / undergrad / grad) like a wiki
+// page so a curious novice and a seasoned reviewer both get value
+// from the same artifact. `prerequisiteWikiSlugs` + `prerequisiteNodeIds`
+// drive the prereq X-ray that surfaces above the brief.
+export const capstones = sqliteTable("capstones", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  summary: text("summary").notNull().default(""),
+  // Tiered brief mirrors research_papers / wiki_pages.
+  contentIntro: text("content_intro").notNull().default(""),
+  contentUndergrad: text("content_undergrad").notNull().default(""),
+  contentGrad: text("content_grad").notNull().default(""),
+  canonicalTier: text("canonical_tier").notNull().default("undergrad"),
+  // Pacing hint surfaced on cards; not enforced.
+  estimatedWeeks: integer("estimated_weeks").notNull().default(6),
+  // JSON arrays. The X-ray reads both — wiki slugs let it green/yellow/
+  // red against the user's mastery state directly; nodeIds tie into
+  // mastery_paths for "complete this lesson first" hints.
+  prerequisiteWikiSlugs: text("prerequisite_wiki_slugs").notNull().default("[]"),
+  prerequisiteNodeIds: text("prerequisite_node_ids").notNull().default("[]"),
+  tags: text("tags").notNull().default("[]"),
+  coverEmoji: text("cover_emoji").notNull().default("🎓"),
+  accentColor: text("accent_color").notNull().default("violet"),
+  // 'draft' | 'published'
+  status: text("status").notNull().default("draft"),
+  // Sprint 35 — bumped each time a published capstone is edited.
+  currentVersion: integer("current_version").notNull().default(1),
+  authorId: text("author_id").notNull().references(() => users.id),
+  lastEditorId: text("last_editor_id").references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  authorIdx: index("capstones_author_idx").on(t.authorId, t.createdAt),
+  statusIdx: index("capstones_status_idx").on(t.status, t.createdAt),
+}));
+
+// Sprint 35 — Versioned capstones. Snapshots the brief on every
+// published edit so external citations can pin to a specific version
+// and the artifact page reader can show what changed since enrollment.
+export const capstoneVersions = sqliteTable("capstone_versions", {
+  id: text("id").primaryKey(),
+  capstoneId: text("capstone_id")
+    .notNull()
+    .references(() => capstones.id, { onDelete: "cascade" }),
+  version: integer("version").notNull(),
+  title: text("title").notNull(),
+  summary: text("summary").notNull().default(""),
+  contentIntro: text("content_intro").notNull().default(""),
+  contentUndergrad: text("content_undergrad").notNull().default(""),
+  contentGrad: text("content_grad").notNull().default(""),
+  // Snapshot of the milestone list at this version (JSON: array of
+  // milestones with title + description + rubric). Lets readers diff
+  // structural changes, not just brief copy.
+  milestonesJson: text("milestones_json").notNull().default("[]"),
+  editedBy: text("edited_by").references(() => users.id),
+  editMessage: text("edit_message"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  pk: uniqueIndex("capstone_versions_pk").on(t.capstoneId, t.version),
+  capstoneIdx: index("capstone_versions_capstone_idx").on(t.capstoneId, t.version),
+}));
+
+// Per-capstone milestone. Ordered linearly via `order`. Each milestone
+// carries a structured rubric (criteria + weights + AI prompts) and
+// optional Pyodide-executable tests the learner runs in their browser
+// before submitting. The rubric is the contract the AI grader scores
+// against in S27.
+export const capstoneMilestones = sqliteTable("capstone_milestones", {
+  id: text("id").primaryKey(),
+  capstoneId: text("capstone_id")
+    .notNull()
+    .references(() => capstones.id, { onDelete: "cascade" }),
+  order: integer("order").notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull().default(""),
+  // JSON: { criteria: [{ id, weight, description, aiPrompt }], passingScore, notes }
+  rubricJson: text("rubric_json").notNull().default("{}"),
+  // JSON array of artifact kinds the learner must attach
+  // (e.g. ['github', 'colab']). Empty array allows any.
+  requiredArtifactKinds: text("required_artifact_kinds").notNull().default("[]"),
+  // Optional Python code (Pyodide-executable) the learner runs against
+  // their solution before submitting. Pass/fail is included in the
+  // submission and the AI grader can reference it.
+  runnableTests: text("runnable_tests"),
+  estimatedDays: integer("estimated_days").notNull().default(7),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  capstoneIdx: index("capstone_milestones_capstone_idx").on(t.capstoneId, t.order),
+}));
+
+// Sprint 27 — capstone enrollments. One row per (capstone, learner).
+// Created on enroll; `completedAt` flips when every milestone for this
+// enrollment has a passing submission, and `artifactPageSlug` is set
+// at the same moment so /capstones/c/:slug becomes the public
+// portfolio piece.
+export const capstoneEnrollments = sqliteTable("capstone_enrollments", {
+  id: text("id").primaryKey(),
+  capstoneId: text("capstone_id")
+    .notNull()
+    .references(() => capstones.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id),
+  startedAt: text("started_at").default(sql`(datetime('now'))`).notNull(),
+  completedAt: text("completed_at"),
+  // Set when the enrollment completes. Format: `${username}-${capstoneSlug}`.
+  artifactPageSlug: text("artifact_page_slug"),
+}, (t) => ({
+  pk: uniqueIndex("capstone_enrollments_pk").on(t.capstoneId, t.userId),
+  userIdx: index("capstone_enrollments_user_idx").on(t.userId, t.startedAt),
+  artifactSlugIdx: uniqueIndex("capstone_enrollments_artifact_slug_idx").on(t.artifactPageSlug),
+}));
+
+// Sprint 27 — capstone submissions. One row per (enrollment, milestone).
+// Re-submissions update the existing row in place — the previous
+// `aiGradeJson` overwrites and the status flips from `needs_revision`
+// back to `pending` then `passed`/`needs_revision`. We don't keep a
+// full submission history in v1; the grade is a snapshot.
+export const capstoneSubmissions = sqliteTable("capstone_submissions", {
+  id: text("id").primaryKey(),
+  enrollmentId: text("enrollment_id")
+    .notNull()
+    .references(() => capstoneEnrollments.id, { onDelete: "cascade" }),
+  milestoneId: text("milestone_id")
+    .notNull()
+    .references(() => capstoneMilestones.id, { onDelete: "cascade" }),
+  // JSON array of { kind, url, label, description? } — same shape as
+  // runnable_artifacts rows but inline (artifacts on a submission are
+  // scoped to that submission, not the parent capstone).
+  artifactsJson: text("artifacts_json").notNull().default("[]"),
+  writeup: text("writeup").notNull().default(""),
+  // 'pending' | 'passed' | 'needs_revision'
+  status: text("status").notNull().default("pending"),
+  // JSON: { score, perCriterion: [{criterionId, score, feedback}], summary, gradedBy }
+  aiGradeJson: text("ai_grade_json"),
+  // JSON: per-test pass/fail when the milestone has runnable_tests.
+  runnableTestResultsJson: text("runnable_test_results_json"),
+  // Optional structured lab state captured by interactive labs (S28)
+  // so the AI grader sees the learner's final widget state.
+  labStateJson: text("lab_state_json"),
+  submittedAt: text("submitted_at").default(sql`(datetime('now'))`).notNull(),
+  gradedAt: text("graded_at"),
+}, (t) => ({
+  pk: uniqueIndex("capstone_submissions_pk").on(t.enrollmentId, t.milestoneId),
+  milestoneIdx: index("capstone_submissions_milestone_idx").on(t.milestoneId, t.submittedAt),
+}));
+
+// Sprint 29 — misconception coaching. The detector runs against
+// `quiz_mistakes` + `lesson_slide_events` and produces a typed
+// diagnosis row per (user, conceptSlug, misconceptionKey). Coaching
+// flips `status` to 'coached' once a tutor session targets it; a
+// 'resolved' row means the learner has been getting the relevant
+// probes right. `dismissed` rows are hidden from the UI.
+export const misconceptionCatalog = sqliteTable("misconception_catalog", {
+  id: text("id").primaryKey(),
+  conceptSlug: text("concept_slug").notNull(),
+  // Stable short id, e.g. 'softmax-temperature-inverted'.
+  key: text("key").notNull(),
+  label: text("label").notNull(),
+  description: text("description").notNull().default(""),
+  // JSON: short MCQ probes the AI tutor can ask to confirm.
+  probeQuestionsJson: text("probe_questions_json").notNull().default("[]"),
+  // System-prompt snippet folded into the misconception-mode tutor.
+  correctionPromptTemplate: text("correction_prompt_template").notNull().default(""),
+}, (t) => ({
+  pk: uniqueIndex("misconception_catalog_pk").on(t.conceptSlug, t.key),
+}));
+
+export const misconceptionDiagnoses = sqliteTable("misconception_diagnoses", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id),
+  conceptSlug: text("concept_slug").notNull(),
+  misconceptionKey: text("misconception_key").notNull(),
+  label: text("label").notNull(),
+  // JSON array of evidence pointers ({kind, refId, snippet}).
+  evidenceJson: text("evidence_json").notNull().default("[]"),
+  confidence: real("confidence").notNull().default(0.5),
+  // 'active' | 'coached' | 'resolved' | 'dismissed'
+  status: text("status").notNull().default("active"),
+  firstSeenAt: text("first_seen_at").default(sql`(datetime('now'))`).notNull(),
+  lastSeenAt: text("last_seen_at").default(sql`(datetime('now'))`).notNull(),
+  resolvedAt: text("resolved_at"),
+}, (t) => ({
+  pk: uniqueIndex("misconception_diagnoses_pk").on(
+    t.userId,
+    t.conceptSlug,
+    t.misconceptionKey,
+  ),
+  userIdx: index("misconception_diagnoses_user_idx").on(t.userId, t.status),
+}));
+
+// Sprint 38 — Misconception marketplace. Anyone can propose a new
+// catalog entry; the community votes; once a submission crosses a
+// score threshold it auto-promotes into misconception_catalog and
+// the detector picks it up on the next run. Rejected submissions
+// stay readable so the discussion isn't lost.
+export const misconceptionSubmissions = sqliteTable("misconception_submissions", {
+  id: text("id").primaryKey(),
+  proposerId: text("proposer_id").notNull().references(() => users.id),
+  conceptSlug: text("concept_slug").notNull(),
+  // Stable short id mirroring misconception_catalog.key once promoted.
+  key: text("key").notNull(),
+  label: text("label").notNull(),
+  description: text("description").notNull().default(""),
+  probeQuestionsJson: text("probe_questions_json").notNull().default("[]"),
+  correctionPromptTemplate: text("correction_prompt_template").notNull().default(""),
+  // 'open' | 'approved' | 'rejected' | 'merged'
+  // 'merged' is the terminal state once the entry is also written
+  // into misconception_catalog (so the marketplace shows it as live).
+  status: text("status").notNull().default("open"),
+  // Cached sum of votes; recomputed by the vote handler in the same
+  // transaction so the threshold-promote check is cheap.
+  voteScore: integer("vote_score").notNull().default(0),
+  catalogId: text("catalog_id").references(() => misconceptionCatalog.id),
+  decidedAt: text("decided_at"),
+  decidedBy: text("decided_by").references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  // (conceptSlug, key) uniqueness mirrors the catalog so duplicate
+  // proposals aren't allowed at submission time.
+  pk: uniqueIndex("misconception_submissions_pk").on(t.conceptSlug, t.key),
+  statusIdx: index("misconception_submissions_status_idx").on(
+    t.status,
+    t.voteScore,
+  ),
+}));
+
+// Sprint 44 — Server-side execution runs. The API surface is in place
+// so a real (Docker / gVisor / firejail) executor can plug in later;
+// the default backend returns 'not_enabled' so cells can opt into
+// "Run on server" when the deploy gates the feature on.
+export const serverRuns = sqliteTable("server_runs", {
+  id: text("id").primaryKey(),
+  ownerId: text("owner_id").notNull().references(() => users.id),
+  kernelKey: text("kernel_key").notNull(),
+  language: text("language").notNull(), // 'python' | 'js'
+  // Snapshot of the code submitted — stored verbatim so the audit
+  // log shows what actually ran.
+  source: text("source").notNull(),
+  // 'queued' | 'running' | 'succeeded' | 'failed' | 'not_enabled'
+  status: text("status").notNull().default("queued"),
+  exitCode: integer("exit_code"),
+  stdout: text("stdout").notNull().default(""),
+  stderr: text("stderr").notNull().default(""),
+  error: text("error"),
+  durationMs: integer("duration_ms"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  startedAt: text("started_at"),
+  finishedAt: text("finished_at"),
+}, (t) => ({
+  ownerIdx: index("server_runs_owner_idx").on(t.ownerId, t.createdAt),
+  statusIdx: index("server_runs_status_idx").on(t.status, t.createdAt),
+}));
+
+// Sprint 43 — Cohorts + mentor relationships.
+//
+// A cohort is a small named group (e.g. "transformer-fall-2026") with
+// a creator, an optional capstone tied to it, and a roster. Members
+// share a private space surfaced on the cohort page; cohort progress
+// rolls up across members on the page header.
+export const cohorts = sqliteTable("cohorts", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description").notNull().default(""),
+  // Optional capstone the cohort is working through together.
+  capstoneSlug: text("capstone_slug"),
+  // 'open' (anyone can join) | 'invite' (creator must approve)
+  visibility: text("visibility").notNull().default("open"),
+  creatorId: text("creator_id").notNull().references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  creatorIdx: index("cohorts_creator_idx").on(t.creatorId, t.createdAt),
+  visIdx: index("cohorts_vis_idx").on(t.visibility, t.createdAt),
+}));
+
+export const cohortMembers = sqliteTable("cohort_members", {
+  id: text("id").primaryKey(),
+  cohortId: text("cohort_id")
+    .notNull()
+    .references(() => cohorts.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id),
+  // 'member' | 'mentor' (provides guidance) | 'organizer' (creator role)
+  role: text("role").notNull().default("member"),
+  joinedAt: text("joined_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  pk: uniqueIndex("cohort_members_pk").on(t.cohortId, t.userId),
+  userIdx: index("cohort_members_user_idx").on(t.userId, t.role),
+}));
+
+// One-to-one mentor relationships outside of cohorts. A user offers
+// themselves as a mentor in their profile; another user can request
+// the relationship; once accepted, the mentee's questions surface
+// on the mentor's dashboard.
+export const mentorRelationships = sqliteTable("mentor_relationships", {
+  id: text("id").primaryKey(),
+  mentorId: text("mentor_id").notNull().references(() => users.id),
+  menteeId: text("mentee_id").notNull().references(() => users.id),
+  // 'pending' | 'accepted' | 'declined' | 'ended'
+  status: text("status").notNull().default("pending"),
+  // Free-text scope written by the mentee, e.g. "ML interpretability".
+  scope: text("scope").notNull().default(""),
+  requestedAt: text("requested_at").default(sql`(datetime('now'))`).notNull(),
+  respondedAt: text("responded_at"),
+}, (t) => ({
+  pk: uniqueIndex("mentor_relationships_pk").on(t.mentorId, t.menteeId),
+  mentorIdx: index("mentor_relationships_mentor_idx").on(t.mentorId, t.status),
+  menteeIdx: index("mentor_relationships_mentee_idx").on(t.menteeId, t.status),
+}));
+
+// Sprint 42 — Kernel files. Attaches an uploaded file (from the
+// shared `attachments` table) to a kernel scope (paper / capstone /
+// lesson) so code cells running under that scope can read it from a
+// virtual filesystem path. The file is the SAME row in `attachments`
+// — this table is just a many-to-many between kernels and files plus
+// the per-kernel display name.
+export const kernelFiles = sqliteTable("kernel_files", {
+  id: text("id").primaryKey(),
+  ownerId: text("owner_id").notNull().references(() => users.id),
+  // Free-form kernel scope, mirroring the client's CodeCell
+  // `kernelKey` prop. Examples: 'paper:flash-attention', 'capstone:
+  // build-a-transformer', 'lesson:xxxx-yyyy-zzz'.
+  kernelKey: text("kernel_key").notNull(),
+  // FK to attachments.id — the actual bytes live there. We keep a
+  // separate row so a learner can attach the same uploaded CSV to
+  // multiple kernels under different display names.
+  attachmentId: text("attachment_id").notNull(),
+  // The name the cell sees in the virtual filesystem, e.g. 'data.csv'.
+  // Defaults to the attachment's originalName when registered.
+  name: text("name").notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  pk: uniqueIndex("kernel_files_pk").on(t.kernelKey, t.name, t.ownerId),
+  ownerIdx: index("kernel_files_owner_idx").on(t.ownerId, t.kernelKey),
+}));
+
+// Sprint 39 — Capstone peer reviews. Anyone other than the
+// submission author can endorse or request changes on a passed
+// submission. The transcript (S37) folds in counts + average score so
+// the signed claim covers both AI grading and peer validation.
+export const capstonePeerReviews = sqliteTable("capstone_peer_reviews", {
+  id: text("id").primaryKey(),
+  submissionId: text("submission_id")
+    .notNull()
+    .references(() => capstoneSubmissions.id, { onDelete: "cascade" }),
+  reviewerId: text("reviewer_id").notNull().references(() => users.id),
+  // 'endorsed' | 'requested_changes'
+  status: text("status").notNull(),
+  // 0..1 normalized score the reviewer gave to the milestone work.
+  score: real("score").notNull(),
+  feedback: text("feedback").notNull().default(""),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  pk: uniqueIndex("capstone_peer_reviews_pk").on(t.submissionId, t.reviewerId),
+  submissionIdx: index("capstone_peer_reviews_submission_idx").on(
+    t.submissionId,
+    t.createdAt,
+  ),
+  reviewerIdx: index("capstone_peer_reviews_reviewer_idx").on(
+    t.reviewerId,
+    t.createdAt,
+  ),
+}));
+
+// One row per (submissionId, userId). Vote = +1 / -1; row absence
+// means no vote. The marketplace re-aggregates voteScore after each
+// upsert.
+export const misconceptionSubmissionVotes = sqliteTable(
+  "misconception_submission_votes",
+  {
+    id: text("id").primaryKey(),
+    submissionId: text("submission_id")
+      .notNull()
+      .references(() => misconceptionSubmissions.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull().references(() => users.id),
+    value: integer("value").notNull(), // +1 or -1
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    pk: uniqueIndex("misconception_submission_votes_pk").on(
+      t.submissionId,
+      t.userId,
+    ),
+    userIdx: index("misconception_submission_votes_user_idx").on(t.userId),
+  }),
+);

@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "fine-tuning",
+  "key": "finetuning-must-freeze-base",
+  "label": "Fine-tuning means freezing the base model",
+  "description": "Fine-tuning is an umbrella term covering many regimes: full fine-tuning (every parameter updates), parameter-efficient fine-tuning (LoRA, adapters, prefix-tuning — only a small set of new params updates), and head-only / linear probing (only the final layer updates). 'Fine-tuning' alone does not mean 'frozen base'.\n\nThe base-frozen interpretation is one specific recipe (linear probing) and is often suboptimal — full fine-tuning typically reaches better task performance when you have enough compute and data, while LoRA gets most of the way there at a fraction of the cost. The choice depends on data scale, compute budget, and how far the target task is from the pretraining distribution.",
+  "probeQuestions": [
+    "What's the difference between full fine-tuning, LoRA, and linear probing?",
+    "When would you prefer LoRA over full fine-tuning?"
+  ],
+  "correctionPromptTemplate": "The learner thinks fine-tuning = base frozen. Walk through the spectrum: full fine-tune (all params), LoRA / adapters (small added subset), linear probe (only final layer). Each is a different speed/quality/cost tradeoff. Ask first — 'if you have 8 GPUs and 100k examples, which fine-tuning regime would you pick?'"
+}

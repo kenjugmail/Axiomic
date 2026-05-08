@@ -214,10 +214,29 @@ async function ensureKernel(key: string): Promise<{
 export interface PyodideKernel {
   run(code: string): Promise<RunResult & { runIndex: number }>;
   reset(): Promise<void>;
+  // Sprint 42 — mount a fetched file into the in-browser virtual FS
+  // so cells can `open('/files/foo.csv').read()`. Files written here
+  // persist across runs in the same kernel until reset() is called.
+  mountFile(name: string, bytes: Uint8Array): Promise<void>;
 }
 
 export function getKernel(key: string): PyodideKernel {
   return {
+    async mountFile(name: string, bytes: Uint8Array): Promise<void> {
+      const { runtime } = await ensureKernel(key);
+      try {
+        // Make sure /files exists; mkdir is idempotent on Pyodide FS
+        // when used with safe ignoring of EEXIST.
+        try {
+          (runtime.FS as any).mkdir("/files");
+        } catch {
+          // already exists
+        }
+        (runtime.FS as any).writeFile(`/files/${name}`, bytes);
+      } catch {
+        // best-effort; the cell will surface the missing file at run
+      }
+    },
     async run(code: string): Promise<RunResult & { runIndex: number }> {
       const t0 = performance.now();
       try {

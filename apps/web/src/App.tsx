@@ -1,11 +1,10 @@
 import { lazy, Suspense, useEffect } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Navigate, Routes, Route, useParams } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { SignupPage } from "./pages/SignupPage";
 import { WikiListPage } from "./pages/WikiListPage";
-import { SearchPage } from "./pages/SearchPage";
 import { MasteryListPage } from "./pages/MasteryListPage";
 import { MasteryPathPage } from "./pages/MasteryPathPage";
 import { ForumListPage } from "./pages/ForumListPage";
@@ -24,6 +23,11 @@ import { useThemeStore } from "./stores/theme";
 // open a lesson don't pay for it.
 const LessonPage = lazy(() =>
   import("./pages/LessonPage").then((m) => ({ default: m.LessonPage })),
+);
+// Search page pulls in the full search index API + Navigator path; lazy
+// so pages that link out to /search don't pay the cost on first paint.
+const SearchPage = lazy(() =>
+  import("./pages/SearchPage").then((m) => ({ default: m.SearchPage })),
 );
 // Post-signup wizard. Only rendered once per user.
 const OnboardingPage = lazy(() =>
@@ -150,6 +154,62 @@ const ResearchWizardPage = lazy(() =>
 const FlashcardsPage = lazy(() =>
   import("./pages/FlashcardsPage").then((m) => ({ default: m.FlashcardsPage })),
 );
+const CapstonesListPage = lazy(() =>
+  import("./pages/CapstonesListPage").then((m) => ({ default: m.CapstonesListPage })),
+);
+const CapstonePage = lazy(() =>
+  import("./pages/CapstonePage").then((m) => ({ default: m.CapstonePage })),
+);
+const CapstoneNewPage = lazy(() =>
+  import("./pages/CapstoneNewPage").then((m) => ({ default: m.CapstoneNewPage })),
+);
+const CapstoneEditPage = lazy(() =>
+  import("./pages/CapstoneEditPage").then((m) => ({ default: m.CapstoneEditPage })),
+);
+const CapstoneWorkspacePage = lazy(() =>
+  import("./pages/CapstoneWorkspacePage").then((m) => ({ default: m.CapstoneWorkspacePage })),
+);
+const CapstoneArtifactPageView = lazy(() =>
+  import("./pages/CapstoneArtifactPage").then((m) => ({ default: m.CapstoneArtifactPageView })),
+);
+const WeakConceptsPage = lazy(() =>
+  import("./pages/WeakConceptsPage").then((m) => ({ default: m.WeakConceptsPage })),
+);
+// Sprint 33 — Knowledge MRI lives next to the weak-concepts page.
+const KnowledgeMRIPage = lazy(() =>
+  import("./pages/KnowledgeMRIPage").then((m) => ({ default: m.KnowledgeMRIPage })),
+);
+// Sprint 35 — version history + frozen-version snapshot reader.
+const VersionsPage = lazy(() =>
+  import("./pages/VersionsPage").then((m) => ({ default: m.VersionsPage })),
+);
+const PaperVersionPage = lazy(() =>
+  import("./pages/PaperVersionPage").then((m) => ({ default: m.PaperVersionPage })),
+);
+// Sprint 36 — Argument map: forum thread as a DAG.
+const ArgumentMapPage = lazy(() =>
+  import("./pages/ArgumentMapPage").then((m) => ({ default: m.ArgumentMapPage })),
+);
+// Sprint 37 — Public transcript verifier (paste-and-check).
+const VerifyPage = lazy(() =>
+  import("./pages/VerifyPage").then((m) => ({ default: m.VerifyPage })),
+);
+// Sprint 38 — Misconception marketplace (community-curated catalog).
+const MisconceptionMarketplacePage = lazy(() =>
+  import("./pages/MisconceptionMarketplacePage").then((m) => ({
+    default: m.MisconceptionMarketplacePage,
+  })),
+);
+// Sprint 39 — Capstone peer review queue.
+const CapstoneReviewQueuePage = lazy(() =>
+  import("./pages/CapstoneReviewQueuePage").then((m) => ({
+    default: m.CapstoneReviewQueuePage,
+  })),
+);
+// Sprint 43 — Cohorts (social learning groups).
+const CohortsPage = lazy(() =>
+  import("./pages/CohortsPage").then((m) => ({ default: m.CohortsPage })),
+);
 
 function PageFallback() {
   return (
@@ -205,6 +265,17 @@ export function App() {
           <Route path="/forum/new" element={<NewTopicPage />} />
           <Route path="/forum/bookmarks" element={<ForumBookmarksPage />} />
           <Route path="/forum/t/:slug" element={<ForumTopicPage />} />
+          <Route path="/forum/graph" element={<ArgumentMapPage />} />
+          <Route path="/verify" element={<VerifyPage />} />
+          <Route
+            path="/misconceptions"
+            element={<MisconceptionMarketplacePage />}
+          />
+          <Route
+            path="/capstones/review-queue"
+            element={<CapstoneReviewQueuePage />}
+          />
+          <Route path="/cohorts" element={<CohortsPage />} />
           <Route path="/forum/:domain" element={<ForumListPage />} />
           <Route path="/news" element={<NewsListPage />} />
           <Route path="/news/new" element={<NewsNewPage />} />
@@ -235,10 +306,37 @@ export function App() {
           <Route path="/research/me/drafts" element={<ResearchDraftsPage />} />
           <Route path="/research/:slug" element={<ResearchPaperPage />} />
           <Route path="/research/:slug/edit" element={<ResearchEditPage />} />
+          <Route path="/research/:slug/versions" element={<VersionsPage />} />
+          <Route path="/research/:slug/v/:n" element={<PaperVersionPage />} />
+          <Route path="/capstones/:slug/versions" element={<VersionsPage />} />
           <Route path="/flashcards" element={<FlashcardsPage />} />
+          <Route path="/capstones" element={<CapstonesListPage />} />
+          <Route path="/capstones/new" element={<CapstoneNewPage />} />
+          <Route path="/capstones/c/:artifactSlug" element={<CapstoneArtifactPageView />} />
+          <Route path="/capstones/:slug" element={<CapstonePage />} />
+          <Route path="/capstones/:slug/edit" element={<CapstoneEditPage />} />
+          <Route path="/capstones/:slug/work" element={<CapstoneWorkspacePage />} />
+          <Route path="/me/weak-concepts" element={<WeakConceptsPage />} />
+          <Route path="/me/mri" element={<KnowledgeMRIPage />} />
+          <Route path="/cite/p/:author/:slug" element={<CitePaperRedirect />} />
+          <Route path="/cite/c/:author/:slug" element={<CiteCapstoneRedirect />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
     </Suspense>
   );
+}
+
+// Sprint 34 — DOI-style citation permalinks. Stable URLs
+// /cite/{p|c}/<author>/<slug> bounce to the canonical content page so
+// external citations keep resolving even if the canonical surface
+// moves later.
+function CitePaperRedirect() {
+  const { slug } = useParams<{ slug: string }>();
+  return <Navigate to={`/research/${slug}`} replace />;
+}
+
+function CiteCapstoneRedirect() {
+  const { slug } = useParams<{ slug: string }>();
+  return <Navigate to={`/capstones/${slug}`} replace />;
 }

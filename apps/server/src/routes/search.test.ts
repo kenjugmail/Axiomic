@@ -21,9 +21,11 @@ describe("Hybrid search", () => {
     const data = await search("attention");
     expect(data.results.length).toBeGreaterThan(0);
     const top = data.results[0];
-    expect(top.kind).toBe("page");
+    // Sprint 25 — news + research kinds joined the index; we no longer
+    // guarantee the wiki page outranks a same-title article. What the
+    // keyword path guarantees is the title actually contains the query
+    // and the match was at minimum keyword-driven.
     expect(top.title.toLowerCase()).toContain("attention");
-    // Either keyword or both — never pure semantic — for an exact substring.
     expect(top.matchedBy).not.toBe("semantic");
   });
 
@@ -71,6 +73,31 @@ describe("Hybrid search", () => {
     for (const r of data.results) {
       expect(typeof r.snippet).toBe("string");
       expect(r.snippet.length).toBeLessThanOrEqual(180);
+    }
+  });
+
+  test("Sprint 25 — kind filter narrows to a single kind", async () => {
+    // ?kind=page should keep only wiki page results, even though the
+    // query has matches across kinds.
+    const sp = new URLSearchParams({ q: "attention", kind: "page" });
+    const res = await app.fetch(
+      new Request(`http://localhost/api/v1/search?${sp.toString()}`),
+    );
+    const data = (await res.json()) as any;
+    expect(data.results.length).toBeGreaterThan(0);
+    for (const r of data.results) {
+      expect(r.kind).toBe("page");
+    }
+  });
+
+  test("Sprint 25 — kind filter accepts a comma-list of kinds", async () => {
+    const sp = new URLSearchParams({ q: "attention", kind: "page,lesson" });
+    const res = await app.fetch(
+      new Request(`http://localhost/api/v1/search?${sp.toString()}`),
+    );
+    const data = (await res.json()) as any;
+    for (const r of data.results) {
+      expect(["page", "lesson"]).toContain(r.kind);
     }
   });
 });

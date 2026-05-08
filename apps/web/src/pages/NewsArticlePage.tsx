@@ -367,6 +367,8 @@ export function NewsArticlePage() {
           codeKernelKey={`article:${article.slug}`}
           codeAuthorUsername={article.authorUsername}
           codeViewerUsername={user?.username ?? null}
+          numberFigures
+          linkCitations={article.references.length > 0}
         />
       </article>
 
@@ -381,7 +383,8 @@ export function NewsArticlePage() {
             {article.references.map((r, i) => (
               <li
                 key={r.label ?? String(i + 1)}
-                className="grid grid-cols-[2.5rem_1fr] gap-1 leading-relaxed"
+                id={`ref-${r.label ?? i + 1}`}
+                className="grid grid-cols-[2.5rem_1fr] gap-1 leading-relaxed scroll-mt-20"
               >
                 <span className="font-mono text-xs text-muted-foreground tabular-nums">
                   [{r.label ?? i + 1}]

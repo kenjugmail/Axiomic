@@ -485,6 +485,116 @@ const createTopicSchema = z.object({
     .optional(),
 });
 
+// Sprint 36 — Argument map endpoint.
+//
+// Returns the topic + every post in the thread as a node list with
+// parentId edges. Drives the /forum/graph?slug= visualization. We
+// keep the payload tight: id, parentId, author username, body snippet,
+// reply count, score (sum of votes), createdAt. Up to 200 posts per
+// topic to bound the client SVG size.
+forum.get("/graph", async (c) => {
+  const slug = c.req.query("slug");
+  if (!slug) return c.json({ error: "slug is required" }, 400);
+  const db = getDb();
+
+  const topic = db
+    .select({
+      id: forumTopics.id,
+      slug: forumTopics.slug,
+      title: forumTopics.title,
+      body: forumTopics.body,
+      postType: forumTopics.postType,
+      authorId: forumTopics.authorId,
+      authorUsername: users.username,
+      domainSlug: domains.slug,
+      createdAt: forumTopics.createdAt,
+    })
+    .from(forumTopics)
+    .innerJoin(users, eq(forumTopics.authorId, users.id))
+    .innerJoin(domains, eq(forumTopics.domainId, domains.id))
+    .where(eq(forumTopics.slug, slug))
+    .get();
+  if (!topic) return c.json({ error: "Topic not found" }, 404);
+
+  const posts = db
+    .select({
+      id: forumPosts.id,
+      parentId: forumPosts.parentId,
+      authorId: forumPosts.authorId,
+      authorUsername: users.username,
+      body: forumPosts.body,
+      createdAt: forumPosts.createdAt,
+    })
+    .from(forumPosts)
+    .innerJoin(users, eq(forumPosts.authorId, users.id))
+    .where(eq(forumPosts.topicId, topic.id))
+    .orderBy(asc(forumPosts.createdAt))
+    .limit(200)
+    .all();
+
+  // Compute child counts so the renderer can size nodes by reply weight.
+  const childCount = new Map<string, number>();
+  for (const p of posts) {
+    if (!p.parentId) continue;
+    childCount.set(p.parentId, (childCount.get(p.parentId) ?? 0) + 1);
+  }
+
+  // Vote scores per post — single GROUP BY rather than N+1.
+  const scoreRows = db
+    .select({
+      subjectId: forumVotes.subjectId,
+      score: sql<number>`COALESCE(SUM(${forumVotes.value}), 0)`,
+    })
+    .from(forumVotes)
+    .where(
+      and(
+        eq(forumVotes.subjectType, "post"),
+        inArray(
+          forumVotes.subjectId,
+          posts.map((p) => p.id),
+        ),
+      ),
+    )
+    .groupBy(forumVotes.subjectId)
+    .all();
+  const scoreById = new Map(
+    scoreRows.map((r) => [r.subjectId, Number(r.score)]),
+  );
+
+  function snippet(s: string, max = 140): string {
+    const flat = s
+      .replace(/```[\s\S]*?```/g, " ")
+      .replace(/`[^`\n]*`/g, " ")
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+      .replace(/\s+/g, " ")
+      .trim();
+    return flat.length > max ? flat.slice(0, max - 1) + "…" : flat;
+  }
+
+  return c.json({
+    topic: {
+      id: topic.id,
+      slug: topic.slug,
+      title: topic.title,
+      postType: topic.postType,
+      authorUsername: topic.authorUsername,
+      domainSlug: topic.domainSlug,
+      createdAt: topic.createdAt,
+      bodySnippet: snippet(topic.body),
+    },
+    posts: posts.map((p) => ({
+      id: p.id,
+      parentId: p.parentId,
+      authorUsername: p.authorUsername,
+      bodySnippet: snippet(p.body),
+      replyCount: childCount.get(p.id) ?? 0,
+      score: scoreById.get(p.id) ?? 0,
+      createdAt: p.createdAt,
+    })),
+  });
+});
+
 forum.post("/topics", requireAuth, zValidator("json", createTopicSchema), async (c) => {
   const { title, body, postType, domainSlug, wikiPageId, poll } = c.req.valid("json");
   const user = c.get("user")!;
