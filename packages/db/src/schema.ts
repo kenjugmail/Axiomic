@@ -1140,6 +1140,116 @@ export const misconceptionSubmissions = sqliteTable("misconception_submissions",
   ),
 }));
 
+// Sprint 44 — Server-side execution runs. The API surface is in place
+// so a real (Docker / gVisor / firejail) executor can plug in later;
+// the default backend returns 'not_enabled' so cells can opt into
+// "Run on server" when the deploy gates the feature on.
+export const serverRuns = sqliteTable("server_runs", {
+  id: text("id").primaryKey(),
+  ownerId: text("owner_id").notNull().references(() => users.id),
+  kernelKey: text("kernel_key").notNull(),
+  language: text("language").notNull(), // 'python' | 'js'
+  // Snapshot of the code submitted — stored verbatim so the audit
+  // log shows what actually ran.
+  source: text("source").notNull(),
+  // 'queued' | 'running' | 'succeeded' | 'failed' | 'not_enabled'
+  status: text("status").notNull().default("queued"),
+  exitCode: integer("exit_code"),
+  stdout: text("stdout").notNull().default(""),
+  stderr: text("stderr").notNull().default(""),
+  error: text("error"),
+  durationMs: integer("duration_ms"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  startedAt: text("started_at"),
+  finishedAt: text("finished_at"),
+}, (t) => ({
+  ownerIdx: index("server_runs_owner_idx").on(t.ownerId, t.createdAt),
+  statusIdx: index("server_runs_status_idx").on(t.status, t.createdAt),
+}));
+
+// Sprint 43 — Cohorts + mentor relationships.
+//
+// A cohort is a small named group (e.g. "transformer-fall-2026") with
+// a creator, an optional capstone tied to it, and a roster. Members
+// share a private space surfaced on the cohort page; cohort progress
+// rolls up across members on the page header.
+export const cohorts = sqliteTable("cohorts", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description").notNull().default(""),
+  // Optional capstone the cohort is working through together.
+  capstoneSlug: text("capstone_slug"),
+  // 'open' (anyone can join) | 'invite' (creator must approve)
+  visibility: text("visibility").notNull().default("open"),
+  creatorId: text("creator_id").notNull().references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  creatorIdx: index("cohorts_creator_idx").on(t.creatorId, t.createdAt),
+  visIdx: index("cohorts_vis_idx").on(t.visibility, t.createdAt),
+}));
+
+export const cohortMembers = sqliteTable("cohort_members", {
+  id: text("id").primaryKey(),
+  cohortId: text("cohort_id")
+    .notNull()
+    .references(() => cohorts.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id),
+  // 'member' | 'mentor' (provides guidance) | 'organizer' (creator role)
+  role: text("role").notNull().default("member"),
+  joinedAt: text("joined_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  pk: uniqueIndex("cohort_members_pk").on(t.cohortId, t.userId),
+  userIdx: index("cohort_members_user_idx").on(t.userId, t.role),
+}));
+
+// One-to-one mentor relationships outside of cohorts. A user offers
+// themselves as a mentor in their profile; another user can request
+// the relationship; once accepted, the mentee's questions surface
+// on the mentor's dashboard.
+export const mentorRelationships = sqliteTable("mentor_relationships", {
+  id: text("id").primaryKey(),
+  mentorId: text("mentor_id").notNull().references(() => users.id),
+  menteeId: text("mentee_id").notNull().references(() => users.id),
+  // 'pending' | 'accepted' | 'declined' | 'ended'
+  status: text("status").notNull().default("pending"),
+  // Free-text scope written by the mentee, e.g. "ML interpretability".
+  scope: text("scope").notNull().default(""),
+  requestedAt: text("requested_at").default(sql`(datetime('now'))`).notNull(),
+  respondedAt: text("responded_at"),
+}, (t) => ({
+  pk: uniqueIndex("mentor_relationships_pk").on(t.mentorId, t.menteeId),
+  mentorIdx: index("mentor_relationships_mentor_idx").on(t.mentorId, t.status),
+  menteeIdx: index("mentor_relationships_mentee_idx").on(t.menteeId, t.status),
+}));
+
+// Sprint 42 — Kernel files. Attaches an uploaded file (from the
+// shared `attachments` table) to a kernel scope (paper / capstone /
+// lesson) so code cells running under that scope can read it from a
+// virtual filesystem path. The file is the SAME row in `attachments`
+// — this table is just a many-to-many between kernels and files plus
+// the per-kernel display name.
+export const kernelFiles = sqliteTable("kernel_files", {
+  id: text("id").primaryKey(),
+  ownerId: text("owner_id").notNull().references(() => users.id),
+  // Free-form kernel scope, mirroring the client's CodeCell
+  // `kernelKey` prop. Examples: 'paper:flash-attention', 'capstone:
+  // build-a-transformer', 'lesson:xxxx-yyyy-zzz'.
+  kernelKey: text("kernel_key").notNull(),
+  // FK to attachments.id — the actual bytes live there. We keep a
+  // separate row so a learner can attach the same uploaded CSV to
+  // multiple kernels under different display names.
+  attachmentId: text("attachment_id").notNull(),
+  // The name the cell sees in the virtual filesystem, e.g. 'data.csv'.
+  // Defaults to the attachment's originalName when registered.
+  name: text("name").notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  pk: uniqueIndex("kernel_files_pk").on(t.kernelKey, t.name, t.ownerId),
+  ownerIdx: index("kernel_files_owner_idx").on(t.ownerId, t.kernelKey),
+}));
+
 // Sprint 39 — Capstone peer reviews. Anyone other than the
 // submission author can endorse or request changes on a passed
 // submission. The transcript (S37) folds in counts + average score so

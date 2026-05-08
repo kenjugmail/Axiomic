@@ -52,14 +52,30 @@ function ensureSocket(): WebSocket | null {
   }
 }
 
+export type DraftKind = "lesson" | "paper" | "capstone";
+
+export interface DraftChannel {
+  kind: DraftKind;
+  targetId: string;
+}
+
 export interface UseLiveEventsOptions {
   // Articles to subscribe to. Sent as `subscribe_article` frames once
   // the socket opens.
   articleSlugs?: string[];
+  // Sprint 40 — draft collab channels. Each ({kind, targetId}) sends
+  // a `subscribe_draft` frame once the socket opens; the server fans
+  // out `draft_update` / `draft_published` / `draft_presence` events
+  // to all subscribers.
+  draftChannels?: DraftChannel[];
   onEvent: Handler;
 }
 
-export function useLiveEvents({ articleSlugs = [], onEvent }: UseLiveEventsOptions): void {
+export function useLiveEvents({
+  articleSlugs = [],
+  draftChannels = [],
+  onEvent,
+}: UseLiveEventsOptions): void {
   // Hold the latest handler in a ref so the effect-cleanup uses the
   // identity we registered; consumers don't need to memoize.
   const handlerRef = useRef<Handler>(onEvent);
@@ -78,6 +94,19 @@ export function useLiveEvents({ articleSlugs = [], onEvent }: UseLiveEventsOptio
           // ignore
         }
       }
+      for (const ch of draftChannels) {
+        try {
+          ws.send(
+            JSON.stringify({
+              type: "subscribe_draft",
+              kind: ch.kind,
+              targetId: ch.targetId,
+            }),
+          );
+        } catch {
+          // ignore
+        }
+      }
     };
     if (ws) {
       if (ws.readyState === WebSocket.OPEN) subscribe();
@@ -91,5 +120,5 @@ export function useLiveEvents({ articleSlugs = [], onEvent }: UseLiveEventsOptio
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [articleSlugs.join("|")]);
+  }, [articleSlugs.join("|"), draftChannels.map((d) => `${d.kind}:${d.targetId}`).join("|")]);
 }

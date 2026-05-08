@@ -25,11 +25,36 @@ import { conceptsRouter } from "./routes/concepts";
 import { researchRouter } from "./routes/research";
 import { capstonesRouter } from "./routes/capstones";
 import { misconceptionsRouter } from "./routes/misconceptions";
+import { kernelFilesRouter } from "./routes/kernelFiles";
+import { cohortsRouter, mentorsRouter } from "./routes/cohorts";
+import { serverExecRouter } from "./routes/serverExec";
 import { meRouter } from "./routes/me";
 import { usersRouter } from "./routes/users";
 import { prewarmSearchIndex } from "./lib/searchIndex";
 import { userFromCookieHeader } from "./middleware/auth";
-import { attachUser, detach, subscribeArticle } from "./lib/liveBus";
+import {
+  attachUser,
+  broadcastDraftPresence,
+  detach,
+  setUsernameResolver,
+  subscribeArticle,
+  subscribeDraft,
+} from "./lib/liveBus";
+import type { DraftKind } from "./lib/liveBus";
+import { users as usersTable } from "@axiomic/db";
+import { inArray } from "drizzle-orm";
+
+// Sprint 40 — let liveBus resolve userIds → usernames for presence
+// events without pulling in @axiomic/db (which would form a cycle).
+setUsernameResolver((ids: string[]) => {
+  if (ids.length === 0) return new Map();
+  const rows = getDb()
+    .select({ id: usersTable.id, username: usersTable.username })
+    .from(usersTable)
+    .where(inArray(usersTable.id, ids))
+    .all();
+  return new Map(rows.map((r) => [r.id, r.username]));
+});
 import {
   canonicalJson,
   publicKeyHex,
@@ -137,6 +162,10 @@ app.route("/concepts", conceptsRouter);
 app.route("/research", researchRouter);
 app.route("/capstones", capstonesRouter);
 app.route("/misconceptions", misconceptionsRouter);
+app.route("/kernel-files", kernelFilesRouter);
+app.route("/cohorts", cohortsRouter);
+app.route("/mentors", mentorsRouter);
+app.route("/server-exec", serverExecRouter);
 app.route("/me", meRouter);
 app.route("/users", usersRouter);
 
@@ -183,13 +212,22 @@ export default {
       if (data?.userId) attachUser(ws, data.userId);
     },
     message(ws: any, raw: string | Uint8Array) {
-      // Clients can subscribe to per-article reaction streams. Other
-      // message kinds are ignored for v1.
+      // Clients can subscribe to per-article reaction streams or to
+      // per-draft collaboration channels (Sprint 40). Other message
+      // kinds are ignored for v1.
       try {
         const text = typeof raw === "string" ? raw : new TextDecoder().decode(raw);
         const msg = JSON.parse(text);
         if (msg && msg.type === "subscribe_article" && typeof msg.slug === "string") {
           subscribeArticle(ws, msg.slug);
+        } else if (
+          msg &&
+          msg.type === "subscribe_draft" &&
+          (msg.kind === "lesson" || msg.kind === "paper" || msg.kind === "capstone") &&
+          typeof msg.targetId === "string"
+        ) {
+          subscribeDraft(ws, msg.kind as DraftKind, msg.targetId);
+          broadcastDraftPresence(msg.kind as DraftKind, msg.targetId);
         }
       } catch {
         // ignore malformed frames

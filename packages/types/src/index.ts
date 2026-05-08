@@ -1910,12 +1910,41 @@ export interface AiPracticeQuestionsResponse {
 
 // --- WebSocket envelope ---
 
+// Sprint 40 — draft collaboration channel kinds.
+export type LiveDraftKind = "lesson" | "paper" | "capstone";
+
 export type LiveEvent =
   | { kind: "notification"; notification: Notification }
   | {
       kind: "reaction_update";
       articleSlug: string;
       reactionCounts: Record<NewsReactionKind, number>;
+    }
+  // The server emits these with `type` rather than `kind` so they
+  // share a discriminator with future broadcast event shapes.
+  | {
+      type: "draft_update";
+      kind: LiveDraftKind;
+      targetId: string;
+      slides?: unknown;
+      content?: string;
+      editorUsername: string;
+      updatedAt: string;
+    }
+  | {
+      type: "draft_published";
+      kind: LiveDraftKind;
+      targetId: string;
+      version: number;
+      editorUsername: string;
+      publishedAt: string;
+    }
+  | {
+      type: "draft_presence";
+      kind: LiveDraftKind;
+      targetId: string;
+      userIds: string[];
+      usernames: string[];
     };
 
 // --- Learning-path enrichments ---

@@ -206,6 +206,10 @@ const CapstoneReviewQueuePage = lazy(() =>
     default: m.CapstoneReviewQueuePage,
   })),
 );
+// Sprint 43 — Cohorts (social learning groups).
+const CohortsPage = lazy(() =>
+  import("./pages/CohortsPage").then((m) => ({ default: m.CohortsPage })),
+);
 
 function PageFallback() {
   return (
@@ -271,6 +275,7 @@ export function App() {
             path="/capstones/review-queue"
             element={<CapstoneReviewQueuePage />}
           />
+          <Route path="/cohorts" element={<CohortsPage />} />
           <Route path="/forum/:domain" element={<ForumListPage />} />
           <Route path="/news" element={<NewsListPage />} />
           <Route path="/news/new" element={<NewsNewPage />} />

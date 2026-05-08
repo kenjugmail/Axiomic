@@ -24,6 +24,7 @@ import { fireDetectorForUserAsync } from "../lib/misconceptionDetector";
 import { recordActivityAndEvaluate } from "../lib/achievements";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import { forumTopicsForNode } from "../lib/crossLinks";
+import { publishToDraft } from "../lib/liveBus";
 import type { Env } from "../env";
 
 const mastery = new Hono<Env>();
@@ -635,6 +636,18 @@ mastery.put(
         .where(eq(masteryNodes.id, nodeId))
         .run();
 
+      // Sprint 40 — fan out the draft state to every connected
+      // collaborator so peers can pull changes or merge silently
+      // depending on local dirty-state.
+      publishToDraft("lesson", nodeId, {
+        type: "draft_update",
+        kind: "lesson",
+        targetId: nodeId,
+        slides,
+        editorUsername: user.username,
+        updatedAt: now,
+      });
+
       return c.json({
         draft: true,
         lesson: JSON.parse(lessonData),
@@ -771,6 +784,17 @@ mastery.post(
 
     const newAchievements = recordActivityAndEvaluate(user.id, "lesson_edit");
     invalidateSearchIndex();
+
+    // Sprint 40 — broadcast that the draft has gone live so every
+    // collaborator's editor reloads from the new published state.
+    publishToDraft("lesson", nodeId, {
+      type: "draft_published",
+      kind: "lesson",
+      targetId: nodeId,
+      version: nextVersion,
+      editorUsername: user.username,
+      publishedAt: now,
+    });
 
     return c.json({
       lesson: JSON.parse(node.draftLessonData),

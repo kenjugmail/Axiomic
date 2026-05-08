@@ -11,6 +11,7 @@
 import { useEffect, useImperativeHandle, useRef, useState, forwardRef } from "react";
 import { Loader2, Play, RotateCcw, Terminal } from "lucide-react";
 import { getKernel, type Display, type RunResult } from "../../lib/pyodideKernel";
+import { runJs } from "../../lib/jsKernel";
 
 interface Props {
   // Original code from the markdown directive. The user can edit
@@ -19,6 +20,9 @@ interface Props {
   // Scoping key — typically `paper:${slug}` or `lesson:${nodeId}`.
   // Cells with the same kernelKey share Python state.
   kernelKey: string;
+  // Sprint 41 — runtime selector. Defaults to 'python' (Pyodide).
+  // 'js' / 'javascript' route to the lightweight in-page JS kernel.
+  language?: string;
 }
 
 // Sprint 23 — exposed via the forwarded ref so the document-level
@@ -28,13 +32,16 @@ export interface CodeCellHandle {
 }
 
 export const CodeCell = forwardRef<CodeCellHandle, Props>(function CodeCell(
-  { initialCode, kernelKey },
+  { initialCode, kernelKey, language },
   ref,
 ) {
   const [code, setCode] = useState(initialCode);
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<(RunResult & { runIndex: number }) | null>(null);
   const taRef = useRef<HTMLTextAreaElement | null>(null);
+  const jsRunCount = useRef(0);
+  const isJs = language === "js" || language === "javascript";
+  const langLabel = isJs ? "JavaScript" : "Python";
 
   // Sync `code` when initialCode changes (e.g. the parent re-renders
   // with a new directive content). Don't clobber unsaved edits — only
@@ -48,6 +55,16 @@ export const CodeCell = forwardRef<CodeCellHandle, Props>(function CodeCell(
     if (running) return { ok: false };
     setRunning(true);
     try {
+      if (isJs) {
+        // JS kernels are scoped to a `js:` prefix so a Python and a
+        // JS cell with the same surface kernelKey don't trample
+        // each other's globals. Pyodide's runIndex is per-key; the
+        // JS kernel doesn't track one, so we count locally.
+        const r = await runJs(`js:${kernelKey}`, code);
+        jsRunCount.current += 1;
+        setResult({ ...r, runIndex: jsRunCount.current });
+        return { ok: !r.error };
+      }
       const kernel = getKernel(kernelKey);
       const r = await kernel.run(code);
       setResult(r);
@@ -119,7 +136,7 @@ export const CodeCell = forwardRef<CodeCellHandle, Props>(function CodeCell(
           </span>
           <span className="opacity-50">·</span>
           <Terminal className="w-3 h-3" strokeWidth={2} />
-          Python
+          {langLabel}
         </div>
         <div className="flex items-center gap-1">
           <button

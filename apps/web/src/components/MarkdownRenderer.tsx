@@ -10,6 +10,7 @@ import { VizEmbed } from "./VizEmbed";
 import { LabEmbed } from "./LabEmbed";
 import { ConceptLink } from "./cross/ConceptLink";
 import { CodeCell, type CodeCellHandle } from "./code/CodeCell";
+import { KernelFilesPanel } from "./code/KernelFilesPanel";
 import { CodeCellsToolbar } from "./code/CodeCellsToolbar";
 import "katex/dist/katex.min.css";
 
@@ -384,12 +385,18 @@ export function MarkdownRenderer({
   return (
     <div className={`wiki-content ${className || ""}`}>
       {hasCodeCells && codeKernelKey && (
-        <CodeCellsToolbar
-          kernelKey={codeKernelKey}
-          cellRefs={codeCellRefs}
-          authorUsername={codeAuthorUsername ?? null}
-          viewerUsername={codeViewerUsername ?? null}
-        />
+        <>
+          <CodeCellsToolbar
+            kernelKey={codeKernelKey}
+            cellRefs={codeCellRefs}
+            authorUsername={codeAuthorUsername ?? null}
+            viewerUsername={codeViewerUsername ?? null}
+          />
+          {/* Sprint 42 — file uploads attached to this kernel scope. */}
+          <div className="my-3">
+            <KernelFilesPanel kernelKey={codeKernelKey} />
+          </div>
+        </>
       )}
       {(() => {
         // Sprint 24 — sequential figure number across viz + code parts
@@ -437,6 +444,7 @@ export function MarkdownRenderer({
                   }}
                   initialCode={part.code}
                   kernelKey={codeKernelKey || "scratch"}
+                  language={part.lang}
                 />
                 {figLabel("Code")}
               </figure>

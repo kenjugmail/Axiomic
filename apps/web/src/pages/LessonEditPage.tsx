@@ -24,6 +24,8 @@ import { MarkdownToolbar } from "../components/composer/MarkdownToolbar";
 import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
 import { streamTokens } from "../lib/streamTokens";
+import { useLiveEvents } from "../hooks/useLiveEvents";
+import { PresenceChips } from "../components/collab/PresenceChips";
 
 function newTextSlide(): LessonSlide {
   return { kind: "text", title: "Untitled", body: "" };
@@ -78,6 +80,21 @@ export function LessonEditPage() {
     }>
   >([]);
   const [prereqWikiSlugs, setPrereqWikiSlugs] = useState<string[]>([]);
+  // Sprint 40 — real-time draft collaboration. Presence chips track
+  // who else is editing; incomingDraft holds the latest broadcast
+  // we haven't pulled yet, so the editor can offer "Pull changes
+  // from @alice".
+  const [presenceUserIds, setPresenceUserIds] = useState<string[]>([]);
+  const [presenceUsernames, setPresenceUsernames] = useState<string[]>([]);
+  const [incomingDraft, setIncomingDraft] = useState<{
+    slides: LessonSlide[];
+    editorUsername: string;
+    updatedAt: string;
+  } | null>(null);
+  // True once the user makes any local change after the last save.
+  // Drives whether incoming draft updates merge silently or surface
+  // a "pull changes" prompt.
+  const dirtyRef = useRef(false);
 
   useEffect(() => {
     if (!pathSlug || !nodeSlug) return;
@@ -139,6 +156,60 @@ export function LessonEditPage() {
       cancelled = true;
     };
   }, [pathSlug, nodeSlug]);
+
+  // Sprint 40 — flip the dirty flag whenever local slides change.
+  // The save handler / pull-changes handler clear dirty back to false.
+  // Skip the initial mount so the load-from-server pass doesn't mark
+  // us as dirty before the user has typed anything.
+  const initialSlidesAppliedRef = useRef(false);
+  useEffect(() => {
+    if (!initialSlidesAppliedRef.current) {
+      if (slides.length > 0) initialSlidesAppliedRef.current = true;
+      return;
+    }
+    dirtyRef.current = true;
+  }, [slides]);
+
+  // Sprint 40 — subscribe to the draft channel for this lesson.
+  // Presence broadcasts update the chip row; draft_update events
+  // either silently merge (when there are no local-only changes) or
+  // surface a "pull changes from @alice" toast (when dirty).
+  useLiveEvents({
+    draftChannels: nodeId ? [{ kind: "lesson", targetId: nodeId }] : [],
+    onEvent: (e: any) => {
+      if (!e || e.kind === "notification" || e.kind === "reaction_update") return;
+      if (e.targetId !== nodeId) return;
+      if (e.type === "draft_presence") {
+        setPresenceUserIds(e.userIds);
+        setPresenceUsernames(e.usernames);
+        return;
+      }
+      if (e.type === "draft_update" && Array.isArray(e.slides)) {
+        if (dirtyRef.current) {
+          setIncomingDraft({
+            slides: e.slides,
+            editorUsername: e.editorUsername,
+            updatedAt: e.updatedAt,
+          });
+        } else {
+          // No local edits in flight — pull silently.
+          setSlides(e.slides);
+        }
+      }
+      if (e.type === "draft_published") {
+        // Published: reload from the server to pick up the new
+        // version metadata + clear any stale draft state.
+        if (nodeId) {
+          api.mastery.getLesson(nodeId).then((lr) => {
+            if (lr.lesson?.slides && lr.lesson.slides.length > 0) {
+              setSlides(lr.lesson.slides as LessonSlide[]);
+              dirtyRef.current = false;
+            }
+          });
+        }
+      }
+    },
+  });
 
   // Body-scroll lock + Esc handler for the mobile slide drawer.
   useEffect(() => {
@@ -324,6 +395,11 @@ export function LessonEditPage() {
         }));
         setVersions(vr.versions ?? []);
       }
+      // Sprint 40 — successful save reconciles local state with the
+      // server, so no further "pull changes" prompt should fire from
+      // our own broadcast echo.
+      dirtyRef.current = false;
+      setIncomingDraft(null);
     } catch (e: any) {
       setError(e?.message ?? "Save failed");
     } finally {
@@ -580,6 +656,44 @@ export function LessonEditPage() {
             >
               Publish this draft
             </button>
+          </div>
+        </div>
+      )}
+
+      {presenceUserIds.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 mt-2">
+          <PresenceChips
+            userIds={presenceUserIds}
+            usernames={presenceUsernames}
+          />
+        </div>
+      )}
+
+      {incomingDraft && (
+        <div className="max-w-7xl mx-auto px-4 mt-3">
+          <div className="p-3 rounded-md border border-primary/40 bg-primary/10 text-sm flex items-center justify-between flex-wrap gap-2">
+            <span>
+              <span className="font-medium">@{incomingDraft.editorUsername}</span>{" "}
+              just saved a draft. You have local edits — pull theirs?
+            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setIncomingDraft(null)}
+                className="text-xs px-2 py-1 rounded-md border border-border hover:bg-accent/40"
+              >
+                Dismiss
+              </button>
+              <button
+                onClick={() => {
+                  setSlides(incomingDraft.slides);
+                  dirtyRef.current = false;
+                  setIncomingDraft(null);
+                }}
+                className="text-xs px-2 py-1 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                Pull changes
+              </button>
+            </div>
           </div>
         </div>
       )}

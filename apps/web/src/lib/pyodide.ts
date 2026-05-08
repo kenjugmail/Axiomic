@@ -22,6 +22,13 @@ export interface PyodideRuntime {
     set(name: string, value: unknown): void;
     get(name: string): unknown;
   };
+  // Sprint 42 — Emscripten FS surface used to mount /files/* before
+  // running cells. Pyodide exposes the full FS API but we only need
+  // mkdir + writeFile here.
+  FS: {
+    mkdir(path: string): void;
+    writeFile(path: string, data: Uint8Array | string): void;
+  };
 }
 
 let runtimePromise: Promise<PyodideRuntime> | null = null;
