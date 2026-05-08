@@ -32,6 +32,8 @@ A rough rule of thumb for English text: **1 token ≈ 4 characters** or about **
 
 Modern language models typically have vocabulary sizes between 32,000 and 100,000 tokens.
 
+:::lab[tokenizer-playground-lab]
+
 ## Related Topics
 
 - [BPE Tokenization](/wiki/bpe-tokenization) — the most common tokenization algorithm

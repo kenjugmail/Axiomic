@@ -39,6 +39,8 @@ Min-p is a newer strategy that sets a floor relative to the top token's probabil
 
 The choice of sampling strategy profoundly affects output quality. Too aggressive and you get repetitive, generic text. Too loose and you get incoherent ramblings. Modern systems typically combine temperature with either top-p or min-p, tuning these parameters for the application: lower temperature for code generation, higher for creative writing.
 
+:::lab[sampling-temperature-lab]
+
 <!-- tier:undergrad -->
 # Sampling Strategies
 

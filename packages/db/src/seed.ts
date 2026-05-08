@@ -13,6 +13,7 @@ import {
   capstones,
   capstoneMilestones,
   misconceptionCatalog,
+  researchPapers,
 } from "./index";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -103,6 +104,9 @@ async function seed() {
 
   // Sprint 29 — load misconception catalog.
   seedMisconceptionCatalog();
+
+  // Sprint 49 — load research papers from seed-content/research/*.json.
+  seedResearchPapers();
 
   console.log("Seeding complete.");
 }
@@ -229,6 +233,69 @@ The broader bet of the mechanistic-interpretability program [2] is that *most* o
 - The transformer architecture introduced in [3] is the substrate for all of this; the circuit we're describing is a *learned* program, not a hard-coded operation.
 
 The point is that "in-context learning" stops being a mysterious property of scale once you see the circuit. It's just a specific composition of two lookups.`,
+    },
+    {
+      slug: "why-we-built-the-knowledge-mri",
+      title: "Why we built the Knowledge MRI",
+      summary:
+        "A concept-level diagnostic that tells learners where they're strong, where they're broken, and what to do next — across every mastery path at once.",
+      coverEmoji: "🧠",
+      accentColor: "violet",
+      authorId: carolId,
+      body: `Most learning platforms tell you what *percent* of a course you've finished. That's the wrong unit. You don't care about percentages; you care about what you can do, what you can't, and where the next 30 minutes of your time should go.
+
+The [Knowledge MRI](/me/mri) is our answer. It's a single page that aggregates everything we know about your relationship with every concept in the platform: quiz scores, completion state, active misconceptions detected by the [misconception detector](/me/weak-concepts), unresolved mistakes, flashcard retention, prerequisite gaps. One per-path heatmap and a radial summary at the top.
+
+## What the colors mean
+
+- **Green** — you've shown mastery (quiz score ≥ 70%).
+- **Amber** — you've started but haven't crossed the bar.
+- **Slate** — you haven't touched it yet.
+- **Red dot** — there's an active [[misconception]] detected on this concept. Click through to be coached on it.
+
+The drill panel on every cell tells you why that color, and picks one specific next action: coach me on this misconception, bridge from a prereq, review flashcards, start the lesson, or revisit the missed questions. It's never a list of options — it's the single most useful jump given your current state.
+
+## What it doesn't do
+
+The MRI doesn't grade you. It doesn't show a leaderboard. It doesn't gamify the gaps. It's a diagnostic, not a portfolio — that's why it's owner-only and lives at \`/me/mri\` rather than on your public profile.
+
+## How it composes
+
+Every existing surface feeds it: lesson quizzes update the per-node quiz score, the [misconception detector](https://github.com/anthropics/axiomic) writes diagnoses on wrong-answer patterns, [[flashcard]] reviews update retention. The MRI is a thin aggregator on top — there's no new schema, just new ways to look at signal that was already there.
+
+The community-curated [misconception marketplace](/misconceptions) feeds back into the same loop: the more entries get merged, the denser the heatmap and the sharper the diagnostic.`,
+    },
+    {
+      slug: "capstone-transcripts-are-now-signed",
+      title: "Capstone transcripts are now cryptographically signed",
+      summary:
+        "Every capstone artifact page now ships with an ed25519-signed transcript. Anyone with our public key can verify a completion didn't get tampered with — independently of us.",
+      coverEmoji: "🛡️",
+      accentColor: "emerald",
+      authorId: aliceId,
+      body: `When a learner ships a capstone here, the artifact page becomes their public proof: who they are, what they built, which milestones they passed, what the AI grader said, what peer reviewers endorsed. As of this week, that proof is also cryptographically signed.
+
+## What's signed
+
+Every capstone artifact at \`/capstones/c/<slug>\` exposes a [signed transcript](/verify) you can download. The bundle contains:
+
+1. A canonical-JSON **manifest** of the completion: capstone slug + version (we [version capstones](/capstones), so external citations can pin to a specific revision), learner username, milestones with status + score, peer-review summary, completion timestamp.
+2. An **ed25519 signature** over the canonical bytes.
+3. The **issuer's public key**, which is also published at \`/api/v1/keys/signing\`.
+
+You can verify a transcript independently of us. Paste the JSON at [/verify](/verify), or run the verification yourself with any ed25519 library and our published public key. The signature covers the bytes; tampering with the manifest invalidates it.
+
+## Why this matters
+
+Most "verified profile" claims on learning platforms aren't verifiable. They're a database flag the platform sets, and you have to take their word for it. If the platform goes away or wants to change history, the claim doesn't survive.
+
+A signed transcript survives both. The bytes are public; anyone can re-host them; anyone can check the signature. The capstone artifact at \`/capstones/c/<learner>-<capstone>\` becomes a portable credential.
+
+## What's next
+
+[Peer review](/capstones/review-queue) counts already fold into the signed manifest, so the credibility claim covers both AI grading and community endorsement. We're considering DOI-style permalinks for the artifact pages themselves so academic citation flows just work.
+
+If you completed a capstone before this week, your existing artifact page has been retroactively signed under our current key. The signature surface is now part of the platform's contract: we can rotate the key, but old transcripts under the old key keep verifying as long as the public key is preserved.`,
     },
   ];
 
@@ -885,6 +952,63 @@ function seedMisconceptionCatalog() {
     count++;
   }
   console.log(`  Seeded ${count} misconception catalog entr${count === 1 ? "y" : "ies"}.`);
+}
+
+// Sprint 49 — load research papers from seed-content/research/*.json.
+function seedResearchPapers() {
+  const dir = path.join(import.meta.dir, "../../../seed-content/research");
+  if (!fs.existsSync(dir)) return;
+
+  // Use `system` if it exists; else fall back to `alice`.
+  let authorId =
+    db.select({ id: users.id }).from(users).where(eq(users.username, "system")).get()?.id ??
+    db.select({ id: users.id }).from(users).where(eq(users.username, "alice")).get()?.id;
+  if (!authorId) {
+    console.log("  No author available for research papers; skipping.");
+    return;
+  }
+
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith(".json"));
+  let count = 0;
+  for (const f of files) {
+    let parsed: any;
+    try {
+      parsed = JSON.parse(fs.readFileSync(path.join(dir, f), "utf-8"));
+    } catch {
+      continue;
+    }
+    if (!parsed?.slug || !parsed?.title) continue;
+
+    const existing = db
+      .select({ id: researchPapers.id })
+      .from(researchPapers)
+      .where(eq(researchPapers.slug, parsed.slug))
+      .get();
+    if (existing) continue; // Don't overwrite manually-edited papers.
+
+    db.insert(researchPapers).values({
+      id: randomUUID(),
+      slug: parsed.slug,
+      title: parsed.title,
+      summary: parsed.summary ?? "",
+      format: parsed.format ?? "research",
+      abstract: parsed.abstract ?? "",
+      contentIntro: parsed.contentIntro ?? "",
+      contentUndergrad: parsed.contentUndergrad ?? "",
+      contentGrad: parsed.contentGrad ?? "",
+      canonicalTier: parsed.canonicalTier ?? "undergrad",
+      paperStructureJson: JSON.stringify(parsed.paperStructure ?? {}),
+      referencesJson: JSON.stringify(parsed.references ?? []),
+      coauthorsJson: JSON.stringify(parsed.coauthors ?? []),
+      coverEmoji: parsed.coverEmoji ?? "📄",
+      accentColor: parsed.accentColor ?? "violet",
+      status: parsed.status ?? "published",
+      tags: JSON.stringify(parsed.tags ?? []),
+      authorId,
+    }).run();
+    count++;
+  }
+  console.log(`  Seeded ${count} research paper${count === 1 ? "" : "s"}.`);
 }
 
 seed().catch(console.error);

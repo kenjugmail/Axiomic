@@ -33,6 +33,8 @@ BPE is used by GPT-2, GPT-3, GPT-4, LLaMA, and most other major language models.
 
 When you hear that a model has a "128K context window," that means 128,000 tokens, not characters or words. Understanding tokenization is essential to understanding what these numbers actually mean.
 
+:::lab[tokenizer-playground-lab]
+
 <!-- tier:undergrad -->
 # Byte Pair Encoding (BPE) Tokenization
 

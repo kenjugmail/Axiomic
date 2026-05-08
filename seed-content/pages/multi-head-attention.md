@@ -27,6 +27,8 @@ If the model has an embedding dimension of 768 and uses 12 attention heads, each
 
 Think of it like having a committee of analysts, each examining the same data from a different angle. One analyst looks at short-range connections, another at long-range ones. One focuses on syntactic structure, another on semantic meaning. The final output combines all their perspectives.
 
+:::lab[attention-weights-lab]
+
 Research has shown that trained heads do genuinely specialize. In BERT, specific heads have been found that closely track linguistic relationships like dependency parse trees. Some heads consistently attend to the previous word, others to the end of the sentence, and others to syntactically related words far away.
 
 ## The Standard Configuration
