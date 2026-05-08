@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why ML monitoring is harder than service monitoring",
+      "body": "A traditional web service has clear failure modes: 5xx errors, p99 latency, request rate. SREs have 30 years of tooling for this.\n\nML systems add a layer those tools don't catch. The model can be **subtly wrong** without throwing a single exception:\n\n- A classifier silently drops in accuracy on a new product category that started showing up in traffic last week.\n- A retrieval system stops returning relevant docs when an upstream embedding service quietly switches model versions.\n- A summarizer starts hallucinating after a fine-tuning run that looked fine on offline eval.\n\nNone of these throw 5xx. None of these spike latency. Standard observability sees a healthy service.\n\nML monitoring is the discipline of catching **silent quality regressions**. It composes traditional service monitoring (uptime, latency, throughput, errors) with model-specific signals (input distribution drift, output distribution drift, online eval scores, ground-truth comparisons when available). This lesson covers each layer."
+    },
+    {
+      "kind": "text",
+      "title": "The four monitoring layers",
+      "body": "**Layer 1 — Service health.** Standard SRE: uptime, error rate, p50/p95/p99 latency, throughput, GPU utilization. Use the same observability stack as the rest of the org (Prometheus + Grafana, Datadog, Honeycomb). Sufficient for 'is the service up?' Insufficient for 'is the service correct?'\n\n**Layer 2 — Input distribution drift.** Compare today's inputs to last month's. Statistical distance metrics (PSI, KL, JS divergence) over engineered features (input length, language detection, topic distribution from a small classifier, embedding distance from training data centroids). Alerts fire when divergence exceeds a threshold.\n\n**Layer 3 — Output distribution drift.** Same shape, different signal. Compare today's outputs to last month's. Refusal rate, average output length, sentiment skew, hallucination-detector scores. Useful for catching upstream changes (a new prompt template, a model swap) that ripple into output behavior.\n\n**Layer 4 — Online evaluation.** Run a small percentage of production traffic through an eval harness. For LLMs: LLM-as-judge against a reference model, factuality checks, instruction-following tests. For classifiers: shadow predictions vs ground-truth labels (when labels become available later — e.g. did the user click the recommended item?). This is the most direct quality signal but also the hardest to implement well.\n\nGood production stacks have all four. Most teams ship with layer 1 only and add layers 2-4 reactively after a quality regression bites them."
+    },
+    {
+      "kind": "text",
+      "title": "Drift detection in detail",
+      "body": "Drift is sometimes obvious (the user query language switches from English to Spanish) and sometimes subtle (the average prompt length creeps up by 20% over six months as users learn what works).\n\n**Population Stability Index (PSI)** is the workhorse:\n\n```\nPSI(P, Q) = Σᵢ (Pᵢ - Qᵢ) · log(Pᵢ / Qᵢ)\n```\n\nFor each binned feature, compute the proportion in the reference distribution P and the production distribution Q over the last N days. Sum across bins. Rules of thumb:\n- PSI < 0.1: no drift\n- 0.1-0.25: minor drift, monitor\n- > 0.25: significant drift, investigate\n\nFeatures worth tracking on text inputs:\n- Length distribution (token count or byte count)\n- Language distribution (langdetect)\n- Topic distribution (a small embedding-clustered classifier)\n- Special-character fraction (proxy for code vs prose vs structured)\n- Embedding centroid distance (cosine to a training centroid)\n\nFor outputs: refusal rate, mean length, terminal-token frequency (does it end with `.` or `}` or `</tool>`?). Each of these is a one-line aggregation in your serving stack and a one-line dashboard panel. The whole system is cheap to add and fires before users notice the regression."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mon_q1",
+        "kind": "multiple_choice",
+        "question": "Your service's p99 latency, error rate, and throughput are all healthy. User satisfaction scores dropped 8% over two weeks. What's the most likely missing monitoring layer?",
+        "options": [
+          "Service health monitoring",
+          "Output distribution / online evaluation. Layer 1 (service health) catches 'service is broken'; layers 3-4 catch 'service is up but wrong'. Likely something changed in the model, the data pipeline, or the prompt template that shifted output quality without breaking the service. Standard SRE tools wouldn't see it",
+          "Hardware monitoring",
+          "Request authentication"
+        ],
+        "correctIndex": 1,
+        "explanation": "This is the canonical scenario where ML-specific monitoring beats SRE monitoring. Service health is fine; quality regressed silently. The catch-all instrumentation is online eval (a small slice of traffic running through a quality harness) plus output drift detection (refusal rate, mean output length, LLM-as-judge scores trending). Without those layers, the regression is invisible until users complain — by which time it's been live for weeks."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Latency SLOs and error budgets",
+      "body": "Service-level objectives turn 'fast enough' into a measurable contract. For LLM serving:\n\n- **TTFT (time-to-first-token)** SLO: p95 < 500ms for chat-style workloads.\n- **End-to-end latency** SLO: p95 < 5s for generation up to 200 tokens.\n- **Throughput** SLO: ≥ 50 tokens/sec/user under nominal load.\n\nMeasuring p95 (or p99) instead of mean catches the long tail. A median of 200ms with a p99 of 5s is a much worse user experience than a median of 400ms with a p99 of 800ms.\n\n**Error budgets**: SLO of 99.9% available means 0.1% of the month (~43 minutes) can be unavailable before missing the SLO. Track burn rate in real time. If you've burned the month's error budget in the first week, freeze deploys until the budget resets.\n\nThe error budget concept extends beyond uptime. Quality budgets: 'p95 hallucination score < X'. Drift budgets: 'PSI < 0.25 on day-over-day input distribution'. When the budget is consumed, you have a clear, pre-agreed signal to slow down feature work and pay down debt.\n\nThis discipline is how mature ML platforms (Anthropic, OpenAI, Google) operate. Most teams never adopt it; the ones that do ship 10× more reliably."
+    },
+    {
+      "kind": "text",
+      "title": "Tools and a starter stack",
+      "body": "A reasonable starter monitoring stack for a self-hosted LLM service:\n\n**Layer 1 (service health):**\n- Prometheus for metrics scraping\n- Grafana for dashboards\n- Standard exporters: nvidia-smi-exporter, node_exporter, your serving-framework's metrics endpoint\n\n**Layer 2 (input drift):**\n- Log every request to a streaming sink (Kafka / S3 / your data lake)\n- Daily batch job: compute PSI on input length, language, topic\n- Alertmanager rule on PSI > 0.25\n\n**Layer 3 (output drift):**\n- Same logs include outputs (with PII redaction)\n- Daily aggregation: refusal rate, mean output length, terminal token distribution\n- Dashboard panel + week-over-week alert\n\n**Layer 4 (online eval):**\n- Sample 1-5% of traffic into a queue\n- Async eval harness: LLM-as-judge against a reference, factuality checks, simple regex sanity\n- Score distribution dashboard + drift alert\n- Ground-truth labels (when available) folded in for accuracy regression detection\n\nThis adds maybe 0.5 FTE of engineering work to set up and 0.1 FTE to maintain. The first quality regression it catches more than pays for it. Most teams' biggest mistake is not having any layers 2-4 — they ship blind."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mon_q2",
+        "kind": "multiple_choice",
+        "question": "Why do mature ML teams use online evaluation (Layer 4) even when it costs 1-5% of inference compute?",
+        "options": [
+          "Online eval improves model accuracy",
+          "It's the only direct measure of production quality. Offline benchmarks generalize imperfectly; input drift detection catches changes but doesn't measure if the changes hurt; output drift detection catches behavioral shifts but doesn't measure quality. Online eval running against actual production traffic with reference comparison or ground-truth labels gives you the actual signal — at the cost of running inference on a sample of every request twice (once normal, once eval)",
+          "Online eval is required by regulators",
+          "Online eval is faster than offline eval"
+        ],
+        "correctIndex": 1,
+        "explanation": "Online eval is the canary that's actually breathing the same air as production users. Offline benchmarks are stale by definition (last quarter's eval set). Drift detection catches that something changed but not whether it matters. Online eval directly answers 'is this better, worse, or same?' for the population that matters. The 1-5% compute overhead is the cost of having a real quality signal; teams that skip it end up debugging quality regressions retroactively from user reports."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Monitoring catches issues; the next lesson covers what to do when monitoring fires.\n\nNext: [[production-failure-modes]] — OOM, NaN gradients, silent corruption, rollback playbooks.\n\nKey takeaways:\n- Service health (layer 1) doesn't catch silent quality regressions; ML systems need layers 2-4\n- Input drift via PSI on length/language/topic; alert at PSI > 0.25\n- Output drift via refusal rate, mean length, terminal tokens\n- Online eval on 1-5% of traffic gives the most direct quality signal\n- SLOs + error budgets turn 'fast enough' into a quantifiable contract\n- Mature stacks compose all four layers; most teams ship with only layer 1"
+    }
+  ]
+}

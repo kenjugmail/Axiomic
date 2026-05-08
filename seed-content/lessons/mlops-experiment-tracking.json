@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why experiments need to be tracked",
+      "body": "An ML team runs hundreds of training jobs per quarter. Without rigorous tracking, three failure modes show up within weeks:\n\n1. **\"What hyperparameters did the good run use?\"** Someone tweaks the learning rate, the batch size, and the data mix simultaneously. A week later, the run is the new baseline. Three months later, no one remembers the exact recipe.\n2. **\"Is this run actually better?\"** Two runs report 0.5% accuracy difference. Within statistical noise of the random seed? With n=1, you can't tell.\n3. **\"Why did the model regress?\"** A retrain produces worse loss than last week's run. Was it the new data? The new optimizer? The new GPU?\n\n**Experiment tracking** is the discipline that prevents all three. The minimum viable product:\n- Log every hyperparameter (config files in version control)\n- Log every metric over time (loss, eval scores, GPU stats)\n- Tag runs with code version (git commit hash) + data version\n- Make runs comparable side-by-side\n\nThis lesson covers the tools (W&B, MLflow), the discipline (configs, seeds, artifact tracking), and the failure modes that motivate each."
+    },
+    {
+      "kind": "text",
+      "title": "What to log",
+      "body": "A good run record contains five categories:\n\n**1. Configuration.** Every hyperparameter you can vary: model architecture (layers, hidden, heads), optimizer (LR, betas, weight decay, schedule), training (batch size, gradient accumulation, max steps), data (dataset version, mix proportions, augmentations). Keep this in YAML/JSON checked into the repo and load it via Hydra / OmegaConf / dataclasses.\n\n**2. Metrics over time.** Train loss + val loss + eval scores at every checkpoint interval. Plus system metrics: GPU utilization, memory, throughput (tokens/sec), step time. Log every step (or every N steps) so you can plot loss curves and catch divergence early.\n\n**3. Provenance.** Git commit hash (was the code clean? `is_dirty()`?). Data version (dataset name + checksum or `dvc` hash). Hardware (GPU type, world size). Library versions (PyTorch, CUDA, NCCL). Random seeds.\n\n**4. Artifacts.** Checkpoints (every N steps + final), tokenizer / vocab files, eval predictions, sample outputs. These get *uploaded* to a backing store (S3, GCS, local) — keeping them per-run is essential for later comparison.\n\n**5. Notes.** A free-text 'why this run' field. Future-you will thank present-you. The most underrated metadata."
+    },
+    {
+      "kind": "text",
+      "title": "The big tool families",
+      "body": "**Weights & Biases (wandb)** — most popular for research-style workflows. Runs as a Python SDK + a hosted dashboard. Auto-logs system metrics, beautiful loss-curve plots, sweeps API for hyperparameter search, artifact storage. Free tier for solo + small teams; paid for orgs. Integration is one line: `wandb.init(project=...)`, then `wandb.log({...})`.\n\n**MLflow** — open-source, often self-hosted. Same shape as W&B (params, metrics, artifacts, models) but runs on your own infrastructure. Less polished UI; more control. Standard for compliance-heavy environments.\n\n**TensorBoard** — older, file-based logging. Cheap and works offline; UI is dated; no built-in sweeps or artifact registry. Still common for quick local debugging.\n\n**Sacred + Comet + Aim + Neptune** — variants on the same theme. Pick whichever your team can adopt with one shared convention; the worst tool consistently used beats the best tool used inconsistently.\n\nFor most teams: **wandb for research, MLflow for production training pipelines, both writing to the same metric set so comparing across them works**. The tool matters less than the discipline."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mlops_q1",
+        "kind": "multiple_choice",
+        "question": "You retrained a model 4 weeks after the original successful run. New eval is 1% worse. The git commit and hyperparameters match. What's the most likely culprit?",
+        "options": [
+          "The model is broken",
+          "Random seed difference — 1% is plausibly within noise. The fix is to run 3-5 seeds and compare distributions, not point estimates",
+          "Data version drift — your training data lake added new examples since the original run, or some upstream filter changed. Not visible from git; visible only if you log a dataset checksum or DVC version. This is the most underrated source of regressions; data has its own version-control problem distinct from code",
+          "GPU drivers"
+        ],
+        "correctIndex": 2,
+        "explanation": "Data drift is the most underrated source of regressions. Your training data lake has its own version control problem distinct from your code; a quietly-added preprocessing step or new examples can move metrics by 1-5%. The ONLY way to detect this is to log dataset version (DVC hash, checksum, snapshot ID) on every run. Random seed variance is the second-most-likely explanation; the fix there is to run multiple seeds and compare distributions. GPU drivers and 'broken model' are both unlikely when git matches."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Reproducibility in practice",
+      "body": "Reproducible doesn't mean bit-for-bit identical (that's hard with mixed-precision + non-deterministic CUDA kernels). It means **the same experiment, run twice, lands within statistical noise**.\n\nThe minimum recipe:\n\n1. **Pin everything**. PyTorch + CUDA + NCCL versions in `requirements.txt` or `pyproject.toml`. GPU type recorded.\n2. **Set seeds**: `torch.manual_seed(s)`, `np.random.seed(s)`, `random.seed(s)`, plus `torch.use_deterministic_algorithms(True)` if you can tolerate the slowdown.\n3. **Version the data**. Either DVC (data version control), or a checksum-named snapshot in S3.\n4. **Log a config file**, not loose CLI args. `hydra` is the modern standard.\n5. **Log to a tracking server** with the run's git hash + dirty flag.\n6. **Run multiple seeds** when claiming an improvement. With 3-5 seeds you can measure variance and report a confidence interval.\n\nThe 1% improvement that doesn't show up in 3 seeds isn't an improvement. The 1% improvement that shows up in 3 of 3 seeds with disjoint confidence intervals is real. Make this the default standard for your team and most spurious-regression debugging vanishes."
+    },
+    {
+      "kind": "text",
+      "title": "Hyperparameter sweeps",
+      "body": "Once tracking is solid, you can run sweeps efficiently. Three flavors:\n\n**Grid search**. Cartesian product of all hyperparameter combinations. Easy to reason about, easy to parallelize. Wasteful when most combinations are obviously bad.\n\n**Random search** (Bergstra & Bengio 2012): sample uniformly from each hyperparameter range. Empirically as good as or better than grid for the same compute budget. The standard baseline.\n\n**Bayesian / Hyperband / ASHA**: model the loss-vs-hyperparam surface, focus compute on promising regions. W&B's sweeps API supports `bayes` and `hyperband` natively. Useful when individual runs are expensive (>1h) and you have many hyperparameters to explore.\n\nThe practical rule: **start with random search**. Run 20-50 random configs, pick the top 5%, do a finer sweep around them. Bayesian/Hyperband adds complexity that pays off only when the search space is large or runs are expensive. For many ML teams, random search beats their attempts at clever optimizers because the implementation is simpler."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mlops_q2",
+        "kind": "multiple_choice",
+        "question": "Your team standardizes on logging everything via wandb. After a year, you have 3000 runs in the project. What's the most underrated benefit?",
+        "options": [
+          "Free GPU compute",
+          "Cheap A/B comparison across any two runs at any time. Six months later you can still answer 'what changed between v1 and v2 of our model?' or 'which sweep config gave the best loss?' or 'how does today's training throughput compare to last quarter's?'. The historical record IS the team's institutional memory",
+          "Better PyTorch performance",
+          "Automatic deployment"
+        ],
+        "correctIndex": 1,
+        "explanation": "The biggest payoff of consistent tracking is the historical archive. New team members can answer their own onboarding questions by browsing past runs. Regression debugging becomes 'compare run 1247 to run 1812, what changed' instead of 'reconstruct from memory'. Sweep results become reusable across projects. The institutional memory pays for itself many times over after a year."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Tracking is the hygiene layer. Everything in production ML inherits from it: monitoring, A/B testing, model evaluation, regulatory audits.\n\nNext: [[inference-serving]] — turning your tracked, reproduced, validated checkpoint into a production service.\n\nKey takeaways:\n- Log config + metrics + provenance + artifacts + notes for every run\n- Pin versions (code, data, hardware, libraries) and log seeds\n- 1% improvements need multiple seeds to claim — n=1 lies\n- Random search is a strong baseline; Bayesian sweeps pay off for expensive runs\n- The historical record is the team's institutional memory; underrated until you don't have it"
+    }
+  ]
+}

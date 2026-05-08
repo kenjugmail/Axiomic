@@ -499,6 +499,49 @@ The platform's [coach](/me/weak-concepts) will keep flagging misconceptions as t
 
 Ship the path, then write a paper about something you noticed along the way. That's the loop.`,
     },
+    {
+      slug: "systems-engineer-path-launch",
+      title: "Systems engineer path: from a single GPU to a serving stack",
+      summary:
+        "The infrastructure half of ML now has a path. Eight lessons + 16 wiki pages + two capstones covering distributed training, FSDP, vLLM, monitoring, and the production failure modes that bite teams in their first quarter at scale.",
+      coverEmoji: "⚙️",
+      accentColor: "sky",
+      authorId: carolId,
+      body: `When we started Axiomic, we wrote about the math of transformers, the architecture of attention, and the dynamics of training. Necessary content; not sufficient. About 80% of production ML practitioners spend the bulk of their time on **systems** — distributed training, GPU memory accounting, serving infrastructure, monitoring, the rollback playbook for the day everything breaks.
+
+That content didn't exist on the platform. As of today it does.
+
+## What landed
+
+The new [systems engineer path](/paths/systems-engineer) covers the production-engineering stack end-to-end:
+
+1. [GPU architecture](/paths/systems-engineer/lessons/gpu-architecture) — tensor cores, HBM, the memory-vs-compute roofline.
+2. [Mixed precision](/paths/systems-engineer/lessons/mixed-precision-training) — bf16, fp16, fp8 + when each is the right call.
+3. [Data parallelism](/paths/systems-engineer/lessons/data-parallelism) — DDP, NCCL, scaling efficiency.
+4. [Model parallelism + FSDP](/paths/systems-engineer/lessons/model-parallelism) — when DDP isn't enough.
+5. [MLOps + experiment tracking](/paths/systems-engineer/lessons/mlops-experiment-tracking) — the discipline that turns research-style runs into a reproducible lineage.
+6. [Inference serving](/paths/systems-engineer/lessons/inference-serving) — vLLM, PagedAttention, continuous batching.
+7. [Monitoring + observability](/paths/systems-engineer/lessons/monitoring-observability) — drift, online eval, SLOs.
+8. [Production failure modes](/paths/systems-engineer/lessons/production-failure-modes) — the playbook for when reality hits.
+
+Plus 16 new wiki pages covering each subsystem in three-tier depth, six new misconceptions catching the median engineer's wrong intuitions, a survey paper on the [serving-stack frontier](/research/serving-stack-frontier-2026), and a new [systems forum domain](/forum/systems) for discussion.
+
+## Two capstones
+
+[Build a serving stack](/capstones/build-a-serving-stack) (5 weeks): implement a production-grade LLM inference server with KV cache management + continuous batching + monitoring. Benchmark against vLLM. Output: a public artifact showing where you matched it, where you didn't, and which optimizations account for the gaps.
+
+[Distributed training experiment](/capstones/distributed-training-experiment) (4 weeks): scale the same training run from one GPU through DDP, FSDP, and FSDP+offload on multi-GPU hardware. Measure the throughput-vs-memory Pareto frontier. Recommend a strategy for hypothetical 1B / 7B / 70B models.
+
+Both produce signed transcripts that paint a defensible picture of "this engineer can run a production ML system" — exactly the credential that's hard to demonstrate from a degree alone.
+
+## Why it matters
+
+Hiring managers tell us this is the gap they have the hardest time filling. There's no shortage of candidates who can train a transformer. There's a real shortage of candidates who can keep one running in production: diagnose an OOM at scale, recover from a NaN training spike at step 47000, design a rollback procedure that takes minutes instead of hours.
+
+The systems-engineer path is built around exactly those scenarios. The capstones produce the receipts. The misconceptions surface the wrong intuitions before they bite.
+
+For ML engineers ramping up: pair this path with the existing [ML engineer ramp-up](/news/ml-engineer-ramp-up-end-to-end) content. Foundation + frontier topics + production engineering — the stack that gets you from "I trained a model" to "I shipped one and kept it running."`,
+    },
   ];
 
   for (const a of articles) {
@@ -753,6 +796,27 @@ function seedMasteryPaths() {
       { slug: "entropy-and-information", title: "Entropy ↔ Information", level: "expert", order: 8, pages: ["information-theory"], prereqs: ["statistical-mechanics"], description: "Boltzmann's H meets Shannon's H — the bridge between the two." },
     ],
   });
+
+  // Sprint 55 — Systems engineer path. Distributed training, serving,
+  // monitoring. Closest sibling to ml-engineer; assumes transformer
+  // familiarity (cross-path prereqs link back where relevant in the
+  // lesson bodies).
+  seedMasteryPath({
+    slug: "systems-engineer",
+    title: "Systems Engineer",
+    description:
+      "Distributed training, GPU memory accounting, production serving, monitoring. The infrastructure half of modern ML.",
+    nodes: [
+      { slug: "gpu-architecture", title: "GPU Architecture", level: "apprentice", order: 1, pages: ["gpu-architecture", "tensor-cores", "hbm-memory"], prereqs: [], description: "Tensor cores, HBM bandwidth, memory hierarchy — the substrate everything else runs on." },
+      { slug: "mixed-precision-training", title: "Mixed Precision", level: "apprentice", order: 2, pages: ["mixed-precision", "loss-scaling"], prereqs: ["gpu-architecture"], description: "fp16 vs bf16 vs fp8, loss scaling, gradient stability." },
+      { slug: "data-parallelism", title: "Data Parallelism", level: "practitioner", order: 3, pages: ["data-parallelism", "nccl-collective"], prereqs: ["mixed-precision-training"], description: "DDP, gradient sync, NCCL — the workhorse of multi-GPU training." },
+      { slug: "model-parallelism", title: "Model Parallelism & FSDP", level: "practitioner", order: 4, pages: ["tensor-parallelism", "pipeline-parallelism", "fsdp"], prereqs: ["data-parallelism"], description: "Tensor + pipeline parallelism, FSDP. When the model doesn't fit on one GPU." },
+      { slug: "mlops-experiment-tracking", title: "MLOps & Experiment Tracking", level: "specialist", order: 5, pages: ["mlflow", "experiment-tracking"], prereqs: ["data-parallelism"], description: "Reproducibility, hyperparameter sweeps, the discipline of remembering what you ran." },
+      { slug: "inference-serving", title: "Inference Serving", level: "specialist", order: 6, pages: ["vllm", "paged-attention", "dynamic-batching"], prereqs: ["model-parallelism"], description: "vLLM, PagedAttention, dynamic batching — turning a checkpoint into a service." },
+      { slug: "monitoring-observability", title: "Monitoring & Observability", level: "expert", order: 7, pages: ["model-monitoring", "drift-detection", "slo-budget"], prereqs: ["inference-serving"], description: "Drift, online evaluation, latency SLOs. What 'shipped' actually means." },
+      { slug: "production-failure-modes", title: "Production Failure Modes", level: "expert", order: 8, pages: ["production-failures", "rollback-playbooks"], prereqs: ["monitoring-observability", "mlops-experiment-tracking"], description: "OOM, NaN gradients, silent corruption, rollback playbooks. The list of things that break in production." },
+    ],
+  });
 }
 
 // --- Forum seeding -------------------------------------------------------
@@ -782,6 +846,12 @@ const SEED_DOMAINS = [
     slug: "physics",
     title: "Physics",
     description: "Statistical mechanics, dynamical systems, and beyond.",
+  },
+  {
+    slug: "systems",
+    title: "Systems",
+    description:
+      "Distributed training, serving, monitoring, the infrastructure half of ML.",
   },
 ];
 

@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why serving is its own engineering discipline",
+      "body": "Training optimizes for one number: final loss after N tokens of compute. Inference optimizes for several:\n\n- **Latency** — time from request to response, especially TTFT (time-to-first-token).\n- **Throughput** — total tokens served per second across all users.\n- **Cost** — dollars per million output tokens.\n- **Concurrency** — how many users can hit the same model simultaneously.\n\nThese are in tension. A naive serving stack — load the model, take requests one at a time, generate token-by-token — gets terrible throughput. A 7B model on an H100 might serve 30 tokens/sec to one user, ~30 tokens/sec to 10 users (still single-stream, queue them up), ~30 tokens/sec to 100 users (now they're waiting in line for hours).\n\nModern serving stacks (vLLM, TGI, TensorRT-LLM) are engineered around the specific bottlenecks of LLM inference. This lesson covers the three innovations that changed the game: continuous batching, PagedAttention, and speculative decoding."
+    },
+    {
+      "kind": "text",
+      "title": "Static batching is the wrong primitive",
+      "body": "Vanilla framework serving: collect K requests, batch them, run forward, return results. Two problems:\n\n**Heterogeneous lengths.** Request A wants 50 output tokens; request B wants 500. Static batching either (a) waits for the slowest request before starting the next batch, wasting compute on completed sequences, or (b) ends every request at the shortest length, throwing away usable output.\n\n**Long tail.** Some requests (RAG with long context, code completion with reasoning) take 10× longer than median. Static batching at K=8 with one long-tail request waits 10× as long for the entire batch.\n\n**Continuous batching** (Yu et al. 2022, popularized by vLLM): treat the running batch as a fluid pool. As soon as a sequence in the batch finishes (hits EOS or max length), free its slot and admit a new request. Per-step throughput stays high; latency for individual requests stays low.\n\nThe practical impact: 2-5× throughput on heterogeneous workloads vs static batching. Most modern serving frameworks default to it. If your team is rolling its own inference path, this is the first optimization to add."
+    },
+    {
+      "kind": "text",
+      "title": "PagedAttention: KV cache as virtual memory",
+      "body": "The KV cache stores K and V vectors for every token in every layer. For a 7B model at seq_len 8K, that's:\n\n```\n2 (K + V) × 32 layers × 8K tokens × 32 heads × 128 head_dim × 2 bytes (fp16) ≈ 4 GB per request\n```\n\nServing 100 concurrent requests at 8K context: 400 GB of KV cache. That doesn't fit on an 80GB H100 — even before model weights.\n\nThe naive fix: pre-allocate the maximum KV cache per request. But most requests don't use their full 8K. So static allocation is hugely wasteful — typical utilization in production is <30%.\n\n**PagedAttention** (Kwon et al. 2023, vLLM): treat the KV cache like virtual memory. Allocate it in fixed-size *pages* (16 or 32 tokens each). Maintain a per-request page table. As a request grows, new pages get allocated on-demand from a global pool. As a request finishes, its pages return to the pool.\n\nResult: KV cache utilization in production goes from ~30% to ~95%+. The same hardware serves 4-5× more concurrent requests. Plus a side benefit: shared prefix caching (multiple requests with the same system prompt share their KV cache pages — common for chat assistants with the same instructions)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "is_q1",
+        "kind": "multiple_choice",
+        "question": "Continuous batching gives a serving system 3× higher throughput than static batching on a heterogeneous workload. Why doesn't training use the same approach?",
+        "options": [
+          "Continuous batching is too slow for training",
+          "Training batches are homogeneous (every example contributes to one gradient update; you wait for all of them anyway). The wins from continuous batching come from the heterogeneity of inference — different requests want different output lengths and arrive at different times. Training doesn't have either property",
+          "PyTorch doesn't support it",
+          "Continuous batching breaks gradient computation"
+        ],
+        "correctIndex": 1,
+        "explanation": "Training is synchronous over fixed-size batches because every gradient computation contributes to one optimizer step. Inference is per-request — each request has independent latency requirements + different output lengths + arrives independently. Continuous batching exploits exactly that asynchrony. Training analogs (ZeRO, gradient accumulation) target different problems. This is why serving-stack engineering is genuinely different from training-stack engineering."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Speculative decoding",
+      "body": "Inference is bottlenecked on memory bandwidth, not compute. Loading the 7B-parameter weights from HBM to compute one forward pass takes ~10-20 ms; the matmul itself is much faster.\n\n**Speculative decoding** (Leviathan et al. 2022, Chen et al. 2023): use a small fast \"draft\" model to propose K tokens, then verify all K in parallel with the big model. The big model runs `K` candidates simultaneously, accepts as many as match its own distribution, and rolls back the rest.\n\nThe math: if the draft model agrees with the big model on `α · K` tokens on average, you get an `α · K + 1`-tokens-per-step speedup at the cost of one extra forward pass per K. With well-trained draft models (often a smaller version of the same family), `α ~ 0.7-0.9` is realistic. **Net throughput: 2-3× without any quality loss** (the key trick is the rejection sampling that makes the output indistinguishable from sampling the big model directly).\n\nVariants: Medusa (multiple heads on the same model predict K tokens at once), EAGLE (lightweight draft network), Lookahead (no draft model — uses n-gram patterns from the running context).\n\nWhen it works well: low temperature, deterministic decoding, repetitive content (code, formal text). When it doesn't: high temperature creative writing where draft and big model diverge fast."
+    },
+    {
+      "kind": "text",
+      "title": "The serving stack — putting it together",
+      "body": "A modern production serving stack composes:\n\n1. **vLLM** (or TGI, TensorRT-LLM) for the inference engine: continuous batching + PagedAttention + speculative decoding.\n2. **Tensor parallelism** within a host for low TTFT on a single request (split the matmuls 8-way; first token returns 8× faster).\n3. **Quantization** (INT8 weights via SmoothQuant, INT4 via AWQ/GPTQ) to fit bigger models per GPU and reduce memory bandwidth.\n4. **A request router** in front (often a thin Python service) for auth, rate limiting, prompt sanitization, output filtering.\n5. **A monitoring layer** (next lesson) tracking latency, throughput, error rate per route.\n\nThe right setup depends on workload:\n- **Latency-sensitive** (chat, copilot): TP=8 within host, low concurrency, speculative decoding mandatory.\n- **Throughput-sensitive** (batch eval, async generation): big batch size, no speculative, possibly multi-host with request sharding.\n- **Cost-sensitive** (background jobs, fine-tuning data generation): cheaper hardware (A10G, L40S), aggressive quantization, accept higher latency.\n\nThe wrong setup gets 10× the cost or 10× the latency. Right setup gets you to the throughput-cost frontier."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "is_q2",
+        "kind": "multiple_choice",
+        "question": "Why does PagedAttention specifically improve KV cache utilization (vs the naive 'pre-allocate max sequence length' approach)?",
+        "options": [
+          "PagedAttention compresses the KV cache",
+          "PagedAttention treats the KV cache like OS virtual memory: allocate fixed-size pages on demand as a sequence grows, return them when the sequence finishes. The total free pool is shared across all concurrent requests. Naive pre-allocation reserves max-length space per request even when most requests don't use it; the unused space is wasted",
+          "PagedAttention runs on tensor cores",
+          "PagedAttention reduces model size"
+        ],
+        "correctIndex": 1,
+        "explanation": "The OS analogy is exact: virtual memory + paging vs static allocation. With pages, the system multiplexes requests onto a shared physical pool, achieving high utilization regardless of variable per-request usage. Static allocation has to reserve max-length per request because reallocation mid-sequence is expensive — but max-length is rarely the actual length. PagedAttention's value is that it makes the per-token allocation cheap enough to do on demand."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Inference serving is half the production story. The other half is monitoring — making sure the serving stack stays healthy + the model stays accurate as data drifts.\n\nNext: [[monitoring-observability]] — drift, online evaluation, latency SLOs.\n\nKey takeaways:\n- Inference is memory-bandwidth-bound; throughput optimizations target memory traffic, not compute\n- Continuous batching: pool requests, free slots as they finish; 2-5× throughput on heterogeneous workloads\n- PagedAttention: KV cache as virtual memory; 4-5× more concurrent requests at the same hardware\n- Speculative decoding: draft model proposes, big model verifies; 2-3× throughput at zero quality cost\n- Real serving stacks compose all three with TP, quantization, and a monitoring layer"
+    }
+  ]
+}
