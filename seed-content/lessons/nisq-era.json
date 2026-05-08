@@ -1,0 +1,80 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What NISQ means",
+      "body": "**NISQ = Noisy Intermediate-Scale Quantum** (Preskill 2018). Describes the current era: 50-1000 physical qubits, no error correction, gate fidelities ~99%, decoherence times ~milliseconds.\n\n**Scale**:\n- ~50 qubits: classical simulation becomes hard.\n- ~100-1000 qubits: NISQ regime; useful computation might be possible.\n- Above ~1000 qubits with QEC: fault-tolerant era begins.\n\n**Why 'noisy'**: errors aren't correctable yet. Algorithms must produce useful results despite noise.\n\n**Why 'intermediate-scale'**: large enough to do something interesting; small enough that classical simulation is sometimes feasible.\n\nThe NISQ era is messy. Most algorithms can't run; few results are practically useful; demonstrations are often classically beatable. But it's the experimental ground where techniques are developed for the fault-tolerant future."
+    },
+    {
+      "kind": "text",
+      "title": "Decoherence + noise sources",
+      "body": "**Decoherence**: qubits lose quantum coherence by coupling to the environment. Two characteristic times:\n\n- **T₁ (relaxation time)**: time for |1⟩ to decay to |0⟩. Energy loss to environment. Typical superconducting: ~100 μs.\n- **T₂ (dephasing time)**: time for relative phase information to decay. Often shorter than T₁. Typical superconducting: ~50-200 μs.\n\nGates need to complete well within T₂. Modern superconducting gates take ~10-100 ns; ~1000 gates per coherence time.\n\n**Other noise sources**:\n\n- **Single-qubit gate errors**: ~10^-3 to 10^-4. Limited by control precision.\n- **Two-qubit gate errors**: ~10^-2 to 10^-3. Limited by coupling control.\n- **Measurement errors**: ~10^-2.\n- **Crosstalk**: gates on one qubit affect neighbors.\n- **Leakage**: qubits transition to non-computational states (above |1⟩ for transmons).\n\nTotal error budget: ~few-thousand gates before noise dominates the result. Algorithms must work within this budget."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "nisq_q1",
+        "kind": "multiple_choice",
+        "question": "Why does decoherence limit NISQ-era algorithm depth?",
+        "options": [
+          "Hardware speed",
+          "Decoherence times are ~100 μs (T₂); gates take ~10-100 ns; the maximum number of gates within coherence is ~1000-10000. After this, noise dominates and the result is meaningless. NISQ algorithms (VQE, QAOA) are designed to be SHALLOW circuits to fit within coherence time. Deep circuits like Shor or Grover at scale require fault-tolerance",
+          "Compiler limitations",
+          "Gate set"
+        ],
+        "correctIndex": 1,
+        "explanation": "Decoherence time × gate frequency = max practical circuit depth. NISQ-era algorithms are designed for short circuits (10-100 layers typical). Deep algorithms can't run on NISQ hardware; they require error correction. This is THE central NISQ-era constraint."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Error mitigation (vs error correction)",
+      "body": "**Error correction**: detect + fix errors during computation. Requires fault-tolerant overhead (1000+ physical qubits per logical).\n\n**Error mitigation**: reduce error AFTER computation. Statistical post-processing. Doesn't fix individual results; improves expectation values.\n\n**Why mitigation works for NISQ**: many useful quantities (energies, probabilities) are EXPECTATION VALUES. Even with noisy individual results, careful averaging + extrapolation can give good expectation values.\n\n**Mitigation techniques**:\n\n- **Zero-noise extrapolation (ZNE)**: deliberately INCREASE noise (e.g., by stretching gate durations) at multiple levels; extrapolate to zero noise.\n- **Probabilistic error cancellation (PEC)**: characterize the noise model; sample from a quasi-distribution that cancels noise on average.\n- **Symmetry verification**: check expected symmetries; reject runs that violate them.\n- **Readout error mitigation**: characterize measurement errors; correct via inverse-confusion-matrix transformation.\n- **Dynamical decoupling**: insert pulse sequences that average out specific noise.\n- **Clifford data regression**: train ML models to predict error-free results from noisy ones.\n\n**Combined**: real NISQ workflows use multiple techniques. ZNE + readout correction + symmetry verification is a common stack."
+    },
+    {
+      "kind": "text",
+      "title": "What NISQ can do",
+      "body": "**Demonstrated** (with caveats):\n\n- **Quantum supremacy** (Google 2019, USTC 2020): random-circuit sampling. Demonstrates classical-hard quantum computation. Not practically useful but shows quantum advantage exists.\n- **Variational chemistry** (small molecules): VQE for H₂, LiH, BeH₂, H₄. Energies estimable to chemical accuracy. Mostly classically beatable but useful as testbed.\n- **Optimization toy problems**: QAOA for small MaxCut + portfolio optimization. Currently classically beatable.\n- **Quantum simulation of small lattice models**: Hubbard, Ising. Useful for physics.\n- **Quantum machine learning**: kernel methods, parameterized circuits. Mixed results.\n\n**Practical advantage today**: very limited. Most demonstrations are classically simulable + don't beat classical methods.\n\n**Where advantage might emerge first**:\n- Quantum chemistry of mid-sized molecules (~50-100 electrons): potentially before fault-tolerance.\n- Niche physics simulations.\n- Specific machine-learning kernels.\n\n**The 'useful quantum computing today' claims**: typically overhyped. Real practical advantage in specific domains is plausible by 2027-2030; broad utility awaits fault-tolerance."
+    },
+    {
+      "kind": "text",
+      "title": "Quantum advantage vs supremacy",
+      "body": "**Quantum supremacy** (now sometimes called 'quantum computational advantage'): performing a task no classical computer can complete in reasonable time. Doesn't require the task be USEFUL.\n\n- Google 2019: random circuit sampling on 53 qubits. Classical estimate: 10000 years (later disputed; might be feasible classically).\n- USTC 2020: photonic Gaussian boson sampling.\n- USTC 2021: 60-qubit random circuit sampling.\n- IBM 2023: 127-qubit error-mitigated demonstration.\n\n**Quantum advantage**: doing something USEFUL faster than classical. Stronger claim. NOT yet demonstrated convincingly.\n\n**The classical-simulation arms race**:\n- Each supremacy claim is followed by improved classical methods.\n- IBM's 127-qubit demonstration was beaten by tensor-network methods within months.\n- The 'practical' boundary keeps moving.\n\n**Why it matters**:\n- Supremacy validates that quantum hardware does compute.\n- Advantage is the practical milestone: when does QC start delivering value?\n- 'Quantum utility' is the recent term: useful results, not just speedup.\n\nThe field's honest narrative: quantum supremacy demonstrated; quantum advantage not yet; quantum utility being explored."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "nisq_q2",
+        "kind": "multiple_choice",
+        "question": "What's the difference between error mitigation and error correction?",
+        "options": [
+          "They're the same",
+          "Error correction detects + fixes errors during computation, requiring large physical-qubit overhead for each logical qubit. Error mitigation post-processes noisy results to estimate error-free EXPECTATION VALUES; doesn't fix individual outcomes, but works on current NISQ hardware. Mitigation is the NISQ-era workaround; correction requires fault-tolerance",
+          "Just terminology",
+          "Hardware vs software"
+        ],
+        "correctIndex": 1,
+        "explanation": "Mitigation works for expectation-value tasks (chemistry energies, optimization solutions); doesn't help when you need a specific shot to be correct. Correction is general but requires overhead. NISQ-era workflows mostly use mitigation; fault-tolerance is years away."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "NISQ-era reality",
+      "body": "**The honest NISQ assessment**:\n\n**What's real**:\n- Hardware is genuinely improving. 100→1000+ qubits in 5 years.\n- Error rates are dropping. Mitigation extends usable depth.\n- Algorithms are being co-designed with hardware constraints.\n- Some demonstrations (random sampling) are classically very hard.\n\n**What's hype**:\n- Most 'quantum advantage' claims fall to improved classical methods.\n- VQE / QAOA results haven't beaten classical for any practically interesting problem.\n- 'Quantum machine learning' largely lacks the dramatic speedups its name suggests.\n\n**The strategic position**:\n- NISQ is the experimental period. Develop techniques + algorithms; learn hardware tradeoffs.\n- Useful FT-QC is years away (5-15 by most expert estimates).\n- Practical NISQ utility is plausible in chemistry + simulation; unlikely in general.\n\n**For practitioners**:\n- Investigate quantum approaches in your field; understand current limits.\n- Plan for FT-QC migration (algorithmic + cryptographic).\n- Don't bet today's deployment on quantum advantage.\n- Treat 'quantum X' marketing claims with skepticism.\n\nThe NISQ era is exciting + productive for research. Production deployment of quantum advantage is a future state, not current."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "nisq_explain",
+        "kind": "explain_back",
+        "prompt": "Why is the NISQ era a transitional period rather than a permanent state of quantum computing? What needs to change for quantum computing to deliver broad practical advantage?",
+        "rubricCriteria": [
+          { "id": "nisq-limits", "description": "Names NISQ limitations (noise, no QEC, shallow circuits)" },
+          { "id": "fault-tolerance-path", "description": "Articulates need for fault-tolerance + QEC scaling" },
+          { "id": "timeline", "description": "Acknowledges multi-year (5-15 year) timeline to FT-QC" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}

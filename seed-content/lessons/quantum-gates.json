@@ -1,0 +1,80 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Quantum gates",
+      "body": "Quantum gates are **unitary transformations** acting on qubit states. A unitary `U` satisfies `U†U = I` — it preserves the inner product (and thus normalization).\n\nWhy unitary:\n- Quantum mechanics is reversible (until measurement). Unitary operations are invertible: `U⁻¹ = U†`.\n- Probability conservation: `||U|ψ⟩|| = |||ψ⟩||`. Sum of probabilities stays 1.\n\nGates come in two main flavors: single-qubit (2×2 unitaries) and multi-qubit (controlled gates, larger unitaries). Most algorithms use a small set of standard gates."
+    },
+    {
+      "kind": "text",
+      "title": "Single-qubit gates",
+      "body": "**Pauli gates**:\n\n- **X (NOT)**: `[[0,1],[1,0]]`. Bit flip. `X|0⟩ = |1⟩`.\n- **Y**: `[[0,-i],[i,0]]`. Bit + phase flip.\n- **Z (phase)**: `[[1,0],[0,-1]]`. Phase flip on |1⟩.\n\n**Hadamard (H)**: `(1/√2)[[1,1],[1,-1]]`. Creates superposition: `H|0⟩ = (1/√2)(|0⟩ + |1⟩) = |+⟩`. The most-used single-qubit gate.\n\n**T gate**: `[[1,0],[0,e^{iπ/4}]]`. Phase shift; together with H + CNOT forms a universal gate set.\n\n**S gate**: `[[1,0],[0,i]]`. Like T but quarter rotation.\n\n**Rotation gates** (R_x, R_y, R_z): rotate around the Bloch sphere axes by angle θ. Continuous parameters; used in variational algorithms."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "qg_q1",
+        "kind": "multiple_choice",
+        "question": "What does the Hadamard gate do to |0⟩?",
+        "options": [
+          "Leaves it unchanged",
+          "Maps |0⟩ → (|0⟩ + |1⟩)/√2 — creates an equal superposition. Applying H twice returns to |0⟩ since H is its own inverse. The Hadamard is the most-used gate for putting qubits into superposition; pretty much every quantum algorithm starts with H gates",
+          "Maps |0⟩ → |1⟩",
+          "Phase flip"
+        ],
+        "correctIndex": 1,
+        "explanation": "H is the workhorse for creating superposition from a basis state. H|0⟩ = |+⟩; H|1⟩ = |−⟩. H is its own inverse: HH = I."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Multi-qubit gates",
+      "body": "**CNOT (Controlled-NOT)**: applies X to the target qubit if the control qubit is |1⟩.\n\nMatrix (4×4 in basis |00⟩, |01⟩, |10⟩, |11⟩):\n```\n[[1,0,0,0],\n [0,1,0,0],\n [0,0,0,1],\n [0,0,1,0]]\n```\n\nAction:\n- |00⟩ → |00⟩\n- |01⟩ → |01⟩\n- |10⟩ → |11⟩\n- |11⟩ → |10⟩\n\n**CZ (Controlled-Z)**: applies Z to target if control is |1⟩. Symmetric in control + target.\n\n**Toffoli (CCNOT)**: 3-qubit gate; flips target if both controls are |1⟩. Universal for classical reversible computation; useful for arithmetic.\n\n**SWAP**: exchanges two qubits. Decomposable as 3 CNOTs.\n\nReal quantum hardware has limited gate sets. Compilers decompose arbitrary circuits into native gates."
+    },
+    {
+      "kind": "text",
+      "title": "Universal gate sets",
+      "body": "A **universal gate set** can approximate any unitary to arbitrary precision.\n\n**Common universal sets**:\n- **{H, T, CNOT}**: standard for fault-tolerant quantum computing. T is the 'magic' gate — the source of computational hardness.\n- **{H, S, CNOT, T}**: equivalent.\n- **{R_x(θ), R_y(θ), CNOT}**: continuous gates; standard for variational algorithms.\n\n**Solovay-Kitaev theorem**: any single-qubit unitary can be approximated to error ε by a sequence of `O(log^c (1/ε))` gates from a universal set, where `c ≈ 2`. Polynomial in log of accuracy — efficient enough.\n\n**Why this matters**: real hardware implements only a small set of native gates. Quantum compilers convert algorithms (written abstractly with arbitrary unitaries) into native-gate circuits."
+    },
+    {
+      "kind": "text",
+      "title": "Building circuits",
+      "body": "A **quantum circuit** is a sequence of gates applied to qubits. Visual notation: horizontal lines are qubits; gates are boxes on the lines; time flows left to right.\n\n**Bell state circuit** (creates entanglement):\n1. Start: |0⟩|0⟩.\n2. Apply H to qubit 0: (|0⟩ + |1⟩)/√2 ⊗ |0⟩.\n3. Apply CNOT (control = qubit 0, target = qubit 1): (|00⟩ + |11⟩)/√2 = Bell state.\n\nThis 2-gate circuit produces a maximally entangled state — fundamentally non-classical.\n\n**Algorithm pattern**:\n1. Initialize qubits to |0⟩.\n2. Apply H gates for superposition.\n3. Apply problem-specific gates (oracle / unitary encoding the problem).\n4. Apply transformation gates (QFT, etc.).\n5. Measure.\n\nQiskit, Cirq, PennyLane, Q# all let you write circuits + simulate them + run on real hardware."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "qg_q2",
+        "kind": "multiple_choice",
+        "question": "What does the circuit (H on qubit 0) followed by CNOT(0, 1) starting from |00⟩ produce?",
+        "options": [
+          "|00⟩",
+          "(|00⟩ + |11⟩)/√2 — the Bell state Φ⁺. After H, qubit 0 is in superposition; CNOT entangles qubit 1's value with qubit 0's. Measuring either qubit perfectly correlates with the other. This is the canonical 2-gate entanglement circuit",
+          "|01⟩",
+          "|10⟩"
+        ],
+        "correctIndex": 1,
+        "explanation": "The Bell state Φ⁺ = (|00⟩ + |11⟩)/√2. The simplest entangled state. Used in Bell-inequality experiments, quantum teleportation, dense coding, EPR-pair generation. Created with just one Hadamard + one CNOT."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Hardware reality",
+      "body": "Real quantum hardware imposes constraints:\n\n**Connectivity**: not all qubits can directly interact. Linear chains, 2D grids (IBM), or limited graphs (Google). SWAP gates route qubits to interact.\n\n**Native gates**: each platform has its own gate set. IBM: `R_z, X, √X, CNOT`. Google: `R_z, R_x, CZ`. Compilation converts arbitrary circuits.\n\n**Gate fidelity**: each gate has some error rate. ~99% for single-qubit; ~99% for two-qubit on best hardware (2025). Decoherence limits circuit depth.\n\n**Measurement fidelity**: ~99% but measurement is slow (microseconds vs nanoseconds for gates).\n\n**Hardware platforms**:\n- **Superconducting** (IBM, Google, Rigetti): fast gates; cryogenic; 100s of qubits.\n- **Trapped ions** (IonQ, Quantinuum): high-fidelity; slower gates; 10s-100s of qubits.\n- **Photonic** (Xanadu, PsiQuantum): room temperature; emerging.\n- **Neutral atoms** (QuEra, Pasqal): scalable; 100s-1000s of qubits emerging.\n\nNo single platform has won. Production systems will be a mix."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "qg_explain",
+        "kind": "explain_back",
+        "prompt": "Explain in your own words why quantum gates must be unitary. What goes wrong if we allow non-unitary operations during a quantum algorithm?",
+        "rubricCriteria": [
+          { "id": "reversibility", "description": "Names that quantum mechanics is reversible (between measurements)" },
+          { "id": "probability-conservation", "description": "Connects unitarity to preserving total probability = 1" },
+          { "id": "consequence", "description": "Notes that measurement is the only non-unitary 'operation' allowed; it's special" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}

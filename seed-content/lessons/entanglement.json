@@ -1,0 +1,80 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What entanglement is",
+      "body": "Two qubits are **entangled** if their joint state CANNOT be written as a tensor product of individual states.\n\n**Product state** (NOT entangled):\n`|ψ⟩ = |0⟩ ⊗ |0⟩ = |00⟩`. Each qubit is in a definite state independently.\n\n**Entangled state**:\n`|Φ⁺⟩ = (|00⟩ + |11⟩)/√2`. The qubits cannot be assigned individual states; they're correlated such that measuring one determines the other.\n\nMost 2-qubit states are entangled. The product states form a measure-zero subset of the state space.\n\nEntanglement is the essential resource that makes quantum computation more powerful than classical. Without entanglement, quantum computers offer no advantage over classical."
+    },
+    {
+      "kind": "text",
+      "title": "Bell states",
+      "body": "Four maximally-entangled 2-qubit states form a basis:\n\n- **Φ⁺**: (|00⟩ + |11⟩)/√2.\n- **Φ⁻**: (|00⟩ − |11⟩)/√2.\n- **Ψ⁺**: (|01⟩ + |10⟩)/√2.\n- **Ψ⁻**: (|01⟩ − |10⟩)/√2.\n\nFor each: measuring one qubit perfectly determines the other.\n\n**Φ⁺**: same outcome (00 or 11 with 50/50).\n**Ψ⁻**: opposite outcomes (01 or 10 with 50/50).\n\n**Generation**: starting from |00⟩, apply H to qubit 0 + CNOT (control 0, target 1). For other Bell states, prepend X or Z gates.\n\n**Used in**: quantum teleportation, dense coding, Bell-inequality experiments, EPR-pair generation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ent_q1",
+        "kind": "multiple_choice",
+        "question": "Two qubits are in the Bell state |Φ⁺⟩ = (|00⟩ + |11⟩)/√2. Alice measures her qubit and gets 0. What's the probability Bob's qubit is 1?",
+        "options": [
+          "1/2",
+          "0 — once Alice measures 0, the state has collapsed to |00⟩. Bob's qubit is now definitely 0. The correlation is perfect: same measurement outcome on Φ⁺. This is the 'spooky action at a distance' Einstein objected to (though it doesn't actually allow faster-than-light communication)",
+          "1",
+          "Depends on Bob's basis"
+        ],
+        "correctIndex": 1,
+        "explanation": "Entangled states have perfect correlations. Φ⁺ correlates outcomes; measuring one determines the other. Note: this DOESN'T allow faster-than-light communication because Alice's outcome is random; she can't choose what Bob sees. The no-signaling theorem prevents superluminal communication."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Bell inequalities + non-classicality",
+      "body": "Bell's theorem (1964) is one of the deepest results in physics: ANY local hidden-variable theory must satisfy certain inequalities. Quantum mechanics (and experiments) violate them.\n\n**CHSH inequality** (one form): for any local hidden-variable theory, a particular correlation function `S ≤ 2`. Quantum mechanics achieves `S = 2√2` ≈ 2.83. Experiments confirm.\n\n**Implications**:\n- The world is NOT locally deterministic in the classical sense.\n- Either locality or determinism (or both) must be abandoned.\n- Most physicists abandon both: the world is intrinsically non-classical.\n\n**Loopholes**: experimental tests required closing 'loopholes' (locality, freedom-of-choice, detection efficiency). Loophole-free tests (2015 Hensen et al., others) settled the issue.\n\n**For computing**: entanglement is the resource. Algorithms exploit it for speedups. Without entanglement, quantum computation is no more powerful than classical."
+    },
+    {
+      "kind": "text",
+      "title": "No-cloning theorem",
+      "body": "**No-cloning theorem** (Wootters-Zurek, Dieks 1982): there's NO unitary `U` such that `U|ψ⟩|0⟩ = |ψ⟩|ψ⟩` for arbitrary unknown `|ψ⟩`.\n\nProof: linearity of `U` is incompatible with cloning. `U|0⟩|0⟩ = |0⟩|0⟩` and `U|1⟩|0⟩ = |1⟩|1⟩` would imply `U(|0⟩ + |1⟩)|0⟩ = (|0⟩ + |1⟩)(|0⟩ + |1⟩) = |00⟩ + |01⟩ + |10⟩ + |11⟩` — but linearity says it should be `|00⟩ + |11⟩`. Contradiction.\n\n**Consequences**:\n- Can't make backup copies of unknown quantum states.\n- Quantum error correction has to work without cloning.\n- Quantum cryptography (BB84, E91) becomes possible: eavesdropping necessarily disturbs the state.\n- Distributed computing protocols are very different.\n\n**You CAN clone**: known states (just prepare another). Or copy classical information (which is already a basis state).\n\nThe no-cloning theorem is a fundamental constraint on quantum technology. Workarounds exist (teleportation moves quantum information without copying) but always with strict trade-offs."
+    },
+    {
+      "kind": "text",
+      "title": "Quantum teleportation",
+      "body": "Despite no-cloning, quantum information can be **teleported** from one location to another (with classical communication + a pre-shared entangled pair).\n\n**Setup**: Alice has unknown state `|ψ⟩`. Alice + Bob share Bell pair `|Φ⁺⟩`.\n\n**Procedure**:\n1. Alice performs a Bell-basis measurement on her unknown qubit + her half of Φ⁺.\n2. Alice gets a classical outcome (2 bits).\n3. Alice sends the 2 bits to Bob via classical channel.\n4. Bob applies the corresponding correction (I, X, Z, or XZ) to his qubit.\n5. Bob's qubit is now in state |ψ⟩.\n\n**What teleportation does**:\n- Moves quantum information from Alice to Bob.\n- Destroys Alice's original (consistent with no-cloning).\n- Requires classical communication (so doesn't violate no-faster-than-light).\n- Pre-shared entanglement is the resource consumed.\n\n**Used in**: quantum networks, error correction, quantum repeaters, gate teleportation in fault-tolerant computing."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ent_q2",
+        "kind": "multiple_choice",
+        "question": "Why can't quantum entanglement be used for faster-than-light communication, despite the 'instantaneous' state collapse?",
+        "options": [
+          "Light is faster than entanglement",
+          "Alice's measurement outcomes are RANDOM. She can't choose what Bob sees. Bob sees random outcomes too — there's no signal in his data alone. Only after Alice transmits her outcomes via classical channel can the correlations be observed. Classical channel = light-speed limit. The no-signaling theorem proves this rigorously",
+          "Special relativity",
+          "Error correction"
+        ],
+        "correctIndex": 1,
+        "explanation": "This is the no-signaling theorem. Entanglement provides correlations, not communication. Without classical channel, neither party can distinguish entangled outcomes from ordinary random data. Special relativity is preserved."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Entanglement in algorithms",
+      "body": "Most quantum algorithms generate entanglement deliberately:\n\n- **Grover's algorithm**: amplitude amplification across an entangled superposition.\n- **Shor's algorithm**: QFT exploits entangled register structure.\n- **Variational algorithms**: parameterized circuits create + manipulate entangled states.\n- **Quantum simulation**: simulate entangled many-body systems.\n\n**Entanglement entropy**: a measure of how entangled a state is. Product state: 0. Maximally entangled: log(d) for d-dimensional subsystems.\n\n**Why entanglement matters for advantage**:\n\nClassical simulation of low-entanglement quantum systems is efficient (matrix-product-state methods). It's the high-entanglement regime that's classically hard.\n\nFor quantum advantage, the algorithm must generate + maintain enough entanglement to defeat classical simulation. NISQ-era algorithms walk this line carefully.\n\n**The bottom line**: entanglement isn't a curiosity. It's the resource. Without it, no quantum advantage."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "ent_explain",
+        "kind": "explain_back",
+        "prompt": "Explain in your own words why entanglement is necessary for quantum computational advantage. Address: what unentangled (product-state) computation reduces to, and why entanglement is the resource being exploited.",
+        "rubricCriteria": [
+          { "id": "product-state-classical", "description": "Notes that product states are classically simulable" },
+          { "id": "entanglement-as-resource", "description": "Articulates entanglement as the non-classical resource" },
+          { "id": "algorithmic-implication", "description": "Connects to specific algorithms or problems" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}

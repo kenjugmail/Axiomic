@@ -1203,6 +1203,26 @@ function seedMasteryPaths() {
       { slug: "embodied-ai-frontier", title: "Embodied AI Frontier", level: "expert", order: 9, pages: ["foundation-models-robotics", "vision-language-action", "real-world-deployment"], prereqs: ["learning-based-control"], description: "RT-2, OpenVLA, π-0, the foundation-models-for-robotics era. End-to-end policies + the deployment realities." },
     ],
   });
+
+  // Sprint 62 — Quantum Engineer. Qubits through variational
+  // algorithms + QML. Differentiated cross-domain: ML × quantum.
+  seedMasteryPath({
+    slug: "quantum-engineer",
+    title: "Quantum Engineer",
+    description:
+      "From qubits + superposition to Shor's algorithm, error correction, NISQ-era variational methods, and quantum machine learning. The other side of the computational frontier.",
+    nodes: [
+      { slug: "quantum-foundations", title: "Quantum Foundations", level: "apprentice", order: 1, pages: ["qubit", "quantum-superposition", "bloch-sphere"], prereqs: [], description: "Qubits, superposition, measurement. The quantum substrate every algorithm builds on." },
+      { slug: "quantum-gates", title: "Quantum Gates and Circuits", level: "apprentice", order: 2, pages: ["quantum-gates", "hadamard-gate", "cnot-gate"], prereqs: ["quantum-foundations"], description: "Single-qubit + two-qubit gates, universal gate sets, quantum circuits. The lego pieces of quantum computation." },
+      { slug: "entanglement", title: "Entanglement and Bell States", level: "practitioner", order: 3, pages: ["entanglement", "bell-states", "no-cloning-theorem"], prereqs: ["quantum-gates"], description: "Bell states, entanglement, the no-cloning theorem. The non-classical resource powering quantum advantage." },
+      { slug: "quantum-algorithms", title: "Quantum Algorithms (Foundations)", level: "practitioner", order: 4, pages: ["deutsch-jozsa", "quantum-fourier-transform", "phase-estimation"], prereqs: ["entanglement"], description: "Deutsch-Jozsa, QFT, phase estimation. The building blocks behind every famous quantum algorithm." },
+      { slug: "grover-search", title: "Grover's Algorithm", level: "specialist", order: 5, pages: ["grover-algorithm", "amplitude-amplification"], prereqs: ["quantum-algorithms"], description: "Quadratic speedup for unstructured search. Amplitude amplification as the underlying primitive." },
+      { slug: "shor-factoring", title: "Shor's Algorithm", level: "specialist", order: 6, pages: ["shor-algorithm", "post-quantum-cryptography"], prereqs: ["quantum-algorithms"], description: "Polynomial-time factoring on a quantum computer. The result that motivated post-quantum cryptography." },
+      { slug: "quantum-error-correction", title: "Quantum Error Correction", level: "specialist", order: 7, pages: ["quantum-error-correction", "surface-code"], prereqs: ["entanglement"], description: "Stabilizer codes, surface code, fault-tolerant computation. How to compute despite noise." },
+      { slug: "nisq-era", title: "NISQ Era + Error Mitigation", level: "expert", order: 8, pages: ["nisq", "decoherence", "error-mitigation"], prereqs: ["quantum-error-correction"], description: "Noisy intermediate-scale quantum: hardware noise, decoherence, mitigation techniques. The current reality." },
+      { slug: "variational-and-qml", title: "Variational Algorithms + QML", level: "expert", order: 9, pages: ["vqe", "qaoa", "quantum-machine-learning", "quantum-advantage"], prereqs: ["nisq-era"], description: "VQE, QAOA, parameterized circuits, quantum machine learning. The frontier of useful quantum computation." },
+    ],
+  });
 }
 
 // --- Forum seeding -------------------------------------------------------
@@ -1274,6 +1294,12 @@ const SEED_DOMAINS = [
     title: "Robotics & Control",
     description:
       "PID through SLAM, manipulation, sim-to-real, and end-to-end ML policies — the embodied-AI stack.",
+  },
+  {
+    slug: "quantum",
+    title: "Quantum Computing",
+    description:
+      "Qubits, gates, Shor + Grover, error correction, NISQ-era variational algorithms, QML.",
   },
 ];
 

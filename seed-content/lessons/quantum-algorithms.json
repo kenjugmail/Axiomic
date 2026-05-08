@@ -1,0 +1,80 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What makes quantum algorithms different",
+      "body": "Quantum algorithms exploit three resources that classical algorithms don't have:\n\n1. **Superposition**: process exponentially many inputs in parallel via a single circuit.\n2. **Interference**: amplify desired amplitudes; cancel unwanted ones.\n3. **Entanglement**: correlations across qubits that have no classical analog.\n\n**The catch**: measurement collapses to ONE outcome with probability `|amplitude|²`. The algorithm must arrange amplitudes so the desired outcome is amplified.\n\nThis lesson covers foundational algorithms that demonstrate the techniques: Deutsch-Jozsa (the simplest demonstration), QFT (the workhorse), phase estimation (the building block of Shor)."
+    },
+    {
+      "kind": "text",
+      "title": "Deutsch-Jozsa algorithm",
+      "body": "The simplest demonstration of quantum advantage.\n\n**Problem**: given a function `f: {0, 1}^n → {0, 1}`, promised to be either CONSTANT (f(x) is always 0 or always 1) or BALANCED (f(x) = 0 for exactly half the inputs). Decide which.\n\n**Classical**: in the worst case, you need 2^{n-1} + 1 queries to be certain.\n\n**Quantum**: 1 query.\n\n**Procedure**:\n1. Initialize n qubits to |0⟩^n; one ancilla to |1⟩.\n2. Apply Hadamard to all qubits.\n3. Apply oracle `O_f`: |x⟩|y⟩ → |x⟩|y ⊕ f(x)⟩.\n4. Apply Hadamard to first n qubits.\n5. Measure the first n qubits. If all 0, f is constant; otherwise balanced.\n\n**Why it works**: the oracle imprints `f` on the phase of the superposition. The final Hadamards perform a Fourier-like transform. Constructive interference at |0...0⟩ for constant f; destructive for balanced.\n\n**Limit**: an artificial problem; not practically useful. But it cleanly demonstrates the quantum-advantage mechanism: superposition + interference."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "qa_q1",
+        "kind": "multiple_choice",
+        "question": "Why is Deutsch-Jozsa fundamentally faster than any classical algorithm for the same problem?",
+        "options": [
+          "Quantum is just faster",
+          "Quantum can evaluate f on a superposition of ALL inputs in one query (via the oracle applied to the superposition state). Classical evaluation is sequential — each query checks one input. The Hadamard transform afterwards extracts the global property (constant vs balanced) by interference. Classical can't extract a global property from one local query",
+          "Bigger model",
+          "Compiled differently"
+        ],
+        "correctIndex": 1,
+        "explanation": "This is the canonical quantum-advantage pattern: process all inputs simultaneously via superposition; extract a global property via interference. The trick is that the global property must be encodable as an amplitude pattern; not all problems are."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Quantum Fourier Transform (QFT)",
+      "body": "The quantum analog of the discrete Fourier transform.\n\n**Definition**: `QFT|x⟩ = (1/√N) Σ_y e^{2πi xy/N} |y⟩` where `N = 2^n`.\n\n**Why it matters**:\n- The most useful quantum subroutine.\n- Diagonalizes the shift operator (for finding periodicity).\n- Underlying primitive of Shor's, phase estimation, hidden subgroup problems.\n\n**Circuit**: implementable in `O(n²)` gates (`O(n log n)` with approximation). Compare to classical FFT: `O(N log N) = O(2^n n)`. Exponential speedup in gate count (ignoring oracle costs).\n\n**Key insight**: QFT is fast because qubits store amplitudes; transforming amplitudes is a structural operation. Classical FFT must explicitly compute `N` outputs.\n\n**But**: you can't directly READ the QFT output. Measurement gives one basis state per run, with probability `|amplitude|²`. Useful algorithms (Shor, phase estimation) exploit QFT structure for specific outputs."
+    },
+    {
+      "kind": "text",
+      "title": "Phase estimation",
+      "body": "Given a unitary `U` and one of its eigenstates `|ψ⟩` with eigenvalue `e^{2πiθ}`, estimate `θ`.\n\n**Procedure**:\n1. Prepare counting register of `t` qubits in superposition.\n2. Apply controlled `U^{2^j}` for j = 0, ..., t-1 (each controlled by a counting qubit).\n3. Apply inverse QFT to counting register.\n4. Measure counting register. The result, divided by `2^t`, estimates `θ`.\n\n**Accuracy**: estimates `θ` to `t` bits of precision with high probability. Number of qubits = number of bits of precision.\n\n**Why it matters**:\n- Foundational subroutine for Shor's (factoring), HHL (linear systems), VQE (energy estimation), quantum chemistry.\n- The 'oracle' to QFT for many algorithms.\n\n**Catch**: requires preparation of an eigenstate (often itself a hard problem). Variational algorithms sidestep this with parameterized states."
+    },
+    {
+      "kind": "text",
+      "title": "Hidden Subgroup Problem (HSP)",
+      "body": "A unifying framework for many quantum algorithms.\n\n**Setup**: given an oracle for a function `f: G → S` (G group, S set), where `f(g) = f(h)` iff `gH = hH` for some hidden subgroup `H ≤ G`. Find generators of `H`.\n\n**Why this matters**:\n- **Abelian HSP**: solvable in polynomial time on a quantum computer (using QFT). Includes:\n  - **Period finding**: cycles in `f(x) = a^x mod N` — yields Shor's factoring.\n  - **Discrete log**: finding `x` such that `g^x = h`.\n  - **Simon's problem**: finding hidden XOR mask.\n- **Non-Abelian HSP**: open problem. Polynomial-time algorithms for some cases (dihedral groups partially solved); not known in general.\n\n**Practical implication**:\n- Most known quantum-advantage algorithms reduce to Abelian HSP.\n- Beyond HSP, quantum algorithm design is harder. Grover-like search is the other major paradigm; quantum simulation is a third.\n\nUnderstanding HSP gives you a unified view of much of quantum algorithm design."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "qa_q2",
+        "kind": "multiple_choice",
+        "question": "Why is quantum phase estimation a foundational subroutine for many algorithms?",
+        "options": [
+          "It's just popular",
+          "Many quantum algorithms reduce to estimating eigenvalues of a unitary: factoring (period of modular exponentiation), quantum chemistry (energy levels = eigenvalues of Hamiltonian), HHL (linear-system solving), simulation. Phase estimation is the algorithmic primitive that converts eigenvalue questions into measurement questions",
+          "It's the simplest algorithm",
+          "Hardware support"
+        ],
+        "correctIndex": 1,
+        "explanation": "Phase estimation is to quantum algorithms what FFT is to signal processing — a workhorse subroutine that shows up everywhere. Shor's, HHL, quantum chemistry methods all use it as a building block."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's known and what isn't",
+      "body": "**Known quantum-advantage problems**:\n- **Factoring + discrete log**: Shor's algorithm. Polynomial vs exponential.\n- **Simulating quantum systems**: exponential advantage. The original Feynman motivation.\n- **Unstructured search**: Grover's algorithm. Quadratic speedup.\n- **Linear systems** (under conditions): HHL algorithm. Exponential under specific conditions; no general advantage.\n- **Quantum walks**: speedups for some graph problems.\n- **Topological problems**: knot invariants (Aharonov-Jones-Landau).\n\n**Suspected but not proven**:\n- General optimization problems (TSP, MAX-SAT). Quantum heuristics (QAOA) may help; no provable exponential advantage.\n- General machine learning. Some kernel + clustering methods have provable advantages; broad ML advantage isn't shown.\n\n**Definitely no quantum advantage** (provably or empirically):\n- Decision problems where the input is short. The exponential speedup comes from oracle queries; without oracle structure, no advantage.\n- Most NP-hard problems beyond Grover quadratic speedup.\n\nThe quantum-advantage map is much narrower than popular accounts suggest. Specific algorithms for specific problems — not a universal speed boost."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "qa_explain",
+        "kind": "explain_back",
+        "prompt": "Explain in your own words how a quantum algorithm achieves speedup. Use Deutsch-Jozsa or QFT as a concrete example. Address: superposition, interference, measurement.",
+        "rubricCriteria": [
+          { "id": "superposition-mechanism", "description": "Names that superposition lets one query process many inputs" },
+          { "id": "interference-mechanism", "description": "Articulates that interference amplifies desired outcomes" },
+          { "id": "measurement-constraint", "description": "Acknowledges measurement collapses the state, so algorithms must arrange amplitudes carefully" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}

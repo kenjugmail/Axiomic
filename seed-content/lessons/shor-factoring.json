@@ -1,0 +1,80 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why Shor's algorithm matters",
+      "body": "**Shor 1994** showed that quantum computers can factor large integers in polynomial time.\n\nClassically: best known factoring algorithm is the General Number Field Sieve, sub-exponential time. For 2048-bit RSA keys, factoring takes longer than the age of the universe with current technology.\n\nShor's: `O(n³)` quantum operations for `n`-bit numbers. 2048-bit factoring would take hours on a sufficiently large fault-tolerant quantum computer.\n\n**Implications**:\n- **Breaks RSA**: the factoring assumption underlying RSA security collapses.\n- **Breaks Diffie-Hellman**: the discrete-log assumption collapses (Shor extends to discrete log).\n- **Breaks elliptic-curve cryptography**: ECC's discrete log is also vulnerable.\n- **Most current internet security at risk** once large-scale fault-tolerant QC exists.\n\nThis result drove the field for 30 years. Most current quantum-computing investment + research traces back to factoring."
+    },
+    {
+      "kind": "text",
+      "title": "Reduction to period finding",
+      "body": "Factoring an integer `N` reduces to finding the period of `f(x) = a^x mod N` for random `a` coprime to `N`.\n\n**Why period finding helps**:\n- The period `r` (smallest `r > 0` with `a^r ≡ 1 mod N`) divides `φ(N)` (Euler's totient).\n- If `r` is even and `a^{r/2} ≢ -1 mod N`, then `gcd(a^{r/2} - 1, N)` and `gcd(a^{r/2} + 1, N)` are non-trivial factors of `N`.\n- For random `a`, this works with probability ≥ 1/2.\n\n**Classical period finding**: requires ~`√N` modular exponentiations. Inefficient for large `N`.\n\n**Quantum period finding** (the Shor's core): `O(n³)` operations using QFT. The exponential speedup is here.\n\nThe reduction is purely classical number theory — well-established before Shor. The quantum innovation is fast period finding."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "shor_q1",
+        "kind": "multiple_choice",
+        "question": "Why does Shor's algorithm break RSA but not all of cryptography?",
+        "options": [
+          "RSA is broken; everything quantum",
+          "Shor's breaks problems based on factoring + discrete logarithm (RSA, Diffie-Hellman, ECC). It does NOT break symmetric ciphers (AES — only Grover quadratic speedup applies), hash functions (similarly), or new lattice-based / code-based / multivariate / hash-based cryptosystems. Post-quantum cryptography is designed to be Shor-resistant",
+          "Quantum is unstable",
+          "Just RSA-2048 is broken"
+        ],
+        "correctIndex": 1,
+        "explanation": "Shor breaks specific number-theory-based problems. Symmetric ciphers stay safe (with longer keys for Grover). Post-quantum cryptography (lattice-based, code-based, etc.) is being standardized by NIST to replace vulnerable schemes."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Quantum period finding",
+      "body": "**Procedure**:\n\n1. Set up a counting register of `q` qubits (`q ≈ 2n`) and a target register.\n2. Apply Hadamard to counting register: `|x⟩` for all `x ∈ {0, ..., 2^q - 1}` in superposition.\n3. Apply modular exponentiation as a unitary: `|x⟩|0⟩ → |x⟩|a^x mod N⟩`.\n4. Measure the target register (optional). The counting register collapses to a superposition of values `x` with the same `a^x mod N`. These differ by multiples of the period `r`.\n5. Apply QFT to the counting register.\n6. Measure. The result is `c · 2^q / r` for some integer `c`.\n7. Continued-fraction expansion of `c / 2^q` recovers `r`.\n\n**Why QFT**: the counting register, after step 4, is a superposition with periodicity `r`. QFT extracts the period: the output peaks at multiples of `2^q / r`.\n\n**Repeat**: a few runs typically suffice to nail down `r` with high probability."
+    },
+    {
+      "kind": "text",
+      "title": "Resource requirements",
+      "body": "Shor's algorithm for `n`-bit factoring needs:\n\n- **Logical qubits**: `O(n)` for counting + target registers. For 2048-bit RSA: ~4000 logical qubits.\n- **Gate count**: `O(n³)` for modular exponentiation + QFT. For 2048-bit: ~10^11 gates.\n- **Coherence time**: must maintain entanglement across the full circuit. Minutes-level coherence at gate-level fidelity ~10^-12.\n\n**The catch**: NISQ-era qubits have decoherence times ~milliseconds and gate fidelities ~99%. Running Shor at the scale needed for cryptanalysis requires:\n- **Fault-tolerant quantum computing** with error correction.\n- **Logical qubits**: each needs ~1000-10000 physical qubits for surface-code error correction.\n- **Total physical qubits for 2048-bit RSA**: ~10^7 - 10^8.\n\n**Current largest QCs**: ~1000-10000 physical qubits (2025-2026). Far short of cryptanalytic Shor.\n\n**Timeline estimates**: cryptanalytically-relevant fault-tolerant quantum computers are likely 2030-2040. Active debate among experts."
+    },
+    {
+      "kind": "text",
+      "title": "Post-quantum cryptography",
+      "body": "Shor's existence threatens all currently-deployed asymmetric crypto. The response: **post-quantum cryptography (PQC)** — schemes resistant to both classical + quantum attacks.\n\n**Major families**:\n\n- **Lattice-based**: Kyber (key exchange), Dilithium (signatures). Based on Shortest Vector Problem hardness. NIST-standardized 2024.\n- **Hash-based**: SPHINCS+ (signatures). Based only on hash function security. Stateless; large signatures.\n- **Code-based**: Classic McEliece (key exchange). Based on syndrome-decoding hardness. Large public keys.\n- **Multivariate**: Rainbow (signatures, broken). Based on quadratic-equation hardness.\n- **Isogeny-based**: SIKE (broken in 2022).\n\n**NIST PQC standardization** (2016-2024): three winners (Kyber, Dilithium, SPHINCS+) standardized; Falcon + others in progress.\n\n**Migration**: TLS, SSH, certificates, key agreement, signing — all need PQC migration. Multi-year effort. Some 'harvest now, decrypt later' attacks are happening (capture encrypted traffic now; decrypt when QC exists).\n\n**Hybrid PQC**: combine classical + PQC in transition. Industry standard for 2025-2030+.\n\nThis is where the quantum threat hits the real world today, not in 2035."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "shor_q2",
+        "kind": "multiple_choice",
+        "question": "Why does the cryptographic community care about Shor's algorithm NOW, even though large-scale fault-tolerant quantum computers don't exist yet?",
+        "options": [
+          "Hype",
+          "Harvest now, decrypt later: encrypted traffic captured today can be decrypted by future quantum computers. Long-lived secrets (state-secret communications, code-signing keys) are at risk now. PQC migration takes 5-15 years, so it must start before threat is imminent. Realistic Q-Day estimates 2030-2040 force migration to start in early 2020s",
+          "Performance",
+          "Standards body politics"
+        ],
+        "correctIndex": 1,
+        "explanation": "'Harvest now, decrypt later' is a real threat model. State-level adversaries are believed to be capturing encrypted traffic at scale today. Post-quantum migration is happening NOW even though Shor is decades away. NIST PQC standardization completed 2024; deployment is rolling out 2024-2030."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Practical Shor today",
+      "body": "Shor's at cryptanalytic scale doesn't exist. What CAN current hardware do?\n\n**Demonstrations** (current):\n- Factoring `15 = 3 × 5` (4 qubits): standard demo.\n- Factoring `21 = 3 × 7` (5 qubits): IBM demonstration.\n- Larger demonstrations are mostly tricks (clever ansätze, classical preprocessing).\n\n**'Cheating' Shor**: many published 'Shor demonstrations' include classical preprocessing that gives most of the answer. True end-to-end quantum factoring at scale awaits fault tolerance.\n\n**Hardware path**:\n- 2010s: dozens of qubits.\n- 2020s: hundreds-to-thousands of physical qubits; some fault-tolerant primitives.\n- 2030s: thousands-to-millions of physical qubits + working error correction.\n- 2040s: cryptanalytically-relevant Shor (per most expert estimates).\n\n**Summary**: Shor is theoretically devastating + pre-emptively driving PQC migration; practically not yet demonstrated at scale."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "shor_explain",
+        "kind": "explain_back",
+        "prompt": "Why should organizations migrate to post-quantum cryptography NOW, even though cryptographically-relevant quantum computers don't exist? Address: harvest-now-decrypt-later threats, migration timelines, NIST PQC standards.",
+        "rubricCriteria": [
+          { "id": "harvest-now-threat", "description": "Names the harvest-now-decrypt-later threat model" },
+          { "id": "migration-timeline", "description": "Notes that PQC migration takes years; must start before Q-Day" },
+          { "id": "nist-pqc", "description": "References NIST standardization or PQC families" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}
