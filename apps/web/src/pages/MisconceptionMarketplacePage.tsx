@@ -20,6 +20,7 @@ import type {
   MisconceptionSubmissionListResponse,
 } from "@axiomic/types";
 import { api } from "../lib/api";
+import { Skeleton } from "../components/ui";
 import { useAuthStore } from "../stores/auth";
 
 type SortKey = "votes" | "recent" | "decided";
@@ -167,7 +168,11 @@ export function MisconceptionMarketplacePage() {
       )}
 
       {!data && !error && (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <div className="space-y-3">
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
+        </div>
       )}
 
       {data && data.submissions.length === 0 && (

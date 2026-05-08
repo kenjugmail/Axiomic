@@ -7,6 +7,8 @@ import { useAuthStore } from "../stores/auth";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import { CoachSuggestionCard } from "./ai/CoachSuggestionCard";
 import { AIModelPicker, type ModelOption } from "./ai/AIModelPicker";
+import { AITutorModeSelector } from "./ai/AITutorModeSelector";
+import { starterPromptsFor } from "../lib/starterPrompts";
 
 // Sprint 63f — localStorage key for the per-user model preference.
 const MODEL_STORAGE_KEY = "axiomic.ai.model";
@@ -347,16 +349,11 @@ export function AISidebar({
     }
   };
 
-  // Static fallback prompts, used when there's no proactive suggestion
-  // (e.g. signed-out viewers, or signed-in users with no mistakes /
-  // weak concepts yet). The proactive set takes precedence when
-  // present.
-  const fallbackPrompts = [
-    "Explain this topic simply",
-    "Quiz me on this",
-    "What are the prerequisites?",
-    "Give me a practice problem",
-  ];
+  // Sprint 64b-5 — tier-specific starter prompts. Wiki pages get
+  // conceptual prompts; lessons get slide-focused; research gets
+  // critique-focused; etc. Falls back to a generic 4-prompt list
+  // when tier doesn't match.
+  const fallbackPrompts = starterPromptsFor(tier);
 
   // Visible suggestions = ranked set minus anything the user dismissed
   // this session. Memoize-light: cheap enough to recompute on render.
@@ -367,7 +364,27 @@ export function AISidebar({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed right-0 top-14 bottom-0 w-96 bg-card flex flex-col z-40 shadow-elevated animate-fade-in">
+    <>
+      {/* Sprint 64b — backdrop on mobile so tapping outside the bottom
+          sheet dismisses (mirrors native bottom-sheet UX). */}
+      <div
+        className="fixed inset-0 z-30 bg-background/40 backdrop-blur-[2px] sm:hidden"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <div
+        className="fixed inset-x-0 bottom-0 max-h-[85vh] sm:inset-auto sm:right-0 sm:top-14 sm:bottom-0 sm:max-h-none sm:w-96 bg-card flex flex-col z-40 shadow-elevated rounded-t-xl sm:rounded-none animate-fade-in"
+        role="dialog"
+        aria-label="AI tutor"
+      >
+      {/* Sprint 64b — drag handle bar (visual only on mobile). */}
+      <div
+        className="sm:hidden flex justify-center pt-2 pb-1 cursor-pointer"
+        onClick={onClose}
+        aria-hidden="true"
+      >
+        <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30" />
+      </div>
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border gap-2">
         <div className="min-w-0">
@@ -390,12 +407,14 @@ export function AISidebar({
         </div>
       </div>
 
-      {/* Sprint 30 — tutor mode picker */}
-      <TutorModePicker
+      {/* Sprint 30 — tutor mode picker.
+          Sprint 64b-2 — refreshed: icons + colors + auto badge. */}
+      <AITutorModeSelector
         mode={mode}
         onChange={setMode}
         canMisconception={!!diagnosisId}
         canDebate={!!forumTopicId}
+        autoSelected={hasAutoSelected}
       />
 
       {/* Messages */}
@@ -534,66 +553,11 @@ export function AISidebar({
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-const MODE_LABELS: Record<TutorMode, string> = {
-  socratic: "Socratic",
-  misconception: "Misconception",
-  bridge: "Bridge",
-  debate: "Debate",
-  contribution: "Contribute",
-};
-
-const MODE_HINTS: Record<TutorMode, string> = {
-  socratic: "Asks one question first.",
-  misconception: "Probes a diagnosed misunderstanding.",
-  bridge: "Anchors to what you already know.",
-  debate: "Argues the opposite to stress-test you.",
-  contribution: "Suggests where you could write.",
-};
-
-function TutorModePicker({
-  mode,
-  onChange,
-  canMisconception,
-  canDebate,
-}: {
-  mode: TutorMode;
-  onChange: (m: TutorMode) => void;
-  canMisconception: boolean;
-  canDebate: boolean;
-}) {
-  const all: TutorMode[] = ["socratic", "misconception", "bridge", "debate", "contribution"];
-  return (
-    <div className="px-4 py-2 border-b border-border bg-muted/20">
-      <div className="flex gap-1 flex-wrap">
-        {all.map((m) => {
-          const enabled =
-            (m === "misconception" ? canMisconception : true) &&
-            (m === "debate" ? canDebate : true);
-          const active = mode === m;
-          return (
-            <button
-              key={m}
-              type="button"
-              disabled={!enabled}
-              onClick={() => enabled && onChange(m)}
-              title={MODE_HINTS[m]}
-              className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border transition-colors ${
-                active
-                  ? "border-primary bg-primary/15 text-primary"
-                  : enabled
-                    ? "border-border text-muted-foreground hover:text-foreground"
-                    : "border-border/40 text-muted-foreground/40 cursor-not-allowed"
-              }`}
-            >
-              {MODE_LABELS[m]}
-            </button>
-          );
-        })}
       </div>
-    </div>
+    </>
   );
 }
+
+// Sprint 64b-2 — old TutorModePicker extracted to
+// `./ai/AITutorModeSelector.tsx` with icons, colors, and an auto-
+// selected badge.

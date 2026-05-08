@@ -15,6 +15,7 @@ import {
   X as XIcon,
 } from "lucide-react";
 import { api } from "../lib/api";
+import { toast } from "../stores/toast";
 import type { Lesson, LessonSlide } from "@axiomic/types";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { AiDraftSlideDialog } from "../components/lesson/AiDraftSlideDialog";
@@ -386,6 +387,7 @@ export function LessonEditPage() {
           updatedAt: r.draftUpdatedAt ?? new Date().toISOString(),
           editorUsername: user?.username ?? null,
         });
+        toast.success("Draft saved");
       } else {
         setSavedVersion(r.version);
         setDraftStatus(null);
@@ -394,6 +396,7 @@ export function LessonEditPage() {
           versions: [],
         }));
         setVersions(vr.versions ?? []);
+        toast.success(`Published v${r.version}`);
       }
       // Sprint 40 — successful save reconciles local state with the
       // server, so no further "pull changes" prompt should fire from
@@ -402,6 +405,7 @@ export function LessonEditPage() {
       setIncomingDraft(null);
     } catch (e: any) {
       setError(e?.message ?? "Save failed");
+      toast.error("Save failed", e?.message);
     } finally {
       setSaving(false);
     }
@@ -419,8 +423,10 @@ export function LessonEditPage() {
         versions: [],
       }));
       setVersions(vr.versions ?? []);
+      toast.success(`Draft published as v${r.version}`);
     } catch (e: any) {
       setError(e?.message ?? "Publish failed");
+      toast.error("Publish failed", e?.message);
     } finally {
       setSaving(false);
     }

@@ -110,7 +110,12 @@ export function LessonFromArticleDialog({
         className="absolute inset-0 bg-background/70 backdrop-blur-sm animate-fade-in"
         onClick={onClose}
       />
-      <div className="relative w-full max-w-2xl bg-card border border-border rounded-xl shadow-floating overflow-hidden max-h-[85vh] flex flex-col animate-fade-in">
+      <div
+        className="relative w-full max-w-2xl bg-card border border-border rounded-xl shadow-floating overflow-hidden max-h-[85vh] flex flex-col animate-fade-in"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Turn article into lesson"
+      >
         <div className="px-5 py-3 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-2">
             <GraduationCap className="w-5 h-5 text-primary" strokeWidth={1.8} />

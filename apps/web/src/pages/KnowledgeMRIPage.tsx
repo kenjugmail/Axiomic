@@ -6,9 +6,10 @@
 
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { AlertTriangle, Brain, Flame } from "lucide-react";
+import { AlertTriangle, Brain, Flame, Activity } from "lucide-react";
 import type { KnowledgeMri, KnowledgeMriNode } from "@axiomic/types";
 import { api } from "../lib/api";
+import { EmptyState } from "../components/ui/EmptyState";
 import { useAuthStore } from "../stores/auth";
 import { MriHeatmap } from "../components/mri/MriHeatmap";
 import { MriRadial } from "../components/mri/MriRadial";
@@ -144,16 +145,21 @@ export function KnowledgeMRIPage() {
               </div>
             )}
             {totalNodes === 0 && (
-              <p className="text-xs text-muted-foreground mt-3">
-                No mastery data yet — pick a path on{" "}
-                <Link
-                  to="/paths"
-                  className="text-primary hover:underline"
-                >
-                  /paths
-                </Link>{" "}
-                to start.
-              </p>
+              <EmptyState
+                compact
+                icon={Activity}
+                title="No mastery data yet"
+                description="Pick a path to start practicing."
+                cta={
+                  <Link
+                    to="/paths"
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Browse paths →
+                  </Link>
+                }
+                className="mt-3"
+              />
             )}
           </div>
         </div>

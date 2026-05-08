@@ -34,11 +34,16 @@ export function AiDraftDialog({ tags, onAccept, onClose }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[8vh]">
       <div className="absolute inset-0 bg-background/70 backdrop-blur-sm animate-fade-in" onClick={onClose} />
-      <div className="relative w-full max-w-2xl bg-card border border-border rounded-xl shadow-floating overflow-hidden max-h-[85vh] flex flex-col animate-fade-in">
+      <div
+        className="relative w-full max-w-2xl bg-card border border-border rounded-xl shadow-floating overflow-hidden max-h-[85vh] flex flex-col animate-fade-in"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="ai-draft-title"
+      >
         <div className="px-5 py-3 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" strokeWidth={1.8} />
-            <h2 className="text-base font-semibold">Draft from a prompt</h2>
+            <h2 id="ai-draft-title" className="text-base font-semibold">Draft from a prompt</h2>
           </div>
           <button
             onClick={onClose}

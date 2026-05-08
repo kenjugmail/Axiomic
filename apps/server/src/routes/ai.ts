@@ -18,17 +18,24 @@ import { logger } from "../lib/logger";
 
 const ai = new Hono();
 
-// Rate limiting state (simple in-memory)
-const rateLimits = new Map<string, { count: number; resetAt: number }>();
+// Rate limiting state (simple in-memory).
+// Sprint 64d — exported so /admin/rate-limits can introspect.
+export const rateLimits = new Map<
+  string,
+  { count: number; resetAt: number; rejected: number }
+>();
 
 function checkRateLimit(key: string, max: number, windowMs: number): boolean {
   const now = Date.now();
   const entry = rateLimits.get(key);
   if (!entry || now > entry.resetAt) {
-    rateLimits.set(key, { count: 1, resetAt: now + windowMs });
+    rateLimits.set(key, { count: 1, resetAt: now + windowMs, rejected: 0 });
     return true;
   }
-  if (entry.count >= max) return false;
+  if (entry.count >= max) {
+    entry.rejected++;
+    return false;
+  }
   entry.count++;
   return true;
 }

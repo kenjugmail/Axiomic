@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckCircle2, X, AlertTriangle, XCircle } from "lucide-react";
 import { api } from "../../lib/api";
 import type {
@@ -62,6 +62,15 @@ export function ReproduceDialog({
   const [notes, setNotes] = useState("");
   const [evidenceUrl, setEvidenceUrl] = useState("");
   const [busy, setBusy] = useState(false);
+
+  // Sprint 64a-4 — Escape closes the dialog (a11y).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
   const [error, setError] = useState<string | null>(null);
 
   const submit = async () => {
@@ -89,11 +98,16 @@ export function ReproduceDialog({
         className="absolute inset-0 bg-background/70 backdrop-blur-sm animate-fade-in"
         onClick={onClose}
       />
-      <div className="relative w-full max-w-lg bg-card border border-border rounded-xl shadow-floating animate-fade-in flex flex-col max-h-[80vh]">
+      <div
+        className="relative w-full max-w-lg bg-card border border-border rounded-xl shadow-floating animate-fade-in flex flex-col max-h-[80vh]"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="repro-dialog-title"
+      >
         <div className="px-5 py-3 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5 text-emerald-600" strokeWidth={1.8} />
-            <h2 className="text-base font-semibold">File a reproduction receipt</h2>
+            <h2 id="repro-dialog-title" className="text-base font-semibold">File a reproduction receipt</h2>
           </div>
           <button
             onClick={onClose}

@@ -19,7 +19,9 @@ import { Skeleton } from "../components/ui";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { TutorMount } from "../components/ai/TutorMount";
 import { ArtifactsSection } from "../components/news/ArtifactsSection";
-import { ClaimSelectionPopover } from "../components/news/ClaimSelectionPopover";
+import { SelectionPopover } from "../components/SelectionPopover";
+import { askTutorAction } from "../components/ai/askTutorAction";
+import { MessageSquarePlus } from "lucide-react";
 import { ClaimThreadPanel } from "../components/news/ClaimThreadPanel";
 import { NewsComments } from "../components/news/NewsComments";
 import { ReproduceDialog } from "../components/news/ReproduceDialog";
@@ -539,11 +541,24 @@ export function ResearchPaperPage() {
         and tier-aware reading. <Link to="/research" className="text-primary hover:underline">Browse more</Link>.
       </div>
 
+      {/* Sprint 64b-6 — unified selection popover (replaces the
+          dual-popover from S63g where claim + tutor competed). */}
       {slug && (
-        <ClaimSelectionPopover
+        <SelectionPopover
           rootRef={articleBodyRef}
-          signedIn={!!user}
-          onStart={(quote) => setPendingThreadQuote(quote)}
+          actions={[
+            {
+              id: "discuss-claim",
+              icon: <MessageSquarePlus className="w-3.5 h-3.5" strokeWidth={2} />,
+              label: "Discuss this claim",
+              enabled: !!user,
+              onSelect: (quote) => setPendingThreadQuote(quote),
+            },
+            {
+              ...askTutorAction({ sourcePageSlug: paper.slug }),
+              enabled: !!user,
+            },
+          ]}
         />
       )}
 

@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Plus, Users } from "lucide-react";
 import { useAuthStore } from "../stores/auth";
+import { toast } from "../stores/toast";
+import { Skeleton } from "../components/ui";
 
 interface CohortListItem {
   id: string;
@@ -55,13 +57,16 @@ export function CohortsPage() {
 
   const onJoin = async (slug: string) => {
     try {
-      await fetch(`/api/v1/cohorts/${slug}/join`, {
+      const res = await fetch(`/api/v1/cohorts/${slug}/join`, {
         method: "POST",
         credentials: "include",
       });
+      if (!res.ok) throw new Error("Join failed");
       await load();
+      toast.success("Joined cohort");
     } catch (e: any) {
       setError(e?.message ?? "Join failed");
+      toast.error("Join failed", e?.message);
     }
   };
 
@@ -107,7 +112,11 @@ export function CohortsPage() {
         </p>
       )}
       {items === null && !error && (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <div className="space-y-2">
+          <Skeleton className="h-16" />
+          <Skeleton className="h-16" />
+          <Skeleton className="h-16" />
+        </div>
       )}
       {items && items.length === 0 && (
         <p className="text-sm text-muted-foreground">
@@ -248,8 +257,10 @@ function CreateCohortForm({
         throw new Error(data?.error ?? "Failed to create");
       }
       onCreated();
+      toast.success("Cohort created");
     } catch (e: any) {
       setError(e?.message ?? "Failed to create");
+      toast.error("Couldn't create cohort", e?.message);
     } finally {
       setBusy(false);
     }
