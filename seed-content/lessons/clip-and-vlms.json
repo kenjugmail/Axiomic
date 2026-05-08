@@ -1,0 +1,67 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "CLIP — vision and language in one space",
+      "body": "**CLIP** (Contrastive Language-Image Pretraining, Radford 2021) trains an image encoder and a text encoder jointly so that matched (image, caption) pairs end up close in the shared embedding space.\n\nArchitecture:\n- **Image encoder**: ViT or ResNet → image embedding `e_i ∈ R^d`.\n- **Text encoder**: transformer (similar to GPT-2 small) → text embedding `e_t ∈ R^d`.\n- Both encoders' outputs are L2-normalized.\n\nLoss: contrastive across a batch.\n```\nFor batch of N (image, text) pairs:\n  Compute N×N similarity matrix S_ij = e_i · e_j\n  CrossEntropy on rows: positives are diagonal (S_ii)\n  CrossEntropy on columns: same\n  Total = (row_loss + col_loss) / 2\n```\n\nTrain on 400M (image, caption) pairs scraped from the web. The result: an image encoder that **understands natural language** and a text encoder that **understands images** — both via the shared space."
+    },
+    {
+      "kind": "text",
+      "title": "Zero-shot classification with CLIP",
+      "body": "CLIP's killer feature: **zero-shot classification**. To classify an image into one of N categories, you don't need any training data:\n\n```python\nimage_emb = clip_image_encoder(image)\ntext_embs = [clip_text_encoder(f\"a photo of a {label}\") for label in labels]\nsimilarity = [image_emb · t for t in text_embs]\nprediction = labels[argmax(similarity)]\n```\n\nThe text prompts are the 'classifier'. Replace them with new ones to classify into new categories.\n\n**Performance**: zero-shot CLIP on ImageNet gets ~76% top-1 accuracy (CLIP ViT-L/14, 2021). Beat the supervised ResNet-50 baseline. With zero ImageNet training data.\n\n**Why this works**: contrastive pretraining on (image, caption) data makes the image embedding semantically meaningful in the same way captions are. The model learned to associate visual concepts with their linguistic descriptions.\n\n**Prompt engineering matters**: 'a photo of a {label}' beats just '{label}' by several points. CLIP was pretrained on natural-language captions; matching that distribution helps. Ensembling prompts ('a photo', 'a sketch', 'a painting') further helps."
+    },
+    {
+      "kind": "text",
+      "title": "Modern VLMs — beyond CLIP",
+      "body": "CLIP is great for image-text similarity but limited for **generation**: it can tell you which caption matches an image, not generate a new caption.\n\n**Modern Vision-Language Models (VLMs)** combine an image encoder with a generative LLM:\n\n```\nimage → image_encoder → image_tokens\ntext → tokenize → text_tokens\nfull_input = image_tokens + text_tokens\nLLM → generate response\n```\n\nThe image encoder is often CLIP's vision tower (ViT). The LLM is GPT-4-class. The 'image tokens' are typically 256-1024 patch embeddings projected into the LLM's token embedding space via a small adapter.\n\n**Examples**:\n- **GPT-4V**: GPT-4 + visual tower. Closed; SOTA on most multimodal benchmarks.\n- **Gemini**: Google's frontier multimodal.\n- **LLaVA**: open-source, smallest viable VLM. ViT vision tower + Llama LM + linear projection.\n- **Qwen-VL, InternVL**: open-source, larger.\n- **Claude 3 with vision**: Anthropic's, mostly closed.\n\nThe pattern: pretrain a strong CLIP-style vision tower, then bolt onto a strong LLM via an adapter, fine-tune the adapter (and sometimes the LLM) on (image, text-instruction, text-response) data."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "clip_q1",
+        "kind": "multiple_choice",
+        "question": "Why does CLIP enable zero-shot classification but not zero-shot caption generation?",
+        "options": [
+          "CLIP's text encoder is too small",
+          "CLIP is trained as an embedder, not a generator. It learns 'is this caption close to this image' (a similarity score), not 'given this image, what caption would be likely' (a generative model). For caption generation you need a language model conditioned on the image — which is what modern VLMs do by feeding CLIP's image embedding into a separate LLM",
+          "CLIP doesn't have a vocabulary",
+          "Captions require a different architecture"
+        ],
+        "correctIndex": 1,
+        "explanation": "Embedding vs generation is a fundamental architectural distinction. CLIP gives you a similarity-aware vector space; you can rank pre-existing texts against an image but can't synthesize new ones. Generation requires an autoregressive language model conditioned on the image. Modern VLMs combine both: CLIP-style vision encoder + LLM decoder. Each part does what it's good at."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "The architecture wars in VLMs",
+      "body": "How exactly should images be fed into a language model? Three main approaches:\n\n**1. Cross-attention** (Flamingo, BLIP-2): the LLM has dedicated cross-attention layers that attend to image features. Image tokens never enter the language model's main token stream.\n\n- Pro: clean separation; pretrained LLM can be frozen.\n- Con: extra parameters; more complex.\n\n**2. Token concatenation** (LLaVA, GPT-4V style): project image features to LLM token embedding space; concatenate with text tokens. The LLM sees a sequence of '256 image tokens, then text tokens'.\n\n- Pro: simple; uses the LLM's existing self-attention.\n- Con: image tokens consume context window; LLM training data didn't have these tokens.\n\n**3. Q-Former / resampler** (BLIP-2, Qwen-VL): use a small transformer to compress many image patches into a fixed number of 'query tokens' that the LLM consumes.\n\n- Pro: fixed image-token count; flexible compression.\n- Con: extra model component; another thing to train.\n\nMost open-source VLMs in 2024-2025 use **token concatenation** (#2) because it's the simplest and works well at scale. Frontier models use mixes; details often closed."
+    },
+    {
+      "kind": "text",
+      "title": "Training a VLM",
+      "body": "Modern VLM training is multi-stage:\n\n**Stage 1: Vision encoder pretraining**. CLIP-style contrastive on web image-caption pairs. Often skipped if reusing an existing encoder (LLaVA reuses OpenAI CLIP-L/14).\n\n**Stage 2: Cross-modal adapter pretraining**. Freeze the vision encoder + LLM. Train only the adapter (linear projection or Q-Former). Data: (image, caption) pairs. Objective: standard LM loss — predict the caption tokens given the image tokens.\n\n**Stage 3: Visual instruction tuning**. Unfreeze (some of) the LLM. Train on (image, instruction, response) triples. The instructions are diverse: describe, count, identify, reason, follow chained instructions. Data: GPT-4-generated instruction sets, manual curation. The result: a VLM that follows visual instructions, not just describes images.\n\n**Stage 4 (optional): RLHF on multimodal preferences**. Apply the standard RLHF recipe to refine helpfulness, refuse harmful queries, etc. Costs more; not always done.\n\nCompute: stages 1-2 are the heavy lifts. Modern open-source VLMs (LLaVA-1.5) train stage 2 on 600K image-caption pairs in a few hours on 8 GPUs. Stage 3 needs more curated data but less compute. Frontier-scale (GPT-4V, Gemini) is much more.",
+      "extra": ""
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "clip_q2",
+        "kind": "multiple_choice",
+        "question": "Why do most open-source VLMs use the simple 'project image features to text-token-space, concatenate' approach (#2) over Flamingo-style cross-attention (#1)?",
+        "options": [
+          "Cross-attention is mathematically incorrect",
+          "Token concatenation is simpler to implement, simpler to reason about, and lets the LLM's full self-attention apparatus work on multimodal sequences without adding new architecture. Cross-attention requires modifying the LLM's layers, which is harder to do without training instability. The trade-off is image tokens eating context length, but at typical sizes (256 image tokens for a 4K-context LLM) this is acceptable",
+          "It's faster to compute",
+          "It produces better results"
+        ],
+        "correctIndex": 1,
+        "explanation": "Engineering simplicity wins again. Token concatenation lets you bolt a vision encoder onto any LLM without modifying the LLM's architecture — change just the input embedding layer to handle the projected image tokens. This is why LLaVA could be trained quickly and why most open-source VLMs use this approach. Cross-attention is more elegant but requires new parameters in the LLM and careful training. At today's scale, simple wins."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "CLIP + VLMs are vision-meets-language. The next lesson covers the other major direction in modern multimodal: image generation via diffusion.\n\nNext: [[diffusion-models]] — forward + reverse processes, DDPM, score matching.\n\nKey takeaways:\n- CLIP: image + text encoders trained contrastively on 400M (image, caption) pairs\n- Zero-shot classification by ranking text prompts against image embedding\n- Modern VLMs: CLIP vision tower + LLM + adapter\n- Architecture choices: cross-attention, token concat, Q-Former. Concat is the open-source default\n- VLM training is multi-stage: vision pretrain → adapter pretrain → instruction tune → optional RLHF"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Combining modalities",
+      "body": "A multimodal model combines two or more modalities (image + text, audio + text, image + audio + text). The architectural question: **how should the modalities interact?**\n\nThree dominant patterns:\n\n1. **Early fusion**: combine modalities at the input layer. Both go through the same transformer.\n2. **Late fusion**: process each modality independently; combine only at the output. CLIP-style.\n3. **Attention-based fusion (cross-attention)**: one modality's tokens attend into another's. Asymmetric.\n\nEach has strengths. Modern VLMs use early fusion; modern retrieval models use late fusion; some specialized architectures use cross-attention. This lesson maps the design space."
+    },
+    {
+      "kind": "text",
+      "title": "Late fusion — CLIP",
+      "body": "**Late fusion**: separate encoders for each modality; combine only at the very end (typically via dot product in a shared embedding space).\n\nCLIP is the canonical example:\n```\nimage → image_encoder → image_emb (d-dim)\ntext → text_encoder → text_emb (d-dim)\nsimilarity = image_emb · text_emb\n```\n\nThe two encoders never see each other's intermediate features. Each learns a representation; they're aligned only at the embedding level via the contrastive loss.\n\n**Pros**:\n- **Modular**: encoders can be replaced independently.\n- **Indexable**: image embeddings can be precomputed; retrieval at scale is fast (just dot products against text embeddings).\n- **Cheap inference**: each encoder runs once; the comparison is a single multiply.\n\n**Cons**:\n- **No fine-grained alignment**: can't say which part of the image matches which part of the text. The interaction is purely at the global representation level.\n- **Limited reasoning**: 'how many cats are in this image?' is awkward — late fusion captures global semantics, not compositional structure.\n\nBest for: retrieval, zero-shot classification, similarity-based tasks."
+    },
+    {
+      "kind": "text",
+      "title": "Early fusion — modern VLMs",
+      "body": "**Early fusion**: project both modalities into a shared token-space; feed them into one transformer that attends across modalities.\n\nLLaVA-style:\n```\nimage → image_encoder → image_features\nimage_features → linear_projection → image_tokens (in LLM token-embedding space)\ntext → tokenize → text_tokens\nfull_input = [image_tokens, text_tokens]\nfull_input → LLM → response_tokens\n```\n\nThe LLM processes a sequence that contains both image and text tokens; self-attention naturally handles cross-modal interactions.\n\n**Pros**:\n- **Compositional reasoning**: the model can ask 'is the cat next to the dog?' — early fusion lets the relevant image regions interact with the relevant text tokens.\n- **Generative**: can generate text grounded in the image.\n- **Uses LLM machinery**: leverages the LLM's existing pretraining for language understanding.\n\n**Cons**:\n- **Expensive at inference**: every query reprocesses the whole multimodal sequence.\n- **No retrieval support**: can't precompute image embeddings for fast similarity search.\n- **Image tokens consume context**: 256-1024 image tokens eat into the LLM's context window.\n\nBest for: VQA, instruction-following, image captioning, multimodal chat. The dominant pattern for modern VLMs."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "fusion_q1",
+        "kind": "multiple_choice",
+        "question": "Why is CLIP-style late fusion preferred for image search but not for visual question answering?",
+        "options": [
+          "Late fusion has more parameters",
+          "Search needs fast retrieval (precompute embeddings, dot-product scoring) which late fusion supports cleanly. Visual question answering needs compositional reasoning ('which animal is taller?') which requires fine-grained interaction between image regions and text — late fusion's single dot-product can't capture that. Early fusion's shared transformer attention is the right tool for VQA",
+          "Late fusion can't process images larger than 224×224",
+          "VQA doesn't need any fusion"
+        ],
+        "correctIndex": 1,
+        "explanation": "Match architecture to task. Retrieval = global similarity = late fusion's strength. Compositional reasoning = fine-grained interaction = early fusion's strength. Trying to use the wrong architecture costs accuracy: CLIP on VQA is poor; an early-fusion VLM is overkill (and slow) for billion-image retrieval. Modern systems use both: CLIP-style retrieval to surface candidate images, then a VLM for reasoning over the retrieved set."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Cross-attention fusion — Flamingo",
+      "body": "**Cross-attention fusion**: a middle ground. The LLM's main token stream stays text-only; dedicated cross-attention layers attend to image features.\n\nFlamingo-style (DeepMind 2022):\n```\nimage → vision_encoder → image_features\ntext → tokenize → text_tokens\nLLM forward pass:\n    for each layer:\n        self_attention(text_tokens)              # standard text self-attention\n        cross_attention(text_tokens, image_features)  # text attends to image\n        FFN(text_tokens)\n```\n\nKey property: image features never enter the text token stream. They're a separate input that the cross-attention layers read.\n\n**Pros**:\n- **Pretrained LLM stays frozen**: the cross-attention layers are added; the original LLM is untouched. Cheaper to train.\n- **Image-feature decoupling**: the image features can be processed once and accessed by all cross-attention layers.\n- **Many images in one prompt**: easy to handle interleaved (text, image, text, image) inputs.\n\n**Cons**:\n- **More parameters**: cross-attention layers add up.\n- **More complex**: the architecture has more moving parts.\n\nFlamingo, BLIP-2, and Gemini Pro use variants. Open-source has mostly converged on early-fusion (token concat, LLaVA-style) because of its simplicity, but Flamingo's design is conceptually clean and resurfaces in research."
+    },
+    {
+      "kind": "text",
+      "title": "Fusion in practice: choosing for your task",
+      "body": "A practical decision tree:\n\n**Retrieval / similarity** (image search, deduplication, classification): **late fusion (CLIP-style)**. Precompute embeddings; index for fast lookup. The dominant pattern for any task where you need to compare against many candidates.\n\n**VQA / reasoning / chat**: **early fusion (token concat)**. The LLM handles cross-modal attention; reuses its pretraining. LLaVA, Qwen-VL, Idefics. The default for open-source VLMs.\n\n**Long-context multimodal** (interleaved images + text, video + text): **cross-attention (Flamingo-style)** or hybrid. Image features are kept separate from text to manage context length. Frontier multimodal (Gemini, GPT-4V at long inputs) uses some variant.\n\n**Generation** (text-to-image, image-to-text): typically a separate generative architecture (diffusion for image generation, autoregressive LLM for caption generation), but the conditioning often uses cross-attention internally.\n\n**Multi-stage pipelines**: retrieve with late fusion, then reason with early fusion. This is what most production multimodal apps do — index millions of images with CLIP, then run VLM reasoning on the top-k retrieved.",
+      "extra": ""
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "fusion_q2",
+        "kind": "multiple_choice",
+        "question": "What's the typical recipe for production-scale multimodal applications (e.g., 'find images and explain them')?",
+        "options": [
+          "Pure early fusion",
+          "Pure late fusion",
+          "Hybrid: late fusion (CLIP-style) for retrieval at scale, then early fusion (VLM) for reasoning over the top-k retrieved. The two fusion strategies have complementary strengths — retrieval needs fast indexing, reasoning needs fine-grained attention. Most production multimodal apps use this two-stage pattern",
+          "Pure cross-attention"
+        ],
+        "correctIndex": 2,
+        "explanation": "Hybrid pipelines exploit each fusion type for what it's good at. CLIP gives sub-second retrieval over a million-image index. The retrieved top-k (typically 10-100) is then processed by a VLM for reasoning. This is how real multimodal search engines, document QA over images, and most enterprise multimodal apps work. Pure CLIP can't reason; pure VLM can't index at scale; hybrid wins."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Fusion is the architectural decision. The final lesson covers evaluation — how do you measure whether a multimodal model is any good?\n\nNext: [[multimodal-evaluation]] — VQA benchmarks, hallucination, eval methodology.\n\nKey takeaways:\n- Late fusion (CLIP): independent encoders + similarity. Best for retrieval\n- Early fusion (LLaVA): unified transformer over both modalities. Best for reasoning\n- Cross-attention (Flamingo): image features kept separate; dedicated cross-attention layers. Best for long-context\n- Match architecture to task; don't reach for the most powerful pattern when a simpler one fits\n- Production typically uses hybrid pipelines: CLIP retrieval + VLM reasoning"
+    }
+  ]
+}

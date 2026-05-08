@@ -1,0 +1,72 @@
+{
+  "slug": "train-a-vit-from-scratch",
+  "title": "Train a Vision Transformer from scratch",
+  "summary": "Implement ViT from numpy + PyTorch on CIFAR-10 then ImageNet-100. Compare against a small CNN baseline. Understand exactly why ViTs need data + scale, and what an MAE-style pretraining schedule buys.",
+  "estimatedWeeks": 5,
+  "coverEmoji": "🖼️",
+  "accentColor": "violet",
+  "tags": ["multimodal", "vit", "vision", "from-scratch"],
+  "prerequisiteWikiSlugs": ["vit", "patch-embeddings", "convolutions", "image-tensors"],
+  "canonicalTier": "undergrad",
+  "contentIntro": "## What you'll build\n\nFour milestones: a working Vision Transformer trained from scratch + a CNN baseline + an MAE pretraining experiment + an analysis of when each architecture wins.\n\n- ViT-Tiny on CIFAR-10\n- CNN baseline (ResNet-18 small) on the same dataset\n- MAE pretraining + fine-tune\n- Scale-vs-quality analysis on ImageNet-100\n\nBy the end you understand why ViTs match CNNs at scale, where they don't, and what self-supervised pretraining buys.\n\n[[vit]] · [[patch-embeddings]] · [[convolutions]]",
+  "contentUndergrad": "## What you'll build\n\nFour milestones, ~5 weeks. PyTorch + a single GPU (16GB+ recommended). The model is small (~5M params for ViT-Tiny); the experiment is the point, not the scale.\n\nDatasets: CIFAR-10 (60K images, 10 classes) for fast iteration; ImageNet-100 (~130K images, 100 classes) for the scale-vs-quality milestone.\n\n[[vit]] · [[patch-embeddings]] · [[convolutions]] · [[image-tensors]]",
+  "contentGrad": "## What you'll build\n\nA reference ViT implementation + an empirical analysis your team would consult when deciding 'CNN or ViT for our task'. Defense covers: the data scale at which ViTs cross over CNNs, why MAE pretraining helps so much, and the architectural design choices (patch size, position embeddings, MLP ratio) that affect quality.",
+  "milestones": [
+    {
+      "title": "ViT-Tiny on CIFAR-10",
+      "description": "Implement a Vision Transformer from scratch:\n\n1. **Patch embedding**: Conv2d with kernel = stride = patch_size (try 4×4 and 8×8 for 32×32 CIFAR images).\n2. **Position embeddings**: learned 1D, one per patch position.\n3. **[CLS] token**: learnable token prepended to the sequence.\n4. **Transformer blocks**: standard self-attention + MLP. 6-12 layers; d_model = 192-384; heads = 3-6.\n5. **Classification head**: linear layer on the [CLS] token output.\n\nTrain on CIFAR-10 (60K images, 50 epochs, AdamW, cosine LR). Measure:\n- Top-1 accuracy.\n- Wall-clock time.\n- Compare patch sizes 4×4 vs 8×8 vs 16×16 (the last gives only 4 patches; expect bad).\n\nIn your writeup: a model architecture diagram + training curves + accuracy table by patch size.",
+      "rubric": {
+        "criteria": [
+          { "id": "implementation", "weight": 0.5, "description": "Working ViT.", "aiPrompt": "Score whether the ViT implementation is correct: patch embedding via Conv2d, learned position embeddings, [CLS] token, standard transformer blocks. Common bugs: missing layer norm at the end, wrong attention mask, incorrect [CLS] handling." },
+          { "id": "experiments", "weight": 0.3, "description": "Patch-size ablation.", "aiPrompt": "Score whether the experiments compare different patch sizes meaningfully and the writeup explains the trade-off (smaller patches → more tokens → quadratic attention cost; larger → fewer tokens → coarser features)." },
+          { "id": "writeup", "weight": 0.2, "description": "Architecture clarity.", "aiPrompt": "Score the writeup's architecture diagram + training curves." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "title": "CNN baseline on the same dataset",
+      "description": "Implement a small ResNet (8-18 layers) and train on the same CIFAR-10 setup. Same training time budget as ViT.\n\nMeasure:\n- Top-1 accuracy.\n- Wall-clock per epoch.\n- Final model size (parameters).\n\nIn your writeup: side-by-side comparison. Expect CNN to win on CIFAR-10 — small dataset, CNN's inductive bias acts as regularization. ViT typically loses by 2-5%.\n\nThis milestone is the 'inductive bias matters at small scale' empirical result. Make it clear in the writeup: at this scale, the CNN wins. We'll see what changes at larger scale in the next milestone.",
+      "rubric": {
+        "criteria": [
+          { "id": "baseline", "weight": 0.5, "description": "Working ResNet baseline.", "aiPrompt": "Score whether the ResNet is implemented correctly: residual blocks, batch normalization, standard CNN structure." },
+          { "id": "comparison", "weight": 0.3, "description": "Side-by-side comparison.", "aiPrompt": "Score whether the comparison is fair: same training time, same hyperparameter budget, same data. Is the analysis clear?" },
+          { "id": "writeup", "weight": 0.2, "description": "Inductive bias discussion.", "aiPrompt": "Score the writeup's discussion of why CNN wins on small data." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 5
+    },
+    {
+      "title": "MAE pretraining + fine-tune",
+      "description": "Implement Masked Autoencoder (MAE) pretraining for your ViT-Tiny:\n\n1. **Encoder**: only sees ~25% of patches (75% masked).\n2. **Decoder**: lightweight transformer that reconstructs the masked patches' pixel values from the encoder's features + mask tokens.\n3. **Loss**: MSE on the masked patches' pixel values.\n4. **Pretrain**: 100-200 epochs on CIFAR-10 (or unlabeled images).\n5. **Fine-tune**: replace decoder with classification head; fine-tune on labeled CIFAR-10.\n\nMeasure:\n- Pretrain loss curve.\n- Fine-tune accuracy vs from-scratch ViT.\n\nExpected: MAE-pretrained ViT outperforms from-scratch ViT by 3-7%. Sometimes catches the CNN; sometimes not.\n\nIn your writeup: pretraining + fine-tuning curves; comparison with from-scratch ViT and CNN baseline.",
+      "rubric": {
+        "criteria": [
+          { "id": "mae_implementation", "weight": 0.5, "description": "Working MAE.", "aiPrompt": "Score whether MAE is implemented correctly: 75% masking, lightweight decoder with mask tokens, MSE on masked patches." },
+          { "id": "comparison", "weight": 0.3, "description": "Pretraining benefit measured.", "aiPrompt": "Score whether the experiment shows clear quantitative improvement from MAE pretraining over from-scratch ViT." },
+          { "id": "writeup", "weight": 0.2, "description": "Discussion of self-supervised benefits.", "aiPrompt": "Score the writeup's analysis of why MAE pretraining helps." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 9
+    },
+    {
+      "title": "Scale-vs-quality on ImageNet-100",
+      "description": "Repeat the ViT vs CNN comparison on ImageNet-100 (130K images, 100 classes). Standard 224×224 resolution.\n\nThree configurations:\n- ViT-Tiny from scratch.\n- ViT-Tiny with MAE pretraining (100 epochs pretrain on the unlabeled subset, then fine-tune).\n- ResNet-18 from scratch.\n\nMeasure top-1 + top-5 accuracy. Expected ordering: ViT-Tiny + MAE ≈ ResNet-18 > ViT-Tiny from scratch.\n\nFinal report:\n\n1. **Comparison table**: rows = (ViT scratch, ViT + MAE, CNN). Columns = CIFAR-10 acc, ImageNet-100 acc, training time.\n2. **Discussion**: at what dataset scale does the ViT cross over the CNN? What does MAE pretraining buy at each scale?\n3. **Recommendation**: for a hypothetical team training a vision model with 50K images, what would you recommend? What about 5M images? Defend with the data.\n\nThis milestone is the synthesis. Show that the inductive-bias-vs-flexibility trade-off is real and visible in your own experiments.",
+      "rubric": {
+        "criteria": [
+          { "id": "experiments", "weight": 0.4, "description": "Three architectures trained on ImageNet-100.", "aiPrompt": "Score whether all three configurations are trained correctly with comparable hyperparameters and resources." },
+          { "id": "analysis", "weight": 0.3, "description": "Cross-over analysis.", "aiPrompt": "Score the cross-over analysis: at what scale does ViT match CNN? Is the analysis defensible?" },
+          { "id": "recommendation", "weight": 0.3, "description": "Engineering recommendation.", "aiPrompt": "Score the recommendation: for hypothetical scenarios, does the choice match the empirical evidence?" }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 9
+    }
+  ]
+}

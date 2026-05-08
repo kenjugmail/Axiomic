@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "vit",
+  "key": "vit-needs-pretraining-from-millions",
+  "label": "ViTs only work after pretraining on millions of images",
+  "description": "The original ViT paper (Dosovitskiy 2020) showed ViT lagging CNNs on ImageNet (1.3M images) but matching them after pretraining on JFT-300M (Google's internal 300M-image dataset). The takeaway became 'ViTs need huge data'.\n\nDeiT (Touvron 2021) overturned this. With:\n- Heavy data augmentation (RandAugment, Mixup, CutMix)\n- Long training (~300 epochs)\n- A distillation token from a CNN teacher\n\nDeiT-Large matched or exceeded ViT-Large on ImageNet alone — no JFT-300M needed.\n\n**The actual story**:\n\n- **Naive ViT** on small data underperforms CNN.\n- **ViT with proper recipe** (augmentation + distillation + long training) on small data matches CNN.\n- **ViT pretrained on huge data + fine-tuned** beats CNN.\n\nThe 'ViTs need millions of images' claim was a finding about the *original* training recipe, not an inherent limitation of the architecture. Modern ViTs work fine on small datasets if you give them enough augmentation and training time.\n\nFor practical training: don't avoid ViT just because your dataset is small. Use DeiT's recipe + careful augmentation. ConvNeXt (a 'modernized' CNN with similar tricks) is competitive but ViT isn't strictly worse at small scale anymore.\n\nThe broader lesson: 'architecture X needs Y' claims often turn out to be 'X needs Y *with this specific training setup*'. Architecture and training recipe are coupled; updating the recipe changes what the architecture can do.",
+  "probeQuestions": [
+    "What did DeiT change about ViT training that made small-data ViT viable?",
+    "Why was the original ViT claim 'needs huge data' a finding about the recipe rather than the architecture?"
+  ],
+  "correctionPromptTemplate": "The learner thinks ViTs intrinsically need huge data. Walk through DeiT: same architecture, more aggressive training recipe (augmentation, long training, distillation), matches CNN on small data. The architecture is flexible; the recipe matters. Ask first — 'in your understanding, what was different between original ViT training and DeiT training?'"
+}

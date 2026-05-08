@@ -583,6 +583,46 @@ This path supplies the foundations. Combined with the existing ml-engineer path'
 
 For learners on the [AI Researcher path](/paths/ai-researcher): this is the missing prereq. Read the RL foundations alongside the alignment-frontier lesson; pair the capstone with the ai-researcher's evaluation-rigor and interpretability lessons.`,
     },
+    {
+      slug: "multimodal-path-launch",
+      title: "Multimodal path: ViTs, CLIP, diffusion, and the modern VLM stack",
+      summary:
+        "Widening the platform from text-only LLMs to vision, audio, and multimodal. Nine lessons + 13 wiki pages cover ViTs, CLIP, diffusion, classifier-free guidance, audio + Whisper, and the multimodal-fusion design space.",
+      coverEmoji: "🖼️",
+      accentColor: "violet",
+      authorId: carolId,
+      body: `Modern ML is no longer text-only. ViTs, CLIP, Stable Diffusion, GPT-4V — the multimodal frontier is where most production AI work happens. The new [multimodal-engineer path](/paths/multimodal-engineer) covers it.
+
+## What landed
+
+Nine lessons covering the full multimodal stack:
+
+1. [Image foundations](/paths/multimodal-engineer/lessons/image-foundations) — pixels, channels, convolutions.
+2. [Vision Transformers](/paths/multimodal-engineer/lessons/vision-transformers) — ViT, patch embeddings.
+3. [Contrastive learning](/paths/multimodal-engineer/lessons/contrastive-learning) — InfoNCE, SimCLR, MoCo.
+4. [CLIP and VLMs](/paths/multimodal-engineer/lessons/clip-and-vlms) — joint embedding spaces, modern VLMs.
+5. [Diffusion models](/paths/multimodal-engineer/lessons/diffusion-models) — forward + reverse, score matching.
+6. [Text-to-image](/paths/multimodal-engineer/lessons/text-to-image) — Stable Diffusion + classifier-free guidance.
+7. [Audio + speech](/paths/multimodal-engineer/lessons/audio-and-speech) — spectrograms, Whisper, modern TTS.
+8. [Multimodal fusion](/paths/multimodal-engineer/lessons/multimodal-fusion) — early vs late vs cross-attention.
+9. [Multimodal evaluation](/paths/multimodal-engineer/lessons/multimodal-evaluation) — benchmarks + hallucination probes.
+
+Plus 13 new wiki pages, 6 new misconceptions, a survey paper on the [multimodal-fusion frontier in 2026](/research/multimodal-fusion-frontier-2026), and a new [multimodal forum domain](/forum/multimodal).
+
+## Two capstones
+
+[Train a Vision Transformer from scratch](/capstones/train-a-vit-from-scratch) (5 weeks): implement ViT-Tiny on CIFAR-10, compare against CNN, do MAE pretraining, scale to ImageNet-100. Output: an empirical analysis of when each architecture wins.
+
+[Build a CLIP-style image-text retriever](/capstones/clip-style-retriever) (4 weeks): dual-encoder + InfoNCE on COCO Captions. Hard-negative mining, retrieval eval at scale (Recall@K, MRR), working similarity-search demo.
+
+## Why it matters now
+
+Vision and multimodal are no longer optional for the modern ML engineer. Every team eventually has to handle images, screenshots, documents, charts, video frames. Understanding the architecture (ViT + CLIP + VLMs + diffusion) is the foundation for shipping any multimodal application.
+
+For learners on the ml-engineer path: this is the natural extension. Multimodal is built on the transformer + attention foundations you already know; the vision-specific concepts (patches, contrastive pretraining, latent diffusion) layer on top.
+
+For learners on the [Reinforcement Learner path](/paths/reinforcement-learner): VLMs and RLHF combine — modern multimodal alignment uses RLHF with image conditioning. The two paths complement.`,
+    },
   ];
 
   for (const a of articles) {
@@ -880,6 +920,28 @@ function seedMasteryPaths() {
       { slug: "rl-from-human-feedback", title: "RLHF & Beyond", level: "expert", order: 10, pages: ["rlhf"], prereqs: ["ppo-trpo"], description: "Bridge to ml-engineer's RLHF lesson. Why it's PPO with a learned reward model, where DPO simplifies, where the alignment problem actually lives." },
     ],
   });
+
+  // Sprint 57 — Multimodal / Vision path. Widens the platform from
+  // text-only LLMs to ViTs, CLIP, diffusion, audio, and modern VLMs.
+  // Assumes transformer familiarity (cross-path prereqs link to
+  // ml-engineer's multi-head-attention lesson).
+  seedMasteryPath({
+    slug: "multimodal-engineer",
+    title: "Multimodal Engineer",
+    description:
+      "From pixels to vision transformers, CLIP, diffusion, audio, and modern VLMs. The non-text half of the modern ML stack.",
+    nodes: [
+      { slug: "image-foundations", title: "Image Foundations", level: "apprentice", order: 1, pages: ["convolutions", "image-tensors"], prereqs: [], description: "Pixels, channels, convolutions — the substrate every vision model builds on." },
+      { slug: "vision-transformers", title: "Vision Transformers", level: "apprentice", order: 2, pages: ["vit", "patch-embeddings"], prereqs: ["image-foundations"], description: "ViT, patch embeddings, position. The architecture that brought transformers to vision." },
+      { slug: "contrastive-learning", title: "Contrastive Learning", level: "practitioner", order: 3, pages: ["contrastive-loss", "infonce"], prereqs: [], description: "InfoNCE, SimCLR, hard negatives — the loss that powers self-supervised representation learning." },
+      { slug: "clip-and-vlms", title: "CLIP & Vision-Language Models", level: "practitioner", order: 4, pages: ["clip", "vision-language-models"], prereqs: ["vision-transformers", "contrastive-learning"], description: "Joint embedding spaces, CLIP's contrastive pretraining, modern VLMs (GPT-4V, LLaVA)." },
+      { slug: "diffusion-models", title: "Diffusion Models", level: "specialist", order: 5, pages: ["diffusion", "ddpm", "score-matching"], prereqs: ["image-foundations"], description: "Forward and reverse process, DDPM, score matching. The architecture behind Stable Diffusion + DALL-E." },
+      { slug: "text-to-image", title: "Text-to-Image", level: "specialist", order: 6, pages: ["stable-diffusion", "classifier-free-guidance"], prereqs: ["diffusion-models", "clip-and-vlms"], description: "Stable Diffusion's latent diffusion + CLIP conditioning + classifier-free guidance." },
+      { slug: "audio-and-speech", title: "Audio & Speech", level: "specialist", order: 7, pages: ["mel-spectrogram", "whisper"], prereqs: [], description: "Spectrograms, Whisper, modern TTS. Audio as another modality." },
+      { slug: "multimodal-fusion", title: "Multimodal Fusion", level: "expert", order: 8, pages: ["multimodal-fusion"], prereqs: ["clip-and-vlms"], description: "Early vs late vs attention-based fusion. How modern VLMs actually combine modalities." },
+      { slug: "multimodal-evaluation", title: "Multimodal Evaluation", level: "expert", order: 9, pages: ["mmlu-multimodal"], prereqs: ["multimodal-fusion"], description: "VQA benchmarks, hallucination detection, eval methodology when there's no single ground truth." },
+    ],
+  });
 }
 
 // --- Forum seeding -------------------------------------------------------
@@ -921,6 +983,12 @@ const SEED_DOMAINS = [
     title: "Reinforcement Learning",
     description:
       "MDPs, value functions, policy gradients, PPO, RLHF, model-based RL.",
+  },
+  {
+    slug: "multimodal",
+    title: "Multimodal & Vision",
+    description:
+      "Vision transformers, CLIP, diffusion, audio, VLMs — non-text ML.",
   },
 ];
 

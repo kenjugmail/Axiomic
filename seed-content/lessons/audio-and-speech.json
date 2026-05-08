@@ -1,0 +1,67 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Audio as a modality",
+      "body": "Audio is a 1D signal: a sequence of amplitudes sampled at a fixed rate (e.g., 16 kHz = 16,000 samples per second). For a 10-second clip: 160,000 numbers.\n\nNaively feeding raw audio into a transformer doesn't work — the sequence is too long, and the relevant patterns (speech phonemes, musical notes) span hundreds to thousands of samples. The standard preprocessing converts audio into a 2D **spectrogram**: a frequency-vs-time representation that's roughly the size of an image.\n\nOnce in spectrogram form, audio models look much like vision models — convolutions or transformers over a 2D 'image' where one axis is time and the other is frequency.\n\nThis lesson covers the spectrogram pipeline, Whisper (the canonical speech-recognition model), and modern TTS. Audio is the third major modality (after vision and language) that modern multimodal stacks include."
+    },
+    {
+      "kind": "text",
+      "title": "Spectrograms — STFT and mel scale",
+      "body": "Step 1: **Short-Time Fourier Transform (STFT)**. Slide a small window (e.g., 25ms) across the audio. For each window, compute the FFT to get the frequency content at that point in time. Stride the windows by 10ms so they overlap.\n\nResult: a 2D matrix where rows are frequency bins, columns are time frames. For 10s audio at 16kHz with 25ms windows + 10ms stride: ~1000 time frames × ~200 frequency bins.\n\nStep 2: **Mel scale**. Human perception of pitch is logarithmic — we hear a doubling of frequency as 'one octave', not a linear unit. The mel scale is a perceptually-warped frequency axis that compresses high frequencies and expands low ones.\n\nStep 3: **Log magnitude**. Take the log of the STFT magnitudes. Compresses the dynamic range; matches human perception of loudness.\n\nResult: a **log-mel spectrogram**. Rows = mel-scaled frequency bins (typically 80 or 128). Columns = time frames. Values = log-magnitude.\n\nThis 2D representation is what almost every audio model takes as input. Convolutions or transformer patches over the mel-spectrogram are the standard recipes."
+    },
+    {
+      "kind": "text",
+      "title": "Whisper — speech recognition done right",
+      "body": "**Whisper** (Radford 2022, OpenAI) is the canonical open-source speech recognition (ASR) model. Architecture:\n\n1. Audio → log-mel spectrogram (80 mel bins).\n2. **Encoder**: convolutional stem + transformer. Outputs a sequence of audio features.\n3. **Decoder**: transformer that autoregressively generates text tokens, cross-attending to the encoder's output.\n\nEnd-to-end ASR. Trained on 680,000 hours of multilingual audio scraped from the web with weak labels.\n\n**Whisper's tricks**:\n- **Multitask conditioning**: prompt tokens specify task (transcribe / translate), language (50+ supported), and timestamps.\n- **Robust to noise**: web data has all kinds of audio quality; the model learned to handle compression artifacts, background noise, accents.\n- **Multiple sizes**: tiny (39M), base (74M), small (244M), medium (769M), large (1550M). Quality scales with size; Whisper-large is near-human on standard benchmarks.\n\nWhisper was open-sourced in late 2022 and became the de-facto open ASR. Most modern speech pipelines (transcription apps, voice assistants without proprietary stacks) use Whisper."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "audio_q1",
+        "kind": "multiple_choice",
+        "question": "Why does Whisper use mel-spectrograms instead of raw audio?",
+        "options": [
+          "Raw audio is too noisy",
+          "Sequence length. 10 seconds of 16kHz raw audio is 160,000 samples — far too long for a transformer to process efficiently. Mel-spectrograms compress this to ~1000 time frames × 80 mel bins = a manageable 2D 'image'. Plus the mel scale matches human pitch perception, which is what speech recognition is trying to capture",
+          "Mel-spectrograms are easier to render",
+          "Raw audio doesn't have phase information"
+        ],
+        "correctIndex": 1,
+        "explanation": "Sequence-length compression is the practical reason. Mel-spectrograms reduce by ~150× (160K → ~1K time frames). Beyond that, the mel scale is perceptually meaningful — it weights frequency content in a way that matches human hearing. Models that try raw audio (e.g., wav2vec 2.0) sidestep the spectrogram but pay heavy compute costs; modern recipes typically use spectrograms."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Modern TTS — text-to-speech",
+      "body": "Text-to-speech is the inverse: text → audio. The modern recipe has three stages:\n\n**1. Text encoder**: encode the input text. Standard transformer encoder.\n\n**2. Acoustic model**: predict a mel-spectrogram from the text. Two main architectures:\n- **Autoregressive** (Tacotron 2): generate the mel one frame at a time, attending to the text. Sequential; slow.\n- **Non-autoregressive** (FastSpeech, VITS): predict all mel frames in parallel via a non-autoregressive decoder. Fast; sometimes lower quality.\n\n**3. Vocoder**: convert the mel-spectrogram to actual audio waveform. Two main families:\n- **GAN-based** (HiFi-GAN, BigVGAN): direct waveform generation; fast.\n- **Diffusion-based** (WaveGrad): higher quality, slower.\n\nResearchers historically struggled to make synthetic speech sound natural. Tacotron + WaveNet (2017-2018) made it 'almost human'. Modern systems (VITS, NaturalSpeech, Whisper's text-to-speech variants) routinely fool listeners on short clips.\n\n**Voice cloning**: train an additional 'speaker encoder' that produces an embedding from a reference clip. Condition the TTS model on the embedding to synthesize text in any voice. Powers most voice-cloning tools (Bark, OpenVoice, Coqui).\n\nFor production: open source ecosystem is strong (XTTS, Bark) for general English. Frontier-quality (ElevenLabs, OpenAI TTS) is closed but integrates emotional control + multilingual. Open is closing the gap quickly."
+    },
+    {
+      "kind": "text",
+      "title": "Audio-language models — listening + understanding",
+      "body": "Beyond ASR (audio → text) and TTS (text → audio), modern multimodal systems handle **audio reasoning**: answering questions about audio content, classifying sounds, separating speakers, etc.\n\n**Audio-language models**:\n\n- **CLAP** (Wu 2022): contrastive on (audio, text) pairs, like CLIP for audio. Zero-shot audio classification. Sound retrieval by text query.\n- **AudioLM** (Borsos 2022): generative audio modeling. Predicts audio tokens autoregressively, like GPT for sound.\n- **Whisper + LLM**: combine an audio encoder (Whisper-style) with an LLM via the same adapter pattern as VLMs. Result: a model that can answer 'what's happening in this audio?' or 'transcribe and summarize this meeting'.\n\nFor production multimodal:\n- Voice assistants: Whisper for ASR + LLM for reasoning + TTS for response.\n- Meeting tools: Whisper transcription + LLM summarization.\n- Music understanding: CLAP-style models for tagging + retrieval.\n- Sound effects generation: text-conditioned diffusion on audio (similar to image diffusion, applied to mel-spectrograms or raw audio).\n\nAudio is increasingly first-class in multimodal stacks. GPT-4o, Gemini 2 both natively process audio without ASR-as-pipeline. The architectural pattern: tokenize audio into discrete tokens (via a codec like Encodec), feed into a unified transformer alongside text.",
+      "extra": ""
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "audio_q2",
+        "kind": "multiple_choice",
+        "question": "What's the key architectural trick that lets GPT-4o process audio natively without going through ASR?",
+        "options": [
+          "Audio tokenization via a neural codec",
+          "Discrete tokenization. Codecs like Encodec or SoundStream represent ~75ms of audio as a small set of discrete tokens. The unified transformer then processes audio tokens alongside text tokens — no fundamental architecture change. The model can reason directly over audio (preserving prosody, emotion, non-verbal cues) rather than collapsing to a text transcript first",
+          "Audio is converted to text before processing",
+          "GPT-4o has a separate audio module"
+        ],
+        "correctIndex": 0,
+        "explanation": "Discrete audio tokenization (Encodec, SoundStream) is the architectural unlock that makes 'native' audio processing tractable. By compressing 75ms of audio into a few discrete tokens, the same transformer that handles text can handle audio in the same input/output format. This preserves prosody, emotion, accent — things that transcription destroys. Future multimodal models will likely apply the same trick to video (frame tokens) and beyond."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Audio is the third modality. The remaining lessons cover how multimodal systems combine these modalities (fusion) and how to evaluate them.\n\nNext: [[multimodal-fusion]] — early vs late vs attention-based fusion.\n\nKey takeaways:\n- Audio represented as log-mel spectrogram: 2D, manageable size, perceptually meaningful\n- Whisper: encoder-decoder transformer, 680k hours of multilingual data, robust ASR\n- TTS: text encoder → acoustic model → vocoder. Modern systems (VITS, XTTS) are near-human\n- CLAP and audio-language models bring audio into multimodal reasoning\n- GPT-4o style: discrete audio tokens via neural codecs, native audio in unified transformers"
+    }
+  ]
+}

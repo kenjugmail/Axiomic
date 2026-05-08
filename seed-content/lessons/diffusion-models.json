@@ -1,0 +1,67 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why diffusion",
+      "body": "**Diffusion models** are the dominant architecture for image (and increasingly video, audio) generation. Stable Diffusion, DALL-E, Midjourney, Sora — all diffusion under the hood.\n\nThe core idea is counterintuitive: \n\n1. **Forward process**: gradually add Gaussian noise to a real image until it's pure noise. ~1000 noise steps.\n2. **Reverse process**: train a network to undo each noise step. Given a noisy image at step `t`, predict either the denoised image at step `t-1` or the noise that was added.\n3. **Sampling**: start from random noise, repeatedly apply the reverse process, end with a generated image.\n\nWhy this works: each individual denoising step is easy (small change). The cumulative effect across hundreds of steps is enormous (random noise → meaningful image). Train on lots of images; the network learns the manifold of natural images by learning to denoise corrupted versions.\n\nDiffusion replaced GANs as the dominant generative-image architecture around 2021. GANs had mode collapse + training instability; diffusion has neither."
+    },
+    {
+      "kind": "text",
+      "title": "The forward process",
+      "body": "Add small amounts of Gaussian noise per step:\n\n$$x_t = \\sqrt{1 - \\beta_t} \\cdot x_{t-1} + \\sqrt{\\beta_t} \\cdot \\epsilon, \\quad \\epsilon \\sim N(0, I)$$\n\n`β_t` is a small noise level at step `t`. After `T` steps (typically 1000), `x_T ≈ N(0, I)` — pure noise.\n\n**Closed-form jump**: you can sample `x_t` directly from `x_0` without iterating:\n\n$$x_t = \\sqrt{\\bar{\\alpha}_t} \\cdot x_0 + \\sqrt{1 - \\bar{\\alpha}_t} \\cdot \\epsilon$$\n\nwhere `α_t = 1 - β_t` and `ᾱ_t = ∏_{s=1}^t α_s`. This is essential for training: at each step you sample a random `t` and add the noise in one shot, no need to iterate.\n\nThe **noise schedule** `β_t` is a hyperparameter. Linear schedule (`β_t` from 1e-4 to 0.02 over 1000 steps) is the original DDPM. Cosine schedule is smoother and improves quality. Sigmoid schedule is another variant. Most modern recipes pick one of these."
+    },
+    {
+      "kind": "text",
+      "title": "The reverse process — predicting noise",
+      "body": "The neural network's job: given `x_t` (and `t`), predict either:\n\n**The added noise `ε`** (DDPM original):\n\n$$\\hat{\\epsilon}_\\theta(x_t, t) \\approx \\epsilon$$\n\n**Or the clean image `x_0`**:\n\n$$\\hat{x}_0(x_t, t) \\approx x_0$$\n\nMathematically equivalent (you can derive one from the other). Most modern recipes predict the noise.\n\n**Loss**: simple MSE.\n\n$$L = E_{t, x_0, \\epsilon}\\left[\\|\\hat{\\epsilon}_\\theta(x_t, t) - \\epsilon\\|^2\\right]\\quad\\text{where}\\quad x_t = \\sqrt{\\bar{\\alpha}_t} x_0 + \\sqrt{1-\\bar{\\alpha}_t} \\epsilon$$\n\n**Network architecture**: typically a **U-Net** with skip connections + time embeddings. The time `t` is encoded as a sinusoidal vector + MLP, added to each layer's activations. This lets the same network handle all noise levels.\n\nFor latent diffusion (Stable Diffusion): the U-Net operates not on raw pixels but on a VAE-encoded latent. Cuts compute by 8-16× because latent space is much smaller than pixel space."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "diff_q1",
+        "kind": "multiple_choice",
+        "question": "Why does diffusion training use a closed-form jump from x_0 to x_t rather than simulating the full forward process?",
+        "options": [
+          "It's mathematically required",
+          "Computational efficiency. The reparameterization trick lets you sample x_t in one shot for any t. Without it, training a single batch would require 1000 sequential denoising-step losses; with it, each batch picks one random t per example. Training cost is O(1) per example instead of O(T)",
+          "The closed-form is more accurate",
+          "Sequential sampling causes gradient instability"
+        ],
+        "correctIndex": 1,
+        "explanation": "The closed-form jump is what makes diffusion training tractable. Without it, you'd have to iterate the forward process to a sampled t before each backward pass — orders of magnitude slower. With the analytical formula, sampling x_t given x_0 and t is a single matrix-vector multiply. This is what scales diffusion to billion-image datasets."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Sampling — generating images",
+      "body": "Once the network is trained, generate by reversing the noise process from `x_T = noise` back to `x_0`:\n\n```\nx = noise sampled from N(0, I)\nfor t = T, T-1, ..., 1:\n    eps_pred = model(x, t)\n    # DDPM ancestral sampling\n    mu = (x - β_t / sqrt(1 - ᾱ_t) · eps_pred) / sqrt(α_t)\n    if t > 1:\n        x = mu + sqrt(σ_t²) · z   # z ~ N(0, I)\n    else:\n        x = mu\nreturn x\n```\n\n**This is slow**: 1000 forward passes per image. Modern speed-ups:\n\n**DDIM** (Song 2020): deterministic sampling that lets you skip steps. 50 steps gives quality comparable to 1000 DDPM steps.\n\n**DPM-Solver** (Lu 2022): higher-order ODE solver. Can sample in 10-20 steps with similar quality.\n\n**Distillation**: train a 'student' diffusion model to mimic many-step sampling in 1-4 steps. Used in production for real-time generation (LCM, SDXL Turbo).\n\n**Consistency models** (Song 2023): train so that any noise level maps directly to `x_0` in one step. Trade-off: somewhat lower quality than 50-step DDIM but huge speed wins.\n\nFor production deployments: 20-50 step sampling is the sweet spot. Quality saturates; speed matters."
+    },
+    {
+      "kind": "text",
+      "title": "Score matching — the math underneath",
+      "body": "Diffusion can be reformulated as **score matching**: estimating `∇_x log p(x)` for the data distribution.\n\nThe **score function** `s_θ(x) = ∇_x log p(x)` points toward higher-probability regions. If you can estimate it, you can sample from `p(x)` via Langevin dynamics:\n\n$$x_{t+1} = x_t + \\frac{\\eta}{2} s_\\theta(x_t) + \\sqrt{\\eta} \\cdot \\epsilon$$\n\nGradient ascent on log-probability + noise = a chain that samples from `p(x)`.\n\n**The connection to diffusion**: training the noise predictor `ε_θ(x_t, t)` is equivalent (up to constants) to training the score `s_θ(x_t, t) = -ε_θ(x_t, t) / σ_t`. The diffusion-as-noise-prediction view and the score-matching view are mathematically identical.\n\nSong + Ermon's continuous-time view (Song 2020) unifies both: diffusion is a **stochastic differential equation (SDE)** that adds noise; the reverse SDE samples from data. The score function appears in the reverse SDE explicitly. Training is score matching; sampling is integrating the reverse SDE.\n\nThe payoff: the SDE view enables tools from numerical integration (DPM-Solver, DEIS) for fast sampling. Without this framing, the 'sample in 10 steps' speedups would be much harder to derive.",
+      "extra": ""
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "diff_q2",
+        "kind": "multiple_choice",
+        "question": "Why does latent diffusion (Stable Diffusion) operate on a VAE latent rather than directly on pixels?",
+        "options": [
+          "Latents are easier to train",
+          "Pixel-space diffusion at 512×512 resolution is computationally enormous. The U-Net's compute scales with spatial dimensions; doing diffusion in 64×64 latent space (after 8× VAE downsampling) cuts compute by 64× vs 512×512 pixels. Quality is preserved because the VAE captures perceptual content; the diffusion model handles the structural/semantic generation; the VAE decoder reconstructs pixels at the end. Stable Diffusion's runtime success depends on this design",
+          "VAEs are required by the diffusion math",
+          "Latents have less noise"
+        ],
+        "correctIndex": 1,
+        "explanation": "Latent diffusion is the architectural insight that made consumer-deployable text-to-image possible. Direct pixel diffusion at 512×512 + 1B parameters would require multiple GPUs. Latent diffusion at 64×64 + 800M-parameter U-Net runs on a 12GB consumer GPU. The VAE compresses pixel-level perceptual content; the diffusion model only has to learn structural / semantic generation. This is the core architectural recipe of every modern open-source text-to-image model."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Diffusion is the engine. The next lesson covers how to condition it on text: classifier-free guidance and Stable Diffusion's full recipe.\n\nNext: [[text-to-image]] — Stable Diffusion, classifier-free guidance.\n\nKey takeaways:\n- Diffusion: forward = add noise; reverse = learn to denoise\n- Closed-form jump x_0 → x_t enables tractable training\n- Loss is simple MSE on the predicted noise\n- Score matching and noise prediction are equivalent under the hood\n- Sampling: DDPM (1000 steps) → DDIM (50) → DPM-Solver (10) → distillation (1-4)\n- Latent diffusion: VAE-compressed latent space; the architectural unlock for consumer deployment"
+    }
+  ]
+}
