@@ -1,0 +1,11 @@
+{
+  "conceptSlug": "policy-gradient",
+  "key": "policy-gradient-low-variance",
+  "label": "Policy gradient is low-variance with enough samples",
+  "description": "A natural assumption: if you collect enough samples, the policy gradient estimator's variance becomes negligible. The empirical reality is harsher.\n\nThe policy gradient estimator is:\n```\n∇J ≈ (1/N) · Σ Σ_t ∇log π_θ(a_t|s_t) · G_t\n```\n\nThe variance of this estimator scales with:\n- **Episode length**: the return `G_t` is a sum of rewards; longer episodes → larger variance in `G`.\n- **Reward magnitude**: large rewards directly amplify gradient magnitude and variance.\n- **Action space dimensionality**: higher-dim actions → noisier gradients per sample.\n- **Policy stochasticity**: stochastic policies have higher variance than near-deterministic.\n\nFor a 1000-step episode with rewards ~O(1), the gradient estimator's variance can be hundreds or thousands of times larger than the gradient norm itself. Throwing 100× more samples at this only reduces variance by 10× (square-root scaling). Brute force is not enough.\n\nThis is why **variance-reduction tricks are not optional in modern policy gradient methods**:\n\n- Baseline subtraction (the actor-critic split).\n- GAE (interpolating between TD and Monte Carlo).\n- Reward normalization.\n- Trust region constraints (PPO, TRPO) to prevent large updates from noisy gradients.\n\nWithout these, policy gradient on anything beyond CartPole becomes unworkable. With them, PPO trains stably on continuous control, Atari, and RLHF.\n\nThe corollary: when an RL run isn't converging, the first thing to suspect is **gradient variance** — not learning rate, not architecture, not hyperparameters. Add variance reduction first.",
+  "probeQuestions": [
+    "Why does policy gradient variance scale with episode length?",
+    "What's the practical consequence of high-variance gradients in deep RL training?"
+  ],
+  "correctionPromptTemplate": "The learner thinks more samples will fix policy gradient variance. Walk through: variance scales with episode length × reward magnitude; sample count gives only √N reduction. The real fix is variance-reduction tricks — baselines, GAE, normalization. Ask first — 'in your training run, do you see large gradient swings between consecutive batches? What does that tell you?'"
+}

@@ -1,0 +1,72 @@
+{
+  "slug": "solve-cartpole-from-scratch",
+  "title": "Solve CartPole and LunarLander from scratch",
+  "summary": "Implement REINFORCE → A2C → PPO from numpy + PyTorch on classic control benchmarks. End with a working PPO that solves CartPole in under 30k steps and LunarLander in under 1M. The capstone for understanding modern RL by building it.",
+  "estimatedWeeks": 4,
+  "coverEmoji": "🎯",
+  "accentColor": "rose",
+  "tags": ["rl", "policy-gradient", "ppo", "from-scratch"],
+  "prerequisiteWikiSlugs": ["mdp", "policy-gradient", "actor-critic", "ppo", "gae"],
+  "canonicalTier": "undergrad",
+  "contentIntro": "## What you'll build\n\nFour milestones: implement REINFORCE → variance-reduced REINFORCE → A2C → PPO from scratch on CartPole and LunarLander. By the end you understand exactly why PPO works because you've built every component.\n\n- REINFORCE on CartPole-v1\n- REINFORCE with baseline + GAE\n- A2C with shared actor-critic network\n- PPO with clipped surrogate; solve LunarLander\n\n[[mdp]] · [[policy-gradient]] · [[actor-critic]] · [[ppo]] · [[gae]]",
+  "contentUndergrad": "## What you'll build\n\nFour milestones, ~4 weeks. Each milestone is code + a benchmark report. PyTorch + Gymnasium (the modern Gym fork) + numpy. No `stable-baselines3` — you're building the algorithms, not calling them.\n\nThe model is small (an MLP with 2-3 hidden layers). The environments are CartPole-v1 and LunarLander-v2. Both are standard benchmarks; both should be solvable on a laptop CPU in under an hour.\n\n[[mdp]] · [[policy-gradient]] · [[actor-critic]] · [[ppo]] · [[gae]]",
+  "contentGrad": "## What you'll build\n\nA from-scratch RL toolkit you'd hand to a junior engineer as a reference for understanding the modern PPO recipe. Defense covers: the policy gradient theorem and its derivation, why baselines reduce variance, why PPO's clip works, GAE's bias-variance interpolation, and the implementation details that matter (advantage normalization, orthogonal init, value loss clipping).",
+  "milestones": [
+    {
+      "title": "REINFORCE on CartPole",
+      "description": "Implement vanilla REINFORCE from scratch. Components:\n\n1. **Policy network**: MLP that takes state (4-dim for CartPole), outputs categorical distribution over 2 actions.\n2. **Episode rollout**: run the policy until done; collect `(s_t, a_t, r_t, log π(a_t|s_t))` tuples.\n3. **Return computation**: discount and accumulate from end to start.\n4. **Loss**: `-E[log π(a|s) · G_t]`. Backward, step.\n\nMeasure:\n- Episodes to solve (>= 195 reward over 100 episodes).\n- Variance of episodic returns over the last 100 episodes.\n- Wall-clock time.\n\nExpect: 500-2000 episodes to solve. Variance high. Sometimes fails to converge depending on seed.\n\nIn your writeup: an episode-vs-return curve; commentary on the variance you observe; sketch why bias subtraction would help.",
+      "rubric": {
+        "criteria": [
+          { "id": "implementation", "weight": 0.5, "description": "REINFORCE works on CartPole.", "aiPrompt": "Score whether REINFORCE is implemented correctly: policy network produces categorical distribution, rollouts collect log-probs and rewards, returns are discounted, loss is the negative log-prob × return mean." },
+          { "id": "convergence", "weight": 0.3, "description": "Achieves passing reward on CartPole.", "aiPrompt": "Score whether the agent reliably solves CartPole within 2000 episodes for at least 3 of 5 seeds." },
+          { "id": "writeup", "weight": 0.2, "description": "Variance discussion.", "aiPrompt": "Score the writeup's discussion of why REINFORCE's variance is high and what mitigations would help." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 5
+    },
+    {
+      "title": "Add baseline + GAE",
+      "description": "Two upgrades:\n\n**Baseline**: add a value network `V_φ(s)`. Replace `G_t` with `G_t - V_φ(s_t)` in the policy loss. Train `V_φ` via MSE to `G_t`.\n\n**GAE**: replace the simple advantage with a GAE-computed advantage. λ = 0.95, γ = 0.99.\n\nReuse the CartPole environment. Same architecture. Compare:\n\n- Episodes to solve (should drop ~2-3×).\n- Variance of returns (should drop substantially).\n- Final policy quality.\n\nIn your writeup: side-by-side curves with and without each upgrade. Quantify the variance reduction.\n\nThis milestone is the actor-critic transition. The 'critic' (V_φ) is a learned baseline; the 'actor' (π_θ) uses it for low-variance policy gradients.",
+      "rubric": {
+        "criteria": [
+          { "id": "baseline", "weight": 0.4, "description": "Value baseline correctly implemented.", "aiPrompt": "Score whether the value network is correctly trained (MSE to returns) and used as a baseline (G_t - V_φ(s_t))." },
+          { "id": "gae", "weight": 0.3, "description": "GAE correctly implemented.", "aiPrompt": "Score whether GAE is implemented correctly with the standard λ-weighted TD residual sum, computed in reverse." },
+          { "id": "comparison", "weight": 0.3, "description": "Variance reduction quantified.", "aiPrompt": "Score the comparison: does the writeup show reduced variance and faster convergence relative to the baseline-free version?" }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 5
+    },
+    {
+      "title": "A2C with shared network",
+      "description": "Architectural upgrade: combine actor and critic into a single network with two heads.\n\n```\nshared_body(s) → features\nactor_head(features) → action_logits\ncritic_head(features) → V(s)\n```\n\nTrain jointly:\n```\nloss = actor_loss + 0.5 · critic_loss - 0.01 · entropy_bonus\n```\n\nAlso: parallelize. Run 4-8 environments simultaneously; collect rollouts in parallel; one update per parallel batch.\n\nCompare with the previous milestone:\n- Wall-clock time per training run (should improve significantly with parallel envs).\n- Sample efficiency (similar; the shared network is mostly a wall-clock + simplicity win).\n- Final policy quality.\n\nIn your writeup: an architecture diagram; a discussion of why shared bodies help; the entropy curve over training.",
+      "rubric": {
+        "criteria": [
+          { "id": "architecture", "weight": 0.4, "description": "Shared actor-critic network correctly implemented.", "aiPrompt": "Score whether the shared backbone + dual head is correctly implemented and the joint loss combines actor + critic + entropy." },
+          { "id": "parallelism", "weight": 0.3, "description": "Parallel environments.", "aiPrompt": "Score whether the implementation uses parallel environments (Gym's VectorEnv or similar) for rollout collection." },
+          { "id": "writeup", "weight": 0.3, "description": "Engineering discussion.", "aiPrompt": "Score the writeup's discussion of architectural and parallelization choices." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "title": "PPO + LunarLander",
+      "description": "The capstone milestone: implement full PPO and use it to solve LunarLander-v2.\n\n**PPO additions to A2C**:\n\n1. **Clipped surrogate objective**: `min(r·A, clip(r, 1-ε, 1+ε)·A)` with `ε = 0.2`.\n2. **Multi-epoch updates**: 4-10 gradient steps per data batch.\n3. **Mini-batch shuffling**: shuffle the rollout buffer before mini-batches.\n4. **Advantage normalization**: per-batch normalize advantages to mean 0, std 1.\n5. **Gradient clipping**: clip by norm 0.5.\n6. **Optional**: orthogonal init, linear LR annealing, value loss clipping.\n\n**Targets**:\n- CartPole-v1: solve in <30k steps.\n- LunarLander-v2: solve (>=200 mean reward over 100 episodes) in <1M steps.\n\nCompare your PPO against `stable-baselines3` PPO at the same hyperparameters. Should be within 20% of their wall-clock to solve.\n\n**Final report**:\n- Comparison table (your REINFORCE → REINFORCE+baseline → A2C → PPO across the four metrics).\n- Discussion of which improvements gave the biggest boost on which metric.\n- Reference your implementation against stable-baselines3 — where does it match? Where does it lag? What sub-detail explains the gap?\n\nThis milestone is the synthesis. The grader looks for a working PPO + clear understanding of which engineering choices matter.",
+      "rubric": {
+        "criteria": [
+          { "id": "ppo_correctness", "weight": 0.4, "description": "PPO implementation works on both environments.", "aiPrompt": "Score whether PPO solves CartPole quickly and LunarLander reliably. Are the standard PPO components (clipping, multi-epoch, advantage normalization, gradient clipping) all in place?" },
+          { "id": "comparison", "weight": 0.3, "description": "Comparison across all four algorithms.", "aiPrompt": "Score the comparison table: does it cover all four algorithms (REINFORCE, REINFORCE+baseline, A2C, PPO) on consistent metrics, and is the discussion of which upgrade helped what defensible?" },
+          { "id": "judgment", "weight": 0.3, "description": "Engineering analysis.", "aiPrompt": "Score the discussion comparing to stable-baselines3 and identifying which sub-details account for any gap." }
+        ],
+        "passingScore": 0.6
+      },
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 9
+    }
+  ]
+}

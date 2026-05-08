@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why optimize the policy directly",
+      "body": "Value-based methods (Q-learning, DQN) learn `Q*(s, a)` and derive a policy as `argmax_a Q*`. This works well for discrete action spaces but breaks down when:\n\n- Actions are continuous (`R^d`): no easy `argmax` over an infinite set.\n- Optimal policy is stochastic: in some games, randomized strategies are better than deterministic ones.\n- You need a smooth policy: Q-learning's `argmax` is discontinuous in the parameters; optimization is brittle.\n\n**Policy gradient methods** solve this by parameterizing the policy directly: `π_θ(a | s)`, where `θ` are the parameters of a neural network. Optimize `θ` via gradient ascent on expected return.\n\nThe goal:\n\n$$J(\\theta) = \\mathbb{E}_{\\tau \\sim \\pi_\\theta}\\left[\\sum_t \\gamma^t r_t\\right]$$\n\nMaximize this over `θ`. The gradient `∇_θ J` is the engine.\n\nSpoiler: every modern RL algorithm trained on continuous control or LLM fine-tuning (SAC, PPO, RLHF) is a policy gradient method. This is the dominant paradigm of the 2020s."
+    },
+    {
+      "kind": "text",
+      "title": "The policy gradient theorem",
+      "body": "How do you compute `∇_θ J(θ)` when `J` is an expectation over trajectories whose distribution depends on `θ`?\n\n**Policy gradient theorem** (Sutton 1999):\n\n$$\\nabla_\\theta J(\\theta) = \\mathbb{E}_{\\tau \\sim \\pi_\\theta}\\left[\\sum_t \\nabla_\\theta \\log \\pi_\\theta(a_t | s_t) \\cdot G_t\\right]$$\n\nIn words: the gradient is the expected sum, over time steps, of `∇log π · G_t`. `G_t` is the return-to-go from step `t`.\n\n**Why this works** (a cute derivation):\n\n```\n∇ E_τ[R(τ)] = ∇ ∫ p_θ(τ) R(τ) dτ\n            = ∫ ∇ p_θ(τ) R(τ) dτ\n            = ∫ p_θ(τ) ∇ log p_θ(τ) R(τ) dτ        (log-derivative trick)\n            = E_τ[∇ log p_θ(τ) R(τ)]\n```\n\nAnd `log p_θ(τ) = log p(s_0) + Σ log π_θ(a_t|s_t) + Σ log P(s_{t+1}|s_t,a_t)`. Only the policy term depends on `θ`, so its gradient survives.\n\n**Practical version (REINFORCE)**: sample trajectories `τ` from `π_θ`. Compute the empirical estimator:\n\n```\n∇J ≈ (1/N) Σ_τ Σ_t ∇log π_θ(a_t|s_t) · G_t\n```\n\nUpdate `θ ← θ + α · ∇J`. That's it. The algorithm is one page of code."
+    },
+    {
+      "kind": "text",
+      "title": "REINFORCE in practice",
+      "body": "```python\nfor episode in range(n_episodes):\n    # Roll out one episode\n    states, actions, rewards = run_episode(policy=π_θ)\n    \n    # Compute returns\n    G = []\n    g = 0\n    for r in reversed(rewards):\n        g = r + γ * g\n        G.insert(0, g)\n    G = torch.tensor(G)\n    \n    # Optionally subtract baseline (variance reduction)\n    G = G - G.mean()\n    \n    # Compute log probs and gradient\n    log_probs = π_θ.log_prob(actions, states)\n    loss = -(log_probs * G).mean()  # negative because we ascend\n    loss.backward()\n    optimizer.step()\n    optimizer.zero_grad()\n```\n\nThis is the simplest possible policy gradient algorithm. It works on small problems (CartPole converges in a few hundred episodes). For harder problems, REINFORCE has high variance — a single episode's return can swing wildly, so the gradient estimate is noisy.\n\n**Variance reduction** is the next step. Three standard tools:\n\n1. **Baseline subtraction**: replace `G_t` with `G_t - b(s_t)` for some baseline `b`. The optimal `b` is `V^π(s_t)` (the expected return). This is called **REINFORCE with baseline** or **vanilla actor-critic**.\n\n2. **Reward-to-go**: only sum rewards from time `t` forward (not the full episode return). Already in the formula above; emphasizing because it matters.\n\n3. **Generalized Advantage Estimation (GAE)**: a sophisticated multi-step return that interpolates between TD(0) (low variance, high bias) and Monte Carlo (high variance, low bias). Standard in PPO and modern actor-critic. Next slide."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "pg_q1",
+        "kind": "multiple_choice",
+        "question": "Why does the policy gradient theorem work even though the trajectory distribution p_θ(τ) depends on θ in a complicated way?",
+        "options": [
+          "The transition dynamics happen to be θ-independent",
+          "The log-derivative trick: ∇p = p · ∇log p. So ∇E_τ[R(τ)] = E_τ[∇log p_θ(τ) · R(τ)]. The state transitions don't depend on θ, so they drop out of ∇log p_θ(τ); only the policy term ∇log π_θ remains. We never need to differentiate through the environment dynamics",
+          "It uses the chain rule",
+          "It's actually approximate, not exact"
+        ],
+        "correctIndex": 1,
+        "explanation": "The log-derivative trick is the magic that makes policy gradients work in environments with unknown dynamics. We never compute ∇P(s'|s,a) — the dynamics aren't differentiable. The gradient flows only through the policy's log-probability, which we DO know how to differentiate. This is what makes the policy gradient estimator implementable: forward through the policy, sample, get reward, multiply by ∇log π, average. Done."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Generalized Advantage Estimation (GAE)",
+      "body": "REINFORCE uses Monte Carlo returns: high variance. TD(0) uses single-step bootstrap: low variance but biased.\n\n**GAE** (Schulman 2015) interpolates. Define the **advantage**:\n\n$$A^\\pi(s, a) = Q^\\pi(s, a) - V^\\pi(s)$$\n\nIntuition: `A(s, a)` is *how much better than average* it is to take action `a` in state `s`. Replacing `G_t` with `A^π(s_t, a_t)` in the policy gradient is unbiased and lower-variance.\n\nGAE estimates `A_t` as a `λ`-weighted sum of TD residuals:\n\n$$\\hat{A}^{GAE}_t = \\sum_{l=0}^{\\infty} (\\gamma\\lambda)^l \\delta_{t+l}$$\n\nwhere `δ_t = r_t + γ V(s_{t+1}) - V(s_t)` is the TD error.\n\n**`λ` controls the bias-variance trade-off**:\n- `λ = 0`: pure TD(0). Low variance, high bias.\n- `λ = 1`: pure Monte Carlo. High variance, no bias.\n- `λ = 0.95` (typical): mostly TD-flavored with a bit of Monte Carlo. The standard PPO recipe.\n\nGAE is implemented in 5 lines:\n\n```python\nadvantages = torch.zeros_like(rewards)\ngae = 0\nfor t in reversed(range(len(rewards))):\n    delta = rewards[t] + γ * V[t+1] - V[t]\n    gae = delta + γ * λ * gae\n    advantages[t] = gae\n```\n\nThis gives you a low-variance advantage estimator that any modern policy gradient algorithm (PPO, TRPO, A3C) plugs into directly. Combined with the policy gradient theorem and a value baseline, GAE is the practical foundation of modern policy-gradient RL."
+    },
+    {
+      "kind": "text",
+      "title": "From policy gradients to actor-critic",
+      "body": "REINFORCE with a value baseline IS already actor-critic in disguise. The 'critic' is the value function `V` learned alongside the policy; the 'actor' is the policy `π_θ`.\n\nFormally:\n\n- **Actor**: parameterized policy `π_θ(a|s)`, updated via policy gradient with advantage `A_t`.\n- **Critic**: parameterized value function `V_φ(s)`, updated via TD error to track the policy's value.\n\nThey train together: critic provides the baseline that reduces actor's variance; actor's policy determines the trajectories the critic observes.\n\n**A2C** (synchronous Advantage Actor-Critic): collect a batch of `N` parallel trajectories. Compute advantages with GAE. Update actor + critic jointly.\n\n**A3C** (asynchronous): same idea but with async parallel workers. Mostly historical now; A2C is just as good and simpler.\n\n**PPO** (Proximal Policy Optimization): A2C + a clipped surrogate objective that prevents large policy updates. The most-used RL algorithm of the 2020s. Next lesson covers it.\n\nThe pattern is universal: every modern policy-gradient algorithm has an actor (the policy) and a critic (the value function). What differs is how they're updated and how the ratio between current and previous policies is constrained."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "pg_q2",
+        "kind": "multiple_choice",
+        "question": "Why use the advantage A(s,a) instead of the raw return G_t in the policy gradient?",
+        "options": [
+          "It's mathematically required",
+          "Subtracting the baseline V(s) gives an unbiased lower-variance estimator. The advantage answers 'is this action better than average for this state?' rather than 'what's the absolute return?'. Substituting A for G in the policy gradient keeps the gradient unbiased (the baseline doesn't depend on a) while sharpening the signal — taking a 'good' action in a high-value state shouldn't get the same reinforcement as the same action from a low-value state",
+          "Advantage is always positive",
+          "It removes the discount factor"
+        ],
+        "correctIndex": 1,
+        "explanation": "The baseline subtraction is the variance-reduction trick that makes policy gradients tractable. Returns G_t can be very large positive numbers; the gradient is amplified by their magnitude. Subtracting V(s) centers the signal around zero — actions better than average get positive gradient, worse than average get negative — without changing the unbiased expectation. This is one of the most-used variance-reduction tricks in all of RL."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Policy gradients are the engine of modern RL. The next two lessons cover the actor-critic + PPO recipe that's the workhorse for everything from CartPole to RLHF.\n\nNext: [[actor-critic]] — combining policy gradients with a learned value baseline.\n\nKey takeaways:\n- Policy gradient theorem: `∇J = E[∇log π · G]`. Log-derivative trick avoids differentiating through dynamics\n- REINFORCE: simplest policy gradient. Sample trajectories, multiply log-probs by returns, ascent\n- High variance is the dominant problem; baselines + GAE address it\n- GAE: λ-weighted TD residuals. λ=0.95 is the standard recipe\n- Advantage A(s,a) = Q(s,a) - V(s); unbiased, lower-variance signal for policy updates\n- Modern RL (PPO, RLHF) is policy gradient + GAE + clipped surrogate objective"
+    }
+  ]
+}

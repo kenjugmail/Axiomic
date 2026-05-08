@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Combining the two RL families",
+      "body": "We've seen two families of RL:\n\n- **Value-based** (Q-learning, DQN): learn `Q^π`, derive policy as `argmax`. Sample-efficient; struggles with continuous actions.\n- **Policy-based** (REINFORCE): learn `π_θ` directly via gradient ascent. Scales to continuous actions; high variance.\n\n**Actor-critic methods combine both**: an *actor* (the policy `π_θ`) is updated via policy gradient; a *critic* (a value function `V_φ`) provides a learned baseline that reduces the actor's variance.\n\nThe critic isn't optimizing the policy directly. It's a side estimator that makes the actor's gradient signal cleaner. Two networks, trained together, mutual benefit.\n\nThis lesson covers the architecture, the training loop, and why A2C is the floor of every modern policy-gradient algorithm."
+    },
+    {
+      "kind": "text",
+      "title": "The actor-critic update",
+      "body": "Per step (or per mini-batch of trajectories):\n\n**1. Collect data.** Run the actor for `N` steps. Observe transitions `(s_t, a_t, r_t, s_{t+1})`.\n\n**2. Compute advantages.** Use GAE with the critic's value estimates:\n\n```\nδ_t = r_t + γ · V_φ(s_{t+1}) - V_φ(s_t)\nA_t = Σ_l (γλ)^l · δ_{t+l}\n```\n\n**3. Update the actor (policy gradient with advantage)**:\n\n```\nL_actor = -E_t[log π_θ(a_t | s_t) · A_t]\n```\n\nMinimize this (negative because we want gradient ascent on `J`).\n\n**4. Update the critic (regression toward the bootstrapped target)**:\n\n```\nL_critic = E_t[(V_φ(s_t) - target_t)²]\nwhere target_t = A_t + V_φ(s_t)  # or any return-style target\n```\n\nA standard implementation uses a single network with two heads — one outputs `π_θ(a|s)`, the other outputs `V_φ(s)` — sharing most of the body. This is parameter-efficient and lets the shared layers learn representations useful for both objectives.\n\nIn pseudocode:\n\n```python\ntotal_loss = actor_loss + value_coef * critic_loss - entropy_coef * entropy\ntotal_loss.backward()\noptimizer.step()\n```\n\nThe `entropy_coef` term encourages exploration by penalizing policies that get too peaked. `value_coef` (usually 0.5) balances the two losses; PPO defaults to 0.5."
+    },
+    {
+      "kind": "text",
+      "title": "A2C — synchronous advantage actor-critic",
+      "body": "A2C (Mnih et al. 2016) is the canonical implementation:\n\n```\nfor iteration in range(total_iterations):\n    # Collect rollout\n    for n_steps:\n        a, log_prob = actor.sample(s)\n        s_next, r, done = env.step(a)\n        store(s, a, r, log_prob, V_critic(s))\n        s = s_next\n    \n    # Compute returns + advantages with GAE\n    advantages, returns = compute_gae(rewards, values, dones, γ, λ)\n    \n    # Compute losses\n    new_log_probs = actor.log_prob(stored_actions, stored_states)\n    new_values = critic(stored_states)\n    actor_loss = -(new_log_probs * advantages.detach()).mean()\n    critic_loss = ((new_values - returns)**2).mean()\n    entropy_loss = -actor.entropy().mean()\n    \n    loss = actor_loss + 0.5 * critic_loss + 0.01 * entropy_loss\n    optimizer.zero_grad()\n    loss.backward()\n    torch.nn.utils.clip_grad_norm_(parameters, 0.5)\n    optimizer.step()\n```\n\nKey hyperparameters:\n- **n_steps**: how many env steps before each update. 5-128 typical. Bigger = lower variance but slower wall-clock per update.\n- **value_coef**: 0.5 is the default.\n- **entropy_coef**: 0.001-0.01. Higher for harder exploration.\n- **gradient clipping**: norm 0.5 to prevent unstable updates.\n\nA2C alone solves CartPole in a few thousand episodes. For harder environments (Atari, continuous control), it's outperformed by PPO and SAC, but the architecture is the same. PPO is just A2C with a clipped surrogate objective and multiple gradient steps per data batch."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ac_q1",
+        "kind": "multiple_choice",
+        "question": "Why train the actor and critic jointly with shared representation layers?",
+        "options": [
+          "It saves memory",
+          "Shared layers learn features useful for both the policy and the value function. The policy needs to know 'what action to take here'; the value function needs to know 'how good is this state'. Both depend on the same underlying state representation. Sharing is parameter-efficient and the inductive bias usually helps; if it didn't, you'd see separate-network ablations winning",
+          "Shared layers force the actor and critic to agree",
+          "It's required by the policy gradient theorem"
+        ],
+        "correctIndex": 1,
+        "explanation": "Shared body + dual head is the standard architectural choice. The shared layers extract a state representation; one head turns it into action logits, the other into a value estimate. The features useful for both — what kind of state is this, what objects are present, what's the agent's position — are shared. Separating the networks is sometimes done (it can stabilize training in pathological cases) but the shared default is simpler and usually wins."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "The bias-variance dance",
+      "body": "Actor-critic introduces a delicate balance:\n\n- **Critic accuracy** matters because the critic provides the advantage estimate that the actor uses. If `V_φ` is wildly wrong, the actor gets a misleading gradient.\n- **Critic learning rate** can't be too high (instability) or too low (the actor is using stale advantages).\n- **Actor learning rate** must be conservative — large policy updates change the data distribution dramatically, which the critic then has to chase.\n\nIf the actor moves faster than the critic can track, training oscillates. If the critic moves faster than the actor, the policy gets stuck because gradient signals are over-smoothed.\n\n**Practical recipe**: same learning rate for both, tuned together. PPO's main innovation (next lesson) is a clipped surrogate objective that bounds how much the policy can change per update — keeping the actor in step with the critic.\n\nA telltale sign of imbalance:\n- Loss curves where the value loss diverges or oscillates → critic is being asked to track a too-fast actor.\n- Policy entropy collapses to zero → actor over-committed too early; needs more entropy regularization or smaller LR.\n- Average return plateaus too early → critic is biased; advantages are misleading; actor isn't getting useful gradient.\n\nEach failure mode points to a specific knob to tune. Building this diagnostic intuition is what separates 'I followed the PPO recipe' from 'I tuned an actor-critic for my custom environment'."
+    },
+    {
+      "kind": "text",
+      "title": "Continuous actions: the parameterization choice",
+      "body": "For discrete actions, `π_θ(a | s)` is a softmax over action logits. For continuous actions (`a ∈ R^d`), the standard parameterization is a **diagonal Gaussian**:\n\n```\nπ_θ(a | s) = N(a; μ_θ(s), σ_θ(s))\n```\n\nThe network outputs the mean `μ` and (log of) standard deviation `σ` for each action dimension. Sampling is straightforward; log-probability is the Gaussian density.\n\nSubtleties:\n\n**State-dependent vs state-independent variance.** Cleanest is state-dependent (`σ` outputted per state). Often a state-independent `σ` (a separate trainable parameter, not a function of `s`) works just as well and is easier to optimize.\n\n**Action squashing.** For bounded action spaces (e.g., `[-1, 1]`), squash the Gaussian sample with `tanh`. This complicates the log-probability calculation (you need a Jacobian correction) but keeps actions in range without rejection sampling.\n\n**Entropy regularization.** For continuous actions, entropy of `N(μ, σ)` is `0.5 · log(2πe·σ²)` per dimension. Higher `σ` → higher entropy → more exploration. The entropy bonus naturally encourages keeping `σ` from collapsing to zero.\n\n**Soft Actor-Critic (SAC)** is the canonical continuous-control actor-critic for off-policy learning. Uses a stochastic policy + a maximum entropy objective, off-policy data via a replay buffer, and twin Q-networks. Beyond CartPole, SAC is the default for continuous control on locomotion tasks. PPO is the on-policy alternative."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ac_q2",
+        "kind": "multiple_choice",
+        "question": "Your actor-critic agent's value loss curve is oscillating wildly. The actor loss looks fine but the policy isn't improving. What's most likely wrong?",
+        "options": [
+          "The environment is too simple",
+          "The critic is being asked to track an actor moving too fast — each gradient step changes the policy enough that the critic's previous estimates are stale. Slow the actor (smaller LR, gradient clipping, smaller updates), and/or stabilize the critic (more critic gradient steps per actor step, target network for the value bootstrap)",
+          "The discount factor is too low",
+          "Add more entropy regularization"
+        ],
+        "correctIndex": 1,
+        "explanation": "Oscillating value loss + non-improving policy is a classic sign of actor-critic instability. The actor is changing the data distribution faster than the critic can adapt; the critic's estimates lag; the actor uses stale advantages; cycle repeats. Slowing the actor (or stabilizing the critic) breaks the loop. PPO's clipped surrogate objective is one principled way to bound the actor's per-step change; target networks (in DDPG/SAC) are another. Diagnosing this from the loss curves is one of the most common debugging skills in RL."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Actor-critic is the architecture. The next lesson covers PPO — the specific actor-critic recipe that's the most-deployed RL algorithm of the 2020s.\n\nNext: [[ppo-trpo]] — clipped surrogate objectives and trust-region updates.\n\nKey takeaways:\n- Actor: policy `π_θ`. Critic: value function `V_φ`. Trained jointly\n- Critic provides the advantage baseline; actor uses it for low-variance policy gradient\n- A2C: synchronous version. Single shared network + dual head is standard\n- Continuous actions: Gaussian parameterization (μ, σ output by network)\n- Bias-variance balance is the practical challenge: actor faster than critic → oscillation"
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why learn a model",
+      "body": "**Model-based RL (MBRL)**: learn a model of the environment dynamics from data, then plan with the model.\n\nContrast: **model-free RL** (everything we've covered so far — Q-learning, PPO) directly maps observations to actions or values without ever learning an explicit dynamics model.\n\nWhy bother with a model?\n\n1. **Sample efficiency.** Real-world experience is expensive (a robot taking steps in physical reality, a clinical trial, a recommendation system in production). Once you have a model, you can do *thousands* of planning rollouts without running another real-world step. MBRL's sample efficiency is often 10-100× better than model-free.\n\n2. **Generalization.** A learned model encapsulates structural knowledge of the environment. If the reward changes but dynamics don't, model-based RL adapts immediately by re-planning; model-free has to retrain.\n\n3. **Interpretability.** A learned forward model is often itself useful (predicting weather, simulating the result of a policy change).\n\nThe cost: **model bias**. Errors in the learned model compound over a multi-step rollout. Plans that exploit model inaccuracies (find a state the model thinks is great but reality doesn't) are a notorious failure mode."
+    },
+    {
+      "kind": "text",
+      "title": "The MBRL recipe",
+      "body": "Most model-based methods follow a similar template:\n\n```\nrepeat:\n    1. Collect data by running current policy in the real environment.\n    2. Update model: train f(s, a) → s' (and r̂(s, a) → r) on collected transitions.\n    3. Generate synthetic data: roll out f for K steps starting from observed states.\n    4. Update policy/value using BOTH real and synthetic data.\n```\n\nVariants differ in step 3 (how to use the model) and step 4 (which RL algorithm consumes the synthetic data).\n\n**Dyna-style** (Sutton 1991): use the model to generate extra `(s, a, r, s')` transitions; train a model-free Q-learner on the augmented buffer. Simple; effective on tabular problems.\n\n**Model-Predictive Control (MPC)**: at each step, sample many action sequences via the model, evaluate their predicted return, execute the first action of the best sequence. Re-plan every step. Standard for robotics.\n\n**End-to-end planning networks**: combine model + policy + value into one differentiable graph (Dreamer, MuZero). The model is used to compute gradient through future steps.\n\nThe state of the art (Dreamer V3, MuZero) achieves competitive performance on Atari with 5-10× fewer environment samples than PPO/DQN. The cost: more sophisticated machinery, more hyperparameters, more failure modes when the model is wrong."
+    },
+    {
+      "kind": "text",
+      "title": "World models — Dreamer",
+      "body": "**Dreamer** (Hafner 2019, 2020, 2023) is the canonical modern model-based RL algorithm. The architecture has three components:\n\n**1. Recurrent State-Space Model (RSSM)**: a sequence model that compresses observations into a latent state `z_t`. Trained as a VAE with a deterministic recurrent component + a stochastic latent.\n\n```\nz_t ~ q(z_t | z_{t-1}, a_{t-1}, o_t)         # encoder (uses observation)\nẑ_t ~ p(ẑ_t | z_{t-1}, a_{t-1})              # prior (no observation; for prediction)\nKL(q || p)                                    # latent should match prior\nô_t = decoder(z_t)                            # reconstruct observation\nr̂_t = reward_head(z_t)\n```\n\nThis learns a compact latent state from raw observations (images) that's useful both for prediction and for downstream RL.\n\n**2. Actor (policy)**: maps latent state to action. `π_θ(a_t | z_t)`.\n\n**3. Critic (value)**: estimates value from latent state. `V_φ(z_t)`.\n\n**Training**: alternate between (a) training the RSSM on real-environment data and (b) training actor + critic on rollouts in the *learned model* — never re-touching the real environment for these RL updates.\n\nDreamer's wins come from rolling the actor/critic through hundreds of imagined steps inside the latent model, getting much more gradient signal per real-environment step. Sample efficiency on Atari 100K (a benchmark with only 100K real frames) is dramatically better than PPO."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mb_q1",
+        "kind": "multiple_choice",
+        "question": "Why is sample efficiency a big deal for model-based RL?",
+        "options": [
+          "Sample efficiency is the same as wall-clock time",
+          "In real-world applications, each environment sample is expensive (robot taking a real step, drug trial, clinical experiment, A/B test on real users). Model-free RL needs millions of samples; model-based RL can be 10-100× more sample-efficient. The real-world bottleneck is samples, not compute, so MBRL's complexity is worth it. In simulators where samples are cheap, model-free's simplicity often wins",
+          "Sample efficiency reduces neural network size",
+          "Model-free RL doesn't have any sample efficiency"
+        ],
+        "correctIndex": 1,
+        "explanation": "The sample-efficiency argument is the practical case for MBRL. Simulators (Atari, MuJoCo) have effectively-free samples; PPO converges in millions of steps and that's fine. Real-world RL (robots, recommender A/B tests, clinical) has expensive samples; you can't run millions of trials. MBRL's overhead is justified when each real sample matters. The choice of model-free vs model-based often comes down to: how expensive is a real-environment step?"
+      }
+    },
+    {
+      "kind": "text",
+      "title": "MuZero and learned planning",
+      "body": "**MuZero** (Schrittwieser 2020) is DeepMind's milestone: master Go, chess, shogi, and Atari, all from scratch, all without being given the rules of the game.\n\nMuZero's twist: it doesn't try to predict the next *observation* — only the next reward and the next *latent state*. The model is trained to support **planning via Monte Carlo Tree Search** (MCTS), specifically optimized for the policy + value at each tree node, not for accurate observation prediction.\n\nThis is a critical insight: **the model is trained for what you'll use it for**. If you're going to use the model only for planning the policy, train the model to predict policy/value targets, not to reconstruct observations. The latter is much harder and doesn't directly help.\n\nThe MuZero recipe:\n\n1. **Representation function** `h(o) → z_0`: encode observation into latent.\n2. **Dynamics function** `g(z, a) → (z', r)`: predict next latent state + reward.\n3. **Prediction function** `f(z) → (π, V)`: policy and value head from latent.\n\nAt act-time: encode current obs to `z_0`. Run MCTS using `g` and `f` to deepen the search. Pick action proportional to MCTS visit counts. Get real environment feedback. Train all three functions on (i) reward prediction, (ii) policy regression to MCTS visit counts, (iii) value regression to MCTS root value.\n\nMuZero matches AlphaZero on Go/chess (which had explicit rules) and improves on the model-free SOTA for Atari. It's a tour-de-force of model-based RL."
+    },
+    {
+      "kind": "text",
+      "title": "When MBRL fails: model bias",
+      "body": "Model-based RL has a chronic failure mode: **the policy exploits the model's errors**.\n\nIf the learned model is even slightly inaccurate in some region of state space, planning will discover a 'high-value' state that the model thinks is great but reality says is mediocre. The policy converges to that exploit. When you finally check on the real environment, performance is much worse than the model predicted.\n\nMitigations:\n\n**1. Pessimistic planning** (MOPO, MBPO with conservative updates): when the model is uncertain (high variance over an ensemble), penalize the policy for visiting those states. Better to be conservative than to exploit a hallucinated optimum.\n\n**2. Ensembles**: train K different dynamics models. Use their disagreement as an uncertainty estimate; throttle planning into uncertain regions.\n\n**3. Short horizon**: only plan for `H` steps before bootstrapping with a value function. Limits how far model errors compound. Standard in MPC.\n\n**4. Frequent re-collection**: alternate model training and real-environment data collection more aggressively. Don't drift too far from the data distribution the model was trained on.\n\n**5. Hybrid model-free + model-based** (Dyna-Q+, MBPO): use the model to *augment* a model-free buffer, but the model-free Q-learner is the policy. Falls back gracefully when the model is bad.\n\nThe practical state of MBRL in 2025: Dreamer V3 + MuZero are the SOTAs. They work well in simulated domains. For real-world robotics with limited data, MPC + short-horizon model + ensemble disagreement is the standard recipe. For LLM RL (RLHF), model-free PPO still dominates — the 'environment' is the human preference model and there's no clear separation between model and policy."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mb_q2",
+        "kind": "multiple_choice",
+        "question": "Why does MuZero train its model to predict policy/value targets rather than to reconstruct observations?",
+        "options": [
+          "Reconstructing observations requires more compute",
+          "Predicting observations is much harder than the actual planning task — the latent space needs to capture every visible detail. Predicting policy + value targets only requires the latent to encode 'what's the optimal policy from here, what's the value' — a more compact representation. The model is trained for what it'll be used for: planning. Removes wasted capacity",
+          "Observations have too much noise",
+          "MuZero uses a different architecture"
+        ],
+        "correctIndex": 1,
+        "explanation": "The 'train the model for what you'll use it for' insight is one of MuZero's key contributions. Reconstructing pixel-perfect observations forces the latent to remember a lot of decoration that doesn't matter for planning. Training the latent to support policy + value + reward prediction extracts only what's strategically relevant. This is what lets MuZero scale to Atari with a relatively small latent compared to image-reconstructing alternatives like Dreamer."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Model-based RL is the sample-efficiency frontier. The final lesson in this path bridges back to LLMs: RLHF, where the 'environment' is human preferences.\n\nNext: [[rl-from-human-feedback]] — applying PPO to language models with a learned reward.\n\nKey takeaways:\n- MBRL: learn dynamics model, plan with it. 10-100× sample-efficient on real-world tasks\n- Dyna: use model to augment model-free buffer\n- MPC: re-plan every step with short horizon\n- Dreamer: VAE-style world model + actor-critic on imagined rollouts\n- MuZero: train model for policy/value targets, plan via MCTS\n- Failure mode: model bias. Mitigate with ensembles, pessimism, short horizons\n- Use model-free for cheap-sample environments; MBRL when real-world samples matter"
+    }
+  ]
+}

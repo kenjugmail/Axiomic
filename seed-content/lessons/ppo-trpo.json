@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why we need trust regions",
+      "body": "Vanilla policy gradient (REINFORCE) can take **destructively large steps**. The problem: the policy gradient `∇J(θ) = E[∇log π_θ · A]` is computed under the *current* policy's data distribution. After a single update, the new policy's data distribution can be very different — the gradient was correct *locally* but is wrong *for the new policy*.\n\nIn theory, you'd retake gradient steps with each new policy's freshly collected data. In practice this is wasteful: each policy collects expensive trajectories that we want to reuse for many updates.\n\n**Solution**: bound how much the policy can change per update. If the new policy is close to the old, the data distribution is close enough that re-using the data is approximately valid. If the constraint is violated, stop the update or clip its effect.\n\nThis is the **trust-region** family. **TRPO** (Schulman et al. 2015) was the first; **PPO** (Schulman et al. 2017) is the simpler, more practical successor that's the default RL algorithm of the 2020s."
+    },
+    {
+      "kind": "text",
+      "title": "TRPO: the principled answer",
+      "body": "**Trust Region Policy Optimization** maximizes a surrogate objective subject to a KL constraint:\n\n```\nmaximize_θ  L(θ) = E[(π_θ(a|s) / π_old(a|s)) · A(s,a)]\nsubject to: E[KL(π_old || π_θ)] ≤ δ\n```\n\nIn words: maximize the importance-weighted advantage, but keep the new policy within a `KL ≤ δ` ball of the old.\n\nThe importance ratio `r(θ) = π_θ(a|s) / π_old(a|s)` is what makes this **off-policy in a controlled way**: we're using data collected under `π_old` but evaluating gradients under `π_θ`.\n\nTRPO solves this constrained optimization via:\n\n1. **Conjugate gradient** to compute the natural gradient direction (Fisher matrix-vector products).\n2. **Line search** to find the largest step size that satisfies the KL constraint.\n\nMathematically beautiful; engineering complex. The conjugate gradient + line search makes implementation finicky. Most implementations have at least one bug that someone catches three years later.\n\n**TRPO** has provable monotonic improvement guarantees (under exact computation). In practice, it's been mostly superseded by PPO."
+    },
+    {
+      "kind": "text",
+      "title": "PPO: the practical answer",
+      "body": "**Proximal Policy Optimization** asks: can we get TRPO's benefits without TRPO's complexity?\n\n**PPO-Clip** uses a clipped surrogate objective:\n\n$$L^{CLIP}(\\theta) = \\mathbb{E}_t\\left[\\min\\left(r_t(\\theta) A_t,\\, \\text{clip}(r_t(\\theta), 1-\\epsilon, 1+\\epsilon) A_t\\right)\\right]$$\n\nwhere `r_t(θ) = π_θ(a_t|s_t) / π_old(a_t|s_t)` is the importance ratio and `ε` is typically 0.2.\n\nWhat the clip does:\n\n- If `A_t > 0` (good action) and `r_t > 1+ε`: cap the contribution. We've already taken enough advantage; don't push further.\n- If `A_t < 0` (bad action) and `r_t < 1-ε`: cap the contribution. We've already moved away; don't push further.\n- The `min` ensures we always take the *more conservative* of the two values, preventing extreme updates in either direction.\n\nThe clip is a **soft constraint** — no explicit KL bound. Empirically, this matches or beats TRPO at a fraction of the implementation complexity.\n\nFull PPO loss combines clipping + value loss + entropy bonus:\n\n```\nL_PPO = L_CLIP - c1 · L_value + c2 · L_entropy\n```\n\nTypical values: `ε = 0.2`, `c1 = 0.5`, `c2 = 0.01`. Update for 4-10 epochs over the same data batch (the clip prevents the data from going stale)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ppo_q1",
+        "kind": "multiple_choice",
+        "question": "Why does PPO clip the importance ratio rather than impose an explicit KL constraint?",
+        "options": [
+          "Clipping is mathematically equivalent to the KL constraint",
+          "Clipping is much simpler to implement: no conjugate gradient solver, no line search, no Fisher matrix computation. Just `min(r·A, clip(r)·A)` + standard gradient ascent. Empirically matches TRPO's performance. The cost is theoretical — PPO doesn't have TRPO's monotonic-improvement guarantee — but in practice it's been the right tradeoff",
+          "PPO is faster to converge",
+          "KL constraints don't work in continuous action spaces"
+        ],
+        "correctIndex": 1,
+        "explanation": "The TRPO/PPO transition is one of the great 'simplification wins' in modern RL. TRPO is theoretically beautiful but has a half-dozen implementation pitfalls. PPO drops the explicit KL constraint, replaces it with a clipped objective, and gets nearly the same empirical behavior with one-fifth the code. That practical simplification is why PPO is the most-deployed RL algorithm now. The clipping isn't a perfect substitute for the KL constraint, but it's close enough."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "PPO in pseudocode",
+      "body": "The full PPO recipe:\n\n```python\nfor iteration in range(total_iterations):\n    # Collect rollout (n_steps env steps × n_envs parallel)\n    states, actions, rewards, log_probs_old, values, dones = collect_rollout()\n    \n    # Compute advantages with GAE\n    advantages, returns = compute_gae(rewards, values, dones, γ, λ)\n    advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)\n    \n    # Update policy + value for n_epochs over the same batch\n    for epoch in range(n_epochs):  # typically 4-10\n        for mini_batch in batches:\n            new_log_probs = actor.log_prob(actions, states)\n            new_values = critic(states)\n            \n            # PPO-Clip\n            ratio = torch.exp(new_log_probs - log_probs_old)\n            surr1 = ratio * advantages\n            surr2 = torch.clamp(ratio, 1-ε, 1+ε) * advantages\n            actor_loss = -torch.min(surr1, surr2).mean()\n            \n            # Value loss\n            value_loss = ((new_values - returns)**2).mean()\n            \n            # Entropy bonus\n            entropy = actor.entropy(states).mean()\n            \n            # Combined loss\n            loss = actor_loss + 0.5 * value_loss - 0.01 * entropy\n            \n            optimizer.zero_grad()\n            loss.backward()\n            torch.nn.utils.clip_grad_norm_(parameters, 0.5)\n            optimizer.step()\n```\n\nKey hyperparameters:\n- `ε`: 0.2 (clip range)\n- `γ`: 0.99\n- `λ`: 0.95 (GAE)\n- `n_epochs`: 4-10\n- learning rate: 3e-4 typical\n- mini-batch size: 64-256\n\nThis is approximately the entire algorithm. CartPole-v1 converges in ~30k steps. Atari converges in ~10M frames. Continuous control (HalfCheetah, etc.) converges in ~1M steps."
+    },
+    {
+      "kind": "text",
+      "title": "Implementation gotchas",
+      "body": "PPO is famously sensitive to implementation details. The 'PPO-from-scratch' versions you find online often disagree on important sub-choices. The 'PPO37' paper (Engstrom 2020) catalogs how much each detail matters. Highlights:\n\n**1. Advantage normalization.** Per-batch normalize the advantages to mean 0, std 1. Without this, large advantage magnitudes can blow up gradients. Critical.\n\n**2. Value loss clipping.** Optional. Clip the value-function update similarly to the policy update. Helps stability when the critic is also chasing a moving target.\n\n**3. Orthogonal initialization + LR annealing.** Initialize networks with orthogonal weights; linearly decay learning rate over training. Both are 'best practices' that materially improve final performance.\n\n**4. Action squashing for continuous.** Use `tanh(N(μ, σ))` for bounded continuous actions. Compute the log-probability with the Jacobian correction.\n\n**5. Reward scaling/clipping.** PPO can be sensitive to reward magnitudes. Standard practice: standardize rewards online; sometimes clip extreme rewards.\n\n**6. Mini-batch shuffling.** Shuffle the rollout buffer before mini-batches to break temporal correlations.\n\n**7. Recompute advantages each epoch?** Some implementations recompute advantages with the latest critic each epoch; others use the original advantages throughout. The original PPO paper uses fixed advantages. Modern recipes vary.\n\nTakeaway: implement PPO carefully, with an eye on the published reference implementations (Stable-Baselines3, CleanRL). Subtle differences move final performance by 10-30%."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ppo_q2",
+        "kind": "multiple_choice",
+        "question": "PPO's clipped surrogate objective uses min(r·A, clip(r)·A). Why min and not max?",
+        "options": [
+          "min is faster to compute",
+          "min gives the more conservative (pessimistic) estimate of the surrogate objective. When A > 0, we use the smaller of unclipped and clipped (preventing the policy from over-committing to a good action). When A < 0, we use the smaller (preventing over-fleeing from a bad action). Either way, min keeps the policy from making large jumps in either direction — exactly what we want for trust-region behavior",
+          "max would be unstable",
+          "It's a typo; it should be max"
+        ],
+        "correctIndex": 1,
+        "explanation": "The min is what makes the clipping pessimistic. Without it (just using clip(r)·A), the unclipped surrogate could push the policy beyond the clip range when the gradient happens to point that way. The min ensures we *only* benefit from the clip when it's restraining us, not when it's loosening us. This is what gives PPO its trust-region-like behavior despite not having an explicit KL constraint."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "PPO is the workhorse algorithm. The remaining lessons in this path cover exploration, model-based RL, and finally RLHF — applying PPO to language model alignment.\n\nNext: [[exploration-exploitation]] — why pure exploitation gets stuck and how to break out of it.\n\nKey takeaways:\n- TRPO: principled trust region via KL constraint; elegant but complex\n- PPO: clipped surrogate `min(r·A, clip(r)·A)`. Simpler, matches TRPO empirically\n- ε=0.2 is the standard clip range; γ=0.99, λ=0.95 for GAE\n- Update for 4-10 epochs per data batch — clip prevents data going stale\n- Implementation details matter: advantage normalization, orthogonal init, action squashing\n- PPO is the most-deployed RL algorithm of the 2020s; RLHF is PPO with a learned reward"
+    }
+  ]
+}

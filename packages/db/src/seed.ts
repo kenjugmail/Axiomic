@@ -542,6 +542,47 @@ The systems-engineer path is built around exactly those scenarios. The capstones
 
 For ML engineers ramping up: pair this path with the existing [ML engineer ramp-up](/news/ml-engineer-ramp-up-end-to-end) content. Foundation + frontier topics + production engineering — the stack that gets you from "I trained a model" to "I shipped one and kept it running."`,
     },
+    {
+      slug: "rl-foundations-path-launch",
+      title: "RL foundations: from MDPs to PPO, then onward to RLHF",
+      summary:
+        "The missing ladder for understanding modern RL. Ten lessons + 15 wiki pages walk you from MDP fundamentals through value functions, TD learning, policy gradients, actor-critic, PPO, exploration, and model-based RL — ending at RLHF for language model alignment.",
+      coverEmoji: "🎯",
+      accentColor: "rose",
+      authorId: carolId,
+      body: `RLHF is famous; the foundations that make it work are not. Most ML engineers can recite "PPO + reward model + KL penalty" without being clear on what the policy gradient theorem says, why GAE matters, or what TRPO solved that PPO simplified. The new [reinforcement-learner path](/paths/reinforcement-learner) supplies that ladder.
+
+## What landed
+
+Ten lessons covering the full RL conceptual stack:
+
+1. [MDP foundations](/paths/reinforcement-learner/lessons/mdp-foundations) — states, actions, rewards, the discount factor.
+2. [Value functions](/paths/reinforcement-learner/lessons/value-functions) — V, Q, the Bellman equation.
+3. [Dynamic programming](/paths/reinforcement-learner/lessons/dynamic-programming-rl) — value iteration, policy iteration when you know the model.
+4. [Temporal difference learning](/paths/reinforcement-learner/lessons/temporal-difference) — Q-learning, SARSA, DQN.
+5. [Policy gradients](/paths/reinforcement-learner/lessons/policy-gradients) — REINFORCE and GAE.
+6. [Actor-critic](/paths/reinforcement-learner/lessons/actor-critic) — combining the two.
+7. [PPO and TRPO](/paths/reinforcement-learner/lessons/ppo-trpo) — the trust-region family.
+8. [Exploration vs exploitation](/paths/reinforcement-learner/lessons/exploration-exploitation) — the practical wall.
+9. [Model-based RL](/paths/reinforcement-learner/lessons/model-based-rl) — Dreamer, MuZero, sample efficiency.
+10. [RLHF and beyond](/paths/reinforcement-learner/lessons/rl-from-human-feedback) — bringing it back to LLMs.
+
+Plus 15 new wiki pages covering each subsystem, 5 new misconceptions, a survey paper on the [policy-optimization frontier in 2026](/research/pg-vs-trust-region-2026), and a new [RL forum domain](/forum/rl).
+
+## The capstone
+
+[Solve CartPole and LunarLander from scratch](/capstones/solve-cartpole-from-scratch) (4 weeks): implement REINFORCE → REINFORCE+baseline → A2C → PPO from numpy + PyTorch. End with a working PPO that solves CartPole in <30k steps and LunarLander in <1M. Compare against \`stable-baselines3\` on the same hyperparameters.
+
+The capstone produces a public artifact showing your PPO matched (or didn't quite match) the reference implementation, with a defensible analysis of which engineering details account for any gap. The signed transcript is the credential — you've built the modern RL workhorse from scratch and understand exactly why each component is there.
+
+## Why it matters now
+
+RLHF training compute is one of the largest deployment classes of RL today. ChatGPT, Claude, Gemini all run modified PPO in their alignment loops. Without the foundations — what's a value function, why does the policy gradient theorem work, what does GAE buy you — RLHF is folklore.
+
+This path supplies the foundations. Combined with the existing ml-engineer path's RLHF lesson, you've got the full ladder from MDPs through frontier-scale alignment.
+
+For learners on the [AI Researcher path](/paths/ai-researcher): this is the missing prereq. Read the RL foundations alongside the alignment-frontier lesson; pair the capstone with the ai-researcher's evaluation-rigor and interpretability lessons.`,
+    },
   ];
 
   for (const a of articles) {
@@ -817,6 +858,28 @@ function seedMasteryPaths() {
       { slug: "production-failure-modes", title: "Production Failure Modes", level: "expert", order: 8, pages: ["production-failures", "rollback-playbooks"], prereqs: ["monitoring-observability", "mlops-experiment-tracking"], description: "OOM, NaN gradients, silent corruption, rollback playbooks. The list of things that break in production." },
     ],
   });
+
+  // Sprint 56 — Reinforcement Learning path. RLHF in ml-engineer is
+  // covered as a depth-jump; this path supplies the missing ladder of
+  // foundations from MDPs through PPO.
+  seedMasteryPath({
+    slug: "reinforcement-learner",
+    title: "Reinforcement Learner",
+    description:
+      "From MDPs to PPO and onward to RLHF. The RL foundations the rest of modern AI assumes you have.",
+    nodes: [
+      { slug: "mdp-foundations", title: "MDP Foundations", level: "apprentice", order: 1, pages: ["mdp", "markov-property"], prereqs: [], description: "States, actions, rewards, transitions — the formal substrate of every RL algorithm." },
+      { slug: "value-functions", title: "Value Functions", level: "apprentice", order: 2, pages: ["value-function", "bellman-equation"], prereqs: ["mdp-foundations"], description: "V(s), Q(s,a), and the Bellman equation that ties them together." },
+      { slug: "dynamic-programming-rl", title: "Dynamic Programming", level: "practitioner", order: 3, pages: ["value-iteration", "policy-iteration"], prereqs: ["value-functions"], description: "Value iteration, policy iteration. Solving small MDPs exactly." },
+      { slug: "temporal-difference", title: "Temporal Difference Learning", level: "practitioner", order: 4, pages: ["td-learning", "q-learning"], prereqs: ["value-functions"], description: "TD(0), SARSA, Q-learning. Learning value functions from samples." },
+      { slug: "policy-gradients", title: "Policy Gradients", level: "practitioner", order: 5, pages: ["policy-gradient", "reinforce", "gae"], prereqs: ["value-functions"], description: "REINFORCE, baselines, GAE — optimizing the policy directly via gradient ascent on expected return." },
+      { slug: "actor-critic", title: "Actor-Critic Methods", level: "specialist", order: 6, pages: ["actor-critic"], prereqs: ["policy-gradients", "temporal-difference"], description: "A2C, A3C — combining policy gradients with a learned value baseline." },
+      { slug: "ppo-trpo", title: "PPO & TRPO", level: "specialist", order: 7, pages: ["ppo", "trpo"], prereqs: ["actor-critic"], description: "Trust regions, clipped surrogate objectives. The workhorse algorithms of modern RL." },
+      { slug: "exploration-exploitation", title: "Exploration vs Exploitation", level: "specialist", order: 8, pages: ["exploration-strategies", "intrinsic-rewards"], prereqs: ["temporal-difference"], description: "ε-greedy, UCB, intrinsic motivation, curiosity. Why pure exploitation gets stuck." },
+      { slug: "model-based-rl", title: "Model-Based RL", level: "expert", order: 9, pages: ["model-based-rl", "world-models"], prereqs: ["ppo-trpo"], description: "Learn a world model; plan with it. Dreamer, MuZero, the sample-efficiency frontier." },
+      { slug: "rl-from-human-feedback", title: "RLHF & Beyond", level: "expert", order: 10, pages: ["rlhf"], prereqs: ["ppo-trpo"], description: "Bridge to ml-engineer's RLHF lesson. Why it's PPO with a learned reward model, where DPO simplifies, where the alignment problem actually lives." },
+    ],
+  });
 }
 
 // --- Forum seeding -------------------------------------------------------
@@ -852,6 +915,12 @@ const SEED_DOMAINS = [
     title: "Systems",
     description:
       "Distributed training, serving, monitoring, the infrastructure half of ML.",
+  },
+  {
+    slug: "rl",
+    title: "Reinforcement Learning",
+    description:
+      "MDPs, value functions, policy gradients, PPO, RLHF, model-based RL.",
   },
 ];
 

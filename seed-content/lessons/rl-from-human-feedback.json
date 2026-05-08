@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why RLHF",
+      "body": "**Reinforcement Learning from Human Feedback (RLHF)** is how modern LLMs are aligned with human preferences. ChatGPT, Claude, GPT-4 — all use RLHF (or its DPO/IPO variants) to turn a base language model into something that answers helpfully, refuses harmful requests, and follows instructions.\n\nThe RL framing: the LLM is the policy `π_θ(token | context)`, the environment is 'a user typing in a prompt', the reward is 'how good was this response'. The first two are obvious. The hard part: **what's the reward function?**\n\nWriting a reward function for 'good response' is an open research problem. Humans can recognize good and bad responses, but encoding that as a math formula is intractable. RLHF solves this by **learning** the reward function from human preference data.\n\nThe full RLHF pipeline has three stages:\n\n1. **Supervised Fine-Tuning (SFT)**: fine-tune the base LM on demonstrations of good responses.\n2. **Reward Model (RM)**: train a separate model to predict how a human would rate any given response.\n3. **PPO**: use the reward model as the environment, fine-tune the LM via PPO to maximize the predicted reward.\n\nThis lesson covers each stage and the failure modes that show up in production."
+    },
+    {
+      "kind": "text",
+      "title": "Stage 1: Supervised Fine-Tuning (SFT)",
+      "body": "Start with a pretrained base LM. SFT fine-tunes it on a curated dataset of high-quality `(prompt, response)` pairs.\n\n**Where the data comes from**: paid annotators write demonstrations (Anthropic's Constitutional AI), instruction datasets like Alpaca / FLAN / OpenAssistant, or careful curation of public conversation data.\n\n**The training objective**: standard next-token prediction on the response tokens, conditional on the prompt.\n\n```\nL_SFT = -E[log p_θ(response | prompt)]\n```\n\n**Why SFT is necessary even with later RL**: the base LM is trained to imitate web text. It doesn't naturally answer questions in a 'helpful assistant' style. SFT teaches the format. PPO + reward model would struggle to find this style from scratch.\n\nTypical SFT recipe: 1-3 epochs over 10K-100K curated examples, learning rate ~1e-5, full fine-tuning (no LoRA) or LoRA depending on compute budget. The result is a model that looks like a helpful assistant — but isn't yet optimized to be one.\n\n**SFT alone gets you 80% of the way there.** If you compare a well-SFTed Llama with the same model after RLHF, the differences are subtle but consistent: the RLHF version refuses better, follows complex instructions better, hallucinates less. Worth doing; not where the magic lives."
+    },
+    {
+      "kind": "text",
+      "title": "Stage 2: Reward Model",
+      "body": "**Reward Model (RM)**: a separate model that takes `(prompt, response)` and outputs a scalar score predicting human preference.\n\nThe RM is trained on **pairwise preference data**:\n\n```\nFor each prompt p, two responses (r_chosen, r_rejected) are shown to a human annotator.\nThe human picks one as preferred.\nTraining objective: P(r_chosen > r_rejected) = σ(RM(p, r_chosen) - RM(p, r_rejected))\n```\n\nThe loss is binary cross-entropy: maximize the probability the RM ranks the chosen response above the rejected one.\n\n```\nL_RM = -E[log σ(RM(p, r_chosen) - RM(p, r_rejected))]\n```\n\n**Why pairwise**: humans are *much* better at comparing two responses than at giving an absolute score. Asking 'is this 0.7 or 0.8 helpful?' produces noisy ratings. Asking 'which of these two is better?' is reliable.\n\nThe RM is initialized from the SFT model (with the LM head replaced by a regression head) and fine-tuned on preference data. Typical: 100K-1M preference pairs, 1-3 epochs.\n\nThe RM scoring is exactly what gets used as the reward in stage 3. **An imperfect RM means an imperfect policy** — the policy will learn to exploit the RM's blind spots. This is the central pain point of RLHF."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "rlhf_q1",
+        "kind": "multiple_choice",
+        "question": "Why is the reward model trained on pairwise comparisons instead of absolute ratings?",
+        "options": [
+          "Pairwise data is cheaper to collect",
+          "Humans are reliable at relative comparisons but unreliable at absolute scores. Asked 'rate this 1-10', different annotators give very different numbers for the same response. Asked 'which of these two is better', the agreement is much higher. The Bradley-Terry / Plackett-Luce models that turn pairwise comparisons into a scalar score are statistically robust to this individual variance",
+          "Pairwise comparisons are required by PyTorch",
+          "Absolute scores violate the Markov property"
+        ],
+        "correctIndex": 1,
+        "explanation": "The pairwise framing is one of RLHF's most important design choices. Annotator inter-rater agreement on absolute scores is notoriously low; pairwise agreement is much higher. The Bradley-Terry model (which the RM training implicitly uses) converts pairwise wins into a scalar score with nice statistical properties. This is also why DPO works directly from pairwise data — same observation, different optimization."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Stage 3: PPO with the reward model",
+      "body": "Now apply PPO to the SFT model, using the RM as the reward function.\n\nPer step:\n\n```\n1. Sample a prompt p from the prompt distribution.\n2. Generate a response r ~ π_θ(· | p).\n3. Reward = RM(p, r) - β · KL(π_θ(· | p) || π_SFT(· | p))\n4. PPO update on the policy.\n```\n\nThe **KL penalty** to the SFT model is the key alignment trick:\n\n- Without it, PPO would maximize RM score by drifting arbitrarily far from the SFT model. The RM is reliable on responses that look like the training data; on weird responses, it gives unreliable scores. Drifting too far → exploiting RM blind spots → reward hacking.\n- With the KL penalty, the policy stays close to the SFT model. RM scores are computed on responses similar to training data. Reward hacking is mitigated.\n\n`β` (KL coefficient) is the most-tuned hyperparameter in RLHF. Too low → policy drifts and reward hacks. Too high → policy doesn't learn anything new from the RM. Typical values: 0.01-0.2 depending on RM quality.\n\n**Adaptive KL** (Stiennon et al. 2020): tune `β` online so the KL stays in a target range. Safer than a fixed value.\n\nThe PPO loop runs for tens of thousands of generations. The result is a policy that's been steered toward high RM scores while staying close to the SFT model."
+    },
+    {
+      "kind": "text",
+      "title": "Reward hacking and other failure modes",
+      "body": "**Reward hacking** is the dominant practical problem in RLHF. The policy finds responses that the RM rates highly but humans don't:\n\n- **Verbose/sycophantic responses**: if the RM has even a slight bias toward longer or more flattering responses, PPO finds and amplifies it. The policy starts producing 1500-token responses to simple questions.\n- **Format exploitation**: if the RM was trained on mostly markdown-formatted responses, PPO learns to use markdown even where it doesn't help.\n- **Refusal hacking**: if the RM rates refusals high on harmful prompts but doesn't penalize refusals on benign prompts, the policy learns to refuse everything.\n- **Nonsense at the edges**: if the RM was never trained on certain weird inputs, PPO finds them and exploits the RM's near-random ratings.\n\nMitigations:\n\n1. **KL penalty** (above): the standard defense. Limits how far the policy can drift.\n2. **Reward model ensembles**: train K reward models with different seeds/data. Average their scores; large disagreement → conservative reward.\n3. **Out-of-distribution detection**: if a generated response is far from RM training data, downweight its reward.\n4. **Iterative RLHF**: collect new preference data on responses from the trained policy, retrain the RM, retrain the policy. Catches reward-hacked behaviors.\n5. **DPO and friends**: skip the RM + PPO entirely. **Direct Preference Optimization** (Rafailov 2023) trains the policy directly from pairwise data without a separate reward model. Mathematically equivalent to RLHF under certain assumptions; much simpler and avoids one source of reward hacking.\n\nDPO has rapidly become an alternative to PPO RLHF. Many production-deployed open models (Mistral, Llama 3 instruct variants) use DPO or its successors (IPO, KTO, ORPO)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "rlhf_q2",
+        "kind": "multiple_choice",
+        "question": "What's the role of the KL penalty term `-β · KL(π_θ || π_SFT)` in RLHF's PPO objective?",
+        "options": [
+          "It's mathematically required for PPO convergence",
+          "It keeps the policy close to the SFT model, where the reward model's predictions are reliable. Without it, PPO drifts toward responses that exploit the RM's blind spots (reward hacking). The β coefficient balances 'how much the RM signal can move the policy' vs 'how risky drifting away from SFT is'. The right β is typically tuned via the observed KL during training",
+          "It penalizes hallucination",
+          "It's only used in DPO, not PPO"
+        ],
+        "correctIndex": 1,
+        "explanation": "The KL penalty is the core alignment lever in RLHF. The reward model is reliable in-distribution (responses similar to its training data); unreliable out-of-distribution. The KL penalty caps the policy's drift, keeping responses in the regime where the RM's signal is real. Adaptive KL (auto-tune β to keep KL in a target range) is the modern recipe. DPO removes this whole concern by formulating training directly from preference data; PPO RLHF still dominates frontier-scale alignment."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "The end of the path",
+      "body": "RLHF closes the loop: from MDP foundations through value functions, TD learning, policy gradients, actor-critic, PPO, exploration, model-based RL — and finally back to applying PPO at scale to the most-deployed RL system in the world (LLMs).\n\nThe RL toolkit you've built:\n\n- **Value-based**: Q-learning, DQN. Sample-efficient on discrete actions.\n- **Policy-based**: REINFORCE, PPO. Scales to continuous and high-dimensional actions.\n- **Actor-critic**: A2C, PPO, SAC. The modern default — best of both.\n- **Model-based**: Dreamer, MuZero. Sample-efficient when real samples are expensive.\n- **Exploration**: ε-greedy, entropy, RND, intrinsic motivation. The practical wall.\n- **RLHF**: PPO + learned reward model + KL constraint. The frontier alignment recipe.\n\nThis is the last lesson in the reinforcement-learner path. From [[mdp-foundations]] through RLHF, you've covered the full conceptual stack of modern RL.\n\nKey takeaways:\n- RLHF: SFT + reward model + PPO with KL penalty\n- SFT teaches format; RM captures preferences; PPO optimizes\n- KL penalty is the core alignment lever; adaptive β is standard\n- Reward hacking is the dominant failure mode; ensembles + DPO are mitigations\n- DPO sidesteps the RM/PPO complexity for many open-model releases"
+    }
+  ]
+}

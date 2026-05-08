@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why we need TD learning",
+      "body": "Dynamic programming requires knowing `P(s'|s,a)` and `R(s,a)`. Most real environments don't expose those — you only see samples by interacting.\n\n**Temporal difference (TD) learning** does Bellman updates from samples without ever explicitly modeling `P` or `R`. The key insight: the Bellman equation tells us\n\n$$V^\\pi(s) = \\mathbb{E}_\\pi[r + \\gamma V^\\pi(s')]$$\n\nThe expectation on the right is over `(a, s', r)` drawn from policy + transitions. We can replace the expectation with a single sample to get a noisy estimate:\n\n$$V(s) \\;\\xleftarrow{\\;}\\; V(s) + \\alpha \\cdot \\big[\\, \\underbrace{r + \\gamma V(s') - V(s)}_{\\text{TD error}} \\,\\big]$$\n\nThis is **TD(0)**. The TD error `δ = r + γ V(s') - V(s)` is exactly the *Bellman residual* from a single sample. Reducing it (in expectation) drives `V` toward `V^π`.\n\nLearning rate `α` controls how much each sample shifts `V`. Set it too high → noise dominates; too low → convergence is slow."
+    },
+    {
+      "kind": "text",
+      "title": "TD vs Monte Carlo",
+      "body": "There are two ways to estimate `V^π(s)` from samples:\n\n**Monte Carlo (MC)**: roll out an entire episode from `s`. Compute the actual return `G_t = r_t + γ r_{t+1} + ... + γ^T r_T`. Update:\n\n`V(s) ← V(s) + α · [G_t - V(s)]`\n\nMC is unbiased: `E[G_t | s_t = s] = V^π(s)` exactly. But:\n- High variance (the full return depends on every random draw in the episode).\n- Requires episodes to terminate.\n- Slow updates: only one update per episode for each visited state.\n\n**Temporal difference (TD)**: bootstrap from your own current estimate `V(s')`:\n\n`V(s) ← V(s) + α · [r + γ V(s') - V(s)]`\n\nTD is biased (uses the current, possibly-wrong, `V(s')` as a substitute for the true `V^π(s')`). But:\n- Lower variance (only depends on one transition's randomness).\n- Updates after every step — works in non-terminating environments.\n- Generally converges faster in practice.\n\nThe **bias-variance trade-off** here is fundamental. TD is the modern default; MC is conceptually clean but practically less efficient.\n\n**TD(λ)** interpolates: combine many-step returns weighted by `λ^k`. λ=0 is pure TD; λ=1 is MC; intermediate is a useful middle ground (the foundation of GAE in policy-gradient methods)."
+    },
+    {
+      "kind": "text",
+      "title": "Q-learning",
+      "body": "TD(0) for state-value `V(s)` is good, but for *control* (finding the best policy) we need action-values `Q(s, a)`.\n\n**Q-learning** (Watkins 1989) does TD-style updates on `Q`:\n\n$$Q(s,a) \\;\\xleftarrow{\\;}\\; Q(s,a) + \\alpha \\cdot \\big[\\, r + \\gamma \\max_{a'} Q(s', a') - Q(s, a) \\,\\big]$$\n\nNotice the `max_{a'}` — Q-learning bootstraps off the **best future action**, regardless of what the agent actually did. This makes it **off-policy**: it learns about the optimal policy `π*` even while following an exploratory behavior policy.\n\nThe behavior policy can be `ε`-greedy: with probability `ε` pick a random action (explore), otherwise pick `argmax_a Q(s, a)` (exploit).\n\nOn-policy variant: **SARSA** (state-action-reward-state-action). Same form but bootstraps off the action *actually taken* by the behavior policy:\n\n`Q(s,a) ← Q(s,a) + α · [r + γ Q(s', a') - Q(s, a)]`\n\nSARSA learns about the policy you're actually following (including exploration). Q-learning learns about the optimal policy regardless. For most cases, Q-learning's off-policy property is preferable. For dangerous exploration scenarios (cliff-walking environments), SARSA's caution can be advantageous."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "td_q1",
+        "kind": "multiple_choice",
+        "question": "Why is Q-learning called 'off-policy'?",
+        "options": [
+          "Because it doesn't have a policy",
+          "Because the update rule bootstraps off `max_{a'} Q(s', a')` — the value of the optimal next action — rather than the action actually taken by the behavior policy. This means Q-learning learns about the optimal policy regardless of which behavior policy collects the data, as long as the behavior policy explores enough",
+          "Because it doesn't follow any policy during training",
+          "Because it's slower than SARSA"
+        ],
+        "correctIndex": 1,
+        "explanation": "On-policy methods (SARSA, REINFORCE, PPO) learn about the policy they're following. Off-policy methods (Q-learning, DQN, DDPG) learn about a different (typically optimal) policy. Q-learning's `max_{a'}` is what makes it off-policy: it pretends the agent will act optimally next step, regardless of what it actually did. The benefit: data from any exploratory policy can train toward the optimal policy. The cost: with function approximation, the off-policy combination of bootstrapping + max is unstable (the 'deadly triad'), which DQN's experience replay + target network mitigates."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "DQN — Q-learning with deep nets",
+      "body": "Tabular Q-learning works for small state spaces. For Atari, image inputs preclude tabular storage. DQN (Mnih et al. 2013, 2015) wraps Q-learning in a neural network with three engineering tricks:\n\n**1. Function approximation**: parameterize `Q_θ(s, a)` as a CNN over image observations. Train `θ` to minimize\n\n`L(θ) = E[(r + γ max_{a'} Q_{θ⁻}(s', a') - Q_θ(s, a))²]`\n\n**2. Experience replay**: store transitions `(s, a, r, s')` in a buffer. Sample uniform random mini-batches for updates. This breaks the temporal correlation in consecutive samples (which would otherwise destabilize gradient updates) and reuses each sample many times for sample efficiency.\n\n**3. Target network**: `θ⁻` is a *copy* of `θ` updated infrequently (every few thousand steps). Without this, `Q_θ` is chasing a moving target — the bootstrap value `Q_θ(s', a')` shifts every step. Decoupling the target makes training much more stable.\n\nWithout these tricks, naive Q-learning + neural networks famously diverges (the 'deadly triad': function approximation + bootstrapping + off-policy). DQN's tricks tame each issue:\n\n- Experience replay: break correlations.\n- Target network: stabilize the bootstrap.\n- Mini-batch training: reduce variance.\n\nDQN achieved human-level Atari play in 2015. The recipe — value-based, off-policy, replay buffer, target network — is the foundation of most subsequent value-based deep RL (Double DQN, Dueling DQN, Rainbow, etc.)."
+    },
+    {
+      "kind": "text",
+      "title": "When TD methods fail",
+      "body": "TD methods are powerful but have known failure modes:\n\n**1. The deadly triad** (Sutton): function approximation + bootstrapping + off-policy data → potential divergence. DQN's tricks (replay, target network) mitigate; they don't eliminate. For continuous action spaces or extreme function approximation, value-based methods can be unstable.\n\n**2. Maximization bias.** `max_a Q(s', a')` is biased upward when `Q` is noisy: max of noisy estimates tends to be larger than max of true values. Double Q-learning (van Hasselt 2010) addresses this with two `Q` networks; one selects the action, the other evaluates it.\n\n**3. Slow propagation in long horizons.** TD(0) propagates reward information one step per update. A reward at step 1000 takes 1000 updates to propagate to step 0. Multi-step TD (TD(λ), n-step returns) helps.\n\n**4. Continuous action spaces.** `max_a Q(s, a)` is a hard optimization in `R^d`. Solutions: DDPG / TD3 / SAC use a separately-trained actor network. Or move to policy-gradient methods entirely (next lesson).\n\nThe trend in modern RL is **toward policy-gradient + actor-critic methods** for continuous-action and large-scale problems, **toward value-based + off-policy** for discrete-action and sample-efficiency-critical problems. Use the right tool."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "td_q2",
+        "kind": "multiple_choice",
+        "question": "Why does DQN use a separate 'target network' for the bootstrap value?",
+        "options": [
+          "It speeds up training",
+          "Without a target network, Q_θ is chasing a moving target — every gradient step changes the bootstrap value Q_θ(s', a') used by the next update. This creates a positive feedback loop that can destabilize training. Freezing the target as a slow-moving copy θ⁻ decouples the bootstrap from the live network, dramatically improving stability",
+          "Target networks reduce memory usage",
+          "DQN doesn't actually need a target network"
+        ],
+        "correctIndex": 1,
+        "explanation": "The target network was DQN's key stabilization trick. Without it, the bootstrap target r + γ max Q_θ(s', a') depends on θ that's actively being updated — a non-stationary regression target. Freezing θ⁻ as a slow-updating copy gives the regression a stable target. Subsequent algorithms (DDPG, TD3, SAC) all use some variant of this idea (slow-updating target networks, often Polyak-averaged)."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "TD methods are one half of the RL toolkit (the value-based half). The other half is policy gradients — directly parameterizing and optimizing the policy.\n\nNext: [[policy-gradients]] — REINFORCE, the policy gradient theorem, GAE.\n\nKey takeaways:\n- TD(0): single-sample Bellman update. `V(s) ← V(s) + α · [r + γ V(s') - V(s)]`\n- TD vs MC: TD is biased lower variance; MC is unbiased higher variance; TD(λ) interpolates\n- Q-learning: off-policy, bootstrap off `max_a Q(s', a')`\n- SARSA: on-policy, bootstrap off the action actually taken\n- DQN: Q-learning + neural net + experience replay + target network → human-level Atari\n- The 'deadly triad' (FA + bootstrapping + off-policy) is mitigated, not eliminated"
+    }
+  ]
+}

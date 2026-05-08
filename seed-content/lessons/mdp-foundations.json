@@ -1,0 +1,67 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What's a Markov Decision Process",
+      "body": "Reinforcement learning lives inside one mathematical object: the **Markov Decision Process (MDP)**. Every RL algorithm — Q-learning, PPO, RLHF — is doing something on top of an MDP. Get the MDP picture clear and the rest follows.\n\nAn MDP is a tuple `(S, A, P, R, γ)`:\n\n- **`S`**: the set of states. What the agent observes.\n- **`A`**: the set of actions. What the agent can do.\n- **`P(s' | s, a)`**: transition dynamics. The probability of landing in state `s'` after taking action `a` in state `s`.\n- **`R(s, a)`**: reward. The numerical signal the agent receives for taking action `a` in state `s` (sometimes also depending on `s'`).\n- **`γ ∈ [0, 1)`**: discount factor. How much the agent cares about future rewards vs immediate ones.\n\nA **policy** `π(a | s)` is a (possibly stochastic) mapping from states to actions — the agent's strategy.\n\nThe goal: find a policy that maximizes the **expected discounted return** `E[Σ γ^t R_t]`. The expectation is over the randomness in transitions and (if `π` is stochastic) the randomness in action selection."
+    },
+    {
+      "kind": "text",
+      "title": "The Markov property",
+      "body": "The 'Markov' in MDP means: the next state depends only on the current state and action, not on the full history.\n\nFormally: `P(s_{t+1} | s_t, a_t, s_{t-1}, a_{t-1}, ...) = P(s_{t+1} | s_t, a_t)`.\n\nThis is a strong assumption. It's also a *modeling choice*: if your raw observations don't satisfy the Markov property, you can often **enrich the state** until they do.\n\nExamples:\n\n- A robot's instantaneous joint angles aren't Markov (you need velocity to predict the next state). Solution: include velocity in the state.\n- A poker hand's current cards aren't Markov (you need the betting history). Solution: include the action history.\n- A natural-language conversation's most recent message isn't Markov (the assistant needs context). Solution: include the conversation transcript in the state.\n\nWhen you can't enrich enough, you get a **POMDP** (Partially Observable MDP) — a separate, harder framework where the agent observes only a noisy projection of the true state. Most modern RL pretends the problem is fully Markov by stuffing enough history into the observation; sometimes it works, sometimes you need POMDP-aware methods."
+    },
+    {
+      "kind": "text",
+      "title": "Episodes, returns, and the discount factor",
+      "body": "An **episode** is a trajectory `s_0, a_0, r_0, s_1, a_1, r_1, ...` until the agent reaches a terminal state (game over, goal reached, or just the time budget exhausted).\n\nThe **return** from time `t` is the sum of future rewards:\n\n$$G_t = \\sum_{k=0}^{\\infty} \\gamma^k r_{t+k}$$\n\nThe **discount factor `γ`** is doing two jobs:\n\n1. **Mathematical convergence.** Without it, infinite-horizon sums of rewards can diverge. With `γ < 1`, the geometric decay guarantees a finite sum.\n2. **Time preference.** Lower `γ` makes the agent myopic (only cares about the next few steps); higher `γ` makes it patient (willing to take losses now for big future payoffs).\n\nTypical values:\n- `γ = 0.99` for game-playing or robotics: care about hundreds of steps ahead.\n- `γ = 0.9` for shorter-horizon tasks.\n- `γ = 0` for fully myopic (treat each step as independent).\n\nThe discount factor is a **hyperparameter you choose**, not something handed to you by the environment. It encodes how much the agent should care about the future. Get it wrong and the agent's behavior changes qualitatively — too low and it ignores long-term consequences; too close to 1 and credit assignment over long horizons becomes brittle."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mdp_q1",
+        "kind": "multiple_choice",
+        "question": "Why does the Markov property assume the next state depends only on the current state and action?",
+        "options": [
+          "It's a fundamental law of physics",
+          "It's a modeling assumption that simplifies the math: dynamic programming, value iteration, and most RL algorithms only work efficiently when the state contains all information needed to predict the next state. If the assumption doesn't hold, you either enrich the state until it does or use POMDP-aware methods",
+          "Real environments are inherently Markovian",
+          "Without it, episodes wouldn't have a finite return"
+        ],
+        "correctIndex": 1,
+        "explanation": "The Markov property is a modeling decision. Real environments rarely satisfy it on raw observations; you build it in by choosing what to include in the state (history, velocity, conversation transcript). The benefit: tractable algorithms (Bellman equation, value iteration) and a clean theoretical foundation. The cost: when the state can't be made Markov (partial observability with bounded memory), you lose those guarantees and need POMDP methods."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "The reward function",
+      "body": "The reward `R(s, a)` is the only signal the agent gets about what it should do. Everything the agent learns about *good behavior* comes from this scalar.\n\n**Reward design is the dark art of RL.** A poorly-designed reward produces 'reward hacking' — the agent finds high-reward behavior that doesn't match what you wanted:\n\n- Reward a robot for fast motion → it learns to spin in circles.\n- Reward an agent for collecting coins → it ignores the level goal entirely.\n- Reward a chatbot for user-positive responses → it learns to be sycophantic.\n\nThree principles for reward design:\n\n1. **Sparse vs dense.** Sparse rewards (only at the end) are clean but hard to learn from. Dense rewards (frequent shaping) accelerate learning but invite hacking. Reward shaping (`R'(s, a, s') = R(s, a) + γ·Φ(s') - Φ(s)` for some potential function `Φ`) provides density without distorting the optimal policy.\n2. **Reward consistency.** The reward should be a function of `(s, a)` (or `(s, a, s')`), not of the history or external metadata. Otherwise the MDP isn't well-defined.\n3. **Match the actual goal.** Test the reward on edge cases. If you can imagine a high-reward strategy that doesn't match your intent, the reward needs work.\n\nIn modern systems, the reward is often **learned**: RLHF trains a reward model from human preferences, side-stepping (some of) the manual reward-design problem. We'll cover RLHF in the last lesson of this path."
+    },
+    {
+      "kind": "text",
+      "title": "Why this matters",
+      "body": "Every RL algorithm we'll cover in this path is doing one of two things on top of the MDP:\n\n1. **Value-based methods** (Q-learning, DQN, value iteration): learn a value function `V(s)` or `Q(s, a)` that estimates expected return. The policy is implicit — pick the action that maximizes `Q`.\n\n2. **Policy-based methods** (REINFORCE, PPO, actor-critic): parameterize the policy `π_θ(a|s)` directly and optimize `θ` via gradient ascent on expected return.\n\nBoth approaches solve the same MDP but with different inductive biases. Value-based: data-efficient, brittle, hard to scale to high-dimensional action spaces. Policy-based: scalable, robust, sample-inefficient. Hybrid (actor-critic): the modern default — the best of both.\n\nThe MDP is the substrate. Get clear on what `S`, `A`, `R`, and `γ` are in any RL problem and the rest of the path is filling in the algorithms.",
+      "title2": ""
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mdp_q2",
+        "kind": "multiple_choice",
+        "question": "An RL agent is rewarded for picking up coins in a video game. Instead of finishing levels, it learns to collect coins in an infinite loop on level 1. What's wrong?",
+        "options": [
+          "The discount factor is too high",
+          "The reward function rewards intermediate behavior (coin pickups) but doesn't reward the actual goal (finishing levels). The agent found a high-reward policy that doesn't match the human intent — classic reward hacking. The fix is to redesign the reward to reflect what you actually want, e.g., a large terminal reward for completing the level dwarfing per-coin rewards",
+          "The agent isn't exploring enough",
+          "The MDP isn't Markov"
+        ],
+        "correctIndex": 1,
+        "explanation": "Reward hacking is the dominant practical problem in RL. The agent maximizes the reward you wrote, not the goal you intended. Solutions: terminal rewards aligned with the actual goal, careful reward shaping that doesn't change the optimal policy (potential-based shaping), or learning the reward from human preferences (RLHF). Discount factor and exploration are red herrings here — the issue is the reward signal itself."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "MDPs are the language. The rest of the RL path teaches you the algorithms that operate on them.\n\nNext: [[value-functions]] — the Bellman equation and the value function `V(s)` that ties states to expected returns.\n\nKey takeaways:\n- MDP = `(S, A, P, R, γ)`; policy `π` maps states to actions\n- Markov property: next state depends only on current state + action; enrich state when it doesn't\n- Discount factor `γ` is a modeling choice; it sets how patient the agent is\n- Reward design is the dark art; sparse vs dense, consistency, match the actual goal\n- Two algorithm families: value-based (learn V or Q) vs policy-based (parameterize π directly); hybrid (actor-critic) is the modern default"
+    }
+  ]
+}
