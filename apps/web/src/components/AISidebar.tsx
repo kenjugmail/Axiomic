@@ -8,53 +8,27 @@ import { MarkdownRenderer } from "./MarkdownRenderer";
 import { CoachSuggestionCard } from "./ai/CoachSuggestionCard";
 import { AIModelPicker, type ModelOption } from "./ai/AIModelPicker";
 import { AITutorModeSelector } from "./ai/AITutorModeSelector";
+import { AITutorSettings } from "./ai/AITutorSettings";
+import { AIConversationHistory } from "./ai/AIConversationHistory";
 import { starterPromptsFor } from "../lib/starterPrompts";
+import {
+  loadAISettings,
+  saveAISettings,
+  type AITutorSettings as AITutorSettingsValue,
+} from "../lib/aiSettings";
+import {
+  clearCurrentSession,
+  listSessions,
+  loadCurrentSession,
+  loadPageState,
+  persistMessages,
+  setCurrentSession as setCurrentSessionStorage,
+  startNewSession,
+  type ConversationSession,
+} from "../lib/aiSessions";
 
 // Sprint 63f — localStorage key for the per-user model preference.
 const MODEL_STORAGE_KEY = "axiomic.ai.model";
-
-// Sprint 63h — sessionStorage key prefix for per-page conversation
-// persistence. Cleared on browser close; navigating away + back
-// restores the last conversation.
-const HISTORY_STORAGE_PREFIX = "axiomic.ai.history:";
-const HISTORY_MAX_MESSAGES = 50;
-
-function loadHistory(pageSlug: string): Message[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.sessionStorage.getItem(HISTORY_STORAGE_PREFIX + pageSlug);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed
-      .filter(
-        (m: any) =>
-          m &&
-          (m.role === "user" || m.role === "assistant") &&
-          typeof m.content === "string",
-      )
-      .slice(-HISTORY_MAX_MESSAGES);
-  } catch {
-    return [];
-  }
-}
-
-function saveHistory(pageSlug: string, messages: Message[]) {
-  if (typeof window === "undefined") return;
-  try {
-    if (messages.length === 0) {
-      window.sessionStorage.removeItem(HISTORY_STORAGE_PREFIX + pageSlug);
-      return;
-    }
-    const trimmed = messages.slice(-HISTORY_MAX_MESSAGES);
-    window.sessionStorage.setItem(
-      HISTORY_STORAGE_PREFIX + pageSlug,
-      JSON.stringify(trimmed),
-    );
-  } catch {
-    // sessionStorage unavailable; silent.
-  }
-}
 
 interface AISidebarProps {
   pageSlug: string;
@@ -87,10 +61,26 @@ export function AISidebar({
 }: AISidebarProps) {
   const user = useAuthStore((s) => s.user);
   const [searchParams] = useSearchParams();
-  // Sprint 63h — restore conversation history for this page.
-  const [messages, setMessages] = useState<Message[]>(() =>
-    loadHistory(pageSlug),
-  );
+  // Sprint 65b — multi-session conversation history per page. We hold
+  // a current sessionId in state; the messages list comes from the
+  // currently-selected session.
+  const [sessionId, setSessionId] = useState<string>(() => {
+    if (typeof window === "undefined") return "";
+    const current = loadCurrentSession(pageSlug);
+    if (current) return current.id;
+    return startNewSession(pageSlug).id;
+  });
+  const [messages, setMessages] = useState<Message[]>(() => {
+    if (typeof window === "undefined") return [];
+    const current = loadCurrentSession(pageSlug);
+    return current?.messages ?? [];
+  });
+  // Mirror the current page's session list into state so the history
+  // dropdown re-renders on save.
+  const [sessions, setSessions] = useState<ConversationSession[]>(() => {
+    if (typeof window === "undefined") return [];
+    return listSessions(pageSlug).sessions;
+  });
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   // Sprint 18 — proactive coach suggestions + due-flashcards CTA. The
@@ -99,6 +89,11 @@ export function AISidebar({
   const [suggestions, setSuggestions] = useState<CoachSuggestion[] | null>(null);
   const [dueCards, setDueCards] = useState<number>(0);
   const [dismissed, setDismissed] = useState<Set<number>>(new Set());
+  // Sprint 65a — user-controlled tutor settings. Live in localStorage;
+  // changes apply immediately. Defaults match the pre-S65 behavior.
+  const [settings, setSettings] = useState<AITutorSettingsValue>(() =>
+    loadAISettings(),
+  );
   // Sprint 30 — tutor mode + per-mode context. URL params `aiMode` +
   // `diagnosisId` / `forumTopicId` auto-pick a mode (e.g. clicking
   // "Coach me" on /me/weak-concepts deep-links into misconception mode).
@@ -141,16 +136,30 @@ export function AISidebar({
   useEffect(() => {
     setHasAutoSelected(false);
     setAutoDiagnosisId(undefined);
-    // Sprint 63h — restore the per-page conversation when the page
-    // slug changes (e.g., user navigates from /wiki/attention to
+    // Sprint 65b — restore the per-page sessions when the page slug
+    // changes (e.g., user navigates from /wiki/attention to
     // /wiki/softmax with the sidebar staying open).
-    setMessages(loadHistory(pageSlug));
+    const state = loadPageState(pageSlug);
+    setSessions(state.sessions);
+    if (state.currentId) {
+      setSessionId(state.currentId);
+      const current = state.sessions.find((s) => s.id === state.currentId);
+      setMessages(current?.messages ?? []);
+    } else {
+      const fresh = startNewSession(pageSlug);
+      setSessionId(fresh.id);
+      setMessages([]);
+      setSessions(listSessions(pageSlug).sessions);
+    }
   }, [pageSlug]);
 
-  // Sprint 63h — persist conversation to sessionStorage on every change.
+  // Sprint 65b — persist conversation to the active session on every
+  // change.
   useEffect(() => {
-    saveHistory(pageSlug, messages);
-  }, [pageSlug, messages]);
+    if (!sessionId) return;
+    persistMessages(pageSlug, sessionId, messages);
+    setSessions(listSessions(pageSlug).sessions);
+  }, [pageSlug, sessionId, messages]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -240,7 +249,9 @@ export function AISidebar({
       api.ai.coachSuggest(pageSlug),
       // Sprint 32 — pull active diagnoses so we can auto-route into
       // misconception mode when this page maps to one of them.
-      urlMode || hasAutoSelected
+      // Sprint 65a — gated by the autoSelectMode setting; when off,
+      // skip the weak-concepts fetch entirely.
+      urlMode || hasAutoSelected || !settings.autoSelectMode
         ? Promise.resolve(null)
         : api.me.weakConcepts().catch(() => null),
     ])
@@ -250,8 +261,8 @@ export function AISidebar({
         setSuggestions(sug.suggestions);
 
         // Auto-mode-routing — runs once per sidebar open, only when the
-        // URL didn't pin a mode.
-        if (!urlMode && !hasAutoSelected) {
+        // URL didn't pin a mode AND the user hasn't disabled it.
+        if (!urlMode && !hasAutoSelected && settings.autoSelectMode) {
           const activeDiagnoses = weak?.diagnoses?.filter(
             (d) => d.status === "active" || d.status === "coached",
           );
@@ -274,7 +285,7 @@ export function AISidebar({
     return () => {
       cancelled = true;
     };
-  }, [isOpen, user, pageSlug, urlMode, hasAutoSelected]);
+  }, [isOpen, user, pageSlug, urlMode, hasAutoSelected, settings.autoSelectMode]);
 
   const handleSend = async () => {
     if (!input.trim() || streaming) return;
@@ -349,6 +360,73 @@ export function AISidebar({
     }
   };
 
+  // Sprint 65a — settings change handler also persists.
+  const handleSettingsChange = (next: AITutorSettingsValue) => {
+    setSettings(next);
+    saveAISettings(next);
+  };
+
+  // Sprint 65b — start a fresh session on this page.
+  const handleNewSession = () => {
+    const fresh = startNewSession(pageSlug);
+    setSessionId(fresh.id);
+    setMessages([]);
+    setSessions(listSessions(pageSlug).sessions);
+    setDismissed(new Set());
+    inputRef.current?.focus();
+  };
+
+  // Sprint 65b — switch to a previous session on this page.
+  const handleSelectSession = (id: string) => {
+    if (id === sessionId) return;
+    setCurrentSessionStorage(pageSlug, id);
+    const state = loadPageState(pageSlug);
+    const target = state.sessions.find((s) => s.id === id);
+    if (!target) return;
+    setSessionId(id);
+    setMessages(target.messages);
+    setSessions(state.sessions);
+    setDismissed(new Set());
+  };
+
+  // Sprint 65b — delete a session from history.
+  const handleDeleteSession = (id: string) => {
+    const wasCurrent = id === sessionId;
+    if (wasCurrent) {
+      clearCurrentSession(pageSlug);
+      const state = loadPageState(pageSlug);
+      setSessions(state.sessions);
+      if (state.currentId) {
+        const target = state.sessions.find((s) => s.id === state.currentId);
+        setSessionId(state.currentId);
+        setMessages(target?.messages ?? []);
+      } else {
+        const fresh = startNewSession(pageSlug);
+        setSessionId(fresh.id);
+        setMessages([]);
+        setSessions(listSessions(pageSlug).sessions);
+      }
+      return;
+    }
+    // Non-current: just drop it from the list.
+    if (typeof window === "undefined") return;
+    const state = loadPageState(pageSlug);
+    const filtered = state.sessions.filter((s) => s.id !== id);
+    try {
+      if (filtered.length === 0) {
+        window.localStorage.removeItem("axiomic.ai.sessions:" + pageSlug);
+      } else {
+        window.localStorage.setItem(
+          "axiomic.ai.sessions:" + pageSlug,
+          JSON.stringify({ sessions: filtered, currentId: state.currentId }),
+        );
+      }
+    } catch {
+      // ignore
+    }
+    setSessions(filtered);
+  };
+
   // Sprint 64b-5 — tier-specific starter prompts. Wiki pages get
   // conceptual prompts; lessons get slide-focused; research gets
   // critique-focused; etc. Falls back to a generic 4-prompt list
@@ -357,9 +435,10 @@ export function AISidebar({
 
   // Visible suggestions = ranked set minus anything the user dismissed
   // this session. Memoize-light: cheap enough to recompute on render.
-  const visibleSuggestions = (suggestions ?? []).filter(
-    (_, i) => !dismissed.has(i),
-  );
+  // Sprint 65a — fully gated by the showSuggestions setting.
+  const visibleSuggestions = settings.showSuggestions
+    ? (suggestions ?? []).filter((_, i) => !dismissed.has(i))
+    : [];
 
   if (!isOpen) return null;
 
@@ -399,6 +478,16 @@ export function AISidebar({
             onChange={setModel}
             provider={providerName}
           />
+          {/* Sprint 65b — past conversations on this page. */}
+          <AIConversationHistory
+            sessions={sessions}
+            currentId={sessionId}
+            onSelect={handleSelectSession}
+            onNew={handleNewSession}
+            onDelete={handleDeleteSession}
+          />
+          {/* Sprint 65a — tutor settings popover. */}
+          <AITutorSettings value={settings} onChange={handleSettingsChange} />
           <button onClick={onClose} className="p-1 hover:bg-accent rounded" title="Close">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -414,7 +503,7 @@ export function AISidebar({
         onChange={setMode}
         canMisconception={!!diagnosisId}
         canDebate={!!forumTopicId}
-        autoSelected={hasAutoSelected}
+        autoSelected={hasAutoSelected && settings.autoSelectMode}
       />
 
       {/* Messages */}
@@ -541,14 +630,11 @@ export function AISidebar({
               {model ?? ""}
             </span>
             <button
-              onClick={() => {
-                setMessages([]);
-                saveHistory(pageSlug, []);
-              }}
+              onClick={handleNewSession}
               className="hover:text-foreground"
-              title="Clear conversation"
+              title="Start a new conversation"
             >
-              Clear
+              New conversation
             </button>
           </div>
         )}

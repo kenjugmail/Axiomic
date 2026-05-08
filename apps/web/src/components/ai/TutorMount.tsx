@@ -32,6 +32,15 @@ interface TutorMountProps {
   articleRef?: React.RefObject<HTMLElement | null>;
   // Hide the floating toggle button (e.g., the page renders its own).
   hideButton?: boolean;
+  // Sprint 65c — controlled-mode props. When the parent passes `open`
+  // + `onOpenChange`, TutorMount becomes a thin wrapper around the
+  // sidebar/popover/listener trio and the parent owns the open state.
+  // Used by WikiPage so it can keep its inline toolbar button + the
+  // `lg:mr-96` content-shift while still consolidating the
+  // boilerplate. When omitted, TutorMount manages state itself + the
+  // floating button.
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const SIDEBAR_OPEN_KEY = "axiomic.ai.sidebar.open";
@@ -42,10 +51,15 @@ export function TutorMount({
   tier,
   articleRef,
   hideButton,
+  open,
+  onOpenChange,
 }: TutorMountProps) {
   const user = useAuthStore((s) => s.user);
+  const isControlled = open !== undefined;
   // Sprint 63h — persist sidebar open state across navigation.
-  const [aiOpen, setAiOpen] = useState<boolean>(() => {
+  // Skipped in controlled mode; the parent owns persistence.
+  const [internalOpen, setInternalOpen] = useState<boolean>(() => {
+    if (isControlled) return false;
     if (typeof window === "undefined") return false;
     try {
       return window.localStorage.getItem(SIDEBAR_OPEN_KEY) === "1";
@@ -53,6 +67,14 @@ export function TutorMount({
       return false;
     }
   });
+  const aiOpen = isControlled ? open : internalOpen;
+  const setAiOpen = (next: boolean) => {
+    if (isControlled) {
+      onOpenChange?.(next);
+    } else {
+      setInternalOpen(next);
+    }
+  };
   const [seedQuote, setSeedQuote] = useState<string | null>(null);
   const localRef = useRef<HTMLElement | null>(null);
   const ref = articleRef ?? localRef;
@@ -66,16 +88,18 @@ export function TutorMount({
     }
     window.addEventListener(ASK_TUTOR_EVENT, handle);
     return () => window.removeEventListener(ASK_TUTOR_EVENT, handle);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isControlled]);
 
   useEffect(() => {
+    if (isControlled) return;
     if (typeof window === "undefined") return;
     try {
-      window.localStorage.setItem(SIDEBAR_OPEN_KEY, aiOpen ? "1" : "0");
+      window.localStorage.setItem(SIDEBAR_OPEN_KEY, internalOpen ? "1" : "0");
     } catch {
       // ignore
     }
-  }, [aiOpen]);
+  }, [internalOpen, isControlled]);
 
   return (
     <>
