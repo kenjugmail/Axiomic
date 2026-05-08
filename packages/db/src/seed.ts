@@ -623,6 +623,50 @@ For learners on the ml-engineer path: this is the natural extension. Multimodal 
 
 For learners on the [Reinforcement Learner path](/paths/reinforcement-learner): VLMs and RLHF combine — modern multimodal alignment uses RLHF with image conditioning. The two paths complement.`,
     },
+    {
+      slug: "comp-bio-path-launch",
+      title: "Computational biology path: from sequence alignment to AlphaFold",
+      summary:
+        "ML × biology gets its own path. Nine lessons + 13 wiki pages cover DNA/RNA/protein, sequence alignment, AlphaFold, protein language models, single-cell genomics, and molecular dynamics. The most differentiated cross-domain on the platform.",
+      coverEmoji: "🧬",
+      accentColor: "emerald",
+      authorId: carolId,
+      body: `The 2020 AlphaFold breakthrough opened a new era for biology. Protein structure prediction — open for 50 years — was effectively solved. Since then, the field has expanded: ESM-3 generates novel functional proteins; single-cell foundation models embed millions of cells; AlphaFold 3 extends to multi-molecule complexes. The new [comp-biologist path](/paths/comp-biologist) covers it.
+
+## What landed
+
+Nine lessons covering the modern bio-ML stack:
+
+1. [DNA, RNA, Protein](/paths/comp-biologist/lessons/dna-rna-protein) — the central dogma + computational representation.
+2. [Sequence alignment](/paths/comp-biologist/lessons/sequence-alignment) — Smith-Waterman, BLAST, MSA.
+3. [Phylogenetics](/paths/comp-biologist/lessons/phylogenetics) — distance methods, ML phylogenetics, evolutionary trees.
+4. [Protein structure](/paths/comp-biologist/lessons/protein-structure) — primary, secondary, tertiary, quaternary.
+5. [AlphaFold](/paths/comp-biologist/lessons/alphafold) — Evoformer, structure module, MSA.
+6. [Protein language models](/paths/comp-biologist/lessons/protein-language-models) — ESM, masked-residue pretraining.
+7. [Single-cell RNA-seq](/paths/comp-biologist/lessons/single-cell-rna-seq) — scRNA-seq, dimensionality reduction, foundation models.
+8. [Molecular dynamics](/paths/comp-biologist/lessons/molecular-dynamics) — force fields, ML potentials.
+9. [Bio-ML evaluation](/paths/comp-biologist/lessons/bio-ml-evaluation) — CASP, contamination, leakage.
+
+Plus 13 new wiki pages, 6 new misconceptions, a survey paper on the [bio-ML state of the art in 2026](/research/bio-ml-state-of-art-2026), and a new [bio forum domain](/forum/bio).
+
+## The capstone
+
+[Build a protein language model from scratch](/capstones/build-a-protein-language-model) (6 weeks): train a small ESM-style protein LM via masked-residue prediction. Use it for variant effect prediction + functional embedding extraction. Compare against ESM-2.
+
+The output is a public artifact showing your protein LM matched (or didn't quite match) ESM-2 on specific tasks, with engineering analysis of the gaps. Defensible bio-ML credential.
+
+## Why this path is different
+
+Compared to the other six paths (ml-engineer, ai-researcher, mathematician, physicist, systems-engineer, reinforcement-learner, multimodal-engineer), comp-bio is the most domain-specific. Concepts like sequence alignment, phylogenetics, and protein structure are biology-specific; methods like AlphaFold are bio-ML-specific.
+
+But the ML substrate is the same: transformers, attention, contrastive learning, foundation models, careful evaluation. Bio-ML is what happens when modern ML methods meet biology's specific data structures + biological priors.
+
+For learners interested in cross-domain ML: comp-bio is one of the highest-leverage application areas. Frontier-class progress (AlphaFold, ESM-3, scGPT) happens at the intersection of ML scaling laws + biological data + biology-specific adaptations.
+
+## What this completes
+
+This is the fourth and final new mastery path of the S55-S58 batch. From [systems engineer](/news/systems-engineer-path-launch) through [RL foundations](/news/rl-foundations-path-launch) to [multimodal](/news/multimodal-path-launch) and now comp-bio, the platform has 7 mastery paths covering the modern ML practitioner's toolkit end-to-end.`,
+    },
   ];
 
   for (const a of articles) {
@@ -942,6 +986,28 @@ function seedMasteryPaths() {
       { slug: "multimodal-evaluation", title: "Multimodal Evaluation", level: "expert", order: 9, pages: ["mmlu-multimodal"], prereqs: ["multimodal-fusion"], description: "VQA benchmarks, hallucination detection, eval methodology when there's no single ground truth." },
     ],
   });
+
+  // Sprint 58 — Computational Biology path. The most differentiated
+  // cross-domain: ML × biology. AlphaFold, protein language models,
+  // sequence modeling. Cross-references ml-engineer's attention work
+  // explicitly (AlphaFold's evoformer is attention-based).
+  seedMasteryPath({
+    slug: "comp-biologist",
+    title: "Computational Biologist",
+    description:
+      "ML × biology: from DNA/RNA/protein to AlphaFold, protein language models, and the bio-ML frontier.",
+    nodes: [
+      { slug: "dna-rna-protein", title: "DNA, RNA, Protein", level: "apprentice", order: 1, pages: ["central-dogma", "protein-sequence"], prereqs: [], description: "The central dogma, sequence representations, and what 'biological data' actually means computationally." },
+      { slug: "sequence-alignment", title: "Sequence Alignment", level: "apprentice", order: 2, pages: ["sequence-alignment", "blast"], prereqs: ["dna-rna-protein"], description: "Smith-Waterman, BLAST, multiple sequence alignment. The classical bioinformatics that ML built on." },
+      { slug: "phylogenetics", title: "Phylogenetics", level: "practitioner", order: 3, pages: ["phylogenetic-tree"], prereqs: ["sequence-alignment"], description: "Distance methods, maximum likelihood, evolutionary trees. How relatedness is inferred from sequence." },
+      { slug: "protein-structure", title: "Protein Structure", level: "practitioner", order: 4, pages: ["protein-structure", "secondary-structure"], prereqs: ["dna-rna-protein"], description: "Primary → secondary → tertiary → quaternary. The folding problem and why it took until 2020 to crack." },
+      { slug: "alphafold", title: "AlphaFold", level: "specialist", order: 5, pages: ["alphafold", "evoformer", "msa-attention"], prereqs: ["protein-structure", "sequence-alignment"], description: "Evoformer, structure module, MSA. Why attention + co-evolution gave us protein structure prediction." },
+      { slug: "protein-language-models", title: "Protein Language Models", level: "specialist", order: 6, pages: ["esm", "protein-lms"], prereqs: ["protein-structure"], description: "ESM, masked-residue pretraining. Transformer LMs adapted to protein sequences." },
+      { slug: "single-cell-rna-seq", title: "Single-Cell RNA-Seq", level: "specialist", order: 7, pages: ["scrna-seq", "umap-tsne"], prereqs: ["dna-rna-protein"], description: "Sequencing individual cells. Dimensionality reduction, cell-type clustering, the geneticist's microscope." },
+      { slug: "molecular-dynamics", title: "Molecular Dynamics", level: "expert", order: 8, pages: ["molecular-dynamics"], prereqs: ["protein-structure"], description: "Force fields, Langevin sampling, simulating biomolecules at the atomic level." },
+      { slug: "bio-ml-evaluation", title: "Bio-ML Evaluation", level: "expert", order: 9, pages: ["casp"], prereqs: ["alphafold", "protein-language-models"], description: "CASP, contamination, leakage. How bio-ML benchmarks stay (or fail to stay) honest." },
+    ],
+  });
 }
 
 // --- Forum seeding -------------------------------------------------------
@@ -989,6 +1055,12 @@ const SEED_DOMAINS = [
     title: "Multimodal & Vision",
     description:
       "Vision transformers, CLIP, diffusion, audio, VLMs — non-text ML.",
+  },
+  {
+    slug: "bio",
+    title: "Computational Biology",
+    description:
+      "ML × biology: protein folding, sequence modeling, AlphaFold + ESM.",
   },
 ];
 

@@ -1,0 +1,46 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What scRNA-seq measures",
+      "body": "**Single-cell RNA sequencing (scRNA-seq)** measures gene expression — the abundance of each mRNA — in *individual cells* rather than bulk tissue. The output is a matrix:\n\n- Rows = cells (often 10,000-1,000,000 per experiment).\n- Columns = genes (~20,000 in human).\n- Entries = counts of mRNAs detected.\n\nThe matrix is **extremely sparse** (most cells express only a fraction of all genes; many entries are zero from undersampling) and **noisy** (technical variation across cells, batch effects across experiments).\n\nFor ML: scRNA-seq is the canonical 'high-dim, sparse, structured' biological data. Tasks: cluster cells by type, identify rare cell populations, infer differentiation trajectories, predict cell states under perturbations."
+    },
+    {
+      "kind": "text",
+      "title": "The standard pipeline",
+      "body": "**1. Quality control + normalization.**\n\n- Filter out low-quality cells (few genes detected, high mitochondrial gene fraction → dying cells).\n- Normalize counts: divide by total counts per cell, log-transform. Compensates for variable sequencing depth.\n\n**2. Feature selection.**\n\n- Identify highly variable genes (HVGs) — genes with high variance relative to mean. Typically 2000-5000 HVGs out of ~20K total.\n- Reduces noise; speeds downstream analysis.\n\n**3. Dimensionality reduction.**\n\n- **PCA** (50-100 components): captures most variance.\n- **UMAP** or **t-SNE** (2D for visualization): non-linear; preserves local + global structure.\n\n**4. Clustering.**\n\n- **Leiden / Louvain** algorithms on a k-nearest-neighbor graph in PCA space.\n- Output: cells partitioned into clusters; each cluster is (hopefully) a cell type or state.\n\n**5. Cell-type annotation.**\n\n- Identify marker genes per cluster (genes uniquely expressed in this cluster).\n- Match to known cell-type signatures (CellTypist, manual curation).\n- Output: cluster X = T cells; cluster Y = neurons; etc.\n\nTools: **Scanpy** (Python) and **Seurat** (R) implement this pipeline. Standard in every scRNA-seq paper."
+    },
+    {
+      "kind": "text",
+      "title": "Deep learning for scRNA-seq",
+      "body": "Generic ML methods don't always work cleanly on scRNA-seq because of noise + sparsity. Specialized methods:\n\n**1. scVI** (single-cell variational inference): a VAE with negative-binomial likelihood (matches the count distribution of scRNA-seq) and batch-correction built in. Trained per dataset; produces de-noised, batch-corrected embeddings. Widely deployed.\n\n**2. Foundation models for scRNA-seq**:\n- **scGPT, scBERT, Geneformer**: transformers trained on millions of cells. Tokenize cells as sequences of expressed genes (sometimes ranked by expression level).\n- Pretraining objective: masked-gene prediction (BERT-style) or autoregressive expression prediction.\n- Downstream uses: cell-type classification, perturbation prediction, gene-network inference.\n\n**3. Trajectory inference**: cells progress through differentiation along trajectories. Methods like **Monocle**, **PAGA**, **scVelo** infer pseudotime + branching from scRNA-seq.\n\n**4. Spatial transcriptomics**: scRNA-seq + spatial coordinates (where each cell was in the tissue). Methods like **STAGATE**, **GraphST** integrate spatial information.\n\nFor most current bio-ML projects: Scanpy + scVI is the standard recipe. Foundation models (Geneformer, scGPT) are emerging but not yet uniformly deployed."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scrna_q1",
+        "kind": "multiple_choice",
+        "question": "Why is scRNA-seq data so sparse, with most entries in the cell × gene matrix being zero?",
+        "options": [
+          "Most genes aren't expressed in most cells",
+          "Combination of biology + technical noise. Biologically, each cell only expresses a subset of genes; many genes are silent in any given cell type. Technically, current scRNA-seq protocols capture only a fraction of mRNAs in each cell — true expression is undersampled, so even moderately-expressed genes look like zero ('dropout'). The combination produces 80-95% zero entries, including many false zeros that complicate downstream analysis",
+          "scRNA-seq machines are broken",
+          "Genes are mostly inactive"
+        ],
+        "correctIndex": 1,
+        "explanation": "Both biology and technology contribute to sparsity. The biology: cell-type-specific expression. The technology: limited capture efficiency (1-10% of mRNAs are sequenced in typical protocols). 'Zero' in the matrix is a mix of true biology + technical dropout. Methods like scVI explicitly model this dual-zero distribution (negative binomial + dropout) to denoise. Treating all zeros as truly absent leads to wrong conclusions; treating all as dropouts leads to over-imputation. The bio-ML challenge is balancing these correctly."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Where scRNA-seq is going",
+      "body": "Three frontier directions:\n\n**1. Foundation models on scale**. Geneformer, scGPT, UCE — pretrained on tens of millions of cells across hundreds of datasets. Fine-tune for downstream tasks. The pattern transferring from NLP / protein LMs.\n\n**2. Multi-omics integration**. Beyond RNA: also measure DNA accessibility (ATAC-seq), chromatin marks (CUT&RUN), proteins (CITE-seq), spatial location, perturbation responses. Joint embedding methods (totalVI, MOFA+, CrossVAE) combine these into shared representations.\n\n**3. Causal / perturbation prediction**. Given a perturbation (gene knockdown, drug treatment), predict the resulting cell-state shift. Models like CellOracle, Generative Perturbation Networks. The bio-ML version of 'predict the effect of an intervention'.\n\n**For a team building bio-ML on scRNA-seq**: Scanpy as the data-handling layer; scVI for embeddings + batch correction; CellTypist or fine-tuned Geneformer for cell-type prediction; specialized tools for the specific biological question. The ecosystem is rich; pick components based on the task.",
+      "extra": ""
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "scRNA-seq is one major scale of bio-ML data. Next: a different scale entirely — atomic-resolution simulation.\n\nNext: [[molecular-dynamics]] — force fields, Langevin sampling, simulating biomolecules at the atomic level.\n\nKey takeaways:\n- scRNA-seq: cell × gene matrix; sparse + noisy\n- Standard pipeline: QC → normalize → HVG → PCA → UMAP → Leiden → annotate\n- scVI: VAE with biology-aware likelihood + batch correction\n- Foundation models for cells (Geneformer, scGPT) are emerging\n- Spatial + multi-omics extensions for richer biological context\n- Perturbation prediction is the causal-inference frontier"
+    }
+  ]
+}

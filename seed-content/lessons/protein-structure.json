@@ -1,0 +1,45 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why protein structure",
+      "body": "A protein's **function** depends on its **3D structure**. An enzyme works because its active site has the right shape to bind a substrate; an antibody recognizes a target because its surface complements the antigen's; a structural protein supports tissues because it folds into rigid filaments.\n\nThe **folding problem**: given a protein's amino-acid sequence, what 3D structure does it fold into?\n\nAnfinsen's hypothesis (1973): the sequence uniquely determines the structure, and the structure is the thermodynamic minimum-free-energy conformation. (Caveats: chaperones help; some proteins are intrinsically disordered.) For most proteins this hypothesis holds.\n\nThe folding problem stood unsolved for ~50 years. AlphaFold (2020) made dramatic progress; AlphaFold 3 (2024) is now a usable tool for most protein engineering. This lesson is the substrate: what's a protein structure, what are its hierarchy of representations."
+    },
+    {
+      "kind": "text",
+      "title": "The four levels of structure",
+      "body": "**Primary structure**: the amino acid sequence. A 1D string over 20 letters.\n\n**Secondary structure**: local 3D motifs.\n- **α-helix**: a tight right-handed helix; ~3.6 residues per turn. Stabilized by hydrogen bonds between residue `i` and residue `i+4`.\n- **β-strand / β-sheet**: extended residues; multiple strands form sheets via hydrogen bonds. Can be parallel or antiparallel.\n- **Loop / coil**: unstructured connecting regions.\n\nA protein's secondary structure is typically 30-50% α-helix + 20-30% β-sheet + 30-40% loop.\n\n**Tertiary structure**: the full 3D fold. The α-helices and β-sheets pack together; loops connect them. Stabilized by:\n- Hydrophobic interactions: nonpolar residues cluster in the protein's core (away from water).\n- Hydrogen bonds (between secondary-structure elements + with side chains).\n- Disulfide bonds: covalent links between cysteine residues.\n- Salt bridges: ionic interactions between charged residues.\n\n**Quaternary structure**: many proteins are oligomers — multiple folded chains assembled together. Hemoglobin is a tetramer (4 chains). Antibodies are heterotetramers. The interfaces between chains are where the function often lives.\n\nFor ML: the relevant target is typically tertiary structure. AlphaFold predicts atomic-resolution 3D coordinates for every residue."
+    },
+    {
+      "kind": "text",
+      "title": "Representing structure computationally",
+      "body": "**Atomic coordinates**: for each atom in the protein (typically thousands per protein), an `(x, y, z)` position. The most direct representation; what AlphaFold outputs.\n\nBut: the absolute position doesn't matter (rotate the whole protein → same protein). Translation + rotation invariance is essential. Two ways to handle this:\n\n**1. Internal coordinates**: bond lengths, bond angles, dihedral angles (φ, ψ for the protein backbone, χ angles for side chains). Equivariant to overall translation/rotation. Used in some structure-prediction methods (energy minimization, force fields).\n\n**2. Pairwise distances**: for each pair of residues, the distance between them. A `N × N` matrix, invariant to all rigid transformations. **AlphaFold uses pairwise distance + orientation as its working representation** — easier for an attention model to predict than absolute coordinates.\n\n**Contact map**: a binary version of the distance matrix. Residue pairs within 8Å are 'in contact'. Used as a coarser prediction target than full structures.\n\n**For deep learning**: the choice of representation matters. Equivariant networks (E(3)-equivariant transformers, NequIP) operate on coordinates while preserving rotational symmetry. Non-equivariant networks need data augmentation (random rotations) to learn the invariance."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "struct_q1",
+        "kind": "multiple_choice",
+        "question": "Why does AlphaFold predict pairwise distances between residues rather than absolute (x, y, z) coordinates directly?",
+        "options": [
+          "Pairwise distances are easier to compute",
+          "Pairwise distances are invariant to overall translation + rotation. Two protein structures that are rotations of each other have the same pairwise distances. An attention model can learn distance prediction without having to also learn rotational equivariance. Absolute coordinates would require either an equivariant architecture or extensive data augmentation. Pairwise distances + orientations are easier targets",
+          "Distances are smaller numbers",
+          "PDB stores distances directly"
+        ],
+        "correctIndex": 1,
+        "explanation": "The pairwise distance + orientation representation is rotationally invariant: two structures that are isometric have identical distance matrices. Predicting distances first (then reconstructing 3D coordinates that satisfy them) sidesteps the equivariance problem. AlphaFold's structure module uses an SE(3)-equivariant architecture for the final 3D output, but the distance + orientation predictions feed it. Choosing the right intermediate representation is one of AlphaFold's key insights."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Why folding was hard",
+      "body": "The folding problem was open for ~50 years (1972-2020) for several reasons:\n\n**1. Vast conformational space**. A 100-residue protein has ~10^100 possible conformations (Levinthal's paradox). Brute-force search is impossible. The protein can't actually be searching all of them randomly; nature must have found a shortcut.\n\n**2. Energy function inaccuracy**. In principle, the 3D structure is the global minimum of an energy function (sum of bond energies, electrostatics, van der Waals, hydrogen bonds, hydrophobic effects). In practice, force fields (AMBER, CHARMM) don't quite reproduce real biology. Computed minima don't match experimental structures.\n\n**3. Limited data**. The PDB (Protein Data Bank) has ~200K experimentally-determined structures. Most are bacterial enzymes; coverage is uneven across protein families. Not enough for naive supervised learning to handle every kind of protein.\n\n**4. Co-evolution signal was buried**. Co-evolving residues in an MSA encode physical proximity (positions that change together often must remain in contact for the protein to function). But extracting this signal from noisy MSAs without compounding errors required modern attention-based methods.\n\nAlphaFold combined deep co-evolution analysis (the evoformer) with a careful structural decoder (the structure module). The result was the 2020 CASP14 leap: AlphaFold scored ~90 GDT vs the previous best ~60. By any meaningful measure, the folding problem was solved.\n\nThe next lesson covers AlphaFold's architecture in detail."
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Protein structure is the 3D substrate of biology. Next: how AlphaFold went from 'sequence + MSA → 3D structure' and what the architecture looks like.\n\nNext: [[alphafold]] — Evoformer, structure module, MSA attention.\n\nKey takeaways:\n- 4 levels: primary (sequence) → secondary (helix/sheet/coil) → tertiary (3D fold) → quaternary (multi-chain)\n- Anfinsen's hypothesis: sequence determines structure (mostly)\n- Computational representations: atomic coordinates, internal coordinates, pairwise distances\n- Pairwise distances are rotation-invariant → easier prediction targets than coordinates\n- Folding was hard because of: conformational search, energy-function inaccuracy, data scarcity, co-evolution signal extraction\n- AlphaFold (2020) effectively solved it"
+    }
+  ]
+}

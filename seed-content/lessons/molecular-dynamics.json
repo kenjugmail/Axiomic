@@ -1,0 +1,40 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why simulate molecules atomically",
+      "body": "**Molecular dynamics (MD)** simulates biomolecules at atomic resolution. Each atom has a position; forces between atoms are computed from a force field; positions are updated by Newton's equations of motion. Run for nanoseconds to microseconds (1-100 nanoseconds is common; the most extensive simulations reach milliseconds).\n\nWhy:\n- **Mechanism**: how does an enzyme catalyze a reaction? What conformation does it adopt during catalysis? MD shows the dynamics that static structures don't.\n- **Drug design**: simulate how a drug binds to its target; estimate binding affinity from molecular interactions.\n- **Protein-protein interactions**: simulate complexes; identify which residues drive binding.\n- **Conformational sampling**: AlphaFold gives one structure; MD shows the ensemble of structures the protein actually visits.\n\nMD is computationally expensive — millions of atoms, fs-scale timesteps, ns-scale runs. ML is now changing this dramatically (next slides)."
+    },
+    {
+      "kind": "text",
+      "title": "The classical MD recipe",
+      "body": "**Step 1: Force field**. A potential energy function `U(positions)`:\n\n```\nU = bond stretching + angle bending + dihedral torsions + van der Waals + electrostatics + bonds\n```\n\nEach term has parameters (force constants, equilibrium distances, etc.) fitted to experimental data. Standard force fields: AMBER, CHARMM, OPLS, GROMOS.\n\nThe forces on each atom: `F = -∇U`.\n\n**Step 2: Integration**. Numerically integrate Newton's equations:\n\n```\np_{t+Δt} = p_t + F · Δt           (momentum update)\nx_{t+Δt} = x_t + p_{t+Δt}/m · Δt  (position update)\n```\n\nUsing velocity Verlet or similar (numerical stability matters; energy conservation matters). Timestep `Δt`: 1-2 femtoseconds (10^-15 s) for biomolecular MD.\n\n**Step 3: Thermostat + barostat**. Couple to a heat bath / pressure bath to maintain target temperature + pressure. Langevin dynamics, Nosé-Hoover, etc.\n\n**Step 4: Run for many steps**. To simulate 100 ns of biology: 50 million 2-fs steps. Each step requires computing forces over all atom pairs — `O(N²)` naively. Tricks (cutoffs, Ewald summation for electrostatics, neighbor lists) reduce to `O(N log N)` or better. Still expensive: 100 ns of a 100k-atom system takes ~hours-to-days on a GPU."
+    },
+    {
+      "kind": "text",
+      "title": "ML-accelerated MD",
+      "body": "Force-field calculations are the bottleneck. Modern bio-ML accelerates them dramatically:\n\n**1. ML potentials**. Train a neural network to predict atomic energies + forces from coordinates. Replaces the classical force field. Much faster for large systems (linear scaling); accuracy approaches quantum chemistry. Examples:\n- **NequIP, MACE**: equivariant message-passing networks. SOTA on molecular property prediction.\n- **AlphaFold-based ML potentials**: not standard yet but emerging.\n- **OpenMM-ML**: hybrid force field + ML correction.\n\n**2. Coarse-graining**. Group atoms into 'beads' (each bead = several atoms); simulate the coarse representation. Faster + larger timesteps possible. ML methods (e.g., **CGNet**) train coarse-grained force fields from atomistic simulations.\n\n**3. Neural ODE / neural SDE for trajectories**. Learn the dynamics directly from MD trajectories. Bypass force-field calculations entirely; sample from the learned dynamics. Active research; not yet a standard tool.\n\n**4. Generative sampling**. Instead of running long MD, train a generative model to sample from the equilibrium distribution. **Boltzmann generators** (Noé 2019), various diffusion-based approaches. Avoid the slow time-step integration entirely.\n\nThe trend: classical MD remains the gold standard for accuracy; ML methods are 1-2 orders of magnitude faster and rapidly closing the accuracy gap. By 2026-2028, ML-accelerated MD will likely be the standard for routine simulations."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "md_q1",
+        "kind": "multiple_choice",
+        "question": "Why is molecular dynamics useful even when AlphaFold gives high-quality static structures?",
+        "options": [
+          "AlphaFold is wrong about structures",
+          "Static structures are snapshots; biology happens via dynamics. Many functions (catalysis, signaling, allosteric regulation) require conformational changes that don't appear in a single AlphaFold prediction. MD simulates the ensemble of structures the protein actually visits over time, capturing rare events (binding, unfolding, conformational shifts) that static structure misses",
+          "MD is faster than AlphaFold",
+          "AlphaFold doesn't predict side chain positions"
+        ],
+        "correctIndex": 1,
+        "explanation": "AlphaFold's static structure is the most-likely conformation; MD shows the distribution. Many biological questions need the distribution: 'how stable is this binding?', 'what's the activation barrier for catalysis?', 'how does this loop reorganize when the substrate binds?'. MD answers these where static structure can only suggest. The two methods are complementary: AlphaFold provides the starting structure; MD samples the conformational ensemble around it."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "MD is the atomic-resolution end of bio-ML. The final lesson covers how to evaluate bio-ML methods rigorously — the field's evaluation pitfalls.\n\nNext: [[bio-ml-evaluation]] — CASP, contamination, leakage.\n\nKey takeaways:\n- MD: atomic positions evolved via Newton's equations + force-field forces\n- Standard recipe: force field + integrator + thermostat; nanoseconds typical, expensive\n- ML potentials (NequIP, MACE) replace classical force fields with neural networks; faster + accurate\n- Coarse-graining + generative sampling are the other ML directions\n- MD is complementary to AlphaFold: AlphaFold gives static structure; MD gives dynamics"
+    }
+  ]
+}

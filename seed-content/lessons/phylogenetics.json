@@ -1,0 +1,45 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why phylogenetic trees",
+      "body": "**Phylogenetics** is the inference of evolutionary trees from molecular sequence data. Given a set of related species (or proteins), build a tree showing how they're related and how recently they diverged.\n\nWhy it matters:\n- **Functional inference**: closely-related species share function. A poorly-characterized gene can be characterized via its phylogenetic neighbors.\n- **Time-calibrated trees**: with fossil constraints + molecular clocks, you can estimate when species last shared a common ancestor. Powers epidemiology (when did SARS-CoV-2 emerge?), conservation (which species are most evolutionarily distinct?), and basic biology (when did multicellular life evolve?).\n- **AlphaFold's MSA**: the MSA used as input to AlphaFold is implicitly phylogenetic — sequences from many species, related by evolution. Co-evolution patterns in the MSA encode structural information.\n\nThis lesson covers the basic methods (distance-based, character-based) and the modern ML adaptations."
+    },
+    {
+      "kind": "text",
+      "title": "Distance-based methods",
+      "body": "**Step 1: compute pairwise distances** between all sequences. For DNA: percent identity, or some correction (Jukes-Cantor, Kimura) to handle multiple substitutions at the same site over evolutionary time. For protein: similar but with BLOSUM-derived distances.\n\n**Step 2: build a tree** from the distance matrix.\n\n**Neighbor-Joining (NJ)**: greedy algorithm. Start with a star tree; iteratively pick the pair of taxa minimizing a Q-criterion; merge them as siblings; repeat. Fast (`O(N³)`); usually accurate for moderate-size trees.\n\n**UPGMA**: assumes a constant molecular clock. Cluster sequences by minimum distance hierarchically. Simpler than NJ but the molecular-clock assumption is often violated.\n\n**For most practical bioinformatics**: Neighbor-Joining is the default. Tools like MEGA, FastTree, RAxML implement it (and more sophisticated methods).\n\n**Limitation**: distance-based methods compress sequence data into a single distance per pair, losing information about which sites are conserved vs variable. Character-based methods (next slide) preserve more signal."
+    },
+    {
+      "kind": "text",
+      "title": "Maximum likelihood and Bayesian inference",
+      "body": "**Maximum likelihood (ML)** phylogenetics: for a candidate tree, compute the probability of observing the alignment given the tree topology + branch lengths + a substitution model. Find the tree maximizing this likelihood.\n\nFelsenstein's pruning algorithm (1981) computes this efficiently via dynamic programming on the tree. RAxML and IQ-TREE are standard implementations.\n\nML is more accurate than distance-based for closely-related sequences (where the multiple-substitution correction matters less) and for long sequences (where the per-site signal accumulates).\n\n**Bayesian inference** (MrBayes): instead of one ML tree, compute the posterior distribution over trees given data + priors. Uses MCMC. Slower but quantifies uncertainty (which clades are well-supported vs ambiguous).\n\nFor frontier-scale phylogenomics (1000s of genes, 100s of species): mixtures of these methods. Distance-based for fast initial trees; ML for refinement; Bayesian when uncertainty quantification matters.\n\n**Substitution models** matter:\n- **Jukes-Cantor**: simplest. All substitutions equally likely.\n- **Kimura 2-parameter**: distinguishes transitions (A↔G, C↔T) from transversions (the others).\n- **GTR (General Time Reversible)**: separate rate for each substitution type. Most flexible; usually preferred for serious analysis."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "phylo_q1",
+        "kind": "multiple_choice",
+        "question": "Why does maximum likelihood phylogenetics often outperform distance-based methods?",
+        "options": [
+          "ML is faster",
+          "ML uses the full alignment columns as evidence, weighing each site by how it constrains the tree topology + branch lengths under a substitution model. Distance-based methods compress all column-level information into a single pairwise distance, losing the ability to distinguish 'these positions agree because of common ancestry' from 'these positions agree by chance'. ML's per-site likelihood preserves this signal",
+          "ML doesn't use substitution models",
+          "Distance-based methods don't work on protein"
+        ],
+        "correctIndex": 1,
+        "explanation": "Distance-based methods are summary statistics (one number per pair). ML phylogenetics uses the full data (every site in every sequence) and a probabilistic model. The information loss from going to distances is real; for closely-related taxa or long sequences, it's the difference between an accurate tree and a wrong one. The cost: ML is computationally expensive (NP-hard for the full optimization), so heuristic search algorithms (RAxML, IQ-TREE) approximate the optimum."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "ML in phylogenetics",
+      "body": "Modern bio-ML adapts phylogenetic concepts in several directions:\n\n**1. Phylogeny-aware embeddings**: train sequence embeddings that respect evolutionary relationships. ESM and other protein LMs produce embeddings where 'distance in embedding space' correlates with 'evolutionary distance' — but it's emergent, not enforced.\n\n**2. Tree-LSTM / Tree-Transformer**: neural models that operate over phylogenetic trees as input. Used for tasks like ancestral sequence reconstruction (predict what the common ancestor looked like).\n\n**3. Co-evolution networks**: AlphaFold's evoformer is essentially a co-evolution analyzer: positions that co-vary in an MSA are inferred to be physically close in the structure. This is phylogenetic information operationalized for structure prediction.\n\n**4. Contrastive on phylogenetic pairs**: train embeddings where 'two species closely related' should be near; 'two distant species' far. Useful for sequence retrieval + functional prediction.\n\n**5. Generative phylogenetics**: variational methods that sample plausible trees from data. Rare in practice; theoretically interesting.\n\nThe trend: classical phylogenetics methods (Neighbor-Joining, RAxML) remain the workhorse for inferring trees. ML adapts the *uses* of those trees — embedding sequences, predicting structures from MSAs, generating ancestors. The two paradigms are complementary."
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Phylogenetics gives us evolutionary relationships. The next lesson moves from sequence to structure: how proteins fold from amino-acid strings into 3D shapes.\n\nNext: [[protein-structure]] — primary, secondary, tertiary structure; the folding problem.\n\nKey takeaways:\n- Phylogenetic trees infer evolutionary relationships from sequence data\n- Distance-based methods (NJ, UPGMA): fast; sometimes inaccurate\n- ML phylogenetics: more accurate; computationally expensive\n- Bayesian: quantifies tree uncertainty; slower\n- Substitution models (Jukes-Cantor → GTR) get progressively more flexible\n- Modern bio-ML uses phylogenetic concepts (co-evolution, tree-aware embeddings) but the inference methods are still classical"
+    }
+  ]
+}

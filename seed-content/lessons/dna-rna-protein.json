@@ -1,0 +1,40 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why ML cares about biology",
+      "body": "Modern computational biology produces enormous datasets: genomes (3 billion DNA bases per human), proteomes (~20,000 proteins per organism), single-cell RNA-seq (millions of cells × thousands of genes), molecular dynamics trajectories. The data is high-dimensional, noisy, and structured.\n\nMachine learning, particularly transformers, has reshaped this field. AlphaFold (2020) effectively solved the 50-year-old protein-folding problem. ESM and other protein language models adapted GPT-style pretraining to protein sequences. Single-cell genomics uses VAEs + diffusion routinely.\n\nThis path covers the substrate (DNA, RNA, proteins, sequence + structure) and the modern ML methods (AlphaFold, ESM, scRNA-seq deep learning).\n\n**Why a separate path**: biology's data has unusual properties — strict structural constraints (DNA codes for protein via fixed rules), evolutionary history (related sequences carry information), and small datasets per task (curated experimental data is expensive). Generic ML methods often need biology-specific adaptations. Understanding the substrate is essential."
+    },
+    {
+      "kind": "text",
+      "title": "The central dogma",
+      "body": "**DNA → RNA → Protein**. The three molecular sequences carrying biological information.\n\n**DNA**: a string over the alphabet `{A, T, G, C}` (4 nucleotides). The genome stores all heritable instructions. Human genome: ~3 billion characters, organized into 23 pairs of chromosomes.\n\n**RNA**: similar to DNA but with `{A, U, G, C}` (uracil replaces thymine). Single-stranded; serves as a working copy of DNA. Messenger RNA (mRNA) carries instructions from DNA to the ribosome for protein synthesis.\n\n**Protein**: a string over `{A, R, N, D, C, E, Q, G, H, I, L, K, M, F, P, S, T, W, Y, V}` (20 amino acids). The functional molecules of life — enzymes, structural elements, signaling molecules.\n\n**The translation rule**: every 3 DNA bases (a 'codon') maps to one amino acid. The genetic code is universal (with minor exceptions). 4³ = 64 codons code for 20 amino acids + a stop signal — many codons map to the same amino acid (degeneracy).\n\n**Computational implication**: a 1500-base mRNA codes for a 500-amino-acid protein. Sequence relationships across DNA, RNA, and protein space are well-defined; you can convert between them deterministically. Tasks: predict mRNA → protein structure, infer DNA function from sequence, classify sequences by organism."
+    },
+    {
+      "kind": "text",
+      "title": "Tokenization for biological sequences",
+      "body": "Biology sequences are short alphabets (4 for DNA/RNA, 20 for protein) with very long sequences (millions for DNA; hundreds to thousands for protein). Two main tokenization strategies:\n\n**1. Per-character tokens**: each base or amino acid is one token. Vocab = 4 (DNA) or 20 (protein). Long sequences (a 500-residue protein = 500 tokens). Used in ESM, ProteinBERT, most protein LMs.\n\n**2. K-mer tokens** (DNABERT, NT): use overlapping or non-overlapping k-mers (typically k=6 for DNA). 4^6 = 4096 distinct 6-mers; vocab is larger but each token captures more local structure. Used in DNABERT.\n\nBPE (the standard for natural language) is rarely used because the underlying alphabet is so small. Per-character tokenization is conceptually clean and works well at scale.\n\n**Sequence length**: a 1000-token transformer fits 1000 amino acids — most proteins. For genomes (millions of bases), windowing or sparse attention is necessary. **Long-context biology** is an active research area; models like HyenaDNA and Caduceus push to 100K+ tokens.\n\n**Special tokens**: standard ones (BOS, EOS, PAD, MASK) plus biology-specific (e.g., `X` for unknown amino acid, gap characters in alignments)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "bio_q1",
+        "kind": "multiple_choice",
+        "question": "Why is tokenizing protein sequences as per-amino-acid characters (vocab=20) reasonable, where natural language uses BPE (vocab=30K-100K)?",
+        "options": [
+          "Proteins are simpler than language",
+          "The protein alphabet is already tight (20 tokens). BPE in NLP exists to handle the long tail of subword units in a 30K-100K vocabulary; with 20 base tokens, the per-character vocabulary is already small enough that subword merging doesn't compress meaningfully. The trade-off: protein sequences are typically 100-1000 tokens; long but manageable for transformers. BPE solves a problem that doesn't exist here",
+          "BPE doesn't work on biological data",
+          "Per-character tokenization is faster"
+        ],
+        "correctIndex": 1,
+        "explanation": "BPE's value is compressing a vast vocabulary into a manageable subword set. Proteins already have a manageable 20-character vocabulary. The natural-language analog would be applying BPE to a language with only 20 letters — there'd be little to merge. Per-character protein tokenization is the standard for ESM, ProtBERT, and most protein LMs. Some bio-NLP work uses BPE on top of per-character protein tokens for efficiency at very long sequences, but the standard recipe is char-level."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Where the path goes",
+      "body": "From here, the comp-bio path covers:\n\n- **Sequence alignment**: how related sequences are compared. The classical bioinformatics that ML built on.\n- **Phylogenetics**: inferring evolutionary trees from sequence.\n- **Protein structure**: from amino acids to 3D structure. The folding problem.\n- **AlphaFold**: how attention solved protein structure prediction.\n- **Protein language models**: ESM and friends. Transformer LMs for proteins.\n- **Single-cell RNA-seq**: how ML handles the 'high-dim, sparse, noisy' regime.\n- **Molecular dynamics**: simulating biomolecules atom-by-atom.\n- **Bio-ML evaluation**: benchmarks, contamination, leakage in bio-ML.\n\nThe through-line: biology's ML problems share substrate (sequences, structure, evolution) but each task adapts the substrate differently. A protein language model's tokenizer is char-level; a phylogenetics method uses pairwise distances; AlphaFold combines a transformer with a structural decoder. One field; many specialized recipes.\n\nKey takeaways:\n- DNA / RNA / protein are sequences; the central dogma maps between them deterministically\n- Per-character tokenization is the protein-LM standard\n- Long-context biology is an active research area (genomes are millions of bases)\n- Each comp-bio task has its own structural priors that adapt generic ML methods\n- The next lesson is sequence alignment — classical bioinformatics that ML methods are now superseding"
+    }
+  ]
+}
