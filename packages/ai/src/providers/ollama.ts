@@ -6,6 +6,7 @@ export class OllamaProvider implements AIProvider {
   private host: string;
   private chatModel: string;
   private embedModel: string;
+  private think: boolean;
   private fallback: MockProvider;
   private available: boolean | null = null;
 
@@ -13,6 +14,9 @@ export class OllamaProvider implements AIProvider {
     this.host = process.env.OLLAMA_HOST || "http://localhost:11434";
     this.chatModel = process.env.OLLAMA_CHAT_MODEL || "llama3.1:8b";
     this.embedModel = process.env.OLLAMA_EMBED_MODEL || "nomic-embed-text";
+    // qwen3.5 can spend a long time in reasoning mode and emit no
+    // visible content chunks; default to "no thinking" for chat UX.
+    this.think = process.env.OLLAMA_THINK === "1";
     this.fallback = new MockProvider();
   }
 
@@ -48,6 +52,7 @@ export class OllamaProvider implements AIProvider {
           model: this.chatModel,
           messages,
           stream: true,
+          think: this.think,
         }),
       });
 

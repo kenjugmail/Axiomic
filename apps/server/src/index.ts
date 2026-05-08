@@ -199,6 +199,9 @@ prewarmSearchIndex();
 export { app };
 
 const port = env.PORT;
+// Long-running SSE/streaming AI responses can exceed Bun's default
+// 10s request idle timeout, which causes proxy socket hangups in dev.
+const idleTimeout = parseInt(process.env.IDLE_TIMEOUT_SECONDS || "120");
 
 if (import.meta.main) {
   console.log(`Axiomic server starting on port ${port}`);
@@ -216,6 +219,7 @@ type WSData = { userId: string | null; subscriptions: Set<string> };
 
 export default {
   port,
+  idleTimeout,
   fetch(req: Request, server: any): Response | Promise<Response> | undefined {
     const url = new URL(req.url);
     if (url.pathname === "/api/v1/ws") {
