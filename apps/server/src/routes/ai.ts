@@ -132,10 +132,11 @@ Guidelines:
     coachSummary ? `\n\n${coachSummary}` : ""
   }${modePrompt ? `\n\n${modePrompt}` : ""}`;
 
-  // SSE stream — wrap enqueue in a guard so a client-disconnect
-  // doesn't throw a cascade of errors when subsequent tokens arrive
-  // from the AI provider after the controller is gone.
+  // SSE stream — wrap enqueue in a guard + thread an AbortController
+  // through to the provider so a client-disconnect cancels the
+  // upstream call instead of generating tokens nobody will read.
   let canceled = false;
+  const abortCtrl = new AbortController();
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();
@@ -146,6 +147,7 @@ Guidelines:
           controller.enqueue(chunk);
         } catch {
           canceled = true;
+          abortCtrl.abort();
         }
       };
       try {
@@ -153,6 +155,7 @@ Guidelines:
           system,
           messages,
           model,
+          signal: abortCtrl.signal,
           onToken: (token) => {
             tokenCount++;
             safeEnqueue(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`));
@@ -160,6 +163,10 @@ Guidelines:
         });
         safeEnqueue(encoder.encode("data: [DONE]\n\n"));
       } catch (err) {
+        if (canceled) {
+          // Ignore — client disconnected.
+          return;
+        }
         const e = err as Error | undefined;
         logger.error({
           kind: "ai_stream_failed",
@@ -185,6 +192,7 @@ Guidelines:
     },
     cancel() {
       canceled = true;
+      abortCtrl.abort();
     },
   });
 
@@ -301,6 +309,7 @@ tier: ${targetTier}
 Rewrite the following text at the ${targetTier} level. Preserve the core meaning but adjust complexity, vocabulary, and mathematical notation as appropriate for the level.`;
 
   let canceled = false;
+  const abortCtrl = new AbortController();
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();
@@ -310,12 +319,14 @@ Rewrite the following text at the ${targetTier} level. Preserve the core meaning
           controller.enqueue(chunk);
         } catch {
           canceled = true;
+          abortCtrl.abort();
         }
       };
       try {
         await provider.stream({
           system,
           messages: [{ role: "user", content: text }],
+          signal: abortCtrl.signal,
           onToken: (token) => {
             safeEnqueue(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`));
           },
@@ -334,6 +345,7 @@ Rewrite the following text at the ${targetTier} level. Preserve the core meaning
     },
     cancel() {
       canceled = true;
+      abortCtrl.abort();
     },
   });
 
@@ -412,11 +424,12 @@ function streamingResponse(
   userMessage: string,
 ): Response {
   const provider = getAIProvider();
-  // Track client-disconnect via the ReadableStream's cancel hook. When
-  // the client navigates away the controller starts throwing on
-  // enqueue; treating those throws as "stop pumping tokens" is the
-  // best we can do without an AbortSignal threaded into the provider.
+  // Track client-disconnect via the ReadableStream's cancel hook. The
+  // abort controller is forwarded into the provider so the upstream
+  // Ollama (or any future provider's HTTP fetch) is canceled instead
+  // of running to completion against a dead client.
   let canceled = false;
+  const abortCtrl = new AbortController();
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();
@@ -425,15 +438,15 @@ function streamingResponse(
         try {
           controller.enqueue(chunk);
         } catch {
-          // Controller is closed (client gone). Mark canceled so the
-          // remaining onToken calls + the final close exit cleanly.
           canceled = true;
+          abortCtrl.abort();
         }
       };
       try {
         await provider.stream({
           system,
           messages: [{ role: "user", content: userMessage }],
+          signal: abortCtrl.signal,
           onToken: (token) => {
             safeEnqueue(
               encoder.encode(`data: ${JSON.stringify({ token })}\n\n`),
@@ -441,11 +454,13 @@ function streamingResponse(
           },
         });
       } catch (err: any) {
-        safeEnqueue(
-          encoder.encode(
-            `data: ${JSON.stringify({ error: err?.message ?? "stream failed" })}\n\n`,
-          ),
-        );
+        if (!canceled) {
+          safeEnqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ error: err?.message ?? "stream failed" })}\n\n`,
+            ),
+          );
+        }
       }
       safeEnqueue(encoder.encode("data: [DONE]\n\n"));
       if (!canceled) {
@@ -458,6 +473,7 @@ function streamingResponse(
     },
     cancel() {
       canceled = true;
+      abortCtrl.abort();
     },
   });
   return new Response(stream, {

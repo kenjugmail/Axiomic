@@ -69,6 +69,10 @@ export class OllamaProvider implements AIProvider {
           stream: true,
           think: this.think,
         }),
+        // Sprint 70 — forward the route-layer signal so a client
+        // disconnect cancels the upstream Ollama call instead of
+        // generating tokens that nobody will read.
+        signal: opts.signal,
       });
 
       if (!res.ok || !res.body) {
@@ -81,6 +85,15 @@ export class OllamaProvider implements AIProvider {
       let buffer = "";
 
       while (true) {
+        if (opts.signal?.aborted) {
+          // Caller bailed; release the upstream connection.
+          try {
+            await reader.cancel();
+          } catch {
+            // ignore
+          }
+          return;
+        }
         const { done, value } = await reader.read();
         if (done) break;
 
@@ -100,7 +113,10 @@ export class OllamaProvider implements AIProvider {
           }
         }
       }
-    } catch (err) {
+    } catch (err: any) {
+      // AbortError on the fetch (caller canceled) is intentional —
+      // don't fall back to the mock for it.
+      if (err?.name === "AbortError" || opts.signal?.aborted) return;
       console.warn("Ollama error, falling back to mock:", err);
       return this.fallback.stream(opts);
     }
