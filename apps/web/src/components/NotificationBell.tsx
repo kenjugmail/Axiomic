@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, type Notification } from "../lib/api";
 import { useLiveEvents } from "../hooks/useLiveEvents";
+import { relativeTime } from "../lib/dates";
 
 const POLL_INTERVAL_MS = 60_000;
 
@@ -56,19 +57,6 @@ function kindLabel(kind: Notification["kind"]): string {
     case "forum_topic_posted":
       return "started a new forum topic";
   }
-}
-
-function relativeTime(iso: string): string {
-  const then = new Date(iso).getTime();
-  const now = Date.now();
-  const s = Math.max(0, Math.floor((now - then) / 1000));
-  if (s < 60) return `${s}s ago`;
-  const m = Math.floor(s / 60);
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  const d = Math.floor(h / 24);
-  return `${d}d ago`;
 }
 
 export function NotificationBell() {

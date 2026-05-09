@@ -3,6 +3,7 @@ import { api, type Comment } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import { RichComposer } from "./composer/RichComposer";
+import { formatDate } from "../lib/dates";
 
 interface CommentsProps {
   pageId: string;
@@ -183,7 +184,7 @@ function CommentItem({
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
             <span className="font-medium text-foreground">{comment.username}</span>
             <span>&middot;</span>
-            <span>{new Date(comment.createdAt).toLocaleDateString()}</span>
+            <span>{formatDate(comment.createdAt)}</span>
             {comment.editedAt && <span className="italic">(edited)</span>}
           </div>
           <div className="text-sm">
