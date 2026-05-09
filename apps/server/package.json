@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "bun run --watch src/index.ts",
     "build": "bun build src/index.ts --outdir dist --target bun",
-    "test": "DATABASE_URL=\"$(mktemp -t axiomic-test.XXXXXX.db)\" bash -c 'bun run --filter @axiomic/db migrate >/dev/null && bun run --filter @axiomic/db seed >/dev/null && bun test; rm -f \"$DATABASE_URL\" \"$DATABASE_URL-shm\" \"$DATABASE_URL-wal\"'",
+    "test": "DATABASE_URL=\"$(mktemp -t axiomic-test.XXXXXX.db)\" DISABLE_JOB_RUNNER=1 bash -c 'bun run --filter @axiomic/db migrate >/dev/null && bun run --filter @axiomic/db seed >/dev/null && bun test; rm -f \"$DATABASE_URL\" \"$DATABASE_URL-shm\" \"$DATABASE_URL-wal\"'",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

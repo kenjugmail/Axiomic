@@ -29,6 +29,34 @@ export const users = sqliteTable("users", {
   //   'join_cohort' | 'ship_misconception' | null. Feeds the AI
   //   coach's system prompt and the home dashboard "next step" CTA.
   onboardingGoal: text("onboarding_goal"),
+  // Sprint 69 — researcher profile fields.
+  //   orcid: 0000-0000-0000-0000 format identifier; lets us link
+  //     internal users to external author records (OpenAlex, arXiv).
+  //   scholarUrl: full https://scholar.google.com/citations?user=…
+  //     URL; surfaced on the profile page only.
+  //   blueskyHandle: AT-Proto handle (e.g. "@user.bsky.social"). The
+  //     S72 social-discovery cron uses this to harvest paper-DOI
+  //     mentions.
+  //   twitterHandle: parked — Twitter/X integration is gated on a
+  //     paid bearer; field exists so we don't have to migrate again.
+  //   institution: free-text current affiliation, surfaced on profile.
+  //   hIndex: cached integer; refreshed nightly when external author
+  //     IDs are present.
+  //   publicationCorpusVectorJson: mean of the user's authored-paper
+  //     embeddings (internal + claimed-external). Used by the S70
+  //     ranker's interestScore so even researchers with zero internal
+  //     publications get personalized recommendations once they
+  //     claim external work.
+  //   externalAuthorIdsJson: JSON array of {source, id} pairs the
+  //     user has verified, e.g. [{source:"openalex", id:"A1234"}].
+  orcid: text("orcid"),
+  scholarUrl: text("scholar_url"),
+  blueskyHandle: text("bluesky_handle"),
+  twitterHandle: text("twitter_handle"),
+  institution: text("institution"),
+  hIndex: integer("h_index"),
+  publicationCorpusVectorJson: text("publication_corpus_vector_json"),
+  externalAuthorIdsJson: text("external_author_ids_json").notNull().default("[]"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
 });
@@ -1514,4 +1542,79 @@ export const feedImpressions = sqliteTable("feed_impressions", {
   userIdx: index("feed_impressions_user_idx").on(t.userId, t.shownAt),
   // Used by the ranker to demote-or-skip already-shown items.
   lookupIdx: index("feed_impressions_lookup_idx").on(t.userId, t.paperKind, t.paperId),
+}));
+
+// Sprint 69 — External research papers from arXiv, OpenAlex, and
+// PubMed. Distinct from `research_papers` which holds papers authored
+// inside the platform; this table is a normalized landing zone for
+// upstream-source rows we ingest periodically.
+//
+// `source` + `sourceId` is the natural primary key; `id` is a stable
+// UUID we mint on insert so internal references (search index,
+// recommendations, comments) survive a re-ingest. `contentHash` is
+// computed from title + abstract + author list so a passthrough
+// re-fetch (no real change upstream) doesn't bust the search-index
+// embedding cache.
+export const externalPapers = sqliteTable("external_papers", {
+  id: text("id").primaryKey(),
+  source: text("source").notNull(), // 'arxiv' | 'openalex' | 'pubmed'
+  sourceId: text("source_id").notNull(),
+  doi: text("doi"),
+  title: text("title").notNull(),
+  abstract: text("abstract").notNull().default(""),
+  // JSON array of {name, orcid?, openAlexAuthorId?} entries. Not yet
+  // linked to internal users; S72 author-claims add that bridge.
+  authorsJson: text("authors_json").notNull().default("[]"),
+  venue: text("venue"),
+  publishedAt: text("published_at"),
+  pdfUrl: text("pdf_url"),
+  htmlUrl: text("html_url"),
+  // OpenAlex concept tags / arXiv categories / PubMed MeSH terms.
+  // JSON array of strings.
+  topicsJson: text("topics_json").notNull().default("[]"),
+  citationCount: integer("citation_count").notNull().default(0),
+  // Full upstream-source JSON for forensics + future fields.
+  rawJson: text("raw_json").notNull().default("{}"),
+  fetchedAt: text("fetched_at").default(sql`(datetime('now'))`).notNull(),
+  contentHash: text("content_hash").notNull(),
+}, (t) => ({
+  sourceUq: uniqueIndex("external_papers_source_uq").on(t.source, t.sourceId),
+  doiIdx: index("external_papers_doi_idx").on(t.doi),
+  pubIdx: index("external_papers_published_idx").on(t.publishedAt),
+}));
+
+// Sprint 69 — Distributed lease for the in-process job runner. One
+// row per registered job; whichever process holds a non-expired
+// lease runs it. Other processes that find an expired lease can
+// take over via an UPDATE… WHERE expiresAt < now().
+export const jobLeases = sqliteTable("job_leases", {
+  jobName: text("job_name").primaryKey(),
+  // Unique identifier for the leasing process (random UUID minted at
+  // boot). Lets a process verify it still owns the lease before
+  // running.
+  leaseHolder: text("lease_holder").notNull(),
+  leaseExpiresAt: text("lease_expires_at").notNull(),
+  // Telemetry — last successful run timestamp + status string. Read
+  // by the admin /admin/jobs panel.
+  lastRunAt: text("last_run_at"),
+  lastStatus: text("last_status"),
+  lastErrorMessage: text("last_error_message"),
+  lastDurationMs: integer("last_duration_ms"),
+});
+
+// Sprint 69 — Per-run history (last ~50 rows per job) so the admin
+// panel can show a "last 5 runs" trail without spamming logs. Cron
+// jobs that ingest a lot of items also write `itemsProcessed` so the
+// panel surfaces "ingested 230 papers in last run".
+export const jobRuns = sqliteTable("job_runs", {
+  id: text("id").primaryKey(),
+  jobName: text("job_name").notNull(),
+  startedAt: text("started_at").notNull(),
+  finishedAt: text("finished_at"),
+  status: text("status").notNull(), // 'running' | 'success' | 'error'
+  errorMessage: text("error_message"),
+  itemsProcessed: integer("items_processed").notNull().default(0),
+  durationMs: integer("duration_ms"),
+}, (t) => ({
+  byJobIdx: index("job_runs_by_job_idx").on(t.jobName, t.startedAt),
 }));

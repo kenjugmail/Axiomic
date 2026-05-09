@@ -207,6 +207,16 @@ searchRouter.get("/", zValidator("query", querySchema), async (c) => {
     if (s.item.kind === "research") {
       return { kind: "research" as const, ...base, format: s.item.format };
     }
+    if (s.item.kind === "external_paper") {
+      return {
+        kind: "external_paper" as const,
+        ...base,
+        source: s.item.source,
+        doi: s.item.doi,
+        htmlUrl: s.item.htmlUrl,
+        publishedAt: s.item.publishedAt,
+      };
+    }
     return { kind: "topic" as const, ...base, postType: s.item.postType };
   });
 

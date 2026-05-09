@@ -1,6 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 import { getAIProvider } from "@axiomic/ai";
 import {
+  externalPapers,
   getDb,
   wikiPages,
   pageVersions,
@@ -83,12 +84,37 @@ export interface IndexedResearchPaper {
   tags: string[];
 }
 
+// Sprint 69 — External research paper from arXiv / OpenAlex / PubMed.
+// Shares the IndexedResearchPaper-style ranking signals so the S70
+// for-you ranker can score it the same way as internally-authored
+// papers. `authorId` is null for external papers (no internal user
+// behind the byline yet); the ranker treats null as "never
+// followed", which is the right default.
+export interface IndexedExternalPaper {
+  kind: "external_paper";
+  id: string;
+  slug: string; // synthesized as `${source}-${sourceId}`
+  title: string;
+  source: string;
+  doi: string | null;
+  htmlUrl: string | null;
+  pdfUrl: string | null;
+  snippet: string;
+  vector: number[];
+  authorId: string | null;
+  authorNames: string[];
+  citationCount: number;
+  publishedAt: string;
+  tags: string[];
+}
+
 export type IndexedItem =
   | IndexedPage
   | IndexedTopic
   | IndexedLesson
   | IndexedNewsArticle
-  | IndexedResearchPaper;
+  | IndexedResearchPaper
+  | IndexedExternalPaper;
 
 let cache: IndexedItem[] | null = null;
 let building: Promise<IndexedItem[]> | null = null;
@@ -267,6 +293,50 @@ async function buildIndex(): Promise<IndexedItem[]> {
       citationCount: p.citationCount ?? 0,
       publishedAt: p.createdAt,
       tags: parsedTags,
+    });
+  }
+
+  // Sprint 69 — external papers (arXiv / OpenAlex / PubMed). Same
+  // ranker signals as internal research papers; authorId is null
+  // because the byline isn't a platform user (yet — S72 author
+  // claims will bridge that).
+  const externals = db.select().from(externalPapers).all();
+  for (const p of externals) {
+    let authorNames: string[] = [];
+    try {
+      const arr = JSON.parse(p.authorsJson ?? "[]");
+      if (Array.isArray(arr)) {
+        authorNames = arr
+          .map((a) => (a && typeof a.name === "string" ? a.name : null))
+          .filter((n): n is string => n !== null);
+      }
+    } catch {}
+    let topics: string[] = [];
+    try {
+      const arr = JSON.parse(p.topicsJson ?? "[]");
+      if (Array.isArray(arr))
+        topics = arr.filter((t): t is string => typeof t === "string");
+    } catch {}
+    const snippet = (p.abstract || p.title).slice(0, 500);
+    const vector = await provider.embed(
+      `${p.title} ${p.abstract.slice(0, 1500)} ${authorNames.join(", ")}`,
+    );
+    items.push({
+      kind: "external_paper",
+      id: p.id,
+      slug: `${p.source}-${p.sourceId}`,
+      title: p.title,
+      source: p.source,
+      doi: p.doi ?? null,
+      htmlUrl: p.htmlUrl ?? null,
+      pdfUrl: p.pdfUrl ?? null,
+      snippet,
+      vector,
+      authorId: null,
+      authorNames,
+      citationCount: p.citationCount ?? 0,
+      publishedAt: p.publishedAt ?? p.fetchedAt,
+      tags: topics,
     });
   }
 

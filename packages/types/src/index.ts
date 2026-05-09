@@ -273,17 +273,28 @@ export interface ResearchPaperResponse {
 
 // Sprint 70 — for-you feed payload. Each rail is a list of ranked
 // paper summaries with score breakdown for the "Why?" popover.
+//
+// Sprint 69 — `kind` widened to include 'external_paper' for ingested
+// arXiv / OpenAlex / PubMed entries. External papers carry the
+// upstream `htmlUrl` + optional DOI; the UI links the title there
+// (new tab) instead of routing to /research/:slug.
 export interface ResearchFeedItem {
-  kind: "research";
+  kind: "research" | "external_paper";
   id: string;
   slug: string;
   title: string;
+  // For internal: 'research' | 'explainer' | 'survey' | 'opinion'.
+  // For external: the upstream source ('arxiv' | 'openalex' |
+  // 'pubmed').
   format: string;
   snippet: string;
   citationCount: number;
   publishedAt: string;
   tags: string[];
   authorUsername: string | null;
+  // External-only fields. Null for internal papers.
+  htmlUrl: string | null;
+  doi: string | null;
   score: number;
   reason: string;
   breakdown: {
@@ -1294,6 +1305,16 @@ export interface UserSettings {
   notifyMentions: boolean;
   notifyReplies: boolean;
   notifyMastery: boolean;
+  // Sprint 69 — researcher profile fields. Surfaced on the settings
+  // page and read-only on the public profile page. `hIndex` is
+  // server-cached (refreshed by a future periodic job once external
+  // author IDs land); not user-editable.
+  orcid?: string | null;
+  scholarUrl?: string | null;
+  blueskyHandle?: string | null;
+  twitterHandle?: string | null;
+  institution?: string | null;
+  hIndex?: number | null;
 }
 
 export interface SettingsResponse {
@@ -1307,6 +1328,14 @@ export interface SettingsUpdateInput {
   notifyMastery?: boolean;
   displayName?: string | null;
   bio?: string | null;
+  // Sprint 69 — researcher profile fields. Server-side validation
+  // rejects malformed ORCID / handle shapes; URL fields just check
+  // for a parseable URL.
+  orcid?: string | null;
+  scholarUrl?: string | null;
+  blueskyHandle?: string | null;
+  twitterHandle?: string | null;
+  institution?: string | null;
 }
 
 // --- Mastery summary ---

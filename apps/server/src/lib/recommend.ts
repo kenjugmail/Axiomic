@@ -41,7 +41,20 @@ import {
   userFollows,
 } from "@axiomic/db";
 import { cosineSimilarity, getSearchIndex } from "./searchIndex";
-import type { IndexedResearchPaper } from "./searchIndex";
+import type {
+  IndexedExternalPaper,
+  IndexedResearchPaper,
+} from "./searchIndex";
+
+// Sprint 69 — both internal research papers and ingested external
+// papers feed through the same ranker. We expose the union as
+// `RankablePaper` so callers can write rail-rendering code that
+// handles both shapes uniformly without repeating the discriminator.
+export type RankablePaper = IndexedResearchPaper | IndexedExternalPaper;
+
+function isRankable(item: { kind: string }): item is RankablePaper {
+  return item.kind === "research" || item.kind === "external_paper";
+}
 
 const W_INTEREST = 0.45;
 const W_QUERY = 0.2;
@@ -64,7 +77,7 @@ export interface ScoreBreakdown {
 }
 
 export interface RankedPaper {
-  paper: IndexedResearchPaper;
+  paper: RankablePaper;
   score: number;
   breakdown: ScoreBreakdown;
   // Human-readable explanation for the "Why?" popover. Built from the
@@ -92,6 +105,13 @@ async function buildUserPubVector(userId: string): Promise<number[] | null> {
       it.kind === "research" && it.authorId === userId,
   );
   return meanVector(userPapers.map((p) => p.vector));
+}
+
+// Pull the candidate set for the for-you / trending / follows rails.
+// Includes both internal research papers and ingested external papers.
+async function getRankableCandidates(): Promise<RankablePaper[]> {
+  const items = await getSearchIndex();
+  return items.filter(isRankable);
 }
 
 async function buildRecentQueryVector(
@@ -216,10 +236,7 @@ export interface RankOptions {
 
 // Anonymous fallback — pure citation + recency, no per-user signals.
 async function rankAnonymous(opts: RankOptions): Promise<RankedPaper[]> {
-  const items = await getSearchIndex();
-  const papers = items.filter(
-    (it): it is IndexedResearchPaper => it.kind === "research",
-  );
+  const papers = await getRankableCandidates();
   const ranked = papers.map<RankedPaper>((p) => {
     const ageDays = ageDaysFromIso(p.publishedAt);
     const recency = recencyScore(ageDays);
@@ -253,21 +270,23 @@ export async function rankPapersForUser(
     return rankAnonymous(opts);
   }
 
-  const [items, userPubVec, recentQueryVec] = await Promise.all([
-    getSearchIndex(),
+  const [candidates, userPubVec, recentQueryVec] = await Promise.all([
+    getRankableCandidates(),
     buildUserPubVector(userId),
     buildRecentQueryVector(userId),
   ]);
   const followedAuthors = getFollowedAuthorIds(userId);
   const recentImpressionKeys = getRecentImpressionKeys(userId);
 
-  const candidates = items.filter(
-    (it): it is IndexedResearchPaper => it.kind === "research",
-  );
-
   const ranked: RankedPaper[] = [];
   for (const paper of candidates) {
-    if (opts.excludeOwnPapers && paper.authorId === userId) continue;
+    if (
+      opts.excludeOwnPapers &&
+      paper.kind === "research" &&
+      paper.authorId === userId
+    ) {
+      continue;
+    }
 
     const interestScore = userPubVec
       ? Math.max(0, cosineSimilarity(userPubVec, paper.vector))
@@ -275,10 +294,19 @@ export async function rankPapersForUser(
     const queryAffinity = recentQueryVec
       ? Math.max(0, cosineSimilarity(recentQueryVec, paper.vector))
       : 0;
-    const authorOverlap = followedAuthors.has(paper.authorId) ? 1 : 0;
+    // External papers have no internal authorId, so authorOverlap is
+    // 0 by definition for now. S72 author claims will populate this.
+    const authorOverlap =
+      paper.kind === "research" && followedAuthors.has(paper.authorId)
+        ? 1
+        : 0;
     const recencyDecay = recencyScore(ageDaysFromIso(paper.publishedAt));
     const citationBoost = citationScore(paper.citationCount);
-    const alreadyShown = recentImpressionKeys.has(`research:${paper.id}`);
+    const impressionKey =
+      paper.kind === "research"
+        ? `research:${paper.id}`
+        : `external_paper:${paper.id}`;
+    const alreadyShown = recentImpressionKeys.has(impressionKey);
 
     const total =
       W_INTEREST * interestScore +
@@ -366,10 +394,7 @@ export async function rankTrending(
   userId: string | null,
   opts: RankOptions = {},
 ): Promise<RankedPaper[]> {
-  const items = await getSearchIndex();
-  const papers = items.filter(
-    (it): it is IndexedResearchPaper => it.kind === "research",
-  );
+  const papers = await getRankableCandidates();
 
   let userTags: Set<string> | null = null;
   if (userId) {

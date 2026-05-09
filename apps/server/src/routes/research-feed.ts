@@ -30,16 +30,27 @@ import type { Env } from "../env";
 export const researchFeedRouter = new Hono<Env>();
 
 interface FeedItemPayload {
-  kind: "research";
+  // 'research' for internal papers; 'external_paper' for ingested
+  // arXiv / OpenAlex / PubMed papers. The UI renders the same card
+  // shape for both but routes the title differently (internal →
+  // /research/:slug; external → htmlUrl in a new tab).
+  kind: "research" | "external_paper";
   id: string;
   slug: string;
   title: string;
+  // 'research'/'explainer'/'survey'/'opinion' for internal; the
+  // upstream source name ('arxiv'/'openalex'/'pubmed') for external.
   format: string;
   snippet: string;
   citationCount: number;
   publishedAt: string;
   tags: string[];
+  // Internal author username (when known); external papers always
+  // null until S72 author-claims bridges them to internal users.
   authorUsername: string | null;
+  // External-only fields. Null for internal papers.
+  htmlUrl: string | null;
+  doi: string | null;
   score: number;
   reason: string;
   breakdown: RankedPaper["breakdown"];
@@ -62,28 +73,36 @@ function toPayload(
   ranked: RankedPaper[],
   authors: Map<string, string>,
 ): FeedItemPayload[] {
-  return ranked.map((r) => ({
-    kind: "research" as const,
-    id: r.paper.id,
-    slug: r.paper.slug,
-    title: r.paper.title,
-    format: r.paper.format,
-    snippet: r.paper.snippet.slice(0, 240),
-    citationCount: r.paper.citationCount,
-    publishedAt: r.paper.publishedAt,
-    tags: r.paper.tags,
-    authorUsername: authors.get(r.paper.authorId) ?? null,
-    score: Math.round(r.score * 1000) / 1000,
-    reason: r.reason,
-    breakdown: {
-      ...r.breakdown,
-      interestScore: Math.round(r.breakdown.interestScore * 1000) / 1000,
-      queryAffinity: Math.round(r.breakdown.queryAffinity * 1000) / 1000,
-      recencyDecay: Math.round(r.breakdown.recencyDecay * 1000) / 1000,
-      citationBoost: Math.round(r.breakdown.citationBoost * 1000) / 1000,
-      total: Math.round(r.breakdown.total * 1000) / 1000,
-    },
-  }));
+  return ranked.map((r) => {
+    const p = r.paper;
+    const isExternal = p.kind === "external_paper";
+    return {
+      kind: p.kind,
+      id: p.id,
+      slug: p.slug,
+      title: p.title,
+      format: isExternal ? p.source : p.format,
+      snippet: p.snippet.slice(0, 240),
+      citationCount: p.citationCount,
+      publishedAt: p.publishedAt,
+      tags: p.tags,
+      authorUsername: isExternal
+        ? null
+        : authors.get(p.authorId) ?? null,
+      htmlUrl: isExternal ? p.htmlUrl : null,
+      doi: isExternal ? p.doi : null,
+      score: Math.round(r.score * 1000) / 1000,
+      reason: r.reason,
+      breakdown: {
+        ...r.breakdown,
+        interestScore: Math.round(r.breakdown.interestScore * 1000) / 1000,
+        queryAffinity: Math.round(r.breakdown.queryAffinity * 1000) / 1000,
+        recencyDecay: Math.round(r.breakdown.recencyDecay * 1000) / 1000,
+        citationBoost: Math.round(r.breakdown.citationBoost * 1000) / 1000,
+        total: Math.round(r.breakdown.total * 1000) / 1000,
+      },
+    };
+  });
 }
 
 researchFeedRouter.get(
@@ -112,7 +131,9 @@ researchFeedRouter.get(
 
     const allAuthorIds = new Set<string>();
     for (const list of [forYou, trending, fromFollows]) {
-      for (const r of list) allAuthorIds.add(r.paper.authorId);
+      for (const r of list) {
+        if (r.paper.kind === "research") allAuthorIds.add(r.paper.authorId);
+      }
     }
     const authors = authorUsernamesByIds([...allAuthorIds]);
 
@@ -122,7 +143,7 @@ researchFeedRouter.get(
     if (userId) {
       recordImpressions(
         userId,
-        forYou.map((r) => ({ kind: "research", id: r.paper.id })),
+        forYou.map((r) => ({ kind: r.paper.kind, id: r.paper.id })),
       );
     }
 

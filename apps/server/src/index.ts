@@ -25,6 +25,10 @@ import { conceptsRouter } from "./routes/concepts";
 import { researchRouter } from "./routes/research";
 import { researchFeedRouter } from "./routes/research-feed";
 import { paperSummaryRouter } from "./routes/paper-summary";
+import { registerJob, startJobRunner } from "./lib/jobs";
+import { ingestArxivJob } from "./jobs/ingestArxiv";
+import { ingestOpenAlexJob } from "./jobs/ingestOpenAlex";
+import { ingestPubmedJob } from "./jobs/ingestPubmed";
 import { capstonesRouter } from "./routes/capstones";
 import { misconceptionsRouter } from "./routes/misconceptions";
 import { kernelFilesRouter } from "./routes/kernelFiles";
@@ -210,6 +214,16 @@ prewarmSearchIndex();
 
 // Sprint 52 — promote the configured user to admin if no admin exists.
 bootstrapAdmin(env.BOOTSTRAP_ADMIN_USERNAME);
+
+// Sprint 69 — register external-source ingest cron jobs and start the
+// runner. Set DISABLE_JOB_RUNNER=1 in tests / one-off CLI invocations
+// where a setInterval would leak resources or hit external services.
+if (process.env.DISABLE_JOB_RUNNER !== "1") {
+  registerJob(ingestArxivJob);
+  registerJob(ingestOpenAlexJob);
+  registerJob(ingestPubmedJob);
+  startJobRunner();
+}
 
 export { app };
 

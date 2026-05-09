@@ -9,13 +9,16 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import {
   capstoneEnrollments,
   capstoneTracks,
   capstones,
   contentProposals,
+  externalPapers,
   getDb,
+  jobLeases,
+  jobRuns,
   masteryNodes,
   masteryPaths,
   newsArticles,
@@ -32,6 +35,11 @@ import {
 import { approveProposal, rejectProposal } from "../lib/approvals";
 import { getCounters, getRecentErrors } from "../lib/errorSampler";
 import { rateLimits } from "./ai";
+import {
+  getProcessId,
+  listRegisteredJobs,
+  runJobNow,
+} from "../lib/jobs";
 import type { Env } from "../env";
 
 export const adminRouter = new Hono<Env>();
@@ -365,3 +373,79 @@ adminRouter.post(
     return c.json({ doi, kind, displaySlug, alreadyMinted: false });
   },
 );
+
+// Sprint 69 — Admin job control panel.
+//
+//   GET  /admin/jobs              list registered jobs + lease state +
+//                                  last run telemetry
+//   POST /admin/jobs/:name/run    run a job synchronously, ignoring
+//                                  the lease (admin override)
+//
+// Both endpoints are admin-only — running a job costs CPU + may hit
+// external services, and the lease state is sensitive operational
+// data we don't want to expose publicly.
+
+adminRouter.get("/jobs", requireAdmin, async (c) => {
+  const db = getDb();
+  const registered = listRegisteredJobs();
+  const leases = db.select().from(jobLeases).all();
+  const leasesByName = new Map(leases.map((l) => [l.jobName, l]));
+
+  const externalCounts = db
+    .select({
+      source: externalPapers.source,
+      count: sql<number>`count(*)`,
+    })
+    .from(externalPapers)
+    .groupBy(externalPapers.source)
+    .all();
+
+  const recentRunsByName = new Map<string, typeof leases[number][]>();
+  for (const job of registered) {
+    const rows = db
+      .select()
+      .from(jobRuns)
+      .where(eq(jobRuns.jobName, job.name))
+      .orderBy(desc(jobRuns.startedAt))
+      .limit(5)
+      .all();
+    recentRunsByName.set(job.name, rows as never);
+  }
+
+  return c.json({
+    processId: getProcessId(),
+    nowIso: new Date().toISOString(),
+    jobs: registered.map((j) => {
+      const lease = leasesByName.get(j.name);
+      return {
+        name: j.name,
+        intervalMs: j.intervalMs,
+        lease: lease
+          ? {
+              holder: lease.leaseHolder,
+              expiresAt: lease.leaseExpiresAt,
+              ownedByThisProcess: lease.leaseHolder === getProcessId(),
+              lastRunAt: lease.lastRunAt,
+              lastStatus: lease.lastStatus,
+              lastErrorMessage: lease.lastErrorMessage,
+              lastDurationMs: lease.lastDurationMs,
+            }
+          : null,
+        recentRuns: recentRunsByName.get(j.name) ?? [],
+      };
+    }),
+    externalPaperCounts: externalCounts,
+  });
+});
+
+adminRouter.post("/jobs/:name/run", requireAdmin, async (c) => {
+  const name = c.req.param("name");
+  if (!name) return c.json({ error: "Missing job name" }, 400);
+  try {
+    const result = await runJobNow(name);
+    return c.json({ ok: true, result });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return c.json({ ok: false, error: message }, 500);
+  }
+});
