@@ -15,12 +15,33 @@ import { randomUUID } from "crypto";
 import { getAIProvider } from "@axiomic/ai";
 import { getDb, paperSummaries, researchPapers } from "@axiomic/db";
 import { logger } from "../lib/logger";
+import { requireAuth } from "../middleware/auth";
 import type { Env } from "../env";
 
 export const paperSummaryRouter = new Hono<Env>();
 
 const TIERS = ["intro", "undergrad", "grad"] as const;
 type Tier = (typeof TIERS)[number];
+
+// Sprint 78 — guard against attacker-controlled model strings used as
+// part of the cache key. Only models the provider lists are
+// acceptable; anything else falls through to `defaultModel`.
+async function resolveSafeModel(
+  override: string | undefined,
+): Promise<string> {
+  const provider = getAIProvider();
+  let defaultModel = "default";
+  let allowed = new Set<string>();
+  try {
+    const { available, default: dflt } = await provider.listModels();
+    defaultModel = dflt;
+    for (const m of available) allowed.add(m.id);
+  } catch {
+    return "default";
+  }
+  if (override && allowed.has(override)) return override;
+  return defaultModel;
+}
 
 const requestSchema = z.object({
   tier: z.enum(TIERS).default("undergrad"),
@@ -96,6 +117,10 @@ ${body.slice(0, 6000)}`;
 
 paperSummaryRouter.post(
   "/:slug/summary",
+  // Sprint 78 — gate behind auth so anonymous attackers can't burn
+  // unbounded LLM inference by streaming summaries with an arbitrary
+  // model string as cache key.
+  requireAuth,
   zValidator("json", requestSchema),
   async (c) => {
     const slug = c.req.param("slug");
@@ -124,16 +149,8 @@ paperSummaryRouter.post(
     }
 
     const provider = getAIProvider();
-    let resolvedModel = modelOverride;
-    if (!resolvedModel) {
-      try {
-        const { default: defaultModel } = await provider.listModels();
-        resolvedModel = defaultModel;
-      } catch {
-        resolvedModel = "default";
-      }
-    }
-    const modelId = resolvedModel ?? "default";
+    const resolvedModel = await resolveSafeModel(modelOverride);
+    const modelId = resolvedModel;
 
     // Cache lookup. A hit returns the cached summary as a single SSE
     // chunk so the client can render it immediately without paying
@@ -207,7 +224,11 @@ paperSummaryRouter.post(
             },
           });
           if (!canceled) {
-            const summary = collected.join("");
+            // Cap stored summary at ~8KB. The prompt asks for under
+            // 250 words; a runaway model emitting megabytes would
+            // otherwise be replayed on every cache hit and bloat the
+            // SSE payload.
+            const summary = collected.join("").slice(0, 8000);
             try {
               db.insert(paperSummaries)
                 .values({
@@ -293,15 +314,9 @@ paperSummaryRouter.get(
       return c.json({ error: "Paper not found" }, 404);
     }
 
-    let modelId = modelOverride ?? null;
-    if (!modelId) {
-      try {
-        const { default: defaultModel } = await getAIProvider().listModels();
-        modelId = defaultModel;
-      } catch {
-        modelId = "default";
-      }
-    }
+    // GET path uses the same allowlist as POST so the cache key
+    // can't be poisoned with arbitrary attacker-controlled strings.
+    const modelId = await resolveSafeModel(modelOverride);
 
     const cached = db
       .select({

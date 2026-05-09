@@ -31,17 +31,25 @@ export type NormalizedGrant = z.infer<typeof NormalizedGrantSchema>;
 // underlying opportunity changing). Keyed on title + summary +
 // description + topics so the matching-vector cache only invalidates
 // when the semantic content moves.
+//
+// Sprint 78 — deadlineAt + postedAt are now part of the hash so a
+// deadline shift forces an UPDATE; the previous hash skipped these
+// dates and a moved deadline silently kept the stale row, which broke
+// the deadline-soon notifier's window calculation. Switched from
+// djb2 (~31-bit) to sha256 to remove birthday-collision risk at
+// scale (>10k grants).
+import { createHash } from "crypto";
 export function grantContentHash(g: NormalizedGrant): string {
   const parts = [
     g.title.trim(),
     g.summary.trim(),
     g.fullDescription.trim(),
     [...g.topics].sort().join("|"),
+    g.postedAt ?? "",
+    g.deadlineAt ?? "",
   ];
-  let h = 5381;
-  const s = parts.join("");
-  for (let i = 0; i < s.length; i++) {
-    h = ((h << 5) + h + s.charCodeAt(i)) | 0;
-  }
-  return Math.abs(h).toString(16).padStart(8, "0");
+  return createHash("sha256")
+    .update(parts.join("\x00"))
+    .digest("hex")
+    .slice(0, 32);
 }

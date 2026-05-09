@@ -127,7 +127,32 @@ settingsRouter.put(
 
     if (Object.keys(fields).length > 0) {
       fields.updatedAt = new Date().toISOString();
-      db.update(users).set(fields).where(eq(users.id, user.id)).run();
+      try {
+        db.update(users).set(fields).where(eq(users.id, user.id)).run();
+      } catch (err) {
+        // Sprint 78 — uniqueness on orcid + bluesky_handle. Translate
+        // the SQLite constraint error into a friendly 409 so the
+        // settings page can surface "already in use".
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.includes("UNIQUE") && msg.includes("users_orcid_uq")) {
+          return c.json(
+            { error: "That ORCID is already linked to another account" },
+            409,
+          );
+        }
+        if (
+          msg.includes("UNIQUE") &&
+          msg.includes("users_bluesky_handle_uq")
+        ) {
+          return c.json(
+            {
+              error: "That Bluesky handle is already linked to another account",
+            },
+            409,
+          );
+        }
+        throw err;
+      }
     }
 
     const row = db

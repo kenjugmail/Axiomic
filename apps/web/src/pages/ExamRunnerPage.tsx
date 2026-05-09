@@ -123,11 +123,22 @@ export function ExamRunnerPage() {
     five: false,
     one: false,
   });
+  // The auto-submit is async; without this guard, every 1s tick after
+  // expiry would re-fire `doSubmit` until the first request resolves —
+  // generating a flurry of failed-submit toasts on top of the
+  // successful one.
+  const autoSubmittedRef = useRef(false);
   useEffect(() => {
     if (!state?.expiresAt) return;
     const remaining = Date.parse(state.expiresAt) - now;
-    if (remaining <= 0 && !state.completedAt && !result && !submitting) {
-      // Auto-submit on expiry.
+    if (
+      remaining <= 0 &&
+      !state.completedAt &&
+      !result &&
+      !submitting &&
+      !autoSubmittedRef.current
+    ) {
+      autoSubmittedRef.current = true;
       doSubmit("Time's up — auto-submitting.");
       return;
     }
@@ -290,7 +301,7 @@ export function ExamRunnerPage() {
                 </div>
               )}
               <div className="text-xs text-muted-foreground mt-2">
-                {r.rawTotal} questions correct
+                {r.mcCorrectCount ?? r.rawTotal} questions correct
               </div>
             </div>
             <h2 className="font-display text-lg font-semibold mt-6 mb-3">

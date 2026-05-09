@@ -51,6 +51,10 @@ function interpolate(
     const a = sorted[i];
     const b = sorted[i + 1];
     if (x >= a.x && x <= b.x) {
+      // Defensive: a malformed scoring config with two anchors at the
+      // same x would otherwise divide by zero and persist NaN as the
+      // scaled score. Fall through to the lower anchor's y.
+      if (b.x === a.x) return a.y;
       const t = (x - a.x) / (b.x - a.x);
       return a.y + t * (b.y - a.y);
     }

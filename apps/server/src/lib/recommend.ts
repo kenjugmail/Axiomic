@@ -339,15 +339,31 @@ export async function rankPapersForUser(
 
 // Used by /research/feed to mark items as shown so the next request
 // demotes them. Best-effort writes; failure does not break the
-// response.
+// response. Dedupes per (user, paper, day) so a refresh-spam doesn't
+// stack 50 impression rows in 5 seconds and instantly demote a paper
+// out of the for-you rail.
 export function recordImpressions(
   userId: string,
   items: Array<{ kind: string; id: string }>,
 ): void {
   if (items.length === 0) return;
   const db = getDb();
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
   for (const it of items) {
     try {
+      const existingToday = db
+        .select({ id: feedImpressions.id })
+        .from(feedImpressions)
+        .where(
+          and(
+            eq(feedImpressions.userId, userId),
+            eq(feedImpressions.paperKind, it.kind),
+            eq(feedImpressions.paperId, it.id),
+            sql`substr(${feedImpressions.shownAt}, 1, 10) = ${today}`,
+          ),
+        )
+        .get();
+      if (existingToday) continue;
       db.insert(feedImpressions)
         .values({
           id: crypto.randomUUID(),

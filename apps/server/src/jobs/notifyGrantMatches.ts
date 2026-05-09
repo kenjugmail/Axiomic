@@ -11,6 +11,7 @@ import { randomUUID } from "crypto";
 import { and, desc, eq, isNotNull } from "drizzle-orm";
 import {
   getDb,
+  grantBookmarks,
   grantNotificationsSent,
   grants,
   researchPapers,
@@ -161,11 +162,24 @@ export const notifyGrantMatchesJob: JobDefinition = {
     for (const g of upcoming) {
       const window = dueWindow(g.deadlineAt);
       if (!window) continue;
-      const subscribers = db
+      // Sprint 78 — subscriber set = (matched users) ∪ (users who
+      // bookmarked the grant). Without the bookmark side, anyone
+      // who found a grant by browsing rather than via the for-you
+      // matcher would never get a deadline-soon alert.
+      const matched = db
         .selectDistinct({ userId: grantNotificationsSent.userId })
         .from(grantNotificationsSent)
         .where(eq(grantNotificationsSent.grantId, g.id))
         .all();
+      const bookmarkers = db
+        .selectDistinct({ userId: grantBookmarks.userId })
+        .from(grantBookmarks)
+        .where(eq(grantBookmarks.grantId, g.id))
+        .all();
+      const subscriberIds = new Set<string>();
+      for (const r of matched) subscriberIds.add(r.userId);
+      for (const r of bookmarkers) subscriberIds.add(r.userId);
+      const subscribers = [...subscriberIds].map((userId) => ({ userId }));
       for (const sub of subscribers) {
         if (alreadySentDeadline(sub.userId, g.id, window)) continue;
         const ok = await notify({

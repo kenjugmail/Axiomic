@@ -55,13 +55,19 @@ function awardToGrant(a: NsfAward): NormalizedGrant | null {
     mechanism: a.fundProgramName ?? a.cfdaNumber ?? null,
     amountCeiling: parseAmount(a.fundsObligatedAmt),
     postedAt: a.startDate ?? a.date ?? null,
-    deadlineAt: a.expDate ?? null,
+    // Sprint 78 — NSF Award Search returns AWARDED projects;
+    // expDate is when funding ends, not an application deadline.
+    // Setting null avoids the deadline-soon notifier telling
+    // researchers a closed grant is "closing in 3 days". Live RFPs
+    // should be ingested via grants.gov.
+    deadlineAt: null,
     url,
     topics: a.fundProgramName ? [a.fundProgramName] : [],
     rawJson: {
       pi: a.pdPIName,
       awardee: a.awardeeName,
       cfdaNumber: a.cfdaNumber,
+      projectExpDate: a.expDate ?? null,
     },
   };
 }

@@ -57,14 +57,44 @@ describe("/research/:slug/summary (Sprint 70)", () => {
     expect(res.status).toBe(404);
   });
 
-  test("POST streams an SSE response with tokens + DONE marker", async () => {
+  test("POST without auth returns 401 (Sprint 78 hardening)", async () => {
     const slug = findAnyPublishedSlug();
     if (!slug) return;
-
     const res = await app.fetch(
       new Request(`http://localhost/api/v1/research/${slug}/summary`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tier: "intro" }),
+      }),
+    );
+    expect(res.status).toBe(401);
+  });
+
+  test("POST streams an SSE response with tokens + DONE marker (auth'd)", async () => {
+    const slug = findAnyPublishedSlug();
+    if (!slug) return;
+
+    // Sign up to get a session cookie for auth'd requests.
+    const username = `psum_${Date.now().toString(36)}_${Math.random()
+      .toString(36)
+      .slice(2, 6)}`;
+    const signup = await app.fetch(
+      new Request("http://localhost/api/v1/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username,
+          email: `${username}@example.com`,
+          password: "testpass123",
+        }),
+      }),
+    );
+    const cookie = signup.headers.get("set-cookie")?.split(";")[0] ?? "";
+
+    const res = await app.fetch(
+      new Request(`http://localhost/api/v1/research/${slug}/summary`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", cookie },
         body: JSON.stringify({ tier: "intro" }),
       }),
     );
@@ -90,7 +120,7 @@ describe("/research/:slug/summary (Sprint 70)", () => {
     expect(combined.includes("data: ")).toBe(true);
   }, 15_000);
 
-  test("invalid tier value is rejected", async () => {
+  test("invalid tier value is rejected (still requires auth)", async () => {
     const slug = findAnyPublishedSlug();
     if (!slug) return;
     const res = await app.fetch(
@@ -100,6 +130,8 @@ describe("/research/:slug/summary (Sprint 70)", () => {
         body: JSON.stringify({ tier: "phd" }),
       }),
     );
-    expect(res.status).toBe(400);
+    // requireAuth runs before zValidator, so anonymous calls get 401
+    // regardless of body shape — that's the security posture we want.
+    expect(res.status).toBe(401);
   });
 });

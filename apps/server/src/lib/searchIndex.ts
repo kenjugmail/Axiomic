@@ -119,6 +119,25 @@ export type IndexedItem =
 let cache: IndexedItem[] | null = null;
 let building: Promise<IndexedItem[]> | null = null;
 
+// Sprint 78 — wrap provider.embed so a single transient failure skips
+// one item instead of rejecting the whole index build (which would
+// leave `cache` null and force every subsequent search request to
+// retry from scratch). Returns null on failure; callers skip the
+// item.
+async function safeEmbed(
+  provider: ReturnType<typeof getAIProvider>,
+  text: string,
+): Promise<number[] | null> {
+  try {
+    return await provider.embed(text);
+  } catch (err) {
+    console.warn(
+      `[search] embed failed (${(err as Error).message ?? "unknown"}); skipping item`,
+    );
+    return null;
+  }
+}
+
 async function buildIndex(): Promise<IndexedItem[]> {
   const db = getDb();
   const provider = getAIProvider();
@@ -134,7 +153,8 @@ async function buildIndex(): Promise<IndexedItem[]> {
       .get();
     if (!version) continue;
     const snippet = version.contentIntro.slice(0, 500);
-    const vector = await provider.embed(`${page.title} ${snippet}`);
+    const vector = await safeEmbed(provider, `${page.title} ${snippet}`);
+    if (!vector) continue;
     items.push({
       kind: "page",
       id: page.id,
@@ -149,7 +169,8 @@ async function buildIndex(): Promise<IndexedItem[]> {
   const topics = db.select().from(forumTopics).all();
   for (const topic of topics) {
     const snippet = topic.body.slice(0, 500);
-    const vector = await provider.embed(`${topic.title} ${snippet}`);
+    const vector = await safeEmbed(provider, `${topic.title} ${snippet}`);
+    if (!vector) continue;
     items.push({
       kind: "topic",
       id: topic.id,
@@ -195,9 +216,11 @@ async function buildIndex(): Promise<IndexedItem[]> {
       .join(" ")
       .slice(0, 2000);
     const snippet = (titles + " " + bodies).slice(0, 500);
-    const vector = await provider.embed(
+    const vector = await safeEmbed(
+      provider,
       `${node.title} ${titles} ${bodies}`,
     );
+    if (!vector) continue;
     items.push({
       kind: "lesson",
       id: node.id,
@@ -228,9 +251,11 @@ async function buildIndex(): Promise<IndexedItem[]> {
     .all();
   for (const a of articles) {
     const snippet = (a.summary || a.abstract || a.body).slice(0, 500);
-    const vector = await provider.embed(
+    const vector = await safeEmbed(
+      provider,
       `${a.title} ${a.summary} ${a.abstract.slice(0, 600)} ${a.body.slice(0, 1500)}`,
     );
+    if (!vector) continue;
     items.push({
       kind: "news",
       id: a.id,
@@ -273,9 +298,11 @@ async function buildIndex(): Promise<IndexedItem[]> {
         ? canonicalBody
         : p.contentUndergrad || p.contentIntro || p.contentGrad;
     const snippet = (p.summary || p.abstract || fallback).slice(0, 500);
-    const vector = await provider.embed(
+    const vector = await safeEmbed(
+      provider,
       `${p.title} ${p.summary} ${p.abstract.slice(0, 600)} ${fallback.slice(0, 1500)}`,
     );
+    if (!vector) continue;
     let parsedTags: string[] = [];
     try {
       const t = JSON.parse(p.tags ?? "[]");
@@ -318,9 +345,11 @@ async function buildIndex(): Promise<IndexedItem[]> {
         topics = arr.filter((t): t is string => typeof t === "string");
     } catch {}
     const snippet = (p.abstract || p.title).slice(0, 500);
-    const vector = await provider.embed(
+    const vector = await safeEmbed(
+      provider,
       `${p.title} ${p.abstract.slice(0, 1500)} ${authorNames.join(", ")}`,
     );
+    if (!vector) continue;
     items.push({
       kind: "external_paper",
       id: p.id,
@@ -435,14 +464,19 @@ export async function scoreQuery(
 
   const items = await getSearchIndex();
   const provider = getAIProvider();
-  const queryEmbed = await provider.embed(trimmed);
+  // Sprint 78 — fall back to keyword-only ranking when the query
+  // embed fails (e.g., Ollama is down). Better to return relevant
+  // keyword hits than to 500 the whole search request.
+  const queryEmbed = await safeEmbed(provider, trimmed);
   const q = trimmed.toLowerCase();
 
   const scored: ScoredItem[] = [];
   for (const item of items) {
     const titleLower = item.title.toLowerCase();
     const slugLower = item.slug.toLowerCase();
-    const semantic = cosineSimilarity(queryEmbed, item.vector);
+    const semantic = queryEmbed
+      ? cosineSimilarity(queryEmbed, item.vector)
+      : 0;
     const keywordHit = titleLower.includes(q) || slugLower.includes(q);
     const exactTitle = titleLower === q;
 

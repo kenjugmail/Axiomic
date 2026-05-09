@@ -152,6 +152,29 @@ paperAuthorQuestionsRouter.post(
       .get();
     if (!paper) return c.json({ error: "Paper not found" }, 404);
 
+    // Sprint 78 — when the client sends a parentId, verify that the
+    // parent comment lives in THIS thread. Without the check, a user
+    // could plant a "reply" whose parent belongs to a different paper
+    // or author slot — polluting reply trees and routing notifications
+    // to the wrong author.
+    if (parentId) {
+      const parent = db
+        .select({
+          targetKind: newsComments.targetKind,
+          targetId: newsComments.targetId,
+        })
+        .from(newsComments)
+        .where(eq(newsComments.id, parentId))
+        .get();
+      if (
+        !parent ||
+        parent.targetKind !== "paper_author_question" ||
+        parent.targetId !== targetIdFor(id, ordinal)
+      ) {
+        return c.json({ error: "Parent comment is in a different thread" }, 400);
+      }
+    }
+
     const commentId = randomUUID();
     db.insert(newsComments)
       .values({

@@ -33,9 +33,12 @@ describe("extractPaperRefs (Sprint 72)", () => {
     expect(refs.find((r) => r.source === "arxiv")?.sourceId).toBe("2401.99999");
   });
 
-  test("dedups when both arxiv: prefix and bare id appear", () => {
-    const refs = extractPaperRefs("arxiv:2501.00001 and bare 2501.00001");
-    expect(refs.filter((r) => r.source === "arxiv").length).toBe(1);
+  test("requires an explicit arxiv: prefix or URL — bare IDs are ignored", () => {
+    // Sprint 78 — bare 4-digit-dot-5-digit patterns matched timestamps
+    // + financial figures + version strings; we require the prefix.
+    const onlyPrefixed = extractPaperRefs("arxiv:2501.00001 and bare 2501.00001");
+    expect(onlyPrefixed.filter((r) => r.source === "arxiv").length).toBe(1);
+    expect(extractPaperRefs("the date is 2501.00001 (a Tuesday)")).toEqual([]);
   });
 
   test("returns empty list for plain text without refs", () => {

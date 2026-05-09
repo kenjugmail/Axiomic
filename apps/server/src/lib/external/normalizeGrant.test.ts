@@ -58,9 +58,9 @@ describe("normalizeGrant (Sprint 71)", () => {
     expect(grantContentHash(drift)).toBe(grantContentHash(sample));
   });
 
-  test("contentHash IGNORES deadline drift (just the schedule moved)", () => {
+  test("contentHash CHANGES when deadline shifts (Sprint 78 — must trigger an update so the deadline-soon notifier sees the new window)", () => {
     const drift = { ...sample, deadlineAt: "2026-06-30" };
-    expect(grantContentHash(drift)).toBe(grantContentHash(sample));
+    expect(grantContentHash(drift)).not.toBe(grantContentHash(sample));
   });
 
   test("contentHash CHANGES when title changes", () => {

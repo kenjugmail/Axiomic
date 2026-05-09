@@ -59,7 +59,17 @@ export const users = sqliteTable("users", {
   externalAuthorIdsJson: text("external_author_ids_json").notNull().default("[]"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
-});
+}, (t) => ({
+  // Sprint 78 — uniqueness on the public researcher identifiers.
+  // Without this, two users could claim the same ORCID and the
+  // ORCID auto-claim cron would route external-paper authorship
+  // arbitrarily (last-write-wins via Map.set) — effectively
+  // identity theft of any researcher whose ORCID a malicious
+  // user knows. Same for the Bluesky handle which drives the
+  // social-mentions harvester.
+  orcidUq: uniqueIndex("users_orcid_uq").on(t.orcid),
+  blueskyHandleUq: uniqueIndex("users_bluesky_handle_uq").on(t.blueskyHandle),
+}));
 
 export const sessions = sqliteTable("sessions", {
   id: text("id").primaryKey(),

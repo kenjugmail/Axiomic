@@ -25,12 +25,23 @@ export function notificationLink(n: Notification): string {
       return `/news/${n.contextSlug}/proposals`;
     case "news_comment":
       return `/news/${n.contextSlug}#comment-${n.subjectId}`;
-    default:
-      // news_article (news_published) and topic (forum_topic_posted)
-      // already have routes above; this fallthrough catches anything new.
-      if (n.subjectType === "news_article") return `/news/${n.contextSlug}`;
-      if (n.subjectType === "topic") return `/forum/t/${n.contextSlug}`;
+    // Sprint 78 — route grant notifications to the grant detail
+    // page. contextSlug is the grant id (also subjectId here).
+    case "grant":
+      return `/grants/${n.contextSlug ?? n.subjectId}`;
+    case "claim_thread":
+    case "reproduction":
+    case "capstone_track":
+    case "content_proposal":
+      // Sprint 78 — these subject kinds don't have a clean
+      // single-page deep-link yet; route to the bell list page so
+      // the user lands somewhere reasonable.
       return "/notifications";
+    default: {
+      const _exhaustive: never = n.subjectType;
+      void _exhaustive;
+      return "/notifications";
+    }
   }
 }
 
@@ -44,6 +55,8 @@ function kindLabel(kind: Notification["kind"]): string {
       return "replied to your post";
     case "comment_reply":
       return "replied to your comment";
+    case "claim_thread_reply":
+      return "replied to a claim thread";
     case "mastery_level_up":
       return "you reached a new mastery level";
     case "news_edit_proposed":
@@ -54,8 +67,33 @@ function kindLabel(kind: Notification["kind"]): string {
       return "declined your proposed edit";
     case "news_published":
       return "published a new article";
+    case "article_reproduced":
+      return "reproduced your article";
     case "forum_topic_posted":
       return "started a new forum topic";
+    // Sprint 78 — wire the kinds added in S52, S71, and S77 that were
+    // missing from this switch. Without them, the bell rendered an
+    // empty label for grant alerts, ask-author replies, and admin-
+    // pipeline notifications.
+    case "track_completed":
+      return "you completed a capstone track";
+    case "cohort_invitation":
+      return "invited you to a cohort";
+    case "proposal_approved":
+      return "approved your proposal";
+    case "proposal_rejected":
+      return "declined your proposal";
+    case "grant_match":
+      return "found a grant matching your work";
+    case "grant_deadline_soon":
+      return "grant deadline approaching";
+    default: {
+      // Exhaustiveness check: future NotificationKind additions force
+      // a TS error here, prompting the author to add a case.
+      const _exhaustive: never = kind;
+      void _exhaustive;
+      return "sent you a notification";
+    }
   }
 }
 

@@ -5,6 +5,7 @@
 // `external_papers`. The shape is deliberately small + JSON-friendly
 // — anything source-specific lives under `rawJson`.
 
+import { createHash } from "crypto";
 import { z } from "zod";
 
 export const ExternalAuthorSchema = z.object({
@@ -37,6 +38,12 @@ export type NormalizedExternalPaper = z.infer<typeof NormalizedExternalPaperSche
 // author-name list + topic list — anything that affects the search
 // embedding. Citation-count drift alone doesn't bust the embedding
 // cache (that's a numeric ranking signal, not a semantic one).
+//
+// Sprint 78 — switched from djb2 (~31-bit) to sha256 to avoid silent
+// birthday collisions at scale: at 100k+ external papers the
+// truncated 31-bit hash made same-hash-with-different-content
+// inevitable, and the persist layer was treating those collisions
+// as "no change" → silently stale rows.
 export function externalPaperContentHash(p: NormalizedExternalPaper): string {
   const parts = [
     p.title.trim(),
@@ -44,11 +51,8 @@ export function externalPaperContentHash(p: NormalizedExternalPaper): string {
     p.authors.map((a) => a.name).join("|"),
     [...p.topics].sort().join("|"),
   ];
-  // Cheap djb2; we don't need cryptographic strength here.
-  let h = 5381;
-  const s = parts.join("");
-  for (let i = 0; i < s.length; i++) {
-    h = ((h << 5) + h + s.charCodeAt(i)) | 0;
-  }
-  return Math.abs(h).toString(16).padStart(8, "0");
+  return createHash("sha256")
+    .update(parts.join("\x00"))
+    .digest("hex")
+    .slice(0, 32);
 }

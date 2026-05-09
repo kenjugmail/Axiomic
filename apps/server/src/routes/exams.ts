@@ -423,7 +423,6 @@ examsRouter.put(
           timeSpentMs != null
             ? Math.max(existing.timeSpentMs, timeSpentMs)
             : existing.timeSpentMs,
-        flagged: flagged ? 1 : 0,
         updatedAt: new Date().toISOString(),
       };
       if (selectedIndex !== undefined) {
@@ -431,6 +430,12 @@ examsRouter.put(
       }
       if (essayResponse !== undefined) {
         update.essayResponse = essayResponse ?? null;
+      }
+      // Only touch the flagged column when the patch supplied it —
+      // otherwise patching `selectedIndex` on a flagged question would
+      // silently clear the flag.
+      if (flagged !== undefined) {
+        update.flagged = flagged ? 1 : 0;
       }
       db.update(examAttemptAnswers)
         .set(update)
@@ -492,13 +497,19 @@ examsRouter.post(
       return c.json({ error: "Exam has no sections" }, 400);
     const section = sections[0];
 
-    // Pull answered history for the heuristic.
+    // Pull answered history for the heuristic. Filter to
+    // multiple-choice rows only — essay answers can't be live-graded
+    // here, and feeding them in would skew the running-accuracy
+    // window (essay rows have selectedIndex=null, which the picker
+    // would read as "skipped").
     const answers = db
       .select({
         questionId: examAttemptAnswers.questionId,
         selectedIndex: examAttemptAnswers.selectedIndex,
         isCorrect: examAttemptAnswers.isCorrect,
+        type: examQuestions.type,
         difficulty: examQuestions.difficulty,
+        correctIndex: examQuestions.correctIndex,
       })
       .from(examAttemptAnswers)
       .innerJoin(
@@ -508,32 +519,16 @@ examsRouter.post(
       .where(eq(examAttemptAnswers.attemptId, id))
       .all();
 
-    // Resolve isCorrect on-the-fly when missing — adaptive needs
-    // the live signal, but answers are scored only at submit.
-    const correctMap = (() => {
-      const ids = answers.map((a) => a.questionId);
-      if (ids.length === 0) return new Map<string, number>();
-      const rows = db
-        .select({
-          id: examQuestions.id,
-          correctIndex: examQuestions.correctIndex,
-        })
-        .from(examQuestions)
-        .all();
-      const m = new Map<string, number>();
-      const wanted = new Set(ids);
-      for (const r of rows) if (wanted.has(r.id)) m.set(r.id, r.correctIndex);
-      return m;
-    })();
-
-    const answered = answers.map((a) => ({
-      questionId: a.questionId,
-      difficulty: a.difficulty,
-      isCorrect:
-        a.selectedIndex == null
-          ? null
-          : a.selectedIndex === correctMap.get(a.questionId),
-    }));
+    const answered = answers
+      .filter((a) => a.type === "multiple_choice")
+      .map((a) => ({
+        questionId: a.questionId,
+        difficulty: a.difficulty,
+        isCorrect:
+          a.selectedIndex == null
+            ? null
+            : a.selectedIndex === a.correctIndex,
+      }));
 
     const pick = pickNextAdaptiveQuestion({
       sectionId: section.id,
@@ -643,9 +638,14 @@ examsRouter.post("/attempts/:id/submit", requireAuth, async (c) => {
     .where(eq(examAttemptAnswers.attemptId, id))
     .all();
 
-  // Section raw-score tally:
+  // Section raw-score tally. For multiple-choice rows raw = correct
+  // count; for essay rows raw = sum of awarded essay scores. We
+  // track the multiple-choice correct count separately so the score
+  // report can distinguish "questions correct" from "raw points"
+  // without UI confusion on essay-bearing exams.
   const rawBySection = new Map<string, number>();
   for (const sec of manifest.sections) rawBySection.set(sec.slug, 0);
+  let mcCorrectCount = 0;
 
   for (const ans of answers) {
     const meta = metaById.get(ans.questionId);
@@ -664,6 +664,9 @@ examsRouter.post("/attempts/:id/submit", requireAuth, async (c) => {
         .set({
           essayScore: grade.score,
           essayFeedbackMd: grade.feedbackMd,
+          // isCorrect for essays = "passed at least half the rubric".
+          // Used only by analytics; raw-score arithmetic uses the
+          // numeric `essayScore` directly.
           isCorrect: grade.score >= Math.ceil(maxScore / 2) ? 1 : 0,
         })
         .where(eq(examAttemptAnswers.id, ans.id))
@@ -676,8 +679,11 @@ examsRouter.post("/attempts/:id/submit", requireAuth, async (c) => {
         .set({ isCorrect: isCorrect ? 1 : 0 })
         .where(eq(examAttemptAnswers.id, ans.id))
         .run();
-      if (isCorrect && slug) {
-        rawBySection.set(slug, (rawBySection.get(slug) ?? 0) + 1);
+      if (isCorrect) {
+        mcCorrectCount++;
+        if (slug) {
+          rawBySection.set(slug, (rawBySection.get(slug) ?? 0) + 1);
+        }
       }
     }
   }
@@ -705,6 +711,11 @@ examsRouter.post("/attempts/:id/submit", requireAuth, async (c) => {
   return c.json({
     attemptId: id,
     rawTotal: result.rawTotal,
+    // Number of multiple-choice questions answered correctly. The
+    // UI uses this for the "X questions correct" line so essay-bearing
+    // exams (GRE Analytical Writing) don't display "6 questions
+    // correct" when the 6 came from a single essay's rubric score.
+    mcCorrectCount,
     scaledTotal: result.scaledTotal,
     percentileTotal: result.percentileTotal,
     sections: result.sections,

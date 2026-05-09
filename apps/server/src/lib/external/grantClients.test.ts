@@ -53,7 +53,13 @@ describe("nihReporterClient (Sprint 71)", () => {
     expect(g.title).toContain("Tumor");
     expect(g.mechanism).toBe("R01");
     expect(g.amountCeiling).toBe(350000);
-    expect(g.deadlineAt).toBe("2026-12-31");
+    // Sprint 78 — NIH RePORTER rows are awarded grants; deadlineAt
+    // is null (no application deadline). Project end date lives
+    // under rawJson.projectEndDate for reference.
+    expect(g.deadlineAt).toBeNull();
+    expect((g.rawJson as { projectEndDate?: string }).projectEndDate).toBe(
+      "2026-12-31",
+    );
     expect(g.topics).toContain("Tumor");
     expect(g.topics).toContain("Microenvironment");
   });

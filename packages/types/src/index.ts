@@ -542,6 +542,11 @@ export interface ExamSectionResult {
 export interface ExamSubmitResponse {
   attemptId: string;
   rawTotal: number;
+  // Sprint 78 — multiple-choice questions answered correctly. Distinct
+  // from rawTotal so the UI can display "questions correct" without
+  // double-counting essay rubric points (a 6-point GRE essay would
+  // otherwise appear as "6 questions correct").
+  mcCorrectCount?: number;
   scaledTotal: number;
   percentileTotal: number | null;
   sections: Record<string, ExamSectionResult>;
@@ -1236,17 +1241,34 @@ export interface ReputationResponse {
 
 // --- Notifications ---
 
+// Sprint 78 — kept in sync with the server-side `NotificationKind`
+// in apps/server/src/lib/notifications.ts. New kinds added since
+// the original list:
+//   - claim_thread_reply (S22), article_reproduced (S38),
+//     track_completed + cohort_invitation +
+//     proposal_approved + proposal_rejected (S52),
+//     grant_match + grant_deadline_soon (S71).
+// Without this widening the web's NotificationBell switch couldn't
+// reference the new kinds without a TS error.
 export type NotificationKind =
   | "mention"
   | "topic_reply"
   | "post_reply"
   | "comment_reply"
+  | "claim_thread_reply"
   | "mastery_level_up"
   | "news_edit_proposed"
   | "news_edit_approved"
   | "news_edit_rejected"
   | "news_published"
-  | "forum_topic_posted";
+  | "article_reproduced"
+  | "forum_topic_posted"
+  | "track_completed"
+  | "cohort_invitation"
+  | "proposal_approved"
+  | "proposal_rejected"
+  | "grant_match"
+  | "grant_deadline_soon";
 
 export type NotificationSubject =
   | "topic"
@@ -1255,19 +1277,32 @@ export type NotificationSubject =
   | "mastery_node"
   | "news_article"
   | "news_proposal"
-  | "news_comment";
+  | "news_comment"
+  | "claim_thread"
+  | "reproduction"
+  | "capstone_track"
+  | "content_proposal"
+  | "grant";
 
 export const NOTIFICATION_KINDS: NotificationKind[] = [
   "mention",
   "topic_reply",
   "post_reply",
   "comment_reply",
+  "claim_thread_reply",
   "mastery_level_up",
   "news_edit_proposed",
   "news_edit_approved",
   "news_edit_rejected",
   "news_published",
+  "article_reproduced",
   "forum_topic_posted",
+  "track_completed",
+  "cohort_invitation",
+  "proposal_approved",
+  "proposal_rejected",
+  "grant_match",
+  "grant_deadline_soon",
 ];
 
 export const NOTIFICATION_SUBJECTS: NotificationSubject[] = [
@@ -1278,6 +1313,11 @@ export const NOTIFICATION_SUBJECTS: NotificationSubject[] = [
   "news_article",
   "news_proposal",
   "news_comment",
+  "claim_thread",
+  "reproduction",
+  "capstone_track",
+  "content_proposal",
+  "grant",
 ];
 
 export interface Notification {

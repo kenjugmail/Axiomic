@@ -101,7 +101,10 @@ function normalizeWork(w: OpenAlexWork): NormalizedExternalPaper | null {
   return {
     source: "openalex" as const,
     sourceId,
-    doi: w.doi?.replace(/^https?:\/\/doi\.org\//, "") ?? null,
+    // DOIs are case-insensitive per the DOI Handbook; normalize to
+    // lowercase so equality comparisons (e.g., the BlueSky
+    // social-post → paper resolver) match consistently.
+    doi: w.doi?.replace(/^https?:\/\/doi\.org\//, "").toLowerCase() ?? null,
     title: w.title,
     abstract: reconstructAbstract(w.abstract_inverted_index),
     authors,

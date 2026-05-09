@@ -22,12 +22,18 @@ const PRIMARY_NAV: Array<{ to: string; label: string }> = [
   { to: "/research", label: "Research" },
   { to: "/capstones", label: "Capstones" },
   { to: "/paths", label: "Paths" },
+  // Sprint 78 — exam track surfaces. Without these the SAT/GRE/MCAT/
+  // USMLE flows were reachable only by typing the URL.
+  { to: "/exams", label: "Exams" },
 ];
 
 const SECONDARY_NAV_PUBLIC: Array<{ to: string; label: string }> = [
   { to: "/challenge", label: "Daily challenge" },
   { to: "/leaderboard", label: "Leaderboard" },
   { to: "/cohorts", label: "Cohorts" },
+  // Sprint 78 — funding feed lives in the secondary menu so it's
+  // discoverable but doesn't crowd the primary nav.
+  { to: "/grants", label: "Funding" },
   { to: "/misconceptions", label: "Misconception marketplace" },
   { to: "/capstones/review-queue", label: "Peer review queue" },
   { to: "/verify", label: "Verify a transcript" },

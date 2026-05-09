@@ -87,10 +87,19 @@ function projectToGrant(p: NihProject): NormalizedGrant | null {
     mechanism: mechanism ?? null,
     amountCeiling: p.award_amount ?? null,
     postedAt: p.project_start_date ?? null,
-    deadlineAt: p.project_end_date ?? null,
+    // Sprint 78 — RePORTER returns AWARDED projects; project_end_date
+    // is when funding ends, not an application deadline. Leaving it
+    // as deadlineAt would route this row through the deadline-soon
+    // notifier and tell users "closes in 3 days" for a grant they
+    // can't apply to. Live RFPs should come from grants.gov instead.
+    deadlineAt: null,
     url,
     topics: termsToTopics(p.pref_terms),
-    rawJson: { applId: p.appl_id, projectNum: p.project_num },
+    rawJson: {
+      applId: p.appl_id,
+      projectNum: p.project_num,
+      projectEndDate: p.project_end_date ?? null,
+    },
   };
 }
 
