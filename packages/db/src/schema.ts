@@ -1580,6 +1580,13 @@ export const exams = sqliteTable("exams", {
   totalDurationMinutes: integer("total_duration_minutes").notNull(),
   scoringJson: text("scoring_json").notNull().default("{}"),
   description: text("description").notNull().default(""),
+  // Sprint 74 — content version. Bumped when the seed file changes;
+  // the seed loader compares against the persisted value and
+  // rebuilds the exam (cascade-deletes old sections + questions +
+  // bumps version) so re-runs pick up new content. In-flight
+  // attempts are NOT touched — they reference the questions that
+  // existed when the attempt started.
+  contentVersion: integer("content_version").notNull().default(1),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
 });
 

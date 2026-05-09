@@ -122,8 +122,16 @@ async function seed() {
   console.log("Seeding complete.");
 }
 
-// Sprint 73 — load exams from seed-content/exams/*.json. Each file
-// describes one exam with sections + an embedded question bank.
+// Sprint 73 — load exams from seed-content/exams/*.json.
+//
+// Sprint 74 — version-aware: each JSON carries a `contentVersion`
+// integer. When the stored version is below the file's, we wipe the
+// exam (cascade deletes sections + questions + past attempts) and
+// re-import. When versions match, we skip. Question ids are
+// generated deterministically as `${examSlug}:${sectionSlug}:q${i}`
+// so any code that holds onto a question-id reference across a
+// re-import keeps working as long as the question still exists in
+// the new bank.
 function seedExams() {
   const dir = path.join(import.meta.dir, "../../../seed-content/exams");
   if (!fs.existsSync(dir)) {
@@ -141,15 +149,28 @@ function seedExams() {
       continue;
     }
     if (!parsed?.slug || !parsed?.title) continue;
+    const fileVersion = Number(parsed.contentVersion) || 1;
     const existing = db
-      .select({ id: exams.id })
+      .select({ id: exams.id, contentVersion: exams.contentVersion })
       .from(exams)
       .where(eq(exams.slug, parsed.slug))
       .get();
-    if (existing) {
-      console.log(`  exam ${parsed.slug}: already seeded, skipping.`);
+    if (existing && existing.contentVersion >= fileVersion) {
+      console.log(
+        `  exam ${parsed.slug}: v${existing.contentVersion} already seeded (file v${fileVersion}), skipping.`,
+      );
       continue;
     }
+    if (existing) {
+      // Version bump — cascade-delete the old exam so we can
+      // re-import. Past attempts are wiped too; that's the
+      // accepted seed-time tradeoff.
+      db.delete(exams).where(eq(exams.id, existing.id)).run();
+      console.log(
+        `  exam ${parsed.slug}: bumping v${existing.contentVersion} → v${fileVersion}, re-importing.`,
+      );
+    }
+
     const examId = randomUUID();
     db.insert(exams)
       .values({
@@ -161,13 +182,14 @@ function seedExams() {
         totalDurationMinutes: Number(parsed.totalDurationMinutes) || 0,
         scoringJson: JSON.stringify(parsed.scoring ?? {}),
         description: parsed.description ?? "",
+        contentVersion: fileVersion,
       })
       .run();
 
     const sections: any[] = Array.isArray(parsed.sections) ? parsed.sections : [];
     for (const sec of sections) {
       if (!sec?.slug || !sec?.title) continue;
-      const sectionId = randomUUID();
+      const sectionId = `exam:${parsed.slug}:${sec.slug}`;
       db.insert(examSections)
         .values({
           id: sectionId,
@@ -181,12 +203,14 @@ function seedExams() {
         .run();
 
       const questions: any[] = Array.isArray(sec.questions) ? sec.questions : [];
-      for (const q of questions) {
+      for (let i = 0; i < questions.length; i++) {
+        const q = questions[i];
         if (!q?.promptMd || !Array.isArray(q?.options)) continue;
         if (typeof q.correctIndex !== "number") continue;
+        const questionId = `q:${parsed.slug}:${sec.slug}:${i}`;
         db.insert(examQuestions)
           .values({
-            id: randomUUID(),
+            id: questionId,
             sectionId,
             difficulty: Number(q.difficulty) || 3,
             promptMd: String(q.promptMd),
@@ -201,7 +225,7 @@ function seedExams() {
       }
     }
     loaded++;
-    console.log(`  Seeded exam: ${parsed.slug}`);
+    console.log(`  Seeded exam: ${parsed.slug} (v${fileVersion})`);
   }
   console.log(`  Seeded ${loaded} exam${loaded === 1 ? "" : "s"}.`);
 }
