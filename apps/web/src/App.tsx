@@ -164,6 +164,15 @@ const GrantsBookmarksPage = lazy(() =>
 const AuthorPage = lazy(() =>
   import("./pages/AuthorPage").then((m) => ({ default: m.AuthorPage })),
 );
+const ExamsListPage = lazy(() =>
+  import("./pages/ExamsListPage").then((m) => ({ default: m.ExamsListPage })),
+);
+const ExamPage = lazy(() =>
+  import("./pages/ExamPage").then((m) => ({ default: m.ExamPage })),
+);
+const ExamRunnerPage = lazy(() =>
+  import("./pages/ExamRunnerPage").then((m) => ({ default: m.ExamRunnerPage })),
+);
 const ResearchNewPage = lazy(() =>
   import("./pages/ResearchNewPage").then((m) => ({ default: m.ResearchNewPage })),
 );
@@ -358,6 +367,13 @@ function AppRoutes() {
           <Route path="/grants/:id" element={<GrantDetailPage />} />
           {/* Sprint 72 — author profile aggregator. */}
           <Route path="/authors/:username" element={<AuthorPage />} />
+          {/* Sprint 73 — exam mastery framework. */}
+          <Route path="/exams" element={<ExamsListPage />} />
+          <Route path="/exams/:slug" element={<ExamPage />} />
+          <Route
+            path="/exams/:slug/run/:attemptId"
+            element={<ExamRunnerPage />}
+          />
           <Route path="/research/new" element={<ResearchNewPage />} />
           <Route path="/research/new/wizard" element={<ResearchWizardPage />} />
           <Route path="/research/me/drafts" element={<ResearchDraftsPage />} />

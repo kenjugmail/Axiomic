@@ -62,6 +62,12 @@ import type {
   AuthorProfileResponse,
   AuthorClaimRequest,
   PaperAuthorQuestionsResponse,
+  ExamSummary,
+  ExamDetail,
+  ExamAttemptState,
+  ExamSubmitResponse,
+  ExamHistoryEntry,
+  ExamQuestionPayload,
   UpdateResearchPaperRequest,
   CapstonesListResponse,
   CapstoneResponse,
@@ -930,6 +936,55 @@ export const api = {
             generatedAt: string;
           }
       >(`/research/${slug}/summary?tier=${tier}`),
+  },
+  // Sprint 73 — Exam mastery framework.
+  exams: {
+    list: () => request<{ items: ExamSummary[] }>("/exams"),
+    get: (slug: string) =>
+      request<{ exam: ExamDetail }>(`/exams/${encodeURIComponent(slug)}`),
+    startAttempt: (
+      slug: string,
+      body: { mode: "full_mock" | "section" | "adaptive"; sectionSlug?: string },
+    ) =>
+      request<{
+        id: string;
+        mode: string;
+        expiresAt: string | null;
+      }>(`/exams/${encodeURIComponent(slug)}/attempts`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    getAttempt: (id: string) =>
+      request<ExamAttemptState>(
+        `/exams/attempts/${encodeURIComponent(id)}`,
+      ),
+    recordAnswer: (
+      id: string,
+      body: {
+        questionId: string;
+        selectedIndex: number | null;
+        timeSpentMs?: number;
+        flagged?: boolean;
+      },
+    ) =>
+      request<{ ok: boolean }>(
+        `/exams/attempts/${encodeURIComponent(id)}/answer`,
+        { method: "PUT", body: JSON.stringify(body) },
+      ),
+    submitAttempt: (id: string) =>
+      request<ExamSubmitResponse>(
+        `/exams/attempts/${encodeURIComponent(id)}/submit`,
+        { method: "POST" },
+      ),
+    nextAdaptive: (id: string) =>
+      request<{ question: ExamQuestionPayload | null; difficulty?: number; done?: boolean }>(
+        `/exams/attempts/${encodeURIComponent(id)}/next-adaptive`,
+        { method: "POST" },
+      ),
+    history: (slug: string) =>
+      request<{ items: ExamHistoryEntry[] }>(
+        `/exams/${encodeURIComponent(slug)}/history`,
+      ),
   },
   // Sprint 72 — Author profile, claims, paper-author Q&A.
   authors: {

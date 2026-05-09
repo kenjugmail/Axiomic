@@ -455,6 +455,98 @@ export interface PaperAuthorQuestionsResponse {
   authorClaimed: boolean;
 }
 
+// Sprint 73 — Exam mastery framework.
+export interface ExamSummary {
+  slug: string;
+  title: string;
+  shortName: string;
+  pathSlug: string | null;
+  totalDurationMinutes: number;
+  description: string;
+}
+
+export interface ExamSectionDetail {
+  slug: string;
+  title: string;
+  ordinal: number;
+  durationMinutes: number;
+  questionCount: number;
+}
+
+export interface ExamScoringSection {
+  scaledTable: Array<{ raw: number; scaled: number }>;
+  percentileTable?: Array<{ scaled: number; percentile: number }>;
+  min: number;
+  max: number;
+}
+export interface ExamScoringConfig {
+  sections?: Record<string, ExamScoringSection>;
+  overall?: ExamScoringSection;
+}
+
+export interface ExamDetail extends ExamSummary {
+  sections: ExamSectionDetail[];
+  scoring: ExamScoringConfig;
+}
+
+export interface ExamQuestionPayload {
+  id: string;
+  sectionId: string;
+  sectionSlug: string;
+  ordinal: number;
+  difficulty: number;
+  promptMd: string;
+  options: Array<{ label: string; text: string }>;
+  topicTags: string[];
+}
+
+export interface ExamAttemptAnswer {
+  questionId: string;
+  selectedIndex: number | null;
+  flagged: boolean;
+  timeSpentMs: number;
+}
+
+export interface ExamAttemptState {
+  id: string;
+  mode: "full_mock" | "section" | "adaptive";
+  sectionSlug: string | null;
+  startedAt: string;
+  expiresAt: string | null;
+  completedAt: string | null;
+  scoreScaled: number | null;
+  sections: Array<{
+    slug: string;
+    questions: ExamQuestionPayload[];
+  }>;
+  answers: ExamAttemptAnswer[];
+}
+
+export interface ExamSectionResult {
+  raw: number;
+  scaled: number;
+  percentile: number | null;
+}
+
+export interface ExamSubmitResponse {
+  attemptId: string;
+  rawTotal: number;
+  scaledTotal: number;
+  percentileTotal: number | null;
+  sections: Record<string, ExamSectionResult>;
+}
+
+export interface ExamHistoryEntry {
+  id: string;
+  mode: string;
+  sectionSlug: string | null;
+  startedAt: string;
+  completedAt: string | null;
+  scoreScaled: number | null;
+  scorePercentile: number | null;
+  sectionScores: unknown;
+}
+
 export interface CreateResearchPaperRequest {
   slug: string;
   title: string;

@@ -16,6 +16,9 @@ import {
   capstoneTrackCapstones,
   misconceptionCatalog,
   researchPapers,
+  exams,
+  examSections,
+  examQuestions,
 } from "./index";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -113,7 +116,94 @@ async function seed() {
   // Sprint 52 — load capstone tracks (depend on capstones existing).
   await seedCapstoneTracks();
 
+  // Sprint 73 — exam mastery framework.
+  seedExams();
+
   console.log("Seeding complete.");
+}
+
+// Sprint 73 — load exams from seed-content/exams/*.json. Each file
+// describes one exam with sections + an embedded question bank.
+function seedExams() {
+  const dir = path.join(import.meta.dir, "../../../seed-content/exams");
+  if (!fs.existsSync(dir)) {
+    console.log("  No exams directory found, skipping.");
+    return;
+  }
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith(".json"));
+  let loaded = 0;
+  for (const file of files) {
+    let parsed: any;
+    try {
+      parsed = JSON.parse(fs.readFileSync(path.join(dir, file), "utf-8"));
+    } catch (e) {
+      console.warn(`  exam ${file}: failed to parse JSON`, e);
+      continue;
+    }
+    if (!parsed?.slug || !parsed?.title) continue;
+    const existing = db
+      .select({ id: exams.id })
+      .from(exams)
+      .where(eq(exams.slug, parsed.slug))
+      .get();
+    if (existing) {
+      console.log(`  exam ${parsed.slug}: already seeded, skipping.`);
+      continue;
+    }
+    const examId = randomUUID();
+    db.insert(exams)
+      .values({
+        id: examId,
+        slug: parsed.slug,
+        title: parsed.title,
+        shortName: parsed.shortName ?? parsed.slug.toUpperCase(),
+        pathSlug: parsed.pathSlug ?? null,
+        totalDurationMinutes: Number(parsed.totalDurationMinutes) || 0,
+        scoringJson: JSON.stringify(parsed.scoring ?? {}),
+        description: parsed.description ?? "",
+      })
+      .run();
+
+    const sections: any[] = Array.isArray(parsed.sections) ? parsed.sections : [];
+    for (const sec of sections) {
+      if (!sec?.slug || !sec?.title) continue;
+      const sectionId = randomUUID();
+      db.insert(examSections)
+        .values({
+          id: sectionId,
+          examId,
+          slug: sec.slug,
+          title: sec.title,
+          ordinal: Number(sec.ordinal) || 0,
+          durationMinutes: Number(sec.durationMinutes) || 0,
+          questionCount: Number(sec.questionCount) || 0,
+        })
+        .run();
+
+      const questions: any[] = Array.isArray(sec.questions) ? sec.questions : [];
+      for (const q of questions) {
+        if (!q?.promptMd || !Array.isArray(q?.options)) continue;
+        if (typeof q.correctIndex !== "number") continue;
+        db.insert(examQuestions)
+          .values({
+            id: randomUUID(),
+            sectionId,
+            difficulty: Number(q.difficulty) || 3,
+            promptMd: String(q.promptMd),
+            optionsJson: JSON.stringify(q.options),
+            correctIndex: q.correctIndex,
+            explanationMd: q.explanationMd ?? "",
+            topicTagsJson: JSON.stringify(
+              Array.isArray(q.topicTags) ? q.topicTags : [],
+            ),
+          })
+          .run();
+      }
+    }
+    loaded++;
+    console.log(`  Seeded exam: ${parsed.slug}`);
+  }
+  console.log(`  Seeded ${loaded} exam${loaded === 1 ? "" : "s"}.`);
 }
 
 function seedNews() {

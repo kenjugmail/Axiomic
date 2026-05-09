@@ -1555,6 +1555,142 @@ export const feedImpressions = sqliteTable("feed_impressions", {
 // computed from title + abstract + author list so a passthrough
 // re-fetch (no real change upstream) doesn't bust the search-index
 // embedding cache.
+// Sprint 73 — Exam mastery framework.
+//
+// Exams are timed multi-section assessments (SAT, GRE, MCAT, USMLE)
+// distinct from the existing mastery_paths surface: they need timed
+// runtime, section-aware navigation, raw → scaled scoring with a
+// percentile lookup, and shared question banks. A future revision
+// can link an exam back to a mastery_path (`pathSlug` column) so
+// completing the path's lessons unlocks the diagnostic.
+//
+// Scoring is stored as a JSON blob on the exam row to keep the
+// schema small — each exam has its own scaled-score formula and
+// percentile lookup table. The scoring shape:
+//   { min, max, mean, sd, percentileTable: [{ raw, scaled, percentile }, ...] }
+export const exams = sqliteTable("exams", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  // Short label, e.g. "SAT", "USMLE Step 1".
+  shortName: text("short_name").notNull(),
+  // Optional link into mastery_paths.slug — lets a study path
+  // anchor on the exam (e.g. sat-prep → sat).
+  pathSlug: text("path_slug"),
+  totalDurationMinutes: integer("total_duration_minutes").notNull(),
+  scoringJson: text("scoring_json").notNull().default("{}"),
+  description: text("description").notNull().default(""),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+export const examSections = sqliteTable(
+  "exam_sections",
+  {
+    id: text("id").primaryKey(),
+    examId: text("exam_id")
+      .notNull()
+      .references(() => exams.id, { onDelete: "cascade" }),
+    slug: text("slug").notNull(),
+    title: text("title").notNull(),
+    ordinal: integer("ordinal").notNull(),
+    durationMinutes: integer("duration_minutes").notNull(),
+    questionCount: integer("question_count").notNull(),
+  },
+  (t) => ({
+    examOrdUq: uniqueIndex("exam_sections_pk").on(t.examId, t.ordinal),
+    examSlugUq: uniqueIndex("exam_sections_slug_uq").on(t.examId, t.slug),
+  }),
+);
+
+export const examQuestions = sqliteTable(
+  "exam_questions",
+  {
+    id: text("id").primaryKey(),
+    sectionId: text("section_id")
+      .notNull()
+      .references(() => examSections.id, { onDelete: "cascade" }),
+    // 1..5; the adaptive runner picks against this.
+    difficulty: integer("difficulty").notNull().default(3),
+    promptMd: text("prompt_md").notNull(),
+    // JSON array of {label, text} options (4 typical, never <2 or >6).
+    optionsJson: text("options_json").notNull(),
+    // 0-based index into optionsJson.
+    correctIndex: integer("correct_index").notNull(),
+    explanationMd: text("explanation_md").notNull().default(""),
+    topicTagsJson: text("topic_tags_json").notNull().default("[]"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    sectionIdx: index("exam_questions_section_idx").on(
+      t.sectionId,
+      t.difficulty,
+    ),
+  }),
+);
+
+// One row per attempt at an exam. `answersJson` carries the question
+// manifest the runner is iterating (the order + ids it picked at
+// start-time) so a refresh / cross-device resume doesn't reshuffle.
+export const examAttempts = sqliteTable(
+  "exam_attempts",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    examId: text("exam_id")
+      .notNull()
+      .references(() => exams.id, { onDelete: "cascade" }),
+    // 'full_mock' | 'section' | 'adaptive'
+    mode: text("mode").notNull(),
+    // For 'section' mode — null for full_mock + adaptive.
+    sectionSlug: text("section_slug"),
+    startedAt: text("started_at").default(sql`(datetime('now'))`).notNull(),
+    completedAt: text("completed_at"),
+    // Drop-dead time when this attempt auto-submits if the user
+    // doesn't finalize. Null for adaptive (untimed).
+    expiresAt: text("expires_at"),
+    scoreRaw: integer("score_raw"),
+    scoreScaled: integer("score_scaled"),
+    scorePercentile: integer("score_percentile"),
+    // Per-section raw → scaled breakdown when the exam has multiple
+    // sections. JSON: { sectionSlug: { raw, scaled, percentile } }.
+    sectionScoresJson: text("section_scores_json"),
+    // Picked-question manifest at start time:
+    //   { sections: [{ slug, questionIds: string[] }] }
+    answersJson: text("answers_json").notNull().default("{}"),
+  },
+  (t) => ({
+    userIdx: index("exam_attempts_user_idx").on(t.userId, t.startedAt),
+    examIdx: index("exam_attempts_exam_idx").on(t.examId, t.startedAt),
+    expiryIdx: index("exam_attempts_expiry_idx").on(t.expiresAt),
+  }),
+);
+
+export const examAttemptAnswers = sqliteTable(
+  "exam_attempt_answers",
+  {
+    id: text("id").primaryKey(),
+    attemptId: text("attempt_id")
+      .notNull()
+      .references(() => examAttempts.id, { onDelete: "cascade" }),
+    questionId: text("question_id").notNull(),
+    selectedIndex: integer("selected_index"),
+    // 0/1 set on submit; null while the attempt is still in-flight
+    // OR when the question was skipped (selectedIndex IS NULL).
+    isCorrect: integer("is_correct"),
+    timeSpentMs: integer("time_spent_ms").notNull().default(0),
+    // The question grid sidebar's "mark for review" toggle.
+    flagged: integer("flagged").notNull().default(0),
+    updatedAt: text("updated_at")
+      .default(sql`(datetime('now'))`)
+      .notNull(),
+  },
+  (t) => ({
+    attemptQuestionUq: uniqueIndex(
+      "exam_attempt_answers_attempt_question_uq",
+    ).on(t.attemptId, t.questionId),
+  }),
+);
+
 // Sprint 72 — Engagement: external-paper author claims + social
 // discovery.
 //

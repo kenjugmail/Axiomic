@@ -29,6 +29,7 @@ import { grantsRouter } from "./routes/grants";
 import { authorClaimsRouter } from "./routes/authorClaims";
 import { authorsRouter } from "./routes/authors";
 import { paperAuthorQuestionsRouter } from "./routes/paperAuthorQuestions";
+import { examsRouter } from "./routes/exams";
 import { registerJob, startJobRunner } from "./lib/jobs";
 import { ingestArxivJob } from "./jobs/ingestArxiv";
 import { ingestOpenAlexJob } from "./jobs/ingestOpenAlex";
@@ -39,6 +40,7 @@ import { ingestGrantsGovJob } from "./jobs/ingestGrantsGov";
 import { notifyGrantMatchesJob } from "./jobs/notifyGrantMatches";
 import { claimExternalAuthorshipsByOrcidJob } from "./jobs/claimExternalAuthorshipsByOrcid";
 import { harvestSocialResearcherPostsJob } from "./jobs/harvestSocialResearcherPosts";
+import { finalizeStaleExamAttemptsJob } from "./jobs/finalizeStaleExamAttempts";
 import { capstonesRouter } from "./routes/capstones";
 import { misconceptionsRouter } from "./routes/misconceptions";
 import { kernelFilesRouter } from "./routes/kernelFiles";
@@ -213,6 +215,8 @@ app.route("/grants", grantsRouter);
 app.route("/author-claims", authorClaimsRouter);
 app.route("/authors", authorsRouter);
 app.route("/external-papers", paperAuthorQuestionsRouter);
+// Sprint 73 — exam mastery framework.
+app.route("/exams", examsRouter);
 app.route("/capstones", capstonesRouter);
 app.route("/misconceptions", misconceptionsRouter);
 app.route("/kernel-files", kernelFilesRouter);
@@ -247,6 +251,8 @@ if (process.env.DISABLE_JOB_RUNNER !== "1") {
   // Sprint 72 — engagement.
   registerJob(claimExternalAuthorshipsByOrcidJob);
   registerJob(harvestSocialResearcherPostsJob);
+  // Sprint 73 — exam mastery framework.
+  registerJob(finalizeStaleExamAttemptsJob);
   startJobRunner();
 }
 
