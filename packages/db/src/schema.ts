@@ -1555,6 +1555,108 @@ export const feedImpressions = sqliteTable("feed_impressions", {
 // computed from title + abstract + author list so a passthrough
 // re-fetch (no real change upstream) doesn't bust the search-index
 // embedding cache.
+// Sprint 72 — Engagement: external-paper author claims + social
+// discovery.
+//
+// `external_paper_authorships` is sparse — only contains rows for
+// authorships that have been CLAIMED by an internal user. This
+// avoids the cost of denormalizing every external_papers.authorsJson
+// entry into a row. Keyed on (externalPaperId, ordinal) so a paper
+// with N authors can have at most N rows here, one per claimed
+// position. The `userId` column carries the internal claimant.
+//
+// Verification path: an admin checks the claim_request and either
+// approves (insert into external_paper_authorships) or rejects.
+// ORCID auto-match is the happy path: when an external_paper has an
+// author whose ORCID equals a user's `users.orcid`, a job inserts
+// the authorship row directly without going through the request
+// queue.
+export const externalPaperAuthorships = sqliteTable(
+  "external_paper_authorships",
+  {
+    id: text("id").primaryKey(),
+    externalPaperId: text("external_paper_id").notNull(),
+    // Position in the externalPapers.authorsJson array (0-based).
+    ordinal: integer("ordinal").notNull(),
+    userId: text("user_id").notNull().references(() => users.id),
+    // 'orcid_auto' | 'admin_verified'
+    verifiedVia: text("verified_via").notNull(),
+    verifiedAt: text("verified_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    paperOrdinalUq: uniqueIndex(
+      "external_paper_authorships_paper_ordinal_uq",
+    ).on(t.externalPaperId, t.ordinal),
+    userIdx: index("external_paper_authorships_user_idx").on(t.userId),
+  }),
+);
+
+// Manual author-claim requests — submitted by users who can't
+// auto-claim via ORCID (because the upstream record didn't have
+// their ORCID, or they don't have one set). Reviewed by admins.
+export const authorClaimRequests = sqliteTable(
+  "author_claim_requests",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    externalPaperId: text("external_paper_id").notNull(),
+    // Position the user is claiming.
+    ordinal: integer("ordinal").notNull(),
+    // Free-text + URL evidence: ORCID profile URL with the paper
+    // listed, institutional bio page, etc.
+    evidenceText: text("evidence_text").notNull().default(""),
+    evidenceUrl: text("evidence_url"),
+    // 'pending' | 'approved' | 'rejected'
+    status: text("status").notNull().default("pending"),
+    reviewerId: text("reviewer_id").references(() => users.id),
+    reviewNote: text("review_note"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+    decidedAt: text("decided_at"),
+  },
+  (t) => ({
+    statusIdx: index("author_claim_requests_status_idx").on(t.status, t.createdAt),
+    userIdx: index("author_claim_requests_user_idx").on(t.userId),
+    paperIdx: index("author_claim_requests_paper_idx").on(t.externalPaperId),
+  }),
+);
+
+// BlueSky / social-source post cache. Each row is a post we've
+// seen from one of the platform's claimed-author handles that
+// references at least one paper. The DOI / arXiv ID is extracted
+// from the post text and surfaced on the linked paper's detail
+// page + the author's profile.
+export const socialPosts = sqliteTable(
+  "social_posts",
+  {
+    id: text("id").primaryKey(),
+    source: text("source").notNull(), // 'bluesky'
+    sourceId: text("source_id").notNull(),
+    // The handle/identifier of the upstream author (e.g.
+    // 'user.bsky.social'). Maps to users.blueskyHandle when an
+    // internal user owns it.
+    authorRef: text("author_ref").notNull(),
+    // Internal user id when the social handle is claimed in
+    // `users.blueskyHandle`; null otherwise.
+    userId: text("user_id").references(() => users.id),
+    text: text("text").notNull(),
+    url: text("url").notNull(),
+    postedAt: text("posted_at"),
+    // 'arxiv' | 'doi' | 'openalex' (mirrors externalPapers.source).
+    referencedSource: text("referenced_source"),
+    referencedSourceId: text("referenced_source_id"),
+    // Resolved foreign key when we found the referenced paper in our
+    // local externalPapers store.
+    referencedPaperId: text("referenced_paper_id"),
+    fetchedAt: text("fetched_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    sourceUq: uniqueIndex("social_posts_source_uq").on(t.source, t.sourceId),
+    authorIdx: index("social_posts_author_idx").on(t.authorRef, t.postedAt),
+    paperIdx: index("social_posts_paper_idx").on(t.referencedPaperId, t.postedAt),
+    userIdx: index("social_posts_user_idx").on(t.userId, t.postedAt),
+  }),
+);
+
 // Sprint 71 — Funding feed.
 //
 // Aggregated grant opportunities pulled from NIH RePORTER, NSF Award

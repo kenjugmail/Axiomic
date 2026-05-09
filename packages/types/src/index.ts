@@ -365,6 +365,96 @@ export interface GrantDetailResponse {
   grant: GrantDetail;
 }
 
+// Sprint 72 — Author profile aggregator.
+export interface AuthorProfileUser {
+  id: string;
+  username: string;
+  displayName: string | null;
+  bio: string | null;
+  orcid: string | null;
+  scholarUrl: string | null;
+  blueskyHandle: string | null;
+  institution: string | null;
+  hIndex: number | null;
+}
+
+export interface AuthorInternalPaper {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  format: string;
+  tags: string[];
+  citationCount: number;
+  createdAt: string;
+}
+
+export interface AuthorExternalPaperRef {
+  externalPaperId: string;
+  ordinal: number;
+  verifiedVia: string;
+  verifiedAt: string;
+  paper: {
+    title: string;
+    source: string;
+    sourceId: string;
+    venue: string | null;
+    publishedAt: string | null;
+    htmlUrl: string | null;
+    citationCount: number;
+  };
+}
+
+export interface AuthorSocialPost {
+  id: string;
+  source: string;
+  text: string;
+  url: string;
+  postedAt: string | null;
+  referencedPaperId: string | null;
+  referencedSource: string | null;
+  referencedSourceId: string | null;
+}
+
+export interface AuthorProfileResponse {
+  user: AuthorProfileUser;
+  papers: {
+    internal: AuthorInternalPaper[];
+    external: AuthorExternalPaperRef[];
+  };
+  socialPosts: AuthorSocialPost[];
+}
+
+export interface AuthorClaimRequest {
+  id: string;
+  externalPaperId: string;
+  ordinal: number;
+  status: string;
+  evidenceText: string;
+  evidenceUrl: string | null;
+  reviewerId: string | null;
+  reviewNote: string | null;
+  createdAt: string;
+  decidedAt: string | null;
+}
+
+export interface PaperAuthorQuestion {
+  id: string;
+  parentId: string | null;
+  userId: string;
+  username: string;
+  displayName: string | null;
+  content: string;
+  editedAt: string | null;
+  createdAt: string;
+  children: PaperAuthorQuestion[];
+}
+
+export interface PaperAuthorQuestionsResponse {
+  questions: PaperAuthorQuestion[];
+  authorClaimed: boolean;
+}
+
 export interface CreateResearchPaperRequest {
   slug: string;
   title: string;

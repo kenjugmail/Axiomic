@@ -59,6 +59,9 @@ import type {
   GrantsBookmarksResponse,
   GrantsFeedResponse,
   GrantDetailResponse,
+  AuthorProfileResponse,
+  AuthorClaimRequest,
+  PaperAuthorQuestionsResponse,
   UpdateResearchPaperRequest,
   CapstonesListResponse,
   CapstoneResponse,
@@ -927,6 +930,42 @@ export const api = {
             generatedAt: string;
           }
       >(`/research/${slug}/summary?tier=${tier}`),
+  },
+  // Sprint 72 — Author profile, claims, paper-author Q&A.
+  authors: {
+    get: (username: string) =>
+      request<AuthorProfileResponse>(
+        `/authors/${encodeURIComponent(username)}`,
+      ),
+  },
+  authorClaims: {
+    submit: (body: {
+      externalPaperId: string;
+      ordinal: number;
+      evidenceText?: string;
+      evidenceUrl?: string | null;
+    }) =>
+      request<{ id: string; status: string; duplicate?: boolean }>(
+        "/author-claims",
+        { method: "POST", body: JSON.stringify(body) },
+      ),
+    mine: () =>
+      request<{ items: AuthorClaimRequest[] }>("/author-claims/me"),
+  },
+  externalPaperQuestions: {
+    list: (paperId: string, ordinal: number) =>
+      request<PaperAuthorQuestionsResponse>(
+        `/external-papers/${encodeURIComponent(paperId)}/authors/${ordinal}/questions`,
+      ),
+    submit: (
+      paperId: string,
+      ordinal: number,
+      body: { content: string; parentId?: string },
+    ) =>
+      request<{ id: string }>(
+        `/external-papers/${encodeURIComponent(paperId)}/authors/${ordinal}/questions`,
+        { method: "POST", body: JSON.stringify(body) },
+      ),
   },
   // Sprint 71 — Funding feed.
   grants: {

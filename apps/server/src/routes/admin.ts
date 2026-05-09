@@ -11,6 +11,7 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { and, desc, eq, sql } from "drizzle-orm";
 import {
+  authorClaimRequests,
   capstoneEnrollments,
   capstoneTracks,
   capstones,
@@ -40,6 +41,10 @@ import {
   listRegisteredJobs,
   runJobNow,
 } from "../lib/jobs";
+import {
+  approveClaimRequest,
+  rejectClaimRequest,
+} from "../lib/authorClaim";
 import type { Env } from "../env";
 
 export const adminRouter = new Hono<Env>();
@@ -437,6 +442,70 @@ adminRouter.get("/jobs", requireAdmin, async (c) => {
     externalPaperCounts: externalCounts,
   });
 });
+
+// Sprint 72 — Admin review queue for manual author claims.
+adminRouter.get("/author-claims", requireAdmin, async (c) => {
+  const db = getDb();
+  const url = new URL(c.req.url);
+  const status = url.searchParams.get("status") ?? "pending";
+  const rows = db
+    .select({
+      claim: authorClaimRequests,
+      claimantUsername: users.username,
+      paperTitle: externalPapers.title,
+      paperSource: externalPapers.source,
+      paperAuthorsJson: externalPapers.authorsJson,
+    })
+    .from(authorClaimRequests)
+    .innerJoin(users, eq(authorClaimRequests.userId, users.id))
+    .innerJoin(
+      externalPapers,
+      eq(authorClaimRequests.externalPaperId, externalPapers.id),
+    )
+    .where(eq(authorClaimRequests.status, status))
+    .orderBy(desc(authorClaimRequests.createdAt))
+    .limit(100)
+    .all();
+  return c.json({ items: rows });
+});
+
+const claimDecisionSchema = z.object({
+  reviewNote: z.string().max(1000).optional(),
+});
+
+adminRouter.post(
+  "/author-claims/:id/approve",
+  requireAdmin,
+  zValidator("json", claimDecisionSchema),
+  async (c) => {
+    const reviewer = c.get("user")!;
+    const id = c.req.param("id");
+    if (!id) return c.json({ error: "Missing id" }, 400);
+    const result = approveClaimRequest(id, {
+      reviewerId: reviewer.id,
+      reviewNote: c.req.valid("json").reviewNote,
+    });
+    if (!result.ok) return c.json({ error: result.error }, 400);
+    return c.json({ ok: true, authorshipId: result.authorshipId });
+  },
+);
+
+adminRouter.post(
+  "/author-claims/:id/reject",
+  requireAdmin,
+  zValidator("json", claimDecisionSchema),
+  async (c) => {
+    const reviewer = c.get("user")!;
+    const id = c.req.param("id");
+    if (!id) return c.json({ error: "Missing id" }, 400);
+    const result = rejectClaimRequest(id, {
+      reviewerId: reviewer.id,
+      reviewNote: c.req.valid("json").reviewNote,
+    });
+    if (!result.ok) return c.json({ error: result.error }, 400);
+    return c.json({ ok: true });
+  },
+);
 
 adminRouter.post("/jobs/:name/run", requireAdmin, async (c) => {
   const name = c.req.param("name");

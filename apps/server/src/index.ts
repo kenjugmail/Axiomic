@@ -26,6 +26,9 @@ import { researchRouter } from "./routes/research";
 import { researchFeedRouter } from "./routes/research-feed";
 import { paperSummaryRouter } from "./routes/paper-summary";
 import { grantsRouter } from "./routes/grants";
+import { authorClaimsRouter } from "./routes/authorClaims";
+import { authorsRouter } from "./routes/authors";
+import { paperAuthorQuestionsRouter } from "./routes/paperAuthorQuestions";
 import { registerJob, startJobRunner } from "./lib/jobs";
 import { ingestArxivJob } from "./jobs/ingestArxiv";
 import { ingestOpenAlexJob } from "./jobs/ingestOpenAlex";
@@ -34,6 +37,8 @@ import { ingestNihGrantsJob } from "./jobs/ingestNihGrants";
 import { ingestNsfGrantsJob } from "./jobs/ingestNsfGrants";
 import { ingestGrantsGovJob } from "./jobs/ingestGrantsGov";
 import { notifyGrantMatchesJob } from "./jobs/notifyGrantMatches";
+import { claimExternalAuthorshipsByOrcidJob } from "./jobs/claimExternalAuthorshipsByOrcid";
+import { harvestSocialResearcherPostsJob } from "./jobs/harvestSocialResearcherPosts";
 import { capstonesRouter } from "./routes/capstones";
 import { misconceptionsRouter } from "./routes/misconceptions";
 import { kernelFilesRouter } from "./routes/kernelFiles";
@@ -203,6 +208,11 @@ app.route("/research", paperSummaryRouter);
 app.route("/research", researchRouter);
 // Sprint 71 — funding feed.
 app.route("/grants", grantsRouter);
+// Sprint 72 — engagement: author claims + author profile +
+// per-paper Q&A.
+app.route("/author-claims", authorClaimsRouter);
+app.route("/authors", authorsRouter);
+app.route("/external-papers", paperAuthorQuestionsRouter);
 app.route("/capstones", capstonesRouter);
 app.route("/misconceptions", misconceptionsRouter);
 app.route("/kernel-files", kernelFilesRouter);
@@ -234,6 +244,9 @@ if (process.env.DISABLE_JOB_RUNNER !== "1") {
   registerJob(ingestNsfGrantsJob);
   registerJob(ingestGrantsGovJob);
   registerJob(notifyGrantMatchesJob);
+  // Sprint 72 — engagement.
+  registerJob(claimExternalAuthorshipsByOrcidJob);
+  registerJob(harvestSocialResearcherPostsJob);
   startJobRunner();
 }
 

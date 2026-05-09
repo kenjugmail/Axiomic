@@ -161,6 +161,9 @@ const GrantsBookmarksPage = lazy(() =>
     default: m.GrantsBookmarksPage,
   })),
 );
+const AuthorPage = lazy(() =>
+  import("./pages/AuthorPage").then((m) => ({ default: m.AuthorPage })),
+);
 const ResearchNewPage = lazy(() =>
   import("./pages/ResearchNewPage").then((m) => ({ default: m.ResearchNewPage })),
 );
@@ -353,6 +356,8 @@ function AppRoutes() {
           <Route path="/grants" element={<GrantsListPage />} />
           <Route path="/grants/me/bookmarks" element={<GrantsBookmarksPage />} />
           <Route path="/grants/:id" element={<GrantDetailPage />} />
+          {/* Sprint 72 — author profile aggregator. */}
+          <Route path="/authors/:username" element={<AuthorPage />} />
           <Route path="/research/new" element={<ResearchNewPage />} />
           <Route path="/research/new/wizard" element={<ResearchWizardPage />} />
           <Route path="/research/me/drafts" element={<ResearchDraftsPage />} />
