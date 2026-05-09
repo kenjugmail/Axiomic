@@ -25,6 +25,9 @@ export async function createSession(c: Context, userId: string): Promise<string>
     sameSite: "Lax",
     path: "/",
     maxAge: SESSION_DURATION_MS / 1000,
+    // Force HTTPS-only cookies in production. Local dev keeps secure
+    // off so the cookie works against http://localhost.
+    secure: env.NODE_ENV === "production",
   });
 
   return sessionId;
