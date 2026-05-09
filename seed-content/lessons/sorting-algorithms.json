@@ -1,0 +1,54 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why sorting is fundamental",
+      "body": "Sorting is the most-studied problem in CS. Reasons:\n\n1. **It's a building block**. Median, mode, set intersection, range queries, deduplication — all benefit from sorted data.\n2. **It's the canonical $\\Theta(n \\log n)$ problem**. The lower bound for comparison sorts is provably $\\Omega(n \\log n)$.\n3. **It exposes algorithm-design tradeoffs**. Comparison vs counting; in-place vs out-of-place; stable vs unstable; cache-friendly vs cache-oblivious.\n\nSorting also has a special property among $\\Theta(n \\log n)$ problems: **constant factors matter enormously in practice**. Real implementations (Timsort, Pdqsort, Introsort) beat textbook quicksort + mergesort by 2-5× on real workloads. Why? They detect special structure: already-sorted runs, partial sorts, low entropy data."
+    },
+    {
+      "kind": "text",
+      "title": "The $\\Omega(n \\log n)$ lower bound",
+      "body": "Any algorithm that sorts $n$ items by **comparing pairs** must make $\\Omega(n \\log n)$ comparisons in the worst case.\n\n**Proof sketch**: $n!$ possible orderings of $n$ items. Each comparison gives at most 1 bit of information. To distinguish $n!$ orderings, you need $\\geq \\log_2(n!) = \\Theta(n \\log n)$ comparisons.\n\n**This is a *comparison* lower bound**. Algorithms that don't compare can be linear:\n\n- **Counting sort**: $O(n + k)$ for integers in range $[0, k)$. Allocate $k$ buckets, count occurrences, output. Linear when $k = O(n)$.\n- **Radix sort**: $O(n \\cdot d)$ where $d$ is digit count. Sort by least-significant digit first using counting sort. Linear when $d$ is bounded.\n- **Bucket sort**: assume input is uniformly distributed; bucket by range; sort within. $O(n)$ expected for uniform input.\n\n**When linear-time sorting works**: keys have bounded universe size (small integers, fixed-length strings, floating-point under specific assumptions). When it doesn't: arbitrary comparable types, large integer keys, custom comparators.\n\nMost real-world sorting uses comparison sorts because the universe is unbounded or the comparator is custom."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_q1",
+        "kind": "multiple_choice",
+        "question": "You need to sort 1,000,000 records by a string key. Two engineers propose solutions. Engineer A: \"Use merge sort, it's $O(n \\log n)$ — strictly faster than quicksort's $O(n^2)$ worst case.\" Engineer B: \"Use the standard library's [[quicksort]] / Introsort — quicksort with a fallback to heapsort.\" Who's right and why?",
+        "options": [
+          "Engineer A — quicksort's $O(n^2)$ worst case is a real risk in production",
+          "Engineer B — Introsort detects the bad-pivot case and falls back to heapsort, giving guaranteed $O(n \\log n)$ worst case while keeping quicksort's better cache behavior + smaller constants in the common case. C++ `std::sort`, Java `Arrays.sort` for primitives, and most stdlib sorts use this hybrid",
+          "Both are equivalent — choice is style preference",
+          "Neither — use bubble sort"
+        ],
+        "correctIndex": 1,
+        "explanation": "Standard libraries don't ship pure quicksort because of $O(n^2)$ adversarial inputs. **Introsort** (Musser 1997) starts with quicksort, monitors recursion depth, switches to heapsort if it gets too deep. Result: guaranteed $O(n \\log n)$ worst case + quicksort's small constant + cache locality in the common case. Engineer A is right that pure quicksort risks $O(n^2)$; Engineer B is right that the practical fix isn't switching to mergesort (worse cache behavior, allocates $O(n)$ extra memory) but using a hybrid."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Stability + in-place + adaptive",
+      "body": "Three properties that distinguish sort implementations beyond raw $\\Theta()$:\n\n**Stable**: equal-keyed records preserve relative order. Crucial for multi-key sorts (sort by age, then by name — the within-age order must persist). Mergesort is stable; quicksort isn't (without extra work); Timsort is stable.\n\n**In-place**: $O(1)$ or $O(\\log n)$ extra space. Quicksort: in-place ($O(\\log n)$ for the recursion stack). Mergesort: $O(n)$ extra. Heapsort: in-place. For sorting 100GB on a 16GB machine, in-place matters.\n\n**Adaptive**: faster on partially-sorted data. Insertion sort: $O(n)$ on already-sorted, $O(n^2)$ on reverse-sorted. Timsort: detects pre-existing runs + merges them — $O(n)$ on already-sorted, $\\Theta(n \\log n)$ worst case.\n\n**Real-world implementations**:\n\n- **Timsort** (Python `sorted`, Java `Collections.sort`, Android): stable, adaptive, $O(n \\log n)$ worst case, $O(n)$ on real-world partially-sorted data.\n- **Pdqsort** (Rust `slice::sort_unstable`, Boost): not stable, in-place, $O(n \\log n)$ worst case via pattern-defeating heuristics.\n- **Introsort** (C++ `std::sort`, Java `Arrays.sort` primitives): not stable, in-place, $O(n \\log n)$ guaranteed.\n- **Quicksort** with median-of-three + tail recursion: textbook + many old systems."
+    },
+    {
+      "kind": "text",
+      "title": "Sorting in production",
+      "body": "**Practical advice**:\n\n1. **Default to your stdlib's sort**. Decades of optimization. Don't hand-roll.\n\n2. **Specify stability when ordering matters**. In Python: `sorted(L, key=...)`; multi-key sorts need stable. In C++: `std::stable_sort`. In Rust: `slice::sort` (stable) vs `slice::sort_unstable` (faster but not stable).\n\n3. **Use the right comparator**. For floats: beware NaN (any comparison with NaN returns false, breaking the strict-weak-ordering requirement). For strings: be explicit about Unicode collation rules.\n\n4. **External sort for too-big-for-RAM**. Sort chunks in memory, write to disk, k-way merge. Database query engines (DuckDB, Spark, ClickHouse) all do this.\n\n5. **Don't sort if you don't need to**. To find the top-$k$, use a heap ($O(n \\log k)$, often faster than full sort + slice). To find the median, use quickselect ($O(n)$ expected).\n\n6. **Profile before optimizing**. Sorting is rarely the bottleneck. Common bottlenecks: comparison cost (e.g., comparing strings byte-by-byte vs interning + comparing pointers), key extraction (computing the sort key from each record), I/O.\n\n**When sorting IS the bottleneck**: cache-oblivious algorithms (funnelsort), GPU-parallel sorts (radix sort on GPU), distributed sorts (terasort)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_q2",
+        "kind": "explain_back",
+        "prompt": "You're sorting 100M user records by `(department, hire_date, last_name)`. Your colleague writes three nested `sorted()` calls — first by `last_name`, then by `hire_date`, then by `department`. Why does this work, and what property of the sort algorithm is it relying on?",
+        "rubricCriteria": [
+          { "id": "stability-required", "description": "Names that the sort must be **stable** for this pattern to work" },
+          { "id": "order-of-keys", "description": "Explains: with a stable sort, sorting by least-significant key first then by next-significant preserves the prior order within ties; final sort by most-significant produces the multi-key result" },
+          { "id": "alternative", "description": "Notes the simpler alternative: a single sort with a tuple key `(department, hire_date, last_name)` — equivalent result, one pass, doesn't depend on stability" }
+        ],
+        "passingScore": 0.5
+      }
+    }
+  ]
+}

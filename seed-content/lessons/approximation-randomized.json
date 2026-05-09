@@ -1,0 +1,54 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "When exact is out of reach",
+      "body": "NP-hard problems don't go away because they're inconvenient. Real systems route packages, schedule jobs, allocate ad inventory, and find similar items at scale every day — on top of provably intractable problem cores.\n\nTwo principled responses:\n\n1. **Approximation algorithms** ([[approximation-algorithms]]): polynomial-time, with a **provable guarantee** that the answer is within a known factor of optimal. Different from heuristics — the bound is mathematical, not empirical.\n\n2. **Randomized algorithms** ([[randomized-algorithms]]): use random choices to achieve **provable probabilistic bounds** on correctness or runtime. Different from heuristics — the bounds are formal.\n\nBoth give up the deterministic perfect-answer guarantee. Both retain *provable* bounds. The trade — small loss in optimality for huge gain in tractability — is one of the most important practical insights in algorithm engineering."
+    },
+    {
+      "kind": "text",
+      "title": "Approximation algorithms + ratios",
+      "body": "An algorithm is an **$\\alpha$-approximation** for a minimization problem if for every input it returns a solution of cost $\\leq \\alpha \\cdot \\text{OPT}$.\n\nApproximation algorithms come in classes by how good the ratio is:\n\n- **Constant-factor**: ratio $\\alpha$ is some specific number. Vertex cover: 2-approximation (greedy on edges). Metric TSP: 1.5-approximation (Christofides 1976). MAX-CUT: 0.878-approximation (Goemans-Williamson via SDP).\n\n- **Logarithmic**: ratio is $O(\\log n)$. Set cover: greedy gives $\\ln n$-approximation, and **provably no polynomial algorithm does better** unless P = NP.\n\n- **PTAS** (Polynomial-Time Approximation Scheme): for any $\\epsilon > 0$, get a $(1 + \\epsilon)$-approximation in polynomial time (where the polynomial may depend exponentially on $1/\\epsilon$). Knapsack: PTAS via DP rounding.\n\n- **FPTAS** (Fully Polynomial-Time): runtime polynomial in both $n$ and $1/\\epsilon$. Knapsack: FPTAS exists.\n\n- **Inapproximable**: no constant ratio possible (unless P = NP). General TSP without metric assumption: cannot be approximated within ANY constant ratio. (Without the triangle inequality, the problem is too unconstrained.)\n\n**Where approximations come from**:\n- **Greedy with analysis**: vertex cover, set cover.\n- **LP rounding**: solve the linear-programming relaxation, round the fractional solution.\n- **Primal-dual**: construct primal + dual solutions simultaneously.\n- **Semidefinite programming (SDP)**: relax to SDP, sample from the solution. Goemans-Williamson MAX-CUT is the classical example.\n- **Local search**: iteratively improve; analyze the local-optimum guarantee."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ar_q1",
+        "kind": "multiple_choice",
+        "question": "Your team needs to dispatch delivery vehicles to ~2000 stops daily. Modeled as TSP, this is NP-hard. Your senior engineer says \"use Christofides — 1.5-approximation, polynomial time, provable bound.\" What ASSUMPTION does Christofides require, and what happens if your problem violates it?",
+        "options": [
+          "No assumption — Christofides works on any TSP instance",
+          "Christofides requires the **triangle inequality** — for any three points, the direct distance $d(A, C) \\leq d(A, B) + d(B, C)$. Real road / Euclidean / network-routing distances satisfy this. **Without** the triangle inequality (e.g., one-way streets with arbitrary penalties), TSP becomes inapproximable to within ANY constant ratio (unless P = NP)",
+          "Christofides requires the graph to be planar",
+          "Christofides only works for symmetric distance matrices"
+        ],
+        "correctIndex": 1,
+        "explanation": "Christofides 1.5-approximation requires **metric TSP** — the triangle inequality. Real-world routing usually satisfies it (driving distance, geographic distance), but corner cases break it: extreme one-way streets, time-of-day routing, custom penalties. Without the triangle inequality, general TSP cannot be approximated within any constant ratio (Sahni-Gonzalez 1976). The lesson: read the assumptions; verify they hold; if they don't, find a different approximation framework or accept heuristics with no bound."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Las Vegas vs Monte Carlo",
+      "body": "Randomized algorithms split into two families ([[randomized-algorithms]]):\n\n**Las Vegas**: always returns the correct answer; **runtime is random**.\n- **Quicksort with random pivot**: $\\Theta(n \\log n)$ expected, $O(n^2)$ worst-case (probability $\\to 0$).\n- **Treaps + skip lists**: balanced data structures via randomization. $O(\\log n)$ expected.\n- **Karger's min-cut**: $O(V^2)$ per trial; correct with probability $\\geq 1 / \\binom{V}{2}$. Repeat $V^2 \\log V$ trials → success probability close to 1.\n\n**Monte Carlo**: bounded runtime; **answer can be wrong** with bounded probability.\n- **Miller-Rabin primality**: $O(k \\log^3 n)$ time; declares a composite as prime with probability $\\leq 4^{-k}$.\n- **Bloom filters**: $O(k)$ time; one-sided error (false positive rate; no false negatives).\n- **Randomized matrix multiplication verification** (Freivalds): given $A, B, C$, verify $AB = C$ in $O(n^2)$ time with one-sided error $\\leq 1/2$ per trial; repeat for amplification.\n\n**Why use randomized**:\n\n1. **Often simpler than deterministic equivalents**. Karger's min-cut is much simpler than Stoer-Wagner.\n\n2. **Lower expected complexity than deterministic worst case**. Quicksort with random pivot avoids adversarial inputs.\n\n3. **Sublinear / constant time on streams**. Bloom filters, MinHash, HyperLogLog all use randomization for sublinear-space approximate answers.\n\n4. **Sometimes randomization is provably necessary**. Some lower bounds for distributed coordination, oblivious routing, online algorithms are tight only against deterministic algorithms — randomization beats them."
+    },
+    {
+      "kind": "text",
+      "title": "Sketches + streaming algorithms",
+      "body": "When data doesn't fit in memory, randomized algorithms become essential. **Sketches** are sublinear-space data structures with one-sided error.\n\n**Bloom filter**: membership test for a set $S$ of items.\n- Insert: hash $x$ with $k$ hash functions; set those $k$ bits to 1.\n- Lookup: hash $x$; check those $k$ bits. If all are 1, possibly in $S$. If any is 0, definitely not in $S$.\n- One-sided error: false positives possible; false negatives impossible.\n- Used in: Chrome's Safe Browsing, Bitcoin SPV nodes, Cassandra read filters, Squid web cache.\n\n**HyperLogLog**: count distinct elements in a stream using $O(\\log \\log n)$ memory, ~2% error.\n- Used in: Redis `PFCOUNT`, Spark, Presto, Druid, BigQuery `APPROX_COUNT_DISTINCT`.\n\n**Count-min sketch**: estimate frequency of items in a stream using $O(\\log n / \\epsilon)$ memory.\n- Used in: heavy hitters, top-$k$ on streams.\n\n**MinHash + LSH**: estimate Jaccard similarity of sets in $O(k)$ time per signature.\n- Used in: near-duplicate detection (Google web crawl, plagiarism detection), nearest neighbors at scale.\n\n**Reservoir sampling**: pick $k$ items uniformly at random from a stream of unknown length, $O(1)$ space per sample.\n- Used in: log sampling, A/B test variant assignment.\n\n**The pattern**: trade exact correctness for sublinear space, with a provable bound on error. Same trade as approximation algorithms — a small + bounded loss for huge tractability gains. ML applications use these constantly: feature hashing, locality-sensitive hashing, count sketches in tensor compression."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ar_q2",
+        "kind": "explain_back",
+        "prompt": "Your colleague calls Bloom filters \"a heuristic\" because they can return wrong answers. Push back. Frame your response in terms of the difference between a heuristic and a randomized algorithm with a probabilistic bound.",
+        "rubricCriteria": [
+          { "id": "bound-not-heuristic", "description": "Names that Bloom filters have a **provable error bound** — given $n$ inserts, $m$ bits, $k$ hash functions, false-positive rate is $(1 - e^{-kn/m})^k$. This is a formal mathematical guarantee, not an empirical observation" },
+          { "id": "one-sided-error", "description": "Names the **one-sided** error structure: no false negatives, only false positives. Errors are predictable + controllable, unlike a heuristic's unbounded error" },
+          { "id": "heuristic-comparison", "description": "Contrasts with a true heuristic (genetic algorithm, local-search, neural network training) — those have no formal correctness or quality bound; they may work, may not. Bloom filters always work within their stated error rate" }
+        ],
+        "passingScore": 0.5
+      }
+    }
+  ]
+}

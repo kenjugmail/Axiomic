@@ -1,0 +1,54 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why linked structures",
+      "body": "Arrays give you $O(1)$ indexing but $O(n)$ insertion. Hash tables give you $O(1)$ expected lookup but no order. **Linked structures** — trees, linked lists, tries — fill the niches between.\n\nThe core idea: each node holds **pointers** to other nodes. Insertion means re-pointing; lookup means following pointers. The tradeoff: pointer-chasing is cache-unfriendly compared to arrays. The win: structural changes are local, and the structure can encode order, prefixes, or hierarchy.\n\nThree linked structures that matter:\n\n1. **Binary search trees** ([[binary-search-tree]]): ordered keys, $O(\\log n)$ if balanced, $O(n)$ if not.\n2. **Balanced trees** ([[balanced-tree]]): BSTs that *guarantee* $O(\\log n)$ via structural invariants — AVL, red-black, B-trees.\n3. **Tries** ([[trie]]): trees where each path from root is a key prefix. Optimal for string sets + autocomplete."
+    },
+    {
+      "kind": "text",
+      "title": "Binary search trees + balance",
+      "body": "**BST invariant**: for every node, all keys in the left subtree are smaller; all keys in the right subtree are larger.\n\nLookup: $O(h)$ where $h$ is tree height.\n\n**The catch**: $h$ depends on insertion order. Insert sorted keys → degenerate to a linked list, $h = n$. Worst-case lookup: $O(n)$.\n\nSolutions are **self-balancing trees** ([[balanced-tree]]):\n\n- **AVL trees** (1962): for every node, |left height - right height| ≤ 1. Strict balance; $h \\leq 1.44 \\log n$. Faster lookup, slower insert (more rebalancing).\n- **Red-black trees**: looser balance; $h \\leq 2 \\log n$. Slower lookup, faster insert. Used in C++ `std::map`, Java `TreeMap`, Linux kernel CFS scheduler.\n- **B-trees**: nodes hold many keys + many children. Designed for disk: each node is one disk block. Used in databases (PostgreSQL, MySQL InnoDB), filesystems (ext4, NTFS, HFS+).\n- **B+-trees**: variant where leaves are linked. Optimal for range scans. Default for OLTP databases.\n\n**Practical recommendation**: don't hand-roll a balanced tree. Use stdlib `std::map` / `TreeMap` / `BTreeMap`. The implementations are decades old + heavily tested."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ls_q1",
+        "kind": "multiple_choice",
+        "question": "You're building an in-memory key-value index. Hash table gives $O(1)$ expected lookup; balanced BST gives $O(\\log n)$. Why would you ever choose the BST?",
+        "options": [
+          "BSTs use less memory",
+          "BSTs are simpler to implement",
+          "BSTs support **ordered traversal** + **range queries** in $O(\\log n + k)$ where $k$ is result size. Hash tables can't answer 'all keys between A and B' without scanning every bucket. BSTs also have a **bounded worst case** ($O(\\log n)$, not $O(n)$ from hash collisions) — matters for real-time systems and adversarial input",
+          "BSTs are always faster"
+        ],
+        "correctIndex": 2,
+        "explanation": "Two reasons to choose a BST: (1) **Range queries + ordered iteration** — \"give me all keys between 100 and 200\" is $O(\\log n + k)$ on a BST, $O(n)$ on a hash table (you'd scan every bucket). Databases use B+-trees for exactly this. (2) **Worst-case bounds** — hash tables degrade to $O(n)$ under adversarial input or pathological hash functions; balanced BSTs are $O(\\log n)$ guaranteed. Real-time systems often choose BSTs for predictability over the lower hash-table average."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Tries: structure for prefix queries",
+      "body": "A **trie** ([[trie]]) is a tree where each node represents a *prefix*. Each edge is labeled with one character; the path from root to a marked node spells a key.\n\n**Operations**:\n- Insert string $s$: walk down, creating nodes for missing characters. Time: $O(|s|)$.\n- Lookup: walk down, following characters. Time: $O(|s|)$.\n- Prefix query (\"all words starting with 'pre'\"): walk to the prefix node, then DFS the subtree. Time: $O(|prefix| + k \\cdot L)$ where $k$ is matches, $L$ is max key length.\n\n**Why tries beat hash tables for strings**:\n- **Prefix-based operations**: autocomplete, longest common prefix, sorted iteration over keys. Hash tables can't.\n- **Memory sharing**: shared prefixes use shared nodes. \"computer\", \"computing\", \"computation\" share `comput`.\n- **Worst-case bounds**: $O(|s|)$ guaranteed; no adversarial input can degrade this.\n\n**Variants**:\n- **Compressed trie / radix tree**: collapse single-child paths into edge labels. Used in Linux kernel routing tables, Redis sorted sets.\n- **Suffix tree / suffix array**: trie of all suffixes of a string. Enables substring search in $O(|pattern|)$. Used in bioinformatics (BLAST, BWA).\n- **DAWG / DAFSA**: trie + shared suffixes, for memory-efficient dictionaries.\n\n**When to use**: autocomplete, IP routing tables, spell-check dictionaries, command-line tab completion, programming language reserved word lookup."
+    },
+    {
+      "kind": "text",
+      "title": "Choosing the right linked structure",
+      "body": "**Decision table**:\n\n| Use case | Structure | Why |\n|---|---|---|\n| In-memory ordered map | Red-black tree (`std::map`) | $O(\\log n)$ + range queries |\n| Disk-resident ordered map | B+-tree | Block-aligned; range scan via leaf links |\n| Autocomplete / prefix queries | Trie or radix tree | $O(|prefix|)$ for prefix operations |\n| Real-time priority queue | Heap (binary or Fibonacci) | $O(\\log n)$ insert + extract-min |\n| Concurrent map | Lock-free skip list or concurrent hash trie | Lock-free; logarithmic |\n| LRU cache | Doubly-linked list + hash map | $O(1)$ insert + delete + lookup |\n| Substring search | Suffix array + LCP | Linear-time pattern matching |\n\n**Linked lists** (doubly + singly): rarely the right primary data structure on their own. They show up as components: LRU cache lists, intrusive lists in kernels, queue implementations. Singly-linked: $O(1)$ append + $O(1)$ remove-front. Doubly-linked: $O(1)$ remove-given-pointer (LRU caches need this).\n\n**Skip lists**: probabilistic alternative to BSTs. Insert/lookup $O(\\log n)$ expected. Simpler to make lock-free than BSTs; used in Redis sorted sets, LevelDB memtable, java.util.concurrent.ConcurrentSkipListMap.\n\n**The pattern**: pointers cost cache misses; the structural flexibility pays for the misses *only if you need it*. If you don't need range queries, ordered iteration, or prefix matches — use a hash table."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ls_q2",
+        "kind": "explain_back",
+        "prompt": "You're designing the data structure that powers your editor's autocomplete (1M-word dictionary). A colleague suggests a hash table; you push back with 'use a trie instead.' Explain three concrete advantages, with at least one referencing memory and at least one referencing operation cost.",
+        "rubricCriteria": [
+          { "id": "prefix-queries", "description": "Names prefix queries as the primary win — hash tables can't answer 'words starting with comp' without scanning the full dictionary" },
+          { "id": "memory-sharing", "description": "Names memory sharing — common prefixes (compute, computer, computing, computation) share trie nodes; hash tables store each string fully" },
+          { "id": "operation-cost", "description": "Discusses the per-operation cost: trie lookup is $O(|s|)$ for the longest match, vs hash $O(|s|)$ for the hash compute + $O(|s|)$ for the equality check on each colliding bucket entry — comparable, but trie also gives sorted/ordered output for free" }
+        ],
+        "passingScore": 0.5
+      }
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why graphs",
+      "body": "A **graph** is vertices + edges. The abstraction is so general it shows up everywhere: web link structure, social networks, dependency graphs (npm, Cargo, Bazel), routing (Google Maps, BGP), state-space search (chess, planning), program control flow, neural network architectures.\n\nTwo storage representations:\n\n- **Adjacency list**: per-vertex list of neighbors. Memory: $O(V + E)$. Best when sparse (most real graphs).\n- **Adjacency matrix**: $V \\times V$ boolean grid. Memory: $O(V^2)$. Best when dense or you need $O(1)$ edge-existence lookup.\n\nThe two foundational algorithms ([[graph-traversal]]) — BFS + DFS — both run in $O(V + E)$. They differ in the order they visit nodes and the problems they solve."
+    },
+    {
+      "kind": "text",
+      "title": "BFS, DFS, and shortest paths",
+      "body": "**BFS (breadth-first search)**: explore neighbors level-by-level using a FIFO queue.\n- Solves: shortest path in **unweighted** graphs ($O(V + E)$).\n- Used in: web crawling, social-network distance, IDDFS in AI.\n\n**DFS (depth-first search)**: go deep before exploring siblings, using a LIFO stack (or recursion).\n- Solves: cycle detection, topological sort, strongly-connected components (Tarjan, Kosaraju), articulation points + bridges.\n- Used in: dependency resolution, type checkers, compilers.\n\n**Dijkstra's algorithm** ([[shortest-path]]): shortest paths from a source in a graph with **non-negative edge weights**.\n- Priority queue keyed by tentative distance. Pop the closest unvisited node, relax its edges. Repeat.\n- Time: $O((V + E) \\log V)$ with binary heap; $O(E + V \\log V)$ with Fibonacci heap.\n- **Critical assumption**: non-negative weights. With negative edges, Dijkstra can return wrong answers — its greedy commitment to the closest popped node fails.\n\n**Bellman-Ford** ([[bellman-ford]]): shortest paths from a source, allows negative edges.\n- Relax every edge $V - 1$ times. Detects negative cycles.\n- Time: $O(VE)$. Slower than Dijkstra; use only when negative weights are present.\n\n**A***: Dijkstra + a heuristic estimate of distance-to-goal. Same asymptotic but vastly faster in practice when the heuristic is good. Used in pathfinding (games, robotics)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ga_q1",
+        "kind": "multiple_choice",
+        "question": "Your routing system computes shortest paths over a graph where edge weights represent cost-of-traversal. New requirement: discounts can introduce **negative edge weights** (e.g., loyalty rebates). Which algorithm should you use?",
+        "options": [
+          "Dijkstra — it's $O((V + E) \\log V)$, faster than alternatives",
+          "BFS — it's the standard shortest-path algorithm",
+          "Bellman-Ford — Dijkstra requires non-negative weights. Its greedy commitment to the closest unvisited node breaks when a later-discovered negative edge could have produced a shorter path. Bellman-Ford handles negative weights at $O(VE)$ cost, and additionally **detects negative cycles** (where shortest path is undefined)",
+          "DFS — it visits every node"
+        ],
+        "correctIndex": 2,
+        "explanation": "Dijkstra's optimality proof relies on a monotonic property: once a node is popped from the priority queue with distance $d$, no later relaxation can improve it. Negative edges break this — a longer path through a negative edge could become shorter. **Bellman-Ford** is the standard fix: $V - 1$ iterations of relaxing every edge guarantees correctness, plus a $V$-th iteration detects negative cycles. The cost is $O(VE)$ vs Dijkstra's $O((V+E) \\log V)$ — significant for large graphs but unavoidable when negative weights are real."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Minimum spanning trees",
+      "body": "**Minimum spanning tree (MST)** ([[minimum-spanning-tree]]): given a connected, weighted, undirected graph, find a **subset of edges** that connects all vertices with minimum total weight.\n\nApplications: network design (laying cable, internet backbone), clustering (single-linkage hierarchical), approximation algorithms for harder problems (TSP).\n\n**Two classical algorithms**, both $O(E \\log V)$:\n\n- **Kruskal's**: sort edges by weight; greedily add edges that don't form a cycle (use a union-find / disjoint-set data structure to detect cycles). $O(E \\log E) = O(E \\log V)$.\n\n- **Prim's**: start from any vertex; greedily grow the tree by adding the cheapest edge to an unvisited vertex (use a priority queue). $O((V + E) \\log V)$ with binary heap; $O(E + V \\log V)$ with Fibonacci heap.\n\n**Why both are greedy + provably optimal**: graphs form a **matroid** (edge-independence axioms). Greedy is provably optimal on matroids — the same theorem that justifies activity selection + Huffman coding. See [[greedy-algorithms]].\n\n**Practical choice**:\n- Sparse graph + edges already sorted: Kruskal's.\n- Dense graph or want incremental construction from a starting node: Prim's.\n- Real-world: most stdlib MST implementations use Kruskal's because union-find is simpler than priority-queue management."
+    },
+    {
+      "kind": "text",
+      "title": "Graph problems in the wild",
+      "body": "**Topological sort** (DFS): linearize a DAG so each edge points forward. Used in build systems (make, ninja, Bazel determining build order), dependency injection (Spring, Guice), spreadsheet recalculation.\n\n**Strongly connected components** (Tarjan or Kosaraju, both $O(V + E)$): partition a directed graph into max sets of mutually reachable vertices. Used in compiler analysis, deadlock detection, symbolic computation.\n\n**Maximum flow** (Ford-Fulkerson, Edmonds-Karp $O(VE^2)$, Push-relabel, Dinic's): max units that can flow from source to sink. Used in bipartite matching (job assignment, ad allocation), image segmentation (graph cuts), network reliability.\n\n**PageRank** + variants: random walk on the graph; stationary distribution = importance score. Used in web search (original PageRank), recommendation systems, citation analysis.\n\n**A* + IDA***: heuristic search. Used in pathfinding (game NPCs, robotics), planning (PDDL solvers).\n\n**ML-graph intersections**:\n- **Graph neural networks (GNNs)**: message passing on graphs. Each node aggregates from its neighbors. Used in molecular-property prediction, protein-folding, social-network classification, recommendation.\n- **Random walks**: node2vec, DeepWalk — embed nodes by treating walks as sentences + word2vec.\n- **Spectral methods**: graph Laplacian eigenvectors → spectral clustering, Laplacian smoothing in regression.\n\nThe pattern: many ML problems become graph algorithms once you draw the right graph."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ga_q2",
+        "kind": "explain_back",
+        "prompt": "You're picking between A* and Dijkstra's algorithm for pathfinding in a 2D game. Both are $O((V + E) \\log V)$ with a binary heap. Why is A* the standard production choice, and what's the ONE condition the heuristic must satisfy for A* to give optimal answers?",
+        "rubricCriteria": [
+          { "id": "expansion-difference", "description": "Names that A* expands far fewer nodes in practice — Dijkstra explores in all directions equally; A* is biased toward the goal by the heuristic" },
+          { "id": "admissibility-or-consistency", "description": "Names **admissibility** (heuristic never overestimates true distance to goal) — equivalently consistency / monotonicity for graph search — as the optimality condition" },
+          { "id": "concrete-heuristic", "description": "Names a concrete admissible heuristic for the 2D-grid case: Manhattan distance (4-connected grid) or Euclidean / Chebyshev (8-connected grid)" }
+        ],
+        "passingScore": 0.5
+      }
+    }
+  ]
+}
