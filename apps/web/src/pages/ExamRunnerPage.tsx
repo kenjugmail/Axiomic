@@ -59,9 +59,17 @@ export function ExamRunnerPage() {
   const [now, setNow] = useState(() => Date.now());
 
   // Local mirror of answers — keyed by questionId. We update both
-  // optimistically and reconcile from server fetches.
+  // optimistically and reconcile from server fetches. Sprint 75:
+  // tracks essay free-text alongside selectedIndex.
   const [localAnswers, setLocalAnswers] = useState<
-    Map<string, { selectedIndex: number | null; flagged: boolean }>
+    Map<
+      string,
+      {
+        selectedIndex: number | null;
+        essayResponse: string | null;
+        flagged: boolean;
+      }
+    >
   >(new Map());
 
   // Time-on-question tracking. The current question's "entered at"
@@ -81,11 +89,16 @@ export function ExamRunnerPage() {
       setState(s);
       const next = new Map<
         string,
-        { selectedIndex: number | null; flagged: boolean }
+        {
+          selectedIndex: number | null;
+          essayResponse: string | null;
+          flagged: boolean;
+        }
       >();
       for (const a of s.answers) {
         next.set(a.questionId, {
           selectedIndex: a.selectedIndex,
+          essayResponse: a.essayResponse ?? null,
           flagged: a.flagged,
         });
       }
@@ -145,7 +158,14 @@ export function ExamRunnerPage() {
   }, [toast]);
 
   const persistAnswer = useCallback(
-    async (q: FlatQuestion, patch: { selectedIndex?: number | null; flagged?: boolean }) => {
+    async (
+      q: FlatQuestion,
+      patch: {
+        selectedIndex?: number | null;
+        essayResponse?: string | null;
+        flagged?: boolean;
+      },
+    ) => {
       if (!attemptId) return;
       const elapsed = Date.now() - lastEnterRef.current;
       const existing = localAnswers.get(q.id);
@@ -154,6 +174,10 @@ export function ExamRunnerPage() {
           patch.selectedIndex !== undefined
             ? patch.selectedIndex
             : (existing?.selectedIndex ?? null),
+        essayResponse:
+          patch.essayResponse !== undefined
+            ? patch.essayResponse
+            : (existing?.essayResponse ?? null),
         flagged:
           patch.flagged !== undefined
             ? patch.flagged
@@ -165,12 +189,26 @@ export function ExamRunnerPage() {
         return next;
       });
       try {
-        await api.exams.recordAnswer(attemptId, {
+        const body: {
+          questionId: string;
+          selectedIndex?: number | null;
+          essayResponse?: string | null;
+          flagged: boolean;
+          timeSpentMs: number;
+        } = {
           questionId: q.id,
-          selectedIndex: merged.selectedIndex,
           flagged: merged.flagged,
           timeSpentMs: Math.min(elapsed, 30 * 60_000),
-        });
+        };
+        // Only forward the field that was actually patched so the
+        // server doesn't clobber the other.
+        if (patch.selectedIndex !== undefined) {
+          body.selectedIndex = merged.selectedIndex;
+        }
+        if (patch.essayResponse !== undefined) {
+          body.essayResponse = merged.essayResponse;
+        }
+        await api.exams.recordAnswer(attemptId, body);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to save answer");
       }
@@ -343,7 +381,10 @@ export function ExamRunnerPage() {
             {flat.map((qq, i) => {
               const a = localAnswers.get(qq.id);
               const isCurrent = i === currentIndex;
-              const isAnswered = a?.selectedIndex != null;
+              const isAnswered =
+                qq.type === "essay"
+                  ? Boolean(a?.essayResponse && a.essayResponse.trim().length > 0)
+                  : a?.selectedIndex != null;
               const isFlagged = a?.flagged;
               return (
                 <button
@@ -384,28 +425,56 @@ export function ExamRunnerPage() {
               <div className="prose prose-sm max-w-none dark:prose-invert mb-4 whitespace-pre-wrap">
                 {q.promptMd}
               </div>
-              <div className="space-y-2">
-                {q.options.map((opt, i) => {
-                  const selected = answer?.selectedIndex === i;
-                  return (
-                    <button
-                      key={opt.label}
-                      type="button"
-                      onClick={() => persistAnswer(q, { selectedIndex: i })}
-                      className={`w-full text-left rounded-lg border p-3 transition-colors ${
-                        selected
-                          ? "border-primary bg-primary/10"
-                          : "border-border bg-card hover:border-primary/40"
-                      }`}
-                    >
-                      <span className="font-mono text-xs font-semibold mr-3 text-muted-foreground">
-                        {opt.label}
-                      </span>
-                      <span className="text-sm whitespace-pre-wrap">{opt.text}</span>
-                    </button>
-                  );
-                })}
-              </div>
+              {q.type === "essay" ? (
+                <div className="space-y-3">
+                  {q.rubricMd && (
+                    <details className="rounded-lg border border-border bg-card/50 px-3 py-2 text-xs">
+                      <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                        Rubric (max score: {q.maxEssayScore ?? 6})
+                      </summary>
+                      <div className="mt-2 whitespace-pre-wrap text-foreground">
+                        {q.rubricMd}
+                      </div>
+                    </details>
+                  )}
+                  <textarea
+                    value={answer?.essayResponse ?? ""}
+                    onChange={(e) =>
+                      persistAnswer(q, { essayResponse: e.target.value })
+                    }
+                    placeholder="Compose your response here. Plain text or Markdown."
+                    rows={18}
+                    className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm font-mono leading-relaxed resize-y"
+                  />
+                  <div className="text-[10px] text-muted-foreground">
+                    {(answer?.essayResponse ?? "").trim().split(/\s+/).filter(Boolean).length}{" "}
+                    words · scored on submit
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {q.options.map((opt, i) => {
+                    const selected = answer?.selectedIndex === i;
+                    return (
+                      <button
+                        key={opt.label}
+                        type="button"
+                        onClick={() => persistAnswer(q, { selectedIndex: i })}
+                        className={`w-full text-left rounded-lg border p-3 transition-colors ${
+                          selected
+                            ? "border-primary bg-primary/10"
+                            : "border-border bg-card hover:border-primary/40"
+                        }`}
+                      >
+                        <span className="font-mono text-xs font-semibold mr-3 text-muted-foreground">
+                          {opt.label}
+                        </span>
+                        <span className="text-sm whitespace-pre-wrap">{opt.text}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
               <div className="mt-4 flex items-center justify-between gap-3">
                 <button
                   type="button"

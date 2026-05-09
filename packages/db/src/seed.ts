@@ -205,17 +205,29 @@ function seedExams() {
       const questions: any[] = Array.isArray(sec.questions) ? sec.questions : [];
       for (let i = 0; i < questions.length; i++) {
         const q = questions[i];
-        if (!q?.promptMd || !Array.isArray(q?.options)) continue;
-        if (typeof q.correctIndex !== "number") continue;
+        if (!q?.promptMd) continue;
+        const type = q.type === "essay" ? "essay" : "multiple_choice";
+        if (type === "essay") {
+          if (typeof q.rubricMd !== "string" || q.rubricMd.length === 0)
+            continue;
+        } else {
+          if (!Array.isArray(q?.options) || typeof q.correctIndex !== "number")
+            continue;
+        }
         const questionId = `q:${parsed.slug}:${sec.slug}:${i}`;
         db.insert(examQuestions)
           .values({
             id: questionId,
             sectionId,
+            type,
             difficulty: Number(q.difficulty) || 3,
             promptMd: String(q.promptMd),
-            optionsJson: JSON.stringify(q.options),
-            correctIndex: q.correctIndex,
+            optionsJson: JSON.stringify(q.options ?? []),
+            correctIndex:
+              typeof q.correctIndex === "number" ? q.correctIndex : 0,
+            rubricMd: type === "essay" ? String(q.rubricMd) : null,
+            maxEssayScore:
+              type === "essay" ? Number(q.maxEssayScore) || 6 : null,
             explanationMd: q.explanationMd ?? "",
             topicTagsJson: JSON.stringify(
               Array.isArray(q.topicTags) ? q.topicTags : [],

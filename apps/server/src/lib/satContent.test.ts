@@ -84,15 +84,23 @@ describe("SAT seed content (Sprint 74)", () => {
     }
   });
 
-  test("every question has well-formed options + valid correctIndex", () => {
+  test("every SAT question has well-formed options + valid correctIndex", () => {
+    // Sprint 75 widened the schema with essay-type questions for
+    // GRE; SAT remains all multiple_choice, so this query joins to
+    // SAT sections only.
+    const sectionIds = sections.map((s) => s.id);
+    if (sectionIds.length === 0) return;
     const qs = db
       .select({
         id: examQuestions.id,
+        sectionId: examQuestions.sectionId,
         optionsJson: examQuestions.optionsJson,
         correctIndex: examQuestions.correctIndex,
       })
       .from(examQuestions)
-      .all();
+      .all()
+      .filter((q) => sectionIds.includes(q.sectionId));
+    expect(qs.length).toBeGreaterThan(0);
     for (const q of qs) {
       const opts = JSON.parse(q.optionsJson);
       expect(Array.isArray(opts)).toBe(true);

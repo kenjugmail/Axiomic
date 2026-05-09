@@ -59,21 +59,34 @@ export const finalizeStaleExamAttemptsJob: JobDefinition = {
       const qrows = db
         .select({
           id: examQuestions.id,
-          correctIndex: examQuestions.correctIndex,
           sectionId: examQuestions.sectionId,
+          type: examQuestions.type,
+          correctIndex: examQuestions.correctIndex,
+          promptMd: examQuestions.promptMd,
+          rubricMd: examQuestions.rubricMd,
+          maxEssayScore: examQuestions.maxEssayScore,
         })
         .from(examQuestions)
         .all();
       const wanted = new Set(allIds);
-      const correctById = new Map<
-        string,
-        { correctIndex: number; sectionId: string }
-      >();
+      interface QMeta {
+        type: string;
+        correctIndex: number;
+        sectionId: string;
+        promptMd: string;
+        rubricMd: string | null;
+        maxEssayScore: number | null;
+      }
+      const metaById = new Map<string, QMeta>();
       for (const r of qrows) {
         if (wanted.has(r.id))
-          correctById.set(r.id, {
+          metaById.set(r.id, {
+            type: r.type ?? "multiple_choice",
             correctIndex: r.correctIndex,
             sectionId: r.sectionId,
+            promptMd: r.promptMd,
+            rubricMd: r.rubricMd,
+            maxEssayScore: r.maxEssayScore,
           });
       }
       const sectionRows = db
@@ -91,18 +104,42 @@ export const finalizeStaleExamAttemptsJob: JobDefinition = {
       const rawBySection = new Map<string, number>();
       for (const sec of manifest.sections) rawBySection.set(sec.slug, 0);
       for (const ans of answers) {
-        const correct = correctById.get(ans.questionId);
-        if (!correct) continue;
-        const isCorrect =
-          ans.selectedIndex !== null &&
-          ans.selectedIndex === correct.correctIndex;
-        db.update(examAttemptAnswers)
-          .set({ isCorrect: isCorrect ? 1 : 0 })
-          .where(eq(examAttemptAnswers.id, ans.id))
-          .run();
-        if (isCorrect) {
-          const slug = slugById.get(correct.sectionId);
-          if (slug) rawBySection.set(slug, (rawBySection.get(slug) ?? 0) + 1);
+        const meta = metaById.get(ans.questionId);
+        if (!meta) continue;
+        const slug = slugById.get(meta.sectionId);
+        if (meta.type === "essay") {
+          // Auto-submit grades essays the same as the synchronous
+          // submit path; just imported lazily to keep the cron
+          // module self-contained.
+          const { gradeEssay } = await import("../lib/essayGrader");
+          const maxScore = meta.maxEssayScore ?? 6;
+          const grade = await gradeEssay({
+            promptMd: meta.promptMd,
+            rubricMd: meta.rubricMd ?? "",
+            maxScore,
+            essayResponse: ans.essayResponse ?? "",
+          });
+          db.update(examAttemptAnswers)
+            .set({
+              essayScore: grade.score,
+              essayFeedbackMd: grade.feedbackMd,
+              isCorrect: grade.score >= Math.ceil(maxScore / 2) ? 1 : 0,
+            })
+            .where(eq(examAttemptAnswers.id, ans.id))
+            .run();
+          if (slug)
+            rawBySection.set(slug, (rawBySection.get(slug) ?? 0) + grade.score);
+        } else {
+          const isCorrect =
+            ans.selectedIndex !== null &&
+            ans.selectedIndex === meta.correctIndex;
+          db.update(examAttemptAnswers)
+            .set({ isCorrect: isCorrect ? 1 : 0 })
+            .where(eq(examAttemptAnswers.id, ans.id))
+            .run();
+          if (isCorrect && slug) {
+            rawBySection.set(slug, (rawBySection.get(slug) ?? 0) + 1);
+          }
         }
       }
 

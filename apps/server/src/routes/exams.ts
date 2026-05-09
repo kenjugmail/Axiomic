@@ -36,6 +36,7 @@ import {
   pickNextAdaptiveQuestion,
 } from "../lib/examAdaptive";
 import { scoreExam, type ExamScoringConfig } from "../lib/examScoring";
+import { gradeEssay } from "../lib/essayGrader";
 import { requireAuth } from "../middleware/auth";
 import type { Env } from "../env";
 
@@ -75,10 +76,14 @@ interface QuestionPayload {
   sectionId: string;
   sectionSlug: string;
   ordinal: number;
+  type: "multiple_choice" | "essay";
   difficulty: number;
   promptMd: string;
   options: Array<{ label: string; text: string }>;
   topicTags: string[];
+  // Sprint 75 — essay-only fields. Null/0 for multiple_choice.
+  rubricMd: string | null;
+  maxEssayScore: number | null;
 }
 
 function loadQuestions(ids: string[]): Map<string, QuestionPayload> {
@@ -88,9 +93,12 @@ function loadQuestions(ids: string[]): Map<string, QuestionPayload> {
     .select({
       id: examQuestions.id,
       sectionId: examQuestions.sectionId,
+      type: examQuestions.type,
       difficulty: examQuestions.difficulty,
       promptMd: examQuestions.promptMd,
       optionsJson: examQuestions.optionsJson,
+      rubricMd: examQuestions.rubricMd,
+      maxEssayScore: examQuestions.maxEssayScore,
       topicTagsJson: examQuestions.topicTagsJson,
     })
     .from(examQuestions)
@@ -111,10 +119,13 @@ function loadQuestions(ids: string[]): Map<string, QuestionPayload> {
       sectionId: r.sectionId,
       sectionSlug: slugById.get(r.sectionId) ?? "",
       ordinal: 0, // filled by the caller relative to manifest order
+      type: (r.type as "multiple_choice" | "essay") ?? "multiple_choice",
       difficulty: r.difficulty,
       promptMd: r.promptMd,
       options: safeJsonArray<{ label: string; text: string }>(r.optionsJson),
       topicTags: safeJsonArray<string>(r.topicTagsJson),
+      rubricMd: r.rubricMd,
+      maxEssayScore: r.maxEssayScore,
     });
   }
   return out;
@@ -336,6 +347,9 @@ examsRouter.get("/attempts/:id", requireAuth, async (c) => {
     answers: answers.map((a) => ({
       questionId: a.questionId,
       selectedIndex: a.selectedIndex,
+      essayResponse: a.essayResponse,
+      essayScore: a.essayScore,
+      essayFeedbackMd: a.essayFeedbackMd,
       flagged: a.flagged === 1,
       timeSpentMs: a.timeSpentMs,
     })),
@@ -346,7 +360,11 @@ examsRouter.get("/attempts/:id", requireAuth, async (c) => {
 
 const answerSchema = z.object({
   questionId: z.string().min(8),
-  selectedIndex: z.number().int().min(0).max(20).nullable(),
+  selectedIndex: z.number().int().min(0).max(20).nullable().optional(),
+  // Sprint 75 — free-text response for essay questions. Capped at
+  // ~50KB which is roughly 8000 words; that's more than any GRE
+  // AW prompt would expect.
+  essayResponse: z.string().max(50_000).nullable().optional(),
   timeSpentMs: z.number().int().min(0).max(3600_000).optional(),
   flagged: z.boolean().optional(),
 });
@@ -359,7 +377,7 @@ examsRouter.put(
     const me = c.get("user")!;
     const id = c.req.param("id");
     if (!id) return c.json({ error: "Missing id" }, 400);
-    const { questionId, selectedIndex, timeSpentMs, flagged } =
+    const { questionId, selectedIndex, essayResponse, timeSpentMs, flagged } =
       c.req.valid("json");
     const db = getDb();
 
@@ -400,16 +418,22 @@ examsRouter.put(
       .get();
 
     if (existing) {
+      const update: Record<string, unknown> = {
+        timeSpentMs:
+          timeSpentMs != null
+            ? Math.max(existing.timeSpentMs, timeSpentMs)
+            : existing.timeSpentMs,
+        flagged: flagged ? 1 : 0,
+        updatedAt: new Date().toISOString(),
+      };
+      if (selectedIndex !== undefined) {
+        update.selectedIndex = selectedIndex ?? null;
+      }
+      if (essayResponse !== undefined) {
+        update.essayResponse = essayResponse ?? null;
+      }
       db.update(examAttemptAnswers)
-        .set({
-          selectedIndex: selectedIndex ?? null,
-          timeSpentMs:
-            timeSpentMs != null
-              ? Math.max(existing.timeSpentMs, timeSpentMs)
-              : existing.timeSpentMs,
-          flagged: flagged ? 1 : 0,
-          updatedAt: new Date().toISOString(),
-        })
+        .set(update)
         .where(eq(examAttemptAnswers.id, existing.id))
         .run();
     } else {
@@ -419,6 +443,7 @@ examsRouter.put(
           attemptId: id,
           questionId,
           selectedIndex: selectedIndex ?? null,
+          essayResponse: essayResponse ?? null,
           timeSpentMs: timeSpentMs ?? 0,
           flagged: flagged ? 1 : 0,
         })
@@ -569,25 +594,39 @@ examsRouter.post("/attempts/:id/submit", requireAuth, async (c) => {
   });
   const allIds = manifest.sections.flatMap((s) => s.questionIds);
 
-  // Resolve correct-index for every question + grade answers.
+  // Resolve question metadata for grading. Essay questions use
+  // rubricMd + maxEssayScore; multiple-choice uses correctIndex.
   const qrows = db
     .select({
       id: examQuestions.id,
-      correctIndex: examQuestions.correctIndex,
       sectionId: examQuestions.sectionId,
+      type: examQuestions.type,
+      correctIndex: examQuestions.correctIndex,
+      promptMd: examQuestions.promptMd,
+      rubricMd: examQuestions.rubricMd,
+      maxEssayScore: examQuestions.maxEssayScore,
     })
     .from(examQuestions)
     .all();
-  const correctById = new Map<
-    string,
-    { correctIndex: number; sectionId: string }
-  >();
+  interface QuestionMeta {
+    type: string;
+    correctIndex: number;
+    sectionId: string;
+    promptMd: string;
+    rubricMd: string | null;
+    maxEssayScore: number | null;
+  }
+  const metaById = new Map<string, QuestionMeta>();
   const wanted = new Set(allIds);
   for (const r of qrows) {
     if (wanted.has(r.id))
-      correctById.set(r.id, {
+      metaById.set(r.id, {
+        type: r.type ?? "multiple_choice",
         correctIndex: r.correctIndex,
         sectionId: r.sectionId,
+        promptMd: r.promptMd,
+        rubricMd: r.rubricMd,
+        maxEssayScore: r.maxEssayScore,
       });
   }
 
@@ -604,23 +643,42 @@ examsRouter.post("/attempts/:id/submit", requireAuth, async (c) => {
     .where(eq(examAttemptAnswers.attemptId, id))
     .all();
 
-  // Update each answer row's isCorrect for the post-mortem report.
   // Section raw-score tally:
   const rawBySection = new Map<string, number>();
   for (const sec of manifest.sections) rawBySection.set(sec.slug, 0);
 
   for (const ans of answers) {
-    const correct = correctById.get(ans.questionId);
-    if (!correct) continue;
-    const isCorrect =
-      ans.selectedIndex !== null && ans.selectedIndex === correct.correctIndex;
-    db.update(examAttemptAnswers)
-      .set({ isCorrect: isCorrect ? 1 : 0 })
-      .where(eq(examAttemptAnswers.id, ans.id))
-      .run();
-    if (isCorrect) {
-      const slug = sectionSlugById.get(correct.sectionId);
-      if (slug) rawBySection.set(slug, (rawBySection.get(slug) ?? 0) + 1);
+    const meta = metaById.get(ans.questionId);
+    if (!meta) continue;
+    const slug = sectionSlugById.get(meta.sectionId);
+    if (meta.type === "essay") {
+      const rubric = meta.rubricMd ?? "";
+      const maxScore = meta.maxEssayScore ?? 6;
+      const grade = await gradeEssay({
+        promptMd: meta.promptMd,
+        rubricMd: rubric,
+        maxScore,
+        essayResponse: ans.essayResponse ?? "",
+      });
+      db.update(examAttemptAnswers)
+        .set({
+          essayScore: grade.score,
+          essayFeedbackMd: grade.feedbackMd,
+          isCorrect: grade.score >= Math.ceil(maxScore / 2) ? 1 : 0,
+        })
+        .where(eq(examAttemptAnswers.id, ans.id))
+        .run();
+      if (slug) rawBySection.set(slug, (rawBySection.get(slug) ?? 0) + grade.score);
+    } else {
+      const isCorrect =
+        ans.selectedIndex !== null && ans.selectedIndex === meta.correctIndex;
+      db.update(examAttemptAnswers)
+        .set({ isCorrect: isCorrect ? 1 : 0 })
+        .where(eq(examAttemptAnswers.id, ans.id))
+        .run();
+      if (isCorrect && slug) {
+        rawBySection.set(slug, (rawBySection.get(slug) ?? 0) + 1);
+      }
     }
   }
 

@@ -962,7 +962,11 @@ export const api = {
       id: string,
       body: {
         questionId: string;
-        selectedIndex: number | null;
+        selectedIndex?: number | null;
+        // Sprint 75 — essay free-text response. Pass either this OR
+        // selectedIndex depending on question type; the server
+        // updates only the field provided.
+        essayResponse?: string | null;
         timeSpentMs?: number;
         flagged?: boolean;
       },

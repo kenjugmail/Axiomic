@@ -494,15 +494,26 @@ export interface ExamQuestionPayload {
   sectionId: string;
   sectionSlug: string;
   ordinal: number;
+  // Sprint 75 — discriminator. 'multiple_choice' rendering shows
+  // options buttons; 'essay' shows a textarea + the rubricMd in a
+  // collapsible panel.
+  type: "multiple_choice" | "essay";
   difficulty: number;
   promptMd: string;
   options: Array<{ label: string; text: string }>;
   topicTags: string[];
+  // Essay-only. Null/0 for multiple-choice.
+  rubricMd: string | null;
+  maxEssayScore: number | null;
 }
 
 export interface ExamAttemptAnswer {
   questionId: string;
   selectedIndex: number | null;
+  // Sprint 75 — essay free-text response + AI grade results.
+  essayResponse?: string | null;
+  essayScore?: number | null;
+  essayFeedbackMd?: string | null;
   flagged: boolean;
   timeSpentMs: number;
 }

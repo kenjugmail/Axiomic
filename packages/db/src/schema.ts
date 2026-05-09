@@ -1616,14 +1616,27 @@ export const examQuestions = sqliteTable(
     sectionId: text("section_id")
       .notNull()
       .references(() => examSections.id, { onDelete: "cascade" }),
+    // Sprint 75 — question type discriminator. 'multiple_choice' is
+    // the default and matches the SAT runtime; 'essay' is for
+    // free-text questions like GRE Analytical Writing tasks (AI
+    // grader scores against rubricMd, no optionsJson/correctIndex).
+    type: text("type").notNull().default("multiple_choice"),
     // 1..5; the adaptive runner picks against this.
     difficulty: integer("difficulty").notNull().default(3),
     promptMd: text("prompt_md").notNull(),
-    // JSON array of {label, text} options (4 typical, never <2 or >6).
+    // JSON array of {label, text} options. Empty for essay questions.
     optionsJson: text("options_json").notNull(),
-    // 0-based index into optionsJson.
+    // 0-based index into optionsJson. For essay questions this stays
+    // 0 (unused) — never read by the grader on essays.
     correctIndex: integer("correct_index").notNull(),
     explanationMd: text("explanation_md").notNull().default(""),
+    // Markdown rubric used by the AI essay grader. Null for
+    // multiple-choice questions.
+    rubricMd: text("rubric_md"),
+    // Maximum score the essay grader can award. Null for MC
+    // (which is implicitly 1). GRE Analytical Writing prompts
+    // typically use 6.
+    maxEssayScore: integer("max_essay_score"),
     topicTagsJson: text("topic_tags_json").notNull().default("[]"),
     createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   },
@@ -1632,6 +1645,7 @@ export const examQuestions = sqliteTable(
       t.sectionId,
       t.difficulty,
     ),
+    typeIdx: index("exam_questions_type_idx").on(t.sectionId, t.type),
   }),
 );
 
@@ -1684,6 +1698,15 @@ export const examAttemptAnswers = sqliteTable(
     // 0/1 set on submit; null while the attempt is still in-flight
     // OR when the question was skipped (selectedIndex IS NULL).
     isCorrect: integer("is_correct"),
+    // Sprint 75 — essay-question fields. Empty/null for MC
+    // questions. `essayResponse` is the user's free-text answer
+    // (saved on every PUT /answer); `essayScore` is the AI
+    // grader's score (0..maxEssayScore on the question);
+    // `essayFeedbackMd` is the rubric-aligned feedback the
+    // score report renders to the test-taker.
+    essayResponse: text("essay_response"),
+    essayScore: integer("essay_score"),
+    essayFeedbackMd: text("essay_feedback_md"),
     timeSpentMs: integer("time_spent_ms").notNull().default(0),
     // The question grid sidebar's "mark for review" toggle.
     flagged: integer("flagged").notNull().default(0),
