@@ -195,6 +195,20 @@ Produce a markdown summary with three short sections: (1) the core question/clai
       models = [{ id: this.chatModel }, ...models];
     }
 
+    // Embedding-only models are not valid /api/chat targets; listing them
+    // next to LLMs breaks the picker (users select an embed model and get
+    // empty or failed streams).
+    const embedId = (this.embedModel || "").trim().toLowerCase();
+    models = models.filter((m) => {
+      const id = m.id.toLowerCase();
+      if (embedId && id === embedId) return false;
+      if (id.includes("embed")) return false;
+      return true;
+    });
+    if (models.length === 0) {
+      models = [{ id: this.chatModel }];
+    }
+
     this.modelsCache = { ts: now, models };
     return { available: models, default: this.chatModel };
   }

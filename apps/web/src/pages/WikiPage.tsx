@@ -47,13 +47,18 @@ export function WikiPage() {
   const [prereqWikiSlugs, setPrereqWikiSlugs] = useState<string[]>([]);
 
   useEffect(() => {
-    if (!slug) return;
+    if (!slug) {
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
     setLoading(true);
     setError("");
 
     api.wiki
       .get(slug, tier)
       .then((data: any) => {
+        if (cancelled) return;
         setPage(data.page);
         setContent(data.content);
         setAllContent(data.allContent || {});
@@ -66,7 +71,9 @@ export function WikiPage() {
         } else if (data.page?.id) {
           api.forum
             .listTopics({ wikiPageId: data.page.id, sort: "active" })
-            .then((d) => setDiscussions(d.topics))
+            .then((d) => {
+              if (!cancelled) setDiscussions(d.topics);
+            })
             .catch(() => {});
         }
         // Sprint 16 — Practice / Articles cross-link rails. Both arrive
@@ -81,12 +88,24 @@ export function WikiPage() {
           Array.isArray(data.prereqWikiSlugs) ? data.prereqWikiSlugs : [],
         );
       })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
+      .catch((err) => {
+        if (!cancelled) setError(err.message);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
 
-    // Load related pages
-    api.ai.relatedPages(slug).then((data) => setRelatedPages(data.pages)).catch(() => {});
-  }, [slug]);
+    api.ai
+      .relatedPages(slug)
+      .then((data) => {
+        if (!cancelled) setRelatedPages(data.pages);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [slug, tier]);
 
   const handleTierChange = (newTier: string) => {
     setTier(newTier);

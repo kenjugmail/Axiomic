@@ -61,7 +61,7 @@ export function AITutorSettings({ value, onChange }: AITutorSettingsProps) {
         <div
           role="dialog"
           aria-label="AI tutor settings"
-          className="absolute right-0 z-50 mt-1 w-64 rounded-md border border-border bg-popover shadow-elevated p-3 text-xs"
+          className="absolute right-0 z-[200] mt-1 w-64 rounded-md border border-border bg-popover shadow-elevated p-3 text-xs"
         >
           <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
             Tutor settings

@@ -155,11 +155,16 @@ export function AISidebar({
 
   // Sprint 65b — persist conversation to the active session on every
   // change.
+  // IMPORTANT: do not depend on `pageSlug` here. On slug change, the
+  // reset effect above schedules new sessionId/messages, but this
+  // effect used to run in the same flush with the *old* sessionId and
+  // *new* pageSlug — corrupting localStorage and breaking navigation.
   useEffect(() => {
     if (!sessionId) return;
     persistMessages(pageSlug, sessionId, messages);
     setSessions(listSessions(pageSlug).sessions);
-  }, [pageSlug, sessionId, messages]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- pageSlug is read from the latest render; including it caused persist to run with stale session state when the slug changed (storage corruption + blank UI).
+  }, [sessionId, messages]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -465,7 +470,7 @@ export function AISidebar({
         <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30" />
       </div>
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border gap-2">
+      <div className="relative z-10 isolate flex items-center justify-between px-4 py-3 border-b border-border gap-2">
         <div className="min-w-0">
           <h3 className="font-semibold text-sm">AI Tutor</h3>
           <p className="text-xs text-muted-foreground truncate">{pageTitle} &middot; {tier}</p>
@@ -575,13 +580,16 @@ export function AISidebar({
               }`}
             >
               {msg.role === "assistant" ? (
-                <MarkdownRenderer content={msg.content} className="text-sm [&_p]:mb-2 [&_p]:text-sm" />
+                <MarkdownRenderer
+                  content={msg.content ?? ""}
+                  className="text-sm [&_p]:mb-2 [&_p]:text-sm"
+                />
               ) : (
                 // Sprint 63h — render user messages via Markdown so
                 // selection-to-chat quote blocks (lines starting with
                 // `> `) display as a styled blockquote, not raw text.
                 <MarkdownRenderer
-                  content={msg.content}
+                  content={msg.content ?? ""}
                   className="text-sm [&_p]:mb-1 [&_p]:text-sm [&_blockquote]:border-l-2 [&_blockquote]:border-primary-foreground/40 [&_blockquote]:pl-2 [&_blockquote]:opacity-90 [&_blockquote]:italic"
                 />
               )}

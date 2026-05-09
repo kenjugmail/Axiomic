@@ -125,7 +125,7 @@ export function AIModelPicker({
       </button>
       {open && (
         <div
-          className="absolute right-0 z-50 mt-1 w-56 rounded-md border border-border bg-popover shadow-elevated text-xs"
+          className="absolute right-0 z-[200] mt-1 w-56 rounded-md border border-border bg-popover shadow-elevated text-xs"
           onKeyDown={onListKey}
         >
           {provider && (

@@ -1,6 +1,13 @@
 import { lazy, Suspense, useEffect } from "react";
-import { Navigate, Routes, Route, useParams } from "react-router-dom";
+import {
+  Navigate,
+  Routes,
+  Route,
+  useParams,
+  useLocation,
+} from "react-router-dom";
 import { Layout } from "./components/Layout";
+import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { ToastContainer } from "./components/ui/ToastContainer";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
@@ -252,22 +259,12 @@ function PageFallback() {
   );
 }
 
-export function App() {
-  const fetchUser = useAuthStore((s) => s.fetchUser);
-  const user = useAuthStore((s) => s.user);
-  const hydrateFromServer = useThemeStore((s) => s.hydrateFromServer);
-
-  useEffect(() => {
-    fetchUser();
-  }, [fetchUser]);
-
-  // Hydrate theme from server once auth resolves with a logged-in user.
-  useEffect(() => {
-    if (user) hydrateFromServer();
-  }, [user, hydrateFromServer]);
-
+function AppRoutes() {
+  const location = useLocation();
   return (
-    <Suspense fallback={<PageFallback />}>
+    <AppErrorBoundary
+      key={`${location.pathname}${location.search}`}
+    >
       {/* Sprint 64a — global toast notifications. Mounted once at the
           app root; any code can call `toast.success(...)` etc. */}
       <ToastContainer />
@@ -366,6 +363,27 @@ export function App() {
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
+    </AppErrorBoundary>
+  );
+}
+
+export function App() {
+  const fetchUser = useAuthStore((s) => s.fetchUser);
+  const user = useAuthStore((s) => s.user);
+  const hydrateFromServer = useThemeStore((s) => s.hydrateFromServer);
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
+  // Hydrate theme from server once auth resolves with a logged-in user.
+  useEffect(() => {
+    if (user) hydrateFromServer();
+  }, [user, hydrateFromServer]);
+
+  return (
+    <Suspense fallback={<PageFallback />}>
+      <AppRoutes />
     </Suspense>
   );
 }

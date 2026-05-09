@@ -89,7 +89,7 @@ export function AIConversationHistory({
         <div
           role="menu"
           aria-label="Past conversations"
-          className="absolute right-0 z-50 mt-1 w-72 rounded-md border border-border bg-popover shadow-elevated text-xs"
+          className="absolute right-0 z-[200] mt-1 w-72 rounded-md border border-border bg-popover shadow-elevated text-xs"
         >
           <button
             type="button"

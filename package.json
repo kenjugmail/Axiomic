@@ -6,7 +6,8 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "bun run --filter '@axiomic/server' dev & bun run --filter '@axiomic/web' dev & wait",
+    "dev": "bash scripts/dev.sh",
+    "dev:mock": "bun run --filter '@axiomic/server' dev & bun run --filter '@axiomic/web' dev & wait",
     "dev:server": "bun run --filter '@axiomic/server' dev",
     "dev:web": "bun run --filter '@axiomic/web' dev",
     "build": "bun run --filter '*' build",
