@@ -132,11 +132,22 @@ Guidelines:
     coachSummary ? `\n\n${coachSummary}` : ""
   }${modePrompt ? `\n\n${modePrompt}` : ""}`;
 
-  // SSE stream
+  // SSE stream — wrap enqueue in a guard so a client-disconnect
+  // doesn't throw a cascade of errors when subsequent tokens arrive
+  // from the AI provider after the controller is gone.
+  let canceled = false;
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();
       let tokenCount = 0;
+      const safeEnqueue = (chunk: Uint8Array) => {
+        if (canceled) return;
+        try {
+          controller.enqueue(chunk);
+        } catch {
+          canceled = true;
+        }
+      };
       try {
         await provider.stream({
           system,
@@ -144,10 +155,10 @@ Guidelines:
           model,
           onToken: (token) => {
             tokenCount++;
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`));
+            safeEnqueue(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`));
           },
         });
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        safeEnqueue(encoder.encode("data: [DONE]\n\n"));
       } catch (err) {
         const e = err as Error | undefined;
         logger.error({
@@ -160,11 +171,20 @@ Guidelines:
           errorClass: e?.name ?? "unknown",
           errorMessage: e?.message ?? String(err),
         });
-        controller.enqueue(
+        safeEnqueue(
           encoder.encode(`data: ${JSON.stringify({ error: "Stream failed" })}\n\n`)
         );
       }
-      controller.close();
+      if (!canceled) {
+        try {
+          controller.close();
+        } catch {
+          // already closed
+        }
+      }
+    },
+    cancel() {
+      canceled = true;
     },
   });
 
@@ -280,18 +300,40 @@ tier: ${targetTier}
 
 Rewrite the following text at the ${targetTier} level. Preserve the core meaning but adjust complexity, vocabulary, and mathematical notation as appropriate for the level.`;
 
+  let canceled = false;
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();
-      await provider.stream({
-        system,
-        messages: [{ role: "user", content: text }],
-        onToken: (token) => {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`));
-        },
-      });
-      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-      controller.close();
+      const safeEnqueue = (chunk: Uint8Array) => {
+        if (canceled) return;
+        try {
+          controller.enqueue(chunk);
+        } catch {
+          canceled = true;
+        }
+      };
+      try {
+        await provider.stream({
+          system,
+          messages: [{ role: "user", content: text }],
+          onToken: (token) => {
+            safeEnqueue(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`));
+          },
+        });
+      } catch {
+        // best-effort streaming; swallow provider errors so close() still fires
+      }
+      safeEnqueue(encoder.encode("data: [DONE]\n\n"));
+      if (!canceled) {
+        try {
+          controller.close();
+        } catch {
+          // already closed
+        }
+      }
+    },
+    cancel() {
+      canceled = true;
     },
   });
 
@@ -370,28 +412,52 @@ function streamingResponse(
   userMessage: string,
 ): Response {
   const provider = getAIProvider();
+  // Track client-disconnect via the ReadableStream's cancel hook. When
+  // the client navigates away the controller starts throwing on
+  // enqueue; treating those throws as "stop pumping tokens" is the
+  // best we can do without an AbortSignal threaded into the provider.
+  let canceled = false;
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();
+      const safeEnqueue = (chunk: Uint8Array) => {
+        if (canceled) return;
+        try {
+          controller.enqueue(chunk);
+        } catch {
+          // Controller is closed (client gone). Mark canceled so the
+          // remaining onToken calls + the final close exit cleanly.
+          canceled = true;
+        }
+      };
       try {
         await provider.stream({
           system,
           messages: [{ role: "user", content: userMessage }],
           onToken: (token) => {
-            controller.enqueue(
+            safeEnqueue(
               encoder.encode(`data: ${JSON.stringify({ token })}\n\n`),
             );
           },
         });
       } catch (err: any) {
-        controller.enqueue(
+        safeEnqueue(
           encoder.encode(
             `data: ${JSON.stringify({ error: err?.message ?? "stream failed" })}\n\n`,
           ),
         );
       }
-      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-      controller.close();
+      safeEnqueue(encoder.encode("data: [DONE]\n\n"));
+      if (!canceled) {
+        try {
+          controller.close();
+        } catch {
+          // already closed by the runtime — fine
+        }
+      }
+    },
+    cancel() {
+      canceled = true;
     },
   });
   return new Response(stream, {

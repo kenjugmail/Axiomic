@@ -1078,13 +1078,20 @@ forum.post("/topics/:slug/summarize", async (c) => {
 
   const provider = getAIProvider();
 
+  let canceled = false;
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();
+      const safeEnqueue = (chunk: Uint8Array) => {
+        if (canceled) return;
+        try {
+          controller.enqueue(chunk);
+        } catch {
+          canceled = true;
+        }
+      };
       const send = (token: string) => {
-        controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({ token })}\n\n`)
-        );
+        safeEnqueue(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`));
       };
       try {
         if (provider.summarizeThread) {
@@ -1104,15 +1111,27 @@ forum.post("/topics/:slug/summarize", async (c) => {
               (p) => `- ${p.author}: ${p.body.split("\n")[0].slice(0, 160)}`
             ),
           ];
-          for (const ch of lines.join("\n")) send(ch);
+          for (const ch of lines.join("\n")) {
+            if (canceled) break;
+            send(ch);
+          }
         }
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        safeEnqueue(encoder.encode("data: [DONE]\n\n"));
       } catch {
-        controller.enqueue(
+        safeEnqueue(
           encoder.encode(`data: ${JSON.stringify({ error: "summary failed" })}\n\n`)
         );
       }
-      controller.close();
+      if (!canceled) {
+        try {
+          controller.close();
+        } catch {
+          // already closed
+        }
+      }
+    },
+    cancel() {
+      canceled = true;
     },
   });
 
