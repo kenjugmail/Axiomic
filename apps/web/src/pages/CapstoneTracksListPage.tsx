@@ -5,10 +5,11 @@
 
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Award } from "lucide-react";
+import { Plus, Award, Compass } from "lucide-react";
 import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
+import { EmptyState } from "../components/ui/EmptyState";
 
 const ACCENT_BG: Record<string, string> = {
   indigo: "from-indigo-500/15 to-indigo-500/5",
@@ -82,9 +83,19 @@ export function CapstoneTracksListPage() {
       )}
 
       {tracks?.length === 0 && (
-        <div className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-          No tracks published yet.
-        </div>
+        <EmptyState
+          icon={Compass}
+          title="No capstone tracks yet"
+          description="Tracks bundle 4-6 capstones into a single learning credential. Start with mastery paths in the meantime."
+          cta={
+            <Link
+              to="/paths"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md bg-foreground text-background text-sm font-medium hover:bg-foreground/90"
+            >
+              Browse paths
+            </Link>
+          }
+        />
       )}
 
       <ul className="grid gap-4 md:grid-cols-2">

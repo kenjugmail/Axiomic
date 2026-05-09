@@ -1,0 +1,59 @@
+{
+  "slug": "build-a-multi-agent-rl-tournament",
+  "title": "Build a Multi-Agent RL Tournament: From Tabular Nash to PPO Self-Play",
+  "summary": "Implement self-play training across the spectrum: tabular Nash on rock-paper-scissors, REINFORCE on a 2-player matrix game, A2C with self-play on a stochastic game, and PPO + opponent modeling on a Bayesian game. Run a tournament + report convergence properties.",
+  "format": "research",
+  "estimatedWeeks": 4,
+  "coverEmoji": "♟️",
+  "accentColor": "#7C3AED",
+  "canonicalTier": "undergrad",
+  "contentIntro": "## What you'll build\n\nA progression of multi-agent RL training systems, each on a different game-theoretic structure:\n\n1. Tabular Nash for rock-paper-scissors (zero-sum + small).\n2. REINFORCE with self-play on matching pennies (zero-sum + needs randomization).\n3. A2C with self-play on a stochastic game (sequential + zero-sum).\n4. PPO + opponent modeling on a Bayesian game (incomplete information).\n\nEach milestone produces working code + a quantitative convergence report. The capstone exercises the full theoretical spine of game theory + multi-agent RL.\n\n## What you'll demonstrate\n\n- You understand the difference between tabular Nash, fictitious play, no-regret learning, and policy-gradient self-play.\n- You can train multi-agent policies that converge in zero-sum settings.\n- You can debug + diagnose self-play failures (cycling, mode collapse, distributional drift).\n- You can produce a writeup explaining what worked, what didn't, and why.",
+  "contentUndergrad": "## Why this capstone\n\nThe multi-agent RL literature is a mess of techniques (self-play, PSRO, PBT, MADDPG, COMA, QMIX) without much pedagogical coherence. This capstone gives you a structured progression where each technique is paired with the smallest game where it's needed.\n\nBy the end you have a working codebase covering tabular through deep multi-agent RL, with quantitative convergence + cycling diagnostics, a tournament report, and a defensible writeup.\n\n## Pacing\n\n4 weeks at ~5-8 hrs/week. Most time: milestone 4 (PPO + opponent modeling). Milestones 1-2 are setup + foundations; 3 builds out to deep RL.\n\n## Tools\n\n- Python + PyTorch (or JAX, your call).\n- Numpy + scipy for tabular Nash + LP-based equilibrium solving.\n- Gymnasium / Pettingzoo for environments.\n- WandB or TensorBoard for logging.\n- The capstone library code stays standalone — no need for Stable Baselines or RLlib.\n\n## Out of scope\n\n- Cooperative MARL (Q-Mix, MADDPG cooperative variants). Cooperative MARL is its own capstone.\n- Population-based training at scale. PSRO + PBT are mentioned but not implemented end-to-end.\n- Real applications (poker, StarCraft) — too much engineering scaffolding.",
+  "contentGrad": "## Notes for the experienced\n\nIf you've worked in RL professionally, the value of this capstone is the **game-theoretic structure**. Most RL practitioners run PPO without thinking about what equilibrium they're converging to (or whether one exists). This capstone forces that question.\n\nLikely places to over-engineer:\n\n- Trying to make PPO converge in pure self-play in cooperative settings. Don't — it's a research-frontier problem.\n- Spending time on hyperparameter sweeps. The capstone rewards understanding convergence theory + diagnostics, not Pareto-front PPO.\n- Implementing PSRO. Mentioned in milestone 4 but optional; full implementation is a separate sprint.\n\nThe rubric specifically rewards: clear theoretical connection, careful diagnostics, honest failure-mode reporting.\n\n## Variants\n\n- **Pure-tabular variant**: only milestones 1-2 + a writeup contrasting fictitious play, multiplicative weights, and no-regret learning. 2-3 weeks.\n- **Cooperative-MARL variant**: replace milestones 3-4 with QMIX + MAPPO on cooperative games. Different theoretical lens; same time budget.\n- **CFR-poker variant**: replace milestone 4 with a CFR implementation on Kuhn poker or Leduc hold'em. Stronger connection to imperfect-information game theory.",
+  "prerequisiteWikiSlugs": [
+    "nash-equilibrium",
+    "mixed-strategy",
+    "zero-sum",
+    "minimax",
+    "policy-gradient",
+    "actor-critic",
+    "ppo",
+    "multi-agent-rl",
+    "self-play"
+  ],
+  "tags": ["game-theory", "multi-agent", "reinforcement-learning", "self-play"],
+  "milestones": [
+    {
+      "order": 1,
+      "title": "Tabular Nash + LP equilibrium solver",
+      "description": "Implement linear-programming-based Nash equilibrium solving for two-player zero-sum games. Test on rock-paper-scissors (uniform mixed Nash), matching pennies, and one custom 3x3 game with a non-uniform mixed equilibrium.\n\nAlso implement fictitious play (best-respond to empirical opponent history) and verify it converges in time-average to the LP equilibrium. Report the time to convergence + plot the empirical strategy distributions over iterations.\n\n**Deliverables**: code in a single file/module + a `tabular.md` writeup + plots showing fictitious-play convergence vs LP solution.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"lp-correctness\",\"weight\":0.4,\"description\":\"LP solver matches known solutions\",\"aiPrompt\":\"Score 0-1. Does the LP solver produce correct mixed Nash equilibria for the test games? Match analytic solutions for RPS + matching pennies?\"},{\"id\":\"fictitious-play-convergence\",\"weight\":0.3,\"description\":\"Fictitious play converges + matches LP\",\"aiPrompt\":\"Score 0-1. Does fictitious play time-average converge to the LP equilibrium? Are convergence rates plotted + discussed?\"},{\"id\":\"writeup-clarity\",\"weight\":0.3,\"description\":\"Writeup explains the theory + diagnostics\",\"aiPrompt\":\"Score 0-1. Does the writeup explain why fictitious play converges + what 'time-average' means? Are pointwise vs time-average dynamics distinguished?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 5
+    },
+    {
+      "order": 2,
+      "title": "REINFORCE with self-play on a 2-player matrix game",
+      "description": "Implement REINFORCE with self-play on a 2-player zero-sum matrix game (matching pennies + a 3x3 game with mixed Nash). Track convergence: distance from current policy to Nash, time-average policy, regret over time.\n\nReport: does pure REINFORCE self-play converge pointwise (typically not), does the time-average converge (typically yes), and what's the variance + cycling pattern?\n\n**Deliverables**: REINFORCE implementation + a `reinforce.md` writeup + plots showing pointwise vs time-average convergence + cycling diagnostic.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"reinforce-correctness\",\"weight\":0.4,\"description\":\"REINFORCE implementation correct\",\"aiPrompt\":\"Score 0-1. Is REINFORCE correctly implemented (advantage baseline, no off-policy bias)? Does it learn at all in single-agent variants?\"},{\"id\":\"convergence-diagnostics\",\"weight\":0.3,\"description\":\"Pointwise vs time-average diagnosed\",\"aiPrompt\":\"Score 0-1. Does the report distinguish pointwise from time-average convergence? Are cycling patterns plotted?\"},{\"id\":\"theory-connection\",\"weight\":0.3,\"description\":\"Connected to game-theoretic theory\",\"aiPrompt\":\"Score 0-1. Does the writeup connect REINFORCE-self-play to fictitious play + no-regret learning? Are the theoretical guarantees discussed honestly?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "order": 3,
+      "title": "A2C self-play on a stochastic game",
+      "description": "Move from one-shot matrix games to a sequential stochastic game (e.g., a small grid-world with two competing agents). Implement A2C with shared-network actor-critic. Use self-play. Diagnose convergence: does the policy stabilize? Is there a clear equilibrium it's approaching?\n\nFor a non-trivial stochastic game (10x10 grid with two agents, simple rules), compute the empirical exploitability (best response of a frozen opponent against the trained agent). Report exploitability over training time.\n\n**Deliverables**: A2C implementation + a `stochastic.md` writeup + exploitability curve over training + side-by-side videos of trained agents vs random + qualitative behavior description.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"a2c-on-stochastic\",\"weight\":0.4,\"description\":\"A2C self-play works on the stochastic game\",\"aiPrompt\":\"Score 0-1. Does A2C produce sensible policies in the stochastic game? Is the training stable? Is there evidence of learning?\"},{\"id\":\"exploitability-measured\",\"weight\":0.3,\"description\":\"Exploitability quantified over time\",\"aiPrompt\":\"Score 0-1. Is exploitability measured by training a best-responder against frozen checkpoints? Is the trend reported (decreasing, oscillating)?\"},{\"id\":\"failure-modes\",\"weight\":0.3,\"description\":\"Failure modes documented\",\"aiPrompt\":\"Score 0-1. Are failure modes (cycling, distributional collapse, catastrophic forgetting) discussed if they occurred?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 10
+    },
+    {
+      "order": 4,
+      "title": "PPO + opponent modeling on a Bayesian game + tournament",
+      "description": "Move to a Bayesian game: a game with private types (e.g., a simple poker variant or a Stag Hunt with type uncertainty). Implement PPO + an opponent-model neural network that predicts opponent type from observable behavior.\n\nRun a tournament: PPO + opponent modeling vs PPO without opponent modeling vs random vs fictitious-play-based agent. Report win rates + convergence properties.\n\nOptional bonus: implement a small PSRO (Policy Space Response Oracles) loop — train a population of best-responders against a meta-game empirical mixture. Report whether PSRO improves over plain self-play.\n\n**Deliverables**: PPO + opponent-modeling code + a `tournament.md` writeup + tournament results table + final report defending which approach worked best + why.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"ppo-opponent-modeling\",\"weight\":0.3,\"description\":\"PPO + opponent modeling implemented correctly\",\"aiPrompt\":\"Score 0-1. Is the opponent-model architecture sensible? Does it actually learn to predict opponent types? Does PPO use it correctly?\"},{\"id\":\"tournament-rigor\",\"weight\":0.3,\"description\":\"Tournament has enough trials + statistical reporting\",\"aiPrompt\":\"Score 0-1. Are at least 1000+ games run per matchup? Are confidence intervals reported? Are the matchup choices defensible?\"},{\"id\":\"theoretical-discussion\",\"weight\":0.2,\"description\":\"Connects results to game theory\",\"aiPrompt\":\"Score 0-1. Does the writeup connect tournament results to Bayesian Nash equilibrium concepts? Discusses what the tournament does and doesn't tell us?\"},{\"id\":\"final-defense\",\"weight\":0.2,\"description\":\"Final defense of approach choice\",\"aiPrompt\":\"Score 0-1. Does the writeup defend the chosen approach + acknowledge limitations? Is failure-mode analysis honest?\"}],\"passingScore\":0.6,\"notes\":\"This is the integration milestone. Reward rigor + theoretical clarity over raw win rate.\"}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 12
+    }
+  ]
+}

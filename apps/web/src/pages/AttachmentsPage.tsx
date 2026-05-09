@@ -7,6 +7,7 @@ import {
   type AttachmentRow,
 } from "../lib/uploads";
 import { useAuthStore } from "../stores/auth";
+import { toast } from "../stores/toast";
 
 const QUOTA_BYTES = 200 * 1024 * 1024;
 
@@ -26,7 +27,6 @@ export function AttachmentsPage() {
   const { user, loading: authLoading } = useAuthStore();
   const navigate = useNavigate();
   const [rows, setRows] = useState<AttachmentRow[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -38,7 +38,10 @@ export function AttachmentsPage() {
     }
     listAttachments()
       .then(setRows)
-      .catch((e) => setError(e?.message ?? "Failed to load"));
+      .catch((e) => {
+        setRows([]);
+        toast.error(e?.message ?? "Failed to load attachments");
+      });
   }, [user, authLoading, navigate]);
 
   const onDelete = async (id: string) => {
@@ -47,8 +50,9 @@ export function AttachmentsPage() {
     try {
       await deleteAttachment(id);
       setRows((cur) => (cur ?? []).filter((r) => r.id !== id));
+      toast.success("Attachment deleted");
     } catch (e: any) {
-      alert(e?.message ?? "Delete failed");
+      toast.error(e?.message ?? "Delete failed");
     } finally {
       setBusyId(null);
     }
@@ -98,12 +102,6 @@ export function AttachmentsPage() {
           />
         </div>
       </div>
-
-      {error && (
-        <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
-          {error}
-        </div>
-      )}
 
       {rows === null ? (
         <div className="space-y-2">

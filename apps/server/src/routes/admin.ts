@@ -31,6 +31,7 @@ import {
 } from "../lib/searchIndex";
 import { approveProposal, rejectProposal } from "../lib/approvals";
 import { getCounters, getRecentErrors } from "../lib/errorSampler";
+import { rateLimits } from "./ai";
 import type { Env } from "../env";
 
 export const adminRouter = new Hono<Env>();
@@ -62,6 +63,29 @@ adminRouter.get("/error-stats", requireAdmin, async (c) => {
     counters: getCounters(),
     recent: getRecentErrors(limit),
   });
+});
+
+// Sprint 64d — rate-limit dashboard. Returns the in-memory rateLimits
+// map as a snapshot, sorted by rejection count descending. Lets ops
+// see who's hammering the AI endpoints without grep'ing logs.
+adminRouter.get("/rate-limits", requireAdmin, async (c) => {
+  const now = Date.now();
+  const entries: Array<{
+    key: string;
+    count: number;
+    rejected: number;
+    resetInMs: number;
+  }> = [];
+  for (const [key, v] of rateLimits.entries()) {
+    entries.push({
+      key,
+      count: v.count,
+      rejected: v.rejected ?? 0,
+      resetInMs: Math.max(0, v.resetAt - now),
+    });
+  }
+  entries.sort((a, b) => b.rejected - a.rejected);
+  return c.json({ entries: entries.slice(0, 50) });
 });
 
 // --- Sprint 52: Content proposal queue ------------------------------

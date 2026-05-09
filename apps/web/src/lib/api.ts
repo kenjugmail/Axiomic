@@ -1100,6 +1100,51 @@ export const api = {
     portfolio: (username: string) =>
       request<PortfolioResponse>(`/users/${encodeURIComponent(username)}/portfolio`),
   },
+  // Sprint 64c — mentor relationship API. The schema landed in S43;
+  // this is the first frontend surface that touches it.
+  mentors: {
+    list: () =>
+      request<{
+        mentors: Array<{
+          username: string;
+          displayName: string | null;
+          menteeCount: number;
+        }>;
+      }>("/mentors"),
+    me: () =>
+      request<{
+        asMentee: Array<{
+          id: string;
+          mentorId: string;
+          mentorUsername: string;
+          status: "pending" | "accepted" | "declined" | "ended";
+          scope: string;
+          requestedAt: string;
+          respondedAt: string | null;
+        }>;
+        asMentor: Array<{
+          id: string;
+          menteeId: string;
+          menteeUsername: string;
+          status: "pending" | "accepted" | "declined" | "ended";
+          scope: string;
+          requestedAt: string;
+          respondedAt: string | null;
+        }>;
+      }>("/mentors/me"),
+    request: (mentorUsername: string, scope: string) =>
+      request<{ id: string }>("/mentors/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mentorUsername, scope }),
+      }),
+    respond: (id: string, status: "accepted" | "declined" | "ended") =>
+      request<OkResponse>(`/mentors/${id}/respond`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      }),
+  },
   me: {
     weakConcepts: () => request<WeakConceptsResponse>("/me/weak-concepts"),
     refreshWeakConcepts: () =>

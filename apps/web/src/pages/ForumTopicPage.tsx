@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Network } from "lucide-react";
 import {
@@ -10,6 +10,7 @@ import {
 import type { ForumPoll, NewsReactionKind } from "@axiomic/types";
 import { useAuthStore } from "../stores/auth";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
+import { TutorMount } from "../components/ai/TutorMount";
 import { RelatedRail } from "../components/cross/RelatedRail";
 import { RichComposer } from "../components/composer/RichComposer";
 import { PostTypeBadge } from "../components/PostTypeBadge";
@@ -23,6 +24,8 @@ export function ForumTopicPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reply, setReply] = useState("");
+  // Sprint 63h — root for the selection-to-chat popover.
+  const threadBodyRef = useRef<HTMLDivElement | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [summary, setSummary] = useState<string>("");
   const [summarizing, setSummarizing] = useState(false);
@@ -131,7 +134,7 @@ export function ForumTopicPage() {
   ) >= 3;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+    <div ref={threadBodyRef} className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
       <Link
         to="/forum"
         className="text-xs text-muted-foreground hover:text-foreground"
@@ -338,6 +341,15 @@ export function ForumTopicPage() {
           </div>
         )}
       </div>
+
+      {/* Sprint 63h — AI tutor mount: floating button + sidebar +
+          selection-to-chat for any post body. */}
+      <TutorMount
+        pageSlug={topic.slug}
+        pageTitle={topic.title}
+        tier="forum"
+        articleRef={threadBodyRef}
+      />
     </div>
   );
 }

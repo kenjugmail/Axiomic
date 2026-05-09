@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Hammer, Clock } from "lucide-react";
+import { Hammer, Clock, Search as SearchIcon } from "lucide-react";
 import { api } from "../lib/api";
+import { EmptyState } from "../components/ui/EmptyState";
 import type {
   SearchCapstoneBuildHit,
   SearchResultItem,
@@ -127,7 +128,19 @@ export function SearchPage() {
           </p>
         )}
         {query && !loading && filtered.length === 0 && (
-          <p className="text-sm text-muted-foreground">No matches for "{query}".</p>
+          <EmptyState
+            icon={SearchIcon}
+            title={`No matches for "${query}"`}
+            description="Try fewer or paraphrased terms. The Knowledge Navigator regroups results by intent — useful when keywords miss."
+            cta={
+              <Link
+                to={`/search?q=${encodeURIComponent(query)}&navigator=1`}
+                className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+              >
+                Try the navigator →
+              </Link>
+            }
+          />
         )}
         {filter !== "topics" && pages.length > 0 && (
           <section>

@@ -667,6 +667,273 @@ For learners interested in cross-domain ML: comp-bio is one of the highest-lever
 
 This is the fourth and final new mastery path of the S55-S58 batch. From [systems engineer](/news/systems-engineer-path-launch) through [RL foundations](/news/rl-foundations-path-launch) to [multimodal](/news/multimodal-path-launch) and now comp-bio, the platform has 7 mastery paths covering the modern ML practitioner's toolkit end-to-end.`,
     },
+    {
+      slug: "applied-stats-path-launch",
+      title: "Applied Statistics path: the substrate ML evaluation actually needs",
+      summary:
+        "A new mastery path covering the production-statistics toolkit: hypothesis testing, A/B experiments, sequential analysis, calibration, fairness. The discipline that separates ML papers that replicate from those that don't.",
+      coverEmoji: "📊",
+      accentColor: "sky",
+      authorId: aliceId,
+      body: `Most ML failures in production aren't from bad models. They're from sloppy evaluation. The new [applied-statistician path](/paths/applied-statistician) covers the production-statistics toolkit that makes ML decisions defensible.
+
+## What landed
+
+Eight lessons spanning the frequentist + Bayesian + experiment-design + uncertainty + fairness toolkit:
+
+1. [Frequentist foundations](/paths/applied-statistician/lessons/frequentist-foundations) — sampling distributions, MLE, the bootstrap.
+2. [Hypothesis testing](/paths/applied-statistician/lessons/hypothesis-testing) — p-values, Type I / II errors, multiple-testing correction.
+3. [Bayesian inference](/paths/applied-statistician/lessons/bayesian-inference) — priors, posteriors, MCMC, when to go Bayesian.
+4. [Experiment design](/paths/applied-statistician/lessons/experiment-design) — power analysis, randomization, blocking, stratification.
+5. [A/B testing](/paths/applied-statistician/lessons/ab-testing) — sequential testing, peeking bias, HTE, OEC.
+6. [Causal inference basics](/paths/applied-statistician/lessons/causal-inference-basics) — counterfactuals, RCTs, observational methods.
+7. [Uncertainty quantification](/paths/applied-statistician/lessons/uncertainty-quantification) — calibration, conformal prediction, Bayesian deep learning.
+8. [Bias & fairness](/paths/applied-statistician/lessons/bias-and-fairness) — demographic parity, equalized odds, the impossibility theorem.
+
+Plus 22 new wiki pages — [p-value](/wiki/p-value), [bootstrap](/wiki/bootstrap), [MCMC](/wiki/mcmc), [power analysis](/wiki/power-analysis), [sequential testing](/wiki/sequential-testing), [conformal prediction](/wiki/conformal-prediction), [demographic parity](/wiki/demographic-parity), and 15 more — providing the densest reference cluster on the platform. Six new misconceptions cover the high-impact mistakes (p-value as P(null | data), peeking with Bonferroni, calibration ≠ accuracy, …). A new [applied-statistics forum domain](/forum/stats) gives discussion a home.
+
+## The capstone
+
+[Design and Run a Real A/B Test](/capstones/design-and-run-an-ab-test) (5 weeks): one full A/B-test artifact, defensible against a senior statistician's review.
+
+Five milestones — hypothesis + power analysis → randomization design → sequential-testing protocol → analysis with multiple-testing protection → final decision report. By the end you have a single portfolio piece that demonstrates you can frame a hypothesis, choose an MDE, design randomization, run sequential testing without inflating Type I error, interpret confidence intervals correctly, and defend a production decision.
+
+## Why this path is different
+
+Compared to the seven other paths (ml-engineer, ai-researcher, mathematician, physicist, systems-engineer, reinforcement-learner, multimodal-engineer, comp-biologist), applied-statistician is the most universally applicable. Every ML team needs it. Most teams don't have it.
+
+The mathematician path covers theory; this path covers the production-flavored applications: how to run an A/B test that won't reverse when run longer, how to report calibration alongside accuracy, how to audit fairness without falling for the impossibility theorem. It's where applied stats meets ML evaluation in the wild.
+
+## The evaluation rigor frontier
+
+For the broader picture of where the field is heading, see the new survey paper: [The Evaluation Rigor Frontier 2026](/research/evaluation-rigor-frontier-2026). Where sequential testing, calibration, and fairness have converged, where they haven't, and where the next decade probably lands.`,
+    },
+    {
+      slug: "causality-path-launch",
+      title: "Causality path: from correlation-vs-causation to do-calculus and causal forests",
+      summary:
+        "A new mastery path covering Pearl-style causal inference end-to-end: DAGs, d-separation, do-calculus, RCTs, instrumental variables, mediation, heterogeneous treatment effects, causal discovery. The discipline that turns observational correlations into actionable claims.",
+      coverEmoji: "🔗",
+      accentColor: "violet",
+      authorId: aliceId,
+      body: `Most ML predictions answer the wrong question. \`P(Y | X)\` is correlational; \`P(Y | do(X))\` is causal. They differ whenever there's confounding — almost always in observational data. The new [causal-scientist path](/paths/causal-scientist) covers the discipline that distinguishes them.
+
+## What landed
+
+Nine lessons spanning the modern causal-inference toolkit:
+
+1. [Correlation vs Causation](/paths/causal-scientist/lessons/correlation-vs-causation) — why the slogan matters in production ML.
+2. [Potential Outcomes](/paths/causal-scientist/lessons/potential-outcomes) — Rubin's framework, ATE/ATT, the fundamental problem.
+3. [DAGs and d-Separation](/paths/causal-scientist/lessons/dags-and-d-separation) — Pearl's framework, conditional independencies, the backdoor criterion.
+4. [Do-Calculus](/paths/causal-scientist/lessons/do-calculus) — the do-operator, the three rules, identifiability.
+5. [RCTs and Quasi-Experiments](/paths/causal-scientist/lessons/rcts-and-quasi-experiments) — when to randomize and when you can't.
+6. [Instrumental Variables](/paths/causal-scientist/lessons/instrumental-variables) — 2SLS, the exclusion restriction, LATE.
+7. [Mediation Analysis](/paths/causal-scientist/lessons/mediation-analysis) — direct + indirect effects, identifiability assumptions.
+8. [Heterogeneous Treatment Effects](/paths/causal-scientist/lessons/heterogeneous-treatment-effects) — meta-learners, causal forests, uplift modeling.
+9. [Causal Discovery](/paths/causal-scientist/lessons/causal-discovery) — PC, FCI, NOTEARS, LiNGAM. What can and can't be learned.
+
+Plus 22 new wiki pages — [DAG](/wiki/dag), [d-separation](/wiki/d-separation), [backdoor criterion](/wiki/backdoor-criterion), [do-operator](/wiki/do-operator), [identifiability](/wiki/identifiability), [instrumental variable](/wiki/instrumental-variable), [exclusion restriction](/wiki/exclusion-restriction), [HTE](/wiki/hte), [causal forests](/wiki/causal-forests), [PC algorithm](/wiki/pc-algorithm), [FCI algorithm](/wiki/fci-algorithm), and 11 more — providing dense reference coverage for every concept in the path. Six new misconceptions cover the high-impact mistakes (regression-with-controls is causal, DAG must fit data, IV estimates ATE, randomization fixes everything, mediation is just controlling for the mediator, causal discovery finds truth). A new [causal forum domain](/forum/causal) gives discussion a home.
+
+## The capstone
+
+[Run a Defensible Causal Analysis on Observational Data](/capstones/run-a-causal-analysis) (7 weeks): one full observational causal analysis, defensible against a senior epidemiologist's review.
+
+Six milestones: research question + data audit → DAG + identifying expression → multiple-estimator analysis (regression + IPW + doubly-robust + causal forest) → HTE analysis with multiple-testing protection → sensitivity analysis (E-values, placebo tests) → final defense report. By the end you have one portfolio piece demonstrating you can do real causal inference, not just regression-with-controls.
+
+## Why this path is different
+
+Compared to the [applied-statistician path](/paths/applied-statistician), this path goes deeper into causal-specific methodology. Applied stats has a 'causal inference basics' node; the causal-scientist path is for practitioners who actually need to identify causal effects from observational data and defend the result.
+
+For ML practitioners specifically: the gap between 'my model predicts well' and 'this prediction is causally meaningful' is the entire content of this path. ML accuracy metrics are silent on causality. Causal-aware ML methods (DML, causal forests, meta-learners, causal-aware mech-interp) are what bridge the two. This path covers the foundations + the modern frontier.
+
+## Where the field is going
+
+For the broader picture, see the new survey: [Causal Inference and ML in 2026: The Two Disciplines That Have Started Talking](/research/causal-inference-and-ml-2026). Three convergence trends (DML, causal forests + meta-learners, mech-interp + causal-discovery), 2035 predictions, recommended reading.`,
+    },
+    {
+      slug: "robotics-path-launch",
+      title: "Robotics + Control path: from PID to embodied AI",
+      summary:
+        "A new mastery path covering classical control through modern ML-driven robotics: PID, state-space, Kalman filters, SLAM, motion planning, manipulation, sim-to-real, and end-to-end VLA policies. The other half of the embodied-AI stack.",
+      coverEmoji: "🤖",
+      accentColor: "emerald",
+      authorId: carolId,
+      body: `LLMs handle language; vision models handle images; robotics handles the messy intersection of perception + reasoning + action in the physical world. The 2022-2026 stretch saw foundation models (RT-2, OpenVLA, π-0) bring transformer-scale generalization to robotics. The new [roboticist path](/paths/roboticist) covers everything from PID through the embodied-AI frontier.
+
+## What landed
+
+Nine lessons spanning the modern robotics stack:
+
+1. [Control Foundations](/paths/roboticist/lessons/control-foundations) — PID, feedback loops, stability.
+2. [State-Space Control](/paths/roboticist/lessons/state-space-control) — state-space, linear systems, LQR.
+3. [Estimation & Filtering](/paths/roboticist/lessons/estimation-and-filtering) — Kalman, EKF, particle filters.
+4. [SLAM](/paths/roboticist/lessons/slam) — simultaneous localization + mapping; factor graphs; loop closure.
+5. [Motion Planning](/paths/roboticist/lessons/motion-planning) — RRT, A*, trajectory optimization.
+6. [Manipulation](/paths/roboticist/lessons/manipulation) — forward + inverse kinematics, grasp planning, dexterous manipulation.
+7. [Sim-to-Real](/paths/roboticist/lessons/sim-to-real) — domain randomization, system ID, real-world fine-tuning.
+8. [Learning-Based Control](/paths/roboticist/lessons/learning-based-control) — imitation learning, model-based RL, diffusion policies, VLAs.
+9. [Embodied AI Frontier](/paths/roboticist/lessons/embodied-ai-frontier) — RT-X, OpenVLA, π-0, the foundation-models-for-robotics era.
+
+Plus 22 new wiki pages — [PID control](/wiki/pid-control), [Kalman filter](/wiki/kalman-filter), [SLAM](/wiki/slam), [factor graphs](/wiki/factor-graphs), [RRT](/wiki/rrt), [forward kinematics](/wiki/forward-kinematics), [domain randomization](/wiki/domain-randomization), [diffusion policy](/wiki/diffusion-policy), [VLAs](/wiki/vision-language-action), and 13 more — providing dense reference coverage for every concept in the path. Six new misconceptions cover the high-impact mistakes (PID tuning is just art, Kalman handles everything, SLAM is solved, sim-to-real = wide DR, IL is just supervised learning, VLAs replace classical control). A new [robotics forum domain](/forum/robotics) gives discussion a home.
+
+## The capstone
+
+[Build a Mobile Manipulator](/capstones/build-a-mobile-manipulator) (10 weeks): end-to-end robot system, simulation through hardware (or hardware-in-the-loop).
+
+Seven milestones: robot design + simulation → low-level control + IK → SLAM + estimation → motion planning → perception + grasping → sim-to-real protocol → end-to-end task. By the end you have one full mobile-manipulator artifact: working code, simulation videos, real (or HIL) hardware demos, defended report. Portfolio-worthy.
+
+## Why this path is different
+
+Robotics is the discipline where control + estimation + planning + ML + hardware all interact. Most ML practitioners never touch this — but the embodied-AI revolution (foundation-model VLAs, humanoid platforms, dexterous manipulation) makes it increasingly important.
+
+This path doesn't replace dedicated robotics curricula. It bridges the ML practitioner's perspective with classical robotics: enough theory to read papers + understand systems, enough practice to build something real.
+
+For ML practitioners specifically: this is where 'foundation models do everything' meets 'physics, hardware, and real-time constraints don't care about your transformer.' The hybrid stack (classical control + ML perception + ML high-level reasoning) is the production reality.
+
+## The frontier
+
+For where the field is heading, see the new survey: [The Robotics Frontier in 2026: Foundation Models Meet Classical Control](/research/robotics-frontier-2026). Scaling laws for robotics, hybrid production stacks, persistent gaps in dexterous + long-horizon manipulation, 2030 forecast.
+
+## What's next on the platform
+
+This is the last new mastery path in the S55-S61 batch. The platform now has 11 mastery paths covering ml-engineer, ai-researcher, mathematician, physicist, systems-engineer, reinforcement-learner, multimodal-engineer, comp-biologist, applied-statistician, causal-scientist, and roboticist. End-to-end coverage from foundations through frontier across the modern ML + applied-stats + robotics practitioner's toolkit.`,
+    },
+    {
+      slug: "quantum-engineer-path-launch",
+      title: "Quantum Engineer path: from qubits to NISQ + variational + QML",
+      summary:
+        "A new mastery path covering quantum computing end-to-end: qubits, gates, entanglement, Grover, Shor, error correction, NISQ-era variational methods, and quantum machine learning.",
+      coverEmoji: "⚛️",
+      accentColor: "violet",
+      authorId: aliceId,
+      body: `Quantum computing has been '10 years away' for 50 years. The 2022-2026 stretch may finally be the breakthrough — or another false dawn. Quantum supremacy demonstrated multiple times; fault-tolerant logical qubits emerging; cryptanalytic Shor remains decades away but drives PQC migration NOW. The new [quantum-engineer path](/paths/quantum-engineer) covers the discipline that handles 'when does this become real'.
+
+## What landed
+
+Nine lessons spanning qubits through quantum machine learning:
+
+1. [Quantum Foundations](/paths/quantum-engineer/lessons/quantum-foundations) — qubits, superposition, measurement.
+2. [Quantum Gates](/paths/quantum-engineer/lessons/quantum-gates) — Hadamard, CNOT, universal gate sets, circuits.
+3. [Entanglement](/paths/quantum-engineer/lessons/entanglement) — Bell states, no-cloning theorem, the resource powering advantage.
+4. [Quantum Algorithms](/paths/quantum-engineer/lessons/quantum-algorithms) — Deutsch-Jozsa, QFT, phase estimation.
+5. [Grover's Algorithm](/paths/quantum-engineer/lessons/grover-search) — quadratic speedup for unstructured search.
+6. [Shor's Algorithm](/paths/quantum-engineer/lessons/shor-factoring) — polynomial-time factoring, the cryptanalytic threat.
+7. [Quantum Error Correction](/paths/quantum-engineer/lessons/quantum-error-correction) — surface code, fault-tolerance, magic state distillation.
+8. [NISQ Era + Mitigation](/paths/quantum-engineer/lessons/nisq-era) — current hardware noise, error mitigation, what's possible today.
+9. [Variational Algorithms + QML](/paths/quantum-engineer/lessons/variational-and-qml) — VQE, QAOA, quantum machine learning, the frontier.
+
+Plus 22 new wiki pages — [qubit](/wiki/qubit), [Bloch sphere](/wiki/bloch-sphere), [Hadamard gate](/wiki/hadamard-gate), [CNOT gate](/wiki/cnot-gate), [QFT](/wiki/quantum-fourier-transform), [phase estimation](/wiki/phase-estimation), [Grover's algorithm](/wiki/grover-algorithm), [Shor's algorithm](/wiki/shor-algorithm), [post-quantum cryptography](/wiki/post-quantum-cryptography), [surface code](/wiki/surface-code), [VQE](/wiki/vqe), [QAOA](/wiki/qaoa), and 10 more. Six misconceptions cover the high-impact mistakes (qubit is just a probabilistic bit; quantum tries all paths in parallel; entanglement allows FTL; quantum breaks all cryptography; more qubits = more powerful; QML revolutionizes ML). A new [quantum forum domain](/forum/quantum) gives discussion a home.
+
+## The capstone
+
+[Build and Benchmark a Quantum Algorithm](/capstones/build-and-benchmark-a-quantum-algorithm) (6 weeks): one quantum algorithm taken end-to-end through theory, simulator, real hardware (free tiers available), noise characterization, error mitigation, and honest classical comparison.
+
+Six milestones: theoretical analysis → simulator scaling → real-hardware execution → noise characterization → error mitigation → defended report with classical baseline. The output is a portfolio-worthy artifact demonstrating real quantum-computing engineering, not just textbook knowledge.
+
+## Why this path is different
+
+Compared to the 11 prior paths, the quantum path bridges physics + computer science + complexity theory. The most distinct cross-domain on the platform.
+
+For ML practitioners: quantum machine learning is mostly hype today, but understanding the framework matters. Cryptanalysis (Shor) drives post-quantum-cryptography migration NOW.
+
+For researchers: quantum is one of the few computing frontiers where genuine new physics + algorithms keep emerging.
+
+## The honest 2026 message
+
+For where the field is heading, see the new survey: [The Quantum Computing Frontier in 2026: NISQ to Fault-Tolerance](/research/quantum-frontier-2026). Quantum supremacy demonstrated; quantum advantage on useful problems still elusive; fault-tolerance approaching but not yet here. Realistic 2030-2040 forecast.
+
+## What this completes
+
+The platform now has 12 mastery paths covering ML, foundations, systems, and cross-domain frontiers. End-to-end coverage from first principles through cutting-edge research across the modern computational practitioner's toolkit.`,
+    },
+    {
+      slug: "game-theorist-path-launch",
+      title: "Game Theorist path: from Nash to multi-agent RL + alignment",
+      summary:
+        "A new mastery path covering game theory end-to-end: zero-sum + Nash, sequential + Bayesian games, cooperative + Shapley, mechanism design + auctions, multi-agent RL, and alignment-as-game-theory.",
+      coverEmoji: "♟️",
+      accentColor: "violet",
+      authorId: aliceId,
+      body: `Game theory is the missing connector between three existing paths: reinforcement-learner, ai-researcher, and applied-statistician. Multi-agent RL converges to *what* exactly? Reward hacking is which kind of equilibrium? Alignment is a principal-agent problem at scale. The new [game-theorist path](/paths/game-theorist) supplies the connecting language.
+
+## What landed
+
+Nine lessons spanning zero-sum games through alignment-as-game-theory:
+
+1. [Zero-sum games](/paths/game-theorist/lessons/zero-sum-games) — payoff matrices, minimax theorem, the cleanest case.
+2. [Nash equilibrium](/paths/game-theorist/lessons/nash-equilibrium) — best responses, mixed strategies, Nash's existence theorem.
+3. [Sequential games](/paths/game-theorist/lessons/sequential-games) — extensive form, backward induction, subgame perfection.
+4. [Bayesian games](/paths/game-theorist/lessons/bayesian-games) — incomplete information, types, Harsanyi's transformation.
+5. [Cooperative games](/paths/game-theorist/lessons/cooperative-games) — coalitions, the core, Shapley value (= SHAP for ML).
+6. [Mechanism design](/paths/game-theorist/lessons/mechanism-design) — designing rules so equilibria produce desired outcomes.
+7. [Auction theory](/paths/game-theorist/lessons/auction-theory) — VCG, second-price, online ad auctions.
+8. [Multi-agent RL](/paths/game-theorist/lessons/multi-agent-rl) — self-play, PSRO, league play, and where convergence guarantees apply.
+9. [Alignment as game theory](/paths/game-theorist/lessons/alignment-game-theory) — principal-agent problems, mesa-optimization, mechanism design for AI training.
+
+Plus 13 new wiki pages — [zero-sum](/wiki/zero-sum), [minimax](/wiki/minimax), [Nash equilibrium](/wiki/nash-equilibrium), [mixed strategy](/wiki/mixed-strategy), [extensive form](/wiki/extensive-form), [subgame perfect](/wiki/subgame-perfect), [Bayesian game](/wiki/bayesian-game), [Shapley value](/wiki/shapley-value), [the core](/wiki/core-solution), [mechanism design](/wiki/mechanism-design), [revelation principle](/wiki/revelation-principle), [auction theory](/wiki/auction-theory), [VCG auction](/wiki/vcg-auction), [multi-agent RL](/wiki/multi-agent-rl), [self-play](/wiki/self-play), [principal-agent](/wiki/principal-agent), [incomplete info](/wiki/incomplete-info). Five misconceptions cover the high-impact gaps (Nash ≠ Pareto, dominance is the exception not the rule, VCG ≠ revenue-optimal, MARL self-play ≠ Nash convergence, truthful ≠ collusion-proof). A new [game-theory forum domain](/forum/game-theory) gives discussion a home.
+
+## The capstone
+
+[Build a Multi-Agent RL Tournament](/capstones/build-a-multi-agent-rl-tournament) (4 weeks): a structured progression from tabular Nash + LP solver through REINFORCE self-play, A2C on a stochastic game, and PPO + opponent modeling on a Bayesian game. Each milestone produces working code + a quantitative convergence + cycling diagnostic + a tournament report.
+
+## Why this matters
+
+Compared to the 12 prior paths, the game-theorist path is the **incentives layer** that the rest assume exists. Multi-agent RL makes no sense without [[nash-equilibrium]]. Alignment is a [[mechanism-design]] problem. RLHF is implicit Bayesian persuasion. Reward hacking is Goodhart's law in equilibrium form.
+
+For ML practitioners: this is the missing 5% of theory that makes the rest of the work cohere.
+
+For researchers: the intersection of game theory + alignment is one of the most active areas of AI safety theory.
+
+## The honest 2026 message
+
+For the deep dive on multi-agent RL convergence: [Multi-Agent RL in 2026: Self-Play, PSRO, and the Convergence Question](/research/multi-agent-rl-frontier-2026). Two-player zero-sum is solved; general-sum is engineering-heavy without convergence guarantees; cooperative MARL has strong empirical results via CTDE. Theoretical convergence for general-sum remains open.
+
+## What this completes
+
+The platform now has 13 mastery paths. The game-theorist path is the connector — it bridges reinforcement-learner (multi-agent), ai-researcher (alignment), comp-biologist (evolutionary games), and applied-statistician (mechanism design). End-to-end coverage from first principles through cutting-edge research across the modern computational practitioner's toolkit, including the strategic-interaction half that the rest assume exists.`,
+    },
+    {
+      slug: "algorithms-engineer-path-launch",
+      title: "Algorithms Engineer path: from asymptotic analysis to NP-completeness",
+      summary:
+        "A new mastery path covering CS foundations end-to-end: Big-O, hashing, sorting, trees, graph algorithms, dynamic programming, P vs NP, approximation + randomized algorithms.",
+      coverEmoji: "🧮",
+      accentColor: "amber",
+      authorId: aliceId,
+      body: `Every other path on Axiomic implicitly assumes you can read a complexity bound + know what a hash table is. The new [algorithms-engineer path](/paths/algorithms-engineer) makes that foundation explicit. Universal CS spine for ML engineers, researchers, mathematicians, systems engineers, and anyone else who needs to ship code that scales.
+
+## What landed
+
+Nine lessons spanning asymptotic analysis through approximation algorithms:
+
+1. [Asymptotic analysis](/paths/algorithms-engineer/lessons/asymptotic-analysis) — Big-O, Big-Theta, Big-Omega; the language of scalability.
+2. [Arrays & hashing](/paths/algorithms-engineer/lessons/arrays-and-hashing) — hash tables, collisions, why O(1) is conditional.
+3. [Sorting algorithms](/paths/algorithms-engineer/lessons/sorting-algorithms) — quicksort, mergesort, heapsort, the n log n lower bound.
+4. [Trees & linked structures](/paths/algorithms-engineer/lessons/linked-structures) — BSTs, AVL/red-black, B-trees, tries.
+5. [Graph algorithms](/paths/algorithms-engineer/lessons/graph-algorithms) — BFS, DFS, Dijkstra, A*, MST. The patterns behind GPS + dependency resolvers.
+6. [Dynamic programming](/paths/algorithms-engineer/lessons/dynamic-programming) — optimal substructure, memoization vs tabulation, the algorithm-design pattern that solves what brute-force can't.
+7. [Greedy + divide & conquer](/paths/algorithms-engineer/lessons/greedy-and-divide-conquer) — when greedy works, when divide-and-conquer is the right framing.
+8. [P, NP, and NP-completeness](/paths/algorithms-engineer/lessons/np-complete) — polynomial time, nondeterminism, reductions, intractability.
+9. [Approximation + randomized algorithms](/paths/algorithms-engineer/lessons/approximation-randomized) — when exact is out of reach, what's still provably good.
+
+Plus 14 new wiki pages — [Big-O notation](/wiki/big-o-notation), [hash table](/wiki/hash-table), [hash collisions](/wiki/hash-collisions), [sorting algorithms](/wiki/sorting-algorithms), [quicksort](/wiki/quicksort), [mergesort](/wiki/mergesort), [binary search tree](/wiki/binary-search-tree), [balanced tree](/wiki/balanced-tree), [graph traversal](/wiki/graph-traversal), [shortest path](/wiki/shortest-path), [dynamic programming](/wiki/dynamic-programming), [P vs NP](/wiki/p-vs-np), [NP-completeness](/wiki/np-completeness), [approximation algorithms](/wiki/approximation-algorithms), [randomized algorithms](/wiki/randomized-algorithms). Five misconceptions cover the high-impact gaps (Big-O is exact, hash tables are always O(1), greedy always works, NP means non-polynomial, randomized is just heuristic). A new [algorithms forum domain](/forum/algorithms) gives discussion a home.
+
+## The capstone
+
+[Build a Production Search Engine](/capstones/build-a-production-search-engine) (4 weeks): from inverted index + tokenizer through ranking + caching + scaling — exercising every algorithmic primitive. Deliverables: working search engine, latency benchmarks, ablation report.
+
+## Why this matters
+
+Compared to the 13 prior paths, the algorithms-engineer path is the **CS foundations** layer that the rest assume. ML engineers tune hyperparameters on algorithms they don't understand the complexity of; systems engineers design distributed systems on top of network protocols whose graph-algorithm core they've forgotten; mathematicians prove convergence rates without grounding them in computational complexity.
+
+For interview prep: this path covers ~85% of what a typical algorithms interview assesses.
+
+For practitioners: this path is the difference between "my code works" and "my code works at scale."
+
+## What this completes
+
+The platform now has 14 mastery paths. End-to-end coverage from first principles (algorithms, math, physics) through specialized engineering (ML, systems, multimodal, robotics, quantum, comp-bio) through emerging domains (game theory, causality, applied statistics, RL). The CS-foundations spine is now in place.`,
+    },
   ];
 
   for (const a of articles) {
@@ -1008,6 +1275,133 @@ function seedMasteryPaths() {
       { slug: "bio-ml-evaluation", title: "Bio-ML Evaluation", level: "expert", order: 9, pages: ["casp"], prereqs: ["alphafold", "protein-language-models"], description: "CASP, contamination, leakage. How bio-ML benchmarks stay (or fail to stay) honest." },
     ],
   });
+
+  // Sprint 59 — Applied Statistics. Distinct from the mathematician
+  // path: production-flavored statistics, A/B testing, evaluation
+  // rigor, fairness. The substrate every ML team eventually needs.
+  seedMasteryPath({
+    slug: "applied-statistician",
+    title: "Applied Statistician",
+    description:
+      "Production-flavored statistics: hypothesis testing, A/B experiments, uncertainty quantification, fairness. The substrate ML evaluation actually needs.",
+    nodes: [
+      { slug: "frequentist-foundations", title: "Frequentist Foundations", level: "apprentice", order: 1, pages: ["sampling-distribution", "bootstrap", "mle"], prereqs: [], description: "Sampling distributions, MLE, the bootstrap. The frequentist worldview." },
+      { slug: "hypothesis-testing", title: "Hypothesis Testing", level: "apprentice", order: 2, pages: ["p-value", "type-i-ii-errors", "multiple-testing"], prereqs: ["frequentist-foundations"], description: "Null hypotheses, p-values, multiple testing correction. The standard inferential toolkit." },
+      { slug: "bayesian-inference", title: "Bayesian Inference", level: "practitioner", order: 3, pages: ["prior-likelihood-posterior", "mcmc", "credible-interval"], prereqs: ["frequentist-foundations"], description: "Priors, posteriors, credible intervals, MCMC. When and why to go Bayesian." },
+      { slug: "experiment-design", title: "Experiment Design", level: "practitioner", order: 4, pages: ["power-analysis", "randomization", "blocking-stratification"], prereqs: ["hypothesis-testing"], description: "Power analysis, randomization, blocking. Designing experiments that actually answer the question." },
+      { slug: "ab-testing", title: "A/B Testing", level: "specialist", order: 5, pages: ["ab-test", "sequential-testing", "peeking-bias"], prereqs: ["experiment-design"], description: "Online experiments, sequential testing, the peeking problem. Production A/B at scale." },
+      { slug: "causal-inference-basics", title: "Causal Inference Basics", level: "specialist", order: 6, pages: ["counterfactual", "rct"], prereqs: ["experiment-design"], description: "Counterfactuals, RCTs, the gap between correlation and cause. Bridges to the causality path." },
+      { slug: "uncertainty-quantification", title: "Uncertainty Quantification", level: "expert", order: 7, pages: ["calibration", "conformal-prediction", "prediction-interval"], prereqs: ["bayesian-inference"], description: "Calibration, conformal prediction, prediction intervals. ML systems that know what they don't know." },
+      { slug: "bias-and-fairness", title: "Bias & Fairness", level: "expert", order: 8, pages: ["demographic-parity", "fairness-accuracy-frontier"], prereqs: ["uncertainty-quantification"], description: "Demographic parity, equalized odds, the fairness-accuracy trade-off. The applied side of ML ethics." },
+    ],
+  });
+
+  // Sprint 60 — Causality. Pearl-style structural causal models, DAGs,
+  // do-calculus, instrumental variables. Goes deeper than the
+  // applied-stats causal-inference-basics node, which is intentional —
+  // most ML practitioners hit causal-inference once and bounce; this
+  // path is for the ones who need to actually do it.
+  seedMasteryPath({
+    slug: "causal-scientist",
+    title: "Causal Scientist",
+    description:
+      "Pearl-style causal inference: DAGs, do-calculus, counterfactuals, instrumental variables, mediation, heterogeneous effects. The discipline that turns correlations into actionable claims.",
+    nodes: [
+      { slug: "correlation-vs-causation", title: "Correlation vs Causation", level: "apprentice", order: 1, pages: ["correlation-vs-causation", "spurious-correlation", "simpson-paradox"], prereqs: [], description: "Why 'correlation does not imply causation' is more than a slogan. Simpson's paradox, confounders, the failure modes of naive prediction." },
+      { slug: "potential-outcomes", title: "Potential Outcomes Framework", level: "apprentice", order: 2, pages: ["potential-outcomes", "ate-att", "treatment-assignment"], prereqs: ["correlation-vs-causation"], description: "Rubin's Y(0)/Y(1) framework, ATE, ATT, the fundamental problem of causal inference. The vocabulary every causal-inference paper uses." },
+      { slug: "dags-and-d-separation", title: "DAGs and d-Separation", level: "practitioner", order: 3, pages: ["dag", "d-separation", "backdoor-criterion"], prereqs: ["correlation-vs-causation"], description: "Directed acyclic graphs as causal models. d-separation, backdoor paths, and how DAGs let you read off conditional independencies." },
+      { slug: "do-calculus", title: "Do-Calculus", level: "practitioner", order: 4, pages: ["do-operator", "do-calculus-rules", "identifiability"], prereqs: ["dags-and-d-separation"], description: "Pearl's do-operator, the three rules of do-calculus, identifiability. Going from observational data to interventional claims." },
+      { slug: "rcts-and-quasi-experiments", title: "RCTs & Quasi-Experiments", level: "practitioner", order: 5, pages: ["rct-design", "natural-experiment", "regression-discontinuity"], prereqs: ["potential-outcomes"], description: "Randomization as the gold standard. When you can't randomize: regression discontinuity, difference-in-differences, natural experiments." },
+      { slug: "instrumental-variables", title: "Instrumental Variables", level: "specialist", order: 6, pages: ["instrumental-variable", "two-stage-least-squares", "exclusion-restriction"], prereqs: ["do-calculus", "rcts-and-quasi-experiments"], description: "Estimating causal effects when the treatment is endogenous. 2SLS, exclusion restriction, the LATE." },
+      { slug: "mediation-analysis", title: "Mediation Analysis", level: "specialist", order: 7, pages: ["mediation", "direct-indirect-effects", "mediation-assumptions"], prereqs: ["do-calculus"], description: "Decomposing a causal effect into direct + indirect paths. The natural-direct/natural-indirect framework." },
+      { slug: "heterogeneous-treatment-effects", title: "Heterogeneous Treatment Effects", level: "specialist", order: 8, pages: ["hte", "causal-forests", "uplift-modeling"], prereqs: ["potential-outcomes"], description: "Effects that vary across the population. Causal forests, meta-learners, uplift modeling. Where ML and causal inference meet." },
+      { slug: "causal-discovery", title: "Causal Discovery", level: "expert", order: 9, pages: ["causal-discovery", "pc-algorithm", "fci-algorithm"], prereqs: ["dags-and-d-separation"], description: "Learning causal structure from data. PC, FCI, score-based methods. The hardest problem in the field; how far it can go and where it can't." },
+    ],
+  });
+
+  // Sprint 61 — Robotics + Control. Classical control through modern
+  // ML-driven robotics. The other half of the embodied-AI stack.
+  // Cross-references RL via cross-path prereqs.
+  seedMasteryPath({
+    slug: "roboticist",
+    title: "Roboticist",
+    description:
+      "From classical control to modern ML-driven robotics: PID, state-space, Kalman filters, SLAM, motion planning, manipulation, sim-to-real, and end-to-end policies.",
+    nodes: [
+      { slug: "control-foundations", title: "Control Foundations", level: "apprentice", order: 1, pages: ["pid-control", "feedback-loops", "stability"], prereqs: [], description: "PID controllers, feedback loops, stability analysis. The substrate of every control system." },
+      { slug: "state-space-control", title: "State-Space Control", level: "apprentice", order: 2, pages: ["state-space", "linear-systems", "lqr"], prereqs: ["control-foundations"], description: "State-space representations, linear systems, LQR. The modern formalism for control." },
+      { slug: "estimation-and-filtering", title: "Estimation & Filtering", level: "practitioner", order: 3, pages: ["kalman-filter", "extended-kalman-filter", "particle-filter"], prereqs: ["state-space-control"], description: "Kalman, EKF, particle filters. How robots reason about state under sensor noise." },
+      { slug: "slam", title: "SLAM", level: "practitioner", order: 4, pages: ["slam", "loop-closure", "factor-graphs"], prereqs: ["estimation-and-filtering"], description: "Simultaneous localization and mapping. From EKF-SLAM to factor-graph methods to ORB-SLAM." },
+      { slug: "motion-planning", title: "Motion Planning", level: "specialist", order: 5, pages: ["motion-planning", "rrt", "a-star"], prereqs: ["state-space-control"], description: "Sampling-based (RRT, RRT*), search-based (A*), trajectory optimization. Getting from A to B without hitting things." },
+      { slug: "manipulation", title: "Manipulation", level: "specialist", order: 6, pages: ["forward-kinematics", "inverse-kinematics", "grasp-planning"], prereqs: ["motion-planning"], description: "Forward / inverse kinematics, grasp planning, dexterous manipulation. The hand-eye coordination problem." },
+      { slug: "sim-to-real", title: "Sim-to-Real", level: "specialist", order: 7, pages: ["sim-to-real", "domain-randomization", "system-identification"], prereqs: ["motion-planning"], description: "Training in simulation; deploying on hardware. Domain randomization, system ID, the reality gap." },
+      { slug: "learning-based-control", title: "Learning-Based Control", level: "expert", order: 8, pages: ["model-based-rl-robotics", "imitation-learning", "diffusion-policy"], prereqs: ["sim-to-real"], description: "Model-based RL, behavior cloning, diffusion policies, transformer policies. Where ML meets control." },
+      { slug: "embodied-ai-frontier", title: "Embodied AI Frontier", level: "expert", order: 9, pages: ["foundation-models-robotics", "vision-language-action", "real-world-deployment"], prereqs: ["learning-based-control"], description: "RT-2, OpenVLA, π-0, the foundation-models-for-robotics era. End-to-end policies + the deployment realities." },
+    ],
+  });
+
+  // Sprint 62 — Quantum Engineer. Qubits through variational
+  // algorithms + QML. Differentiated cross-domain: ML × quantum.
+  seedMasteryPath({
+    slug: "quantum-engineer",
+    title: "Quantum Engineer",
+    description:
+      "From qubits + superposition to Shor's algorithm, error correction, NISQ-era variational methods, and quantum machine learning. The other side of the computational frontier.",
+    nodes: [
+      { slug: "quantum-foundations", title: "Quantum Foundations", level: "apprentice", order: 1, pages: ["qubit", "quantum-superposition", "bloch-sphere"], prereqs: [], description: "Qubits, superposition, measurement. The quantum substrate every algorithm builds on." },
+      { slug: "quantum-gates", title: "Quantum Gates and Circuits", level: "apprentice", order: 2, pages: ["quantum-gates", "hadamard-gate", "cnot-gate"], prereqs: ["quantum-foundations"], description: "Single-qubit + two-qubit gates, universal gate sets, quantum circuits. The lego pieces of quantum computation." },
+      { slug: "entanglement", title: "Entanglement and Bell States", level: "practitioner", order: 3, pages: ["entanglement", "bell-states", "no-cloning-theorem"], prereqs: ["quantum-gates"], description: "Bell states, entanglement, the no-cloning theorem. The non-classical resource powering quantum advantage." },
+      { slug: "quantum-algorithms", title: "Quantum Algorithms (Foundations)", level: "practitioner", order: 4, pages: ["deutsch-jozsa", "quantum-fourier-transform", "phase-estimation"], prereqs: ["entanglement"], description: "Deutsch-Jozsa, QFT, phase estimation. The building blocks behind every famous quantum algorithm." },
+      { slug: "grover-search", title: "Grover's Algorithm", level: "specialist", order: 5, pages: ["grover-algorithm", "amplitude-amplification"], prereqs: ["quantum-algorithms"], description: "Quadratic speedup for unstructured search. Amplitude amplification as the underlying primitive." },
+      { slug: "shor-factoring", title: "Shor's Algorithm", level: "specialist", order: 6, pages: ["shor-algorithm", "post-quantum-cryptography"], prereqs: ["quantum-algorithms"], description: "Polynomial-time factoring on a quantum computer. The result that motivated post-quantum cryptography." },
+      { slug: "quantum-error-correction", title: "Quantum Error Correction", level: "specialist", order: 7, pages: ["quantum-error-correction", "surface-code"], prereqs: ["entanglement"], description: "Stabilizer codes, surface code, fault-tolerant computation. How to compute despite noise." },
+      { slug: "nisq-era", title: "NISQ Era + Error Mitigation", level: "expert", order: 8, pages: ["nisq", "decoherence", "error-mitigation"], prereqs: ["quantum-error-correction"], description: "Noisy intermediate-scale quantum: hardware noise, decoherence, mitigation techniques. The current reality." },
+      { slug: "variational-and-qml", title: "Variational Algorithms + QML", level: "expert", order: 9, pages: ["vqe", "qaoa", "quantum-machine-learning", "quantum-advantage"], prereqs: ["nisq-era"], description: "VQE, QAOA, parameterized circuits, quantum machine learning. The frontier of useful quantum computation." },
+    ],
+  });
+
+  // Sprint 67e — Algorithms & Data Structures path. The CS-foundations
+  // layer that every other path implicitly assumes. Universally useful;
+  // missing from the platform until S67.
+  seedMasteryPath({
+    slug: "algorithms-engineer",
+    title: "Algorithms Engineer",
+    description:
+      "From asymptotic analysis through P vs NP. The CS-foundations spine of every engineering discipline — sorting, hashing, graphs, dynamic programming, complexity theory, and the algorithms that ship in real production systems.",
+    nodes: [
+      { slug: "asymptotic-analysis", title: "Asymptotic Analysis", level: "apprentice", order: 1, pages: ["big-o-notation", "complexity-classes"], prereqs: [], description: "Big-O, Big-Theta, Big-Omega. The vocabulary for talking about algorithm scalability." },
+      { slug: "arrays-and-hashing", title: "Arrays & Hashing", level: "apprentice", order: 2, pages: ["hash-table", "hash-collisions"], prereqs: ["asymptotic-analysis"], description: "Hash tables, collisions, load factors. Why O(1) lookups are conditional." },
+      { slug: "sorting-algorithms", title: "Sorting Algorithms", level: "practitioner", order: 3, pages: ["sorting-algorithms", "quicksort", "mergesort"], prereqs: ["asymptotic-analysis"], description: "Quicksort, mergesort, heapsort, the n log n lower bound for comparison sorts. When linear-time radix sort applies." },
+      { slug: "linked-structures", title: "Trees & Linked Structures", level: "practitioner", order: 4, pages: ["binary-search-tree", "balanced-tree", "trie"], prereqs: ["sorting-algorithms"], description: "BSTs, AVL/red-black, B-trees, tries. Why balance matters for guaranteed log-n operations." },
+      { slug: "graph-algorithms", title: "Graph Algorithms", level: "practitioner", order: 5, pages: ["graph-traversal", "shortest-path", "minimum-spanning-tree"], prereqs: ["linked-structures"], description: "BFS, DFS, Dijkstra, A*, Kruskal/Prim. The patterns behind GPS, network protocols, dependency resolvers." },
+      { slug: "dynamic-programming", title: "Dynamic Programming", level: "specialist", order: 6, pages: ["dynamic-programming", "memoization-vs-tabulation", "bellman-ford"], prereqs: ["graph-algorithms"], description: "Optimal substructure, overlapping subproblems, memoization vs tabulation. The algorithm-design pattern that solves problems brute-force search can't." },
+      { slug: "greedy-and-divide-conquer", title: "Greedy + Divide & Conquer", level: "specialist", order: 7, pages: ["greedy-algorithms", "divide-and-conquer"], prereqs: ["dynamic-programming"], description: "When greedy works (matroids, exchange arguments) and when it doesn't. When divide-and-conquer is the right framing (Strassen, Karatsuba)." },
+      { slug: "np-complete", title: "P, NP, and NP-Completeness", level: "expert", order: 8, pages: ["p-vs-np", "np-completeness", "reductions"], prereqs: ["dynamic-programming"], description: "Polynomial-time, nondeterminism, reductions, NP-completeness. Why some problems are intractable and what that means in practice." },
+      { slug: "approximation-randomized", title: "Approximation + Randomized Algorithms", level: "expert", order: 9, pages: ["approximation-algorithms", "randomized-algorithms"], prereqs: ["np-complete"], description: "When exact solutions are out of reach: approximation algorithms with provable bounds + randomized algorithms (Las Vegas, Monte Carlo) that trade certainty for speed." },
+    ],
+  });
+
+  // Sprint 66e — Game Theory + Mechanism Design path. Bridges
+  // reinforcement-learner (multi-agent, self-play), ai-researcher
+  // (alignment, mesa-optimization), and comp-biologist (evolutionary
+  // games). The "incentives" half of modern AI.
+  seedMasteryPath({
+    slug: "game-theorist",
+    title: "Game Theorist",
+    description:
+      "From Nash equilibria + auctions through multi-agent RL + alignment. The strategic-interaction half of modern AI.",
+    nodes: [
+      { slug: "zero-sum-games", title: "Zero-Sum Games & Minimax", level: "apprentice", order: 1, pages: ["zero-sum", "minimax"], prereqs: [], description: "Two-player zero-sum, payoff matrices, the minimax theorem. Where game theory historically starts." },
+      { slug: "nash-equilibrium", title: "Nash Equilibrium", level: "apprentice", order: 2, pages: ["nash-equilibrium", "mixed-strategy"], prereqs: ["zero-sum-games"], description: "Best response, mixed strategies, the existence theorem. The central solution concept." },
+      { slug: "sequential-games", title: "Sequential Games", level: "practitioner", order: 3, pages: ["extensive-form", "subgame-perfect"], prereqs: ["nash-equilibrium"], description: "Game trees, backward induction, subgame perfection. When timing matters." },
+      { slug: "bayesian-games", title: "Bayesian Games", level: "practitioner", order: 4, pages: ["bayesian-game", "incomplete-info"], prereqs: ["nash-equilibrium"], description: "Type spaces, Bayesian Nash equilibrium. Strategic interaction under uncertainty about opponents." },
+      { slug: "cooperative-games", title: "Cooperative Games & Shapley", level: "specialist", order: 5, pages: ["shapley-value", "core-solution"], prereqs: ["nash-equilibrium"], description: "Coalitions, the core, Shapley value. Fair division when binding agreements are possible." },
+      { slug: "mechanism-design", title: "Mechanism Design", level: "specialist", order: 6, pages: ["mechanism-design", "revelation-principle"], prereqs: ["bayesian-games"], description: "Truthful mechanisms, the revelation principle, incentive compatibility. Designing rules so equilibria produce what you want." },
+      { slug: "auction-theory", title: "Auction Theory", level: "specialist", order: 7, pages: ["auction-theory", "vcg-auction"], prereqs: ["mechanism-design"], description: "First-price, second-price, VCG. The most-deployed application of mechanism design." },
+      { slug: "multi-agent-rl", title: "Multi-Agent Reinforcement Learning", level: "expert", order: 8, pages: ["multi-agent-rl", "self-play"], prereqs: ["nash-equilibrium"], description: "Self-play, opponent modeling, population-based training. Bridge to the reinforcement-learner path." },
+      { slug: "alignment-game-theory", title: "Alignment as Game Theory", level: "expert", order: 9, pages: ["principal-agent"], prereqs: ["mechanism-design", "multi-agent-rl"], description: "Mesa-optimization, principal-agent problems, why incentive structures determine outcomes more than capabilities. The frontier connection." },
+    ],
+  });
 }
 
 // --- Forum seeding -------------------------------------------------------
@@ -1061,6 +1455,42 @@ const SEED_DOMAINS = [
     title: "Computational Biology",
     description:
       "ML × biology: protein folding, sequence modeling, AlphaFold + ESM.",
+  },
+  {
+    slug: "stats",
+    title: "Applied Statistics",
+    description:
+      "Hypothesis testing, A/B experiments, calibration, fairness — production statistics.",
+  },
+  {
+    slug: "causal",
+    title: "Causality",
+    description:
+      "DAGs, do-calculus, counterfactuals, instrumental variables — Pearl-style causal inference.",
+  },
+  {
+    slug: "robotics",
+    title: "Robotics & Control",
+    description:
+      "PID through SLAM, manipulation, sim-to-real, and end-to-end ML policies — the embodied-AI stack.",
+  },
+  {
+    slug: "quantum",
+    title: "Quantum Computing",
+    description:
+      "Qubits, gates, Shor + Grover, error correction, NISQ-era variational algorithms, QML.",
+  },
+  {
+    slug: "game-theory",
+    title: "Game Theory & Mechanism Design",
+    description:
+      "Nash, mechanism design, auctions, multi-agent RL, alignment as a game-theoretic problem.",
+  },
+  {
+    slug: "algorithms",
+    title: "Algorithms & Data Structures",
+    description:
+      "Sorting, hashing, graphs, dynamic programming, complexity theory. The CS-foundations spine of every engineering discipline.",
   },
 ];
 

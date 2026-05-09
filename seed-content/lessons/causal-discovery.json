@@ -1,0 +1,75 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Can we learn the DAG from data?",
+      "body": "**Causal discovery**: given observational data and minimal assumptions, recover the underlying causal DAG.\n\nThe motivation is obvious: domain experts don't always know the causal structure. If we can learn it from data, we can do causal inference without an a-priori graph.\n\nThe reality: this is **the hardest problem in causal inference**. Pure observational data is consistent with multiple DAGs; you can recover an **equivalence class** of DAGs that share the same conditional independencies, but not generally a unique DAG.\n\n**Key result** (Verma-Pearl 1991, Spirtes-Glymour-Scheines 1993): observational data identifies the DAG up to **Markov equivalence**. Two DAGs are Markov-equivalent if they have the same skeleton (undirected edges) + same v-structures (colliders). Within the equivalence class, edge directions for chains and forks are observationally indistinguishable.\n\nFor uniquely directed edges, you need: interventions, time order, or strong parametric assumptions."
+    },
+    {
+      "kind": "text",
+      "title": "PC algorithm",
+      "body": "**PC algorithm** (Peter-Clark, Spirtes-Glymour 1991): the classical constraint-based discovery algorithm.\n\n**Procedure**:\n\n1. Start with a complete undirected graph (every node connected to every other).\n2. Remove edges between pairs that are conditionally independent given any subset of the remaining adjacent nodes.\n3. Identify v-structures: for each pair `(X, Y)` connected via `Z`, if `X` and `Y` are NOT independent conditional on `Z`, then `Z` is a collider; orient `X → Z ← Y`.\n4. Apply Meek's rules to orient additional edges that follow from v-structures + acyclicity.\n5. Output: a CPDAG (completed partially-directed acyclic graph) representing the equivalence class.\n\n**Assumptions**:\n\n- **Causal Markov condition**: the joint distribution factorizes per the DAG.\n- **Faithfulness**: no measure-zero conditional independencies (i.e., independencies in the data correspond to absences in the DAG).\n- **Causal sufficiency**: no unobserved common causes.\n\n**Implementation**: `pcalg` R package, `causal-learn` Python library. The algorithm is mechanical given a conditional-independence test (Fisher-Z for Gaussian; mutual information / kernel-based for nonparametric)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "cd_q1",
+        "kind": "multiple_choice",
+        "question": "Why can't observational data alone determine the direction of an edge in a chain X — Z — Y?",
+        "options": [
+          "Statistical power",
+          "The chains X → Z → Y, X ← Z ← Y, and X ← Z → Y all imply the same conditional independencies (X ⊥ Y | Z; X and Y associated unconditionally). Observational data can't distinguish them. Distinguishing requires intervention, time order, or extra parametric assumptions",
+          "Because Z is binary",
+          "Faithfulness violation"
+        ],
+        "correctIndex": 1,
+        "explanation": "This is a fundamental limit of observational causal discovery. The three Markov-equivalent chain orientations are observationally indistinguishable. The exception is the v-structure (collider) X → Z ← Y, which has a UNIQUE conditional-independence pattern (X ⊥ Y unconditionally; conditioning on Z opens the path). That's why colliders are identifiable but chains aren't."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "FCI for hidden confounders",
+      "body": "**PC** assumes causal sufficiency — no unobserved common causes. **FCI (Fast Causal Inference)** drops this assumption.\n\nFCI handles latent confounders by:\n\n- Starting like PC (undirected skeleton from independence tests).\n- Distinguishing edge types in the output: `→` (causal), `↔` (latent confounder), `o→` (uncertain), `o-o` (uncertain).\n- Outputs a **PAG (Partial Ancestral Graph)** representing the equivalence class allowing latent confounders.\n\nThe price: with hidden confounders allowed, the equivalence class is larger. Many edges are uncertain.\n\n**RFCI / GFCI**: more efficient variants. FCI scales poorly to high-dimensional graphs; RFCI cuts the constraint count. GFCI hybrids constraint-based + score-based methods.\n\n**Practical use**: when you suspect hidden confounders (almost always in real data), FCI gives you a more honest output than PC. The cost is ambiguity."
+    },
+    {
+      "kind": "text",
+      "title": "Score-based methods + LiNGAM",
+      "body": "**Score-based** methods (GES, GIES, NOTEARS): instead of testing independencies, search over DAG space scoring each candidate by likelihood + complexity penalty.\n\n**Greedy Equivalence Search (GES)**: greedy search over CPDAGs. Adds edges, scores, removes edges, scores, until local optimum. Returns a CPDAG.\n\n**NOTEARS** (Zheng et al. 2018): formulates DAG learning as a continuous optimization with an acyclicity constraint. Differentiable; works with any score (e.g., least-squares, neural networks).\n\n**LiNGAM** (Linear Non-Gaussian Acyclic Model, Shimizu et al. 2006): a parametric assumption — linear structural equations with non-Gaussian noise — buys you DIRECTIONAL identifiability. Under LiNGAM, the DAG (not just equivalence class) is identifiable from observational data.\n\nWhy non-Gaussian noise helps: under Gaussian noise + linearity, the model is symmetric in cause and effect. Non-Gaussian noise breaks the symmetry — the residuals of `Y` regressed on `X` look different from residuals of `X` regressed on `Y`, and only one direction is consistent with the assumed causal structure.\n\n**Tradeoff**: LiNGAM gets unique DAG but only under strong parametric assumptions. PC/FCI get equivalence classes under weaker assumptions."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "cd_q2",
+        "kind": "multiple_choice",
+        "question": "What's the best-case output of pure observational causal discovery (without interventions or strong assumptions)?",
+        "options": [
+          "The unique DAG",
+          "An equivalence class — typically a CPDAG (which directs colliders) or a PAG (which also marks possible latent confounders). Some edges are directed; others are not. Without intervention, time order, or LiNGAM-style parametric restrictions, you can't go further. Discovery in the wild typically gets you 30-70% of edges directed",
+          "All edges directed",
+          "A complete graph"
+        ],
+        "correctIndex": 1,
+        "explanation": "This is the practical reality. Causal discovery is most useful as a hypothesis-generation tool, not as a causal-conclusion tool. The output gives you candidate causal structures to investigate via experiment or domain expertise."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "When discovery works (and when it doesn't)",
+      "body": "**When discovery works well**:\n\n- Many variables, fast computation, clear data\n- A hypothesis-generation tool: discovery output is a candidate DAG to test via experiments\n- Causal Markov + faithfulness assumptions are plausible\n- Modern variants like NOTEARS scale to hundreds of variables\n\n**When it fails**:\n\n- Hidden confounders (handled by FCI but with more uncertainty)\n- Selection bias (discovery from non-random samples is biased)\n- Cycles / feedback loops (DAG-based methods can't represent these; need cyclic causal models)\n- Time-varying causal structures (most methods assume stationarity)\n- Faithfulness violations (rare measure-zero coincidences in the data)\n\n**The honest production view**: causal discovery is best treated as **hypothesis generation**, not causal conclusion. Use the output to identify candidate causal structures; validate with experiments + domain expertise.\n\n**Modern frontiers**: deep-learning causal discovery (DAG-GNN, NOTEARS-MLP), discovery from interventional data (when you have some interventions, identifiability is much stronger), foundation-model-assisted discovery (LLMs proposing candidate DAGs from variable descriptions)."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "cd_explain",
+        "kind": "explain_back",
+        "prompt": "Why is observational causal discovery fundamentally limited compared to learning from interventional data? Reference the role of v-structures and Markov equivalence in your answer.",
+        "rubricCriteria": [
+          { "id": "v-structure-role", "description": "Names that v-structures are uniquely identifiable from observation but chains/forks aren't" },
+          { "id": "markov-equivalence", "description": "Articulates that observational data identifies up to Markov-equivalence class, not unique DAG" },
+          { "id": "intervention-fix", "description": "Explains why interventions break this — they directly distinguish cause vs effect by perturbation" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}

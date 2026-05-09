@@ -1,0 +1,75 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "When you can't measure all confounders",
+      "body": "Sometimes you suspect there's an unobserved confounder of treatment and outcome. Backdoor adjustment requires you observe the confounder. If you can't, your causal effect isn't identifiable via adjustment.\n\n**Instrumental variables (IV)** rescue identification when you can find a variable `Z` that:\n\n1. **Relevance**: `Z` affects the treatment `T` (covariance is non-zero).\n2. **Exogeneity / Exclusion restriction**: `Z` affects `Y` ONLY through `T`. No direct path `Z → Y`; no path through unobserved confounders.\n\nIf such a `Z` exists, you can identify the causal effect of `T` on `Y` for **compliers** — units whose treatment status responds to `Z`. This is the **Local Average Treatment Effect (LATE)**.\n\nThe magic: you didn't need to observe the confounder. The instrument's randomness substitutes for the missing observation."
+    },
+    {
+      "kind": "text",
+      "title": "Two-stage least squares (2SLS)",
+      "body": "The classical IV estimator. Two regressions:\n\n**Stage 1**: regress `T` on `Z` (and any covariates). Get predicted `T̂`.\n\n**Stage 2**: regress `Y` on `T̂` (and the covariates). The coefficient on `T̂` is the IV estimate.\n\n**Why it works**: `T̂` is the part of `T` driven by `Z` — and by exogeneity, this part is uncorrelated with the unobserved confounder. So regressing `Y` on `T̂` estimates the causal effect free from the confounding bias.\n\n**Standard errors** need adjustment to reflect that `T̂` is a generated regressor; the `ivregress` command in Stata, `IV2SLS` in statsmodels (Python), `ivreg` in R all do this correctly.\n\n**Diagnostics**:\n\n- **First-stage F-statistic**: tests instrument relevance. F < 10 → weak instrument; estimates may be biased even toward OLS.\n- **Sargan / Hansen J-test**: tests overidentification (when you have more instruments than endogenous variables). Doesn't test exogeneity directly but provides a sanity check."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "iv_q1",
+        "kind": "multiple_choice",
+        "question": "What does 'weak instrument' mean and why is it a problem?",
+        "options": [
+          "Z is not significant in the outcome regression",
+          "The instrument Z has only a small effect on T (low first-stage F-statistic). With weak instruments, even small violations of exogeneity get amplified, IV bias can exceed OLS bias, and the asymptotic distribution of 2SLS becomes non-normal. Practical rule: F-statistic > 10 for a single instrument; > 20-30 for multiple",
+          "Z is binary",
+          "T is endogenous"
+        ],
+        "correctIndex": 1,
+        "explanation": "Weak instruments are a classic IV pathology. Bound, Jaeger, Baker (1995) showed that weak instruments amplify bias from any small exogeneity violation. Modern practice: report the first-stage F-statistic prominently; weak instruments are a red flag the analysis acknowledges."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "The exclusion restriction",
+      "body": "The exclusion restriction is the hardest assumption to defend. It says: `Z` affects `Y` ONLY through `T`. Any direct effect of `Z` on `Y` (or effect through other variables) breaks identification.\n\n**Untestable**: you cannot statistically test the exclusion restriction. It's about an unobserved structural relationship between `Z`, `Y`, and the unobserved confounder. The data is silent on it.\n\n**Defenses are domain-specific**: the case for an instrument is built on biology, institutions, history, or policy — not on data.\n\n**Examples + their defenses**:\n\n- **Quarter of birth as instrument for schooling (Angrist-Krueger)**: birth quarter affects when you can leave school (cohort + compulsory-attendance laws); plausibly doesn't affect earnings directly. Critique: birth quarter might affect parental SES, school quality, peer effects.\n- **Distance to college as instrument for college attendance**: distance affects attendance; plausibly doesn't affect outcomes directly. Critique: distance correlates with parental income, area characteristics.\n- **Vietnam draft lottery as instrument for military service**: lottery is randomized, so exogeneity is by construction. Strongest possible defense.\n- **Settler mortality as instrument for institutions (Acemoglu-Johnson-Robinson)**: 19th-century settler mortality rates predict modern institutions; argued not to affect modern income directly. Famous and famously contested instrument.\n\nExogeneity is always partly an act of faith. Good papers preempt the critiques explicitly."
+    },
+    {
+      "kind": "text",
+      "title": "LATE — what IV actually estimates",
+      "body": "Without homogeneous treatment effects, IV doesn't estimate the ATE. It estimates the **Local Average Treatment Effect (LATE)** — the effect among **compliers**.\n\n**Imbens-Angrist (1994) classification**: relative to a binary instrument, units fall into four types:\n\n- **Always-takers**: take treatment regardless of `Z`.\n- **Never-takers**: never take treatment regardless of `Z`.\n- **Compliers**: take treatment when `Z = 1`, don't when `Z = 0`. Their treatment status responds to the instrument.\n- **Defiers**: opposite of compliers. (Usually assumed to be zero — the **monotonicity assumption**.)\n\nIV estimates the average effect among compliers only. This is sometimes the policy-relevant estimand (compliers are the people who'd respond to a similar real-world intervention) and sometimes not (you might care about the ATE, not just compliers).\n\n**Practical implication**: when reporting IV results, name what subpopulation the estimate applies to. \"Effect of education on earnings, IV-identified via quarter of birth\" estimates the effect for those whose schooling was determined by birth quarter — a particular subset of the population, not everyone."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "iv_q2",
+        "kind": "multiple_choice",
+        "question": "What's the difference between LATE and ATE in an IV analysis?",
+        "options": [
+          "Just statistical noise",
+          "ATE is the average treatment effect over the whole population; LATE is the effect for compliers only — the units whose treatment status responds to the instrument. They differ when treatment effects are heterogeneous across the population. Saying 'IV identifies the ATE' is generally wrong; the right statement is 'IV identifies the LATE'",
+          "ATE is Bayesian, LATE is frequentist",
+          "ATE is for binary treatments"
+        ],
+        "correctIndex": 1,
+        "explanation": "This distinction matters for policy. If the policy will be applied to people who behave like compliers (similar to the instrument's range of variation), LATE is the relevant estimand. If applied broadly, LATE may not generalize. Heckman has an active criticism of LATE for exactly this reason."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Practical IV: when it works",
+      "body": "IV is a powerful tool when the assumptions hold. Common settings:\n\n**Encouragement designs**: an experiment randomizes encouragement to take treatment, but compliance is voluntary. The encouragement is the IV; the actual treatment uptake is the endogenous variable. Estimates LATE for compliers — typically the policy-relevant quantity.\n\n**Imperfect compliance in RCTs**: a clinical trial randomizes assignment, but patients don't always comply. Use random assignment as the IV for actual treatment received. (Pure intent-to-treat is also valid; IV gives the per-protocol effect.)\n\n**Genetic variants (Mendelian randomization)**: random genetic variants affect a trait of interest; use the variant as IV for the trait when estimating effects on outcomes. Used heavily in epidemiology.\n\n**Policy variation**: a policy change in one jurisdiction creates an instrument for affected variables. Used in labor / development economics.\n\n**Common pitfalls**:\n\n- **Weak instrument**: F < 10. Report and address.\n- **Exclusion restriction violation**: defend it; don't assume it.\n- **Heterogeneous effects**: name LATE explicitly; don't claim ATE.\n- **Multiple instruments**: overidentification tests can detect SOME violations.\n\nWhen IV works, it's the most powerful tool for unobserved-confounder problems. When it fails (weak or invalid instrument), it can be worse than naive OLS."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "iv_explain",
+        "kind": "explain_back",
+        "prompt": "Pick a real-world setting (or hypothetical) where you'd want to use an instrumental variable. Describe: (1) the treatment, (2) the outcome, (3) the suspected unobserved confounder, (4) the proposed instrument, and (5) why exogeneity is plausible. Be specific.",
+        "rubricCriteria": [
+          { "id": "concrete-setup", "description": "Names a specific T, Y, suspected confounder, and proposed Z" },
+          { "id": "relevance", "description": "Explains why Z affects T (relevance)" },
+          { "id": "exogeneity-defense", "description": "Defends why Z plausibly doesn't affect Y directly (exclusion restriction)" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}

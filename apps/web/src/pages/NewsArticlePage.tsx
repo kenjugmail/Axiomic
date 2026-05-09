@@ -9,11 +9,14 @@ import type {
   NewsReactionKind,
 } from "@axiomic/types";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
+import { TutorMount } from "../components/ai/TutorMount";
+import { SelectionPopover } from "../components/SelectionPopover";
+import { askTutorAction } from "../components/ai/askTutorAction";
+import { MessageSquarePlus } from "lucide-react";
 import { AiArticleHelpers } from "../components/news/AiArticleHelpers";
 import { ArticleTOC } from "../components/news/ArticleTOC";
 import { ArtifactsSection } from "../components/news/ArtifactsSection";
 import { RelatedRail } from "../components/cross/RelatedRail";
-import { ClaimSelectionPopover } from "../components/news/ClaimSelectionPopover";
 import { ClaimThreadPanel } from "../components/news/ClaimThreadPanel";
 import { LessonFromArticleDialog } from "../components/news/LessonFromArticleDialog";
 import { NewsComments } from "../components/news/NewsComments";
@@ -540,11 +543,26 @@ export function NewsArticlePage() {
       </div>
       <ArticleTOC body={article.body} />
 
+      {/* Sprint 64b-6 — unified selection popover. Renders BOTH
+          "Discuss this claim" + "Ask tutor" actions on the same
+          popover; previously two competing popovers stacked at the
+          same position. */}
       {slug && (
-        <ClaimSelectionPopover
+        <SelectionPopover
           rootRef={articleBodyRef}
-          signedIn={!!user}
-          onStart={(quote) => setPendingThreadQuote(quote)}
+          actions={[
+            {
+              id: "discuss-claim",
+              icon: <MessageSquarePlus className="w-3.5 h-3.5" strokeWidth={2} />,
+              label: "Discuss this claim",
+              enabled: !!user,
+              onSelect: (quote) => setPendingThreadQuote(quote),
+            },
+            {
+              ...askTutorAction({ sourcePageSlug: article.slug }),
+              enabled: !!user,
+            },
+          ]}
         />
       )}
 
@@ -585,6 +603,11 @@ export function NewsArticlePage() {
           />
         );
       })()}
+
+      {/* Sprint 63h — AI tutor mount. Selection-to-chat is disabled
+          here because ClaimSelectionPopover already owns selection on
+          this surface; unifying the two popovers is a follow-up. */}
+      <TutorMount pageSlug={article.slug} pageTitle={article.title} tier="news" />
     </div>
   );
 }

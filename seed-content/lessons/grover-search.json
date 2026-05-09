@@ -1,0 +1,80 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Unstructured search",
+      "body": "**The problem**: given a function `f: {0,1}^n → {0,1}` with the promise that exactly one input `x*` gives `f(x*) = 1` and all others give 0, find `x*`.\n\n**Classical**: must check inputs one-by-one. Expected `2^{n-1}` queries; worst case `2^n`. Linear in the search space size.\n\n**Quantum (Grover 1996)**: `O(√(2^n))` queries. Quadratic speedup.\n\nThe quadratic speedup is provable + tight. For `N` items, classical needs `Θ(N)`; Grover needs `Θ(√N)`. Asymptotically, no algorithm (classical or quantum) does better than `Θ(√N)` for true unstructured search.\n\nGrover's algorithm is the second-most-famous quantum algorithm (after Shor's) and one of the few with a provable speedup over classical for general problems."
+    },
+    {
+      "kind": "text",
+      "title": "Amplitude amplification — the technique",
+      "body": "Grover works by amplifying the amplitude of the target state.\n\n**Procedure**:\n1. Start with uniform superposition: `|ψ⟩ = (1/√N) Σ |x⟩`. Each amplitude is `1/√N`.\n2. Apply **oracle** `U_f`: flips sign of the target amplitude. Now target has amplitude `-1/√N`; others have `+1/√N`.\n3. Apply **diffusion operator** `2|ψ⟩⟨ψ| - I`: reflects all amplitudes around the mean.\n4. Repeat steps 2-3 about `(π/4)√N` times.\n5. Measure. The target is observed with probability close to 1.\n\n**Geometric picture**: each iteration rotates the state vector toward the target by a small angle. After `O(√N)` iterations, the state is close to the target.\n\n**Why exactly √N**: the rotation angle is `O(1/√N)` per iteration. To rotate from initial state to target (~90° apart), need `~π/(4·angle) = O(√N)` iterations.\n\n**Critical**: too few or too many iterations, the target probability isn't maximized. Standard Grover needs to know the number of iterations exactly (or at least the number of solutions)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "grover_q1",
+        "kind": "multiple_choice",
+        "question": "Grover's algorithm gives quadratic speedup. What's the practical impact?",
+        "options": [
+          "Exponential speedup",
+          "Quadratic speedup means O(√N) instead of O(N) queries. For 2^40 items, classical needs ~10^12 queries; Grover needs ~10^6. Useful but bounded — quantum doesn't make NP-complete problems easy. Grover applied to SAT gives a 2^{n/2} algorithm, not 2^{O(log n)}",
+          "Constant speedup",
+          "No real speedup"
+        ],
+        "correctIndex": 1,
+        "explanation": "Quadratic is meaningful but limited. SHA-256 brute-force becomes 2^{128} on a quantum computer instead of 2^{256} — still infeasible. Cryptographic key sizes are doubled to maintain security against Grover. Useful for some problems; not a magic bullet."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "When Grover is useful (and when it isn't)",
+      "body": "**Useful when**:\n- The problem reduces to unstructured search (find `x` such that `f(x) = 1`).\n- `N` is large enough that quadratic speedup matters but small enough to be feasible.\n- The oracle is implementable efficiently (as a quantum circuit).\n\n**Examples**:\n- **Cryptanalysis** of symmetric ciphers (AES, hash functions). Grover gives quadratic speedup over brute force. Doubles required key sizes for security.\n- **SAT solving**: Grover applied to backtracking trees. Gives `O(2^{n/2})` for 3-SAT.\n- **Database lookup**: theoretical advantage but typically dominated by oracle implementation costs.\n\n**NOT useful when**:\n- The problem has structure that classical algorithms exploit. E.g., binary search is `O(log N)` classically; Grover gives `O(√N)`. Grover is WORSE.\n- The oracle is expensive to implement.\n- Decoherence + error rates exceed the speedup.\n\n**Common myth**: Grover gives quantum advantage for ALL problems. False. Only for unstructured search; structured problems often have polynomial classical algorithms.\n\n**The bottom line**: Grover's algorithm is widely applicable but its practical impact is bounded by hardware quality + oracle complexity."
+    },
+    {
+      "kind": "text",
+      "title": "Amplitude amplification — beyond Grover",
+      "body": "The technique behind Grover generalizes. **Amplitude amplification**: given a quantum subroutine `A` that produces state with target probability `p`, run Grover-like amplification to boost the probability.\n\nClassical: needs ~`1/p` runs to find the target.\nAmplitude amplification: needs `O(1/√p)` runs.\n\n**Use cases**:\n- Probabilistic quantum subroutines.\n- Boosting Grover-style searches with multiple solutions.\n- Building blocks of more complex algorithms.\n\n**Variants**:\n- **Fixed-point amplitude amplification**: doesn't require knowing the number of solutions. Robust under unknown success probability.\n- **Generalized Grover**: rotation around different angles.\n- **Quantum walks**: continuous-time generalization for graph problems.\n\nAmplitude amplification is a fundamental quantum primitive, used in many algorithms beyond Grover."
+    },
+    {
+      "kind": "text",
+      "title": "Unknown number of solutions",
+      "body": "Standard Grover assumes you know the number of solutions `M` (and thus the optimal iteration count `~(π/4)√(N/M)`).\n\nWhat if you DON'T know `M`?\n\n**Quantum counting**: combine Grover with phase estimation to estimate `M`. Then run optimized Grover.\n\n**Random iteration count**: if you don't know `M`, run Grover with a random number of iterations from a carefully chosen distribution. Find a solution with constant probability per run; expected `O(√N)` total queries.\n\n**Fixed-point algorithms**: amplification that converges to the target regardless of starting probability. No counting needed.\n\nProduction Grover implementations include these robustness measures."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "grover_q2",
+        "kind": "multiple_choice",
+        "question": "Why is the optimal number of Grover iterations approximately (π/4)√(N/M) where M is the number of solutions?",
+        "options": [
+          "Just a magic number",
+          "Geometric: each iteration rotates the state vector by a small angle θ ≈ 2√(M/N) toward the target subspace. Starting state is ~π/2 away from target subspace. Total iterations to reach target = (π/2)/θ = (π/4)√(N/M). Too few → not amplified enough; too many → rotates past the target",
+          "Hardware limit",
+          "Approximation"
+        ],
+        "correctIndex": 1,
+        "explanation": "The geometric picture is the cleanest derivation. Grover's iteration is a rotation in a 2D subspace spanned by the target + non-target subspaces. The √(N/M) iterations come from the small rotation per step + the π/2 initial angle."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Practical Grover",
+      "body": "**On NISQ hardware**:\n\n- Grover requires `O(√N)` oracle invocations. Each oracle is a circuit; circuit depth grows with problem size.\n- Decoherence limits achievable circuit depth. For >~30 oracles, current hardware can't maintain coherence.\n- For interesting problem sizes (`N ≥ 2^{30}`), need fault-tolerant quantum computing.\n\n**Demonstrations**:\n- Toy problems (find specific values in 4-8 qubit databases) work on current hardware.\n- Practical advantage is far away.\n\n**Long-term**:\n- Cryptographic relevance: as fault-tolerant quantum computers mature (post-2030?), Grover-based attacks on AES-128 become possible. AES-256 is Grover-secure.\n- Optimization applications: Grover speedup for branch-and-bound, SAT, etc. Useful for cryptography, scheduling, planning.\n\nThe theoretical importance of Grover is enormous; practical impact awaits hardware maturity."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "grover_explain",
+        "kind": "explain_back",
+        "prompt": "Explain why Grover's quadratic speedup, while real, doesn't make NP-complete problems efficiently solvable on quantum computers. What's the gap between theoretical interest and practical impact?",
+        "rubricCriteria": [
+          { "id": "quadratic-meaning", "description": "Quantifies what quadratic speedup means (O(√N) vs O(N))" },
+          { "id": "np-not-broken", "description": "Notes that 2^{n/2} is still exponential — NP isn't broken" },
+          { "id": "hardware-reality", "description": "Acknowledges current hardware limits + path to practical impact" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Arrays: the foundation",
+      "body": "An **array** is a contiguous block of memory holding fixed-size elements. Indexing is $O(1)$: address = base + index × element_size. That's it. Every other data structure is built on top.\n\nThe two operations everyone needs:\n- **Random access by index**: $O(1)$.\n- **Linear scan**: $O(n)$.\n\nAppending to a fixed-size array is $O(1)$ until you run out of space — then $O(n)$ to copy into a larger array. **Dynamic arrays** (Python `list`, C++ `vector`, Java `ArrayList`) double the capacity on overflow, giving **$O(1)$ amortized append** — see [[memoization-vs-tabulation]] for amortized analysis in general.\n\nWhat arrays don't give you: cheap insertion in the middle (shifts $O(n)$ elements), cheap lookup by value (linear scan). For those: hash tables."
+    },
+    {
+      "kind": "text",
+      "title": "Hash tables: how O(1) lookup works",
+      "body": "A **hash table** ([[hash-table]]) maps keys to values via a *hash function* + an array of buckets.\n\n```\nbucket_index = hash(key) % num_buckets\n```\n\nIdeal: each key lands in a unique bucket. Lookup is $O(1)$ — compute the hash, jump to the bucket, return the value.\n\nReality: two keys can hash to the same bucket. This is a **collision** ([[hash-collisions]]). Two strategies:\n\n- **Chaining**: each bucket holds a linked list of entries. Insert prepends; lookup scans. Average $O(1 + \\alpha)$ where $\\alpha = n/b$ is the load factor.\n- **Open addressing**: on collision, probe to the next bucket (linear, quadratic, or double-hashing). Faster cache behavior but degrades worse near full.\n\n**Load factor** $\\alpha$ is the master variable. Most implementations resize (doubling buckets) when $\\alpha > 0.75$, keeping expected chain length $\\leq 1$."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ah_q1",
+        "kind": "multiple_choice",
+        "question": "An attacker sends 10,000 inputs that all hash to the same bucket in your web server's request cache (no randomized hash). What's the lookup complexity per request?",
+        "options": [
+          "Still $O(1)$ — hash tables are always $O(1)$",
+          "$O(\\log n)$ — Java HashMap converts long chains to BSTs",
+          "$O(n)$ — every key in the same bucket means every lookup walks the full chain. This is the **hash flooding** attack: documented CVEs against Perl, Python, Ruby, Tomcat (2003-2012). Modern defenses use SipHash with a per-process random seed",
+          "$O(n^2)$"
+        ],
+        "correctIndex": 2,
+        "explanation": "Hash flooding turns a hash table into a linked list. Without a randomized hash, an attacker who knows the hash function can craft keys that all collide; insertion + lookup degenerate to $O(n)$. Real CVEs from 2003-2012 forced Python, Ruby, Java, Perl to switch to SipHash with per-process random seeds. Modern Java HashMap also converts long chains to BSTs to bound worst-case at $O(\\log n)$."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Hash function quality matters",
+      "body": "A hash function maps arbitrary keys to fixed-width integers. Three properties matter:\n\n1. **Uniform distribution**: hash outputs spread evenly across the integer range. Bad: `hash(s) = s.length`. Good: SipHash, MurmurHash, xxHash.\n\n2. **Determinism**: same input → same output. Without this, you can't find what you stored.\n\n3. **Speed**: hash is computed on every operation. SipHash is ~1ns per byte; SHA-256 is ~2ns per byte. For non-cryptographic uses, speed matters more than security.\n\n**When to choose what**:\n\n- **General-purpose, untrusted input** (web request paths, user-provided keys): SipHash with per-process random seed. Standard in Python `dict`, Rust `HashMap`, Ruby `Hash`.\n- **Internal, trusted input** (struct fields you control): MurmurHash3 or xxHash. ~3-4× faster than SipHash. Used in databases (RocksDB, Spark).\n- **Cryptographic integrity needed** (deduplication, content-addressed storage): BLAKE3 or SHA-2. Slower but collision-resistant against adversarial input.\n\nNever use `hashCode()`-style sums or XORs over fields. Distribution is poor; pathological inputs cluster easily."
+    },
+    {
+      "kind": "text",
+      "title": "Hash sets, hash maps, and sets vs ordered structures",
+      "body": "A **hash set** is a hash table without values — just keys. Insertion + membership tests are $O(1)$ expected.\n\nA **hash map** is a hash table with key→value pairs. Same complexity, plus the value retrieval.\n\nWhen to choose hash vs ordered:\n\n| Need | Use |\n|---|---|\n| $O(1)$ lookup, no order | Hash table |\n| $O(\\log n)$ lookup, sorted iteration | BST or [[balanced-tree]] |\n| Range queries (\"keys between A and B\") | BST, B-tree |\n| Fastest insert + lookup, you don't need order | Hash |\n| Predictable worst case (real-time systems) | BST or [[trie]] |\n\n**Common ML uses of hashing**:\n- **Embedding lookup** for sparse features: dictionary of word → embedding row.\n- **Feature hashing** (\"hashing trick\"): map high-cardinality categorical features to a fixed-size vector via hashing. Avoids storing the full vocabulary; trades collisions for memory.\n- **Bloom filters**: hash-based probabilistic membership test using $k$ hash functions. Sublinear space; one-sided error.\n- **MinHash / LSH**: hashing for approximate nearest neighbors + set similarity."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ah_q2",
+        "kind": "explain_back",
+        "prompt": "Why does the Python `dict` use a randomized seed for hashing strings, even though it slows down every dict operation by a few nanoseconds? Frame your answer in terms of the trade-off it's making.",
+        "rubricCriteria": [
+          { "id": "attack-vector", "description": "Identifies hash flooding as the threat model: adversarial input crafted to cause collisions" },
+          { "id": "real-world-impact", "description": "Connects to a real-world impact: web servers / parsers receiving untrusted dict keys can be DoS'd if hash is predictable" },
+          { "id": "tradeoff", "description": "Names the trade-off: a few ns per op slowdown is acceptable to avoid worst-case $O(n)$ degradation under attack; the alternative (predictable hash) is a worse worst case" }
+        ],
+        "passingScore": 0.5
+      }
+    }
+  ]
+}

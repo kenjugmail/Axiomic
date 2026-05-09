@@ -1,0 +1,87 @@
+{
+  "slug": "build-a-mobile-manipulator",
+  "title": "Build a Mobile Manipulator: From Simulation to Real Hardware",
+  "summary": "End-to-end robotics: design a mobile manipulator in simulation, implement perception + planning + control + manipulation, transfer to (real or HIL) hardware, and demonstrate a multi-step task.",
+  "format": "research",
+  "estimatedWeeks": 10,
+  "coverEmoji": "🤖",
+  "accentColor": "#10B981",
+  "canonicalTier": "undergrad",
+  "contentIntro": "## What you'll build\n\nA complete mobile manipulator system: a wheeled or legged base + a robot arm, navigating an environment + manipulating objects on command.\n\nIn simulation: full system from URDF to executing tasks. On real hardware (or hardware-in-the-loop simulation if hardware isn't available): the same stack with real sensor noise + real dynamics.\n\nThis capstone is the synthesis of the entire roboticist path. It exercises perception, estimation, planning, control, manipulation, sim-to-real, and learning-based components.\n\n## What you'll demonstrate\n\n- You can design + simulate a complete robot system.\n- You can implement classical perception + estimation (SLAM, Kalman filtering).\n- You can implement classical planning + control (motion planning, MPC, IK).\n- You can integrate ML components (object detection, grasp prediction, behavior cloning).\n- You can debug + tune real-world (or HIL) deployments.\n- You can produce a clear writeup explaining design choices + lessons learned.",
+  "contentUndergrad": "## Why this capstone\n\nMost robotics learning is fragmented: a SLAM tutorial, a motion-planning notebook, an IK exercise. Real robots are systems where these components interact + sometimes conflict. This capstone forces you to integrate them.\n\nBy the end you have one full mobile-manipulator artifact: working code, simulation videos, real (or HIL) hardware demos, and a defended report. Portfolio-worthy.\n\n## Hardware options\n\n**Option A: real hardware**. If you have access to a TurtleBot, JetBot, KUKA arm, Franka Panda, or similar — use it. The capstone milestones include hardware-specific calibration + deployment.\n\n**Option B: hardware-in-the-loop simulation**. Use Isaac Sim, Gazebo, MuJoCo, or PyBullet to simulate the robot. Add domain randomization + noise to mimic hardware. Cheaper + accessible.\n\n**Option C: pure simulation**. If hardware + HIL aren't feasible, build everything in simulation with realistic noise + dynamics. Less authentic but still valuable.\n\n## Pacing\n\n10 weeks at ~5-8 hrs/week. Most time: milestones 3 (SLAM + estimation), 5 (manipulation), 7 (integration + deployment). Milestones 1-2 are setup; 4 + 6 are mid-complexity.\n\n## Tools\n\n- **ROS 2** (preferred) or ROS 1 for system architecture.\n- **Isaac Sim, Gazebo, MuJoCo, or PyBullet** for simulation.\n- **OpenCV, PyTorch** for perception + ML.\n- **GTSAM, Cartographer, ORB-SLAM3** for SLAM.\n- **MoveIt!, OMPL** for motion planning + IK.\n- **Drake, Pinocchio** for advanced control + dynamics.\n- **Python + C++** for implementation.",
+  "contentGrad": "## Notes for the experienced\n\nIf you've worked in robotics professionally, the value of this capstone is the **integrated system view**. Most production roboticists are deep in one component (perception, planning, controls); this exercises all of them.\n\nLikely places where production practitioners cut corners:\n\n- Skipping rigorous SLAM accuracy testing.\n- Using black-box IK without understanding singularities.\n- Treating motion planning as solved (the first feasible path is rarely the best).\n- Insufficient sim-to-real protocol.\n- Missing failure-mode analysis.\n\nThe rubric specifically rewards rigor at the system level: how do components interact, where do failures compound, what testing approach catches problems.\n\n## Variants\n\n- **Manipulator-only variant**: drop the mobile base; focus on a fixed-base robot arm. Capstone timeline reduces to 7-8 weeks.\n- **Mobile-only variant**: drop the manipulator; focus on autonomous navigation. Capstone timeline reduces to 7-8 weeks.\n- **Learning-heavy variant**: replace classical components with learned policies (BC + diffusion + RL). Higher risk + reward.\n- **Multi-robot variant**: two or more robots cooperating. Adds significant scope.\n\nAuthor approval required for variants.",
+  "prerequisiteWikiSlugs": [
+    "pid-control",
+    "state-space",
+    "lqr",
+    "kalman-filter",
+    "extended-kalman-filter",
+    "slam",
+    "motion-planning",
+    "rrt",
+    "forward-kinematics",
+    "inverse-kinematics",
+    "grasp-planning",
+    "sim-to-real",
+    "domain-randomization"
+  ],
+  "tags": ["robotics", "SLAM", "manipulation", "control", "ROS", "production"],
+  "milestones": [
+    {
+      "order": 1,
+      "title": "Robot design + simulation setup",
+      "description": "Design the robot. Specify: base type (wheeled / legged / static), arm type (DOF, payload), sensors (cameras, LIDAR, IMU). Build URDF (or MJCF for MuJoCo). Set up simulation environment with realistic physics + sensors.\n\n**Deliverables**: URDF / MJCF file + a `setup.md` writeup justifying design choices + a video demonstrating the simulated robot moving in its environment.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"design-rationale\",\"weight\":0.4,\"description\":\"Design choices justified\",\"aiPrompt\":\"Score 0-1. Does the writeup explain why each component (base, arm, sensors) was chosen? Are tradeoffs (cost, capability, complexity) discussed?\"},{\"id\":\"working-simulation\",\"weight\":0.4,\"description\":\"Simulation runs cleanly\",\"aiPrompt\":\"Score 0-1. Does the simulation actually work? Does the robot move correctly? Are sensors producing realistic data?\"},{\"id\":\"documentation-quality\",\"weight\":0.2,\"description\":\"Setup is reproducible\",\"aiPrompt\":\"Score 0-1. Could a reader reproduce the setup from the documentation? Are dependencies + versions specified?\"}],\"passingScore\":0.6,\"notes\":\"Reward thoughtful design; penalize taking off-the-shelf URDF without understanding it.\"}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "order": 2,
+      "title": "Low-level control + IK",
+      "description": "Implement low-level joint controllers (PID or computed-torque). Implement forward + inverse kinematics. Verify by commanding the end-effector to a series of poses; record tracking error.\n\n**Deliverables**: code (either in ROS controllers or Python) + a `control.md` writeup + plots of tracking error.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"controller-quality\",\"weight\":0.4,\"description\":\"Controllers tuned + stable\",\"aiPrompt\":\"Score 0-1. Are the controllers tuned for good performance? Is tracking error reasonable? Are stability margins discussed?\"},{\"id\":\"ik-correctness\",\"weight\":0.4,\"description\":\"IK works including singularities\",\"aiPrompt\":\"Score 0-1. Does the IK solver work for typical poses? How does it handle singularities? Are joint limits respected?\"},{\"id\":\"verification\",\"weight\":0.2,\"description\":\"Verification is meaningful\",\"aiPrompt\":\"Score 0-1. Are the tracking-error plots informative? Is the test set non-trivial (not just 1-2 poses)?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "order": 3,
+      "title": "SLAM + state estimation",
+      "description": "Implement SLAM for the robot. Use either an existing system (Cartographer, ORB-SLAM3, GTSAM-based) or your own. Test in the simulated environment. Report mapping accuracy + localization drift.\n\n**Deliverables**: SLAM implementation + a `slam.md` writeup + a video showing the robot mapping its environment + a quantitative accuracy report (e.g., trajectory error vs ground truth).",
+      "rubricJson": "{\"criteria\":[{\"id\":\"slam-working\",\"weight\":0.4,\"description\":\"SLAM produces a usable map\",\"aiPrompt\":\"Score 0-1. Does the SLAM system produce maps that match the ground truth reasonably well? Does it handle loop closures?\"},{\"id\":\"accuracy-quantified\",\"weight\":0.4,\"description\":\"Accuracy is measured + reported\",\"aiPrompt\":\"Score 0-1. Are trajectory error + mapping accuracy quantitatively reported? Are failure modes (drift, missed loops) discussed?\"},{\"id\":\"choice-defended\",\"weight\":0.2,\"description\":\"Choice of SLAM system defended\",\"aiPrompt\":\"Score 0-1. Does the writeup explain why this SLAM system was chosen for this scenario?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 10
+    },
+    {
+      "order": 4,
+      "title": "Motion planning + navigation",
+      "description": "Implement motion planning. For navigation: A* or RRT* on the SLAM map. For arm: RRT-Connect or trajectory optimization. Test multiple navigation goals + arm-reach goals in the simulated environment.\n\n**Deliverables**: motion planner code + a `planning.md` writeup + videos showing successful navigation + arm motion through cluttered environments.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"planner-correctness\",\"weight\":0.4,\"description\":\"Plans are valid + executed\",\"aiPrompt\":\"Score 0-1. Do the plans avoid obstacles? Are they smooth? Are joint limits respected?\"},{\"id\":\"diverse-scenarios\",\"weight\":0.3,\"description\":\"Tested on multiple scenarios\",\"aiPrompt\":\"Score 0-1. Are at least 5 different navigation goals + 5 different arm goals tested? Is performance reported across them?\"},{\"id\":\"failure-analysis\",\"weight\":0.3,\"description\":\"Failure modes named\",\"aiPrompt\":\"Score 0-1. Does the writeup discuss when planning fails (narrow passages, far reaches, kinematic singularities)?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 10
+    },
+    {
+      "order": 5,
+      "title": "Perception + grasp planning",
+      "description": "Implement object detection + grasp prediction. Use either ML-based (Dex-Net-style or 6-DoF GraspNet) or classical (model-based grasp synthesis). Test on multiple objects + scenes.\n\n**Deliverables**: perception + grasp code + a `perception.md` writeup + videos of detection + grasping + a quantitative success rate over diverse objects.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"detection-grasp-quality\",\"weight\":0.4,\"description\":\"Detection + grasp prediction work\",\"aiPrompt\":\"Score 0-1. Does the system detect objects + predict grasps? What's the success rate? Are failures documented?\"},{\"id\":\"diverse-objects\",\"weight\":0.3,\"description\":\"Tested on multiple objects\",\"aiPrompt\":\"Score 0-1. Are at least 5-10 different objects tested? Are different scenes (clutter levels) covered?\"},{\"id\":\"approach-defended\",\"weight\":0.3,\"description\":\"Choice of approach justified\",\"aiPrompt\":\"Score 0-1. Does the writeup explain why this approach (ML vs classical) was chosen + tradeoffs?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 10
+    },
+    {
+      "order": 6,
+      "title": "Sim-to-real protocol (or HIL transfer)",
+      "description": "If using real hardware: implement domain randomization + system identification; transfer the simulation-trained policies to hardware; report the gap.\n\nIf using HIL: add realistic sensor + dynamics noise to the simulation; transfer policies trained on the clean simulator to the noisy one; report the gap.\n\n**Deliverables**: sim-to-real protocol code + a `sim2real.md` writeup + side-by-side comparison videos (sim vs hardware/HIL) + quantitative gap analysis.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"protocol-defended\",\"weight\":0.4,\"description\":\"Sim-to-real protocol justified\",\"aiPrompt\":\"Score 0-1. Does the writeup explain the choice of DR ranges + SysID approach? Are sources of the reality gap identified?\"},{\"id\":\"gap-quantified\",\"weight\":0.3,\"description\":\"Gap quantitatively reported\",\"aiPrompt\":\"Score 0-1. Is the sim-to-real (or sim-to-HIL) gap quantified for at least one task? Are failure modes documented?\"},{\"id\":\"working-transfer\",\"weight\":0.3,\"description\":\"Transfer actually works\",\"aiPrompt\":\"Score 0-1. Does the policy work (with degraded performance) on hardware/HIL? Or is the gap so large it doesn't run at all?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 10
+    },
+    {
+      "order": 7,
+      "title": "End-to-end task + final demo",
+      "description": "Integrate all components: navigation + perception + manipulation. Demonstrate a multi-step task (e.g., 'go to the table, find the red block, pick it up, deliver to the kitchen, place it'). Record success rate over multiple trials.\n\n**Deliverables**: integrated system code + a final `demo.md` writeup + a polished video of the end-to-end task + a success-rate report (at least 10 trials with documented outcomes).",
+      "rubricJson": "{\"criteria\":[{\"id\":\"task-success-rate\",\"weight\":0.3,\"description\":\"Reasonable success rate\",\"aiPrompt\":\"Score 0-1. Does the task work at least 50% of the time? Is the success rate reported across at least 10 trials?\"},{\"id\":\"failure-mode-analysis\",\"weight\":0.4,\"description\":\"Failure modes analyzed\",\"aiPrompt\":\"Score 0-1. Are failure modes categorized (perception fails, planning fails, control fails)? Is the analysis honest?\"},{\"id\":\"final-presentation\",\"weight\":0.3,\"description\":\"Demo + writeup are polished\",\"aiPrompt\":\"Score 0-1. Is the final video clear + watchable? Does the writeup tell a coherent story of the system?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 10
+    }
+  ]
+}

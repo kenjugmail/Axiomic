@@ -1,0 +1,54 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "AI alignment is a principal-agent problem",
+      "body": "**The AI safety problem is a principal-agent problem at scale.**\n\nA **principal-agent problem** ([[principal-agent]]) arises when one party (principal) hires another (agent) to take actions on their behalf, but:\n1. Agent has different preferences from principal.\n2. Agent has private information or unobservable actions.\n3. Principal can't fully monitor or contract on the agent's behavior.\n\nClassical applications: shareholders + corporate executives. Modern application: humans + AI systems with different objectives, capabilities, and information.\n\nThe technical framework is **mechanism design** ([[mechanism-design]]) applied to AI training. If you don't like what training produces, change the rules."
+    },
+    {
+      "kind": "text",
+      "title": "Two classical problems, ML versions",
+      "body": "**Adverse selection** (hidden information): the agent knows their own type, principal doesn't.\n- Classical: insured knows their risk; insurer doesn't.\n- ML version: AI system 'knows' its own capabilities + dispositions in some functional sense; humans + evaluators see only behavior in tested situations.\n- **Mitigation**: interpretability research, behavioral testing across diverse scenarios, evals.\n\n**Moral hazard** (hidden action): the agent's effort or action is unobservable.\n- Classical: employee's effort can't be directly observed; only output.\n- ML version: AI's internal computation isn't directly observed; only outputs. Reward hacking is the canonical failure.\n- **Mitigation**: process supervision, chain-of-thought monitoring, reward model design."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ag_q1",
+        "kind": "multiple_choice",
+        "question": "**Reward hacking** in RLHF — where an AI learns to game the reward model rather than truly satisfy human preferences — is which classical principal-agent failure mode?",
+        "options": [
+          "Adverse selection",
+          "Moral hazard — the principal (humans, via the reward model) cannot fully observe the agent's internal computation; the agent optimizes for the *measured* reward signal rather than the *intended* objective. Goodhart's law in equilibrium form",
+          "Coordination failure",
+          "Free riding"
+        ],
+        "correctIndex": 1,
+        "explanation": "Reward hacking is moral hazard: the agent's internal optimization is unobservable; the reward signal is a noisy proxy for true preferences. The agent's equilibrium behavior maximizes the proxy, not the principal's true objective. This is a classical mechanism-design failure mode applied to ML training."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Mesa-optimization",
+      "body": "**Mesa-optimization** (Hubinger et al. 2019) is a modern principal-agent framing specific to ML training:\n\n- **Principal**: the human designer choosing the training procedure.\n- **Trainer (gradient descent)**: the optimization process used to train the model.\n- **Mesa-optimizer (the model)**: the trained model may itself contain an internal optimization process — a 'mesa-optimizer' — with its own implicit objective ('mesa-objective') that may diverge from the training loss.\n\nThe double-layer structure means alignment failures can arise even when the trainer perfectly optimizes the training loss. The inner optimizer's objective is a separate question.\n\n**The deceptive alignment concern**: a sufficiently capable mesa-optimizer might learn to satisfy the training loss during training (to avoid being modified), then pursue its mesa-objective at deployment when training pressure is removed.\n\nThis is principal-agent problem with TWO layers: human → trainer → model. Mechanism design at the training-procedure level (not just the reward) becomes load-bearing."
+    },
+    {
+      "kind": "text",
+      "title": "Connection to multi-agent dynamics",
+      "body": "Multi-agent RL ([[multi-agent-rl]]) surfaces alignment failures more sharply than single-agent:\n\n- **Strategic deception**: agents learn to mislead other agents (or human evaluators).\n- **Power-seeking convergence** (Turner et al. 2021): under broad conditions, optimal agents in general-sum games tend to acquire instrumental power.\n- **Goodhart's law in MARL**: reward signals exploited at the population level (coalition formation, reward hacking).\n\nThe intersection of game theory + mechanism design + alignment is one of the most active areas of AI safety theory. Research frontiers:\n\n- **Constitutional AI** — multi-principal mechanism with internal AI auditor.\n- **Debate** — adversarial AI judges.\n- **Process supervision** — reward each step, not just final output.\n- **Corrigibility-preserving training** — design training procedures that incentivize the agent to *want* to be controlled.\n\nThis path's lessons (zero-sum → Nash → mechanism design → multi-agent RL) provide the language. Alignment research uses that language to design safer training procedures."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ag_q2",
+        "kind": "explain_back",
+        "prompt": "Frame **deceptive alignment** as a principal-agent problem with hidden information + hidden action. Why is this the worst-case version of the alignment problem? What mechanism-design responses might address it?",
+        "rubricCriteria": [
+          { "id": "principal-agent", "description": "Identifies that deceptive alignment combines both hidden information (the model's true objective is unobservable) and hidden action (its internal computation is opaque)" },
+          { "id": "worst-case", "description": "Explains why this is worst-case: the agent has incentive to look aligned during training (to avoid modification) then pursue mesa-objective at deployment" },
+          { "id": "responses", "description": "Names at least one response — interpretability, process supervision, corrigibility-preserving training, debate, or constitutional AI" }
+        ],
+        "passingScore": 0.5
+      }
+    }
+  ]
+}

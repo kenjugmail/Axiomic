@@ -39,6 +39,7 @@ const SECONDARY_NAV_USER: Array<{ to: string; label: string }> = [
   { to: "/review/mistakes", label: "Review mistakes" },
   { to: "/me/mri", label: "Knowledge MRI" },
   { to: "/me/weak-concepts", label: "Weak concepts" },
+  { to: "/me/mentors", label: "Mentors" },
 ];
 
 export function Layout() {

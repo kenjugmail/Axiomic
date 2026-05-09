@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What hypothesis testing decides",
+      "body": "Hypothesis testing is a formal decision procedure: given data, do we have enough evidence to reject a default hypothesis?\n\n**The setup**:\n- **Null hypothesis (H₀)**: the boring, default state. 'The new method is no better than the baseline.' 'The treatment has no effect.'\n- **Alternative hypothesis (H₁)**: what you'd be excited about. 'The new method is better.' 'The treatment has an effect.'\n- **Test statistic**: a function of the data; large values are evidence against H₀.\n- **Significance level (α)**: the risk we're willing to take of falsely rejecting H₀ when it's true. Conventionally 0.05.\n\n**The decision**: compute the test statistic; compute the p-value (probability under H₀ of observing data this extreme or more); reject H₀ if p < α.\n\nThis is the framework underlying every 'p < 0.05' result in ML papers. Understanding it (especially what p-values do *not* mean) is crucial for not being fooled by your own evaluations."
+    },
+    {
+      "kind": "text",
+      "title": "p-values and what they mean",
+      "body": "A **p-value** is the probability, *under the null hypothesis*, of observing data at least as extreme as what you saw.\n\nFormally: `p = P(T ≥ T_observed | H₀ true)`.\n\n**What a p-value is NOT**:\n- ❌ The probability that H₀ is true.\n- ❌ The probability that the result is due to chance.\n- ❌ A measure of effect size.\n- ❌ Evidence that H₁ is true.\n- ❌ Reproducibility — a small p-value doesn't mean a study replicates.\n\n**What a p-value IS**:\n- A measure of how surprising the data is, *assuming* H₀ is true.\n- A frequentist quantity about hypothetical repeated experiments.\n- A decision threshold for rejecting H₀ at level α.\n\nThe most-misinterpreted statistic in science. The American Statistical Association issued a 2016 statement specifically to reduce p-value abuse.\n\n**Practical**: a small p-value is evidence against H₀. It doesn't tell you about the size of the effect or the probability that H₁ is true. Always pair p-values with effect sizes + confidence intervals."
+    },
+    {
+      "kind": "text",
+      "title": "Type I and Type II errors",
+      "body": "Two ways a hypothesis test can be wrong:\n\n**Type I error**: reject H₀ when it's actually true. False positive. Conventionally controlled at `α` (usually 0.05).\n\n**Type II error**: fail to reject H₀ when H₁ is actually true. False negative. The probability is denoted `β`. Power = `1 - β`.\n\n**Trade-off**: lowering `α` (be more careful about false positives) raises `β` (more false negatives). They trade off.\n\nFor ML evaluation:\n- α = 0.05 means: of 20 'no real difference' tests run at this level, ~1 will spuriously look significant.\n- Lower α (e.g., 0.001) for high-stakes decisions; reduces Type I but increases Type II.\n- Higher power (lower β) requires bigger sample size or larger true effect.\n\n**Power analysis** (next lesson) plans the sample size so the test has high power for the effect size you care about. Skipped power analysis is the #1 reason 'underpowered ML evals' produce noisy + irreproducible results.\n\nThe trade-off is inherent. You can shift it but not eliminate it."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ht_q1",
+        "kind": "multiple_choice",
+        "question": "A study reports 'p = 0.04 for our new training method'. What does this NOT tell you?",
+        "options": [
+          "The data is inconsistent with the null hypothesis at α = 0.05",
+          "The probability that the new method is actually better than baseline. p-values measure the probability of observed data given H₀, not the probability of H₁ given the data. Computing P(H₁ | data) requires a Bayesian framework with priors. The p-value is a frequentist statement about the experiment's behavior, not a posterior on the hypothesis",
+          "Whether the result would have crossed a 0.05 threshold",
+          "How surprising the data would be if there were no real effect"
+        ],
+        "correctIndex": 1,
+        "explanation": "P(data | H₀) ≠ P(H₀ | data). p-values give you the first; you'd need a Bayesian analysis with priors to get the second. The conflation is the most common p-value misinterpretation in published ML research. A p = 0.04 result tells you the data is mildly surprising under H₀; it doesn't tell you how likely H₁ is true. To make probabilistic claims about hypotheses, you need a Bayesian framework."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Multiple testing correction",
+      "body": "When you run K independent tests at α = 0.05, the probability of at least one false positive is roughly `1 - (1 - α)^K`. For K = 20 tests, that's ~64% — most likely you'll get a 'significant' result by chance alone.\n\nThis is the **multiple testing problem**. ML evaluation hits it constantly: comparing many model variants, evaluating across many benchmarks, running many ablations. Without correction, p < 0.05 means very little.\n\n**Corrections**:\n\n**Bonferroni** (most conservative): use `α / K` per test. Family-wise error rate (probability of any false positive) ≤ α. For K = 20: `α' = 0.0025`. Rejects fewer; can be too conservative for many tests.\n\n**Holm-Bonferroni**: sort p-values; apply progressively-relaxed thresholds. Same FWER guarantee as Bonferroni but more powerful.\n\n**Benjamini-Hochberg (BH)**: control the **false discovery rate (FDR)** — expected proportion of false positives among rejected nulls. FDR ≤ α. Less strict than FWER; rejects more; standard in modern ML evaluation.\n\n**For ML hyperparameter sweeps**: Bonferroni or BH on the per-config scores. Without correction, the 'best' config in a 100-config sweep is more likely picked by noise than by genuine improvement.\n\n**Practical rule**: if you ran K tests, divide your effective α by K (Bonferroni) or use BH for fdr control. Reporting K p-values without correction is statistical malpractice."
+    },
+    {
+      "kind": "text",
+      "title": "Tests for ML evaluation",
+      "body": "Common hypothesis tests for ML scenarios:\n\n**Comparing two model accuracies on the same test set** (paired): McNemar's test or paired t-test on per-example differences. Standard for 'is method A better than method B on this benchmark?'\n\n**Comparing accuracies across independent test sets**: two-sample t-test or non-parametric Mann-Whitney.\n\n**Goodness-of-fit** (calibration): chi-squared test or Kolmogorov-Smirnov.\n\n**Comparing distributions of model outputs**: K-S, Anderson-Darling, or PSI for drift detection.\n\n**For ML A/B tests** (next lesson, [[ab-testing]]): more carefully designed; sequential testing matters; peeking is a common bug.\n\n**Default recipe**: bootstrap-based intervals + paired tests with multiple-testing correction when running many comparisons. This handles ~95% of practical ML evaluation needs.\n\nWhen tests fail: if the underlying assumptions are violated (e.g., heavy-tailed errors, dependent samples), the p-value is wrong. Bootstrap-based methods are more robust; default to them when in doubt."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ht_q2",
+        "kind": "multiple_choice",
+        "question": "You ran a hyperparameter sweep with 100 configurations and reported the best one as 'p < 0.05 vs baseline'. What's the issue?",
+        "options": [
+          "The baseline was wrong",
+          "Multiple testing without correction. With 100 tests at α = 0.05, the expected number of false positives is ~5. Without Bonferroni or FDR correction, the 'significant' best config is much more likely picked by noise than by real signal. Properly: Bonferroni gives effective α = 0.0005 per test; Benjamini-Hochberg controls FDR for the multi-comparison setting",
+          "Hyperparameter sweeps are always invalid",
+          "p-values don't apply to ML"
+        ],
+        "correctIndex": 1,
+        "explanation": "The implicit multiple testing in hyperparameter sweeps is the most common silent bug in ML evaluation. Each tested config is a test; running 100 makes the per-test α irrelevant. The fix: report the best config WITH multiple-testing correction (Bonferroni or BH), or use a rigorous train / val / test split where the final test is run only once on the chosen config. Without one of these, 'p < 0.05' on the best config is statistical malpractice."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Hypothesis testing is the decision framework. Next: Bayesian inference — an alternative paradigm that's increasingly relevant for ML.\n\nNext: [[bayesian-inference]] — priors, posteriors, MCMC.\n\nKey takeaways:\n- p-values: P(data | H₀); do NOT equal P(H₀ | data)\n- Type I (α): false positives. Type II (β): false negatives. Power = 1 - β\n- Multiple testing corrections (Bonferroni, BH) are required when running many tests\n- McNemar's, paired t-test for comparing models on the same test set\n- Bootstrap-based methods are robust defaults"
+    }
+  ]
+}

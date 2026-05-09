@@ -10,6 +10,8 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { ArrowLeft, History } from "lucide-react";
 import type { VersionListResponse } from "@axiomic/types";
 import { api } from "../lib/api";
+import { EmptyState } from "../components/ui/EmptyState";
+import { Skeleton } from "../components/ui";
 
 type Kind = "paper" | "capstone";
 
@@ -62,13 +64,19 @@ export function VersionsPage() {
       )}
 
       {!data && !error && (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <div className="space-y-2">
+          <Skeleton className="h-12" />
+          <Skeleton className="h-12" />
+          <Skeleton className="h-12" />
+        </div>
       )}
 
       {data && data.versions.length === 0 && (
-        <p className="text-sm text-muted-foreground">
-          No versions snapshotted yet.
-        </p>
+        <EmptyState
+          icon={History}
+          title="No versions snapshotted yet"
+          description="Each published edit creates a snapshot here. The current version is what readers see; older snapshots are available for diff + revert."
+        />
       )}
 
       {data && data.versions.length > 0 && (

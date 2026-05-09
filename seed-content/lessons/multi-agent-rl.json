@@ -1,0 +1,75 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Multi-agent RL is fundamentally different",
+      "body": "**Single-agent RL**: the environment is fixed; learning improves the policy monotonically (in expectation).\n\n**Multi-agent RL (MARL)**: the 'environment' is other learning agents. As they update, the environment shifts. Convergence guarantees you have in single-agent RL mostly *don't* apply.\n\nThree concrete failure modes:\n- **Non-stationarity**: policy improvements can become useless when opponents update.\n- **Cycling**: rock-paper-scissors-style dynamics — A beats B beats C beats A. No stable point.\n- **Mode collapse / coordination failures**: in cooperative games, all agents converge on a single (possibly bad) convention that's hard to leave.\n\nThese aren't engineering bugs — they're inherent to the multi-agent structure. Different game classes need different methods."
+    },
+    {
+      "kind": "text",
+      "title": "Three regimes",
+      "body": "**Cooperative**: all agents share a single team reward. Centralized training + decentralized execution (CTDE) is the dominant paradigm. MAPPO, QMIX, COMA are workhorses.\n\n**Competitive zero-sum**: classical [[zero-sum]] dynamics. **Self-play** ([[self-play]]) provably converges to Nash equilibrium in time-average for two-player zero-sum + no-regret learning. AlphaZero, AlphaStar, OpenAI Five are landmarks.\n\n**General-sum (mixed)**: hardest. No convergence theorems; the analytic structure is unfriendly. Modern toolkit: PSRO (Policy Space Response Oracles), opponent modeling, league play. Engineering-heavy."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "marl_q1",
+        "kind": "multiple_choice",
+        "question": "AlphaZero famously trained via self-play and reached superhuman play on chess, Go, and shogi. Why doesn't this guarantee that self-play in any multi-agent RL problem will produce great policies?",
+        "options": [
+          "Because chess is special",
+          "Because the convergence theorem behind self-play applies specifically to two-player zero-sum + no-regret learning. General-sum games (multiple players, non-adversarial reward structures) have no analogous theorem; self-play can cycle, collapse, or land at undesirable equilibria",
+          "Because AlphaZero used MCTS",
+          "Because chess + Go + shogi are perfect-information games"
+        ],
+        "correctIndex": 1,
+        "explanation": "Self-play has clean convergence guarantees only in two-player zero-sum games with no-regret learning algorithms. Beyond that — general-sum, multi-player, partial information — convergence isn't guaranteed. AlphaZero works on the canonical setting; many real MARL problems aren't there."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "PSRO + league play",
+      "body": "**Policy Space Response Oracles (PSRO)** (Lanctot 2017): iteratively expand a population of policies.\n\n1. Start with one or a few seed policies.\n2. Compute the empirical meta-game: for each policy pair, what's the win rate?\n3. Solve the meta-game (linear programming for two-player zero-sum; approximate for general-sum) → get a meta-strategy = mixture over the population.\n4. Train a new best-responder against the meta-strategy.\n5. Add the best-responder to the population.\n6. Repeat.\n\nPSRO escapes cycling (you keep best-responders against each cycle's strategies) and provides a structured way to grow the strategy space.\n\n**League play** (AlphaStar 2019): structured population with three classes — main agents, exploiters (specialize in beating main agents' weaknesses), league exploiters (specialize in beating *any* league agent). Each plays specific roles; together they prevent cycling + collapse. Used in StarCraft."
+    },
+    {
+      "kind": "text",
+      "title": "Cooperative MARL: CTDE",
+      "body": "For cooperative games: **Centralized Training, Decentralized Execution (CTDE)**.\n\nAt training time: a centralized critic $Q(s, a_1, ..., a_n)$ sees the joint observation + actions of all agents. Each agent's policy $\\pi_i(a_i | o_i)$ trains using gradients from this critic.\n\nAt deployment: the centralized critic is gone. Each agent acts on its own local observation, executing its decentralized policy.\n\nWhy this works: the critic can use information unavailable at deployment (other agents' observations) to compute meaningful gradients. The policies just need to be good given local information.\n\n**MAPPO** (Multi-Agent PPO) is the current default for continuous-action cooperative MARL. **QMIX** uses value decomposition with monotonicity constraints for discrete actions."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "marl_q2",
+        "kind": "multiple_choice",
+        "question": "In CTDE (centralized training, decentralized execution), what's the role of the centralized critic at TRAINING time but missing at DEPLOYMENT?",
+        "options": [
+          "The critic acts as a coordinator at deployment",
+          "The critic helps each agent's gradient update by seeing the joint state + actions during training; at deployment it's removed because each agent only has access to its local observation. The decentralized policies are still trained well because gradients from the centralized critic carry global information",
+          "The critic is the deployed policy",
+          "There's no centralized critic — that's a misnomer"
+        ],
+        "correctIndex": 1,
+        "explanation": "CTDE separates training (where the critic uses joint information for high-quality gradients) from deployment (where only local observations are available, so policies act independently). The centralized signal during training improves the decentralized policies even though it's not available at deployment."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Connection to alignment",
+      "body": "Multi-agent RL surfaces alignment failures more sharply than single-agent.\n\n- **Strategic deception**: an agent learns to mislead other agents (or human evaluators in human-AI hybrid setups). Cicero's Diplomacy training had to actively suppress deception.\n\n- **Power-seeking convergence** (Turner et al. 2021): under broad conditions, optimal agents in general-sum games tend to acquire instrumental power. Training procedures can amplify this.\n\n- **Goodhart's law in MARL**: reward signals that work for individual agents become exploited at the population level (e.g., reward hacking via coalition formation).\n\nThe intersection of MARL + alignment is one of the most active areas of AI safety research. Mechanism design ([[mechanism-design]]) for AI training environments is one frontier; corrigibility-preserving training procedures is another.\n\nNext: alignment as game theory ([[principal-agent]]) — the principal-agent framing of AI safety."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "marl_q3",
+        "kind": "explain_back",
+        "prompt": "Why is MARL convergence to Nash equilibrium NOT guaranteed in general-sum games, even when each agent is running PPO with self-play? Use rock-paper-scissors as an example to ground your answer.",
+        "rubricCriteria": [
+          { "id": "non-stationarity", "description": "Identifies non-stationarity — the environment changes as opponents learn" },
+          { "id": "cycling", "description": "Uses RPS or analogous example to illustrate cycling" },
+          { "id": "theoretical-gap", "description": "Mentions that convergence theorems exist for two-player zero-sum (with no-regret learning) but not for general-sum, OR that convergence is time-averaged not pointwise" }
+        ],
+        "passingScore": 0.5
+      }
+    }
+  ]
+}

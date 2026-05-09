@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from "react";
 import { Navigate, Routes, Route, useParams } from "react-router-dom";
 import { Layout } from "./components/Layout";
+import { ToastContainer } from "./components/ui/ToastContainer";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { SignupPage } from "./pages/SignupPage";
@@ -205,6 +206,12 @@ const WeakConceptsPage = lazy(() =>
 const KnowledgeMRIPage = lazy(() =>
   import("./pages/KnowledgeMRIPage").then((m) => ({ default: m.KnowledgeMRIPage })),
 );
+// Sprint 64c — mentor relationships dashboard.
+const MentorDashboardPage = lazy(() =>
+  import("./pages/MentorDashboardPage").then((m) => ({
+    default: m.MentorDashboardPage,
+  })),
+);
 // Sprint 35 — version history + frozen-version snapshot reader.
 const VersionsPage = lazy(() =>
   import("./pages/VersionsPage").then((m) => ({ default: m.VersionsPage })),
@@ -261,6 +268,9 @@ export function App() {
 
   return (
     <Suspense fallback={<PageFallback />}>
+      {/* Sprint 64a — global toast notifications. Mounted once at the
+          app root; any code can call `toast.success(...)` etc. */}
+      <ToastContainer />
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<HomePage />} />
@@ -350,6 +360,7 @@ export function App() {
           <Route path="/admin/errors" element={<AdminErrorStatsPage />} />
           <Route path="/me/weak-concepts" element={<WeakConceptsPage />} />
           <Route path="/me/mri" element={<KnowledgeMRIPage />} />
+          <Route path="/me/mentors" element={<MentorDashboardPage />} />
           <Route path="/cite/p/:author/:slug" element={<CitePaperRedirect />} />
           <Route path="/cite/c/:author/:slug" element={<CiteCapstoneRedirect />} />
           <Route path="*" element={<NotFoundPage />} />

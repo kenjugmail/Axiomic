@@ -1,0 +1,54 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "When brute force isn't enough",
+      "body": "Some problems naturally have **exponential** brute-force solutions but are tractable in **polynomial** time via cleverness.\n\nExample: compute $F(40)$ where $F$ is Fibonacci. Naive recursive: $T(n) = T(n-1) + T(n-2) + O(1)$ — exponential. Memoized: $O(n)$. Same answer; vastly different runtime.\n\n**Dynamic programming (DP)** is the framework for solving these. Two requirements:\n1. **Optimal substructure**: optimal solution composes from optimal sub-solutions.\n2. **Overlapping subproblems**: the same subproblems are recomputed many times in naive recursion.\n\nWhen both hold, memoization or tabulation turns exponential into polynomial."
+    },
+    {
+      "kind": "text",
+      "title": "The two implementation styles",
+      "body": "**Top-down (memoization)**: natural recursive code with a cache. Solve subproblems on demand; store results.\n\n```python\n@lru_cache(maxsize=None)\ndef fib(n):\n    if n < 2: return n\n    return fib(n-1) + fib(n-2)\n```\n\n**Bottom-up (tabulation)**: build the answer table iteratively, in dependency order.\n\n```python\ndef fib(n):\n    if n < 2: return n\n    table = [0] * (n+1)\n    table[1] = 1\n    for i in range(2, n+1):\n        table[i] = table[i-1] + table[i-2]\n    return table[n]\n```\n\nSame asymptotic complexity ($O(n)$). Different ergonomics — see [[memoization-vs-tabulation]]."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dp_q1",
+        "kind": "multiple_choice",
+        "question": "Naive recursive Fibonacci is $O(2^n)$. With memoization, what's the new complexity?",
+        "options": [
+          "Still $O(2^n)$ — memoization doesn't change asymptotic complexity",
+          "$O(n)$ — each subproblem is computed once + cached; there are $n$ unique subproblems",
+          "$O(\\log n)$",
+          "$O(n^2)$"
+        ],
+        "correctIndex": 1,
+        "explanation": "Memoization is the canonical example of how DP turns exponential into polynomial. Naive recursive Fib recomputes the same subproblems exponentially many times; memoization computes each of $n$ unique subproblems exactly once. $O(n)$ time, $O(n)$ space (further optimizable to $O(1)$ space)."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Common DP patterns",
+      "body": "**Sequence DP**: state = (position in sequence). Examples: edit distance, longest common subsequence, longest increasing subsequence.\n\n**Interval DP**: state = (left, right). Examples: matrix chain multiplication, optimal BST construction.\n\n**Tree DP**: state = (node, sub-tree property). Examples: tree-rooted optimization.\n\n**Subset DP**: state = bitmask of items chosen. Examples: traveling salesman ($O(n^2 \\cdot 2^n)$, faster than $O(n!)$).\n\n**Knapsack DP**: state = (item index, weight). 0/1 knapsack and variants.\n\nThe pattern recognition is the main skill. Once you see the subproblem structure, the recurrence usually writes itself."
+    },
+    {
+      "kind": "text",
+      "title": "DP and ML",
+      "body": "Many ML algorithms ARE dynamic programming:\n\n- **Viterbi algorithm** for HMMs: forward + backward via DP.\n- **Forward-backward** for HMMs: marginal likelihood.\n- **Beam search** for sequence generation: approximate DP over hypothesis space.\n- **CYK algorithm** for context-free parsing: $O(n^3)$ DP over parse tables.\n\nThe **Bellman equation** in reinforcement learning is a DP: $V(s) = \\max_a \\mathbb{E}[r + \\gamma V(s')]$. Value iteration is bottom-up DP; Q-learning is approximate top-down DP with function approximation.\n\nIf you understand DP, you understand a fundamental layer of how modern ML algorithms achieve their tractability."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dp_q2",
+        "kind": "explain_back",
+        "prompt": "When would you choose tabulation over memoization, and vice versa? Use a concrete example to ground your answer.",
+        "rubricCriteria": [
+          { "id": "tabulation-pros", "description": "Identifies tabulation pros: iterative (no stack overflow), constant-factor faster, easier to space-optimize" },
+          { "id": "memoization-pros", "description": "Identifies memoization pros: natural recursive code, only computes needed subproblems" },
+          { "id": "concrete-example", "description": "Provides a concrete example — e.g., Fibonacci tabulation can space-optimize to O(1); recursion-depth-limited problems benefit from tabulation" }
+        ],
+        "passingScore": 0.5
+      }
+    }
+  ]
+}

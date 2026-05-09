@@ -1,0 +1,75 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why mediation matters",
+      "body": "**Mediation analysis** decomposes a total causal effect into:\n\n- **Direct effect**: how much of `T → Y` flows through paths that don't go through the mediator.\n- **Indirect effect**: how much flows through `T → M → Y` (and other mediators).\n\nWhy you'd want this:\n\n- **Mechanism understanding**: total effect tells you what happens; mediation tells you why. Useful for designing interventions on the mechanism.\n- **Policy targeting**: if 80% of a program's effect runs through one mediator, intervening on that mediator directly might be cheaper.\n- **Diagnostic**: the difference between direct and indirect effects is informative when total effects are surprising. Was it the program, or the side-effect of the program?\n\n**Classic example**: a mentoring program raises grades. Total effect: +0.3 GPA. Mediation analysis: 80% flows through study habits (the mentor taught time management), 20% directly (mentor relationship effect, motivation). Now you know what to scale up if you can't afford full mentoring."
+    },
+    {
+      "kind": "text",
+      "title": "Direct + indirect effects, formally",
+      "body": "Using potential outcomes notation with mediator `M`:\n\n- **Total Effect (TE)**: `E[Y(T = 1) - Y(T = 0)]`. The whole effect of treatment on outcome.\n- **Natural Direct Effect (NDE)**: `E[Y(T = 1, M = M(0)) - Y(T = 0, M = M(0))]`. Effect of `T` if we held `M` at the value it would have under control.\n- **Natural Indirect Effect (NIE)**: `E[Y(T = 1, M = M(1)) - Y(T = 1, M = M(0))]`. Effect of moving `M` from its untreated value to its treated value, holding `T` at treated.\n- **Decomposition**: `TE = NDE + NIE`.\n\n**Controlled Direct Effect (CDE)**: `E[Y(T = 1, M = m) - Y(T = 0, M = m)]` — the direct effect when `M` is FIXED at value `m`. Different from NDE; useful when `M` is policy-controllable.\n\nThe natural-effects framework (Pearl, Robins) is the modern standard for mediation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "med_q1",
+        "kind": "multiple_choice",
+        "question": "Why isn't 'controlling for M' in a regression a valid way to estimate the direct effect of T?",
+        "options": [
+          "It's actually fine if M is binary",
+          "Conditioning on M can open spurious paths if M is a collider on a backdoor route, and post-treatment adjustment generally introduces bias even when the path structure looks clean. Modern mediation methods (NDE/NIE estimation via natural-effects formulas) are required to correctly decompose direct + indirect",
+          "It overfits",
+          "It's a Bayesian problem"
+        ],
+        "correctIndex": 1,
+        "explanation": "Naive regression of Y on T + M to 'control for M' doesn't generally estimate the natural direct effect. It conflates direct effects with mediator-confounder interactions. This was shown by Robins-Greenland (1992) and has been re-derived many times. Modern tooling implements the proper decomposition."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Identifiability assumptions",
+      "body": "Mediation analysis requires assumptions stronger than a basic causal-effect estimate. Specifically, you need:\n\n1. **No unobserved T-Y confounders** (typical for any causal-effect estimation).\n2. **No unobserved T-M confounders** (the same assumption, applied to the treatment-mediator relationship).\n3. **No unobserved M-Y confounders** (the new and hardest one — confounders of the mediator and outcome).\n4. **No mediator-outcome confounder caused by T** (Avin et al. 2005). If `T` causes a confounder of `M` and `Y`, natural effects aren't identified.\n\nAssumption 3 is often the breakdown. The mediator is rarely randomized; even when treatment is. So even an RCT doesn't automatically license mediation analysis — the mediator's causal role still relies on observational adjustment.\n\n**Diagnostic question**: in your setting, what unobserved variable might cause both `M` and `Y`? If you have a plausible answer, you have an identifiability problem to address (sensitivity analysis, instrumental-variable-style methods for mediation)."
+    },
+    {
+      "kind": "text",
+      "title": "Sensitivity analysis for mediation",
+      "body": "Because the M-Y unconfoundedness assumption is rarely defensible exactly, **sensitivity analysis** is essential. The standard approach:\n\n- Specify a hypothetical unobserved confounder `U` of `M` and `Y` with assumed strengths.\n- Recompute the NDE/NIE under the assumption that `U` exists.\n- Report how strong `U` would need to be to overturn the qualitative conclusion (e.g., \"the indirect effect would have to be the result of a confounder explaining 30% of variance in both `M` and `Y` to vanish\").\n\nThis tells the reader how robust the mediation conclusion is. If a small unobserved confounder could overturn it, the mediation claim is fragile. If it would take a very strong confounder, the claim is more robust.\n\n**Tooling**: VanderWeele's `paramed` (Stata), the `mediation` R package (Imai et al.), and DoWhy's mediation functions all implement sensitivity analysis."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "med_q2",
+        "kind": "multiple_choice",
+        "question": "Why is mediation analysis harder than estimating a total causal effect?",
+        "options": [
+          "It needs more data",
+          "Mediation requires unconfoundedness of T-Y AND T-M AND M-Y AND no T-caused M-Y confounders. The M-Y unconfoundedness assumption is often broken because the mediator is observed downstream of treatment but not randomized — even an RCT doesn't randomize the mediator. So mediation analysis layers on additional unverifiable assumptions",
+          "Heterogeneous effects",
+          "Computational limits"
+        ],
+        "correctIndex": 1,
+        "explanation": "This is exactly why mediation analysis tends to be more controversial than basic causal-effect estimation. Even a perfectly randomized treatment can have biased mediation estimates because the mediator is observational. Sensitivity analysis is essential."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "When mediation is most useful",
+      "body": "Despite the assumptions, mediation analysis is essential in three settings:\n\n**1. Mechanism research**. Drug development: which biomarker mediates the drug's effect? Educational interventions: does program X work via study time, peer support, or instructor effect? Policy: does cash transfer reduce poverty via consumption smoothing or via investment?\n\n**2. Policy refinement**. If most of a program's effect runs through mediator `M`, can we intervene on `M` directly more cheaply? E.g., if a tutoring program raises grades 80% via study habits, structured study programs might capture most of the effect.\n\n**3. Effect explanation**. Total effects sometimes surprise. Mediation can reveal that an unexpectedly small total effect is due to direct + indirect effects of opposite signs cancelling. Or that an unexpectedly large effect is concentrated in a specific path.\n\n**Modern variants**: causal-mediation with high-dimensional mediators (medical-imaging biomarkers), longitudinal mediation (when both `M` and `Y` evolve over time), and mediation in ML interpretability (which intermediate representation in a neural network mediates the input-output behavior?). The last is an active research frontier — mech-interp work using mediation analysis."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "med_explain",
+        "kind": "explain_back",
+        "prompt": "Pick a hypothetical intervention (a job-training program, a medical drug, a UI change, etc.) and explain: (1) what mediator you'd want to investigate, (2) why decomposing direct vs indirect effects would be useful, (3) what M-Y confounder you'd worry about.",
+        "rubricCriteria": [
+          { "id": "concrete-setup", "description": "Names a specific T, Y, M" },
+          { "id": "decomposition-value", "description": "Explains why decomposing direct vs indirect matters in this context" },
+          { "id": "confounder-named", "description": "Names a plausible M-Y confounder and acknowledges the identifiability concern" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}

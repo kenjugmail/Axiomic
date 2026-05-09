@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Correlation vs causation",
+      "body": "ML predicts; causal inference *intervenes*. The distinction matters enormously when your decisions depend on it.\n\n**Predictive question**: 'Given a user's features, will they churn?' A model that captures correlations is fine.\n\n**Causal question**: 'If we send this user a discount, will they churn less?' Correlation can't answer this — discount-receivers might be different in ways that affect churn independently.\n\nThe canonical example: 'people who use sunscreen have higher skin cancer rates'. Is sunscreen causing cancer? No — the confounder is sun exposure. People who go in the sun more both use more sunscreen and get more cancer. Correlation ≠ cause.\n\nML systems that confuse the two ship interventions that don't work. Better evaluations + ship-decisions require thinking causally. This lesson covers the foundational concepts; the [[causality]] path goes deeper."
+    },
+    {
+      "kind": "text",
+      "title": "Counterfactuals and the fundamental problem",
+      "body": "**Counterfactual**: 'what would have happened if we'd done X instead of Y?'\n\nFor each user, you'd want to know:\n- `Y(treated)`: what they'd do if treated.\n- `Y(control)`: what they'd do if not treated.\n\nThe **individual treatment effect**: `Y(treated) - Y(control)`.\n\n**Fundamental problem of causal inference**: each user is either treated or not. We never observe both `Y(treated)` and `Y(control)` for the same user. Counterfactuals are unobserved.\n\nCausal inference's job: estimate things we can't directly observe.\n\n**The savior — randomization**: with random assignment, the *average* counterfactual outcomes are the same in both groups (in expectation). So:\n\n```\nATE = E[Y(treated)] - E[Y(control)] ≈ mean(Y in treated) - mean(Y in control)\n```\n\nThis is why RCTs work: random assignment makes the two groups exchangeable — same in expectation on all confounders, observed and unobserved.\n\nWithout randomization (observational data), the two groups can differ on confounders; the simple difference of means is not the causal effect."
+    },
+    {
+      "kind": "text",
+      "title": "Randomized controlled trials (RCTs)",
+      "body": "**RCT** (Randomized Controlled Trial): the gold standard for causal inference. Randomly assign units to treatment vs control; compare outcomes.\n\n**Why RCTs are special**:\n- Random assignment makes treatment + control groups exchangeable in expectation.\n- ATE can be estimated by simple difference of group means.\n- Doesn't require modeling confounders (random assignment 'breaks' confounding).\n- Causal interpretation is robust.\n\n**RCT analysis**:\n```\nATE_hat = mean(Y | T = 1) - mean(Y | T = 0)\nSE = sqrt(Var(Y | T=1)/n_treated + Var(Y | T=0)/n_control)\nCI = ATE_hat ± 1.96 · SE\n```\n\nThat's it. The simple difference-of-means is unbiased.\n\n**Limitations**:\n- **Ethical**: can't randomize harmful treatments. Can't randomize 'people get cancer'.\n- **Practical**: some treatments can't be randomized (e.g., gender, socioeconomic status).\n- **External validity**: RCT participants may not represent general population.\n- **Compliance**: people might not take the treatment they're assigned. Intent-to-treat analysis vs treatment-on-treated.\n- **Cost**: large RCTs are expensive.\n\nFor ML A/B testing: RCTs are easy because we can randomly assign users to treatments programmatically. The ML A/B testing infrastructure is essentially an RCT runner."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "cause_q1",
+        "kind": "multiple_choice",
+        "question": "Why does random assignment in an RCT 'break' confounding without explicitly modeling confounders?",
+        "options": [
+          "Randomization removes all noise",
+          "By randomly assigning treatment, both groups are equal in expectation on every variable — including confounders we didn't measure or even know about. Average outcomes therefore differ only because of the treatment, not because of underlying differences. Observational data can't claim this; it requires explicit modeling of confounders or natural experiments to mimic randomization",
+          "RCTs require infinite sample sizes",
+          "Randomization eliminates the need for inference"
+        ],
+        "correctIndex": 1,
+        "explanation": "The magic of RCTs is unmeasured-confounder protection. Random assignment ensures the treated and control groups have the same expected distribution of everything — measured (income, gender) and unmeasured (motivation, health, family support). The simple difference of means is the unbiased causal effect because the groups are exchangeable. Observational studies can't claim this; they need to explicitly model and adjust for confounders, and any unmeasured ones bias the estimate."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "When you can't randomize",
+      "body": "Many real-world causal questions can't be answered by RCTs. Approximations:\n\n**Difference-in-differences (DiD)**: compare change-over-time in treated vs untreated groups. If they would have changed similarly absent treatment ('parallel trends'), the difference-of-differences is the causal effect. Used for natural experiments where one population gets a treatment + another doesn't.\n\n**Instrumental variables (IV)**: find an instrument — a variable that affects treatment but not the outcome directly. Use it to extract the causal effect even with confounding. Classic econometrics technique.\n\n**Regression discontinuity (RD)**: when treatment is assigned by crossing a threshold (test score, age cutoff). Compare units just-above vs just-below the threshold. Causal because, near the threshold, units are similar in everything except treatment status.\n\n**Propensity scoring**: estimate probability of treatment given observed covariates; weight or match by propensity. Reduces (doesn't eliminate) confounding.\n\n**Synthetic control**: build a 'synthetic' control by weighting other units to match the treated unit pre-treatment. Compare post-treatment.\n\nFor ML: most causal inference methods can be adapted with ML estimators (causal forests, double machine learning). But the assumptions (no unmeasured confounders, parallel trends, valid instruments) are critical and often unverifiable. Causal claims from observational data are weaker than from RCTs."
+    },
+    {
+      "kind": "text",
+      "title": "Causal inference for ML evaluation",
+      "body": "Several places where causal thinking changes ML evaluation:\n\n**1. Treatment effect of a model**. 'How much better are predictions when we use model X vs model Y?' Often estimated via held-out test set. Gold standard: A/B test in production with random assignment.\n\n**2. Feature importance, causally**. SHAP and LIME are *predictive* feature importance. **Causal feature importance**: 'if we changed this feature, would the prediction change in a way that mattered?' Different question; needs causal-inference machinery.\n\n**3. Effect of intervention**. 'If we change the recommendation algorithm, will user engagement increase?' Naive: just look at correlation in past data. Causal: A/B test with random assignment.\n\n**4. Counterfactual fairness**. 'Would the model have made the same prediction if this protected attribute had been different, holding everything else constant?' Counterfactual question; requires explicit causal model.\n\n**5. Off-policy evaluation in RL**. Evaluate a new policy's expected performance from data collected under a different policy. Requires causal-inference techniques (importance weighting, doubly-robust estimators).\n\nCausal inference is one of the underused toolkits in ML. Teams that adopt it ship better-evaluated systems and avoid common pitfalls (correlated metrics passing for causal effects)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "cause_q2",
+        "kind": "multiple_choice",
+        "question": "When can you NOT estimate a causal effect from observational data alone?",
+        "options": [
+          "When there's an unmeasured confounder that affects both treatment and outcome. Without RCT or a valid natural experiment (instrumental variable, regression discontinuity), the unmeasured confounder biases the estimate. Common in ML: 'users with feature X engage more' might not mean 'showing feature X increases engagement' — both might be driven by user motivation, which we don't measure",
+          "When you have lots of data",
+          "When the outcome is binary",
+          "When you use a deep neural network"
+        ],
+        "correctIndex": 0,
+        "explanation": "Unmeasured confounding is the canonical reason observational data can't establish causation. Without randomization or a strong natural experiment, you can't be sure your estimated effect isn't driven by unmeasured variables. This is why RCTs are the gold standard and why product teams should A/B test changes rather than infer effects from observational logs. The ML symptom: 'shipped feature X based on observational analysis; A/B test showed no real effect'. Common pattern."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Causal inference basics close out the experimental-design portion of the path. Next: handling uncertainty in your predictions.\n\nNext: [[uncertainty-quantification]] — calibration, conformal prediction.\n\nKey takeaways:\n- Counterfactuals are unobservable; the fundamental problem of causal inference\n- Randomization makes treated + control groups exchangeable in expectation; ATE = simple difference\n- Without randomization: DiD, IV, RD, propensity scoring, synthetic control. Each has strong assumptions\n- ML evaluation often needs causal thinking: A/B tests, off-policy eval, counterfactual fairness\n- Observational data + unmeasured confounders → causal claims are weak"
+    }
+  ]
+}

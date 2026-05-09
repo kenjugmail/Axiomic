@@ -5,7 +5,7 @@
 // affordance. Once enrolled, the page surfaces a "Continue capstone"
 // CTA pointing to the workspace.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { BookMarked, GraduationCap, ChevronRight, History, Sparkles, Lock, ListChecks } from "lucide-react";
 import type { Capstone, CapstoneTier } from "@axiomic/types";
@@ -14,14 +14,18 @@ import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { TierToggle } from "../components/research/TierToggle";
+import { TutorMount } from "../components/ai/TutorMount";
 import { PrereqXray } from "../components/prereq/PrereqXray";
 import { CiteDialog } from "../components/citations/CiteDialog";
+import { toast } from "../stores/toast";
 
 export function CapstonePage() {
   const { slug = "" } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const [capstone, setCapstone] = useState<Capstone | null>(null);
+  // Sprint 63h — root for the selection-to-chat popover.
+  const briefBodyRef = useRef<HTMLDivElement | null>(null);
   const [tier, setTier] = useState<CapstoneTier>("undergrad");
   const [error, setError] = useState<string | null>(null);
   const [enrolling, setEnrolling] = useState(false);
@@ -48,9 +52,13 @@ export function CapstonePage() {
       await api.capstones.enroll(slug);
       const r = await api.capstones.get(slug, tier);
       setCapstone(r.capstone);
+      toast.success(`Enrolled in ${r.capstone.title}`);
     } catch (e) {
+      // Sprint 67c — enroll failures are transient + don't block the
+      // page; fire as a toast instead of replacing the page with an
+      // error state.
       const message = e instanceof Error ? e.message : "Failed to enroll";
-      setError(message);
+      toast.error(message);
     } finally {
       setEnrolling(false);
     }
@@ -91,7 +99,7 @@ export function CapstonePage() {
     enrollment.passedMilestoneIds.length === capstone.milestones.length;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div ref={briefBodyRef} className="max-w-3xl mx-auto px-4 py-8">
       <div className="flex items-center gap-3 text-xs text-muted-foreground mb-4">
         <Link to="/capstones" className="hover:text-foreground">
           Capstones
@@ -355,6 +363,14 @@ export function CapstonePage() {
           onClose={() => setCiteOpen(false)}
         />
       )}
+
+      {/* Sprint 63h — AI tutor mount. */}
+      <TutorMount
+        pageSlug={capstone.slug}
+        pageTitle={capstone.title}
+        tier="capstone"
+        articleRef={briefBodyRef}
+      />
     </div>
   );
 }

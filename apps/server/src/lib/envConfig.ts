@@ -61,6 +61,28 @@ const envSchema = z.object({
   // Sprint 53 — Structured logger level. Defaults to 'info' in prod,
   // 'debug' otherwise.
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).optional(),
+
+  // Sprint 63d — error sampler observability. The sampler keeps an
+  // in-process ring buffer (sized via ERROR_SAMPLER_BUFFER_SIZE) for
+  // the /admin/error-stats dashboard; ERROR_LOG_DESTINATION controls
+  // whether sampled errors also emit a structured JSON line on stdout
+  // for external aggregators (Loki, Datadog, etc.).
+  ERROR_LOG_DESTINATION: z
+    .enum(["memory", "stdout", "both"])
+    .default("both"),
+  ERROR_SAMPLER_BUFFER_SIZE: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(200),
+
+  // Sprint 66c — Sentry SDK shim. When SENTRY_DSN is set, the
+  // observability layer initializes @sentry/node and forwards
+  // `captureError` calls to it; otherwise everything stays in the
+  // existing in-memory error sampler. Optional in dev / tests.
+  SENTRY_DSN: z.string().optional(),
+  SENTRY_ENVIRONMENT: z.string().optional(),
+  SENTRY_TRACES_SAMPLE_RATE: z.coerce.number().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

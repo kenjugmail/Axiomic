@@ -1,0 +1,80 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What's the frontier",
+      "body": "**Embodied AI**: the convergence of foundation-model scale + robot data + classical control.\n\nFor decades, robotics progressed slowly because policies were hand-engineered, brittle, and narrow. Each task required separate engineering. Generalization across tasks, embodiments, and environments was a research frontier with limited production reality.\n\nThe 2022-2026 shift: **foundation models for robotics**. Large policies trained on diverse data (internet + teleoperation + curated demos) that generalize across tasks and embodiments. RT-1, RT-2, OpenVLA, π-0 are the milestone systems.\n\nThis lesson covers the frontier as of 2026: what's working, what isn't, what's likely to land by 2030."
+    },
+    {
+      "kind": "text",
+      "title": "Vision-Language-Action models — the new architecture",
+      "body": "**VLA architecture**: vision encoder + language encoder + transformer backbone + action decoder.\n\n**Vision encoder**: typically a pretrained vision foundation model (DINOv2, CLIP, SigLIP) or a fresh ViT. Outputs visual tokens.\n\n**Language encoder**: pretrained LLM or LLM-style transformer. Encodes the instruction (e.g., \"pick up the red block and place it on the green block\").\n\n**Transformer backbone**: decoder-only or encoder-decoder. Cross-attention between vision + language tokens; outputs action tokens.\n\n**Action decoder**: maps action tokens to motor commands. Variants:\n\n- **Discrete actions**: tokenize action space; predict tokens autoregressively.\n- **Continuous actions**: predict numerical action vectors directly.\n- **Action chunking**: predict the next K actions as a chunk.\n- **Diffusion / flow matching**: predict the action distribution, sample.\n\n**Training data**:\n\n- **Internet** (RT-2): web images + text. Provides general visual + language understanding.\n- **Robot data**: teleoperation, scripted policies, prior policies' rollouts.\n- **Cross-embodiment data** (Open X-Embodiment): mix of data from different robots. Improves generalization."
+    },
+    {
+      "kind": "text",
+      "title": "Notable systems",
+      "body": "**RT-1 (Google, 2022)**: first scaled VLA. 35M parameters. 130k demos. 700 tasks. Showed that scale + diverse data unlocks multi-task generalization.\n\n**RT-2 (Google DeepMind, 2023)**: VLM-augmented. Took a pretrained VLM (PaLI-X, PaLM-E) and fine-tuned on robot data. Transferred internet knowledge to robotics. *\"Pick up the extinct animal\"* worked — RT-2 generalized to 'extinct' from internet text + visual.\n\n**RT-X / Open X-Embodiment (2024)**: cross-embodiment training. 22 robots; 527 skills; 60 datasets. Showed positive transfer across robot types.\n\n**OpenVLA (2024)**: open-source VLA. 7B parameters, Llama-2-7B + DINOv2 + SigLIP. Released weights + code.\n\n**π-0 (Physical Intelligence, 2024)**: flow-matching VLA. Strong on dexterous manipulation. Production-ready demos.\n\n**Octo (2024, BAIR)**: open-source VLA built on flexible architecture. Good academic baseline.\n\n**MOOPT (2024-2025)**: multi-task pretraining + fine-tuning at scale. Industry frontier.\n\n**Stretching beyond VLA**: Tesla Optimus, Boston Dynamics' Stretch, 1X Neo, Figure 02 — humanoid platforms with VLA-style policies."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ea_q1",
+        "kind": "multiple_choice",
+        "question": "What's the main innovation of RT-2 over RT-1?",
+        "options": [
+          "Bigger model",
+          "VLM-augmented training: started with a pretrained vision-language model (PaLI / PaLM-E) and fine-tuned on robot data. The pretrained VLM contributed broad world knowledge from internet data, which transferred to robotic generalization. RT-1 was robot-data-only; RT-2 leveraged internet pretraining",
+          "More demonstrations",
+          "Just a name change"
+        ],
+        "correctIndex": 1,
+        "explanation": "RT-2's key insight: foundation-model pretraining transfers to robotics. The pretrained VLM understands 'extinct animal' from internet data; this transferred to manipulating objects matching that description. This is the foundation-model-for-robotics pattern that subsequent systems built on."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What works now",
+      "body": "**Reliably**:\n\n- **Pick-and-place** of common household objects. Modern VLAs (π-0, OpenVLA) handle this with high success.\n- **Tabletop manipulation** with simple instructions. \"Pick up the red cup and put it on the table.\"\n- **Limited-context navigation** in trained environments.\n- **Following natural-language instructions** for known tasks.\n\n**Sometimes**:\n\n- **Long-horizon tasks**. \"Make breakfast\" — multi-step; failure compounds; current systems handle 3-5 steps reliably; 10+ is a frontier.\n- **Dexterous manipulation**. Insertion, screw-driving, in-hand rotation. π-0 + OpenVLA-ACT show strong results; production reliability is mixed.\n- **Novel object generalization**. Modern VLAs handle moderate distribution shift; extreme novelty (very different shapes, materials) still degrades performance.\n- **Tool use**. Hammers, screwdrivers, pens. Working in research; commercial deployment limited.\n\n**Rarely**:\n\n- **Cooking**. Requires fine motor + multi-step + tool use + safety. Still beyond reliable autonomy.\n- **Surgery**. Requires precision + safety guarantees ML models don't yet provide.\n- **Crowded human environments** (sidewalks, factories). Safety constraints + edge cases are still huge."
+    },
+    {
+      "kind": "text",
+      "title": "Open frontiers",
+      "body": "**Generalization**:\n\n- Cross-embodiment: a policy trained on one robot working on a different one. Open X-Embodiment data helps; not solved.\n- Cross-task: a policy that can do truly novel tasks from natural-language instructions. Limited generalization today.\n- Cross-environment: deployment in environments unlike training.\n\n**Long-horizon**:\n\n- Hierarchical policies: high-level task planner + low-level executor.\n- Self-correction + replanning.\n- Memory + state tracking across long episodes.\n\n**Safety + reliability**:\n\n- Out-of-distribution detection: knowing when the policy doesn't know.\n- Formal verification: limited for ML policies.\n- Graceful failure: backing off + asking for help instead of doing something dangerous.\n\n**Multi-modal sensing**:\n\n- Tactile feedback fused with vision + language.\n- Audio (listening to environment).\n- Kinesthetic + force feedback for manipulation.\n\n**Real-time at scale**:\n\n- 7B+ parameter VLAs at 30+ Hz requires careful engineering. Distillation, quantization, chunked inference.\n\n**Data**:\n\n- Demonstrations are still expensive. Teleoperation at scale is a bottleneck.\n- Synthetic data + sim-to-real continues to be necessary."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ea_q2",
+        "kind": "multiple_choice",
+        "question": "Why is teleoperated demonstration data still a bottleneck for VLA training?",
+        "options": [
+          "Network bandwidth",
+          "Each hour of teleoperated robot data requires an hour of human time, real hardware, and a controlled environment. Unlike text or images, robot data can't be scraped from the internet. Open X-Embodiment aggregated 22 datasets to ~1000 hours total — small compared to internet text corpora. Synthetic data + sim-to-real partially help but don't fully close the gap",
+          "GPU memory",
+          "Privacy concerns"
+        ],
+        "correctIndex": 1,
+        "explanation": "Robot data is unique: it can't be scraped. Each hour requires real hardware + human teleoperator + curated environment. This is why scaling robotics data is much harder than scaling text or image data — and why sim-to-real + cross-embodiment transfer matter so much."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What 2030 likely looks like",
+      "body": "**By 2028**:\n\n- VLAs handle most warehouse manipulation reliably. Amazon, Symbotic, Berkshire Grey-style deployment at scale.\n- Home robots for limited tasks (laundry, dishes, surfaces). Limited but real adoption.\n- Tesla Optimus + competitors pushing humanoid manipulation.\n\n**By 2030**:\n\n- General-purpose VLAs handling most tabletop manipulation in unstructured environments.\n- Long-horizon (10+ step) tasks reliable in trained domains.\n- Dexterous tasks (assembly, fine manipulation) approaching human-level reliability.\n- First commercial humanoid deployments at scale.\n\n**Persistently hard**:\n\n- Surgery + medical robotics: safety + verification.\n- Outdoor unstructured environments: weather, lighting, novel obstacles.\n- True novel-task generalization without any in-domain data.\n- Real-time autonomy in human-dense environments (sidewalks, busy stores).\n\n**Wildcard**:\n\n- Foundation-model improvements (GPT-5+, Gemini 3+, Claude 5+) feed into VLAs. The model-capability axis is moving fast.\n- Synthetic video data (diffusion + game engines + photoreal renders) might unlock training without expensive teleoperation.\n- Embodied LLMs that integrate language + perception + action without separate models.\n\nRobotics has been 10 years away from a breakthrough for 50 years. The 2022-2026 stretch may finally be the breakthrough — or it may be another false dawn. The data-availability-constrained scaling-laws story is the most credible reason to think it's the real one."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "ea_explain",
+        "kind": "explain_back",
+        "prompt": "What's the most important difference between a 2018-era manipulation policy and a 2024-era VLA policy? Walk through specific differences in architecture, data, and capability.",
+        "rubricCriteria": [
+          { "id": "architecture-diff", "description": "Names specific architectural differences (transformer backbone, vision-language conditioning)" },
+          { "id": "data-diff", "description": "Names data scale + diversity differences" },
+          { "id": "capability-diff", "description": "Names specific capabilities VLAs have that prior systems didn't (instruction following, generalization, multi-task)" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}

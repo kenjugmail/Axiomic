@@ -1,0 +1,57 @@
+{
+  "slug": "build-a-production-search-engine",
+  "title": "Build a Production Search Engine: From Inverted Index to Ranking + Caching",
+  "summary": "Implement a working text search engine end-to-end: inverted index + tokenizer, BM25 ranking, query parsing, caching layer, latency benchmarking. Exercises every algorithmic primitive — hashing, sorting, graphs, dynamic programming, and the production constraints that turn algorithm theory into engineering practice.",
+  "format": "research",
+  "estimatedWeeks": 4,
+  "coverEmoji": "🔍",
+  "accentColor": "#F59E0B",
+  "canonicalTier": "undergrad",
+  "contentIntro": "## What you'll build\n\nA working text search engine: ingest documents, build an inverted index, parse + execute queries, rank results using BM25, cache hot queries, report latency benchmarks.\n\nNot a full Elasticsearch — a tractable system that exercises every CS-foundations concept. By the end you have a defended artifact + benchmark report demonstrating production-quality algorithm engineering.\n\n## What you'll demonstrate\n\n- You understand how algorithmic primitives (hashing, sorting, graph algorithms, dynamic programming) compose into real systems.\n- You can design + implement a non-trivial system from spec.\n- You can profile, identify bottlenecks, optimize.\n- You can produce a writeup explaining design decisions, alternatives considered, and lessons learned.",
+  "contentUndergrad": "## Why this capstone\n\nMost algorithm courses end at 'here's how Dijkstra works, here's a graph problem to solve.' Real algorithmic engineering is composing primitives into systems. Search engines are the perfect proving ground: every primitive matters (tokenization needs tries, indexing needs hashing, ranking needs sorting + heap operations, caching needs LRU, query suggestions need DP for edit distance).\n\nBy the end you have a complete codebase that's a portfolio piece + a benchmark report demonstrating production engineering thinking.\n\n## Pacing\n\n4 weeks at ~5-8 hrs/week. Most time: milestone 3 (ranking + caching) + milestone 4 (benchmarking + final report). Milestones 1-2 are infrastructure.\n\n## Tools\n\n- Python or Rust or Go — your choice. The capstone library code stays standalone.\n- A small text corpus (Project Gutenberg, English Wikipedia subset, or papers from arXiv).\n- Standard timing + memory profiling tools (cProfile, perf, instruments).\n- Locust or wrk for load testing.\n\n## Out of scope\n\n- Distributed search (sharding, replication). Single-machine implementation only.\n- Vector / embedding-based search. Text + BM25 only.\n- Production-grade query parsing (Lucene-equivalent). Simple AND/OR/NOT only.\n- Faceted search, aggregations, filters. Hit list only.",
+  "contentGrad": "## Notes for the experienced\n\nIf you've worked on production search systems, the value here is the **integrated systems view**. Most search engineers focus on one component (ranking, indexing, query parsing); this exercises all of them.\n\nLikely places to over-engineer:\n\n- Implementing your own SkipList for posting lists. Use a sorted vector unless you've measured that it's a bottleneck.\n- Tuning BM25 parameters before measuring baseline. $k_1 = 1.2$, $b = 0.75$ are sane defaults.\n- Building a complex query parser. The capstone wants AND/OR/NOT only.\n\nThe rubric specifically rewards: clean composition of primitives, honest benchmarking, intelligent optimization choices.\n\n## Variants\n\n- **Vector-search variant**: replace BM25 with embedding-based retrieval (sentence-transformers + FAISS). Different algorithmic primitives; same overall engineering.\n- **Code-search variant**: index source code (with AST-aware tokenization). More complex tokenizer; same indexing structure.\n- **Distributed variant**: shard the index across multiple processes; aggregate results. Adds network + consistency considerations.",
+  "prerequisiteWikiSlugs": [
+    "big-o-notation",
+    "hash-table",
+    "trie",
+    "sorting-algorithms",
+    "binary-search-tree",
+    "graph-traversal",
+    "dynamic-programming"
+  ],
+  "tags": ["algorithms", "systems", "search", "production"],
+  "milestones": [
+    {
+      "order": 1,
+      "title": "Tokenizer + inverted index",
+      "description": "Build a basic tokenizer (lowercase, strip punctuation, split on whitespace, optional stemming via Porter algorithm). Build the inverted index: for each token, store a posting list of (document ID, term frequency).\n\nIngest a small corpus (~10,000 documents). Measure index size, build time, query latency for AND/OR queries.\n\n**Deliverables**: code (tokenizer + indexer + simple query handler) + a `tokenizer.md` writeup justifying tokenization choices + benchmark report.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"tokenizer-quality\",\"weight\":0.3,\"description\":\"Tokenizer handles common cases well\",\"aiPrompt\":\"Score 0-1. Does the tokenizer handle whitespace, punctuation, case, contractions, and edge cases (Unicode, emoji)? Are choices justified?\"},{\"id\":\"indexing-correctness\",\"weight\":0.4,\"description\":\"Inverted index is correctly built + queryable\",\"aiPrompt\":\"Score 0-1. Does the index correctly serve AND, OR, NOT queries? Are posting lists merged efficiently? Are results matching expected behavior?\"},{\"id\":\"benchmarks\",\"weight\":0.3,\"description\":\"Benchmarks meaningful + reported\",\"aiPrompt\":\"Score 0-1. Are index build time, index size, and query latency reported? Are at least 5 query types tested with statistics (median, p99)?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "order": 2,
+      "title": "BM25 ranking + query expansion",
+      "description": "Implement BM25 ranking. Re-test queries from milestone 1 + add new queries with multiple terms. Compare ranked results vs unranked (boolean) results.\n\nOptional bonus: implement edit-distance-based query expansion (Levenshtein DP) for typo tolerance — if 'transfomer' returns 0 results, try 'transformer' as a candidate.\n\n**Deliverables**: BM25 implementation + a `ranking.md` writeup + comparison report (boolean vs BM25-ranked) + at least 10 example queries with their results.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"bm25-correctness\",\"weight\":0.4,\"description\":\"BM25 is correctly implemented\",\"aiPrompt\":\"Score 0-1. Is the BM25 formula correctly implemented (TF saturation, IDF, length normalization)? Are k1 + b parameters tunable? Are scores sensible?\"},{\"id\":\"qualitative-quality\",\"weight\":0.4,\"description\":\"Ranked results are qualitatively better than boolean\",\"aiPrompt\":\"Score 0-1. Across at least 10 queries, do BM25-ranked results show plausibly better ordering than boolean results? Are improvements documented?\"},{\"id\":\"discussion\",\"weight\":0.2,\"description\":\"Writeup discusses BM25 limitations + alternatives\",\"aiPrompt\":\"Score 0-1. Does the writeup discuss BM25 limitations + when alternative ranking (TF-IDF, learned-to-rank, embedding-based) might be preferred?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "order": 3,
+      "title": "LRU cache + scaling",
+      "description": "Add an LRU cache for hot queries. Pick a cache eviction policy (LRU, LFU, ARC) + justify. Measure cache hit rate on a realistic query workload.\n\nMeasure latency improvements vs uncached. Stress-test with concurrent queries. Identify bottlenecks via profiling. Optimize one bottleneck (e.g., switch from sorted arrays to skip lists for posting list intersection).\n\n**Deliverables**: cache implementation + a `caching.md` writeup + cache hit rate analysis + before/after latency comparison + a documented optimization with measured impact.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"cache-implementation\",\"weight\":0.3,\"description\":\"LRU implemented correctly + benchmarked\",\"aiPrompt\":\"Score 0-1. Is LRU cache implemented correctly (O(1) lookup + insertion)? Is hit rate measured on a realistic workload?\"},{\"id\":\"profiling-rigor\",\"weight\":0.3,\"description\":\"Profiling identifies real bottleneck\",\"aiPrompt\":\"Score 0-1. Was profiling done with appropriate tools (cProfile, perf, etc.)? Is the identified bottleneck genuinely the bottleneck?\"},{\"id\":\"optimization-impact\",\"weight\":0.4,\"description\":\"Optimization has measured impact\",\"aiPrompt\":\"Score 0-1. Is the optimization's impact quantified (latency before vs after, p50 + p99)? Is the change explained algorithmically?\"}],\"passingScore\":0.6}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    },
+    {
+      "order": 4,
+      "title": "Final benchmark + design defense",
+      "description": "Run a comprehensive benchmark: query latency under varied load (1, 10, 100, 1000 concurrent queries), with realistic query mix (popular queries hit cache, long-tail queries miss). Compare against a baseline (Whoosh, Tantivy, or your own naive implementation).\n\nWrite a final report defending the design: what algorithmic primitives you chose + why, what alternatives you considered, what failures you encountered + how you fixed them.\n\n**Deliverables**: comprehensive benchmark report + design-defense writeup (~1500 words) + a video or screen recording demoing the working search engine.",
+      "rubricJson": "{\"criteria\":[{\"id\":\"benchmark-rigor\",\"weight\":0.3,\"description\":\"Benchmarks are comprehensive + statistically valid\",\"aiPrompt\":\"Score 0-1. Are benchmarks run with sufficient samples (1000+)? Are p50, p99, and tail latency reported? Is concurrency tested?\"},{\"id\":\"baseline-comparison\",\"weight\":0.2,\"description\":\"Comparison to baseline\",\"aiPrompt\":\"Score 0-1. Is a meaningful baseline (Whoosh, Tantivy, or naive implementation) compared? Are differences explained?\"},{\"id\":\"design-defense\",\"weight\":0.3,\"description\":\"Design choices defended + alternatives discussed\",\"aiPrompt\":\"Score 0-1. Does the writeup defend each major design choice (tokenizer, index structure, ranking algorithm, cache policy, optimization choices)?\"},{\"id\":\"final-quality\",\"weight\":0.2,\"description\":\"Code + writeup quality at portfolio level\",\"aiPrompt\":\"Score 0-1. Is the code organized, documented, tested? Is the writeup well-structured + professional?\"}],\"passingScore\":0.6,\"notes\":\"This is the integration milestone. Reward thoughtful integration + honest analysis over raw performance numbers.\"}",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "estimatedDays": 7
+    }
+  ]
+}

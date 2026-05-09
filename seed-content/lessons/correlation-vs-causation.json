@@ -1,0 +1,75 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why this slogan matters",
+      "body": "**\"Correlation doesn't imply causation\"** is the most repeated and most ignored line in statistics. People say it; people then build prediction models on observational data and act on the predictions as if they were causal claims.\n\nThe gap matters because most production decisions are causal. *\"If we ship this feature, will retention go up?\"* is causal — the question is what happens when you intervene, not what you'd predict from current data. *\"If we lower the price, will conversion rise?\"* is causal. *\"Does this drug help patients?\"* is causal.\n\nMost ML training data is observational. Most ML predictions are correlational. The handoff is silent and the gap is real."
+    },
+    {
+      "kind": "text",
+      "title": "The three sources of association",
+      "body": "When two variables `X` and `Y` are statistically associated, exactly one of three things is true (or some combination):\n\n1. **`X` causes `Y`.** Real causal relationship.\n2. **`Y` causes `X`.** Reverse causation.\n3. **A common cause `Z` causes both.** Confounding.\n\nObservational data alone cannot distinguish these three. They all produce the same correlation pattern.\n\nClassic example: ice cream sales and drownings are correlated. Does ice cream cause drownings? No — both are caused by hot weather. The confound is the season."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "corr_q1",
+        "kind": "multiple_choice",
+        "question": "You observe that countries with more chocolate consumption have more Nobel laureates per capita. What's the most likely explanation?",
+        "options": [
+          "Chocolate causes Nobel-laureate-level intelligence",
+          "Wealthy countries have both more chocolate consumption AND more research funding (and thus more laureates). The confound is national wealth — both are caused by it. This is the textbook 'spurious correlation' produced by a common cause",
+          "Nobel laureates eat a lot of chocolate",
+          "There's no association"
+        ],
+        "correctIndex": 1,
+        "explanation": "This is a famous (real) correlation that's been used to argue for chocolate's cognitive benefits. The actual cause: wealthy countries fund both confectionery and basic research. The data has the same shape that real causation would, but the mechanism is confounding."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Simpson's paradox",
+      "body": "A famous + counterintuitive case where the direction of association reverses when you control for a confounder.\n\n**Real-world case (Berkeley admissions, 1973)**: Berkeley graduate admissions appeared to discriminate against women — overall, men were admitted at higher rates than women. But within each department, women were admitted at slightly *higher* rates. The confound: women applied disproportionately to more selective departments.\n\nThe aggregate said one thing; the per-department analysis said the opposite. Both were correct calculations on the data. The paradox is purely about what statistic answers what question.\n\nSimpson's paradox is a special case of confounding. The lesson: aggregate associations can mislead even when the data is clean."
+    },
+    {
+      "kind": "text",
+      "title": "What goes wrong in production ML",
+      "body": "Most ML models trained on observational data produce predictions that are correlational. When the prediction informs an intervention, this is a problem.\n\n**Example 1: pneumonia risk model**. Caruana et al. (2015) built a model to predict pneumonia mortality risk. The model learned that asthmatic patients had *lower* mortality. But asthmatic patients are admitted to ICU faster, which is why they had lower mortality — they got more aggressive treatment. Acting on this prediction (sending asthmatics home as 'low risk') would have killed them.\n\n**Example 2: hiring screening**. A model trained on historical hiring data 'predicts' good hires from features that are actually correlated with promotion bias rather than performance. Deploying it amplifies the historical bias.\n\n**Example 3: recommendation systems**. A recommender 'predicts' what users will click, but acting on the prediction (showing the recommended item) changes the user's behavior. The training distribution and the deployed distribution diverge.\n\nIn all three: the model worked correctly as a prediction. It failed as a causal claim. The handoff was silent."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "corr_q2",
+        "kind": "multiple_choice",
+        "question": "What's the right way to test whether your ML model's predictions correspond to causal effects?",
+        "options": [
+          "Higher accuracy implies more causal",
+          "Run an experiment. Randomize the intervention; measure the outcome. The gold standard for causal claims is RCTs. If you can't randomize, you need explicit causal-inference methods (instrumental variables, regression discontinuity, do-calculus on a defended causal graph). Prediction accuracy is silent on causality",
+          "Cross-validation accuracy",
+          "Check Pearson correlation"
+        ],
+        "correctIndex": 1,
+        "explanation": "Causal claims require either randomization or strong assumptions encoded in a causal model. ML accuracy metrics are silent on causality. The same model can have high predictive accuracy while being completely wrong about what an intervention will do — the pneumonia risk example is the canonical case."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What this path teaches",
+      "body": "By the end of the causality path, you'll know:\n\n- How to draw a causal DAG that encodes your assumptions.\n- How d-separation reads conditional independencies off the DAG.\n- The do-operator and do-calculus — how to derive interventional claims from observational data when identifiability holds.\n- The potential-outcomes framework: ATE, ATT, the fundamental problem.\n- When randomization is possible (RCTs); when it isn't (regression discontinuity, instrumental variables, difference-in-differences).\n- Mediation analysis: decomposing total effects into direct + indirect.\n- Heterogeneous treatment effects: where ML and causal inference meet (causal forests, meta-learners, uplift).\n- Causal discovery: learning structure from data, and the hard limits of what can be learned without intervention.\n\nThe outcome: you'll be able to read modern causal-inference papers, run defensible causal analyses on observational data, and know when an ML prediction is and isn't a causal claim."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "corr_explain",
+        "kind": "explain_back",
+        "prompt": "In your own words, describe a situation in your own work (or a hypothetical you'd find plausible) where treating an ML prediction as causal would lead to a wrong decision. Walk through what's confounded.",
+        "rubricCriteria": [
+          { "id": "concrete-example", "description": "Names a specific decision where the prediction would be acted on" },
+          { "id": "names-confound", "description": "Identifies the confounder explicitly + how it inflates/deflates the apparent association" },
+          { "id": "consequence", "description": "Explains why the wrong decision matters in practice" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why SLAM",
+      "body": "**SLAM** (Simultaneous Localization and Mapping): a robot moving through an unknown environment must simultaneously:\n\n1. Build a map of the environment.\n2. Localize itself within the map.\n\nThese are coupled. To map, you need to know where you are. To localize, you need a map. SLAM solves both jointly.\n\n**Why it's hard**:\n\n- Sensor noise compounds over time → accumulating drift.\n- Loop closure: when revisiting a previous location, the map should be self-consistent. Detecting + correcting this is non-trivial.\n- Real-time constraints: robots can't wait minutes for map updates.\n- Sensor heterogeneity: cameras, LIDAR, IMU, depth — each with different failure modes + scales.\n\n**Where SLAM matters**: autonomous vehicles (HD-map building + localization), service robots (warehouses, delivery), AR/VR (room reconstruction), drones (search + rescue, mapping)."
+    },
+    {
+      "kind": "text",
+      "title": "EKF-SLAM (the classical approach)",
+      "body": "Treat the robot pose AND all landmarks as a joint state vector. Apply EKF.\n\n**State**: `[robot pose, landmark_1, landmark_2, ..., landmark_N]`. Dimension grows with the number of landmarks.\n\n**Predict**: robot pose updates via motion model; landmarks stay fixed.\n\n**Update**: when sensor sees a landmark, EKF correlates it with stored landmarks; updates joint state.\n\n**Strengths**:\n\n- Conceptually clean.\n- Correct under linear-Gaussian assumptions.\n\n**Limits**:\n\n- Quadratic complexity in landmarks: full covariance update is `O(N²)`. Doesn't scale beyond ~hundreds of landmarks.\n- Linearization errors accumulate.\n- Hard to handle data-association ambiguity (which observed landmark corresponds to which stored one?).\n\nEKF-SLAM was the standard from ~1990 to ~2010. Modern SLAM uses optimization-based + factor-graph methods."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "slam_q1",
+        "kind": "multiple_choice",
+        "question": "Why does EKF-SLAM scale poorly with the number of landmarks?",
+        "options": [
+          "It's just slow",
+          "The covariance matrix is dense — every landmark is correlated with every other landmark through the joint Bayesian update. Updating this O(N²) matrix at every step is the bottleneck. Modern methods exploit the SPARSITY of the underlying graph (most landmark pairs aren't directly correlated), giving O(N log N) or O(N) updates",
+          "Memory limits",
+          "Precision issues"
+        ],
+        "correctIndex": 1,
+        "explanation": "The dense covariance matrix is the bottleneck. Modern SLAM exploits sparsity: factor-graph formulations recognize that the underlying problem is sparse, and use sparse linear solvers (Cholesky, QR) for efficient updates."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Factor graphs + nonlinear optimization",
+      "body": "Modern SLAM (~2010 onwards): formulate as a **factor graph** + solve via nonlinear least squares.\n\n**Factor graph**: bipartite graph with **variables** (poses, landmarks) and **factors** (constraints from measurements). Each factor expresses how likely a measurement is given the variables it connects.\n\n**Maximum a posteriori (MAP) estimate**: find variable values that minimize the sum of squared residuals across all factors.\n\n`X̂ = argmin_X Σᵢ ||r_i(X)||²_{Σᵢ}`\n\nThis is nonlinear least squares; solved via Levenberg-Marquardt or Gauss-Newton.\n\n**Why factor graphs win**:\n\n- **Sparse**: factor graphs are usually very sparse (each measurement constrains a few variables). Sparse Cholesky/QR exploits this.\n- **Modular**: adding a new sensor = adding new factors. Adding a new variable = adding a new node.\n- **Loop closure**: incorporated as new factors connecting old + recent poses.\n- **Real-time**: incremental solvers (iSAM, iSAM2) re-solve only the affected part of the graph.\n\n**Tooling**: GTSAM (Gaussian Belief Networks; Frank Dellaert at Georgia Tech), Ceres Solver (Google), g2o. All production-grade."
+    },
+    {
+      "kind": "text",
+      "title": "Loop closure",
+      "body": "**Loop closure**: the robot recognizes it has returned to a previously-visited location. Without loop closure, SLAM drift accumulates and the map becomes inconsistent (the same place appears as two separate locations).\n\n**Detection**:\n\n- **Visual loop closure**: compare current image features to a database of past images. Bag-of-words (BoW), VLAD, NetVLAD. Modern: deep-learning visual descriptors (DELF, SuperPoint).\n- **LIDAR loop closure**: scan-context, LiDAR-Iris, ICP-based methods.\n\n**Verification**: detected loops can be wrong (perceptual aliasing — two different places look similar). Geometric verification (RANSAC) confirms the match.\n\n**Correction**: the loop adds a factor connecting current pose to the previously-visited pose. Re-solving the optimization redistributes the accumulated error across the entire trajectory.\n\n**Failure modes**:\n\n- **Missed loops**: drift unbounded. Mapping degrades over long trajectories.\n- **False loops**: catastrophic. Optimizer corrupts the entire map.\n\nProduction SLAM has aggressive loop-closure detection + multiple verification stages to balance these."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "slam_q2",
+        "kind": "multiple_choice",
+        "question": "Why is loop closure essential for long-trajectory SLAM?",
+        "options": [
+          "It's not, you can SLAM without it",
+          "Without loop closure, drift accumulates monotonically — every step adds estimation error that never gets corrected. After hours of operation, the map is a tangled spaghetti with the same physical place appearing as multiple separate locations. Loop closure is the global consistency mechanism that anchors the trajectory back to known points",
+          "It saves memory",
+          "It's only for cameras"
+        ],
+        "correctIndex": 1,
+        "explanation": "Drift is the central problem in SLAM. All sensors have noise; integration accumulates error; without external corrections, the map degrades. Loop closure provides the corrections by anchoring the trajectory to itself when revisits occur."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Modern SLAM systems",
+      "body": "**ORB-SLAM3**: feature-based visual SLAM. Stereo, monocular, RGB-D supported. Used in research + some production. Open-source.\n\n**Cartographer (Google)**: 2D + 3D LIDAR SLAM. Industrial-strength; deployed in commercial robots.\n\n**LIO-SAM, FAST-LIO**: LIDAR-Inertial systems. Modern; very accurate; fast.\n\n**LeGO-LOAM**: LIDAR odometry + mapping with ground segmentation.\n\n**VINS-Fusion**: visual-inertial SLAM. Open source.\n\n**Neural SLAM**: NICE-SLAM, NeRF-SLAM, Gaussian-Splatting SLAM. Use neural representations for the map. Active research area; deployment-readiness mixed.\n\n**Foundation models for SLAM**: emerging research applying vision foundation models (DINOv2, CLIP-style) to provide robust descriptors for loop closure + multimodal scene understanding.\n\n**Deployment realities**:\n\n- Sensor calibration matters more than algorithm choice for accuracy.\n- Time synchronization (microseconds) matters more than feature-detector choice.\n- The 'best' SLAM system depends on sensors, environment, computational budget. No universal winner.\n\nThe field is mature enough that off-the-shelf SLAM works for many use cases. The frontier: extreme conditions (low-light, fog, rain), long-term operation, multi-agent SLAM, semantic + dynamic SLAM."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "slam_explain",
+        "kind": "explain_back",
+        "prompt": "Explain why SLAM is hard. Pick one of the central challenges (drift, loop closure, data association, scaling) and walk through the difficulty + how modern systems address it.",
+        "rubricCriteria": [
+          { "id": "names-challenge", "description": "Identifies a specific SLAM challenge" },
+          { "id": "explains-difficulty", "description": "Explains why the challenge is hard from first principles" },
+          { "id": "modern-approach", "description": "Names a modern technique that addresses it (factor graphs, deep features, sparse solvers)" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}

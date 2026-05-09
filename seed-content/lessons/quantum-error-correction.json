@@ -1,0 +1,80 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why QEC is necessary",
+      "body": "Quantum hardware is noisy:\n\n- **Decoherence**: qubits couple to environment; superposition decays exponentially with time.\n- **Gate errors**: each operation has finite fidelity (~99% on best 2025 hardware).\n- **Measurement errors**: reading a qubit is ~99% accurate.\n\nLong quantum computations require billions of gates. With ~99% fidelity per gate, after ~100 gates the result is meaningless.\n\n**Quantum error correction (QEC)**: encode logical qubits into many physical qubits with redundancy. Detect + correct errors without disturbing the logical state.\n\n**Why this is hard** (vs classical EC):\n- **No-cloning**: can't make backup copies of unknown states.\n- **Continuous errors**: errors aren't just bit flips; rotations of any angle.\n- **Measurement disturbs**: measuring qubits collapses them; errors must be detected without measuring the data.\n\nQEC solves these via clever encoding. The result: with high enough physical fidelity, fault-tolerant quantum computing is possible."
+    },
+    {
+      "kind": "text",
+      "title": "The basic idea: stabilizer codes",
+      "body": "A **stabilizer code** encodes a small number of logical qubits in a larger number of physical qubits.\n\n**Example: 3-qubit bit-flip code**:\n- Logical |0⟩ → |000⟩\n- Logical |1⟩ → |111⟩\n- Detects single-qubit X (bit-flip) errors.\n\n**How**:\n- Measure parity operators (stabilizers) `Z₁Z₂` and `Z₂Z₃` (without measuring individual qubits).\n- If both are +1: no bit flip.\n- If `Z₁Z₂ = -1, Z₂Z₃ = +1`: error on qubit 1.\n- If `Z₁Z₂ = -1, Z₂Z₃ = -1`: error on qubit 2.\n- If `Z₁Z₂ = +1, Z₂Z₃ = -1`: error on qubit 3.\n\n**Apply correction**: flip the indicated qubit. Logical state preserved.\n\n**Limit**: 3-qubit code corrects only X errors. For both X + Z errors, need a more complex code (Shor's 9-qubit, Steane 7-qubit, surface code).\n\n**Stabilizer formalism** (Gottesman 1997): unifies all known QEC codes. Stabilizer codes are characterized by their stabilizer group — operators that fix the code space."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "qec_q1",
+        "kind": "multiple_choice",
+        "question": "Why doesn't simple replication (encode |0⟩ as |000⟩, |1⟩ as |111⟩) work for arbitrary errors?",
+        "options": [
+          "Replication is fine",
+          "Two reasons: (1) Quantum errors aren't just bit flips — phase flips (Z errors) and arbitrary rotations also occur. The 3-qubit bit-flip code only handles X errors. (2) Measurement to check parity must not collapse the logical state — measurement disturbs the qubit. Stabilizer codes solve both via parity measurements that reveal errors without measuring data",
+          "Wrong number of qubits",
+          "Not unitary"
+        ],
+        "correctIndex": 1,
+        "explanation": "Quantum errors are continuous (any unitary perturbation) and measurement is disturbing. Stabilizer codes handle both: the syndrome measurement projects to discrete error types (X, Z, or Y on a specific qubit) without collapsing the logical state. The 9-qubit Shor code was the first complete code; surface code is the modern standard."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "The threshold theorem",
+      "body": "The **fault-tolerant quantum computing threshold theorem** (Aharonov-Ben-Or, Knill-Laflamme-Zurek 1996): if physical gate fidelity is BELOW a certain threshold, error-corrected logical operations can be made arbitrarily reliable by increasing code size.\n\n**Threshold values**:\n- **Surface code**: ~1% physical error per gate.\n- **Concatenated codes**: ~10^-4 to 10^-3.\n- **Topological codes**: ~1%.\n\n**Current hardware** (2025-2026): physical error rates ~10^-3 (best superconducting + trapped ions). Just below the surface-code threshold.\n\n**Implications**:\n- Below threshold: fault-tolerant QC is achievable. Just need more physical qubits.\n- Above threshold: more physical qubits HURT — errors compound faster than correction.\n\n**Logical-physical overhead**:\n- Current best estimates: 1000-10000 physical qubits per logical qubit.\n- For 1M-gate fault-tolerant computation: ~10^6 physical qubits.\n- This is the engineering challenge of the 2030s."
+    },
+    {
+      "kind": "text",
+      "title": "Surface code — the modern standard",
+      "body": "**Surface code** (Kitaev 1997, Bravyi-Kitaev 1998): a 2D topological QEC code. Currently the favored approach for fault-tolerant QC.\n\n**Structure**:\n- Physical qubits arranged on a 2D lattice.\n- Stabilizers are local plaquette operators (4-qubit X or Z parity checks).\n- Logical operators are non-trivial loops on the lattice.\n\n**Properties**:\n- **Local**: only nearest-neighbor interactions needed. Matches superconducting + trapped-ion hardware.\n- **Threshold ~1%**: most permissive of practical codes.\n- **Distance scales with lattice size**: `d × d` lattice protects against `d/2` errors.\n- **Logical qubits per code**: 1 (basic) or more (lattice-surgery, defect-based).\n\n**Logical operations**:\n- **Easy gates**: X, Z, CNOT.\n- **Hard gate**: T (the 'magic' gate). Implemented via **magic state distillation**: a separate process that prepares + purifies T-state ancillas. Most of the resource cost.\n\n**Magic state distillation overhead**: factor of 10-100 over basic surface-code overhead. The bottleneck for fault-tolerant computing.\n\n**Recent results** (2024-2025): Google demonstrated logical-qubit error rate decreasing with code distance — first practical demonstration of QEC scaling."
+    },
+    {
+      "kind": "text",
+      "title": "Other code families",
+      "body": "**Concatenated codes**: encode the encoded qubits again. Threshold ~10^-4. High overhead but conceptually simple.\n\n**Color codes**: 2D topological; like surface code but supports transversal CNOT + Hadamard. Slightly different tradeoffs.\n\n**Toric code**: surface code on a torus. Theoretical clean version.\n\n**LDPC (low-density parity-check) codes**: better encoding rate (more logical qubits per physical). Less locality-friendly. Active research.\n\n**Bosonic codes**: encode logical qubits in continuous-variable systems (e.g., photonic harmonic oscillators). Different overhead profile. Used in some superconducting systems.\n\n**Subsystem codes** (Bacon-Shor, gauge codes): trade some QEC for easier syndrome extraction. Specific use cases.\n\n**LDPC codes**: hot research area as of 2024. Promise lower overhead than surface code; require non-local interactions. May replace surface code in specialized hardware (neutral atoms with movement).\n\nSurface code dominates current efforts; LDPC may overtake in specific architectures."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "qec_q2",
+        "kind": "multiple_choice",
+        "question": "Why is the T-gate (and magic state distillation) the dominant overhead in fault-tolerant quantum computing?",
+        "options": [
+          "T is the slowest",
+          "Most stabilizer codes (including surface code) implement Clifford gates (X, Z, H, S, CNOT) directly via transversal operations. T is non-Clifford — Eastin-Knill theorem rules out transversal implementation. Magic state distillation is the workaround: prepare faulty T-states, purify them in a separate factory. The factory consumes massive resources — typical estimate: 10x-100x more qubit-time than the actual algorithm",
+          "Hardware constraint",
+          "Convention"
+        ],
+        "correctIndex": 1,
+        "explanation": "Magic state distillation is the central bottleneck. Eastin-Knill says transversal logical gates can't be universal — at least one gate (typically T) must be implemented non-transversally. Reducing magic state cost is one of the most active research areas in fault-tolerant QC. Resource estimates for cryptographic Shor are dominated by T-gate count."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Where the field is",
+      "body": "**Recent milestones (2023-2025)**:\n\n- **Google (2023, 2024)**: surface-code distance-5 logical qubits. Logical error rate decreasing with code distance — first demonstration of QEC's scaling promise.\n- **Quantinuum (2024)**: trapped-ion logical qubits with measurable error suppression.\n- **IBM (2024-2025)**: roadmap to 1000+ physical qubits with QEC primitives.\n- **Caltech / Harvard / QuEra (2024)**: neutral-atom systems with logical qubit demonstrations.\n\n**The path to fault-tolerance**:\n\n1. **Current**: NISQ era. ~100-1000 physical qubits. Demonstrations of QEC primitives. No fault-tolerant computation.\n2. **Mid-2020s**: 1000-10000 qubits. Logical-qubit demonstrations + small fault-tolerant computations.\n3. **Late 2020s**: 10^4 - 10^5 qubits. Useful fault-tolerant computation in specific domains (quantum simulation).\n4. **2030s+**: 10^5 - 10^7 qubits. Cryptographically-relevant fault-tolerant computation (Shor at scale).\n\n**Open challenges**:\n- Lower magic state distillation overhead.\n- Better LDPC codes for higher encoding rates.\n- Hardware-specific QEC (bosonic codes for photonics, dual-rail codes).\n- Real-time decoding at high gate rates.\n\nQEC is the bridge between today's NISQ era and tomorrow's cryptanalytic + practical fault-tolerant quantum computing. The hardest engineering challenge remaining."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "qec_explain",
+        "kind": "explain_back",
+        "prompt": "Why is the threshold theorem important? What does it say, and what does it not say, about achieving fault-tolerant quantum computing?",
+        "rubricCriteria": [
+          { "id": "what-threshold-says", "description": "Articulates that below threshold, FT-QC is achievable in principle by scaling up" },
+          { "id": "what-it-doesnt-say", "description": "Notes the engineering / overhead reality (1000s of physical qubits per logical)" },
+          { "id": "current-status", "description": "Connects to current hardware capability" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}

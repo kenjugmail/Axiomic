@@ -22,6 +22,7 @@ import type {
 } from "@axiomic/types";
 import { assertQuestionKind } from "@axiomic/types";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
+import { TutorMount } from "../components/ai/TutorMount";
 import { QuestionRenderer, isAnswered } from "../components/quiz/QuestionRenderer";
 import { LessonNotes } from "../components/mastery/LessonNotes";
 import { PreviewViz } from "../components/lesson/PreviewViz";
@@ -782,6 +783,18 @@ export function LessonPage() {
             </nav>
           </div>
         </div>
+      )}
+
+      {/* Sprint 63h — AI tutor mount: floating button + sidebar +
+          selection-to-chat. Watches the page's main content for
+          highlighted text. */}
+      {node && (
+        <TutorMount
+          pageSlug={node.slug}
+          pageTitle={node.title}
+          tier="lesson"
+          articleRef={mainRef}
+        />
       )}
     </div>
   );

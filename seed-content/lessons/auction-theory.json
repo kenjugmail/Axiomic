@@ -1,0 +1,49 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Allocating scarce items to bidders with private valuations",
+      "body": "**Auction theory** is the most-deployed branch of [[mechanism-design]] — designing procedures to allocate items to bidders with private valuations.\n\n**The four classical formats**:\n1. **English** (ascending open-cry): bidders raise bids until one stays.\n2. **Dutch** (descending open-cry): price falls until someone accepts.\n3. **First-price sealed-bid**: highest bid wins, pays their bid.\n4. **Second-price sealed-bid (Vickrey)**: highest bid wins, pays the second-highest bid.\n\n**Revenue equivalence theorem** (Myerson 1981): under standard assumptions (private values, risk-neutral, IID valuations), all four yield the same expected revenue. The strategic differences (truthful vs shading) wash out in equilibrium expectation."
+    },
+    {
+      "kind": "text",
+      "title": "Why second-price is special",
+      "body": "**The Vickrey auction is truthful**: bidding your true valuation is a *dominant strategy*. No analysis of opponents needed.\n\n**Why**: regardless of what others do:\n- Bidding higher than your valuation: you might win when you wouldn't have, and pay more than the item's worth to you.\n- Bidding lower than your valuation: you might lose when you'd profit.\n- Bidding your true valuation: you win exactly when the second-highest bid is below your valuation, and pay that second-highest bid.\n\nThis is the simplest case of [[vcg-auction]] — Vickrey-Clarke-Groves. VCG generalizes truthfulness to multi-item, multi-attribute auctions.\n\n**English ↔ Vickrey**: in an English auction with private values, dropping out exactly when the price reaches your valuation is optimal. The winning price = second-highest valuation. Same outcome as Vickrey.\n\n**Dutch ↔ first-price**: identical strategically. Bidder accepts at the price they'd have bid in a sealed-bid first-price auction."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "auc_q1",
+        "kind": "multiple_choice",
+        "question": "Three bidders compete for a single item: A values it at 10, B at 7, C at 5. They bid truthfully in a Vickrey (second-price) auction. Who wins, and what do they pay?",
+        "options": [
+          "A wins, pays 10",
+          "A wins, pays 7 — winner pays the second-highest bid; truthful by dominant strategy",
+          "A wins, pays 5",
+          "B wins, pays 5"
+        ],
+        "correctIndex": 1,
+        "explanation": "Vickrey: highest bidder wins, pays second-highest bid. A bids 10 and wins; pays B's bid of 7. C's bid (5) is irrelevant to the price."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Modern ad auctions",
+      "body": "Online ad auctions (Google, Meta, Amazon) descend from VCG but with crucial production realities:\n\n- **Generalized second-price (GSP)** historically: bidder pays the next-highest bid for their slot. Not truthful; advertisers run sophisticated bidding strategies.\n- **VCG-based**: more recent moves toward true VCG. Cleaner but loses on revenue compared to optimal mechanisms.\n- **Reserve prices**: optimal reserves (Myerson 1981) extract more revenue than zero reserves, even when efficiency drops.\n- **Position auctions**: multiple ad slots, each with different click-through-rates. The mechanism allocates positions to bidders.\n- **Dynamic + auto-bidding**: bidders use ML to bid in real-time. The auction becomes a multi-agent RL problem ([[multi-agent-rl]]).\n\nThe shift from theoretical-clean (single-item Vickrey) to production-messy (auto-bidding GSP variants) is one of the most important applied chapters in mechanism design."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "auc_q2",
+        "kind": "explain_back",
+        "prompt": "Why does Myerson's optimal auction add a *reserve price* > 0, even when it sometimes refuses to sell? How does this trade off efficiency vs revenue?",
+        "rubricCriteria": [
+          { "id": "reserve-mechanism", "description": "Identifies that a reserve price refuses to sell when the highest bid is below the reserve, foregoing some efficient sales" },
+          { "id": "revenue-gain", "description": "Explains that withholding sometimes raises expected revenue (from buyers willing to bid higher than the reserve), even though some sales are lost" },
+          { "id": "tradeoff", "description": "Explicitly names the tradeoff — Myerson optimal sacrifices efficiency for revenue" }
+        ],
+        "passingScore": 0.5
+      }
+    }
+  ]
+}

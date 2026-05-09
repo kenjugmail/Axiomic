@@ -1,0 +1,49 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Strategic interaction with uncertainty",
+      "body": "**Bayesian games** model strategic interaction with **incomplete information** — players don't know each other's payoffs, types, or capabilities.\n\nDistinguished from **imperfect information** (sequential games where past actions are hidden, like poker hole cards): incomplete-information games have unobserved *parameters of the game itself* (auction: unknown opponent valuations).\n\n**Examples**:\n- Auctions: bidders don't know rivals' valuations.\n- Job market: employer doesn't know applicant's true ability.\n- Insurance: insurer doesn't know the insured's true risk.\n- AI alignment: principal (humans) doesn't know agent (AI) capabilities + objectives."
+    },
+    {
+      "kind": "text",
+      "title": "Harsanyi's transformation",
+      "body": "Harsanyi (1967) showed any incomplete-information game can be reformulated as a complete-information game over an enlarged state space (**types**):\n\n1. Nature draws a type profile $(t_1, ..., t_n)$ from a common-prior distribution.\n2. Each player observes their own type.\n3. Players choose actions; payoffs depend on actions + types.\n\nThe **Bayesian Nash equilibrium**: a strategy $\\sigma_i(t_i)$ for each player and type, such that each type's action maximizes expected payoff given other players' strategies + the conditional distribution of others' types.\n\nThis transformation is what makes Bayesian games tractable — it converts incomplete-information into a complete-information game with random type-draws by Nature."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "bg_q1",
+        "kind": "multiple_choice",
+        "question": "In a first-price sealed-bid auction with two bidders whose valuations are drawn from $\\text{Uniform}(0,1)$, the equilibrium bid is $b(v) = v/2$ (each bidder shades their bid). Why don't they bid their full valuation?",
+        "options": [
+          "Because they're not allowed to",
+          "Because bidding $v$ means winning earns zero surplus; shading to $v/2$ trades off probability of winning against profit-when-win, in a way that maximizes expected utility given the prior over the opponent's valuation",
+          "Because of risk aversion",
+          "Because the auction format is unfair"
+        ],
+        "correctIndex": 1,
+        "explanation": "First-price auction: winner pays their bid. Bidding $v$ wins more often but earns 0 surplus. Bidding much less wins rarely but earns high surplus when winning. The optimal mix balances these — for uniform-$[0,1]$ valuations + 2 bidders, $v/2$ is optimal. This is the classical Bayesian Nash equilibrium of the first-price auction."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "The common-prior assumption",
+      "body": "Bayesian Nash equilibrium assumes a **common prior** over types — all players agree on the distribution of other players' types. This is the load-bearing assumption.\n\n**It's restrictive**:\n- Different real players have different beliefs.\n- Beliefs may not be derivable from a single prior + different observations.\n- 'The right' common prior isn't always obvious to choose.\n\n**Robust mechanism design** (Bergemann-Morris 2005) drops the common-prior assumption: design mechanisms that work for any belief structure consistent with observed payoffs. More restrictive design space; mechanisms more robust to belief misspecification.\n\nIn AI alignment, the common-prior assumption fails badly: humans have radically different priors over AI capabilities, and AI systems may have entirely different priors over human values. Robust formulations are increasingly relevant for alignment research."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "bg_q2",
+        "kind": "explain_back",
+        "prompt": "Adverse selection is a Bayesian-game phenomenon. Explain it using the used-car market (Akerlof's lemons): why does private information about car quality cause high-quality sellers to exit the market?",
+        "rubricCriteria": [
+          { "id": "private-info", "description": "Identifies that sellers know quality, buyers don't — incomplete information" },
+          { "id": "pricing-equilibrium", "description": "Buyers price based on average quality; high-quality sellers won't accept that price; only low-quality sellers stay" },
+          { "id": "intervention", "description": "Mentions a mechanism-design intervention (warranty, certification) that addresses this" }
+        ],
+        "passingScore": 0.5
+      }
+    }
+  ]
+}

@@ -1,18 +1,61 @@
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import remarkGfm from "remark-gfm";
-import rehypeKatex from "rehype-katex";
-import rehypeHighlight from "rehype-highlight";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import { Link } from "react-router-dom";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { VizEmbed } from "./VizEmbed";
 import { LabEmbed } from "./LabEmbed";
 import { ConceptLink } from "./cross/ConceptLink";
 import { CodeCell, type CodeCellHandle } from "./code/CodeCell";
 import { KernelFilesPanel } from "./code/KernelFilesPanel";
 import { CodeCellsToolbar } from "./code/CodeCellsToolbar";
-import "katex/dist/katex.min.css";
+
+// Sprint 66a — KaTeX (math), KaTeX CSS, and rehype-highlight (fenced
+// code) are lazy-loaded the first time a markdown source contains the
+// matching syntax. Eagerly bundling them costs ~50 KB gzipped on every
+// page; most surfaces (forum posts, comments, news prose) never need
+// them. Module-level caches so the import only runs once per session.
+type RehypePlugin = unknown;
+let katexLoaderPromise: Promise<RehypePlugin> | null = null;
+let highlightLoaderPromise: Promise<RehypePlugin> | null = null;
+
+function loadKatexPlugin(): Promise<RehypePlugin> {
+  if (!katexLoaderPromise) {
+    katexLoaderPromise = Promise.all([
+      import("rehype-katex"),
+      // CSS-only side-effect import; Vite splits it into its own chunk
+      // that auto-injects on load.
+      import("katex/dist/katex.min.css" as string).catch(() => null),
+    ]).then(([mod]) => (mod as { default: RehypePlugin }).default);
+  }
+  return katexLoaderPromise;
+}
+
+function loadHighlightPlugin(): Promise<RehypePlugin> {
+  if (!highlightLoaderPromise) {
+    highlightLoaderPromise = import("rehype-highlight").then(
+      (mod) => (mod as { default: RehypePlugin }).default,
+    );
+  }
+  return highlightLoaderPromise;
+}
+
+// Cheap predicates that decide whether to trigger the lazy load.
+// Math: `$$...$$` block OR `$...$` inline (with non-whitespace, non-$
+// content). The conservative inline form avoids false positives like
+// "$5 USD" since a single `$` won't match.
+function contentHasMath(content: string): boolean {
+  if (!content || !content.includes("$")) return false;
+  return /\$\$[\s\S]+?\$\$|\$[^\s$][^$\n]*\$/.test(content);
+}
+
+// Highlight: triple-backtick fenced blocks. Indented code blocks are
+// rare in our corpus and don't justify pulling 10 KB just for them.
+function contentHasCode(content: string): boolean {
+  if (!content) return false;
+  return content.includes("```");
+}
 
 interface MarkdownRendererProps {
   content: string;
@@ -311,6 +354,38 @@ export function MarkdownRenderer({
   // order. Reset on every render and refilled as cells mount.
   const codeCellRefs = useRef<Array<CodeCellHandle | null>>([]);
   codeCellRefs.current = [];
+
+  // Sprint 66a — lazy-load KaTeX + rehype-highlight only when the
+  // content actually needs them. State holds the loaded plugin
+  // references; first render falls back to plain markdown until the
+  // dynamic import resolves (typical: 50-150ms; the user is reading
+  // the prose anyway).
+  const [katexPlugin, setKatexPlugin] = useState<RehypePlugin | null>(null);
+  const [highlightPlugin, setHighlightPlugin] = useState<RehypePlugin | null>(
+    null,
+  );
+  const wantsMath = contentHasMath(content);
+  const wantsHighlight = contentHasCode(content);
+  useEffect(() => {
+    if (!wantsMath || katexPlugin) return;
+    let cancelled = false;
+    loadKatexPlugin().then((p) => {
+      if (!cancelled) setKatexPlugin(p);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [wantsMath, katexPlugin]);
+  useEffect(() => {
+    if (!wantsHighlight || highlightPlugin) return;
+    let cancelled = false;
+    loadHighlightPlugin().then((p) => {
+      if (!cancelled) setHighlightPlugin(p);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [wantsHighlight, highlightPlugin]);
   // Split content by viz + video + code directives and render them
   // inline. Code cells only render when the surface explicitly opts
   // in via `codeKernelKey` so a user can't run code from a comment
@@ -377,7 +452,12 @@ export function MarkdownRenderer({
   // Sanitize must run AFTER rehype-katex (so katex output is in the tree
   // when sanitize evaluates it against the schema). Highlighting attaches
   // classNames to <code>/<span>, which the schema also permits.
-  const rehypePlugins: any[] = [rehypeKatex, rehypeHighlight];
+  // Sprint 66a — only include the heavyweight plugins once their lazy
+  // import has resolved AND the content needs them. Plain prose pages
+  // never trigger these chunks at all.
+  const rehypePlugins: any[] = [];
+  if (wantsMath && katexPlugin) rehypePlugins.push(katexPlugin);
+  if (wantsHighlight && highlightPlugin) rehypePlugins.push(highlightPlugin);
   if (untrusted) rehypePlugins.push([rehypeSanitize, sanitizeSchema]);
 
   const hasCodeCells = parts.some((p) => p.type === "code");

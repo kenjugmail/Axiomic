@@ -1,0 +1,75 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "DAGs as causal models",
+      "body": "A **causal DAG** (directed acyclic graph) encodes causal assumptions visually:\n\n- Nodes are variables.\n- Directed edges (`X → Y`) say \"`X` is a direct cause of `Y` (relative to the other variables in the graph).\"\n- No cycles (you can't go back to where you started).\n\nThe DAG is a model. It's not data; it's assumptions about what causes what. Different DAGs encode different causal stories.\n\nThe magic: from the graph alone (without numerical data), you can read off conditional independencies, identify confounders, decide whether an effect is identifiable from observational data, and pick adjustment sets. The graph is doing real algebraic work."
+    },
+    {
+      "kind": "text",
+      "title": "Three building-block patterns",
+      "body": "Every DAG is built from three patterns. Each has different conditional-independence behavior:\n\n**Chain (`X → Z → Y`)**: `X` causes `Z` causes `Y`. `X` and `Y` are associated; conditioning on `Z` blocks the path. \n\nExample: `Smoking → Tar in lungs → Cancer`. Smoking and cancer are correlated. Among people with the same tar level, smoking and cancer are independent (the path is blocked).\n\n**Fork (`X ← Z → Y`)**: common cause `Z` causes both `X` and `Y`. `X` and `Y` are associated through `Z`; conditioning on `Z` blocks the path.\n\nExample: `Ice cream sales ← Hot weather → Drownings`. The fork is the canonical confounder.\n\n**Collider (`X → Z ← Y`)**: `X` and `Y` both cause `Z`. `X` and `Y` are independent UNCONDITIONALLY; conditioning on `Z` *opens* a spurious association. This is counterintuitive and matters a lot.\n\nExample: `Talent → Hollywood success ← Looks`. In the population, talent and looks are roughly independent. Among Hollywood-successful people, they're negatively correlated — conditioning on success has opened a spurious path."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dag_q1",
+        "kind": "multiple_choice",
+        "question": "You observe that among people who got an interview, GPA and test scores are negatively correlated. The graph is `GPA → Interview ← Test_score`. What's happening?",
+        "options": [
+          "GPA causes lower test scores",
+          "Conditioning on a collider (Interview) opened a spurious path. Among interviewees, given a fixed selection bar, high test score implies lower GPA (and vice versa) — there are multiple ways to qualify. The negative correlation is selection-induced, not causal",
+          "Test scores are wrong",
+          "There's a hidden confounder"
+        ],
+        "correctIndex": 1,
+        "explanation": "This is collider conditioning, also called Berkson's bias. Selecting on a common effect (interview offer) creates spurious negative associations among the causes (GPA and test scores). It's a real statistical phenomenon and a common source of mistaken causal claims."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "d-separation",
+      "body": "**d-separation** generalizes the three patterns into a rule for any DAG. It tells you whether two variables are conditionally independent given a set of other variables.\n\n**Definition**: Two nodes `X` and `Y` are d-separated by a set `Z` if every path between them is blocked by `Z`.\n\nA path is blocked by `Z` if:\n\n- It contains a chain or fork node that's IN `Z`, OR\n- It contains a collider that is NEITHER in `Z` NOR has any descendant in `Z`.\n\nIf `X` and `Y` are d-separated by `Z`, then in any distribution consistent with the DAG, `X ⊥ Y | Z`.\n\nThe converse holds for **faithful** distributions (no measure-zero coincidences). In practice, d-separation is the algorithm for reading conditional independencies off the graph."
+    },
+    {
+      "kind": "text",
+      "title": "Backdoor criterion",
+      "body": "To identify the causal effect of `T` on `Y` from observational data, you need to **block all backdoor paths** between `T` and `Y` while leaving the directed paths `T → ... → Y` open.\n\n**Backdoor path**: a path from `T` to `Y` that starts with an arrow into `T`. These paths transmit non-causal association.\n\n**Backdoor criterion**: a set `Z` is a valid adjustment set if:\n\n1. `Z` contains no descendants of `T`.\n2. `Z` blocks every backdoor path from `T` to `Y`.\n\nIf such a `Z` exists, the causal effect is identifiable: `P(Y | do(T = t)) = ∑_z P(Y | T = t, Z = z) · P(Z = z)`.\n\nThis is the math behind regression adjustment, propensity scores, IPW. They're all implementing backdoor adjustment under the hood."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dag_q2",
+        "kind": "multiple_choice",
+        "question": "Why does conditioning on a descendant of the treatment generally make causal estimation worse?",
+        "options": [
+          "It always introduces variance",
+          "Descendants of T are typically mediators of T's causal effect (T → M → Y). Conditioning on M blocks the very path you're trying to measure — you'd estimate the direct effect, not the total effect. Worse, if M is a collider on a backdoor path, conditioning on M can open a spurious path",
+          "Conditioning is forbidden in causal inference",
+          "It's fine"
+        ],
+        "correctIndex": 1,
+        "explanation": "This is the M-bias / mediator-conditioning issue. Practical implication: when adjusting for confounders, only use pre-treatment variables. Post-treatment variables are descendants of T and conditioning on them muddles the causal effect."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Building DAGs in practice",
+      "body": "DAGs are most useful when you draw them BEFORE looking at the data. The DAG encodes domain knowledge; the data tests it.\n\n**The procedure**:\n\n1. List all variables relevant to your causal question (treatment, outcome, suspected confounders, mediators, instruments).\n2. Draw arrows from cause to effect for each pair you have an opinion on.\n3. Be deliberate about UNobserved confounders — represent them as latent nodes (often labeled `U`).\n4. Apply the backdoor criterion: which observed variables form an adjustment set? If none does, the effect isn't identifiable from observational data alone.\n5. Use d-separation to derive testable independencies — these can be checked against the data as a sanity check.\n\n**Common mistakes**:\n\n- Conditioning on colliders (the GPA / Test / Interview example).\n- Conditioning on mediators (estimating direct effect when you wanted total effect).\n- Forgetting unobserved confounders (the most common failure mode).\n- Drawing a DAG that fits the data and calling it causal — DAGs encode assumptions, not derivations from data.\n\nThe causal-discovery node (later in this path) covers when DAGs CAN be partially recovered from data."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "dag_explain",
+        "kind": "explain_back",
+        "prompt": "Explain why conditioning on a collider creates spurious correlation. Use a concrete example (it can be one from this lesson or your own).",
+        "rubricCriteria": [
+          { "id": "collider-mechanism", "description": "Names that conditioning opens a path that was unconditionally blocked" },
+          { "id": "concrete-example", "description": "Walks through a specific example showing the spurious correlation" },
+          { "id": "implication", "description": "Notes a practical consequence (e.g., selection bias in observational studies)" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}

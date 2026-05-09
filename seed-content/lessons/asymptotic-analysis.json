@@ -1,0 +1,54 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "How to think about scaling",
+      "body": "When we say an algorithm is 'fast,' the question is fast for what input size? An algorithm that takes 1 second on 100 items might take 1 hour on 10,000.\n\n**Asymptotic analysis** is the framework for predicting this. Instead of asking 'how long does it take on this input?', we ask 'how does runtime grow as input grows?'\n\nThe vocabulary:\n- **Big-O** ($O$): upper bound. 'No worse than this growth rate.'\n- **Big-Omega** ($\\Omega$): lower bound. 'No better than this growth rate.'\n- **Big-Theta** ($\\Theta$): tight bound. 'Exactly this growth rate, up to constants.'\n\nMost everyday usage: 'binary search is O(log n)' usually means $\\Theta(\\log n)$ (the exact growth rate)."
+    },
+    {
+      "kind": "text",
+      "title": "Common growth orders",
+      "body": "From fastest-growing-slowly (best) to fastest-growing-quickly (worst):\n\n| Class | Name | Example |\n|-------|------|---------|\n| $O(1)$ | Constant | Hash-table lookup |\n| $O(\\log n)$ | Logarithmic | Binary search |\n| $O(n)$ | Linear | Single-pass scan |\n| $O(n \\log n)$ | Linearithmic | Mergesort, heapsort |\n| $O(n^2)$ | Quadratic | Selection sort |\n| $O(n^3)$ | Cubic | Standard matrix multiplication |\n| $O(2^n)$ | Exponential | Brute-force subset enumeration |\n| $O(n!)$ | Factorial | Brute-force traveling salesman |\n\n**Rule of thumb for input size $n$**:\n- $n \\leq 10^6$: $O(n^2)$ is borderline.\n- $n \\leq 10^8$: $O(n)$ or $O(n \\log n)$ only.\n- $n \\leq 10^{18}$: $O(\\log n)$ or $O(1)$ only.\n- $n \\geq 50$ for $O(2^n)$: intractable."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "aa_q1",
+        "kind": "multiple_choice",
+        "question": "An algorithm runs in $O(n^2)$ time. On an input of 100 items it takes 0.01 seconds. Approximately how long would you expect it to take on an input of 10,000 items?",
+        "options": [
+          "1 second",
+          "100 seconds — runtime grows quadratically with input. Going from 100 to 10,000 is a 100× increase in n, so a 100² = 10,000× increase in runtime. 0.01s × 10,000 = 100s",
+          "10 seconds",
+          "10,000 seconds"
+        ],
+        "correctIndex": 1,
+        "explanation": "Quadratic scaling: 100× more input → 10,000× more time. 0.01s × 10,000 = 100s. This is the practical reason $O(n^2)$ algorithms become problematic at scale: a 1000× input growth means 1,000,000× more runtime."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Big-O is an upper bound",
+      "body": "**Common misconception** ([[big-o-notation]]): 'Big-O tells me exactly how long the algorithm takes.' No — Big-O is an *upper bound*, with constants and lower-order terms ignored.\n\n$5n^2 + 100n + 1000 = O(n^2)$. The $5$ doesn't appear in the Big-O notation, but it matters in practice.\n\n**Two algorithms both $O(n \\log n)$ can differ by 10-100×** in real runtime. Mergesort vs Timsort: both $\\Theta(n \\log n)$, but Timsort wins on real data because of cache behavior + already-sorted-runs detection.\n\n**Big-O hides**:\n- Constants (the $5$ in $5n^2$).\n- Lower-order terms (the $100n$ in $5n^2 + 100n$).\n- Cache effects, branch prediction, memory bandwidth.\n\nFor production: use Big-O as a *first cut*, then profile actual runtime."
+    },
+    {
+      "kind": "text",
+      "title": "Worst, average, expected, amortized",
+      "body": "Different scenarios produce different complexities:\n\n- **Worst-case**: maximum runtime over all inputs of size $n$. Quicksort: $O(n^2)$ worst case (when pivot is always min or max).\n- **Average-case**: expected runtime over random inputs. Quicksort: $O(n \\log n)$ average.\n- **Expected**: expected runtime over random choices made by the algorithm. Quicksort with random pivot: $O(n \\log n)$ expected.\n- **Amortized**: average runtime across a sequence of operations, treating one expensive operation as paying for many cheap ones. Dynamic array `append`: $O(1)$ amortized (occasional resize is $O(n)$, but rare).\n\nFor latency-sensitive applications (databases, real-time systems): worst-case + tail latency (p99) usually matter most. For throughput-sensitive: average is fine."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "aa_q2",
+        "kind": "explain_back",
+        "prompt": "Why might an $O(n^2)$ algorithm beat an $O(n \\log n)$ algorithm in practice for moderate input sizes? Use specific examples (cache, constants, etc.) to ground your answer.",
+        "rubricCriteria": [
+          { "id": "constants", "description": "Identifies that Big-O hides constants — an $O(n^2)$ with small constant can beat an $O(n \\log n)$ with large constant for moderate n" },
+          { "id": "cache-locality", "description": "Mentions cache-friendliness — sequential access patterns (insertion sort) often beat tree-based access (mergesort) at small scale" },
+          { "id": "concrete-example", "description": "Provides a concrete example: insertion sort beats mergesort for n < ~20-50; many real sort implementations switch to insertion sort for small partitions" }
+        ],
+        "passingScore": 0.5
+      }
+    }
+  ]
+}

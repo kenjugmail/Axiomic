@@ -1,0 +1,75 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why state-space",
+      "body": "Classical control (PID, frequency-domain) works well for single-input single-output systems but struggles with:\n\n- **Multi-input multi-output (MIMO)** systems: a quadrotor has 4 motors and 6 degrees of freedom.\n- **Time-varying systems**: dynamics change over time (fuel burning, payload changes).\n- **Constraints**: actuator limits, state bounds.\n- **Optimality**: design controllers that minimize cost, not just stabilize.\n\n**State-space** is the modern formalism: represent the system as a vector ODE.\n\n`ẋ(t) = f(x(t), u(t))`, `y(t) = h(x(t), u(t))`\n\nwhere `x` is the state vector, `u` is the input vector, `y` is the output. For linear systems:\n\n`ẋ = Ax + Bu`, `y = Cx + Du`\n\nThe (`A, B, C, D`) matrices fully specify a linear system."
+    },
+    {
+      "kind": "text",
+      "title": "Choosing state variables",
+      "body": "The state vector must contain enough information to predict future behavior given inputs. For a pendulum: angle + angular velocity. For a quadrotor: position (3) + velocity (3) + orientation (3) + angular velocity (3) = 12 states.\n\nThe choice isn't unique. Different state representations of the same system give different (`A, B, C, D`) matrices but equivalent dynamics.\n\n**Minimal state**: smallest dimension that still captures all relevant dynamics. The pendulum needs 2 states; adding more is redundant.\n\n**Physical meaning**: states often correspond to physical quantities (position, velocity, temperature). Sometimes you use abstract states (modal decompositions) for analysis.\n\n**Observability**: can you reconstruct the state from sensor measurements? If not, the system is partially observable and you need state estimation (next lesson)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ss_q1",
+        "kind": "multiple_choice",
+        "question": "A robot arm has 7 joints, each with a motor and an encoder. What's the minimum state-space dimension to model its dynamics?",
+        "options": [
+          "7",
+          "14: each joint has position + velocity, and Newton's laws are second-order, so two state variables per degree of freedom. The 7 joint angles alone don't capture velocity, which is needed to predict future position",
+          "21",
+          "1 per joint type"
+        ],
+        "correctIndex": 1,
+        "explanation": "Newton's laws are second-order in time: F = ma involves position, velocity, and acceleration. To represent as first-order ODE in state-space form, each degree of freedom needs both position and velocity as state variables. 7 joints × 2 = 14."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Linearization around operating points",
+      "body": "Most real systems are nonlinear. State-space methods work cleanest for linear systems. The trick: **linearize** the nonlinear dynamics around an operating point.\n\nFor `ẋ = f(x, u)` linearized at `(x₀, u₀)`:\n\n`A = ∂f/∂x|_{(x₀, u₀)}, B = ∂f/∂u|_{(x₀, u₀)}`\n\nThe linearized model is valid for small deviations `δx, δu`. Nonlinear effects appear only at large deviations.\n\n**Practical**: design a linear controller for the linearized model; verify in simulation that it works on the full nonlinear system.\n\n**When linearization breaks**:\n\n- Strong nonlinearities (saturation, hysteresis).\n- Operating across a wide range (drone hover vs aerobatics).\n- Discrete state changes (gear shifts, mode switches).\n\nFor these, use **gain-scheduling** (linearize at multiple points; switch between controllers) or **nonlinear control** methods (feedback linearization, sliding-mode, MPC with nonlinear models)."
+    },
+    {
+      "kind": "text",
+      "title": "Linear Quadratic Regulator (LQR)",
+      "body": "Given a linear system `ẋ = Ax + Bu` and a quadratic cost:\n\n`J = ∫₀^∞ (xᵀQx + uᵀRu) dt`\n\nThe LQR is the optimal feedback controller `u = -Kx` that minimizes `J`. The gain matrix `K` is computed by solving the Algebraic Riccati Equation (ARE):\n\n`PA + AᵀP - PBR⁻¹BᵀP + Q = 0`, then `K = R⁻¹BᵀP`.\n\n**Why LQR is widely used**:\n\n- **Optimality**: minimizes a well-defined cost over the system's lifetime.\n- **Robustness**: classical LQR has 60° phase margin and 6dB gain margin guarantees.\n- **Easy to tune**: increase elements of Q to penalize state deviations; increase R to penalize control effort.\n- **Implementation**: just a matrix multiply once `K` is computed offline.\n\n**Limitations**:\n\n- Linear model only.\n- No constraints (can't directly bound `|u|`).\n- Quadratic cost — may not match actual objectives.\n\nFor constraints, use MPC. For nonlinear models, use iterative LQR (iLQR) or nonlinear MPC.\n\nLQR is the workhorse of state-space control. Aerospace, automotive, robotics all use it (often as the inner loop of a more sophisticated outer planner)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ss_q2",
+        "kind": "multiple_choice",
+        "question": "What's the practical difference between increasing Q and increasing R in LQR design?",
+        "options": [
+          "They're the same",
+          "Q penalizes state deviations from zero; increasing it makes the controller drive the state to zero faster (more aggressive). R penalizes control effort; increasing it makes the controller use less actuation (gentler, cheaper). The relative scale of Q vs R determines the speed-effort tradeoff",
+          "Q is for input, R is for output",
+          "Q is for nonlinear, R is for linear"
+        ],
+        "correctIndex": 1,
+        "explanation": "The Q/R ratio is the main tuning knob. Higher Q-to-R = aggressive controller (fast response, high effort). Lower Q-to-R = gentle controller (slow response, low effort). In practice, you start with simple choices (e.g., Q = I, R = ρI for varying ρ) and iterate."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "MPC — solving control as optimization",
+      "body": "**Model Predictive Control (MPC)**: at each time step:\n\n1. Predict the system's behavior for the next N steps using the model.\n2. Solve an optimization: minimize cost over N steps subject to constraints (`u_min ≤ u ≤ u_max`, `x_min ≤ x ≤ x_max`).\n3. Apply only the first action `u_0`.\n4. Re-plan at the next time step.\n\n**Advantages**:\n\n- Handles constraints natively.\n- Can use nonlinear models (NMPC).\n- Anticipates future setpoint changes (the planner sees ahead).\n\n**Cost**: solving an optimization at every time step. Real-time MPC requires careful problem formulation + fast solvers (OSQP, ACADO, qpOASES).\n\n**Where MPC dominates**: autonomous-vehicle motion planning, chemical-process control, drone trajectory control. Anywhere constraints matter.\n\n**Trade-offs vs LQR**:\n\n- LQR: one-shot offline optimization → fast online execution, no constraints.\n- MPC: per-step online optimization → handles constraints, slower.\n\nProduction systems often combine both: MPC for the high-level planner; LQR for the inner-loop tracker."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "ss_explain",
+        "kind": "explain_back",
+        "prompt": "Explain why a robot arm with N joints typically needs 2N state variables. Use the relationship between Newton's laws and state-space representation.",
+        "rubricCriteria": [
+          { "id": "newton-second-order", "description": "Names that Newton's laws are second-order (F = ma) and state-space requires first-order ODEs" },
+          { "id": "two-states-per-dof", "description": "Concludes that each DOF needs position + velocity" },
+          { "id": "concrete-example", "description": "Applies to the arm or another concrete case" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}

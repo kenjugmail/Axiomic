@@ -1,0 +1,75 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The do-operator",
+      "body": "**`do(X = x)`** is Pearl's notation for an **intervention**: forcibly set `X` to value `x`, ignoring whatever causal mechanism normally determines `X`.\n\nThe distinction from conditioning:\n\n- **`P(Y | X = x)`**: observational. \"Among units where `X = x`, what's the distribution of `Y`?\"\n- **`P(Y | do(X = x))`**: interventional. \"If we forced `X` to be `x`, what would `Y` be?\"\n\nThese differ when `X` is associated with `Y` through paths other than the direct causal effect. In the smoking-cancer example: `P(cancer | smoke = 1)` includes confounding by, say, lifestyle. `P(cancer | do(smoke = 1))` would be the effect of randomized smoking — what an RCT would measure.\n\nThe do-operator is the mathematical formalization of \"what would happen if we intervened.\""
+    },
+    {
+      "kind": "text",
+      "title": "Identifiability",
+      "body": "**Identifiability**: can `P(Y | do(X = x))` be computed from observational data + the causal graph?\n\nNot always. When there's an unobserved confounder of `X` and `Y`, the effect generally isn't identifiable — observational data is consistent with multiple values of the causal effect.\n\nIdentifiability depends on the graph structure:\n\n- **Backdoor adjustment** identifies the effect when there's a backdoor adjustment set `Z` of OBSERVED variables blocking all backdoor paths.\n- **Front-door criterion** (Pearl): identifies the effect even with unobserved confounders, IF there's a mediator `M` such that `T → M → Y` is the only causal path and `M` has no unobserved confounders with `Y`.\n- **Instrumental variables**: identify a local effect (LATE) when there's a variable `Z` that affects `T` but doesn't directly affect `Y`.\n\nWhen none of these apply, the effect isn't identifiable from observational data + the assumed graph. You need either: more data (intervention), more assumptions, or to admit you can't answer the causal question."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "do_q1",
+        "kind": "multiple_choice",
+        "question": "When does P(Y | X = x) differ from P(Y | do(X = x))?",
+        "options": [
+          "Always",
+          "Whenever there are non-causal paths from X to Y — backdoor paths through confounders, or any path where information flows X to Y other than via X's direct causal effect. The do-operator severs these by forcing X; conditioning doesn't",
+          "Never",
+          "Only with binary X"
+        ],
+        "correctIndex": 1,
+        "explanation": "P(Y | X) and P(Y | do(X)) coincide when X is randomized — that's why RCTs work. They differ in the presence of confounding. The 'do' notation makes the difference explicit; without it, papers conflate observational and interventional probabilities and produce wrong claims."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "The three rules of do-calculus",
+      "body": "Pearl's three rules let you symbolically manipulate expressions involving `do(·)` and rewrite them in terms of observational quantities (when identifiable).\n\n**Rule 1 (insertion / deletion of observations)**: under d-separation conditions, you can drop or add conditioning variables.\n\n**Rule 2 (action / observation exchange)**: under appropriate d-separation, `P(Y | do(X), Z) = P(Y | X, Z)` — i.e., the do can be removed if conditioning is sufficient for backdoor adjustment.\n\n**Rule 3 (insertion / deletion of actions)**: under appropriate d-separation, an action `do(X)` can be removed if `X` doesn't causally affect `Y` along any unblocked path.\n\nThe rules are mechanical. Given a graph, you can derive whether `P(Y | do(X))` reduces to an expression in observable probabilities, and if so, what that expression is. **Tian and Pearl (2002)** proved this is **complete**: do-calculus suffices to identify any identifiable causal effect.\n\nIn practice, you don't apply the rules by hand — software (DoWhy, the `causaleffect` R package) automates the derivation."
+    },
+    {
+      "kind": "text",
+      "title": "Identifiability in pictures",
+      "body": "Two important graph structures:\n\n**Identifiable via backdoor**: if you can find an observed `Z` that blocks all backdoor paths between `T` and `Y`, the effect is identifiable. Most ML 'controlled-for-X' analyses are doing backdoor adjustment.\n\n**Identifiable via front-door**: if `T → M → Y` is the only causal path and there are no unobserved confounders between `M` and `Y`, the effect is identifiable even with unobserved `T-Y` confounding. The classic example: smoking → tar → cancer, even if there's an unobserved gene affecting both smoking and cancer susceptibility, the gene-cancer arrow is via tar, so observing tar identifies the smoking-cancer causal effect.\n\n**Not identifiable**: if `T` and `Y` share an unobserved confounder and there's no front-door mediator and no instrument, no observational analysis can produce the causal effect. Period. Need experimental data."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "do_q2",
+        "kind": "multiple_choice",
+        "question": "What's the practical value of Pearl's completeness theorem for do-calculus?",
+        "options": [
+          "It proves all causal effects are estimable",
+          "It says: if a causal effect is identifiable in any way, do-calculus's three rules can derive the formula. So if your graph + observations don't yield an identifying expression via do-calculus, the effect isn't identifiable — you must intervene or add assumptions. It turns 'is this estimable from observation?' into a decidable algorithm",
+          "It says causal inference is undecidable",
+          "It's purely theoretical"
+        ],
+        "correctIndex": 1,
+        "explanation": "The completeness result is what makes Pearl's framework actionable. Software like DoWhy can take a DAG + a query and either return the identifying expression or report 'not identifiable'. No more guessing — the algorithm is mechanical."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Tooling: DoWhy + EconML",
+      "body": "**DoWhy** (Microsoft Research, now an open-source project): a Python library that takes a DAG + dataset + query and:\n\n1. Identifies whether the effect is estimable.\n2. Picks an adjustment strategy (backdoor, frontdoor, IV).\n3. Estimates the effect using your choice of estimator (OLS regression, propensity score weighting, doubly-robust, T-learner).\n4. Runs sensitivity analysis (refute by simulating an unobserved confounder; refute by adding a placebo treatment; refute by data-subsetting).\n\n**EconML** (also Microsoft): focuses on heterogeneous treatment effects. Implements double-ML, causal forests, meta-learners. Pairs naturally with DoWhy for the identification step.\n\n**dagitty** (R / browser): interactive DAG editor. Draw your DAG; it identifies adjustment sets, finds testable implications, computes minimal sufficient adjustment.\n\nThe stack is mature. The hard part isn't implementation; it's drawing the right DAG and defending the assumptions."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "do_explain",
+        "kind": "explain_back",
+        "prompt": "Explain the difference between P(Y | X) and P(Y | do(X)) using a concrete example. Why does it matter to be explicit about the difference in causal-inference papers?",
+        "rubricCriteria": [
+          { "id": "concrete-example", "description": "Names a specific X, Y, and confounder where the two probabilities differ" },
+          { "id": "explains-mechanism", "description": "Walks through why one includes confounding paths and the other doesn't" },
+          { "id": "consequence", "description": "Names what goes wrong if a paper claims P(Y | X) when it meant P(Y | do(X)) (or vice versa)" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}

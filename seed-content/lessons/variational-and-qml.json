@@ -1,0 +1,80 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Variational quantum algorithms",
+      "body": "**Variational quantum algorithms (VQA)** are the workhorse of NISQ-era practical computation. They:\n\n1. Use a **parameterized quantum circuit** `U(θ)` (an 'ansatz').\n2. Compute an objective `C(θ) = ⟨ψ(θ)|H|ψ(θ)⟩` on quantum hardware.\n3. **Classically optimize** parameters `θ` to minimize `C(θ)`.\n4. Iterate: new θ → new circuit → new measurement → updated θ.\n\n**Hybrid quantum-classical** structure: quantum hardware computes the expectation values; classical optimizer (Adam, COBYLA, SPSA) updates parameters.\n\n**Why this works on NISQ**:\n- Circuits are SHALLOW (parameterized; depth chosen to fit coherence time).\n- Optimization is robust to noise (gradient-based optimization handles noisy gradients).\n- Practical for ~100-1000 qubits.\n\n**Applications**: VQE (ground-state chemistry), QAOA (combinatorial optimization), VQS (quantum simulation), QML (machine learning).\n\nVQAs are the 'interesting NISQ' algorithms. Whether they provide REAL advantage is empirically open."
+    },
+    {
+      "kind": "text",
+      "title": "VQE — Variational Quantum Eigensolver",
+      "body": "**VQE** (Peruzzo et al. 2014): find ground-state energy of a Hamiltonian `H`.\n\n**Procedure**:\n1. Choose ansatz `U(θ)` (hardware-efficient or chemistry-inspired).\n2. Prepare `|ψ(θ)⟩ = U(θ)|0⟩^n`.\n3. Measure `⟨ψ(θ)|H|ψ(θ)⟩` (decompose `H` into Pauli strings; measure each).\n4. Update `θ` to minimize the energy.\n5. Repeat.\n\n**Use case**: quantum chemistry. Find ground-state energies of molecules.\n\n**Demonstrated molecules**: H₂, LiH, BeH₂, H₄, H₆ — small (4-12 qubits).\n\n**Larger molecules**: bottlenecks in:\n- Number of measurements (scales with Pauli string count).\n- Optimization landscape (barren plateaus — gradients vanish exponentially in qubit count).\n- Ansatz expressivity vs trainability tradeoff.\n\n**Practical advantage today**: not yet established. Classical methods (DMRG, CCSD(T), DMFT) still dominate for chemistry. VQE may break through for mid-sized molecules with better hardware + algorithms.\n\n**Active research areas**: better ansätze (UCCSD, hardware-efficient, ADAPT-VQE), error mitigation, classical shadows for measurement."
+    },
+    {
+      "kind": "text",
+      "title": "QAOA — Quantum Approximate Optimization",
+      "body": "**QAOA** (Farhi-Goldstone-Gutmann 2014): variational algorithm for combinatorial optimization.\n\n**For MaxCut** on graph G:\n1. Encode the cost as `C = Σ (1 - Z_i Z_j)/2` over edges.\n2. Apply alternating layers: `e^{-iγ_j C}` (cost) and `e^{-iβ_j B}` (mixer, B = ΣX_i).\n3. Total `p` layers; `2p` parameters `γ_1, ..., γ_p, β_1, ..., β_p`.\n4. Measure expected cost; classically optimize parameters.\n\n**Theoretical**: as `p → ∞`, QAOA approaches the exact ground state. For finite `p`, gives approximation.\n\n**Empirical**: for small problems, QAOA at `p ≥ 1` provides modest approximations. As `p` grows, performance improves but coherence limits depth.\n\n**Practical results**: for benchmark MaxCut + portfolio + scheduling, QAOA hasn't yet beaten classical heuristics (Goemans-Williamson, simulated annealing) at scales where both can run.\n\n**The hope**: as hardware improves + `p` grows, QAOA might find advantage on hard problem instances. Open empirically.\n\n**Variants**: WS-QAOA (warm-started), QAOA+ (ansatz extensions), recursive QAOA. All trying to extract advantage from the basic framework."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "vqml_q1",
+        "kind": "multiple_choice",
+        "question": "What's the central practical challenge of variational quantum algorithms (VQE, QAOA) on NISQ hardware?",
+        "options": [
+          "Hardware speed",
+          "Barren plateaus — for many ansätze + initialization schemes, gradients vanish exponentially in the number of qubits. The optimizer can't find a downhill direction; training fails. Combined with measurement-shot noise, this makes large-scale VQA training extremely difficult. Active research: structured ansätze, smart initialization, layer-wise training",
+          "Classical optimizer",
+          "Compilation"
+        ],
+        "correctIndex": 1,
+        "explanation": "Barren plateaus (McClean et al. 2018) are a fundamental obstacle to scaling VQAs. The gradient variance vanishes exponentially in qubit count for random ansätze. Mitigations: structured ansätze, layer-wise training, parameter initialization strategies. Open research area; no general solution."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Quantum machine learning (QML)",
+      "body": "**QML**: applying quantum methods to machine-learning problems. The most-hyped quantum subfield; real advantages are limited.\n\n**Major approaches**:\n\n**1. Variational quantum classifiers (VQC)**: parameterized circuits as classifiers. Train via VQE-style optimization. No clear advantage over classical for typical ML tasks.\n\n**2. Quantum kernels**: compute kernel function on quantum hardware; pass to classical SVM. Some provable advantages (Liu-Arunachalam-Temme 2021) for specific synthetic tasks.\n\n**3. Quantum data encoding**: feature maps that encode classical data into quantum states. Active research; expressivity vs trainability tradeoffs.\n\n**4. Quantum-assisted classical ML**: use QC for specific subroutines (linear systems via HHL, sampling).\n\n**5. Quantum-native ML**: ML on quantum-generated data (quantum simulation outputs). Naturally suited to quantum.\n\n**Reality check**:\n\n- Most QML demonstrations are CLASSICAL data encoded in quantum form. Often the encoding cost dominates any speedup.\n- Provable QML advantages are rare + on synthetic problems.\n- NISQ-era QML hasn't beaten classical ML on benchmark tasks.\n\n**Where QML might shine**:\n\n- Quantum-native data (chemistry simulation outputs, condensed-matter states).\n- Specific kernel tasks with structure quantum can exploit.\n- Long-term: quantum data + quantum ML for materials + drug discovery.\n\n**The bottom line**: QML is genuinely interesting research; commercial advantage is a stretch as of 2026."
+    },
+    {
+      "kind": "text",
+      "title": "Quantum advantage in 2026",
+      "body": "**Where quantum advantage is plausible by ~2030**:\n\n**1. Quantum chemistry**: simulate molecular energies + dynamics. Strong reason for advantage (problem is naturally quantum). Hardware + algorithms approaching practical scale.\n\n**2. Materials science**: simulate strongly-correlated electron systems. Same reasoning.\n\n**3. Specific optimization problems**: combinatorial problems with structure. Less clear; classical methods are very good.\n\n**4. Cryptanalysis**: Shor's algorithm at scale. ~10-15 years away (per consensus estimates).\n\n**5. Niche kernels in ML**: specific structured problems. Limited scope.\n\n**Where quantum advantage is NOT expected**:\n\n- General ML (CNN, transformer training).\n- Standard optimization (linear programming, convex).\n- General problems without structure quantum can exploit.\n- Anything where memory bandwidth is the bottleneck.\n\n**The strategic frame**:\n\nQuantum computing is a SPECIALIZED tool. Like GPUs vs CPUs, quantum will excel at specific problems + be irrelevant for most computing. The hype around 'quantum will revolutionize everything' is wrong; quantum will revolutionize SPECIFIC domains.\n\n**Hardware platforms** (2026):\n\n- **Superconducting** (IBM, Google, Rigetti, Quantinuum): leading in qubit count + speed.\n- **Trapped ions** (IonQ, Quantinuum, AQT): leading in fidelity.\n- **Photonic** (PsiQuantum, Xanadu, ORCA): emerging; room-temperature; strong long-term scaling.\n- **Neutral atoms** (QuEra, Pasqal, Atom Computing): rapid progress; flexible architectures.\n- **Topological** (Microsoft Majorana): theoretically attractive; experimental challenges.\n\nNo platform has won. Production quantum-computing infrastructure will likely be heterogeneous, like classical compute (CPUs + GPUs + TPUs + custom accelerators)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "vqml_q2",
+        "kind": "multiple_choice",
+        "question": "Why are variational algorithms the dominant approach for NISQ-era practical quantum computing?",
+        "options": [
+          "Tradition",
+          "Their hybrid quantum-classical structure tolerates noise: shallow circuits fit within coherence time; classical optimization handles noisy gradients; expectation values are robust to gate errors. Deep algorithms like Shor or Grover at scale require fault-tolerance. Variational algorithms are the bridge between NISQ + FT eras",
+          "Easier to code",
+          "Compiler support"
+        ],
+        "correctIndex": 1,
+        "explanation": "Variational algorithms are designed for NISQ. Shallow circuits + classical optimization + expectation-value targets all play to NISQ strengths. Whether they deliver practical advantage is empirically open; whether they're the right tool for the NISQ era is settled — they're it."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's beyond NISQ",
+      "body": "Looking past the NISQ era:\n\n**Fault-tolerant quantum computing (~2030+)**:\n- 10^4 - 10^7 physical qubits.\n- Error-corrected logical qubits.\n- Algorithms running for billions of gates.\n- **Killer applications**: cryptanalysis, large-scale chemistry, materials simulation.\n\n**Quantum networks (~2030-2040)**:\n- Quantum repeaters (entanglement distribution over distance).\n- Quantum internet for distributed computing + cryptography.\n- BB84 + QKD becoming production-grade.\n\n**Quantum simulation as a service (~2027-2032)**:\n- Cloud-accessible quantum simulators for chemistry, materials.\n- Hybrid classical + quantum compute pipelines.\n- Industrial use cases (drug design, battery materials, catalysts).\n\n**Quantum-classical hybrids (now → 2030+)**:\n- Most production 'quantum' applications use classical heavily.\n- Hybrid optimization (variational + classical solvers).\n- Quantum-assisted classical ML.\n\n**Practical 2026 advice for ML practitioners**:\n\n- **Don't bet on quantum advantage today**. NISQ-era utility is unclear.\n- **Migrate to post-quantum cryptography**. Shor's threat is real long-term.\n- **Watch quantum chemistry + materials**: most likely first practical wins.\n- **Don't dismiss quantum**: 10-year horizon includes plausible breakthroughs.\n- **Quantum ML is mostly hype today**: real applications are narrow.\n\nThe honest 2026 message: quantum computing is real research with real progress + real hype. The frontier is genuine; practical impact is years away."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "vqml_explain",
+        "kind": "explain_back",
+        "prompt": "Pick a specific application area (quantum chemistry, optimization, machine learning, cryptanalysis). For that area, articulate: what quantum advantage might look like, current status, and timeline to practical impact.",
+        "rubricCriteria": [
+          { "id": "specific-area", "description": "Names a specific application + appropriate quantum approach (VQE for chemistry, etc.)" },
+          { "id": "current-status", "description": "Honestly assesses 2026 capability for that area" },
+          { "id": "timeline-realistic", "description": "Gives a realistic timeline (5-15 years for most practical cases)" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Bayesian vs frequentist",
+      "body": "Two paradigms for statistical inference. They answer different questions; both have their place.\n\n**Frequentist**: parameters are fixed unknown quantities; data is random. P-values, confidence intervals, MLE. The default in industry ML evaluation.\n\n**Bayesian**: parameters are random variables; data is observed. **Compute the posterior `p(θ | data)`** by combining a prior `p(θ)` with the likelihood `p(data | θ)` via Bayes' rule:\n\n$$p(\\theta | data) = \\frac{p(data | \\theta) \\cdot p(\\theta)}{p(data)}$$\n\nThe posterior tells you: 'given what I knew before + what I observed, what do I now believe about θ?' Frequentist methods don't give you this directly.\n\n**Why Bayesian for ML**:\n- **Quantified uncertainty over parameters**: not just point estimates.\n- **Sequential learning**: posteriors become priors for the next round of data.\n- **Small-data regimes**: priors regularize when data is limited.\n- **Hierarchical models**: model parameters that vary across groups.\n\n**Why NOT Bayesian**:\n- Computational cost (MCMC is slow).\n- Prior selection is sometimes contentious.\n- For huge data, the prior washes out and frequentist + Bayesian agree."
+    },
+    {
+      "kind": "text",
+      "title": "Priors, likelihoods, posteriors",
+      "body": "**Prior `p(θ)`**: your belief about θ *before* seeing data. Encodes domain knowledge.\n\n**Likelihood `p(data | θ)`**: how data is generated given θ. The same likelihood frequentists use for MLE.\n\n**Posterior `p(θ | data)`**: belief after data, via Bayes' rule.\n\n**Conjugate priors**: when prior and likelihood combine to give a posterior in the same family. Simple closed-form math. Examples:\n- Beta prior + Bernoulli likelihood → Beta posterior. (For estimating a probability.)\n- Gaussian prior + Gaussian likelihood → Gaussian posterior. (For estimating a mean with known variance.)\n- Gamma prior + Poisson likelihood → Gamma posterior. (For estimating a rate.)\n\nNon-conjugate cases: most modern Bayesian inference. Need numerical methods (MCMC, variational inference).\n\n**Improper priors**: priors that don't integrate to 1 (e.g., uniform over the real line). Often used for 'objective' Bayesian inference. The posterior is still proper if the likelihood is well-behaved.\n\n**Subjective vs objective priors**: subjective priors encode actual prior beliefs. Objective priors (Jeffreys, reference) try to be 'minimally informative'. For most ML applications, weakly-informative priors (broad enough to not bias the posterior much; tight enough to regularize small data) are the right default."
+    },
+    {
+      "kind": "text",
+      "title": "MCMC — sampling from the posterior",
+      "body": "For non-conjugate models, the posterior `p(θ | data)` doesn't have a closed form. **Markov Chain Monte Carlo (MCMC)** samples from it without computing it explicitly.\n\nThe trick: construct a Markov chain whose stationary distribution is `p(θ | data)`. Run the chain; collect samples; treat them as samples from the posterior.\n\n**Metropolis-Hastings**: the simplest MCMC.\n```\nθ_current = initial\nfor t in range(T):\n    propose θ_new ~ Q(· | θ_current)\n    accept_prob = min(1, p(data | θ_new) p(θ_new) Q(θ_current | θ_new) / [p(data | θ_current) p(θ_current) Q(θ_new | θ_current)])\n    if random() < accept_prob:\n        θ_current = θ_new\n    samples.append(θ_current)\n```\n\nThe acceptance probability ensures the chain converges to the right distribution. With enough iterations, `samples` approximate `p(θ | data)`.\n\n**Hamiltonian Monte Carlo (HMC)**: uses gradient information for proposals. Far more efficient for high-dimensional posteriors. The basis of Stan + PyMC.\n\n**NUTS** (No-U-Turn Sampler): adaptive HMC. Standard in modern Bayesian software.\n\n**Practical**: use Stan, PyMC, NumPyro, or Pyro. Don't roll your own MCMC. Modern tools handle proposal tuning, convergence diagnostics, parallel chains."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "bayes_q1",
+        "kind": "multiple_choice",
+        "question": "What does a Bayesian credible interval mean, and how does it differ from a frequentist confidence interval?",
+        "options": [
+          "They mean the same thing",
+          "A 95% credible interval contains the true parameter with 95% posterior probability — a direct probabilistic statement about θ. A 95% confidence interval has the property that, in repeated experiments, ~95% of intervals would cover the true parameter — a statement about the procedure, not the parameter. Bayesians and frequentists often disagree about which interpretation is meaningful; for most ML purposes the distinction matters less than people make of it",
+          "Credible intervals are always wider",
+          "Confidence intervals are deprecated"
+        ],
+        "correctIndex": 1,
+        "explanation": "The interpretive distinction is real but often overstated. Bayesian credible intervals make a probabilistic claim about θ (which requires treating θ as random). Frequentist confidence intervals make a claim about the procedure (the parameter is fixed; the interval is random). For most ML applications, both give similar numbers when priors are weakly informative + sample sizes are moderate-to-large. The distinction matters in small-sample settings or when the prior carries real information."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Variational inference",
+      "body": "MCMC samples; **variational inference (VI)** approximates. Pick a parametric family `q_φ(θ)` (e.g., Gaussian); find the parameters `φ` that minimize KL divergence to the true posterior:\n\n```\nφ* = argmin_φ KL(q_φ(θ) || p(θ | data))\n```\n\nThe result: `q_{φ*}(θ)` is your approximate posterior. Cheaper than MCMC; gives approximate samples by sampling from `q_φ`.\n\n**Trade-offs**:\n- **MCMC**: asymptotically exact; slow; high-dimensional posteriors are hard.\n- **VI**: fast; approximate; can underestimate uncertainty (KL(q || p) underestimates posterior variance).\n\n**For ML**:\n- **Bayesian neural networks**: use VI to maintain posteriors over weights. Provides uncertainty estimates.\n- **Variational autoencoders (VAEs)**: VI applied to latent variable models. The 'V' in VAE.\n- **Stochastic VI (SVI)**: scales VI to huge datasets via mini-batching. Standard for large-scale Bayesian ML.\n\n**Production**: VI for fast iteration; MCMC for definitive analysis on small models. Pyro and NumPyro support both."
+    },
+    {
+      "kind": "text",
+      "title": "When to go Bayesian",
+      "body": "Bayesian methods shine in specific scenarios:\n\n**1. Small data**. With 50 examples, MLE gives unstable estimates. A Bayesian model with weakly-informative priors regularizes — the posterior accounts for limited data via wider intervals.\n\n**2. Hierarchical structure**. 'Each user has their own click-through rate, drawn from a population distribution'. Bayesian hierarchical models naturally express this; they share statistical strength across users while preserving individual variation.\n\n**3. Sequential / online learning**. Today's posterior is tomorrow's prior. Built-in mechanism for incorporating new data.\n\n**4. Decision-making under uncertainty**. The posterior over parameters lets you propagate uncertainty into predictions; useful for risk-aware decisions.\n\n**5. Multi-armed bandits**. Thompson sampling — a Bayesian method — has strong theoretical guarantees and good practical performance.\n\n**Don't go Bayesian when**:\n- You have huge data + a simple model. Frequentist methods agree.\n- Computational budget is tight.\n- You need conventional industry-standard p-values.\n\nFor most ML projects: frequentist by default; Bayesian for the specific cases above. Both paradigms have their place; debates about which is 'right' are mostly philosophical."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "bayes_q2",
+        "kind": "multiple_choice",
+        "question": "In which scenario does Bayesian inference clearly add value over frequentist MLE?",
+        "options": [
+          "Predicting click-through rates for 1 billion sessions",
+          "Estimating click-through rates for 50 users, each with only a few sessions, where you want to share statistical strength across users",
+          "Comparing two A/B test variants with 50K users each",
+          "Computing accuracy on a large held-out test set"
+        ],
+        "correctIndex": 1,
+        "explanation": "Hierarchical Bayesian models shine in small-data + hierarchical-structure settings. With 50 users and few sessions each, MLE per user is unstable. Pooling across users via a hierarchical model — each user's CTR drawn from a population distribution — dramatically improves estimates. For huge datasets (option 1) or balanced two-group comparisons (option 3), frequentist methods agree with Bayesian. Choose Bayesian for the cases where the inductive bias of priors + hierarchies actually helps."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "Bayesian inference is the alternative paradigm. Next: experimental design — how to plan studies that actually answer your question.\n\nNext: [[experiment-design]] — power analysis, randomization, blocking.\n\nKey takeaways:\n- Bayesian: posterior `p(θ | data)` = prior × likelihood / evidence\n- Conjugate priors give closed-form posteriors; non-conjugate needs MCMC or VI\n- MCMC: sample from posterior. NUTS (in Stan / PyMC) is the modern standard\n- VI: approximate posterior via parametric family. Faster; can underestimate variance\n- Bayesian wins for: small data, hierarchical structure, sequential learning, decision-under-uncertainty"
+    }
+  ]
+}

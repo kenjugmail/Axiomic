@@ -1,0 +1,70 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What's a Nash equilibrium?",
+      "body": "A **Nash equilibrium** is a strategy profile — one strategy per player — where no player can do better by unilaterally changing their strategy.\n\nKey words:\n- **Profile**: a strategy for *each* player.\n- **Unilaterally**: holding everyone else fixed.\n- **Better**: by their own payoff function.\n\nIf no one can profit from a one-sided deviation, the configuration is *stable* — no player has a reason to move. That's a Nash equilibrium.\n\n**Nash's theorem (1950)**: every finite game with mixed strategies has at least one Nash equilibrium. Existence is guaranteed; uniqueness is not."
+    },
+    {
+      "kind": "text",
+      "title": "Prisoner's Dilemma",
+      "body": "The most-cited game in economics + ML alignment:\n\n| | Cooperate | Defect |\n|---|---|---|\n| **Cooperate** | (3, 3) | (0, 5) |\n| **Defect** | (5, 0) | (1, 1) |\n\nAnalysis: regardless of what the column player does, the row player is better off defecting:\n- If column cooperates: row gets 5 (Defect) > 3 (Cooperate).\n- If column defects: row gets 1 (Defect) > 0 (Cooperate).\n\nSymmetrically for column. So (Defect, Defect) is the unique Nash equilibrium.\n\nBut both players prefer (Cooperate, Cooperate) at (3, 3)! Equilibrium ≠ optimum.\n\nThis is the canonical example of why Nash equilibrium is a *stability* concept, not an *optimality* concept. The two concepts often disagree."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ne_q1",
+        "kind": "multiple_choice",
+        "question": "In the Prisoner's Dilemma above, the players prefer (3, 3) to (1, 1). Why don't they reach (3, 3)?",
+        "options": [
+          "Because the players don't communicate",
+          "Because each player can unilaterally improve by deviating from (Cooperate, Cooperate) to defect — taking the (5, 0) or (0, 5) payoff",
+          "Because (3, 3) is not a feasible outcome",
+          "Because (1, 1) Pareto-dominates (3, 3)"
+        ],
+        "correctIndex": 1,
+        "explanation": "From (Cooperate, Cooperate), each player has incentive to unilaterally deviate to Defect (gaining 5 instead of 3). So (Cooperate, Cooperate) is NOT a Nash equilibrium even though both players prefer it. The mutual-cooperation outcome is Pareto-superior but unstable. (Defect, Defect) is the unique Nash."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Mixed strategies",
+      "body": "When no pure-strategy Nash exists, players randomize.\n\n**Rock-Paper-Scissors**: any pure strategy is exploitable. The unique Nash is the uniform mix (1/3, 1/3, 1/3).\n\n**Indifference principle**: in a mixed Nash equilibrium, each player must be **indifferent** across all strategies in their support. If one strategy paid strictly more, they'd play it pure.\n\nThis indifference is what makes mixed equilibria computable: solve the linear equations 'opponent's strategy makes me indifferent across my support.'"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ne_q2",
+        "kind": "multiple_choice",
+        "question": "Why is the unique Nash equilibrium of rock-paper-scissors the uniform random mix (1/3, 1/3, 1/3)?",
+        "options": [
+          "Because random play is fair",
+          "Because in any mixed Nash equilibrium, each player must be indifferent across their support — and only the uniform mix makes the opponent indifferent across rock/paper/scissors",
+          "Because uniform is always the Nash equilibrium",
+          "Because rock-paper-scissors has no equilibrium"
+        ],
+        "correctIndex": 1,
+        "explanation": "Indifference principle: if Player 1 is mixing (p1, p2, p3) over rock/paper/scissors, Player 2's expected payoff from each pure strategy must be equal (else Player 2 would deviate to the best one). The unique p that achieves this is (1/3, 1/3, 1/3). Symmetric for Player 2."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Why Nash equilibrium matters",
+      "body": "Nash equilibrium is the central solution concept in game theory. It's used to:\n\n- **Predict** behavior in strategic interactions (auctions, markets, voting).\n- **Design** mechanisms whose Nash equilibria produce desired outcomes (mechanism design, see [[mechanism-design]]).\n- **Analyze** multi-agent learning systems (multi-agent RL, see [[multi-agent-rl]]).\n\nBut the concept has limits:\n- **Multiple equilibria**: many games have several Nash equilibria; selection is unsolved.\n- **Computational hardness**: finding Nash equilibria is PPAD-complete in general — believed hard.\n- **Refinements needed**: subgame-perfect, sequential, trembling-hand-perfect — different ways of ruling out 'unreasonable' equilibria.\n\nNext: extensive-form games + subgame-perfect equilibrium ([[subgame-perfect]])."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ne_q3",
+        "kind": "explain_back",
+        "prompt": "Explain in your own words: why doesn't 'rational players reach Nash equilibrium' imply 'rational players reach a good outcome'? Use the Prisoner's Dilemma as a concrete example.",
+        "rubricCriteria": [
+          { "id": "stability-vs-optimality", "description": "Distinguishes stability (no unilateral deviation profitable) from optimality (best joint outcome)" },
+          { "id": "pd-example", "description": "Correctly applies to PD — Nash is (D,D), Pareto-optimal is (C,C), but no individual can move to (C,C) unilaterally" },
+          { "id": "broader-implication", "description": "Mentions why this is foundational — connects to social dilemmas, mechanism design, or alignment" }
+        ],
+        "passingScore": 0.5
+      }
+    }
+  ]
+}

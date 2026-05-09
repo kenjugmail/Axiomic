@@ -2,7 +2,7 @@ import type { AIProvider } from "./provider";
 import { MockProvider } from "./providers/mock";
 import { OllamaProvider } from "./providers/ollama";
 
-export type { AIProvider, ChatMessage, StreamOptions } from "./provider";
+export type { AIProvider, ChatMessage, StreamOptions, ModelInfo } from "./provider";
 export { MockProvider } from "./providers/mock";
 export { OllamaProvider } from "./providers/ollama";
 

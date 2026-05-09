@@ -1,0 +1,66 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "A/B testing in production",
+      "body": "**A/B testing** runs two (or more) treatments against random subsets of production traffic; compares outcomes; decides which is better.\n\nUbiquitous in tech: Google, Meta, Amazon, Netflix all run thousands of A/B tests per quarter. Major product changes are gated by A/B test results.\n\nAt heart it's experiment design at scale. The challenges that make A/B testing its own discipline:\n\n- **Sequential nature**: data arrives over time; you might want to peek and decide.\n- **Heterogeneous traffic**: users vary; effects may differ across segments.\n- **Multiple metrics**: business cares about many KPIs; not just one.\n- **Long-term effects**: a treatment that looks good at week 1 might be bad at month 3.\n- **Network effects**: when treatment in one user affects another (social platforms).\n\nThis lesson covers the production-grade machinery: sequential testing, peeking-safe inference, multi-metric tradeoffs."
+    },
+    {
+      "kind": "text",
+      "title": "The naive A/B test",
+      "body": "Standard recipe:\n\n1. **Pre-register** hypothesis + sample size + analysis plan.\n2. **Randomize** users to treatment vs control via stable hash.\n3. **Run** for the planned duration.\n4. **Analyze**: compare metric means via t-test or proportion test.\n5. **Decide**: ship if significant + practically meaningful; don't ship otherwise.\n\nFor a CTR metric with baseline 5% and minimum detectable effect of 1% absolute (i.e., detect 5% → 6%):\n- α = 0.05, power = 0.80.\n- n per group ≈ 11,000 users (using standard formulas).\n- Run until both groups have 11K assigned + observed for the conversion window.\n\nThis is fine for small organizations + simple metrics. Production-grade A/B at scale has additional complications.\n\n**Why naive isn't enough**:\n- Data arrives sequentially; teams want to peek.\n- Many metrics matter (CTR, retention, revenue, error rate); naive test on the primary inflates errors on secondaries.\n- Effects often heterogeneous (works for new users, not retained; works in some countries, not others).\n- Long-term effects don't show up in week-1 windows."
+    },
+    {
+      "kind": "text",
+      "title": "Sequential testing — peeking-safe",
+      "body": "Naive peeking (look at the test data, stop when p < α) inflates Type I to ~30%+. **Sequential testing** lets you peek without breaking the false-positive rate.\n\n**Group sequential designs (alpha spending)**: pre-decide N peeks at fixed checkpoints. Each peek uses a fraction of the total α. After all peeks, FWER ≤ α.\n\nO'Brien-Fleming alpha spending: most α saved for the final peek. Conservative for early peeks; full power at the end.\n\n**Always-valid p-values**: methods that allow continuous monitoring with valid inference at every moment. Examples:\n- **Mixture sequential probability ratio test (mSPRT)**: Bayesian method; provides p-values valid under continuous monitoring.\n- **Confidence sequences**: like CIs but valid simultaneously across all sample sizes.\n\n**Bayesian sequential**: monitor the posterior probability of effect; stop when it crosses a threshold. Naturally handles peeking. Bayesian A/B testing platforms (e.g., GrowthBook) build this in.\n\n**Practical**: most production A/B platforms (Optimizely, GrowthBook) implement some form of sequential testing. If you're rolling your own, use confidence sequences or pre-registered group sequential designs. **Never naively peek + stop without these protections.**"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ab_q1",
+        "kind": "multiple_choice",
+        "question": "Your A/B test reaches significance at day 3 of a planned 14-day experiment. Why might shipping the change anyway be risky?",
+        "options": [
+          "Day-3 data isn't reliable",
+          "Multiple effects: (1) peeking inflates Type I — even with planned 14 days, stopping early without sequential testing means the effective α is much higher than 0.05; (2) week-1 effects often don't generalize to long-term (novelty effects fade, learning effects accumulate); (3) the day-3 sample may not be representative of the full traffic distribution. Both statistical (peeking) and product (long-term effects) reasons argue for running the full duration",
+          "The test should always run forever",
+          "Shipping early is always wrong"
+        ],
+        "correctIndex": 1,
+        "explanation": "Day-3 'wins' are commonly day-30 'losses'. Novelty effects (users engage with anything new initially) fade. Reactive system changes (the model serves itself differently after shipping) cause distribution shift. Plus the statistical issue: peeking at day 3 without sequential-testing protections means the false-positive rate is much higher than 5%. Best practice: pre-commit to a full duration, or use sequential testing methods. Don't ship on a peek-and-stop result without explicitly accounting for both."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Heterogeneous treatment effects",
+      "body": "An A/B test reports an average treatment effect (ATE). But the average can hide important variation.\n\n**Heterogeneous Treatment Effect (HTE)**: the treatment effect varies across subgroups.\n- Maybe the new feature helps power users + hurts new users.\n- Maybe it works in English but not Spanish.\n- Maybe it helps mobile but hurts desktop.\n\nThe ATE could be slightly positive even when the effect is bimodal — large positive for some, large negative for others.\n\n**Methods**:\n\n**Pre-specified subgroup analysis**: list important segments before running the test (mobile/desktop, country, user-tenure bucket). Test in each subgroup; require multiple-testing correction if many.\n\n**Causal forest** (Wager 2018): uses a random forest variant to estimate per-user treatment effects. Identifies subgroups with large positive/negative effects.\n\n**Meta-learner approaches** (T-learner, S-learner, X-learner): fit separate treatment + control models; predict per-user CATE (Conditional Average Treatment Effect). Useful for rolling out the feature only to users it helps.\n\n**Practical for ML A/B**: analyze key subgroups (mobile/desktop, country, frequent/infrequent user). If the ATE is positive but a major segment shows negative effect, ship gated — only to users it helps. Better than rolling back entirely.\n\nProduct teams that don't analyze HTEs ship features whose averages look fine but cause real harm to specific users."
+    },
+    {
+      "kind": "text",
+      "title": "Multi-metric trade-offs",
+      "body": "Real product A/B tests measure many metrics. Maybe the new ranking model:\n- Increases CTR by 3% (good).\n- Decreases revenue per session by 1% (bad — clicks went to ads with lower bids).\n- Increases retention slightly (good).\n- Decreases support ticket volume (good).\n\nWhich do you optimize? **OEC (Overall Evaluation Criterion)**: a pre-decided weighted combination of metrics that captures business goals. Define the OEC before the test; analyze that.\n\n**Guardrail metrics**: metrics you want to NOT degrade, even if the OEC improves. Latency, error rate, accessibility metrics. The treatment must not regress these significantly.\n\n**Multi-arm extensions**: when testing 5+ variants, exact pairwise comparison gets complicated. Multi-armed bandit frameworks (next slide) often handle this better.\n\n**Practical OEC**:\n- 70% × normalized revenue change + 30% × normalized retention change.\n- Plus guardrails: latency p99 must not degrade; error rate must stay below 0.1%.\n- Pre-register weights + thresholds; don't tune them after seeing results.\n\nLazy A/B reporting: 'we shipped if any metric was significant'. Catastrophic for business outcomes — you optimize whichever metric is randomly elevated. Discipline matters."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ab_q2",
+        "kind": "multiple_choice",
+        "question": "What's the practical issue with running an A/B test that only measures one primary metric?",
+        "options": [
+          "Single-metric tests are statistically invalid",
+          "Real product changes have multi-dimensional effects: improving one metric often degrades another (more clicks but lower per-click revenue; more engagement but more support tickets). Single-metric tests miss these trade-offs and ship features that look good on the chosen metric but worse for the business overall. Define an OEC + guardrails up front",
+          "Single metrics are too easy to game",
+          "p-values don't apply to single metrics"
+        ],
+        "correctIndex": 1,
+        "explanation": "Real product changes affect many things. Optimizing one metric in isolation almost always sacrifices another; without measuring + weighting, you ship trade-offs you didn't intend. The fix: define an Overall Evaluation Criterion (OEC) that combines the metrics business cares about, plus guardrail metrics that must not degrade. This forces the team to think about trade-offs before the data comes in. Most mature A/B programs (Microsoft, Google, Netflix) operate this way."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "What's next",
+      "body": "A/B testing is the production form of experiment design. Next: causal inference — formalizing the gap between correlation and cause.\n\nNext: [[causal-inference-basics]] — counterfactuals, RCTs.\n\nKey takeaways:\n- A/B basics: random assignment, pre-registered sample size + metric, no peeking\n- Sequential testing (group sequential, mSPRT, confidence sequences) enables safe peeking\n- Heterogeneous treatment effects: ATE can hide important per-subgroup variation. Analyze subgroups\n- OEC + guardrails: weighted combination of metrics + constraints. Define before the test\n- Production A/B at scale needs sequential testing, HTE analysis, and OEC discipline"
+    }
+  ]
+}

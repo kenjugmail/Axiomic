@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Flag, RotateCcw, Sparkles } from "lucide-react";
+import { Flag, RotateCcw, Sparkles, FileEdit } from "lucide-react";
 import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
+import { EmptyState } from "../components/ui/EmptyState";
 import { ReportEditModal } from "../components/lesson/ReportEditModal";
+import { toast } from "../stores/toast";
 
 interface Edit {
   versionId: string;
@@ -38,7 +40,6 @@ export function LessonEditsFeed() {
 
   const [edits, setEdits] = useState<Edit[] | null>(null);
   const [reverting, setReverting] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [reporting, setReporting] = useState<{
     nodeId: string;
     version: number;
@@ -60,19 +61,19 @@ export function LessonEditsFeed() {
   const revertTo = async (e: Edit) => {
     if (reverting) return;
     if (e.version <= 1) {
-      setError("There's no earlier version to revert to.");
+      toast.error("There's no earlier version to revert to.");
       return;
     }
     if (!confirm(`Revert ${e.nodeTitle} from v${e.version} back to v${e.version - 1}?`)) {
       return;
     }
     setReverting(e.versionId);
-    setError(null);
     try {
       await api.mastery.restoreLessonVersion(e.nodeId, e.version - 1);
+      toast.success(`Reverted ${e.nodeTitle} to v${e.version - 1}`);
       load();
     } catch (err: any) {
-      setError(err?.message ?? "Revert failed");
+      toast.error(err?.message ?? "Revert failed");
     } finally {
       setReverting(null);
     }
@@ -108,12 +109,6 @@ export function LessonEditsFeed() {
         )}
       </p>
 
-      {error && (
-        <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm mb-4">
-          {error}
-        </div>
-      )}
-
       {edits === null ? (
         <div className="space-y-2">
           {[1, 2, 3, 4].map((i) => (
@@ -121,7 +116,11 @@ export function LessonEditsFeed() {
           ))}
         </div>
       ) : edits.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No edits yet.</p>
+        <EmptyState
+          icon={FileEdit}
+          title="No lesson edits yet"
+          description="When community contributors edit a lesson, the change shows up here for review."
+        />
       ) : (
         <ul className="space-y-2">
           {edits.map((e) => {

@@ -1,0 +1,75 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why control matters",
+      "body": "Every robot, vehicle, and physical system that responds to inputs needs **control**. Control is the discipline of making a system's output track a desired reference, despite disturbances and model uncertainty.\n\nClassical examples:\n\n- A drone hovering at a target altitude.\n- A self-driving car maintaining lane position.\n- An industrial robot moving its end-effector to a target pose.\n- A heating system holding a setpoint temperature.\n\nWithout control, these systems either don't reach the goal, oscillate, or go unstable. Control gives you mathematical tools + practical recipes for designing systems that converge to the goal cleanly.\n\nThis lesson covers the workhorse of practical control: the **PID controller**."
+    },
+    {
+      "kind": "text",
+      "title": "PID — the canonical controller",
+      "body": "Given:\n\n- **Setpoint** `r(t)`: the desired output.\n- **Measured output** `y(t)`: what the system actually does.\n- **Error** `e(t) = r(t) - y(t)`.\n\nPID computes a control signal `u(t)`:\n\n`u(t) = K_p · e(t) + K_i · ∫e(τ)dτ + K_d · de/dt`\n\nThree gains:\n\n- **K_p (Proportional)**: respond proportionally to current error.\n- **K_i (Integral)**: accumulate past error; eliminates steady-state offset.\n- **K_d (Derivative)**: anticipate future error from rate of change; damps oscillation.\n\nMost industrial control loops are PID or its variants. Tuning the three gains is part art, part recipe."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ctrl_q1",
+        "kind": "multiple_choice",
+        "question": "A heating system using only proportional control (K_p > 0, K_i = K_d = 0) maintains the room slightly below the setpoint forever. Why?",
+        "options": [
+          "K_p is too small",
+          "Steady-state error: P-only control needs nonzero error to produce any heating output. Once the room is hot enough that supply equals heat loss, the error is whatever it needs to be to balance the loss. Adding integral action (K_i > 0) accumulates the small error and drives it to zero",
+          "Heat capacity is the issue",
+          "Proportional control is unstable"
+        ],
+        "correctIndex": 1,
+        "explanation": "Steady-state error is the canonical limitation of P-only control. The integral term in PI / PID accumulates persistent error and drives it to zero. This is why most real controllers include the I term."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Tuning the gains",
+      "body": "**Ziegler-Nichols** (1942): the classical recipe.\n\n1. Set K_i = K_d = 0.\n2. Increase K_p until the system oscillates with sustained, constant amplitude. Call this critical gain `K_u` and oscillation period `T_u`.\n3. Set K_p = 0.6 K_u, K_i = 1.2 K_u / T_u, K_d = 0.075 K_u T_u.\n\nProduces aggressive but workable initial gains; usually requires fine-tuning.\n\n**Manual tuning**: increase K_p until response is fast, then add K_d to dampen overshoot, then add K_i to eliminate steady-state error. Iterate.\n\n**Modern**: auto-tuning algorithms (relay-based, model-based) implemented in PLC controllers + ROS control libraries. The Ziegler-Nichols heuristic still informs them."
+    },
+    {
+      "kind": "text",
+      "title": "Stability — the most important property",
+      "body": "A control system is **stable** if bounded inputs produce bounded outputs. Unstable systems diverge — outputs grow without bound (or oscillate with growing amplitude).\n\n**Linear systems**: stability is determined by the poles of the closed-loop transfer function. All poles in the left half of the complex plane → stable.\n\n**Nonlinear systems**: harder. Lyapunov stability theory: find a Lyapunov function `V(x) > 0` whose derivative `V̇(x) < 0` along system trajectories. Then the equilibrium is stable.\n\n**Practical implications**:\n\n- **Robust margins**: stable in theory but with small margins → fragile in practice. Increase damping, reduce gains.\n- **Small-signal vs large-signal**: linear analysis gives stability around an operating point. Large disturbances may push the system into a regime where linearization fails.\n- **Time delays**: any delay in the loop reduces stability margins. Sample-and-hold from digital controllers, sensor latency, communication delays — all matter.\n\nUnstable controllers are dangerous. Real robots have crashed because of poorly-tuned controllers; real drones have flown into walls. Don't ship without stability margins."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ctrl_q2",
+        "kind": "multiple_choice",
+        "question": "Why does adding derivative action (K_d > 0) typically improve stability?",
+        "options": [
+          "It increases the proportional gain",
+          "K_d responds to the RATE of error change, anticipating future error. When the system is approaching the setpoint quickly, K_d reduces the control output to prevent overshoot. This adds damping; oscillations decay faster",
+          "It increases noise",
+          "It's required by the math"
+        ],
+        "correctIndex": 1,
+        "explanation": "Derivative action damps oscillations by acting as 'velocity feedback'. The catch: K_d amplifies measurement noise. In noisy systems, you need either filtering or careful K_d tuning. Modern controllers often use 'derivative on measurement' (instead of error) to avoid derivative kicks during setpoint changes."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "From PID to advanced control",
+      "body": "PID is the workhorse but isn't always enough.\n\n**State-space control** (next lesson): represents systems as `ẋ = Ax + Bu`. Generalizes to multi-input multi-output, time-varying systems, optimal-control formulations.\n\n**LQR (Linear Quadratic Regulator)**: optimal feedback controller for linear systems with quadratic cost. Generalizes manual gain tuning to mathematically optimal gains.\n\n**MPC (Model Predictive Control)**: at each time step, solve an optimization for the next N steps; apply the first action; replan. Handles constraints + nonlinearities. Standard in autonomous-vehicle planning.\n\n**Adaptive control**: gains adjust online as the system's parameters change. Used when system dynamics drift (aging hardware, varying payloads).\n\n**Robust control (H∞)**: design controllers that perform well across a range of model uncertainties. The aerospace + automotive industries' default.\n\n**Learning-based control**: RL, MPC + learned models, behavior cloning. Modern robotics increasingly hybrid: classical control as the safety substrate, ML as the adaptation layer.\n\nThe path will cover state-space + estimation + planning + learning-based methods. PID stays foundational throughout."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "ctrl_explain",
+        "kind": "explain_back",
+        "prompt": "Explain in your own words why integrating the error (the I term in PID) eliminates steady-state error. Use a concrete example.",
+        "rubricCriteria": [
+          { "id": "names-mechanism", "description": "Names that integration accumulates persistent error" },
+          { "id": "concrete-example", "description": "Walks through a specific case (heater, drone, motor) showing the I term's effect" },
+          { "id": "tradeoff", "description": "Acknowledges a downside (integrator windup, slower response)" }
+        ],
+        "passingScore": 0.6
+      }
+    }
+  ]
+}

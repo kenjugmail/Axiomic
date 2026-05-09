@@ -1,0 +1,54 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Two algorithm-design paradigms",
+      "body": "**Greedy** ([[greedy-algorithms]]): make the locally optimal choice at each step; never reconsider. Simple, fast, and provably optimal for some problems — provably wrong for others.\n\n**Divide and conquer** ([[divide-and-conquer]]): split the problem into smaller independent subproblems; solve each recursively; combine. The classical $\\Theta(n \\log n)$ engine: mergesort, fast multiplication, FFT.\n\nThese aren't the only paradigms (dynamic programming + linear programming are the other big ones), but they're the two with the cleanest \"recipe.\" The hard part isn't *applying* greedy or divide-and-conquer — it's recognizing **when** they're the right tool.\n\nThis lesson covers when each works, when each provably fails, and how to choose."
+    },
+    {
+      "kind": "text",
+      "title": "When greedy works: matroids + exchange",
+      "body": "Greedy is **provably optimal** on **matroids**. A matroid is a structure $(E, \\mathcal{I})$ where $E$ is a ground set and $\\mathcal{I}$ is a collection of \"independent\" subsets satisfying:\n\n1. $\\emptyset \\in \\mathcal{I}$.\n2. If $A \\in \\mathcal{I}$ and $B \\subseteq A$, then $B \\in \\mathcal{I}$ (downward closed).\n3. **Exchange axiom**: if $A, B \\in \\mathcal{I}$ and $|A| < |B|$, then there exists $x \\in B \\setminus A$ with $A \\cup \\{x\\} \\in \\mathcal{I}$.\n\nWhen the problem's solution space is a matroid, greedy by weight is provably optimal. This justifies:\n\n- **Minimum spanning tree** (graphic matroid): Kruskal's, Prim's.\n- **Optimal scheduling for jobs with deadlines**.\n- **Optimal selection in vector-matroid problems**.\n\n**The exchange argument** is greedy's other proof technique. Assume greedy is suboptimal; the optimal solution must disagree at some first step. Show you can swap greedy's choice into the optimal without harm. Contradiction → greedy was optimal. This proves correctness for:\n\n- **Activity selection** (pick earliest-ending event).\n- **Huffman coding** (greedy bottom-up tree construction).\n- **Fractional knapsack** (sort by value/weight, take greedily).\n- **Dijkstra's** (greedy on tentative distance — see [[shortest-path]]).\n\n**When greedy provably fails** ([[greedy-always-works]] misconception):\n\n- **0/1 knapsack**: items are indivisible; greedy by value/weight ratio gives suboptimal answers. Use DP.\n- **Set cover**: greedy gives a $\\ln n$-approximation; provably no greedy can do better.\n- **TSP**: nearest-neighbor heuristic can be arbitrarily far from optimal.\n\n**Default**: if you can't prove greedy works (matroid or exchange argument), assume it doesn't. Use DP or approximation algorithms."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gdc_q1",
+        "kind": "multiple_choice",
+        "question": "You have items with weights $(10, 5, 5)$ and values $(100, 60, 60)$, capacity 10. Greedy by value-per-weight ratio picks the highest-ratio item first. What's the greedy answer, and what's the optimal answer?",
+        "options": [
+          "Both are 120 — greedy and DP agree",
+          "Greedy 100, optimal 120. Item A: value 100, weight 10, ratio 10. Items B, C: value 60, weight 5, ratio 12. Greedy picks B+C first (cap reached at value 120). Wait — actually greedy picks B (ratio 12), then C (ratio 12), capacity used = 10, value 120. Greedy works here.",
+          "Greedy 100, optimal 120. Greedy picks item A (highest ratio... wait, A has ratio 100/10 = 10; B and C have ratio 60/5 = 12). Greedy picks B first, then C, total weight 10, value 120 — same as optimal in this case. The classic counterexample uses different weights: $(10, 5, 5)$ value $(100, 50, 50)$ — A has ratio 10, B and C have ratio 10 — tie; greedy might pick A only (value 100), optimal picks B+C (value 100). All-tie. Real counterexample: weights $(6, 5, 5)$ values $(50, 40, 40)$: A ratio 8.3, B/C ratio 8. Greedy picks A (50, used 6); B+C don't fit (would be 16). Greedy = 50. Optimal: B+C (used 10, value 80). Greedy fails: 50 vs 80",
+          "There is no difference — 0/1 knapsack is not greedy-solvable"
+        ],
+        "correctIndex": 2,
+        "explanation": "The 0/1 knapsack failure exposes greedy's blind spot: indivisibility. With weights $(6, 5, 5)$ and values $(50, 40, 40)$, capacity 10: greedy picks the highest-ratio item (A, ratio 8.33) for value 50, leaving 4 capacity unusable. Optimal: B + C, weight 10, value 80. Greedy gives 50; optimal gives 80. The fractional knapsack relative — same items but you can take fractions — IS greedy-optimal because you can fill the leftover capacity. Indivisibility breaks the matroid; you need DP for 0/1 knapsack."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Divide and conquer: the master theorem",
+      "body": "Divide-and-conquer ([[divide-and-conquer]]) recurrences have the form:\n\n$$T(n) = a \\cdot T(n/b) + f(n)$$\n\nwhere $a$ subproblems each of size $n/b$ are solved recursively, plus $f(n)$ work to divide + combine.\n\n**Master theorem** classifies the answer based on which term dominates:\n\n- **Case 1** ($f(n) = O(n^{\\log_b a - \\epsilon})$): leaves dominate. $T(n) = \\Theta(n^{\\log_b a})$.\n- **Case 2** ($f(n) = \\Theta(n^{\\log_b a})$): work is balanced. $T(n) = \\Theta(n^{\\log_b a} \\log n)$.\n- **Case 3** ($f(n) = \\Omega(n^{\\log_b a + \\epsilon})$, regularity): root dominates. $T(n) = \\Theta(f(n))$.\n\n**Examples**:\n\n| Algorithm | Recurrence | Solution |\n|---|---|---|\n| Mergesort | $T(n) = 2T(n/2) + O(n)$ | $\\Theta(n \\log n)$ (Case 2) |\n| Binary search | $T(n) = T(n/2) + O(1)$ | $\\Theta(\\log n)$ (Case 2) |\n| Naive matrix multiply | $T(n) = 8T(n/2) + O(n^2)$ | $\\Theta(n^3)$ (Case 1) |\n| **Strassen** | $T(n) = 7T(n/2) + O(n^2)$ | $\\Theta(n^{\\log_2 7}) \\approx \\Theta(n^{2.807})$ (Case 1) |\n| **Karatsuba** | $T(n) = 3T(n/2) + O(n)$ | $\\Theta(n^{\\log_2 3}) \\approx \\Theta(n^{1.585})$ (Case 1) |\n\n**Strassen + Karatsuba** are the canonical \"divide-and-conquer beats the obvious algorithm\" results. By rearranging arithmetic to do *fewer* recursive calls (7 instead of 8 for Strassen; 3 instead of 4 for Karatsuba), you drop below the trivial cubic / quadratic bound."
+    },
+    {
+      "kind": "text",
+      "title": "When divide-and-conquer is the right framing",
+      "body": "**Use divide-and-conquer when**:\n\n1. **Problem decomposes naturally**: solving subproblems gives you what you need to solve the whole.\n\n2. **Subproblems are independent**: no shared state between them. (If subproblems overlap, dynamic programming is the right tool, not D&C.)\n\n3. **Combining is cheap**: $f(n)$ is at most polynomial. If combining costs more than naive, D&C is a loss.\n\n**Classic D&C wins**:\n\n- **Mergesort**: $\\Theta(n \\log n)$ vs $\\Theta(n^2)$ for insertion sort.\n- **Binary search**: $\\Theta(\\log n)$ vs $\\Theta(n)$ for linear scan.\n- **FFT**: $\\Theta(n \\log n)$ vs $\\Theta(n^2)$ for naive polynomial multiplication.\n- **Closest pair of points**: $\\Theta(n \\log n)$ vs $\\Theta(n^2)$.\n- **Karatsuba multiplication**: $\\Theta(n^{1.585})$ vs $\\Theta(n^2)$ for naive.\n- **Strassen matrix multiplication**: $\\Theta(n^{2.807})$ vs $\\Theta(n^3)$ for textbook.\n\n**When D&C doesn't help**:\n\n- **Subproblems overlap**: use DP. Fibonacci's naive recursion is $T(n) = T(n-1) + T(n-2) = O(2^n)$ — D&C is exponential here because $T(n-1)$ and $T(n-2)$ recompute overlapping subproblems. Memoization gives $O(n)$.\n\n- **Combining is expensive**: if the combine step is $\\Theta(n^2)$ for two halves of size $n/2$, the recurrence solves to $\\Theta(n^2)$ — no improvement.\n\n- **Constant factors matter for small $n$**: the recursion overhead can dominate. Real-world implementations often switch to a simpler algorithm below a threshold (e.g., quicksort falls back to insertion sort below ~20 elements).\n\n**Heuristic for choosing**:\n- Brute-force is $\\Theta(n^k)$ → look for D&C with smaller exponent (Strassen pattern).\n- Brute-force has overlapping subproblems → use DP.\n- Brute-force has independent subproblems → D&C might help; check the master theorem.\n- Problem has matroid or exchange structure → greedy."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gdc_q2",
+        "kind": "explain_back",
+        "prompt": "Strassen's matrix multiplication is $\\Theta(n^{2.807})$, beating naive $\\Theta(n^3)$. Yet most production linear-algebra libraries (BLAS, NumPy, PyTorch) DON'T use Strassen for normal matrix multiplication. Explain three concrete reasons.",
+        "rubricCriteria": [
+          { "id": "constants", "description": "Names that Strassen has very large constants (more additions per multiply, more memory allocation, deeper recursion); naive matrix multiply has $O(n^3)$ but extremely small constants on modern CPUs/GPUs" },
+          { "id": "cache-and-simd", "description": "Names that naive matrix multiply has highly regular access patterns that map perfectly onto vectorized SIMD/tensor-core hardware; Strassen's recursive structure breaks the regularity" },
+          { "id": "numerical-stability", "description": "Names numerical stability — Strassen's mixed additions and subtractions can amplify floating-point errors; production libraries care about output precision" }
+        ],
+        "passingScore": 0.5
+      }
+    }
+  ]
+}

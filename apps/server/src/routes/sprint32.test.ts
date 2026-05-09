@@ -204,13 +204,20 @@ describe("Sprint 32 — detector idempotency", () => {
     // Second run should still upsert (count >0) but only ever one row.
     expect(second).toBeGreaterThanOrEqual(0);
 
+    // Filter by misconceptionKey, NOT just conceptSlug. The seed
+    // ships a real `dropout-on-at-inference` catalog entry with the
+    // same conceptSlug "dropout"; the detector legitimately produces a
+    // separate diagnosis for it. The idempotency we care about here is
+    // for the test's own entry (`s32-dropout-on-at-inference`).
     const rows = db
       .select()
       .from(misconceptionDiagnoses)
       .where(eq(misconceptionDiagnoses.userId, userId))
       .all();
-    const dropoutRows = rows.filter((r) => r.conceptSlug === "dropout");
-    expect(dropoutRows.length).toBe(1);
+    const testEntryRows = rows.filter(
+      (r) => r.misconceptionKey === "s32-dropout-on-at-inference",
+    );
+    expect(testEntryRows.length).toBe(1);
   });
 
   test("dismissed diagnoses are not re-activated by a later run", async () => {
