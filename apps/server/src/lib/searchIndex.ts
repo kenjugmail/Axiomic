@@ -1,6 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 import { getAIProvider } from "@axiomic/ai";
 import {
+  equipment,
   externalPapers,
   getDb,
   wikiPages,
@@ -9,6 +10,7 @@ import {
   masteryNodes,
   masteryPaths,
   newsArticles,
+  protocols,
   researchPapers,
 } from "@axiomic/db";
 
@@ -108,13 +110,44 @@ export interface IndexedExternalPaper {
   tags: string[];
 }
 
+// Sprint 79 — Lab protocols + equipment manuals. Indexed alongside
+// research / wiki / forum so a single search bar surfaces "PCR" hits
+// from prose, protocols, and equipment manuals together.
+export interface IndexedProtocol {
+  kind: "protocol";
+  id: string;
+  slug: string;
+  title: string;
+  discipline: string;
+  category: string | null;
+  snippet: string;
+  vector: number[];
+  authorId: string;
+  publishedAt: string;
+}
+
+export interface IndexedEquipment {
+  kind: "equipment";
+  id: string;
+  slug: string;
+  title: string;
+  discipline: string;
+  manufacturer: string | null;
+  model: string | null;
+  snippet: string;
+  vector: number[];
+  authorId: string;
+}
+
 export type IndexedItem =
   | IndexedPage
   | IndexedTopic
   | IndexedLesson
   | IndexedNewsArticle
   | IndexedResearchPaper
-  | IndexedExternalPaper;
+  | IndexedExternalPaper
+  | IndexedProtocol
+  | IndexedEquipment;
 
 let cache: IndexedItem[] | null = null;
 let building: Promise<IndexedItem[]> | null = null;
@@ -320,6 +353,89 @@ async function buildIndex(): Promise<IndexedItem[]> {
       citationCount: p.citationCount ?? 0,
       publishedAt: p.createdAt,
       tags: parsedTags,
+    });
+  }
+
+  // Sprint 79 — lab protocols. Index title + summary + body bodies +
+  // hazards so a search for "agarose gel" finds the protocol card,
+  // and "BSL-2" surfaces protocols that need that cert.
+  const protocolRows = db
+    .select({
+      id: protocols.id,
+      slug: protocols.slug,
+      title: protocols.title,
+      discipline: protocols.discipline,
+      category: protocols.category,
+      summary: protocols.summary,
+      contentIntro: protocols.contentIntro,
+      contentUndergrad: protocols.contentUndergrad,
+      contentGrad: protocols.contentGrad,
+      hazardsMd: protocols.hazardsMd,
+      authorId: protocols.authorId,
+      createdAt: protocols.createdAt,
+    })
+    .from(protocols)
+    .where(eq(protocols.status, "published"))
+    .all();
+  for (const p of protocolRows) {
+    const body =
+      p.contentUndergrad || p.contentIntro || p.contentGrad || "";
+    const snippet = (p.summary || body).slice(0, 500);
+    const vector = await safeEmbed(
+      provider,
+      `${p.title} ${p.discipline} ${p.summary} ${body.slice(0, 1500)} ${p.hazardsMd.slice(0, 500)}`,
+    );
+    if (!vector) continue;
+    items.push({
+      kind: "protocol",
+      id: p.id,
+      slug: p.slug,
+      title: p.title,
+      discipline: p.discipline,
+      category: p.category,
+      snippet,
+      vector,
+      authorId: p.authorId,
+      publishedAt: p.createdAt,
+    });
+  }
+
+  // Sprint 79 — equipment manuals. Index title + manufacturer + model
+  // + manual body + hazards. Common search: "where do I find the
+  // NanoDrop?" → equipment card with locationHint surfaced.
+  const equipmentRows = db
+    .select({
+      id: equipment.id,
+      slug: equipment.slug,
+      title: equipment.title,
+      discipline: equipment.discipline,
+      manufacturer: equipment.manufacturer,
+      model: equipment.model,
+      manualMd: equipment.manualMd,
+      hazardsMd: equipment.hazardsMd,
+      authorId: equipment.authorId,
+    })
+    .from(equipment)
+    .where(eq(equipment.status, "active"))
+    .all();
+  for (const eq_ of equipmentRows) {
+    const snippet = eq_.manualMd.slice(0, 500);
+    const vector = await safeEmbed(
+      provider,
+      `${eq_.title} ${eq_.manufacturer ?? ""} ${eq_.model ?? ""} ${eq_.discipline} ${eq_.manualMd.slice(0, 1500)} ${eq_.hazardsMd.slice(0, 500)}`,
+    );
+    if (!vector) continue;
+    items.push({
+      kind: "equipment",
+      id: eq_.id,
+      slug: eq_.slug,
+      title: eq_.title,
+      discipline: eq_.discipline,
+      manufacturer: eq_.manufacturer,
+      model: eq_.model,
+      snippet,
+      vector,
+      authorId: eq_.authorId,
     });
   }
 

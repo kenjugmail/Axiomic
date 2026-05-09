@@ -6,13 +6,16 @@
 // NOT take snapshots on draft saves — only on transitions to or
 // re-publishes of `published` status.
 
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import {
   capstoneMilestones,
   capstoneVersions,
   capstones,
   getDb,
+  protocolSteps,
+  protocolVersions,
+  protocols,
   researchPaperVersions,
   researchPapers,
 } from "@axiomic/db";
@@ -128,6 +131,82 @@ export function snapshotCapstone(
     db.update(capstones)
       .set({ currentVersion: targetVersion })
       .where(eq(capstones.id, capstoneId))
+      .run();
+  }
+  return targetVersion;
+}
+
+// Sprint 79 — Snapshot a published protocol's full body + ordered
+// steps into a versions row. Pin-to-version is what lets a S80
+// protocol_run preserve the exact instructions the intern followed
+// even if the author later edits the protocol.
+export function snapshotProtocol(
+  protocolId: string,
+  opts: SnapshotOptions = {},
+): number | null {
+  const db = getDb();
+  const row = db
+    .select()
+    .from(protocols)
+    .where(eq(protocols.id, protocolId))
+    .get();
+  if (!row) return null;
+  if (row.status !== "published") return null;
+
+  const steps = db
+    .select({
+      id: protocolSteps.id,
+      ordinal: protocolSteps.ordinal,
+      title: protocolSteps.title,
+      instructionMd: protocolSteps.instructionMd,
+      safetyNotesMd: protocolSteps.safetyNotesMd,
+      verificationMd: protocolSteps.verificationMd,
+      inlineQuizJson: protocolSteps.inlineQuizJson,
+      attachmentRefsJson: protocolSteps.attachmentRefsJson,
+    })
+    .from(protocolSteps)
+    .where(eq(protocolSteps.protocolId, protocolId))
+    .orderBy(asc(protocolSteps.ordinal))
+    .all();
+
+  const existing = db
+    .select({ id: protocolVersions.id })
+    .from(protocolVersions)
+    .where(eq(protocolVersions.protocolId, protocolId))
+    .get();
+  const nextVersion = row.version + 1;
+  const targetVersion = existing ? nextVersion : 1;
+
+  const snapshotPayload = {
+    title: row.title,
+    discipline: row.discipline,
+    category: row.category,
+    summary: row.summary,
+    contentIntro: row.contentIntro,
+    contentUndergrad: row.contentUndergrad,
+    contentGrad: row.contentGrad,
+    biosafetyLevel: row.biosafetyLevel,
+    hazardsMd: row.hazardsMd,
+    equipmentRequiredJson: row.equipmentRequiredJson,
+    reagentsJson: row.reagentsJson,
+    estimatedMinutes: row.estimatedMinutes,
+    requiredCertsJson: row.requiredCertsJson,
+    steps,
+  };
+
+  db.insert(protocolVersions).values({
+    id: randomUUID(),
+    protocolId: row.id,
+    version: targetVersion,
+    snapshotJson: JSON.stringify(snapshotPayload),
+    editedBy: opts.editedBy ?? null,
+    editMessage: opts.editMessage ?? null,
+  }).run();
+
+  if (targetVersion !== row.version) {
+    db.update(protocols)
+      .set({ version: targetVersion })
+      .where(eq(protocols.id, protocolId))
       .run();
   }
   return targetVersion;

@@ -69,6 +69,17 @@ import type {
   ExamHistoryEntry,
   ExamQuestionPayload,
   UpdateResearchPaperRequest,
+  ProtocolListResponse,
+  ProtocolDetailResponse,
+  ProtocolVersionsResponse,
+  CreateProtocolRequest,
+  UpdateProtocolRequest,
+  ReplaceProtocolStepsRequest,
+  EquipmentListResponse,
+  EquipmentDetailResponse,
+  CreateEquipmentRequest,
+  UpdateEquipmentRequest,
+  ReplaceEquipmentOperationsRequest,
   CapstonesListResponse,
   CapstoneResponse,
   CapstoneEnrollmentsResponse,
@@ -1385,6 +1396,74 @@ export const api = {
       }),
     delete: (id: string) =>
       request<OkResponse>(`/flashcards/${id}`, { method: "DELETE" }),
+  },
+  // Sprint 79 — Lab protocol + equipment library.
+  lab: {
+    protocols: {
+      list: (params?: { discipline?: string }) => {
+        const sp = new URLSearchParams();
+        if (params?.discipline) sp.set("discipline", params.discipline);
+        const qs = sp.toString();
+        return request<ProtocolListResponse>(
+          `/lab/protocols${qs ? `?${qs}` : ""}`,
+        );
+      },
+      drafts: () =>
+        request<ProtocolListResponse>("/lab/protocols/me/drafts"),
+      byAuthor: (username: string) =>
+        request<ProtocolListResponse>(
+          `/lab/protocols/by-author/${encodeURIComponent(username)}`,
+        ),
+      get: (slug: string) =>
+        request<ProtocolDetailResponse>(`/lab/protocols/${slug}`),
+      versions: (slug: string) =>
+        request<ProtocolVersionsResponse>(`/lab/protocols/${slug}/versions`),
+      create: (data: CreateProtocolRequest) =>
+        request<{ protocolId: string; slug: string }>("/lab/protocols", {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+      update: (slug: string, data: UpdateProtocolRequest) =>
+        request<OkResponse>(`/lab/protocols/${slug}`, {
+          method: "PUT",
+          body: JSON.stringify(data),
+        }),
+      replaceSteps: (slug: string, data: ReplaceProtocolStepsRequest) =>
+        request<{ ok: true; stepCount: number }>(
+          `/lab/protocols/${slug}/steps`,
+          { method: "PUT", body: JSON.stringify(data) },
+        ),
+    },
+    equipment: {
+      list: (params?: { discipline?: string }) => {
+        const sp = new URLSearchParams();
+        if (params?.discipline) sp.set("discipline", params.discipline);
+        const qs = sp.toString();
+        return request<EquipmentListResponse>(
+          `/lab/equipment${qs ? `?${qs}` : ""}`,
+        );
+      },
+      get: (slug: string) =>
+        request<EquipmentDetailResponse>(`/lab/equipment/${slug}`),
+      create: (data: CreateEquipmentRequest) =>
+        request<{ equipmentId: string; slug: string }>("/lab/equipment", {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+      update: (slug: string, data: UpdateEquipmentRequest) =>
+        request<OkResponse>(`/lab/equipment/${slug}`, {
+          method: "PUT",
+          body: JSON.stringify(data),
+        }),
+      replaceOperations: (
+        slug: string,
+        data: ReplaceEquipmentOperationsRequest,
+      ) =>
+        request<{ ok: true; operationCount: number }>(
+          `/lab/equipment/${slug}/operations`,
+          { method: "PUT", body: JSON.stringify(data) },
+        ),
+    },
   },
 };
 

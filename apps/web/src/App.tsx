@@ -276,6 +276,32 @@ const CapstoneReviewQueuePage = lazy(() =>
 const CohortsPage = lazy(() =>
   import("./pages/CohortsPage").then((m) => ({ default: m.CohortsPage })),
 );
+// Sprint 79 — Lab protocol + equipment library.
+const ProtocolsListPage = lazy(() =>
+  import("./pages/ProtocolsListPage").then((m) => ({
+    default: m.ProtocolsListPage,
+  })),
+);
+const ProtocolDetailPage = lazy(() =>
+  import("./pages/ProtocolDetailPage").then((m) => ({
+    default: m.ProtocolDetailPage,
+  })),
+);
+const ProtocolEditPage = lazy(() =>
+  import("./pages/ProtocolEditPage").then((m) => ({
+    default: m.ProtocolEditPage,
+  })),
+);
+const EquipmentListPage = lazy(() =>
+  import("./pages/EquipmentListPage").then((m) => ({
+    default: m.EquipmentListPage,
+  })),
+);
+const EquipmentDetailPage = lazy(() =>
+  import("./pages/EquipmentDetailPage").then((m) => ({
+    default: m.EquipmentDetailPage,
+  })),
+);
 
 function PageFallback() {
   return (
@@ -367,6 +393,25 @@ function AppRoutes() {
           <Route path="/grants/:id" element={<GrantDetailPage />} />
           {/* Sprint 72 — author profile aggregator. */}
           <Route path="/authors/:username" element={<AuthorPage />} />
+          {/* Sprint 79 — Lab protocol + equipment library. */}
+          <Route path="/lab/protocols" element={<ProtocolsListPage />} />
+          <Route
+            path="/lab/protocols/new"
+            element={<ProtocolEditPage mode="new" />}
+          />
+          <Route
+            path="/lab/protocols/:slug/edit"
+            element={<ProtocolEditPage mode="edit" />}
+          />
+          <Route
+            path="/lab/protocols/:slug"
+            element={<ProtocolDetailPage />}
+          />
+          <Route path="/lab/equipment" element={<EquipmentListPage />} />
+          <Route
+            path="/lab/equipment/:slug"
+            element={<EquipmentDetailPage />}
+          />
           {/* Sprint 73 — exam mastery framework. */}
           <Route path="/exams" element={<ExamsListPage />} />
           <Route path="/exams/:slug" element={<ExamPage />} />

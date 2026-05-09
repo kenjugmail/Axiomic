@@ -51,6 +51,8 @@ import { capstoneTracksRouter } from "./routes/capstoneTracks";
 import { cohortInvitationsRouter } from "./routes/cohortInvitations";
 import { meRouter } from "./routes/me";
 import { usersRouter } from "./routes/users";
+import { protocolsRouter } from "./routes/protocols";
+import { equipmentRouter } from "./routes/equipment";
 import { bootstrapAdmin } from "./lib/bootstrapAdmin";
 import { prewarmSearchIndex } from "./lib/searchIndex";
 import { userFromCookieHeader } from "./middleware/auth";
@@ -228,6 +230,9 @@ app.route("/tracks", capstoneTracksRouter);
 app.route("/cohort-invitations", cohortInvitationsRouter);
 app.route("/me", meRouter);
 app.route("/users", usersRouter);
+// Sprint 79 — Lab protocol + equipment library.
+app.route("/lab/protocols", protocolsRouter);
+app.route("/lab/equipment", equipmentRouter);
 
 // Pre-warm the search index in the background so the first user query
 // doesn't pay the embedding-build cost.

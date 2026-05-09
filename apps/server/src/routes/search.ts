@@ -217,6 +217,24 @@ searchRouter.get("/", zValidator("query", querySchema), async (c) => {
         publishedAt: s.item.publishedAt,
       };
     }
+    // Sprint 79 — lab content surfaces.
+    if (s.item.kind === "protocol") {
+      return {
+        kind: "protocol" as const,
+        ...base,
+        discipline: s.item.discipline,
+        category: s.item.category,
+      };
+    }
+    if (s.item.kind === "equipment") {
+      return {
+        kind: "equipment" as const,
+        ...base,
+        discipline: s.item.discipline,
+        manufacturer: s.item.manufacturer,
+        model: s.item.model,
+      };
+    }
     return { kind: "topic" as const, ...base, postType: s.item.postType };
   });
 
@@ -244,10 +262,14 @@ searchRouter.get("/", zValidator("query", querySchema), async (c) => {
             ? "practice"
             : r.kind === "topic"
               ? "discuss"
-              : "read";
+              : r.kind === "protocol"
+                ? "build"
+                : "read";
       groups[intent].push(r);
     }
-    groups.build = searchCapstonesForBuild(trimmed, 5);
+    // Capstones aren't in the flat index; protocols already bucketed
+    // into `build` above. Append capstone matches alongside protocols.
+    groups.build = [...groups.build, ...searchCapstonesForBuild(trimmed, 5)];
     return c.json({
       query: trimmed,
       navigator: true,

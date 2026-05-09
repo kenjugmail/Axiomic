@@ -2739,3 +2739,213 @@ export interface PortfolioResponse {
   username: string;
   entries: PortfolioEntry[];
 }
+
+// Sprint 79 — Lab protocols + equipment library.
+
+export type LabDiscipline =
+  | "biology"
+  | "chemistry"
+  | "mechanical"
+  | "electrical"
+  | "materials"
+  | "cs-lab"
+  | "physics";
+
+export type ProtocolStatus = "draft" | "published";
+export type EquipmentStatus = "active" | "retired";
+export type EquipmentBookingPolicy = "open" | "reserve" | "supervised-only";
+export type EquipmentOperationKind =
+  | "calibration"
+  | "daily-check"
+  | "common-fault"
+  | "post-use";
+
+export interface ProtocolReagent {
+  name: string;
+  amount?: string;
+  unit?: string;
+  hazardClass?: string;
+}
+
+export interface ProtocolSummary {
+  id: string;
+  slug: string;
+  title: string;
+  discipline: LabDiscipline;
+  category: string | null;
+  summary: string;
+  contentIntro: string;
+  contentUndergrad: string;
+  contentGrad: string;
+  biosafetyLevel: number | null;
+  hazardsMd: string;
+  equipmentRequired: string[];
+  reagents: unknown[];
+  estimatedMinutes: number | null;
+  requiredCerts: string[];
+  version: number;
+  status: ProtocolStatus;
+  authorId: string;
+  authorUsername: string | null;
+  authorDisplayName: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProtocolStep {
+  id: string;
+  ordinal: number;
+  title: string;
+  instructionMd: string;
+  safetyNotesMd: string;
+  verificationMd: string;
+  inlineQuizJson: string | null;
+  attachmentRefs: string[];
+}
+
+export interface ProtocolStepInput {
+  title: string;
+  instructionMd: string;
+  safetyNotesMd?: string;
+  verificationMd?: string;
+  inlineQuizJson?: string | null;
+  attachmentRefs?: string[];
+}
+
+export interface ProtocolDetailResponse {
+  protocol: ProtocolSummary;
+  steps: ProtocolStep[];
+}
+
+export interface ProtocolListResponse {
+  protocols: ProtocolSummary[];
+}
+
+export interface ProtocolVersionEntry {
+  version: number;
+  editedBy: string | null;
+  editMessage: string | null;
+  createdAt: string;
+}
+
+export interface ProtocolVersionsResponse {
+  versions: ProtocolVersionEntry[];
+}
+
+export interface CreateProtocolRequest {
+  slug: string;
+  title: string;
+  discipline: LabDiscipline;
+  category?: string | null;
+  summary?: string;
+  contentIntro?: string;
+  contentUndergrad?: string;
+  contentGrad?: string;
+  biosafetyLevel?: number | null;
+  hazardsMd?: string;
+  equipmentRequired?: string[];
+  reagents?: ProtocolReagent[];
+  estimatedMinutes?: number | null;
+  requiredCerts?: string[];
+  steps?: ProtocolStepInput[];
+  status?: ProtocolStatus;
+}
+
+export interface UpdateProtocolRequest {
+  title?: string;
+  discipline?: LabDiscipline;
+  category?: string | null;
+  summary?: string;
+  contentIntro?: string;
+  contentUndergrad?: string;
+  contentGrad?: string;
+  biosafetyLevel?: number | null;
+  hazardsMd?: string;
+  equipmentRequired?: string[];
+  reagents?: ProtocolReagent[];
+  estimatedMinutes?: number | null;
+  requiredCerts?: string[];
+  status?: ProtocolStatus;
+}
+
+export interface ReplaceProtocolStepsRequest {
+  steps: ProtocolStepInput[];
+  editMessage?: string;
+}
+
+export interface EquipmentSummary {
+  id: string;
+  slug: string;
+  title: string;
+  discipline: LabDiscipline;
+  manufacturer: string | null;
+  model: string | null;
+  manualMd: string;
+  locationHint: string | null;
+  trainingCertSlug: string | null;
+  hazardsMd: string;
+  attachmentRefs: string[];
+  bookingPolicy: EquipmentBookingPolicy;
+  status: EquipmentStatus;
+  authorId: string;
+  authorUsername: string | null;
+  authorDisplayName: string | null;
+  createdAt: string;
+}
+
+export interface EquipmentOperation {
+  id: string;
+  ordinal: number;
+  title: string;
+  bodyMd: string;
+  kind: EquipmentOperationKind;
+}
+
+export interface EquipmentOperationInput {
+  title: string;
+  bodyMd: string;
+  kind: EquipmentOperationKind;
+}
+
+export interface EquipmentListResponse {
+  equipment: EquipmentSummary[];
+}
+
+export interface EquipmentDetailResponse {
+  equipment: EquipmentSummary;
+  operations: EquipmentOperation[];
+}
+
+export interface CreateEquipmentRequest {
+  slug: string;
+  title: string;
+  discipline: LabDiscipline;
+  manufacturer?: string | null;
+  model?: string | null;
+  manualMd?: string;
+  locationHint?: string | null;
+  trainingCertSlug?: string | null;
+  hazardsMd?: string;
+  attachmentRefs?: string[];
+  bookingPolicy?: EquipmentBookingPolicy;
+  status?: EquipmentStatus;
+  operations?: EquipmentOperationInput[];
+}
+
+export interface UpdateEquipmentRequest {
+  title?: string;
+  discipline?: LabDiscipline;
+  manufacturer?: string | null;
+  model?: string | null;
+  manualMd?: string;
+  locationHint?: string | null;
+  trainingCertSlug?: string | null;
+  hazardsMd?: string;
+  attachmentRefs?: string[];
+  bookingPolicy?: EquipmentBookingPolicy;
+  status?: EquipmentStatus;
+}
+
+export interface ReplaceEquipmentOperationsRequest {
+  operations: EquipmentOperationInput[];
+}

@@ -25,6 +25,8 @@ const PRIMARY_NAV: Array<{ to: string; label: string }> = [
   // Sprint 78 — exam track surfaces. Without these the SAT/GRE/MCAT/
   // USMLE flows were reachable only by typing the URL.
   { to: "/exams", label: "Exams" },
+  // Sprint 79 — lab protocol + equipment library.
+  { to: "/lab/protocols", label: "Lab" },
 ];
 
 const SECONDARY_NAV_PUBLIC: Array<{ to: string; label: string }> = [

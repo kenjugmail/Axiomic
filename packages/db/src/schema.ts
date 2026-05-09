@@ -1981,3 +1981,119 @@ export const jobRuns = sqliteTable("job_runs", {
 }, (t) => ({
   byJobIdx: index("job_runs_by_job_idx").on(t.jobName, t.startedAt),
 }));
+
+// Sprint 79 — Lab protocols + equipment library. The hands-on layer:
+// PIs author + version protocols and equipment manuals, interns
+// browse and read them. Sign-offs (S80) and bookings (S81) layer on
+// top of these tables; this sprint is read-only library content.
+
+export const protocols = sqliteTable("protocols", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  // Validated at the route layer against a fixed taxonomy: 'biology'
+  // | 'chemistry' | 'mechanical' | 'electrical' | 'materials' |
+  // 'cs-lab' | 'physics'.
+  discipline: text("discipline").notNull(),
+  category: text("category"),
+  summary: text("summary").notNull().default(""),
+  contentIntro: text("content_intro").notNull().default(""),
+  contentUndergrad: text("content_undergrad").notNull().default(""),
+  contentGrad: text("content_grad").notNull().default(""),
+  // Biological safety level 1-4. Null for non-bio protocols.
+  biosafetyLevel: integer("biosafety_level"),
+  hazardsMd: text("hazards_md").notNull().default(""),
+  // JSON array of equipment slugs referenced from this protocol.
+  equipmentRequiredJson: text("equipment_required_json").notNull().default("[]"),
+  // JSON array of {name, amount, unit, hazardClass?} reagent entries.
+  reagentsJson: text("reagents_json").notNull().default("[]"),
+  estimatedMinutes: integer("estimated_minutes"),
+  // safety_certs.slug list — read by S80 to gate a protocol_run start
+  // on non-expired certs. Persisted here in S79 so authoring captures
+  // the requirement up front.
+  requiredCertsJson: text("required_certs_json").notNull().default("[]"),
+  version: integer("version").notNull().default(1),
+  // 'draft' | 'published'.
+  status: text("status").notNull().default("draft"),
+  authorId: text("author_id").notNull().references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  disciplineIdx: index("protocols_discipline_idx").on(t.discipline, t.status),
+  authorIdx: index("protocols_author_idx").on(t.authorId, t.createdAt),
+}));
+
+export const protocolSteps = sqliteTable("protocol_steps", {
+  id: text("id").primaryKey(),
+  protocolId: text("protocol_id").notNull()
+    .references(() => protocols.id, { onDelete: "cascade" }),
+  ordinal: integer("ordinal").notNull(),
+  title: text("title").notNull(),
+  instructionMd: text("instruction_md").notNull(),
+  safetyNotesMd: text("safety_notes_md").notNull().default(""),
+  verificationMd: text("verification_md").notNull().default(""),
+  // Optional inline quiz to gate step completion. Reuses
+  // masteryNodes.quizData JSON shape so the existing renderer +
+  // grader work unchanged.
+  inlineQuizJson: text("inline_quiz_json"),
+  attachmentRefsJson: text("attachment_refs_json").notNull().default("[]"),
+}, (t) => ({
+  protocolOrdUq: uniqueIndex("protocol_steps_pk").on(t.protocolId, t.ordinal),
+}));
+
+// Mirrors researchPaperVersions: snapshot the protocol every time
+// it's published / republished so the run table (S80) can pin to a
+// specific version that was followed.
+export const protocolVersions = sqliteTable("protocol_versions", {
+  id: text("id").primaryKey(),
+  protocolId: text("protocol_id").notNull()
+    .references(() => protocols.id, { onDelete: "cascade" }),
+  version: integer("version").notNull(),
+  // Snapshot of title + bodies + steps JSON for pin-to-version.
+  snapshotJson: text("snapshot_json").notNull(),
+  editedBy: text("edited_by").references(() => users.id),
+  editMessage: text("edit_message"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  protocolVersionUq: uniqueIndex("protocol_versions_uq").on(t.protocolId, t.version),
+}));
+
+export const equipment = sqliteTable("equipment", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  discipline: text("discipline").notNull(),
+  manufacturer: text("manufacturer"),
+  model: text("model"),
+  manualMd: text("manual_md").notNull().default(""),
+  locationHint: text("location_hint"),
+  // safety_certs.slug required to operate. Null = no formal training
+  // beyond a read of the manual.
+  trainingCertSlug: text("training_cert_slug"),
+  hazardsMd: text("hazards_md").notNull().default(""),
+  attachmentRefsJson: text("attachment_refs_json").notNull().default("[]"),
+  // 'open' | 'reserve' | 'supervised-only'. Read by S81 booking; in
+  // S79 this is a metadata field surfaced in the manual UI.
+  bookingPolicy: text("booking_policy").notNull().default("open"),
+  status: text("status").notNull().default("active"),
+  authorId: text("author_id").notNull().references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  disciplineIdx: index("equipment_discipline_idx").on(t.discipline, t.status),
+}));
+
+// Per-equipment "common operations" — calibration, daily checks,
+// common-fault recipes, post-use checklists. Same ordered-step shape
+// as protocolSteps so renderers can be shared.
+export const equipmentOperations = sqliteTable("equipment_operations", {
+  id: text("id").primaryKey(),
+  equipmentId: text("equipment_id").notNull()
+    .references(() => equipment.id, { onDelete: "cascade" }),
+  ordinal: integer("ordinal").notNull(),
+  title: text("title").notNull(),
+  bodyMd: text("body_md").notNull(),
+  // 'calibration' | 'daily-check' | 'common-fault' | 'post-use'.
+  kind: text("kind").notNull(),
+}, (t) => ({
+  equipOrdUq: uniqueIndex("equipment_operations_pk").on(t.equipmentId, t.ordinal),
+}));
