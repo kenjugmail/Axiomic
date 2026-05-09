@@ -1,0 +1,49 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "When timing matters",
+      "body": "**Sequential games** are games where order of play matters. Player 1 moves first, then player 2 sees player 1's move and responds, etc.\n\nContrast with **simultaneous games** (matrix form, Prisoner's Dilemma): all players choose without seeing others' choices.\n\n**Examples**: chess, negotiation rounds, sequential bargaining, Stackelberg leader-follower competition.\n\nThe natural representation is the **extensive form** ([[extensive-form]]) — a game tree where:\n- Nodes = decision points (which player moves).\n- Edges = actions taken.\n- Leaves = payoff vectors.\n- (Optional) **Information sets** group nodes the player can't distinguish — for imperfect information."
+    },
+    {
+      "kind": "text",
+      "title": "Backward induction",
+      "body": "For finite games of **perfect information** (every player sees every prior move), the standard solution is **backward induction**:\n\n1. Start at terminal subgames.\n2. At each, the player to move chooses the action maximizing their payoff.\n3. Roll the value back up; replace the subgame with its equilibrium value.\n4. Continue to the root.\n\nThe path of choices found is the **subgame-perfect equilibrium** ([[subgame-perfect]]) — a [[nash-equilibrium]] that's also a Nash in every subgame.\n\nThis is what AlphaZero's MCTS approximates: each node's value is computed by recursive search through descendant states, then the policy at each node selects the highest-value action."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "seq_q1",
+        "kind": "multiple_choice",
+        "question": "Why does backward induction give a subgame-perfect equilibrium rather than just a Nash equilibrium?",
+        "options": [
+          "Backward induction is wrong",
+          "Because backward induction specifies optimal behavior at *every* node — including off-equilibrium ones — making it Nash in every subgame, not just the path actually played",
+          "Because subgame-perfect = Nash by definition",
+          "Because backward induction is randomized"
+        ],
+        "correctIndex": 1,
+        "explanation": "Nash equilibrium specifies behavior on the equilibrium path; off-path behavior could be implausibly bad (incredible threats). Subgame-perfect requires behavior at every node (including off-path) to be optimal. Backward induction enforces this by construction."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Imperfect information",
+      "body": "When players don't see prior moves (poker hole cards, hidden Stratego pieces), nodes are grouped into **information sets** — collections of nodes the player can't distinguish.\n\nStrategies must be measurable with respect to information sets. The standard equilibrium concept becomes **sequential equilibrium** or **perfect Bayesian equilibrium** — equilibrium plus consistent beliefs at every information set.\n\n**CFR (Counterfactual Regret Minimization)**, the backbone of poker AI (Pluribus, Libratus), is the algorithmic workhorse for solving large extensive-form games of imperfect information. Iteratively updates strategies at each information set to minimize regret; converges to Nash in two-player zero-sum.\n\nFor 2-player perfect-info zero-sum: backward induction. For 2-player imperfect-info zero-sum: CFR. For general-sum or multi-player: PPAD-hard; approximate methods only."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "seq_q2",
+        "kind": "explain_back",
+        "prompt": "What's an 'incredible threat,' and how does subgame-perfect equilibrium rule it out? Use a real or invented example to ground your answer.",
+        "rubricCriteria": [
+          { "id": "incredible-threat", "description": "Defines an incredible threat — a threatened action that wouldn't actually be carried out if the moment came" },
+          { "id": "spe-fix", "description": "Explains how SPE requires optimal behavior at every node, including off-equilibrium-path subgames" },
+          { "id": "example", "description": "Provides a concrete example (entry deterrence, cold war, etc.)" }
+        ],
+        "passingScore": 0.5
+      }
+    }
+  ]
+}

@@ -892,6 +892,48 @@ For the deep dive on multi-agent RL convergence: [Multi-Agent RL in 2026: Self-P
 
 The platform now has 13 mastery paths. The game-theorist path is the connector — it bridges reinforcement-learner (multi-agent), ai-researcher (alignment), comp-biologist (evolutionary games), and applied-statistician (mechanism design). End-to-end coverage from first principles through cutting-edge research across the modern computational practitioner's toolkit, including the strategic-interaction half that the rest assume exists.`,
     },
+    {
+      slug: "algorithms-engineer-path-launch",
+      title: "Algorithms Engineer path: from asymptotic analysis to NP-completeness",
+      summary:
+        "A new mastery path covering CS foundations end-to-end: Big-O, hashing, sorting, trees, graph algorithms, dynamic programming, P vs NP, approximation + randomized algorithms.",
+      coverEmoji: "🧮",
+      accentColor: "amber",
+      authorId: aliceId,
+      body: `Every other path on Axiomic implicitly assumes you can read a complexity bound + know what a hash table is. The new [algorithms-engineer path](/paths/algorithms-engineer) makes that foundation explicit. Universal CS spine for ML engineers, researchers, mathematicians, systems engineers, and anyone else who needs to ship code that scales.
+
+## What landed
+
+Nine lessons spanning asymptotic analysis through approximation algorithms:
+
+1. [Asymptotic analysis](/paths/algorithms-engineer/lessons/asymptotic-analysis) — Big-O, Big-Theta, Big-Omega; the language of scalability.
+2. [Arrays & hashing](/paths/algorithms-engineer/lessons/arrays-and-hashing) — hash tables, collisions, why O(1) is conditional.
+3. [Sorting algorithms](/paths/algorithms-engineer/lessons/sorting-algorithms) — quicksort, mergesort, heapsort, the n log n lower bound.
+4. [Trees & linked structures](/paths/algorithms-engineer/lessons/linked-structures) — BSTs, AVL/red-black, B-trees, tries.
+5. [Graph algorithms](/paths/algorithms-engineer/lessons/graph-algorithms) — BFS, DFS, Dijkstra, A*, MST. The patterns behind GPS + dependency resolvers.
+6. [Dynamic programming](/paths/algorithms-engineer/lessons/dynamic-programming) — optimal substructure, memoization vs tabulation, the algorithm-design pattern that solves what brute-force can't.
+7. [Greedy + divide & conquer](/paths/algorithms-engineer/lessons/greedy-and-divide-conquer) — when greedy works, when divide-and-conquer is the right framing.
+8. [P, NP, and NP-completeness](/paths/algorithms-engineer/lessons/np-complete) — polynomial time, nondeterminism, reductions, intractability.
+9. [Approximation + randomized algorithms](/paths/algorithms-engineer/lessons/approximation-randomized) — when exact is out of reach, what's still provably good.
+
+Plus 14 new wiki pages — [Big-O notation](/wiki/big-o-notation), [hash table](/wiki/hash-table), [hash collisions](/wiki/hash-collisions), [sorting algorithms](/wiki/sorting-algorithms), [quicksort](/wiki/quicksort), [mergesort](/wiki/mergesort), [binary search tree](/wiki/binary-search-tree), [balanced tree](/wiki/balanced-tree), [graph traversal](/wiki/graph-traversal), [shortest path](/wiki/shortest-path), [dynamic programming](/wiki/dynamic-programming), [P vs NP](/wiki/p-vs-np), [NP-completeness](/wiki/np-completeness), [approximation algorithms](/wiki/approximation-algorithms), [randomized algorithms](/wiki/randomized-algorithms). Five misconceptions cover the high-impact gaps (Big-O is exact, hash tables are always O(1), greedy always works, NP means non-polynomial, randomized is just heuristic). A new [algorithms forum domain](/forum/algorithms) gives discussion a home.
+
+## The capstone
+
+[Build a Production Search Engine](/capstones/build-a-production-search-engine) (4 weeks): from inverted index + tokenizer through ranking + caching + scaling — exercising every algorithmic primitive. Deliverables: working search engine, latency benchmarks, ablation report.
+
+## Why this matters
+
+Compared to the 13 prior paths, the algorithms-engineer path is the **CS foundations** layer that the rest assume. ML engineers tune hyperparameters on algorithms they don't understand the complexity of; systems engineers design distributed systems on top of network protocols whose graph-algorithm core they've forgotten; mathematicians prove convergence rates without grounding them in computational complexity.
+
+For interview prep: this path covers ~85% of what a typical algorithms interview assesses.
+
+For practitioners: this path is the difference between "my code works" and "my code works at scale."
+
+## What this completes
+
+The platform now has 14 mastery paths. End-to-end coverage from first principles (algorithms, math, physics) through specialized engineering (ML, systems, multimodal, robotics, quantum, comp-bio) through emerging domains (game theory, causality, applied statistics, RL). The CS-foundations spine is now in place.`,
+    },
   ];
 
   for (const a of articles) {
@@ -1318,6 +1360,27 @@ function seedMasteryPaths() {
     ],
   });
 
+  // Sprint 67e — Algorithms & Data Structures path. The CS-foundations
+  // layer that every other path implicitly assumes. Universally useful;
+  // missing from the platform until S67.
+  seedMasteryPath({
+    slug: "algorithms-engineer",
+    title: "Algorithms Engineer",
+    description:
+      "From asymptotic analysis through P vs NP. The CS-foundations spine of every engineering discipline — sorting, hashing, graphs, dynamic programming, complexity theory, and the algorithms that ship in real production systems.",
+    nodes: [
+      { slug: "asymptotic-analysis", title: "Asymptotic Analysis", level: "apprentice", order: 1, pages: ["big-o-notation", "complexity-classes"], prereqs: [], description: "Big-O, Big-Theta, Big-Omega. The vocabulary for talking about algorithm scalability." },
+      { slug: "arrays-and-hashing", title: "Arrays & Hashing", level: "apprentice", order: 2, pages: ["hash-table", "hash-collisions"], prereqs: ["asymptotic-analysis"], description: "Hash tables, collisions, load factors. Why O(1) lookups are conditional." },
+      { slug: "sorting-algorithms", title: "Sorting Algorithms", level: "practitioner", order: 3, pages: ["sorting-algorithms", "quicksort", "mergesort"], prereqs: ["asymptotic-analysis"], description: "Quicksort, mergesort, heapsort, the n log n lower bound for comparison sorts. When linear-time radix sort applies." },
+      { slug: "linked-structures", title: "Trees & Linked Structures", level: "practitioner", order: 4, pages: ["binary-search-tree", "balanced-tree", "trie"], prereqs: ["sorting-algorithms"], description: "BSTs, AVL/red-black, B-trees, tries. Why balance matters for guaranteed log-n operations." },
+      { slug: "graph-algorithms", title: "Graph Algorithms", level: "practitioner", order: 5, pages: ["graph-traversal", "shortest-path", "minimum-spanning-tree"], prereqs: ["linked-structures"], description: "BFS, DFS, Dijkstra, A*, Kruskal/Prim. The patterns behind GPS, network protocols, dependency resolvers." },
+      { slug: "dynamic-programming", title: "Dynamic Programming", level: "specialist", order: 6, pages: ["dynamic-programming", "memoization-vs-tabulation", "bellman-ford"], prereqs: ["graph-algorithms"], description: "Optimal substructure, overlapping subproblems, memoization vs tabulation. The algorithm-design pattern that solves problems brute-force search can't." },
+      { slug: "greedy-and-divide-conquer", title: "Greedy + Divide & Conquer", level: "specialist", order: 7, pages: ["greedy-algorithms", "divide-and-conquer"], prereqs: ["dynamic-programming"], description: "When greedy works (matroids, exchange arguments) and when it doesn't. When divide-and-conquer is the right framing (Strassen, Karatsuba)." },
+      { slug: "np-complete", title: "P, NP, and NP-Completeness", level: "expert", order: 8, pages: ["p-vs-np", "np-completeness", "reductions"], prereqs: ["dynamic-programming"], description: "Polynomial-time, nondeterminism, reductions, NP-completeness. Why some problems are intractable and what that means in practice." },
+      { slug: "approximation-randomized", title: "Approximation + Randomized Algorithms", level: "expert", order: 9, pages: ["approximation-algorithms", "randomized-algorithms"], prereqs: ["np-complete"], description: "When exact solutions are out of reach: approximation algorithms with provable bounds + randomized algorithms (Las Vegas, Monte Carlo) that trade certainty for speed." },
+    ],
+  });
+
   // Sprint 66e — Game Theory + Mechanism Design path. Bridges
   // reinforcement-learner (multi-agent, self-play), ai-researcher
   // (alignment, mesa-optimization), and comp-biologist (evolutionary
@@ -1422,6 +1485,12 @@ const SEED_DOMAINS = [
     title: "Game Theory & Mechanism Design",
     description:
       "Nash, mechanism design, auctions, multi-agent RL, alignment as a game-theoretic problem.",
+  },
+  {
+    slug: "algorithms",
+    title: "Algorithms & Data Structures",
+    description:
+      "Sorting, hashing, graphs, dynamic programming, complexity theory. The CS-foundations spine of every engineering discipline.",
   },
 ];
 

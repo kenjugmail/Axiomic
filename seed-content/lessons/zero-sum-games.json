@@ -1,0 +1,49 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What's a zero-sum game?",
+      "body": "A **zero-sum game** is one where one player's gain is exactly another's loss. The total of all payoffs sums to zero (or any constant — equivalent up to a shift).\n\n**Examples**: chess, heads-up poker, rock-paper-scissors, matching pennies.\n\nThe defining feature: **no room for cooperation**. Strategic interaction reduces to 'I want to maximize; you want to minimize.' This makes zero-sum games the cleanest setting for game theory — the math works out unusually well — but also the *least like* most real-world interactions, where cooperation is on the table.\n\nThe classical solution concept: **minimax** ([[minimax]]) — pick the strategy that maximizes your worst-case payoff over what your opponent might do."
+    },
+    {
+      "kind": "text",
+      "title": "The minimax theorem",
+      "body": "**Von Neumann's minimax theorem (1928)**: every finite two-player zero-sum game has a unique value $v$ such that:\n- Some mixed strategy of row player guarantees expected payoff $\\geq v$, regardless of column.\n- Some mixed strategy of column player guarantees expected payoff $\\leq v$.\n\nThe two values coincide. This is the foundation of two-player zero-sum theory.\n\n**Linear programming connection**: solving a zero-sum game reduces to a linear program. The dual LP solves the column player's problem; strong duality recovers the minimax theorem.\n\nFor matrix game $A_{ij}$: row's optimal mixed strategy maximizes $\\min_q p^T A q$. The dual LP recovers column's strategy."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "zs_q1",
+        "kind": "multiple_choice",
+        "question": "In rock-paper-scissors, why is the minimax-optimal strategy for both players the uniform random mix (1/3, 1/3, 1/3)?",
+        "options": [
+          "Because random play is fair",
+          "Because any pure strategy can be exploited (rock loses to paper, etc.). The unique mixed strategy that makes the opponent indifferent across rock/paper/scissors is the uniform mix; this is the minimax (and Nash) equilibrium",
+          "Because random is always optimal",
+          "Because rock-paper-scissors has no equilibrium"
+        ],
+        "correctIndex": 1,
+        "explanation": "Indifference principle: in mixed Nash, the player must make the opponent indifferent. The unique mix achieving this in RPS is uniform. Pure strategies are dominated; non-uniform mixes leave the opponent able to exploit you."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Where zero-sum applies (and doesn't)",
+      "body": "Zero-sum is the wrong framing for most real interactions:\n\n- **Markets**: positive-sum (gains from trade).\n- **Negotiation**: usually general-sum (cooperative outcomes possible).\n- **Multi-agent RL with cooperative reward**: explicitly not zero-sum.\n\nUsing zero-sum analysis where it doesn't fit produces misleading conclusions: 'The other party will defect in equilibrium, so we should defect too.' That's only true in the rare cases where the game actually IS zero-sum.\n\nWhere zero-sum DOES apply: chess and Go (AlphaZero); heads-up poker (Pluribus); GAN training (generator vs discriminator). In these domains, [[self-play]] + no-regret learning has clean convergence properties.\n\nOutside zero-sum, multi-agent RL ([[multi-agent-rl]]) requires fundamentally different methods (PSRO, league play, opponent modeling)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "zs_q2",
+        "kind": "explain_back",
+        "prompt": "Why does AlphaZero's self-play training work so well for chess and Go but not directly transfer to (e.g.) negotiation or cooperative robotics? Use the zero-sum vs general-sum distinction to ground your answer.",
+        "rubricCriteria": [
+          { "id": "zero-sum-property", "description": "Identifies that chess/Go are two-player zero-sum, where self-play has clean convergence guarantees" },
+          { "id": "general-sum-failure", "description": "Notes that negotiation/cooperative settings are general-sum, where self-play can cycle, collapse, or land at bad equilibria" },
+          { "id": "alternative-methods", "description": "Mentions an alternative — PSRO, league play, opponent modeling, or CTDE — that's needed beyond zero-sum" }
+        ],
+        "passingScore": 0.5
+      }
+    }
+  ]
+}

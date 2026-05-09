@@ -1,0 +1,54 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Two complexity classes",
+      "body": "**P** = problems solvable in polynomial time on a deterministic Turing machine. The 'tractable' class — algorithms exist that scale polynomially.\n\n**NP** = problems whose solutions are *verifiable* in polynomial time. Or equivalently: solvable in polynomial time on a *nondeterministic* Turing machine.\n\n**Note**: the 'NP' stands for 'Nondeterministic Polynomial,' NOT 'Non-Polynomial.' Common misconception ([[np-means-non-polynomial]]).\n\n$P \\subseteq NP$ (anything solvable in poly time is verifiable in poly time). The famous open question: does $NP \\subseteq P$? I.e., is everything verifiable in poly time also *solvable* in poly time?\n\nMost computer scientists believe $P \\neq NP$. No proof either way. The Clay Institute offers $1M for either."
+    },
+    {
+      "kind": "text",
+      "title": "NP-completeness",
+      "body": "A problem is **NP-complete** if:\n1. It's in NP.\n2. Every problem in NP reduces to it in polynomial time ([[reductions]]).\n\nNP-complete problems are the **hardest in NP** — if any has a polynomial algorithm, then all of NP is in P.\n\nFirst NP-complete problem: **SAT** (Boolean satisfiability). Cook-Levin theorem (1971). Karp (1972) showed 21 other natural problems are also NP-complete via reductions from SAT.\n\nFamous NP-complete problems:\n- **3-SAT**: SAT restricted to 3-literal clauses.\n- **Vertex cover**: smallest set of vertices touching every edge.\n- **Hamiltonian cycle**: cycle visiting every vertex once.\n- **Traveling salesman (decision)**: tour of cost $\\leq k$?\n- **Knapsack (decision)**: subset summing to $\\geq v$ within weight $\\leq W$?\n- **3-coloring**: can graph be 3-colored?\n- **Subset sum**: any subset sums to $T$?\n\nIf you find a polynomial algorithm for ANY of these, you've proven $P = NP$ and earned $1M."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "npc_q1",
+        "kind": "multiple_choice",
+        "question": "Which of these correctly describes the relationship between P and NP?",
+        "options": [
+          "P and NP are disjoint — they share no problems",
+          "P ⊆ NP (P is a subset of NP). Every problem in P is also in NP because if you can solve it in poly time, you can also verify a solution in poly time (just solve it). Whether NP ⊆ P is the famous open question",
+          "NP is always strictly larger than P",
+          "NP ⊂ P — every NP problem is in P"
+        ],
+        "correctIndex": 1,
+        "explanation": "P is a subset of NP. Anything you can solve in polynomial time, you can also verify in polynomial time. The unknown direction is whether NP ⊆ P — i.e., whether everything that's verifiable is also solvable in poly time. Believed false but unproven; the canonical open problem in CS theory."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Why we believe P ≠ NP",
+      "body": "No proof. But:\n\n1. **50+ years of intense effort** by the smartest minds in CS. No one has found a polynomial algorithm for any NP-complete problem.\n\n2. **Many natural problems are NP-complete**. If any were in P, all NP-complete problems would be in P (via the reductions).\n\n3. **All approaches hit barriers**. Algebraic methods, derandomization, pseudorandomness — every angle hits the 'natural proofs' barrier (Razborov-Rudich 1994).\n\nThe **practical implication**: for NP-complete problems, accept that exact solutions are intractable for large inputs. Use approximation algorithms ([[approximation-algorithms]]), randomized algorithms ([[randomized-algorithms]]), or specialized solvers (SAT solvers, ILP solvers).\n\nModern SAT solvers (CDCL-based: Glucose, MiniSAT, Lingeling) routinely solve million-variable instances. Worst-case is still exponential; practical SAT is far easier than the worst case because real instances have structure."
+    },
+    {
+      "kind": "text",
+      "title": "How to handle NP-complete problems in practice",
+      "body": "Don't waste time looking for a polynomial algorithm. Use:\n\n1. **Approximation algorithms with provable bounds**. Vertex cover has 2-approximation. Set cover has $\\ln n$-approximation. Metric TSP has 1.5-approximation (Christofides 1976).\n\n2. **Heuristics**. No guarantees but often work. Genetic algorithms, simulated annealing, local search.\n\n3. **ILP / MIP solvers**. Modern solvers (Gurobi, CPLEX, OR-Tools) handle real-world instances even when worst case is NP-hard.\n\n4. **SAT solvers**. CDCL-based solvers handle million-variable instances despite NP-completeness.\n\n5. **Special-case algorithms**. Many real-world instances of NP-complete problems have structure (sparsity, geometric structure, low treewidth) that admits polynomial algorithms.\n\n6. **Fixed-parameter tractable (FPT)**: polynomial in $n$, exponential in some parameter $k$. Useful when $k$ is small.\n\n7. **Randomized algorithms with probabilistic bounds**.\n\nThe boundary between 'NP-hard, intractable' and 'NP-hard, but practical solvers exist' is one of the most important practical insights in algorithm engineering."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "npc_q2",
+        "kind": "explain_back",
+        "prompt": "Modern SAT solvers routinely solve million-variable SAT instances despite SAT being NP-complete. What's the resolution to this apparent paradox?",
+        "rubricCriteria": [
+          { "id": "worst-vs-typical", "description": "Distinguishes worst-case complexity (exponential) from typical-case (often much easier)" },
+          { "id": "structure-exploitation", "description": "Mentions that real-world SAT instances have structure (clause locality, low treewidth, hidden variables) that solvers exploit" },
+          { "id": "cdcl-mention", "description": "Names the specific algorithmic family (CDCL — Conflict-Driven Clause Learning) or notes that modern SAT solvers are not naive backtracking" }
+        ],
+        "passingScore": 0.5
+      }
+    }
+  ]
+}

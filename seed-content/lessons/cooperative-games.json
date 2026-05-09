@@ -1,0 +1,49 @@
+{
+  "slides": [
+    {
+      "kind": "text",
+      "title": "When binding agreements are possible",
+      "body": "**Cooperative game theory** studies games where players can form binding coalitions. Contrast with **non-cooperative game theory** (everything else we've covered) where each player chooses their own strategy.\n\nThe central question: **how should the value created by cooperation be divided among the cooperators?**\n\nTwo dominant solution concepts:\n- **Shapley value** ([[shapley-value]]): the unique 'fair' division satisfying four axioms (efficiency, symmetry, null player, additivity).\n- **The core** ([[core-solution]]): the set of allocations that no coalition can improve on by leaving — captures *stability*.\n\nIn ML, the Shapley value powers **SHAP** (Lundberg & Lee 2017), the dominant feature-attribution method."
+    },
+    {
+      "kind": "text",
+      "title": "Shapley value",
+      "body": "For a cooperative game with players $N$ and characteristic function $v$ (mapping subsets of $N$ to real values), player $i$'s Shapley value is the average **marginal contribution** of $i$ across all permutations of player ordering:\n\n$$\\phi_i(v) = \\sum_{S \\subseteq N \\setminus \\{i\\}} \\frac{|S|! (|N| - |S| - 1)!}{|N|!} [v(S \\cup \\{i\\}) - v(S)]$$\n\nThe combinatorial weight is the probability that, in a random permutation, $i$ joins exactly after the players in $S$.\n\n**Example (3 players)**: company with founders. $v(\\emptyset) = 0$. $v(\\{A\\}) = 6$. $v(\\{B\\}) = 4$. $v(\\{C\\}) = 2$. $v(\\{A,B\\}) = 12$. $v(\\{A,C\\}) = 8$. $v(\\{B,C\\}) = 6$. $v(\\{A,B,C\\}) = 18$.\n\nThe Shapley values turn out to be: $\\phi_A = 8$, $\\phi_B = 6$, $\\phi_C = 4$. Sum to 18 (efficient)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "coop_q1",
+        "kind": "multiple_choice",
+        "question": "In ML, SHAP (SHapley Additive exPlanations) uses the Shapley value for feature attribution. Why is this connection valid?",
+        "options": [
+          "SHAP is unrelated to game theory",
+          "Because feature attribution is structurally identical to cooperative game theory: features are 'players,' the model's prediction is 'value,' and Shapley computes each feature's marginal contribution averaged over all subsets — satisfying SHAP's axiomatic 'fairness' requirements",
+          "Because Shapley values are always positive",
+          "Because Shapley is fast to compute"
+        ],
+        "correctIndex": 1,
+        "explanation": "SHAP frames feature attribution as a cooperative game: the prediction is the value $v(S)$ of feature subset $S$. Shapley computes each feature's marginal contribution averaged over all subset orderings. Lundberg & Lee (2017) showed this is the unique attribution method satisfying local accuracy + missingness + consistency."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "The core",
+      "body": "An allocation $(x_1, ..., x_n)$ is in the **core** if:\n1. **Efficient**: total payoff $= v(N)$.\n2. **Coalition-rational**: for every subset $S$, $\\sum_{i \\in S} x_i \\geq v(S)$.\n\nNo subset has incentive to leave the grand coalition. The core captures **stability**.\n\n**The core can be empty**: many cooperative games have no allocation that satisfies coalition-rationality. The Bondareva-Shapley theorem (1963/67) gives a necessary + sufficient condition for non-emptiness (the game must be **balanced**).\n\n**Shapley vs core**:\n- Shapley always exists; gives a single point.\n- Core may be empty; if non-empty, often a set with multiple points.\n- These often disagree. The Shapley value can lie OUTSIDE the core (a 'fair' but unstable allocation).\n- For convex games (Shapley 1971), core is non-empty AND contains the Shapley value."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "coop_q2",
+        "kind": "explain_back",
+        "prompt": "Three engineers form a startup. Each has different skills + outside-option salaries. How might the Shapley value (fair) and the core (stable) disagree on equity allocation?",
+        "rubricCriteria": [
+          { "id": "shapley", "description": "Explains how Shapley computes each engineer's average marginal contribution across all subsets" },
+          { "id": "core", "description": "Explains how core requires that no subset of engineers can do better by leaving (reflecting outside options)" },
+          { "id": "disagreement", "description": "Identifies a scenario where Shapley assigns equity to a low-marginal contributor (e.g., one engineer adds little marginal value but the founders 'should' all share equally — Shapley says less, core says more)" }
+        ],
+        "passingScore": 0.5
+      }
+    }
+  ]
+}

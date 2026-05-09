@@ -17,6 +17,7 @@ import { TierToggle } from "../components/research/TierToggle";
 import { TutorMount } from "../components/ai/TutorMount";
 import { PrereqXray } from "../components/prereq/PrereqXray";
 import { CiteDialog } from "../components/citations/CiteDialog";
+import { toast } from "../stores/toast";
 
 export function CapstonePage() {
   const { slug = "" } = useParams<{ slug: string }>();
@@ -51,9 +52,13 @@ export function CapstonePage() {
       await api.capstones.enroll(slug);
       const r = await api.capstones.get(slug, tier);
       setCapstone(r.capstone);
+      toast.success(`Enrolled in ${r.capstone.title}`);
     } catch (e) {
+      // Sprint 67c — enroll failures are transient + don't block the
+      // page; fire as a toast instead of replacing the page with an
+      // error state.
       const message = e instanceof Error ? e.message : "Failed to enroll";
-      setError(message);
+      toast.error(message);
     } finally {
       setEnrolling(false);
     }
