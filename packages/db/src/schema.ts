@@ -1460,3 +1460,58 @@ export const contentProposals = sqliteTable("content_proposals", {
   statusIdx: index("content_proposals_status_idx").on(t.status, t.createdAt),
   proposerIdx: index("content_proposals_proposer_idx").on(t.proposerId, t.status),
 }));
+
+// Sprint 70 — Researcher for-you feed primitives.
+//
+// `searches` records every executed query so the recommendation ranker
+// can build a recent-query bias term ("show more like the last few
+// things this user looked for"). Anonymous traffic is stored with a
+// null userId; only the userId-scoped slice is read by the ranker.
+//
+// `paperSummaries` caches the AI-generated tier-aware paper summary so
+// toggling tiers in the drawer doesn't re-burn inference. Keyed by
+// (paperKind, paperId, tier, modelId) — modelId in the key means a new
+// default model invalidates old summaries automatically.
+//
+// `feedImpressions` records what the for-you feed has already shown a
+// user; the ranker demotes recently-shown items to keep the feed fresh
+// across visits.
+export const searches = sqliteTable("searches", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").references(() => users.id),
+  query: text("query").notNull(),
+  resultCount: integer("result_count").notNull().default(0),
+  // Filled when the user clicks a result; null if they bounced.
+  clickedItemKind: text("clicked_item_kind"),
+  clickedItemId: text("clicked_item_id"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  userIdx: index("searches_user_idx").on(t.userId, t.createdAt),
+}));
+
+export const paperSummaries = sqliteTable("paper_summaries", {
+  id: text("id").primaryKey(),
+  // 'research' (internal research_papers row) — extends to
+  // 'external_paper' once Sprint 69 lands.
+  paperKind: text("paper_kind").notNull(),
+  paperId: text("paper_id").notNull(),
+  // 'intro' | 'undergrad' | 'grad'
+  tier: text("tier").notNull(),
+  modelId: text("model_id").notNull(),
+  summaryMd: text("summary_md").notNull(),
+  generatedAt: text("generated_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  pk: uniqueIndex("paper_summaries_pk").on(t.paperKind, t.paperId, t.tier, t.modelId),
+}));
+
+export const feedImpressions = sqliteTable("feed_impressions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id),
+  paperKind: text("paper_kind").notNull(),
+  paperId: text("paper_id").notNull(),
+  shownAt: text("shown_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  userIdx: index("feed_impressions_user_idx").on(t.userId, t.shownAt),
+  // Used by the ranker to demote-or-skip already-shown items.
+  lookupIdx: index("feed_impressions_lookup_idx").on(t.userId, t.paperKind, t.paperId),
+}));

@@ -271,6 +271,41 @@ export interface ResearchPaperResponse {
   paper: ResearchPaper;
 }
 
+// Sprint 70 — for-you feed payload. Each rail is a list of ranked
+// paper summaries with score breakdown for the "Why?" popover.
+export interface ResearchFeedItem {
+  kind: "research";
+  id: string;
+  slug: string;
+  title: string;
+  format: string;
+  snippet: string;
+  citationCount: number;
+  publishedAt: string;
+  tags: string[];
+  authorUsername: string | null;
+  score: number;
+  reason: string;
+  breakdown: {
+    interestScore: number;
+    queryAffinity: number;
+    authorOverlap: number;
+    recencyDecay: number;
+    citationBoost: number;
+    alreadyShown: boolean;
+    total: number;
+  };
+}
+
+export interface ResearchFeedResponse {
+  personalized: boolean;
+  rails: {
+    for_you: ResearchFeedItem[];
+    trending: ResearchFeedItem[];
+    from_follows: ResearchFeedItem[];
+  };
+}
+
 export interface CreateResearchPaperRequest {
   slug: string;
   title: string;

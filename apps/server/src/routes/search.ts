@@ -1,16 +1,45 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { and, eq, isNotNull, or, sql } from "drizzle-orm";
+import { randomUUID } from "crypto";
+import { and, desc, eq, isNotNull, or, sql } from "drizzle-orm";
 import {
   capstones,
   capstoneEnrollments,
   getDb,
+  searches,
 } from "@axiomic/db";
 import { scoreQuery } from "../lib/searchIndex";
+import { getSessionUser } from "../middleware/auth";
 import type { Env } from "../env";
 
 export const searchRouter = new Hono<Env>();
+
+// Sprint 70 — keep the searches table from growing without bound.
+// 200 most-recent rows per user is plenty for the ranker's recent-query
+// bias term (~30 rows) plus headroom for analytics later.
+const MAX_SEARCH_HISTORY_PER_USER = 200;
+
+function trimSearchHistory(userId: string): void {
+  const db = getDb();
+  const cutoff = db
+    .select({ createdAt: searches.createdAt })
+    .from(searches)
+    .where(eq(searches.userId, userId))
+    .orderBy(desc(searches.createdAt))
+    .limit(1)
+    .offset(MAX_SEARCH_HISTORY_PER_USER)
+    .get();
+  if (!cutoff) return;
+  db.delete(searches)
+    .where(
+      and(
+        eq(searches.userId, userId),
+        sql`${searches.createdAt} <= ${cutoff.createdAt}`,
+      ),
+    )
+    .run();
+}
 
 interface CapstoneBuildHit {
   kind: "capstone";
@@ -130,6 +159,28 @@ searchRouter.get("/", zValidator("query", querySchema), async (c) => {
     ? scored.filter((s) => wanted.has(s.item.kind))
     : scored;
 
+  // Sprint 70 — record the query for the recommendation ranker's
+  // recent-query bias. Best-effort; failures don't break the search
+  // response. Anonymous traffic still records (null userId) but the
+  // ranker only reads userId-scoped rows.
+  try {
+    const sessionUser = await getSessionUser(c);
+    const searchId = randomUUID();
+    getDb()
+      .insert(searches)
+      .values({
+        id: searchId,
+        userId: sessionUser?.id ?? null,
+        query: trimmed.slice(0, 500),
+        resultCount: filtered.length,
+      })
+      .run();
+    if (sessionUser) trimSearchHistory(sessionUser.id);
+    c.header("X-Search-Id", searchId);
+  } catch {
+    // Swallow — recording history must not break search.
+  }
+
   const results = filtered.slice(0, limit).map((s) => {
     const base = {
       id: s.item.id,
@@ -195,4 +246,34 @@ searchRouter.get("/", zValidator("query", querySchema), async (c) => {
   }
 
   return c.json({ query: trimmed, results });
+});
+
+// Sprint 70 — click-through recording. The web client posts the
+// X-Search-Id it got from /search along with the kind+id of whatever
+// the user actually clicked. Used by the recommendation ranker to
+// strengthen the recent-query bias toward queries that landed.
+const clickSchema = z.object({
+  searchId: z.string().min(8).max(64),
+  itemKind: z.string().min(1).max(40),
+  itemId: z.string().min(1).max(120),
+});
+
+searchRouter.post("/click", zValidator("json", clickSchema), async (c) => {
+  const { searchId, itemKind, itemId } = c.req.valid("json");
+  const db = getDb();
+  // Idempotent on the (searchId) — we only record the FIRST click since
+  // a user clicking multiple results in one query is rare and the
+  // ranker only needs one signal per query.
+  const existing = db
+    .select({ id: searches.id, clickedItemKind: searches.clickedItemKind })
+    .from(searches)
+    .where(eq(searches.id, searchId))
+    .get();
+  if (!existing) return c.json({ error: "Unknown search id" }, 404);
+  if (existing.clickedItemKind) return c.json({ ok: true, alreadyRecorded: true });
+  db.update(searches)
+    .set({ clickedItemKind: itemKind, clickedItemId: itemId })
+    .where(eq(searches.id, searchId))
+    .run();
+  return c.json({ ok: true });
 });

@@ -73,6 +73,14 @@ export interface IndexedResearchPaper {
   format: string;
   snippet: string;
   vector: number[];
+  // Sprint 70 — ranking signals for the for-you feed. Indexed alongside
+  // the vector so the recommend ranker doesn't have to re-query the DB.
+  authorId: string;
+  citationCount: number;
+  // ISO timestamp; createdAt of the paper row (research_papers has no
+  // dedicated publishedAt column — published-vs-draft is a status flag).
+  publishedAt: string;
+  tags: string[];
 }
 
 export type IndexedItem =
@@ -219,6 +227,10 @@ async function buildIndex(): Promise<IndexedItem[]> {
       contentGrad: researchPapers.contentGrad,
       canonicalTier: researchPapers.canonicalTier,
       format: researchPapers.format,
+      authorId: researchPapers.authorId,
+      citationCount: researchPapers.citationCount,
+      createdAt: researchPapers.createdAt,
+      tags: researchPapers.tags,
     })
     .from(researchPapers)
     .where(eq(researchPapers.status, "published"))
@@ -238,6 +250,11 @@ async function buildIndex(): Promise<IndexedItem[]> {
     const vector = await provider.embed(
       `${p.title} ${p.summary} ${p.abstract.slice(0, 600)} ${fallback.slice(0, 1500)}`,
     );
+    let parsedTags: string[] = [];
+    try {
+      const t = JSON.parse(p.tags ?? "[]");
+      if (Array.isArray(t)) parsedTags = t.filter((x): x is string => typeof x === "string");
+    } catch {}
     items.push({
       kind: "research",
       id: p.id,
@@ -246,6 +263,10 @@ async function buildIndex(): Promise<IndexedItem[]> {
       format: p.format,
       snippet,
       vector,
+      authorId: p.authorId,
+      citationCount: p.citationCount ?? 0,
+      publishedAt: p.createdAt,
+      tags: parsedTags,
     });
   }
 

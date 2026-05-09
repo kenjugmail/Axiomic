@@ -147,6 +147,9 @@ const ResearchListPage = lazy(() =>
 const ResearchPaperPage = lazy(() =>
   import("./pages/ResearchPaperPage").then((m) => ({ default: m.ResearchPaperPage })),
 );
+const ResearchFeedPage = lazy(() =>
+  import("./pages/ResearchFeedPage").then((m) => ({ default: m.ResearchFeedPage })),
+);
 const ResearchNewPage = lazy(() =>
   import("./pages/ResearchNewPage").then((m) => ({ default: m.ResearchNewPage })),
 );
@@ -334,6 +337,7 @@ function AppRoutes() {
           <Route path="/settings/attachments" element={<AttachmentsPage />} />
           <Route path="/demo/attention" element={<DemoAttentionPage />} />
           <Route path="/research" element={<ResearchListPage />} />
+          <Route path="/research/feed" element={<ResearchFeedPage />} />
           <Route path="/research/new" element={<ResearchNewPage />} />
           <Route path="/research/new/wizard" element={<ResearchWizardPage />} />
           <Route path="/research/me/drafts" element={<ResearchDraftsPage />} />

@@ -5,7 +5,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { GraduationCap, Wand2 } from "lucide-react";
+import { GraduationCap, Sparkles, Wand2 } from "lucide-react";
 import type { ResearchPaperFormat, ResearchPaperSummary } from "@axiomic/types";
 import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
@@ -77,6 +77,16 @@ export function ResearchListPage() {
           <p className="text-sm text-muted-foreground mt-1">
             Tiered, viz-rich, runnable papers — read at your depth.
           </p>
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          <Link
+            to="/research/feed"
+            className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40 inline-flex items-center gap-1.5"
+            title="Personalized recommendations + trending + papers from people you follow."
+          >
+            <Sparkles className="w-3.5 h-3.5" strokeWidth={2} />
+            For you
+          </Link>
         </div>
         {user && (
           <div className="flex gap-2 flex-wrap">

@@ -54,6 +54,7 @@ import type {
   ResearchPaperResponse,
   ResearchPapersDraftsResponse,
   ResearchPapersListResponse,
+  ResearchFeedResponse,
   UpdateResearchPaperRequest,
   CapstonesListResponse,
   CapstoneResponse,
@@ -896,6 +897,32 @@ export const api = {
         method: "POST",
         body: JSON.stringify(body),
       }),
+    // Sprint 70 — for-you feed.
+    feed: (perRail?: number) => {
+      const sp = new URLSearchParams();
+      if (perRail) sp.set("perRail", String(perRail));
+      const qs = sp.toString();
+      return request<ResearchFeedResponse>(
+        `/research/feed${qs ? `?${qs}` : ""}`,
+      );
+    },
+    // Sprint 70 — cached tier-aware summary lookup. Returns
+    // `{ cached: false }` when no summary exists yet (callers should
+    // open a streaming connection to generate one).
+    cachedSummary: (
+      slug: string,
+      tier: "intro" | "undergrad" | "grad",
+    ) =>
+      request<
+        | { cached: false }
+        | {
+            cached: true;
+            tier: string;
+            modelId: string;
+            summaryMd: string;
+            generatedAt: string;
+          }
+      >(`/research/${slug}/summary?tier=${tier}`),
   },
   capstones: {
     list: (params?: { tag?: string }) => {
