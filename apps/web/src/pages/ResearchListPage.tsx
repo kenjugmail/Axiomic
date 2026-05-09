@@ -35,13 +35,27 @@ export function ResearchListPage() {
   const [tag, setTag] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+    setError(null);
     api.research
       .list({
         format: format === "all" ? undefined : format,
         tag: tag ?? undefined,
       })
-      .then((r) => setPapers(r.papers))
-      .catch((e) => setError(e?.message ?? "Failed to load papers"));
+      .then((r) => {
+        if (cancelled) return;
+        setPapers(r.papers);
+      })
+      .catch((e) => {
+        if (cancelled) return;
+        // Crucial: clear the loading state on failure or the skeleton
+        // renders forever (the perma-loading bug).
+        setPapers([]);
+        setError(e?.message ?? "Failed to load papers");
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [format, tag]);
 
   const allTags = useMemo(() => {

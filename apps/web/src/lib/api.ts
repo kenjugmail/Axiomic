@@ -146,19 +146,48 @@ import type {
 
 const BASE = "/api/v1";
 
-async function request<T>(path: string, opts?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    credentials: "include",
-    headers: { "Content-Type": "application/json", ...opts?.headers },
-    ...opts,
-  });
+// Default network timeout for API requests. A hung backend (slow query,
+// dropped connection, server stuck) would otherwise leave the UI in a
+// perma-loading skeleton state. Caller can opt out by passing a
+// `signal` in opts that overrides this.
+const DEFAULT_TIMEOUT_MS = 20_000;
 
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({ error: res.statusText }));
-    throw new ApiError(res.status, body.error || "Unknown error");
+async function request<T>(path: string, opts?: RequestInit): Promise<T> {
+  // If the caller supplied their own AbortSignal, respect it. Otherwise
+  // wire up a timeout so a stuck request rejects cleanly.
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  let signal = opts?.signal;
+  if (!signal) {
+    const ctrl = new AbortController();
+    timeoutId = setTimeout(() => ctrl.abort(), DEFAULT_TIMEOUT_MS);
+    signal = ctrl.signal;
   }
 
-  return res.json();
+  try {
+    const res = await fetch(`${BASE}${path}`, {
+      credentials: "include",
+      headers: { "Content-Type": "application/json", ...opts?.headers },
+      ...opts,
+      signal,
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ error: res.statusText }));
+      throw new ApiError(res.status, body.error || "Unknown error");
+    }
+
+    return res.json();
+  } catch (err: any) {
+    if (err?.name === "AbortError") {
+      throw new ApiError(
+        0,
+        `Request timed out after ${Math.round(DEFAULT_TIMEOUT_MS / 1000)}s. The server may be slow or unreachable.`,
+      );
+    }
+    throw err;
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
 }
 
 export class ApiError extends Error {
