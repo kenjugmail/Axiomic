@@ -156,10 +156,14 @@ async function request<T>(path: string, opts?: RequestInit): Promise<T> {
   // If the caller supplied their own AbortSignal, respect it. Otherwise
   // wire up a timeout so a stuck request rejects cleanly.
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  let timedOut = false;
   let signal = opts?.signal;
   if (!signal) {
     const ctrl = new AbortController();
-    timeoutId = setTimeout(() => ctrl.abort(), DEFAULT_TIMEOUT_MS);
+    timeoutId = setTimeout(() => {
+      timedOut = true;
+      ctrl.abort();
+    }, DEFAULT_TIMEOUT_MS);
     signal = ctrl.signal;
   }
 
@@ -178,7 +182,10 @@ async function request<T>(path: string, opts?: RequestInit): Promise<T> {
 
     return res.json();
   } catch (err: any) {
-    if (err?.name === "AbortError") {
+    // Distinguish OUR timeout from a caller-initiated cancel. The
+    // caller's AbortError should propagate unchanged so consumers can
+    // treat it as a normal cancellation.
+    if (err?.name === "AbortError" && timedOut) {
       throw new ApiError(
         0,
         `Request timed out after ${Math.round(DEFAULT_TIMEOUT_MS / 1000)}s. The server may be slow or unreachable.`,

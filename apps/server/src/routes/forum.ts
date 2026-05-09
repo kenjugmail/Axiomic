@@ -25,6 +25,7 @@ import { notify, notifyMentions, toPreview } from "../lib/notifications";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import { nodesForWikiSlug } from "../lib/crossLinks";
 import { recordActivityAndEvaluate } from "../lib/achievements";
+import { checkRateLimit, rateLimitIdentity } from "../lib/rateLimit";
 import type { Env } from "../env";
 
 const forum = new Hono<Env>();
@@ -1040,6 +1041,16 @@ forum.get("/users/:username/reputation", (c) => {
 // --- AI thread summarizer (SSE) -----------------------------------------
 
 forum.post("/topics/:slug/summarize", async (c) => {
+  // The summarizer hits the AI provider — gate it behind the same
+  // rate limiter as the rest of /ai/* so an unauth'd caller can't
+  // burn inference cost in a tight loop. Auth'd users get a per-user
+  // bucket; anonymous gets a per-IP+UA bucket.
+  const user = await getSessionUser(c);
+  const key = rateLimitIdentity(c, user?.id);
+  if (!checkRateLimit(`forum-summarize:${key}`, 5, 60_000)) {
+    return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+  }
+
   const db = getDb();
   const topic = db
     .select({
