@@ -2,15 +2,53 @@ import { useEffect, useRef } from "react";
 import type { LiveEvent } from "@axiomic/types";
 
 // Single shared WebSocket per page-load. Multiple components that
-// want to listen for live events all attach onMessage handlers; the
+// want to listen for live events all register subscriptions; the
 // connection itself is opened lazily on first subscribe and torn
 // down when the last subscriber unmounts.
+//
+// Reliability: we keep the FULL subscription record (proxy + per-mount
+// channels) in `subscriptions`, not just the handlers. On every WS
+// open — including reconnects after a transient disconnect — we
+// replay every active subscription's channel set so the server sees
+// the right view of who's listening to what. Without this replay, a
+// component that mounted before a transient WS disconnect would
+// silently stop receiving its events when the socket came back.
 
 type Handler = (event: LiveEvent) => void;
 
+interface Subscription {
+  proxy: Handler;
+  articleSlugs: string[];
+  draftChannels: DraftChannel[];
+}
+
 let socket: WebSocket | null = null;
-const handlers = new Set<Handler>();
+const subscriptions = new Set<Subscription>();
 let lastClosedAt = 0;
+
+function sendSubscriptionFrames(ws: WebSocket, sub: Subscription): void {
+  if (ws.readyState !== WebSocket.OPEN) return;
+  for (const slug of sub.articleSlugs) {
+    try {
+      ws.send(JSON.stringify({ type: "subscribe_article", slug }));
+    } catch {
+      // ignore
+    }
+  }
+  for (const ch of sub.draftChannels) {
+    try {
+      ws.send(
+        JSON.stringify({
+          type: "subscribe_draft",
+          kind: ch.kind,
+          targetId: ch.targetId,
+        }),
+      );
+    } catch {
+      // ignore
+    }
+  }
+}
 
 function ensureSocket(): WebSocket | null {
   if (typeof window === "undefined") return null;
@@ -24,6 +62,11 @@ function ensureSocket(): WebSocket | null {
   try {
     const ws = new WebSocket(url);
     socket = ws;
+    ws.onopen = () => {
+      // Replay every active subscription against the freshly-opened
+      // socket so reconnects don't silently drop prior subscribers.
+      for (const sub of subscriptions) sendSubscriptionFrames(ws, sub);
+    };
     ws.onmessage = (e) => {
       let parsed: LiveEvent | null = null;
       try {
@@ -31,9 +74,9 @@ function ensureSocket(): WebSocket | null {
       } catch {
         return;
       }
-      for (const h of handlers) {
+      for (const sub of subscriptions) {
         try {
-          h(parsed);
+          sub.proxy(parsed);
         } catch {
           // ignore handler errors
         }
@@ -83,38 +126,18 @@ export function useLiveEvents({
 
   useEffect(() => {
     const proxy: Handler = (e) => handlerRef.current(e);
-    handlers.add(proxy);
+    const sub: Subscription = { proxy, articleSlugs, draftChannels };
+    subscriptions.add(sub);
+
     const ws = ensureSocket();
-    const subscribe = () => {
-      if (!ws || ws.readyState !== WebSocket.OPEN) return;
-      for (const slug of articleSlugs) {
-        try {
-          ws.send(JSON.stringify({ type: "subscribe_article", slug }));
-        } catch {
-          // ignore
-        }
-      }
-      for (const ch of draftChannels) {
-        try {
-          ws.send(
-            JSON.stringify({
-              type: "subscribe_draft",
-              kind: ch.kind,
-              targetId: ch.targetId,
-            }),
-          );
-        } catch {
-          // ignore
-        }
-      }
-    };
-    if (ws) {
-      if (ws.readyState === WebSocket.OPEN) subscribe();
-      else ws.addEventListener("open", subscribe, { once: true });
-    }
+    // If the socket is already open, send our subscription frames now.
+    // Otherwise the global onopen handler will replay every active
+    // subscription (including ours) when the connection completes.
+    if (ws && ws.readyState === WebSocket.OPEN) sendSubscriptionFrames(ws, sub);
+
     return () => {
-      handlers.delete(proxy);
-      if (handlers.size === 0 && socket && socket.readyState === WebSocket.OPEN) {
+      subscriptions.delete(sub);
+      if (subscriptions.size === 0 && socket && socket.readyState === WebSocket.OPEN) {
         socket.close();
         socket = null;
       }

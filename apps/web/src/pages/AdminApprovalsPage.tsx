@@ -59,31 +59,42 @@ export function AdminApprovalsPage() {
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
 
-  const load = async () => {
+  // Cancellation flag prevents an earlier filter's response from
+  // stomping a later one when the admin toggles filters quickly. The
+  // refreshSeq counter lets approve/reject handlers re-run the same
+  // fetch without duplicating the effect body.
+  const [refreshSeq, setRefreshSeq] = useState(0);
+  useEffect(() => {
+    let cancelled = false;
     setError(null);
-    try {
-      const qs = filter ? `?kind=${filter}` : "";
-      const r = await fetch(`/api/v1/admin/proposals${qs}`, {
-        credentials: "include",
-      });
-      if (!r.ok) {
-        if (r.status === 403) {
+    const qs = filter ? `?kind=${filter}` : "";
+    fetch(`/api/v1/admin/proposals${qs}`, { credentials: "include" })
+      .then(async (r) => {
+        if (!r.ok) {
+          if (r.status === 403) return { _forbidden: true } as const;
+          throw new Error(`Failed (${r.status})`);
+        }
+        return (await r.json()) as { proposals: ProposalRow[] };
+      })
+      .then((data) => {
+        if (cancelled) return;
+        if ("_forbidden" in data) {
           setError("Admin access required.");
           setItems([]);
           return;
         }
-        throw new Error(`Failed (${r.status})`);
-      }
-      const data = (await r.json()) as { proposals: ProposalRow[] };
-      setItems(data.proposals);
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to load proposals");
-    }
-  };
+        setItems(data.proposals);
+      })
+      .catch((e: any) => {
+        if (cancelled) return;
+        setError(e?.message ?? "Failed to load proposals");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [filter, refreshSeq]);
 
-  useEffect(() => {
-    load();
-  }, [filter]);
+  const load = () => setRefreshSeq((n) => n + 1);
 
   async function openDetail(id: string) {
     setSelected(null);

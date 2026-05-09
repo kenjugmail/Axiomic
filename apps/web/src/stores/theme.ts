@@ -68,12 +68,31 @@ function applyTheme(theme: Theme) {
   }
 }
 
+// Storage helpers — localStorage may throw on read/write under private
+// mode, quota exhaustion, or sandbox/security policies. Treating these
+// as fatal would crash theme switching for affected users; we silently
+// fall back to in-memory state instead.
+function readStoredTheme(): Theme | null {
+  try {
+    if (typeof localStorage === "undefined") return null;
+    return localStorage.getItem("axiomic-theme") as Theme | null;
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredTheme(theme: Theme): void {
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("axiomic-theme", theme);
+    }
+  } catch {
+    // ignore quota / unavailable
+  }
+}
+
 export const useThemeStore = create<ThemeState>((set, get) => {
-  const stored =
-    (typeof localStorage !== "undefined" &&
-      (localStorage.getItem("axiomic-theme") as Theme | null)) ||
-    null;
-  const initial: Theme = stored ?? "system";
+  const initial: Theme = readStoredTheme() ?? "system";
 
   if (typeof document !== "undefined") {
     applyTheme(initial);
@@ -88,7 +107,7 @@ export const useThemeStore = create<ThemeState>((set, get) => {
   return {
     theme: initial,
     setTheme: (theme) => {
-      localStorage.setItem("axiomic-theme", theme);
+      writeStoredTheme(theme);
       applyTheme(theme);
       set({ theme });
       api.settings.update({ theme }).catch(() => {});
@@ -97,7 +116,7 @@ export const useThemeStore = create<ThemeState>((set, get) => {
       try {
         const { settings } = await api.settings.get();
         if (settings.theme && settings.theme !== get().theme) {
-          localStorage.setItem("axiomic-theme", settings.theme);
+          writeStoredTheme(settings.theme);
           applyTheme(settings.theme);
           set({ theme: settings.theme });
         }
