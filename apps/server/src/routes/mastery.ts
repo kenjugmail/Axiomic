@@ -97,9 +97,23 @@ mastery.get("/paths/:slug", async (c) => {
     return total;
   };
 
+  // Defensive parse helper — a single corrupted row in pageIds /
+  // prerequisiteNodeIds shouldn't 500 the whole path index. Falls
+  // back to an empty array so downstream code (linkedTopics,
+  // estimateMinutes, the route response) keeps working.
+  const safeParseArray = (raw: string | null | undefined): string[] => {
+    if (!raw) return [];
+    try {
+      const v = JSON.parse(raw);
+      return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+    } catch {
+      return [];
+    }
+  };
+
   const nodes = rawNodes.map((n) => {
-    const pageIds = JSON.parse(n.pageIds);
-    const prerequisiteNodeIds = JSON.parse(n.prerequisiteNodeIds);
+    const pageIds = safeParseArray(n.pageIds);
+    const prerequisiteNodeIds = safeParseArray(n.prerequisiteNodeIds);
     // Sprint 16 — surface up to 3 forum topics tagged to this node's
     // wiki pages. Lets the path overview show "Discuss" chips inline.
     const linkedTopics = forumTopicsForNode(n.id, 3);

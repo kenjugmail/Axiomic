@@ -14,7 +14,7 @@
 // pattern matching) is a follow-up; v1 just couples evidence to
 // concept slugs by string match.
 
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import {
   getDb,
@@ -56,26 +56,29 @@ export async function runDetectorForUser(userId: string): Promise<number> {
   if (mistakes.length === 0) return 0;
 
   // Resolve each mistake's nodeId → wiki page slugs (mastery_nodes.pageIds).
+  // Fetch all nodes in a single query instead of per-id round trips.
+  // The detector runs on every quiz-mistake submission + a cron tick;
+  // a user with mistakes across 40 distinct nodes was previously
+  // making 40 individual SELECTs per detector pass.
   const nodeSlugs = new Map<string, Set<string>>();
   const nodeIds = [...new Set(mistakes.map((m) => m.nodeId))];
   if (nodeIds.length > 0) {
-    for (const id of nodeIds) {
-      const node = db
-        .select({ pageIds: masteryNodes.pageIds })
-        .from(masteryNodes)
-        .where(eq(masteryNodes.id, id))
-        .get();
-      if (!node) continue;
+    const nodes = db
+      .select({ id: masteryNodes.id, pageIds: masteryNodes.pageIds })
+      .from(masteryNodes)
+      .where(inArray(masteryNodes.id, nodeIds))
+      .all();
+    for (const node of nodes) {
       try {
         const slugs = JSON.parse(node.pageIds);
         if (Array.isArray(slugs)) {
           nodeSlugs.set(
-            id,
+            node.id,
             new Set(slugs.filter((s): s is string => typeof s === "string")),
           );
         }
       } catch {
-        // ignore
+        // ignore — individual rows with malformed pageIds just skip
       }
     }
   }

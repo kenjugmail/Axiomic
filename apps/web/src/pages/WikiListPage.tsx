@@ -12,16 +12,47 @@ export function WikiListPage() {
   const activeCategory = searchParams.get("category") || "";
   const searchQuery = searchParams.get("search") || "";
 
+  // Categories are roughly static — fetch once on mount instead of
+  // on every filter/search change.
   useEffect(() => {
+    let cancelled = false;
+    fetch("/api/v1/wiki/categories")
+      .then((r) => (r.ok ? r.json() : { categories: [] }))
+      .then((catData) => {
+        if (!cancelled) setCategories(catData.categories || []);
+      })
+      .catch(() => {
+        // Silent — empty category list just means no filter chips.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Pages refetch when category / search changes. Use a cancellation
+  // flag so a fast filter-toggle sequence doesn't race: an earlier
+  // request resolving last would otherwise stomp the newer result.
+  useEffect(() => {
+    let cancelled = false;
     setLoading(true);
-    Promise.all([
-      api.wiki.list({ category: activeCategory || undefined, search: searchQuery || undefined }),
-      fetch("/api/v1/wiki/categories").then((r) => r.json()),
-    ]).then(([data, catData]) => {
-      setPages(data.pages);
-      setCategories(catData.categories || []);
-      setLoading(false);
-    });
+    api.wiki
+      .list({
+        category: activeCategory || undefined,
+        search: searchQuery || undefined,
+      })
+      .then((data) => {
+        if (cancelled) return;
+        setPages(data.pages);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setPages([]);
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [activeCategory, searchQuery]);
 
   const groupedByCategory = pages.reduce<Record<string, WikiPage[]>>((acc, page) => {
