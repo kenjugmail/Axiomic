@@ -25,10 +25,15 @@ import { conceptsRouter } from "./routes/concepts";
 import { researchRouter } from "./routes/research";
 import { researchFeedRouter } from "./routes/research-feed";
 import { paperSummaryRouter } from "./routes/paper-summary";
+import { grantsRouter } from "./routes/grants";
 import { registerJob, startJobRunner } from "./lib/jobs";
 import { ingestArxivJob } from "./jobs/ingestArxiv";
 import { ingestOpenAlexJob } from "./jobs/ingestOpenAlex";
 import { ingestPubmedJob } from "./jobs/ingestPubmed";
+import { ingestNihGrantsJob } from "./jobs/ingestNihGrants";
+import { ingestNsfGrantsJob } from "./jobs/ingestNsfGrants";
+import { ingestGrantsGovJob } from "./jobs/ingestGrantsGov";
+import { notifyGrantMatchesJob } from "./jobs/notifyGrantMatches";
 import { capstonesRouter } from "./routes/capstones";
 import { misconceptionsRouter } from "./routes/misconceptions";
 import { kernelFilesRouter } from "./routes/kernelFiles";
@@ -196,6 +201,8 @@ app.route("/concepts", conceptsRouter);
 app.route("/research", researchFeedRouter);
 app.route("/research", paperSummaryRouter);
 app.route("/research", researchRouter);
+// Sprint 71 — funding feed.
+app.route("/grants", grantsRouter);
 app.route("/capstones", capstonesRouter);
 app.route("/misconceptions", misconceptionsRouter);
 app.route("/kernel-files", kernelFilesRouter);
@@ -222,6 +229,11 @@ if (process.env.DISABLE_JOB_RUNNER !== "1") {
   registerJob(ingestArxivJob);
   registerJob(ingestOpenAlexJob);
   registerJob(ingestPubmedJob);
+  // Sprint 71 — funding feed.
+  registerJob(ingestNihGrantsJob);
+  registerJob(ingestNsfGrantsJob);
+  registerJob(ingestGrantsGovJob);
+  registerJob(notifyGrantMatchesJob);
   startJobRunner();
 }
 

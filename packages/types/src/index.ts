@@ -317,6 +317,54 @@ export interface ResearchFeedResponse {
   };
 }
 
+// Sprint 71 — Funding feed.
+export interface GrantSummary {
+  id: string;
+  source: string;
+  sourceId: string;
+  agency: string;
+  title: string;
+  summary: string;
+  mechanism: string | null;
+  amountCeiling: number | null;
+  postedAt: string | null;
+  deadlineAt: string | null;
+  url: string;
+  topics: string[];
+  bookmarked?: boolean;
+  bookmarkedAt?: string;
+}
+
+export interface GrantDetail extends GrantSummary {
+  fullDescription: string;
+}
+
+export interface GrantsListResponse {
+  items: GrantSummary[];
+  count: number;
+}
+
+export interface GrantsBookmarksResponse {
+  items: GrantSummary[];
+}
+
+export interface GrantsFeedItem {
+  grant: GrantSummary;
+  score: number;
+  vectorScore: number;
+  topicOverlap: number;
+  reason: string;
+}
+
+export interface GrantsFeedResponse {
+  personalized: boolean;
+  items: GrantsFeedItem[];
+}
+
+export interface GrantDetailResponse {
+  grant: GrantDetail;
+}
+
 export interface CreateResearchPaperRequest {
   slug: string;
   title: string;

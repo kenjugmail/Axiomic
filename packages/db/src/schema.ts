@@ -1555,6 +1555,91 @@ export const feedImpressions = sqliteTable("feed_impressions", {
 // computed from title + abstract + author list so a passthrough
 // re-fetch (no real change upstream) doesn't bust the search-index
 // embedding cache.
+// Sprint 71 — Funding feed.
+//
+// Aggregated grant opportunities pulled from NIH RePORTER, NSF Award
+// Search, and grants.gov (CDC funding flows through grants.gov so
+// there's no separate CDC table — the source column carries the
+// agency). Embedding-based matching ranks each grant against the
+// user's publication interest vector for the personalized "for you"
+// rail and the deadline-soon notification trigger.
+export const grants = sqliteTable("grants", {
+  id: text("id").primaryKey(),
+  // 'nih' | 'nsf' | 'grants_gov' (covers CDC + many others)
+  source: text("source").notNull(),
+  // Stable upstream identifier (NIH project number, NSF award ID,
+  // grants.gov OPPORTUNITY_NUMBER).
+  sourceId: text("source_id").notNull(),
+  // For grants.gov entries this carries the originating sub-agency
+  // (CDC, HHS, NSF, ED, ...). Surfaced as a filter chip.
+  agency: text("agency").notNull(),
+  title: text("title").notNull(),
+  summary: text("summary").notNull().default(""),
+  // Longer body — used for embedding + the detail-page render.
+  fullDescription: text("full_description").notNull().default(""),
+  // Mechanism / activity code — R01, K99, NSF-CAREER, OPPORTUNITY,
+  // etc. Free-text because the upstream sources don't share a
+  // taxonomy.
+  mechanism: text("mechanism"),
+  // Award ceiling in USD. Null when upstream doesn't publish one.
+  amountCeiling: integer("amount_ceiling"),
+  postedAt: text("posted_at"),
+  deadlineAt: text("deadline_at"),
+  url: text("url").notNull(),
+  topicsJson: text("topics_json").notNull().default("[]"),
+  rawJson: text("raw_json").notNull().default("{}"),
+  fetchedAt: text("fetched_at").default(sql`(datetime('now'))`).notNull(),
+  contentHash: text("content_hash").notNull(),
+}, (t) => ({
+  sourceUq: uniqueIndex("grants_source_uq").on(t.source, t.sourceId),
+  // Indexed for the "deadlines this month" filter + the
+  // notify-on-deadline cron.
+  deadlineIdx: index("grants_deadline_idx").on(t.deadlineAt),
+  agencyIdx: index("grants_agency_idx").on(t.agency, t.deadlineAt),
+}));
+
+// Save-for-later. Mirrors news_bookmarks shape so the existing
+// list/toggle UI patterns port cleanly.
+export const grantBookmarks = sqliteTable(
+  "grant_bookmarks",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    grantId: text("grant_id").notNull().references(() => grants.id, { onDelete: "cascade" }),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("grant_bookmarks_uniq_idx").on(t.userId, t.grantId),
+    userIdx: index("grant_bookmarks_user_idx").on(t.userId, t.createdAt),
+  }),
+);
+
+// Tracks which (user, grant, deadline-window) notification we've
+// already sent so the deadline cron doesn't spam the same user
+// every day. The `windowDays` column is one of 14 / 7 / 3 — when a
+// grant rolls into the next-tighter window, a new row is allowed.
+export const grantNotificationsSent = sqliteTable(
+  "grant_notifications_sent",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    grantId: text("grant_id").notNull().references(() => grants.id, { onDelete: "cascade" }),
+    // 'match' | 'deadline_soon'
+    kind: text("kind").notNull(),
+    // Only meaningful for 'deadline_soon': 14 / 7 / 3.
+    windowDays: integer("window_days"),
+    sentAt: text("sent_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("grant_notifications_sent_uniq_idx").on(
+      t.userId,
+      t.grantId,
+      t.kind,
+      t.windowDays,
+    ),
+  }),
+);
+
 export const externalPapers = sqliteTable("external_papers", {
   id: text("id").primaryKey(),
   source: text("source").notNull(), // 'arxiv' | 'openalex' | 'pubmed'

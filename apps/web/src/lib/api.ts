@@ -55,6 +55,10 @@ import type {
   ResearchPapersDraftsResponse,
   ResearchPapersListResponse,
   ResearchFeedResponse,
+  GrantsListResponse,
+  GrantsBookmarksResponse,
+  GrantsFeedResponse,
+  GrantDetailResponse,
   UpdateResearchPaperRequest,
   CapstonesListResponse,
   CapstoneResponse,
@@ -923,6 +927,39 @@ export const api = {
             generatedAt: string;
           }
       >(`/research/${slug}/summary?tier=${tier}`),
+  },
+  // Sprint 71 — Funding feed.
+  grants: {
+    list: (params?: {
+      agency?: string;
+      source?: "nih" | "nsf" | "grants_gov";
+      withinDays?: number;
+      q?: string;
+      limit?: number;
+    }) => {
+      const sp = new URLSearchParams();
+      if (params?.agency) sp.set("agency", params.agency);
+      if (params?.source) sp.set("source", params.source);
+      if (params?.withinDays != null)
+        sp.set("withinDays", String(params.withinDays));
+      if (params?.q) sp.set("q", params.q);
+      if (params?.limit) sp.set("limit", String(params.limit));
+      const qs = sp.toString();
+      return request<GrantsListResponse>(`/grants${qs ? `?${qs}` : ""}`);
+    },
+    feed: (limit?: number) => {
+      const qs = limit ? `?limit=${limit}` : "";
+      return request<GrantsFeedResponse>(`/grants/feed${qs}`);
+    },
+    get: (id: string) =>
+      request<GrantDetailResponse>(`/grants/${encodeURIComponent(id)}`),
+    bookmarks: () =>
+      request<GrantsBookmarksResponse>("/grants/me/bookmarks"),
+    toggleBookmark: (id: string) =>
+      request<{ bookmarked: boolean }>(
+        `/grants/${encodeURIComponent(id)}/bookmark`,
+        { method: "POST" },
+      ),
   },
   capstones: {
     list: (params?: { tag?: string }) => {

@@ -20,7 +20,10 @@ export type NotificationKind =
   | "track_completed"
   | "cohort_invitation"
   | "proposal_approved"
-  | "proposal_rejected";
+  | "proposal_rejected"
+  // Sprint 71 — funding feed.
+  | "grant_match"
+  | "grant_deadline_soon";
 
 export type NotificationSubject =
   | "topic"
@@ -35,7 +38,9 @@ export type NotificationSubject =
   // Sprint 52
   | "capstone_track"
   | "cohort_invitation"
-  | "content_proposal";
+  | "content_proposal"
+  // Sprint 71
+  | "grant";
 
 const MAX_MENTIONS_PER_BODY = 10;
 const PREVIEW_MAX = 140;
@@ -127,8 +132,12 @@ function kindGate(
     case "cohort_invitation":
     case "proposal_approved":
     case "proposal_rejected":
-      // News flow + follow events + admin pipeline are direct +
-      // low-volume — always on.
+    case "grant_match":
+    case "grant_deadline_soon":
+      // News flow + follow events + admin pipeline + funding
+      // alerts are direct + low-volume — always on. (A
+      // notifyFunding pref toggle is a follow-up if users start
+      // muting these.)
       return null;
   }
 }

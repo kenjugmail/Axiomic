@@ -150,6 +150,17 @@ const ResearchPaperPage = lazy(() =>
 const ResearchFeedPage = lazy(() =>
   import("./pages/ResearchFeedPage").then((m) => ({ default: m.ResearchFeedPage })),
 );
+const GrantsListPage = lazy(() =>
+  import("./pages/GrantsListPage").then((m) => ({ default: m.GrantsListPage })),
+);
+const GrantDetailPage = lazy(() =>
+  import("./pages/GrantDetailPage").then((m) => ({ default: m.GrantDetailPage })),
+);
+const GrantsBookmarksPage = lazy(() =>
+  import("./pages/GrantsBookmarksPage").then((m) => ({
+    default: m.GrantsBookmarksPage,
+  })),
+);
 const ResearchNewPage = lazy(() =>
   import("./pages/ResearchNewPage").then((m) => ({ default: m.ResearchNewPage })),
 );
@@ -338,6 +349,10 @@ function AppRoutes() {
           <Route path="/demo/attention" element={<DemoAttentionPage />} />
           <Route path="/research" element={<ResearchListPage />} />
           <Route path="/research/feed" element={<ResearchFeedPage />} />
+          {/* Sprint 71 — Funding feed. */}
+          <Route path="/grants" element={<GrantsListPage />} />
+          <Route path="/grants/me/bookmarks" element={<GrantsBookmarksPage />} />
+          <Route path="/grants/:id" element={<GrantDetailPage />} />
           <Route path="/research/new" element={<ResearchNewPage />} />
           <Route path="/research/new/wizard" element={<ResearchWizardPage />} />
           <Route path="/research/me/drafts" element={<ResearchDraftsPage />} />
