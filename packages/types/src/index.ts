@@ -3729,6 +3729,62 @@ export interface MyProgressClassStanding {
   totalMembers: number;
 }
 
+// =============================================================
+// S96 — Class question of the day.
+// =============================================================
+
+export interface ClassQuestionMyAttempt {
+  answerIndex: number;
+  correct: boolean;
+  // Surfaced only after the user has attempted; null in the
+  // unanswered case to prevent answer leakage.
+  correctIndex: number;
+}
+
+export interface ClassQuestionActive {
+  id: string;
+  prompt: string;
+  choices: string[];
+  startsAt: string;
+  myAttempt: ClassQuestionMyAttempt | null;
+}
+
+export interface ClassQuestionActiveResponse {
+  question: ClassQuestionActive | null;
+}
+
+export interface CreateClassQuestionRequest {
+  prompt: string;
+  choices: string[];
+  correctIndex: number;
+}
+
+export interface AnswerClassQuestionRequest {
+  answerIndex: number;
+}
+
+export interface AnswerClassQuestionResponse {
+  correct: boolean;
+  correctIndex: number;
+  xpAwarded: number;
+}
+
+// Instructor list — includes correctIndex and stats.
+export interface ClassQuestionListItem {
+  id: string;
+  prompt: string;
+  choices: string[];
+  correctIndex: number;
+  startsAt: string;
+  endsAt: string | null;
+  attempts: number;
+  correctCount: number;
+}
+
+export interface ClassQuestionListResponse {
+  questions: ClassQuestionListItem[];
+}
+
 export interface MyProgressResponse {
   lifetimeXp: number;
   streak: number;

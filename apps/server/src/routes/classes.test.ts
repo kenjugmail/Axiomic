@@ -1195,7 +1195,7 @@ describe("S95 daily-featured shop rotation", () => {
     expect(data.featuredDiscountPercent).toBe(50);
     const featured = data.items.find((i) => i.featured);
     expect(featured).toBeDefined();
-    expect(featured?.slug).toBe(data.featuredSlug);
+    expect(featured?.slug).toBe(data.featuredSlug ?? "");
     // Discount: ceil(xpCost * 0.5)
     expect(featured?.effectiveCost).toBe(Math.ceil(featured!.xpCost * 0.5));
     // Non-featured items keep their full price.
@@ -1268,6 +1268,196 @@ describe("S95 daily-featured shop rotation", () => {
     const bal = await req("/me/pet/balance", { headers: cookieHeader(student.cookie) });
     const balData = (await bal.json()) as { spentXp: number };
     expect(balData.spentXp).toBe(featured.effectiveCost);
+  });
+});
+
+describe("S96 class question of the day", () => {
+  test("non-instructor cannot create a question (403)", async () => {
+    const instructor = await signup("qinst1");
+    const student = await signup("qstud1");
+    const slug = `cls-q-acl-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    const res = await req(`/classes/${slug}/questions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({
+        prompt: "What is 2 + 2?",
+        choices: ["3", "4", "5"],
+        correctIndex: 1,
+      }),
+    });
+    expect(res.status).toBe(403);
+  });
+
+  test("active GET returns question without correctIndex; correct answer grants XP", async () => {
+    const instructor = await signup("qinst2");
+    const student = await signup("qstud2");
+    const slug = `cls-q-flow-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    const create = await req(`/classes/${slug}/questions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        prompt: "Capital of France?",
+        choices: ["Berlin", "Paris", "Madrid"],
+        correctIndex: 1,
+      }),
+    });
+    expect(create.status).toBe(201);
+    const { questionId } = (await create.json()) as { questionId: string };
+
+    // Active GET — no correctIndex on a fresh fetch.
+    const active = await req(`/classes/${slug}/questions/active`, {
+      headers: cookieHeader(student.cookie),
+    });
+    const aData = (await active.json()) as {
+      question: { id: string; choices: string[]; myAttempt: unknown };
+    };
+    expect(aData.question.id).toBe(questionId);
+    expect(aData.question.myAttempt).toBeNull();
+    // No correctIndex leaked.
+    expect((aData.question as Record<string, unknown>).correctIndex).toBeUndefined();
+
+    // Submit correct.
+    const ans = await req(`/classes/${slug}/questions/${questionId}/answer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ answerIndex: 1 }),
+    });
+    expect(ans.status).toBe(200);
+    const ansData = (await ans.json()) as { correct: boolean; xpAwarded: number };
+    expect(ansData.correct).toBe(true);
+    expect(ansData.xpAwarded).toBe(15);
+
+    // Active GET now includes myAttempt with correctIndex.
+    const after = await req(`/classes/${slug}/questions/active`, {
+      headers: cookieHeader(student.cookie),
+    });
+    const afterData = (await after.json()) as {
+      question: { myAttempt: { correct: boolean; correctIndex: number } | null };
+    };
+    expect(afterData.question.myAttempt?.correct).toBe(true);
+    expect(afterData.question.myAttempt?.correctIndex).toBe(1);
+  });
+
+  test("re-answering returns 409", async () => {
+    const instructor = await signup("qinst3");
+    const student = await signup("qstud3");
+    const slug = `cls-q-dup-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    const create = await req(`/classes/${slug}/questions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        prompt: "Quick check",
+        choices: ["a", "b"],
+        correctIndex: 0,
+      }),
+    });
+    const { questionId } = (await create.json()) as { questionId: string };
+    await req(`/classes/${slug}/questions/${questionId}/answer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ answerIndex: 1 }),
+    });
+    const dup = await req(`/classes/${slug}/questions/${questionId}/answer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ answerIndex: 0 }),
+    });
+    expect(dup.status).toBe(409);
+  });
+
+  test("publishing a new question auto-closes the previous one", async () => {
+    const instructor = await signup("qinst4");
+    const student = await signup("qrotatestud");
+    const slug = `cls-q-rotate-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    const c1 = await req(`/classes/${slug}/questions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ prompt: "First question", choices: ["a", "b"], correctIndex: 0 }),
+    });
+    const { questionId: q1Id } = (await c1.json()) as { questionId: string };
+    await req(`/classes/${slug}/questions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ prompt: "Second question", choices: ["x", "y"], correctIndex: 1 }),
+    });
+    // Active GET — student is enrolled so they can see it.
+    const active = await req(`/classes/${slug}/questions/active`, {
+      headers: cookieHeader(student.cookie),
+    });
+    const aData = (await active.json()) as { question: { prompt: string } | null };
+    expect(aData.question?.prompt).toBe("Second question");
+    // Trying to answer the first should now fail with "closed".
+    const ans = await req(`/classes/${slug}/questions/${q1Id}/answer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ answerIndex: 0 }),
+    });
+    expect(ans.status).toBe(400);
+  });
+
+  test("instructor list includes attempt + correct counts", async () => {
+    const instructor = await signup("qinst5");
+    const a = await signup("qstuda");
+    const b = await signup("qstudb");
+    const slug = `cls-q-stats-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    for (const s of [a, b]) {
+      await req(`/classes/${slug}/enroll`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(s.cookie) },
+        body: JSON.stringify({ joinCode: created.joinCode }),
+      });
+    }
+    const create = await req(`/classes/${slug}/questions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ prompt: "Stats question", choices: ["a", "b", "c"], correctIndex: 2 }),
+    });
+    const { questionId } = (await create.json()) as { questionId: string };
+    // a correct, b wrong.
+    await req(`/classes/${slug}/questions/${questionId}/answer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(a.cookie) },
+      body: JSON.stringify({ answerIndex: 2 }),
+    });
+    await req(`/classes/${slug}/questions/${questionId}/answer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(b.cookie) },
+      body: JSON.stringify({ answerIndex: 0 }),
+    });
+    const list = await req(`/classes/${slug}/questions`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    const lData = (await list.json()) as {
+      questions: Array<{ id: string; attempts: number; correctCount: number }>;
+    };
+    const row = lData.questions.find((q) => q.id === questionId);
+    expect(row?.attempts).toBe(2);
+    expect(row?.correctCount).toBe(1);
   });
 });
 

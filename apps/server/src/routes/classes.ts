@@ -19,6 +19,8 @@ import {
   classAttendance,
   classCompetitions,
   classEnrollments,
+  classQuestions,
+  classQuestionAttempts,
   classTaskCompletions,
   classTasks,
   classes,
@@ -1743,6 +1745,219 @@ classesRouter.get(
       totalEnrolled,
       stalledThresholdDays: STALLED_THRESHOLD_DAYS,
       windowDays: ANALYTICS_DAY_WINDOW,
+    });
+  },
+);
+
+// --- class question of the day (S96) -------------------------------
+//
+// Instructor-authored multiple-choice question scoped to one class.
+// One question is "active" at a time per class — publishing a new
+// one auto-closes the previous (sets endsAt = now). Students get
+// one attempt; the right answer grants XP via the existing
+// class-scoped grant flow so it shows up on the class leaderboard.
+
+const createQuestionSchema = z.object({
+  prompt: z.string().min(3).max(500),
+  choices: z.array(z.string().min(1).max(200)).min(2).max(8),
+  correctIndex: z.number().int().min(0).max(7),
+}).refine((d) => d.correctIndex < d.choices.length, {
+  message: "correctIndex must point to one of the choices",
+  path: ["correctIndex"],
+});
+
+const answerQuestionSchema = z.object({
+  answerIndex: z.number().int().min(0).max(7),
+});
+
+classesRouter.post(
+  "/:slug/questions",
+  requireAuth,
+  requireInstructorOrTa,
+  zValidator("json", createQuestionSchema),
+  async (c) => {
+    const cls = c.get("classRow");
+    const author = c.get("user")!;
+    const { prompt, choices, correctIndex } = c.req.valid("json");
+    const db = getDb();
+
+    db.update(classQuestions)
+      .set({ endsAt: new Date().toISOString() })
+      .where(and(eq(classQuestions.classId, cls.id), sql`${classQuestions.endsAt} is null`))
+      .run();
+
+    const id = randomUUID();
+    db.insert(classQuestions)
+      .values({
+        id,
+        classId: cls.id,
+        authorId: author.id,
+        prompt: prompt.trim(),
+        choicesJson: JSON.stringify(choices),
+        correctIndex,
+      })
+      .run();
+    return c.json({ questionId: id }, 201);
+  },
+);
+
+classesRouter.get(
+  "/:slug/questions/active",
+  requireAuth,
+  requireEnrolledInClass,
+  async (c) => {
+    const cls = c.get("classRow");
+    const me = c.get("user")!;
+    const db = getDb();
+    const q = db
+      .select()
+      .from(classQuestions)
+      .where(and(eq(classQuestions.classId, cls.id), sql`${classQuestions.endsAt} is null`))
+      .orderBy(desc(classQuestions.createdAt))
+      .get();
+    if (!q) return c.json({ question: null });
+
+    const myAttempt = db
+      .select()
+      .from(classQuestionAttempts)
+      .where(
+        and(
+          eq(classQuestionAttempts.questionId, q.id),
+          eq(classQuestionAttempts.userId, me.id),
+        ),
+      )
+      .get();
+
+    return c.json({
+      question: {
+        id: q.id,
+        prompt: q.prompt,
+        choices: JSON.parse(q.choicesJson) as string[],
+        startsAt: q.startsAt,
+        myAttempt: myAttempt
+          ? {
+              answerIndex: myAttempt.answerIndex,
+              correct: myAttempt.correct,
+              correctIndex: q.correctIndex,
+            }
+          : null,
+      },
+    });
+  },
+);
+
+classesRouter.post(
+  "/:slug/questions/:questionId/answer",
+  requireAuth,
+  requireEnrolledInClass,
+  zValidator("json", answerQuestionSchema),
+  async (c) => {
+    const cls = c.get("classRow");
+    const me = c.get("user")!;
+    const questionId = c.req.param("questionId")!;
+    const { answerIndex } = c.req.valid("json");
+    const db = getDb();
+
+    const q = db
+      .select()
+      .from(classQuestions)
+      .where(eq(classQuestions.id, questionId))
+      .get();
+    if (!q || q.classId !== cls.id) {
+      return c.json({ error: "Question not found" }, 404);
+    }
+    if (q.endsAt) return c.json({ error: "Question is closed" }, 400);
+
+    const choices = JSON.parse(q.choicesJson) as string[];
+    if (answerIndex >= choices.length) {
+      return c.json({ error: "answerIndex out of range" }, 400);
+    }
+
+    const existing = db
+      .select({ id: classQuestionAttempts.id })
+      .from(classQuestionAttempts)
+      .where(
+        and(
+          eq(classQuestionAttempts.questionId, q.id),
+          eq(classQuestionAttempts.userId, me.id),
+        ),
+      )
+      .get();
+    if (existing) return c.json({ error: "Already answered" }, 409);
+
+    const correct = answerIndex === q.correctIndex;
+    db.insert(classQuestionAttempts)
+      .values({
+        id: randomUUID(),
+        questionId: q.id,
+        userId: me.id,
+        answerIndex,
+        correct,
+      })
+      .run();
+
+    let xpAwarded = 0;
+    if (correct) {
+      const r = grantXp({
+        userId: me.id,
+        classId: cls.id,
+        source: "class-question-correct",
+        sourceRefId: q.id,
+      });
+      xpAwarded = r.amount;
+    }
+
+    return c.json({
+      correct,
+      correctIndex: q.correctIndex,
+      xpAwarded,
+    });
+  },
+);
+
+classesRouter.get(
+  "/:slug/questions",
+  requireAuth,
+  requireInstructorOrTa,
+  async (c) => {
+    const cls = c.get("classRow");
+    const db = getDb();
+    const rows = db
+      .select()
+      .from(classQuestions)
+      .where(eq(classQuestions.classId, cls.id))
+      .orderBy(desc(classQuestions.createdAt))
+      .all();
+
+    const ids = rows.map((r) => r.id);
+    const stats = ids.length
+      ? db
+          .select({
+            questionId: classQuestionAttempts.questionId,
+            attempts: sql<number>`count(*)`,
+            correct: sql<number>`sum(case when ${classQuestionAttempts.correct} = 1 then 1 else 0 end)`,
+          })
+          .from(classQuestionAttempts)
+          .where(inArray(classQuestionAttempts.questionId, ids))
+          .groupBy(classQuestionAttempts.questionId)
+          .all()
+      : [];
+    const statsByQ = new Map(stats.map((s) => [s.questionId, s]));
+
+    return c.json({
+      questions: rows.map((r) => {
+        const s = statsByQ.get(r.id);
+        return {
+          id: r.id,
+          prompt: r.prompt,
+          choices: JSON.parse(r.choicesJson) as string[],
+          correctIndex: r.correctIndex,
+          startsAt: r.startsAt,
+          endsAt: r.endsAt,
+          attempts: Number(s?.attempts ?? 0),
+          correctCount: Number(s?.correct ?? 0),
+        };
+      }),
     });
   },
 );

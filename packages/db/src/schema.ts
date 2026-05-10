@@ -2557,3 +2557,50 @@ export const xpPurchases = sqliteTable("xp_purchases", {
 }, (t) => ({
   userIdx: index("xp_purchases_user_idx").on(t.userId, t.createdAt),
 }));
+
+// =============================================================
+// S96 — Class-scoped "question of the day".
+// =============================================================
+//
+// Instructor-authored multiple-choice question that lives at the
+// class level. Reuses the per-class membership + role gating from
+// S86; reuses the daily-challenge submission shape from
+// gamification.ts. Students get one shot per question (no retry on
+// wrong) — emphasizes engagement rather than mastery so the XP
+// reward is small.
+export const classQuestions = sqliteTable("class_questions", {
+  id: text("id").primaryKey(),
+  classId: text("class_id").notNull()
+    .references(() => classes.id, { onDelete: "cascade" }),
+  authorId: text("author_id").notNull().references(() => users.id),
+  prompt: text("prompt").notNull(),
+  // JSON array of choice strings; min 2, max 8 enforced at the
+  // route layer.
+  choicesJson: text("choices_json").notNull(),
+  // 0-indexed into choices.
+  correctIndex: integer("correct_index").notNull(),
+  // Null endsAt = no automatic close. Closing is by explicit POST or
+  // by the next question being published in the same class.
+  startsAt: text("starts_at").default(sql`(datetime('now'))`).notNull(),
+  endsAt: text("ends_at"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  classActiveIdx: index("class_questions_class_active_idx").on(t.classId, t.endsAt),
+}));
+
+// One-shot attempts. Unique per (question, user) so re-submission
+// is rejected at the data layer. correct=true grants XP; the
+// wrong-answer path still records the attempt so the instructor
+// can see who tried.
+export const classQuestionAttempts = sqliteTable("class_question_attempts", {
+  id: text("id").primaryKey(),
+  questionId: text("question_id").notNull()
+    .references(() => classQuestions.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id),
+  answerIndex: integer("answer_index").notNull(),
+  correct: integer("correct", { mode: "boolean" }).notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  uniq: uniqueIndex("class_question_attempts_uniq").on(t.questionId, t.userId),
+  questionIdx: index("class_question_attempts_question_idx").on(t.questionId),
+}));

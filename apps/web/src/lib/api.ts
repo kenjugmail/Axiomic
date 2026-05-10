@@ -213,6 +213,12 @@ import type {
   ClassAnalyticsResponse,
   // S94 — student progress dashboard.
   MyProgressResponse,
+  // S96 — class question of the day.
+  ClassQuestionActiveResponse,
+  ClassQuestionListResponse,
+  CreateClassQuestionRequest,
+  AnswerClassQuestionRequest,
+  AnswerClassQuestionResponse,
 } from "@axiomic/types";
 
 const BASE = "/api/v1";
@@ -1297,6 +1303,21 @@ export const api = {
     // S93 — instructor analytics dashboard.
     analytics: (slug: string) =>
       request<ClassAnalyticsResponse>(`/classes/${slug}/analytics`),
+    // S96 — class question of the day.
+    activeQuestion: (slug: string) =>
+      request<ClassQuestionActiveResponse>(`/classes/${slug}/questions/active`),
+    listQuestions: (slug: string) =>
+      request<ClassQuestionListResponse>(`/classes/${slug}/questions`),
+    createQuestion: (slug: string, data: CreateClassQuestionRequest) =>
+      request<{ questionId: string }>(`/classes/${slug}/questions`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    answerQuestion: (slug: string, questionId: string, data: AnswerClassQuestionRequest) =>
+      request<AnswerClassQuestionResponse>(`/classes/${slug}/questions/${questionId}/answer`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
   },
   pet: {
     me: () => request<MyPetResponse>("/me/pet"),

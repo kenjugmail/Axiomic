@@ -34,6 +34,7 @@ import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { Leaderboard } from "../components/class/Leaderboard";
 import { AttendanceGrid } from "../components/class/AttendanceGrid";
 import { CompetitionsList } from "../components/class/CompetitionsList";
+import { ClassQuestionWidget } from "../components/class/ClassQuestionWidget";
 import { toast } from "../stores/toast";
 
 type Tab = "tasks" | "leaderboard" | "competitions" | "roster" | "attendance";
@@ -202,6 +203,10 @@ export function ClassPage() {
 
       {tab === "tasks" && (
         <section>
+          {/* S96 — class question of the day. Renders nothing for
+              students when no question is active; instructors get
+              an inline compose affordance. */}
+          <ClassQuestionWidget classSlug={slug} myRole={data.myRole} />
           {isInstructorOrTa && (
             <div className="mb-3 flex justify-end">
               <button

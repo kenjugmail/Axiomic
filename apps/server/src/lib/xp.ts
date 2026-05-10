@@ -36,6 +36,10 @@ export const XP_AMOUNTS = {
   // quiz-passed grant (12) since the daily challenge is a single
   // shot — once per day, no retries.
   "daily-challenge-correct": 25,
+  // S96 — class question of the day. Smaller than the global daily
+  // challenge (smaller community, instructor may push several per
+  // week) but bigger than a regular quiz pass.
+  "class-question-correct": 15,
 } as const;
 
 // Sources with default amounts in XP_AMOUNTS.
