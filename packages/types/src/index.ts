@@ -3553,6 +3553,32 @@ export interface MyPetResponse {
   totalXp: number;
   hatchThresholdXp: number;
   inventory: PetInventoryItem[];
+  // S104 — multi-pet. Lists every pet the user owns so the UI can
+  // render a swap strip; `pet` above is the currently-active one.
+  // petCap is the per-user cap (3 in v1); nextHatchXp is the XP
+  // threshold to hatch the user's next pet, or null when at cap.
+  pets: Array<{
+    id: string;
+    species: string;
+    speciesLabel: string;
+    speciesEmoji: string;
+    level: number;
+    name: string;
+    hatchedAt: string;
+    isActive: boolean;
+  }>;
+  petCap: number;
+  nextHatchXp: number | null;
+}
+
+export interface HatchAnotherPetResponse {
+  ok: true;
+  pet: {
+    id: string;
+    species: string;
+    name: string;
+    level: number;
+  };
 }
 
 // =============================================================

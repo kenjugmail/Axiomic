@@ -24,11 +24,13 @@ import { requireAuth } from "../middleware/auth";
 import { totalXpForUser, xpBalanceForUser, PET_HATCH_THRESHOLD_XP } from "../lib/xp";
 import {
   petSpeciesBySlug,
+  randomPetSpecies,
   emojiForSpeciesAtLevel,
   xpForNextLevel,
   MAX_PET_LEVEL,
   PET_LEVEL_THRESHOLDS,
 } from "../lib/pets";
+import { notify } from "../lib/notifications";
 import type { Env } from "../env";
 
 export const petRouter = new Hono<Env>();
@@ -43,7 +45,30 @@ const equipSchema = z.object({
 
 const renameSchema = z.object({
   name: z.string().min(1).max(40),
+  // S104 — optional petId so users with multiple pets can rename a
+  // non-active one without first activating it. Defaults to active.
+  petId: z.string().min(1).max(64).optional(),
 });
+
+// S104 — multi-pet tuning. Cap at 3 pets to keep the UI digestible
+// and prevent XP-farming-for-collection. Hatch thresholds escalate
+// to match the user's own level progression — the second pet
+// unlocks at level-2 XP (250) and the third at level-3 XP (750),
+// so "hatching another pet" feels paced with the player's growth
+// rather than as a separate grind.
+export const MAX_PETS_PER_USER = 3;
+const ADDITIONAL_HATCH_THRESHOLDS: number[] = [
+  PET_HATCH_THRESHOLD_XP, // pet 1: 50 XP (existing default)
+  250,                    // pet 2
+  750,                    // pet 3
+];
+
+// Returns the XP threshold for the user's NEXT hatch given how many
+// pets they already own. Null when at cap.
+export function nextHatchThreshold(currentPetCount: number): number | null {
+  if (currentPetCount >= MAX_PETS_PER_USER) return null;
+  return ADDITIONAL_HATCH_THRESHOLDS[currentPetCount] ?? null;
+}
 
 // GET /me/pet — pet + inventory + total XP + threshold so the UI
 // can show "X more XP until your pet hatches" before the first
@@ -52,11 +77,22 @@ petRouter.get("/", requireAuth, (c) => {
   const user = c.get("user")!;
   const db = getDb();
 
-  const pet = db
+  // S104 — pet is now the user's ACTIVE pet (one of possibly many).
+  // The pets array further down surfaces every pet they own.
+  const userRow = db
+    .select({ activePetId: users.activePetId })
+    .from(users)
+    .where(eq(users.id, user.id))
+    .get();
+  const activePetId = userRow?.activePetId ?? null;
+  const allPets = db
     .select()
     .from(pets)
     .where(eq(pets.userId, user.id))
-    .get();
+    .all();
+  const pet = activePetId
+    ? allPets.find((p) => p.id === activePetId) ?? allPets[0] ?? null
+    : allPets[0] ?? null;
   const totalXp = totalXpForUser(user.id);
 
   // Inventory: join against the catalog so the response is
@@ -128,6 +164,29 @@ petRouter.get("/", requireAuth, (c) => {
       : null,
     totalXp,
     hatchThresholdXp: PET_HATCH_THRESHOLD_XP,
+    // S104 — full pet list so the UI can render the swap strip.
+    // Sorted oldest-hatched first so the user's first pet is on the
+    // left of the strip.
+    pets: allPets
+      .slice()
+      .sort((a, b) => (a.hatchedAt < b.hatchedAt ? -1 : 1))
+      .map((p) => {
+        const meta = petSpeciesBySlug(p.species);
+        return {
+          id: p.id,
+          species: p.species,
+          speciesLabel: meta?.label ?? p.species,
+          speciesEmoji: emojiForSpeciesAtLevel(p.species, p.level),
+          level: p.level,
+          name: p.name,
+          hatchedAt: p.hatchedAt,
+          isActive: p.id === pet?.id,
+        };
+      }),
+    petCap: MAX_PETS_PER_USER,
+    // null when at cap or no more thresholds; otherwise the XP
+    // threshold for the user's next hatch.
+    nextHatchXp: nextHatchThreshold(allPets.length),
     inventory,
   });
 });
@@ -221,26 +280,159 @@ petRouter.post(
   },
 );
 
-// PUT /me/pet/name — rename the pet.
+// PUT /me/pet/name — rename a pet (defaults to active).
+// S104 — accepts optional petId so a user with multiple pets can
+// rename any of them. The pet must belong to the caller.
 petRouter.put(
   "/name",
   requireAuth,
   zValidator("json", renameSchema),
   (c) => {
     const user = c.get("user")!;
-    const { name } = c.req.valid("json");
+    const { name, petId } = c.req.valid("json");
     const db = getDb();
-    const pet = db
-      .select({ id: pets.id })
-      .from(pets)
-      .where(eq(pets.userId, user.id))
-      .get();
-    if (!pet) {
-      return c.json({ error: "No pet yet — earn XP to hatch one" }, 404);
+    let targetPet: { id: string } | undefined;
+    if (petId) {
+      const row = db
+        .select({ id: pets.id, userId: pets.userId })
+        .from(pets)
+        .where(eq(pets.id, petId))
+        .get();
+      if (!row || row.userId !== user.id) {
+        return c.json({ error: "Pet not found" }, 404);
+      }
+      targetPet = { id: row.id };
+    } else {
+      const userRow = db
+        .select({ activePetId: users.activePetId })
+        .from(users)
+        .where(eq(users.id, user.id))
+        .get();
+      if (!userRow?.activePetId) {
+        return c.json({ error: "No pet yet — earn XP to hatch one" }, 404);
+      }
+      targetPet = { id: userRow.activePetId };
     }
     db.update(pets)
       .set({ name: name.trim() })
-      .where(eq(pets.id, pet.id))
+      .where(eq(pets.id, targetPet.id))
+      .run();
+    return c.json({ ok: true });
+  },
+);
+
+// =================================================================
+// S104 — Multi-pet.
+// =================================================================
+//
+// petRouter is mounted at /me/pet in apps/server/src/index.ts, so
+// the full path here is POST /me/pet/hatch-another. Manually
+// hatches an additional pet once the user has earned enough
+// lifetime XP. The first hatch is still automatic via maybeHatchPet
+// on grantXp; this route is for subsequent pets so users opt in
+// (the random species is a surprise they want to summon, not have
+// surprise-spammed at them when a milestone trips the threshold).
+//
+// Auto-activates the new pet so the swap strip's "+" button flips
+// the hero pet immediately.
+petRouter.post("/hatch-another", requireAuth, (c) => {
+  const user = c.get("user")!;
+  const db = getDb();
+
+  const owned = db
+    .select({ id: pets.id })
+    .from(pets)
+    .where(eq(pets.userId, user.id))
+    .all();
+  if (owned.length === 0) {
+    // First pet should land via auto-hatch on grantXp; if the user
+    // is here without any pet, send them through that path.
+    return c.json({ error: "Earn XP to hatch your first pet automatically" }, 400);
+  }
+  if (owned.length >= MAX_PETS_PER_USER) {
+    return c.json({ error: "Pet cap reached", petCap: MAX_PETS_PER_USER }, 409);
+  }
+  const threshold = nextHatchThreshold(owned.length);
+  if (threshold == null) {
+    return c.json({ error: "No more hatches available" }, 409);
+  }
+  const totalXp = totalXpForUser(user.id);
+  if (totalXp < threshold) {
+    return c.json(
+      { error: "Need more XP to hatch another pet", totalXp, threshold },
+      402,
+    );
+  }
+
+  const species = randomPetSpecies();
+  const petId = randomUUID();
+  db.transaction((tx) => {
+    tx.insert(pets)
+      .values({
+        id: petId,
+        userId: user.id,
+        species: species.slug,
+        name: species.label,
+      })
+      .run();
+    // Auto-activate the new pet so the swap strip flips.
+    tx.update(users)
+      .set({ activePetId: petId })
+      .where(eq(users.id, user.id))
+      .run();
+  });
+
+  // Surface in the bell — reuses the pet_hatched kind from S88.
+  void notify({
+    recipientId: user.id,
+    actorId: null,
+    kind: "pet_hatched",
+    subjectType: "pet",
+    subjectId: petId,
+    contextSlug: null,
+    preview: `A new ${species.label} hatched!`,
+  });
+
+  return c.json(
+    {
+      ok: true,
+      pet: {
+        id: petId,
+        species: species.slug,
+        name: species.label,
+        level: 1,
+      },
+    },
+    201,
+  );
+});
+
+// POST /me/pet/activate — switch the active pet. The pet must
+// belong to the caller; otherwise 404 (same status as a missing
+// pet to avoid leaking which pet ids exist on other users).
+const activateSchema = z.object({
+  petId: z.string().min(1).max(64),
+});
+
+petRouter.post(
+  "/activate",
+  requireAuth,
+  zValidator("json", activateSchema),
+  (c) => {
+    const user = c.get("user")!;
+    const { petId } = c.req.valid("json");
+    const db = getDb();
+    const row = db
+      .select({ id: pets.id, userId: pets.userId })
+      .from(pets)
+      .where(eq(pets.id, petId))
+      .get();
+    if (!row || row.userId !== user.id) {
+      return c.json({ error: "Pet not found" }, 404);
+    }
+    db.update(users)
+      .set({ activePetId: petId })
+      .where(eq(users.id, user.id))
       .run();
     return c.json({ ok: true });
   },
@@ -267,17 +459,21 @@ export const petPublicRouter = new Hono<Env>();
 petPublicRouter.get("/:username/pet-display", (c) => {
   const username = c.req.param("username")!;
   const db = getDb();
+  // S104 — scope to the user's ACTIVE pet. The user may own
+  // multiple now; bylines and tooltips render whichever they've
+  // chosen as their main.
   const user = db
-    .select({ id: users.id })
+    .select({ id: users.id, activePetId: users.activePetId })
     .from(users)
     .where(eq(users.username, username))
     .get();
   if (!user) return c.json({ pet: null });
+  if (!user.activePetId) return c.json({ pet: null });
 
   const pet = db
     .select()
     .from(pets)
-    .where(eq(pets.userId, user.id))
+    .where(eq(pets.id, user.activePetId))
     .get();
   if (!pet) return c.json({ pet: null });
 
@@ -634,8 +830,12 @@ petPublicRouter.get("/:username/cosmetics-gallery", (c) => {
 petPublicRouter.get("/showcase", (c) => {
   const db = getDb();
 
-  // mostDecorated: user → equipped count. Join pets so we can
-  // include species + level for the renderer.
+  // mostDecorated: user → equipped count. Join from users so we
+  // surface ONE row per user (the active pet); pre-S104 the unique
+  // index on pets.userId made this safe by accident. Now that
+  // users can own multiple pets, the join goes via users.activePetId
+  // so the showcase shows the pet the user actually picked as their
+  // public face.
   const decoratedRows = db
     .select({
       userId: pets.userId,
@@ -646,8 +846,8 @@ petPublicRouter.get("/showcase", (c) => {
       level: pets.level,
       equippedCount: sql<number>`coalesce((select count(*) from pet_inventory pi where pi.user_id = ${pets.userId} and pi.equipped = 1), 0)`,
     })
-    .from(pets)
-    .innerJoin(users, eq(users.id, pets.userId))
+    .from(users)
+    .innerJoin(pets, eq(pets.id, users.activePetId))
     .orderBy(
       desc(sql`coalesce((select count(*) from pet_inventory pi where pi.user_id = ${pets.userId} and pi.equipped = 1), 0)`),
       desc(pets.level),
@@ -701,8 +901,10 @@ petPublicRouter.get("/showcase", (c) => {
     equippedCount: Number(r.equippedCount),
   }));
 
-  // recentTopLevel: users at level >= 2, ordered by hatchedAt desc
-  // as a proxy for "recently active" (we don't store leveledAt).
+  // recentTopLevel: users with their ACTIVE pet at level >= 2,
+  // ordered by hatchedAt desc as a proxy for "recently active" (we
+  // don't store leveledAt). S104 — scoped to active pet so a user
+  // can't surface 3 different rows from owning 3 pets.
   const topLevelRows = db
     .select({
       userId: pets.userId,
@@ -713,8 +915,8 @@ petPublicRouter.get("/showcase", (c) => {
       level: pets.level,
       hatchedAt: pets.hatchedAt,
     })
-    .from(pets)
-    .innerJoin(users, eq(users.id, pets.userId))
+    .from(users)
+    .innerJoin(pets, eq(pets.id, users.activePetId))
     .where(sql`${pets.level} >= 2`)
     .orderBy(desc(pets.hatchedAt))
     .limit(SHOWCASE_LIMIT)

@@ -198,6 +198,7 @@ import type {
   RecordAttendanceRequest,
   GrantCosmeticRequest,
   MyPetResponse,
+  HatchAnotherPetResponse,
   PetCosmeticsCatalogResponse,
   // S87 — competitions + per-username pet display.
   CompetitionsListResponse,
@@ -1348,6 +1349,17 @@ export const api = {
   pet: {
     me: () => request<MyPetResponse>("/me/pet"),
     catalog: () => request<PetCosmeticsCatalogResponse>("/pet-cosmetics"),
+    // S104 — manually hatch the user's NEXT pet (first pet is still
+    // auto-hatched by grantXp). Activates the new pet on success.
+    hatchAnother: () =>
+      request<HatchAnotherPetResponse>("/me/pet/hatch-another", { method: "POST" }),
+    // S104 — switch the user's active pet. The pet must belong to
+    // the caller; server enforces.
+    activate: (petId: string) =>
+      request<OkResponse>("/me/pet/activate", {
+        method: "POST",
+        body: JSON.stringify({ petId }),
+      }),
     // S87 — per-username pet display, used by PetByUsername wrapper.
     byUsername: (username: string) =>
       request<UserPetDisplay>(`/users/${encodeURIComponent(username)}/pet-display`),

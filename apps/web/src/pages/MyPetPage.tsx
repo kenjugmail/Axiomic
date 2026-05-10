@@ -10,6 +10,7 @@ import { api, ApiError } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
 import { PetView } from "../components/pet/PetView";
+import { PetSwapStrip } from "../components/pet/PetSwapStrip";
 import { EvolutionChain } from "../components/pet/EvolutionChain";
 import { CosmeticChip } from "../components/pet/CosmeticChip";
 import { toast } from "../stores/toast";
@@ -105,6 +106,19 @@ export function MyPetPage() {
         Hatched at {data.hatchThresholdXp} XP. Earn more XP by completing class tasks
         and platform engagement (lessons, quizzes, code questions).
       </p>
+
+      {/* S104 — multi-pet strip. Renders above the hero so the
+          user sees their whole roster + the next-hatch affordance
+          at a glance. Hides itself pre-hatch. */}
+      {data.pet && (
+        <PetSwapStrip
+          pets={data.pets}
+          totalXp={data.totalXp}
+          petCap={data.petCap}
+          nextHatchXp={data.nextHatchXp}
+          onChanged={() => reload()}
+        />
+      )}
 
       {/* Pet preview / hatching prompt */}
       {data.pet ? (

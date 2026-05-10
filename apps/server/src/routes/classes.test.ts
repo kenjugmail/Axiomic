@@ -1271,6 +1271,244 @@ describe("S95 daily-featured shop rotation", () => {
   });
 });
 
+describe("S104 multi-pet", () => {
+  test("first auto-hatch sets the new pet as active; GET /me/pet returns pets[] with isActive flag", async () => {
+    const instructor = await signup("mpinst1");
+    const student = await signup("mpstud1");
+    const slug = `cls-mp-first-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    // Trigger first hatch via graded homework.
+    const t = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ kind: "homework", title: "PSet" }),
+    });
+    const { taskId } = (await t.json()) as { taskId: string };
+    await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ content: "Submission long enough." }),
+    });
+    await req(`/classes/${slug}/tasks/${taskId}/grade/${student.userId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ pass: true }),
+    });
+    const me = await req("/me/pet", { headers: cookieHeader(student.cookie) });
+    const data = (await me.json()) as {
+      pet: { id: string } | null;
+      pets: Array<{ id: string; isActive: boolean }>;
+      petCap: number;
+      nextHatchXp: number | null;
+    };
+    expect(data.pet).not.toBeNull();
+    expect(data.pets.length).toBe(1);
+    expect(data.pets[0].isActive).toBe(true);
+    expect(data.pets[0].id).toBe(data.pet!.id);
+    expect(data.petCap).toBe(3);
+    expect(data.nextHatchXp).toBe(250);
+  });
+
+  test("hatch-another requires sufficient XP (402 below threshold, success above)", async () => {
+    const instructor = await signup("mpinst2");
+    const student = await signup("mpstud2");
+    const slug = `cls-mp-thresh-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    // Earn a small amount of XP — enough to auto-hatch the first
+    // pet but not enough for the second (need 250).
+    const t = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ kind: "homework", title: "PSet0" }),
+    });
+    const { taskId } = (await t.json()) as { taskId: string };
+    await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ content: "Submission long enough." }),
+    });
+    await req(`/classes/${slug}/tasks/${taskId}/grade/${student.userId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ pass: true }),
+    });
+    // First hatch-another should 402 (insufficient XP).
+    const tooEarly = await req("/me/pet/hatch-another", {
+      method: "POST",
+      headers: cookieHeader(student.cookie),
+    });
+    expect(tooEarly.status).toBe(402);
+
+    // Earn more XP — push past 250 total.
+    for (let i = 0; i < 5; i++) {
+      const t2 = await req(`/classes/${slug}/tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+        body: JSON.stringify({ kind: "homework", title: `PSet${i + 1}` }),
+      });
+      const { taskId: tid } = (await t2.json()) as { taskId: string };
+      await req(`/classes/${slug}/tasks/${tid}/complete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+        body: JSON.stringify({ content: `Submission ${i + 1} long enough.` }),
+      });
+      await req(`/classes/${slug}/tasks/${tid}/grade/${student.userId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+        body: JSON.stringify({ pass: true }),
+      });
+    }
+    const second = await req("/me/pet/hatch-another", {
+      method: "POST",
+      headers: cookieHeader(student.cookie),
+    });
+    expect(second.status).toBe(201);
+    const newPet = (await second.json()) as { pet: { id: string } };
+    // Newly hatched pet should be active.
+    const me = await req("/me/pet", { headers: cookieHeader(student.cookie) });
+    const meData = (await me.json()) as {
+      pet: { id: string };
+      pets: Array<{ id: string; isActive: boolean }>;
+    };
+    expect(meData.pet.id).toBe(newPet.pet.id);
+    expect(meData.pets.length).toBe(2);
+    expect(meData.pets.find((p) => p.id === newPet.pet.id)?.isActive).toBe(true);
+  });
+
+  test("POST /me/pet/activate switches the active pet (must be owned)", async () => {
+    // Set up two students: a has 2 pets, b has 1. b tries to activate
+    // one of a's pets — should 404.
+    const instructor = await signup("mpinst3");
+    const a = await signup("mpA3");
+    const b = await signup("mpB3");
+    const slug = `cls-mp-act-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    for (const s of [a, b]) {
+      await req(`/classes/${slug}/enroll`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(s.cookie) },
+        body: JSON.stringify({ joinCode: created.joinCode }),
+      });
+    }
+    // Both students earn XP for their first auto-hatch, and a
+    // earns enough to hatch a second pet.
+    for (let i = 0; i < 6; i++) {
+      const t = await req(`/classes/${slug}/tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+        body: JSON.stringify({ kind: "homework", title: `Task${i}` }),
+      });
+      const { taskId } = (await t.json()) as { taskId: string };
+      for (const s of [a, b]) {
+        await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...cookieHeader(s.cookie) },
+          body: JSON.stringify({ content: `Submission ${s.username} ${i} long enough.` }),
+        });
+      }
+      // Only a gets graded — b stays at the floor.
+      await req(`/classes/${slug}/tasks/${taskId}/grade/${a.userId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+        body: JSON.stringify({ pass: true }),
+      });
+    }
+    // a hatches another (will succeed: 6 graded passes × ~50 XP > 250).
+    await req("/me/pet/hatch-another", {
+      method: "POST",
+      headers: cookieHeader(a.cookie),
+    });
+    const aMe = await req("/me/pet", { headers: cookieHeader(a.cookie) });
+    const aData = (await aMe.json()) as {
+      pet: { id: string };
+      pets: Array<{ id: string; isActive: boolean }>;
+    };
+    expect(aData.pets.length).toBe(2);
+    const firstPet = aData.pets.find((p) => !p.isActive)!;
+    // Activate the first (currently inactive) pet.
+    const sw = await req("/me/pet/activate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(a.cookie) },
+      body: JSON.stringify({ petId: firstPet.id }),
+    });
+    expect(sw.status).toBe(200);
+    const aMe2 = await req("/me/pet", { headers: cookieHeader(a.cookie) });
+    const aData2 = (await aMe2.json()) as { pet: { id: string } };
+    expect(aData2.pet.id).toBe(firstPet.id);
+
+    // b tries to activate one of a's pets — should 404.
+    const stolen = await req("/me/pet/activate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(b.cookie) },
+      body: JSON.stringify({ petId: firstPet.id }),
+    });
+    expect(stolen.status).toBe(404);
+  });
+
+  test("hatch-another caps at MAX_PETS_PER_USER (3); 4th attempt 409", async () => {
+    const instructor = await signup("mpinst4");
+    const student = await signup("mpstud4");
+    const slug = `cls-mp-cap-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    // Pump the student past 750 XP so all 3 hatches are available.
+    for (let i = 0; i < 16; i++) {
+      const t = await req(`/classes/${slug}/tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+        body: JSON.stringify({ kind: "homework", title: `T${i}` }),
+      });
+      const { taskId } = (await t.json()) as { taskId: string };
+      await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+        body: JSON.stringify({ content: `Submission ${i} long enough.` }),
+      });
+      await req(`/classes/${slug}/tasks/${taskId}/grade/${student.userId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+        body: JSON.stringify({ pass: true }),
+      });
+    }
+    // Three hatch-anothers should succeed (first auto + 2 manual).
+    const second = await req("/me/pet/hatch-another", {
+      method: "POST",
+      headers: cookieHeader(student.cookie),
+    });
+    expect(second.status).toBe(201);
+    const third = await req("/me/pet/hatch-another", {
+      method: "POST",
+      headers: cookieHeader(student.cookie),
+    });
+    expect(third.status).toBe(201);
+    // Fourth should 409 (cap = 3).
+    const fourth = await req("/me/pet/hatch-another", {
+      method: "POST",
+      headers: cookieHeader(student.cookie),
+    });
+    expect(fourth.status).toBe(409);
+    // Verify nextHatchXp is null at cap.
+    const me = await req("/me/pet", { headers: cookieHeader(student.cookie) });
+    const data = (await me.json()) as { nextHatchXp: number | null; pets: unknown[] };
+    expect(data.pets.length).toBe(3);
+    expect(data.nextHatchXp).toBeNull();
+  });
+});
+
 describe("S-audit regressions", () => {
   test("shop buy: spending two cosmetics that together exceed balance is rejected (race fix)", async () => {
     // Setup a student with just enough for ONE cosmetic, not two.

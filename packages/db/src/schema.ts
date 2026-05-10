@@ -20,6 +20,12 @@ export const users = sqliteTable("users", {
   // Optional preferred starting path (slug) chosen during onboarding.
   // Used to seed the dashboard's "Continue learning" tile.
   startingPathSlug: text("starting_path_slug"),
+  // S104 — multi-pet. Points at the user's currently-active pet
+  // (one of their rows in `pets`). Null pre-hatch. No FK so the
+  // ordering between users and pets table declarations doesn't
+  // matter; correctness is enforced at the route layer (activate
+  // checks ownership, hatch sets this column at insert time).
+  activePetId: text("active_pet_id"),
   // Sprint 52 — content approval gate. 'admin' can review proposals;
   // 'member' is everyone else. One admin is bootstrapped from the
   // BOOTSTRAP_ADMIN_USERNAME env var on cold start if no admin exists.
@@ -2432,7 +2438,9 @@ export const xpGrants = sqliteTable("xp_grants", {
 // the first XP threshold; cannot be deleted in S86.
 export const pets = sqliteTable("pets", {
   id: text("id").primaryKey(),
-  userId: text("user_id").notNull().references(() => users.id).unique(),
+  // S104 — dropped .unique() so users can own multiple pets. The
+  // user's chosen active pet is tracked via users.activePetId.
+  userId: text("user_id").notNull().references(() => users.id),
   species: text("species").notNull(),
   name: text("name").notNull().default(""),
   hatchedAt: text("hatched_at").default(sql`(datetime('now'))`).notNull(),
@@ -2444,6 +2452,9 @@ export const pets = sqliteTable("pets", {
   level: integer("level").notNull().default(1),
 }, (t) => ({
   speciesIdx: index("pets_species_idx").on(t.species),
+  // S104 — replaces the prior UNIQUE on userId. Non-unique now;
+  // we still want the index for "all pets for this user" reads.
+  userIdx: index("pets_user_idx").on(t.userId),
 }));
 
 // Cosmetic catalog. slot='head'|'eyes'|'accessory' constrains

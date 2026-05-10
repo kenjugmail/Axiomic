@@ -10,7 +10,7 @@
 import { randomUUID } from "crypto";
 import { sql } from "drizzle-orm";
 import { eq } from "drizzle-orm";
-import { getDb, pets, xpGrants, xpPurchases } from "@axiomic/db";
+import { getDb, pets, users, xpGrants, xpPurchases } from "@axiomic/db";
 import {
   randomPetSpecies,
   petSpeciesBySlug,
@@ -196,6 +196,13 @@ export function maybeHatchPet(userId: string): { species: string; name: string }
       name: species.label,
     })
     .run();
+  // S104 — auto-set this new pet as the user's active pet. Multi-pet
+  // is opt-in via POST /me/pets/hatch; the first auto-hatch always
+  // becomes active.
+  db.update(users)
+    .set({ activePetId: petId })
+    .where(eq(users.id, userId))
+    .run();
 
   // S88 — surface the hatch event in the user's notification bell.
   // System-emitted (actorId=null) since it's an automatic milestone.
@@ -268,10 +275,19 @@ export function xpBalanceForUser(userId: string): number {
 // null otherwise.
 export function maybeLevelUp(userId: string): number | null {
   const db = getDb();
+  // S104 — scope to the user's ACTIVE pet (one of possibly many).
+  // Pre-S104 there was at most one pet per user; this query reduces
+  // to the same row.
+  const activeRow = db
+    .select({ activePetId: users.activePetId })
+    .from(users)
+    .where(eq(users.id, userId))
+    .get();
+  if (!activeRow?.activePetId) return null;
   const pet = db
     .select({ id: pets.id, species: pets.species, level: pets.level })
     .from(pets)
-    .where(eq(pets.userId, userId))
+    .where(eq(pets.id, activeRow.activePetId))
     .get();
   if (!pet) return null;
 

@@ -576,9 +576,27 @@ classesRouter.get(
     // Pet + equipped cosmetics for each user — used by the UI to
     // render the leaderboard rows. One query each (simple, fine
     // for v1; can be a single join later if rosters get big).
+    //
+    // S104 — fetch each member's ACTIVE pet (one of possibly many).
+    // Join via users.activePetId so the leaderboard renders the
+    // student's chosen public face, not whichever pet they hatched
+    // first.
     const userIds = memberRows.map((m) => m.userId);
     const petRows = userIds.length
-      ? db.select().from(pets).where(inArray(pets.userId, userIds)).all()
+      ? db
+          .select({
+            petUserId: users.id,
+            id: pets.id,
+            userId: pets.userId,
+            species: pets.species,
+            name: pets.name,
+            hatchedAt: pets.hatchedAt,
+            level: pets.level,
+          })
+          .from(users)
+          .innerJoin(pets, eq(pets.id, users.activePetId))
+          .where(inArray(users.id, userIds))
+          .all()
       : [];
     const petByUser = new Map(petRows.map((p) => [p.userId, p]));
 
