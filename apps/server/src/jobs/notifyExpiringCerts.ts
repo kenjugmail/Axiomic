@@ -17,10 +17,14 @@ import type { JobDefinition } from "../lib/jobs";
 
 const EXPIRY_WINDOWS = [30, 7, 1] as const;
 
+// Use floor so a cert with 30.5 days remaining counts as 30, not 31.
+// With ceil the daily cron silently missed every window where it
+// fired fractionally past the boundary — the daily cron only lands
+// on each integer-day mark once, so the rounding direction matters.
 function daysUntil(iso: string): number | null {
   const t = Date.parse(iso);
   if (!Number.isFinite(t)) return null;
-  return Math.ceil((t - Date.now()) / 86400_000);
+  return Math.floor((t - Date.now()) / 86400_000);
 }
 
 export const notifyExpiringCertsJob: JobDefinition = {

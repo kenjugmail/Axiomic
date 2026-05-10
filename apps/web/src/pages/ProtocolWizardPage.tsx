@@ -55,8 +55,11 @@ function parseDraft(text: string): ParsedDraft {
       stepsBlock += (stepsBlock ? "\n" : "") + line;
     }
   }
-  // Parse step block: split on lines starting with "<n>." or "**<n>."
-  const stepRegex = /^\s*(?:\*\*)?(\d+)\.\s+(.+?)\*?\*?\s*$/;
+  // Parse step block: handle "1.", "1)", and bold variants ("**1.**",
+  // "**1.", "1.**"). The model occasionally emits asymmetric bold or
+  // a paren delimiter; the original strict regex silently dropped
+  // those steps.
+  const stepRegex = /^\s*\*{0,2}(\d+)[.)]\s+(.+?)\*{0,2}\s*$/;
   const rawSteps: Array<{ title: string; body: string[] }> = [];
   let current: { title: string; body: string[] } | null = null;
   for (const line of stepsBlock.split("\n")) {

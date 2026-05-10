@@ -203,4 +203,40 @@ describe("safety certifications — CRUD + grading + grants (Sprint 80)", () => 
     const res = await req(`/lab/safety-certs/does-not-exist-${testId}`);
     expect(res.status).toBe(404);
   });
+
+  test("repeated passing attempts are idempotent (no duplicate grants)", async () => {
+    const { cookie } = await signup("idemp");
+    const slug = `sc-idemp-${testId}`;
+    await createCert(cookie, slug);
+    const first = await req(`/lab/safety-certs/${slug}/attempt`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(cookie) },
+      body: JSON.stringify({ answers: { q1: "1", q2: "1" } }),
+    });
+    const fb = (await first.json()) as { passed: boolean; passedAt: string };
+    expect(fb.passed).toBe(true);
+
+    const second = await req(`/lab/safety-certs/${slug}/attempt`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(cookie) },
+      body: JSON.stringify({ answers: { q1: "1", q2: "1" } }),
+    });
+    const sb = (await second.json()) as {
+      passed: boolean;
+      passedAt: string;
+      alreadyHeld?: boolean;
+    };
+    expect(sb.passed).toBe(true);
+    // Second call returns the original grant unchanged.
+    expect(sb.alreadyHeld).toBe(true);
+    expect(sb.passedAt).toBe(fb.passedAt);
+
+    // Verify only one grant row exists for this user+cert.
+    const mine = await req("/me/safety-certs", {
+      headers: cookieHeader(cookie),
+    });
+    const mb = (await mine.json()) as { certs: any[] };
+    const matches = mb.certs.filter((c) => c.certSlug === slug);
+    expect(matches.length).toBe(1);
+  });
 });

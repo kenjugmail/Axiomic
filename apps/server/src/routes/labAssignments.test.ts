@@ -281,7 +281,7 @@ describe("lab assignments + playbook + roster + MRI (Sprint 82)", () => {
     });
     await createProtocol(pi.cookie, `p-rec-open-${testId}`);
 
-    const res = await req("/me/lab/playbook?limit=100", {
+    const res = await req("/me/lab/playbook?limit=2000", {
       headers: cookieHeader(intern.cookie),
     });
     const body = (await res.json()) as { recommended: any[] };
@@ -291,7 +291,7 @@ describe("lab assignments + playbook + roster + MRI (Sprint 82)", () => {
 
     // After passing the gating cert it appears.
     await passCert(intern.cookie, `c-rec-${testId}`);
-    const res2 = await req("/me/lab/playbook?limit=100", {
+    const res2 = await req("/me/lab/playbook?limit=2000", {
       headers: cookieHeader(intern.cookie),
     });
     const body2 = (await res2.json()) as { recommended: any[] };
@@ -390,3 +390,63 @@ async function getCohortId(cookie: string, slug: string): Promise<string> {
   const body = (await res.json()) as { cohort: { id: string } };
   return body.cohort.id;
 }
+
+describe("lab assignments — slug validation (post-review fix)", () => {
+  test("assign rejects unknown protocol slug with 400", async () => {
+    const author = await signup("av_pi");
+    const intern = await signup("av_int");
+    const cohortSlug = `co-av-${testId}`;
+    const cohortId = await createCohort(author.cookie, cohortSlug);
+    const internId = await userIdFromCookie(intern.cookie);
+    seedMember(cohortId, internId, "member");
+    const res = await req(`/lab-groups/${cohortSlug}/assign`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({
+        assignedToUserIds: [internId],
+        protocolSlug: `does-not-exist-${testId}`,
+      }),
+    });
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toContain("Unknown protocol");
+  });
+
+  test("assign rejects draft (non-published) protocol with 400", async () => {
+    const author = await signup("avd_pi");
+    const intern = await signup("avd_int");
+    const cohortSlug = `co-avd-${testId}`;
+    const cohortId = await createCohort(author.cookie, cohortSlug);
+    const internId = await userIdFromCookie(intern.cookie);
+    seedMember(cohortId, internId, "member");
+    const draftSlug = `pa-avd-${testId}`;
+    await createProtocol(author.cookie, draftSlug, { status: "draft" });
+    const res = await req(`/lab-groups/${cohortSlug}/assign`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({
+        assignedToUserIds: [internId],
+        protocolSlug: draftSlug,
+      }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  test("assign rejects unknown cert slug with 400", async () => {
+    const author = await signup("avc_pi");
+    const intern = await signup("avc_int");
+    const cohortSlug = `co-avc-${testId}`;
+    const cohortId = await createCohort(author.cookie, cohortSlug);
+    const internId = await userIdFromCookie(intern.cookie);
+    seedMember(cohortId, internId, "member");
+    const res = await req(`/lab-groups/${cohortSlug}/assign`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({
+        assignedToUserIds: [internId],
+        certSlug: `phantom-cert-${testId}`,
+      }),
+    });
+    expect(res.status).toBe(400);
+  });
+});

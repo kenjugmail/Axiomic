@@ -147,6 +147,55 @@ labGroupsRouter.post(
       );
     }
 
+    // Validate the assignment target actually exists. Without this a
+    // PI's typo silently lands as a pending assignment that 404s when
+    // the intern tries to open it.
+    if (data.protocolSlug) {
+      const exists = db
+        .select({ id: protocols.id, status: protocols.status })
+        .from(protocols)
+        .where(eq(protocols.slug, data.protocolSlug))
+        .get();
+      if (!exists) {
+        return c.json(
+          { error: `Unknown protocol slug: ${data.protocolSlug}` },
+          400,
+        );
+      }
+      if (exists.status !== "published") {
+        return c.json(
+          { error: `Protocol ${data.protocolSlug} is not published.` },
+          400,
+        );
+      }
+    }
+    if (data.certSlug) {
+      const exists = db
+        .select({ id: safetyCertifications.id })
+        .from(safetyCertifications)
+        .where(eq(safetyCertifications.slug, data.certSlug))
+        .get();
+      if (!exists) {
+        return c.json(
+          { error: `Unknown cert slug: ${data.certSlug}` },
+          400,
+        );
+      }
+    }
+    if (data.masteryPathSlug) {
+      const exists = db
+        .select({ id: masteryPaths.id })
+        .from(masteryPaths)
+        .where(eq(masteryPaths.slug, data.masteryPathSlug))
+        .get();
+      if (!exists) {
+        return c.json(
+          { error: `Unknown mastery path slug: ${data.masteryPathSlug}` },
+          400,
+        );
+      }
+    }
+
     const inserted: string[] = [];
     for (const userId of targets) {
       const id = randomUUID();
@@ -341,10 +390,12 @@ meLabRouter.get("/playbook", requireAuth, async (c) => {
   const me = c.get("user")!;
   const db = getDb();
   // Default to 3 recommended next-actions (UI surface area). Tests
-  // and richer dashboards can request more via ?limit=.
+  // and richer dashboards can request more via ?limit=. The hard cap
+  // sits well above realistic UI use so test fixtures spanning the
+  // whole protocol catalog don't get truncated.
   const limit = Math.max(
     1,
-    Math.min(100, parseInt(c.req.query("limit") ?? "3", 10) || 3),
+    Math.min(2000, parseInt(c.req.query("limit") ?? "3", 10) || 3),
   );
 
   const assignmentsRows = db

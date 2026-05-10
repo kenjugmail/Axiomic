@@ -27,6 +27,7 @@ import {
   getDb,
   protocolRuns,
   protocolSteps,
+  protocolVersions,
   protocols,
   users,
 } from "@axiomic/db";
@@ -320,11 +321,65 @@ protocolRunsRouter.get("/:id", requireAuth, async (c) => {
     return c.json({ error: "Run not found" }, 404);
   }
 
-  // Fetch steps for the pinned protocol so the runner UI can render
-  // the procedure. v1 reads from the live `protocolSteps` table; v2
-  // could resolve via `protocolVersions.snapshotJson` if the protocol
-  // has been edited since the run started.
-  const steps = db
+  // Resolve steps from the pinned snapshot so post-edit changes to the
+  // live protocol don't rewrite history of what the intern actually
+  // followed. Falls back to the live table only if the pinned-version
+  // snapshot is missing (defensive — every published protocol gets a
+  // version-1 snapshot at publish time).
+  const steps = resolvePinnedSteps(row.protocolId, row.protocolVersion);
+
+  return c.json({
+    run: projectRun(row),
+    steps,
+    canSignOff: row.userId !== user.id,
+  });
+});
+
+interface PinnedStep {
+  id: string;
+  ordinal: number;
+  title: string;
+  instructionMd: string;
+  safetyNotesMd: string;
+  verificationMd: string;
+}
+
+function resolvePinnedSteps(
+  protocolId: string,
+  version: number,
+): PinnedStep[] {
+  const db = getDb();
+  const versionRow = db
+    .select({ snapshotJson: protocolVersions.snapshotJson })
+    .from(protocolVersions)
+    .where(
+      and(
+        eq(protocolVersions.protocolId, protocolId),
+        eq(protocolVersions.version, version),
+      ),
+    )
+    .get();
+  if (versionRow) {
+    try {
+      const snap = JSON.parse(versionRow.snapshotJson);
+      if (Array.isArray(snap?.steps)) {
+        return (snap.steps as Array<Record<string, unknown>>).map((s) => ({
+          id: typeof s.id === "string" ? s.id : "",
+          ordinal: typeof s.ordinal === "number" ? s.ordinal : 0,
+          title: typeof s.title === "string" ? s.title : "",
+          instructionMd:
+            typeof s.instructionMd === "string" ? s.instructionMd : "",
+          safetyNotesMd:
+            typeof s.safetyNotesMd === "string" ? s.safetyNotesMd : "",
+          verificationMd:
+            typeof s.verificationMd === "string" ? s.verificationMd : "",
+        }));
+      }
+    } catch {
+      // fall through to live read
+    }
+  }
+  return db
     .select({
       id: protocolSteps.id,
       ordinal: protocolSteps.ordinal,
@@ -334,16 +389,10 @@ protocolRunsRouter.get("/:id", requireAuth, async (c) => {
       verificationMd: protocolSteps.verificationMd,
     })
     .from(protocolSteps)
-    .where(eq(protocolSteps.protocolId, row.protocolId))
+    .where(eq(protocolSteps.protocolId, protocolId))
     .orderBy(asc(protocolSteps.ordinal))
     .all();
-
-  return c.json({
-    run: projectRun(row),
-    steps,
-    canSignOff: row.userId !== user.id,
-  });
-});
+}
 
 const stepUpdateSchema = z.object({
   done: z.boolean(),
@@ -455,6 +504,16 @@ protocolRunsRouter.post(
       .get();
     if (!run) return c.json({ error: "Run not found" }, 404);
     if (run.userId !== user.id) return c.json({ error: "Forbidden" }, 403);
+    // Refuse re-request when already awaiting; the intern needs to
+    // toggle a step to flip back to in_progress first. Without this
+    // gate a malicious or confused intern could spam the mentor
+    // queue by repeated POSTs.
+    if (run.status === "awaiting_signoff") {
+      return c.json({ error: "Already awaiting sign-off." }, 400);
+    }
+    if (run.status === "signed_off") {
+      return c.json({ error: "Run already signed off." }, 400);
+    }
 
     const protocol = db
       .select({ slug: protocols.slug, title: protocols.title })
@@ -474,7 +533,10 @@ protocolRunsRouter.post(
       return c.json({ error: "Mark at least one step done first" }, 400);
     }
 
-    db.update(protocolRuns)
+    // Conditional update so two concurrent request-signoff calls
+    // can't both trigger the fan-out.
+    const moved = db
+      .update(protocolRuns)
       .set({
         status: "awaiting_signoff",
         completedAt:
@@ -482,8 +544,20 @@ protocolRunsRouter.post(
             ? new Date().toISOString()
             : null,
       })
-      .where(eq(protocolRuns.id, id))
-      .run();
+      .where(
+        and(
+          eq(protocolRuns.id, id),
+          inArray(protocolRuns.status, ["in_progress", "rejected"]),
+        ),
+      )
+      .returning({ id: protocolRuns.id })
+      .all();
+    if (moved.length === 0) {
+      return c.json(
+        { error: "Run state changed; refresh and try again." },
+        409,
+      );
+    }
 
     const recipients = mentorsForIntern(user.id);
     for (const recipientId of recipients) {
@@ -554,7 +628,13 @@ protocolRunsRouter.post(
 
     const data = c.req.valid("json");
     const now = new Date().toISOString();
-    db.update(protocolRuns)
+    // Conditional update on status guards against the
+    // two-mentors-clicking-at-once race: whichever UPDATE runs second
+    // returns no rows and we 409. Without this both writes would
+    // succeed and the second mentor's notes would silently overwrite
+    // the first.
+    const moved = db
+      .update(protocolRuns)
       .set({
         status: "signed_off",
         signedOffAt: now,
@@ -562,8 +642,20 @@ protocolRunsRouter.post(
         signOffNotesMd: data.notesMd ?? null,
         completedAt: now,
       })
-      .where(eq(protocolRuns.id, id))
-      .run();
+      .where(
+        and(
+          eq(protocolRuns.id, id),
+          eq(protocolRuns.status, "awaiting_signoff"),
+        ),
+      )
+      .returning({ id: protocolRuns.id })
+      .all();
+    if (moved.length === 0) {
+      return c.json(
+        { error: "Run state changed; refresh and try again." },
+        409,
+      );
+    }
 
     await notify({
       recipientId: run.userId,
@@ -619,14 +711,27 @@ protocolRunsRouter.post(
     if (!protocol) return c.json({ error: "Protocol vanished" }, 404);
 
     const data = c.req.valid("json");
-    db.update(protocolRuns)
+    const moved = db
+      .update(protocolRuns)
       .set({
         status: "in_progress",
         completedAt: null,
         signOffNotesMd: data.notesMd ?? null,
       })
-      .where(eq(protocolRuns.id, id))
-      .run();
+      .where(
+        and(
+          eq(protocolRuns.id, id),
+          eq(protocolRuns.status, "awaiting_signoff"),
+        ),
+      )
+      .returning({ id: protocolRuns.id })
+      .all();
+    if (moved.length === 0) {
+      return c.json(
+        { error: "Run state changed; refresh and try again." },
+        409,
+      );
+    }
 
     await notify({
       recipientId: run.userId,

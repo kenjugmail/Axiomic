@@ -501,3 +501,131 @@ describe("protocol runs — cert gate + sign-offs (Sprint 80)", () => {
     expect(eb.runs.some((r) => r.id === runId)).toBe(false);
   });
 });
+
+// Regression coverage for the post-S80 review fixes.
+describe("protocol runs — post-review fixes", () => {
+  test("step list is read from the pinned snapshot, not live edits", async () => {
+    const author = await signup("vp_author");
+    const intern = await signup("vp_intern");
+    const slug = `pr-vpin-${testId}`;
+    // Author publishes v1 with two steps.
+    expect((await createProtocol(author.cookie, slug)).status).toBe(201);
+    // Intern starts a run pinned to v1.
+    const start = await req("/lab/runs/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(intern.cookie) },
+      body: JSON.stringify({ protocolSlug: slug }),
+    });
+    const { runId, protocolVersion } = (await start.json()) as {
+      runId: string;
+      protocolVersion: number;
+    };
+    expect(protocolVersion).toBe(1);
+
+    // Author rewrites the step list (and republishes via PUT to bump
+    // the version snapshot). The intern's run should keep showing
+    // the v1 procedure.
+    await req(`/lab/protocols/${slug}/steps`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({
+        steps: [
+          { title: "WHOLE NEW STEP", instructionMd: "Different procedure entirely." },
+        ],
+      }),
+    });
+    await req(`/lab/protocols/${slug}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...cookieHeader(author.cookie) },
+      body: JSON.stringify({ summary: "Bumped" }),
+    });
+
+    const detail = await req(`/lab/runs/${runId}`, {
+      headers: cookieHeader(intern.cookie),
+    });
+    const body = (await detail.json()) as { steps: any[] };
+    // Pinned snapshot still shows the original two-step procedure.
+    expect(body.steps.length).toBe(2);
+    expect(body.steps.map((s) => s.title)).not.toContain("WHOLE NEW STEP");
+  });
+
+  test("re-requesting sign-off when already awaiting returns 400", async () => {
+    const author = await signup("rsa_pi");
+    const intern = await signup("rsa_int");
+    const mentor = await signup("rsa_men");
+    const cohortSlug = `co-rsa-${testId}`;
+    const cohortId = await createCohortViaApi(author.cookie, cohortSlug);
+    seedMember(cohortId, await userIdFromCookie(intern.cookie), "member");
+    seedMember(cohortId, await userIdFromCookie(mentor.cookie), "mentor");
+    const slug = `pr-rsa-${testId}`;
+    await createProtocol(author.cookie, slug);
+    const start = await req("/lab/runs/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(intern.cookie) },
+      body: JSON.stringify({ protocolSlug: slug }),
+    });
+    const { runId } = (await start.json()) as { runId: string };
+    await req(`/lab/runs/${runId}/steps/1`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...cookieHeader(intern.cookie) },
+      body: JSON.stringify({ done: true }),
+    });
+    const first = await req(`/lab/runs/${runId}/request-signoff`, {
+      method: "POST",
+      headers: cookieHeader(intern.cookie),
+    });
+    expect(first.status).toBe(200);
+    const second = await req(`/lab/runs/${runId}/request-signoff`, {
+      method: "POST",
+      headers: cookieHeader(intern.cookie),
+    });
+    expect(second.status).toBe(400);
+  });
+
+  test("second sign-off attempt (sequential, after first succeeded) is refused", async () => {
+    // For sequential calls the early status guard catches it with 400
+    // ("Run is not awaiting sign-off"). The conditional UPDATE in the
+    // route is the defense-in-depth path for the truly-concurrent case
+    // (both reads observe awaiting_signoff before either UPDATE
+    // commits) — that path returns 409, but it's not exercisable in
+    // single-threaded test code.
+    const author = await signup("css_pi");
+    const intern = await signup("css_int");
+    const mentor1 = await signup("css_m1");
+    const mentor2 = await signup("css_m2");
+    const cohortSlug = `co-css-${testId}`;
+    const cohortId = await createCohortViaApi(author.cookie, cohortSlug);
+    seedMember(cohortId, await userIdFromCookie(intern.cookie), "member");
+    seedMember(cohortId, await userIdFromCookie(mentor1.cookie), "mentor");
+    seedMember(cohortId, await userIdFromCookie(mentor2.cookie), "mentor");
+    const slug = `pr-css-${testId}`;
+    await createProtocol(author.cookie, slug);
+    const start = await req("/lab/runs/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(intern.cookie) },
+      body: JSON.stringify({ protocolSlug: slug }),
+    });
+    const { runId } = (await start.json()) as { runId: string };
+    await req(`/lab/runs/${runId}/steps/1`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...cookieHeader(intern.cookie) },
+      body: JSON.stringify({ done: true }),
+    });
+    await req(`/lab/runs/${runId}/request-signoff`, {
+      method: "POST",
+      headers: cookieHeader(intern.cookie),
+    });
+    const first = await req(`/lab/runs/${runId}/sign-off`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(mentor1.cookie) },
+      body: JSON.stringify({ notesMd: "lgtm" }),
+    });
+    const second = await req(`/lab/runs/${runId}/sign-off`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(mentor2.cookie) },
+      body: JSON.stringify({ notesMd: "also lgtm" }),
+    });
+    expect(first.status).toBe(200);
+    expect(second.status).toBe(400);
+  });
+});

@@ -210,10 +210,43 @@ safetyCertsRouter.post(
       });
     }
 
-    // Expire old rows for the same cert + user so the latest pass is
-    // canonical. Without this the userCertIdx ORDER BY expiresAt-desc
-    // still works, but stale rows clutter the cert history view.
-    const passedAt = new Date().toISOString();
+    // Idempotency: if the user already holds a non-expired grant for
+    // this cert, return that grant rather than inserting a duplicate.
+    // Prevents both retry storms and the concurrent-double-click race
+    // (two passing attempts in flight → two grant rows). Renewals
+    // before expiry simply re-use the existing grant; once a grant
+    // expires, a new attempt can grant a fresh row.
+    const nowIso = new Date().toISOString();
+    const existingActive = db
+      .select({
+        id: userSafetyCertifications.id,
+        passedAt: userSafetyCertifications.passedAt,
+        expiresAt: userSafetyCertifications.expiresAt,
+        score: userSafetyCertifications.score,
+      })
+      .from(userSafetyCertifications)
+      .where(
+        and(
+          eq(userSafetyCertifications.userId, user.id),
+          eq(userSafetyCertifications.certSlug, cert.slug),
+        ),
+      )
+      .all()
+      .find((g) => g.expiresAt === null || g.expiresAt > nowIso);
+
+    if (existingActive) {
+      return c.json({
+        passed: true,
+        score,
+        correct,
+        total: questions.length,
+        passedAt: existingActive.passedAt,
+        expiresAt: existingActive.expiresAt,
+        alreadyHeld: true,
+      });
+    }
+
+    const passedAt = nowIso;
     const expiresAt =
       cert.validityDays != null
         ? new Date(Date.now() + cert.validityDays * 24 * 60 * 60 * 1000)

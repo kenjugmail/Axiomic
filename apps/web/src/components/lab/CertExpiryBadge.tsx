@@ -8,13 +8,13 @@ interface Props {
 }
 
 export function certExpiryStatus(expiresAt: string | null): {
-  state: "valid" | "expiring" | "expired" | "permanent";
+  state: "valid" | "expiring" | "expired" | "permanent" | "unknown";
   daysOut: number | null;
 } {
   if (expiresAt === null) return { state: "permanent", daysOut: null };
-  const days = Math.ceil(
-    (Date.parse(expiresAt) - Date.now()) / (24 * 60 * 60 * 1000),
-  );
+  const parsed = Date.parse(expiresAt);
+  if (!Number.isFinite(parsed)) return { state: "unknown", daysOut: null };
+  const days = Math.ceil((parsed - Date.now()) / (24 * 60 * 60 * 1000));
   if (days <= 0) return { state: "expired", daysOut: days };
   if (days <= 30) return { state: "expiring", daysOut: days };
   return { state: "valid", daysOut: days };
@@ -47,6 +47,14 @@ export function CertExpiryBadge({ expiresAt, verbose }: Props) {
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
         <Clock className="w-3 h-3" strokeWidth={2.5} />
         Expires{verbose ? ` in ${daysOut}d` : ` ${daysOut}d`}
+      </span>
+    );
+  }
+  if (state === "unknown") {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-muted text-muted-foreground border border-border">
+        <AlertTriangle className="w-3 h-3" strokeWidth={2.5} />
+        Bad expiry
       </span>
     );
   }
