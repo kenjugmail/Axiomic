@@ -3515,6 +3515,14 @@ export interface MyPetResponse {
     levelEmoji: string;
     // XP threshold for the next level, or null at max.
     nextLevelXp: number | null;
+    // S100 — full chain for the user's species. UI renders the
+    // past + future forms alongside the current one so progression
+    // is visible at a glance.
+    evolutionChain: Array<{
+      level: number;
+      threshold: number;
+      emoji: string;
+    }>;
   } | null;
   totalXp: number;
   hatchThresholdXp: number;

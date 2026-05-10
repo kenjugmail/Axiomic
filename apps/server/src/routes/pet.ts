@@ -26,6 +26,7 @@ import {
   emojiForSpeciesAtLevel,
   xpForNextLevel,
   MAX_PET_LEVEL,
+  PET_LEVEL_THRESHOLDS,
 } from "../lib/pets";
 import type { Env } from "../env";
 
@@ -113,6 +114,15 @@ petRouter.get("/", requireAuth, (c) => {
           maxLevel: MAX_PET_LEVEL,
           levelEmoji: emojiForSpeciesAtLevel(pet.species, pet.level),
           nextLevelXp: xpForNextLevel(pet.level),
+          // S100 — full evolution chain for this species, so the UI
+          // can render the past + future forms next to the current
+          // pet ("here's what's coming"). Each entry pairs a level
+          // with its threshold and the species' emoji at that level.
+          evolutionChain: PET_LEVEL_THRESHOLDS.map((threshold, i) => ({
+            level: i + 1,
+            threshold,
+            emoji: emojiForSpeciesAtLevel(pet.species, i + 1),
+          })),
         }
       : null,
     totalXp,

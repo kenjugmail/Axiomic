@@ -10,6 +10,7 @@ import { api, ApiError } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
 import { PetView } from "../components/pet/PetView";
+import { EvolutionChain } from "../components/pet/EvolutionChain";
 import { CosmeticChip } from "../components/pet/CosmeticChip";
 import { toast } from "../stores/toast";
 
@@ -214,6 +215,15 @@ export function MyPetPage() {
             {data.totalXp} / {data.hatchThresholdXp} XP — earn{" "}
             {Math.max(0, data.hatchThresholdXp - data.totalXp)} more XP to hatch.
           </p>
+        </div>
+      )}
+
+      {/* S100 — evolution chain preview. Renders only after hatch
+          since pre-hatch users see the egg-to-hatch progress bar
+          above instead. */}
+      {data.pet && (
+        <div className="mb-8">
+          <EvolutionChain pet={data.pet} totalXp={data.totalXp} />
         </div>
       )}
 

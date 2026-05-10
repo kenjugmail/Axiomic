@@ -1271,6 +1271,57 @@ describe("S95 daily-featured shop rotation", () => {
   });
 });
 
+describe("S100 evolution chain on /me/pet", () => {
+  test("/me/pet returns evolutionChain with 3 entries matching thresholds", async () => {
+    const instructor = await signup("evoinst1");
+    const student = await signup("evostud1");
+    const slug = `cls-evo-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    // Push past hatch threshold so the pet exists.
+    const t = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ kind: "homework", title: "PSet" }),
+    });
+    const { taskId } = (await t.json()) as { taskId: string };
+    await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ content: "Submission long enough for the validator." }),
+    });
+    await req(`/classes/${slug}/tasks/${taskId}/grade/${student.userId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ pass: true }),
+    });
+    const me = await req("/me/pet", { headers: cookieHeader(student.cookie) });
+    const data = (await me.json()) as {
+      pet: {
+        species: string;
+        evolutionChain: Array<{ level: number; threshold: number; emoji: string }>;
+      };
+    };
+    expect(data.pet.evolutionChain.length).toBe(3);
+    expect(data.pet.evolutionChain[0].level).toBe(1);
+    expect(data.pet.evolutionChain[2].level).toBe(3);
+    // Thresholds are strictly increasing.
+    for (let i = 1; i < data.pet.evolutionChain.length; i++) {
+      expect(data.pet.evolutionChain[i].threshold).toBeGreaterThan(
+        data.pet.evolutionChain[i - 1].threshold,
+      );
+    }
+    // Each emoji is non-empty.
+    for (const entry of data.pet.evolutionChain) {
+      expect(entry.emoji.length).toBeGreaterThan(0);
+    }
+  });
+});
+
 describe("S99 class welcome message", () => {
   test("instructor sets welcome message + it appears in detail", async () => {
     const instructor = await signup("welinst1");
