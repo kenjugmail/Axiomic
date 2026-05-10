@@ -19,6 +19,12 @@ import {
   exams,
   examSections,
   examQuestions,
+  // Sprint 84 — lab content tables (S79/S80).
+  protocols,
+  protocolSteps,
+  equipment,
+  equipmentOperations,
+  safetyCertifications,
 } from "./index";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -119,7 +125,291 @@ async function seed() {
   // Sprint 73 — exam mastery framework.
   seedExams();
 
+  // Sprint 84 — lab protocol + equipment + safety-cert library +
+  // onboarding playbook. Idempotent on slug.
+  seedLabContent();
+
   console.log("Seeding complete.");
+}
+
+// Sprint 84 — Idempotent loader for the lab content corpus. Reads
+// from seed-content/lab/{safety-certs,equipment,protocols,playbooks}
+// and inserts rows keyed on slug. Existing rows are left alone — to
+// re-import after edits, drop the affected rows by hand. (We can
+// version-bump like seedExams later if content edit cycles need it.)
+function seedLabContent() {
+  const root = path.join(import.meta.dir, "../../../seed-content/lab");
+  if (!fs.existsSync(root)) {
+    console.log("  No seed-content/lab dir, skipping lab seed.");
+    return;
+  }
+  const author = db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.username, "alice"))
+    .get();
+  if (!author) {
+    console.log("  No alice user; cannot attribute lab content. Skipping.");
+    return;
+  }
+
+  // --- Safety certs -----------------------------------------------
+  const certsDir = path.join(root, "safety-certs");
+  if (fs.existsSync(certsDir)) {
+    let n = 0;
+    for (const file of fs
+      .readdirSync(certsDir)
+      .filter((f) => f.endsWith(".json"))) {
+      let parsed: any;
+      try {
+        parsed = JSON.parse(
+          fs.readFileSync(path.join(certsDir, file), "utf-8"),
+        );
+      } catch (e) {
+        console.warn(`  cert ${file}: parse error`, e);
+        continue;
+      }
+      if (!parsed?.slug || !parsed?.title) continue;
+      const exists = db
+        .select({ id: safetyCertifications.id })
+        .from(safetyCertifications)
+        .where(eq(safetyCertifications.slug, parsed.slug))
+        .get();
+      if (exists) continue;
+      db.insert(safetyCertifications)
+        .values({
+          id: randomUUID(),
+          slug: parsed.slug,
+          title: parsed.title,
+          discipline: parsed.discipline ?? "biology",
+          description: parsed.description ?? null,
+          quizDataJson: JSON.stringify(parsed.quizData ?? []),
+          passingScore: Number(parsed.passingScore) || 0.7,
+          validityDays:
+            parsed.validityDays === null ||
+            parsed.validityDays === undefined
+              ? null
+              : Number(parsed.validityDays),
+          authorId: author.id,
+        })
+        .run();
+      n++;
+    }
+    console.log(`  seeded ${n} safety cert(s)`);
+  }
+
+  // --- Equipment + operations -------------------------------------
+  const eqDir = path.join(root, "equipment");
+  if (fs.existsSync(eqDir)) {
+    let n = 0;
+    for (const file of fs
+      .readdirSync(eqDir)
+      .filter((f) => f.endsWith(".json"))) {
+      let parsed: any;
+      try {
+        parsed = JSON.parse(
+          fs.readFileSync(path.join(eqDir, file), "utf-8"),
+        );
+      } catch (e) {
+        console.warn(`  equipment ${file}: parse error`, e);
+        continue;
+      }
+      if (!parsed?.slug || !parsed?.title) continue;
+      const exists = db
+        .select({ id: equipment.id })
+        .from(equipment)
+        .where(eq(equipment.slug, parsed.slug))
+        .get();
+      if (exists) continue;
+      const id = randomUUID();
+      db.insert(equipment)
+        .values({
+          id,
+          slug: parsed.slug,
+          title: parsed.title,
+          discipline: parsed.discipline ?? "biology",
+          manufacturer: parsed.manufacturer ?? null,
+          model: parsed.model ?? null,
+          manualMd: parsed.manualMd ?? "",
+          locationHint: parsed.locationHint ?? null,
+          trainingCertSlug: parsed.trainingCertSlug ?? null,
+          hazardsMd: parsed.hazardsMd ?? "",
+          attachmentRefsJson: JSON.stringify(
+            parsed.attachmentRefs ?? [],
+          ),
+          bookingPolicy: parsed.bookingPolicy ?? "open",
+          status: parsed.status ?? "active",
+          authorId: author.id,
+        })
+        .run();
+      const ops: any[] = Array.isArray(parsed.operations)
+        ? parsed.operations
+        : [];
+      ops.forEach((op, i) => {
+        if (!op?.title || !op?.bodyMd || !op?.kind) return;
+        db.insert(equipmentOperations)
+          .values({
+            id: randomUUID(),
+            equipmentId: id,
+            ordinal: i + 1,
+            title: op.title,
+            bodyMd: op.bodyMd,
+            kind: op.kind,
+          })
+          .run();
+      });
+      n++;
+    }
+    console.log(`  seeded ${n} equipment manual(s)`);
+  }
+
+  // --- Protocols + steps ------------------------------------------
+  const protoDir = path.join(root, "protocols");
+  if (fs.existsSync(protoDir)) {
+    let n = 0;
+    for (const file of fs
+      .readdirSync(protoDir)
+      .filter((f) => f.endsWith(".json"))) {
+      let parsed: any;
+      try {
+        parsed = JSON.parse(
+          fs.readFileSync(path.join(protoDir, file), "utf-8"),
+        );
+      } catch (e) {
+        console.warn(`  protocol ${file}: parse error`, e);
+        continue;
+      }
+      if (!parsed?.slug || !parsed?.title) continue;
+      const exists = db
+        .select({ id: protocols.id })
+        .from(protocols)
+        .where(eq(protocols.slug, parsed.slug))
+        .get();
+      if (exists) continue;
+      const id = randomUUID();
+      db.insert(protocols)
+        .values({
+          id,
+          slug: parsed.slug,
+          title: parsed.title,
+          discipline: parsed.discipline ?? "biology",
+          category: parsed.category ?? null,
+          summary: parsed.summary ?? "",
+          contentIntro: parsed.contentIntro ?? "",
+          contentUndergrad: parsed.contentUndergrad ?? "",
+          contentGrad: parsed.contentGrad ?? "",
+          biosafetyLevel:
+            parsed.biosafetyLevel === null ||
+            parsed.biosafetyLevel === undefined
+              ? null
+              : Number(parsed.biosafetyLevel),
+          hazardsMd: parsed.hazardsMd ?? "",
+          equipmentRequiredJson: JSON.stringify(
+            parsed.equipmentRequired ?? [],
+          ),
+          reagentsJson: JSON.stringify(parsed.reagents ?? []),
+          estimatedMinutes:
+            parsed.estimatedMinutes === null ||
+            parsed.estimatedMinutes === undefined
+              ? null
+              : Number(parsed.estimatedMinutes),
+          requiredCertsJson: JSON.stringify(parsed.requiredCerts ?? []),
+          status: parsed.status ?? "published",
+          version: 1,
+          authorId: author.id,
+        })
+        .run();
+      const steps: any[] = Array.isArray(parsed.steps) ? parsed.steps : [];
+      steps.forEach((s, i) => {
+        if (!s?.title || !s?.instructionMd) return;
+        db.insert(protocolSteps)
+          .values({
+            id: randomUUID(),
+            protocolId: id,
+            ordinal: i + 1,
+            title: s.title,
+            instructionMd: s.instructionMd,
+            safetyNotesMd: s.safetyNotesMd ?? "",
+            verificationMd: s.verificationMd ?? "",
+            inlineQuizJson: s.inlineQuizJson ?? null,
+            attachmentRefsJson: JSON.stringify(s.attachmentRefs ?? []),
+          })
+          .run();
+      });
+      n++;
+    }
+    console.log(`  seeded ${n} protocol(s)`);
+  }
+
+  // --- Playbooks (mastery paths with mixed-kind nodes) ------------
+  const pbDir = path.join(root, "playbooks");
+  if (fs.existsSync(pbDir)) {
+    let n = 0;
+    for (const file of fs
+      .readdirSync(pbDir)
+      .filter((f) => f.endsWith(".json"))) {
+      let parsed: any;
+      try {
+        parsed = JSON.parse(
+          fs.readFileSync(path.join(pbDir, file), "utf-8"),
+        );
+      } catch (e) {
+        console.warn(`  playbook ${file}: parse error`, e);
+        continue;
+      }
+      if (!parsed?.slug || !parsed?.title) continue;
+      const exists = db
+        .select({ id: masteryPaths.id })
+        .from(masteryPaths)
+        .where(eq(masteryPaths.slug, parsed.slug))
+        .get();
+      if (exists) continue;
+      const pathId = randomUUID();
+      db.insert(masteryPaths)
+        .values({
+          id: pathId,
+          slug: parsed.slug,
+          title: parsed.title,
+          description: parsed.description ?? "",
+        })
+        .run();
+      const nodes: any[] = Array.isArray(parsed.nodes) ? parsed.nodes : [];
+      // Build a slug→nodeId map first so prereq references resolve.
+      const nodeIds = new Map<string, string>();
+      nodes.forEach((node) => {
+        if (!node?.slug) return;
+        nodeIds.set(node.slug, randomUUID());
+      });
+      nodes.forEach((node, i) => {
+        if (!node?.slug || !node?.title) return;
+        const id = nodeIds.get(node.slug)!;
+        const prereqIds = (node.prerequisites ?? [])
+          .map((s: string) => nodeIds.get(s))
+          .filter(Boolean);
+        db.insert(masteryNodes)
+          .values({
+            id,
+            pathId,
+            slug: node.slug,
+            title: node.title,
+            description: node.description ?? "",
+            order: i + 1,
+            level: node.level ?? "apprentice",
+            pageIds: JSON.stringify([]),
+            prerequisiteNodeIds: JSON.stringify(prereqIds),
+            quizData: null,
+            lessonData: null,
+            nodeKind: node.kind ?? "lesson",
+            protocolSlug: node.protocolSlug ?? null,
+            certSlug: node.certSlug ?? null,
+            equipmentSlug: node.equipmentSlug ?? null,
+          })
+          .run();
+      });
+      n++;
+    }
+    console.log(`  seeded ${n} lab playbook(s)`);
+  }
 }
 
 // Sprint 73 — load exams from seed-content/exams/*.json.

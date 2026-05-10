@@ -1,0 +1,51 @@
+{
+  "slug": "microscope-sample-prep",
+  "title": "Microscope sample prep (fixed cells)",
+  "discipline": "biology",
+  "category": "Imaging",
+  "summary": "Fix, permeabilize, and stain adherent cells on glass coverslips for fluorescence microscopy.",
+  "biosafetyLevel": 2,
+  "estimatedMinutes": 240,
+  "requiredCerts": ["bsl-2", "chemical-hygiene"],
+  "equipmentRequired": ["biosafety-cabinet", "inverted-microscope"],
+  "reagents": [
+    { "name": "4% paraformaldehyde in PBS", "hazardClass": "carcinogen" },
+    { "name": "0.1% Triton X-100 in PBS" },
+    { "name": "Blocking buffer (3% BSA + 0.1% Tween in PBS)" },
+    { "name": "Primary antibody, validated for IF" },
+    { "name": "Secondary antibody (Alexa-conjugated)" },
+    { "name": "DAPI nuclear stain" },
+    { "name": "Mounting medium (Fluoromount-G or similar)" }
+  ],
+  "hazardsMd": "Paraformaldehyde is a carcinogen. Mix and use only in a fume hood. Dispose in a labeled PFA-waste bottle.",
+  "contentUndergrad": "## Why fix\nFixation crosslinks proteins so the cells preserve structure. Permeabilization makes membranes porous to antibodies. The trade-off: over-fixation masks epitopes; under-fixation washes cells off.",
+  "steps": [
+    {
+      "title": "Plate cells on coverslips",
+      "instructionMd": "Place poly-D-lysine-coated 12-mm coverslips into 24-well plate. Seed cells the day before — aim for 50-70% confluence at fixing.",
+      "verificationMd": "Cells visible under inverted scope, attached to coverslips, healthy morphology."
+    },
+    {
+      "title": "Fix with PFA",
+      "instructionMd": "Aspirate media, wash with PBS once. Add 500 μL 4% PFA per well. Incubate 10 min RT (in fume hood). Aspirate, wash 3× with PBS.",
+      "safetyNotesMd": "PFA must stay in the fume hood. Aspirate to a labeled PFA-waste trap.",
+      "verificationMd": "Coverslips stay attached during washes. PFA-waste trap securely capped."
+    },
+    {
+      "title": "Permeabilize",
+      "instructionMd": "Add 500 μL 0.1% Triton X-100 in PBS. Incubate 10 min RT. Wash 3× PBS.",
+      "verificationMd": "Triton clear, no precipitate. Cells still on coverslips."
+    },
+    {
+      "title": "Block + primary antibody",
+      "instructionMd": "Add 500 μL blocking buffer, 1 hour RT. Replace with primary antibody at validated dilution in blocking buffer. Incubate 4 °C overnight.",
+      "verificationMd": "Primary antibody fully covers coverslip. Plate sealed to prevent evaporation."
+    },
+    {
+      "title": "Secondary, DAPI, mount",
+      "instructionMd": "Wash 3× 5 min PBS. Add secondary antibody (1:500 in blocking buffer) + DAPI (1 μg/mL), 1 hour RT in dark. Wash 3× 5 min PBS. Lift coverslip, mount face-down on slide with one drop of Fluoromount-G. Cure overnight at 4 °C.",
+      "safetyNotesMd": "Secondary work must be in the dark to prevent photobleaching.",
+      "verificationMd": "Coverslip flat on slide, no air bubbles. DAPI stain visible on inverted scope (blue nuclear signal under UV). Slide labeled with sample, antibody, date."
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "slug": "dna-extraction-phenol",
+  "title": "DNA extraction (phenol/chloroform)",
+  "discipline": "biology",
+  "category": "Molecular biology",
+  "summary": "Classical organic-extraction DNA prep. Higher yield and purity than columns for large genomes; rarely first-line, often last-line.",
+  "biosafetyLevel": 2,
+  "estimatedMinutes": 120,
+  "requiredCerts": ["chemical-hygiene", "biohazard-waste"],
+  "equipmentRequired": ["eppendorf-centrifuge", "vortex"],
+  "reagents": [
+    { "name": "Phenol:chloroform:isoamyl 25:24:1, pH 8", "hazardClass": "toxic+corrosive" },
+    { "name": "Chloroform", "hazardClass": "toxic" },
+    { "name": "3 M sodium acetate, pH 5.2" },
+    { "name": "100% ethanol (cold)", "hazardClass": "flammable" },
+    { "name": "70% ethanol (cold)", "hazardClass": "flammable" }
+  ],
+  "hazardsMd": "Phenol burns through skin and gives off toxic vapor. ALL phenol work in the fume hood, full PPE (lab coat, double gloves, safety glasses). Phenol-contaminated waste goes in a designated phenol-waste bottle, never down the drain.",
+  "contentUndergrad": "## Why ever do this\nKit columns cap out at ~50 μg. For genomic preps from tissue or large plasmids (>50 kb), phenol/chloroform still gives the best yield + length distribution. Save it for when you've outgrown silica.",
+  "steps": [
+    {
+      "title": "Lyse + Proteinase K digest",
+      "instructionMd": "Suspend sample in lysis buffer (TE + 1% SDS + 100 μg/mL Proteinase K). Incubate 56 °C / 1-2 h until clear.",
+      "verificationMd": "Suspension goes from cloudy to translucent. No remaining tissue chunks."
+    },
+    {
+      "title": "Phenol:chloroform extraction",
+      "instructionMd": "In the fume hood: add equal volume phenol:chloroform:isoamyl. Invert 50× (do not vortex — shears DNA). Spin 10 min at 13,000×g. Carefully pipette top aqueous layer to a new tube — avoid the white interface.",
+      "safetyNotesMd": "Pipette tips that touch phenol go into phenol-waste, not the regular trash.",
+      "verificationMd": "Three layers visible after spin: aqueous (top, clear), interface (white), organic (bottom, yellow)."
+    },
+    {
+      "title": "Chloroform back-extraction",
+      "instructionMd": "Repeat with equal volume chloroform alone. Invert + spin as before. Take aqueous to a new tube.",
+      "verificationMd": "Two layers; aqueous on top. Interface should be much thinner than the first round."
+    },
+    {
+      "title": "Ethanol precipitation",
+      "instructionMd": "Add 1/10 volume 3 M NaOAc + 2.5 volumes cold 100% ethanol. Invert. Incubate −20 °C for 30 min (or overnight). Spin 30 min at 13,000×g 4 °C.",
+      "verificationMd": "Visible white pellet at the bottom of the tube."
+    },
+    {
+      "title": "Wash + resuspend",
+      "instructionMd": "Carefully aspirate supernatant. Add 500 μL cold 70% ethanol. Spin 10 min. Aspirate; air-dry the pellet 5 min. Resuspend in 50-200 μL TE or water.",
+      "safetyNotesMd": "Don't over-dry — pellet becomes hard to resuspend. Don't under-dry — residual ethanol inhibits enzymes.",
+      "verificationMd": "Pellet fully dissolved. NanoDrop reads A260/A280 ≈ 1.8, A260/A230 > 2.0."
+    }
+  ]
+}

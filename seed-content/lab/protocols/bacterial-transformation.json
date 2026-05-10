@@ -1,0 +1,48 @@
+{
+  "slug": "bacterial-transformation",
+  "title": "Bacterial transformation (heat shock)",
+  "discipline": "biology",
+  "category": "Microbiology",
+  "summary": "Introduce plasmid DNA into chemically-competent E. coli via heat shock. The cloning workhorse step.",
+  "biosafetyLevel": 1,
+  "estimatedMinutes": 120,
+  "requiredCerts": ["general-lab-safety", "bsl-1"],
+  "equipmentRequired": ["incubator", "vortex"],
+  "reagents": [
+    { "name": "Chemically-competent E. coli (DH5α, NEB Stable, etc.)", "amount": "50", "unit": "μL per reaction" },
+    { "name": "Plasmid DNA", "amount": "1-100", "unit": "ng" },
+    { "name": "SOC or LB recovery medium", "amount": "950", "unit": "μL" },
+    { "name": "LB agar plates with antibiotic" }
+  ],
+  "hazardsMd": "Heat block at 42 °C will burn briefly. Bunsen flame for plate spreading is open fire; tie back hair and clear flammables.",
+  "contentUndergrad": "## What's happening\nBrief 42 °C heat shock + ice gradient permeabilizes the bacterial membrane just enough for plasmid to slip in. Recovery in non-selective media lets the cells express the antibiotic resistance before plating on selective agar.",
+  "steps": [
+    {
+      "title": "Thaw competent cells on ice",
+      "instructionMd": "Thaw a 50 μL aliquot of competent cells on ice for 10 min — never at room temp. Pre-warm SOC/LB to 37 °C. Pre-warm a selective agar plate to 37 °C (~10 min in incubator).",
+      "verificationMd": "Cells fully thawed, slightly cloudy. SOC/LB warm to touch. Plate dry (no condensation on lid)."
+    },
+    {
+      "title": "Add DNA, incubate on ice",
+      "instructionMd": "Add 1-5 μL plasmid DNA (1-100 ng) to cells. Flick tube gently — do not pipette mix. Incubate on ice 30 min.",
+      "safetyNotesMd": "Vortexing kills competent cells. Always flick or pipette extremely gently.",
+      "verificationMd": "DNA droplet visibly mixed into cell suspension. Tube returned to ice promptly."
+    },
+    {
+      "title": "Heat shock",
+      "instructionMd": "Transfer tube DIRECTLY from ice to a 42 °C water bath or heat block for exactly 30-45 seconds (kit-dependent). Then DIRECTLY back to ice for 2 min.",
+      "verificationMd": "Time at 42 °C kept under 60 s. No temperature stalling between heat block and ice."
+    },
+    {
+      "title": "Recover in SOC",
+      "instructionMd": "Add 950 μL pre-warmed SOC. Incubate 37 °C, 200 rpm shaking, for 1 hour (longer for low-copy plasmids or selection beyond ampicillin).",
+      "verificationMd": "Tube placed at the right shaker setting. Timer set for 60 min."
+    },
+    {
+      "title": "Plate on selective agar",
+      "instructionMd": "Spread 50-200 μL onto pre-warmed selective plate (depending on expected efficiency). Let absorb 5 min, invert plate, incubate 37 °C overnight.",
+      "safetyNotesMd": "Wick the spreader through ethanol + flame between plates if reusing.",
+      "verificationMd": "Liquid fully absorbed before inversion. Plate labeled with date, plasmid, antibiotic, your name. Ready to image colonies the next morning."
+    }
+  ]
+}

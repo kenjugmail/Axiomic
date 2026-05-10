@@ -1,0 +1,49 @@
+{
+  "slug": "sds-page",
+  "title": "SDS-PAGE protein gel",
+  "discipline": "biology",
+  "category": "Protein biochemistry",
+  "summary": "Denaturing protein gel that separates by molecular weight. Foundational step before Western blot.",
+  "biosafetyLevel": 1,
+  "estimatedMinutes": 120,
+  "requiredCerts": ["general-lab-safety", "chemical-hygiene"],
+  "equipmentRequired": ["vortex"],
+  "reagents": [
+    { "name": "Pre-cast 4-15% gel" },
+    { "name": "1× SDS running buffer" },
+    { "name": "4× Laemmli sample buffer with β-mercaptoethanol", "hazardClass": "irritant" },
+    { "name": "Pre-stained protein ladder" },
+    { "name": "Coomassie stain or InstantBlue" }
+  ],
+  "hazardsMd": "β-mercaptoethanol is foul-smelling and irritating. Add inside a fume hood. SDS dust is irritating; wear a mask when weighing.",
+  "contentUndergrad": "## How SDS-PAGE works\nSDS coats proteins with negative charge proportional to length, masking native charge. They migrate by size through a polyacrylamide mesh.",
+  "steps": [
+    {
+      "title": "Prepare samples",
+      "instructionMd": "Mix sample with 4× Laemmli sample buffer + reducer to 1× final. Heat 95 °C / 5 min. Spin briefly. Load 5-30 μg per well.",
+      "safetyNotesMd": "Add β-mercaptoethanol to Laemmli inside the fume hood; aliquot after.",
+      "verificationMd": "Samples are blue from the dye, clear (no precipitate). Volume calculated to fit in well (~15-25 μL for mini gel)."
+    },
+    {
+      "title": "Set up the gel",
+      "instructionMd": "Insert pre-cast gel in tank. Fill inner reservoir to overflow with running buffer (this seals the wells). Fill outer reservoir to the marked line.",
+      "verificationMd": "No bubbles trapped under wells. Outer buffer at the proper line."
+    },
+    {
+      "title": "Load and run",
+      "instructionMd": "Pipette samples slowly to the bottom of each well. Always include a pre-stained ladder lane. Run at 200 V (constant) for ~35 min until dye reaches the bottom.",
+      "verificationMd": "Dye front migrates uniformly across the gel. Pre-stained ladder bands visibly separate."
+    },
+    {
+      "title": "Stain with Coomassie",
+      "instructionMd": "Transfer gel to a tray with InstantBlue (or 0.1% Coomassie in 40% methanol/10% acetic acid). Rock 30 min. Destain in water until background clears.",
+      "safetyNotesMd": "Coomassie methanol/acetic acid stain is hazardous waste; collect destain water in a labeled container.",
+      "verificationMd": "Bands visible against pale background. No streaking down lanes."
+    },
+    {
+      "title": "Image the gel",
+      "instructionMd": "Capture with a flatbed scanner or gel imager (white-light mode). Save TIFF for downstream densitometry.",
+      "verificationMd": "Image has visible bands without saturation. Ladder bands match expected MW."
+    }
+  ]
+}

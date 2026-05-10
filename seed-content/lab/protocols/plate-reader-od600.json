@@ -1,0 +1,45 @@
+{
+  "slug": "plate-reader-od600",
+  "title": "Bacterial growth curve (OD600)",
+  "discipline": "biology",
+  "category": "Microbiology",
+  "summary": "Time-course OD600 measurement to track bacterial growth and compute doubling times.",
+  "biosafetyLevel": 1,
+  "estimatedMinutes": 480,
+  "requiredCerts": ["general-lab-safety", "bsl-1"],
+  "equipmentRequired": ["plate-reader", "incubator"],
+  "reagents": [
+    { "name": "Overnight bacterial culture", "amount": "diluted to OD ~0.05" },
+    { "name": "LB or M9 media (sterile)" },
+    { "name": "Antibiotic, if needed" }
+  ],
+  "hazardsMd": "BSL-1 only. If using BSL-2 strains, run the assay inside the BSC and seal the plate before transferring to a containment-rated reader.",
+  "contentUndergrad": "## Reading interpretation\nLog-phase: OD ~0.1 to 1.0. Above 1.0 the OD-to-cell-count relationship breaks down (multiple-scattering). Stationary phase: ~3-5 for most E. coli strains.",
+  "steps": [
+    {
+      "title": "Dilute overnight to start point",
+      "instructionMd": "Measure OD600 of overnight culture. Dilute to OD 0.05 in fresh pre-warmed media + appropriate antibiotic.",
+      "verificationMd": "Pre-dilution OD600 measured and logged. Post-dilution: 200 μL aliquot reads ~0.05."
+    },
+    {
+      "title": "Load plate",
+      "instructionMd": "Pipette 200 μL of diluted culture per well. Run 3-6 technical replicates per condition. Include media-only blank wells (4+ for averaging).",
+      "verificationMd": "Plate map filed. No bubbles in wells (a 1-min spin at 500×g clears them)."
+    },
+    {
+      "title": "Set up the kinetic read",
+      "instructionMd": "In Gen5: kinetic read, 600 nm absorbance, 5-15 min interval, 18-24 hour total. Set incubator to 37 °C with double-orbital shaking 200 rpm.",
+      "verificationMd": "Program shows expected timepoint count and total duration. Shaker speed appropriate for the strain."
+    },
+    {
+      "title": "Run the curve",
+      "instructionMd": "Lid on; some readers require lid-off + breathable seal to prevent condensation. Start the kinetic protocol.",
+      "verificationMd": "First few readings show expected baseline (OD ~0.05). Curve will be flat for the first 1-2 h (lag), then exponential."
+    },
+    {
+      "title": "Analyze the curve",
+      "instructionMd": "Subtract media blank. For doubling time: fit log-phase region (OD 0.1-0.5) to exponential. Doubling time t_d = ln(2) × Δt / ln(OD2/OD1).",
+      "verificationMd": "Doubling time matches expectation for strain (~20 min for E. coli MG1655 in LB at 37 °C). Curves overlap across replicates within ~10%."
+    }
+  ]
+}

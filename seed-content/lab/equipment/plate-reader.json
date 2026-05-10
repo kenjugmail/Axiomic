@@ -1,0 +1,39 @@
+{
+  "slug": "plate-reader",
+  "title": "BioTek Synergy H1 hybrid plate reader",
+  "discipline": "biology",
+  "manufacturer": "Agilent / BioTek",
+  "model": "Synergy H1",
+  "manualMd": "Multi-mode plate reader: absorbance (200-999 nm), fluorescence intensity, and luminescence. Reads 6-, 24-, 96-, 384-well plates. Software: Gen5.",
+  "locationHint": "Shared instrument room, bay 4",
+  "trainingCertSlug": "general-lab-safety",
+  "hazardsMd": "- Lamp uses high voltage; never open the case while powered.\n- Plates with volatiles (DMSO, methanol) can evaporate and contaminate the optics — seal with breathable seal or run quickly.",
+  "bookingPolicy": "reserve",
+  "operations": [
+    {
+      "title": "Daily startup",
+      "kind": "daily-check",
+      "bodyMd": "Power on the unit, then launch Gen5. Wait for self-test (~2 min). Confirm 'No errors' on the status panel."
+    },
+    {
+      "title": "OD600 bacterial growth",
+      "kind": "calibration",
+      "bodyMd": "Use a clear-bottom 96-well plate. Read at 600 nm absorbance. Subtract a media-only blank from each well. For accurate doubling-time fits, set the timepoint interval at 5 min for fast-growers, 15 min for slow."
+    },
+    {
+      "title": "Reading drifts upward over time",
+      "kind": "common-fault",
+      "bodyMd": "Usually condensation on the plate lid as it warms inside the chamber. Switch to lid-off + breathable seal, or pre-equilibrate the plate at 37 °C for 10 min."
+    },
+    {
+      "title": "Lamp won't ignite",
+      "kind": "common-fault",
+      "bodyMd": "Lamp may be at end-of-life (typical 2000 hours). Check the Gen5 maintenance log; replace per manufacturer instructions."
+    },
+    {
+      "title": "Post-use",
+      "kind": "post-use",
+      "bodyMd": "Eject the plate carrier. Wipe any spilled liquid from the carrier. Close Gen5. Power off the reader if you're the last user of the day."
+    }
+  ]
+}

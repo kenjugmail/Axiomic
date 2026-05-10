@@ -1,0 +1,49 @@
+{
+  "slug": "western-blot",
+  "title": "Western blot",
+  "discipline": "biology",
+  "category": "Protein biochemistry",
+  "summary": "Transfer SDS-PAGE proteins to a membrane, probe with antibodies, detect by chemiluminescence.",
+  "biosafetyLevel": 1,
+  "estimatedMinutes": 480,
+  "requiredCerts": ["general-lab-safety", "chemical-hygiene"],
+  "equipmentRequired": ["gel-imager", "vortex"],
+  "reagents": [
+    { "name": "Transfer buffer (Towbin's: Tris/glycine/methanol)", "hazardClass": "flammable" },
+    { "name": "Nitrocellulose or PVDF membrane" },
+    { "name": "Blocking buffer (5% milk in TBST)" },
+    { "name": "Primary antibody, validated dilution" },
+    { "name": "HRP-conjugated secondary antibody" },
+    { "name": "ECL substrate (Pico or Femto)" }
+  ],
+  "hazardsMd": "Methanol in transfer buffer is flammable + toxic. Mix and decant inside a fume hood. ECL substrate is light-sensitive — image promptly.",
+  "contentUndergrad": "## Decisions you'll make\nMembrane: PVDF for repeat-imaging, nitrocellulose for sensitivity. Block: milk for most, BSA for phospho-protein primaries (milk has phosphoproteins).",
+  "steps": [
+    {
+      "title": "Run SDS-PAGE",
+      "instructionMd": "Follow the SDS-PAGE protocol with your loading scheme. Don't stain the gel — proceed straight to transfer.",
+      "verificationMd": "Pre-stained ladder visibly separated. Dye front migrated to bottom but not run off."
+    },
+    {
+      "title": "Transfer to membrane",
+      "instructionMd": "Wet transfer: assemble sandwich (sponge / paper / gel / membrane / paper / sponge), submerge in cold transfer buffer, transfer at 100 V / 60 min with ice pack. Or semi-dry: 25 V / 30 min.",
+      "safetyNotesMd": "Check ice pack midway; overheated transfer destroys protein.",
+      "verificationMd": "Pre-stained ladder visibly transferred to membrane. No air bubbles in the sandwich (rolled out beforehand)."
+    },
+    {
+      "title": "Block",
+      "instructionMd": "Submerge membrane in 5% milk in TBST for 1 hour at RT (or 4 °C overnight). Use a rocker.",
+      "verificationMd": "Membrane fully submerged, rocking gently."
+    },
+    {
+      "title": "Probe with antibodies",
+      "instructionMd": "Primary antibody at validated dilution in blocking buffer, 4 °C overnight. Wash 3× 5 min in TBST. Secondary 1:5000 in blocking buffer, 1 hour RT. Wash 3× 10 min.",
+      "verificationMd": "Antibody covers membrane fully. Wash buffer drained between steps. No drying."
+    },
+    {
+      "title": "Detect with ECL",
+      "instructionMd": "Mix ECL substrate per kit. Drain TBST off membrane, apply ECL evenly, incubate 1 min. Image immediately on gel doc / chemilum imager. Tune exposure 1-30 s.",
+      "verificationMd": "Bands visible at expected MW. No saturation. Strip + reprobe planning written down if applicable."
+    }
+  ]
+}

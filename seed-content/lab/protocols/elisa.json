@@ -1,0 +1,50 @@
+{
+  "slug": "elisa",
+  "title": "Sandwich ELISA",
+  "discipline": "biology",
+  "category": "Protein biochemistry",
+  "summary": "Quantitative measurement of a soluble antigen using a capture antibody pair. Industry-standard quantitation for cytokines and serum proteins.",
+  "biosafetyLevel": 2,
+  "estimatedMinutes": 360,
+  "requiredCerts": ["bsl-2", "biohazard-waste"],
+  "equipmentRequired": ["plate-reader", "vortex"],
+  "reagents": [
+    { "name": "Capture antibody (per kit)" },
+    { "name": "Standard / sample diluent" },
+    { "name": "Detection antibody (biotinylated)" },
+    { "name": "Streptavidin-HRP" },
+    { "name": "TMB substrate", "hazardClass": "irritant" },
+    { "name": "Stop solution (1 M H2SO4 or 2 N HCl)", "hazardClass": "corrosive" }
+  ],
+  "hazardsMd": "Stop solution is concentrated acid — wear gloves, goggles, lab coat. TMB stains skin and clothing.",
+  "contentUndergrad": "## Standard curve discipline\nAlways run an 8-point dilution series + 2 blanks per plate. Fit with a 4-parameter logistic (4PL); a linear fit will mis-quantify high values.",
+  "steps": [
+    {
+      "title": "Coat plate with capture antibody",
+      "instructionMd": "Dilute capture antibody to 1-2 μg/mL in coating buffer. Add 100 μL/well to high-binding 96-well plate. Seal, incubate 4 °C overnight.",
+      "verificationMd": "All wells filled to identical volume. Plate sealed flat (no peel)."
+    },
+    {
+      "title": "Block",
+      "instructionMd": "Wash 3× with PBST. Add 200 μL blocking buffer per well. Incubate 1 hour RT.",
+      "verificationMd": "Each well has visible meniscus of blocking buffer. No dry wells."
+    },
+    {
+      "title": "Add standards and samples",
+      "instructionMd": "Wash 3× PBST. Add 100 μL standard (8-point dilution series) + samples in duplicate or triplicate. Seal, incubate 2 hours RT.",
+      "safetyNotesMd": "Pipette accurately — variation here propagates through the standard curve.",
+      "verificationMd": "Plate map filed. Standards in clearly marked columns. Replicates pipetted with the same tip change protocol."
+    },
+    {
+      "title": "Detect",
+      "instructionMd": "Wash 3× PBST. Add detection antibody (100 μL/well), 1 hour RT. Wash 3× PBST. Add streptavidin-HRP, 30 min RT. Wash 3× PBST.",
+      "verificationMd": "Each step's wash water clear by the third wash."
+    },
+    {
+      "title": "Develop and read",
+      "instructionMd": "Add 100 μL TMB substrate. Incubate 15-30 min RT in the dark. Add 50 μL stop solution (color shifts blue → yellow). Read at 450 nm within 30 min.",
+      "safetyNotesMd": "Stop solution is acid; pipette into wells, do not splash.",
+      "verificationMd": "Color gradient across the standard curve clearly visible. 4PL fit R² > 0.99. Sample CV < 15% across replicates."
+    }
+  ]
+}

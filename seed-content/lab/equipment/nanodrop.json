@@ -1,0 +1,39 @@
+{
+  "slug": "nanodrop",
+  "title": "NanoDrop One spectrophotometer",
+  "discipline": "biology",
+  "manufacturer": "Thermo Fisher",
+  "model": "NanoDrop One",
+  "manualMd": "1-2 μL micro-volume UV-Vis spec for nucleic acids and protein. Reports A260, A280, A260/A280, A260/A230. Ideal range: 2-3700 ng/μL dsDNA. Use the cuvette mode for samples below 2 ng/μL.",
+  "locationHint": "Shared instrument cart, room B12",
+  "trainingCertSlug": "general-lab-safety",
+  "hazardsMd": "- The pedestal arm pinches; lower it gently.\n- Many sample buffers contain phenol or guanidine — wear gloves.",
+  "bookingPolicy": "open",
+  "operations": [
+    {
+      "title": "Daily startup",
+      "kind": "daily-check",
+      "bodyMd": "Power on. Lift the arm; wipe both pedestals with a Kimwipe. Run a 'water blank' to verify the baseline reads 0.00 ± 0.02 absorbance."
+    },
+    {
+      "title": "Measure dsDNA",
+      "kind": "calibration",
+      "bodyMd": "1. Select Nucleic Acid → dsDNA.\n2. Blank with the buffer your sample is in (NOT water if elution is in TE).\n3. Pipette 1 μL of sample on the pedestal. Lower arm. Read.\n4. Wipe both pedestals with a fresh Kimwipe between samples."
+    },
+    {
+      "title": "Bad A260/A280",
+      "kind": "common-fault",
+      "bodyMd": "Pure dsDNA reads ≈ 1.8. Below 1.7 = protein contamination. Above 2.0 = RNA or contamination from blank mismatch. Re-blank with the correct buffer and re-measure; if persistent, repurify."
+    },
+    {
+      "title": "Sample beads up",
+      "kind": "common-fault",
+      "bodyMd": "Pedestal needs cleaning. Wipe with 0.5 M HCl, then water, then a Kimwipe. The beading suggests residue or the pedestal is hydrophobic again."
+    },
+    {
+      "title": "Post-use",
+      "kind": "post-use",
+      "bodyMd": "Wipe both pedestals dry. Lower the arm. Log out of your account."
+    }
+  ]
+}
