@@ -493,11 +493,32 @@ mastery.get("/lesson/:nodeId", async (c) => {
       lessonData: masteryNodes.lessonData,
       sourceArticleId: masteryNodes.sourceArticleId,
       prerequisiteNodeIds: masteryNodes.prerequisiteNodeIds,
+      // Sprint 82 — surface node kind so LessonPage can swap renderers.
+      nodeKind: masteryNodes.nodeKind,
+      protocolSlug: masteryNodes.protocolSlug,
+      certSlug: masteryNodes.certSlug,
+      equipmentSlug: masteryNodes.equipmentSlug,
     })
     .from(masteryNodes)
     .where(eq(masteryNodes.id, nodeId))
     .get();
   if (!node) return c.json({ error: "Node not found" }, 404);
+
+  // Sprint 82 — non-lesson nodes resolve to the corresponding lab
+  // surface; the renderer follows the embed link instead of rendering
+  // slides. We still return prereqWikiSlugs (empty for lab nodes for
+  // now) for shape symmetry with the existing client.
+  if (node.nodeKind && node.nodeKind !== "lesson") {
+    return c.json({
+      lesson: null,
+      sourceArticle: null,
+      prereqWikiSlugs: [],
+      nodeKind: node.nodeKind,
+      protocolSlug: node.protocolSlug,
+      certSlug: node.certSlug,
+      equipmentSlug: node.equipmentSlug,
+    });
+  }
 
   // Sprint 32 — walk prerequisite mastery nodes to surface the wiki
   // slugs that gate this lesson. Lets the editor preview render a
@@ -547,15 +568,36 @@ mastery.get("/lesson/:nodeId", async (c) => {
     if (a) sourceArticle = a;
   }
 
-  if (!node.lessonData) return c.json({ lesson: null, sourceArticle, prereqWikiSlugs });
+  if (!node.lessonData)
+    return c.json({
+      lesson: null,
+      sourceArticle,
+      prereqWikiSlugs,
+      nodeKind: node.nodeKind ?? "lesson",
+      protocolSlug: null,
+      certSlug: null,
+      equipmentSlug: null,
+    });
   try {
     return c.json({
       lesson: JSON.parse(node.lessonData),
       sourceArticle,
       prereqWikiSlugs,
+      nodeKind: node.nodeKind ?? "lesson",
+      protocolSlug: null,
+      certSlug: null,
+      equipmentSlug: null,
     });
   } catch {
-    return c.json({ lesson: null, sourceArticle, prereqWikiSlugs });
+    return c.json({
+      lesson: null,
+      sourceArticle,
+      prereqWikiSlugs,
+      nodeKind: node.nodeKind ?? "lesson",
+      protocolSlug: null,
+      certSlug: null,
+      equipmentSlug: null,
+    });
   }
 });
 

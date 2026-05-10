@@ -53,6 +53,7 @@ import { meRouter } from "./routes/me";
 import { usersRouter } from "./routes/users";
 import { protocolsRouter } from "./routes/protocols";
 import { equipmentRouter } from "./routes/equipment";
+import { labGroupsRouter, meLabRouter } from "./routes/labAssignments";
 import {
   safetyCertsRouter,
   safetyCertsMeRouter,
@@ -247,6 +248,9 @@ app.route("/lab/safety-certs", safetyCertsRouter);
 app.route("/lab/runs", protocolRunsRouter);
 app.route("/me/safety-certs", safetyCertsMeRouter);
 app.route("/me/lab/runs", protocolRunsMeRouter);
+// Sprint 82 — Lab onboarding playbook + roster + skill MRI.
+app.route("/lab-groups", labGroupsRouter);
+app.route("/me/lab", meLabRouter);
 
 // Pre-warm the search index in the background so the first user query
 // doesn't pay the embedding-build cost.

@@ -1090,6 +1090,13 @@ export interface LessonResponse {
   // Sprint 32 — wiki slugs derived from this node's prereq mastery
   // nodes. Editor preview uses this to render PrereqXray.
   prereqWikiSlugs?: string[];
+  // Sprint 82 — when nodeKind != 'lesson', the LessonPage renders a
+  // lab-surface embed pointing at the matching protocol/cert/
+  // equipment record. The lesson body is null in that case.
+  nodeKind?: "lesson" | "protocol" | "cert" | "equipment-training";
+  protocolSlug?: string | null;
+  certSlug?: string | null;
+  equipmentSlug?: string | null;
 }
 
 export interface QuizSubmitResponse {
@@ -3082,4 +3089,110 @@ export interface StepUpdateRequest {
 
 export interface SignOffRequest {
   notesMd?: string;
+}
+
+// Sprint 82 — Lab playbook + roster + skill MRI.
+
+export type LabAssignmentKind = "protocol" | "cert" | "path";
+export type LabAssignmentStatus =
+  | "pending"
+  | "in_progress"
+  | "completed"
+  | "overdue";
+
+export interface LabPlaybookAssignment {
+  id: string;
+  cohortSlug: string;
+  cohortName: string;
+  kind: LabAssignmentKind | "unknown";
+  targetSlug: string | null;
+  targetTitle: string;
+  dueAt: string | null;
+  status: LabAssignmentStatus;
+  notesMd: string | null;
+  createdAt: string;
+  assignedByUsername: string | null;
+}
+
+export interface LabPlaybookRecommendation {
+  slug: string;
+  title: string;
+  discipline: string;
+}
+
+export interface LabPlaybookResponse {
+  assignments: LabPlaybookAssignment[];
+  recommended: LabPlaybookRecommendation[];
+}
+
+export interface LabRosterMember {
+  userId: string;
+  username: string;
+  displayName: string | null;
+  role: "member" | "mentor" | "organizer";
+  joinedAt: string;
+  assignments: { pending: number; completed: number; overdue: number };
+  signedOffRunCount: number;
+  activeCertCount: number;
+}
+
+export interface LabRosterAwaiting {
+  id: string;
+  userId: string;
+  protocolSlug: string;
+  protocolTitle: string;
+  startedAt: string;
+}
+
+export interface LabRosterResponse {
+  cohort: {
+    id: string;
+    slug: string;
+    name: string;
+    discipline: string | null;
+  };
+  members: LabRosterMember[];
+  awaitingSignoffQueue: LabRosterAwaiting[];
+}
+
+export interface LabSkillMriProtocol {
+  slug: string;
+  title: string;
+  status: "not_started" | "in_flight" | "signed_off";
+  lastSignedOffAt: string | null;
+}
+
+export interface LabSkillMriEquipment {
+  slug: string;
+  title: string;
+  certified: boolean;
+  trainingCertSlug: string | null;
+}
+
+export interface LabSkillMriDiscipline {
+  discipline: string;
+  protocols: LabSkillMriProtocol[];
+  equipment: LabSkillMriEquipment[];
+}
+
+export interface LabSkillMriResponse {
+  disciplines: LabSkillMriDiscipline[];
+}
+
+export interface AssignLabWorkRequest {
+  assignedToUserIds: string[];
+  masteryPathSlug?: string | null;
+  protocolSlug?: string | null;
+  certSlug?: string | null;
+  dueAt?: string | null;
+  notesMd?: string;
+}
+
+export interface MasteryNodeKindFields {
+  // Sprint 82 — surfaced on MasteryNode/MasteryPath responses so the
+  // LessonPage can pick the right renderer.
+  nodeKind?: "lesson" | "protocol" | "cert" | "equipment-training";
+  protocolSlug?: string | null;
+  certSlug?: string | null;
+  equipmentSlug?: string | null;
 }

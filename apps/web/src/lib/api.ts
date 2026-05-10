@@ -80,6 +80,10 @@ import type {
   CreateEquipmentRequest,
   UpdateEquipmentRequest,
   ReplaceEquipmentOperationsRequest,
+  LabPlaybookResponse,
+  LabRosterResponse,
+  LabSkillMriResponse,
+  AssignLabWorkRequest,
   SafetyCertListResponse,
   SafetyCertWithQuestionsResponse,
   SafetyCertAttemptResponse,
@@ -1530,6 +1534,29 @@ export const api = {
           body: JSON.stringify(body),
         }),
     },
+    // Sprint 82 — Lab playbook + roster + skill MRI.
+    playbook: () => request<LabPlaybookResponse>("/me/lab/playbook"),
+    skillMri: () => request<LabSkillMriResponse>("/me/lab/skill-mri"),
+    assignments: () =>
+      request<{
+        assignments: Array<{
+          id: string;
+          cohortSlug: string;
+          cohortName: string;
+          protocolSlug: string | null;
+          certSlug: string | null;
+          masteryPathSlug: string | null;
+          dueAt: string | null;
+          status: string;
+        }>;
+      }>("/me/lab/assignments"),
+    roster: (slug: string) =>
+      request<LabRosterResponse>(`/lab-groups/${slug}/roster`),
+    assign: (slug: string, body: AssignLabWorkRequest) =>
+      request<{ ok: true; cohortId: string; assignmentIds: string[] }>(
+        `/lab-groups/${slug}/assign`,
+        { method: "POST", body: JSON.stringify(body) },
+      ),
   },
 };
 

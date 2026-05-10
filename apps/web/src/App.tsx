@@ -323,6 +323,12 @@ const MyLabPage = lazy(() =>
     default: m.MyLabPage,
   })),
 );
+// Sprint 82 — PI dashboard for a lab cohort.
+const LabRosterPage = lazy(() =>
+  import("./pages/LabRosterPage").then((m) => ({
+    default: m.LabRosterPage,
+  })),
+);
 
 function PageFallback() {
   return (
@@ -444,6 +450,10 @@ function AppRoutes() {
           />
           <Route path="/lab/runs/:id" element={<ProtocolRunPage />} />
           <Route path="/me/lab" element={<MyLabPage />} />
+          <Route
+            path="/lab-groups/:slug/roster"
+            element={<LabRosterPage />}
+          />
           {/* Sprint 73 — exam mastery framework. */}
           <Route path="/exams" element={<ExamsListPage />} />
           <Route path="/exams/:slug" element={<ExamPage />} />

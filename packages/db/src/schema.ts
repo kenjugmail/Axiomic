@@ -161,6 +161,14 @@ export const masteryNodes = sqliteTable("mastery_nodes", {
   // Paper→Lesson pipeline. Surfaces a "Sourced from @author's article"
   // link on the lesson page.
   sourceArticleId: text("source_article_id"),
+  // Sprint 82 — node kind discriminator. 'lesson' (default) keeps the
+  // existing slide+quiz renderer; 'protocol' / 'cert' / 'equipment-
+  // training' embed the corresponding lab surface and complete when
+  // the underlying record reaches its terminal state.
+  nodeKind: text("node_kind").notNull().default("lesson"),
+  protocolSlug: text("protocol_slug"),
+  certSlug: text("cert_slug"),
+  equipmentSlug: text("equipment_slug"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
 });
 
@@ -1242,6 +1250,10 @@ export const cohorts = sqliteTable("cohorts", {
   capstoneSlug: text("capstone_slug"),
   // 'open' (anyone can join) | 'invite' (creator must approve)
   visibility: text("visibility").notNull().default("open"),
+  // Sprint 82 — when set, marks this cohort as a "lab group" the
+  // intern dashboard + roster filter on. Reuses the LabDiscipline
+  // taxonomy so playbook assignments stay consistent.
+  discipline: text("discipline"),
   creatorId: text("creator_id").notNull().references(() => users.id),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
@@ -2167,5 +2179,41 @@ export const protocolRuns = sqliteTable(
       t.status,
     ),
     signoffIdx: index("protocol_runs_signoff_idx").on(t.status, t.startedAt),
+  }),
+);
+
+// Sprint 82 — PI-issued lab assignments. Distinct from mastery-path
+// completion: a PI can pin a single protocol or cert to one or more
+// interns even when no full path applies (e.g. "everyone redo the
+// gel-electrophoresis run after that contamination scare"). Exactly
+// one of {masteryPathSlug, protocolSlug, certSlug} is set per row.
+
+export const labAssignments = sqliteTable(
+  "lab_assignments",
+  {
+    id: text("id").primaryKey(),
+    cohortId: text("cohort_id").notNull()
+      .references(() => cohorts.id, { onDelete: "cascade" }),
+    assignedToUserId: text("assigned_to_user_id").notNull()
+      .references(() => users.id),
+    assignedById: text("assigned_by_id").notNull().references(() => users.id),
+    masteryPathSlug: text("mastery_path_slug"),
+    protocolSlug: text("protocol_slug"),
+    certSlug: text("cert_slug"),
+    dueAt: text("due_at"),
+    // 'pending' | 'in_progress' | 'completed' | 'overdue'.
+    status: text("status").notNull().default("pending"),
+    notesMd: text("notes_md"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    cohortUserIdx: index("lab_assign_cohort_user_idx").on(
+      t.cohortId,
+      t.assignedToUserId,
+    ),
+    userStatusIdx: index("lab_assign_user_status_idx").on(
+      t.assignedToUserId,
+      t.status,
+    ),
   }),
 );

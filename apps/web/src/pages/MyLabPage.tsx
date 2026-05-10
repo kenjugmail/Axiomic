@@ -1,13 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Beaker, ShieldCheck, Inbox } from "lucide-react";
+import { Beaker, ClipboardList, Sparkles, ShieldCheck, Inbox } from "lucide-react";
 import type {
+  LabPlaybookResponse,
   ProtocolRunSummary,
   UserSafetyCertEntry,
 } from "@axiomic/types";
 import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { CertExpiryBadge } from "../components/lab/CertExpiryBadge";
+import { DISCIPLINE_LABEL } from "../components/lab/DisciplineFilterChips";
+
+function relativeDue(iso: string | null): string | null {
+  if (!iso) return null;
+  const days = Math.ceil((Date.parse(iso) - Date.now()) / 86400_000);
+  if (days < 0) return `overdue ${Math.abs(days)}d`;
+  if (days === 0) return "due today";
+  if (days === 1) return "due tomorrow";
+  return `due in ${days}d`;
+}
 
 const STATUS_LABEL: Record<string, string> = {
   in_progress: "In progress",
@@ -60,6 +71,7 @@ export function MyLabPage() {
     null,
   );
   const [certs, setCerts] = useState<UserSafetyCertEntry[] | null>(null);
+  const [playbook, setPlaybook] = useState<LabPlaybookResponse | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -75,6 +87,10 @@ export function MyLabPage() {
     api.lab.safetyCerts.mine().then((res) => {
       if (cancelled) return;
       setCerts(res.certs);
+    });
+    api.lab.playbook().then((res) => {
+      if (cancelled) return;
+      setPlaybook(res);
     });
     return () => {
       cancelled = true;
@@ -143,6 +159,101 @@ export function MyLabPage() {
 
       <div className="grid lg:grid-cols-3 gap-6">
         <section className="lg:col-span-2 space-y-6">
+          {playbook && playbook.assignments.length > 0 && (
+            <div>
+              <h2 className="font-display text-xl font-semibold tracking-tight mb-3 flex items-center gap-2">
+                <ClipboardList
+                  className="w-5 h-5 text-primary"
+                  strokeWidth={2}
+                />
+                Assigned to you
+              </h2>
+              <ul className="space-y-2">
+                {playbook.assignments.map((a) => {
+                  const due = relativeDue(a.dueAt);
+                  const tone =
+                    a.status === "completed"
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : a.status === "overdue"
+                        ? "text-destructive"
+                        : "text-muted-foreground";
+                  const href =
+                    a.kind === "protocol" && a.targetSlug
+                      ? `/lab/protocols/${a.targetSlug}`
+                      : a.kind === "cert" && a.targetSlug
+                        ? `/lab/safety-certs/${a.targetSlug}`
+                        : a.kind === "path" && a.targetSlug
+                          ? `/paths/${a.targetSlug}`
+                          : "/me/lab";
+                  return (
+                    <li key={a.id}>
+                      <Link
+                        to={href}
+                        className="block rounded-lg border border-border bg-card hover:bg-accent/40 transition-colors duration-fast p-3"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-sm font-medium text-foreground truncate">
+                              {a.targetTitle}
+                            </h3>
+                            <div className="text-xs text-muted-foreground mt-0.5">
+                              {a.cohortName} ·{" "}
+                              <span className="capitalize">{a.kind}</span>
+                              {a.assignedByUsername
+                                ? ` · assigned by @${a.assignedByUsername}`
+                                : ""}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3 shrink-0">
+                            {due && (
+                              <span className={`text-xs font-medium ${tone}`}>
+                                {due}
+                              </span>
+                            )}
+                            <span className={`text-xs font-medium ${tone} capitalize`}>
+                              {a.status.replace("_", " ")}
+                            </span>
+                          </div>
+                        </div>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+
+          {playbook && playbook.recommended.length > 0 && (
+            <div>
+              <h2 className="font-display text-xl font-semibold tracking-tight mb-3 flex items-center gap-2">
+                <Sparkles
+                  className="w-5 h-5 text-amber-500"
+                  strokeWidth={2}
+                />
+                Recommended next
+              </h2>
+              <ul className="grid sm:grid-cols-3 gap-2">
+                {playbook.recommended.map((r) => (
+                  <li key={r.slug}>
+                    <Link
+                      to={`/lab/protocols/${r.slug}`}
+                      className="block rounded-lg border border-border bg-card hover:bg-accent/40 transition-colors duration-fast p-3"
+                    >
+                      <h3 className="text-sm font-medium text-foreground truncate">
+                        {r.title}
+                      </h3>
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        {DISCIPLINE_LABEL[
+                          r.discipline as keyof typeof DISCIPLINE_LABEL
+                        ] ?? r.discipline}
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div>
             <h2 className="font-display text-xl font-semibold tracking-tight mb-3">
               Active runs
