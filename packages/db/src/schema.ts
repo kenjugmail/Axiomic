@@ -2097,3 +2097,75 @@ export const equipmentOperations = sqliteTable("equipment_operations", {
 }, (t) => ({
   equipOrdUq: uniqueIndex("equipment_operations_pk").on(t.equipmentId, t.ordinal),
 }));
+
+// Sprint 80 — Safety certifications + protocol-run sign-offs. The
+// operational unlock: an intern can't start a run for BSL-2 work until
+// they've passed BSL-2 + non-expired. Sign-off chain: intern marks all
+// steps done, requests sign-off, mentor/PI in their cohort approves.
+
+export const safetyCertifications = sqliteTable("safety_certifications", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  discipline: text("discipline").notNull(),
+  description: text("description"),
+  // Reuses masteryNodes.quizData JSON shape exactly so the existing
+  // quiz renderer + grader work unchanged. {questions: Question[]}.
+  quizDataJson: text("quiz_data_json").notNull(),
+  passingScore: real("passing_score").notNull().default(0.7),
+  // Days until expiration. Null = never expires (e.g., general chem
+  // hygiene). 730 for BSL-2 (typical 2y refresher).
+  validityDays: integer("validity_days"),
+  authorId: text("author_id").notNull().references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+export const userSafetyCertifications = sqliteTable(
+  "user_safety_certifications",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    certSlug: text("cert_slug").notNull(),
+    passedAt: text("passed_at").notNull(),
+    expiresAt: text("expires_at"),
+    score: real("score"),
+  },
+  (t) => ({
+    userCertIdx: index("user_certs_idx").on(
+      t.userId,
+      t.certSlug,
+      t.expiresAt,
+    ),
+  }),
+);
+
+export const protocolRuns = sqliteTable(
+  "protocol_runs",
+  {
+    id: text("id").primaryKey(),
+    protocolId: text("protocol_id").notNull()
+      .references(() => protocols.id, { onDelete: "cascade" }),
+    // Pinned version: an intern's run-state persists even if the
+    // protocol is later edited. Snapshot resolved via protocolVersions.
+    protocolVersion: integer("protocol_version").notNull(),
+    userId: text("user_id").notNull().references(() => users.id),
+    // 'in_progress' | 'awaiting_signoff' | 'signed_off' | 'rejected'.
+    status: text("status").notNull().default("in_progress"),
+    startedAt: text("started_at").default(sql`(datetime('now'))`).notNull(),
+    completedAt: text("completed_at"),
+    signedOffAt: text("signed_off_at"),
+    signedOffById: text("signed_off_by_id").references(() => users.id),
+    // { ordinal: { done, doneAt, observation, attachmentRefs[] } }.
+    stepStateJson: text("step_state_json").notNull().default("{}"),
+    notesMd: text("notes_md").notNull().default(""),
+    signOffNotesMd: text("sign_off_notes_md"),
+  },
+  (t) => ({
+    userIdx: index("protocol_runs_user_idx").on(t.userId, t.startedAt),
+    protocolIdx: index("protocol_runs_protocol_idx").on(
+      t.protocolId,
+      t.status,
+    ),
+    signoffIdx: index("protocol_runs_signoff_idx").on(t.status, t.startedAt),
+  }),
+);

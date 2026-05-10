@@ -53,6 +53,15 @@ import { meRouter } from "./routes/me";
 import { usersRouter } from "./routes/users";
 import { protocolsRouter } from "./routes/protocols";
 import { equipmentRouter } from "./routes/equipment";
+import {
+  safetyCertsRouter,
+  safetyCertsMeRouter,
+} from "./routes/safetyCerts";
+import {
+  protocolRunsRouter,
+  protocolRunsMeRouter,
+} from "./routes/protocolRuns";
+import { notifyExpiringCertsJob } from "./jobs/notifyExpiringCerts";
 import { bootstrapAdmin } from "./lib/bootstrapAdmin";
 import { prewarmSearchIndex } from "./lib/searchIndex";
 import { userFromCookieHeader } from "./middleware/auth";
@@ -233,6 +242,11 @@ app.route("/users", usersRouter);
 // Sprint 79 — Lab protocol + equipment library.
 app.route("/lab/protocols", protocolsRouter);
 app.route("/lab/equipment", equipmentRouter);
+// Sprint 80 — Safety certifications + protocol-run sign-offs.
+app.route("/lab/safety-certs", safetyCertsRouter);
+app.route("/lab/runs", protocolRunsRouter);
+app.route("/me/safety-certs", safetyCertsMeRouter);
+app.route("/me/lab/runs", protocolRunsMeRouter);
 
 // Pre-warm the search index in the background so the first user query
 // doesn't pay the embedding-build cost.
@@ -258,6 +272,8 @@ if (process.env.DISABLE_JOB_RUNNER !== "1") {
   registerJob(harvestSocialResearcherPostsJob);
   // Sprint 73 — exam mastery framework.
   registerJob(finalizeStaleExamAttemptsJob);
+  // Sprint 80 — daily cert-expiry warnings (30d/7d/1d ahead).
+  registerJob(notifyExpiringCertsJob);
   startJobRunner();
 }
 

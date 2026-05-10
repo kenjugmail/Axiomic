@@ -29,6 +29,12 @@ export function notificationLink(n: Notification): string {
     // page. contextSlug is the grant id (also subjectId here).
     case "grant":
       return `/grants/${n.contextSlug ?? n.subjectId}`;
+    // Sprint 80 — lab notifications. contextSlug carries the
+    // protocol slug (for runs) or the cert slug.
+    case "lab_protocol_run":
+      return `/lab/runs/${n.subjectId}`;
+    case "lab_cert":
+      return `/lab/safety-certs/${n.contextSlug ?? n.subjectId}`;
     case "claim_thread":
     case "reproduction":
     case "capstone_track":
@@ -87,6 +93,17 @@ function kindLabel(kind: Notification["kind"]): string {
       return "found a grant matching your work";
     case "grant_deadline_soon":
       return "grant deadline approaching";
+    // Sprint 80 — lab protocol runs + safety cert lifecycle.
+    case "lab_signoff_requested":
+      return "requested sign-off on a protocol run";
+    case "lab_signoff_approved":
+      return "signed off on your protocol run";
+    case "lab_signoff_rejected":
+      return "asked for changes on your protocol run";
+    case "lab_cert_passed":
+      return "you passed a safety certification";
+    case "lab_cert_expiring":
+      return "your safety certification is expiring";
     default: {
       // Exhaustiveness check: future NotificationKind additions force
       // a TS error here, prompting the author to add a case.

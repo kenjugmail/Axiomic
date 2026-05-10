@@ -36,6 +36,10 @@ const SECONDARY_NAV_PUBLIC: Array<{ to: string; label: string }> = [
   // Sprint 78 — funding feed lives in the secondary menu so it's
   // discoverable but doesn't crowd the primary nav.
   { to: "/grants", label: "Funding" },
+  // Sprint 80 — safety cert catalog. Discoverable from "More" so PIs
+  // and interns can browse without hunting through a protocol page.
+  { to: "/lab/safety-certs", label: "Safety certifications" },
+  { to: "/lab/equipment", label: "Equipment manuals" },
   { to: "/misconceptions", label: "Misconception marketplace" },
   { to: "/capstones/review-queue", label: "Peer review queue" },
   { to: "/verify", label: "Verify a transcript" },
@@ -45,6 +49,8 @@ const SECONDARY_NAV_USER: Array<{ to: string; label: string }> = [
   { to: "/feed", label: "Feed" },
   { to: "/flashcards", label: "Flashcards" },
   { to: "/review/mistakes", label: "Review mistakes" },
+  // Sprint 80 — intern + mentor lab dashboard.
+  { to: "/me/lab", label: "My lab" },
   { to: "/me/mri", label: "Knowledge MRI" },
   { to: "/me/weak-concepts", label: "Weak concepts" },
   { to: "/me/mentors", label: "Mentors" },

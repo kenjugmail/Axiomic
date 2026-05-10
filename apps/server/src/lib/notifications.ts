@@ -23,7 +23,13 @@ export type NotificationKind =
   | "proposal_rejected"
   // Sprint 71 — funding feed.
   | "grant_match"
-  | "grant_deadline_soon";
+  | "grant_deadline_soon"
+  // Sprint 80 — lab protocol runs + safety certifications.
+  | "lab_signoff_requested"
+  | "lab_signoff_approved"
+  | "lab_signoff_rejected"
+  | "lab_cert_passed"
+  | "lab_cert_expiring";
 
 export type NotificationSubject =
   | "topic"
@@ -40,7 +46,10 @@ export type NotificationSubject =
   | "cohort_invitation"
   | "content_proposal"
   // Sprint 71
-  | "grant";
+  | "grant"
+  // Sprint 80
+  | "lab_protocol_run"
+  | "lab_cert";
 
 const MAX_MENTIONS_PER_BODY = 10;
 const PREVIEW_MAX = 140;
@@ -134,6 +143,14 @@ function kindGate(
     case "proposal_rejected":
     case "grant_match":
     case "grant_deadline_soon":
+    // Sprint 80 — lab notifications are operational signal (an
+    // intern blocked on a sign-off, a cert about to expire). Always
+    // on; users can mute via cohort settings later if needed.
+    case "lab_signoff_requested":
+    case "lab_signoff_approved":
+    case "lab_signoff_rejected":
+    case "lab_cert_passed":
+    case "lab_cert_expiring":
       // News flow + follow events + admin pipeline + funding
       // alerts are direct + low-volume — always on. (A
       // notifyFunding pref toggle is a follow-up if users start

@@ -80,6 +80,15 @@ import type {
   CreateEquipmentRequest,
   UpdateEquipmentRequest,
   ReplaceEquipmentOperationsRequest,
+  SafetyCertListResponse,
+  SafetyCertWithQuestionsResponse,
+  SafetyCertAttemptResponse,
+  UserSafetyCertsResponse,
+  ProtocolRunListResponse,
+  ProtocolRunDetailResponse,
+  StartProtocolRunResponse,
+  StepUpdateRequest,
+  SignOffRequest,
   CapstonesListResponse,
   CapstoneResponse,
   CapstoneEnrollmentsResponse,
@@ -1463,6 +1472,63 @@ export const api = {
           `/lab/equipment/${slug}/operations`,
           { method: "PUT", body: JSON.stringify(data) },
         ),
+    },
+    // Sprint 80 — Safety certifications.
+    safetyCerts: {
+      list: (params?: { discipline?: string }) => {
+        const sp = new URLSearchParams();
+        if (params?.discipline) sp.set("discipline", params.discipline);
+        const qs = sp.toString();
+        return request<SafetyCertListResponse>(
+          `/lab/safety-certs${qs ? `?${qs}` : ""}`,
+        );
+      },
+      get: (slug: string) =>
+        request<SafetyCertWithQuestionsResponse>(`/lab/safety-certs/${slug}`),
+      attempt: (slug: string, answers: Record<string, string>) =>
+        request<SafetyCertAttemptResponse>(
+          `/lab/safety-certs/${slug}/attempt`,
+          { method: "POST", body: JSON.stringify({ answers }) },
+        ),
+      mine: () => request<UserSafetyCertsResponse>("/me/safety-certs"),
+    },
+    // Sprint 80 — Protocol runs.
+    runs: {
+      start: (protocolSlug: string) =>
+        request<StartProtocolRunResponse>("/lab/runs/start", {
+          method: "POST",
+          body: JSON.stringify({ protocolSlug }),
+        }),
+      mine: (status?: string) => {
+        const qs = status ? `?status=${status}` : "";
+        return request<ProtocolRunListResponse>(`/me/lab/runs${qs}`);
+      },
+      awaitingSignoff: () =>
+        request<ProtocolRunListResponse>("/lab/runs/awaiting-signoff"),
+      get: (id: string) =>
+        request<ProtocolRunDetailResponse>(`/lab/runs/${id}`),
+      updateStep: (id: string, ordinal: number, body: StepUpdateRequest) =>
+        request<{ ok: true; status: string }>(
+          `/lab/runs/${id}/steps/${ordinal}`,
+          { method: "PUT", body: JSON.stringify(body) },
+        ),
+      requestSignoff: (id: string) =>
+        request<{
+          ok: true;
+          mentorsNotified: number;
+          doneSteps: number;
+          totalSteps: number;
+        }>(`/lab/runs/${id}/request-signoff`, { method: "POST" }),
+      signOff: (id: string, body: SignOffRequest) =>
+        request<{ ok: true }>(`/lab/runs/${id}/sign-off`, {
+          method: "POST",
+          body: JSON.stringify(body),
+        }),
+      reject: (id: string, body: SignOffRequest) =>
+        request<{ ok: true }>(`/lab/runs/${id}/reject`, {
+          method: "POST",
+          body: JSON.stringify(body),
+        }),
     },
   },
 };

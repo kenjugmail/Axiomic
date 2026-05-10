@@ -1268,7 +1268,13 @@ export type NotificationKind =
   | "proposal_approved"
   | "proposal_rejected"
   | "grant_match"
-  | "grant_deadline_soon";
+  | "grant_deadline_soon"
+  // Sprint 80 — lab protocol runs + safety certifications.
+  | "lab_signoff_requested"
+  | "lab_signoff_approved"
+  | "lab_signoff_rejected"
+  | "lab_cert_passed"
+  | "lab_cert_expiring";
 
 export type NotificationSubject =
   | "topic"
@@ -1282,7 +1288,10 @@ export type NotificationSubject =
   | "reproduction"
   | "capstone_track"
   | "content_proposal"
-  | "grant";
+  | "grant"
+  // Sprint 80
+  | "lab_protocol_run"
+  | "lab_cert";
 
 export const NOTIFICATION_KINDS: NotificationKind[] = [
   "mention",
@@ -1303,6 +1312,11 @@ export const NOTIFICATION_KINDS: NotificationKind[] = [
   "proposal_rejected",
   "grant_match",
   "grant_deadline_soon",
+  "lab_signoff_requested",
+  "lab_signoff_approved",
+  "lab_signoff_rejected",
+  "lab_cert_passed",
+  "lab_cert_expiring",
 ];
 
 export const NOTIFICATION_SUBJECTS: NotificationSubject[] = [
@@ -1318,6 +1332,8 @@ export const NOTIFICATION_SUBJECTS: NotificationSubject[] = [
   "capstone_track",
   "content_proposal",
   "grant",
+  "lab_protocol_run",
+  "lab_cert",
 ];
 
 export interface Notification {
@@ -2948,4 +2964,122 @@ export interface UpdateEquipmentRequest {
 
 export interface ReplaceEquipmentOperationsRequest {
   operations: EquipmentOperationInput[];
+}
+
+// Sprint 80 — Safety certifications + protocol-run sign-offs.
+
+export interface SafetyCertSummary {
+  id: string;
+  slug: string;
+  title: string;
+  discipline: LabDiscipline;
+  description: string | null;
+  passingScore: number;
+  validityDays: number | null;
+  authorId: string;
+  createdAt: string;
+}
+
+export interface SafetyCertWithQuestionsResponse {
+  cert: SafetyCertSummary;
+  // Sanitized — server strips correct-answer keys before sending.
+  questions: Array<Record<string, unknown>>;
+}
+
+export interface SafetyCertListResponse {
+  certs: SafetyCertSummary[];
+}
+
+export interface SafetyCertAttemptResponse {
+  passed: boolean;
+  score: number;
+  passingScore?: number;
+  correct: number;
+  total: number;
+  passedAt?: string;
+  expiresAt?: string | null;
+}
+
+export interface UserSafetyCertEntry {
+  id: string;
+  certSlug: string;
+  passedAt: string;
+  expiresAt: string | null;
+  score: number | null;
+  certTitle: string | null;
+  certDiscipline: string | null;
+}
+
+export interface UserSafetyCertsResponse {
+  certs: UserSafetyCertEntry[];
+}
+
+export type ProtocolRunStatus =
+  | "in_progress"
+  | "awaiting_signoff"
+  | "signed_off"
+  | "rejected";
+
+export interface ProtocolRunStepStateEntry {
+  done: boolean;
+  doneAt?: string;
+  observation?: string;
+  attachmentRefs?: string[];
+}
+
+export interface ProtocolRunSummary {
+  id: string;
+  protocolId: string;
+  protocolSlug: string;
+  protocolTitle: string;
+  protocolDiscipline: string;
+  protocolVersion: number;
+  userId: string;
+  internUsername: string;
+  internDisplayName: string | null;
+  status: ProtocolRunStatus;
+  startedAt: string;
+  completedAt: string | null;
+  signedOffAt: string | null;
+  signedOffById: string | null;
+  stepState: Record<string, ProtocolRunStepStateEntry>;
+  notesMd: string;
+  signOffNotesMd: string | null;
+}
+
+export interface ProtocolRunDetailResponse {
+  run: ProtocolRunSummary;
+  steps: Array<{
+    id: string;
+    ordinal: number;
+    title: string;
+    instructionMd: string;
+    safetyNotesMd: string;
+    verificationMd: string;
+  }>;
+  canSignOff: boolean;
+}
+
+export interface ProtocolRunListResponse {
+  runs: ProtocolRunSummary[];
+}
+
+export interface StartProtocolRunMissingCerts {
+  error: string;
+  missingCerts: string[];
+}
+
+export interface StartProtocolRunResponse {
+  runId: string;
+  protocolVersion: number;
+}
+
+export interface StepUpdateRequest {
+  done: boolean;
+  observation?: string;
+  attachmentRefs?: string[];
+}
+
+export interface SignOffRequest {
+  notesMd?: string;
 }

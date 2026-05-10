@@ -46,6 +46,16 @@ function kindLabel(kind: Notification["kind"]): string {
       return "found a grant matching your work";
     case "grant_deadline_soon":
       return "grant deadline approaching";
+    case "lab_signoff_requested":
+      return "requested sign-off on a protocol run";
+    case "lab_signoff_approved":
+      return "signed off on your protocol run";
+    case "lab_signoff_rejected":
+      return "asked for changes on your protocol run";
+    case "lab_cert_passed":
+      return "you passed a safety certification";
+    case "lab_cert_expiring":
+      return "your safety certification is expiring";
     default: {
       const _exhaustive: never = kind;
       void _exhaustive;

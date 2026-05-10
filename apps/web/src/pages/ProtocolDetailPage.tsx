@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Pencil, Play } from "lucide-react";
 import type {
   ProtocolDetailResponse,
   ProtocolReagent,
@@ -24,10 +24,41 @@ function isReagent(value: unknown): value is ProtocolReagent {
 
 export function ProtocolDetailPage() {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const { user } = useAuthStore();
   const [data, setData] = useState<ProtocolDetailResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tier, setTier] = useState<Tier>("undergrad");
+  const [starting, setStarting] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
+  const [missingCerts, setMissingCerts] = useState<string[] | null>(null);
+
+  const handleStartRun = async () => {
+    if (!slug) return;
+    setStartError(null);
+    setMissingCerts(null);
+    setStarting(true);
+    try {
+      const res = await api.lab.runs.start(slug);
+      navigate(`/lab/runs/${res.runId}`);
+    } catch (err) {
+      const msg = (err as Error)?.message ?? "Failed to start run";
+      // The 412 error body is `{ error, missingCerts }` — the api
+      // helper surfaces the JSON via `.message` containing the JSON.
+      try {
+        const parsed = JSON.parse(msg);
+        if (Array.isArray(parsed?.missingCerts)) {
+          setMissingCerts(parsed.missingCerts as string[]);
+          setStartError(parsed.error ?? msg);
+        } else {
+          setStartError(msg);
+        }
+      } catch {
+        setStartError(msg);
+      }
+      setStarting(false);
+    }
+  };
 
   useEffect(() => {
     if (!slug) return;
@@ -121,16 +152,54 @@ export function ProtocolDetailPage() {
           <h1 className="font-display text-3xl font-semibold tracking-tight">
             {protocol.title}
           </h1>
-          {isAuthor && (
-            <Link
-              to={`/lab/protocols/${protocol.slug}/edit`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border text-sm hover:bg-accent/40 transition-colors"
-            >
-              <Pencil className="w-3.5 h-3.5" strokeWidth={2} />
-              Edit
-            </Link>
-          )}
+          <div className="flex items-center gap-2 shrink-0">
+            {user && protocol.status === "published" && (
+              <button
+                type="button"
+                onClick={handleStartRun}
+                disabled={starting}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                <Play className="w-3.5 h-3.5" strokeWidth={2} />
+                {starting ? "Starting…" : "Start run"}
+              </button>
+            )}
+            {isAuthor && (
+              <Link
+                to={`/lab/protocols/${protocol.slug}/edit`}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border text-sm hover:bg-accent/40 transition-colors"
+              >
+                <Pencil className="w-3.5 h-3.5" strokeWidth={2} />
+                Edit
+              </Link>
+            )}
+          </div>
         </div>
+        {missingCerts !== null && missingCerts.length > 0 && (
+          <div className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/5 px-4 py-3 text-sm">
+            <div className="font-semibold text-foreground mb-1">
+              You need {missingCerts.length} more safety cert
+              {missingCerts.length === 1 ? "" : "s"} to start this run.
+            </div>
+            <ul className="space-y-1 mt-2">
+              {missingCerts.map((slug) => (
+                <li key={slug}>
+                  <Link
+                    to={`/lab/safety-certs/${slug}`}
+                    className="text-primary hover:underline font-mono text-xs"
+                  >
+                    {slug}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {startError && missingCerts === null && (
+          <div className="mt-3 rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            {startError}
+          </div>
+        )}
         {protocol.summary && (
           <p className="text-muted-foreground mt-2">{protocol.summary}</p>
         )}

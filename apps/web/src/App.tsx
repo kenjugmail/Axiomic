@@ -302,6 +302,27 @@ const EquipmentDetailPage = lazy(() =>
     default: m.EquipmentDetailPage,
   })),
 );
+// Sprint 80 — Safety certifications + protocol-run sign-offs.
+const SafetyCertsListPage = lazy(() =>
+  import("./pages/SafetyCertsListPage").then((m) => ({
+    default: m.SafetyCertsListPage,
+  })),
+);
+const SafetyCertPage = lazy(() =>
+  import("./pages/SafetyCertPage").then((m) => ({
+    default: m.SafetyCertPage,
+  })),
+);
+const ProtocolRunPage = lazy(() =>
+  import("./pages/ProtocolRunPage").then((m) => ({
+    default: m.ProtocolRunPage,
+  })),
+);
+const MyLabPage = lazy(() =>
+  import("./pages/MyLabPage").then((m) => ({
+    default: m.MyLabPage,
+  })),
+);
 
 function PageFallback() {
   return (
@@ -412,6 +433,17 @@ function AppRoutes() {
             path="/lab/equipment/:slug"
             element={<EquipmentDetailPage />}
           />
+          {/* Sprint 80 — Safety certifications + protocol-run sign-offs. */}
+          <Route
+            path="/lab/safety-certs"
+            element={<SafetyCertsListPage />}
+          />
+          <Route
+            path="/lab/safety-certs/:slug"
+            element={<SafetyCertPage />}
+          />
+          <Route path="/lab/runs/:id" element={<ProtocolRunPage />} />
+          <Route path="/me/lab" element={<MyLabPage />} />
           {/* Sprint 73 — exam mastery framework. */}
           <Route path="/exams" element={<ExamsListPage />} />
           <Route path="/exams/:slug" element={<ExamPage />} />
