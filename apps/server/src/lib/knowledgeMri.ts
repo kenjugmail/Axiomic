@@ -188,7 +188,7 @@ export async function buildKnowledgeMri(userId: string): Promise<KnowledgeMri> {
   let totalMastered = 0;
   let totalInProgress = 0;
   let totalUntouched = 0;
-  let totalActiveDiagnoses = activeDiagnoses.length;
+  const totalActiveDiagnoses = activeDiagnoses.length;
 
   const builtPaths: KnowledgeMriPath[] = [];
   for (const path of paths) {

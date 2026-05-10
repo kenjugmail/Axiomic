@@ -30,7 +30,18 @@ import { useAuthStore } from "../stores/auth";
 
 const PASSING_SCORE = 0.7;
 
-type Phase = "loading" | "playing" | "finished" | "no-lesson" | "error";
+type Phase =
+  | "loading"
+  | "playing"
+  | "finished"
+  | "no-lesson"
+  | "lab-embed"
+  | "error";
+
+interface LabEmbed {
+  kind: "protocol" | "cert" | "equipment-training";
+  slug: string;
+}
 
 function scoreLocally(question: QuizQuestion, answer: string | undefined): boolean {
   const q = assertQuestionKind(question);
@@ -140,6 +151,7 @@ export function LessonPage() {
   const user = useAuthStore((s) => s.user);
 
   const [phase, setPhase] = useState<Phase>("loading");
+  const [labEmbed, setLabEmbed] = useState<LabEmbed | null>(null);
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [node, setNode] = useState<MasteryNode | null>(null);
   const [pathTitle, setPathTitle] = useState("");
@@ -207,6 +219,19 @@ export function LessonPage() {
         ]).then(([lr, prog]) => {
           if (cancelled) return;
           setSourceArticle(lr.sourceArticle ?? null);
+          // Sprint 82 — lab nodes (protocol / cert / equipment-training)
+          // forward the user to the corresponding lab surface instead of
+          // rendering slides.
+          if (lr.nodeKind && lr.nodeKind !== "lesson") {
+            const slug =
+              lr.protocolSlug ?? lr.certSlug ?? lr.equipmentSlug ?? "";
+            setLabEmbed({
+              kind: lr.nodeKind as LabEmbed["kind"],
+              slug,
+            });
+            setPhase("lab-embed");
+            return;
+          }
           if (!lr.lesson || lr.lesson.slides.length === 0) {
             setPhase("no-lesson");
             return;
@@ -566,6 +591,51 @@ export function LessonPage() {
               >
                 Back to path
               </Link>
+            </div>
+          )}
+
+          {phase === "lab-embed" && labEmbed && (
+            <div className="max-w-2xl mx-auto py-16 text-center">
+              <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <BookOpen
+                  className="w-6 h-6 text-primary"
+                  strokeWidth={1.6}
+                />
+              </div>
+              <h2 className="font-display text-2xl font-semibold mb-2">
+                {labEmbed.kind === "protocol"
+                  ? "Hands-on protocol"
+                  : labEmbed.kind === "cert"
+                    ? "Safety certification"
+                    : "Equipment training"}
+              </h2>
+              <p className="text-sm text-muted-foreground mb-6">
+                {labEmbed.kind === "protocol"
+                  ? "This step is a real lab procedure. Run it at the bench, log your observations, and request a sign-off when done — completion bubbles back here."
+                  : labEmbed.kind === "cert"
+                    ? "Pass the safety quiz to mark this step complete. Your certification is saved to your lab profile."
+                    : "Equipment manual + training. Reading the manual + passing the equipment cert marks this step complete."}
+              </p>
+              <div className="flex items-center justify-center gap-2">
+                <Link
+                  to={
+                    labEmbed.kind === "protocol"
+                      ? `/lab/protocols/${labEmbed.slug}`
+                      : labEmbed.kind === "cert"
+                        ? `/lab/safety-certs/${labEmbed.slug}`
+                        : `/lab/equipment/${labEmbed.slug}`
+                  }
+                  className="inline-flex items-center px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+                >
+                  Open
+                </Link>
+                <Link
+                  to={exitHref}
+                  className="inline-flex items-center px-4 py-2 rounded-md border border-border text-sm hover:bg-accent/40"
+                >
+                  Back to path
+                </Link>
+              </div>
             </div>
           )}
 

@@ -23,6 +23,24 @@ import { onboardingRouter } from "./routes/onboarding";
 import { uploadsRouter } from "./routes/uploads";
 import { conceptsRouter } from "./routes/concepts";
 import { researchRouter } from "./routes/research";
+import { researchFeedRouter } from "./routes/research-feed";
+import { paperSummaryRouter } from "./routes/paper-summary";
+import { grantsRouter } from "./routes/grants";
+import { authorClaimsRouter } from "./routes/authorClaims";
+import { authorsRouter } from "./routes/authors";
+import { paperAuthorQuestionsRouter } from "./routes/paperAuthorQuestions";
+import { examsRouter } from "./routes/exams";
+import { registerJob, startJobRunner } from "./lib/jobs";
+import { ingestArxivJob } from "./jobs/ingestArxiv";
+import { ingestOpenAlexJob } from "./jobs/ingestOpenAlex";
+import { ingestPubmedJob } from "./jobs/ingestPubmed";
+import { ingestNihGrantsJob } from "./jobs/ingestNihGrants";
+import { ingestNsfGrantsJob } from "./jobs/ingestNsfGrants";
+import { ingestGrantsGovJob } from "./jobs/ingestGrantsGov";
+import { notifyGrantMatchesJob } from "./jobs/notifyGrantMatches";
+import { claimExternalAuthorshipsByOrcidJob } from "./jobs/claimExternalAuthorshipsByOrcid";
+import { harvestSocialResearcherPostsJob } from "./jobs/harvestSocialResearcherPosts";
+import { finalizeStaleExamAttemptsJob } from "./jobs/finalizeStaleExamAttempts";
 import { capstonesRouter } from "./routes/capstones";
 import { misconceptionsRouter } from "./routes/misconceptions";
 import { kernelFilesRouter } from "./routes/kernelFiles";
@@ -33,6 +51,23 @@ import { capstoneTracksRouter } from "./routes/capstoneTracks";
 import { cohortInvitationsRouter } from "./routes/cohortInvitations";
 import { meRouter } from "./routes/me";
 import { usersRouter } from "./routes/users";
+import { protocolsRouter } from "./routes/protocols";
+import { equipmentRouter } from "./routes/equipment";
+import { labGroupsRouter, meLabRouter } from "./routes/labAssignments";
+import {
+  aiLabRouter,
+  labProtocolsTroubleshootingRouter,
+  labTroubleshootRouter,
+} from "./routes/aiLab";
+import {
+  safetyCertsRouter,
+  safetyCertsMeRouter,
+} from "./routes/safetyCerts";
+import {
+  protocolRunsRouter,
+  protocolRunsMeRouter,
+} from "./routes/protocolRuns";
+import { notifyExpiringCertsJob } from "./jobs/notifyExpiringCerts";
 import { bootstrapAdmin } from "./lib/bootstrapAdmin";
 import { prewarmSearchIndex } from "./lib/searchIndex";
 import { userFromCookieHeader } from "./middleware/auth";
@@ -184,7 +219,21 @@ app.route("/gamification", gamificationRouter);
 app.route("/onboarding", onboardingRouter);
 app.route("/uploads", uploadsRouter);
 app.route("/concepts", conceptsRouter);
+// Sprint 70 — for-you feed at /research/feed and tier-aware AI summary
+// at /research/:slug/summary. Mounted BEFORE researchRouter so the
+// `/feed` literal wins against researchRouter's `/:slug` matcher.
+app.route("/research", researchFeedRouter);
+app.route("/research", paperSummaryRouter);
 app.route("/research", researchRouter);
+// Sprint 71 — funding feed.
+app.route("/grants", grantsRouter);
+// Sprint 72 — engagement: author claims + author profile +
+// per-paper Q&A.
+app.route("/author-claims", authorClaimsRouter);
+app.route("/authors", authorsRouter);
+app.route("/external-papers", paperAuthorQuestionsRouter);
+// Sprint 73 — exam mastery framework.
+app.route("/exams", examsRouter);
 app.route("/capstones", capstonesRouter);
 app.route("/misconceptions", misconceptionsRouter);
 app.route("/kernel-files", kernelFilesRouter);
@@ -196,6 +245,25 @@ app.route("/tracks", capstoneTracksRouter);
 app.route("/cohort-invitations", cohortInvitationsRouter);
 app.route("/me", meRouter);
 app.route("/users", usersRouter);
+// Sprint 79 — Lab protocol + equipment library.
+app.route("/lab/protocols", protocolsRouter);
+app.route("/lab/equipment", equipmentRouter);
+// Sprint 80 — Safety certifications + protocol-run sign-offs.
+app.route("/lab/safety-certs", safetyCertsRouter);
+app.route("/lab/runs", protocolRunsRouter);
+app.route("/me/safety-certs", safetyCertsMeRouter);
+app.route("/me/lab/runs", protocolRunsMeRouter);
+// Sprint 82 — Lab onboarding playbook + roster + skill MRI.
+app.route("/lab-groups", labGroupsRouter);
+app.route("/me/lab", meLabRouter);
+// Sprint 83 — AI lab authoring + symptom-driven troubleshooting.
+// aiLabRouter handles /draft-protocol + /draft-equipment-manual at
+// /ai/lab; the per-protocol troubleshooting CRUD lives at
+// /lab/protocols/:slug/troubleshooting; symptom-search at
+// /lab/troubleshoot.
+app.route("/ai/lab", aiLabRouter);
+app.route("/lab", labTroubleshootRouter);
+app.route("/lab", labProtocolsTroubleshootingRouter);
 
 // Pre-warm the search index in the background so the first user query
 // doesn't pay the embedding-build cost.
@@ -203,6 +271,28 @@ prewarmSearchIndex();
 
 // Sprint 52 — promote the configured user to admin if no admin exists.
 bootstrapAdmin(env.BOOTSTRAP_ADMIN_USERNAME);
+
+// Sprint 69 — register external-source ingest cron jobs and start the
+// runner. Set DISABLE_JOB_RUNNER=1 in tests / one-off CLI invocations
+// where a setInterval would leak resources or hit external services.
+if (process.env.DISABLE_JOB_RUNNER !== "1") {
+  registerJob(ingestArxivJob);
+  registerJob(ingestOpenAlexJob);
+  registerJob(ingestPubmedJob);
+  // Sprint 71 — funding feed.
+  registerJob(ingestNihGrantsJob);
+  registerJob(ingestNsfGrantsJob);
+  registerJob(ingestGrantsGovJob);
+  registerJob(notifyGrantMatchesJob);
+  // Sprint 72 — engagement.
+  registerJob(claimExternalAuthorshipsByOrcidJob);
+  registerJob(harvestSocialResearcherPostsJob);
+  // Sprint 73 — exam mastery framework.
+  registerJob(finalizeStaleExamAttemptsJob);
+  // Sprint 80 — daily cert-expiry warnings (30d/7d/1d ahead).
+  registerJob(notifyExpiringCertsJob);
+  startJobRunner();
+}
 
 export { app };
 

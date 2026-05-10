@@ -18,6 +18,8 @@ function kindLabel(kind: Notification["kind"]): string {
       return "replied to your post";
     case "comment_reply":
       return "replied to your comment";
+    case "claim_thread_reply":
+      return "replied to a claim thread";
     case "mastery_level_up":
       return "you reached a new mastery level";
     case "news_edit_proposed":
@@ -28,8 +30,37 @@ function kindLabel(kind: Notification["kind"]): string {
       return "declined your proposed edit";
     case "news_published":
       return "published a new article";
+    case "article_reproduced":
+      return "reproduced your article";
     case "forum_topic_posted":
       return "started a new forum topic";
+    case "track_completed":
+      return "you completed a capstone track";
+    case "cohort_invitation":
+      return "invited you to a cohort";
+    case "proposal_approved":
+      return "approved your proposal";
+    case "proposal_rejected":
+      return "declined your proposal";
+    case "grant_match":
+      return "found a grant matching your work";
+    case "grant_deadline_soon":
+      return "grant deadline approaching";
+    case "lab_signoff_requested":
+      return "requested sign-off on a protocol run";
+    case "lab_signoff_approved":
+      return "signed off on your protocol run";
+    case "lab_signoff_rejected":
+      return "asked for changes on your protocol run";
+    case "lab_cert_passed":
+      return "you passed a safety certification";
+    case "lab_cert_expiring":
+      return "your safety certification is expiring";
+    default: {
+      const _exhaustive: never = kind;
+      void _exhaustive;
+      return "sent you a notification";
+    }
   }
 }
 

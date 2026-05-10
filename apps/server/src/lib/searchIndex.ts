@@ -1,6 +1,8 @@
 import { desc, eq } from "drizzle-orm";
 import { getAIProvider } from "@axiomic/ai";
 import {
+  equipment,
+  externalPapers,
   getDb,
   wikiPages,
   pageVersions,
@@ -8,6 +10,7 @@ import {
   masteryNodes,
   masteryPaths,
   newsArticles,
+  protocols,
   researchPapers,
 } from "@axiomic/db";
 
@@ -73,6 +76,67 @@ export interface IndexedResearchPaper {
   format: string;
   snippet: string;
   vector: number[];
+  // Sprint 70 — ranking signals for the for-you feed. Indexed alongside
+  // the vector so the recommend ranker doesn't have to re-query the DB.
+  authorId: string;
+  citationCount: number;
+  // ISO timestamp; createdAt of the paper row (research_papers has no
+  // dedicated publishedAt column — published-vs-draft is a status flag).
+  publishedAt: string;
+  tags: string[];
+}
+
+// Sprint 69 — External research paper from arXiv / OpenAlex / PubMed.
+// Shares the IndexedResearchPaper-style ranking signals so the S70
+// for-you ranker can score it the same way as internally-authored
+// papers. `authorId` is null for external papers (no internal user
+// behind the byline yet); the ranker treats null as "never
+// followed", which is the right default.
+export interface IndexedExternalPaper {
+  kind: "external_paper";
+  id: string;
+  slug: string; // synthesized as `${source}-${sourceId}`
+  title: string;
+  source: string;
+  doi: string | null;
+  htmlUrl: string | null;
+  pdfUrl: string | null;
+  snippet: string;
+  vector: number[];
+  authorId: string | null;
+  authorNames: string[];
+  citationCount: number;
+  publishedAt: string;
+  tags: string[];
+}
+
+// Sprint 79 — Lab protocols + equipment manuals. Indexed alongside
+// research / wiki / forum so a single search bar surfaces "PCR" hits
+// from prose, protocols, and equipment manuals together.
+export interface IndexedProtocol {
+  kind: "protocol";
+  id: string;
+  slug: string;
+  title: string;
+  discipline: string;
+  category: string | null;
+  snippet: string;
+  vector: number[];
+  authorId: string;
+  publishedAt: string;
+}
+
+export interface IndexedEquipment {
+  kind: "equipment";
+  id: string;
+  slug: string;
+  title: string;
+  discipline: string;
+  manufacturer: string | null;
+  model: string | null;
+  snippet: string;
+  vector: number[];
+  authorId: string;
 }
 
 export type IndexedItem =
@@ -80,10 +144,32 @@ export type IndexedItem =
   | IndexedTopic
   | IndexedLesson
   | IndexedNewsArticle
-  | IndexedResearchPaper;
+  | IndexedResearchPaper
+  | IndexedExternalPaper
+  | IndexedProtocol
+  | IndexedEquipment;
 
 let cache: IndexedItem[] | null = null;
 let building: Promise<IndexedItem[]> | null = null;
+
+// Sprint 78 — wrap provider.embed so a single transient failure skips
+// one item instead of rejecting the whole index build (which would
+// leave `cache` null and force every subsequent search request to
+// retry from scratch). Returns null on failure; callers skip the
+// item.
+async function safeEmbed(
+  provider: ReturnType<typeof getAIProvider>,
+  text: string,
+): Promise<number[] | null> {
+  try {
+    return await provider.embed(text);
+  } catch (err) {
+    console.warn(
+      `[search] embed failed (${(err as Error).message ?? "unknown"}); skipping item`,
+    );
+    return null;
+  }
+}
 
 async function buildIndex(): Promise<IndexedItem[]> {
   const db = getDb();
@@ -100,7 +186,8 @@ async function buildIndex(): Promise<IndexedItem[]> {
       .get();
     if (!version) continue;
     const snippet = version.contentIntro.slice(0, 500);
-    const vector = await provider.embed(`${page.title} ${snippet}`);
+    const vector = await safeEmbed(provider, `${page.title} ${snippet}`);
+    if (!vector) continue;
     items.push({
       kind: "page",
       id: page.id,
@@ -115,7 +202,8 @@ async function buildIndex(): Promise<IndexedItem[]> {
   const topics = db.select().from(forumTopics).all();
   for (const topic of topics) {
     const snippet = topic.body.slice(0, 500);
-    const vector = await provider.embed(`${topic.title} ${snippet}`);
+    const vector = await safeEmbed(provider, `${topic.title} ${snippet}`);
+    if (!vector) continue;
     items.push({
       kind: "topic",
       id: topic.id,
@@ -161,9 +249,11 @@ async function buildIndex(): Promise<IndexedItem[]> {
       .join(" ")
       .slice(0, 2000);
     const snippet = (titles + " " + bodies).slice(0, 500);
-    const vector = await provider.embed(
+    const vector = await safeEmbed(
+      provider,
       `${node.title} ${titles} ${bodies}`,
     );
+    if (!vector) continue;
     items.push({
       kind: "lesson",
       id: node.id,
@@ -194,9 +284,11 @@ async function buildIndex(): Promise<IndexedItem[]> {
     .all();
   for (const a of articles) {
     const snippet = (a.summary || a.abstract || a.body).slice(0, 500);
-    const vector = await provider.embed(
+    const vector = await safeEmbed(
+      provider,
       `${a.title} ${a.summary} ${a.abstract.slice(0, 600)} ${a.body.slice(0, 1500)}`,
     );
+    if (!vector) continue;
     items.push({
       kind: "news",
       id: a.id,
@@ -219,6 +311,10 @@ async function buildIndex(): Promise<IndexedItem[]> {
       contentGrad: researchPapers.contentGrad,
       canonicalTier: researchPapers.canonicalTier,
       format: researchPapers.format,
+      authorId: researchPapers.authorId,
+      citationCount: researchPapers.citationCount,
+      createdAt: researchPapers.createdAt,
+      tags: researchPapers.tags,
     })
     .from(researchPapers)
     .where(eq(researchPapers.status, "published"))
@@ -235,9 +331,16 @@ async function buildIndex(): Promise<IndexedItem[]> {
         ? canonicalBody
         : p.contentUndergrad || p.contentIntro || p.contentGrad;
     const snippet = (p.summary || p.abstract || fallback).slice(0, 500);
-    const vector = await provider.embed(
+    const vector = await safeEmbed(
+      provider,
       `${p.title} ${p.summary} ${p.abstract.slice(0, 600)} ${fallback.slice(0, 1500)}`,
     );
+    if (!vector) continue;
+    let parsedTags: string[] = [];
+    try {
+      const t = JSON.parse(p.tags ?? "[]");
+      if (Array.isArray(t)) parsedTags = t.filter((x): x is string => typeof x === "string");
+    } catch {}
     items.push({
       kind: "research",
       id: p.id,
@@ -246,6 +349,139 @@ async function buildIndex(): Promise<IndexedItem[]> {
       format: p.format,
       snippet,
       vector,
+      authorId: p.authorId,
+      citationCount: p.citationCount ?? 0,
+      publishedAt: p.createdAt,
+      tags: parsedTags,
+    });
+  }
+
+  // Sprint 79 — lab protocols. Index title + summary + body bodies +
+  // hazards so a search for "agarose gel" finds the protocol card,
+  // and "BSL-2" surfaces protocols that need that cert.
+  const protocolRows = db
+    .select({
+      id: protocols.id,
+      slug: protocols.slug,
+      title: protocols.title,
+      discipline: protocols.discipline,
+      category: protocols.category,
+      summary: protocols.summary,
+      contentIntro: protocols.contentIntro,
+      contentUndergrad: protocols.contentUndergrad,
+      contentGrad: protocols.contentGrad,
+      hazardsMd: protocols.hazardsMd,
+      authorId: protocols.authorId,
+      createdAt: protocols.createdAt,
+    })
+    .from(protocols)
+    .where(eq(protocols.status, "published"))
+    .all();
+  for (const p of protocolRows) {
+    const body =
+      p.contentUndergrad || p.contentIntro || p.contentGrad || "";
+    const snippet = (p.summary || body).slice(0, 500);
+    const vector = await safeEmbed(
+      provider,
+      `${p.title} ${p.discipline} ${p.summary} ${body.slice(0, 1500)} ${p.hazardsMd.slice(0, 500)}`,
+    );
+    if (!vector) continue;
+    items.push({
+      kind: "protocol",
+      id: p.id,
+      slug: p.slug,
+      title: p.title,
+      discipline: p.discipline,
+      category: p.category,
+      snippet,
+      vector,
+      authorId: p.authorId,
+      publishedAt: p.createdAt,
+    });
+  }
+
+  // Sprint 79 — equipment manuals. Index title + manufacturer + model
+  // + manual body + hazards. Common search: "where do I find the
+  // NanoDrop?" → equipment card with locationHint surfaced.
+  const equipmentRows = db
+    .select({
+      id: equipment.id,
+      slug: equipment.slug,
+      title: equipment.title,
+      discipline: equipment.discipline,
+      manufacturer: equipment.manufacturer,
+      model: equipment.model,
+      manualMd: equipment.manualMd,
+      hazardsMd: equipment.hazardsMd,
+      authorId: equipment.authorId,
+    })
+    .from(equipment)
+    .where(eq(equipment.status, "active"))
+    .all();
+  for (const eq_ of equipmentRows) {
+    const snippet = eq_.manualMd.slice(0, 500);
+    const vector = await safeEmbed(
+      provider,
+      `${eq_.title} ${eq_.manufacturer ?? ""} ${eq_.model ?? ""} ${eq_.discipline} ${eq_.manualMd.slice(0, 1500)} ${eq_.hazardsMd.slice(0, 500)}`,
+    );
+    if (!vector) continue;
+    items.push({
+      kind: "equipment",
+      id: eq_.id,
+      slug: eq_.slug,
+      title: eq_.title,
+      discipline: eq_.discipline,
+      manufacturer: eq_.manufacturer,
+      model: eq_.model,
+      snippet,
+      vector,
+      authorId: eq_.authorId,
+    });
+  }
+
+  // Sprint 69 — external papers (arXiv / OpenAlex / PubMed). Same
+  // ranker signals as internal research papers; authorId is null
+  // because the byline isn't a platform user (yet — S72 author
+  // claims will bridge that).
+  const externals = db.select().from(externalPapers).all();
+  for (const p of externals) {
+    let authorNames: string[] = [];
+    try {
+      const arr = JSON.parse(p.authorsJson ?? "[]");
+      if (Array.isArray(arr)) {
+        authorNames = arr
+          .map((a) => (a && typeof a.name === "string" ? a.name : null))
+          .filter((n): n is string => n !== null);
+      }
+    } catch {}
+    let topics: string[] = [];
+    try {
+      const arr = JSON.parse(p.topicsJson ?? "[]");
+      if (Array.isArray(arr))
+        topics = arr.filter((t): t is string => typeof t === "string");
+    } catch {}
+    const snippet = (p.abstract || p.title).slice(0, 500);
+    const vector = await safeEmbed(
+      provider,
+      `${p.title} ${p.abstract.slice(0, 1500)} ${authorNames.join(", ")}`,
+    );
+    if (!vector) continue;
+    items.push({
+      kind: "external_paper",
+      id: p.id,
+      slug: `${p.source}-${p.sourceId}`,
+      title: p.title,
+      source: p.source,
+      doi: p.doi ?? null,
+      htmlUrl: p.htmlUrl ?? null,
+      pdfUrl: p.pdfUrl ?? null,
+      snippet,
+      vector,
+      authorId: null,
+      authorNames,
+      citationCount: p.citationCount ?? 0,
+      publishedAt: p.publishedAt ?? p.fetchedAt,
+      tags: topics,
     });
   }
 
@@ -344,14 +580,19 @@ export async function scoreQuery(
 
   const items = await getSearchIndex();
   const provider = getAIProvider();
-  const queryEmbed = await provider.embed(trimmed);
+  // Sprint 78 — fall back to keyword-only ranking when the query
+  // embed fails (e.g., Ollama is down). Better to return relevant
+  // keyword hits than to 500 the whole search request.
+  const queryEmbed = await safeEmbed(provider, trimmed);
   const q = trimmed.toLowerCase();
 
   const scored: ScoredItem[] = [];
   for (const item of items) {
     const titleLower = item.title.toLowerCase();
     const slugLower = item.slug.toLowerCase();
-    const semantic = cosineSimilarity(queryEmbed, item.vector);
+    const semantic = queryEmbed
+      ? cosineSimilarity(queryEmbed, item.vector)
+      : 0;
     const keywordHit = titleLower.includes(q) || slugLower.includes(q);
     const exactTitle = titleLower === q;
 

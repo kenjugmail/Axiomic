@@ -1,0 +1,48 @@
+{
+  "slug": "pcr-basic",
+  "title": "Standard PCR amplification",
+  "discipline": "biology",
+  "category": "Molecular biology",
+  "summary": "Amplify a defined DNA region from a template using a thermostable polymerase. Foundational protocol — every nucleic-acid workflow assumes you can do this cleanly.",
+  "biosafetyLevel": 1,
+  "estimatedMinutes": 150,
+  "requiredCerts": ["general-lab-safety", "bsl-1"],
+  "equipmentRequired": ["thermal-cycler", "eppendorf-centrifuge", "vortex"],
+  "reagents": [
+    { "name": "2× polymerase master mix (Q5, Phusion, or equivalent)" },
+    { "name": "Forward primer", "amount": "10", "unit": "μM stock" },
+    { "name": "Reverse primer", "amount": "10", "unit": "μM stock" },
+    { "name": "Template DNA", "amount": "1-100", "unit": "ng" },
+    { "name": "Nuclease-free water" }
+  ],
+  "hazardsMd": "Standard low-risk reagents. Use gloves to prevent contaminating reactions with skin nucleases.",
+  "contentUndergrad": "## What this protocol does\nPolymerase chain reaction copies a target DNA region millions of times by repeatedly denaturing, annealing primers, and extending from the primer ends. The annealing temperature you pick is the most common variable to tune.",
+  "steps": [
+    {
+      "title": "Plan the reaction",
+      "instructionMd": "Per 25 μL reaction:\n- 12.5 μL 2× master mix\n- 1.25 μL forward primer (10 μM → 0.5 μM final)\n- 1.25 μL reverse primer\n- 1 μL template (1-100 ng)\n- 9 μL nuclease-free water\n\nSet annealing temp ~3 °C below your primer's lowest Tm.",
+      "verificationMd": "Reaction calculator shows totals matching pipetting volumes. Annealing temp written on the tube cap."
+    },
+    {
+      "title": "Set up reactions on ice",
+      "instructionMd": "Thaw master mix and primers on ice. Vortex briefly + spin down. Make a master mix for n+1 reactions in a single tube. Aliquot into PCR tubes, then add template last.",
+      "safetyNotesMd": "Always add template last to minimize cross-contamination from earlier pipetting.",
+      "verificationMd": "All reactions have the same milky-white appearance and identical volume in the well. Template tubes are visibly closed before the next is opened."
+    },
+    {
+      "title": "Run the thermal cycler",
+      "instructionMd": "Standard program: 98 °C / 30 s → 30× (98 °C / 10 s, Ta °C / 30 s, 72 °C / 30 s per kb) → 72 °C / 5 min → hold 4 °C. Use the heated lid (105 °C).",
+      "verificationMd": "Cycler shows the program, time-to-completion, and lid icon. Tubes seated firmly in the block; wells around them are filled or capped to maintain heat distribution."
+    },
+    {
+      "title": "Verify by gel",
+      "instructionMd": "Run 5 μL on a 1-1.5% agarose gel against a molecular-weight ladder. Look for a single sharp band at the expected size.",
+      "verificationMd": "Single band at the expected size; no smearing; no primer-dimer cloud at the bottom of the lane."
+    },
+    {
+      "title": "Clean up reactions",
+      "instructionMd": "If passing forward to cloning or sequencing, purify with a PCR cleanup kit. Otherwise, store reactions at −20 °C until needed.",
+      "verificationMd": "Tubes labeled with date + reaction id. Cleanup column eluted into nuclease-free water (not TE) if downstream is enzymatic."
+    }
+  ]
+}

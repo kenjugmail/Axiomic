@@ -12,7 +12,17 @@ import { and, eq } from "drizzle-orm";
 import { getAIProvider } from "@axiomic/ai";
 import { cachedEmbeddings, getDb } from "@axiomic/db";
 
-export type CorpusKind = "news_article" | "research_paper" | "wiki_page";
+// Sprint 71 — `grant` kind added so the for-you funding feed
+// caches per-grant vectors the same way papers do. Sprint 69
+// would have added `external_paper` here too; for now external
+// papers are embedded inline via the search index's lazy
+// per-row build because they re-embed on every search-index
+// rebuild anyway.
+export type CorpusKind =
+  | "news_article"
+  | "research_paper"
+  | "wiki_page"
+  | "grant";
 
 export function hashContent(text: string): string {
   return createHash("sha256").update(text).digest("hex").slice(0, 32);

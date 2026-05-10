@@ -1,0 +1,47 @@
+{
+  "slug": "cell-culture-passage",
+  "title": "Mammalian cell-culture passage",
+  "discipline": "biology",
+  "category": "Cell biology",
+  "summary": "Split adherent mammalian cells before they overgrow. Standard 1:5 to 1:20 split depending on line.",
+  "biosafetyLevel": 2,
+  "estimatedMinutes": 45,
+  "requiredCerts": ["bsl-2", "biohazard-waste"],
+  "equipmentRequired": ["biosafety-cabinet", "incubator", "inverted-microscope"],
+  "reagents": [
+    { "name": "Pre-warmed media (DMEM + 10% FBS + 1% P/S)", "amount": "10", "unit": "mL per T25" },
+    { "name": "Pre-warmed PBS, sterile" },
+    { "name": "0.05% Trypsin-EDTA" }
+  ],
+  "hazardsMd": "Mammalian cells with potential adventitious agents = BSL-2. All work inside the BSC. Spent media contains FBS (potentially pathogenic) — autoclave or bleach before disposal.",
+  "contentUndergrad": "## When to passage\nCheck under the microscope: at 80-90% confluence (cells touching but not piled). Past confluence cells contact-inhibit and senesce. Track passage number; primary cells run out around p10-15.",
+  "steps": [
+    {
+      "title": "Inspect under microscope",
+      "instructionMd": "Confirm cells are 80-90% confluent, healthy morphology, no contamination. Floating debris or rod-shaped contaminants in the media = STOP and report.",
+      "safetyNotesMd": "Contaminated flasks must be autoclaved, not poured down the drain.",
+      "verificationMd": "Cells visibly attached, flat morphology, characteristic shape for the line. No floaters, no cloudy media."
+    },
+    {
+      "title": "Aspirate media, wash",
+      "instructionMd": "In BSC: aspirate spent media to a vacuum trap with 10% bleach. Add 5 mL pre-warmed PBS, rock gently, aspirate.",
+      "verificationMd": "Cells stay attached; PBS wash takes off the FBS without lifting cells."
+    },
+    {
+      "title": "Trypsinize",
+      "instructionMd": "Add 1 mL trypsin-EDTA to T25 (3 mL to T75). Tilt to coat. Incubate 37 °C / 3-5 min. Tap flask sharply; under microscope cells should round up and slough off.",
+      "safetyNotesMd": "Over-trypsinizing damages membranes. Watch the timer.",
+      "verificationMd": "Cells visibly detached and floating in single suspension under the microscope."
+    },
+    {
+      "title": "Quench and split",
+      "instructionMd": "Add 4 mL fresh media to neutralize trypsin. Pipette up and down 3-4× to break clumps. Transfer the calculated split fraction to a new flask with 5 mL fresh media.",
+      "verificationMd": "Cell suspension uniform, no large clumps. New flask volume covers the bottom uniformly."
+    },
+    {
+      "title": "Return to incubator",
+      "instructionMd": "Label new flask with line, date, passage number. Place in incubator, rocked gently to distribute evenly. Check confluence the next day.",
+      "verificationMd": "Flask label complete and legible. Cells in incubator. Lab notebook entry filed (split ratio, passage number)."
+    }
+  ]
+}

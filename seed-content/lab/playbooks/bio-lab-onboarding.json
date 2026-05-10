@@ -1,0 +1,150 @@
+{
+  "slug": "bio-lab-onboarding",
+  "title": "Bio lab onboarding",
+  "description": "First-day-to-first-PCR sequence for a new biology intern. Mixes safety certs, equipment training, and hands-on protocols in dependency order. PI signs off each protocol-run node before the next unlocks at the wet bench.",
+  "nodes": [
+    {
+      "slug": "cert-general-lab-safety",
+      "title": "Pass: General lab safety",
+      "kind": "cert",
+      "certSlug": "general-lab-safety",
+      "level": "apprentice",
+      "description": "Foundational PPE + emergency response."
+    },
+    {
+      "slug": "cert-chemical-hygiene",
+      "title": "Pass: Chemical hygiene",
+      "kind": "cert",
+      "certSlug": "chemical-hygiene",
+      "level": "apprentice",
+      "description": "OSHA-mandated chemical safety basics.",
+      "prerequisites": ["cert-general-lab-safety"]
+    },
+    {
+      "slug": "cert-bsl-1",
+      "title": "Pass: BSL-1",
+      "kind": "cert",
+      "certSlug": "bsl-1",
+      "level": "apprentice",
+      "description": "Standard microbiological practices for non-pathogenic agents.",
+      "prerequisites": ["cert-general-lab-safety"]
+    },
+    {
+      "slug": "protocol-sterile-technique",
+      "title": "Run: Sterile technique",
+      "kind": "protocol",
+      "protocolSlug": "sterile-technique",
+      "level": "apprentice",
+      "description": "The bench habits behind every other workflow.",
+      "prerequisites": ["cert-bsl-1"]
+    },
+    {
+      "slug": "protocol-bench-cleanup",
+      "title": "Run: End-of-day cleanup",
+      "kind": "protocol",
+      "protocolSlug": "bench-cleanup",
+      "level": "apprentice",
+      "description": "The 5-minute checklist that keeps the lab usable.",
+      "prerequisites": ["cert-general-lab-safety"]
+    },
+    {
+      "slug": "cert-biohazard-waste",
+      "title": "Pass: Biohazard waste",
+      "kind": "cert",
+      "certSlug": "biohazard-waste",
+      "level": "practitioner",
+      "description": "Segregating + autoclaving biohazardous waste.",
+      "prerequisites": ["cert-bsl-1"]
+    },
+    {
+      "slug": "equip-autoclave",
+      "title": "Train: Autoclave",
+      "kind": "equipment-training",
+      "equipmentSlug": "autoclave",
+      "level": "practitioner",
+      "description": "Read the autoclave manual + pass biohazard-waste.",
+      "prerequisites": ["cert-biohazard-waste"]
+    },
+    {
+      "slug": "protocol-autoclave-op",
+      "title": "Run: Autoclave operation",
+      "kind": "protocol",
+      "protocolSlug": "autoclave-operation",
+      "level": "practitioner",
+      "description": "Sterilize a load + dispose of waste correctly.",
+      "prerequisites": ["equip-autoclave"]
+    },
+    {
+      "slug": "equip-thermal-cycler",
+      "title": "Train: Thermal cycler",
+      "kind": "equipment-training",
+      "equipmentSlug": "thermal-cycler",
+      "level": "practitioner",
+      "description": "Set up a PCR program + heated lid.",
+      "prerequisites": ["cert-bsl-1"]
+    },
+    {
+      "slug": "protocol-pcr",
+      "title": "Run: Standard PCR",
+      "kind": "protocol",
+      "protocolSlug": "pcr-basic",
+      "level": "practitioner",
+      "description": "Amplify a defined region from template.",
+      "prerequisites": ["protocol-sterile-technique", "equip-thermal-cycler"]
+    },
+    {
+      "slug": "protocol-gel",
+      "title": "Run: Agarose gel",
+      "kind": "protocol",
+      "protocolSlug": "agarose-gel",
+      "level": "practitioner",
+      "description": "Verify the PCR product.",
+      "prerequisites": ["protocol-pcr", "cert-biohazard-waste"]
+    },
+    {
+      "slug": "cert-bsl-2",
+      "title": "Pass: BSL-2",
+      "kind": "cert",
+      "certSlug": "bsl-2",
+      "level": "specialist",
+      "description": "Required for any moderate-risk-agent or primary-cell work.",
+      "prerequisites": ["cert-bsl-1"]
+    },
+    {
+      "slug": "equip-bsc",
+      "title": "Train: Biosafety cabinet",
+      "kind": "equipment-training",
+      "equipmentSlug": "biosafety-cabinet",
+      "level": "specialist",
+      "description": "Set up + decon a Class II BSC.",
+      "prerequisites": ["cert-bsl-2"]
+    },
+    {
+      "slug": "equip-incubator",
+      "title": "Train: CO2 incubator",
+      "kind": "equipment-training",
+      "equipmentSlug": "incubator",
+      "level": "specialist",
+      "description": "Daily checks + decon for the cell-culture incubator.",
+      "prerequisites": ["cert-bsl-2"]
+    },
+    {
+      "slug": "protocol-cell-passage",
+      "title": "Run: Cell-culture passage",
+      "kind": "protocol",
+      "protocolSlug": "cell-culture-passage",
+      "level": "specialist",
+      "description": "Split adherent cells before they overgrow.",
+      "prerequisites": ["equip-bsc", "equip-incubator"]
+    },
+    {
+      "slug": "protocol-mycoplasma",
+      "title": "Run: Mycoplasma test",
+      "kind": "protocol",
+      "protocolSlug": "mycoplasma-test",
+      "level": "specialist",
+      "description": "Monthly quality control for every cell line.",
+      "prerequisites": ["protocol-cell-passage", "protocol-pcr"]
+    }
+  ]
+}

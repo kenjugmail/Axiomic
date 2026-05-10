@@ -21,19 +21,27 @@ function uploadsRoot(): string {
 const MAX_BYTES = 10 * 1024 * 1024; // 10 MB per file
 const TOTAL_USER_BYTES = 200 * 1024 * 1024; // 200 MB per user
 
+// Note: SVG (image/svg+xml) is intentionally excluded. SVG files can
+// embed <script> elements that execute in the platform's origin when
+// the file is rendered inline, which is a stored-XSS vector. PNG/
+// JPEG/GIF/WebP/MP4/WebM/PDF are all opaque container formats with
+// no script-execution path under modern browsers + nosniff headers.
 const ALLOWED_MIME: Record<string, "image" | "video" | "file"> = {
   "image/png": "image",
   "image/jpeg": "image",
   "image/gif": "image",
   "image/webp": "image",
-  "image/svg+xml": "image",
   "video/mp4": "video",
   "video/webm": "video",
   "application/pdf": "file",
 };
 
 function extFor(mime: string, originalName: string): string {
-  const fromName = path.extname(originalName).toLowerCase().replace(".", "");
+  // Take the extension from the original name when present, but
+  // strip path separators and anything that isn't [a-zA-Z0-9] to
+  // keep `..`, slashes, and other surprises out of the storage path.
+  const raw = path.extname(originalName).toLowerCase().replace(".", "");
+  const fromName = raw.replace(/[^a-z0-9]/g, "").slice(0, 8);
   if (fromName) return fromName;
   switch (mime) {
     case "image/png":
@@ -44,8 +52,6 @@ function extFor(mime: string, originalName: string): string {
       return "gif";
     case "image/webp":
       return "webp";
-    case "image/svg+xml":
-      return "svg";
     case "video/mp4":
       return "mp4";
     case "video/webm":
@@ -119,6 +125,16 @@ uploadsRouter.post("/", requireAuth, async (c) => {
   });
 });
 
+// Strip characters that have meaning in HTTP headers — quotes, CR/LF
+// (header-injection), and any non-ASCII that the header encoding rules
+// would mangle. Truncate to a sane length.
+function safeHeaderFilename(name: string): string {
+  return name
+    .replace(/[\r\n"\\]/g, "")
+    .replace(/[^\x20-\x7e]/g, "")
+    .slice(0, 200);
+}
+
 uploadsRouter.get("/:id", async (c) => {
   const id = c.req.param("id");
   const db = getDb();
@@ -133,14 +149,29 @@ uploadsRouter.get("/:id", async (c) => {
     .get();
   if (!row) return c.json({ error: "Not found" }, 404);
 
+  // Defense-in-depth: even though storagePath is always written by us
+  // from a known-good template, resolve + verify before reading. If a
+  // future code path ever lets user input into storagePath, this stops
+  // a path-traversal read of arbitrary filesystem entries.
+  const root = uploadsRoot();
+  const resolved = path.resolve(root, row.storagePath);
+  const rootResolved = path.resolve(root) + path.sep;
+  if (!resolved.startsWith(rootResolved)) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+
   try {
-    const bytes = await readFile(path.join(uploadsRoot(), row.storagePath));
+    const bytes = await readFile(resolved);
     return new Response(bytes, {
       headers: {
         "Content-Type": row.mimeType,
+        // nosniff prevents browsers from second-guessing the
+        // Content-Type — closes the stored-XSS path where an attacker
+        // uploads e.g. an HTML file with a PNG MIME.
+        "X-Content-Type-Options": "nosniff",
         // Inline so images/videos render; cache aggressively since IDs
         // are immutable UUIDs.
-        "Content-Disposition": `inline; filename="${row.originalName.replace(/"/g, "")}"`,
+        "Content-Disposition": `inline; filename="${safeHeaderFilename(row.originalName)}"`,
         "Cache-Control": "public, max-age=31536000, immutable",
       },
     });

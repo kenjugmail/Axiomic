@@ -10,6 +10,11 @@ export interface StreamOptions {
   // Sprint 63f — optional per-request model override. Falls back to
   // the provider's default chat model when undefined.
   model?: string;
+  // Optional AbortSignal so the route layer can cancel the upstream
+  // request when the client disconnects mid-stream. Providers should
+  // forward this to whatever HTTP call they make so we don't waste
+  // inference on tokens nobody will read.
+  signal?: AbortSignal;
 }
 
 export interface ModelInfo {
@@ -28,6 +33,7 @@ export interface SummarizeThreadOptions {
   postType: string;
   posts: ThreadPost[];
   onToken: (token: string) => void;
+  signal?: AbortSignal;
 }
 
 export interface AIProvider {

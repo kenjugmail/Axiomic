@@ -17,6 +17,7 @@ import { PostTypeBadge } from "../components/PostTypeBadge";
 import { PollEmbed } from "../components/forum/PollEmbed";
 import { BookmarkButton } from "../components/social/BookmarkButton";
 import { ReactionStrip } from "../components/social/ReactionStrip";
+import { formatDate } from "../lib/dates";
 
 export function ForumTopicPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -169,7 +170,7 @@ export function ForumTopicPage() {
           @{topic.authorUsername}
         </Link>
         <span>·</span>
-        <span>{new Date(topic.createdAt.replace(" ", "T") + "Z").toLocaleDateString()}</span>
+        <span>{formatDate(topic.createdAt)}</span>
         <span>·</span>
         <span>{topic.postCount} replies</span>
         {topic.postCount >= 2 && (
@@ -445,7 +446,7 @@ function PostItem({
             </Link>
             <span>·</span>
             <span>
-              {new Date(post.createdAt.replace(" ", "T") + "Z").toLocaleDateString()}
+              {formatDate(post.createdAt)}
             </span>
             {post.editedAt && <span className="italic">(edited)</span>}
           </div>

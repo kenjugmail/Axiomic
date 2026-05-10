@@ -7,17 +7,7 @@ import { NewsCover } from "../components/news/NewsCover";
 import { PostTypeBadge } from "../components/PostTypeBadge";
 import { useAuthStore } from "../stores/auth";
 import { EmptyState } from "../components/ui";
-
-function relativeTime(iso: string): string {
-  const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
-  if (s < 60) return `${s}s ago`;
-  const m = Math.floor(s / 60);
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  const d = Math.floor(h / 24);
-  return `${d}d ago`;
-}
+import { relativeTime } from "../lib/dates";
 
 export function FeedPage() {
   const { user, loading: authLoading } = useAuthStore();

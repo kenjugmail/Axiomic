@@ -54,7 +54,45 @@ import type {
   ResearchPaperResponse,
   ResearchPapersDraftsResponse,
   ResearchPapersListResponse,
+  ResearchFeedResponse,
+  GrantsListResponse,
+  GrantsBookmarksResponse,
+  GrantsFeedResponse,
+  GrantDetailResponse,
+  AuthorProfileResponse,
+  AuthorClaimRequest,
+  PaperAuthorQuestionsResponse,
+  ExamSummary,
+  ExamDetail,
+  ExamAttemptState,
+  ExamSubmitResponse,
+  ExamHistoryEntry,
+  ExamQuestionPayload,
   UpdateResearchPaperRequest,
+  ProtocolListResponse,
+  ProtocolDetailResponse,
+  ProtocolVersionsResponse,
+  CreateProtocolRequest,
+  UpdateProtocolRequest,
+  ReplaceProtocolStepsRequest,
+  EquipmentListResponse,
+  EquipmentDetailResponse,
+  CreateEquipmentRequest,
+  UpdateEquipmentRequest,
+  ReplaceEquipmentOperationsRequest,
+  LabPlaybookResponse,
+  LabRosterResponse,
+  LabSkillMriResponse,
+  AssignLabWorkRequest,
+  SafetyCertListResponse,
+  SafetyCertWithQuestionsResponse,
+  SafetyCertAttemptResponse,
+  UserSafetyCertsResponse,
+  ProtocolRunListResponse,
+  ProtocolRunDetailResponse,
+  StartProtocolRunResponse,
+  StepUpdateRequest,
+  SignOffRequest,
   CapstonesListResponse,
   CapstoneResponse,
   CapstoneEnrollmentsResponse,
@@ -146,19 +184,55 @@ import type {
 
 const BASE = "/api/v1";
 
-async function request<T>(path: string, opts?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    credentials: "include",
-    headers: { "Content-Type": "application/json", ...opts?.headers },
-    ...opts,
-  });
+// Default network timeout for API requests. A hung backend (slow query,
+// dropped connection, server stuck) would otherwise leave the UI in a
+// perma-loading skeleton state. Caller can opt out by passing a
+// `signal` in opts that overrides this.
+const DEFAULT_TIMEOUT_MS = 20_000;
 
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({ error: res.statusText }));
-    throw new ApiError(res.status, body.error || "Unknown error");
+async function request<T>(path: string, opts?: RequestInit): Promise<T> {
+  // If the caller supplied their own AbortSignal, respect it. Otherwise
+  // wire up a timeout so a stuck request rejects cleanly.
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  let timedOut = false;
+  let signal = opts?.signal;
+  if (!signal) {
+    const ctrl = new AbortController();
+    timeoutId = setTimeout(() => {
+      timedOut = true;
+      ctrl.abort();
+    }, DEFAULT_TIMEOUT_MS);
+    signal = ctrl.signal;
   }
 
-  return res.json();
+  try {
+    const res = await fetch(`${BASE}${path}`, {
+      credentials: "include",
+      headers: { "Content-Type": "application/json", ...opts?.headers },
+      ...opts,
+      signal,
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ error: res.statusText }));
+      throw new ApiError(res.status, body.error || "Unknown error");
+    }
+
+    return res.json();
+  } catch (err: any) {
+    // Distinguish OUR timeout from a caller-initiated cancel. The
+    // caller's AbortError should propagate unchanged so consumers can
+    // treat it as a normal cancellation.
+    if (err?.name === "AbortError" && timedOut) {
+      throw new ApiError(
+        0,
+        `Request timed out after ${Math.round(DEFAULT_TIMEOUT_MS / 1000)}s. The server may be slow or unreachable.`,
+      );
+    }
+    throw err;
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
 }
 
 export class ApiError extends Error {
@@ -860,6 +934,154 @@ export const api = {
         method: "POST",
         body: JSON.stringify(body),
       }),
+    // Sprint 70 — for-you feed.
+    feed: (perRail?: number) => {
+      const sp = new URLSearchParams();
+      if (perRail) sp.set("perRail", String(perRail));
+      const qs = sp.toString();
+      return request<ResearchFeedResponse>(
+        `/research/feed${qs ? `?${qs}` : ""}`,
+      );
+    },
+    // Sprint 70 — cached tier-aware summary lookup. Returns
+    // `{ cached: false }` when no summary exists yet (callers should
+    // open a streaming connection to generate one).
+    cachedSummary: (
+      slug: string,
+      tier: "intro" | "undergrad" | "grad",
+    ) =>
+      request<
+        | { cached: false }
+        | {
+            cached: true;
+            tier: string;
+            modelId: string;
+            summaryMd: string;
+            generatedAt: string;
+          }
+      >(`/research/${slug}/summary?tier=${tier}`),
+  },
+  // Sprint 73 — Exam mastery framework.
+  exams: {
+    list: () => request<{ items: ExamSummary[] }>("/exams"),
+    get: (slug: string) =>
+      request<{ exam: ExamDetail }>(`/exams/${encodeURIComponent(slug)}`),
+    startAttempt: (
+      slug: string,
+      body: { mode: "full_mock" | "section" | "adaptive"; sectionSlug?: string },
+    ) =>
+      request<{
+        id: string;
+        mode: string;
+        expiresAt: string | null;
+      }>(`/exams/${encodeURIComponent(slug)}/attempts`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    getAttempt: (id: string) =>
+      request<ExamAttemptState>(
+        `/exams/attempts/${encodeURIComponent(id)}`,
+      ),
+    recordAnswer: (
+      id: string,
+      body: {
+        questionId: string;
+        selectedIndex?: number | null;
+        // Sprint 75 — essay free-text response. Pass either this OR
+        // selectedIndex depending on question type; the server
+        // updates only the field provided.
+        essayResponse?: string | null;
+        timeSpentMs?: number;
+        flagged?: boolean;
+      },
+    ) =>
+      request<{ ok: boolean }>(
+        `/exams/attempts/${encodeURIComponent(id)}/answer`,
+        { method: "PUT", body: JSON.stringify(body) },
+      ),
+    submitAttempt: (id: string) =>
+      request<ExamSubmitResponse>(
+        `/exams/attempts/${encodeURIComponent(id)}/submit`,
+        { method: "POST" },
+      ),
+    nextAdaptive: (id: string) =>
+      request<{ question: ExamQuestionPayload | null; difficulty?: number; done?: boolean }>(
+        `/exams/attempts/${encodeURIComponent(id)}/next-adaptive`,
+        { method: "POST" },
+      ),
+    history: (slug: string) =>
+      request<{ items: ExamHistoryEntry[] }>(
+        `/exams/${encodeURIComponent(slug)}/history`,
+      ),
+  },
+  // Sprint 72 — Author profile, claims, paper-author Q&A.
+  authors: {
+    get: (username: string) =>
+      request<AuthorProfileResponse>(
+        `/authors/${encodeURIComponent(username)}`,
+      ),
+  },
+  authorClaims: {
+    submit: (body: {
+      externalPaperId: string;
+      ordinal: number;
+      evidenceText?: string;
+      evidenceUrl?: string | null;
+    }) =>
+      request<{ id: string; status: string; duplicate?: boolean }>(
+        "/author-claims",
+        { method: "POST", body: JSON.stringify(body) },
+      ),
+    mine: () =>
+      request<{ items: AuthorClaimRequest[] }>("/author-claims/me"),
+  },
+  externalPaperQuestions: {
+    list: (paperId: string, ordinal: number) =>
+      request<PaperAuthorQuestionsResponse>(
+        `/external-papers/${encodeURIComponent(paperId)}/authors/${ordinal}/questions`,
+      ),
+    submit: (
+      paperId: string,
+      ordinal: number,
+      body: { content: string; parentId?: string },
+    ) =>
+      request<{ id: string }>(
+        `/external-papers/${encodeURIComponent(paperId)}/authors/${ordinal}/questions`,
+        { method: "POST", body: JSON.stringify(body) },
+      ),
+  },
+  // Sprint 71 — Funding feed.
+  grants: {
+    list: (params?: {
+      agency?: string;
+      source?: "nih" | "nsf" | "grants_gov";
+      withinDays?: number;
+      q?: string;
+      limit?: number;
+    }) => {
+      const sp = new URLSearchParams();
+      if (params?.agency) sp.set("agency", params.agency);
+      if (params?.source) sp.set("source", params.source);
+      if (params?.withinDays != null)
+        sp.set("withinDays", String(params.withinDays));
+      if (params?.q) sp.set("q", params.q);
+      if (params?.limit) sp.set("limit", String(params.limit));
+      const qs = sp.toString();
+      return request<GrantsListResponse>(`/grants${qs ? `?${qs}` : ""}`);
+    },
+    feed: (limit?: number) => {
+      const qs = limit ? `?limit=${limit}` : "";
+      return request<GrantsFeedResponse>(`/grants/feed${qs}`);
+    },
+    get: (id: string) =>
+      request<GrantDetailResponse>(`/grants/${encodeURIComponent(id)}`),
+    bookmarks: () =>
+      request<GrantsBookmarksResponse>("/grants/me/bookmarks"),
+    toggleBookmark: (id: string) =>
+      request<{ bookmarked: boolean }>(
+        `/grants/${encodeURIComponent(id)}/bookmark`,
+        { method: "POST" },
+      ),
   },
   capstones: {
     list: (params?: { tag?: string }) => {
@@ -1187,6 +1409,154 @@ export const api = {
       }),
     delete: (id: string) =>
       request<OkResponse>(`/flashcards/${id}`, { method: "DELETE" }),
+  },
+  // Sprint 79 — Lab protocol + equipment library.
+  lab: {
+    protocols: {
+      list: (params?: { discipline?: string }) => {
+        const sp = new URLSearchParams();
+        if (params?.discipline) sp.set("discipline", params.discipline);
+        const qs = sp.toString();
+        return request<ProtocolListResponse>(
+          `/lab/protocols${qs ? `?${qs}` : ""}`,
+        );
+      },
+      drafts: () =>
+        request<ProtocolListResponse>("/lab/protocols/me/drafts"),
+      byAuthor: (username: string) =>
+        request<ProtocolListResponse>(
+          `/lab/protocols/by-author/${encodeURIComponent(username)}`,
+        ),
+      get: (slug: string) =>
+        request<ProtocolDetailResponse>(`/lab/protocols/${slug}`),
+      versions: (slug: string) =>
+        request<ProtocolVersionsResponse>(`/lab/protocols/${slug}/versions`),
+      create: (data: CreateProtocolRequest) =>
+        request<{ protocolId: string; slug: string }>("/lab/protocols", {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+      update: (slug: string, data: UpdateProtocolRequest) =>
+        request<OkResponse>(`/lab/protocols/${slug}`, {
+          method: "PUT",
+          body: JSON.stringify(data),
+        }),
+      replaceSteps: (slug: string, data: ReplaceProtocolStepsRequest) =>
+        request<{ ok: true; stepCount: number }>(
+          `/lab/protocols/${slug}/steps`,
+          { method: "PUT", body: JSON.stringify(data) },
+        ),
+    },
+    equipment: {
+      list: (params?: { discipline?: string }) => {
+        const sp = new URLSearchParams();
+        if (params?.discipline) sp.set("discipline", params.discipline);
+        const qs = sp.toString();
+        return request<EquipmentListResponse>(
+          `/lab/equipment${qs ? `?${qs}` : ""}`,
+        );
+      },
+      get: (slug: string) =>
+        request<EquipmentDetailResponse>(`/lab/equipment/${slug}`),
+      create: (data: CreateEquipmentRequest) =>
+        request<{ equipmentId: string; slug: string }>("/lab/equipment", {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+      update: (slug: string, data: UpdateEquipmentRequest) =>
+        request<OkResponse>(`/lab/equipment/${slug}`, {
+          method: "PUT",
+          body: JSON.stringify(data),
+        }),
+      replaceOperations: (
+        slug: string,
+        data: ReplaceEquipmentOperationsRequest,
+      ) =>
+        request<{ ok: true; operationCount: number }>(
+          `/lab/equipment/${slug}/operations`,
+          { method: "PUT", body: JSON.stringify(data) },
+        ),
+    },
+    // Sprint 80 — Safety certifications.
+    safetyCerts: {
+      list: (params?: { discipline?: string }) => {
+        const sp = new URLSearchParams();
+        if (params?.discipline) sp.set("discipline", params.discipline);
+        const qs = sp.toString();
+        return request<SafetyCertListResponse>(
+          `/lab/safety-certs${qs ? `?${qs}` : ""}`,
+        );
+      },
+      get: (slug: string) =>
+        request<SafetyCertWithQuestionsResponse>(`/lab/safety-certs/${slug}`),
+      attempt: (slug: string, answers: Record<string, string>) =>
+        request<SafetyCertAttemptResponse>(
+          `/lab/safety-certs/${slug}/attempt`,
+          { method: "POST", body: JSON.stringify({ answers }) },
+        ),
+      mine: () => request<UserSafetyCertsResponse>("/me/safety-certs"),
+    },
+    // Sprint 80 — Protocol runs.
+    runs: {
+      start: (protocolSlug: string) =>
+        request<StartProtocolRunResponse>("/lab/runs/start", {
+          method: "POST",
+          body: JSON.stringify({ protocolSlug }),
+        }),
+      mine: (status?: string) => {
+        const qs = status ? `?status=${status}` : "";
+        return request<ProtocolRunListResponse>(`/me/lab/runs${qs}`);
+      },
+      awaitingSignoff: () =>
+        request<ProtocolRunListResponse>("/lab/runs/awaiting-signoff"),
+      get: (id: string) =>
+        request<ProtocolRunDetailResponse>(`/lab/runs/${id}`),
+      updateStep: (id: string, ordinal: number, body: StepUpdateRequest) =>
+        request<{ ok: true; status: string }>(
+          `/lab/runs/${id}/steps/${ordinal}`,
+          { method: "PUT", body: JSON.stringify(body) },
+        ),
+      requestSignoff: (id: string) =>
+        request<{
+          ok: true;
+          mentorsNotified: number;
+          doneSteps: number;
+          totalSteps: number;
+        }>(`/lab/runs/${id}/request-signoff`, { method: "POST" }),
+      signOff: (id: string, body: SignOffRequest) =>
+        request<{ ok: true }>(`/lab/runs/${id}/sign-off`, {
+          method: "POST",
+          body: JSON.stringify(body),
+        }),
+      reject: (id: string, body: SignOffRequest) =>
+        request<{ ok: true }>(`/lab/runs/${id}/reject`, {
+          method: "POST",
+          body: JSON.stringify(body),
+        }),
+    },
+    // Sprint 82 — Lab playbook + roster + skill MRI.
+    playbook: () => request<LabPlaybookResponse>("/me/lab/playbook"),
+    skillMri: () => request<LabSkillMriResponse>("/me/lab/skill-mri"),
+    assignments: () =>
+      request<{
+        assignments: Array<{
+          id: string;
+          cohortSlug: string;
+          cohortName: string;
+          protocolSlug: string | null;
+          certSlug: string | null;
+          masteryPathSlug: string | null;
+          dueAt: string | null;
+          status: string;
+        }>;
+      }>("/me/lab/assignments"),
+    roster: (slug: string) =>
+      request<LabRosterResponse>(`/lab-groups/${slug}/roster`),
+    assign: (slug: string, body: AssignLabWorkRequest) =>
+      request<{ ok: true; cohortId: string; assignmentIds: string[] }>(
+        `/lab-groups/${slug}/assign`,
+        { method: "POST", body: JSON.stringify(body) },
+      ),
   },
 };
 

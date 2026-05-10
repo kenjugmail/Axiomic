@@ -16,6 +16,15 @@ import {
   capstoneTrackCapstones,
   misconceptionCatalog,
   researchPapers,
+  exams,
+  examSections,
+  examQuestions,
+  // Sprint 84 — lab content tables (S79/S80).
+  protocols,
+  protocolSteps,
+  equipment,
+  equipmentOperations,
+  safetyCertifications,
 } from "./index";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -113,7 +122,414 @@ async function seed() {
   // Sprint 52 — load capstone tracks (depend on capstones existing).
   await seedCapstoneTracks();
 
+  // Sprint 73 — exam mastery framework.
+  seedExams();
+
+  // Sprint 84 — lab protocol + equipment + safety-cert library +
+  // onboarding playbook. Idempotent on slug.
+  seedLabContent();
+
   console.log("Seeding complete.");
+}
+
+// Sprint 84 — Idempotent loader for the lab content corpus. Reads
+// from seed-content/lab/{safety-certs,equipment,protocols,playbooks}
+// and inserts rows keyed on slug. Existing rows are left alone — to
+// re-import after edits, drop the affected rows by hand. (We can
+// version-bump like seedExams later if content edit cycles need it.)
+function seedLabContent() {
+  const root = path.join(import.meta.dir, "../../../seed-content/lab");
+  if (!fs.existsSync(root)) {
+    console.log("  No seed-content/lab dir, skipping lab seed.");
+    return;
+  }
+  const author = db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.username, "alice"))
+    .get();
+  if (!author) {
+    console.log("  No alice user; cannot attribute lab content. Skipping.");
+    return;
+  }
+
+  // --- Safety certs -----------------------------------------------
+  const certsDir = path.join(root, "safety-certs");
+  if (fs.existsSync(certsDir)) {
+    let n = 0;
+    for (const file of fs
+      .readdirSync(certsDir)
+      .filter((f) => f.endsWith(".json"))) {
+      let parsed: any;
+      try {
+        parsed = JSON.parse(
+          fs.readFileSync(path.join(certsDir, file), "utf-8"),
+        );
+      } catch (e) {
+        console.warn(`  cert ${file}: parse error`, e);
+        continue;
+      }
+      if (!parsed?.slug || !parsed?.title) continue;
+      const exists = db
+        .select({ id: safetyCertifications.id })
+        .from(safetyCertifications)
+        .where(eq(safetyCertifications.slug, parsed.slug))
+        .get();
+      if (exists) continue;
+      db.insert(safetyCertifications)
+        .values({
+          id: randomUUID(),
+          slug: parsed.slug,
+          title: parsed.title,
+          discipline: parsed.discipline ?? "biology",
+          description: parsed.description ?? null,
+          quizDataJson: JSON.stringify(parsed.quizData ?? []),
+          passingScore: Number(parsed.passingScore) || 0.7,
+          validityDays:
+            parsed.validityDays === null ||
+            parsed.validityDays === undefined
+              ? null
+              : Number(parsed.validityDays),
+          authorId: author.id,
+        })
+        .run();
+      n++;
+    }
+    console.log(`  seeded ${n} safety cert(s)`);
+  }
+
+  // --- Equipment + operations -------------------------------------
+  const eqDir = path.join(root, "equipment");
+  if (fs.existsSync(eqDir)) {
+    let n = 0;
+    for (const file of fs
+      .readdirSync(eqDir)
+      .filter((f) => f.endsWith(".json"))) {
+      let parsed: any;
+      try {
+        parsed = JSON.parse(
+          fs.readFileSync(path.join(eqDir, file), "utf-8"),
+        );
+      } catch (e) {
+        console.warn(`  equipment ${file}: parse error`, e);
+        continue;
+      }
+      if (!parsed?.slug || !parsed?.title) continue;
+      const exists = db
+        .select({ id: equipment.id })
+        .from(equipment)
+        .where(eq(equipment.slug, parsed.slug))
+        .get();
+      if (exists) continue;
+      const id = randomUUID();
+      db.insert(equipment)
+        .values({
+          id,
+          slug: parsed.slug,
+          title: parsed.title,
+          discipline: parsed.discipline ?? "biology",
+          manufacturer: parsed.manufacturer ?? null,
+          model: parsed.model ?? null,
+          manualMd: parsed.manualMd ?? "",
+          locationHint: parsed.locationHint ?? null,
+          trainingCertSlug: parsed.trainingCertSlug ?? null,
+          hazardsMd: parsed.hazardsMd ?? "",
+          attachmentRefsJson: JSON.stringify(
+            parsed.attachmentRefs ?? [],
+          ),
+          bookingPolicy: parsed.bookingPolicy ?? "open",
+          status: parsed.status ?? "active",
+          authorId: author.id,
+        })
+        .run();
+      const ops: any[] = Array.isArray(parsed.operations)
+        ? parsed.operations
+        : [];
+      ops.forEach((op, i) => {
+        if (!op?.title || !op?.bodyMd || !op?.kind) return;
+        db.insert(equipmentOperations)
+          .values({
+            id: randomUUID(),
+            equipmentId: id,
+            ordinal: i + 1,
+            title: op.title,
+            bodyMd: op.bodyMd,
+            kind: op.kind,
+          })
+          .run();
+      });
+      n++;
+    }
+    console.log(`  seeded ${n} equipment manual(s)`);
+  }
+
+  // --- Protocols + steps ------------------------------------------
+  const protoDir = path.join(root, "protocols");
+  if (fs.existsSync(protoDir)) {
+    let n = 0;
+    for (const file of fs
+      .readdirSync(protoDir)
+      .filter((f) => f.endsWith(".json"))) {
+      let parsed: any;
+      try {
+        parsed = JSON.parse(
+          fs.readFileSync(path.join(protoDir, file), "utf-8"),
+        );
+      } catch (e) {
+        console.warn(`  protocol ${file}: parse error`, e);
+        continue;
+      }
+      if (!parsed?.slug || !parsed?.title) continue;
+      const exists = db
+        .select({ id: protocols.id })
+        .from(protocols)
+        .where(eq(protocols.slug, parsed.slug))
+        .get();
+      if (exists) continue;
+      const id = randomUUID();
+      db.insert(protocols)
+        .values({
+          id,
+          slug: parsed.slug,
+          title: parsed.title,
+          discipline: parsed.discipline ?? "biology",
+          category: parsed.category ?? null,
+          summary: parsed.summary ?? "",
+          contentIntro: parsed.contentIntro ?? "",
+          contentUndergrad: parsed.contentUndergrad ?? "",
+          contentGrad: parsed.contentGrad ?? "",
+          biosafetyLevel:
+            parsed.biosafetyLevel === null ||
+            parsed.biosafetyLevel === undefined
+              ? null
+              : Number(parsed.biosafetyLevel),
+          hazardsMd: parsed.hazardsMd ?? "",
+          equipmentRequiredJson: JSON.stringify(
+            parsed.equipmentRequired ?? [],
+          ),
+          reagentsJson: JSON.stringify(parsed.reagents ?? []),
+          estimatedMinutes:
+            parsed.estimatedMinutes === null ||
+            parsed.estimatedMinutes === undefined
+              ? null
+              : Number(parsed.estimatedMinutes),
+          requiredCertsJson: JSON.stringify(parsed.requiredCerts ?? []),
+          status: parsed.status ?? "published",
+          version: 1,
+          authorId: author.id,
+        })
+        .run();
+      const steps: any[] = Array.isArray(parsed.steps) ? parsed.steps : [];
+      steps.forEach((s, i) => {
+        if (!s?.title || !s?.instructionMd) return;
+        db.insert(protocolSteps)
+          .values({
+            id: randomUUID(),
+            protocolId: id,
+            ordinal: i + 1,
+            title: s.title,
+            instructionMd: s.instructionMd,
+            safetyNotesMd: s.safetyNotesMd ?? "",
+            verificationMd: s.verificationMd ?? "",
+            inlineQuizJson: s.inlineQuizJson ?? null,
+            attachmentRefsJson: JSON.stringify(s.attachmentRefs ?? []),
+          })
+          .run();
+      });
+      n++;
+    }
+    console.log(`  seeded ${n} protocol(s)`);
+  }
+
+  // --- Playbooks (mastery paths with mixed-kind nodes) ------------
+  const pbDir = path.join(root, "playbooks");
+  if (fs.existsSync(pbDir)) {
+    let n = 0;
+    for (const file of fs
+      .readdirSync(pbDir)
+      .filter((f) => f.endsWith(".json"))) {
+      let parsed: any;
+      try {
+        parsed = JSON.parse(
+          fs.readFileSync(path.join(pbDir, file), "utf-8"),
+        );
+      } catch (e) {
+        console.warn(`  playbook ${file}: parse error`, e);
+        continue;
+      }
+      if (!parsed?.slug || !parsed?.title) continue;
+      const exists = db
+        .select({ id: masteryPaths.id })
+        .from(masteryPaths)
+        .where(eq(masteryPaths.slug, parsed.slug))
+        .get();
+      if (exists) continue;
+      const pathId = randomUUID();
+      db.insert(masteryPaths)
+        .values({
+          id: pathId,
+          slug: parsed.slug,
+          title: parsed.title,
+          description: parsed.description ?? "",
+        })
+        .run();
+      const nodes: any[] = Array.isArray(parsed.nodes) ? parsed.nodes : [];
+      // Build a slug→nodeId map first so prereq references resolve.
+      const nodeIds = new Map<string, string>();
+      nodes.forEach((node) => {
+        if (!node?.slug) return;
+        nodeIds.set(node.slug, randomUUID());
+      });
+      nodes.forEach((node, i) => {
+        if (!node?.slug || !node?.title) return;
+        const id = nodeIds.get(node.slug)!;
+        const prereqIds = (node.prerequisites ?? [])
+          .map((s: string) => nodeIds.get(s))
+          .filter(Boolean);
+        db.insert(masteryNodes)
+          .values({
+            id,
+            pathId,
+            slug: node.slug,
+            title: node.title,
+            description: node.description ?? "",
+            order: i + 1,
+            level: node.level ?? "apprentice",
+            pageIds: JSON.stringify([]),
+            prerequisiteNodeIds: JSON.stringify(prereqIds),
+            quizData: null,
+            lessonData: null,
+            nodeKind: node.kind ?? "lesson",
+            protocolSlug: node.protocolSlug ?? null,
+            certSlug: node.certSlug ?? null,
+            equipmentSlug: node.equipmentSlug ?? null,
+          })
+          .run();
+      });
+      n++;
+    }
+    console.log(`  seeded ${n} lab playbook(s)`);
+  }
+}
+
+// Sprint 73 — load exams from seed-content/exams/*.json.
+//
+// Sprint 74 — version-aware: each JSON carries a `contentVersion`
+// integer. When the stored version is below the file's, we wipe the
+// exam (cascade deletes sections + questions + past attempts) and
+// re-import. When versions match, we skip. Question ids are
+// generated deterministically as `${examSlug}:${sectionSlug}:q${i}`
+// so any code that holds onto a question-id reference across a
+// re-import keeps working as long as the question still exists in
+// the new bank.
+function seedExams() {
+  const dir = path.join(import.meta.dir, "../../../seed-content/exams");
+  if (!fs.existsSync(dir)) {
+    console.log("  No exams directory found, skipping.");
+    return;
+  }
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith(".json"));
+  let loaded = 0;
+  for (const file of files) {
+    let parsed: any;
+    try {
+      parsed = JSON.parse(fs.readFileSync(path.join(dir, file), "utf-8"));
+    } catch (e) {
+      console.warn(`  exam ${file}: failed to parse JSON`, e);
+      continue;
+    }
+    if (!parsed?.slug || !parsed?.title) continue;
+    const fileVersion = Number(parsed.contentVersion) || 1;
+    const existing = db
+      .select({ id: exams.id, contentVersion: exams.contentVersion })
+      .from(exams)
+      .where(eq(exams.slug, parsed.slug))
+      .get();
+    if (existing && existing.contentVersion >= fileVersion) {
+      console.log(
+        `  exam ${parsed.slug}: v${existing.contentVersion} already seeded (file v${fileVersion}), skipping.`,
+      );
+      continue;
+    }
+    if (existing) {
+      // Version bump — cascade-delete the old exam so we can
+      // re-import. Past attempts are wiped too; that's the
+      // accepted seed-time tradeoff.
+      db.delete(exams).where(eq(exams.id, existing.id)).run();
+      console.log(
+        `  exam ${parsed.slug}: bumping v${existing.contentVersion} → v${fileVersion}, re-importing.`,
+      );
+    }
+
+    const examId = randomUUID();
+    db.insert(exams)
+      .values({
+        id: examId,
+        slug: parsed.slug,
+        title: parsed.title,
+        shortName: parsed.shortName ?? parsed.slug.toUpperCase(),
+        pathSlug: parsed.pathSlug ?? null,
+        totalDurationMinutes: Number(parsed.totalDurationMinutes) || 0,
+        scoringJson: JSON.stringify(parsed.scoring ?? {}),
+        description: parsed.description ?? "",
+        contentVersion: fileVersion,
+      })
+      .run();
+
+    const sections: any[] = Array.isArray(parsed.sections) ? parsed.sections : [];
+    for (const sec of sections) {
+      if (!sec?.slug || !sec?.title) continue;
+      const sectionId = `exam:${parsed.slug}:${sec.slug}`;
+      db.insert(examSections)
+        .values({
+          id: sectionId,
+          examId,
+          slug: sec.slug,
+          title: sec.title,
+          ordinal: Number(sec.ordinal) || 0,
+          durationMinutes: Number(sec.durationMinutes) || 0,
+          questionCount: Number(sec.questionCount) || 0,
+        })
+        .run();
+
+      const questions: any[] = Array.isArray(sec.questions) ? sec.questions : [];
+      for (let i = 0; i < questions.length; i++) {
+        const q = questions[i];
+        if (!q?.promptMd) continue;
+        const type = q.type === "essay" ? "essay" : "multiple_choice";
+        if (type === "essay") {
+          if (typeof q.rubricMd !== "string" || q.rubricMd.length === 0)
+            continue;
+        } else {
+          if (!Array.isArray(q?.options) || typeof q.correctIndex !== "number")
+            continue;
+        }
+        const questionId = `q:${parsed.slug}:${sec.slug}:${i}`;
+        db.insert(examQuestions)
+          .values({
+            id: questionId,
+            sectionId,
+            type,
+            difficulty: Number(q.difficulty) || 3,
+            promptMd: String(q.promptMd),
+            optionsJson: JSON.stringify(q.options ?? []),
+            correctIndex:
+              typeof q.correctIndex === "number" ? q.correctIndex : 0,
+            rubricMd: type === "essay" ? String(q.rubricMd) : null,
+            maxEssayScore:
+              type === "essay" ? Number(q.maxEssayScore) || 6 : null,
+            explanationMd: q.explanationMd ?? "",
+            topicTagsJson: JSON.stringify(
+              Array.isArray(q.topicTags) ? q.topicTags : [],
+            ),
+          })
+          .run();
+      }
+    }
+    loaded++;
+    console.log(`  Seeded exam: ${parsed.slug} (v${fileVersion})`);
+  }
+  console.log(`  Seeded ${loaded} exam${loaded === 1 ? "" : "s"}.`);
 }
 
 function seedNews() {
@@ -1871,7 +2287,7 @@ function seedResearchPapers() {
   if (!fs.existsSync(dir)) return;
 
   // Use `system` if it exists; else fall back to `alice`.
-  let authorId =
+  const authorId =
     db.select({ id: users.id }).from(users).where(eq(users.username, "system")).get()?.id ??
     db.select({ id: users.id }).from(users).where(eq(users.username, "alice")).get()?.id;
   if (!authorId) {
@@ -1930,7 +2346,7 @@ async function seedCapstoneTracks() {
   const dir = path.join(import.meta.dir, "../../../seed-content/tracks");
   if (!fs.existsSync(dir)) return;
 
-  let systemUser = db
+  const systemUser = db
     .select({ id: users.id })
     .from(users)
     .where(eq(users.username, "system"))

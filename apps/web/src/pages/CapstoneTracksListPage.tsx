@@ -41,10 +41,22 @@ export function CapstoneTracksListPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
     api.tracks
       .list()
-      .then((r) => setTracks(r.tracks))
-      .catch((e) => setError(e?.message ?? "Failed to load tracks"));
+      .then((r) => {
+        if (!cancelled) setTracks(r.tracks);
+      })
+      .catch((e) => {
+        if (cancelled) return;
+        // Clear loading state on failure so the skeleton doesn't
+        // render forever (perma-loading bug).
+        setTracks([]);
+        setError(e?.message ?? "Failed to load tracks");
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (

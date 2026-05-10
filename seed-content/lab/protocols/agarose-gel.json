@@ -1,0 +1,49 @@
+{
+  "slug": "agarose-gel",
+  "title": "Agarose gel electrophoresis",
+  "discipline": "biology",
+  "category": "Molecular biology",
+  "summary": "Separate DNA fragments by size for verification or extraction. The workhorse confirmation step for any nucleic-acid workflow.",
+  "biosafetyLevel": 1,
+  "estimatedMinutes": 90,
+  "requiredCerts": ["general-lab-safety", "biohazard-waste"],
+  "equipmentRequired": ["gel-imager"],
+  "reagents": [
+    { "name": "Agarose powder", "amount": "0.8-2", "unit": "% w/v" },
+    { "name": "TAE 1× or TBE 0.5×" },
+    { "name": "Ethidium bromide", "amount": "0.5", "unit": "μg/mL", "hazardClass": "mutagen" },
+    { "name": "DNA loading dye (6×)" },
+    { "name": "Molecular-weight ladder" }
+  ],
+  "hazardsMd": "EtBr is mutagenic; wear gloves at all times. Designate one bench area for EtBr work to keep contamination contained.",
+  "contentUndergrad": "## How to pick percentage\n0.7-1% for fragments >1 kb. 1.5-2% for <500 bp. Higher % gels resolve small fragments but slow large ones.",
+  "steps": [
+    {
+      "title": "Cast the gel",
+      "instructionMd": "Weigh agarose, add to TAE in an Erlenmeyer flask. Microwave 1-2 min, swirling every 30 s, until fully clear. Cool to ~60 °C, add EtBr to 0.5 μg/mL final, swirl, pour into a sealed gel tray with comb.",
+      "safetyNotesMd": "Hot agarose burns. Use heat-rated gloves and swirl with care.",
+      "verificationMd": "Gel is uniform, no bubbles trapped under the comb. Agarose has set firm (~20 min at room temp)."
+    },
+    {
+      "title": "Load samples",
+      "instructionMd": "Place gel in tank. Cover with running buffer (~3 mm above the gel). Mix sample with loading dye (5:1). Pipette into wells. Always include a ladder.",
+      "verificationMd": "Loading dye visible in every loaded well. Wells not overflowed. Ladder lane easily identified."
+    },
+    {
+      "title": "Run electrophoresis",
+      "instructionMd": "Set 80-120 V, ~30-60 min. Watch the dye front: stop before the leading dye runs off the gel.",
+      "safetyNotesMd": "Lid must be on the tank — exposed buffer + power supply is a shock hazard.",
+      "verificationMd": "Bubbles rise from the electrodes. Dye front migrates ~2/3 the gel length."
+    },
+    {
+      "title": "Image on gel doc",
+      "instructionMd": "Transfer gel to gel-imager tray (UV-safe). Capture EtBr image; tune exposure for sharp bands without saturation.",
+      "verificationMd": "Bands at expected sizes against ladder. Image saved as TIFF for analysis."
+    },
+    {
+      "title": "Dispose of EtBr waste",
+      "instructionMd": "Gel goes into the EtBr-waste container. Buffer goes into the EtBr-buffer carboy. Wipe the gel tray + tank with EtBr-deactivating cleaner.",
+      "verificationMd": "EtBr waste container labeled and closed. Bench area free of stained drips (UV-check if unsure)."
+    }
+  ]
+}

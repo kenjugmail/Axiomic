@@ -271,6 +271,298 @@ export interface ResearchPaperResponse {
   paper: ResearchPaper;
 }
 
+// Sprint 70 — for-you feed payload. Each rail is a list of ranked
+// paper summaries with score breakdown for the "Why?" popover.
+//
+// Sprint 69 — `kind` widened to include 'external_paper' for ingested
+// arXiv / OpenAlex / PubMed entries. External papers carry the
+// upstream `htmlUrl` + optional DOI; the UI links the title there
+// (new tab) instead of routing to /research/:slug.
+export interface ResearchFeedItem {
+  kind: "research" | "external_paper";
+  id: string;
+  slug: string;
+  title: string;
+  // For internal: 'research' | 'explainer' | 'survey' | 'opinion'.
+  // For external: the upstream source ('arxiv' | 'openalex' |
+  // 'pubmed').
+  format: string;
+  snippet: string;
+  citationCount: number;
+  publishedAt: string;
+  tags: string[];
+  authorUsername: string | null;
+  // External-only fields. Null for internal papers.
+  htmlUrl: string | null;
+  doi: string | null;
+  score: number;
+  reason: string;
+  breakdown: {
+    interestScore: number;
+    queryAffinity: number;
+    authorOverlap: number;
+    recencyDecay: number;
+    citationBoost: number;
+    alreadyShown: boolean;
+    total: number;
+  };
+}
+
+export interface ResearchFeedResponse {
+  personalized: boolean;
+  rails: {
+    for_you: ResearchFeedItem[];
+    trending: ResearchFeedItem[];
+    from_follows: ResearchFeedItem[];
+  };
+}
+
+// Sprint 71 — Funding feed.
+export interface GrantSummary {
+  id: string;
+  source: string;
+  sourceId: string;
+  agency: string;
+  title: string;
+  summary: string;
+  mechanism: string | null;
+  amountCeiling: number | null;
+  postedAt: string | null;
+  deadlineAt: string | null;
+  url: string;
+  topics: string[];
+  bookmarked?: boolean;
+  bookmarkedAt?: string;
+}
+
+export interface GrantDetail extends GrantSummary {
+  fullDescription: string;
+}
+
+export interface GrantsListResponse {
+  items: GrantSummary[];
+  count: number;
+}
+
+export interface GrantsBookmarksResponse {
+  items: GrantSummary[];
+}
+
+export interface GrantsFeedItem {
+  grant: GrantSummary;
+  score: number;
+  vectorScore: number;
+  topicOverlap: number;
+  reason: string;
+}
+
+export interface GrantsFeedResponse {
+  personalized: boolean;
+  items: GrantsFeedItem[];
+}
+
+export interface GrantDetailResponse {
+  grant: GrantDetail;
+}
+
+// Sprint 72 — Author profile aggregator.
+export interface AuthorProfileUser {
+  id: string;
+  username: string;
+  displayName: string | null;
+  bio: string | null;
+  orcid: string | null;
+  scholarUrl: string | null;
+  blueskyHandle: string | null;
+  institution: string | null;
+  hIndex: number | null;
+}
+
+export interface AuthorInternalPaper {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  format: string;
+  tags: string[];
+  citationCount: number;
+  createdAt: string;
+}
+
+export interface AuthorExternalPaperRef {
+  externalPaperId: string;
+  ordinal: number;
+  verifiedVia: string;
+  verifiedAt: string;
+  paper: {
+    title: string;
+    source: string;
+    sourceId: string;
+    venue: string | null;
+    publishedAt: string | null;
+    htmlUrl: string | null;
+    citationCount: number;
+  };
+}
+
+export interface AuthorSocialPost {
+  id: string;
+  source: string;
+  text: string;
+  url: string;
+  postedAt: string | null;
+  referencedPaperId: string | null;
+  referencedSource: string | null;
+  referencedSourceId: string | null;
+}
+
+export interface AuthorProfileResponse {
+  user: AuthorProfileUser;
+  papers: {
+    internal: AuthorInternalPaper[];
+    external: AuthorExternalPaperRef[];
+  };
+  socialPosts: AuthorSocialPost[];
+}
+
+export interface AuthorClaimRequest {
+  id: string;
+  externalPaperId: string;
+  ordinal: number;
+  status: string;
+  evidenceText: string;
+  evidenceUrl: string | null;
+  reviewerId: string | null;
+  reviewNote: string | null;
+  createdAt: string;
+  decidedAt: string | null;
+}
+
+export interface PaperAuthorQuestion {
+  id: string;
+  parentId: string | null;
+  userId: string;
+  username: string;
+  displayName: string | null;
+  content: string;
+  editedAt: string | null;
+  createdAt: string;
+  children: PaperAuthorQuestion[];
+}
+
+export interface PaperAuthorQuestionsResponse {
+  questions: PaperAuthorQuestion[];
+  authorClaimed: boolean;
+}
+
+// Sprint 73 — Exam mastery framework.
+export interface ExamSummary {
+  slug: string;
+  title: string;
+  shortName: string;
+  pathSlug: string | null;
+  totalDurationMinutes: number;
+  description: string;
+}
+
+export interface ExamSectionDetail {
+  slug: string;
+  title: string;
+  ordinal: number;
+  durationMinutes: number;
+  questionCount: number;
+}
+
+export interface ExamScoringSection {
+  scaledTable: Array<{ raw: number; scaled: number }>;
+  percentileTable?: Array<{ scaled: number; percentile: number }>;
+  min: number;
+  max: number;
+}
+export interface ExamScoringConfig {
+  sections?: Record<string, ExamScoringSection>;
+  overall?: ExamScoringSection;
+}
+
+export interface ExamDetail extends ExamSummary {
+  sections: ExamSectionDetail[];
+  scoring: ExamScoringConfig;
+}
+
+export interface ExamQuestionPayload {
+  id: string;
+  sectionId: string;
+  sectionSlug: string;
+  ordinal: number;
+  // Sprint 75 — discriminator. 'multiple_choice' rendering shows
+  // options buttons; 'essay' shows a textarea + the rubricMd in a
+  // collapsible panel.
+  type: "multiple_choice" | "essay";
+  difficulty: number;
+  promptMd: string;
+  options: Array<{ label: string; text: string }>;
+  topicTags: string[];
+  // Essay-only. Null/0 for multiple-choice.
+  rubricMd: string | null;
+  maxEssayScore: number | null;
+}
+
+export interface ExamAttemptAnswer {
+  questionId: string;
+  selectedIndex: number | null;
+  // Sprint 75 — essay free-text response + AI grade results.
+  essayResponse?: string | null;
+  essayScore?: number | null;
+  essayFeedbackMd?: string | null;
+  flagged: boolean;
+  timeSpentMs: number;
+}
+
+export interface ExamAttemptState {
+  id: string;
+  mode: "full_mock" | "section" | "adaptive";
+  sectionSlug: string | null;
+  startedAt: string;
+  expiresAt: string | null;
+  completedAt: string | null;
+  scoreScaled: number | null;
+  sections: Array<{
+    slug: string;
+    questions: ExamQuestionPayload[];
+  }>;
+  answers: ExamAttemptAnswer[];
+}
+
+export interface ExamSectionResult {
+  raw: number;
+  scaled: number;
+  percentile: number | null;
+}
+
+export interface ExamSubmitResponse {
+  attemptId: string;
+  rawTotal: number;
+  // Sprint 78 — multiple-choice questions answered correctly. Distinct
+  // from rawTotal so the UI can display "questions correct" without
+  // double-counting essay rubric points (a 6-point GRE essay would
+  // otherwise appear as "6 questions correct").
+  mcCorrectCount?: number;
+  scaledTotal: number;
+  percentileTotal: number | null;
+  sections: Record<string, ExamSectionResult>;
+}
+
+export interface ExamHistoryEntry {
+  id: string;
+  mode: string;
+  sectionSlug: string | null;
+  startedAt: string;
+  completedAt: string | null;
+  scoreScaled: number | null;
+  scorePercentile: number | null;
+  sectionScores: unknown;
+}
+
 export interface CreateResearchPaperRequest {
   slug: string;
   title: string;
@@ -798,6 +1090,13 @@ export interface LessonResponse {
   // Sprint 32 — wiki slugs derived from this node's prereq mastery
   // nodes. Editor preview uses this to render PrereqXray.
   prereqWikiSlugs?: string[];
+  // Sprint 82 — when nodeKind != 'lesson', the LessonPage renders a
+  // lab-surface embed pointing at the matching protocol/cert/
+  // equipment record. The lesson body is null in that case.
+  nodeKind?: "lesson" | "protocol" | "cert" | "equipment-training";
+  protocolSlug?: string | null;
+  certSlug?: string | null;
+  equipmentSlug?: string | null;
 }
 
 export interface QuizSubmitResponse {
@@ -949,17 +1248,40 @@ export interface ReputationResponse {
 
 // --- Notifications ---
 
+// Sprint 78 — kept in sync with the server-side `NotificationKind`
+// in apps/server/src/lib/notifications.ts. New kinds added since
+// the original list:
+//   - claim_thread_reply (S22), article_reproduced (S38),
+//     track_completed + cohort_invitation +
+//     proposal_approved + proposal_rejected (S52),
+//     grant_match + grant_deadline_soon (S71).
+// Without this widening the web's NotificationBell switch couldn't
+// reference the new kinds without a TS error.
 export type NotificationKind =
   | "mention"
   | "topic_reply"
   | "post_reply"
   | "comment_reply"
+  | "claim_thread_reply"
   | "mastery_level_up"
   | "news_edit_proposed"
   | "news_edit_approved"
   | "news_edit_rejected"
   | "news_published"
-  | "forum_topic_posted";
+  | "article_reproduced"
+  | "forum_topic_posted"
+  | "track_completed"
+  | "cohort_invitation"
+  | "proposal_approved"
+  | "proposal_rejected"
+  | "grant_match"
+  | "grant_deadline_soon"
+  // Sprint 80 — lab protocol runs + safety certifications.
+  | "lab_signoff_requested"
+  | "lab_signoff_approved"
+  | "lab_signoff_rejected"
+  | "lab_cert_passed"
+  | "lab_cert_expiring";
 
 export type NotificationSubject =
   | "topic"
@@ -968,19 +1290,40 @@ export type NotificationSubject =
   | "mastery_node"
   | "news_article"
   | "news_proposal"
-  | "news_comment";
+  | "news_comment"
+  | "claim_thread"
+  | "reproduction"
+  | "capstone_track"
+  | "content_proposal"
+  | "grant"
+  // Sprint 80
+  | "lab_protocol_run"
+  | "lab_cert";
 
 export const NOTIFICATION_KINDS: NotificationKind[] = [
   "mention",
   "topic_reply",
   "post_reply",
   "comment_reply",
+  "claim_thread_reply",
   "mastery_level_up",
   "news_edit_proposed",
   "news_edit_approved",
   "news_edit_rejected",
   "news_published",
+  "article_reproduced",
   "forum_topic_posted",
+  "track_completed",
+  "cohort_invitation",
+  "proposal_approved",
+  "proposal_rejected",
+  "grant_match",
+  "grant_deadline_soon",
+  "lab_signoff_requested",
+  "lab_signoff_approved",
+  "lab_signoff_rejected",
+  "lab_cert_passed",
+  "lab_cert_expiring",
 ];
 
 export const NOTIFICATION_SUBJECTS: NotificationSubject[] = [
@@ -991,6 +1334,13 @@ export const NOTIFICATION_SUBJECTS: NotificationSubject[] = [
   "news_article",
   "news_proposal",
   "news_comment",
+  "claim_thread",
+  "reproduction",
+  "capstone_track",
+  "content_proposal",
+  "grant",
+  "lab_protocol_run",
+  "lab_cert",
 ];
 
 export interface Notification {
@@ -1259,6 +1609,16 @@ export interface UserSettings {
   notifyMentions: boolean;
   notifyReplies: boolean;
   notifyMastery: boolean;
+  // Sprint 69 — researcher profile fields. Surfaced on the settings
+  // page and read-only on the public profile page. `hIndex` is
+  // server-cached (refreshed by a future periodic job once external
+  // author IDs land); not user-editable.
+  orcid?: string | null;
+  scholarUrl?: string | null;
+  blueskyHandle?: string | null;
+  twitterHandle?: string | null;
+  institution?: string | null;
+  hIndex?: number | null;
 }
 
 export interface SettingsResponse {
@@ -1272,6 +1632,14 @@ export interface SettingsUpdateInput {
   notifyMastery?: boolean;
   displayName?: string | null;
   bio?: string | null;
+  // Sprint 69 — researcher profile fields. Server-side validation
+  // rejects malformed ORCID / handle shapes; URL fields just check
+  // for a parseable URL.
+  orcid?: string | null;
+  scholarUrl?: string | null;
+  blueskyHandle?: string | null;
+  twitterHandle?: string | null;
+  institution?: string | null;
 }
 
 // --- Mastery summary ---
@@ -2393,4 +2761,438 @@ export type PortfolioEntry =
 export interface PortfolioResponse {
   username: string;
   entries: PortfolioEntry[];
+}
+
+// Sprint 79 — Lab protocols + equipment library.
+
+export type LabDiscipline =
+  | "biology"
+  | "chemistry"
+  | "mechanical"
+  | "electrical"
+  | "materials"
+  | "cs-lab"
+  | "physics";
+
+export type ProtocolStatus = "draft" | "published";
+export type EquipmentStatus = "active" | "retired";
+export type EquipmentBookingPolicy = "open" | "reserve" | "supervised-only";
+export type EquipmentOperationKind =
+  | "calibration"
+  | "daily-check"
+  | "common-fault"
+  | "post-use";
+
+export interface ProtocolReagent {
+  name: string;
+  amount?: string;
+  unit?: string;
+  hazardClass?: string;
+}
+
+export interface ProtocolSummary {
+  id: string;
+  slug: string;
+  title: string;
+  discipline: LabDiscipline;
+  category: string | null;
+  summary: string;
+  contentIntro: string;
+  contentUndergrad: string;
+  contentGrad: string;
+  biosafetyLevel: number | null;
+  hazardsMd: string;
+  equipmentRequired: string[];
+  reagents: unknown[];
+  estimatedMinutes: number | null;
+  requiredCerts: string[];
+  version: number;
+  status: ProtocolStatus;
+  authorId: string;
+  authorUsername: string | null;
+  authorDisplayName: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProtocolStep {
+  id: string;
+  ordinal: number;
+  title: string;
+  instructionMd: string;
+  safetyNotesMd: string;
+  verificationMd: string;
+  inlineQuizJson: string | null;
+  attachmentRefs: string[];
+}
+
+export interface ProtocolStepInput {
+  title: string;
+  instructionMd: string;
+  safetyNotesMd?: string;
+  verificationMd?: string;
+  inlineQuizJson?: string | null;
+  attachmentRefs?: string[];
+}
+
+export interface ProtocolDetailResponse {
+  protocol: ProtocolSummary;
+  steps: ProtocolStep[];
+}
+
+export interface ProtocolListResponse {
+  protocols: ProtocolSummary[];
+}
+
+export interface ProtocolVersionEntry {
+  version: number;
+  editedBy: string | null;
+  editMessage: string | null;
+  createdAt: string;
+}
+
+export interface ProtocolVersionsResponse {
+  versions: ProtocolVersionEntry[];
+}
+
+export interface CreateProtocolRequest {
+  slug: string;
+  title: string;
+  discipline: LabDiscipline;
+  category?: string | null;
+  summary?: string;
+  contentIntro?: string;
+  contentUndergrad?: string;
+  contentGrad?: string;
+  biosafetyLevel?: number | null;
+  hazardsMd?: string;
+  equipmentRequired?: string[];
+  reagents?: ProtocolReagent[];
+  estimatedMinutes?: number | null;
+  requiredCerts?: string[];
+  steps?: ProtocolStepInput[];
+  status?: ProtocolStatus;
+}
+
+export interface UpdateProtocolRequest {
+  title?: string;
+  discipline?: LabDiscipline;
+  category?: string | null;
+  summary?: string;
+  contentIntro?: string;
+  contentUndergrad?: string;
+  contentGrad?: string;
+  biosafetyLevel?: number | null;
+  hazardsMd?: string;
+  equipmentRequired?: string[];
+  reagents?: ProtocolReagent[];
+  estimatedMinutes?: number | null;
+  requiredCerts?: string[];
+  status?: ProtocolStatus;
+}
+
+export interface ReplaceProtocolStepsRequest {
+  steps: ProtocolStepInput[];
+  editMessage?: string;
+}
+
+export interface EquipmentSummary {
+  id: string;
+  slug: string;
+  title: string;
+  discipline: LabDiscipline;
+  manufacturer: string | null;
+  model: string | null;
+  manualMd: string;
+  locationHint: string | null;
+  trainingCertSlug: string | null;
+  hazardsMd: string;
+  attachmentRefs: string[];
+  bookingPolicy: EquipmentBookingPolicy;
+  status: EquipmentStatus;
+  authorId: string;
+  authorUsername: string | null;
+  authorDisplayName: string | null;
+  createdAt: string;
+}
+
+export interface EquipmentOperation {
+  id: string;
+  ordinal: number;
+  title: string;
+  bodyMd: string;
+  kind: EquipmentOperationKind;
+}
+
+export interface EquipmentOperationInput {
+  title: string;
+  bodyMd: string;
+  kind: EquipmentOperationKind;
+}
+
+export interface EquipmentListResponse {
+  equipment: EquipmentSummary[];
+}
+
+export interface EquipmentDetailResponse {
+  equipment: EquipmentSummary;
+  operations: EquipmentOperation[];
+}
+
+export interface CreateEquipmentRequest {
+  slug: string;
+  title: string;
+  discipline: LabDiscipline;
+  manufacturer?: string | null;
+  model?: string | null;
+  manualMd?: string;
+  locationHint?: string | null;
+  trainingCertSlug?: string | null;
+  hazardsMd?: string;
+  attachmentRefs?: string[];
+  bookingPolicy?: EquipmentBookingPolicy;
+  status?: EquipmentStatus;
+  operations?: EquipmentOperationInput[];
+}
+
+export interface UpdateEquipmentRequest {
+  title?: string;
+  discipline?: LabDiscipline;
+  manufacturer?: string | null;
+  model?: string | null;
+  manualMd?: string;
+  locationHint?: string | null;
+  trainingCertSlug?: string | null;
+  hazardsMd?: string;
+  attachmentRefs?: string[];
+  bookingPolicy?: EquipmentBookingPolicy;
+  status?: EquipmentStatus;
+}
+
+export interface ReplaceEquipmentOperationsRequest {
+  operations: EquipmentOperationInput[];
+}
+
+// Sprint 80 — Safety certifications + protocol-run sign-offs.
+
+export interface SafetyCertSummary {
+  id: string;
+  slug: string;
+  title: string;
+  discipline: LabDiscipline;
+  description: string | null;
+  passingScore: number;
+  validityDays: number | null;
+  authorId: string;
+  createdAt: string;
+}
+
+export interface SafetyCertWithQuestionsResponse {
+  cert: SafetyCertSummary;
+  // Sanitized — server strips correct-answer keys before sending.
+  questions: Array<Record<string, unknown>>;
+}
+
+export interface SafetyCertListResponse {
+  certs: SafetyCertSummary[];
+}
+
+export interface SafetyCertAttemptResponse {
+  passed: boolean;
+  score: number;
+  passingScore?: number;
+  correct: number;
+  total: number;
+  passedAt?: string;
+  expiresAt?: string | null;
+}
+
+export interface UserSafetyCertEntry {
+  id: string;
+  certSlug: string;
+  passedAt: string;
+  expiresAt: string | null;
+  score: number | null;
+  certTitle: string | null;
+  certDiscipline: string | null;
+}
+
+export interface UserSafetyCertsResponse {
+  certs: UserSafetyCertEntry[];
+}
+
+export type ProtocolRunStatus =
+  | "in_progress"
+  | "awaiting_signoff"
+  | "signed_off"
+  | "rejected";
+
+export interface ProtocolRunStepStateEntry {
+  done: boolean;
+  doneAt?: string;
+  observation?: string;
+  attachmentRefs?: string[];
+}
+
+export interface ProtocolRunSummary {
+  id: string;
+  protocolId: string;
+  protocolSlug: string;
+  protocolTitle: string;
+  protocolDiscipline: string;
+  protocolVersion: number;
+  userId: string;
+  internUsername: string;
+  internDisplayName: string | null;
+  status: ProtocolRunStatus;
+  startedAt: string;
+  completedAt: string | null;
+  signedOffAt: string | null;
+  signedOffById: string | null;
+  stepState: Record<string, ProtocolRunStepStateEntry>;
+  notesMd: string;
+  signOffNotesMd: string | null;
+}
+
+export interface ProtocolRunDetailResponse {
+  run: ProtocolRunSummary;
+  steps: Array<{
+    id: string;
+    ordinal: number;
+    title: string;
+    instructionMd: string;
+    safetyNotesMd: string;
+    verificationMd: string;
+  }>;
+  canSignOff: boolean;
+}
+
+export interface ProtocolRunListResponse {
+  runs: ProtocolRunSummary[];
+}
+
+export interface StartProtocolRunMissingCerts {
+  error: string;
+  missingCerts: string[];
+}
+
+export interface StartProtocolRunResponse {
+  runId: string;
+  protocolVersion: number;
+}
+
+export interface StepUpdateRequest {
+  done: boolean;
+  observation?: string;
+  attachmentRefs?: string[];
+}
+
+export interface SignOffRequest {
+  notesMd?: string;
+}
+
+// Sprint 82 — Lab playbook + roster + skill MRI.
+
+export type LabAssignmentKind = "protocol" | "cert" | "path";
+export type LabAssignmentStatus =
+  | "pending"
+  | "in_progress"
+  | "completed"
+  | "overdue";
+
+export interface LabPlaybookAssignment {
+  id: string;
+  cohortSlug: string;
+  cohortName: string;
+  kind: LabAssignmentKind | "unknown";
+  targetSlug: string | null;
+  targetTitle: string;
+  dueAt: string | null;
+  status: LabAssignmentStatus;
+  notesMd: string | null;
+  createdAt: string;
+  assignedByUsername: string | null;
+}
+
+export interface LabPlaybookRecommendation {
+  slug: string;
+  title: string;
+  discipline: string;
+}
+
+export interface LabPlaybookResponse {
+  assignments: LabPlaybookAssignment[];
+  recommended: LabPlaybookRecommendation[];
+}
+
+export interface LabRosterMember {
+  userId: string;
+  username: string;
+  displayName: string | null;
+  role: "member" | "mentor" | "organizer";
+  joinedAt: string;
+  assignments: { pending: number; completed: number; overdue: number };
+  signedOffRunCount: number;
+  activeCertCount: number;
+}
+
+export interface LabRosterAwaiting {
+  id: string;
+  userId: string;
+  protocolSlug: string;
+  protocolTitle: string;
+  startedAt: string;
+}
+
+export interface LabRosterResponse {
+  cohort: {
+    id: string;
+    slug: string;
+    name: string;
+    discipline: string | null;
+  };
+  members: LabRosterMember[];
+  awaitingSignoffQueue: LabRosterAwaiting[];
+}
+
+export interface LabSkillMriProtocol {
+  slug: string;
+  title: string;
+  status: "not_started" | "in_flight" | "signed_off";
+  lastSignedOffAt: string | null;
+}
+
+export interface LabSkillMriEquipment {
+  slug: string;
+  title: string;
+  certified: boolean;
+  trainingCertSlug: string | null;
+}
+
+export interface LabSkillMriDiscipline {
+  discipline: string;
+  protocols: LabSkillMriProtocol[];
+  equipment: LabSkillMriEquipment[];
+}
+
+export interface LabSkillMriResponse {
+  disciplines: LabSkillMriDiscipline[];
+}
+
+export interface AssignLabWorkRequest {
+  assignedToUserIds: string[];
+  masteryPathSlug?: string | null;
+  protocolSlug?: string | null;
+  certSlug?: string | null;
+  dueAt?: string | null;
+  notesMd?: string;
+}
+
+export interface MasteryNodeKindFields {
+  // Sprint 82 — surfaced on MasteryNode/MasteryPath responses so the
+  // LessonPage can pick the right renderer.
+  nodeKind?: "lesson" | "protocol" | "cert" | "equipment-training";
+  protocolSlug?: string | null;
+  certSlug?: string | null;
+  equipmentSlug?: string | null;
 }

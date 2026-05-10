@@ -9,7 +9,7 @@
 // Wired in apps/server/src/index.ts when env.SERVER_EXEC_BACKEND is
 // 'local'. Otherwise the stub backend keeps returning 'not_enabled'.
 
-import { mkdtemp, rm, writeFile } from "fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "fs/promises";
 import { tmpdir } from "os";
 import path from "path";
 import { eq, inArray } from "drizzle-orm";
@@ -50,7 +50,13 @@ async function materializeKernelFiles(
 ): Promise<string> {
   const tmp = await mkdtemp(path.join(tmpdir(), "axiomic-exec-"));
   const filesDir = path.join(tmp, "files");
-  await mkdtemp(filesDir).catch(() => {});
+  // mkdtemp() generates a random-suffix directory from a template — it
+  // does NOT create the requested literal path. We want the literal
+  // `<tmp>/files`, so use mkdir. The previous mkdtemp(filesDir) call
+  // produced a path like `<tmp>/filesXXXXXX`; subsequent writeFile
+  // calls into `<tmp>/files/<name>` then silently failed (catch
+  // swallowed ENOENT) and no kernel files reached the sandbox.
+  await mkdir(filesDir, { recursive: true }).catch(() => {});
 
   const db = getDb();
   const rows = db

@@ -25,6 +25,7 @@ import { notify, notifyMentions, toPreview } from "../lib/notifications";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import { nodesForWikiSlug } from "../lib/crossLinks";
 import { recordActivityAndEvaluate } from "../lib/achievements";
+import { checkRateLimit, rateLimitIdentity } from "../lib/rateLimit";
 import type { Env } from "../env";
 
 const forum = new Hono<Env>();
@@ -1040,6 +1041,16 @@ forum.get("/users/:username/reputation", (c) => {
 // --- AI thread summarizer (SSE) -----------------------------------------
 
 forum.post("/topics/:slug/summarize", async (c) => {
+  // The summarizer hits the AI provider — gate it behind the same
+  // rate limiter as the rest of /ai/* so an unauth'd caller can't
+  // burn inference cost in a tight loop. Auth'd users get a per-user
+  // bucket; anonymous gets a per-IP+UA bucket.
+  const user = await getSessionUser(c);
+  const key = rateLimitIdentity(c, user?.id);
+  if (!checkRateLimit(`forum-summarize:${key}`, 5, 60_000)) {
+    return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+  }
+
   const db = getDb();
   const topic = db
     .select({
@@ -1067,13 +1078,20 @@ forum.post("/topics/:slug/summarize", async (c) => {
 
   const provider = getAIProvider();
 
+  let canceled = false;
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();
+      const safeEnqueue = (chunk: Uint8Array) => {
+        if (canceled) return;
+        try {
+          controller.enqueue(chunk);
+        } catch {
+          canceled = true;
+        }
+      };
       const send = (token: string) => {
-        controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({ token })}\n\n`)
-        );
+        safeEnqueue(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`));
       };
       try {
         if (provider.summarizeThread) {
@@ -1093,15 +1111,27 @@ forum.post("/topics/:slug/summarize", async (c) => {
               (p) => `- ${p.author}: ${p.body.split("\n")[0].slice(0, 160)}`
             ),
           ];
-          for (const ch of lines.join("\n")) send(ch);
+          for (const ch of lines.join("\n")) {
+            if (canceled) break;
+            send(ch);
+          }
         }
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        safeEnqueue(encoder.encode("data: [DONE]\n\n"));
       } catch {
-        controller.enqueue(
+        safeEnqueue(
           encoder.encode(`data: ${JSON.stringify({ error: "summary failed" })}\n\n`)
         );
       }
-      controller.close();
+      if (!canceled) {
+        try {
+          controller.close();
+        } catch {
+          // already closed
+        }
+      }
+    },
+    cancel() {
+      canceled = true;
     },
   });
 

@@ -20,7 +20,16 @@ export type NotificationKind =
   | "track_completed"
   | "cohort_invitation"
   | "proposal_approved"
-  | "proposal_rejected";
+  | "proposal_rejected"
+  // Sprint 71 — funding feed.
+  | "grant_match"
+  | "grant_deadline_soon"
+  // Sprint 80 — lab protocol runs + safety certifications.
+  | "lab_signoff_requested"
+  | "lab_signoff_approved"
+  | "lab_signoff_rejected"
+  | "lab_cert_passed"
+  | "lab_cert_expiring";
 
 export type NotificationSubject =
   | "topic"
@@ -35,7 +44,12 @@ export type NotificationSubject =
   // Sprint 52
   | "capstone_track"
   | "cohort_invitation"
-  | "content_proposal";
+  | "content_proposal"
+  // Sprint 71
+  | "grant"
+  // Sprint 80
+  | "lab_protocol_run"
+  | "lab_cert";
 
 const MAX_MENTIONS_PER_BODY = 10;
 const PREVIEW_MAX = 140;
@@ -127,8 +141,17 @@ function kindGate(
     case "cohort_invitation":
     case "proposal_approved":
     case "proposal_rejected":
-      // News flow + follow events + admin pipeline are direct +
-      // low-volume — always on.
+    case "grant_match":
+    case "grant_deadline_soon":
+    case "lab_signoff_requested":
+    case "lab_signoff_approved":
+    case "lab_signoff_rejected":
+    case "lab_cert_passed":
+    case "lab_cert_expiring":
+      // News flow + follow events + admin pipeline + funding
+      // alerts + Sprint 80 lab operational signals are direct +
+      // low-volume — always on. (A notifyFunding / notifyLab pref
+      // toggle is a follow-up if users start muting these.)
       return null;
   }
 }

@@ -1,0 +1,45 @@
+{
+  "slug": "mycoplasma-test",
+  "title": "Mycoplasma testing of cell cultures",
+  "discipline": "biology",
+  "category": "Cell biology",
+  "summary": "PCR-based screening for the most common silent contamination of mammalian cultures. Run monthly on every line.",
+  "biosafetyLevel": 2,
+  "estimatedMinutes": 180,
+  "requiredCerts": ["bsl-2"],
+  "equipmentRequired": ["thermal-cycler", "gel-imager"],
+  "reagents": [
+    { "name": "Mycoplasma PCR detection kit (PromoKine, Lonza, etc.)" },
+    { "name": "Conditioned media from each test line", "amount": "100", "unit": "μL" }
+  ],
+  "hazardsMd": "Standard PCR + EtBr gel hazards. Conditioned media is BSL-2 — handle in BSC.",
+  "contentUndergrad": "## Why monthly\nMycoplasma doesn't change media color and is invisible under bright-field. It silently shifts gene expression and growth rates, ruining experiments. PCR catches it weeks before any visible symptom.",
+  "steps": [
+    {
+      "title": "Collect conditioned media",
+      "instructionMd": "Take 100 μL of conditioned media from a flask that's been at confluence for ≥48 hours (peak mycoplasma yield). Skip cells that were fed in the last 24 h.",
+      "verificationMd": "Media samples labeled with line, passage, date. Stored on ice or at 4 °C if not running same-day."
+    },
+    {
+      "title": "Spin to remove cells",
+      "instructionMd": "Spin 500×g / 5 min. Transfer 50 μL supernatant to a new tube — this is your PCR template.",
+      "verificationMd": "Pellet visible at the bottom of the spun tube. Supernatant clear."
+    },
+    {
+      "title": "Set up PCR",
+      "instructionMd": "Per kit. Include positive control (provided) and negative control (water). Run cycle per kit (typically 35 cycles).",
+      "verificationMd": "All wells loaded. Positive + negative controls clearly labeled and bracketed."
+    },
+    {
+      "title": "Run gel",
+      "instructionMd": "Run PCR products on 1.5% agarose gel. Look for the diagnostic ~280 bp band (kit-specific).",
+      "verificationMd": "Positive control shows expected band. Negative control is clean."
+    },
+    {
+      "title": "Interpret + log",
+      "instructionMd": "Any test line showing the diagnostic band = MYCOPLASMA POSITIVE. Quarantine the line, decontaminate the incubator, and rebuild from a frozen stock from a clean passage. Log results in the cell-line registry.",
+      "safetyNotesMd": "Positive lines must NOT continue in shared incubators. Move to a quarantine incubator or autoclave immediately.",
+      "verificationMd": "All test lines have a clear positive/negative call. Registry updated. Action plan written for any positive lines."
+    }
+  ]
+}

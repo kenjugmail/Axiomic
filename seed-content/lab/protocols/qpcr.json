@@ -1,0 +1,47 @@
+{
+  "slug": "qpcr",
+  "title": "Quantitative PCR (qPCR / RT-qPCR)",
+  "discipline": "biology",
+  "category": "Molecular biology",
+  "summary": "Real-time amplification with SYBR Green or TaqMan for quantitative gene-expression or copy-number measurements.",
+  "biosafetyLevel": 1,
+  "estimatedMinutes": 180,
+  "requiredCerts": ["general-lab-safety", "bsl-1"],
+  "equipmentRequired": ["thermal-cycler", "nanodrop", "vortex"],
+  "reagents": [
+    { "name": "2× SYBR Green or TaqMan master mix" },
+    { "name": "Forward + reverse primers (10 μM each)" },
+    { "name": "Template cDNA or gDNA", "amount": "10-50", "unit": "ng" },
+    { "name": "TaqMan probe (FAM-labeled)" }
+  ],
+  "hazardsMd": "Standard low-risk reagents. Optical-clear seals must be flat — bubbles ruin reads.",
+  "contentUndergrad": "## Why qPCR\nReal-time fluorescence measurement converts amplification into a Ct value, which (with a standard curve) gives copy number or relative expression. Always run technical triplicates.",
+  "steps": [
+    {
+      "title": "Design or validate primers",
+      "instructionMd": "Primers should give amplicons 70-150 bp with Tm 58-62 °C. For RT-qPCR, span an exon-exon junction to exclude gDNA contamination. Validate with a melt curve before quantitation.",
+      "verificationMd": "Primer3 / Benchling output saved with picked pair. Single peak in melt curve at the expected Tm."
+    },
+    {
+      "title": "Prepare master mix on ice",
+      "instructionMd": "Per 10 μL reaction: 5 μL 2× mix + 0.4 μL each primer (10 μM) + 3.2 μL water + 1 μL template. Make for n+2 reactions; pipette template into each well last.",
+      "safetyNotesMd": "Run all samples in technical triplicate. Include NTC (no template control) and NRT (no reverse transcriptase control if RT-qPCR).",
+      "verificationMd": "Plate map filed in lab notebook. NTC and NRT wells marked clearly."
+    },
+    {
+      "title": "Seal and centrifuge the plate",
+      "instructionMd": "Apply optical-clear adhesive seal. Use the seal applicator to remove every bubble. Spin at 1000×g for 1 min to drop any droplets to the well bottom.",
+      "verificationMd": "No visible bubbles at well bottoms. Seal lies flat (no warping)."
+    },
+    {
+      "title": "Run the cycler with melt curve",
+      "instructionMd": "98 °C / 30 s → 40× (98 °C / 10 s, 60 °C / 20 s) → melt curve (60→95 °C in 0.5 °C / 5 s steps).",
+      "verificationMd": "Real-time plot shows clean exponential rise. NTC stays flat below 35 cycles. Melt curve has a single peak per primer pair."
+    },
+    {
+      "title": "Analyze Ct values",
+      "instructionMd": "Compute ΔΔCt vs your reference gene + sample. Standard rule: Ct difference of 1 ≈ 2× expression difference. Triplicate variance > 0.5 Ct = exclude or re-run.",
+      "verificationMd": "Triplicate Cts within 0.5 of each other. Reference gene Ct stable across conditions (within 1 Ct)."
+    }
+  ]
+}

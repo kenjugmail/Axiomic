@@ -3,17 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { api } from "../lib/api";
 import type { NewsEditProposal } from "@axiomic/types";
 import { useAuthStore } from "../stores/auth";
-
-function timeAgo(iso: string): string {
-  const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
-  if (s < 60) return `${s}s ago`;
-  const m = Math.floor(s / 60);
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  const d = Math.floor(h / 24);
-  return `${d}d ago`;
-}
+import { relativeTime as timeAgo } from "../lib/dates";
 
 // Compact word-level diff. Splits on whitespace and renders inserted
 // words green, removed words red. Cheap visual cue — not a full diff.

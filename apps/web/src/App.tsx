@@ -147,6 +147,32 @@ const ResearchListPage = lazy(() =>
 const ResearchPaperPage = lazy(() =>
   import("./pages/ResearchPaperPage").then((m) => ({ default: m.ResearchPaperPage })),
 );
+const ResearchFeedPage = lazy(() =>
+  import("./pages/ResearchFeedPage").then((m) => ({ default: m.ResearchFeedPage })),
+);
+const GrantsListPage = lazy(() =>
+  import("./pages/GrantsListPage").then((m) => ({ default: m.GrantsListPage })),
+);
+const GrantDetailPage = lazy(() =>
+  import("./pages/GrantDetailPage").then((m) => ({ default: m.GrantDetailPage })),
+);
+const GrantsBookmarksPage = lazy(() =>
+  import("./pages/GrantsBookmarksPage").then((m) => ({
+    default: m.GrantsBookmarksPage,
+  })),
+);
+const AuthorPage = lazy(() =>
+  import("./pages/AuthorPage").then((m) => ({ default: m.AuthorPage })),
+);
+const ExamsListPage = lazy(() =>
+  import("./pages/ExamsListPage").then((m) => ({ default: m.ExamsListPage })),
+);
+const ExamPage = lazy(() =>
+  import("./pages/ExamPage").then((m) => ({ default: m.ExamPage })),
+);
+const ExamRunnerPage = lazy(() =>
+  import("./pages/ExamRunnerPage").then((m) => ({ default: m.ExamRunnerPage })),
+);
 const ResearchNewPage = lazy(() =>
   import("./pages/ResearchNewPage").then((m) => ({ default: m.ResearchNewPage })),
 );
@@ -250,6 +276,65 @@ const CapstoneReviewQueuePage = lazy(() =>
 const CohortsPage = lazy(() =>
   import("./pages/CohortsPage").then((m) => ({ default: m.CohortsPage })),
 );
+// Sprint 79 — Lab protocol + equipment library.
+const ProtocolsListPage = lazy(() =>
+  import("./pages/ProtocolsListPage").then((m) => ({
+    default: m.ProtocolsListPage,
+  })),
+);
+const ProtocolDetailPage = lazy(() =>
+  import("./pages/ProtocolDetailPage").then((m) => ({
+    default: m.ProtocolDetailPage,
+  })),
+);
+const ProtocolEditPage = lazy(() =>
+  import("./pages/ProtocolEditPage").then((m) => ({
+    default: m.ProtocolEditPage,
+  })),
+);
+const EquipmentListPage = lazy(() =>
+  import("./pages/EquipmentListPage").then((m) => ({
+    default: m.EquipmentListPage,
+  })),
+);
+const EquipmentDetailPage = lazy(() =>
+  import("./pages/EquipmentDetailPage").then((m) => ({
+    default: m.EquipmentDetailPage,
+  })),
+);
+// Sprint 80 — Safety certifications + protocol-run sign-offs.
+const SafetyCertsListPage = lazy(() =>
+  import("./pages/SafetyCertsListPage").then((m) => ({
+    default: m.SafetyCertsListPage,
+  })),
+);
+const SafetyCertPage = lazy(() =>
+  import("./pages/SafetyCertPage").then((m) => ({
+    default: m.SafetyCertPage,
+  })),
+);
+const ProtocolRunPage = lazy(() =>
+  import("./pages/ProtocolRunPage").then((m) => ({
+    default: m.ProtocolRunPage,
+  })),
+);
+const MyLabPage = lazy(() =>
+  import("./pages/MyLabPage").then((m) => ({
+    default: m.MyLabPage,
+  })),
+);
+// Sprint 82 — PI dashboard for a lab cohort.
+const LabRosterPage = lazy(() =>
+  import("./pages/LabRosterPage").then((m) => ({
+    default: m.LabRosterPage,
+  })),
+);
+// Sprint 83 — AI-assisted protocol drafting wizard.
+const ProtocolWizardPage = lazy(() =>
+  import("./pages/ProtocolWizardPage").then((m) => ({
+    default: m.ProtocolWizardPage,
+  })),
+);
 
 function PageFallback() {
   return (
@@ -334,6 +419,58 @@ function AppRoutes() {
           <Route path="/settings/attachments" element={<AttachmentsPage />} />
           <Route path="/demo/attention" element={<DemoAttentionPage />} />
           <Route path="/research" element={<ResearchListPage />} />
+          <Route path="/research/feed" element={<ResearchFeedPage />} />
+          {/* Sprint 71 — Funding feed. */}
+          <Route path="/grants" element={<GrantsListPage />} />
+          <Route path="/grants/me/bookmarks" element={<GrantsBookmarksPage />} />
+          <Route path="/grants/:id" element={<GrantDetailPage />} />
+          {/* Sprint 72 — author profile aggregator. */}
+          <Route path="/authors/:username" element={<AuthorPage />} />
+          {/* Sprint 79 — Lab protocol + equipment library. */}
+          <Route path="/lab/protocols" element={<ProtocolsListPage />} />
+          <Route
+            path="/lab/protocols/new"
+            element={<ProtocolEditPage mode="new" />}
+          />
+          <Route
+            path="/lab/protocols/wizard"
+            element={<ProtocolWizardPage />}
+          />
+          <Route
+            path="/lab/protocols/:slug/edit"
+            element={<ProtocolEditPage mode="edit" />}
+          />
+          <Route
+            path="/lab/protocols/:slug"
+            element={<ProtocolDetailPage />}
+          />
+          <Route path="/lab/equipment" element={<EquipmentListPage />} />
+          <Route
+            path="/lab/equipment/:slug"
+            element={<EquipmentDetailPage />}
+          />
+          {/* Sprint 80 — Safety certifications + protocol-run sign-offs. */}
+          <Route
+            path="/lab/safety-certs"
+            element={<SafetyCertsListPage />}
+          />
+          <Route
+            path="/lab/safety-certs/:slug"
+            element={<SafetyCertPage />}
+          />
+          <Route path="/lab/runs/:id" element={<ProtocolRunPage />} />
+          <Route path="/me/lab" element={<MyLabPage />} />
+          <Route
+            path="/lab-groups/:slug/roster"
+            element={<LabRosterPage />}
+          />
+          {/* Sprint 73 — exam mastery framework. */}
+          <Route path="/exams" element={<ExamsListPage />} />
+          <Route path="/exams/:slug" element={<ExamPage />} />
+          <Route
+            path="/exams/:slug/run/:attemptId"
+            element={<ExamRunnerPage />}
+          />
           <Route path="/research/new" element={<ResearchNewPage />} />
           <Route path="/research/new/wizard" element={<ResearchWizardPage />} />
           <Route path="/research/me/drafts" element={<ResearchDraftsPage />} />

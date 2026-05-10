@@ -16,6 +16,13 @@ export function SettingsPage() {
   const [notifyMentions, setNotifyMentions] = useState(true);
   const [notifyReplies, setNotifyReplies] = useState(true);
   const [notifyMastery, setNotifyMastery] = useState(true);
+  // Sprint 69 — researcher profile fields. Empty string in state
+  // round-trips to null on save (so the user can clear a field).
+  const [orcid, setOrcid] = useState("");
+  const [scholarUrl, setScholarUrl] = useState("");
+  const [blueskyHandle, setBlueskyHandle] = useState("");
+  const [twitterHandle, setTwitterHandle] = useState("");
+  const [institution, setInstitution] = useState("");
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +42,11 @@ export function SettingsPage() {
         setNotifyMentions(settings.notifyMentions);
         setNotifyReplies(settings.notifyReplies);
         setNotifyMastery(settings.notifyMastery);
+        setOrcid(settings.orcid ?? "");
+        setScholarUrl(settings.scholarUrl ?? "");
+        setBlueskyHandle(settings.blueskyHandle ?? "");
+        setTwitterHandle(settings.twitterHandle ?? "");
+        setInstitution(settings.institution ?? "");
       })
       .catch((e) => setError(e.message ?? "Failed to load settings"));
   }, [user, authLoading, navigate]);
@@ -49,6 +61,11 @@ export function SettingsPage() {
         notifyMentions,
         notifyReplies,
         notifyMastery,
+        orcid: orcid.trim() || null,
+        scholarUrl: scholarUrl.trim() || null,
+        blueskyHandle: blueskyHandle.trim() || null,
+        twitterHandle: twitterHandle.trim() || null,
+        institution: institution.trim() || null,
       });
       setSettings(next);
       setSavedAt(Date.now());
@@ -108,6 +125,92 @@ export function SettingsPage() {
             className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm resize-y"
           />
         </div>
+      </section>
+
+      {/* Sprint 69 — Researcher profile */}
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Researcher profile</h2>
+        <p className="text-xs text-muted-foreground -mt-2">
+          Optional. Linking external identities improves your for-you
+          feed and is required to claim authored papers.
+        </p>
+        <div>
+          <label className="block text-sm font-medium mb-1">ORCID</label>
+          <input
+            value={orcid}
+            onChange={(e) => setOrcid(e.target.value)}
+            placeholder="0000-0000-0000-0000"
+            maxLength={19}
+            className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm font-mono"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Your{" "}
+            <a
+              href="https://orcid.org/"
+              target="_blank"
+              rel="noreferrer"
+              className="text-primary hover:underline"
+            >
+              ORCID
+            </a>{" "}
+            identifier. Used to verify external paper authorship.
+          </p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Google Scholar URL
+          </label>
+          <input
+            type="url"
+            value={scholarUrl}
+            onChange={(e) => setScholarUrl(e.target.value)}
+            placeholder="https://scholar.google.com/citations?user=…"
+            maxLength={500}
+            className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm"
+          />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Bluesky handle
+            </label>
+            <input
+              value={blueskyHandle}
+              onChange={(e) => setBlueskyHandle(e.target.value)}
+              placeholder="@user.bsky.social"
+              maxLength={80}
+              className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Twitter / X handle
+            </label>
+            <input
+              value={twitterHandle}
+              onChange={(e) => setTwitterHandle(e.target.value)}
+              placeholder="@username"
+              maxLength={40}
+              className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Institution</label>
+          <input
+            value={institution}
+            onChange={(e) => setInstitution(e.target.value)}
+            placeholder="Stanford, MIT, Independent…"
+            maxLength={200}
+            className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm"
+          />
+        </div>
+        {settings.hIndex != null && (
+          <div className="text-xs text-muted-foreground">
+            h-index: <span className="font-mono">{settings.hIndex}</span>{" "}
+            <span className="opacity-60">(refreshed nightly)</span>
+          </div>
+        )}
       </section>
 
       {/* Preferences */}

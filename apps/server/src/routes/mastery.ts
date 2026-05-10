@@ -23,6 +23,7 @@ import { notify } from "../lib/notifications";
 import { fireDetectorForUserAsync } from "../lib/misconceptionDetector";
 import { recordActivityAndEvaluate } from "../lib/achievements";
 import { invalidateSearchIndex } from "../lib/searchIndex";
+import { gradeQuestion } from "../lib/quizGrading";
 import { forumTopicsForNode } from "../lib/crossLinks";
 import { publishToDraft } from "../lib/liveBus";
 import { createProposal, isApprovalGateEnabled } from "../lib/approvals";
@@ -492,16 +493,37 @@ mastery.get("/lesson/:nodeId", async (c) => {
       lessonData: masteryNodes.lessonData,
       sourceArticleId: masteryNodes.sourceArticleId,
       prerequisiteNodeIds: masteryNodes.prerequisiteNodeIds,
+      // Sprint 82 — surface node kind so LessonPage can swap renderers.
+      nodeKind: masteryNodes.nodeKind,
+      protocolSlug: masteryNodes.protocolSlug,
+      certSlug: masteryNodes.certSlug,
+      equipmentSlug: masteryNodes.equipmentSlug,
     })
     .from(masteryNodes)
     .where(eq(masteryNodes.id, nodeId))
     .get();
   if (!node) return c.json({ error: "Node not found" }, 404);
 
+  // Sprint 82 — non-lesson nodes resolve to the corresponding lab
+  // surface; the renderer follows the embed link instead of rendering
+  // slides. We still return prereqWikiSlugs (empty for lab nodes for
+  // now) for shape symmetry with the existing client.
+  if (node.nodeKind && node.nodeKind !== "lesson") {
+    return c.json({
+      lesson: null,
+      sourceArticle: null,
+      prereqWikiSlugs: [],
+      nodeKind: node.nodeKind,
+      protocolSlug: node.protocolSlug,
+      certSlug: node.certSlug,
+      equipmentSlug: node.equipmentSlug,
+    });
+  }
+
   // Sprint 32 — walk prerequisite mastery nodes to surface the wiki
   // slugs that gate this lesson. Lets the editor preview render a
   // PrereqXray showing which prereqs the learner has actually mastered.
-  let prereqWikiSlugs: string[] = [];
+  const prereqWikiSlugs: string[] = [];
   try {
     const prereqIds: string[] = JSON.parse(node.prerequisiteNodeIds);
     if (Array.isArray(prereqIds) && prereqIds.length > 0) {
@@ -546,15 +568,36 @@ mastery.get("/lesson/:nodeId", async (c) => {
     if (a) sourceArticle = a;
   }
 
-  if (!node.lessonData) return c.json({ lesson: null, sourceArticle, prereqWikiSlugs });
+  if (!node.lessonData)
+    return c.json({
+      lesson: null,
+      sourceArticle,
+      prereqWikiSlugs,
+      nodeKind: node.nodeKind ?? "lesson",
+      protocolSlug: null,
+      certSlug: null,
+      equipmentSlug: null,
+    });
   try {
     return c.json({
       lesson: JSON.parse(node.lessonData),
       sourceArticle,
       prereqWikiSlugs,
+      nodeKind: node.nodeKind ?? "lesson",
+      protocolSlug: null,
+      certSlug: null,
+      equipmentSlug: null,
     });
   } catch {
-    return c.json({ lesson: null, sourceArticle, prereqWikiSlugs });
+    return c.json({
+      lesson: null,
+      sourceArticle,
+      prereqWikiSlugs,
+      nodeKind: node.nodeKind ?? "lesson",
+      protocolSlug: null,
+      certSlug: null,
+      equipmentSlug: null,
+    });
   }
 });
 
@@ -1231,124 +1274,6 @@ const quizSubmitSchema = z.object({
 // defaulting to multiple_choice for back-compat with older seeded
 // quiz JSON that omits the field. Returns true when the answer is
 // correct.
-function gradeQuestion(q: any, answer: string | undefined): boolean {
-  const kind = q?.kind ?? "multiple_choice";
-  switch (kind) {
-    case "multiple_choice":
-      return answer !== undefined && answer === String(q.correctIndex);
-    case "slider": {
-      if (answer === undefined) return false;
-      const v = parseFloat(answer);
-      if (isNaN(v)) return false;
-      return v >= q.target.min && v <= q.target.max;
-    }
-    case "drag_classify": {
-      if (answer === undefined) return false;
-      let map: Record<string, string>;
-      try {
-        const parsed = JSON.parse(answer);
-        if (!parsed || typeof parsed !== "object") return false;
-        map = parsed;
-      } catch {
-        return false;
-      }
-      // Every declared item must map to its declared bin.
-      for (const item of q.items as Array<{ id: string; bin: string }>) {
-        if (map[item.id] !== item.bin) return false;
-      }
-      return true;
-    }
-    case "code": {
-      // The client reports { passed, total } after running the user's
-      // code through Pyodide against the test cases. Self-paced learning
-      // — trust the report — but we cross-check the totals against the
-      // number of declared tests so a hand-crafted answer can't claim
-      // more passes than there are tests.
-      if (answer === undefined) return false;
-      try {
-        const parsed = JSON.parse(answer);
-        if (!parsed || typeof parsed !== "object") return false;
-        const total = q.tests?.length ?? 0;
-        return (
-          typeof parsed.passed === "number" &&
-          typeof parsed.total === "number" &&
-          parsed.passed === total &&
-          parsed.total === total
-        );
-      } catch {
-        return false;
-      }
-    }
-    case "puzzle_drag_build": {
-      if (answer === undefined) return false;
-      let map: Record<string, string>;
-      try {
-        const parsed = JSON.parse(answer);
-        if (!parsed || typeof parsed !== "object") return false;
-        map = parsed;
-      } catch {
-        return false;
-      }
-      const componentsById = new Map<string, { type: string }>();
-      for (const c of q.components as Array<{ id: string; type: string }>) {
-        componentsById.set(c.id, c);
-      }
-      for (const slot of q.slots as Array<{ id: string; accepts: string }>) {
-        const placed = map[slot.id];
-        if (!placed) return false;
-        const comp = componentsById.get(placed);
-        if (!comp || comp.type !== slot.accepts) return false;
-      }
-      return true;
-    }
-    case "math_expression": {
-      if (answer === undefined) return false;
-      const norm = (s: string) => s.replace(/\s+/g, "").toLowerCase();
-      const a = norm(answer);
-      const accepted = (q.acceptedAnswers as unknown[]).filter(
-        (s): s is string => typeof s === "string",
-      );
-      return accepted.some((acc) => norm(acc) === a);
-    }
-    case "sortable": {
-      if (answer === undefined) return false;
-      let order: string[];
-      try {
-        const parsed = JSON.parse(answer);
-        if (!Array.isArray(parsed)) return false;
-        order = parsed.filter((s): s is string => typeof s === "string");
-      } catch {
-        return false;
-      }
-      const correct = (q.items as Array<{ id: string }>).map((it) => it.id);
-      if (order.length !== correct.length) return false;
-      return order.every((id, i) => id === correct[i]);
-    }
-    case "code_completion": {
-      if (answer === undefined) return false;
-      let map: Record<string, string>;
-      try {
-        const parsed = JSON.parse(answer);
-        if (!parsed || typeof parsed !== "object") return false;
-        map = parsed;
-      } catch {
-        return false;
-      }
-      const norm = (s: string) => s.trim();
-      for (const blank of q.blanks as Array<{ id: string; acceptedAnswers: string[] }>) {
-        const userAns = map[blank.id];
-        if (typeof userAns !== "string") return false;
-        const u = norm(userAns);
-        const ok = blank.acceptedAnswers.some((acc) => norm(acc) === u);
-        if (!ok) return false;
-      }
-      return true;
-    }
-    default:
-      return false;
-  }
-}
-
 mastery.post("/quiz/:nodeId", requireAuth, zValidator("json", quizSubmitSchema), async (c) => {
   const nodeId = c.req.param("nodeId");
   const { answers } = c.req.valid("json");

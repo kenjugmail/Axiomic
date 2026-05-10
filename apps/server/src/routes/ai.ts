@@ -19,26 +19,10 @@ import { logger } from "../lib/logger";
 const ai = new Hono();
 
 // Rate limiting state (simple in-memory).
-// Sprint 64d — exported so /admin/rate-limits can introspect.
-export const rateLimits = new Map<
-  string,
-  { count: number; resetAt: number; rejected: number }
->();
-
-function checkRateLimit(key: string, max: number, windowMs: number): boolean {
-  const now = Date.now();
-  const entry = rateLimits.get(key);
-  if (!entry || now > entry.resetAt) {
-    rateLimits.set(key, { count: 1, resetAt: now + windowMs, rejected: 0 });
-    return true;
-  }
-  if (entry.count >= max) {
-    entry.rejected++;
-    return false;
-  }
-  entry.count++;
-  return true;
-}
+// Sprint 64d — re-exported so /admin/rate-limits can introspect via
+// its existing import path.
+export { rateLimits, checkRateLimit, rateLimitIdentity } from "../lib/rateLimit";
+import { checkRateLimit, rateLimitIdentity } from "../lib/rateLimit";
 
 // Stream chat
 const chatSchema = z.object({
@@ -72,7 +56,7 @@ const chatSchema = z.object({
 ai.post("/chat", zValidator("json", chatSchema), async (c) => {
   const { pageSlug, tier, messages, mode, modeContext, model } = c.req.valid("json");
   const user = await getSessionUser(c);
-  const rateLimitKey = user?.id || c.req.header("x-forwarded-for") || "anonymous";
+  const rateLimitKey = rateLimitIdentity(c, user?.id);
 
   if (!checkRateLimit(`chat:${rateLimitKey}`, 30, 60000)) {
     return c.json({ error: "Rate limited. Try again in a minute." }, 429);
@@ -148,23 +132,41 @@ Guidelines:
     coachSummary ? `\n\n${coachSummary}` : ""
   }${modePrompt ? `\n\n${modePrompt}` : ""}`;
 
-  // SSE stream
+  // SSE stream — wrap enqueue in a guard + thread an AbortController
+  // through to the provider so a client-disconnect cancels the
+  // upstream call instead of generating tokens nobody will read.
+  let canceled = false;
+  const abortCtrl = new AbortController();
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();
       let tokenCount = 0;
+      const safeEnqueue = (chunk: Uint8Array) => {
+        if (canceled) return;
+        try {
+          controller.enqueue(chunk);
+        } catch {
+          canceled = true;
+          abortCtrl.abort();
+        }
+      };
       try {
         await provider.stream({
           system,
           messages,
           model,
+          signal: abortCtrl.signal,
           onToken: (token) => {
             tokenCount++;
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`));
+            safeEnqueue(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`));
           },
         });
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        safeEnqueue(encoder.encode("data: [DONE]\n\n"));
       } catch (err) {
+        if (canceled) {
+          // Ignore — client disconnected.
+          return;
+        }
         const e = err as Error | undefined;
         logger.error({
           kind: "ai_stream_failed",
@@ -176,11 +178,21 @@ Guidelines:
           errorClass: e?.name ?? "unknown",
           errorMessage: e?.message ?? String(err),
         });
-        controller.enqueue(
+        safeEnqueue(
           encoder.encode(`data: ${JSON.stringify({ error: "Stream failed" })}\n\n`)
         );
       }
-      controller.close();
+      if (!canceled) {
+        try {
+          controller.close();
+        } catch {
+          // already closed
+        }
+      }
+    },
+    cancel() {
+      canceled = true;
+      abortCtrl.abort();
     },
   });
 
@@ -296,18 +308,44 @@ tier: ${targetTier}
 
 Rewrite the following text at the ${targetTier} level. Preserve the core meaning but adjust complexity, vocabulary, and mathematical notation as appropriate for the level.`;
 
+  let canceled = false;
+  const abortCtrl = new AbortController();
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();
-      await provider.stream({
-        system,
-        messages: [{ role: "user", content: text }],
-        onToken: (token) => {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`));
-        },
-      });
-      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-      controller.close();
+      const safeEnqueue = (chunk: Uint8Array) => {
+        if (canceled) return;
+        try {
+          controller.enqueue(chunk);
+        } catch {
+          canceled = true;
+          abortCtrl.abort();
+        }
+      };
+      try {
+        await provider.stream({
+          system,
+          messages: [{ role: "user", content: text }],
+          signal: abortCtrl.signal,
+          onToken: (token) => {
+            safeEnqueue(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`));
+          },
+        });
+      } catch {
+        // best-effort streaming; swallow provider errors so close() still fires
+      }
+      safeEnqueue(encoder.encode("data: [DONE]\n\n"));
+      if (!canceled) {
+        try {
+          controller.close();
+        } catch {
+          // already closed
+        }
+      }
+    },
+    cancel() {
+      canceled = true;
+      abortCtrl.abort();
     },
   });
 
@@ -386,28 +424,56 @@ function streamingResponse(
   userMessage: string,
 ): Response {
   const provider = getAIProvider();
+  // Track client-disconnect via the ReadableStream's cancel hook. The
+  // abort controller is forwarded into the provider so the upstream
+  // Ollama (or any future provider's HTTP fetch) is canceled instead
+  // of running to completion against a dead client.
+  let canceled = false;
+  const abortCtrl = new AbortController();
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();
+      const safeEnqueue = (chunk: Uint8Array) => {
+        if (canceled) return;
+        try {
+          controller.enqueue(chunk);
+        } catch {
+          canceled = true;
+          abortCtrl.abort();
+        }
+      };
       try {
         await provider.stream({
           system,
           messages: [{ role: "user", content: userMessage }],
+          signal: abortCtrl.signal,
           onToken: (token) => {
-            controller.enqueue(
+            safeEnqueue(
               encoder.encode(`data: ${JSON.stringify({ token })}\n\n`),
             );
           },
         });
       } catch (err: any) {
-        controller.enqueue(
-          encoder.encode(
-            `data: ${JSON.stringify({ error: err?.message ?? "stream failed" })}\n\n`,
-          ),
-        );
+        if (!canceled) {
+          safeEnqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ error: err?.message ?? "stream failed" })}\n\n`,
+            ),
+          );
+        }
       }
-      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-      controller.close();
+      safeEnqueue(encoder.encode("data: [DONE]\n\n"));
+      if (!canceled) {
+        try {
+          controller.close();
+        } catch {
+          // already closed by the runtime — fine
+        }
+      }
+    },
+    cancel() {
+      canceled = true;
+      abortCtrl.abort();
     },
   });
   return new Response(stream, {
@@ -427,7 +493,7 @@ const draftSchema = z.object({
 ai.post("/news/draft", zValidator("json", draftSchema), async (c) => {
   const { prompt, tags } = c.req.valid("json");
   const user = await getSessionUser(c);
-  const rateLimitKey = user?.id || c.req.header("x-forwarded-for") || "anonymous";
+  const rateLimitKey = rateLimitIdentity(c, user?.id);
   if (!checkRateLimit(`draft:${rateLimitKey}`, 10, 60_000)) {
     return c.json({ error: "Rate limited. Try again in a minute." }, 429);
   }
@@ -458,7 +524,7 @@ const polishSchema = z.object({
 ai.post("/news/polish", zValidator("json", polishSchema), async (c) => {
   const { original, proposed, message } = c.req.valid("json");
   const user = await getSessionUser(c);
-  const rateLimitKey = user?.id || c.req.header("x-forwarded-for") || "anonymous";
+  const rateLimitKey = rateLimitIdentity(c, user?.id);
   if (!checkRateLimit(`polish:${rateLimitKey}`, 15, 60_000)) {
     return c.json({ error: "Rate limited. Try again in a minute." }, 429);
   }
@@ -500,7 +566,7 @@ ai.post(
     const { topic, kind = "text" } = c.req.valid("json");
     const user = await getSessionUser(c);
     const rateLimitKey =
-      user?.id || c.req.header("x-forwarded-for") || "anonymous";
+      rateLimitIdentity(c, user?.id);
     if (!checkRateLimit(`lesson-draft:${rateLimitKey}`, 20, 60_000)) {
       return c.json({ error: "Rate limited. Try again in a minute." }, 429);
     }
@@ -546,7 +612,7 @@ ai.post(
     const { field, current, hint } = c.req.valid("json");
     const user = await getSessionUser(c);
     const rateLimitKey =
-      user?.id || c.req.header("x-forwarded-for") || "anonymous";
+      rateLimitIdentity(c, user?.id);
     if (!checkRateLimit(`lesson-polish:${rateLimitKey}`, 30, 60_000)) {
       return c.json({ error: "Rate limited. Try again in a minute." }, 429);
     }
@@ -583,7 +649,7 @@ ai.post(
     const { slide, analytics, hint } = c.req.valid("json");
     const user = await getSessionUser(c);
     const rateLimitKey =
-      user?.id || c.req.header("x-forwarded-for") || "anonymous";
+      rateLimitIdentity(c, user?.id);
     if (!checkRateLimit(`lesson-rewrite:${rateLimitKey}`, 15, 60_000)) {
       return c.json({ error: "Rate limited. Try again in a minute." }, 429);
     }
@@ -615,7 +681,7 @@ ai.post(
     const { topic, tier = "intro" } = c.req.valid("json");
     const user = await getSessionUser(c);
     const rateLimitKey =
-      user?.id || c.req.header("x-forwarded-for") || "anonymous";
+      rateLimitIdentity(c, user?.id);
     if (!checkRateLimit(`wiki-draft:${rateLimitKey}`, 10, 60_000)) {
       return c.json({ error: "Rate limited. Try again in a minute." }, 429);
     }
@@ -654,7 +720,7 @@ ai.post(
     const { current, tier, hint } = c.req.valid("json");
     const user = await getSessionUser(c);
     const rateLimitKey =
-      user?.id || c.req.header("x-forwarded-for") || "anonymous";
+      rateLimitIdentity(c, user?.id);
     if (!checkRateLimit(`wiki-polish:${rateLimitKey}`, 20, 60_000)) {
       return c.json({ error: "Rate limited. Try again in a minute." }, 429);
     }
@@ -689,7 +755,7 @@ async function loadNewsBody(slug: string): Promise<string | null> {
 ai.post("/article/tldr", zValidator("json", articleHelpSchema), async (c) => {
   const { slug } = c.req.valid("json");
   const user = await getSessionUser(c);
-  const rateLimitKey = user?.id || c.req.header("x-forwarded-for") || "anonymous";
+  const rateLimitKey = rateLimitIdentity(c, user?.id);
   if (!checkRateLimit(`tldr:${rateLimitKey}`, 30, 60_000)) {
     return c.json({ error: "Rate limited. Try again in a minute." }, 429);
   }
@@ -703,7 +769,7 @@ ai.post("/article/tldr", zValidator("json", articleHelpSchema), async (c) => {
 ai.post("/article/explain", zValidator("json", articleHelpSchema), async (c) => {
   const { slug } = c.req.valid("json");
   const user = await getSessionUser(c);
-  const rateLimitKey = user?.id || c.req.header("x-forwarded-for") || "anonymous";
+  const rateLimitKey = rateLimitIdentity(c, user?.id);
   if (!checkRateLimit(`explain:${rateLimitKey}`, 20, 60_000)) {
     return c.json({ error: "Rate limited. Try again in a minute." }, 429);
   }
@@ -787,7 +853,7 @@ const tagSuggestSchema = z.object({
 ai.post("/news/tag-suggest", zValidator("json", tagSuggestSchema), async (c) => {
   const { title, summary, body } = c.req.valid("json");
   const session = await getSessionUser(c);
-  const rateLimitKey = session?.id || c.req.header("x-forwarded-for") || "anonymous";
+  const rateLimitKey = rateLimitIdentity(c, session?.id);
   if (!checkRateLimit(`tagsuggest:${rateLimitKey}`, 30, 60_000)) {
     return c.json({ error: "Rate limited. Try again in a minute." }, 429);
   }
@@ -826,7 +892,7 @@ ai.post(
   async (c) => {
     const { pageSlug, tier } = c.req.valid("json");
     const session = await getSessionUser(c);
-    const rateLimitKey = session?.id || c.req.header("x-forwarded-for") || "anonymous";
+    const rateLimitKey = rateLimitIdentity(c, session?.id);
     if (!checkRateLimit(`practice:${rateLimitKey}`, 15, 60_000)) {
       return c.json({ error: "Rate limited. Try again in a minute." }, 429);
     }
@@ -954,7 +1020,7 @@ ai.post(
     const { slug, textSlides = 5, questionSlides = 3 } = c.req.valid("json");
     const user = await getSessionUser(c);
     const rateLimitKey =
-      user?.id || c.req.header("x-forwarded-for") || "anonymous";
+      rateLimitIdentity(c, user?.id);
     if (!checkRateLimit(`lesson-from-article:${rateLimitKey}`, 8, 60_000)) {
       return c.json({ error: "Rate limited. Try again in a minute." }, 429);
     }

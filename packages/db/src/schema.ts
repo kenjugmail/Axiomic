@@ -29,9 +29,47 @@ export const users = sqliteTable("users", {
   //   'join_cohort' | 'ship_misconception' | null. Feeds the AI
   //   coach's system prompt and the home dashboard "next step" CTA.
   onboardingGoal: text("onboarding_goal"),
+  // Sprint 69 — researcher profile fields.
+  //   orcid: 0000-0000-0000-0000 format identifier; lets us link
+  //     internal users to external author records (OpenAlex, arXiv).
+  //   scholarUrl: full https://scholar.google.com/citations?user=…
+  //     URL; surfaced on the profile page only.
+  //   blueskyHandle: AT-Proto handle (e.g. "@user.bsky.social"). The
+  //     S72 social-discovery cron uses this to harvest paper-DOI
+  //     mentions.
+  //   twitterHandle: parked — Twitter/X integration is gated on a
+  //     paid bearer; field exists so we don't have to migrate again.
+  //   institution: free-text current affiliation, surfaced on profile.
+  //   hIndex: cached integer; refreshed nightly when external author
+  //     IDs are present.
+  //   publicationCorpusVectorJson: mean of the user's authored-paper
+  //     embeddings (internal + claimed-external). Used by the S70
+  //     ranker's interestScore so even researchers with zero internal
+  //     publications get personalized recommendations once they
+  //     claim external work.
+  //   externalAuthorIdsJson: JSON array of {source, id} pairs the
+  //     user has verified, e.g. [{source:"openalex", id:"A1234"}].
+  orcid: text("orcid"),
+  scholarUrl: text("scholar_url"),
+  blueskyHandle: text("bluesky_handle"),
+  twitterHandle: text("twitter_handle"),
+  institution: text("institution"),
+  hIndex: integer("h_index"),
+  publicationCorpusVectorJson: text("publication_corpus_vector_json"),
+  externalAuthorIdsJson: text("external_author_ids_json").notNull().default("[]"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
-});
+}, (t) => ({
+  // Sprint 78 — uniqueness on the public researcher identifiers.
+  // Without this, two users could claim the same ORCID and the
+  // ORCID auto-claim cron would route external-paper authorship
+  // arbitrarily (last-write-wins via Map.set) — effectively
+  // identity theft of any researcher whose ORCID a malicious
+  // user knows. Same for the Bluesky handle which drives the
+  // social-mentions harvester.
+  orcidUq: uniqueIndex("users_orcid_uq").on(t.orcid),
+  blueskyHandleUq: uniqueIndex("users_bluesky_handle_uq").on(t.blueskyHandle),
+}));
 
 export const sessions = sqliteTable("sessions", {
   id: text("id").primaryKey(),
@@ -123,6 +161,14 @@ export const masteryNodes = sqliteTable("mastery_nodes", {
   // Paper→Lesson pipeline. Surfaces a "Sourced from @author's article"
   // link on the lesson page.
   sourceArticleId: text("source_article_id"),
+  // Sprint 82 — node kind discriminator. 'lesson' (default) keeps the
+  // existing slide+quiz renderer; 'protocol' / 'cert' / 'equipment-
+  // training' embed the corresponding lab surface and complete when
+  // the underlying record reaches its terminal state.
+  nodeKind: text("node_kind").notNull().default("lesson"),
+  protocolSlug: text("protocol_slug"),
+  certSlug: text("cert_slug"),
+  equipmentSlug: text("equipment_slug"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
 });
 
@@ -1204,6 +1250,10 @@ export const cohorts = sqliteTable("cohorts", {
   capstoneSlug: text("capstone_slug"),
   // 'open' (anyone can join) | 'invite' (creator must approve)
   visibility: text("visibility").notNull().default("open"),
+  // Sprint 82 — when set, marks this cohort as a "lab group" the
+  // intern dashboard + roster filter on. Reuses the LabDiscipline
+  // taxonomy so playbook assignments stay consistent.
+  discipline: text("discipline"),
   creatorId: text("creator_id").notNull().references(() => users.id),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
@@ -1460,3 +1510,710 @@ export const contentProposals = sqliteTable("content_proposals", {
   statusIdx: index("content_proposals_status_idx").on(t.status, t.createdAt),
   proposerIdx: index("content_proposals_proposer_idx").on(t.proposerId, t.status),
 }));
+
+// Sprint 70 — Researcher for-you feed primitives.
+//
+// `searches` records every executed query so the recommendation ranker
+// can build a recent-query bias term ("show more like the last few
+// things this user looked for"). Anonymous traffic is stored with a
+// null userId; only the userId-scoped slice is read by the ranker.
+//
+// `paperSummaries` caches the AI-generated tier-aware paper summary so
+// toggling tiers in the drawer doesn't re-burn inference. Keyed by
+// (paperKind, paperId, tier, modelId) — modelId in the key means a new
+// default model invalidates old summaries automatically.
+//
+// `feedImpressions` records what the for-you feed has already shown a
+// user; the ranker demotes recently-shown items to keep the feed fresh
+// across visits.
+export const searches = sqliteTable("searches", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").references(() => users.id),
+  query: text("query").notNull(),
+  resultCount: integer("result_count").notNull().default(0),
+  // Filled when the user clicks a result; null if they bounced.
+  clickedItemKind: text("clicked_item_kind"),
+  clickedItemId: text("clicked_item_id"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  userIdx: index("searches_user_idx").on(t.userId, t.createdAt),
+}));
+
+export const paperSummaries = sqliteTable("paper_summaries", {
+  id: text("id").primaryKey(),
+  // 'research' (internal research_papers row) — extends to
+  // 'external_paper' once Sprint 69 lands.
+  paperKind: text("paper_kind").notNull(),
+  paperId: text("paper_id").notNull(),
+  // 'intro' | 'undergrad' | 'grad'
+  tier: text("tier").notNull(),
+  modelId: text("model_id").notNull(),
+  summaryMd: text("summary_md").notNull(),
+  generatedAt: text("generated_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  pk: uniqueIndex("paper_summaries_pk").on(t.paperKind, t.paperId, t.tier, t.modelId),
+}));
+
+export const feedImpressions = sqliteTable("feed_impressions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id),
+  paperKind: text("paper_kind").notNull(),
+  paperId: text("paper_id").notNull(),
+  shownAt: text("shown_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  userIdx: index("feed_impressions_user_idx").on(t.userId, t.shownAt),
+  // Used by the ranker to demote-or-skip already-shown items.
+  lookupIdx: index("feed_impressions_lookup_idx").on(t.userId, t.paperKind, t.paperId),
+}));
+
+// Sprint 69 — External research papers from arXiv, OpenAlex, and
+// PubMed. Distinct from `research_papers` which holds papers authored
+// inside the platform; this table is a normalized landing zone for
+// upstream-source rows we ingest periodically.
+//
+// `source` + `sourceId` is the natural primary key; `id` is a stable
+// UUID we mint on insert so internal references (search index,
+// recommendations, comments) survive a re-ingest. `contentHash` is
+// computed from title + abstract + author list so a passthrough
+// re-fetch (no real change upstream) doesn't bust the search-index
+// embedding cache.
+// Sprint 73 — Exam mastery framework.
+//
+// Exams are timed multi-section assessments (SAT, GRE, MCAT, USMLE)
+// distinct from the existing mastery_paths surface: they need timed
+// runtime, section-aware navigation, raw → scaled scoring with a
+// percentile lookup, and shared question banks. A future revision
+// can link an exam back to a mastery_path (`pathSlug` column) so
+// completing the path's lessons unlocks the diagnostic.
+//
+// Scoring is stored as a JSON blob on the exam row to keep the
+// schema small — each exam has its own scaled-score formula and
+// percentile lookup table. The scoring shape:
+//   { min, max, mean, sd, percentileTable: [{ raw, scaled, percentile }, ...] }
+export const exams = sqliteTable("exams", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  // Short label, e.g. "SAT", "USMLE Step 1".
+  shortName: text("short_name").notNull(),
+  // Optional link into mastery_paths.slug — lets a study path
+  // anchor on the exam (e.g. sat-prep → sat).
+  pathSlug: text("path_slug"),
+  totalDurationMinutes: integer("total_duration_minutes").notNull(),
+  scoringJson: text("scoring_json").notNull().default("{}"),
+  description: text("description").notNull().default(""),
+  // Sprint 74 — content version. Bumped when the seed file changes;
+  // the seed loader compares against the persisted value and
+  // rebuilds the exam (cascade-deletes old sections + questions +
+  // bumps version) so re-runs pick up new content. In-flight
+  // attempts are NOT touched — they reference the questions that
+  // existed when the attempt started.
+  contentVersion: integer("content_version").notNull().default(1),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+export const examSections = sqliteTable(
+  "exam_sections",
+  {
+    id: text("id").primaryKey(),
+    examId: text("exam_id")
+      .notNull()
+      .references(() => exams.id, { onDelete: "cascade" }),
+    slug: text("slug").notNull(),
+    title: text("title").notNull(),
+    ordinal: integer("ordinal").notNull(),
+    durationMinutes: integer("duration_minutes").notNull(),
+    questionCount: integer("question_count").notNull(),
+  },
+  (t) => ({
+    examOrdUq: uniqueIndex("exam_sections_pk").on(t.examId, t.ordinal),
+    examSlugUq: uniqueIndex("exam_sections_slug_uq").on(t.examId, t.slug),
+  }),
+);
+
+export const examQuestions = sqliteTable(
+  "exam_questions",
+  {
+    id: text("id").primaryKey(),
+    sectionId: text("section_id")
+      .notNull()
+      .references(() => examSections.id, { onDelete: "cascade" }),
+    // Sprint 75 — question type discriminator. 'multiple_choice' is
+    // the default and matches the SAT runtime; 'essay' is for
+    // free-text questions like GRE Analytical Writing tasks (AI
+    // grader scores against rubricMd, no optionsJson/correctIndex).
+    type: text("type").notNull().default("multiple_choice"),
+    // 1..5; the adaptive runner picks against this.
+    difficulty: integer("difficulty").notNull().default(3),
+    promptMd: text("prompt_md").notNull(),
+    // JSON array of {label, text} options. Empty for essay questions.
+    optionsJson: text("options_json").notNull(),
+    // 0-based index into optionsJson. For essay questions this stays
+    // 0 (unused) — never read by the grader on essays.
+    correctIndex: integer("correct_index").notNull(),
+    explanationMd: text("explanation_md").notNull().default(""),
+    // Markdown rubric used by the AI essay grader. Null for
+    // multiple-choice questions.
+    rubricMd: text("rubric_md"),
+    // Maximum score the essay grader can award. Null for MC
+    // (which is implicitly 1). GRE Analytical Writing prompts
+    // typically use 6.
+    maxEssayScore: integer("max_essay_score"),
+    topicTagsJson: text("topic_tags_json").notNull().default("[]"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    sectionIdx: index("exam_questions_section_idx").on(
+      t.sectionId,
+      t.difficulty,
+    ),
+    typeIdx: index("exam_questions_type_idx").on(t.sectionId, t.type),
+  }),
+);
+
+// One row per attempt at an exam. `answersJson` carries the question
+// manifest the runner is iterating (the order + ids it picked at
+// start-time) so a refresh / cross-device resume doesn't reshuffle.
+export const examAttempts = sqliteTable(
+  "exam_attempts",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    examId: text("exam_id")
+      .notNull()
+      .references(() => exams.id, { onDelete: "cascade" }),
+    // 'full_mock' | 'section' | 'adaptive'
+    mode: text("mode").notNull(),
+    // For 'section' mode — null for full_mock + adaptive.
+    sectionSlug: text("section_slug"),
+    startedAt: text("started_at").default(sql`(datetime('now'))`).notNull(),
+    completedAt: text("completed_at"),
+    // Drop-dead time when this attempt auto-submits if the user
+    // doesn't finalize. Null for adaptive (untimed).
+    expiresAt: text("expires_at"),
+    scoreRaw: integer("score_raw"),
+    scoreScaled: integer("score_scaled"),
+    scorePercentile: integer("score_percentile"),
+    // Per-section raw → scaled breakdown when the exam has multiple
+    // sections. JSON: { sectionSlug: { raw, scaled, percentile } }.
+    sectionScoresJson: text("section_scores_json"),
+    // Picked-question manifest at start time:
+    //   { sections: [{ slug, questionIds: string[] }] }
+    answersJson: text("answers_json").notNull().default("{}"),
+  },
+  (t) => ({
+    userIdx: index("exam_attempts_user_idx").on(t.userId, t.startedAt),
+    examIdx: index("exam_attempts_exam_idx").on(t.examId, t.startedAt),
+    expiryIdx: index("exam_attempts_expiry_idx").on(t.expiresAt),
+  }),
+);
+
+export const examAttemptAnswers = sqliteTable(
+  "exam_attempt_answers",
+  {
+    id: text("id").primaryKey(),
+    attemptId: text("attempt_id")
+      .notNull()
+      .references(() => examAttempts.id, { onDelete: "cascade" }),
+    questionId: text("question_id").notNull(),
+    selectedIndex: integer("selected_index"),
+    // 0/1 set on submit; null while the attempt is still in-flight
+    // OR when the question was skipped (selectedIndex IS NULL).
+    isCorrect: integer("is_correct"),
+    // Sprint 75 — essay-question fields. Empty/null for MC
+    // questions. `essayResponse` is the user's free-text answer
+    // (saved on every PUT /answer); `essayScore` is the AI
+    // grader's score (0..maxEssayScore on the question);
+    // `essayFeedbackMd` is the rubric-aligned feedback the
+    // score report renders to the test-taker.
+    essayResponse: text("essay_response"),
+    essayScore: integer("essay_score"),
+    essayFeedbackMd: text("essay_feedback_md"),
+    timeSpentMs: integer("time_spent_ms").notNull().default(0),
+    // The question grid sidebar's "mark for review" toggle.
+    flagged: integer("flagged").notNull().default(0),
+    updatedAt: text("updated_at")
+      .default(sql`(datetime('now'))`)
+      .notNull(),
+  },
+  (t) => ({
+    attemptQuestionUq: uniqueIndex(
+      "exam_attempt_answers_attempt_question_uq",
+    ).on(t.attemptId, t.questionId),
+  }),
+);
+
+// Sprint 72 — Engagement: external-paper author claims + social
+// discovery.
+//
+// `external_paper_authorships` is sparse — only contains rows for
+// authorships that have been CLAIMED by an internal user. This
+// avoids the cost of denormalizing every external_papers.authorsJson
+// entry into a row. Keyed on (externalPaperId, ordinal) so a paper
+// with N authors can have at most N rows here, one per claimed
+// position. The `userId` column carries the internal claimant.
+//
+// Verification path: an admin checks the claim_request and either
+// approves (insert into external_paper_authorships) or rejects.
+// ORCID auto-match is the happy path: when an external_paper has an
+// author whose ORCID equals a user's `users.orcid`, a job inserts
+// the authorship row directly without going through the request
+// queue.
+export const externalPaperAuthorships = sqliteTable(
+  "external_paper_authorships",
+  {
+    id: text("id").primaryKey(),
+    externalPaperId: text("external_paper_id").notNull(),
+    // Position in the externalPapers.authorsJson array (0-based).
+    ordinal: integer("ordinal").notNull(),
+    userId: text("user_id").notNull().references(() => users.id),
+    // 'orcid_auto' | 'admin_verified'
+    verifiedVia: text("verified_via").notNull(),
+    verifiedAt: text("verified_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    paperOrdinalUq: uniqueIndex(
+      "external_paper_authorships_paper_ordinal_uq",
+    ).on(t.externalPaperId, t.ordinal),
+    userIdx: index("external_paper_authorships_user_idx").on(t.userId),
+  }),
+);
+
+// Manual author-claim requests — submitted by users who can't
+// auto-claim via ORCID (because the upstream record didn't have
+// their ORCID, or they don't have one set). Reviewed by admins.
+export const authorClaimRequests = sqliteTable(
+  "author_claim_requests",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    externalPaperId: text("external_paper_id").notNull(),
+    // Position the user is claiming.
+    ordinal: integer("ordinal").notNull(),
+    // Free-text + URL evidence: ORCID profile URL with the paper
+    // listed, institutional bio page, etc.
+    evidenceText: text("evidence_text").notNull().default(""),
+    evidenceUrl: text("evidence_url"),
+    // 'pending' | 'approved' | 'rejected'
+    status: text("status").notNull().default("pending"),
+    reviewerId: text("reviewer_id").references(() => users.id),
+    reviewNote: text("review_note"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+    decidedAt: text("decided_at"),
+  },
+  (t) => ({
+    statusIdx: index("author_claim_requests_status_idx").on(t.status, t.createdAt),
+    userIdx: index("author_claim_requests_user_idx").on(t.userId),
+    paperIdx: index("author_claim_requests_paper_idx").on(t.externalPaperId),
+  }),
+);
+
+// BlueSky / social-source post cache. Each row is a post we've
+// seen from one of the platform's claimed-author handles that
+// references at least one paper. The DOI / arXiv ID is extracted
+// from the post text and surfaced on the linked paper's detail
+// page + the author's profile.
+export const socialPosts = sqliteTable(
+  "social_posts",
+  {
+    id: text("id").primaryKey(),
+    source: text("source").notNull(), // 'bluesky'
+    sourceId: text("source_id").notNull(),
+    // The handle/identifier of the upstream author (e.g.
+    // 'user.bsky.social'). Maps to users.blueskyHandle when an
+    // internal user owns it.
+    authorRef: text("author_ref").notNull(),
+    // Internal user id when the social handle is claimed in
+    // `users.blueskyHandle`; null otherwise.
+    userId: text("user_id").references(() => users.id),
+    text: text("text").notNull(),
+    url: text("url").notNull(),
+    postedAt: text("posted_at"),
+    // 'arxiv' | 'doi' | 'openalex' (mirrors externalPapers.source).
+    referencedSource: text("referenced_source"),
+    referencedSourceId: text("referenced_source_id"),
+    // Resolved foreign key when we found the referenced paper in our
+    // local externalPapers store.
+    referencedPaperId: text("referenced_paper_id"),
+    fetchedAt: text("fetched_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    sourceUq: uniqueIndex("social_posts_source_uq").on(t.source, t.sourceId),
+    authorIdx: index("social_posts_author_idx").on(t.authorRef, t.postedAt),
+    paperIdx: index("social_posts_paper_idx").on(t.referencedPaperId, t.postedAt),
+    userIdx: index("social_posts_user_idx").on(t.userId, t.postedAt),
+  }),
+);
+
+// Sprint 71 — Funding feed.
+//
+// Aggregated grant opportunities pulled from NIH RePORTER, NSF Award
+// Search, and grants.gov (CDC funding flows through grants.gov so
+// there's no separate CDC table — the source column carries the
+// agency). Embedding-based matching ranks each grant against the
+// user's publication interest vector for the personalized "for you"
+// rail and the deadline-soon notification trigger.
+export const grants = sqliteTable("grants", {
+  id: text("id").primaryKey(),
+  // 'nih' | 'nsf' | 'grants_gov' (covers CDC + many others)
+  source: text("source").notNull(),
+  // Stable upstream identifier (NIH project number, NSF award ID,
+  // grants.gov OPPORTUNITY_NUMBER).
+  sourceId: text("source_id").notNull(),
+  // For grants.gov entries this carries the originating sub-agency
+  // (CDC, HHS, NSF, ED, ...). Surfaced as a filter chip.
+  agency: text("agency").notNull(),
+  title: text("title").notNull(),
+  summary: text("summary").notNull().default(""),
+  // Longer body — used for embedding + the detail-page render.
+  fullDescription: text("full_description").notNull().default(""),
+  // Mechanism / activity code — R01, K99, NSF-CAREER, OPPORTUNITY,
+  // etc. Free-text because the upstream sources don't share a
+  // taxonomy.
+  mechanism: text("mechanism"),
+  // Award ceiling in USD. Null when upstream doesn't publish one.
+  amountCeiling: integer("amount_ceiling"),
+  postedAt: text("posted_at"),
+  deadlineAt: text("deadline_at"),
+  url: text("url").notNull(),
+  topicsJson: text("topics_json").notNull().default("[]"),
+  rawJson: text("raw_json").notNull().default("{}"),
+  fetchedAt: text("fetched_at").default(sql`(datetime('now'))`).notNull(),
+  contentHash: text("content_hash").notNull(),
+}, (t) => ({
+  sourceUq: uniqueIndex("grants_source_uq").on(t.source, t.sourceId),
+  // Indexed for the "deadlines this month" filter + the
+  // notify-on-deadline cron.
+  deadlineIdx: index("grants_deadline_idx").on(t.deadlineAt),
+  agencyIdx: index("grants_agency_idx").on(t.agency, t.deadlineAt),
+}));
+
+// Save-for-later. Mirrors news_bookmarks shape so the existing
+// list/toggle UI patterns port cleanly.
+export const grantBookmarks = sqliteTable(
+  "grant_bookmarks",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    grantId: text("grant_id").notNull().references(() => grants.id, { onDelete: "cascade" }),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("grant_bookmarks_uniq_idx").on(t.userId, t.grantId),
+    userIdx: index("grant_bookmarks_user_idx").on(t.userId, t.createdAt),
+  }),
+);
+
+// Tracks which (user, grant, deadline-window) notification we've
+// already sent so the deadline cron doesn't spam the same user
+// every day. The `windowDays` column is one of 14 / 7 / 3 — when a
+// grant rolls into the next-tighter window, a new row is allowed.
+export const grantNotificationsSent = sqliteTable(
+  "grant_notifications_sent",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    grantId: text("grant_id").notNull().references(() => grants.id, { onDelete: "cascade" }),
+    // 'match' | 'deadline_soon'
+    kind: text("kind").notNull(),
+    // Only meaningful for 'deadline_soon': 14 / 7 / 3.
+    windowDays: integer("window_days"),
+    sentAt: text("sent_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uniqIdx: uniqueIndex("grant_notifications_sent_uniq_idx").on(
+      t.userId,
+      t.grantId,
+      t.kind,
+      t.windowDays,
+    ),
+  }),
+);
+
+export const externalPapers = sqliteTable("external_papers", {
+  id: text("id").primaryKey(),
+  source: text("source").notNull(), // 'arxiv' | 'openalex' | 'pubmed'
+  sourceId: text("source_id").notNull(),
+  doi: text("doi"),
+  title: text("title").notNull(),
+  abstract: text("abstract").notNull().default(""),
+  // JSON array of {name, orcid?, openAlexAuthorId?} entries. Not yet
+  // linked to internal users; S72 author-claims add that bridge.
+  authorsJson: text("authors_json").notNull().default("[]"),
+  venue: text("venue"),
+  publishedAt: text("published_at"),
+  pdfUrl: text("pdf_url"),
+  htmlUrl: text("html_url"),
+  // OpenAlex concept tags / arXiv categories / PubMed MeSH terms.
+  // JSON array of strings.
+  topicsJson: text("topics_json").notNull().default("[]"),
+  citationCount: integer("citation_count").notNull().default(0),
+  // Full upstream-source JSON for forensics + future fields.
+  rawJson: text("raw_json").notNull().default("{}"),
+  fetchedAt: text("fetched_at").default(sql`(datetime('now'))`).notNull(),
+  contentHash: text("content_hash").notNull(),
+}, (t) => ({
+  sourceUq: uniqueIndex("external_papers_source_uq").on(t.source, t.sourceId),
+  doiIdx: index("external_papers_doi_idx").on(t.doi),
+  pubIdx: index("external_papers_published_idx").on(t.publishedAt),
+}));
+
+// Sprint 69 — Distributed lease for the in-process job runner. One
+// row per registered job; whichever process holds a non-expired
+// lease runs it. Other processes that find an expired lease can
+// take over via an UPDATE… WHERE expiresAt < now().
+export const jobLeases = sqliteTable("job_leases", {
+  jobName: text("job_name").primaryKey(),
+  // Unique identifier for the leasing process (random UUID minted at
+  // boot). Lets a process verify it still owns the lease before
+  // running.
+  leaseHolder: text("lease_holder").notNull(),
+  leaseExpiresAt: text("lease_expires_at").notNull(),
+  // Telemetry — last successful run timestamp + status string. Read
+  // by the admin /admin/jobs panel.
+  lastRunAt: text("last_run_at"),
+  lastStatus: text("last_status"),
+  lastErrorMessage: text("last_error_message"),
+  lastDurationMs: integer("last_duration_ms"),
+});
+
+// Sprint 69 — Per-run history (last ~50 rows per job) so the admin
+// panel can show a "last 5 runs" trail without spamming logs. Cron
+// jobs that ingest a lot of items also write `itemsProcessed` so the
+// panel surfaces "ingested 230 papers in last run".
+export const jobRuns = sqliteTable("job_runs", {
+  id: text("id").primaryKey(),
+  jobName: text("job_name").notNull(),
+  startedAt: text("started_at").notNull(),
+  finishedAt: text("finished_at"),
+  status: text("status").notNull(), // 'running' | 'success' | 'error'
+  errorMessage: text("error_message"),
+  itemsProcessed: integer("items_processed").notNull().default(0),
+  durationMs: integer("duration_ms"),
+}, (t) => ({
+  byJobIdx: index("job_runs_by_job_idx").on(t.jobName, t.startedAt),
+}));
+
+// Sprint 79 — Lab protocols + equipment library. The hands-on layer:
+// PIs author + version protocols and equipment manuals, interns
+// browse and read them. Sign-offs (S80) and bookings (S81) layer on
+// top of these tables; this sprint is read-only library content.
+
+export const protocols = sqliteTable("protocols", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  // Validated at the route layer against a fixed taxonomy: 'biology'
+  // | 'chemistry' | 'mechanical' | 'electrical' | 'materials' |
+  // 'cs-lab' | 'physics'.
+  discipline: text("discipline").notNull(),
+  category: text("category"),
+  summary: text("summary").notNull().default(""),
+  contentIntro: text("content_intro").notNull().default(""),
+  contentUndergrad: text("content_undergrad").notNull().default(""),
+  contentGrad: text("content_grad").notNull().default(""),
+  // Biological safety level 1-4. Null for non-bio protocols.
+  biosafetyLevel: integer("biosafety_level"),
+  hazardsMd: text("hazards_md").notNull().default(""),
+  // JSON array of equipment slugs referenced from this protocol.
+  equipmentRequiredJson: text("equipment_required_json").notNull().default("[]"),
+  // JSON array of {name, amount, unit, hazardClass?} reagent entries.
+  reagentsJson: text("reagents_json").notNull().default("[]"),
+  estimatedMinutes: integer("estimated_minutes"),
+  // safety_certs.slug list — read by S80 to gate a protocol_run start
+  // on non-expired certs. Persisted here in S79 so authoring captures
+  // the requirement up front.
+  requiredCertsJson: text("required_certs_json").notNull().default("[]"),
+  version: integer("version").notNull().default(1),
+  // 'draft' | 'published'.
+  status: text("status").notNull().default("draft"),
+  authorId: text("author_id").notNull().references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  disciplineIdx: index("protocols_discipline_idx").on(t.discipline, t.status),
+  authorIdx: index("protocols_author_idx").on(t.authorId, t.createdAt),
+}));
+
+export const protocolSteps = sqliteTable("protocol_steps", {
+  id: text("id").primaryKey(),
+  protocolId: text("protocol_id").notNull()
+    .references(() => protocols.id, { onDelete: "cascade" }),
+  ordinal: integer("ordinal").notNull(),
+  title: text("title").notNull(),
+  instructionMd: text("instruction_md").notNull(),
+  safetyNotesMd: text("safety_notes_md").notNull().default(""),
+  verificationMd: text("verification_md").notNull().default(""),
+  // Optional inline quiz to gate step completion. Reuses
+  // masteryNodes.quizData JSON shape so the existing renderer +
+  // grader work unchanged.
+  inlineQuizJson: text("inline_quiz_json"),
+  attachmentRefsJson: text("attachment_refs_json").notNull().default("[]"),
+}, (t) => ({
+  protocolOrdUq: uniqueIndex("protocol_steps_pk").on(t.protocolId, t.ordinal),
+}));
+
+// Mirrors researchPaperVersions: snapshot the protocol every time
+// it's published / republished so the run table (S80) can pin to a
+// specific version that was followed.
+export const protocolVersions = sqliteTable("protocol_versions", {
+  id: text("id").primaryKey(),
+  protocolId: text("protocol_id").notNull()
+    .references(() => protocols.id, { onDelete: "cascade" }),
+  version: integer("version").notNull(),
+  // Snapshot of title + bodies + steps JSON for pin-to-version.
+  snapshotJson: text("snapshot_json").notNull(),
+  editedBy: text("edited_by").references(() => users.id),
+  editMessage: text("edit_message"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  protocolVersionUq: uniqueIndex("protocol_versions_uq").on(t.protocolId, t.version),
+}));
+
+export const equipment = sqliteTable("equipment", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  discipline: text("discipline").notNull(),
+  manufacturer: text("manufacturer"),
+  model: text("model"),
+  manualMd: text("manual_md").notNull().default(""),
+  locationHint: text("location_hint"),
+  // safety_certs.slug required to operate. Null = no formal training
+  // beyond a read of the manual.
+  trainingCertSlug: text("training_cert_slug"),
+  hazardsMd: text("hazards_md").notNull().default(""),
+  attachmentRefsJson: text("attachment_refs_json").notNull().default("[]"),
+  // 'open' | 'reserve' | 'supervised-only'. Read by S81 booking; in
+  // S79 this is a metadata field surfaced in the manual UI.
+  bookingPolicy: text("booking_policy").notNull().default("open"),
+  status: text("status").notNull().default("active"),
+  authorId: text("author_id").notNull().references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  disciplineIdx: index("equipment_discipline_idx").on(t.discipline, t.status),
+}));
+
+// Per-equipment "common operations" — calibration, daily checks,
+// common-fault recipes, post-use checklists. Same ordered-step shape
+// as protocolSteps so renderers can be shared.
+export const equipmentOperations = sqliteTable("equipment_operations", {
+  id: text("id").primaryKey(),
+  equipmentId: text("equipment_id").notNull()
+    .references(() => equipment.id, { onDelete: "cascade" }),
+  ordinal: integer("ordinal").notNull(),
+  title: text("title").notNull(),
+  bodyMd: text("body_md").notNull(),
+  // 'calibration' | 'daily-check' | 'common-fault' | 'post-use'.
+  kind: text("kind").notNull(),
+}, (t) => ({
+  equipOrdUq: uniqueIndex("equipment_operations_pk").on(t.equipmentId, t.ordinal),
+}));
+
+// Sprint 80 — Safety certifications + protocol-run sign-offs. The
+// operational unlock: an intern can't start a run for BSL-2 work until
+// they've passed BSL-2 + non-expired. Sign-off chain: intern marks all
+// steps done, requests sign-off, mentor/PI in their cohort approves.
+
+export const safetyCertifications = sqliteTable("safety_certifications", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  discipline: text("discipline").notNull(),
+  description: text("description"),
+  // Reuses masteryNodes.quizData JSON shape exactly so the existing
+  // quiz renderer + grader work unchanged. {questions: Question[]}.
+  quizDataJson: text("quiz_data_json").notNull(),
+  passingScore: real("passing_score").notNull().default(0.7),
+  // Days until expiration. Null = never expires (e.g., general chem
+  // hygiene). 730 for BSL-2 (typical 2y refresher).
+  validityDays: integer("validity_days"),
+  authorId: text("author_id").notNull().references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+export const userSafetyCertifications = sqliteTable(
+  "user_safety_certifications",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    certSlug: text("cert_slug").notNull(),
+    passedAt: text("passed_at").notNull(),
+    expiresAt: text("expires_at"),
+    score: real("score"),
+  },
+  (t) => ({
+    userCertIdx: index("user_certs_idx").on(
+      t.userId,
+      t.certSlug,
+      t.expiresAt,
+    ),
+  }),
+);
+
+export const protocolRuns = sqliteTable(
+  "protocol_runs",
+  {
+    id: text("id").primaryKey(),
+    protocolId: text("protocol_id").notNull()
+      .references(() => protocols.id, { onDelete: "cascade" }),
+    // Pinned version: an intern's run-state persists even if the
+    // protocol is later edited. Snapshot resolved via protocolVersions.
+    protocolVersion: integer("protocol_version").notNull(),
+    userId: text("user_id").notNull().references(() => users.id),
+    // 'in_progress' | 'awaiting_signoff' | 'signed_off' | 'rejected'.
+    status: text("status").notNull().default("in_progress"),
+    startedAt: text("started_at").default(sql`(datetime('now'))`).notNull(),
+    completedAt: text("completed_at"),
+    signedOffAt: text("signed_off_at"),
+    signedOffById: text("signed_off_by_id").references(() => users.id),
+    // { ordinal: { done, doneAt, observation, attachmentRefs[] } }.
+    stepStateJson: text("step_state_json").notNull().default("{}"),
+    notesMd: text("notes_md").notNull().default(""),
+    signOffNotesMd: text("sign_off_notes_md"),
+  },
+  (t) => ({
+    userIdx: index("protocol_runs_user_idx").on(t.userId, t.startedAt),
+    protocolIdx: index("protocol_runs_protocol_idx").on(
+      t.protocolId,
+      t.status,
+    ),
+    signoffIdx: index("protocol_runs_signoff_idx").on(t.status, t.startedAt),
+  }),
+);
+
+// Sprint 82 — PI-issued lab assignments. Distinct from mastery-path
+// completion: a PI can pin a single protocol or cert to one or more
+// interns even when no full path applies (e.g. "everyone redo the
+// gel-electrophoresis run after that contamination scare"). Exactly
+// one of {masteryPathSlug, protocolSlug, certSlug} is set per row.
+
+export const labAssignments = sqliteTable(
+  "lab_assignments",
+  {
+    id: text("id").primaryKey(),
+    cohortId: text("cohort_id").notNull()
+      .references(() => cohorts.id, { onDelete: "cascade" }),
+    assignedToUserId: text("assigned_to_user_id").notNull()
+      .references(() => users.id),
+    assignedById: text("assigned_by_id").notNull().references(() => users.id),
+    masteryPathSlug: text("mastery_path_slug"),
+    protocolSlug: text("protocol_slug"),
+    certSlug: text("cert_slug"),
+    dueAt: text("due_at"),
+    // 'pending' | 'in_progress' | 'completed' | 'overdue'.
+    status: text("status").notNull().default("pending"),
+    notesMd: text("notes_md"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    cohortUserIdx: index("lab_assign_cohort_user_idx").on(
+      t.cohortId,
+      t.assignedToUserId,
+    ),
+    userStatusIdx: index("lab_assign_user_status_idx").on(
+      t.assignedToUserId,
+      t.status,
+    ),
+  }),
+);

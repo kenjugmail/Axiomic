@@ -1,0 +1,47 @@
+{
+  "slug": "dna-extraction-kit",
+  "title": "DNA extraction (silica-column kit)",
+  "discipline": "biology",
+  "category": "Molecular biology",
+  "summary": "Bench-standard genomic / plasmid / amplicon DNA purification using a silica spin-column kit (Qiagen, Zymo, NEB Monarch).",
+  "biosafetyLevel": 1,
+  "estimatedMinutes": 60,
+  "requiredCerts": ["general-lab-safety", "bsl-1"],
+  "equipmentRequired": ["eppendorf-centrifuge", "vortex", "nanodrop"],
+  "reagents": [
+    { "name": "Lysis buffer (kit)" },
+    { "name": "Wash buffer (kit, ethanol-based)", "hazardClass": "flammable" },
+    { "name": "Elution buffer (low-salt or water)" },
+    { "name": "Proteinase K", "amount": "20", "unit": "mg/mL" }
+  ],
+  "hazardsMd": "Wash buffers contain guanidine + ethanol. Mix only inside a fume hood when first reconstituting. Do not autoclave guanidine waste — produces cyanide.",
+  "contentUndergrad": "## How silica columns work\nIn high-chaotrope buffer, DNA binds tightly to silica. Wash strips away protein and salts. Low-salt elution releases DNA back into solution.",
+  "steps": [
+    {
+      "title": "Lyse the sample",
+      "instructionMd": "Add lysis buffer + Proteinase K to the sample (volumes per kit). Vortex briefly. Incubate at 56 °C / 10 min (or per kit) until clear.",
+      "verificationMd": "Sample is uniformly cloudy at start, clear or slightly straw-colored after incubation. No visible particulates."
+    },
+    {
+      "title": "Bind to column",
+      "instructionMd": "Add binding buffer (or ethanol per kit). Mix by inversion. Transfer ≤ 700 μL onto the column. Spin 1 min at 12,000×g. Discard flow-through.",
+      "verificationMd": "Column passes sample cleanly; if it backs up, the column is overloaded — split into two and pool eluates later."
+    },
+    {
+      "title": "Wash twice",
+      "instructionMd": "Add wash buffer (volumes per kit). Spin 1 min, discard flow-through. Repeat. After the second wash, spin DRY for 2 min to remove residual ethanol.",
+      "safetyNotesMd": "Residual ethanol inhibits downstream enzymes; the dry spin is non-optional.",
+      "verificationMd": "Column matrix looks dry, not glossy. No droplets visible at the column outlet."
+    },
+    {
+      "title": "Elute",
+      "instructionMd": "Move column to a clean tube. Pipette 30-50 μL elution buffer (warmed to 37 °C if low yield) onto the column membrane. Wait 1 min. Spin 1 min at full speed.",
+      "verificationMd": "Elution drops collect at the bottom of the tube. Volume matches what you added."
+    },
+    {
+      "title": "Quantify",
+      "instructionMd": "NanoDrop the eluate. Expect A260/A280 ≈ 1.8 for pure DNA. Yield depends on input (typical: 1-50 μg from 10 mg tissue).",
+      "verificationMd": "A260/A280 between 1.7-2.0. A260/A230 > 1.8. Concentration matches expectations for the input."
+    }
+  ]
+}

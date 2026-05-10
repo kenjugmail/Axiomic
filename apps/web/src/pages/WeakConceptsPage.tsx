@@ -20,7 +20,20 @@ export function WeakConceptsPage() {
 
   useEffect(() => {
     if (!user) return;
-    api.me.weakConcepts().then((r) => setDiagnoses(r.diagnoses));
+    let cancelled = false;
+    api.me
+      .weakConcepts()
+      .then((r) => {
+        if (!cancelled) setDiagnoses(r.diagnoses);
+      })
+      .catch(() => {
+        // Clear loading state on failure (e.g., timeout, 401) — without
+        // this the skeleton renders forever.
+        if (!cancelled) setDiagnoses([]);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
   const refresh = async () => {

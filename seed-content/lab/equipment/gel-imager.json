@@ -1,0 +1,39 @@
+{
+  "slug": "gel-imager",
+  "title": "BioRad Gel Doc XR+ imager",
+  "discipline": "biology",
+  "manufacturer": "BioRad",
+  "model": "Gel Doc XR+",
+  "manualMd": "UV / white-light gel documentation system. Captures TIFF/PNG of agarose gels stained with EtBr, GelRed, SYBR. Software: Image Lab.",
+  "locationHint": "Imaging closet, near the bench-top centrifuge",
+  "trainingCertSlug": "biohazard-waste",
+  "hazardsMd": "- UV at 312 nm: never open the door while UV is on. The shutter interlock prevents this; if it's been bypassed, do not use.\n- Ethidium-bromide stained gels are mutagenic. Wear gloves; dispose of gels as hazardous waste.",
+  "bookingPolicy": "open",
+  "operations": [
+    {
+      "title": "Daily check",
+      "kind": "daily-check",
+      "bodyMd": "Confirm the UV door interlock works. Wipe the gel tray with a damp paper towel; old EtBr residue glows on UV and ruins images."
+    },
+    {
+      "title": "Capture an EtBr gel",
+      "kind": "calibration",
+      "bodyMd": "1. Lay the gel flat on the UV tray (no buffer pooling).\n2. Close the door fully.\n3. In Image Lab, pick 'EtBr' application → Live → tune exposure (typical 0.5-2 s).\n4. Capture. Save as TIFF for downstream analysis; PNG is fine for slides."
+    },
+    {
+      "title": "Bands are washed out",
+      "kind": "common-fault",
+      "bodyMd": "Exposure too long, or you stained twice. Lower exposure to 0.5 s; if still saturated, the gel was over-stained. Re-run with less stain next time."
+    },
+    {
+      "title": "No bands visible",
+      "kind": "common-fault",
+      "bodyMd": "Confirm UV is on (shutter open icon in Image Lab). If yes, the stain may have washed out — re-stain in 0.5 μg/mL EtBr for 20 min and re-image. Or your DNA didn't make it into the gel."
+    },
+    {
+      "title": "Post-use",
+      "kind": "post-use",
+      "bodyMd": "Remove the gel to the EtBr-waste container. Wipe the tray. Save your images to the shared drive — the local cache is purged weekly. Log out of Image Lab."
+    }
+  ]
+}

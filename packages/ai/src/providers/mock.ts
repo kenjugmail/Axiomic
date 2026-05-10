@@ -145,9 +145,12 @@ export class MockProvider implements AIProvider {
     // Find a matching response
     const response = this.findResponse(pageSlug, lastUserMessage, tier);
 
-    // Stream character by character with realistic delay
+    // Stream character by character with realistic delay. Bail early
+    // if the caller's AbortSignal fires (client disconnect) so tests
+    // and production both stop pumping tokens against a closed sink.
     const delay = process.env.NODE_ENV === "test" ? 0 : 15 + Math.random() * 10;
     for (const char of response) {
+      if (opts.signal?.aborted) return;
       opts.onToken(char);
       if (delay > 0) await sleep(delay);
     }
