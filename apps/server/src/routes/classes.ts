@@ -1508,3 +1508,241 @@ classesRouter.post(
     return c.json({ ok: true, winners });
   },
 );
+
+// --- analytics (S93) -----------------------------------------------
+//
+// Instructor/TA-only dashboard surface. Aggregates the data already
+// flowing into xp_grants, class_tasks, class_task_completions, and
+// class_attendance into four widgets:
+//
+//   1. xpByDay: 30-day XP earned timeline (filled with zeros for
+//      empty days so charts plot a continuous line).
+//   2. taskCompletions: per-task submission + pass counts vs roster.
+//   3. attendanceRate: per-session present/late/absent/excused.
+//   4. stalledStudents: who hasn't earned XP in ≥7 days. Lets the
+//      instructor reach out before a student fully disengages.
+//
+// All four read existing tables directly — no schema change. The
+// queries are scoped to the class so an instructor of a 200-student
+// class still gets a fast response.
+
+const STALLED_THRESHOLD_DAYS = 7;
+const ANALYTICS_DAY_WINDOW = 30;
+
+classesRouter.get(
+  "/:slug/analytics",
+  requireAuth,
+  requireInstructorOrTa,
+  async (c) => {
+    const cls = c.get("classRow");
+    const db = getDb();
+
+    // 1. xpByDay — sum xp_grants.amount per UTC day, last 30 days.
+    // SQLite's strftime normalizes both ISO and 'YYYY-MM-DD HH:MM:SS'
+    // timestamps to the same day key, so we don't need datetime()
+    // wrappers like the competition-standings query did.
+    const xpRows = db
+      .select({
+        day: sql<string>`strftime('%Y-%m-%d', ${xpGrants.awardedAt})`.as("day"),
+        totalXp: sql<number>`coalesce(sum(${xpGrants.amount}), 0)`,
+        distinctUserCount: sql<number>`count(distinct ${xpGrants.userId})`,
+      })
+      .from(xpGrants)
+      .where(
+        and(
+          eq(xpGrants.classId, cls.id),
+          sql`datetime(${xpGrants.awardedAt}) >= datetime('now', '-${sql.raw(String(ANALYTICS_DAY_WINDOW))} days')`,
+        ),
+      )
+      .groupBy(sql`strftime('%Y-%m-%d', ${xpGrants.awardedAt})`)
+      .all();
+    const xpByDayMap = new Map(xpRows.map((r) => [r.day, r]));
+
+    // Fill in zero rows so the chart shows the full window.
+    const xpByDay: { day: string; totalXp: number; distinctUserCount: number }[] = [];
+    const today = new Date();
+    for (let i = ANALYTICS_DAY_WINDOW - 1; i >= 0; i--) {
+      const d = new Date(today);
+      d.setUTCDate(d.getUTCDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      const row = xpByDayMap.get(key);
+      xpByDay.push({
+        day: key,
+        totalXp: Number(row?.totalXp ?? 0),
+        distinctUserCount: Number(row?.distinctUserCount ?? 0),
+      });
+    }
+
+    // Roster size for completion-rate denominators. Counts enrollments
+    // including the instructor — close enough for a "x of y" chip.
+    const enrolledRow = db
+      .select({ n: sql<number>`count(*)` })
+      .from(classEnrollments)
+      .where(eq(classEnrollments.classId, cls.id))
+      .get();
+    const totalEnrolled = Number(enrolledRow?.n ?? 0);
+
+    // 2. taskCompletions — per task, count submissions + passes.
+    const tasksRows = db
+      .select({
+        id: classTasks.id,
+        title: classTasks.title,
+        kind: classTasks.kind,
+        dueAt: classTasks.dueAt,
+        createdAt: classTasks.createdAt,
+      })
+      .from(classTasks)
+      .where(eq(classTasks.classId, cls.id))
+      .orderBy(desc(classTasks.createdAt))
+      .all();
+
+    const taskIds = tasksRows.map((t) => t.id);
+    const completionRows = taskIds.length
+      ? db
+          .select({
+            taskId: classTaskCompletions.taskId,
+            submittedCount: sql<number>`count(*)`,
+            gradedPassCount: sql<number>`sum(case when ${classTaskCompletions.gradeJson} like '%"pass":true%' then 1 else 0 end)`,
+          })
+          .from(classTaskCompletions)
+          .where(inArray(classTaskCompletions.taskId, taskIds))
+          .groupBy(classTaskCompletions.taskId)
+          .all()
+      : [];
+    const completionByTask = new Map(completionRows.map((r) => [r.taskId, r]));
+    const taskCompletions = tasksRows.map((t) => {
+      const c = completionByTask.get(t.id);
+      return {
+        taskId: t.id,
+        title: t.title,
+        kind: t.kind as "reading" | "homework",
+        dueAt: t.dueAt,
+        submittedCount: Number(c?.submittedCount ?? 0),
+        gradedPassCount: Number(c?.gradedPassCount ?? 0),
+        totalEnrolled,
+      };
+    });
+
+    // 3. attendanceRate — per session, count statuses.
+    const attendanceRows = db
+      .select({
+        sessionDate: classAttendance.sessionDate,
+        status: classAttendance.status,
+        n: sql<number>`count(*)`,
+      })
+      .from(classAttendance)
+      .where(eq(classAttendance.classId, cls.id))
+      .groupBy(classAttendance.sessionDate, classAttendance.status)
+      .all();
+    type AttendanceBucket = {
+      sessionDate: string;
+      presentCount: number;
+      lateCount: number;
+      absentCount: number;
+      excusedCount: number;
+    };
+    const attendanceByDate = new Map<string, AttendanceBucket>();
+    for (const r of attendanceRows) {
+      const bucket = attendanceByDate.get(r.sessionDate) ?? {
+        sessionDate: r.sessionDate,
+        presentCount: 0,
+        lateCount: 0,
+        absentCount: 0,
+        excusedCount: 0,
+      };
+      const n = Number(r.n);
+      if (r.status === "present") bucket.presentCount = n;
+      else if (r.status === "late") bucket.lateCount = n;
+      else if (r.status === "absent") bucket.absentCount = n;
+      else if (r.status === "excused") bucket.excusedCount = n;
+      attendanceByDate.set(r.sessionDate, bucket);
+    }
+    const attendanceRate = [...attendanceByDate.values()].sort((a, b) =>
+      a.sessionDate < b.sessionDate ? 1 : -1,
+    );
+
+    // 4. stalledStudents — per enrolled student, the most recent
+    // xp_grants.awardedAt in this class. Anyone without a grant in
+    // the last STALLED_THRESHOLD_DAYS days (or ever) is flagged.
+    const memberRows = db
+      .select({
+        userId: classEnrollments.userId,
+        username: users.username,
+        displayName: users.displayName,
+      })
+      .from(classEnrollments)
+      .innerJoin(users, eq(users.id, classEnrollments.userId))
+      .where(eq(classEnrollments.classId, cls.id))
+      .all();
+
+    const memberIds = memberRows.map((m) => m.userId);
+    const grantRows = memberIds.length
+      ? db
+          .select({
+            userId: xpGrants.userId,
+            lastAt: sql<string>`max(${xpGrants.awardedAt})`.as("lastAt"),
+            totalXp: sql<number>`sum(${xpGrants.amount})`.as("totalXp"),
+          })
+          .from(xpGrants)
+          .where(
+            and(
+              eq(xpGrants.classId, cls.id),
+              inArray(xpGrants.userId, memberIds),
+            ),
+          )
+          .groupBy(xpGrants.userId)
+          .all()
+      : [];
+    const grantByUser = new Map(grantRows.map((g) => [g.userId, g]));
+    const nowMs = Date.now();
+    type Stalled = {
+      userId: string;
+      username: string;
+      displayName: string | null;
+      daysSinceLastActivity: number | null;
+      totalXp: number;
+    };
+    const stalledStudents: Stalled[] = [];
+    for (const m of memberRows) {
+      const g = grantByUser.get(m.userId);
+      if (!g) {
+        // Never earned XP — implicitly stalled.
+        stalledStudents.push({
+          userId: m.userId,
+          username: m.username,
+          displayName: m.displayName,
+          daysSinceLastActivity: null,
+          totalXp: 0,
+        });
+        continue;
+      }
+      const lastMs = Date.parse(g.lastAt);
+      const days = Math.floor((nowMs - lastMs) / 86_400_000);
+      if (days >= STALLED_THRESHOLD_DAYS) {
+        stalledStudents.push({
+          userId: m.userId,
+          username: m.username,
+          displayName: m.displayName,
+          daysSinceLastActivity: days,
+          totalXp: Number(g.totalXp ?? 0),
+        });
+      }
+    }
+    // Most-stalled first; null (never-active) treated as the largest.
+    stalledStudents.sort((a, b) => {
+      const av = a.daysSinceLastActivity ?? Number.MAX_SAFE_INTEGER;
+      const bv = b.daysSinceLastActivity ?? Number.MAX_SAFE_INTEGER;
+      return bv - av;
+    });
+
+    return c.json({
+      xpByDay,
+      taskCompletions,
+      attendanceRate,
+      stalledStudents,
+      totalEnrolled,
+      stalledThresholdDays: STALLED_THRESHOLD_DAYS,
+      windowDays: ANALYTICS_DAY_WINDOW,
+    });
+  },
+);

@@ -209,6 +209,8 @@ import type {
   BuyCosmeticRequest,
   BuyCosmeticResponse,
   XpBalanceResponse,
+  // S93 — instructor analytics.
+  ClassAnalyticsResponse,
 } from "@axiomic/types";
 
 const BASE = "/api/v1";
@@ -1290,6 +1292,9 @@ export const api = {
         `/classes/${slug}/competitions/${competitionId}/end`,
         { method: "POST" },
       ),
+    // S93 — instructor analytics dashboard.
+    analytics: (slug: string) =>
+      request<ClassAnalyticsResponse>(`/classes/${slug}/analytics`),
   },
   pet: {
     me: () => request<MyPetResponse>("/me/pet"),

@@ -1167,3 +1167,126 @@ describe("S89 XP shop", () => {
     expect(data.balance).toBeGreaterThan(0);
   });
 });
+
+describe("S93 instructor analytics dashboard", () => {
+  test("non-instructor cannot read analytics (403)", async () => {
+    const instructor = await signup("anainst1");
+    const student = await signup("anastud1");
+    const slug = `cls-ana-acl-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    const tryRead = await req(`/classes/${slug}/analytics`, {
+      headers: cookieHeader(student.cookie),
+    });
+    expect(tryRead.status).toBe(403);
+  });
+
+  test("empty class returns zeros + the full 30-day window", async () => {
+    const instructor = await signup("anainst2");
+    const slug = `cls-ana-empty-${testRun}`;
+    await createClass(instructor.cookie, slug);
+    const res = await req(`/classes/${slug}/analytics`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as {
+      xpByDay: Array<{ day: string; totalXp: number; distinctUserCount: number }>;
+      taskCompletions: unknown[];
+      attendanceRate: unknown[];
+      stalledStudents: unknown[];
+      windowDays: number;
+    };
+    expect(data.windowDays).toBe(30);
+    expect(data.xpByDay.length).toBe(30);
+    expect(data.xpByDay.every((d) => d.totalXp === 0)).toBe(true);
+    expect(data.taskCompletions).toEqual([]);
+    expect(data.attendanceRate).toEqual([]);
+    expect(data.stalledStudents).toEqual([]);
+  });
+
+  test("active class surfaces task completions + xp per day", async () => {
+    const instructor = await signup("anainst3");
+    const a = await signup("anastud3a");
+    const b = await signup("anastud3b");
+    const slug = `cls-ana-active-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    for (const s of [a, b]) {
+      await req(`/classes/${slug}/enroll`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(s.cookie) },
+        body: JSON.stringify({ joinCode: created.joinCode }),
+      });
+    }
+    const t = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ kind: "homework", title: "PSet" }),
+    });
+    const { taskId } = (await t.json()) as { taskId: string };
+    // a submits + grades pass; b submits, no grade.
+    await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(a.cookie) },
+      body: JSON.stringify({ content: "Submission long enough for the validator." }),
+    });
+    await req(`/classes/${slug}/tasks/${taskId}/grade/${a.userId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ pass: true }),
+    });
+    await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(b.cookie) },
+      body: JSON.stringify({ content: "Submission long enough for the validator from b." }),
+    });
+
+    const res = await req(`/classes/${slug}/analytics`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as {
+      xpByDay: Array<{ day: string; totalXp: number }>;
+      taskCompletions: Array<{
+        taskId: string;
+        submittedCount: number;
+        gradedPassCount: number;
+        totalEnrolled: number;
+      }>;
+      stalledStudents: unknown[];
+    };
+    const todayXp = data.xpByDay[data.xpByDay.length - 1];
+    expect(todayXp.totalXp).toBeGreaterThan(0);
+    const tc = data.taskCompletions.find((c) => c.taskId === taskId);
+    expect(tc?.submittedCount).toBe(2);
+    expect(tc?.gradedPassCount).toBe(1);
+    expect(tc?.totalEnrolled).toBe(2);
+    // Both students earned XP today, so neither is stalled.
+    expect(data.stalledStudents.length).toBe(0);
+  });
+
+  test("never-active student is flagged as stalled", async () => {
+    const instructor = await signup("anainst4");
+    const ghost = await signup("anaghost");
+    const slug = `cls-ana-stalled-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(ghost.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    const res = await req(`/classes/${slug}/analytics`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    const data = (await res.json()) as {
+      stalledStudents: Array<{ userId: string; daysSinceLastActivity: number | null; totalXp: number }>;
+    };
+    const ghostRow = data.stalledStudents.find((s) => s.userId === ghost.userId);
+    expect(ghostRow).toBeDefined();
+    expect(ghostRow?.daysSinceLastActivity).toBeNull();
+    expect(ghostRow?.totalXp).toBe(0);
+  });
+});

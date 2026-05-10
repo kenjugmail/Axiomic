@@ -3638,3 +3638,51 @@ export interface XpBalanceResponse {
   lifetimeXp: number;
   spentXp: number;
 }
+
+// =============================================================
+// S93 — Instructor analytics dashboard.
+// =============================================================
+
+export interface ClassAnalyticsXpByDay {
+  day: string; // YYYY-MM-DD UTC
+  totalXp: number;
+  distinctUserCount: number;
+}
+
+export interface ClassAnalyticsTaskCompletion {
+  taskId: string;
+  title: string;
+  kind: "reading" | "homework";
+  dueAt: string | null;
+  submittedCount: number;
+  gradedPassCount: number;
+  totalEnrolled: number;
+}
+
+export interface ClassAnalyticsAttendance {
+  sessionDate: string;
+  presentCount: number;
+  lateCount: number;
+  absentCount: number;
+  excusedCount: number;
+}
+
+export interface ClassAnalyticsStalled {
+  userId: string;
+  username: string;
+  displayName: string | null;
+  // Null when the student has never earned XP. Otherwise integer
+  // days since the most recent class XP grant.
+  daysSinceLastActivity: number | null;
+  totalXp: number;
+}
+
+export interface ClassAnalyticsResponse {
+  xpByDay: ClassAnalyticsXpByDay[];
+  taskCompletions: ClassAnalyticsTaskCompletion[];
+  attendanceRate: ClassAnalyticsAttendance[];
+  stalledStudents: ClassAnalyticsStalled[];
+  totalEnrolled: number;
+  stalledThresholdDays: number;
+  windowDays: number;
+}

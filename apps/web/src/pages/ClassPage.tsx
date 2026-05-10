@@ -118,6 +118,14 @@ export function ClassPage() {
             {cls.title}
           </h1>
           <div className="flex items-center gap-2">
+            {isInstructorOrTa && (
+              <Link
+                to={`/classes/${cls.slug}/analytics`}
+                className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40"
+              >
+                Analytics
+              </Link>
+            )}
             {data.myRole === "instructor" && (
               <Link
                 to={`/classes/${cls.slug}/edit`}
