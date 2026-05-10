@@ -35,6 +35,17 @@ export function notificationLink(n: Notification): string {
       return `/lab/runs/${n.subjectId}`;
     case "lab_cert":
       return `/lab/safety-certs/${n.contextSlug ?? n.subjectId}`;
+    // S88 — classroom + pet notifications. cosmetic_granted points
+    // at the user's pet inventory; competition_won goes straight to
+    // the competition standings; pet_hatched lands on the pet page.
+    case "cosmetic":
+      return "/me/pet";
+    case "competition":
+      return n.contextSlug
+        ? `/classes/${n.contextSlug}/competitions/${n.subjectId}`
+        : "/notifications";
+    case "pet":
+      return "/me/pet";
     case "claim_thread":
     case "reproduction":
     case "capstone_track":
@@ -104,6 +115,15 @@ function kindLabel(kind: Notification["kind"]): string {
       return "you passed a safety certification";
     case "lab_cert_expiring":
       return "your safety certification is expiring";
+    // S88 — classroom + pet engagement loop.
+    case "cosmetic_granted":
+      return "granted you a cosmetic";
+    case "competition_won":
+      return "you placed in a competition";
+    case "pet_hatched":
+      return "your egg hatched";
+    case "pet_leveled_up":
+      return "your pet leveled up";
     default: {
       // Exhaustiveness check: future NotificationKind additions force
       // a TS error here, prompting the author to add a case.

@@ -20,6 +20,12 @@ export const users = sqliteTable("users", {
   // Optional preferred starting path (slug) chosen during onboarding.
   // Used to seed the dashboard's "Continue learning" tile.
   startingPathSlug: text("starting_path_slug"),
+  // S104 — multi-pet. Points at the user's currently-active pet
+  // (one of their rows in `pets`). Null pre-hatch. No FK so the
+  // ordering between users and pets table declarations doesn't
+  // matter; correctness is enforced at the route layer (activate
+  // checks ownership, hatch sets this column at insert time).
+  activePetId: text("active_pet_id"),
   // Sprint 52 — content approval gate. 'admin' can review proposals;
   // 'member' is everyone else. One admin is bootstrapped from the
   // BOOTSTRAP_ADMIN_USERNAME env var on cold start if no admin exists.
@@ -1008,6 +1014,21 @@ export const capstones = sqliteTable("capstones", {
   lastCitedAt: text("last_cited_at"),
   authorId: text("author_id").notNull().references(() => users.id),
   lastEditorId: text("last_editor_id").references(() => users.id),
+  // S85 — year-scale tier discriminator. Existing rows + new skill
+  // drills stay 'skill_drill'; year-scale projects opt in to
+  // 'long_arc' and must clear the complexity floor (≥3 domains, hour
+  // range, deliverable description, ≥1 dated milestone) at create or
+  // publish time.
+  scaleTier: text("scale_tier").notNull().default("skill_drill"),
+  // JSON array of domain tags surfacing complexity. Floor requires
+  // ≥3 entries for long_arc.
+  domainsJson: text("domains_json").notNull().default("[]"),
+  // Hour range for long_arc. Skill drills keep using estimatedWeeks.
+  estimatedHoursMin: integer("estimated_hours_min"),
+  estimatedHoursMax: integer("estimated_hours_max"),
+  // Long_arc only. Tangible end-state — what the learner ships at the
+  // end. Floor requires ≥200 chars to force authors past hand-waving.
+  realWorldDeliverableMd: text("real_world_deliverable_md"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
 }, (t) => ({
@@ -1064,6 +1085,14 @@ export const capstoneMilestones = sqliteTable("capstone_milestones", {
   // submission and the AI grader can reference it.
   runnableTests: text("runnable_tests"),
   estimatedDays: integer("estimated_days").notNull().default(7),
+  // S85 — calendar due date for long_arc capstones. ISO date string.
+  // Skill drills leave this null and continue to use estimatedDays
+  // as a relative pacing hint.
+  dueAt: text("due_at"),
+  // S85 — declares an advisor must approve this milestone before the
+  // learner advances. Schema-only in S85; gating ships in S86 with the
+  // advisor invite/accept flow.
+  advisorSignoffRequired: integer("advisor_signoff_required", { mode: "boolean" }).notNull().default(false),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
 }, (t) => ({
   capstoneIdx: index("capstone_milestones_capstone_idx").on(t.capstoneId, t.order),
@@ -1125,6 +1154,44 @@ export const capstoneSubmissions = sqliteTable("capstone_submissions", {
 }, (t) => ({
   pk: uniqueIndex("capstone_submissions_pk").on(t.enrollmentId, t.milestoneId),
   milestoneIdx: index("capstone_submissions_milestone_idx").on(t.milestoneId, t.submittedAt),
+}));
+
+// S85 — Advisor / mentor link to a learner's enrollment. Multiple
+// rows possible per enrollment (lead advisor + co-advisor + mentor).
+// Schema-only in S85; the invite + accept + sign-off-gate UI ships
+// in S86 alongside the milestone-advance enforcement.
+export const capstoneAdvisorAssignments = sqliteTable("capstone_advisor_assignments", {
+  id: text("id").primaryKey(),
+  enrollmentId: text("enrollment_id")
+    .notNull()
+    .references(() => capstoneEnrollments.id, { onDelete: "cascade" }),
+  advisorUserId: text("advisor_user_id").notNull().references(() => users.id),
+  // 'advisor' | 'co_advisor' | 'mentor'. Free-form for now.
+  role: text("role").notNull().default("advisor"),
+  invitedAt: text("invited_at").default(sql`(datetime('now'))`).notNull(),
+  acceptedAt: text("accepted_at"),
+}, (t) => ({
+  enrollmentIdx: index("capstone_advisor_enrollment_idx").on(t.enrollmentId),
+  advisorIdx: index("capstone_advisor_user_idx").on(t.advisorUserId, t.acceptedAt),
+}));
+
+// S85 — Versioned snapshots of a (enrollment, milestone) submission.
+// The existing `capstone_submissions` row holds the latest graded
+// state (preserving the AI-grading flow); this table captures earlier
+// drafts + named milestones (e.g. "mid-year-review", "final"). UI
+// for capturing + browsing versions ships in S86.
+export const capstoneSubmissionVersions = sqliteTable("capstone_submission_versions", {
+  id: text("id").primaryKey(),
+  submissionId: text("submission_id")
+    .notNull()
+    .references(() => capstoneSubmissions.id, { onDelete: "cascade" }),
+  versionTag: text("version_tag").notNull(),
+  artifactsJson: text("artifacts_json").notNull().default("{}"),
+  writeup: text("writeup").notNull().default(""),
+  authorNotes: text("author_notes").notNull().default(""),
+  capturedAt: text("captured_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  submissionIdx: index("capstone_subver_submission_idx").on(t.submissionId, t.capturedAt),
 }));
 
 // Sprint 29 — misconception coaching. The detector runs against
@@ -2217,3 +2284,377 @@ export const labAssignments = sqliteTable(
     ),
   }),
 );
+
+// =============================================================
+// S86 — Classroom engagement (classes, XP, pets, cosmetics)
+// =============================================================
+//
+// A college-style class: instructor + enrolled students + scheduled
+// term + roster + tasks. Distinct from cohorts (which serve lab
+// groups + general grouping). joinCode lets students self-enroll
+// without a manual invite flow.
+export const classes = sqliteTable("classes", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  // 'Fall 2026', 'Spring 2027', etc. Free-form short label.
+  term: text("term").notNull().default(""),
+  description: text("description").notNull().default(""),
+  syllabusMd: text("syllabus_md").notNull().default(""),
+  // S99 — instructor-authored welcome message. Rendered as markdown
+  // in a banner on the class page so new students get a friendly
+  // pointer on day one.
+  welcomeMessageMd: text("welcome_message_md").notNull().default(""),
+  // S102 — public discovery. When true, the class shows up on the
+  // /classes/discover directory so students can find it without a
+  // share link or join code dictation. Default false: instructors
+  // explicitly opt in.
+  discoverable: integer("discoverable", { mode: "boolean" }).notNull().default(false),
+  // S106 — optional link to a cohort. When set, capstone-track
+  // completions by members of that cohort grant class XP (via the
+  // grantXp source 'cohort-capstone-completed'). Set by the
+  // instructor on edit; route validates that the caller owns both
+  // the class and the cohort. No FK so the schema-load order stays
+  // simple; correctness lives at the route layer.
+  linkedCohortId: text("linked_cohort_id"),
+  // Short alphanumeric code students enter to self-enroll. Generated
+  // server-side; rotatable by the instructor.
+  joinCode: text("join_code").notNull(),
+  // 'active' | 'archived'. Archived classes stay readable but stop
+  // accepting new enrollments + new tasks.
+  status: text("status").notNull().default("active"),
+  instructorId: text("instructor_id").notNull().references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  instructorIdx: index("classes_instructor_idx").on(t.instructorId, t.createdAt),
+  joinCodeIdx: uniqueIndex("classes_join_code_idx").on(t.joinCode),
+}));
+
+// One row per (class, user). role='student'|'ta'|'observer'.
+// Instructor is implicit via classes.instructorId; they don't need
+// a row here. TA gets some instructor permissions (record
+// attendance, grant cosmetics) but cannot edit the class itself.
+export const classEnrollments = sqliteTable("class_enrollments", {
+  id: text("id").primaryKey(),
+  classId: text("class_id").notNull()
+    .references(() => classes.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id),
+  role: text("role").notNull().default("student"),
+  joinedAt: text("joined_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  pk: uniqueIndex("class_enrollments_pk").on(t.classId, t.userId),
+  userIdx: index("class_enrollments_user_idx").on(t.userId, t.joinedAt),
+}));
+
+// Reading or homework. kind='reading' uses url + dueAt (student
+// just ticks "done"). kind='homework' uses dueAt + accepts a
+// writeup/url submission via class_task_completions.xpReward is
+// the XP awarded on completion; falls back to a kind-based default
+// (see XP_AMOUNTS in apps/server/src/lib/xp.ts) if null.
+export const classTasks = sqliteTable("class_tasks", {
+  id: text("id").primaryKey(),
+  classId: text("class_id").notNull()
+    .references(() => classes.id, { onDelete: "cascade" }),
+  // 'reading' | 'homework'.
+  kind: text("kind").notNull(),
+  title: text("title").notNull(),
+  descriptionMd: text("description_md").notNull().default(""),
+  // Reading: where the reading lives (URL, wiki slug, paper slug).
+  // Homework: ignored.
+  url: text("url"),
+  dueAt: text("due_at"),
+  xpReward: integer("xp_reward"),
+  createdById: text("created_by_id").notNull().references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  classKindIdx: index("class_tasks_class_kind_idx").on(t.classId, t.kind, t.dueAt),
+}));
+
+// Reading-done click OR homework submission. Same row shape;
+// readings have null content, homework has the writeup/url.
+// Unique per (task, user) — re-submission updates in place.
+export const classTaskCompletions = sqliteTable("class_task_completions", {
+  id: text("id").primaryKey(),
+  taskId: text("task_id").notNull()
+    .references(() => classTasks.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id),
+  // Free-form for homework (markdown writeup, github URL, etc.).
+  // Null for readings.
+  content: text("content"),
+  // Late-flag computed at completion time vs task.dueAt.
+  wasLate: integer("was_late", { mode: "boolean" }).notNull().default(false),
+  // Instructor-set grade. JSON: {score, feedback}. Null until
+  // graded. S86 keeps grading manual (no AI grader for class
+  // homework yet).
+  gradeJson: text("grade_json"),
+  submittedAt: text("submitted_at").default(sql`(datetime('now'))`).notNull(),
+  gradedAt: text("graded_at"),
+}, (t) => ({
+  pk: uniqueIndex("class_task_completions_pk").on(t.taskId, t.userId),
+  userIdx: index("class_task_completions_user_idx").on(t.userId, t.submittedAt),
+}));
+
+// One row per (class, user, sessionDate). Instructor or TA records.
+// status='present'|'absent'|'late'|'excused'. Present + late grant
+// XP; absent + excused grant none. sessionDate is YYYY-MM-DD.
+export const classAttendance = sqliteTable("class_attendance", {
+  id: text("id").primaryKey(),
+  classId: text("class_id").notNull()
+    .references(() => classes.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id),
+  sessionDate: text("session_date").notNull(),
+  status: text("status").notNull(),
+  recordedById: text("recorded_by_id").notNull().references(() => users.id),
+  recordedAt: text("recorded_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  pk: uniqueIndex("class_attendance_pk").on(t.classId, t.userId, t.sessionDate),
+  classDateIdx: index("class_attendance_class_date_idx").on(t.classId, t.sessionDate),
+}));
+
+// XP ledger. Append-only; the leaderboard query sums this per user
+// per class. classId is null for non-class XP (e.g.
+// lesson_completed from outside any class context — those grants
+// still count toward the user's global XP but not to any class
+// leaderboard).
+//
+// source identifies WHY the grant fired: 'reading-done',
+// 'homework-submitted', 'attendance-present', 'lesson-completed',
+// 'quiz-passed', etc. sourceRefId points back to the triggering
+// row (taskId, attendance row id, mastery node id).
+//
+// Idempotency: (userId, source, sourceRefId) is unique so re-emits
+// never double-count.
+export const xpGrants = sqliteTable("xp_grants", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id),
+  classId: text("class_id").references(() => classes.id, { onDelete: "cascade" }),
+  source: text("source").notNull(),
+  sourceRefId: text("source_ref_id").notNull(),
+  amount: integer("amount").notNull(),
+  awardedAt: text("awarded_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  uniq: uniqueIndex("xp_grants_uniq").on(t.userId, t.source, t.sourceRefId),
+  userClassIdx: index("xp_grants_user_class_idx").on(t.userId, t.classId, t.awardedAt),
+  classIdx: index("xp_grants_class_idx").on(t.classId, t.awardedAt),
+}));
+
+// One pet per user (S86; multi-pet later). species is a slug from
+// the hardcoded catalog in apps/server/src/lib/pets.ts. name is
+// the user's chosen nickname. Auto-created when the user crosses
+// the first XP threshold; cannot be deleted in S86.
+export const pets = sqliteTable("pets", {
+  id: text("id").primaryKey(),
+  // S104 — dropped .unique() so users can own multiple pets. The
+  // user's chosen active pet is tracked via users.activePetId.
+  userId: text("user_id").notNull().references(() => users.id),
+  species: text("species").notNull(),
+  name: text("name").notNull().default(""),
+  hatchedAt: text("hatched_at").default(sql`(datetime('now'))`).notNull(),
+  // S90 — pet evolution. Level is 1, 2, or 3 in v1. Recomputed on
+  // every grantXp via maybeLevelUp() against the user's lifetime
+  // XP. Stored on the pet (rather than derived on read) so we can
+  // detect a level-up exactly once and emit a notification when it
+  // happens.
+  level: integer("level").notNull().default(1),
+}, (t) => ({
+  speciesIdx: index("pets_species_idx").on(t.species),
+  // S104 — replaces the prior UNIQUE on userId. Non-unique now;
+  // we still want the index for "all pets for this user" reads.
+  userIdx: index("pets_user_idx").on(t.userId),
+}));
+
+// Cosmetic catalog. slot='head'|'eyes'|'accessory' constrains
+// where it renders so a hat doesn't conflict with a cap on the
+// same pet. renderKind='emoji' for S86; 'svg' is the planned
+// future value. emoji is the unicode glyph for emoji-rendered
+// cosmetics. rarity is a UI label; doesn't enforce anything
+// mechanically. grantOnly=true means students can't earn it via
+// XP threshold — only an instructor can grant it.
+export const petCosmetics = sqliteTable("pet_cosmetics", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  slot: text("slot").notNull(),
+  renderKind: text("render_kind").notNull().default("emoji"),
+  emoji: text("emoji"),
+  // 'common' | 'rare' | 'epic' | 'legendary'. UI flair only.
+  rarity: text("rarity").notNull().default("common"),
+  grantOnly: integer("grant_only", { mode: "boolean" }).notNull().default(true),
+  description: text("description").notNull().default(""),
+  // S89 — XP shop. NULL means the cosmetic is not for sale (still
+  // available via instructor grant or competition prize).
+  // Non-null = students can spend XP to buy it.
+  xpCost: integer("xp_cost"),
+});
+
+// What each user owns + which pieces are equipped on their pet.
+// equipped=true means it's currently rendered on the pet; only
+// one equipped item per slot enforced at the route layer.
+// grantedById non-null means an instructor granted it; null means
+// the user earned it (not used in S86 since all S86 cosmetics are
+// grant-only). grantedNote is the instructor's optional message.
+export const petInventory = sqliteTable("pet_inventory", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id),
+  cosmeticSlug: text("cosmetic_slug").notNull(),
+  equipped: integer("equipped", { mode: "boolean" }).notNull().default(false),
+  acquiredAt: text("acquired_at").default(sql`(datetime('now'))`).notNull(),
+  grantedById: text("granted_by_id").references(() => users.id),
+  grantedInClassId: text("granted_in_class_id").references(() => classes.id),
+  grantedNote: text("granted_note"),
+}, (t) => ({
+  uniq: uniqueIndex("pet_inventory_uniq").on(t.userId, t.cosmeticSlug),
+  userIdx: index("pet_inventory_user_idx").on(t.userId, t.equipped),
+}));
+
+// =============================================================
+// S87 — Class competitions.
+// =============================================================
+//
+// Timed event scoped to a class. Instructor (or TA) creates a draft,
+// publishes it (status='active'), and at endsAt the system runs a
+// lazy distribution: top-N students by `scoringRule` win a copy of
+// `prizeCosmeticSlug` in their inventory. Distribution is idempotent
+// via the existing pet_inventory unique-on-(userId,cosmeticSlug)
+// index, so the lazy pass is safe to call multiple times.
+//
+// Re-uses pet_cosmetics.slug as the prize ref but no FK — letting
+// authors name a cosmetic before it's seeded is occasionally useful
+// (and the route validates existence at create/publish time).
+export const classCompetitions = sqliteTable("class_competitions", {
+  id: text("id").primaryKey(),
+  classId: text("class_id").notNull()
+    .references(() => classes.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  descriptionMd: text("description_md").notNull().default(""),
+  // ISO datetime strings so the UI can render countdowns + the
+  // prize-distribution check is a simple string compare.
+  startsAt: text("starts_at").notNull(),
+  endsAt: text("ends_at").notNull(),
+  // 'class-xp' for v1. Schema accepts other rules so adding them
+  // (reading-completions, homework-passes, attendance-streak) later
+  // doesn't need a migration.
+  scoringRule: text("scoring_rule").notNull().default("class-xp"),
+  prizeCosmeticSlug: text("prize_cosmetic_slug").notNull(),
+  prizeWinnerCount: integer("prize_winner_count").notNull().default(3),
+  // 'draft' | 'active' | 'ended'. Transitions: draft -> active on
+  // publish; active -> ended lazily on read past endsAt OR via
+  // explicit POST /end. Ended is terminal in S87.
+  status: text("status").notNull().default("draft"),
+  // Flips true once auto-distribution runs. The unique-index on
+  // pet_inventory means re-runs are safe at the data layer too,
+  // but this short-circuits the standings computation after first
+  // pass.
+  prizesAwarded: integer("prizes_awarded", { mode: "boolean" })
+    .notNull().default(false),
+  createdById: text("created_by_id").notNull().references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  classStatusIdx: index("class_competitions_class_idx").on(t.classId, t.status, t.endsAt),
+}));
+
+// =============================================================
+// S89 — XP shop ledger.
+// =============================================================
+//
+// Two-sided XP economy. xp_grants is the credits side (grants in,
+// always positive); xp_purchases is the debits side (XP spent on
+// shop cosmetics). Spendable balance is
+//   xpBalance(user) = sum(xp_grants.amount) - sum(xp_purchases.amount)
+//
+// We deliberately keep purchases in a separate table rather than
+// negative xp_grants so the leaderboard's
+// `SUM(xp_grants.amount)` query keeps measuring lifetime
+// achievement (not balance) — buying cosmetics shouldn't penalize
+// you on the class leaderboard.
+//
+// One row per purchase (no idempotency on a "user buys cosmetic
+// twice" because already-owned is rejected at the route layer).
+// amount is captured at purchase time so a future xpCost change
+// doesn't retroactively rewrite history.
+export const xpPurchases = sqliteTable("xp_purchases", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  cosmeticSlug: text("cosmetic_slug").notNull(),
+  amount: integer("amount").notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  userIdx: index("xp_purchases_user_idx").on(t.userId, t.createdAt),
+}));
+
+// =============================================================
+// S107a — Web Push subscriptions.
+// =============================================================
+//
+// One row per (user, browser/device). Endpoint comes from the
+// browser's PushManager.subscribe() result; p256dh + auth keys are
+// the ECDH/HMAC keys the server uses to encrypt push payloads via
+// web-push. UNIQUE on endpoint so re-subscribing from the same
+// browser updates the row in place rather than duplicating.
+//
+// HTTP 410 from the push endpoint at send time means the
+// subscription is gone (user revoked, browser cleared); pushSender
+// deletes that row on receiving 410.
+export const pushSubscriptions = sqliteTable("push_subscriptions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  endpoint: text("endpoint").notNull().unique(),
+  p256dhKey: text("p256dh_key").notNull(),
+  authKey: text("auth_key").notNull(),
+  userAgent: text("user_agent"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  lastUsedAt: text("last_used_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  userIdx: index("push_subscriptions_user_idx").on(t.userId),
+}));
+
+// =============================================================
+// S96 — Class-scoped "question of the day".
+// =============================================================
+//
+// Instructor-authored multiple-choice question that lives at the
+// class level. Reuses the per-class membership + role gating from
+// S86; reuses the daily-challenge submission shape from
+// gamification.ts. Students get one shot per question (no retry on
+// wrong) — emphasizes engagement rather than mastery so the XP
+// reward is small.
+export const classQuestions = sqliteTable("class_questions", {
+  id: text("id").primaryKey(),
+  classId: text("class_id").notNull()
+    .references(() => classes.id, { onDelete: "cascade" }),
+  authorId: text("author_id").notNull().references(() => users.id),
+  prompt: text("prompt").notNull(),
+  // JSON array of choice strings; min 2, max 8 enforced at the
+  // route layer.
+  choicesJson: text("choices_json").notNull(),
+  // 0-indexed into choices.
+  correctIndex: integer("correct_index").notNull(),
+  // Null endsAt = no automatic close. Closing is by explicit POST or
+  // by the next question being published in the same class.
+  startsAt: text("starts_at").default(sql`(datetime('now'))`).notNull(),
+  endsAt: text("ends_at"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  classActiveIdx: index("class_questions_class_active_idx").on(t.classId, t.endsAt),
+}));
+
+// One-shot attempts. Unique per (question, user) so re-submission
+// is rejected at the data layer. correct=true grants XP; the
+// wrong-answer path still records the attempt so the instructor
+// can see who tried.
+export const classQuestionAttempts = sqliteTable("class_question_attempts", {
+  id: text("id").primaryKey(),
+  questionId: text("question_id").notNull()
+    .references(() => classQuestions.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id),
+  answerIndex: integer("answer_index").notNull(),
+  correct: integer("correct", { mode: "boolean" }).notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  uniq: uniqueIndex("class_question_attempts_uniq").on(t.questionId, t.userId),
+  questionIdx: index("class_question_attempts_question_idx").on(t.questionId),
+}));

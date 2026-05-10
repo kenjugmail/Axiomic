@@ -1,0 +1,1 @@
+ALTER TABLE `classes` ADD `linked_cohort_id` text;

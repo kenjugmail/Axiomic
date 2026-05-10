@@ -1281,7 +1281,13 @@ export type NotificationKind =
   | "lab_signoff_approved"
   | "lab_signoff_rejected"
   | "lab_cert_passed"
-  | "lab_cert_expiring";
+  | "lab_cert_expiring"
+  // S88 — classroom + pet engagement loop.
+  | "cosmetic_granted"
+  | "competition_won"
+  | "pet_hatched"
+  // S90 — pet evolution.
+  | "pet_leveled_up";
 
 export type NotificationSubject =
   | "topic"
@@ -1298,7 +1304,11 @@ export type NotificationSubject =
   | "grant"
   // Sprint 80
   | "lab_protocol_run"
-  | "lab_cert";
+  | "lab_cert"
+  // S88 — classroom + pet engagement loop.
+  | "cosmetic"
+  | "competition"
+  | "pet";
 
 export const NOTIFICATION_KINDS: NotificationKind[] = [
   "mention",
@@ -1324,6 +1334,10 @@ export const NOTIFICATION_KINDS: NotificationKind[] = [
   "lab_signoff_rejected",
   "lab_cert_passed",
   "lab_cert_expiring",
+  "cosmetic_granted",
+  "competition_won",
+  "pet_hatched",
+  "pet_leveled_up",
 ];
 
 export const NOTIFICATION_SUBJECTS: NotificationSubject[] = [
@@ -1341,6 +1355,9 @@ export const NOTIFICATION_SUBJECTS: NotificationSubject[] = [
   "grant",
   "lab_protocol_run",
   "lab_cert",
+  "cosmetic",
+  "competition",
+  "pet",
 ];
 
 export interface Notification {
@@ -2247,6 +2264,13 @@ export interface DailyChallengeSubmitResponse {
   correct: boolean;
   stats: DailyChallengeStats;
   streak: number;
+  // S91 — XP awarded for the first correct attempt today (0 when
+  // wrong / repeat). petHatched fires only on the grant that crosses
+  // PET_HATCH_THRESHOLD_XP for the first time; petLeveledUp on
+  // crossing a level threshold afterward.
+  xpAwarded?: number;
+  petHatched?: { species: string; name: string } | null;
+  petLeveledUp?: { newLevel: number } | null;
 }
 
 export interface PathCertificateResponse {
@@ -2350,6 +2374,10 @@ export interface QuizMistakesResponse {
 export type CapstoneTier = "intro" | "undergrad" | "grad";
 export type CapstoneStatus = "draft" | "published";
 export type CapstoneAccent = ResearchPaperAccent;
+// S85 — Complexity tier. `skill_drill` keeps the original 4-10 week
+// scope; `long_arc` opts into the year-scale flow with calendar
+// milestones, complexity-floor enforcement, and (S86+) advisor sign-off.
+export type CapstoneScaleTier = "skill_drill" | "long_arc";
 export type CapstoneArtifactKind =
   | "github"
   | "colab"
@@ -2389,6 +2417,12 @@ export interface CapstoneMilestone {
   requiredArtifactKinds: CapstoneArtifactKind[];
   runnableTests: string | null;
   estimatedDays: number;
+  // S85 — calendar due date. ISO date string when set; null for skill drills
+  // (which stay on relative `estimatedDays`).
+  dueAt: string | null;
+  // S85 — declares this milestone gates on advisor sign-off. Schema-only
+  // signal in S85; gating enforcement ships in S86.
+  advisorSignoffRequired: boolean;
   createdAt: string;
 }
 
@@ -2405,6 +2439,13 @@ export interface CapstoneSummary {
   authorUsername: string;
   authorDisplayName: string | null;
   milestoneCount: number;
+  // S85 — tier discriminator. Skill drills surface `estimatedWeeks`
+  // and a milestone count; long_arc cards additionally surface domain
+  // count + the hour range.
+  scaleTier: CapstoneScaleTier;
+  domains: string[];
+  estimatedHoursMin: number | null;
+  estimatedHoursMax: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -2448,6 +2489,12 @@ export interface Capstone {
   milestones: CapstoneMilestone[];
   myEnrollment: CapstoneMyEnrollmentSummary | null;
   currentVersion?: number;
+  // S85 — tier + complexity-floor metadata.
+  scaleTier: CapstoneScaleTier;
+  domains: string[];
+  estimatedHoursMin: number | null;
+  estimatedHoursMax: number | null;
+  realWorldDeliverableMd: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -2555,6 +2602,14 @@ export interface CreateCapstoneRequest {
   coverEmoji?: string;
   accentColor?: CapstoneAccent;
   status?: CapstoneStatus;
+  // S85 — long_arc tier opt-in. When present and != 'skill_drill',
+  // the floor validator runs and the *Hours/domains/deliverable
+  // fields become required.
+  scaleTier?: CapstoneScaleTier;
+  domains?: string[];
+  estimatedHoursMin?: number | null;
+  estimatedHoursMax?: number | null;
+  realWorldDeliverableMd?: string | null;
 }
 
 export interface UpdateCapstoneRequest {
@@ -2571,6 +2626,11 @@ export interface UpdateCapstoneRequest {
   coverEmoji?: string;
   accentColor?: CapstoneAccent;
   status?: CapstoneStatus;
+  scaleTier?: CapstoneScaleTier;
+  domains?: string[];
+  estimatedHoursMin?: number | null;
+  estimatedHoursMax?: number | null;
+  realWorldDeliverableMd?: string | null;
 }
 
 export interface CreateMilestoneRequest {
@@ -2581,6 +2641,9 @@ export interface CreateMilestoneRequest {
   runnableTests?: string | null;
   estimatedDays?: number;
   order?: number;
+  // S85 — calendar date for long_arc milestones.
+  dueAt?: string | null;
+  advisorSignoffRequired?: boolean;
 }
 
 export interface UpdateMilestoneRequest {
@@ -2591,6 +2654,8 @@ export interface UpdateMilestoneRequest {
   runnableTests?: string | null;
   estimatedDays?: number;
   order?: number;
+  dueAt?: string | null;
+  advisorSignoffRequired?: boolean;
 }
 
 export interface SubmitMilestoneRequest {
@@ -3195,4 +3260,679 @@ export interface MasteryNodeKindFields {
   protocolSlug?: string | null;
   certSlug?: string | null;
   equipmentSlug?: string | null;
+}
+
+// =============================================================
+// S86 — Classroom engagement (classes, XP, pets, cosmetics)
+// =============================================================
+
+export type ClassRole = "instructor" | "ta" | "student" | "observer";
+export type ClassStatus = "active" | "archived";
+export type ClassTaskKind = "reading" | "homework";
+export type AttendanceStatus = "present" | "absent" | "late" | "excused";
+export type CosmeticSlot = "head" | "eyes" | "accessory";
+export type CosmeticRarity = "common" | "rare" | "epic" | "legendary";
+
+export interface ClassSummary {
+  id: string;
+  slug: string;
+  title: string;
+  term: string;
+  description: string;
+  status: ClassStatus;
+  role: ClassRole;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ClassesListResponse {
+  teaching: ClassSummary[];
+  enrolled: ClassSummary[];
+}
+
+export interface ClassDetail {
+  id: string;
+  slug: string;
+  title: string;
+  term: string;
+  description: string;
+  syllabusMd: string;
+  // S99 — instructor-authored welcome message (markdown).
+  welcomeMessageMd: string;
+  // S102 — opt-in to the public directory at /classes/discover.
+  discoverable: boolean;
+  // S106 — when set, capstone-track completions by members of that
+  // cohort grant class XP via the 'cohort-capstone-completed' source.
+  linkedCohortId: string | null;
+  status: ClassStatus;
+  instructor: { id: string; username: string; displayName: string | null } | null;
+  joinCode: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ClassRosterEntry {
+  userId: string;
+  username: string;
+  displayName: string | null;
+  role: ClassRole;
+  joinedAt: string;
+}
+
+export interface ClassTaskSummary {
+  id: string;
+  kind: ClassTaskKind;
+  title: string;
+  descriptionMd: string;
+  url: string | null;
+  dueAt: string | null;
+  xpReward: number;
+  createdAt: string;
+  myCompleted: boolean;
+}
+
+export interface ClassDetailResponse {
+  class: ClassDetail;
+  myRole: ClassRole;
+  myXp: number;
+  roster: ClassRosterEntry[];
+  tasks: ClassTaskSummary[];
+}
+
+export interface ClassEquippedCosmetic {
+  slot: string;
+  emoji: string | null;
+  slug: string;
+}
+
+export interface ClassLeaderboardEntry {
+  userId: string;
+  username: string;
+  displayName: string | null;
+  role: ClassRole;
+  xp: number;
+  pet: {
+    species: string;
+    name: string;
+    equipped: ClassEquippedCosmetic[];
+    // S90 — pet evolution. Level-aware glyph + level number for the
+    // leaderboard row's PetView.
+    level?: number;
+    levelEmoji?: string;
+  } | null;
+}
+
+// S101 — leaderboard time windows. Echoed in the response so the
+// client can confirm what it's rendering (defensive when the URL
+// query param drives the request).
+export type LeaderboardWindow = "all" | "week" | "today";
+
+export interface ClassLeaderboardResponse {
+  entries: ClassLeaderboardEntry[];
+  window: LeaderboardWindow;
+}
+
+export interface ClassAttendanceEntry {
+  id: string;
+  userId: string;
+  username: string;
+  displayName: string | null;
+  sessionDate: string;
+  status: AttendanceStatus;
+  recordedAt: string;
+}
+
+export interface ClassAttendanceResponse {
+  entries: ClassAttendanceEntry[];
+}
+
+export interface ClassTaskGrade {
+  pass: boolean;
+  feedback: string;
+}
+
+export interface ClassTaskSubmission {
+  id: string;
+  userId: string;
+  username: string;
+  displayName: string | null;
+  content: string | null;
+  wasLate: boolean;
+  grade: ClassTaskGrade | null;
+  submittedAt: string;
+  gradedAt: string | null;
+}
+
+export interface ClassTaskSubmissionsResponse {
+  task: {
+    id: string;
+    kind: ClassTaskKind;
+    title: string;
+    descriptionMd: string;
+    url: string | null;
+    dueAt: string | null;
+  };
+  submissions: ClassTaskSubmission[];
+}
+
+export interface CreateClassRequest {
+  slug: string;
+  title: string;
+  term?: string;
+  description?: string;
+  syllabusMd?: string;
+  welcomeMessageMd?: string;
+  discoverable?: boolean;
+  linkedCohortId?: string | null;
+}
+
+export interface UpdateClassRequest {
+  title?: string;
+  term?: string;
+  description?: string;
+  syllabusMd?: string;
+  welcomeMessageMd?: string;
+  discoverable?: boolean;
+  linkedCohortId?: string | null;
+  status?: ClassStatus;
+}
+
+// S102 — public class directory entry.
+export interface DiscoverClassEntry {
+  slug: string;
+  title: string;
+  term: string;
+  description: string;
+  welcomeMessageMd: string;
+  memberCount: number;
+  instructorUsername: string;
+  instructorDisplayName: string | null;
+}
+
+export interface DiscoverClassesResponse {
+  classes: DiscoverClassEntry[];
+}
+
+export interface CreateClassTaskRequest {
+  kind: ClassTaskKind;
+  title: string;
+  descriptionMd?: string;
+  url?: string | null;
+  dueAt?: string | null;
+  xpReward?: number | null;
+}
+
+export interface UpdateClassTaskRequest {
+  title?: string;
+  descriptionMd?: string;
+  url?: string | null;
+  dueAt?: string | null;
+  xpReward?: number | null;
+}
+
+export interface CompleteClassTaskRequest {
+  content?: string | null;
+}
+
+export interface CompleteClassTaskResponse {
+  ok: true;
+  xpGranted: number;
+  petHatched: { species: string; name: string } | null;
+}
+
+export interface GradeClassTaskRequest {
+  pass: boolean;
+  feedback?: string;
+}
+
+export interface RecordAttendanceRequest {
+  sessionDate: string;
+  entries: Array<{ userId: string; status: AttendanceStatus }>;
+}
+
+export interface GrantCosmeticRequest {
+  userId: string;
+  cosmeticSlug: string;
+  note?: string;
+}
+
+export interface PetCosmeticDef {
+  id: string;
+  slug: string;
+  name: string;
+  slot: CosmeticSlot;
+  renderKind: "emoji" | "svg";
+  emoji: string | null;
+  rarity: CosmeticRarity;
+  grantOnly: boolean;
+  description: string;
+  // S89 — null = not for sale; positive int = purchasable in the
+  // XP shop. (grantOnly is a S86 flag we keep around for back-
+  // compat; xpCost is the source of truth for shop visibility.)
+  xpCost?: number | null;
+}
+
+export interface PetCosmeticsCatalogResponse {
+  cosmetics: PetCosmeticDef[];
+}
+
+export interface PetInventoryItem {
+  id: string;
+  slug: string;
+  name: string;
+  slot: CosmeticSlot;
+  emoji: string | null;
+  rarity: CosmeticRarity;
+  description: string;
+  equipped: boolean;
+  acquiredAt: string;
+  grantedNote: string | null;
+}
+
+export interface MyPetResponse {
+  pet: {
+    id: string;
+    species: string;
+    // Level-1 form. Kept around for back-compat with code that
+    // reads speciesEmoji directly. New code should use levelEmoji.
+    speciesEmoji: string;
+    speciesLabel: string;
+    name: string;
+    hatchedAt: string;
+    // S90 — pet evolution.
+    level: number;
+    maxLevel: number;
+    // Emoji for the pet's current level. PetView renders this.
+    levelEmoji: string;
+    // XP threshold for the next level, or null at max.
+    nextLevelXp: number | null;
+    // S100 — full chain for the user's species. UI renders the
+    // past + future forms alongside the current one so progression
+    // is visible at a glance.
+    evolutionChain: Array<{
+      level: number;
+      threshold: number;
+      emoji: string;
+    }>;
+  } | null;
+  totalXp: number;
+  hatchThresholdXp: number;
+  inventory: PetInventoryItem[];
+  // S104 — multi-pet. Lists every pet the user owns so the UI can
+  // render a swap strip; `pet` above is the currently-active one.
+  // petCap is the per-user cap (3 in v1); nextHatchXp is the XP
+  // threshold to hatch the user's next pet, or null when at cap.
+  pets: Array<{
+    id: string;
+    species: string;
+    speciesLabel: string;
+    speciesEmoji: string;
+    level: number;
+    name: string;
+    hatchedAt: string;
+    isActive: boolean;
+  }>;
+  petCap: number;
+  nextHatchXp: number | null;
+}
+
+export interface HatchAnotherPetResponse {
+  ok: true;
+  pet: {
+    id: string;
+    species: string;
+    name: string;
+    level: number;
+  };
+}
+
+// =============================================================
+// S87 — Competitions + per-username pet display.
+// =============================================================
+
+export type CompetitionStatus = "draft" | "active" | "ended";
+// S88 added 'reading-completions' on the server but this union was
+// never widened — the type was lying about what scoringRule values
+// the API actually returns. Widen here so the web client's
+// pattern-matching is honest.
+export type CompetitionScoringRule = "class-xp" | "reading-completions";
+
+export interface CompetitionSummary {
+  id: string;
+  classId: string;
+  title: string;
+  descriptionMd: string;
+  startsAt: string;
+  endsAt: string;
+  scoringRule: CompetitionScoringRule;
+  prizeCosmeticSlug: string;
+  prizeCosmeticEmoji: string | null;
+  prizeCosmeticName: string | null;
+  prizeWinnerCount: number;
+  status: CompetitionStatus;
+  prizesAwarded: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CompetitionStandingEntry {
+  rank: number;
+  userId: string;
+  username: string | null;
+  displayName: string | null;
+  score: number;
+  isWinner: boolean;
+}
+
+export interface CompetitionsListResponse {
+  competitions: CompetitionSummary[];
+}
+
+export interface CompetitionDetailResponse {
+  competition: CompetitionSummary;
+  standings: CompetitionStandingEntry[];
+}
+
+export interface CreateCompetitionRequest {
+  title: string;
+  descriptionMd?: string;
+  startsAt: string;
+  endsAt: string;
+  scoringRule?: CompetitionScoringRule;
+  prizeCosmeticSlug: string;
+  prizeWinnerCount?: number;
+}
+
+export interface UpdateCompetitionRequest {
+  title?: string;
+  descriptionMd?: string;
+  startsAt?: string;
+  endsAt?: string;
+  prizeCosmeticSlug?: string;
+  prizeWinnerCount?: number;
+}
+
+// Lean per-username payload powering the PetByUsername wrapper.
+// pet=null when the user hasn't hatched a pet yet (or the username
+// isn't found — the API doesn't distinguish to avoid leakage).
+export interface UserPetDisplay {
+  pet: {
+    species: string;
+    // S90 — speciesEmoji here is level-aware: it's the glyph for
+    // the pet's current level, so bylines automatically reflect
+    // evolution without per-byline level-aware code.
+    speciesEmoji: string;
+    level: number;
+    name: string;
+    equipped: Array<{ slot: string; emoji: string | null; slug: string }>;
+  } | null;
+}
+
+// =============================================================
+// S89 — XP shop.
+// =============================================================
+
+// One row from GET /me/pet/shop. Already filtered to purchasable
+// cosmetics (xpCost not null). owned + affordable are computed
+// per-user so the UI can render the right CTA without a second
+// query.
+export interface ShopItem {
+  slug: string;
+  name: string;
+  slot: CosmeticSlot;
+  emoji: string | null;
+  rarity: CosmeticRarity;
+  description: string;
+  xpCost: number;
+  // S95 — discounted price applied today if `featured` is true,
+  // else equal to xpCost. Server is the source of truth — the buy
+  // route re-derives the discount and ignores any client claim.
+  effectiveCost: number;
+  featured: boolean;
+  owned: boolean;
+  affordable: boolean;
+}
+
+export interface ShopResponse {
+  balance: number;
+  // S95 — the slug the server picked as today's featured cosmetic
+  // (deterministic from UTC date). null if the shop has zero
+  // purchasable items.
+  featuredSlug: string | null;
+  featuredDiscountPercent: number;
+  items: ShopItem[];
+}
+
+export interface BuyCosmeticRequest {
+  cosmeticSlug: string;
+}
+
+export interface BuyCosmeticResponse {
+  ok: true;
+  balance: number;
+  cosmeticSlug: string;
+  // S95 — actual XP burned (may be discounted) + whether it was
+  // bought as today's featured. Lets the UI flash a "saved N XP!"
+  // toast when the discount applied.
+  amountSpent?: number;
+  wasFeatured?: boolean;
+}
+
+// GET /me/pet/balance — small probe for the balance widget. Returns
+// lifetime + spent so the UI can show "X spent of Y earned" without
+// a second call.
+export interface XpBalanceResponse {
+  balance: number;
+  lifetimeXp: number;
+  spentXp: number;
+}
+
+// =============================================================
+// S93 — Instructor analytics dashboard.
+// =============================================================
+
+export interface ClassAnalyticsXpByDay {
+  day: string; // YYYY-MM-DD UTC
+  totalXp: number;
+  distinctUserCount: number;
+}
+
+export interface ClassAnalyticsTaskCompletion {
+  taskId: string;
+  title: string;
+  kind: "reading" | "homework";
+  dueAt: string | null;
+  submittedCount: number;
+  gradedPassCount: number;
+  totalEnrolled: number;
+}
+
+export interface ClassAnalyticsAttendance {
+  sessionDate: string;
+  presentCount: number;
+  lateCount: number;
+  absentCount: number;
+  excusedCount: number;
+}
+
+export interface ClassAnalyticsStalled {
+  userId: string;
+  username: string;
+  displayName: string | null;
+  // Null when the student has never earned XP. Otherwise integer
+  // days since the most recent class XP grant.
+  daysSinceLastActivity: number | null;
+  totalXp: number;
+}
+
+export interface ClassAnalyticsResponse {
+  xpByDay: ClassAnalyticsXpByDay[];
+  taskCompletions: ClassAnalyticsTaskCompletion[];
+  attendanceRate: ClassAnalyticsAttendance[];
+  stalledStudents: ClassAnalyticsStalled[];
+  totalEnrolled: number;
+  stalledThresholdDays: number;
+  windowDays: number;
+}
+
+// =============================================================
+// S94 — Student progress dashboard.
+// =============================================================
+//
+// Per-user mirror of the S93 instructor analytics. Same window +
+// shape patterns so the UI components can share styling vocabulary.
+
+export interface MyProgressXpByDay {
+  day: string;
+  totalXp: number;
+}
+
+export interface MyProgressXpBySource {
+  // Matches XpSource in apps/server/src/lib/xp.ts at runtime.
+  source: string;
+  totalXp: number;
+  count: number;
+}
+
+export interface MyProgressClassStanding {
+  classSlug: string;
+  classTitle: string;
+  myXp: number;
+  myRank: number;
+  totalMembers: number;
+}
+
+// =============================================================
+// S98 — Profile cosmetic gallery.
+// =============================================================
+
+export interface CosmeticGalleryItem {
+  slug: string;
+  name: string;
+  slot: CosmeticSlot;
+  emoji: string | null;
+  rarity: CosmeticRarity;
+  description: string;
+  // 'shop' = purchasable in /shop; 'grant' = obtainable only via
+  // instructor grant or competition prize. Lets the gallery render
+  // a hint for unowned items.
+  obtainability: "shop" | "grant";
+  owned: boolean;
+  equipped: boolean;
+}
+
+export interface CosmeticGalleryResponse {
+  items: CosmeticGalleryItem[];
+  ownedCount: number;
+  totalCount: number;
+}
+
+// =============================================================
+// S97 — Public pet showcase.
+// =============================================================
+
+export interface PetShowcaseEquippedItem {
+  slot: string;
+  emoji: string | null;
+  slug: string;
+}
+
+export interface PetShowcasePet {
+  species: string;
+  speciesEmoji: string;
+  level: number;
+  name: string;
+  equipped: PetShowcaseEquippedItem[];
+}
+
+export interface PetShowcaseDecoratedEntry {
+  userId: string;
+  username: string;
+  displayName: string | null;
+  pet: PetShowcasePet;
+  equippedCount: number;
+}
+
+export interface PetShowcaseTopLevelEntry {
+  userId: string;
+  username: string;
+  displayName: string | null;
+  pet: PetShowcasePet;
+  hatchedAt: string;
+}
+
+export interface PetShowcaseResponse {
+  mostDecorated: PetShowcaseDecoratedEntry[];
+  recentTopLevel: PetShowcaseTopLevelEntry[];
+}
+
+// =============================================================
+// S96 — Class question of the day.
+// =============================================================
+
+export interface ClassQuestionMyAttempt {
+  answerIndex: number;
+  correct: boolean;
+  // Surfaced only after the user has attempted; null in the
+  // unanswered case to prevent answer leakage.
+  correctIndex: number;
+}
+
+export interface ClassQuestionActive {
+  id: string;
+  prompt: string;
+  choices: string[];
+  startsAt: string;
+  myAttempt: ClassQuestionMyAttempt | null;
+}
+
+export interface ClassQuestionActiveResponse {
+  question: ClassQuestionActive | null;
+}
+
+export interface CreateClassQuestionRequest {
+  prompt: string;
+  choices: string[];
+  correctIndex: number;
+}
+
+export interface AnswerClassQuestionRequest {
+  answerIndex: number;
+}
+
+export interface AnswerClassQuestionResponse {
+  correct: boolean;
+  correctIndex: number;
+  xpAwarded: number;
+}
+
+// Instructor list — includes correctIndex and stats.
+export interface ClassQuestionListItem {
+  id: string;
+  prompt: string;
+  choices: string[];
+  correctIndex: number;
+  startsAt: string;
+  endsAt: string | null;
+  attempts: number;
+  correctCount: number;
+}
+
+export interface ClassQuestionListResponse {
+  questions: ClassQuestionListItem[];
+}
+
+export interface MyProgressResponse {
+  lifetimeXp: number;
+  streak: number;
+  competitionWins: number;
+  xpByDay: MyProgressXpByDay[];
+  xpBySource: MyProgressXpBySource[];
+  classStandings: MyProgressClassStanding[];
+  cosmeticProgress: {
+    ownedCount: number;
+    totalCosmetics: number;
+    ownedSlugs: string[];
+  };
+  windowDays: number;
 }

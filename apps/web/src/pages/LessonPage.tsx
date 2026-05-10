@@ -23,6 +23,7 @@ import type {
 import { assertQuestionKind } from "@axiomic/types";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { TutorMount } from "../components/ai/TutorMount";
+import { PetByUsername } from "../components/pet/PetByUsername";
 import { QuestionRenderer, isAnswered } from "../components/quiz/QuestionRenderer";
 import { LessonNotes } from "../components/mastery/LessonNotes";
 import { PreviewViz } from "../components/lesson/PreviewViz";
@@ -555,6 +556,7 @@ export function LessonPage() {
               >
                 <BookOpen className="w-3 h-3" strokeWidth={2} />
                 Sourced from{" "}
+                <PetByUsername username={sourceArticle.authorUsername} size="xs" />
                 <span className="font-medium">@{sourceArticle.authorUsername}</span>
                 's article ·{" "}
                 <span className="text-foreground">{sourceArticle.title}</span>

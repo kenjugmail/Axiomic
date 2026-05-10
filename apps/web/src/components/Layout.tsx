@@ -21,6 +21,8 @@ const PRIMARY_NAV: Array<{ to: string; label: string }> = [
   { to: "/news", label: "News" },
   { to: "/research", label: "Research" },
   { to: "/capstones", label: "Capstones" },
+  // S86 — classroom engagement gamification.
+  { to: "/classes", label: "Classes" },
   { to: "/paths", label: "Paths" },
   // Sprint 78 — exam track surfaces. Without these the SAT/GRE/MCAT/
   // USMLE flows were reachable only by typing the URL.

@@ -1,0 +1,140 @@
+{
+  "slug": "phone-fluorescence-microscope",
+  "title": "Phone-camera fluorescence microscope adapter",
+  "summary": "A four-month build: design + fabricate a phone-camera fluorescence microscope adapter, characterize its resolution + sensitivity, and pair it with an image-processing pipeline that segments labelled cells in a real sample.",
+  "estimatedWeeks": 17,
+  "coverEmoji": "🔬",
+  "accentColor": "violet",
+  "tags": ["optics", "imaging", "biology"],
+  "scaleTier": "long_arc",
+  "domains": ["optics", "mechE", "image-processing", "microbio"],
+  "estimatedHoursMin": 250,
+  "estimatedHoursMax": 500,
+  "realWorldDeliverableMd": "## What you ship\n\nA phone-camera fluorescence microscope adapter that produces calibrated, reproducible cell counts on a real biological sample. The deliverable is the integrated system — optics, mechanical adapter, image-processing pipeline, and a validated end-to-end demo.\n\n**Optics + adapter:** 3D-printed enclosure that aligns the phone camera with an objective, an excitation LED, and an emission filter. Light path designed so a fluorescent sample (e.g. GFP-labelled cells, DAPI-stained nuclei) is illuminated, the emission is filtered, and the camera captures a usable image.\n\n**Image pipeline:** Acquisition app or scripted workflow + a segmentation pipeline (your code, with AI assistance) that counts labelled cells. Outputs reproducible counts with documented preprocessing.\n\n**Characterization:** Measured resolution (USAF target or comparable), measured signal-to-background, comparison against a benchtop reference microscope on the same sample. \n\n**End-to-end demo:** Prepare slide → image with adapter → run pipeline → produce count. Demonstrated on at least one real sample (you choose: stained yeast, GFP bacteria, fluorescent beads as a positive control, or pollen autofluorescence). \n\n**Why AI alone can't do this:** AI doesn't know your phone's sensor's spectral response, your specific LED's emission spectrum, your filter's actual transmission, or how your 3D-printer's tolerances affect alignment. AI also can't pull a sample, image it, and feed back what worked. The build is the empirical loop.",
+  "contentUndergrad": "## Why this capstone\n\nBuilding a fluorescence microscope teaches optics, mechanical design, image processing, and bio sample prep simultaneously — and none of them in a textbook way. The phone-camera constraint forces real engineering tradeoffs: you can't use a microscope objective designed for infinity-corrected systems with no tube lens; you can't ignore your phone's IR filter; you can't assume the LED you bought matches its datasheet.\n\nFour months. The first two are mostly bench work — alignment, dark-frame characterization, getting *anything* to focus through the phone. The second two are software + bio: pipeline, validation, getting the same sample to give you the same count twice.\n\n## Scope\n\nThis is not 'rig a phone to a microscope eyepiece.' That's a weekend hack. This is design the optical path from scratch, characterize each component, integrate, and ship a tool that produces reproducible measurements. The grader scores the integrated artifact end-to-end.\n\n## How AI fits in\n\nAI is excellent for derivations (calculate the magnification implied by your optical path), code review (your image segmentation pipeline), datasheet extraction, and pattern matching (someone has built something similar — what did they get wrong). It is not a substitute for actually getting your LED + filter combo to produce a usable image of YOUR sample. The empirical iteration loop is yours.\n\nUse AI heavily for the parts it can help with. Ship the integrated rig.",
+  "milestones": [
+    {
+      "title": "M1 — Optical path design",
+      "description": "Specify the optical components: objective, tube lens or phone-native focusing, excitation LED + collimation, emission filter. Produce a ray diagram and a working magnification calculation. Defend choices in the writeup.",
+      "estimatedDays": 14,
+      "dueAt": "2026-05-31",
+      "advisorSignoffRequired": true,
+      "requiredArtifactKinds": ["writeup"],
+      "rubric": {
+        "criteria": [
+          {"id": "design", "weight": 0.5, "description": "Optical path is realistic and parts are sourceable.", "aiPrompt": "Score whether the proposed optical path is plausible and the parts list is sourceable for a student budget."},
+          {"id": "magnification-math", "weight": 0.3, "description": "Magnification calculation is correct given the components.", "aiPrompt": "Score the magnification derivation."},
+          {"id": "writeup", "weight": 0.2, "description": "Choices are defended.", "aiPrompt": "Score the writeup's defense of the optical choices."}
+        ],
+        "passingScore": 0.7
+      }
+    },
+    {
+      "title": "M2 — Adapter CAD + first print",
+      "description": "Design the 3D-printed adapter that holds the phone, objective, LED, and filter in fixed alignment. Print v1, fit-check, iterate. v1 won't be perfect — v2 or v3 will be the working version. Document the iterations.",
+      "estimatedDays": 21,
+      "dueAt": "2026-06-21",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "rubric": {
+        "criteria": [
+          {"id": "cad", "weight": 0.4, "description": "CAD files are reproducible and dimensioned.", "aiPrompt": "Score the CAD files for reproducibility."},
+          {"id": "iteration", "weight": 0.4, "description": "Iteration log shows real fit-check learnings.", "aiPrompt": "Score the documented iteration — does it surface what failed and why?"},
+          {"id": "build-quality", "weight": 0.2, "description": "Final adapter holds alignment under handling.", "aiPrompt": "Score build-quality evidence (photos, alignment data)."}
+        ],
+        "passingScore": 0.6
+      }
+    },
+    {
+      "title": "M3 — Bench imaging of a positive-control target",
+      "description": "Image a known target — fluorescent beads or a USAF resolution target — and produce a usable image through the phone camera. This is the moment the system either focuses or doesn't. Surface the failures honestly.",
+      "estimatedDays": 21,
+      "dueAt": "2026-07-12",
+      "advisorSignoffRequired": true,
+      "requiredArtifactKinds": ["github", "writeup"],
+      "rubric": {
+        "criteria": [
+          {"id": "first-image", "weight": 0.5, "description": "A usable in-focus image of the control target.", "aiPrompt": "Score whether the captured image is usable for downstream measurement."},
+          {"id": "failure-analysis", "weight": 0.3, "description": "Failures are diagnosed.", "aiPrompt": "Score the writeup's diagnosis of failed imaging attempts."},
+          {"id": "characterization", "weight": 0.2, "description": "Initial resolution + brightness measurements.", "aiPrompt": "Score the initial characterization data."}
+        ],
+        "passingScore": 0.6
+      }
+    },
+    {
+      "title": "M4 — Image-processing pipeline (segmentation + counting)",
+      "description": "Write the pipeline that takes a captured image and produces a cell count. Likely a combination of preprocessing (denoise, flatfield), segmentation (thresholding, watershed, or a small CNN), and counting. Pair-program with AI; review every commit. Test on the bench-imaged positive control.",
+      "estimatedDays": 28,
+      "dueAt": "2026-08-09",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "rubric": {
+        "criteria": [
+          {"id": "pipeline", "weight": 0.4, "description": "Pipeline runs end-to-end on a captured image.", "aiPrompt": "Score whether the pipeline produces a count from a raw input."},
+          {"id": "reproducibility", "weight": 0.3, "description": "Same input produces same count.", "aiPrompt": "Score reproducibility evidence."},
+          {"id": "code-quality", "weight": 0.3, "description": "Code is readable, tested, version-controlled.", "aiPrompt": "Score code quality + tests."}
+        ],
+        "passingScore": 0.6
+      }
+    },
+    {
+      "title": "M5 — Resolution + sensitivity characterization",
+      "description": "Measure the system's actual resolution (USAF target or equivalent) and signal-to-background on a fluorescent sample. Compare against the magnification math from M1 — discrepancies are interesting, document them.",
+      "estimatedDays": 14,
+      "dueAt": "2026-08-23",
+      "requiredArtifactKinds": ["dataset", "writeup"],
+      "rubric": {
+        "criteria": [
+          {"id": "resolution", "weight": 0.4, "description": "Measured resolution is documented with method.", "aiPrompt": "Score the resolution measurement methodology."},
+          {"id": "sensitivity", "weight": 0.3, "description": "Signal-to-background measured on a real fluorophore.", "aiPrompt": "Score the sensitivity measurement."},
+          {"id": "comparison", "weight": 0.3, "description": "Compared against the M1 prediction.", "aiPrompt": "Score the M1-vs-measured comparison + discussion of differences."}
+        ],
+        "passingScore": 0.6
+      }
+    },
+    {
+      "title": "M6 — Real biological sample run",
+      "description": "Prepare a real biological sample (your choice, advisor-approved): GFP bacteria, DAPI-stained yeast, autofluorescent pollen, etc. Image it with the adapter. Run the pipeline. Produce a count. Validate against a benchtop reference microscope on the same sample.",
+      "estimatedDays": 21,
+      "dueAt": "2026-09-13",
+      "advisorSignoffRequired": true,
+      "requiredArtifactKinds": ["github", "writeup", "dataset"],
+      "rubric": {
+        "criteria": [
+          {"id": "real-sample", "weight": 0.4, "description": "Successful imaging of a real biological sample.", "aiPrompt": "Score the real-sample imaging quality."},
+          {"id": "count-vs-reference", "weight": 0.4, "description": "Phone-microscope count compared against benchtop reference.", "aiPrompt": "Score the count comparison vs the reference + discussion of agreement."},
+          {"id": "sample-prep", "weight": 0.2, "description": "Sample prep is documented.", "aiPrompt": "Score the sample-prep writeup for reproducibility."}
+        ],
+        "passingScore": 0.7
+      }
+    },
+    {
+      "title": "M7 — End-to-end reproducibility test",
+      "description": "Demonstrate that an independent operator (a friend, a colleague, an undergrad) can pick up the rig + the pipeline, image the same sample, and produce a count within ±10% of yours. This is the test of whether you actually built a tool.",
+      "estimatedDays": 14,
+      "dueAt": "2026-09-27",
+      "requiredArtifactKinds": ["dataset", "writeup"],
+      "rubric": {
+        "criteria": [
+          {"id": "reproducibility", "weight": 0.6, "description": "Independent operator achieves comparable count.", "aiPrompt": "Score the cross-operator reproducibility evidence."},
+          {"id": "instructions", "weight": 0.4, "description": "Operating instructions are clear enough to enable that.", "aiPrompt": "Score the operating-instructions writeup."}
+        ],
+        "passingScore": 0.6
+      }
+    },
+    {
+      "title": "M8 — Final report + open-source release",
+      "description": "Write the full project report — design choices, characterization data, validation, limitations, what you'd do differently. Release CAD + firmware + pipeline as an open-source repo so someone else can rebuild it. Note where AI couldn't help.",
+      "estimatedDays": 14,
+      "dueAt": "2026-10-11",
+      "requiredArtifactKinds": ["github", "writeup", "dataset"],
+      "rubric": {
+        "criteria": [
+          {"id": "report-depth", "weight": 0.4, "description": "Report explains the 4-month arc.", "aiPrompt": "Score the depth of the final report."},
+          {"id": "open-source-quality", "weight": 0.3, "description": "Repo is structured for someone to rebuild.", "aiPrompt": "Score the repo's reproducibility."},
+          {"id": "limitations", "weight": 0.2, "description": "Limitations honestly stated.", "aiPrompt": "Score the limitations section."},
+          {"id": "ai-honesty", "weight": 0.1, "description": "Mentions where AI couldn't help.", "aiPrompt": "Score the AI-couldn't-help section honesty."}
+        ],
+        "passingScore": 0.7
+      }
+    }
+  ]
+}

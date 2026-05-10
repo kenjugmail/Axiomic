@@ -17,6 +17,23 @@ window.addEventListener("unhandledrejection", (e) => {
   captureError(e.reason, { kind: "unhandled_rejection" });
 });
 
+// S107a — register the Web Push service worker. The SW receives
+// push events and surfaces them as native notifications via
+// self.registration.showNotification(). Registration is best-effort:
+// browsers without serviceWorker support (or insecure contexts in
+// dev) silently skip. The actual permission prompt is gated behind
+// an explicit user click in Settings; this just makes the SW
+// available so subscribe() works when the user opts in.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/service-worker.js", { scope: "/" })
+      .catch((err) => {
+        console.warn("[push] service worker registration failed", err);
+      });
+  });
+}
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <BrowserRouter>

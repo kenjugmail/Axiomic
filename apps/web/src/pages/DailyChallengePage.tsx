@@ -4,6 +4,7 @@ import { Check, Flame, X as XIcon } from "lucide-react";
 import { api } from "../lib/api";
 import type { DailyChallengeResponse } from "@axiomic/types";
 import { useAuthStore } from "../stores/auth";
+import { toast } from "../stores/toast";
 
 export function DailyChallengePage() {
   const me = useAuthStore((s) => s.user);
@@ -33,6 +34,18 @@ export function DailyChallengePage() {
       const r = await api.gamification.submitDaily(String(selected));
       setResult({ correct: r.correct });
       setChallenge((c) => (c ? { ...c, stats: r.stats, streak: r.streak, myAnswer: { answer: String(selected), correct: r.correct } } : c));
+
+      // S91 — celebrate the XP grant + level-up. xpAwarded is 0 on a
+      // wrong answer or a re-attempt, so silence those cases.
+      if (r.xpAwarded && r.xpAwarded > 0) {
+        toast.success(`+${r.xpAwarded} XP for the daily challenge!`);
+      }
+      if (r.petHatched) {
+        toast.success(`Your egg hatched into a ${r.petHatched.name}!`);
+      }
+      if (r.petLeveledUp) {
+        toast.success(`Your pet leveled up to Lv ${r.petLeveledUp.newLevel}!`);
+      }
     } finally {
       setSubmitting(false);
     }

@@ -226,6 +226,42 @@ const CapstoneNewPage = lazy(() =>
 const CapstoneEditPage = lazy(() =>
   import("./pages/CapstoneEditPage").then((m) => ({ default: m.CapstoneEditPage })),
 );
+const ClassesListPage = lazy(() =>
+  import("./pages/ClassesListPage").then((m) => ({ default: m.ClassesListPage })),
+);
+const ClassPage = lazy(() =>
+  import("./pages/ClassPage").then((m) => ({ default: m.ClassPage })),
+);
+const ClassEditPage = lazy(() =>
+  import("./pages/ClassEditPage").then((m) => ({ default: m.ClassEditPage })),
+);
+const ClassTaskPage = lazy(() =>
+  import("./pages/ClassTaskPage").then((m) => ({ default: m.ClassTaskPage })),
+);
+const MyPetPage = lazy(() =>
+  import("./pages/MyPetPage").then((m) => ({ default: m.MyPetPage })),
+);
+const CompetitionDetailPage = lazy(() =>
+  import("./pages/CompetitionDetailPage").then((m) => ({ default: m.CompetitionDetailPage })),
+);
+const ShopPage = lazy(() =>
+  import("./pages/ShopPage").then((m) => ({ default: m.ShopPage })),
+);
+const ClassAnalyticsPage = lazy(() =>
+  import("./pages/ClassAnalyticsPage").then((m) => ({ default: m.ClassAnalyticsPage })),
+);
+const MyProgressPage = lazy(() =>
+  import("./pages/MyProgressPage").then((m) => ({ default: m.MyProgressPage })),
+);
+const PetShowcasePage = lazy(() =>
+  import("./pages/PetShowcasePage").then((m) => ({ default: m.PetShowcasePage })),
+);
+const JoinClassPage = lazy(() =>
+  import("./pages/JoinClassPage").then((m) => ({ default: m.JoinClassPage })),
+);
+const ClassesDirectoryPage = lazy(() =>
+  import("./pages/ClassesDirectoryPage").then((m) => ({ default: m.ClassesDirectoryPage })),
+);
 const CapstoneWorkspacePage = lazy(() =>
   import("./pages/CapstoneWorkspacePage").then((m) => ({ default: m.CapstoneWorkspacePage })),
 );
@@ -486,6 +522,22 @@ function AppRoutes() {
           <Route path="/capstones/:slug" element={<CapstonePage />} />
           <Route path="/capstones/:slug/edit" element={<CapstoneEditPage />} />
           <Route path="/capstones/:slug/work" element={<CapstoneWorkspacePage />} />
+          {/* S86 — classes + pets. */}
+          <Route path="/classes" element={<ClassesListPage />} />
+          <Route path="/classes/:slug" element={<ClassPage />} />
+          <Route path="/classes/:slug/edit" element={<ClassEditPage />} />
+          <Route path="/classes/:slug/tasks/:taskId" element={<ClassTaskPage />} />
+          <Route
+            path="/classes/:slug/competitions/:competitionId"
+            element={<CompetitionDetailPage />}
+          />
+          <Route path="/classes/:slug/analytics" element={<ClassAnalyticsPage />} />
+          <Route path="/me/pet" element={<MyPetPage />} />
+          <Route path="/me/progress" element={<MyProgressPage />} />
+          <Route path="/explore/pets" element={<PetShowcasePage />} />
+          <Route path="/join/:slug/:joinCode" element={<JoinClassPage />} />
+          <Route path="/classes/discover" element={<ClassesDirectoryPage />} />
+          <Route path="/shop" element={<ShopPage />} />
           <Route path="/tracks" element={<CapstoneTracksListPage />} />
           <Route path="/tracks/c/:artifactSlug" element={<CapstoneTrackArtifactPage />} />
           <Route path="/tracks/:slug" element={<CapstoneTrackPage />} />

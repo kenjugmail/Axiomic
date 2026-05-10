@@ -11,6 +11,7 @@ import { aiRouter } from "./routes/ai";
 import { mastery } from "./routes/mastery";
 import { forum } from "./routes/forum";
 import { notificationsRouter } from "./routes/notifications";
+import { pushRouter } from "./routes/push";
 import { searchRouter } from "./routes/search";
 import { settingsRouter } from "./routes/settings";
 import { flashcardsRouter } from "./routes/flashcards";
@@ -42,6 +43,8 @@ import { claimExternalAuthorshipsByOrcidJob } from "./jobs/claimExternalAuthorsh
 import { harvestSocialResearcherPostsJob } from "./jobs/harvestSocialResearcherPosts";
 import { finalizeStaleExamAttemptsJob } from "./jobs/finalizeStaleExamAttempts";
 import { capstonesRouter } from "./routes/capstones";
+import { classesRouter } from "./routes/classes";
+import { petRouter, petCatalogRouter, petPublicRouter } from "./routes/pet";
 import { misconceptionsRouter } from "./routes/misconceptions";
 import { kernelFilesRouter } from "./routes/kernelFiles";
 import { cohortsRouter, mentorsRouter } from "./routes/cohorts";
@@ -208,6 +211,7 @@ app.route("/ai", aiRouter);
 app.route("/mastery", mastery);
 app.route("/forum", forum);
 app.route("/notifications", notificationsRouter);
+app.route("/push", pushRouter);
 app.route("/search", searchRouter);
 app.route("/settings", settingsRouter);
 app.route("/flashcards", flashcardsRouter);
@@ -235,6 +239,11 @@ app.route("/external-papers", paperAuthorQuestionsRouter);
 // Sprint 73 — exam mastery framework.
 app.route("/exams", examsRouter);
 app.route("/capstones", capstonesRouter);
+app.route("/classes", classesRouter);
+app.route("/me/pet", petRouter);
+app.route("/pet-cosmetics", petCatalogRouter);
+// S87 — public per-username pet display.
+app.route("/users", petPublicRouter);
 app.route("/misconceptions", misconceptionsRouter);
 app.route("/kernel-files", kernelFilesRouter);
 app.route("/cohorts", cohortsRouter);

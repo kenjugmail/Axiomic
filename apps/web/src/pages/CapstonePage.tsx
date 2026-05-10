@@ -7,7 +7,18 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { BookMarked, GraduationCap, ChevronRight, History, Sparkles, Lock, ListChecks } from "lucide-react";
+import {
+  BookMarked,
+  GraduationCap,
+  ChevronRight,
+  History,
+  Sparkles,
+  Lock,
+  ListChecks,
+  Mountain,
+  Target,
+  Calendar,
+} from "lucide-react";
 import type { Capstone, CapstoneTier } from "@axiomic/types";
 import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
@@ -135,7 +146,16 @@ export function CapstonePage() {
             </Link>
           </span>
           <span>·</span>
-          <span>{capstone.estimatedWeeks}-week capstone</span>
+          {capstone.scaleTier === "long_arc" &&
+          capstone.estimatedHoursMin != null &&
+          capstone.estimatedHoursMax != null ? (
+            <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-300 font-medium">
+              <Mountain className="w-3 h-3" />
+              Year-scale · {capstone.estimatedHoursMin}-{capstone.estimatedHoursMax}h
+            </span>
+          ) : (
+            <span>{capstone.estimatedWeeks}-week capstone</span>
+          )}
           <span>·</span>
           <span>
             {capstone.milestones.length} milestone
@@ -243,6 +263,46 @@ export function CapstonePage() {
         </div>
       )}
 
+      {/* S85 — Year-scale metadata. Domains + real-world deliverable
+         surface BEFORE the brief so the learner knows what they're
+         signing up for upfront. */}
+      {capstone.scaleTier === "long_arc" && (
+        <section className="mb-6 space-y-4">
+          {capstone.domains.length > 0 && (
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
+                Domains
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {capstone.domains.map((d) => (
+                  <span
+                    key={d}
+                    className="text-xs px-2 py-0.5 rounded-full border border-border bg-muted/40 text-foreground"
+                  >
+                    {d}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          {capstone.realWorldDeliverableMd &&
+            capstone.realWorldDeliverableMd.trim().length > 0 && (
+              <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4">
+                <div className="text-xs font-semibold inline-flex items-center gap-1.5 mb-2 text-emerald-700 dark:text-emerald-300">
+                  <Target className="w-3.5 h-3.5" />
+                  Real-world deliverable
+                </div>
+                <div className="prose-sm max-w-none">
+                  <MarkdownRenderer
+                    content={capstone.realWorldDeliverableMd}
+                    codeKernelKey={`capstone-deliverable:${capstone.slug}`}
+                  />
+                </div>
+              </div>
+            )}
+        </section>
+      )}
+
       {/* Tier toggle */}
       {capstone.availableTiers.length > 1 && (
         <TierToggle
@@ -320,9 +380,20 @@ export function CapstonePage() {
                         </p>
                       )}
                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-2 flex items-center gap-2 flex-wrap">
-                        <span>
-                          {m.estimatedDays}d · {m.rubric.criteria.length} criteria
-                        </span>
+                        {capstone.scaleTier === "long_arc" && m.dueAt ? (
+                          <span className="inline-flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            due {formatMilestoneDate(m.dueAt)}
+                          </span>
+                        ) : (
+                          <span>{m.estimatedDays}d</span>
+                        )}
+                        <span>· {m.rubric.criteria.length} criteria</span>
+                        {m.advisorSignoffRequired && (
+                          <span className="text-amber-600 dark:text-amber-400">
+                            · advisor sign-off
+                          </span>
+                        )}
                         {m.requiredArtifactKinds.length > 0 && (
                           <span>
                             · requires:{" "}
@@ -373,4 +444,18 @@ export function CapstonePage() {
       />
     </div>
   );
+}
+
+// S85 — Render an ISO date string as a short human label (e.g. "Aug
+// 1, 2026"). Falls back to the raw string if Date parsing fails so
+// authors who store an unconventional value still see something
+// readable.
+function formatMilestoneDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }

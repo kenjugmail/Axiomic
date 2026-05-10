@@ -25,6 +25,8 @@ import {
   equipment,
   equipmentOperations,
   safetyCertifications,
+  // S86 — pet cosmetic catalog.
+  petCosmetics,
 } from "./index";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -128,6 +130,9 @@ async function seed() {
   // Sprint 84 — lab protocol + equipment + safety-cert library +
   // onboarding playbook. Idempotent on slug.
   seedLabContent();
+
+  // S86 — pet cosmetic catalog. Idempotent on slug.
+  seedPetCosmetics();
 
   console.log("Seeding complete.");
 }
@@ -2164,15 +2169,37 @@ async function seedCapstones() {
     systemUser = { id };
   }
 
-  const files = fs.readdirSync(capstonesDir).filter((f) => f.endsWith(".json"));
+  // S85 — load skill_drill seeds from the directory root, then
+  // long_arc seeds from the `long-arc/` subdirectory. Same file
+  // shape; the loader threads the new fields through.
+  type Seed = { file: string; absPath: string; defaultTier: "skill_drill" | "long_arc" };
+  const seeds: Seed[] = fs
+    .readdirSync(capstonesDir)
+    .filter((f) => f.endsWith(".json"))
+    .map((f) => ({
+      file: f,
+      absPath: path.join(capstonesDir, f),
+      defaultTier: "skill_drill" as const,
+    }));
+  const longArcDir = path.join(capstonesDir, "long-arc");
+  if (fs.existsSync(longArcDir)) {
+    for (const f of fs.readdirSync(longArcDir).filter((f) => f.endsWith(".json"))) {
+      seeds.push({
+        file: `long-arc/${f}`,
+        absPath: path.join(longArcDir, f),
+        defaultTier: "long_arc" as const,
+      });
+    }
+  }
+
   let count = 0;
-  for (const file of files) {
-    const raw = fs.readFileSync(path.join(capstonesDir, file), "utf-8");
+  for (const seed of seeds) {
+    const raw = fs.readFileSync(seed.absPath, "utf-8");
     let parsed: any;
     try {
       parsed = JSON.parse(raw);
     } catch (e) {
-      console.warn(`  Skipping capstone ${file}: invalid JSON.`);
+      console.warn(`  Skipping capstone ${seed.file}: invalid JSON.`);
       continue;
     }
 
@@ -2201,6 +2228,11 @@ async function seedCapstones() {
       accentColor: parsed.accentColor ?? "violet",
       status: parsed.status ?? "published",
       authorId: systemUser.id,
+      scaleTier: parsed.scaleTier ?? seed.defaultTier,
+      domainsJson: JSON.stringify(parsed.domains ?? []),
+      estimatedHoursMin: parsed.estimatedHoursMin ?? null,
+      estimatedHoursMax: parsed.estimatedHoursMax ?? null,
+      realWorldDeliverableMd: parsed.realWorldDeliverableMd ?? null,
     };
     if (existing) {
       capstoneId = existing.id;
@@ -2231,6 +2263,8 @@ async function seedCapstones() {
         requiredArtifactKinds: JSON.stringify(m.requiredArtifactKinds ?? []),
         runnableTests: m.runnableTests ?? null,
         estimatedDays: m.estimatedDays ?? 7,
+        dueAt: m.dueAt ?? null,
+        advisorSignoffRequired: m.advisorSignoffRequired ?? false,
       }).run();
     }
     count++;
@@ -2423,6 +2457,50 @@ async function seedCapstoneTracks() {
     count++;
   }
   console.log(`  Seeded ${count} capstone track${count === 1 ? "" : "s"}.`);
+}
+
+// S86 — pet cosmetic catalog. Idempotent on slug. Reads
+// `seed-content/pet-cosmetics/cosmetics.json` (single file, list of
+// cosmetics) so the seed is one round-trip rather than per-file.
+function seedPetCosmetics() {
+  const file = path.join(import.meta.dir, "../../../seed-content/pet-cosmetics/cosmetics.json");
+  if (!fs.existsSync(file)) return;
+  let parsed: any;
+  try {
+    parsed = JSON.parse(fs.readFileSync(file, "utf-8"));
+  } catch {
+    console.warn("  Skipping pet cosmetics: invalid JSON.");
+    return;
+  }
+  const list = Array.isArray(parsed?.cosmetics) ? parsed.cosmetics : [];
+  let count = 0;
+  for (const c of list) {
+    if (!c?.slug || !c?.name || !c?.slot) continue;
+    const existing = db
+      .select({ id: petCosmetics.id })
+      .from(petCosmetics)
+      .where(eq(petCosmetics.slug, c.slug))
+      .get();
+    const values = {
+      slug: c.slug,
+      name: c.name,
+      slot: c.slot,
+      renderKind: c.renderKind ?? "emoji",
+      emoji: c.emoji ?? null,
+      rarity: c.rarity ?? "common",
+      grantOnly: c.grantOnly ?? true,
+      description: c.description ?? "",
+      // S89 — null = not for sale; positive int = purchasable.
+      xpCost: typeof c.xpCost === "number" && c.xpCost > 0 ? c.xpCost : null,
+    };
+    if (existing) {
+      db.update(petCosmetics).set(values).where(eq(petCosmetics.id, existing.id)).run();
+    } else {
+      db.insert(petCosmetics).values({ id: randomUUID(), ...values }).run();
+    }
+    count++;
+  }
+  console.log(`  Seeded ${count} pet cosmetic${count === 1 ? "" : "s"}.`);
 }
 
 seed().catch(console.error);

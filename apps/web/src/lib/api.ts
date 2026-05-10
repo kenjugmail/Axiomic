@@ -180,6 +180,53 @@ import type {
   WikiPageResponse,
   WikiSearchResponse,
   WikiUpdateResponse,
+  // S86 — classes + pets.
+  ClassesListResponse,
+  ClassDetailResponse,
+  ClassLeaderboardResponse,
+  LeaderboardWindow,
+  ClassAttendanceResponse,
+  ClassTaskSubmissionsResponse,
+  ClassRole,
+  CreateClassRequest,
+  UpdateClassRequest,
+  CreateClassTaskRequest,
+  UpdateClassTaskRequest,
+  CompleteClassTaskRequest,
+  CompleteClassTaskResponse,
+  GradeClassTaskRequest,
+  RecordAttendanceRequest,
+  GrantCosmeticRequest,
+  MyPetResponse,
+  HatchAnotherPetResponse,
+  PetCosmeticsCatalogResponse,
+  // S87 — competitions + per-username pet display.
+  CompetitionsListResponse,
+  CompetitionDetailResponse,
+  CreateCompetitionRequest,
+  UpdateCompetitionRequest,
+  UserPetDisplay,
+  // S97 — pet showcase.
+  PetShowcaseResponse,
+  // S98 — profile cosmetic gallery.
+  CosmeticGalleryResponse,
+  // S102 — public class directory.
+  DiscoverClassesResponse,
+  // S89 — XP shop.
+  ShopResponse,
+  BuyCosmeticRequest,
+  BuyCosmeticResponse,
+  XpBalanceResponse,
+  // S93 — instructor analytics.
+  ClassAnalyticsResponse,
+  // S94 — student progress dashboard.
+  MyProgressResponse,
+  // S96 — class question of the day.
+  ClassQuestionActiveResponse,
+  ClassQuestionListResponse,
+  CreateClassQuestionRequest,
+  AnswerClassQuestionRequest,
+  AnswerClassQuestionResponse,
 } from "@axiomic/types";
 
 const BASE = "/api/v1";
@@ -215,7 +262,7 @@ async function request<T>(path: string, opts?: RequestInit): Promise<T> {
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({ error: res.statusText }));
-      throw new ApiError(res.status, body.error || "Unknown error");
+      throw new ApiError(res.status, body.error || "Unknown error", body);
     }
 
     return res.json();
@@ -236,7 +283,11 @@ async function request<T>(path: string, opts?: RequestInit): Promise<T> {
 }
 
 export class ApiError extends Error {
-  constructor(public status: number, message: string) {
+  constructor(
+    public status: number,
+    message: string,
+    public body?: Record<string, unknown>,
+  ) {
     super(message);
   }
 }
@@ -1084,9 +1135,10 @@ export const api = {
       ),
   },
   capstones: {
-    list: (params?: { tag?: string }) => {
+    list: (params?: { tag?: string; scaleTier?: "skill_drill" | "long_arc" }) => {
       const sp = new URLSearchParams();
       if (params?.tag) sp.set("tag", params.tag);
+      if (params?.scaleTier) sp.set("scaleTier", params.scaleTier);
       const qs = sp.toString();
       return request<CapstonesListResponse>(`/capstones${qs ? `?${qs}` : ""}`);
     },
@@ -1101,6 +1153,7 @@ export const api = {
           coverEmoji: string;
           accentColor: string;
           tags: string[];
+          scaleTier: "skill_drill" | "long_arc";
           updatedAt: string;
         }>;
       }>("/capstones/me/drafts"),
@@ -1165,6 +1218,179 @@ export const api = {
         `/capstones/review-queue${qs}`,
       );
     },
+  },
+  classes: {
+    list: () => request<ClassesListResponse>("/classes"),
+    create: (data: CreateClassRequest) =>
+      request<{ classId: string; slug: string; joinCode: string }>("/classes", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    get: (slug: string) => request<ClassDetailResponse>(`/classes/${slug}`),
+    update: (slug: string, data: UpdateClassRequest) =>
+      request<OkResponse>(`/classes/${slug}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    enroll: (slug: string, joinCode: string) =>
+      request<{ enrollmentId: string; role: ClassRole }>(`/classes/${slug}/enroll`, {
+        method: "POST",
+        body: JSON.stringify({ joinCode }),
+      }),
+    rotateCode: (slug: string) =>
+      request<{ joinCode: string }>(`/classes/${slug}/rotate-code`, { method: "POST" }),
+    setMemberRole: (slug: string, userId: string, role: ClassRole) =>
+      request<OkResponse>(`/classes/${slug}/members/${userId}/role`, {
+        method: "PUT",
+        body: JSON.stringify({ role }),
+      }),
+    leaderboard: (slug: string, windowName?: LeaderboardWindow) =>
+      request<ClassLeaderboardResponse>(
+        `/classes/${slug}/leaderboard${windowName ? `?window=${windowName}` : ""}`,
+      ),
+    createTask: (slug: string, data: CreateClassTaskRequest) =>
+      request<{ taskId: string }>(`/classes/${slug}/tasks`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    updateTask: (slug: string, taskId: string, data: UpdateClassTaskRequest) =>
+      request<OkResponse>(`/classes/${slug}/tasks/${taskId}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    deleteTask: (slug: string, taskId: string) =>
+      request<OkResponse>(`/classes/${slug}/tasks/${taskId}`, { method: "DELETE" }),
+    completeTask: (slug: string, taskId: string, data: CompleteClassTaskRequest) =>
+      request<CompleteClassTaskResponse>(`/classes/${slug}/tasks/${taskId}/complete`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    gradeTask: (slug: string, taskId: string, userId: string, data: GradeClassTaskRequest) =>
+      request<{ ok: true; xpGranted: number }>(
+        `/classes/${slug}/tasks/${taskId}/grade/${userId}`,
+        { method: "POST", body: JSON.stringify(data) },
+      ),
+    taskSubmissions: (slug: string, taskId: string) =>
+      request<ClassTaskSubmissionsResponse>(`/classes/${slug}/tasks/${taskId}/submissions`),
+    recordAttendance: (slug: string, data: RecordAttendanceRequest) =>
+      request<{ ok: true; xpGrants: Array<{ userId: string; amount: number }> }>(
+        `/classes/${slug}/attendance`,
+        { method: "POST", body: JSON.stringify(data) },
+      ),
+    getAttendance: (slug: string, date?: string) => {
+      const qs = date ? `?date=${encodeURIComponent(date)}` : "";
+      return request<ClassAttendanceResponse>(`/classes/${slug}/attendance${qs}`);
+    },
+    grantCosmetic: (slug: string, data: GrantCosmeticRequest) =>
+      request<{ ok: true; alreadyOwned: boolean }>(`/classes/${slug}/grant-cosmetic`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    // S87 — competitions namespace.
+    // S103 — bulk grade many submissions in one call.
+    bulkGradeTask: (
+      slug: string,
+      taskId: string,
+      grades: Array<{ userId: string; pass: boolean; feedback?: string | null }>,
+    ) =>
+      request<{
+        ok: true;
+        appliedCount: number;
+        skippedCount: number;
+        xpAwardedTotal: number;
+      }>(`/classes/${slug}/tasks/${taskId}/bulk-grade`, {
+        method: "POST",
+        body: JSON.stringify({ grades }),
+      }),
+    listCompetitions: (slug: string) =>
+      request<CompetitionsListResponse>(`/classes/${slug}/competitions`),
+    getCompetition: (slug: string, competitionId: string) =>
+      request<CompetitionDetailResponse>(`/classes/${slug}/competitions/${competitionId}`),
+    createCompetition: (slug: string, data: CreateCompetitionRequest) =>
+      request<{ competitionId: string }>(`/classes/${slug}/competitions`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    updateCompetition: (slug: string, competitionId: string, data: UpdateCompetitionRequest) =>
+      request<OkResponse>(`/classes/${slug}/competitions/${competitionId}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    publishCompetition: (slug: string, competitionId: string) =>
+      request<OkResponse>(`/classes/${slug}/competitions/${competitionId}/publish`, {
+        method: "POST",
+      }),
+    endCompetition: (slug: string, competitionId: string) =>
+      request<{ ok: true; winners?: string[]; alreadyEnded?: boolean }>(
+        `/classes/${slug}/competitions/${competitionId}/end`,
+        { method: "POST" },
+      ),
+    // S93 — instructor analytics dashboard.
+    analytics: (slug: string) =>
+      request<ClassAnalyticsResponse>(`/classes/${slug}/analytics`),
+    // S102 — public class directory.
+    discover: () => request<DiscoverClassesResponse>("/classes/discover"),
+    // S96 — class question of the day.
+    activeQuestion: (slug: string) =>
+      request<ClassQuestionActiveResponse>(`/classes/${slug}/questions/active`),
+    listQuestions: (slug: string) =>
+      request<ClassQuestionListResponse>(`/classes/${slug}/questions`),
+    createQuestion: (slug: string, data: CreateClassQuestionRequest) =>
+      request<{ questionId: string }>(`/classes/${slug}/questions`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    answerQuestion: (slug: string, questionId: string, data: AnswerClassQuestionRequest) =>
+      request<AnswerClassQuestionResponse>(`/classes/${slug}/questions/${questionId}/answer`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+  },
+  pet: {
+    me: () => request<MyPetResponse>("/me/pet"),
+    catalog: () => request<PetCosmeticsCatalogResponse>("/pet-cosmetics"),
+    // S104 — manually hatch the user's NEXT pet (first pet is still
+    // auto-hatched by grantXp). Activates the new pet on success.
+    hatchAnother: () =>
+      request<HatchAnotherPetResponse>("/me/pet/hatch-another", { method: "POST" }),
+    // S104 — switch the user's active pet. The pet must belong to
+    // the caller; server enforces.
+    activate: (petId: string) =>
+      request<OkResponse>("/me/pet/activate", {
+        method: "POST",
+        body: JSON.stringify({ petId }),
+      }),
+    // S87 — per-username pet display, used by PetByUsername wrapper.
+    byUsername: (username: string) =>
+      request<UserPetDisplay>(`/users/${encodeURIComponent(username)}/pet-display`),
+    // S97 — public pet showcase.
+    showcase: () => request<PetShowcaseResponse>("/users/showcase"),
+    // S98 — profile cosmetic gallery.
+    galleryFor: (username: string) =>
+      request<CosmeticGalleryResponse>(`/users/${encodeURIComponent(username)}/cosmetics-gallery`),
+    // S89 — XP shop.
+    shop: () => request<ShopResponse>("/me/pet/shop"),
+    balance: () => request<XpBalanceResponse>("/me/pet/balance"),
+    buy: (data: BuyCosmeticRequest) =>
+      request<BuyCosmeticResponse>("/me/pet/buy", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    equip: (cosmeticSlug: string) =>
+      request<OkResponse>("/me/pet/equip", {
+        method: "POST",
+        body: JSON.stringify({ cosmeticSlug }),
+      }),
+    unequip: (cosmeticSlug: string) =>
+      request<OkResponse>("/me/pet/unequip", {
+        method: "POST",
+        body: JSON.stringify({ cosmeticSlug }),
+      }),
+    rename: (name: string) =>
+      request<OkResponse>("/me/pet/name", {
+        method: "PUT",
+        body: JSON.stringify({ name }),
+      }),
   },
   tracks: {
     list: () =>
@@ -1368,6 +1594,8 @@ export const api = {
       }),
   },
   me: {
+    // S94 — student progress dashboard.
+    progress: () => request<MyProgressResponse>("/me/progress"),
     weakConcepts: () => request<WeakConceptsResponse>("/me/weak-concepts"),
     refreshWeakConcepts: () =>
       request<{ upserts: number }>("/me/weak-concepts/refresh", { method: "POST" }),

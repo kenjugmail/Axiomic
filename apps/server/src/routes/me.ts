@@ -7,22 +7,30 @@
 //   - GET /me/prereq-status          — Sprint 31 PrereqXray data
 
 import { Hono } from "hono";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import {
   capstoneTrackCompletions,
   capstoneTracks,
   contentProposals,
   cohortInvitations,
+  classes,
+  classEnrollments,
   getDb,
   masteryNodes,
   misconceptionCatalog,
   misconceptionDiagnoses,
+  notifications,
+  petCosmetics,
+  petInventory,
   userProgress,
   wikiPages,
+  xpGrants,
 } from "@axiomic/db";
 import { requireAuth } from "../middleware/auth";
 import { runDetectorForUser } from "../lib/misconceptionDetector";
 import { buildKnowledgeMri } from "../lib/knowledgeMri";
+import { currentStreak } from "../lib/achievements";
+import { totalXpForUser } from "../lib/xp";
 import type { Env } from "../env";
 
 export const meRouter = new Hono<Env>();
@@ -316,5 +324,189 @@ meRouter.get("/prereq-status", requireAuth, async (c) => {
         pathSlug: pickedNode?.pathSlug,
       };
     }),
+  });
+});
+
+// =================================================================
+// S94 — Student progress dashboard.
+// =================================================================
+//
+// Mirror of the S93 instructor dashboard, scoped to the current
+// user. Aggregates the user's XP timeline, source breakdown, class
+// standings, cosmetic-collection progress, streak, and competition
+// wins into one payload so the dashboard renders in a single
+// round-trip.
+//
+// All reads are class-scoped or user-scoped; nothing here exposes
+// other users' data.
+
+const PROGRESS_DAY_WINDOW = 30;
+
+meRouter.get("/progress", requireAuth, async (c) => {
+  const me = c.get("user")!;
+  const db = getDb();
+
+  // 1. xpByDay — all XP (class + non-class) per UTC day, last 30 days.
+  // strftime normalizes both ISO and SQLite-format timestamps.
+  const xpRows = db
+    .select({
+      day: sql<string>`strftime('%Y-%m-%d', ${xpGrants.awardedAt})`.as("day"),
+      totalXp: sql<number>`coalesce(sum(${xpGrants.amount}), 0)`,
+    })
+    .from(xpGrants)
+    .where(
+      and(
+        eq(xpGrants.userId, me.id),
+        sql`datetime(${xpGrants.awardedAt}) >= datetime('now', '-${sql.raw(String(PROGRESS_DAY_WINDOW))} days')`,
+      ),
+    )
+    .groupBy(sql`strftime('%Y-%m-%d', ${xpGrants.awardedAt})`)
+    .all();
+  const xpByDayMap = new Map(xpRows.map((r) => [r.day, r]));
+  const xpByDay: { day: string; totalXp: number }[] = [];
+  const today = new Date();
+  for (let i = PROGRESS_DAY_WINDOW - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setUTCDate(d.getUTCDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    const row = xpByDayMap.get(key);
+    xpByDay.push({ day: key, totalXp: Number(row?.totalXp ?? 0) });
+  }
+
+  // 2. xpBySource — lifetime breakdown. Useful for "where does my
+  // XP come from" — a heavy reader vs. a homework grinder vs. a
+  // streak warrior all earn equivalent XP via different paths.
+  const sourceRows = db
+    .select({
+      source: xpGrants.source,
+      totalXp: sql<number>`coalesce(sum(${xpGrants.amount}), 0)`,
+      count: sql<number>`count(*)`,
+    })
+    .from(xpGrants)
+    .where(eq(xpGrants.userId, me.id))
+    .groupBy(xpGrants.source)
+    .orderBy(desc(sql`coalesce(sum(${xpGrants.amount}), 0)`))
+    .all();
+  const xpBySource = sourceRows.map((r) => ({
+    source: r.source,
+    totalXp: Number(r.totalXp),
+    count: Number(r.count),
+  }));
+
+  // 3. classStandings — for each class I'm enrolled in, my XP +
+  // rank + roster size.
+  //
+  // S-audit fix — was 3 queries per enrolled class (myXp,
+  // aboveMeCount, memberCount) which scaled O(N classes) and made
+  // /me/progress slow for power users. Now: two batched queries
+  // total. One pulls every (classId, userId, total XP) row across
+  // my classes; we group in JS to derive my XP and rank per class.
+  // The other pulls enrollment counts per class.
+  const enrollments = db
+    .select({
+      classId: classEnrollments.classId,
+      classSlug: classes.slug,
+      classTitle: classes.title,
+    })
+    .from(classEnrollments)
+    .innerJoin(classes, eq(classes.id, classEnrollments.classId))
+    .where(eq(classEnrollments.userId, me.id))
+    .all();
+
+  const classIds = enrollments.map((e) => e.classId);
+  const allTotals = classIds.length
+    ? db
+        .select({
+          classId: xpGrants.classId,
+          userId: xpGrants.userId,
+          total: sql<number>`coalesce(sum(${xpGrants.amount}), 0)`,
+        })
+        .from(xpGrants)
+        .where(inArray(xpGrants.classId, classIds))
+        .groupBy(xpGrants.classId, xpGrants.userId)
+        .all()
+    : [];
+  // Group totals by classId so we can compute my rank locally.
+  const totalsByClass = new Map<string, Array<{ userId: string; total: number }>>();
+  for (const r of allTotals) {
+    if (r.classId == null) continue; // shouldn't happen given the where clause
+    const arr = totalsByClass.get(r.classId) ?? [];
+    arr.push({ userId: r.userId, total: Number(r.total) });
+    totalsByClass.set(r.classId, arr);
+  }
+
+  const memberRows = classIds.length
+    ? db
+        .select({
+          classId: classEnrollments.classId,
+          n: sql<number>`count(*)`,
+        })
+        .from(classEnrollments)
+        .where(inArray(classEnrollments.classId, classIds))
+        .groupBy(classEnrollments.classId)
+        .all()
+    : [];
+  const memberCountByClass = new Map(memberRows.map((r) => [r.classId, Number(r.n)]));
+
+  const classStandings = enrollments.map((e) => {
+    const totals = totalsByClass.get(e.classId) ?? [];
+    const me_total = totals.find((t) => t.userId === me.id)?.total ?? 0;
+    const myRank = 1 + totals.filter((t) => t.total > me_total).length;
+    return {
+      classSlug: e.classSlug,
+      classTitle: e.classTitle,
+      myXp: me_total,
+      myRank,
+      totalMembers: memberCountByClass.get(e.classId) ?? 0,
+    };
+  });
+
+  // 4. cosmeticProgress — owned vs. total catalog size. NOT just
+  // shop-purchasable: includes grant-only + competition-prize
+  // cosmetics so the "100% collection" goal is real.
+  const totalCosmeticsRow = db
+    .select({ n: sql<number>`count(*)` })
+    .from(petCosmetics)
+    .get();
+  const totalCosmetics = Number(totalCosmeticsRow?.n ?? 0);
+  const ownedRows = db
+    .select({ slug: petInventory.cosmeticSlug })
+    .from(petInventory)
+    .where(eq(petInventory.userId, me.id))
+    .all();
+  const ownedSlugs = ownedRows.map((r) => r.slug);
+
+  // 5. streak — the activity-events streak that powers the S87
+  // streak-day-bonus. Surfaces here so the user sees what they're
+  // protecting.
+  const streak = currentStreak(db, me.id);
+
+  // 6. competitionWins — count of competition_won notifications.
+  // Cheap audit using the existing notifications feed; no new table.
+  const winsRow = db
+    .select({ n: sql<number>`count(*)` })
+    .from(notifications)
+    .where(
+      and(
+        eq(notifications.userId, me.id),
+        eq(notifications.kind, "competition_won"),
+      ),
+    )
+    .get();
+  const competitionWins = Number(winsRow?.n ?? 0);
+
+  return c.json({
+    lifetimeXp: totalXpForUser(me.id),
+    streak,
+    competitionWins,
+    xpByDay,
+    xpBySource,
+    classStandings,
+    cosmeticProgress: {
+      ownedCount: ownedSlugs.length,
+      totalCosmetics,
+      ownedSlugs,
+    },
+    windowDays: PROGRESS_DAY_WINDOW,
   });
 });

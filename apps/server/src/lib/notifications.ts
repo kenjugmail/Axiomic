@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import { eq, inArray } from "drizzle-orm";
 import { getDb, notifications, users, type Db } from "@axiomic/db";
 import { publishToUser } from "./liveBus";
+import { pushToUser } from "./pushSender";
 
 export type NotificationKind =
   | "mention"
@@ -29,7 +30,13 @@ export type NotificationKind =
   | "lab_signoff_approved"
   | "lab_signoff_rejected"
   | "lab_cert_passed"
-  | "lab_cert_expiring";
+  | "lab_cert_expiring"
+  // S88 — classroom + pet engagement loop.
+  | "cosmetic_granted"
+  | "competition_won"
+  | "pet_hatched"
+  // S90 — pet evolution.
+  | "pet_leveled_up";
 
 export type NotificationSubject =
   | "topic"
@@ -49,7 +56,11 @@ export type NotificationSubject =
   | "grant"
   // Sprint 80
   | "lab_protocol_run"
-  | "lab_cert";
+  | "lab_cert"
+  // S88 — classroom + pet engagement loop.
+  | "cosmetic"
+  | "competition"
+  | "pet";
 
 const MAX_MENTIONS_PER_BODY = 10;
 const PREVIEW_MAX = 140;
@@ -148,10 +159,14 @@ function kindGate(
     case "lab_signoff_rejected":
     case "lab_cert_passed":
     case "lab_cert_expiring":
+    case "cosmetic_granted":
+    case "competition_won":
+    case "pet_hatched":
+    case "pet_leveled_up":
       // News flow + follow events + admin pipeline + funding
-      // alerts + Sprint 80 lab operational signals are direct +
-      // low-volume — always on. (A notifyFunding / notifyLab pref
-      // toggle is a follow-up if users start muting these.)
+      // alerts + Sprint 80 lab operational signals + S88
+      // classroom/pet events + S90 pet evolution are direct +
+      // low-volume — always on.
       return null;
   }
 }
@@ -212,8 +227,8 @@ export async function notify(args: NotifyArgs, db: Db = getDb()): Promise<boolea
           .get();
         actor = row ?? null;
       }
-      publishToUser(args.recipientId, {
-        kind: "notification",
+      const payload = {
+        kind: "notification" as const,
         notification: {
           id,
           kind: args.kind,
@@ -225,7 +240,13 @@ export async function notify(args: NotifyArgs, db: Db = getDb()): Promise<boolea
           createdAt,
           actor,
         },
-      });
+      };
+      publishToUser(args.recipientId, payload);
+      // S107a — Web Push fan-out. Best-effort; pushToUser swallows
+      // per-subscription failures and prunes dead endpoints. Fired
+      // async so we don't block the response on outbound HTTP to
+      // push services.
+      void pushToUser(args.recipientId, payload);
     } catch {
       // ignore live-push errors
     }

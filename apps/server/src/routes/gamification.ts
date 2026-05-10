@@ -15,7 +15,8 @@ import {
 import { and, count, desc, eq, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { requireAuth, getSessionUser } from "../middleware/auth";
-import { currentStreak } from "../lib/achievements";
+import { currentStreak, recordActivity } from "../lib/achievements";
+import { grantXp, type GrantXpResult } from "../lib/xp";
 import type { Env } from "../env";
 
 export const gamificationRouter = new Hono<Env>();
@@ -348,6 +349,12 @@ gamificationRouter.post(
         ),
       )
       .get();
+    // S91 — fire XP grant + activity record on the FIRST correct
+    // attempt only. Idempotency on grantXp's unique
+    // (userId, source, sourceRefId) means a re-attempt the same day
+    // is a no-op even if the route is called twice. recordActivity
+    // is also tagged by today's date so it doesn't double-count.
+    let xpResult: GrantXpResult | null = null;
     if (!existing) {
       db.insert(dailyChallengeAttempts).values({
         id: randomUUID(),
@@ -356,6 +363,14 @@ gamificationRouter.post(
         correct,
         answer,
       }).run();
+      if (correct) {
+        recordActivity(me.id, "daily_challenge");
+        xpResult = grantXp({
+          userId: me.id,
+          source: "daily-challenge-correct",
+          sourceRefId: picked.challenge.id,
+        });
+      }
     }
 
     const attemptCounts = db
@@ -377,6 +392,14 @@ gamificationRouter.post(
         correctRate: attempted > 0 ? totalCorrect / attempted : 0,
       },
       streak: dailyStreak(me.id),
+      // S91 — XP awarded for the first correct attempt today.
+      // 0 when wrong or already-attempted (idempotency suppressed
+      // the duplicate grant). petHatched + petLeveledUp let the
+      // client celebrate the milestone right on the daily-challenge
+      // page rather than waiting for the next page load.
+      xpAwarded: xpResult?.amount ?? 0,
+      petHatched: xpResult?.petHatched ?? null,
+      petLeveledUp: xpResult?.petLeveledUp ?? null,
     });
   },
 );

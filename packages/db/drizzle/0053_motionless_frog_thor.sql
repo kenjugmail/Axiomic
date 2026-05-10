@@ -1,0 +1,1 @@
+ALTER TABLE `classes` ADD `discoverable` integer DEFAULT false NOT NULL;
