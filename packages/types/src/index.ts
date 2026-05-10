@@ -2264,6 +2264,13 @@ export interface DailyChallengeSubmitResponse {
   correct: boolean;
   stats: DailyChallengeStats;
   streak: number;
+  // S91 — XP awarded for the first correct attempt today (0 when
+  // wrong / repeat). petHatched fires only on the grant that crosses
+  // PET_HATCH_THRESHOLD_XP for the first time; petLeveledUp on
+  // crossing a level threshold afterward.
+  xpAwarded?: number;
+  petHatched?: { species: string; name: string } | null;
+  petLeveledUp?: { newLevel: number } | null;
 }
 
 export interface PathCertificateResponse {

@@ -23,7 +23,11 @@ export type ActivityKind =
   | "flashcard_saved"
   | "flashcard_reviewed"
   | "forum_topic_created"
-  | "code_question_passed";
+  | "code_question_passed"
+  // S91 — counts as activity for streak bonuses (S87) and gives
+  // users a low-friction way to keep their streak alive on quiet
+  // days.
+  | "daily_challenge";
 
 export interface Achievement {
   slug: string;

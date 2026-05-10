@@ -32,6 +32,10 @@ export const XP_AMOUNTS = {
   "lesson-completed": 8,
   "quiz-passed": 12,
   "code-question-passed": 12,
+  // S91 — daily challenge correct answer. Larger than the base
+  // quiz-passed grant (12) since the daily challenge is a single
+  // shot — once per day, no retries.
+  "daily-challenge-correct": 25,
 } as const;
 
 // Sources with default amounts in XP_AMOUNTS.
@@ -66,6 +70,10 @@ export interface GrantXpResult {
   granted: boolean;
   amount: number;
   petHatched?: { species: string; name: string };
+  // S91 — populated when this grant pushed the user past a level
+  // threshold. Lets callers (e.g. the daily-challenge submit
+  // route) include a celebration in their response.
+  petLeveledUp?: { newLevel: number };
 }
 
 // Insert an XP grant. Idempotent: a second call with the same
@@ -123,11 +131,12 @@ export function grantXp(input: GrantXpInput): GrantXpResult {
   // S90 — after hatching (or for already-hatched users), check
   // whether the new total crossed a level threshold. Hatch is
   // typically level 1, so this only fires for crossings beyond.
-  maybeLevelUp(input.userId);
+  const newLevel = maybeLevelUp(input.userId);
   return {
     granted: true,
     amount,
     ...(hatched ? { petHatched: hatched } : {}),
+    ...(newLevel ? { petLeveledUp: { newLevel } } : {}),
   };
 }
 
