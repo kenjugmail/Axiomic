@@ -213,3 +213,89 @@ describe("/me/prereq-status (Sprint 31)", () => {
     }
   });
 });
+
+describe("GET /me/progress (S94)", () => {
+  test("brand-new user returns zeros + 30-day window", async () => {
+    const u = await signup("prog_empty");
+    const res = await req("/me/progress", { headers: cookieHeader(u.cookie) });
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as {
+      lifetimeXp: number;
+      streak: number;
+      competitionWins: number;
+      xpByDay: Array<{ day: string; totalXp: number }>;
+      xpBySource: unknown[];
+      classStandings: unknown[];
+      cosmeticProgress: { ownedCount: number; totalCosmetics: number; ownedSlugs: string[] };
+      windowDays: number;
+    };
+    expect(data.windowDays).toBe(30);
+    expect(data.xpByDay.length).toBe(30);
+    expect(data.xpByDay.every((d) => d.totalXp === 0)).toBe(true);
+    expect(data.xpBySource).toEqual([]);
+    expect(data.classStandings).toEqual([]);
+    expect(data.lifetimeXp).toBe(0);
+    expect(data.streak).toBe(0);
+    expect(data.competitionWins).toBe(0);
+    expect(data.cosmeticProgress.ownedCount).toBe(0);
+    // Cosmetic catalog is seeded; total > 0.
+    expect(data.cosmeticProgress.totalCosmetics).toBeGreaterThan(0);
+  });
+
+  test("active student sees class XP + rank + breakdown", async () => {
+    const instructor = await signup("prog_inst");
+    const me = await signup("prog_me");
+    const other = await signup("prog_other");
+
+    const slug = `cls-prog-${testId}`;
+    const create = await req("/classes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ slug, title: "Progress Test", description: "test" }),
+    });
+    const cd = (await create.json()) as { joinCode: string };
+    for (const s of [me, other]) {
+      await req(`/classes/${slug}/enroll`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(s.cookie) },
+        body: JSON.stringify({ joinCode: cd.joinCode }),
+      });
+    }
+
+    const t = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ kind: "homework", title: "PSet" }),
+    });
+    const { taskId } = (await t.json()) as { taskId: string };
+    for (const s of [me, other]) {
+      await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(s.cookie) },
+        body: JSON.stringify({ content: `Submission long enough for the validator from ${s.username}.` }),
+      });
+    }
+    // Other gets graded pass → other has more XP than me.
+    await req(`/classes/${slug}/tasks/${taskId}/grade/${other.userId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ pass: true }),
+    });
+
+    const res = await req("/me/progress", { headers: cookieHeader(me.cookie) });
+    const data = (await res.json()) as {
+      lifetimeXp: number;
+      xpBySource: Array<{ source: string; totalXp: number }>;
+      classStandings: Array<{ classSlug: string; myXp: number; myRank: number; totalMembers: number }>;
+      xpByDay: Array<{ totalXp: number }>;
+    };
+    expect(data.lifetimeXp).toBeGreaterThan(0);
+    expect(data.xpByDay[data.xpByDay.length - 1].totalXp).toBeGreaterThan(0);
+    expect(data.xpBySource.some((s) => s.source === "homework-submitted")).toBe(true);
+    const standing = data.classStandings.find((s) => s.classSlug === slug);
+    expect(standing).toBeDefined();
+    expect(standing?.totalMembers).toBe(2);
+    expect(standing?.myXp).toBeGreaterThan(0);
+    expect(standing?.myRank).toBe(2);
+  });
+});

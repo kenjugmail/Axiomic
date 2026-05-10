@@ -250,6 +250,9 @@ const ShopPage = lazy(() =>
 const ClassAnalyticsPage = lazy(() =>
   import("./pages/ClassAnalyticsPage").then((m) => ({ default: m.ClassAnalyticsPage })),
 );
+const MyProgressPage = lazy(() =>
+  import("./pages/MyProgressPage").then((m) => ({ default: m.MyProgressPage })),
+);
 const CapstoneWorkspacePage = lazy(() =>
   import("./pages/CapstoneWorkspacePage").then((m) => ({ default: m.CapstoneWorkspacePage })),
 );
@@ -521,6 +524,7 @@ function AppRoutes() {
           />
           <Route path="/classes/:slug/analytics" element={<ClassAnalyticsPage />} />
           <Route path="/me/pet" element={<MyPetPage />} />
+          <Route path="/me/progress" element={<MyProgressPage />} />
           <Route path="/shop" element={<ShopPage />} />
           <Route path="/tracks" element={<CapstoneTracksListPage />} />
           <Route path="/tracks/c/:artifactSlug" element={<CapstoneTrackArtifactPage />} />

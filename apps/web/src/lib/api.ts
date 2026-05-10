@@ -211,6 +211,8 @@ import type {
   XpBalanceResponse,
   // S93 — instructor analytics.
   ClassAnalyticsResponse,
+  // S94 — student progress dashboard.
+  MyProgressResponse,
 } from "@axiomic/types";
 
 const BASE = "/api/v1";
@@ -1528,6 +1530,8 @@ export const api = {
       }),
   },
   me: {
+    // S94 — student progress dashboard.
+    progress: () => request<MyProgressResponse>("/me/progress"),
     weakConcepts: () => request<WeakConceptsResponse>("/me/weak-concepts"),
     refreshWeakConcepts: () =>
       request<{ upserts: number }>("/me/weak-concepts/refresh", { method: "POST" }),

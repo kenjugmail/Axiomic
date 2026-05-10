@@ -4,7 +4,7 @@
 
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Pencil, Egg, Sparkles } from "lucide-react";
+import { Pencil, Egg, Sparkles, BarChart3 } from "lucide-react";
 import type { CosmeticSlot, MyPetResponse, PetInventoryItem } from "@axiomic/types";
 import { api, ApiError } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
@@ -180,14 +180,22 @@ export function MyPetPage() {
             )}
             {/* S89 — link to the XP shop. Lives next to the pet
                 preview so spending XP is one click away from
-                seeing the pet you're dressing up. */}
-            <div className="mt-2">
+                seeing the pet you're dressing up.
+                S94 — also link to /me/progress for the dashboard. */}
+            <div className="mt-2 flex items-center gap-3">
               <Link
                 to="/shop"
                 className="text-xs text-primary hover:underline inline-flex items-center gap-1"
               >
                 <Sparkles className="w-3 h-3" />
-                Browse cosmetic shop
+                Browse shop
+              </Link>
+              <Link
+                to="/me/progress"
+                className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+              >
+                <BarChart3 className="w-3 h-3" />
+                My progress
               </Link>
             </div>
           </div>

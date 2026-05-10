@@ -3686,3 +3686,45 @@ export interface ClassAnalyticsResponse {
   stalledThresholdDays: number;
   windowDays: number;
 }
+
+// =============================================================
+// S94 — Student progress dashboard.
+// =============================================================
+//
+// Per-user mirror of the S93 instructor analytics. Same window +
+// shape patterns so the UI components can share styling vocabulary.
+
+export interface MyProgressXpByDay {
+  day: string;
+  totalXp: number;
+}
+
+export interface MyProgressXpBySource {
+  // Matches XpSource in apps/server/src/lib/xp.ts at runtime.
+  source: string;
+  totalXp: number;
+  count: number;
+}
+
+export interface MyProgressClassStanding {
+  classSlug: string;
+  classTitle: string;
+  myXp: number;
+  myRank: number;
+  totalMembers: number;
+}
+
+export interface MyProgressResponse {
+  lifetimeXp: number;
+  streak: number;
+  competitionWins: number;
+  xpByDay: MyProgressXpByDay[];
+  xpBySource: MyProgressXpBySource[];
+  classStandings: MyProgressClassStanding[];
+  cosmeticProgress: {
+    ownedCount: number;
+    totalCosmetics: number;
+    ownedSlugs: string[];
+  };
+  windowDays: number;
+}
