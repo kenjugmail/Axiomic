@@ -241,6 +241,9 @@ const ClassTaskPage = lazy(() =>
 const MyPetPage = lazy(() =>
   import("./pages/MyPetPage").then((m) => ({ default: m.MyPetPage })),
 );
+const CompetitionDetailPage = lazy(() =>
+  import("./pages/CompetitionDetailPage").then((m) => ({ default: m.CompetitionDetailPage })),
+);
 const CapstoneWorkspacePage = lazy(() =>
   import("./pages/CapstoneWorkspacePage").then((m) => ({ default: m.CapstoneWorkspacePage })),
 );
@@ -506,6 +509,10 @@ function AppRoutes() {
           <Route path="/classes/:slug" element={<ClassPage />} />
           <Route path="/classes/:slug/edit" element={<ClassEditPage />} />
           <Route path="/classes/:slug/tasks/:taskId" element={<ClassTaskPage />} />
+          <Route
+            path="/classes/:slug/competitions/:competitionId"
+            element={<CompetitionDetailPage />}
+          />
           <Route path="/me/pet" element={<MyPetPage />} />
           <Route path="/tracks" element={<CapstoneTracksListPage />} />
           <Route path="/tracks/c/:artifactSlug" element={<CapstoneTrackArtifactPage />} />

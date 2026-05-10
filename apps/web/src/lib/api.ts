@@ -198,6 +198,12 @@ import type {
   GrantCosmeticRequest,
   MyPetResponse,
   PetCosmeticsCatalogResponse,
+  // S87 — competitions + per-username pet display.
+  CompetitionsListResponse,
+  CompetitionDetailResponse,
+  CreateCompetitionRequest,
+  UpdateCompetitionRequest,
+  UserPetDisplay,
 } from "@axiomic/types";
 
 const BASE = "/api/v1";
@@ -1255,10 +1261,37 @@ export const api = {
         method: "POST",
         body: JSON.stringify(data),
       }),
+    // S87 — competitions namespace.
+    listCompetitions: (slug: string) =>
+      request<CompetitionsListResponse>(`/classes/${slug}/competitions`),
+    getCompetition: (slug: string, competitionId: string) =>
+      request<CompetitionDetailResponse>(`/classes/${slug}/competitions/${competitionId}`),
+    createCompetition: (slug: string, data: CreateCompetitionRequest) =>
+      request<{ competitionId: string }>(`/classes/${slug}/competitions`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    updateCompetition: (slug: string, competitionId: string, data: UpdateCompetitionRequest) =>
+      request<OkResponse>(`/classes/${slug}/competitions/${competitionId}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    publishCompetition: (slug: string, competitionId: string) =>
+      request<OkResponse>(`/classes/${slug}/competitions/${competitionId}/publish`, {
+        method: "POST",
+      }),
+    endCompetition: (slug: string, competitionId: string) =>
+      request<{ ok: true; winners?: string[]; alreadyEnded?: boolean }>(
+        `/classes/${slug}/competitions/${competitionId}/end`,
+        { method: "POST" },
+      ),
   },
   pet: {
     me: () => request<MyPetResponse>("/me/pet"),
     catalog: () => request<PetCosmeticsCatalogResponse>("/pet-cosmetics"),
+    // S87 — per-username pet display, used by PetByUsername wrapper.
+    byUsername: (username: string) =>
+      request<UserPetDisplay>(`/users/${encodeURIComponent(username)}/pet-display`),
     equip: (cosmeticSlug: string) =>
       request<OkResponse>("/me/pet/equip", {
         method: "POST",

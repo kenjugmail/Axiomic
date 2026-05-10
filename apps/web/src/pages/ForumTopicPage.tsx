@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Network } from "lucide-react";
+import { PetByUsername } from "../components/pet/PetByUsername";
 import {
   api,
   type ForumPost,
@@ -163,6 +164,7 @@ export function ForumTopicPage() {
 
       <h1 className="text-2xl font-semibold tracking-tight">{topic.title}</h1>
       <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1 mb-4">
+        <PetByUsername username={topic.authorUsername} size="xs" />
         <Link
           to={`/profile/${topic.authorUsername}`}
           className="hover:text-foreground"

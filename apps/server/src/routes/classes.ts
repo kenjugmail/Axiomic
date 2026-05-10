@@ -17,6 +17,7 @@ import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import {
   classAttendance,
+  classCompetitions,
   classEnrollments,
   classTaskCompletions,
   classTasks,
@@ -1047,5 +1048,394 @@ classesRouter.post(
       .run();
 
     return c.json({ ok: true, alreadyOwned: false }, 201);
+  },
+);
+
+// --- competitions (S87) --------------------------------------------
+
+const competitionScoringRuleSchema = z.enum(["class-xp"]);
+
+const createCompetitionSchema = z
+  .object({
+    title: z.string().min(1).max(200),
+    descriptionMd: z.string().max(20000).optional().default(""),
+    startsAt: z.string().min(1),
+    endsAt: z.string().min(1),
+    scoringRule: competitionScoringRuleSchema.optional().default("class-xp"),
+    prizeCosmeticSlug: slugSchema,
+    prizeWinnerCount: z.number().int().min(1).max(20).optional().default(3),
+  })
+  .refine((d) => Date.parse(d.startsAt) < Date.parse(d.endsAt), {
+    message: "endsAt must be after startsAt",
+    path: ["endsAt"],
+  });
+
+const updateCompetitionSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  descriptionMd: z.string().max(20000).optional(),
+  startsAt: z.string().min(1).optional(),
+  endsAt: z.string().min(1).optional(),
+  prizeCosmeticSlug: slugSchema.optional(),
+  prizeWinnerCount: z.number().int().min(1).max(20).optional(),
+});
+
+// Compute standings for a competition based on its scoringRule.
+// v1 supports 'class-xp': sum xp_grants in the class scope during
+// [startsAt, endsAt]. New rules can plug in here without touching
+// callers.
+function computeStandings(comp: typeof classCompetitions.$inferSelect) {
+  const db = getDb();
+  if (comp.scoringRule === "class-xp") {
+    // Normalize both sides through datetime() so the SQLite default
+    // 'YYYY-MM-DD HH:MM:SS' format from xp_grants.awardedAt matches
+    // the ISO 'YYYY-MM-DDTHH:MM:SS.sssZ' format used in startsAt /
+    // endsAt. SQLite's datetime() coerces both to the canonical form.
+    const rows = db
+      .select({
+        userId: xpGrants.userId,
+        score: sql<number>`coalesce(sum(${xpGrants.amount}), 0)`,
+      })
+      .from(xpGrants)
+      .where(
+        and(
+          eq(xpGrants.classId, comp.classId),
+          sql`datetime(${xpGrants.awardedAt}) >= datetime(${comp.startsAt})`,
+          sql`datetime(${xpGrants.awardedAt}) <= datetime(${comp.endsAt})`,
+        ),
+      )
+      .groupBy(xpGrants.userId)
+      .orderBy(desc(sql`coalesce(sum(${xpGrants.amount}), 0)`))
+      .all();
+    return rows.map((r) => ({ userId: r.userId, score: r.score }));
+  }
+  return [];
+}
+
+// Distribute prizes: take top-N standings, INSERT OR IGNORE the
+// prize cosmetic into each winner's inventory. Idempotent — a
+// re-run grants nothing new because pet_inventory is unique on
+// (userId, cosmeticSlug).
+function distributePrizes(comp: typeof classCompetitions.$inferSelect): string[] {
+  const db = getDb();
+  const winners = computeStandings(comp).slice(0, comp.prizeWinnerCount);
+  const winnerIds: string[] = [];
+  for (const w of winners) {
+    const existing = db
+      .select({ id: petInventory.id })
+      .from(petInventory)
+      .where(
+        and(
+          eq(petInventory.userId, w.userId),
+          eq(petInventory.cosmeticSlug, comp.prizeCosmeticSlug),
+        ),
+      )
+      .get();
+    if (existing) {
+      winnerIds.push(w.userId);
+      continue;
+    }
+    db.insert(petInventory)
+      .values({
+        id: randomUUID(),
+        userId: w.userId,
+        cosmeticSlug: comp.prizeCosmeticSlug,
+        equipped: false,
+        grantedById: comp.createdById,
+        grantedInClassId: comp.classId,
+        grantedNote: `Top ${comp.prizeWinnerCount} in "${comp.title}"`,
+      })
+      .run();
+    winnerIds.push(w.userId);
+  }
+  db.update(classCompetitions)
+    .set({
+      status: "ended",
+      prizesAwarded: true,
+      updatedAt: new Date().toISOString(),
+    })
+    .where(eq(classCompetitions.id, comp.id))
+    .run();
+  return winnerIds;
+}
+
+// Lazy end-and-distribute: called on every active-competition read.
+// Flips status to 'ended' + grants prizes when wall-clock has
+// crossed endsAt. Returns the (possibly mutated) row.
+function maybeAutoEnd(
+  comp: typeof classCompetitions.$inferSelect,
+): typeof classCompetitions.$inferSelect {
+  if (comp.status !== "active") return comp;
+  if (comp.prizesAwarded) return comp;
+  if (Date.now() < Date.parse(comp.endsAt)) return comp;
+  distributePrizes(comp);
+  return { ...comp, status: "ended", prizesAwarded: true };
+}
+
+function competitionDto(
+  comp: typeof classCompetitions.$inferSelect,
+  cosmeticEmoji: string | null,
+  cosmeticName: string | null,
+) {
+  return {
+    id: comp.id,
+    classId: comp.classId,
+    title: comp.title,
+    descriptionMd: comp.descriptionMd,
+    startsAt: comp.startsAt,
+    endsAt: comp.endsAt,
+    scoringRule: comp.scoringRule,
+    prizeCosmeticSlug: comp.prizeCosmeticSlug,
+    prizeCosmeticEmoji: cosmeticEmoji,
+    prizeCosmeticName: cosmeticName,
+    prizeWinnerCount: comp.prizeWinnerCount,
+    status: comp.status,
+    prizesAwarded: comp.prizesAwarded,
+    createdAt: comp.createdAt,
+    updatedAt: comp.updatedAt,
+  };
+}
+
+// POST /classes/:slug/competitions — instructor or TA creates a
+// draft competition. Validates that the prize cosmetic exists.
+classesRouter.post(
+  "/:slug/competitions",
+  requireAuth,
+  requireInstructorOrTa,
+  zValidator("json", createCompetitionSchema),
+  async (c) => {
+    const cls = c.get("classRow");
+    const user = c.get("user")!;
+    const data = c.req.valid("json");
+    if (cls.status !== "active") {
+      return c.json({ error: "Class is archived" }, 400);
+    }
+    const db = getDb();
+    const cosmetic = db
+      .select({ id: petCosmetics.id })
+      .from(petCosmetics)
+      .where(eq(petCosmetics.slug, data.prizeCosmeticSlug))
+      .get();
+    if (!cosmetic) return c.json({ error: "Prize cosmetic not in catalog" }, 404);
+
+    const id = randomUUID();
+    db.insert(classCompetitions)
+      .values({
+        id,
+        classId: cls.id,
+        title: data.title.trim(),
+        descriptionMd: data.descriptionMd ?? "",
+        startsAt: data.startsAt,
+        endsAt: data.endsAt,
+        scoringRule: data.scoringRule,
+        prizeCosmeticSlug: data.prizeCosmeticSlug,
+        prizeWinnerCount: data.prizeWinnerCount,
+        createdById: user.id,
+      })
+      .run();
+    return c.json({ competitionId: id }, 201);
+  },
+);
+
+// GET /classes/:slug/competitions — list, with each row's lazy
+// auto-end applied so the UI sees the right status without
+// requiring a per-row drill.
+classesRouter.get(
+  "/:slug/competitions",
+  requireAuth,
+  requireEnrolledInClass,
+  async (c) => {
+    const cls = c.get("classRow");
+    const db = getDb();
+    let rows = db
+      .select()
+      .from(classCompetitions)
+      .where(eq(classCompetitions.classId, cls.id))
+      .orderBy(desc(classCompetitions.createdAt))
+      .all();
+    rows = rows.map(maybeAutoEnd);
+
+    // Attach prize cosmetic display data.
+    const slugs = [...new Set(rows.map((r) => r.prizeCosmeticSlug))];
+    const cosmeticRows = slugs.length
+      ? db
+          .select()
+          .from(petCosmetics)
+          .where(inArray(petCosmetics.slug, slugs))
+          .all()
+      : [];
+    const cosmeticBySlug = new Map(cosmeticRows.map((r) => [r.slug, r]));
+    return c.json({
+      competitions: rows.map((r) => {
+        const cos = cosmeticBySlug.get(r.prizeCosmeticSlug);
+        return competitionDto(r, cos?.emoji ?? null, cos?.name ?? null);
+      }),
+    });
+  },
+);
+
+// GET /classes/:slug/competitions/:competitionId — detail with
+// current standings (top-N+5 entries so the UI can show "you placed
+// 8th" context for non-winners).
+classesRouter.get(
+  "/:slug/competitions/:competitionId",
+  requireAuth,
+  requireEnrolledInClass,
+  async (c) => {
+    const cls = c.get("classRow");
+    const competitionId = c.req.param("competitionId")!;
+    const db = getDb();
+    let comp = db
+      .select()
+      .from(classCompetitions)
+      .where(eq(classCompetitions.id, competitionId))
+      .get();
+    if (!comp || comp.classId !== cls.id) {
+      return c.json({ error: "Competition not found" }, 404);
+    }
+    comp = maybeAutoEnd(comp);
+
+    const standings = computeStandings(comp);
+    const userIds = standings.map((s) => s.userId);
+    const userRows = userIds.length
+      ? db
+          .select({
+            id: users.id,
+            username: users.username,
+            displayName: users.displayName,
+          })
+          .from(users)
+          .where(inArray(users.id, userIds))
+          .all()
+      : [];
+    const userById = new Map(userRows.map((u) => [u.id, u]));
+
+    const cosmetic = db
+      .select()
+      .from(petCosmetics)
+      .where(eq(petCosmetics.slug, comp.prizeCosmeticSlug))
+      .get();
+
+    return c.json({
+      competition: competitionDto(comp, cosmetic?.emoji ?? null, cosmetic?.name ?? null),
+      standings: standings.map((s, i) => ({
+        rank: i + 1,
+        userId: s.userId,
+        username: userById.get(s.userId)?.username ?? null,
+        displayName: userById.get(s.userId)?.displayName ?? null,
+        score: s.score,
+        isWinner: i < comp.prizeWinnerCount,
+      })),
+    });
+  },
+);
+
+// PUT /classes/:slug/competitions/:competitionId — edit.
+// Locked once status='ended'.
+classesRouter.put(
+  "/:slug/competitions/:competitionId",
+  requireAuth,
+  requireInstructorOrTa,
+  zValidator("json", updateCompetitionSchema),
+  async (c) => {
+    const cls = c.get("classRow");
+    const competitionId = c.req.param("competitionId")!;
+    const data = c.req.valid("json");
+    const db = getDb();
+
+    const comp = db
+      .select()
+      .from(classCompetitions)
+      .where(eq(classCompetitions.id, competitionId))
+      .get();
+    if (!comp || comp.classId !== cls.id) {
+      return c.json({ error: "Competition not found" }, 404);
+    }
+    if (comp.status === "ended") {
+      return c.json({ error: "Cannot edit an ended competition" }, 400);
+    }
+
+    if (data.prizeCosmeticSlug) {
+      const cosmetic = db
+        .select({ id: petCosmetics.id })
+        .from(petCosmetics)
+        .where(eq(petCosmetics.slug, data.prizeCosmeticSlug))
+        .get();
+      if (!cosmetic) return c.json({ error: "Prize cosmetic not in catalog" }, 404);
+    }
+
+    const patch: Record<string, unknown> = {
+      updatedAt: new Date().toISOString(),
+    };
+    if (data.title != null) patch.title = data.title.trim();
+    if (data.descriptionMd != null) patch.descriptionMd = data.descriptionMd;
+    if (data.startsAt != null) patch.startsAt = data.startsAt;
+    if (data.endsAt != null) patch.endsAt = data.endsAt;
+    if (data.prizeCosmeticSlug != null) patch.prizeCosmeticSlug = data.prizeCosmeticSlug;
+    if (data.prizeWinnerCount != null) patch.prizeWinnerCount = data.prizeWinnerCount;
+
+    db.update(classCompetitions)
+      .set(patch)
+      .where(eq(classCompetitions.id, comp.id))
+      .run();
+    return c.json({ ok: true });
+  },
+);
+
+// POST /classes/:slug/competitions/:competitionId/publish — flip
+// draft → active.
+classesRouter.post(
+  "/:slug/competitions/:competitionId/publish",
+  requireAuth,
+  requireInstructorOrTa,
+  async (c) => {
+    const cls = c.get("classRow");
+    const competitionId = c.req.param("competitionId")!;
+    const db = getDb();
+    const comp = db
+      .select()
+      .from(classCompetitions)
+      .where(eq(classCompetitions.id, competitionId))
+      .get();
+    if (!comp || comp.classId !== cls.id) {
+      return c.json({ error: "Competition not found" }, 404);
+    }
+    if (comp.status !== "draft") {
+      return c.json({ error: `Already ${comp.status}` }, 400);
+    }
+    db.update(classCompetitions)
+      .set({ status: "active", updatedAt: new Date().toISOString() })
+      .where(eq(classCompetitions.id, comp.id))
+      .run();
+    return c.json({ ok: true });
+  },
+);
+
+// POST /classes/:slug/competitions/:competitionId/end — manual end
+// (e.g. instructor cuts an event short). Idempotent — a no-op if
+// already ended.
+classesRouter.post(
+  "/:slug/competitions/:competitionId/end",
+  requireAuth,
+  requireInstructorOrTa,
+  async (c) => {
+    const cls = c.get("classRow");
+    const competitionId = c.req.param("competitionId")!;
+    const db = getDb();
+    const comp = db
+      .select()
+      .from(classCompetitions)
+      .where(eq(classCompetitions.id, competitionId))
+      .get();
+    if (!comp || comp.classId !== cls.id) {
+      return c.json({ error: "Competition not found" }, 404);
+    }
+    if (comp.status === "ended") {
+      return c.json({ ok: true, alreadyEnded: true });
+    }
+    if (comp.status === "draft") {
+      return c.json({ error: "Publish before ending" }, 400);
+    }
+    const winners = distributePrizes(comp);
+    return c.json({ ok: true, winners });
   },
 );

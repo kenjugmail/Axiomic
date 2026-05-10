@@ -14,6 +14,7 @@ import {
   petCosmetics,
   petInventory,
   pets,
+  users,
   getDb,
 } from "@axiomic/db";
 import { requireAuth } from "../middleware/auth";
@@ -228,4 +229,55 @@ petCatalogRouter.get("/", (c) => {
   const db = getDb();
   const rows = db.select().from(petCosmetics).orderBy(petCosmetics.slot, petCosmetics.rarity).all();
   return c.json({ cosmetics: rows });
+});
+
+// S87 — Public per-username pet display, used by the
+// PetByUsername wrapper to render pets next to bylines anywhere
+// (forum topics, lesson author, profile page, ...). Returns the
+// minimum data PetView needs: speciesEmoji + equipped[]. Returns
+// pet=null when the user has no pet yet so the wrapper can fall
+// back to its placeholder.
+export const petPublicRouter = new Hono<Env>();
+petPublicRouter.get("/:username/pet-display", (c) => {
+  const username = c.req.param("username")!;
+  const db = getDb();
+  const user = db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.username, username))
+    .get();
+  if (!user) return c.json({ pet: null });
+
+  const pet = db
+    .select()
+    .from(pets)
+    .where(eq(pets.userId, user.id))
+    .get();
+  if (!pet) return c.json({ pet: null });
+
+  const speciesMeta = petSpeciesBySlug(pet.species);
+  const equippedRows = db
+    .select({
+      slug: petInventory.cosmeticSlug,
+      slot: petCosmetics.slot,
+      emoji: petCosmetics.emoji,
+    })
+    .from(petInventory)
+    .innerJoin(petCosmetics, eq(petCosmetics.slug, petInventory.cosmeticSlug))
+    .where(
+      and(
+        eq(petInventory.userId, user.id),
+        eq(petInventory.equipped, true),
+      ),
+    )
+    .all();
+
+  return c.json({
+    pet: {
+      species: pet.species,
+      speciesEmoji: speciesMeta?.emoji ?? "🥚",
+      name: pet.name,
+      equipped: equippedRows,
+    },
+  });
 });

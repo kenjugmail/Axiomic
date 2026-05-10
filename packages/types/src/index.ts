@@ -3475,3 +3475,77 @@ export interface MyPetResponse {
   hatchThresholdXp: number;
   inventory: PetInventoryItem[];
 }
+
+// =============================================================
+// S87 — Competitions + per-username pet display.
+// =============================================================
+
+export type CompetitionStatus = "draft" | "active" | "ended";
+export type CompetitionScoringRule = "class-xp";
+
+export interface CompetitionSummary {
+  id: string;
+  classId: string;
+  title: string;
+  descriptionMd: string;
+  startsAt: string;
+  endsAt: string;
+  scoringRule: CompetitionScoringRule;
+  prizeCosmeticSlug: string;
+  prizeCosmeticEmoji: string | null;
+  prizeCosmeticName: string | null;
+  prizeWinnerCount: number;
+  status: CompetitionStatus;
+  prizesAwarded: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CompetitionStandingEntry {
+  rank: number;
+  userId: string;
+  username: string | null;
+  displayName: string | null;
+  score: number;
+  isWinner: boolean;
+}
+
+export interface CompetitionsListResponse {
+  competitions: CompetitionSummary[];
+}
+
+export interface CompetitionDetailResponse {
+  competition: CompetitionSummary;
+  standings: CompetitionStandingEntry[];
+}
+
+export interface CreateCompetitionRequest {
+  title: string;
+  descriptionMd?: string;
+  startsAt: string;
+  endsAt: string;
+  scoringRule?: CompetitionScoringRule;
+  prizeCosmeticSlug: string;
+  prizeWinnerCount?: number;
+}
+
+export interface UpdateCompetitionRequest {
+  title?: string;
+  descriptionMd?: string;
+  startsAt?: string;
+  endsAt?: string;
+  prizeCosmeticSlug?: string;
+  prizeWinnerCount?: number;
+}
+
+// Lean per-username payload powering the PetByUsername wrapper.
+// pet=null when the user hasn't hatched a pet yet (or the username
+// isn't found — the API doesn't distinguish to avoid leakage).
+export interface UserPetDisplay {
+  pet: {
+    species: string;
+    speciesEmoji: string;
+    name: string;
+    equipped: Array<{ slot: string; emoji: string | null; slug: string }>;
+  } | null;
+}

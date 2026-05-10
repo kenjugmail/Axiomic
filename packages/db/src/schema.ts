@@ -2470,3 +2470,50 @@ export const petInventory = sqliteTable("pet_inventory", {
   uniq: uniqueIndex("pet_inventory_uniq").on(t.userId, t.cosmeticSlug),
   userIdx: index("pet_inventory_user_idx").on(t.userId, t.equipped),
 }));
+
+// =============================================================
+// S87 — Class competitions.
+// =============================================================
+//
+// Timed event scoped to a class. Instructor (or TA) creates a draft,
+// publishes it (status='active'), and at endsAt the system runs a
+// lazy distribution: top-N students by `scoringRule` win a copy of
+// `prizeCosmeticSlug` in their inventory. Distribution is idempotent
+// via the existing pet_inventory unique-on-(userId,cosmeticSlug)
+// index, so the lazy pass is safe to call multiple times.
+//
+// Re-uses pet_cosmetics.slug as the prize ref but no FK — letting
+// authors name a cosmetic before it's seeded is occasionally useful
+// (and the route validates existence at create/publish time).
+export const classCompetitions = sqliteTable("class_competitions", {
+  id: text("id").primaryKey(),
+  classId: text("class_id").notNull()
+    .references(() => classes.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  descriptionMd: text("description_md").notNull().default(""),
+  // ISO datetime strings so the UI can render countdowns + the
+  // prize-distribution check is a simple string compare.
+  startsAt: text("starts_at").notNull(),
+  endsAt: text("ends_at").notNull(),
+  // 'class-xp' for v1. Schema accepts other rules so adding them
+  // (reading-completions, homework-passes, attendance-streak) later
+  // doesn't need a migration.
+  scoringRule: text("scoring_rule").notNull().default("class-xp"),
+  prizeCosmeticSlug: text("prize_cosmetic_slug").notNull(),
+  prizeWinnerCount: integer("prize_winner_count").notNull().default(3),
+  // 'draft' | 'active' | 'ended'. Transitions: draft -> active on
+  // publish; active -> ended lazily on read past endsAt OR via
+  // explicit POST /end. Ended is terminal in S87.
+  status: text("status").notNull().default("draft"),
+  // Flips true once auto-distribution runs. The unique-index on
+  // pet_inventory means re-runs are safe at the data layer too,
+  // but this short-circuits the standings computation after first
+  // pass.
+  prizesAwarded: integer("prizes_awarded", { mode: "boolean" })
+    .notNull().default(false),
+  createdById: text("created_by_id").notNull().references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  classStatusIdx: index("class_competitions_class_idx").on(t.classId, t.status, t.endsAt),
+}));

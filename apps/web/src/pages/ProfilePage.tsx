@@ -15,6 +15,7 @@ import { MasteryPortfolio } from "../components/profile/MasteryPortfolio";
 import { ActivityHeatmap } from "../components/ActivityHeatmap";
 import { FollowButton } from "../components/FollowButton";
 import { SkillTree } from "../components/profile/SkillTree";
+import { PetByUsername } from "../components/pet/PetByUsername";
 
 const LEVEL_COLORS: Record<string, string> = {
   apprentice: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
@@ -190,9 +191,13 @@ export function ProfilePage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       <div className="flex items-center gap-4 mb-8">
-        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-2xl font-bold text-primary">
-          {display.charAt(0).toUpperCase()}
-        </div>
+        {/* S87 — pet renders inline if the user has hatched one;
+            otherwise falls back to the original initial-letter avatar. */}
+        <PetByUsername
+          username={username}
+          size="md"
+          fallbackInitial={display.charAt(0).toUpperCase()}
+        />
         <div className="flex-1">
           <h1 className="text-2xl font-bold">{display}</h1>
           <p className="text-muted-foreground text-sm">@{username}</p>

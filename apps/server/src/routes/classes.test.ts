@@ -485,3 +485,344 @@ describe("classes (S86)", () => {
     expect(lbData.entries[bIdx].xp).toBeGreaterThan(lbData.entries[aIdx].xp);
   });
 });
+
+describe("class competitions (S87)", () => {
+  test("create competition -> publish -> end -> top-N students get prize cosmetic", async () => {
+    const instructor = await signup("compinst1");
+    const studentA = await signup("compA1");
+    const studentB = await signup("compB1");
+    const studentC = await signup("compC1"); // 4th place; should NOT get prize
+    const slug = `cls-comp-prize-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    for (const s of [studentA, studentB, studentC]) {
+      await req(`/classes/${slug}/enroll`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(s.cookie) },
+        body: JSON.stringify({ joinCode: created.joinCode }),
+      });
+    }
+
+    // Create a competition with prizeWinnerCount=2 (only top 2 win).
+    const past = new Date(Date.now() - 60_000).toISOString();
+    const future = new Date(Date.now() + 60_000).toISOString();
+    const create = await req(`/classes/${slug}/competitions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        title: "Spring Sprint",
+        startsAt: past,
+        endsAt: future,
+        prizeCosmeticSlug: "trophy",
+        prizeWinnerCount: 2,
+      }),
+    });
+    expect(create.status).toBe(201);
+    const { competitionId } = (await create.json()) as { competitionId: string };
+
+    // Publish.
+    const publish = await req(`/classes/${slug}/competitions/${competitionId}/publish`, {
+      method: "POST",
+      headers: cookieHeader(instructor.cookie),
+    });
+    expect(publish.status).toBe(200);
+
+    // Earn class XP for each student (homework grants are class-scoped).
+    // A: highest, B: middle, C: lowest.
+    const taskRes = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ kind: "homework", title: "Sprint PSet" }),
+    });
+    const { taskId } = (await taskRes.json()) as { taskId: string };
+    for (const s of [studentA, studentB, studentC]) {
+      await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(s.cookie) },
+        body: JSON.stringify({ content: `Submission from ${s.username} for the spring sprint.` }),
+      });
+    }
+    // Pass A + B; C remains unpassed (smaller XP).
+    for (const s of [studentA, studentB]) {
+      await req(`/classes/${slug}/tasks/${taskId}/grade/${s.userId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+        body: JSON.stringify({ pass: true }),
+      });
+    }
+
+    // Manually end the competition.
+    const end = await req(`/classes/${slug}/competitions/${competitionId}/end`, {
+      method: "POST",
+      headers: cookieHeader(instructor.cookie),
+    });
+    expect(end.status).toBe(200);
+    const endData = (await end.json()) as { winners: string[] };
+    expect(endData.winners.length).toBe(2);
+    // C didn't grade-pass, so they're 3rd and below the cutoff.
+    expect(endData.winners).not.toContain(studentC.userId);
+
+    // Winner inventory contains the prize cosmetic.
+    const a = await req("/me/pet", { headers: cookieHeader(studentA.cookie) });
+    const aData = (await a.json()) as { inventory: Array<{ slug: string }> };
+    expect(aData.inventory.some((i) => i.slug === "trophy")).toBe(true);
+
+    // Non-winner C does NOT have the prize.
+    const cInv = await req("/me/pet", { headers: cookieHeader(studentC.cookie) });
+    const cData = (await cInv.json()) as { inventory: Array<{ slug: string }> };
+    expect(cData.inventory.some((i) => i.slug === "trophy")).toBe(false);
+  });
+
+  test("re-running distribution is idempotent (no double-grant)", async () => {
+    const instructor = await signup("compinst2");
+    const student = await signup("compstud2");
+    const slug = `cls-comp-idemp-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    const create = await req(`/classes/${slug}/competitions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        title: "Idempotency Test",
+        startsAt: new Date(Date.now() - 60_000).toISOString(),
+        endsAt: new Date(Date.now() + 60_000).toISOString(),
+        prizeCosmeticSlug: "gold-star",
+        prizeWinnerCount: 1,
+      }),
+    });
+    const { competitionId } = (await create.json()) as { competitionId: string };
+    await req(`/classes/${slug}/competitions/${competitionId}/publish`, {
+      method: "POST",
+      headers: cookieHeader(instructor.cookie),
+    });
+    // Earn some class XP.
+    const t = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ kind: "reading", title: "R1", url: "https://example.com" }),
+    });
+    const { taskId } = (await t.json()) as { taskId: string };
+    await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({}),
+    });
+
+    // First end.
+    await req(`/classes/${slug}/competitions/${competitionId}/end`, {
+      method: "POST",
+      headers: cookieHeader(instructor.cookie),
+    });
+    // Second end is a no-op.
+    const second = await req(`/classes/${slug}/competitions/${competitionId}/end`, {
+      method: "POST",
+      headers: cookieHeader(instructor.cookie),
+    });
+    expect(second.status).toBe(200);
+    const data = (await second.json()) as { alreadyEnded?: boolean };
+    expect(data.alreadyEnded).toBe(true);
+
+    // Inventory still has exactly one gold-star.
+    const inv = await req("/me/pet", { headers: cookieHeader(student.cookie) });
+    const invData = (await inv.json()) as { inventory: Array<{ slug: string }> };
+    const goldStars = invData.inventory.filter((i) => i.slug === "gold-star");
+    expect(goldStars.length).toBe(1);
+  });
+
+  test("non-instructor cannot create a competition (403)", async () => {
+    const instructor = await signup("compinst3");
+    const student = await signup("compstud3");
+    const slug = `cls-comp-acl-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    const tryCreate = await req(`/classes/${slug}/competitions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({
+        title: "Hostile",
+        startsAt: new Date().toISOString(),
+        endsAt: new Date(Date.now() + 60_000).toISOString(),
+        prizeCosmeticSlug: "crown",
+      }),
+    });
+    expect(tryCreate.status).toBe(403);
+  });
+
+  test("prize cosmetic must exist in catalog (404)", async () => {
+    const instructor = await signup("compinst4");
+    const slug = `cls-comp-noprize-${testRun}`;
+    await createClass(instructor.cookie, slug);
+    const res = await req(`/classes/${slug}/competitions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        title: "Bad prize",
+        startsAt: new Date().toISOString(),
+        endsAt: new Date(Date.now() + 60_000).toISOString(),
+        prizeCosmeticSlug: "made-up-cosmetic-not-in-seed",
+      }),
+    });
+    expect(res.status).toBe(404);
+  });
+
+  test("lazy auto-end on GET past endsAt distributes prizes", async () => {
+    const instructor = await signup("compinst5");
+    const student = await signup("compstud5");
+    const slug = `cls-comp-lazy-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    // Already-past competition — startsAt in the past, endsAt also
+    // already in the past (1s ago). The lazy-end branch runs on
+    // first GET.
+    const create = await req(`/classes/${slug}/competitions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        title: "Past-tense",
+        startsAt: new Date(Date.now() - 120_000).toISOString(),
+        endsAt: new Date(Date.now() - 1_000).toISOString(),
+        prizeCosmeticSlug: "rocket",
+        prizeWinnerCount: 1,
+      }),
+    });
+    const { competitionId } = (await create.json()) as { competitionId: string };
+    await req(`/classes/${slug}/competitions/${competitionId}/publish`, {
+      method: "POST",
+      headers: cookieHeader(instructor.cookie),
+    });
+    // Earn some XP retroactively. xp_grants.awardedAt is "now" so
+    // it falls between startsAt and endsAt? endsAt was 1s ago — race
+    // condition possible but unlikely in test.
+    const t = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ kind: "reading", title: "R", url: "https://e.com" }),
+    });
+    const { taskId } = (await t.json()) as { taskId: string };
+    await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({}),
+    });
+
+    // GET should auto-end.
+    const get = await req(`/classes/${slug}/competitions/${competitionId}`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    expect(get.status).toBe(200);
+    const data = (await get.json()) as {
+      competition: { status: string; prizesAwarded: boolean };
+    };
+    expect(data.competition.status).toBe("ended");
+    expect(data.competition.prizesAwarded).toBe(true);
+  });
+
+  test("edit blocked once status=ended", async () => {
+    const instructor = await signup("compinst6");
+    const slug = `cls-comp-locked-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    void created;
+    const create = await req(`/classes/${slug}/competitions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        title: "To be ended",
+        startsAt: new Date(Date.now() - 60_000).toISOString(),
+        endsAt: new Date(Date.now() + 60_000).toISOString(),
+        prizeCosmeticSlug: "crown",
+      }),
+    });
+    const { competitionId } = (await create.json()) as { competitionId: string };
+    await req(`/classes/${slug}/competitions/${competitionId}/publish`, {
+      method: "POST",
+      headers: cookieHeader(instructor.cookie),
+    });
+    await req(`/classes/${slug}/competitions/${competitionId}/end`, {
+      method: "POST",
+      headers: cookieHeader(instructor.cookie),
+    });
+    const editTry = await req(`/classes/${slug}/competitions/${competitionId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ title: "Renamed after end" }),
+    });
+    expect(editTry.status).toBe(400);
+  });
+});
+
+describe("/users/:username/pet-display (S87)", () => {
+  test("returns null pet for users without one", async () => {
+    const u = await signup("nopet1");
+    const res = await req(`/users/${u.username}/pet-display`);
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as { pet: unknown };
+    expect(data.pet).toBeNull();
+  });
+
+  test("returns species + equipped cosmetics when pet + equip exist", async () => {
+    // Hatch a pet by stacking XP up to threshold + equip a cosmetic
+    // through the class flow.
+    const instructor = await signup("petinst1");
+    const student = await signup("petstud1");
+    const slug = `cls-petdisp-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    // Submit + grade homework to push past the hatch threshold.
+    const t = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ kind: "homework", title: "PSet" }),
+    });
+    const { taskId } = (await t.json()) as { taskId: string };
+    await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ content: "Submission with sufficient content for the validator." }),
+    });
+    await req(`/classes/${slug}/tasks/${taskId}/grade/${student.userId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ pass: true }),
+    });
+    await req(`/classes/${slug}/grant-cosmetic`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        userId: student.userId,
+        cosmeticSlug: "fire",
+      }),
+    });
+    await req("/me/pet/equip", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ cosmeticSlug: "fire" }),
+    });
+
+    const res = await req(`/users/${student.username}/pet-display`);
+    const data = (await res.json()) as {
+      pet: {
+        species: string;
+        speciesEmoji: string;
+        equipped: Array<{ slug: string; emoji: string | null }>;
+      } | null;
+    };
+    expect(data.pet).not.toBeNull();
+    expect(data.pet?.speciesEmoji).toBeTruthy();
+    expect(data.pet?.equipped.some((e) => e.slug === "fire")).toBe(true);
+  });
+});

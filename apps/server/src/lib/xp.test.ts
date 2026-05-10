@@ -1,13 +1,15 @@
 import { describe, test, expect, beforeAll } from "bun:test";
 import { randomUUID } from "crypto";
 import { eq } from "drizzle-orm";
-import { getDb, users, pets, classes } from "@axiomic/db";
+import { getDb, users, pets, classes, activityEvents } from "@axiomic/db";
 import {
   grantXp,
+  maybeGrantStreakBonus,
   maybeHatchPet,
   totalXpForUser,
   classXpForUser,
   PET_HATCH_THRESHOLD_XP,
+  STREAK_BONUS_PER_DAY,
   XP_AMOUNTS,
 } from "./xp";
 
@@ -26,6 +28,29 @@ function makeUser(suffix: string): string {
     })
     .run();
   return id;
+}
+
+// S87 — Seed activity_events rows so currentStreak() reads back a
+// streak of `days` (today + (days-1) prior days). Mirrors what
+// recordActivity would do in production but writes directly so the
+// tests don't depend on the achievements pipeline.
+function seedActivityForDays(userId: string, days: number) {
+  const cursor = new Date();
+  for (let i = 0; i < days; i++) {
+    const day = cursor.toISOString().slice(0, 10);
+    getDb()
+      .insert(activityEvents)
+      .values({
+        id: randomUUID(),
+        userId,
+        kind: "node_completed",
+        day,
+        // occurredAt defaults to now; that's fine — currentStreak
+        // only looks at the day key.
+      })
+      .run();
+    cursor.setUTCDate(cursor.getUTCDate() - 1);
+  }
 }
 
 function makeClass(instructorId: string, suffix: string): string {
@@ -141,5 +166,49 @@ describe("grantXp + maybeHatchPet", () => {
   test("threshold constant matches expectation", () => {
     expect(PET_HATCH_THRESHOLD_XP).toBeGreaterThan(0);
     expect(PET_HATCH_THRESHOLD_XP).toBeLessThanOrEqual(100);
+  });
+});
+
+describe("maybeGrantStreakBonus (S87)", () => {
+  test("returns null when streak < 2 (no prior activity)", () => {
+    const u = makeUser("streak1");
+    const r = maybeGrantStreakBonus(u);
+    expect(r).toBeNull();
+  });
+
+  test("grants once per day; second call same day is idempotent", () => {
+    const u = makeUser("streak2");
+    // Seed the streak by inserting activity for today + yesterday.
+    seedActivityForDays(u, 2);
+
+    const before = totalXpForUser(u);
+    const first = maybeGrantStreakBonus(u);
+    expect(first).not.toBeNull();
+    expect(first?.granted).toBe(true);
+    expect(first?.amount).toBeGreaterThanOrEqual(STREAK_BONUS_PER_DAY * 2);
+
+    const middle = totalXpForUser(u);
+    expect(middle - before).toBe(first!.amount);
+
+    const second = maybeGrantStreakBonus(u);
+    expect(second?.granted).toBe(false); // unique-index hit
+    expect(totalXpForUser(u)).toBe(middle); // no new XP
+  });
+
+  test("grantXp triggers streak bonus inline on first daily grant", () => {
+    const u = makeUser("streak3");
+    seedActivityForDays(u, 3); // streak = 3
+
+    const before = totalXpForUser(u);
+    const r = grantXp({
+      userId: u,
+      source: "reading-done",
+      sourceRefId: "morning-reading",
+    });
+    expect(r.granted).toBe(true);
+    const after = totalXpForUser(u);
+    // Triggering grant + a streak bonus arrived together: total
+    // delta is reading-done amount + streak-bonus amount.
+    expect(after - before).toBeGreaterThan(XP_AMOUNTS["reading-done"]);
   });
 });

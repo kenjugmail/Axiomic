@@ -43,7 +43,7 @@ import { harvestSocialResearcherPostsJob } from "./jobs/harvestSocialResearcherP
 import { finalizeStaleExamAttemptsJob } from "./jobs/finalizeStaleExamAttempts";
 import { capstonesRouter } from "./routes/capstones";
 import { classesRouter } from "./routes/classes";
-import { petRouter, petCatalogRouter } from "./routes/pet";
+import { petRouter, petCatalogRouter, petPublicRouter } from "./routes/pet";
 import { misconceptionsRouter } from "./routes/misconceptions";
 import { kernelFilesRouter } from "./routes/kernelFiles";
 import { cohortsRouter, mentorsRouter } from "./routes/cohorts";
@@ -240,6 +240,8 @@ app.route("/capstones", capstonesRouter);
 app.route("/classes", classesRouter);
 app.route("/me/pet", petRouter);
 app.route("/pet-cosmetics", petCatalogRouter);
+// S87 — public per-username pet display.
+app.route("/users", petPublicRouter);
 app.route("/misconceptions", misconceptionsRouter);
 app.route("/kernel-files", kernelFilesRouter);
 app.route("/cohorts", cohortsRouter);

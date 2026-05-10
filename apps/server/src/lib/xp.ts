@@ -12,6 +12,7 @@ import { sql } from "drizzle-orm";
 import { eq } from "drizzle-orm";
 import { getDb, pets, xpGrants } from "@axiomic/db";
 import { randomPetSpecies } from "./pets";
+import { currentStreak } from "./achievements";
 
 // XP awarded for each engagement source. Tunable from one place;
 // per-task overrides on `class_tasks.xp_reward` win when present.
@@ -26,11 +27,24 @@ export const XP_AMOUNTS = {
   "code-question-passed": 12,
 } as const;
 
-export type XpSource = keyof typeof XP_AMOUNTS;
+// Sources with default amounts in XP_AMOUNTS.
+export type XpSource = keyof typeof XP_AMOUNTS | "streak-day-bonus";
 
 // Pet auto-hatches at this XP threshold. Low so the first homework
 // or two reveals the pet — fast feedback.
 export const PET_HATCH_THRESHOLD_XP = 50;
+
+// S87 — Streak-day bonus tuning.
+//
+// Awarded once per UTC day on the user's first non-bonus XP grant
+// of the day, IFF they have a streak of ≥2. Amount scales with
+// streak length but caps so a 100-day streak doesn't dwarf an
+// honest day's work. The bonus rides on the existing xp_grants
+// uniqueness invariant (userId, source, sourceRefId) where
+// sourceRefId is today's date, so a second activity on the same
+// day silently no-ops.
+export const STREAK_BONUS_PER_DAY = 3;
+export const STREAK_BONUS_MAX = 30;
 
 export interface GrantXpInput {
   userId: string;
@@ -50,11 +64,29 @@ export interface GrantXpResult {
 // Insert an XP grant. Idempotent: a second call with the same
 // (userId, source, sourceRefId) is a no-op (returns granted=false).
 // On a successful first grant, also checks whether to hatch a pet.
+//
+// Streak side-effect: any non-bonus grant first attempts a streak
+// bonus (idempotent on the user's date key, so subsequent grants
+// the same day silently no-op). This means the user's first daily
+// activity emits a single bonus XP grant alongside the triggering
+// grant.
 export function grantXp(input: GrantXpInput): GrantXpResult {
   const db = getDb();
-  const amount = input.amount ?? XP_AMOUNTS[input.source];
+  const isStreakBonus = input.source === "streak-day-bonus";
+  // Look up default; bonus sources require an explicit amount.
+  const defaultAmount = isStreakBonus
+    ? undefined
+    : XP_AMOUNTS[input.source as keyof typeof XP_AMOUNTS];
+  const amount = input.amount ?? defaultAmount;
   if (typeof amount !== "number" || amount <= 0) {
     return { granted: false, amount: 0 };
+  }
+
+  // Streak bonus rides on the same grantXp idempotency. Run it
+  // BEFORE the triggering grant so it's eligible when the streak
+  // was already at 2 yesterday — i.e. the user picks up today.
+  if (!isStreakBonus) {
+    maybeGrantStreakBonus(input.userId);
   }
 
   // INSERT OR IGNORE keeps idempotency at the SQL layer. drizzle's
@@ -141,4 +173,31 @@ export function maybeHatchPet(userId: string): { species: string; name: string }
     .run();
 
   return { species: species.slug, name: species.label };
+}
+
+// S87 — Streak-day bonus.
+//
+// Awarded once per UTC day to users with an active streak (≥2 days
+// of consecutive activity). Amount scales with streak length up to
+// STREAK_BONUS_MAX. Idempotent: sourceRefId is today's UTC date so a
+// second activity the same day silently no-ops at the SQL layer.
+//
+// Returns null when no bonus was granted (streak too short, or
+// already claimed today). The caller is grantXp itself, which calls
+// this BEFORE its own grant for any non-streak-bonus source.
+export function maybeGrantStreakBonus(userId: string): GrantXpResult | null {
+  const db = getDb();
+  const streak = currentStreak(db, userId);
+  if (streak < 2) return null;
+  const today = new Date().toISOString().slice(0, 10);
+  const amount = Math.min(streak * STREAK_BONUS_PER_DAY, STREAK_BONUS_MAX);
+  // Calls grantXp recursively but tags as streak-day-bonus so the
+  // recursion guard short-circuits — the inner call won't itself
+  // trigger another streak bonus.
+  return grantXp({
+    userId,
+    source: "streak-day-bonus",
+    sourceRefId: today,
+    amount,
+  });
 }

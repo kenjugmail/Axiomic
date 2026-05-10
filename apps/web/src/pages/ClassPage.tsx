@@ -18,6 +18,7 @@ import {
   KeyRound,
   ExternalLink,
   Clock,
+  Sparkles,
 } from "lucide-react";
 import type {
   ClassDetailResponse,
@@ -32,9 +33,10 @@ import { Skeleton } from "../components/ui";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { Leaderboard } from "../components/class/Leaderboard";
 import { AttendanceGrid } from "../components/class/AttendanceGrid";
+import { CompetitionsList } from "../components/class/CompetitionsList";
 import { toast } from "../stores/toast";
 
-type Tab = "tasks" | "leaderboard" | "roster" | "attendance";
+type Tab = "tasks" | "leaderboard" | "competitions" | "roster" | "attendance";
 
 export function ClassPage() {
   const { slug = "" } = useParams<{ slug: string }>();
@@ -175,6 +177,9 @@ export function ClassPage() {
         <TabButton active={tab === "leaderboard"} onClick={() => setTab("leaderboard")}>
           <Trophy className="w-3.5 h-3.5" /> Leaderboard
         </TabButton>
+        <TabButton active={tab === "competitions"} onClick={() => setTab("competitions")}>
+          <Sparkles className="w-3.5 h-3.5" /> Competitions
+        </TabButton>
         {isInstructorOrTa && (
           <>
             <TabButton active={tab === "roster"} onClick={() => setTab("roster")}>
@@ -245,6 +250,10 @@ export function ClassPage() {
             />
           )}
         </section>
+      )}
+
+      {tab === "competitions" && (
+        <CompetitionsList classSlug={slug} myRole={data.myRole} />
       )}
 
       {tab === "roster" && isInstructorOrTa && (
