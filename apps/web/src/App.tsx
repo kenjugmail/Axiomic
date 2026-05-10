@@ -259,6 +259,9 @@ const PetShowcasePage = lazy(() =>
 const JoinClassPage = lazy(() =>
   import("./pages/JoinClassPage").then((m) => ({ default: m.JoinClassPage })),
 );
+const ClassesDirectoryPage = lazy(() =>
+  import("./pages/ClassesDirectoryPage").then((m) => ({ default: m.ClassesDirectoryPage })),
+);
 const CapstoneWorkspacePage = lazy(() =>
   import("./pages/CapstoneWorkspacePage").then((m) => ({ default: m.CapstoneWorkspacePage })),
 );
@@ -533,6 +536,7 @@ function AppRoutes() {
           <Route path="/me/progress" element={<MyProgressPage />} />
           <Route path="/explore/pets" element={<PetShowcasePage />} />
           <Route path="/join/:slug/:joinCode" element={<JoinClassPage />} />
+          <Route path="/classes/discover" element={<ClassesDirectoryPage />} />
           <Route path="/shop" element={<ShopPage />} />
           <Route path="/tracks" element={<CapstoneTracksListPage />} />
           <Route path="/tracks/c/:artifactSlug" element={<CapstoneTrackArtifactPage />} />

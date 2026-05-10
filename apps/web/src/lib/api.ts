@@ -209,6 +209,8 @@ import type {
   PetShowcaseResponse,
   // S98 — profile cosmetic gallery.
   CosmeticGalleryResponse,
+  // S102 — public class directory.
+  DiscoverClassesResponse,
   // S89 — XP shop.
   ShopResponse,
   BuyCosmeticRequest,
@@ -1310,6 +1312,8 @@ export const api = {
     // S93 — instructor analytics dashboard.
     analytics: (slug: string) =>
       request<ClassAnalyticsResponse>(`/classes/${slug}/analytics`),
+    // S102 — public class directory.
+    discover: () => request<DiscoverClassesResponse>("/classes/discover"),
     // S96 — class question of the day.
     activeQuestion: (slug: string) =>
       request<ClassQuestionActiveResponse>(`/classes/${slug}/questions/active`),

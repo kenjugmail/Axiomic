@@ -3299,6 +3299,8 @@ export interface ClassDetail {
   syllabusMd: string;
   // S99 — instructor-authored welcome message (markdown).
   welcomeMessageMd: string;
+  // S102 — opt-in to the public directory at /classes/discover.
+  discoverable: boolean;
   status: ClassStatus;
   instructor: { id: string; username: string; displayName: string | null } | null;
   joinCode: string | null;
@@ -3417,6 +3419,7 @@ export interface CreateClassRequest {
   description?: string;
   syllabusMd?: string;
   welcomeMessageMd?: string;
+  discoverable?: boolean;
 }
 
 export interface UpdateClassRequest {
@@ -3425,7 +3428,24 @@ export interface UpdateClassRequest {
   description?: string;
   syllabusMd?: string;
   welcomeMessageMd?: string;
+  discoverable?: boolean;
   status?: ClassStatus;
+}
+
+// S102 — public class directory entry.
+export interface DiscoverClassEntry {
+  slug: string;
+  title: string;
+  term: string;
+  description: string;
+  welcomeMessageMd: string;
+  memberCount: number;
+  instructorUsername: string;
+  instructorDisplayName: string | null;
+}
+
+export interface DiscoverClassesResponse {
+  classes: DiscoverClassEntry[];
 }
 
 export interface CreateClassTaskRequest {

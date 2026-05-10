@@ -1271,6 +1271,50 @@ describe("S95 daily-featured shop rotation", () => {
   });
 });
 
+describe("S102 public class directory", () => {
+  test("default created class is NOT in /classes/discover", async () => {
+    const instructor = await signup("dirinst1");
+    const slug = `cls-dir-hidden-${testRun}`;
+    await createClass(instructor.cookie, slug);
+    const res = await req("/classes/discover");
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as { classes: Array<{ slug: string }> };
+    expect(data.classes.some((c) => c.slug === slug)).toBe(false);
+  });
+
+  test("class with discoverable=true appears in /classes/discover with member count", async () => {
+    const instructor = await signup("dirinst2");
+    const student = await signup("dirstud2");
+    const slug = `cls-dir-shown-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    // Flip discoverable on.
+    const upd = await req(`/classes/${slug}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ discoverable: true }),
+    });
+    expect(upd.status).toBe(200);
+    const res = await req("/classes/discover");
+    const data = (await res.json()) as {
+      classes: Array<{
+        slug: string;
+        memberCount: number;
+        instructorUsername: string;
+      }>;
+    };
+    const found = data.classes.find((c) => c.slug === slug);
+    expect(found).toBeDefined();
+    // Member count should reflect at least the one enrolled student.
+    expect((found?.memberCount ?? 0) >= 1).toBe(true);
+    expect(found?.instructorUsername).toBe(instructor.username);
+  });
+});
+
 describe("S101 leaderboard time windows", () => {
   test("default window is 'all' and matches existing behavior", async () => {
     const instructor = await signup("lbinst1");

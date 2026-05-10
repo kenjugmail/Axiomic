@@ -55,7 +55,13 @@ export function ClassesListPage() {
             climb the leaderboard.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Link
+            to="/classes/discover"
+            className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40 inline-flex items-center gap-1.5"
+          >
+            Discover
+          </Link>
           <button
             type="button"
             onClick={() => setJoinOpen(true)}

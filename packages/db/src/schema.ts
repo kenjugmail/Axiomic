@@ -2299,6 +2299,11 @@ export const classes = sqliteTable("classes", {
   // in a banner on the class page so new students get a friendly
   // pointer on day one.
   welcomeMessageMd: text("welcome_message_md").notNull().default(""),
+  // S102 — public discovery. When true, the class shows up on the
+  // /classes/discover directory so students can find it without a
+  // share link or join code dictation. Default false: instructors
+  // explicitly opt in.
+  discoverable: integer("discoverable", { mode: "boolean" }).notNull().default(false),
   // Short alphanumeric code students enter to self-enroll. Generated
   // server-side; rotatable by the instructor.
   joinCode: text("join_code").notNull(),

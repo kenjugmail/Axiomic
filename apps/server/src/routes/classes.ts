@@ -74,6 +74,8 @@ const createClassSchema = z.object({
   syllabusMd: z.string().max(50000).optional().default(""),
   // S99 — optional welcome message, markdown.
   welcomeMessageMd: z.string().max(10000).optional().default(""),
+  // S102 — opt-in to the public directory.
+  discoverable: z.boolean().optional().default(false),
 });
 
 const updateClassSchema = z.object({
@@ -82,6 +84,7 @@ const updateClassSchema = z.object({
   description: z.string().max(2000).optional(),
   syllabusMd: z.string().max(50000).optional(),
   welcomeMessageMd: z.string().max(10000).optional(),
+  discoverable: z.boolean().optional(),
   status: z.enum(["active", "archived"]).optional(),
 });
 
@@ -159,6 +162,46 @@ function isDueLate(dueAt: string | null | undefined): boolean {
 // --- routes ---------------------------------------------------------
 
 // GET /classes — list classes I'm in (teaching or enrolled).
+// GET /classes/discover — S102 public class directory. No auth
+// required; returns active + discoverable classes with member
+// counts so a logged-out visitor can browse what's available
+// before signing up. MUST be registered before the /:slug route
+// since Hono's path matching takes the literal path first when both
+// are registered, but only when the literal route precedes — keep
+// this above /:slug.
+classesRouter.get("/discover", async (c) => {
+  const db = getDb();
+  const rows = db
+    .select({
+      id: classes.id,
+      slug: classes.slug,
+      title: classes.title,
+      term: classes.term,
+      description: classes.description,
+      welcomeMessageMd: classes.welcomeMessageMd,
+      memberCount: sql<number>`(select count(*) from class_enrollments ce where ce.class_id = ${classes.id})`,
+      instructorUsername: users.username,
+      instructorDisplayName: users.displayName,
+    })
+    .from(classes)
+    .innerJoin(users, eq(users.id, classes.instructorId))
+    .where(and(eq(classes.discoverable, true), eq(classes.status, "active")))
+    .orderBy(desc(classes.createdAt))
+    .all();
+  return c.json({
+    classes: rows.map((r) => ({
+      slug: r.slug,
+      title: r.title,
+      term: r.term,
+      description: r.description,
+      welcomeMessageMd: r.welcomeMessageMd,
+      memberCount: Number(r.memberCount),
+      instructorUsername: r.instructorUsername,
+      instructorDisplayName: r.instructorDisplayName,
+    })),
+  });
+});
+
 classesRouter.get("/", requireAuth, async (c) => {
   const user = c.get("user")!;
   const db = getDb();
@@ -225,6 +268,7 @@ classesRouter.post("/", requireAuth, zValidator("json", createClassSchema), asyn
       description: data.description ?? "",
       syllabusMd: data.syllabusMd ?? "",
       welcomeMessageMd: data.welcomeMessageMd ?? "",
+      discoverable: data.discoverable ?? false,
       joinCode,
       instructorId: user.id,
     })
@@ -348,6 +392,7 @@ classesRouter.get("/:slug", requireAuth, requireEnrolledInClass, async (c) => {
       description: cls.description,
       syllabusMd: cls.syllabusMd,
       welcomeMessageMd: cls.welcomeMessageMd,
+      discoverable: cls.discoverable,
       status: cls.status,
       instructor: instructor
         ? {
@@ -402,6 +447,7 @@ classesRouter.put(
     if (data.description != null) patch.description = data.description;
     if (data.syllabusMd != null) patch.syllabusMd = data.syllabusMd;
     if (data.welcomeMessageMd != null) patch.welcomeMessageMd = data.welcomeMessageMd;
+    if (data.discoverable != null) patch.discoverable = data.discoverable;
     if (data.status != null) patch.status = data.status;
 
     db.update(classes).set(patch).where(eq(classes.id, cls.id)).run();

@@ -18,6 +18,7 @@ export function ClassEditPage() {
   const [description, setDescription] = useState("");
   const [syllabusMd, setSyllabusMd] = useState("");
   const [welcomeMessageMd, setWelcomeMessageMd] = useState("");
+  const [discoverable, setDiscoverable] = useState(false);
   const [status, setStatus] = useState<ClassStatus>("active");
   const [saving, setSaving] = useState(false);
   const [rotating, setRotating] = useState(false);
@@ -32,6 +33,7 @@ export function ClassEditPage() {
         setDescription(r.class.description);
         setSyllabusMd(r.class.syllabusMd);
         setWelcomeMessageMd(r.class.welcomeMessageMd ?? "");
+        setDiscoverable(!!r.class.discoverable);
         setStatus(r.class.status);
       })
       .catch((e) => setError(e?.message ?? "Failed to load class"));
@@ -46,6 +48,7 @@ export function ClassEditPage() {
         description,
         syllabusMd,
         welcomeMessageMd,
+        discoverable,
         status,
       });
       toast.success("Saved");
@@ -139,6 +142,15 @@ export function ClassEditPage() {
             </select>
           </Field>
         </div>
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            checked={discoverable}
+            onChange={(e) => setDiscoverable(e.target.checked)}
+            className="rounded border-border"
+          />
+          <span>List this class on the public directory at <code className="text-xs">/classes/discover</code></span>
+        </label>
         <Field label="Description">
           <textarea
             value={description}
