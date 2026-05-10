@@ -72,6 +72,15 @@ export function ClassTaskPage() {
         </div>
       )}
 
+      {/* S103 — bulk-grade affordance. Surfaces only when there are
+          ungraded submissions to act on. */}
+      <BulkGradeBar
+        classSlug={slug}
+        taskId={taskId}
+        submissions={data.submissions}
+        onApplied={() => reload()}
+      />
+
       <h2 className="text-sm font-semibold mb-3">
         Submissions ({data.submissions.length})
       </h2>
@@ -195,4 +204,61 @@ function formatDate(iso: string): string {
     month: "short",
     day: "numeric",
   });
+}
+
+// S103 — bulk grade bar.
+//
+// Surfaces only when there are ungraded submissions. Two affordances:
+// "Pass all ungraded" applies pass=true to every submission whose
+// grade is null. Skipped users (no submission) are silently dropped
+// by the server.
+function BulkGradeBar({
+  classSlug,
+  taskId,
+  submissions,
+  onApplied,
+}: {
+  classSlug: string;
+  taskId: string;
+  submissions: ClassTaskSubmissionsResponse["submissions"];
+  onApplied: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const ungraded = submissions.filter((s) => s.grade == null);
+  if (ungraded.length === 0) return null;
+
+  const passAll = async () => {
+    if (!confirm(`Mark ${ungraded.length} ungraded submission${ungraded.length === 1 ? "" : "s"} as passed?`)) return;
+    setBusy(true);
+    try {
+      const r = await api.classes.bulkGradeTask(
+        classSlug,
+        taskId,
+        ungraded.map((s) => ({ userId: s.userId, pass: true })),
+      );
+      toast.success(`Graded ${r.appliedCount} · ${r.xpAwardedTotal} XP awarded total`);
+      onApplied();
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Bulk grade failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="mb-4 flex items-center justify-between gap-3 rounded-md border border-border bg-muted/30 px-3 py-2">
+      <span className="text-xs text-muted-foreground">
+        {ungraded.length} submission{ungraded.length === 1 ? "" : "s"} awaiting grading
+      </span>
+      <button
+        type="button"
+        onClick={passAll}
+        disabled={busy}
+        className="text-xs px-3 py-1 rounded-md bg-emerald-500 text-white hover:bg-emerald-500/90 disabled:opacity-60 inline-flex items-center gap-1.5"
+      >
+        <CheckCircle2 className="w-3.5 h-3.5" />
+        {busy ? "Grading…" : "Pass all ungraded"}
+      </button>
+    </div>
+  );
 }

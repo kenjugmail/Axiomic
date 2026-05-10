@@ -878,6 +878,91 @@ classesRouter.post(
   },
 );
 
+// POST /classes/:slug/tasks/:taskId/bulk-grade — S103. Grade many
+// submissions in one request. Each entry { userId, pass, feedback? }
+// applies the same logic as the per-user grade route + grants
+// homework-graded-pass XP (idempotent on (userId, source, taskId)).
+// Returns counts so the UI can flash a "graded N" toast.
+const bulkGradeSchema = z.object({
+  grades: z.array(
+    z.object({
+      userId: z.string().min(1),
+      pass: z.boolean(),
+      feedback: z.string().max(2000).optional().nullable(),
+    }),
+  ).min(1).max(200),
+});
+
+classesRouter.post(
+  "/:slug/tasks/:taskId/bulk-grade",
+  requireAuth,
+  requireInstructorOrTa,
+  zValidator("json", bulkGradeSchema),
+  async (c) => {
+    const cls = c.get("classRow");
+    const taskId = c.req.param("taskId")!;
+    const { grades } = c.req.valid("json");
+    const db = getDb();
+
+    const task = db
+      .select()
+      .from(classTasks)
+      .where(eq(classTasks.id, taskId))
+      .get();
+    if (!task || task.classId !== cls.id) {
+      return c.json({ error: "Task not found" }, 404);
+    }
+    if (task.kind !== "homework") {
+      return c.json({ error: "Only homework can be graded" }, 400);
+    }
+
+    let appliedCount = 0;
+    let skippedCount = 0;
+    let xpAwardedTotal = 0;
+    for (const g of grades) {
+      const completion = db
+        .select()
+        .from(classTaskCompletions)
+        .where(
+          and(
+            eq(classTaskCompletions.taskId, taskId),
+            eq(classTaskCompletions.userId, g.userId),
+          ),
+        )
+        .get();
+      if (!completion) {
+        // Skip users without a submission rather than 404'ing — bulk
+        // ergonomics. UI can warn upfront.
+        skippedCount++;
+        continue;
+      }
+      db.update(classTaskCompletions)
+        .set({
+          gradeJson: JSON.stringify({ pass: g.pass, feedback: g.feedback ?? null }),
+          gradedAt: new Date().toISOString(),
+        })
+        .where(eq(classTaskCompletions.id, completion.id))
+        .run();
+      appliedCount++;
+      if (g.pass) {
+        const r = grantXp({
+          userId: g.userId,
+          classId: cls.id,
+          source: "homework-graded-pass",
+          sourceRefId: taskId,
+        });
+        if (r.granted) xpAwardedTotal += r.amount;
+      }
+    }
+    return c.json({
+      ok: true,
+      appliedCount,
+      skippedCount,
+      xpAwardedTotal,
+    });
+  },
+);
+
 // GET /classes/:slug/tasks/:taskId/submissions — instructor or TA
 // view of all submissions for a task, with content + grade status.
 classesRouter.get(

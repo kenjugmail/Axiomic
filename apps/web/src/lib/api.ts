@@ -1286,6 +1286,21 @@ export const api = {
         body: JSON.stringify(data),
       }),
     // S87 — competitions namespace.
+    // S103 — bulk grade many submissions in one call.
+    bulkGradeTask: (
+      slug: string,
+      taskId: string,
+      grades: Array<{ userId: string; pass: boolean; feedback?: string | null }>,
+    ) =>
+      request<{
+        ok: true;
+        appliedCount: number;
+        skippedCount: number;
+        xpAwardedTotal: number;
+      }>(`/classes/${slug}/tasks/${taskId}/bulk-grade`, {
+        method: "POST",
+        body: JSON.stringify({ grades }),
+      }),
     listCompetitions: (slug: string) =>
       request<CompetitionsListResponse>(`/classes/${slug}/competitions`),
     getCompetition: (slug: string, competitionId: string) =>

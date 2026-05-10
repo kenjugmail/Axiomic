@@ -1271,6 +1271,123 @@ describe("S95 daily-featured shop rotation", () => {
   });
 });
 
+describe("S103 bulk grade homework", () => {
+  test("instructor passes 2 students in one call; XP granted to both", async () => {
+    const instructor = await signup("bulkinst1");
+    const a = await signup("bulkstuda");
+    const b = await signup("bulkstudb");
+    const slug = `cls-bulk-pass-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    for (const s of [a, b]) {
+      await req(`/classes/${slug}/enroll`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(s.cookie) },
+        body: JSON.stringify({ joinCode: created.joinCode }),
+      });
+    }
+    const t = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ kind: "homework", title: "PSet" }),
+    });
+    const { taskId } = (await t.json()) as { taskId: string };
+    for (const s of [a, b]) {
+      await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(s.cookie) },
+        body: JSON.stringify({ content: `Submission ${s.username} long enough for the validator.` }),
+      });
+    }
+    const bulk = await req(`/classes/${slug}/tasks/${taskId}/bulk-grade`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        grades: [
+          { userId: a.userId, pass: true },
+          { userId: b.userId, pass: true },
+        ],
+      }),
+    });
+    expect(bulk.status).toBe(200);
+    const data = (await bulk.json()) as {
+      appliedCount: number;
+      xpAwardedTotal: number;
+      skippedCount: number;
+    };
+    expect(data.appliedCount).toBe(2);
+    expect(data.xpAwardedTotal).toBeGreaterThan(0);
+  });
+
+  test("non-instructor cannot bulk-grade (403)", async () => {
+    const instructor = await signup("bulkinst2");
+    const student = await signup("bulkstud2");
+    const slug = `cls-bulk-acl-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    const t = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ kind: "homework", title: "PSet" }),
+    });
+    const { taskId } = (await t.json()) as { taskId: string };
+    const res = await req(`/classes/${slug}/tasks/${taskId}/bulk-grade`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({
+        grades: [{ userId: student.userId, pass: true }],
+      }),
+    });
+    expect(res.status).toBe(403);
+  });
+
+  test("submitters without completion are skipped, not failed", async () => {
+    const instructor = await signup("bulkinst3");
+    const a = await signup("bulkstud3a");
+    const b = await signup("bulkstud3b");
+    const slug = `cls-bulk-skip-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    for (const s of [a, b]) {
+      await req(`/classes/${slug}/enroll`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(s.cookie) },
+        body: JSON.stringify({ joinCode: created.joinCode }),
+      });
+    }
+    const t = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ kind: "homework", title: "PSet" }),
+    });
+    const { taskId } = (await t.json()) as { taskId: string };
+    // Only `a` submits; `b` doesn't.
+    await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(a.cookie) },
+      body: JSON.stringify({ content: "Submission long enough for the validator." }),
+    });
+    const bulk = await req(`/classes/${slug}/tasks/${taskId}/bulk-grade`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        grades: [
+          { userId: a.userId, pass: true },
+          { userId: b.userId, pass: true },
+        ],
+      }),
+    });
+    const data = (await bulk.json()) as {
+      appliedCount: number;
+      skippedCount: number;
+    };
+    expect(data.appliedCount).toBe(1);
+    expect(data.skippedCount).toBe(1);
+  });
+});
+
 describe("S102 public class directory", () => {
   test("default created class is NOT in /classes/discover", async () => {
     const instructor = await signup("dirinst1");
