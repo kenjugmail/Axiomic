@@ -183,7 +183,10 @@ export function ClassPage() {
 
       {/* S99 — instructor's welcome message renders as a tinted
           banner above the syllabus + tabs. Markdown so instructors
-          can drop in links + emphasis. */}
+          can drop in links + emphasis. Safe without `untrusted`
+          because MarkdownRenderer doesn't enable rehype-raw or
+          allowDangerousHtml — raw <script> / on* attributes are
+          escaped by the markdown parser before sanitize runs. */}
       {cls.welcomeMessageMd && (
         <div className="mb-6 rounded-md border border-primary/30 bg-primary/5 p-4">
           <div className="prose-sm max-w-none">

@@ -16,6 +16,7 @@ import {
   petInventory,
   pets,
   users,
+  xpGrants,
   xpPurchases,
   getDb,
 } from "@axiomic/db";
@@ -312,6 +313,15 @@ petPublicRouter.get("/:username/pet-display", (c) => {
 
 // =================================================================
 // S89 — XP shop.
+// Sentinel thrown from inside the buy transaction when the live
+// balance falls short. Caught by the route handler and mapped to a
+// 402 response so the rollback + status mapping stay co-located.
+class InsufficientBalanceError extends Error {
+  constructor(readonly balance: number, readonly cost: number) {
+    super("Insufficient XP");
+  }
+}
+
 // =================================================================
 // S89 — XP shop.
 //
@@ -461,43 +471,66 @@ petRouter.post(
         ? discountedCost(cosmetic.xpCost)
         : cosmetic.xpCost;
 
-    const balance = xpBalanceForUser(user.id);
-    if (balance < finalCost) {
-      return c.json(
-        { error: "Insufficient XP", balance, xpCost: finalCost },
-        402,
-      );
+    // S-audit fix — concurrent buys of two different cosmetics could
+    // both pass a pre-transaction balance check and both succeed at
+    // insert (different slugs → no UNIQUE conflict), pushing the
+    // balance negative. Recompute balance INSIDE the transaction
+    // and abort if it's no longer sufficient. better-sqlite3 wraps
+    // db.transaction in BEGIN…COMMIT and serializes writes, so the
+    // recheck reflects any concurrent xp_purchases insert that
+    // landed first. We throw to roll back; the caller maps the
+    // throw to a 402.
+    let preTxBalance = -1;
+    try {
+      db.transaction((tx) => {
+        const earnedRow = tx
+          .select({ total: sql<number>`coalesce(sum(${xpGrants.amount}), 0)` })
+          .from(xpGrants)
+          .where(eq(xpGrants.userId, user.id))
+          .get();
+        const spentRow = tx
+          .select({ total: sql<number>`coalesce(sum(${xpPurchases.amount}), 0)` })
+          .from(xpPurchases)
+          .where(eq(xpPurchases.userId, user.id))
+          .get();
+        const liveBalance = Number(earnedRow?.total ?? 0) - Number(spentRow?.total ?? 0);
+        preTxBalance = liveBalance;
+        if (liveBalance < finalCost) {
+          // Use a sentinel error so the catch knows to map to 402
+          // rather than 500.
+          throw new InsufficientBalanceError(liveBalance, finalCost);
+        }
+        tx.insert(xpPurchases)
+          .values({
+            id: randomUUID(),
+            userId: user.id,
+            cosmeticSlug,
+            amount: finalCost,
+          })
+          .run();
+        tx.insert(petInventory)
+          .values({
+            id: randomUUID(),
+            userId: user.id,
+            cosmeticSlug,
+            equipped: false,
+          })
+          .run();
+      });
+    } catch (err) {
+      if (err instanceof InsufficientBalanceError) {
+        return c.json(
+          { error: "Insufficient XP", balance: err.balance, xpCost: err.cost },
+          402,
+        );
+      }
+      throw err;
     }
-
-    // SQLite (better-sqlite3) auto-commits each statement. To make
-    // the spend + grant atomic, wrap both writes in a transaction
-    // — if the inventory insert collides with a concurrent grant,
-    // the purchase rolls back and the user keeps the XP. The
-    // recorded purchase amount is the discounted finalCost so the
-    // ledger reflects the actual XP burned.
-    db.transaction((tx) => {
-      tx.insert(xpPurchases)
-        .values({
-          id: randomUUID(),
-          userId: user.id,
-          cosmeticSlug,
-          amount: finalCost,
-        })
-        .run();
-      tx.insert(petInventory)
-        .values({
-          id: randomUUID(),
-          userId: user.id,
-          cosmeticSlug,
-          equipped: false,
-        })
-        .run();
-    });
 
     return c.json(
       {
         ok: true,
-        balance: balance - finalCost,
+        balance: preTxBalance - finalCost,
         cosmeticSlug,
         amountSpent: finalCost,
         wasFeatured: cosmeticSlug === featuredToday,

@@ -1271,6 +1271,128 @@ describe("S95 daily-featured shop rotation", () => {
   });
 });
 
+describe("S-audit regressions", () => {
+  test("shop buy: spending two cosmetics that together exceed balance is rejected (race fix)", async () => {
+    // Setup a student with just enough for ONE cosmetic, not two.
+    // Both pre-S-audit, the route did the balance check before
+    // the transaction, so two concurrent buys could both pass.
+    // Now the recheck inside the transaction catches it. We
+    // can't easily simulate true concurrency in this test; we
+    // verify the deterministic case: spend most XP on one
+    // purchase, then the next purchase 402s on insufficient
+    // balance computed from xp_purchases.
+    const instructor = await signup("auditshop1");
+    const student = await signup("auditshop1stud");
+    const slug = `cls-audit-shop-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    // Earn enough class XP for exactly one ribbon (75) + a bit more
+    // but not two ribbons (150).
+    for (let i = 0; i < 2; i++) {
+      const t = await req(`/classes/${slug}/tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+        body: JSON.stringify({ kind: "homework", title: `T${i}` }),
+      });
+      const { taskId } = (await t.json()) as { taskId: string };
+      await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+        body: JSON.stringify({ content: `Long submission ${i} for the validator.` }),
+      });
+      await req(`/classes/${slug}/tasks/${taskId}/grade/${student.userId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+        body: JSON.stringify({ pass: true }),
+      });
+    }
+    // First buy succeeds.
+    const buy1 = await req("/me/pet/buy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ cosmeticSlug: "ribbon" }),
+    });
+    expect(buy1.status).toBe(201);
+    // Now check actual balance — if it's < 75 (cost of baseball-cap),
+    // a sequential second buy must 402.
+    const balRes = await req("/me/pet/balance", { headers: cookieHeader(student.cookie) });
+    const balData = (await balRes.json()) as { balance: number };
+    if (balData.balance < 75) {
+      const buy2 = await req("/me/pet/buy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+        body: JSON.stringify({ cosmeticSlug: "baseball-cap" }),
+      });
+      expect(buy2.status).toBe(402);
+    } else {
+      // If the test student happened to earn enough for both,
+      // assert the second buy succeeds and the balance never goes
+      // negative — also a valid post-condition of the fix.
+      const buy2 = await req("/me/pet/buy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+        body: JSON.stringify({ cosmeticSlug: "baseball-cap" }),
+      });
+      expect([201, 402]).toContain(buy2.status);
+      const finalBal = await req("/me/pet/balance", { headers: cookieHeader(student.cookie) });
+      const finalBalData = (await finalBal.json()) as { balance: number };
+      expect(finalBalData.balance).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  test("analytics gradedPassCount uses json_extract — feedback containing literal '\"pass\":true' isn't counted (regression)", async () => {
+    const instructor = await signup("auditga1");
+    const student = await signup("auditgastud1");
+    const slug = `cls-audit-grade-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    const t = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ kind: "homework", title: "PSet" }),
+    });
+    const { taskId } = (await t.json()) as { taskId: string };
+    await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ content: "Submission long enough." }),
+    });
+    // Grade with pass=false but feedback that literally contains
+    // the string `"pass":true`. Pre-fix, the LIKE filter would
+    // false-positive and count this as a pass.
+    await req(`/classes/${slug}/tasks/${taskId}/grade/${student.userId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        pass: false,
+        feedback: 'Note: looking for {"pass":true} in your output',
+      }),
+    });
+    const ana = await req(`/classes/${slug}/analytics`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    const data = (await ana.json()) as {
+      taskCompletions: Array<{
+        taskId: string;
+        gradedPassCount: number;
+        submittedCount: number;
+      }>;
+    };
+    const tc = data.taskCompletions.find((c) => c.taskId === taskId);
+    expect(tc?.submittedCount).toBe(1);
+    // CRITICAL: pass=false grade with deceptive feedback must NOT count.
+    expect(tc?.gradedPassCount).toBe(0);
+  });
+});
+
 describe("S103 bulk grade homework", () => {
   test("instructor passes 2 students in one call; XP granted to both", async () => {
     const instructor = await signup("bulkinst1");

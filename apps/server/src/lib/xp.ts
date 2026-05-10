@@ -285,19 +285,23 @@ export function maybeLevelUp(userId: string): number | null {
     .where(eq(pets.id, pet.id))
     .run();
 
-  // Notify per crossing — for v1 just emit one summary notification
-  // for the highest reached, using the level number as the dedup
-  // sourceRefId so re-hits during retries don't double-notify.
+  // S-audit fix — emit one notification per level CROSSED, not just
+  // the highest reached. Previously a jump from level 1 to level 3
+  // looked like the user "skipped" level 2 in their bell. The
+  // sourceRefId still encodes the level so re-runs against the
+  // same crossing dedup at the partial-unique-index layer.
   const speciesLabel = petSpeciesBySlug(pet.species)?.label ?? "Your pet";
-  const newEmoji = emojiForSpeciesAtLevel(pet.species, newLevel);
-  void notify({
-    recipientId: userId,
-    actorId: null,
-    kind: "pet_leveled_up",
-    subjectType: "pet",
-    subjectId: `${pet.id}:lv${newLevel}`,
-    contextSlug: null,
-    preview: `${speciesLabel} reached level ${newLevel} ${newEmoji}`,
-  });
+  for (let lv = pet.level + 1; lv <= newLevel; lv++) {
+    const emoji = emojiForSpeciesAtLevel(pet.species, lv);
+    void notify({
+      recipientId: userId,
+      actorId: null,
+      kind: "pet_leveled_up",
+      subjectType: "pet",
+      subjectId: `${pet.id}:lv${lv}`,
+      contextSlug: null,
+      preview: `${speciesLabel} reached level ${lv} ${emoji}`,
+    });
+  }
   return newLevel;
 }

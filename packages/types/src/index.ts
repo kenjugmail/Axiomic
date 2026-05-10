@@ -3560,7 +3560,11 @@ export interface MyPetResponse {
 // =============================================================
 
 export type CompetitionStatus = "draft" | "active" | "ended";
-export type CompetitionScoringRule = "class-xp";
+// S88 added 'reading-completions' on the server but this union was
+// never widened — the type was lying about what scoringRule values
+// the API actually returns. Widen here so the web client's
+// pattern-matching is honest.
+export type CompetitionScoringRule = "class-xp" | "reading-completions";
 
 export interface CompetitionSummary {
   id: string;

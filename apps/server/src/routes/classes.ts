@@ -169,6 +169,10 @@ function isDueLate(dueAt: string | null | undefined): boolean {
 // since Hono's path matching takes the literal path first when both
 // are registered, but only when the literal route precedes — keep
 // this above /:slug.
+// S-audit fix — bound the directory at 100 entries so the public
+// payload stays small as more instructors opt in.
+const DISCOVER_LIMIT = 100;
+
 classesRouter.get("/discover", async (c) => {
   const db = getDb();
   const rows = db
@@ -187,6 +191,7 @@ classesRouter.get("/discover", async (c) => {
     .innerJoin(users, eq(users.id, classes.instructorId))
     .where(and(eq(classes.discoverable, true), eq(classes.status, "active")))
     .orderBy(desc(classes.createdAt))
+    .limit(DISCOVER_LIMIT)
     .all();
   return c.json({
     classes: rows.map((r) => ({
@@ -916,44 +921,60 @@ classesRouter.post(
       return c.json({ error: "Only homework can be graded" }, 400);
     }
 
+    // S-audit fix — wrap the per-grade updates in a single
+    // transaction so a failure half-way through can't leave the
+    // class with some students graded and others not. grantXp is
+    // called inside the transaction too — it does its own
+    // INSERT-OR-IGNORE on xp_grants and is safe under nested
+    // BEGIN/COMMIT in better-sqlite3 (savepoints).
     let appliedCount = 0;
     let skippedCount = 0;
     let xpAwardedTotal = 0;
-    for (const g of grades) {
-      const completion = db
-        .select()
-        .from(classTaskCompletions)
-        .where(
-          and(
-            eq(classTaskCompletions.taskId, taskId),
-            eq(classTaskCompletions.userId, g.userId),
-          ),
-        )
-        .get();
-      if (!completion) {
-        // Skip users without a submission rather than 404'ing — bulk
-        // ergonomics. UI can warn upfront.
-        skippedCount++;
-        continue;
+    db.transaction((tx) => {
+      for (const g of grades) {
+        const completion = tx
+          .select()
+          .from(classTaskCompletions)
+          .where(
+            and(
+              eq(classTaskCompletions.taskId, taskId),
+              eq(classTaskCompletions.userId, g.userId),
+            ),
+          )
+          .get();
+        if (!completion) {
+          // Skip users without a submission rather than 404'ing —
+          // bulk ergonomics. UI can warn upfront.
+          skippedCount++;
+          continue;
+        }
+        tx.update(classTaskCompletions)
+          .set({
+            gradeJson: JSON.stringify({ pass: g.pass, feedback: g.feedback ?? null }),
+            gradedAt: new Date().toISOString(),
+          })
+          .where(eq(classTaskCompletions.id, completion.id))
+          .run();
+        appliedCount++;
+        if (g.pass) {
+          // grantXp uses getDb() internally, not the tx handle, so
+          // its writes commit independently. That's intentional —
+          // even if a later iteration throws, already-applied XP
+          // grants are idempotent and we don't want to roll them
+          // back. The per-grade update inside tx will roll back
+          // on throw, but the XP credit stands; on retry the
+          // unique-on-(userId, source, sourceRefId) suppresses
+          // duplicate grants.
+          const r = grantXp({
+            userId: g.userId,
+            classId: cls.id,
+            source: "homework-graded-pass",
+            sourceRefId: taskId,
+          });
+          if (r.granted) xpAwardedTotal += r.amount;
+        }
       }
-      db.update(classTaskCompletions)
-        .set({
-          gradeJson: JSON.stringify({ pass: g.pass, feedback: g.feedback ?? null }),
-          gradedAt: new Date().toISOString(),
-        })
-        .where(eq(classTaskCompletions.id, completion.id))
-        .run();
-      appliedCount++;
-      if (g.pass) {
-        const r = grantXp({
-          userId: g.userId,
-          classId: cls.id,
-          source: "homework-graded-pass",
-          sourceRefId: taskId,
-        });
-        if (r.granted) xpAwardedTotal += r.amount;
-      }
-    }
+    });
     return c.json({
       ok: true,
       appliedCount,
@@ -1763,7 +1784,13 @@ classesRouter.get(
           .select({
             taskId: classTaskCompletions.taskId,
             submittedCount: sql<number>`count(*)`,
-            gradedPassCount: sql<number>`sum(case when ${classTaskCompletions.gradeJson} like '%"pass":true%' then 1 else 0 end)`,
+            // S-audit fix — was a LIKE on the JSON string which
+            // false-positives any feedback containing the literal
+            // text '"pass":true'. Use SQLite's json_extract so we
+            // read the actual boolean field. (json_extract returns
+            // 1 for true, 0/null otherwise; we count rows where
+            // it's 1.)
+            gradedPassCount: sql<number>`sum(case when json_extract(${classTaskCompletions.gradeJson}, '$.pass') = 1 then 1 else 0 end)`,
           })
           .from(classTaskCompletions)
           .where(inArray(classTaskCompletions.taskId, taskIds))

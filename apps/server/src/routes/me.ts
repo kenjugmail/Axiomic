@@ -394,10 +394,14 @@ meRouter.get("/progress", requireAuth, async (c) => {
   }));
 
   // 3. classStandings — for each class I'm enrolled in, my XP +
-  // rank + roster size. Computing rank with a window function would
-  // be cleaner but SQLite's RANK() needs a subquery; the explicit
-  // approach below stays portable + still cheap (per-class roster
-  // size is small).
+  // rank + roster size.
+  //
+  // S-audit fix — was 3 queries per enrolled class (myXp,
+  // aboveMeCount, memberCount) which scaled O(N classes) and made
+  // /me/progress slow for power users. Now: two batched queries
+  // total. One pulls every (classId, userId, total XP) row across
+  // my classes; we group in JS to derive my XP and rank per class.
+  // The other pulls enrollment counts per class.
   const enrollments = db
     .select({
       classId: classEnrollments.classId,
@@ -409,43 +413,51 @@ meRouter.get("/progress", requireAuth, async (c) => {
     .where(eq(classEnrollments.userId, me.id))
     .all();
 
+  const classIds = enrollments.map((e) => e.classId);
+  const allTotals = classIds.length
+    ? db
+        .select({
+          classId: xpGrants.classId,
+          userId: xpGrants.userId,
+          total: sql<number>`coalesce(sum(${xpGrants.amount}), 0)`,
+        })
+        .from(xpGrants)
+        .where(inArray(xpGrants.classId, classIds))
+        .groupBy(xpGrants.classId, xpGrants.userId)
+        .all()
+    : [];
+  // Group totals by classId so we can compute my rank locally.
+  const totalsByClass = new Map<string, Array<{ userId: string; total: number }>>();
+  for (const r of allTotals) {
+    if (r.classId == null) continue; // shouldn't happen given the where clause
+    const arr = totalsByClass.get(r.classId) ?? [];
+    arr.push({ userId: r.userId, total: Number(r.total) });
+    totalsByClass.set(r.classId, arr);
+  }
+
+  const memberRows = classIds.length
+    ? db
+        .select({
+          classId: classEnrollments.classId,
+          n: sql<number>`count(*)`,
+        })
+        .from(classEnrollments)
+        .where(inArray(classEnrollments.classId, classIds))
+        .groupBy(classEnrollments.classId)
+        .all()
+    : [];
+  const memberCountByClass = new Map(memberRows.map((r) => [r.classId, Number(r.n)]));
+
   const classStandings = enrollments.map((e) => {
-    const myXpRow = db
-      .select({ x: sql<number>`coalesce(sum(${xpGrants.amount}), 0)` })
-      .from(xpGrants)
-      .where(and(eq(xpGrants.userId, me.id), eq(xpGrants.classId, e.classId)))
-      .get();
-    const myXp = Number(myXpRow?.x ?? 0);
-
-    // Rank = 1 + count of distinct users with strictly more XP in
-    // this class.
-    const aboveMeRow = db
-      .select({ n: sql<number>`count(*)` })
-      .from(
-        sql`(
-          select user_id, sum(amount) as total
-          from xp_grants
-          where class_id = ${e.classId}
-          group by user_id
-          having total > ${myXp}
-        ) as above`,
-      )
-      .get();
-    const myRank = 1 + Number((aboveMeRow as { n?: number } | undefined)?.n ?? 0);
-
-    const memberRow = db
-      .select({ n: sql<number>`count(*)` })
-      .from(classEnrollments)
-      .where(eq(classEnrollments.classId, e.classId))
-      .get();
-    const totalMembers = Number(memberRow?.n ?? 0);
-
+    const totals = totalsByClass.get(e.classId) ?? [];
+    const me_total = totals.find((t) => t.userId === me.id)?.total ?? 0;
+    const myRank = 1 + totals.filter((t) => t.total > me_total).length;
     return {
       classSlug: e.classSlug,
       classTitle: e.classTitle,
-      myXp,
+      myXp: me_total,
       myRank,
-      totalMembers,
+      totalMembers: memberCountByClass.get(e.classId) ?? 0,
     };
   });
 

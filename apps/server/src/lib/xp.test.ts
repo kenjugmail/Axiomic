@@ -263,4 +263,29 @@ describe("maybeLevelUp (S90)", () => {
     const pet = getDb().select().from(pets).where(eq(pets.userId, u)).get();
     expect(pet?.level).toBe(3);
   });
+
+  test("S-audit regression: emits one notification per crossed level (no skipped levels in the bell)", async () => {
+    const { notifications } = await import("@axiomic/db");
+    const u = makeUser("level5");
+    // Jump from pre-hatch (no pet) to level 3 in one motion.
+    grantTotalXp(u, 800);
+    // notify() is invoked as `void notify(...)` from inside
+    // maybeLevelUp — fire-and-forget. better-sqlite3's writes are
+    // synchronous but the await on the wrapper's Promise schedules
+    // a microtask. Drain the microtask queue before reading.
+    await new Promise<void>((r) => setImmediate(r));
+    const rows = getDb()
+      .select()
+      .from(notifications)
+      .where(eq(notifications.userId, u))
+      .all();
+    const levelUpRows = rows.filter((r) => r.kind === "pet_leveled_up");
+    // Pet hatched at level 1, then leveled to 2 then to 3 — the bell
+    // should show TWO pet_leveled_up notifications (Lv 2 + Lv 3).
+    // Pre-fix this was 1 (only the highest reached).
+    expect(levelUpRows.length).toBe(2);
+    const previews = levelUpRows.map((r) => r.preview ?? "").sort();
+    expect(previews.some((p) => p.includes("level 2"))).toBe(true);
+    expect(previews.some((p) => p.includes("level 3"))).toBe(true);
+  });
 });
