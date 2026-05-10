@@ -1,0 +1,142 @@
+{
+  "slug": "closed-loop-bioreactor-controller",
+  "title": "Build a closed-loop bioreactor controller",
+  "summary": "A six-month build: vessel, sensors, firmware, and a tuned PID loop that holds dissolved oxygen + pH stable through a 72-hour continuous run.",
+  "estimatedWeeks": 26,
+  "coverEmoji": "🧫",
+  "accentColor": "emerald",
+  "tags": ["hardware", "controls", "biology"],
+  "scaleTier": "long_arc",
+  "domains": ["mechE", "EE", "microbio", "control-theory"],
+  "estimatedHoursMin": 400,
+  "estimatedHoursMax": 700,
+  "realWorldDeliverableMd": "## What you ship\n\nA working closed-loop fermentation rig with PID-tuned dissolved oxygen and pH control, demonstrated by a 72-hour continuous run. The deliverable is the integrated system, not any single piece — vessel, sensors, pumps, controller, firmware, and the data trace that proves it ran.\n\n**Hardware:** Stirred-tank vessel (1-5 L), agitator drive, dissolved-oxygen + pH probes, peristaltic pumps for acid/base/feed, controller PCB with sensor amplifiers and MOSFET drivers.\n\n**Firmware:** PID loop on a microcontroller (Arduino / RP2040 / ESP32 — your choice). Safety interlocks for overtemperature, foam-out, sensor disconnect.\n\n**Bio:** Media prep, organism handling, sample prep for OD600 + offline validation.\n\n**Validation receipts:** 72-hour continuous run with OD600 trace, vessel pressure log, dissolved-oxygen + pH logs at ≥1Hz, post-run cell viability check against a commercial reference culture. Writeup defending tuning choices and noting where the rig deviated from textbook PID behavior.\n\n**Why AI alone can't do this:** Textbook PID gains aren't your system's gains — your vessel volume, agitator efficiency, sensor lag, and pump dynamics are the load-bearing knobs. The tuning loop is the student's. AI is hugely useful for circuit review, code review, datasheet extraction, derivation help — but the empirical loop is what matters.",
+  "contentUndergrad": "## Why this capstone\n\nMost people who claim to know controls have only ever simulated systems they could solve analytically. A real bioreactor pushes back against you: sensors drift, pumps overshoot, organisms metabolize unevenly, and your textbook PID gains are wrong on day one.\n\nThis is a year-scale project precisely *because* you can't shortcut the empirical work. AI will write 80% of your firmware and review every PCB schematic you commit, but the tuning loop is yours. Same for the bio side — AI will tell you about *Pichia pastoris* growth dynamics in general, but it doesn't know your vessel's mixing time, your probe's response curve, or how your media batches actually behave.\n\n## Scope of the build\n\nYou're shipping an integrated rig, not a CAD file or a writeup. The rubric scores the system end-to-end: did it run for 72 hours, did the controller hold setpoints, did the post-run validation match expectations, and does your writeup explain *why* the tuning landed where it did.\n\n## How AI fits in\n\nUse AI heavily. Ask it to derive the transfer function from your vessel geometry. Have it review every commit. Pair-program the firmware. Ask it to explain why your DO probe is reading wrong (then verify in the lab). The grader doesn't care how much AI you used — it cares whether you shipped a working rig and can defend the choices.\n\nWhat AI can't do: run your hardware, validate against your media batch, pull a sample and check OD600 on the bench. The capstone is the iteration loop AI can't sit inside.",
+  "milestones": [
+    {
+      "title": "M1 — System spec + block diagram",
+      "description": "Document the rig you're building: target organism, working volume, setpoint envelope (DO%, pH, temperature), and the control / safety interlocks. Includes a block diagram of all sensors, actuators, and signal paths, plus a parts BOM with budget. Defend choices in the writeup — why this organism, why this volume, why these probes.",
+      "estimatedDays": 14,
+      "dueAt": "2026-05-31",
+      "advisorSignoffRequired": true,
+      "requiredArtifactKinds": ["writeup"],
+      "rubric": {
+        "criteria": [
+          {"id": "scope", "weight": 0.4, "description": "Rig scope is achievable in 6 months and clears the year-scale floor.", "aiPrompt": "Score whether the proposed rig is concrete + achievable + non-trivial across mechE/EE/bio/controls."},
+          {"id": "block-diagram", "weight": 0.3, "description": "Block diagram is unambiguous about signal paths + interlocks.", "aiPrompt": "Score the block diagram for completeness — every sensor wired to a reader, every actuator wired to a driver, every safety check declared."},
+          {"id": "writeup", "weight": 0.3, "description": "Choices are defended in the writeup.", "aiPrompt": "Score whether the writeup actually defends the organism / volume / probe choices instead of treating them as defaults."}
+        ],
+        "passingScore": 0.7
+      }
+    },
+    {
+      "title": "M2 — Vessel + agitator built and bench-tested",
+      "description": "Vessel fabricated (machined or off-the-shelf modified), agitator installed, ports drilled for probes + pumps. Bench test: hold water at temperature, agitate at design RPM, no leaks under positive pressure for 1h.",
+      "estimatedDays": 28,
+      "dueAt": "2026-06-30",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "rubric": {
+        "criteria": [
+          {"id": "build", "weight": 0.5, "description": "Vessel + agitator are built + leak-tested.", "aiPrompt": "Score whether photos + bench-test data demonstrate a working vessel + agitator."},
+          {"id": "design-files", "weight": 0.5, "description": "CAD + drawings are reproducible.", "aiPrompt": "Score whether the CAD/drawings would let another builder reproduce the vessel."}
+        ],
+        "passingScore": 0.6
+      }
+    },
+    {
+      "title": "M3 — Sensor + actuator integration + bench validation",
+      "description": "Probes wired in, pumps mounted, controller PCB assembled. Sensor readings trended for ≥4 hours against known-water reference; pumps calibrated for actual mL/s vs commanded. Surface mismatches in the writeup.",
+      "estimatedDays": 28,
+      "dueAt": "2026-07-31",
+      "advisorSignoffRequired": true,
+      "requiredArtifactKinds": ["github", "writeup"],
+      "rubric": {
+        "criteria": [
+          {"id": "sensor-trends", "weight": 0.4, "description": "Sensor data is logged + trends are reasonable.", "aiPrompt": "Score whether logged sensor data shows physically plausible behavior with known references."},
+          {"id": "pump-calibration", "weight": 0.3, "description": "Pump calibration data is documented.", "aiPrompt": "Score the pump-calibration table + writeup."},
+          {"id": "honesty", "weight": 0.3, "description": "Surfaces and discusses mismatches between expected and actual.", "aiPrompt": "Score whether the learner identified things that didn't behave as expected and discussed why."}
+        ],
+        "passingScore": 0.6
+      }
+    },
+    {
+      "title": "M4 — PID firmware skeleton + closed-loop bench test (water)",
+      "description": "PID loop running on the controller, holding a synthetic setpoint (e.g. heater PWM controlling water temperature) within ±2% of setpoint for ≥30 minutes. Includes a tuning-log writeup showing how Kp/Ki/Kd landed where they did.",
+      "estimatedDays": 28,
+      "dueAt": "2026-08-31",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "rubric": {
+        "criteria": [
+          {"id": "loop-stability", "weight": 0.4, "description": "Loop holds setpoint to ±2% over the test window.", "aiPrompt": "Score the closed-loop performance from logs."},
+          {"id": "tuning-log", "weight": 0.4, "description": "Tuning log shows iteration, not blind copy-paste.", "aiPrompt": "Score whether the tuning log demonstrates real iteration vs textbook gains pasted in."},
+          {"id": "code", "weight": 0.2, "description": "Firmware is readable + tested.", "aiPrompt": "Score firmware code quality + structure."}
+        ],
+        "passingScore": 0.6
+      }
+    },
+    {
+      "title": "M5 — First organism run + dissolved-oxygen control",
+      "description": "Inoculate the rig with a model organism (E. coli, S. cerevisiae, or P. pastoris). Hold dissolved oxygen at setpoint through exponential growth. Likely fails the first 1-2 attempts — that's expected. Writeup must explain failure modes and corrections.",
+      "estimatedDays": 28,
+      "dueAt": "2026-09-30",
+      "advisorSignoffRequired": true,
+      "requiredArtifactKinds": ["github", "writeup"],
+      "rubric": {
+        "criteria": [
+          {"id": "first-run", "weight": 0.4, "description": "First successful run with DO held at setpoint through exponential.", "aiPrompt": "Score whether logs show DO control held during a real organism's exponential phase."},
+          {"id": "failure-analysis", "weight": 0.4, "description": "Failures are documented + diagnosed.", "aiPrompt": "Score the writeup's diagnosis of earlier failed runs."},
+          {"id": "ph-management", "weight": 0.2, "description": "pH is monitored even if not yet under closed-loop control.", "aiPrompt": "Score pH logging + any mitigation discussion."}
+        ],
+        "passingScore": 0.6
+      }
+    },
+    {
+      "title": "M6 — Full closed-loop control: DO + pH",
+      "description": "Both DO and pH under closed-loop control simultaneously. Demonstrate setpoint changes — e.g. raise DO from 30% to 60% mid-run — and show the controller responds without windup or oscillation.",
+      "estimatedDays": 21,
+      "dueAt": "2026-10-21",
+      "requiredArtifactKinds": ["github", "writeup"],
+      "rubric": {
+        "criteria": [
+          {"id": "multi-loop", "weight": 0.5, "description": "Both loops stable simultaneously.", "aiPrompt": "Score the dual-loop performance from logs."},
+          {"id": "setpoint-changes", "weight": 0.3, "description": "Demonstrated step responses are clean.", "aiPrompt": "Score the step-response data."},
+          {"id": "antiwindup", "weight": 0.2, "description": "Anti-windup or saturation handling is documented.", "aiPrompt": "Score whether anti-windup is implemented + discussed."}
+        ],
+        "passingScore": 0.6
+      }
+    },
+    {
+      "title": "M7 — 72-hour continuous run",
+      "description": "The capstone test: a 72-hour continuous fermentation run with both control loops active throughout. Log everything at ≥1Hz. Pull samples at intervals for offline OD600 + viability checks. Some unanticipated event WILL happen — document it.",
+      "estimatedDays": 14,
+      "dueAt": "2026-11-04",
+      "advisorSignoffRequired": true,
+      "requiredArtifactKinds": ["dataset", "writeup"],
+      "rubric": {
+        "criteria": [
+          {"id": "duration", "weight": 0.3, "description": "Logs cover the full 72 hours.", "aiPrompt": "Score whether the 72-hour run completed with continuous logging."},
+          {"id": "control-quality", "weight": 0.3, "description": "Setpoints held through perturbations.", "aiPrompt": "Score control quality across the run, including any documented perturbations."},
+          {"id": "offline-validation", "weight": 0.2, "description": "Offline samples corroborate the online story.", "aiPrompt": "Score offline OD600 + viability data against the online trace."},
+          {"id": "incident-handling", "weight": 0.2, "description": "Unanticipated events documented + handled.", "aiPrompt": "Score the writeup's account of anything weird that happened."}
+        ],
+        "passingScore": 0.7
+      }
+    },
+    {
+      "title": "M8 — Validation, writeup, and defense",
+      "description": "Compare end-state of the 72-hour run against a commercial reference culture or published expectation. Write the full project report — including limitations, what you'd build differently, and what AI couldn't do for you. This is the artifact the world sees.",
+      "estimatedDays": 21,
+      "dueAt": "2026-11-25",
+      "requiredArtifactKinds": ["github", "writeup", "dataset"],
+      "rubric": {
+        "criteria": [
+          {"id": "validation", "weight": 0.3, "description": "Reference comparison is honest.", "aiPrompt": "Score the validation against reference — does the comparison address known sources of difference?"},
+          {"id": "writeup-depth", "weight": 0.4, "description": "Writeup demonstrates the iteration the project required.", "aiPrompt": "Score the depth of the writeup — does it actually explain the 6-month arc?"},
+          {"id": "limitations", "weight": 0.2, "description": "Limitations are stated clearly.", "aiPrompt": "Score the limitations section — does it identify real gaps vs trivial ones?"},
+          {"id": "ai-honesty", "weight": 0.1, "description": "Mentions where AI couldn't help.", "aiPrompt": "Score the section discussing what AI couldn't do — was it honest?"}
+        ],
+        "passingScore": 0.7
+      }
+    }
+  ]
+}

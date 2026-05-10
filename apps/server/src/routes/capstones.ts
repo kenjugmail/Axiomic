@@ -43,6 +43,10 @@ import { buildTranscriptManifest } from "../lib/transcripts";
 import { canonicalJson, publicKeyHex, sign } from "../lib/signing";
 import { maybeMintTrackCompletions } from "../lib/capstoneTrackCompletion";
 import { notifyTrackCompletion } from "../lib/notifications";
+import {
+  validateLongArcFloor,
+  LONG_ARC_MAX_HOURS,
+} from "../lib/capstoneFloor";
 import type { Env } from "../env";
 
 export const capstonesRouter = new Hono<Env>();
@@ -151,6 +155,17 @@ function normalizeTags(input: string[] | undefined): string[] {
   return [...seen];
 }
 
+// S85 — Open-set domain taxonomy. Long_arc capstones span beyond the
+// closed lab-discipline enum — firmware, optics, control-theory,
+// image-processing, etc. Loosely validated.
+const domainTagSchema = z
+  .string()
+  .min(2)
+  .max(40)
+  .regex(/^[a-z0-9][a-z0-9\-_/]*$/i, "domain tags use letters, digits, hyphens, slashes");
+
+const scaleTierSchema = z.enum(["skill_drill", "long_arc"]);
+
 const createSchema = z.object({
   slug: slugSchema,
   title: z.string().min(1).max(200),
@@ -166,6 +181,14 @@ const createSchema = z.object({
   coverEmoji: z.string().max(8).optional(),
   accentColor: accentSchema,
   status: z.enum(["draft", "published"]).optional().default("draft"),
+  // S85 — long_arc tier metadata. All optional at the zod layer; the
+  // floor validator runs separately when scaleTier === 'long_arc' to
+  // produce structured error lists.
+  scaleTier: scaleTierSchema.optional().default("skill_drill"),
+  domains: z.array(domainTagSchema).max(12).optional(),
+  estimatedHoursMin: z.number().int().min(0).max(LONG_ARC_MAX_HOURS).nullable().optional(),
+  estimatedHoursMax: z.number().int().min(0).max(LONG_ARC_MAX_HOURS).nullable().optional(),
+  realWorldDeliverableMd: z.string().max(20000).nullable().optional(),
 });
 
 const updateSchema = createSchema.partial().extend({
@@ -180,6 +203,11 @@ const milestoneCreateSchema = z.object({
   runnableTests: z.string().max(20000).nullable().optional(),
   estimatedDays: z.number().int().min(1).max(60).optional().default(7),
   order: z.number().int().min(0).max(50).optional(),
+  // S85 — calendar deadline. ISO date string (YYYY-MM-DD or full
+  // datetime). Long_arc capstones surface this in the workspace + on
+  // the detail page.
+  dueAt: z.string().max(40).nullable().optional(),
+  advisorSignoffRequired: z.boolean().optional(),
 });
 
 const milestoneUpdateSchema = milestoneCreateSchema.partial();
@@ -209,12 +237,46 @@ const submitSchema = z.object({
   labState: z.record(z.unknown()).optional(),
 });
 
+// S85 — Run the long_arc complexity floor against a capstone row.
+// Reads the persisted capstone + its milestones; returns the
+// validator result. Called at publish time when the capstone is
+// transitioning to (or already in) the long_arc tier.
+function runLongArcFloor(capstoneId: string):
+  | { ok: true }
+  | { ok: false; errors: string[] } {
+  const db = getDb();
+  const cap = db
+    .select({
+      domainsJson: capstones.domainsJson,
+      estimatedHoursMin: capstones.estimatedHoursMin,
+      estimatedHoursMax: capstones.estimatedHoursMax,
+      realWorldDeliverableMd: capstones.realWorldDeliverableMd,
+    })
+    .from(capstones)
+    .where(eq(capstones.id, capstoneId))
+    .get();
+  if (!cap) return { ok: false, errors: ["capstone not found"] };
+  const milestones = db
+    .select({ dueAt: capstoneMilestones.dueAt })
+    .from(capstoneMilestones)
+    .where(eq(capstoneMilestones.capstoneId, capstoneId))
+    .all();
+  return validateLongArcFloor({
+    domains: safeParseStrArray(cap.domainsJson),
+    estimatedHoursMin: cap.estimatedHoursMin,
+    estimatedHoursMax: cap.estimatedHoursMax,
+    realWorldDeliverableMd: cap.realWorldDeliverableMd,
+    milestones,
+  });
+}
+
 // --- routes ---------------------------------------------------------
 
 // GET /capstones — list published capstones with milestone counts.
 capstonesRouter.get("/", async (c) => {
   const db = getDb();
   const tag = c.req.query("tag")?.toLowerCase();
+  const scaleTierFilter = c.req.query("scaleTier");
   const rows = db
     .select({
       id: capstones.id,
@@ -228,6 +290,10 @@ capstonesRouter.get("/", async (c) => {
       authorId: capstones.authorId,
       authorUsername: users.username,
       authorDisplayName: users.displayName,
+      scaleTier: capstones.scaleTier,
+      domainsJson: capstones.domainsJson,
+      estimatedHoursMin: capstones.estimatedHoursMin,
+      estimatedHoursMax: capstones.estimatedHoursMax,
       createdAt: capstones.createdAt,
       updatedAt: capstones.updatedAt,
     })
@@ -237,9 +303,12 @@ capstonesRouter.get("/", async (c) => {
     .orderBy(desc(capstones.createdAt))
     .all();
 
-  const filtered = tag
+  let filtered = tag
     ? rows.filter((r) => safeParseStrArray(r.tags).includes(tag))
     : rows;
+  if (scaleTierFilter === "skill_drill" || scaleTierFilter === "long_arc") {
+    filtered = filtered.filter((r) => r.scaleTier === scaleTierFilter);
+  }
 
   // Count milestones per capstone in a single query.
   const milestoneCounts = new Map<string, number>();
@@ -270,6 +339,10 @@ capstonesRouter.get("/", async (c) => {
       authorUsername: r.authorUsername,
       authorDisplayName: r.authorDisplayName,
       milestoneCount: milestoneCounts.get(r.id) ?? 0,
+      scaleTier: r.scaleTier,
+      domains: safeParseStrArray(r.domainsJson),
+      estimatedHoursMin: r.estimatedHoursMin,
+      estimatedHoursMax: r.estimatedHoursMax,
       createdAt: r.createdAt,
       updatedAt: r.updatedAt,
     })),
@@ -290,6 +363,7 @@ capstonesRouter.get("/me/drafts", requireAuth, async (c) => {
       coverEmoji: capstones.coverEmoji,
       accentColor: capstones.accentColor,
       tags: capstones.tags,
+      scaleTier: capstones.scaleTier,
       updatedAt: capstones.updatedAt,
     })
     .from(capstones)
@@ -915,8 +989,24 @@ capstonesRouter.post(
         accentColor: data.accentColor ?? "violet",
         status: data.status,
         authorId: user.id,
+        scaleTier: data.scaleTier,
+        domainsJson: JSON.stringify(data.domains ?? []),
+        estimatedHoursMin: data.estimatedHoursMin ?? null,
+        estimatedHoursMax: data.estimatedHoursMax ?? null,
+        realWorldDeliverableMd: data.realWorldDeliverableMd ?? null,
       })
       .run();
+
+    // S85 — Floor enforcement on publish-as-long_arc. Drafts can be
+    // incomplete; the gate fires only when the capstone goes public.
+    if (data.scaleTier === "long_arc" && data.status === "published") {
+      const floor = runLongArcFloor(id);
+      if (!floor.ok) {
+        // Roll back the insert; surface structured errors.
+        db.delete(capstones).where(eq(capstones.id, id)).run();
+        return c.json({ error: "Long-arc floor not met", errors: floor.errors }, 400);
+      }
+    }
 
     invalidateSearchIndex();
     if (data.status === "published") {
@@ -942,6 +1032,7 @@ capstonesRouter.put(
         id: capstones.id,
         authorId: capstones.authorId,
         status: capstones.status,
+        scaleTier: capstones.scaleTier,
       })
       .from(capstones)
       .where(eq(capstones.slug, slug))
@@ -972,6 +1063,13 @@ capstonesRouter.put(
     if (data.coverEmoji != null) patch.coverEmoji = data.coverEmoji.slice(0, 8) || "🎓";
     if (data.accentColor != null) patch.accentColor = data.accentColor;
     if (data.status != null) patch.status = data.status;
+    if (data.scaleTier != null) patch.scaleTier = data.scaleTier;
+    if (data.domains != null) patch.domainsJson = JSON.stringify(data.domains);
+    if (data.estimatedHoursMin !== undefined) patch.estimatedHoursMin = data.estimatedHoursMin;
+    if (data.estimatedHoursMax !== undefined) patch.estimatedHoursMax = data.estimatedHoursMax;
+    if (data.realWorldDeliverableMd !== undefined) {
+      patch.realWorldDeliverableMd = data.realWorldDeliverableMd;
+    }
 
     db.update(capstones)
       .set(patch)
@@ -981,6 +1079,26 @@ capstonesRouter.put(
     invalidateSearchIndex();
     const nowPublished =
       (data.status ?? existing.status) === "published";
+    const nowLongArc =
+      (data.scaleTier ?? existing.scaleTier) === "long_arc";
+
+    // S85 — Floor enforcement on publish-as-long_arc. Re-runs the
+    // validator post-update so authors can't sneak past by editing
+    // metadata after creation. On failure we revert the patch so the
+    // request is fully rejected.
+    if (nowPublished && nowLongArc) {
+      const floor = runLongArcFloor(existing.id);
+      if (!floor.ok) {
+        // Revert: restore the prior status + scaleTier to leave the
+        // capstone exactly as it was before this PUT.
+        db.update(capstones)
+          .set({ status: existing.status, scaleTier: existing.scaleTier })
+          .where(eq(capstones.id, existing.id))
+          .run();
+        return c.json({ error: "Long-arc floor not met", errors: floor.errors }, 400);
+      }
+    }
+
     if (nowPublished) {
       snapshotCapstone(existing.id, {
         editedBy: user.id,
@@ -1144,6 +1262,8 @@ capstonesRouter.post(
         requiredArtifactKinds: JSON.stringify(data.requiredArtifactKinds ?? []),
         runnableTests: data.runnableTests ?? null,
         estimatedDays: data.estimatedDays,
+        dueAt: data.dueAt ?? null,
+        advisorSignoffRequired: data.advisorSignoffRequired ?? false,
       })
       .run();
 
@@ -1191,6 +1311,10 @@ capstonesRouter.put(
     if (data.runnableTests !== undefined) patch.runnableTests = data.runnableTests;
     if (data.estimatedDays != null) patch.estimatedDays = data.estimatedDays;
     if (data.order != null) patch.order = data.order;
+    if (data.dueAt !== undefined) patch.dueAt = data.dueAt;
+    if (data.advisorSignoffRequired !== undefined) {
+      patch.advisorSignoffRequired = data.advisorSignoffRequired;
+    }
 
     if (Object.keys(patch).length === 0) return c.json({ ok: true });
 
@@ -1490,6 +1614,11 @@ async function loadCapstoneDto(
       authorId: capstones.authorId,
       authorUsername: users.username,
       authorDisplayName: users.displayName,
+      scaleTier: capstones.scaleTier,
+      domainsJson: capstones.domainsJson,
+      estimatedHoursMin: capstones.estimatedHoursMin,
+      estimatedHoursMax: capstones.estimatedHoursMax,
+      realWorldDeliverableMd: capstones.realWorldDeliverableMd,
       createdAt: capstones.createdAt,
       updatedAt: capstones.updatedAt,
     })
@@ -1571,10 +1700,17 @@ async function loadCapstoneDto(
       requiredArtifactKinds: safeParseStrArray(m.requiredArtifactKinds),
       runnableTests: m.runnableTests,
       estimatedDays: m.estimatedDays,
+      dueAt: m.dueAt,
+      advisorSignoffRequired: !!m.advisorSignoffRequired,
       createdAt: m.createdAt,
     })),
     myEnrollment,
     currentVersion: row.currentVersion,
+    scaleTier: row.scaleTier,
+    domains: safeParseStrArray(row.domainsJson),
+    estimatedHoursMin: row.estimatedHoursMin,
+    estimatedHoursMax: row.estimatedHoursMax,
+    realWorldDeliverableMd: row.realWorldDeliverableMd,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };

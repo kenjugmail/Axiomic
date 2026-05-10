@@ -414,3 +414,162 @@ describe("capstones enrollment + submissions (Sprint 27)", () => {
     expect(capData.capstone.myEnrollment.artifactPageSlug).toBe(artifactSlug);
   });
 });
+
+// S85 — Year-scale (long_arc) tier. The complexity-floor validator
+// gates publish-time, not create-time-as-draft. Drafts can hold
+// incomplete metadata. Skill-drill defaults are unaffected.
+describe("capstones long_arc tier (S85)", () => {
+  const goodDeliverable = "x".repeat(220);
+
+  test("skill_drill default is preserved on create — no floor applied", async () => {
+    const { cookie } = await signup("sd_default");
+    const slug = `sd-default-${testId}`;
+    const res = await req("/capstones", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(cookie) },
+      body: JSON.stringify({
+        slug,
+        title: "Plain skill drill",
+        contentUndergrad: "Body",
+      }),
+    });
+    expect(res.status).toBe(201);
+    // Detail returns scaleTier='skill_drill' + nullable long_arc fields.
+    const get = await req(`/capstones/${slug}`, { headers: cookieHeader(cookie) });
+    const data = (await get.json()) as any;
+    expect(data.capstone.scaleTier).toBe("skill_drill");
+    expect(data.capstone.estimatedHoursMin).toBeNull();
+    expect(data.capstone.estimatedHoursMax).toBeNull();
+    expect(data.capstone.domains).toEqual([]);
+  });
+
+  test("publish long_arc with 2 domains rejected with floor errors", async () => {
+    const { cookie } = await signup("la_2dom");
+    const slug = `la-2dom-${testId}`;
+    const res = await req("/capstones", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(cookie) },
+      body: JSON.stringify({
+        slug,
+        title: "Year-scale with too few domains",
+        contentUndergrad: "Body",
+        scaleTier: "long_arc",
+        status: "published",
+        domains: ["mechE", "EE"],
+        estimatedHoursMin: 200,
+        estimatedHoursMax: 700,
+        realWorldDeliverableMd: goodDeliverable,
+      }),
+    });
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as any;
+    expect(Array.isArray(body.errors)).toBe(true);
+    expect(body.errors.join(" ")).toMatch(/3 domains/);
+    // Slug should be free for retry — the create rolled back.
+    const followup = await req("/capstones", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(cookie) },
+      body: JSON.stringify({ slug, title: "retry", contentUndergrad: "ok" }),
+    });
+    expect(followup.status).toBe(201);
+  });
+
+  test("draft long_arc with incomplete metadata is allowed; publish gate fires on PUT", async () => {
+    const { cookie } = await signup("la_draft");
+    const slug = `la-draft-${testId}`;
+    // Create as draft with minimal long_arc metadata — should succeed.
+    const create = await req("/capstones", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(cookie) },
+      body: JSON.stringify({
+        slug,
+        title: "Year-scale draft",
+        contentUndergrad: "Body",
+        scaleTier: "long_arc",
+        status: "draft",
+        domains: ["mechE"],
+        estimatedHoursMin: 50,
+      }),
+    });
+    expect(create.status).toBe(201);
+
+    // Try to publish as-is — floor failure expected.
+    const publish = await req(`/capstones/${slug}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...cookieHeader(cookie) },
+      body: JSON.stringify({ status: "published" }),
+    });
+    expect(publish.status).toBe(400);
+    const body = (await publish.json()) as any;
+    expect(body.errors.length).toBeGreaterThanOrEqual(2);
+    // Status should remain 'draft' since publish was rejected.
+    const get = await req(`/capstones/${slug}`, { headers: cookieHeader(cookie) });
+    const data = (await get.json()) as any;
+    expect(data.capstone.status).toBe("draft");
+  });
+
+  test("long_arc create-as-published succeeds when floor met + scaleTier filter works", async () => {
+    const { cookie } = await signup("la_ok");
+    const slug = `la-ok-${testId}`;
+    // First create as draft — needed to add a milestone with dueAt.
+    const create = await req("/capstones", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(cookie) },
+      body: JSON.stringify({
+        slug,
+        title: "Year-scale that publishes",
+        contentUndergrad: "Body",
+        scaleTier: "long_arc",
+        status: "draft",
+        domains: ["mechE", "EE", "microbio"],
+        estimatedHoursMin: 250,
+        estimatedHoursMax: 500,
+        realWorldDeliverableMd: goodDeliverable,
+      }),
+    });
+    expect(create.status).toBe(201);
+
+    // Add a milestone with a due date.
+    const ms = await req(`/capstones/${slug}/milestones`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(cookie) },
+      body: JSON.stringify({
+        title: "M1 spec",
+        rubric: goodRubric,
+        dueAt: "2026-06-30",
+        advisorSignoffRequired: true,
+      }),
+    });
+    expect(ms.status).toBe(201);
+
+    // Now publish — should pass the floor.
+    const publish = await req(`/capstones/${slug}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...cookieHeader(cookie) },
+      body: JSON.stringify({ status: "published" }),
+    });
+    expect(publish.status).toBe(200);
+
+    // List with scaleTier filter shows it.
+    const list = await req("/capstones?scaleTier=long_arc");
+    const listData = (await list.json()) as any;
+    const found = listData.capstones.find((c: any) => c.slug === slug);
+    expect(found).toBeDefined();
+    expect(found.scaleTier).toBe("long_arc");
+    expect(found.domains).toEqual(["mechE", "EE", "microbio"]);
+    expect(found.estimatedHoursMin).toBe(250);
+
+    // Detail surfaces dueAt + advisorSignoffRequired on milestones.
+    const detail = await req(`/capstones/${slug}`);
+    const detailData = (await detail.json()) as any;
+    expect(detailData.capstone.scaleTier).toBe("long_arc");
+    expect(detailData.capstone.realWorldDeliverableMd).toContain("x");
+    expect(detailData.capstone.milestones[0].dueAt).toBe("2026-06-30");
+    expect(detailData.capstone.milestones[0].advisorSignoffRequired).toBe(true);
+
+    // Skill-drill filter excludes it.
+    const sdList = await req("/capstones?scaleTier=skill_drill");
+    const sdData = (await sdList.json()) as any;
+    expect(sdData.capstones.find((c: any) => c.slug === slug)).toBeUndefined();
+  });
+});

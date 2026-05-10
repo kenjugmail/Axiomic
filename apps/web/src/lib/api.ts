@@ -215,7 +215,7 @@ async function request<T>(path: string, opts?: RequestInit): Promise<T> {
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({ error: res.statusText }));
-      throw new ApiError(res.status, body.error || "Unknown error");
+      throw new ApiError(res.status, body.error || "Unknown error", body);
     }
 
     return res.json();
@@ -236,7 +236,11 @@ async function request<T>(path: string, opts?: RequestInit): Promise<T> {
 }
 
 export class ApiError extends Error {
-  constructor(public status: number, message: string) {
+  constructor(
+    public status: number,
+    message: string,
+    public body?: Record<string, unknown>,
+  ) {
     super(message);
   }
 }
@@ -1084,9 +1088,10 @@ export const api = {
       ),
   },
   capstones: {
-    list: (params?: { tag?: string }) => {
+    list: (params?: { tag?: string; scaleTier?: "skill_drill" | "long_arc" }) => {
       const sp = new URLSearchParams();
       if (params?.tag) sp.set("tag", params.tag);
+      if (params?.scaleTier) sp.set("scaleTier", params.scaleTier);
       const qs = sp.toString();
       return request<CapstonesListResponse>(`/capstones${qs ? `?${qs}` : ""}`);
     },
@@ -1101,6 +1106,7 @@ export const api = {
           coverEmoji: string;
           accentColor: string;
           tags: string[];
+          scaleTier: "skill_drill" | "long_arc";
           updatedAt: string;
         }>;
       }>("/capstones/me/drafts"),

@@ -14,8 +14,9 @@ import type {
   CapstoneRubricCriterion,
   CapstoneTier,
   CapstoneArtifactKind,
+  CapstoneScaleTier,
 } from "@axiomic/types";
-import { api } from "../lib/api";
+import { api, ApiError } from "../lib/api";
 import { Skeleton } from "../components/ui";
 
 const ARTIFACT_KINDS: CapstoneArtifactKind[] = [
@@ -46,6 +47,13 @@ export function CapstoneEditPage() {
   const [prereqWikiSlugs, setPrereqWikiSlugs] = useState("");
   const [tags, setTags] = useState("");
   const [status, setStatus] = useState<"draft" | "published">("draft");
+  // S85 — long_arc tier metadata. Form fields reveal when scaleTier=long_arc.
+  const [scaleTier, setScaleTier] = useState<CapstoneScaleTier>("skill_drill");
+  const [domains, setDomains] = useState("");
+  const [estimatedHoursMin, setEstimatedHoursMin] = useState<number | "">("");
+  const [estimatedHoursMax, setEstimatedHoursMax] = useState<number | "">("");
+  const [realWorldDeliverableMd, setRealWorldDeliverableMd] = useState("");
+  const [floorErrors, setFloorErrors] = useState<string[]>([]);
 
   useEffect(() => {
     api.capstones
@@ -62,6 +70,11 @@ export function CapstoneEditPage() {
         setPrereqWikiSlugs(c.prerequisiteWikiSlugs.join(", "));
         setTags(c.tags.join(", "));
         setStatus(c.status);
+        setScaleTier(c.scaleTier);
+        setDomains(c.domains.join(", "));
+        setEstimatedHoursMin(c.estimatedHoursMin ?? "");
+        setEstimatedHoursMax(c.estimatedHoursMax ?? "");
+        setRealWorldDeliverableMd(c.realWorldDeliverableMd ?? "");
       })
       .catch((e) => setError(e?.message ?? "Failed to load capstone"));
   }, [slug]);
@@ -73,6 +86,7 @@ export function CapstoneEditPage() {
 
   const saveBrief = async () => {
     setSavingBrief(true);
+    setFloorErrors([]);
     try {
       await api.capstones.update(slug, {
         title,
@@ -90,12 +104,35 @@ export function CapstoneEditPage() {
           .map((s) => s.trim())
           .filter(Boolean),
         status,
+        scaleTier,
+        domains: domains
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+        estimatedHoursMin:
+          scaleTier === "long_arc" && typeof estimatedHoursMin === "number"
+            ? estimatedHoursMin
+            : null,
+        estimatedHoursMax:
+          scaleTier === "long_arc" && typeof estimatedHoursMax === "number"
+            ? estimatedHoursMax
+            : null,
+        realWorldDeliverableMd:
+          scaleTier === "long_arc" && realWorldDeliverableMd.trim().length > 0
+            ? realWorldDeliverableMd
+            : null,
       });
       setBriefDirty(false);
       await reload();
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Save failed";
-      setError(message);
+      // Server returns { error, errors[] } when the long_arc floor
+      // fails. Surface the error list inline so the author sees
+      // exactly what's missing.
+      if (err instanceof ApiError && Array.isArray(err.body?.errors)) {
+        setFloorErrors(err.body.errors as string[]);
+      } else {
+        setError(err instanceof Error ? err.message : "Save failed");
+      }
     } finally {
       setSavingBrief(false);
     }
@@ -152,6 +189,19 @@ export function CapstoneEditPage() {
 
       <h1 className="font-display text-2xl font-semibold tracking-tight mb-6">Edit capstone</h1>
 
+      {floorErrors.length > 0 && (
+        <div className="mb-4 rounded-md border border-destructive/40 bg-destructive/10 p-3">
+          <div className="text-xs font-semibold text-destructive mb-2">
+            Long-arc floor not met — fix these to publish:
+          </div>
+          <ul className="text-xs text-destructive list-disc list-inside space-y-1">
+            {floorErrors.map((e, i) => (
+              <li key={i}>{e}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <section className="space-y-3 mb-8">
         <Field label="Title">
           <input
@@ -173,7 +223,20 @@ export function CapstoneEditPage() {
             className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background"
           />
         </Field>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
+          <Field label="Scale tier">
+            <select
+              value={scaleTier}
+              onChange={(e) => {
+                setScaleTier(e.target.value as CapstoneScaleTier);
+                setBriefDirty(true);
+              }}
+              className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background"
+            >
+              <option value="skill_drill">Skill drill</option>
+              <option value="long_arc">Year-scale</option>
+            </select>
+          </Field>
           <Field label="Estimated weeks">
             <input
               type="number"
@@ -201,6 +264,68 @@ export function CapstoneEditPage() {
             </select>
           </Field>
         </div>
+        {scaleTier === "long_arc" && (
+          <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3 space-y-3">
+            <div className="text-xs text-muted-foreground">
+              Year-scale capstones must clear a complexity floor before publishing:
+              ≥3 domains, hour range in [200, 2000], ≥200-character deliverable
+              description, and at least one milestone with a calendar due date.
+            </div>
+            <Field label="Domains (comma-separated, ≥3)">
+              <input
+                value={domains}
+                onChange={(e) => {
+                  setDomains(e.target.value);
+                  setBriefDirty(true);
+                }}
+                placeholder="mechE, EE, microbio, control-theory"
+                className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background"
+              />
+            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Estimated hours min (≥200)">
+                <input
+                  type="number"
+                  min={0}
+                  max={2000}
+                  value={estimatedHoursMin}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setEstimatedHoursMin(v === "" ? "" : parseInt(v, 10) || 0);
+                    setBriefDirty(true);
+                  }}
+                  className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background"
+                />
+              </Field>
+              <Field label="Estimated hours max (≤2000)">
+                <input
+                  type="number"
+                  min={0}
+                  max={2000}
+                  value={estimatedHoursMax}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setEstimatedHoursMax(v === "" ? "" : parseInt(v, 10) || 0);
+                    setBriefDirty(true);
+                  }}
+                  className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background"
+                />
+              </Field>
+            </div>
+            <Field label="Real-world deliverable (markdown, ≥200 chars)">
+              <textarea
+                value={realWorldDeliverableMd}
+                onChange={(e) => {
+                  setRealWorldDeliverableMd(e.target.value);
+                  setBriefDirty(true);
+                }}
+                rows={6}
+                placeholder="Describe the tangible end-state — the working device, published paper, shipped library. What does the learner have when they're done?"
+                className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background font-mono"
+              />
+            </Field>
+          </div>
+        )}
         <Field label="Tags (comma-separated)">
           <input
             value={tags}
@@ -344,6 +469,11 @@ function MilestoneRow({
   );
   const [runnableTests, setRunnableTests] = useState(milestone.runnableTests ?? "");
   const [estimatedDays, setEstimatedDays] = useState(milestone.estimatedDays);
+  // S85 — long_arc-only fields. Blank when null.
+  const [dueAt, setDueAt] = useState(milestone.dueAt ?? "");
+  const [advisorSignoffRequired, setAdvisorSignoffRequired] = useState(
+    milestone.advisorSignoffRequired,
+  );
   const [saving, setSaving] = useState(false);
 
   const dirty = useMemo(() => {
@@ -353,9 +483,11 @@ function MilestoneRow({
       JSON.stringify(rubric) !== JSON.stringify(milestone.rubric) ||
       JSON.stringify(requiredKinds) !== JSON.stringify(milestone.requiredArtifactKinds) ||
       runnableTests !== (milestone.runnableTests ?? "") ||
-      estimatedDays !== milestone.estimatedDays
+      estimatedDays !== milestone.estimatedDays ||
+      dueAt !== (milestone.dueAt ?? "") ||
+      advisorSignoffRequired !== milestone.advisorSignoffRequired
     );
-  }, [title, description, rubric, requiredKinds, runnableTests, estimatedDays, milestone]);
+  }, [title, description, rubric, requiredKinds, runnableTests, estimatedDays, dueAt, advisorSignoffRequired, milestone]);
 
   const save = async () => {
     setSaving(true);
@@ -367,6 +499,8 @@ function MilestoneRow({
         requiredArtifactKinds: requiredKinds,
         runnableTests: runnableTests.trim() ? runnableTests : null,
         estimatedDays,
+        dueAt: dueAt.trim() ? dueAt : null,
+        advisorSignoffRequired,
       });
       onChanged();
     } finally {
@@ -455,16 +589,37 @@ function MilestoneRow({
               className="w-full text-xs px-3 py-2 rounded-md border border-border bg-muted/30 font-mono"
             />
           </Field>
-          <Field label="Estimated days">
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Estimated days">
+              <input
+                type="number"
+                min={1}
+                max={60}
+                value={estimatedDays}
+                onChange={(e) => setEstimatedDays(parseInt(e.target.value, 10) || 7)}
+                className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background"
+              />
+            </Field>
+            <Field label="Due date (year-scale only)">
+              <input
+                type="date"
+                value={dueAt.slice(0, 10)}
+                onChange={(e) => setDueAt(e.target.value)}
+                className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background"
+              />
+            </Field>
+          </div>
+          <label className="flex items-center gap-2 text-xs">
             <input
-              type="number"
-              min={1}
-              max={60}
-              value={estimatedDays}
-              onChange={(e) => setEstimatedDays(parseInt(e.target.value, 10) || 7)}
-              className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background"
+              type="checkbox"
+              checked={advisorSignoffRequired}
+              onChange={(e) => setAdvisorSignoffRequired(e.target.checked)}
+              className="rounded border-border"
             />
-          </Field>
+            <span className="text-muted-foreground">
+              Requires advisor sign-off before learner advances (year-scale; gating ships in S86)
+            </span>
+          </label>
           <div className="flex justify-between gap-2">
             <button
               type="button"

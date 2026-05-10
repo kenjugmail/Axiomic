@@ -6,8 +6,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { GraduationCap, Plus } from "lucide-react";
-import type { CapstoneSummary } from "@axiomic/types";
+import { GraduationCap, Plus, Mountain } from "lucide-react";
+import type { CapstoneSummary, CapstoneScaleTier } from "@axiomic/types";
 import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
@@ -26,13 +26,14 @@ export function CapstonesListPage() {
   const [capstones, setCapstones] = useState<CapstoneSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tag, setTag] = useState<string | null>(null);
+  const [scaleTier, setScaleTier] = useState<CapstoneScaleTier | null>(null);
 
   useEffect(() => {
     api.capstones
-      .list({ tag: tag ?? undefined })
+      .list({ tag: tag ?? undefined, scaleTier: scaleTier ?? undefined })
       .then((r) => setCapstones(r.capstones))
       .catch((e) => setError(e?.message ?? "Failed to load capstones"));
-  }, [tag]);
+  }, [tag, scaleTier]);
 
   const allTags = useMemo(() => {
     if (!capstones) return [];
@@ -77,6 +78,46 @@ export function CapstonesListPage() {
             </Link>
           </div>
         )}
+      </div>
+
+      <div className="flex items-center gap-1.5 mb-3 flex-wrap">
+        <span className="text-[10px] uppercase tracking-wider text-muted-foreground mr-1">
+          Scale
+        </span>
+        <button
+          type="button"
+          onClick={() => setScaleTier(null)}
+          className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+            scaleTier === null
+              ? "border-primary bg-primary/10 text-primary"
+              : "border-border text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          All
+        </button>
+        <button
+          type="button"
+          onClick={() => setScaleTier(scaleTier === "skill_drill" ? null : "skill_drill")}
+          className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+            scaleTier === "skill_drill"
+              ? "border-primary bg-primary/10 text-primary"
+              : "border-border text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Skill drills
+        </button>
+        <button
+          type="button"
+          onClick={() => setScaleTier(scaleTier === "long_arc" ? null : "long_arc")}
+          className={`text-xs px-2.5 py-1 rounded-full border transition-colors inline-flex items-center gap-1 ${
+            scaleTier === "long_arc"
+              ? "border-primary bg-primary/10 text-primary"
+              : "border-border text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Mountain className="w-3 h-3" />
+          Year-scale projects
+        </button>
       </div>
 
       {allTags.length > 0 && (
@@ -142,15 +183,31 @@ export function CapstonesListPage() {
                 <div
                   className={`px-5 py-4 bg-gradient-to-br ${
                     ACCENT_BG[c.accentColor] ?? ACCENT_BG.violet
-                  }`}
+                  } relative`}
                 >
                   <div className="text-3xl">{c.coverEmoji}</div>
+                  {c.scaleTier === "long_arc" && (
+                    <span className="absolute top-3 right-3 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-1 font-medium">
+                      <Mountain className="w-3 h-3" />
+                      Year-scale
+                    </span>
+                  )}
                 </div>
                 <div className="px-5 py-4">
                   <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-muted-foreground mb-1 flex-wrap">
-                    <span className="font-medium text-primary">
-                      {c.estimatedWeeks}w · {c.milestoneCount} milestones
-                    </span>
+                    {c.scaleTier === "long_arc" &&
+                    c.estimatedHoursMin != null &&
+                    c.estimatedHoursMax != null ? (
+                      <span className="font-medium text-primary">
+                        {c.estimatedHoursMin}-{c.estimatedHoursMax}h ·{" "}
+                        {c.domains.length} domain{c.domains.length === 1 ? "" : "s"} ·{" "}
+                        {c.milestoneCount} milestones
+                      </span>
+                    ) : (
+                      <span className="font-medium text-primary">
+                        {c.estimatedWeeks}w · {c.milestoneCount} milestones
+                      </span>
+                    )}
                     {c.tags.slice(0, 2).map((t) => (
                       <span key={t}>· #{t}</span>
                     ))}

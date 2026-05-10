@@ -309,6 +309,23 @@ function ActiveMilestonePanel({
     <section className="space-y-6">
       <div>
         <h2 className="text-base font-semibold mb-2">{milestone.title}</h2>
+        {/* S85 — surface calendar deadline + advisor sign-off intent
+           on long-arc milestones. dueAt is null for skill drills, so
+           this row only renders when the author set it. */}
+        {(milestone.dueAt || milestone.advisorSignoffRequired) && (
+          <div className="text-xs text-muted-foreground mb-2 flex items-center gap-3 flex-wrap">
+            {milestone.dueAt && (
+              <span>
+                due {formatWorkspaceDate(milestone.dueAt)}
+              </span>
+            )}
+            {milestone.advisorSignoffRequired && (
+              <span className="text-amber-600 dark:text-amber-400">
+                · advisor sign-off required (gating ships in S86)
+              </span>
+            )}
+          </div>
+        )}
         {milestone.description && (
           <div className="rounded-md bg-muted/30 border border-border px-3 py-2">
             <MarkdownRenderer
@@ -573,4 +590,14 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       {children}
     </label>
   );
+}
+
+function formatWorkspaceDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }

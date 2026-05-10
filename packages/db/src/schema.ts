@@ -1008,6 +1008,21 @@ export const capstones = sqliteTable("capstones", {
   lastCitedAt: text("last_cited_at"),
   authorId: text("author_id").notNull().references(() => users.id),
   lastEditorId: text("last_editor_id").references(() => users.id),
+  // S85 — year-scale tier discriminator. Existing rows + new skill
+  // drills stay 'skill_drill'; year-scale projects opt in to
+  // 'long_arc' and must clear the complexity floor (≥3 domains, hour
+  // range, deliverable description, ≥1 dated milestone) at create or
+  // publish time.
+  scaleTier: text("scale_tier").notNull().default("skill_drill"),
+  // JSON array of domain tags surfacing complexity. Floor requires
+  // ≥3 entries for long_arc.
+  domainsJson: text("domains_json").notNull().default("[]"),
+  // Hour range for long_arc. Skill drills keep using estimatedWeeks.
+  estimatedHoursMin: integer("estimated_hours_min"),
+  estimatedHoursMax: integer("estimated_hours_max"),
+  // Long_arc only. Tangible end-state — what the learner ships at the
+  // end. Floor requires ≥200 chars to force authors past hand-waving.
+  realWorldDeliverableMd: text("real_world_deliverable_md"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
 }, (t) => ({
@@ -1064,6 +1079,14 @@ export const capstoneMilestones = sqliteTable("capstone_milestones", {
   // submission and the AI grader can reference it.
   runnableTests: text("runnable_tests"),
   estimatedDays: integer("estimated_days").notNull().default(7),
+  // S85 — calendar due date for long_arc capstones. ISO date string.
+  // Skill drills leave this null and continue to use estimatedDays
+  // as a relative pacing hint.
+  dueAt: text("due_at"),
+  // S85 — declares an advisor must approve this milestone before the
+  // learner advances. Schema-only in S85; gating ships in S86 with the
+  // advisor invite/accept flow.
+  advisorSignoffRequired: integer("advisor_signoff_required", { mode: "boolean" }).notNull().default(false),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
 }, (t) => ({
   capstoneIdx: index("capstone_milestones_capstone_idx").on(t.capstoneId, t.order),
@@ -1125,6 +1148,44 @@ export const capstoneSubmissions = sqliteTable("capstone_submissions", {
 }, (t) => ({
   pk: uniqueIndex("capstone_submissions_pk").on(t.enrollmentId, t.milestoneId),
   milestoneIdx: index("capstone_submissions_milestone_idx").on(t.milestoneId, t.submittedAt),
+}));
+
+// S85 — Advisor / mentor link to a learner's enrollment. Multiple
+// rows possible per enrollment (lead advisor + co-advisor + mentor).
+// Schema-only in S85; the invite + accept + sign-off-gate UI ships
+// in S86 alongside the milestone-advance enforcement.
+export const capstoneAdvisorAssignments = sqliteTable("capstone_advisor_assignments", {
+  id: text("id").primaryKey(),
+  enrollmentId: text("enrollment_id")
+    .notNull()
+    .references(() => capstoneEnrollments.id, { onDelete: "cascade" }),
+  advisorUserId: text("advisor_user_id").notNull().references(() => users.id),
+  // 'advisor' | 'co_advisor' | 'mentor'. Free-form for now.
+  role: text("role").notNull().default("advisor"),
+  invitedAt: text("invited_at").default(sql`(datetime('now'))`).notNull(),
+  acceptedAt: text("accepted_at"),
+}, (t) => ({
+  enrollmentIdx: index("capstone_advisor_enrollment_idx").on(t.enrollmentId),
+  advisorIdx: index("capstone_advisor_user_idx").on(t.advisorUserId, t.acceptedAt),
+}));
+
+// S85 — Versioned snapshots of a (enrollment, milestone) submission.
+// The existing `capstone_submissions` row holds the latest graded
+// state (preserving the AI-grading flow); this table captures earlier
+// drafts + named milestones (e.g. "mid-year-review", "final"). UI
+// for capturing + browsing versions ships in S86.
+export const capstoneSubmissionVersions = sqliteTable("capstone_submission_versions", {
+  id: text("id").primaryKey(),
+  submissionId: text("submission_id")
+    .notNull()
+    .references(() => capstoneSubmissions.id, { onDelete: "cascade" }),
+  versionTag: text("version_tag").notNull(),
+  artifactsJson: text("artifacts_json").notNull().default("{}"),
+  writeup: text("writeup").notNull().default(""),
+  authorNotes: text("author_notes").notNull().default(""),
+  capturedAt: text("captured_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  submissionIdx: index("capstone_subver_submission_idx").on(t.submissionId, t.capturedAt),
 }));
 
 // Sprint 29 — misconception coaching. The detector runs against

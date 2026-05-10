@@ -2350,6 +2350,10 @@ export interface QuizMistakesResponse {
 export type CapstoneTier = "intro" | "undergrad" | "grad";
 export type CapstoneStatus = "draft" | "published";
 export type CapstoneAccent = ResearchPaperAccent;
+// S85 — Complexity tier. `skill_drill` keeps the original 4-10 week
+// scope; `long_arc` opts into the year-scale flow with calendar
+// milestones, complexity-floor enforcement, and (S86+) advisor sign-off.
+export type CapstoneScaleTier = "skill_drill" | "long_arc";
 export type CapstoneArtifactKind =
   | "github"
   | "colab"
@@ -2389,6 +2393,12 @@ export interface CapstoneMilestone {
   requiredArtifactKinds: CapstoneArtifactKind[];
   runnableTests: string | null;
   estimatedDays: number;
+  // S85 — calendar due date. ISO date string when set; null for skill drills
+  // (which stay on relative `estimatedDays`).
+  dueAt: string | null;
+  // S85 — declares this milestone gates on advisor sign-off. Schema-only
+  // signal in S85; gating enforcement ships in S86.
+  advisorSignoffRequired: boolean;
   createdAt: string;
 }
 
@@ -2405,6 +2415,13 @@ export interface CapstoneSummary {
   authorUsername: string;
   authorDisplayName: string | null;
   milestoneCount: number;
+  // S85 — tier discriminator. Skill drills surface `estimatedWeeks`
+  // and a milestone count; long_arc cards additionally surface domain
+  // count + the hour range.
+  scaleTier: CapstoneScaleTier;
+  domains: string[];
+  estimatedHoursMin: number | null;
+  estimatedHoursMax: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -2448,6 +2465,12 @@ export interface Capstone {
   milestones: CapstoneMilestone[];
   myEnrollment: CapstoneMyEnrollmentSummary | null;
   currentVersion?: number;
+  // S85 — tier + complexity-floor metadata.
+  scaleTier: CapstoneScaleTier;
+  domains: string[];
+  estimatedHoursMin: number | null;
+  estimatedHoursMax: number | null;
+  realWorldDeliverableMd: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -2555,6 +2578,14 @@ export interface CreateCapstoneRequest {
   coverEmoji?: string;
   accentColor?: CapstoneAccent;
   status?: CapstoneStatus;
+  // S85 — long_arc tier opt-in. When present and != 'skill_drill',
+  // the floor validator runs and the *Hours/domains/deliverable
+  // fields become required.
+  scaleTier?: CapstoneScaleTier;
+  domains?: string[];
+  estimatedHoursMin?: number | null;
+  estimatedHoursMax?: number | null;
+  realWorldDeliverableMd?: string | null;
 }
 
 export interface UpdateCapstoneRequest {
@@ -2571,6 +2602,11 @@ export interface UpdateCapstoneRequest {
   coverEmoji?: string;
   accentColor?: CapstoneAccent;
   status?: CapstoneStatus;
+  scaleTier?: CapstoneScaleTier;
+  domains?: string[];
+  estimatedHoursMin?: number | null;
+  estimatedHoursMax?: number | null;
+  realWorldDeliverableMd?: string | null;
 }
 
 export interface CreateMilestoneRequest {
@@ -2581,6 +2617,9 @@ export interface CreateMilestoneRequest {
   runnableTests?: string | null;
   estimatedDays?: number;
   order?: number;
+  // S85 — calendar date for long_arc milestones.
+  dueAt?: string | null;
+  advisorSignoffRequired?: boolean;
 }
 
 export interface UpdateMilestoneRequest {
@@ -2591,6 +2630,8 @@ export interface UpdateMilestoneRequest {
   runnableTests?: string | null;
   estimatedDays?: number;
   order?: number;
+  dueAt?: string | null;
+  advisorSignoffRequired?: boolean;
 }
 
 export interface SubmitMilestoneRequest {
