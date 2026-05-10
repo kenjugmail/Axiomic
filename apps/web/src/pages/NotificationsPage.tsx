@@ -63,6 +63,8 @@ function kindLabel(kind: Notification["kind"]): string {
       return "you placed in a competition";
     case "pet_hatched":
       return "your egg hatched";
+    case "pet_leveled_up":
+      return "your pet leveled up";
     default: {
       const _exhaustive: never = kind;
       void _exhaustive;

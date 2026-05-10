@@ -37,6 +37,7 @@ import {
 } from "../middleware/classAuth";
 import { grantXp, classXpForUser, XP_AMOUNTS } from "../lib/xp";
 import { notify } from "../lib/notifications";
+import { emojiForSpeciesAtLevel } from "../lib/pets";
 import type { Env } from "../env";
 
 export const classesRouter = new Hono<Env>();
@@ -543,6 +544,10 @@ classesRouter.get(
               species: pet.species,
               name: pet.name,
               equipped: equippedByUser.get(m.userId) ?? [],
+              // S90 — evolution-aware emoji + level for the
+              // leaderboard row's PetView.
+              level: pet.level,
+              levelEmoji: emojiForSpeciesAtLevel(pet.species, pet.level),
             }
           : null,
       };

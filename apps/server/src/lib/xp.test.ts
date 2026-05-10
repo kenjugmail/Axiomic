@@ -6,6 +6,7 @@ import {
   grantXp,
   maybeGrantStreakBonus,
   maybeHatchPet,
+  maybeLevelUp,
   totalXpForUser,
   classXpForUser,
   PET_HATCH_THRESHOLD_XP,
@@ -210,5 +211,56 @@ describe("maybeGrantStreakBonus (S87)", () => {
     // Triggering grant + a streak bonus arrived together: total
     // delta is reading-done amount + streak-bonus amount.
     expect(after - before).toBeGreaterThan(XP_AMOUNTS["reading-done"]);
+  });
+});
+
+describe("maybeLevelUp (S90)", () => {
+  // Helper: grant a target XP total via N grants of fixed amount.
+  // Uses an explicit amount override so tests don't break if
+  // XP_AMOUNTS is retuned.
+  function grantTotalXp(userId: string, target: number) {
+    const grantSize = 50;
+    const grants = Math.ceil(target / grantSize);
+    for (let i = 0; i < grants; i++) {
+      grantXp({
+        userId,
+        source: "homework-graded-pass",
+        sourceRefId: `seed-${i}`,
+        amount: grantSize,
+      });
+    }
+  }
+
+  test("freshly-hatched pet is level 1 (above hatch, below level 2)", () => {
+    const u = makeUser("level1");
+    grantTotalXp(u, 100); // hatch=50, level-2=250 — sits at level 1
+    const pet = getDb().select().from(pets).where(eq(pets.userId, u)).get();
+    expect(pet).toBeDefined();
+    expect(pet?.level).toBe(1);
+  });
+
+  test("pet levels up when total XP crosses a threshold", () => {
+    const u = makeUser("level2");
+    grantTotalXp(u, 300); // past level-2 threshold (250)
+    const pet = getDb().select().from(pets).where(eq(pets.userId, u)).get();
+    expect(pet?.level).toBe(2);
+  });
+
+  test("re-running maybeLevelUp at the same XP is a no-op", () => {
+    const u = makeUser("level3");
+    grantTotalXp(u, 300);
+    const before = getDb().select().from(pets).where(eq(pets.userId, u)).get();
+    expect(before?.level).toBe(2);
+    const newLevel = maybeLevelUp(u);
+    expect(newLevel).toBeNull();
+    const after = getDb().select().from(pets).where(eq(pets.userId, u)).get();
+    expect(after?.level).toBe(2);
+  });
+
+  test("level skips correctly when xp jumps past two thresholds", () => {
+    const u = makeUser("level4");
+    grantTotalXp(u, 800); // past level-3 threshold (750)
+    const pet = getDb().select().from(pets).where(eq(pets.userId, u)).get();
+    expect(pet?.level).toBe(3);
   });
 });

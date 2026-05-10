@@ -2427,6 +2427,12 @@ export const pets = sqliteTable("pets", {
   species: text("species").notNull(),
   name: text("name").notNull().default(""),
   hatchedAt: text("hatched_at").default(sql`(datetime('now'))`).notNull(),
+  // S90 — pet evolution. Level is 1, 2, or 3 in v1. Recomputed on
+  // every grantXp via maybeLevelUp() against the user's lifetime
+  // XP. Stored on the pet (rather than derived on read) so we can
+  // detect a level-up exactly once and emit a notification when it
+  // happens.
+  level: integer("level").notNull().default(1),
 }, (t) => ({
   speciesIdx: index("pets_species_idx").on(t.species),
 }));

@@ -122,6 +122,8 @@ function kindLabel(kind: Notification["kind"]): string {
       return "you placed in a competition";
     case "pet_hatched":
       return "your egg hatched";
+    case "pet_leveled_up":
+      return "your pet leveled up";
     default: {
       // Exhaustiveness check: future NotificationKind additions force
       // a TS error here, prompting the author to add a case.

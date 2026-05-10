@@ -11,7 +11,13 @@ import { randomUUID } from "crypto";
 import { sql } from "drizzle-orm";
 import { eq } from "drizzle-orm";
 import { getDb, pets, xpGrants, xpPurchases } from "@axiomic/db";
-import { randomPetSpecies } from "./pets";
+import {
+  randomPetSpecies,
+  petSpeciesBySlug,
+  levelForXp,
+  emojiForSpeciesAtLevel,
+  MAX_PET_LEVEL,
+} from "./pets";
 import { currentStreak } from "./achievements";
 import { notify } from "./notifications";
 
@@ -114,6 +120,10 @@ export function grantXp(input: GrantXpInput): GrantXpResult {
   }
 
   const hatched = maybeHatchPet(input.userId);
+  // S90 — after hatching (or for already-hatched users), check
+  // whether the new total crossed a level threshold. Hatch is
+  // typically level 1, so this only fires for crossings beyond.
+  maybeLevelUp(input.userId);
   return {
     granted: true,
     amount,
@@ -230,4 +240,51 @@ export function xpBalanceForUser(userId: string): number {
     .where(eq(xpPurchases.userId, userId))
     .get();
   return earned - (spentRow?.total ?? 0);
+}
+
+// S90 — Pet evolution.
+//
+// Recompute the user's pet level from their lifetime XP using the
+// PET_LEVEL_THRESHOLDS ladder. If the new level is higher than what's
+// stored on pets.level, persist the bump and emit a pet_leveled_up
+// notification. Idempotent: a second call after the same threshold
+// crossing is a no-op because the stored level already matches.
+//
+// No-op when the user has no pet (pre-hatch — handled elsewhere) or
+// when the level didn't increase. Returns the new level on bump,
+// null otherwise.
+export function maybeLevelUp(userId: string): number | null {
+  const db = getDb();
+  const pet = db
+    .select({ id: pets.id, species: pets.species, level: pets.level })
+    .from(pets)
+    .where(eq(pets.userId, userId))
+    .get();
+  if (!pet) return null;
+
+  const totalXp = totalXpForUser(userId);
+  const computed = levelForXp(totalXp);
+  if (computed <= pet.level) return null;
+
+  const newLevel = Math.min(computed, MAX_PET_LEVEL);
+  db.update(pets)
+    .set({ level: newLevel })
+    .where(eq(pets.id, pet.id))
+    .run();
+
+  // Notify per crossing — for v1 just emit one summary notification
+  // for the highest reached, using the level number as the dedup
+  // sourceRefId so re-hits during retries don't double-notify.
+  const speciesLabel = petSpeciesBySlug(pet.species)?.label ?? "Your pet";
+  const newEmoji = emojiForSpeciesAtLevel(pet.species, newLevel);
+  void notify({
+    recipientId: userId,
+    actorId: null,
+    kind: "pet_leveled_up",
+    subjectType: "pet",
+    subjectId: `${pet.id}:lv${newLevel}`,
+    contextSlug: null,
+    preview: `${speciesLabel} reached level ${newLevel} ${newEmoji}`,
+  });
+  return newLevel;
 }

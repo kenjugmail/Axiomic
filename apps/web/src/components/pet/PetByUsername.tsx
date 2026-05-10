@@ -119,7 +119,14 @@ export function PetByUsername({
 
   return (
     <span className={className} style={{ display: "inline-block" }}>
-      <PetView speciesEmoji={pet.speciesEmoji} equipped={pet.equipped} size={size} />
+      {/* S90 — speciesEmoji from the API is already level-aware,
+          so the byline reflects evolution without level prop. */}
+      <PetView
+        speciesEmoji={pet.speciesEmoji}
+        equipped={pet.equipped}
+        size={size}
+        level={pet.level}
+      />
     </span>
   );
 }

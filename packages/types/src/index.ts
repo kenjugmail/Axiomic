@@ -1285,7 +1285,9 @@ export type NotificationKind =
   // S88 — classroom + pet engagement loop.
   | "cosmetic_granted"
   | "competition_won"
-  | "pet_hatched";
+  | "pet_hatched"
+  // S90 — pet evolution.
+  | "pet_leveled_up";
 
 export type NotificationSubject =
   | "topic"
@@ -1335,6 +1337,7 @@ export const NOTIFICATION_KINDS: NotificationKind[] = [
   "cosmetic_granted",
   "competition_won",
   "pet_hatched",
+  "pet_leveled_up",
 ];
 
 export const NOTIFICATION_SUBJECTS: NotificationSubject[] = [
@@ -3338,6 +3341,10 @@ export interface ClassLeaderboardEntry {
     species: string;
     name: string;
     equipped: ClassEquippedCosmetic[];
+    // S90 — pet evolution. Level-aware glyph + level number for the
+    // leaderboard row's PetView.
+    level?: number;
+    levelEmoji?: string;
   } | null;
 }
 
@@ -3484,10 +3491,19 @@ export interface MyPetResponse {
   pet: {
     id: string;
     species: string;
+    // Level-1 form. Kept around for back-compat with code that
+    // reads speciesEmoji directly. New code should use levelEmoji.
     speciesEmoji: string;
     speciesLabel: string;
     name: string;
     hatchedAt: string;
+    // S90 — pet evolution.
+    level: number;
+    maxLevel: number;
+    // Emoji for the pet's current level. PetView renders this.
+    levelEmoji: string;
+    // XP threshold for the next level, or null at max.
+    nextLevelXp: number | null;
   } | null;
   totalXp: number;
   hatchThresholdXp: number;
@@ -3562,7 +3578,11 @@ export interface UpdateCompetitionRequest {
 export interface UserPetDisplay {
   pet: {
     species: string;
+    // S90 — speciesEmoji here is level-aware: it's the glyph for
+    // the pet's current level, so bylines automatically reflect
+    // evolution without per-byline level-aware code.
     speciesEmoji: string;
+    level: number;
     name: string;
     equipped: Array<{ slot: string; emoji: string | null; slug: string }>;
   } | null;

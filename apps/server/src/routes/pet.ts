@@ -21,7 +21,12 @@ import {
 } from "@axiomic/db";
 import { requireAuth } from "../middleware/auth";
 import { totalXpForUser, xpBalanceForUser, PET_HATCH_THRESHOLD_XP } from "../lib/xp";
-import { petSpeciesBySlug } from "../lib/pets";
+import {
+  petSpeciesBySlug,
+  emojiForSpeciesAtLevel,
+  xpForNextLevel,
+  MAX_PET_LEVEL,
+} from "../lib/pets";
 import type { Env } from "../env";
 
 export const petRouter = new Hono<Env>();
@@ -96,10 +101,18 @@ petRouter.get("/", requireAuth, (c) => {
       ? {
           id: pet.id,
           species: pet.species,
+          // S86 base emoji (level-1 form) — kept for back-compat;
+          // the level-aware emoji lives in `levelEmoji` below.
           speciesEmoji: speciesMeta?.emoji ?? "🥚",
           speciesLabel: speciesMeta?.label ?? pet.species,
           name: pet.name,
           hatchedAt: pet.hatchedAt,
+          // S90 — pet evolution surface. levelEmoji is what the UI
+          // should actually render. nextLevelXp is null at max level.
+          level: pet.level,
+          maxLevel: MAX_PET_LEVEL,
+          levelEmoji: emojiForSpeciesAtLevel(pet.species, pet.level),
+          nextLevelXp: xpForNextLevel(pet.level),
         }
       : null,
     totalXp,
@@ -257,7 +270,6 @@ petPublicRouter.get("/:username/pet-display", (c) => {
     .get();
   if (!pet) return c.json({ pet: null });
 
-  const speciesMeta = petSpeciesBySlug(pet.species);
   const equippedRows = db
     .select({
       slug: petInventory.cosmeticSlug,
@@ -277,7 +289,11 @@ petPublicRouter.get("/:username/pet-display", (c) => {
   return c.json({
     pet: {
       species: pet.species,
-      speciesEmoji: speciesMeta?.emoji ?? "🥚",
+      // S90 — speciesEmoji follows the pet's current level, so
+      // bylines show the level-3 form on a leveled-up pet without
+      // any UI changes downstream.
+      speciesEmoji: emojiForSpeciesAtLevel(pet.species, pet.level),
+      level: pet.level,
       name: pet.name,
       equipped: equippedRows,
     },

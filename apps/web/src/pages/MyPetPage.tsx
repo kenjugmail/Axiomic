@@ -110,9 +110,10 @@ export function MyPetPage() {
         <div className="rounded-lg border border-border p-6 mb-8 flex items-center gap-6 flex-wrap">
           <div>
             <PetView
-              speciesEmoji={data.pet.speciesEmoji}
+              speciesEmoji={data.pet.levelEmoji}
               equipped={equipped}
               size="xl"
+              level={data.pet.level}
             />
           </div>
           <div className="flex-1 min-w-0">
@@ -158,8 +159,25 @@ export function MyPetPage() {
               </div>
             )}
             <div className="text-xs text-muted-foreground mt-1">
-              {data.totalXp} XP earned · hatched {formatDate(data.pet.hatchedAt)}
+              Level {data.pet.level} of {data.pet.maxLevel} · {data.totalXp} XP earned ·
+              hatched {formatDate(data.pet.hatchedAt)}
             </div>
+            {/* S90 — XP-to-next-level bar. Hidden at max level. */}
+            {data.pet.nextLevelXp != null && (
+              <div className="mt-2">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                  {Math.max(0, data.pet.nextLevelXp - data.totalXp)} XP to level {data.pet.level + 1}
+                </div>
+                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary"
+                    style={{
+                      width: `${Math.min(100, Math.round((data.totalXp / data.pet.nextLevelXp) * 100))}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
             {/* S89 — link to the XP shop. Lives next to the pet
                 preview so spending XP is one click away from
                 seeing the pet you're dressing up. */}

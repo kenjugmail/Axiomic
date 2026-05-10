@@ -53,7 +53,14 @@ export function Leaderboard({
       <ol className="space-y-2">
         {entries.map((e, i) => {
           const isMe = e.userId === currentUserId;
-          const speciesEmoji = e.pet ? SPECIES_EMOJI[e.pet.species] ?? "🥚" : "🥚";
+          // S90 — prefer the level-aware emoji from the server.
+          // Falls back to the static SPECIES_EMOJI map if the
+          // server hasn't sent levelEmoji yet (defensive — should
+          // not happen post-S90 but keeps the leaderboard rendering
+          // through any deploy-skew window).
+          const speciesEmoji = e.pet
+            ? e.pet.levelEmoji ?? SPECIES_EMOJI[e.pet.species] ?? "🥚"
+            : "🥚";
           return (
             <li
               key={e.userId}

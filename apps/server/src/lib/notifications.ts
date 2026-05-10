@@ -33,7 +33,9 @@ export type NotificationKind =
   // S88 — classroom + pet engagement loop.
   | "cosmetic_granted"
   | "competition_won"
-  | "pet_hatched";
+  | "pet_hatched"
+  // S90 — pet evolution.
+  | "pet_leveled_up";
 
 export type NotificationSubject =
   | "topic"
@@ -159,9 +161,11 @@ function kindGate(
     case "cosmetic_granted":
     case "competition_won":
     case "pet_hatched":
+    case "pet_leveled_up":
       // News flow + follow events + admin pipeline + funding
       // alerts + Sprint 80 lab operational signals + S88
-      // classroom/pet events are direct + low-volume — always on.
+      // classroom/pet events + S90 pet evolution are direct +
+      // low-volume — always on.
       return null;
   }
 }
