@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import { eq, inArray } from "drizzle-orm";
 import { getDb, notifications, users, type Db } from "@axiomic/db";
 import { publishToUser } from "./liveBus";
+import { pushToUser } from "./pushSender";
 
 export type NotificationKind =
   | "mention"
@@ -226,8 +227,8 @@ export async function notify(args: NotifyArgs, db: Db = getDb()): Promise<boolea
           .get();
         actor = row ?? null;
       }
-      publishToUser(args.recipientId, {
-        kind: "notification",
+      const payload = {
+        kind: "notification" as const,
         notification: {
           id,
           kind: args.kind,
@@ -239,7 +240,13 @@ export async function notify(args: NotifyArgs, db: Db = getDb()): Promise<boolea
           createdAt,
           actor,
         },
-      });
+      };
+      publishToUser(args.recipientId, payload);
+      // S107a — Web Push fan-out. Best-effort; pushToUser swallows
+      // per-subscription failures and prunes dead endpoints. Fired
+      // async so we don't block the response on outbound HTTP to
+      // push services.
+      void pushToUser(args.recipientId, payload);
     } catch {
       // ignore live-push errors
     }

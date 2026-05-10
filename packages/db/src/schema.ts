@@ -2586,6 +2586,33 @@ export const xpPurchases = sqliteTable("xp_purchases", {
 }));
 
 // =============================================================
+// S107a — Web Push subscriptions.
+// =============================================================
+//
+// One row per (user, browser/device). Endpoint comes from the
+// browser's PushManager.subscribe() result; p256dh + auth keys are
+// the ECDH/HMAC keys the server uses to encrypt push payloads via
+// web-push. UNIQUE on endpoint so re-subscribing from the same
+// browser updates the row in place rather than duplicating.
+//
+// HTTP 410 from the push endpoint at send time means the
+// subscription is gone (user revoked, browser cleared); pushSender
+// deletes that row on receiving 410.
+export const pushSubscriptions = sqliteTable("push_subscriptions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  endpoint: text("endpoint").notNull().unique(),
+  p256dhKey: text("p256dh_key").notNull(),
+  authKey: text("auth_key").notNull(),
+  userAgent: text("user_agent"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  lastUsedAt: text("last_used_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  userIdx: index("push_subscriptions_user_idx").on(t.userId),
+}));
+
+// =============================================================
 // S96 — Class-scoped "question of the day".
 // =============================================================
 //

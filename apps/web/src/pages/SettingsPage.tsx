@@ -4,6 +4,8 @@ import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { useThemeStore } from "../stores/theme";
 import type { ThemePreference, UserSettings } from "@axiomic/types";
+import { readPushState, subscribePush, unsubscribePush, type PushState } from "../lib/pushClient";
+import { toast } from "../stores/toast";
 
 export function SettingsPage() {
   const { user, loading: authLoading } = useAuthStore();
@@ -261,6 +263,13 @@ export function SettingsPage() {
         </div>
       </section>
 
+      {/* S107a — Web Push opt-in. Renders a state-aware button:
+          "Enable" when supported + unsubscribed, "Disable" when
+          already subscribed, or a disabled "Not supported" notice
+          on browsers without Push API / when the server lacks
+          VAPID keys. */}
+      <PushSettingsSection />
+
       {error && (
         <div className="text-sm text-destructive">{error}</div>
       )}
@@ -291,6 +300,87 @@ export function SettingsPage() {
         </p>
       </section>
     </div>
+  );
+}
+
+function PushSettingsSection() {
+  const [state, setState] = useState<PushState | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const refresh = async () => {
+    try {
+      setState(await readPushState());
+    } catch {
+      setState({ supported: false, vapidPublicKey: null, subscription: null });
+    }
+  };
+  useEffect(() => {
+    refresh();
+  }, []);
+
+  if (state === null) return null;
+
+  const canSubscribe = state.supported && state.vapidPublicKey;
+  const isSubscribed = !!state.subscription;
+
+  const onEnable = async () => {
+    if (!state.vapidPublicKey) return;
+    setBusy(true);
+    try {
+      await subscribePush(state.vapidPublicKey);
+      await refresh();
+      toast.success("Browser notifications enabled");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const onDisable = async () => {
+    if (!state.subscription) return;
+    setBusy(true);
+    try {
+      await unsubscribePush(state.subscription);
+      await refresh();
+      toast.success("Browser notifications disabled");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="mb-8">
+      <h2 className="text-sm font-semibold mb-3">Browser notifications</h2>
+      <div className="rounded-md border border-border p-4">
+        {!state.supported ? (
+          <p className="text-sm text-muted-foreground">
+            This browser doesn't support push notifications.
+          </p>
+        ) : !state.vapidPublicKey ? (
+          <p className="text-sm text-muted-foreground">
+            The server isn't configured for push notifications.
+          </p>
+        ) : (
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-sm">
+              {isSubscribed
+                ? "You'll get a browser notification when something happens here, even when the tab is closed."
+                : "Get a native browser notification for new mentions, replies, cosmetic grants, and competition wins."}
+            </div>
+            <button
+              type="button"
+              onClick={isSubscribed ? onDisable : onEnable}
+              disabled={busy || !canSubscribe}
+              className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+            >
+              {busy ? "…" : isSubscribed ? "Disable" : "Enable"}
+            </button>
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
 
