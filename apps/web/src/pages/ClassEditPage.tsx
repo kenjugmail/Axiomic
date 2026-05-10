@@ -17,6 +17,7 @@ export function ClassEditPage() {
   const [term, setTerm] = useState("");
   const [description, setDescription] = useState("");
   const [syllabusMd, setSyllabusMd] = useState("");
+  const [welcomeMessageMd, setWelcomeMessageMd] = useState("");
   const [status, setStatus] = useState<ClassStatus>("active");
   const [saving, setSaving] = useState(false);
   const [rotating, setRotating] = useState(false);
@@ -30,6 +31,7 @@ export function ClassEditPage() {
         setTerm(r.class.term);
         setDescription(r.class.description);
         setSyllabusMd(r.class.syllabusMd);
+        setWelcomeMessageMd(r.class.welcomeMessageMd ?? "");
         setStatus(r.class.status);
       })
       .catch((e) => setError(e?.message ?? "Failed to load class"));
@@ -43,6 +45,7 @@ export function ClassEditPage() {
         term,
         description,
         syllabusMd,
+        welcomeMessageMd,
         status,
       });
       toast.success("Saved");
@@ -142,6 +145,15 @@ export function ClassEditPage() {
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
             className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background"
+          />
+        </Field>
+        <Field label="Welcome message (markdown, shown to all members at the top of the class page)">
+          <textarea
+            value={welcomeMessageMd}
+            onChange={(e) => setWelcomeMessageMd(e.target.value)}
+            rows={4}
+            placeholder="Welcome to the class! …"
+            className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background font-mono"
           />
         </Field>
         <Field label="Syllabus (markdown)">

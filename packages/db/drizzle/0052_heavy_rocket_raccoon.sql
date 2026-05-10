@@ -1,0 +1,1 @@
+ALTER TABLE `classes` ADD `welcome_message_md` text DEFAULT '' NOT NULL;

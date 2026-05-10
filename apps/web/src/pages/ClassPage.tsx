@@ -156,6 +156,20 @@ export function ClassPage() {
             <span className="inline-flex items-center gap-1 text-foreground">
               <KeyRound className="w-3 h-3" />
               <span className="font-mono">{cls.joinCode}</span>
+              {/* S99 — instructor/TA-only "copy share link" button. */}
+              {isInstructorOrTa && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const url = `${window.location.origin}/join/${cls.slug}/${cls.joinCode}`;
+                    navigator.clipboard?.writeText(url).catch(() => {});
+                    toast.success("Join link copied");
+                  }}
+                  className="ml-1 text-[10px] uppercase tracking-wider text-primary hover:underline"
+                >
+                  copy link
+                </button>
+              )}
             </span>
           )}
         </div>
@@ -165,6 +179,20 @@ export function ClassPage() {
           </p>
         )}
       </header>
+
+      {/* S99 — instructor's welcome message renders as a tinted
+          banner above the syllabus + tabs. Markdown so instructors
+          can drop in links + emphasis. */}
+      {cls.welcomeMessageMd && (
+        <div className="mb-6 rounded-md border border-primary/30 bg-primary/5 p-4">
+          <div className="prose-sm max-w-none">
+            <MarkdownRenderer
+              content={cls.welcomeMessageMd}
+              codeKernelKey={`class-welcome:${cls.slug}`}
+            />
+          </div>
+        </div>
+      )}
 
       {cls.syllabusMd && (
         <details className="mb-6 rounded-md border border-border p-3 bg-muted/30">

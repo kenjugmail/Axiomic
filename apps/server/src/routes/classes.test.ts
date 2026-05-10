@@ -1271,6 +1271,44 @@ describe("S95 daily-featured shop rotation", () => {
   });
 });
 
+describe("S99 class welcome message", () => {
+  test("instructor sets welcome message + it appears in detail", async () => {
+    const instructor = await signup("welinst1");
+    const slug = `cls-wel-set-${testRun}`;
+    await createClass(instructor.cookie, slug);
+    const upd = await req(`/classes/${slug}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        welcomeMessageMd: "Welcome to the **best** class. Read the syllabus first.",
+      }),
+    });
+    expect(upd.status).toBe(200);
+    const det = await req(`/classes/${slug}`, { headers: cookieHeader(instructor.cookie) });
+    const data = (await det.json()) as { class: { welcomeMessageMd: string } };
+    expect(data.class.welcomeMessageMd).toContain("best");
+  });
+
+  test("student cannot update welcome message (403)", async () => {
+    const instructor = await signup("welinst2");
+    const student = await signup("welstud2");
+    const slug = `cls-wel-acl-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    const upd = await req(`/classes/${slug}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ welcomeMessageMd: "Hostile rewrite" }),
+    });
+    // Update endpoint requires instructor (not just instructor-or-TA).
+    expect([403, 401]).toContain(upd.status);
+  });
+});
+
 describe("S98 profile cosmetic gallery", () => {
   test("unknown user returns 404", async () => {
     const res = await req(`/users/no-such-user-${testRun}/cosmetics-gallery`);

@@ -72,6 +72,8 @@ const createClassSchema = z.object({
   term: z.string().max(40).optional().default(""),
   description: z.string().max(2000).optional().default(""),
   syllabusMd: z.string().max(50000).optional().default(""),
+  // S99 — optional welcome message, markdown.
+  welcomeMessageMd: z.string().max(10000).optional().default(""),
 });
 
 const updateClassSchema = z.object({
@@ -79,6 +81,7 @@ const updateClassSchema = z.object({
   term: z.string().max(40).optional(),
   description: z.string().max(2000).optional(),
   syllabusMd: z.string().max(50000).optional(),
+  welcomeMessageMd: z.string().max(10000).optional(),
   status: z.enum(["active", "archived"]).optional(),
 });
 
@@ -221,6 +224,7 @@ classesRouter.post("/", requireAuth, zValidator("json", createClassSchema), asyn
       term: data.term ?? "",
       description: data.description ?? "",
       syllabusMd: data.syllabusMd ?? "",
+      welcomeMessageMd: data.welcomeMessageMd ?? "",
       joinCode,
       instructorId: user.id,
     })
@@ -343,6 +347,7 @@ classesRouter.get("/:slug", requireAuth, requireEnrolledInClass, async (c) => {
       term: cls.term,
       description: cls.description,
       syllabusMd: cls.syllabusMd,
+      welcomeMessageMd: cls.welcomeMessageMd,
       status: cls.status,
       instructor: instructor
         ? {
@@ -396,6 +401,7 @@ classesRouter.put(
     if (data.term != null) patch.term = data.term;
     if (data.description != null) patch.description = data.description;
     if (data.syllabusMd != null) patch.syllabusMd = data.syllabusMd;
+    if (data.welcomeMessageMd != null) patch.welcomeMessageMd = data.welcomeMessageMd;
     if (data.status != null) patch.status = data.status;
 
     db.update(classes).set(patch).where(eq(classes.id, cls.id)).run();

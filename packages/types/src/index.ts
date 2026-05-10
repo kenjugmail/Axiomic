@@ -3297,6 +3297,8 @@ export interface ClassDetail {
   term: string;
   description: string;
   syllabusMd: string;
+  // S99 — instructor-authored welcome message (markdown).
+  welcomeMessageMd: string;
   status: ClassStatus;
   instructor: { id: string; username: string; displayName: string | null } | null;
   joinCode: string | null;
@@ -3408,6 +3410,7 @@ export interface CreateClassRequest {
   term?: string;
   description?: string;
   syllabusMd?: string;
+  welcomeMessageMd?: string;
 }
 
 export interface UpdateClassRequest {
@@ -3415,6 +3418,7 @@ export interface UpdateClassRequest {
   term?: string;
   description?: string;
   syllabusMd?: string;
+  welcomeMessageMd?: string;
   status?: ClassStatus;
 }
 

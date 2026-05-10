@@ -2295,6 +2295,10 @@ export const classes = sqliteTable("classes", {
   term: text("term").notNull().default(""),
   description: text("description").notNull().default(""),
   syllabusMd: text("syllabus_md").notNull().default(""),
+  // S99 — instructor-authored welcome message. Rendered as markdown
+  // in a banner on the class page so new students get a friendly
+  // pointer on day one.
+  welcomeMessageMd: text("welcome_message_md").notNull().default(""),
   // Short alphanumeric code students enter to self-enroll. Generated
   // server-side; rotatable by the instructor.
   joinCode: text("join_code").notNull(),
