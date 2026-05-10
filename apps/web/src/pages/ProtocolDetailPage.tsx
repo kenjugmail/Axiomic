@@ -11,6 +11,7 @@ import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { HazardCallout } from "../components/lab/HazardCallout";
 import { StepList } from "../components/lab/StepList";
 import { DISCIPLINE_LABEL } from "../components/lab/DisciplineFilterChips";
+import { TroubleshootRail } from "../components/lab/TroubleshootRail";
 
 type Tier = "intro" | "undergrad" | "grad";
 
@@ -319,6 +320,13 @@ export function ProtocolDetailPage() {
           Procedure
         </h2>
         <StepList steps={steps} storageKey={`protocol:${protocol.slug}`} />
+      </section>
+
+      <section className="mt-8 max-w-md">
+        <TroubleshootRail
+          initialQuery={`${protocol.title} `}
+          compact
+        />
       </section>
     </article>
   );

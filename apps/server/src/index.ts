@@ -55,6 +55,11 @@ import { protocolsRouter } from "./routes/protocols";
 import { equipmentRouter } from "./routes/equipment";
 import { labGroupsRouter, meLabRouter } from "./routes/labAssignments";
 import {
+  aiLabRouter,
+  labProtocolsTroubleshootingRouter,
+  labTroubleshootRouter,
+} from "./routes/aiLab";
+import {
   safetyCertsRouter,
   safetyCertsMeRouter,
 } from "./routes/safetyCerts";
@@ -251,6 +256,14 @@ app.route("/me/lab/runs", protocolRunsMeRouter);
 // Sprint 82 — Lab onboarding playbook + roster + skill MRI.
 app.route("/lab-groups", labGroupsRouter);
 app.route("/me/lab", meLabRouter);
+// Sprint 83 — AI lab authoring + symptom-driven troubleshooting.
+// aiLabRouter handles /draft-protocol + /draft-equipment-manual at
+// /ai/lab; the per-protocol troubleshooting CRUD lives at
+// /lab/protocols/:slug/troubleshooting; symptom-search at
+// /lab/troubleshoot.
+app.route("/ai/lab", aiLabRouter);
+app.route("/lab", labTroubleshootRouter);
+app.route("/lab", labProtocolsTroubleshootingRouter);
 
 // Pre-warm the search index in the background so the first user query
 // doesn't pay the embedding-build cost.

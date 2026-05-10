@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Beaker, Plus } from "lucide-react";
+import { Beaker, Plus, Sparkles } from "lucide-react";
 import type { LabDiscipline, ProtocolSummary } from "@axiomic/types";
 import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
@@ -87,6 +87,13 @@ export function ProtocolsListPage() {
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Equipment manuals →
+            </Link>
+            <Link
+              to="/lab/protocols/wizard"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-amber-500/40 text-amber-700 dark:text-amber-300 text-sm hover:bg-amber-500/10 transition-colors"
+            >
+              <Sparkles className="w-4 h-4" strokeWidth={2} />
+              Draft with AI
             </Link>
             <Link
               to="/lab/protocols/new"

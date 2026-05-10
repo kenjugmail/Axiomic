@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, GripVertical, Plus, Trash2 } from "lucide-react";
 import type {
   CreateProtocolRequest,
@@ -69,9 +69,33 @@ function splitCsv(input: string): string[] {
 
 export function ProtocolEditPage({ mode }: { mode: Mode }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { slug: routeSlug } = useParams<{ slug: string }>();
   const { user } = useAuthStore();
-  const [form, setForm] = useState<FormState>(DEFAULT_FORM);
+  const initial = useMemo<FormState>(() => {
+    // Sprint 83 — when arriving from /lab/protocols/wizard, the
+    // wizard navigates with `state.prefill` so the editor opens with
+    // the streamed draft already filled in.
+    if (mode === "new") {
+      const prefill = (location.state as { prefill?: any } | null)
+        ?.prefill;
+      if (prefill) {
+        return {
+          ...DEFAULT_FORM,
+          discipline: prefill.discipline ?? DEFAULT_FORM.discipline,
+          summary: prefill.summary ?? "",
+          contentUndergrad: prefill.contentUndergrad ?? "",
+          hazardsMd: prefill.hazardsMd ?? "",
+          steps:
+            Array.isArray(prefill.steps) && prefill.steps.length > 0
+              ? prefill.steps
+              : DEFAULT_FORM.steps,
+        };
+      }
+    }
+    return DEFAULT_FORM;
+  }, [mode, location.state]);
+  const [form, setForm] = useState<FormState>(initial);
   const [loading, setLoading] = useState(mode === "edit");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);

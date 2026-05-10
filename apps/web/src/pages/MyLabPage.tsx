@@ -10,6 +10,7 @@ import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { CertExpiryBadge } from "../components/lab/CertExpiryBadge";
 import { DISCIPLINE_LABEL } from "../components/lab/DisciplineFilterChips";
+import { TroubleshootRail } from "../components/lab/TroubleshootRail";
 
 function relativeDue(iso: string | null): string | null {
   if (!iso) return null;
@@ -319,6 +320,7 @@ export function MyLabPage() {
         </section>
 
         <aside className="space-y-6">
+          <TroubleshootRail compact />
           <div>
             <h2 className="font-display text-xl font-semibold tracking-tight mb-3 flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-primary" strokeWidth={2} />

@@ -329,6 +329,12 @@ const LabRosterPage = lazy(() =>
     default: m.LabRosterPage,
   })),
 );
+// Sprint 83 — AI-assisted protocol drafting wizard.
+const ProtocolWizardPage = lazy(() =>
+  import("./pages/ProtocolWizardPage").then((m) => ({
+    default: m.ProtocolWizardPage,
+  })),
+);
 
 function PageFallback() {
   return (
@@ -425,6 +431,10 @@ function AppRoutes() {
           <Route
             path="/lab/protocols/new"
             element={<ProtocolEditPage mode="new" />}
+          />
+          <Route
+            path="/lab/protocols/wizard"
+            element={<ProtocolWizardPage />}
           />
           <Route
             path="/lab/protocols/:slug/edit"
