@@ -18,7 +18,7 @@ export interface ExtractedRef {
   sourceId: string;
 }
 
-const DOI_RE = /\b(?:doi:|https?:\/\/(?:dx\.)?doi\.org\/)?(10\.\d{4,9}\/[\-._;()/:A-Za-z0-9]+)\b/g;
+const DOI_RE = /\b(?:doi:|https?:\/\/(?:dx\.)?doi\.org\/)?(10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+)\b/g;
 // arXiv ID pattern requires an explicit prefix ('arxiv:' or an
 // arxiv.org URL). The bare 4.4-digit pattern matched too many
 // false positives — timestamps, financial figures, version

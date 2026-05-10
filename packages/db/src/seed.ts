@@ -2287,7 +2287,7 @@ function seedResearchPapers() {
   if (!fs.existsSync(dir)) return;
 
   // Use `system` if it exists; else fall back to `alice`.
-  let authorId =
+  const authorId =
     db.select({ id: users.id }).from(users).where(eq(users.username, "system")).get()?.id ??
     db.select({ id: users.id }).from(users).where(eq(users.username, "alice")).get()?.id;
   if (!authorId) {
@@ -2346,7 +2346,7 @@ async function seedCapstoneTracks() {
   const dir = path.join(import.meta.dir, "../../../seed-content/tracks");
   if (!fs.existsSync(dir)) return;
 
-  let systemUser = db
+  const systemUser = db
     .select({ id: users.id })
     .from(users)
     .where(eq(users.username, "system"))

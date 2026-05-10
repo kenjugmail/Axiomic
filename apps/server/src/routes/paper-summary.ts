@@ -31,7 +31,7 @@ async function resolveSafeModel(
 ): Promise<string> {
   const provider = getAIProvider();
   let defaultModel = "default";
-  let allowed = new Set<string>();
+  const allowed = new Set<string>();
   try {
     const { available, default: dflt } = await provider.listModels();
     defaultModel = dflt;

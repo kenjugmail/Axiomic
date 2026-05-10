@@ -534,7 +534,7 @@ researchRouter.get("/:slug/cite", async (c) => {
     return new Response(toBibtex(src), {
       headers: {
         "content-type": "application/x-bibtex; charset=utf-8",
-        "content-disposition": `inline; filename=\"${row.slug}.bib\"`,
+        "content-disposition": `inline; filename="${row.slug}.bib"`,
       },
     });
   }
@@ -542,7 +542,7 @@ researchRouter.get("/:slug/cite", async (c) => {
     return new Response(toRis(src), {
       headers: {
         "content-type": "application/x-research-info-systems; charset=utf-8",
-        "content-disposition": `inline; filename=\"${row.slug}.ris\"`,
+        "content-disposition": `inline; filename="${row.slug}.ris"`,
       },
     });
   }

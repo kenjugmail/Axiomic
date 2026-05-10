@@ -523,7 +523,7 @@ mastery.get("/lesson/:nodeId", async (c) => {
   // Sprint 32 — walk prerequisite mastery nodes to surface the wiki
   // slugs that gate this lesson. Lets the editor preview render a
   // PrereqXray showing which prereqs the learner has actually mastered.
-  let prereqWikiSlugs: string[] = [];
+  const prereqWikiSlugs: string[] = [];
   try {
     const prereqIds: string[] = JSON.parse(node.prerequisiteNodeIds);
     if (Array.isArray(prereqIds) && prereqIds.length > 0) {

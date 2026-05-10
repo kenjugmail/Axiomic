@@ -143,18 +143,15 @@ function kindGate(
     case "proposal_rejected":
     case "grant_match":
     case "grant_deadline_soon":
-    // Sprint 80 — lab notifications are operational signal (an
-    // intern blocked on a sign-off, a cert about to expire). Always
-    // on; users can mute via cohort settings later if needed.
     case "lab_signoff_requested":
     case "lab_signoff_approved":
     case "lab_signoff_rejected":
     case "lab_cert_passed":
     case "lab_cert_expiring":
       // News flow + follow events + admin pipeline + funding
-      // alerts are direct + low-volume — always on. (A
-      // notifyFunding pref toggle is a follow-up if users start
-      // muting these.)
+      // alerts + Sprint 80 lab operational signals are direct +
+      // low-volume — always on. (A notifyFunding / notifyLab pref
+      // toggle is a follow-up if users start muting these.)
       return null;
   }
 }

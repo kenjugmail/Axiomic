@@ -128,7 +128,11 @@ describe("AI lab authoring (Sprint 83)", () => {
       // previous SSE.
       if (last.status === 200) {
         const reader = last.body!.getReader();
-        while (!(await reader.read()).done) {}
+        // Empty drain loop — we don't need the chunks, just a clean close.
+        while (true) {
+          const { done } = await reader.read();
+          if (done) break;
+        }
       }
     }
     expect(last?.status).toBe(429);

@@ -30,7 +30,7 @@ const orcidSchema = z
 const blueskyHandleSchema = z
   .string()
   .max(80)
-  .regex(/^@?[a-z0-9.\-]{1,80}$/i, "Bluesky handle must be alphanumeric")
+  .regex(/^@?[a-z0-9.-]{1,80}$/i, "Bluesky handle must be alphanumeric")
   .nullable();
 
 const twitterHandleSchema = z
