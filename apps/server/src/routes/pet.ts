@@ -528,6 +528,66 @@ petRouter.get("/balance", requireAuth, (c) => {
 // anything new.
 const SHOWCASE_LIMIT = 20;
 
+// =================================================================
+// S98 — Profile cosmetic gallery.
+// =================================================================
+//
+// Public per-username view of the entire cosmetic catalog with
+// owned/equipped flags. Companion to the achievements gallery on
+// ProfilePage. Visitors see what the user has collected; the user
+// themself sees what's left to chase.
+petPublicRouter.get("/:username/cosmetics-gallery", (c) => {
+  const username = c.req.param("username")!;
+  const db = getDb();
+  const user = db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.username, username))
+    .get();
+  if (!user) return c.json({ error: "User not found" }, 404);
+
+  const catalog = db
+    .select()
+    .from(petCosmetics)
+    .orderBy(petCosmetics.slot, petCosmetics.rarity, petCosmetics.name)
+    .all();
+
+  const inventoryRows = db
+    .select({
+      slug: petInventory.cosmeticSlug,
+      equipped: petInventory.equipped,
+    })
+    .from(petInventory)
+    .where(eq(petInventory.userId, user.id))
+    .all();
+  const inventoryBySlug = new Map(inventoryRows.map((r) => [r.slug, r]));
+
+  return c.json({
+    items: catalog.map((c) => {
+      const inv = inventoryBySlug.get(c.slug);
+      return {
+        slug: c.slug,
+        name: c.name,
+        slot: c.slot,
+        emoji: c.emoji,
+        rarity: c.rarity,
+        description: c.description,
+        // Indicates how it can be obtained — purely informational.
+        // 'shop' = has xpCost, 'grant' = grantOnly with no xpCost.
+        // The server doesn't enforce on this read, just tags.
+        obtainability:
+          typeof c.xpCost === "number" && c.xpCost > 0
+            ? ("shop" as const)
+            : ("grant" as const),
+        owned: !!inv,
+        equipped: inv?.equipped ?? false,
+      };
+    }),
+    ownedCount: inventoryRows.length,
+    totalCount: catalog.length,
+  });
+});
+
 petPublicRouter.get("/showcase", (c) => {
   const db = getDb();
 

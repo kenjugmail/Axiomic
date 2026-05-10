@@ -1271,6 +1271,58 @@ describe("S95 daily-featured shop rotation", () => {
   });
 });
 
+describe("S98 profile cosmetic gallery", () => {
+  test("unknown user returns 404", async () => {
+    const res = await req(`/users/no-such-user-${testRun}/cosmetics-gallery`);
+    expect(res.status).toBe(404);
+  });
+
+  test("known user response includes catalog with owned + equipped flags", async () => {
+    const instructor = await signup("galinst1");
+    const student = await signup("galstud1");
+    const slug = `cls-gallery-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    // Grant + equip a cosmetic.
+    await req(`/classes/${slug}/grant-cosmetic`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ userId: student.userId, cosmeticSlug: "rose" }),
+    });
+    await req("/me/pet/equip", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ cosmeticSlug: "rose" }),
+    });
+    const res = await req(`/users/${student.username}/cosmetics-gallery`);
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as {
+      items: Array<{
+        slug: string;
+        owned: boolean;
+        equipped: boolean;
+        obtainability: "shop" | "grant";
+      }>;
+      ownedCount: number;
+      totalCount: number;
+    };
+    expect(data.totalCount).toBeGreaterThan(0);
+    const rose = data.items.find((i) => i.slug === "rose");
+    expect(rose?.owned).toBe(true);
+    expect(rose?.equipped).toBe(true);
+    // Crown is grant-only (no xpCost).
+    const crown = data.items.find((i) => i.slug === "crown");
+    expect(crown?.obtainability).toBe("grant");
+    expect(crown?.owned).toBe(false);
+    // Owned count matches.
+    expect(data.ownedCount).toBe(1);
+  });
+});
+
 describe("S97 pet showcase", () => {
   test("public endpoint reachable without auth + returns expected shape", async () => {
     const res = await req("/users/showcase");

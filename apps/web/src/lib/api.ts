@@ -206,6 +206,8 @@ import type {
   UserPetDisplay,
   // S97 — pet showcase.
   PetShowcaseResponse,
+  // S98 — profile cosmetic gallery.
+  CosmeticGalleryResponse,
   // S89 — XP shop.
   ShopResponse,
   BuyCosmeticRequest,
@@ -1329,6 +1331,9 @@ export const api = {
       request<UserPetDisplay>(`/users/${encodeURIComponent(username)}/pet-display`),
     // S97 — public pet showcase.
     showcase: () => request<PetShowcaseResponse>("/users/showcase"),
+    // S98 — profile cosmetic gallery.
+    galleryFor: (username: string) =>
+      request<CosmeticGalleryResponse>(`/users/${encodeURIComponent(username)}/cosmetics-gallery`),
     // S89 — XP shop.
     shop: () => request<ShopResponse>("/me/pet/shop"),
     balance: () => request<XpBalanceResponse>("/me/pet/balance"),

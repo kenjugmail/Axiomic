@@ -3730,6 +3730,31 @@ export interface MyProgressClassStanding {
 }
 
 // =============================================================
+// S98 — Profile cosmetic gallery.
+// =============================================================
+
+export interface CosmeticGalleryItem {
+  slug: string;
+  name: string;
+  slot: CosmeticSlot;
+  emoji: string | null;
+  rarity: CosmeticRarity;
+  description: string;
+  // 'shop' = purchasable in /shop; 'grant' = obtainable only via
+  // instructor grant or competition prize. Lets the gallery render
+  // a hint for unowned items.
+  obtainability: "shop" | "grant";
+  owned: boolean;
+  equipped: boolean;
+}
+
+export interface CosmeticGalleryResponse {
+  items: CosmeticGalleryItem[];
+  ownedCount: number;
+  totalCount: number;
+}
+
+// =============================================================
 // S97 — Public pet showcase.
 // =============================================================
 

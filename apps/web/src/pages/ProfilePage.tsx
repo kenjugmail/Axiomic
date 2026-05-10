@@ -11,6 +11,7 @@ import type {
   ReputationByDomain,
 } from "@axiomic/types";
 import { AchievementsGallery } from "../components/AchievementsGallery";
+import { CosmeticsGallery } from "../components/profile/CosmeticsGallery";
 import { MasteryPortfolio } from "../components/profile/MasteryPortfolio";
 import { ActivityHeatmap } from "../components/ActivityHeatmap";
 import { FollowButton } from "../components/FollowButton";
@@ -356,6 +357,14 @@ export function ProfilePage() {
             <AchievementsGallery catalog={catalog} earned={earned} />
           </section>
         )}
+
+        {/* S98 — public cosmetic gallery. The component fetches its
+            own data and renders nothing on error so a brand-new user
+            page doesn't block on it. */}
+        <section>
+          <h2 className="text-lg font-semibold mb-3">Cosmetics</h2>
+          <CosmeticsGallery username={username} />
+        </section>
 
         {isOwnProfile && (
           <>
