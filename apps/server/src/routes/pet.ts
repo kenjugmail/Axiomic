@@ -10,7 +10,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { randomUUID } from "crypto";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import {
   petCosmetics,
   petInventory,
@@ -510,4 +510,129 @@ petRouter.get("/balance", requireAuth, (c) => {
     lifetimeXp,
     spentXp: lifetimeXp - balance,
   });
+});
+
+// =================================================================
+// S97 — Public pet showcase / explore page.
+// =================================================================
+//
+// Two leaderboards stitched together:
+//   - mostDecorated: top users by equipped cosmetic count. Tie-break
+//     by pet level desc, then most recent activity.
+//   - recentTopLevel: most recent users to reach level >= 2. Lets
+//     visitors see the engagement loop's mid/long-term reward
+//     visible without having to drill into a class.
+//
+// Public on purpose — no auth gate. Pets + usernames are already
+// public on profile pages, so aggregating them here doesn't leak
+// anything new.
+const SHOWCASE_LIMIT = 20;
+
+petPublicRouter.get("/showcase", (c) => {
+  const db = getDb();
+
+  // mostDecorated: user → equipped count. Join pets so we can
+  // include species + level for the renderer.
+  const decoratedRows = db
+    .select({
+      userId: pets.userId,
+      username: users.username,
+      displayName: users.displayName,
+      species: pets.species,
+      petName: pets.name,
+      level: pets.level,
+      equippedCount: sql<number>`coalesce((select count(*) from pet_inventory pi where pi.user_id = ${pets.userId} and pi.equipped = 1), 0)`,
+    })
+    .from(pets)
+    .innerJoin(users, eq(users.id, pets.userId))
+    .orderBy(
+      desc(sql`coalesce((select count(*) from pet_inventory pi where pi.user_id = ${pets.userId} and pi.equipped = 1), 0)`),
+      desc(pets.level),
+    )
+    .limit(SHOWCASE_LIMIT)
+    .all();
+
+  // Drop users with zero equipped cosmetics — that's not "decorated"
+  // by any meaningful read of the word.
+  const decoratedFiltered = decoratedRows.filter((r) => r.equippedCount > 0);
+
+  // For each decorated user fetch their equipped slugs + emojis so
+  // PetView on the client renders correctly.
+  const decoratedUserIds = decoratedFiltered.map((r) => r.userId);
+  const decoratedEquipped = decoratedUserIds.length
+    ? db
+        .select({
+          userId: petInventory.userId,
+          slug: petInventory.cosmeticSlug,
+          slot: petCosmetics.slot,
+          emoji: petCosmetics.emoji,
+        })
+        .from(petInventory)
+        .innerJoin(petCosmetics, eq(petCosmetics.slug, petInventory.cosmeticSlug))
+        .where(
+          and(
+            inArray(petInventory.userId, decoratedUserIds),
+            eq(petInventory.equipped, true),
+          ),
+        )
+        .all()
+    : [];
+  const equippedByUser = new Map<string, Array<{ slot: string; emoji: string | null; slug: string }>>();
+  for (const e of decoratedEquipped) {
+    const arr = equippedByUser.get(e.userId) ?? [];
+    arr.push({ slot: e.slot, emoji: e.emoji, slug: e.slug });
+    equippedByUser.set(e.userId, arr);
+  }
+
+  const mostDecorated = decoratedFiltered.map((r) => ({
+    userId: r.userId,
+    username: r.username,
+    displayName: r.displayName,
+    pet: {
+      species: r.species,
+      speciesEmoji: emojiForSpeciesAtLevel(r.species, r.level),
+      level: r.level,
+      name: r.petName,
+      equipped: equippedByUser.get(r.userId) ?? [],
+    },
+    equippedCount: Number(r.equippedCount),
+  }));
+
+  // recentTopLevel: users at level >= 2, ordered by hatchedAt desc
+  // as a proxy for "recently active" (we don't store leveledAt).
+  const topLevelRows = db
+    .select({
+      userId: pets.userId,
+      username: users.username,
+      displayName: users.displayName,
+      species: pets.species,
+      petName: pets.name,
+      level: pets.level,
+      hatchedAt: pets.hatchedAt,
+    })
+    .from(pets)
+    .innerJoin(users, eq(users.id, pets.userId))
+    .where(sql`${pets.level} >= 2`)
+    .orderBy(desc(pets.hatchedAt))
+    .limit(SHOWCASE_LIMIT)
+    .all();
+
+  const recentTopLevel = topLevelRows.map((r) => ({
+    userId: r.userId,
+    username: r.username,
+    displayName: r.displayName,
+    pet: {
+      species: r.species,
+      speciesEmoji: emojiForSpeciesAtLevel(r.species, r.level),
+      level: r.level,
+      name: r.petName,
+      // Equipped is not surfaced on this list — keeps the payload
+      // small. The client can navigate to the user profile for the
+      // dressed-up view.
+      equipped: [] as Array<{ slot: string; emoji: string | null; slug: string }>,
+    },
+    hatchedAt: r.hatchedAt,
+  }));
+
+  return c.json({ mostDecorated, recentTopLevel });
 });

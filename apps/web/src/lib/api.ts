@@ -204,6 +204,8 @@ import type {
   CreateCompetitionRequest,
   UpdateCompetitionRequest,
   UserPetDisplay,
+  // S97 — pet showcase.
+  PetShowcaseResponse,
   // S89 — XP shop.
   ShopResponse,
   BuyCosmeticRequest,
@@ -1325,6 +1327,8 @@ export const api = {
     // S87 — per-username pet display, used by PetByUsername wrapper.
     byUsername: (username: string) =>
       request<UserPetDisplay>(`/users/${encodeURIComponent(username)}/pet-display`),
+    // S97 — public pet showcase.
+    showcase: () => request<PetShowcaseResponse>("/users/showcase"),
     // S89 — XP shop.
     shop: () => request<ShopResponse>("/me/pet/shop"),
     balance: () => request<XpBalanceResponse>("/me/pet/balance"),

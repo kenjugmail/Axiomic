@@ -3730,6 +3730,45 @@ export interface MyProgressClassStanding {
 }
 
 // =============================================================
+// S97 — Public pet showcase.
+// =============================================================
+
+export interface PetShowcaseEquippedItem {
+  slot: string;
+  emoji: string | null;
+  slug: string;
+}
+
+export interface PetShowcasePet {
+  species: string;
+  speciesEmoji: string;
+  level: number;
+  name: string;
+  equipped: PetShowcaseEquippedItem[];
+}
+
+export interface PetShowcaseDecoratedEntry {
+  userId: string;
+  username: string;
+  displayName: string | null;
+  pet: PetShowcasePet;
+  equippedCount: number;
+}
+
+export interface PetShowcaseTopLevelEntry {
+  userId: string;
+  username: string;
+  displayName: string | null;
+  pet: PetShowcasePet;
+  hatchedAt: string;
+}
+
+export interface PetShowcaseResponse {
+  mostDecorated: PetShowcaseDecoratedEntry[];
+  recentTopLevel: PetShowcaseTopLevelEntry[];
+}
+
+// =============================================================
 // S96 — Class question of the day.
 // =============================================================
 

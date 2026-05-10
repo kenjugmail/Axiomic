@@ -182,7 +182,7 @@ export function MyPetPage() {
                 preview so spending XP is one click away from
                 seeing the pet you're dressing up.
                 S94 — also link to /me/progress for the dashboard. */}
-            <div className="mt-2 flex items-center gap-3">
+            <div className="mt-2 flex items-center gap-3 flex-wrap">
               <Link
                 to="/shop"
                 className="text-xs text-primary hover:underline inline-flex items-center gap-1"
@@ -196,6 +196,12 @@ export function MyPetPage() {
               >
                 <BarChart3 className="w-3 h-3" />
                 My progress
+              </Link>
+              <Link
+                to="/explore/pets"
+                className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+              >
+                See others' pets
               </Link>
             </div>
           </div>

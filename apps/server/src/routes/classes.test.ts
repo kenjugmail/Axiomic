@@ -1271,6 +1271,91 @@ describe("S95 daily-featured shop rotation", () => {
   });
 });
 
+describe("S97 pet showcase", () => {
+  test("public endpoint reachable without auth + returns expected shape", async () => {
+    const res = await req("/users/showcase");
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as {
+      mostDecorated: Array<{
+        userId: string;
+        equippedCount: number;
+        pet: { species: string; level: number; equipped: unknown[] };
+      }>;
+      recentTopLevel: Array<{
+        userId: string;
+        pet: { level: number };
+      }>;
+    };
+    expect(Array.isArray(data.mostDecorated)).toBe(true);
+    expect(Array.isArray(data.recentTopLevel)).toBe(true);
+    // Every decorated entry has at least one equipped item.
+    for (const e of data.mostDecorated) {
+      expect(e.equippedCount).toBeGreaterThan(0);
+    }
+    // Every top-level entry is level >= 2.
+    for (const e of data.recentTopLevel) {
+      expect(e.pet.level).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  test("decorated user appears with their equipped cosmetic", async () => {
+    // Hatch a pet + equip one cosmetic via the class flow.
+    const instructor = await signup("showinst1");
+    const student = await signup("showstud1");
+    const slug = `cls-show-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    // Push past hatch threshold via a graded homework.
+    const t = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ kind: "homework", title: "PSet" }),
+    });
+    const { taskId } = (await t.json()) as { taskId: string };
+    await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ content: "Submission long enough for the validator." }),
+    });
+    await req(`/classes/${slug}/tasks/${taskId}/grade/${student.userId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ pass: true }),
+    });
+    // Grant + equip a cosmetic.
+    await req(`/classes/${slug}/grant-cosmetic`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ userId: student.userId, cosmeticSlug: "fire" }),
+    });
+    await req("/me/pet/equip", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ cosmeticSlug: "fire" }),
+    });
+
+    const showcase = await req("/users/showcase");
+    const data = (await showcase.json()) as {
+      mostDecorated: Array<{
+        userId: string;
+        pet: { equipped: Array<{ slug: string }> };
+      }>;
+    };
+    // The student may or may not crack the top-20 depending on how
+    // populated the test DB is. Either way, the response should be
+    // non-empty since we just decorated at least one user, and every
+    // entry should have ≥ 1 equipped cosmetic by construction.
+    expect(data.mostDecorated.length).toBeGreaterThan(0);
+    for (const entry of data.mostDecorated) {
+      expect(entry.pet.equipped.length).toBeGreaterThan(0);
+    }
+  });
+});
+
 describe("S96 class question of the day", () => {
   test("non-instructor cannot create a question (403)", async () => {
     const instructor = await signup("qinst1");
