@@ -6,10 +6,14 @@ import {
   forumTopics,
   getDb,
   masteryNodes,
+  petInventory,
   userAchievements,
   userProgress,
   type Db,
 } from "@axiomic/db";
+// S92 — local lazy reference to the notification helper so an
+// achievement reward grant surfaces in the user's bell.
+import { notify } from "./notifications";
 
 // Hardcoded achievement catalog. Adding one is one entry here + one
 // `predicate` that knows how to detect when it's earned. We deliberately
@@ -36,6 +40,11 @@ export interface Achievement {
   icon: string;          // emoji shown in the UI
   // Returns true iff this user has earned the achievement right now.
   predicate: (db: Db, userId: string) => boolean;
+  // S92 — when set, the named pet cosmetic is granted to the user
+  // (idempotent on (userId, cosmeticSlug)) the first time the
+  // achievement is awarded. Cosmetic-granted notification fires too,
+  // tagged with the achievement's title in the note.
+  rewardCosmeticSlug?: string;
 }
 
 function countActivity(db: Db, userId: string, kind: ActivityKind | "any"): number {
@@ -138,6 +147,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     title: "Voice Heard",
     description: "Started your first forum topic",
     icon: "📣",
+    rewardCosmeticSlug: "rose",
     predicate: (db, uid) => {
       const row = db
         .select({ n: count() })
@@ -166,6 +176,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     title: "ML Apprentice",
     description: "Completed every Apprentice node on the ML Engineer path",
     icon: "🎓",
+    rewardCosmeticSlug: "grad-cap",
     predicate: (db, uid) => {
       const r = countCompletedAtLevel(db, uid, "ml-engineer", "apprentice");
       return r.total > 0 && r.done >= r.total;
@@ -176,6 +187,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     title: "Three-Day Streak",
     description: "Three consecutive days of learning activity",
     icon: "🔥",
+    rewardCosmeticSlug: "book",
     predicate: (db, uid) => currentStreak(db, uid) >= 3,
   },
   {
@@ -183,6 +195,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     title: "Week-Long Streak",
     description: "Seven consecutive days of learning activity",
     icon: "🌟",
+    rewardCosmeticSlug: "gold-star",
     predicate: (db, uid) => currentStreak(db, uid) >= 7,
   },
   // Authoring achievements — wiki-style open editing means every signed-in
@@ -206,6 +219,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     title: "Editor-in-chief",
     description: "Edited twenty-five lessons",
     icon: "🏆",
+    rewardCosmeticSlug: "ribbon",
     predicate: (db, uid) => countActivity(db, uid, "lesson_edit") >= 25,
   },
 ];
@@ -268,6 +282,34 @@ export function evaluateAchievements(userId: string, db: Db = getDb()): string[]
         slug: a.slug,
       }).onConflictDoNothing().run();
       newly.push(a.slug);
+      // S92 — auto-grant the linked cosmetic, if any. Idempotent
+      // on (userId, cosmeticSlug) — pet_inventory's UNIQUE index
+      // does the dedup. We also fire a cosmetic_granted notification
+      // so the user sees the reward in their bell. Both calls are
+      // best-effort: failures are logged but don't unwind the
+      // achievement insert.
+      if (a.rewardCosmeticSlug) {
+        try {
+          db.insert(petInventory).values({
+            id: randomUUID(),
+            userId,
+            cosmeticSlug: a.rewardCosmeticSlug,
+            equipped: false,
+            grantedNote: `Earned for the ${a.title} achievement`,
+          }).onConflictDoNothing().run();
+          void notify({
+            recipientId: userId,
+            actorId: null,
+            kind: "cosmetic_granted",
+            subjectType: "cosmetic",
+            subjectId: a.rewardCosmeticSlug,
+            contextSlug: null,
+            preview: `${a.icon} ${a.title} — earned a cosmetic`,
+          });
+        } catch (err) {
+          console.error("achievement cosmetic grant failed", a.slug, err);
+        }
+      }
     } catch (err) {
       console.error("achievement insert failed", a.slug, err);
     }
