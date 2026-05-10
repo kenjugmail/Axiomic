@@ -826,3 +826,203 @@ describe("/users/:username/pet-display (S87)", () => {
     expect(data.pet?.equipped.some((e) => e.slug === "fire")).toBe(true);
   });
 });
+
+describe("S88 notification emissions", () => {
+  test("grant-cosmetic emits cosmetic_granted notification to recipient", async () => {
+    const instructor = await signup("noteinst1");
+    const student = await signup("notestud1");
+    const slug = `cls-note-grant-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    await req(`/classes/${slug}/grant-cosmetic`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ userId: student.userId, cosmeticSlug: "crown", note: "Awesome work" }),
+    });
+    const list = await req("/notifications?unread=true", { headers: cookieHeader(student.cookie) });
+    const data = (await list.json()) as {
+      notifications: Array<{ kind: string; subjectType: string; subjectId: string; preview: string | null }>;
+    };
+    const cosmetic = data.notifications.find((n) => n.kind === "cosmetic_granted");
+    expect(cosmetic).toBeDefined();
+    expect(cosmetic?.subjectType).toBe("cosmetic");
+    expect(cosmetic?.subjectId).toBe("crown");
+    expect(cosmetic?.preview).toContain("Awesome work");
+  });
+
+  test("competition end emits competition_won notification to each winner", async () => {
+    const instructor = await signup("noteinst2");
+    const winner = await signup("notewinner");
+    const loser = await signup("noteloser");
+    const slug = `cls-note-comp-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    for (const s of [winner, loser]) {
+      await req(`/classes/${slug}/enroll`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(s.cookie) },
+        body: JSON.stringify({ joinCode: created.joinCode }),
+      });
+    }
+    const create = await req(`/classes/${slug}/competitions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        title: "Weekly Sprint",
+        startsAt: new Date(Date.now() - 60_000).toISOString(),
+        endsAt: new Date(Date.now() + 60_000).toISOString(),
+        prizeCosmeticSlug: "trophy",
+        prizeWinnerCount: 1,
+      }),
+    });
+    const { competitionId } = (await create.json()) as { competitionId: string };
+    await req(`/classes/${slug}/competitions/${competitionId}/publish`, {
+      method: "POST",
+      headers: cookieHeader(instructor.cookie),
+    });
+    // Earn class XP only for winner.
+    const t = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ kind: "homework", title: "PSet" }),
+    });
+    const { taskId } = (await t.json()) as { taskId: string };
+    await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(winner.cookie) },
+      body: JSON.stringify({ content: "submission text long enough for the validator." }),
+    });
+    await req(`/classes/${slug}/tasks/${taskId}/grade/${winner.userId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ pass: true }),
+    });
+    await req(`/classes/${slug}/competitions/${competitionId}/end`, {
+      method: "POST",
+      headers: cookieHeader(instructor.cookie),
+    });
+
+    const winnerList = await req("/notifications?unread=true", { headers: cookieHeader(winner.cookie) });
+    const winnerData = (await winnerList.json()) as {
+      notifications: Array<{ kind: string; subjectType: string; subjectId: string; preview: string | null }>;
+    };
+    const won = winnerData.notifications.find((n) => n.kind === "competition_won");
+    expect(won).toBeDefined();
+    expect(won?.subjectId).toBe(competitionId);
+    expect(won?.preview).toContain("Weekly Sprint");
+
+    // Loser does NOT get a competition_won notification.
+    const loserList = await req("/notifications?unread=true", { headers: cookieHeader(loser.cookie) });
+    const loserData = (await loserList.json()) as {
+      notifications: Array<{ kind: string }>;
+    };
+    expect(loserData.notifications.some((n) => n.kind === "competition_won")).toBe(false);
+  });
+
+  test("pet hatching emits pet_hatched notification", async () => {
+    const instructor = await signup("notepetinst1");
+    const student = await signup("notepetstud1");
+    const slug = `cls-pethatch-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    // Push past hatch threshold via a graded homework.
+    const t = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ kind: "homework", title: "PSet" }),
+    });
+    const { taskId } = (await t.json()) as { taskId: string };
+    await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ content: "submission text long enough for the validator to accept." }),
+    });
+    await req(`/classes/${slug}/tasks/${taskId}/grade/${student.userId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ pass: true }),
+    });
+    const list = await req("/notifications?unread=true", { headers: cookieHeader(student.cookie) });
+    const data = (await list.json()) as { notifications: Array<{ kind: string; subjectType: string; preview: string | null }> };
+    const hatch = data.notifications.find((n) => n.kind === "pet_hatched");
+    expect(hatch).toBeDefined();
+    expect(hatch?.subjectType).toBe("pet");
+    expect(hatch?.preview).toContain("hatched");
+  });
+});
+
+describe("competition reading-completions scoring rule (S88)", () => {
+  test("ranks students by reading completions in window", async () => {
+    const instructor = await signup("readinst1");
+    const heavyReader = await signup("heavyreader");
+    const lightReader = await signup("lightreader");
+    const slug = `cls-readcomp-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    for (const s of [heavyReader, lightReader]) {
+      await req(`/classes/${slug}/enroll`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(s.cookie) },
+        body: JSON.stringify({ joinCode: created.joinCode }),
+      });
+    }
+    // 3 reading tasks.
+    const taskIds: string[] = [];
+    for (let i = 0; i < 3; i++) {
+      const t = await req(`/classes/${slug}/tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+        body: JSON.stringify({ kind: "reading", title: `Reading ${i}`, url: `https://example.com/r${i}` }),
+      });
+      taskIds.push(((await t.json()) as { taskId: string }).taskId);
+    }
+    // heavy completes all 3; light completes 1.
+    for (const id of taskIds) {
+      await req(`/classes/${slug}/tasks/${id}/complete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(heavyReader.cookie) },
+        body: JSON.stringify({}),
+      });
+    }
+    await req(`/classes/${slug}/tasks/${taskIds[0]}/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(lightReader.cookie) },
+      body: JSON.stringify({}),
+    });
+
+    const create = await req(`/classes/${slug}/competitions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        title: "Read More",
+        startsAt: new Date(Date.now() - 120_000).toISOString(),
+        endsAt: new Date(Date.now() + 120_000).toISOString(),
+        scoringRule: "reading-completions",
+        prizeCosmeticSlug: "rocket",
+        prizeWinnerCount: 1,
+      }),
+    });
+    const { competitionId } = (await create.json()) as { competitionId: string };
+    await req(`/classes/${slug}/competitions/${competitionId}/publish`, {
+      method: "POST",
+      headers: cookieHeader(instructor.cookie),
+    });
+
+    const detail = await req(`/classes/${slug}/competitions/${competitionId}`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    const data = (await detail.json()) as {
+      standings: Array<{ rank: number; userId: string; score: number }>;
+    };
+    expect(data.standings[0].userId).toBe(heavyReader.userId);
+    expect(data.standings[0].score).toBe(3);
+    expect(data.standings[1].userId).toBe(lightReader.userId);
+    expect(data.standings[1].score).toBe(1);
+  });
+});

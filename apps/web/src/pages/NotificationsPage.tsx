@@ -56,6 +56,13 @@ function kindLabel(kind: Notification["kind"]): string {
       return "you passed a safety certification";
     case "lab_cert_expiring":
       return "your safety certification is expiring";
+    // S88 — classroom + pet engagement loop.
+    case "cosmetic_granted":
+      return "granted you a cosmetic";
+    case "competition_won":
+      return "you placed in a competition";
+    case "pet_hatched":
+      return "your egg hatched";
     default: {
       const _exhaustive: never = kind;
       void _exhaustive;

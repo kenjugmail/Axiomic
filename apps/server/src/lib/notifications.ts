@@ -29,7 +29,11 @@ export type NotificationKind =
   | "lab_signoff_approved"
   | "lab_signoff_rejected"
   | "lab_cert_passed"
-  | "lab_cert_expiring";
+  | "lab_cert_expiring"
+  // S88 — classroom + pet engagement loop.
+  | "cosmetic_granted"
+  | "competition_won"
+  | "pet_hatched";
 
 export type NotificationSubject =
   | "topic"
@@ -49,7 +53,11 @@ export type NotificationSubject =
   | "grant"
   // Sprint 80
   | "lab_protocol_run"
-  | "lab_cert";
+  | "lab_cert"
+  // S88 — classroom + pet engagement loop.
+  | "cosmetic"
+  | "competition"
+  | "pet";
 
 const MAX_MENTIONS_PER_BODY = 10;
 const PREVIEW_MAX = 140;
@@ -148,10 +156,12 @@ function kindGate(
     case "lab_signoff_rejected":
     case "lab_cert_passed":
     case "lab_cert_expiring":
+    case "cosmetic_granted":
+    case "competition_won":
+    case "pet_hatched":
       // News flow + follow events + admin pipeline + funding
-      // alerts + Sprint 80 lab operational signals are direct +
-      // low-volume — always on. (A notifyFunding / notifyLab pref
-      // toggle is a follow-up if users start muting these.)
+      // alerts + Sprint 80 lab operational signals + S88
+      // classroom/pet events are direct + low-volume — always on.
       return null;
   }
 }

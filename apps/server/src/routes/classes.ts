@@ -36,6 +36,7 @@ import {
   requireInstructorOrTa,
 } from "../middleware/classAuth";
 import { grantXp, classXpForUser, XP_AMOUNTS } from "../lib/xp";
+import { notify } from "../lib/notifications";
 import type { Env } from "../env";
 
 export const classesRouter = new Hono<Env>();
@@ -1047,13 +1048,32 @@ classesRouter.post(
       })
       .run();
 
+    // S88 — surface the grant in the recipient's notification bell.
+    // Best-effort; notify() swallows errors so a failure here can't
+    // block the grant.
+    void notify({
+      recipientId: userId,
+      actorId: granter.id,
+      kind: "cosmetic_granted",
+      subjectType: "cosmetic",
+      subjectId: cosmeticSlug,
+      contextSlug: cls.slug,
+      preview:
+        (note?.trim() ? `${note.trim()} — ` : "") +
+        `${cosmetic.emoji ?? ""} ${cosmetic.name}`.trim(),
+    });
+
     return c.json({ ok: true, alreadyOwned: false }, 201);
   },
 );
 
 // --- competitions (S87) --------------------------------------------
 
-const competitionScoringRuleSchema = z.enum(["class-xp"]);
+// S87 added 'class-xp'. S88 adds 'reading-completions' — count of
+// reading tasks the student finished during the window. Easy to
+// extend: register the new value here, branch on it in
+// computeStandings.
+const competitionScoringRuleSchema = z.enum(["class-xp", "reading-completions"]);
 
 const createCompetitionSchema = z
   .object({
@@ -1108,6 +1128,29 @@ function computeStandings(comp: typeof classCompetitions.$inferSelect) {
       .all();
     return rows.map((r) => ({ userId: r.userId, score: r.score }));
   }
+  if (comp.scoringRule === "reading-completions") {
+    // S88 — count completions of reading-kind tasks during the
+    // window. Joining on tasks lets us filter by kind="reading".
+    const rows = db
+      .select({
+        userId: classTaskCompletions.userId,
+        score: sql<number>`count(*)`,
+      })
+      .from(classTaskCompletions)
+      .innerJoin(classTasks, eq(classTasks.id, classTaskCompletions.taskId))
+      .where(
+        and(
+          eq(classTasks.classId, comp.classId),
+          eq(classTasks.kind, "reading"),
+          sql`datetime(${classTaskCompletions.submittedAt}) >= datetime(${comp.startsAt})`,
+          sql`datetime(${classTaskCompletions.submittedAt}) <= datetime(${comp.endsAt})`,
+        ),
+      )
+      .groupBy(classTaskCompletions.userId)
+      .orderBy(desc(sql`count(*)`))
+      .all();
+    return rows.map((r) => ({ userId: r.userId, score: r.score }));
+  }
   return [];
 }
 
@@ -1119,7 +1162,14 @@ function distributePrizes(comp: typeof classCompetitions.$inferSelect): string[]
   const db = getDb();
   const winners = computeStandings(comp).slice(0, comp.prizeWinnerCount);
   const winnerIds: string[] = [];
-  for (const w of winners) {
+  // Resolve class slug once for notification context links.
+  const cls = db
+    .select({ slug: classes.slug })
+    .from(classes)
+    .where(eq(classes.id, comp.classId))
+    .get();
+  for (let i = 0; i < winners.length; i++) {
+    const w = winners[i];
     const existing = db
       .select({ id: petInventory.id })
       .from(petInventory)
@@ -1132,20 +1182,34 @@ function distributePrizes(comp: typeof classCompetitions.$inferSelect): string[]
       .get();
     if (existing) {
       winnerIds.push(w.userId);
-      continue;
+    } else {
+      db.insert(petInventory)
+        .values({
+          id: randomUUID(),
+          userId: w.userId,
+          cosmeticSlug: comp.prizeCosmeticSlug,
+          equipped: false,
+          grantedById: comp.createdById,
+          grantedInClassId: comp.classId,
+          grantedNote: `Top ${comp.prizeWinnerCount} in "${comp.title}"`,
+        })
+        .run();
+      winnerIds.push(w.userId);
     }
-    db.insert(petInventory)
-      .values({
-        id: randomUUID(),
-        userId: w.userId,
-        cosmeticSlug: comp.prizeCosmeticSlug,
-        equipped: false,
-        grantedById: comp.createdById,
-        grantedInClassId: comp.classId,
-        grantedNote: `Top ${comp.prizeWinnerCount} in "${comp.title}"`,
-      })
-      .run();
-    winnerIds.push(w.userId);
+    // S88 — notify each winner. System-emitted (actorId=null) so
+    // the message reads "You finished #N" rather than "Prof. X
+    // sent you ...". The dedup index keys on actorId so a
+    // re-distribution after re-publish would be allowed only if
+    // the prior notification was already read — acceptable.
+    void notify({
+      recipientId: w.userId,
+      actorId: null,
+      kind: "competition_won",
+      subjectType: "competition",
+      subjectId: comp.id,
+      contextSlug: cls?.slug ?? null,
+      preview: `You finished #${i + 1} in "${comp.title}"`,
+    });
   }
   db.update(classCompetitions)
     .set({

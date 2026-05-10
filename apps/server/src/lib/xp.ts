@@ -13,6 +13,7 @@ import { eq } from "drizzle-orm";
 import { getDb, pets, xpGrants } from "@axiomic/db";
 import { randomPetSpecies } from "./pets";
 import { currentStreak } from "./achievements";
+import { notify } from "./notifications";
 
 // XP awarded for each engagement source. Tunable from one place;
 // per-task overrides on `class_tasks.xp_reward` win when present.
@@ -163,14 +164,27 @@ export function maybeHatchPet(userId: string): { species: string; name: string }
   if (totalXp < PET_HATCH_THRESHOLD_XP) return null;
 
   const species = randomPetSpecies();
+  const petId = randomUUID();
   db.insert(pets)
     .values({
-      id: randomUUID(),
+      id: petId,
       userId,
       species: species.slug,
       name: species.label,
     })
     .run();
+
+  // S88 — surface the hatch event in the user's notification bell.
+  // System-emitted (actorId=null) since it's an automatic milestone.
+  void notify({
+    recipientId: userId,
+    actorId: null,
+    kind: "pet_hatched",
+    subjectType: "pet",
+    subjectId: petId,
+    contextSlug: null,
+    preview: `Your egg hatched into a ${species.label}!`,
+  });
 
   return { species: species.slug, name: species.label };
 }

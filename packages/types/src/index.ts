@@ -1281,7 +1281,11 @@ export type NotificationKind =
   | "lab_signoff_approved"
   | "lab_signoff_rejected"
   | "lab_cert_passed"
-  | "lab_cert_expiring";
+  | "lab_cert_expiring"
+  // S88 — classroom + pet engagement loop.
+  | "cosmetic_granted"
+  | "competition_won"
+  | "pet_hatched";
 
 export type NotificationSubject =
   | "topic"
@@ -1298,7 +1302,11 @@ export type NotificationSubject =
   | "grant"
   // Sprint 80
   | "lab_protocol_run"
-  | "lab_cert";
+  | "lab_cert"
+  // S88 — classroom + pet engagement loop.
+  | "cosmetic"
+  | "competition"
+  | "pet";
 
 export const NOTIFICATION_KINDS: NotificationKind[] = [
   "mention",
@@ -1324,6 +1332,9 @@ export const NOTIFICATION_KINDS: NotificationKind[] = [
   "lab_signoff_rejected",
   "lab_cert_passed",
   "lab_cert_expiring",
+  "cosmetic_granted",
+  "competition_won",
+  "pet_hatched",
 ];
 
 export const NOTIFICATION_SUBJECTS: NotificationSubject[] = [
@@ -1341,6 +1352,9 @@ export const NOTIFICATION_SUBJECTS: NotificationSubject[] = [
   "grant",
   "lab_protocol_run",
   "lab_cert",
+  "cosmetic",
+  "competition",
+  "pet",
 ];
 
 export interface Notification {

@@ -440,6 +440,10 @@ function PostItem({
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+            {/* S88 — pet next to reply author. PetByUsername caches
+                per-username at module level, so a thread with N
+                replies fires at most one fetch per unique author. */}
+            <PetByUsername username={post.authorUsername} size="xs" />
             <Link
               to={`/profile/${post.authorUsername}`}
               className="font-medium text-foreground hover:text-primary"
