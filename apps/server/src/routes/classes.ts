@@ -467,6 +467,11 @@ classesRouter.put(
 );
 
 // GET /classes/:slug/leaderboard — XP-ranked roster.
+//
+// S101 — accepts ?window=all|week|today. The "today" / "week"
+// filters scope the XP sum to grants with awardedAt within the
+// window so the leaderboard shows recency rather than just lifetime
+// totals. Default is "all" (back-compat with the S86 behavior).
 classesRouter.get(
   "/:slug/leaderboard",
   requireAuth,
@@ -474,15 +479,32 @@ classesRouter.get(
   async (c) => {
     const cls = c.get("classRow");
     const db = getDb();
+    const windowParam = (c.req.query("window") ?? "all") as "all" | "week" | "today";
+    // Map the window to a SQLite datetime cutoff. SQLite's
+    // datetime('now', '-N days') normalizes to its own format; we
+    // wrap awardedAt in datetime() to compare apples-to-apples since
+    // grants may carry either ISO or YYYY-MM-DD HH:MM:SS strings.
+    let xpWhere = eq(xpGrants.classId, cls.id);
+    if (windowParam === "week") {
+      xpWhere = and(
+        xpWhere,
+        sql`datetime(${xpGrants.awardedAt}) >= datetime('now', '-7 days')`,
+      )!;
+    } else if (windowParam === "today") {
+      xpWhere = and(
+        xpWhere,
+        sql`date(${xpGrants.awardedAt}) = date('now')`,
+      )!;
+    }
 
-    // Sum XP per user within this class.
+    // Sum XP per user within this class for the requested window.
     const xpRows = db
       .select({
         userId: xpGrants.userId,
         xp: sql<number>`coalesce(sum(${xpGrants.amount}), 0)`,
       })
       .from(xpGrants)
-      .where(eq(xpGrants.classId, cls.id))
+      .where(xpWhere)
       .groupBy(xpGrants.userId)
       .all();
     const xpByUser = new Map(xpRows.map((r) => [r.userId, r.xp]));
@@ -562,7 +584,7 @@ classesRouter.get(
     });
 
     entries.sort((a, b) => b.xp - a.xp);
-    return c.json({ entries });
+    return c.json({ entries, window: windowParam });
   },
 );
 

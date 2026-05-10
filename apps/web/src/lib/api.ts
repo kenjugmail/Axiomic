@@ -184,6 +184,7 @@ import type {
   ClassesListResponse,
   ClassDetailResponse,
   ClassLeaderboardResponse,
+  LeaderboardWindow,
   ClassAttendanceResponse,
   ClassTaskSubmissionsResponse,
   ClassRole,
@@ -1240,8 +1241,10 @@ export const api = {
         method: "PUT",
         body: JSON.stringify({ role }),
       }),
-    leaderboard: (slug: string) =>
-      request<ClassLeaderboardResponse>(`/classes/${slug}/leaderboard`),
+    leaderboard: (slug: string, windowName?: LeaderboardWindow) =>
+      request<ClassLeaderboardResponse>(
+        `/classes/${slug}/leaderboard${windowName ? `?window=${windowName}` : ""}`,
+      ),
     createTask: (slug: string, data: CreateClassTaskRequest) =>
       request<{ taskId: string }>(`/classes/${slug}/tasks`, {
         method: "POST",

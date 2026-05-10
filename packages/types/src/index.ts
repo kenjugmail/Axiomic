@@ -3357,8 +3357,14 @@ export interface ClassLeaderboardEntry {
   } | null;
 }
 
+// S101 — leaderboard time windows. Echoed in the response so the
+// client can confirm what it's rendering (defensive when the URL
+// query param drives the request).
+export type LeaderboardWindow = "all" | "week" | "today";
+
 export interface ClassLeaderboardResponse {
   entries: ClassLeaderboardEntry[];
+  window: LeaderboardWindow;
 }
 
 export interface ClassAttendanceEntry {

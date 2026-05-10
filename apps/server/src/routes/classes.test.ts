@@ -1271,6 +1271,80 @@ describe("S95 daily-featured shop rotation", () => {
   });
 });
 
+describe("S101 leaderboard time windows", () => {
+  test("default window is 'all' and matches existing behavior", async () => {
+    const instructor = await signup("lbinst1");
+    const slug = `cls-lb-all-${testRun}`;
+    await createClass(instructor.cookie, slug);
+    const res = await req(`/classes/${slug}/leaderboard`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as { entries: unknown[]; window: string };
+    expect(data.window).toBe("all");
+  });
+
+  test("window=week excludes grants older than 7 days; today XP shows in both", async () => {
+    const instructor = await signup("lbinst2");
+    const student = await signup("lbstud2");
+    const slug = `cls-lb-week-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    // Earn class XP today.
+    const t = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ kind: "homework", title: "PSet" }),
+    });
+    const { taskId } = (await t.json()) as { taskId: string };
+    await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ content: "Submission long enough for the validator." }),
+    });
+
+    // All-time leaderboard shows the student's XP.
+    const all = await req(`/classes/${slug}/leaderboard?window=all`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    const allData = (await all.json()) as {
+      entries: Array<{ userId: string; xp: number }>;
+      window: string;
+    };
+    expect(allData.window).toBe("all");
+    const studentAll = allData.entries.find((e) => e.userId === student.userId);
+    expect((studentAll?.xp ?? 0) > 0).toBe(true);
+
+    // Week leaderboard also shows it (XP earned today is within 7d).
+    const wk = await req(`/classes/${slug}/leaderboard?window=week`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    const wkData = (await wk.json()) as {
+      entries: Array<{ userId: string; xp: number }>;
+      window: string;
+    };
+    expect(wkData.window).toBe("week");
+    const studentWeek = wkData.entries.find((e) => e.userId === student.userId);
+    expect((studentWeek?.xp ?? 0) > 0).toBe(true);
+
+    // Today leaderboard also shows it (matches today's UTC date).
+    const today = await req(`/classes/${slug}/leaderboard?window=today`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    const todayData = (await today.json()) as {
+      entries: Array<{ userId: string; xp: number }>;
+      window: string;
+    };
+    expect(todayData.window).toBe("today");
+    const studentToday = todayData.entries.find((e) => e.userId === student.userId);
+    expect((studentToday?.xp ?? 0) > 0).toBe(true);
+  });
+});
+
 describe("S100 evolution chain on /me/pet", () => {
   test("/me/pet returns evolutionChain with 3 entries matching thresholds", async () => {
     const instructor = await signup("evoinst1");

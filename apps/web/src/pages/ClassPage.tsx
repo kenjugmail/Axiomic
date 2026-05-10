@@ -26,6 +26,7 @@ import type {
   ClassTaskKind,
   ClassRole,
   ClassRosterEntry,
+  LeaderboardWindow,
 } from "@axiomic/types";
 import { api, ApiError } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
@@ -53,8 +54,8 @@ export function ClassPage() {
     setData(r);
   };
 
-  const reloadLeaderboard = async () => {
-    const r = await api.classes.leaderboard(slug);
+  const reloadLeaderboard = async (windowName?: LeaderboardWindow) => {
+    const r = await api.classes.leaderboard(slug, windowName);
     setLeaderboard(r);
   };
 
@@ -279,6 +280,27 @@ export function ClassPage() {
 
       {tab === "leaderboard" && (
         <section>
+          {/* S101 — window toggle. Reloads via the same endpoint
+              with the requested window param. */}
+          <div className="mb-3 flex items-center gap-1 text-xs">
+            {(["all", "week", "today"] as const).map((w) => {
+              const active = (leaderboard?.window ?? "all") === w;
+              return (
+                <button
+                  key={w}
+                  type="button"
+                  onClick={() => reloadLeaderboard(w)}
+                  className={`px-2.5 py-1 rounded-md border ${
+                    active
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border text-muted-foreground hover:bg-accent/40"
+                  }`}
+                >
+                  {w === "all" ? "All time" : w === "week" ? "This week" : "Today"}
+                </button>
+              );
+            })}
+          </div>
           {leaderboard === null ? (
             <Skeleton variant="card" className="h-40" />
           ) : (
@@ -287,7 +309,7 @@ export function ClassPage() {
               entries={leaderboard.entries}
               currentUserId={user?.id ?? null}
               myRole={data.myRole}
-              onGranted={reloadLeaderboard}
+              onGranted={() => reloadLeaderboard(leaderboard?.window)}
             />
           )}
         </section>
