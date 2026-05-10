@@ -9,16 +9,18 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { and, eq, inArray } from "drizzle-orm";
+import { randomUUID } from "crypto";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import {
   petCosmetics,
   petInventory,
   pets,
   users,
+  xpPurchases,
   getDb,
 } from "@axiomic/db";
 import { requireAuth } from "../middleware/auth";
-import { totalXpForUser, PET_HATCH_THRESHOLD_XP } from "../lib/xp";
+import { totalXpForUser, xpBalanceForUser, PET_HATCH_THRESHOLD_XP } from "../lib/xp";
 import { petSpeciesBySlug } from "../lib/pets";
 import type { Env } from "../env";
 
@@ -279,5 +281,147 @@ petPublicRouter.get("/:username/pet-display", (c) => {
       name: pet.name,
       equipped: equippedRows,
     },
+  });
+});
+
+// =================================================================
+// S89 — XP shop.
+// =================================================================
+//
+// GET /me/pet/shop — list cosmetics with non-null xpCost plus the
+// user's balance + ownership flags. The web shop renders this
+// directly without needing the full catalog.
+petRouter.get("/shop", requireAuth, (c) => {
+  const user = c.get("user")!;
+  const db = getDb();
+
+  const items = db
+    .select()
+    .from(petCosmetics)
+    .where(sql`${petCosmetics.xpCost} is not null`)
+    .orderBy(petCosmetics.xpCost, petCosmetics.slot)
+    .all();
+
+  const ownedSlugs = new Set(
+    db
+      .select({ slug: petInventory.cosmeticSlug })
+      .from(petInventory)
+      .where(eq(petInventory.userId, user.id))
+      .all()
+      .map((r) => r.slug),
+  );
+
+  const balance = xpBalanceForUser(user.id);
+  return c.json({
+    balance,
+    items: items.map((it) => ({
+      slug: it.slug,
+      name: it.name,
+      slot: it.slot,
+      emoji: it.emoji,
+      rarity: it.rarity,
+      description: it.description,
+      xpCost: it.xpCost!,
+      owned: ownedSlugs.has(it.slug),
+      affordable: balance >= (it.xpCost ?? 0),
+    })),
+  });
+});
+
+// POST /me/pet/buy — spend XP to put a cosmetic in your inventory.
+// Validates: cosmetic exists, has xpCost, user has balance, not
+// already owned. Inserts pet_inventory + xp_purchase atomically
+// (a SQLite transaction wraps both writes). Re-buys of an owned
+// cosmetic are rejected with 409 — by design, you can't farm
+// duplicates.
+const buySchema = z.object({
+  cosmeticSlug: z.string().min(1).max(64),
+});
+
+petRouter.post(
+  "/buy",
+  requireAuth,
+  zValidator("json", buySchema),
+  (c) => {
+    const user = c.get("user")!;
+    const { cosmeticSlug } = c.req.valid("json");
+    const db = getDb();
+
+    const cosmetic = db
+      .select()
+      .from(petCosmetics)
+      .where(eq(petCosmetics.slug, cosmeticSlug))
+      .get();
+    if (!cosmetic) return c.json({ error: "Cosmetic not found" }, 404);
+    if (cosmetic.xpCost == null) {
+      return c.json({ error: "This cosmetic is not for sale" }, 400);
+    }
+
+    const owned = db
+      .select({ id: petInventory.id })
+      .from(petInventory)
+      .where(
+        and(
+          eq(petInventory.userId, user.id),
+          eq(petInventory.cosmeticSlug, cosmeticSlug),
+        ),
+      )
+      .get();
+    if (owned) return c.json({ error: "Already owned" }, 409);
+
+    const balance = xpBalanceForUser(user.id);
+    if (balance < cosmetic.xpCost) {
+      return c.json(
+        { error: "Insufficient XP", balance, xpCost: cosmetic.xpCost },
+        402,
+      );
+    }
+
+    // SQLite (better-sqlite3) auto-commits each statement. To make
+    // the spend + grant atomic, wrap both writes in a transaction
+    // — if the inventory insert collides with a concurrent grant,
+    // the purchase rolls back and the user keeps the XP.
+    db.transaction((tx) => {
+      tx.insert(xpPurchases)
+        .values({
+          id: randomUUID(),
+          userId: user.id,
+          cosmeticSlug,
+          amount: cosmetic.xpCost!,
+        })
+        .run();
+      tx.insert(petInventory)
+        .values({
+          id: randomUUID(),
+          userId: user.id,
+          cosmeticSlug,
+          equipped: false,
+        })
+        .run();
+    });
+
+    return c.json(
+      {
+        ok: true,
+        balance: balance - cosmetic.xpCost,
+        cosmeticSlug,
+      },
+      201,
+    );
+  },
+);
+
+// GET /me/pet/balance — lightweight balance probe. Web pages that
+// just want to show "XP: ###" without the full shop payload hit
+// this. Returns lifetime XP too so the UI can show "###/### XP" or
+// "spent ###" without a second call.
+petRouter.get("/balance", requireAuth, (c) => {
+  const user = c.get("user")!;
+  const lifetimeXp = totalXpForUser(user.id);
+  const balance = xpBalanceForUser(user.id);
+  return c.json({
+    balance,
+    lifetimeXp,
+    spentXp: lifetimeXp - balance,
   });
 });

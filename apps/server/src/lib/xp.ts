@@ -10,7 +10,7 @@
 import { randomUUID } from "crypto";
 import { sql } from "drizzle-orm";
 import { eq } from "drizzle-orm";
-import { getDb, pets, xpGrants } from "@axiomic/db";
+import { getDb, pets, xpGrants, xpPurchases } from "@axiomic/db";
 import { randomPetSpecies } from "./pets";
 import { currentStreak } from "./achievements";
 import { notify } from "./notifications";
@@ -214,4 +214,20 @@ export function maybeGrantStreakBonus(userId: string): GrantXpResult | null {
     sourceRefId: today,
     amount,
   });
+}
+
+// S89 — XP balance: lifetime grants minus shop purchases. Used by
+// the shop's affordability check + balance widgets. Lifetime XP
+// (totalXpForUser) is what the leaderboard reads — that's
+// intentionally unaffected by purchases so spenders don't fall
+// behind on the achievement view.
+export function xpBalanceForUser(userId: string): number {
+  const db = getDb();
+  const earned = totalXpForUser(userId);
+  const spentRow = db
+    .select({ total: sql<number>`coalesce(sum(${xpPurchases.amount}), 0)` })
+    .from(xpPurchases)
+    .where(eq(xpPurchases.userId, userId))
+    .get();
+  return earned - (spentRow?.total ?? 0);
 }

@@ -1026,3 +1026,144 @@ describe("competition reading-completions scoring rule (S88)", () => {
     expect(data.standings[1].score).toBe(1);
   });
 });
+
+describe("S89 XP shop", () => {
+  // Helper to push a user's class XP to a known amount via a graded
+  // homework. One graded-pass is XP_AMOUNTS["homework-graded-pass"]
+  // which is 50 in the seed; complete + grade-pass yields 50 + 5
+  // = 55 XP per task. Tests compute expected balance directly from
+  // observed grants rather than hard-coding so amount-table tweaks
+  // don't break the suite.
+  type TestUser = { cookie: string; userId: string; username: string };
+  async function earnXpForBuyTest(slug: string, classData: { joinCode: string }, instructor: TestUser, student: TestUser, taskCount: number) {
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: classData.joinCode }),
+    });
+    for (let i = 0; i < taskCount; i++) {
+      const t = await req(`/classes/${slug}/tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+        body: JSON.stringify({ kind: "homework", title: `PSet ${i}` }),
+      });
+      const { taskId } = (await t.json()) as { taskId: string };
+      await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+        body: JSON.stringify({ content: `Submission for task ${i}, sufficient length to satisfy validator.` }),
+      });
+      await req(`/classes/${slug}/tasks/${taskId}/grade/${student.userId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+        body: JSON.stringify({ pass: true }),
+      });
+    }
+  }
+
+  test("buy success: inventory grows + balance reduces by xpCost", async () => {
+    const instructor = await signup("shopinst1");
+    const student = await signup("shopstud1");
+    const slug = `cls-shop-buy-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await earnXpForBuyTest(slug, created, instructor, student, 3);
+
+    const balBefore = await req("/me/pet/balance", { headers: cookieHeader(student.cookie) });
+    const balData = (await balBefore.json()) as { balance: number };
+    expect(balData.balance).toBeGreaterThan(75); // baseball-cap is 75
+
+    const buy = await req("/me/pet/buy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ cosmeticSlug: "baseball-cap" }),
+    });
+    expect(buy.status).toBe(201);
+    const buyData = (await buy.json()) as { ok: true; balance: number; cosmeticSlug: string };
+    expect(buyData.ok).toBe(true);
+    expect(buyData.cosmeticSlug).toBe("baseball-cap");
+    expect(buyData.balance).toBe(balData.balance - 75);
+
+    // Inventory contains the cosmetic.
+    const me = await req("/me/pet", { headers: cookieHeader(student.cookie) });
+    const meData = (await me.json()) as { inventory: Array<{ slug: string }> };
+    expect(meData.inventory.some((i) => i.slug === "baseball-cap")).toBe(true);
+
+    // Balance probe matches.
+    const balAfter = await req("/me/pet/balance", { headers: cookieHeader(student.cookie) });
+    const balAfterData = (await balAfter.json()) as { balance: number; spentXp: number };
+    expect(balAfterData.balance).toBe(buyData.balance);
+    expect(balAfterData.spentXp).toBe(75);
+  });
+
+  test("insufficient balance returns 402", async () => {
+    const student = await signup("shoppoor");
+    // Brand-new user with 0 lifetime XP.
+    const buy = await req("/me/pet/buy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ cosmeticSlug: "baseball-cap" }),
+    });
+    expect(buy.status).toBe(402);
+  });
+
+  test("already-owned cosmetic rejected with 409", async () => {
+    const instructor = await signup("shopinst2");
+    const student = await signup("shopstud2");
+    const slug = `cls-shop-dup-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await earnXpForBuyTest(slug, created, instructor, student, 3);
+
+    await req("/me/pet/buy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ cosmeticSlug: "ribbon" }),
+    });
+    const dup = await req("/me/pet/buy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ cosmeticSlug: "ribbon" }),
+    });
+    expect(dup.status).toBe(409);
+  });
+
+  test("non-purchasable cosmetic (xpCost null) rejected with 400", async () => {
+    const instructor = await signup("shopinst3");
+    const student = await signup("shopstud3");
+    const slug = `cls-shop-no-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await earnXpForBuyTest(slug, created, instructor, student, 30); // tons of XP
+
+    const buy = await req("/me/pet/buy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ cosmeticSlug: "crown" }), // legendary, no xpCost
+    });
+    expect(buy.status).toBe(400);
+  });
+
+  test("shop response includes balance + ownership flags", async () => {
+    const instructor = await signup("shopinst4");
+    const student = await signup("shopstud4");
+    const slug = `cls-shop-list-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await earnXpForBuyTest(slug, created, instructor, student, 3);
+    await req("/me/pet/buy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ cosmeticSlug: "rose" }),
+    });
+
+    const shop = await req("/me/pet/shop", { headers: cookieHeader(student.cookie) });
+    expect(shop.status).toBe(200);
+    const data = (await shop.json()) as {
+      balance: number;
+      items: Array<{ slug: string; xpCost: number; owned: boolean; affordable: boolean }>;
+    };
+    const rose = data.items.find((i) => i.slug === "rose");
+    expect(rose?.owned).toBe(true);
+    // Crown isn't in the shop at all (xpCost null).
+    expect(data.items.some((i) => i.slug === "crown")).toBe(false);
+    // Balance positive.
+    expect(data.balance).toBeGreaterThan(0);
+  });
+});

@@ -2490,6 +2490,8 @@ function seedPetCosmetics() {
       rarity: c.rarity ?? "common",
       grantOnly: c.grantOnly ?? true,
       description: c.description ?? "",
+      // S89 — null = not for sale; positive int = purchasable.
+      xpCost: typeof c.xpCost === "number" && c.xpCost > 0 ? c.xpCost : null,
     };
     if (existing) {
       db.update(petCosmetics).set(values).where(eq(petCosmetics.id, existing.id)).run();

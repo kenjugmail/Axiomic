@@ -204,6 +204,11 @@ import type {
   CreateCompetitionRequest,
   UpdateCompetitionRequest,
   UserPetDisplay,
+  // S89 — XP shop.
+  ShopResponse,
+  BuyCosmeticRequest,
+  BuyCosmeticResponse,
+  XpBalanceResponse,
 } from "@axiomic/types";
 
 const BASE = "/api/v1";
@@ -1292,6 +1297,14 @@ export const api = {
     // S87 — per-username pet display, used by PetByUsername wrapper.
     byUsername: (username: string) =>
       request<UserPetDisplay>(`/users/${encodeURIComponent(username)}/pet-display`),
+    // S89 — XP shop.
+    shop: () => request<ShopResponse>("/me/pet/shop"),
+    balance: () => request<XpBalanceResponse>("/me/pet/balance"),
+    buy: (data: BuyCosmeticRequest) =>
+      request<BuyCosmeticResponse>("/me/pet/buy", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
     equip: (cosmeticSlug: string) =>
       request<OkResponse>("/me/pet/equip", {
         method: "POST",

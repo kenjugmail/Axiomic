@@ -244,6 +244,9 @@ const MyPetPage = lazy(() =>
 const CompetitionDetailPage = lazy(() =>
   import("./pages/CompetitionDetailPage").then((m) => ({ default: m.CompetitionDetailPage })),
 );
+const ShopPage = lazy(() =>
+  import("./pages/ShopPage").then((m) => ({ default: m.ShopPage })),
+);
 const CapstoneWorkspacePage = lazy(() =>
   import("./pages/CapstoneWorkspacePage").then((m) => ({ default: m.CapstoneWorkspacePage })),
 );
@@ -514,6 +517,7 @@ function AppRoutes() {
             element={<CompetitionDetailPage />}
           />
           <Route path="/me/pet" element={<MyPetPage />} />
+          <Route path="/shop" element={<ShopPage />} />
           <Route path="/tracks" element={<CapstoneTracksListPage />} />
           <Route path="/tracks/c/:artifactSlug" element={<CapstoneTrackArtifactPage />} />
           <Route path="/tracks/:slug" element={<CapstoneTrackPage />} />

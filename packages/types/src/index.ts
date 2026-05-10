@@ -3457,6 +3457,10 @@ export interface PetCosmeticDef {
   rarity: CosmeticRarity;
   grantOnly: boolean;
   description: string;
+  // S89 — null = not for sale; positive int = purchasable in the
+  // XP shop. (grantOnly is a S86 flag we keep around for back-
+  // compat; xpCost is the source of truth for shop visibility.)
+  xpCost?: number | null;
 }
 
 export interface PetCosmeticsCatalogResponse {
@@ -3562,4 +3566,48 @@ export interface UserPetDisplay {
     name: string;
     equipped: Array<{ slot: string; emoji: string | null; slug: string }>;
   } | null;
+}
+
+// =============================================================
+// S89 — XP shop.
+// =============================================================
+
+// One row from GET /me/pet/shop. Already filtered to purchasable
+// cosmetics (xpCost not null). owned + affordable are computed
+// per-user so the UI can render the right CTA without a second
+// query.
+export interface ShopItem {
+  slug: string;
+  name: string;
+  slot: CosmeticSlot;
+  emoji: string | null;
+  rarity: CosmeticRarity;
+  description: string;
+  xpCost: number;
+  owned: boolean;
+  affordable: boolean;
+}
+
+export interface ShopResponse {
+  balance: number;
+  items: ShopItem[];
+}
+
+export interface BuyCosmeticRequest {
+  cosmeticSlug: string;
+}
+
+export interface BuyCosmeticResponse {
+  ok: true;
+  balance: number;
+  cosmeticSlug: string;
+}
+
+// GET /me/pet/balance — small probe for the balance widget. Returns
+// lifetime + spent so the UI can show "X spent of Y earned" without
+// a second call.
+export interface XpBalanceResponse {
+  balance: number;
+  lifetimeXp: number;
+  spentXp: number;
 }

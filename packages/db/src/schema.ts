@@ -2449,6 +2449,10 @@ export const petCosmetics = sqliteTable("pet_cosmetics", {
   rarity: text("rarity").notNull().default("common"),
   grantOnly: integer("grant_only", { mode: "boolean" }).notNull().default(true),
   description: text("description").notNull().default(""),
+  // S89 — XP shop. NULL means the cosmetic is not for sale (still
+  // available via instructor grant or competition prize).
+  // Non-null = students can spend XP to buy it.
+  xpCost: integer("xp_cost"),
 });
 
 // What each user owns + which pieces are equipped on their pet.
@@ -2516,4 +2520,34 @@ export const classCompetitions = sqliteTable("class_competitions", {
   updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
 }, (t) => ({
   classStatusIdx: index("class_competitions_class_idx").on(t.classId, t.status, t.endsAt),
+}));
+
+// =============================================================
+// S89 — XP shop ledger.
+// =============================================================
+//
+// Two-sided XP economy. xp_grants is the credits side (grants in,
+// always positive); xp_purchases is the debits side (XP spent on
+// shop cosmetics). Spendable balance is
+//   xpBalance(user) = sum(xp_grants.amount) - sum(xp_purchases.amount)
+//
+// We deliberately keep purchases in a separate table rather than
+// negative xp_grants so the leaderboard's
+// `SUM(xp_grants.amount)` query keeps measuring lifetime
+// achievement (not balance) — buying cosmetics shouldn't penalize
+// you on the class leaderboard.
+//
+// One row per purchase (no idempotency on a "user buys cosmetic
+// twice" because already-owned is rejected at the route layer).
+// amount is captured at purchase time so a future xpCost change
+// doesn't retroactively rewrite history.
+export const xpPurchases = sqliteTable("xp_purchases", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  cosmeticSlug: text("cosmetic_slug").notNull(),
+  amount: integer("amount").notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  userIdx: index("xp_purchases_user_idx").on(t.userId, t.createdAt),
 }));
