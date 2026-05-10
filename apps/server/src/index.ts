@@ -42,6 +42,8 @@ import { claimExternalAuthorshipsByOrcidJob } from "./jobs/claimExternalAuthorsh
 import { harvestSocialResearcherPostsJob } from "./jobs/harvestSocialResearcherPosts";
 import { finalizeStaleExamAttemptsJob } from "./jobs/finalizeStaleExamAttempts";
 import { capstonesRouter } from "./routes/capstones";
+import { classesRouter } from "./routes/classes";
+import { petRouter, petCatalogRouter } from "./routes/pet";
 import { misconceptionsRouter } from "./routes/misconceptions";
 import { kernelFilesRouter } from "./routes/kernelFiles";
 import { cohortsRouter, mentorsRouter } from "./routes/cohorts";
@@ -235,6 +237,9 @@ app.route("/external-papers", paperAuthorQuestionsRouter);
 // Sprint 73 — exam mastery framework.
 app.route("/exams", examsRouter);
 app.route("/capstones", capstonesRouter);
+app.route("/classes", classesRouter);
+app.route("/me/pet", petRouter);
+app.route("/pet-cosmetics", petCatalogRouter);
 app.route("/misconceptions", misconceptionsRouter);
 app.route("/kernel-files", kernelFilesRouter);
 app.route("/cohorts", cohortsRouter);

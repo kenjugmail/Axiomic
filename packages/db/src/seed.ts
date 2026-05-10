@@ -25,6 +25,8 @@ import {
   equipment,
   equipmentOperations,
   safetyCertifications,
+  // S86 — pet cosmetic catalog.
+  petCosmetics,
 } from "./index";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -128,6 +130,9 @@ async function seed() {
   // Sprint 84 — lab protocol + equipment + safety-cert library +
   // onboarding playbook. Idempotent on slug.
   seedLabContent();
+
+  // S86 — pet cosmetic catalog. Idempotent on slug.
+  seedPetCosmetics();
 
   console.log("Seeding complete.");
 }
@@ -2452,6 +2457,48 @@ async function seedCapstoneTracks() {
     count++;
   }
   console.log(`  Seeded ${count} capstone track${count === 1 ? "" : "s"}.`);
+}
+
+// S86 — pet cosmetic catalog. Idempotent on slug. Reads
+// `seed-content/pet-cosmetics/cosmetics.json` (single file, list of
+// cosmetics) so the seed is one round-trip rather than per-file.
+function seedPetCosmetics() {
+  const file = path.join(import.meta.dir, "../../../seed-content/pet-cosmetics/cosmetics.json");
+  if (!fs.existsSync(file)) return;
+  let parsed: any;
+  try {
+    parsed = JSON.parse(fs.readFileSync(file, "utf-8"));
+  } catch {
+    console.warn("  Skipping pet cosmetics: invalid JSON.");
+    return;
+  }
+  const list = Array.isArray(parsed?.cosmetics) ? parsed.cosmetics : [];
+  let count = 0;
+  for (const c of list) {
+    if (!c?.slug || !c?.name || !c?.slot) continue;
+    const existing = db
+      .select({ id: petCosmetics.id })
+      .from(petCosmetics)
+      .where(eq(petCosmetics.slug, c.slug))
+      .get();
+    const values = {
+      slug: c.slug,
+      name: c.name,
+      slot: c.slot,
+      renderKind: c.renderKind ?? "emoji",
+      emoji: c.emoji ?? null,
+      rarity: c.rarity ?? "common",
+      grantOnly: c.grantOnly ?? true,
+      description: c.description ?? "",
+    };
+    if (existing) {
+      db.update(petCosmetics).set(values).where(eq(petCosmetics.id, existing.id)).run();
+    } else {
+      db.insert(petCosmetics).values({ id: randomUUID(), ...values }).run();
+    }
+    count++;
+  }
+  console.log(`  Seeded ${count} pet cosmetic${count === 1 ? "" : "s"}.`);
 }
 
 seed().catch(console.error);

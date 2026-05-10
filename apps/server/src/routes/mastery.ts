@@ -22,6 +22,7 @@ import { requireAuth, getSessionUser } from "../middleware/auth";
 import { notify } from "../lib/notifications";
 import { fireDetectorForUserAsync } from "../lib/misconceptionDetector";
 import { recordActivityAndEvaluate } from "../lib/achievements";
+import { grantXp } from "../lib/xp";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import { gradeQuestion } from "../lib/quizGrading";
 import { forumTopicsForNode } from "../lib/crossLinks";
@@ -318,11 +319,22 @@ mastery.post("/progress/:nodeId/complete", requireAuth, async (c) => {
   // so re-marking an already-complete node doesn't pollute the activity
   // log or claim duplicate progress against streaks.
   let newAchievements: string[] = [];
+  let petHatched: { species: string; name: string } | undefined;
   if (!wasAlreadyCompleted) {
     newAchievements = recordActivityAndEvaluate(user.id, "node_completed");
+    // S86 — XP grant for completing a mastery node. classId=null
+    // since this isn't a class-scoped action; counts toward total XP
+    // (which is what triggers pet hatching) but not any class
+    // leaderboard.
+    const xp = grantXp({
+      userId: user.id,
+      source: "lesson-completed",
+      sourceRefId: nodeId,
+    });
+    if (xp.petHatched) petHatched = xp.petHatched;
   }
 
-  return c.json({ ok: true, newAchievements });
+  return c.json({ ok: true, newAchievements, petHatched });
 });
 
 // Per-user mastery summary across all paths.
@@ -1436,11 +1448,25 @@ mastery.post("/quiz/:nodeId", requireAuth, zValidator("json", quizSubmitSchema),
   // aren't held hostage by a hard quiz.
   const newAchievements: string[] = [];
   newAchievements.push(...recordActivityAndEvaluate(user.id, "quiz_passed"));
+  // S86 — XP for passing a quiz. Idempotent on (userId, source, nodeId)
+  // so re-attempts of the same quiz don't double-grant.
+  grantXp({
+    userId: user.id,
+    source: "quiz-passed",
+    sourceRefId: nodeId,
+  });
   // Look for any code question that the user got fully right and credit it.
   const codeQs = (questions as any[]).filter((q) => q?.kind === "code");
   for (const cq of codeQs) {
     if (gradeQuestion(cq, answers[cq.id])) {
       newAchievements.push(...recordActivityAndEvaluate(user.id, "code_question_passed"));
+      // S86 — XP for solving a code question. Idempotent on
+      // (userId, source, nodeId).
+      grantXp({
+        userId: user.id,
+        source: "code-question-passed",
+        sourceRefId: nodeId,
+      });
       break; // one credit per submit, regardless of how many code questions
     }
   }

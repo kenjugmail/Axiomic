@@ -226,6 +226,21 @@ const CapstoneNewPage = lazy(() =>
 const CapstoneEditPage = lazy(() =>
   import("./pages/CapstoneEditPage").then((m) => ({ default: m.CapstoneEditPage })),
 );
+const ClassesListPage = lazy(() =>
+  import("./pages/ClassesListPage").then((m) => ({ default: m.ClassesListPage })),
+);
+const ClassPage = lazy(() =>
+  import("./pages/ClassPage").then((m) => ({ default: m.ClassPage })),
+);
+const ClassEditPage = lazy(() =>
+  import("./pages/ClassEditPage").then((m) => ({ default: m.ClassEditPage })),
+);
+const ClassTaskPage = lazy(() =>
+  import("./pages/ClassTaskPage").then((m) => ({ default: m.ClassTaskPage })),
+);
+const MyPetPage = lazy(() =>
+  import("./pages/MyPetPage").then((m) => ({ default: m.MyPetPage })),
+);
 const CapstoneWorkspacePage = lazy(() =>
   import("./pages/CapstoneWorkspacePage").then((m) => ({ default: m.CapstoneWorkspacePage })),
 );
@@ -486,6 +501,12 @@ function AppRoutes() {
           <Route path="/capstones/:slug" element={<CapstonePage />} />
           <Route path="/capstones/:slug/edit" element={<CapstoneEditPage />} />
           <Route path="/capstones/:slug/work" element={<CapstoneWorkspacePage />} />
+          {/* S86 — classes + pets. */}
+          <Route path="/classes" element={<ClassesListPage />} />
+          <Route path="/classes/:slug" element={<ClassPage />} />
+          <Route path="/classes/:slug/edit" element={<ClassEditPage />} />
+          <Route path="/classes/:slug/tasks/:taskId" element={<ClassTaskPage />} />
+          <Route path="/me/pet" element={<MyPetPage />} />
           <Route path="/tracks" element={<CapstoneTracksListPage />} />
           <Route path="/tracks/c/:artifactSlug" element={<CapstoneTrackArtifactPage />} />
           <Route path="/tracks/:slug" element={<CapstoneTrackPage />} />

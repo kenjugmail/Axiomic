@@ -3237,3 +3237,241 @@ export interface MasteryNodeKindFields {
   certSlug?: string | null;
   equipmentSlug?: string | null;
 }
+
+// =============================================================
+// S86 — Classroom engagement (classes, XP, pets, cosmetics)
+// =============================================================
+
+export type ClassRole = "instructor" | "ta" | "student" | "observer";
+export type ClassStatus = "active" | "archived";
+export type ClassTaskKind = "reading" | "homework";
+export type AttendanceStatus = "present" | "absent" | "late" | "excused";
+export type CosmeticSlot = "head" | "eyes" | "accessory";
+export type CosmeticRarity = "common" | "rare" | "epic" | "legendary";
+
+export interface ClassSummary {
+  id: string;
+  slug: string;
+  title: string;
+  term: string;
+  description: string;
+  status: ClassStatus;
+  role: ClassRole;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ClassesListResponse {
+  teaching: ClassSummary[];
+  enrolled: ClassSummary[];
+}
+
+export interface ClassDetail {
+  id: string;
+  slug: string;
+  title: string;
+  term: string;
+  description: string;
+  syllabusMd: string;
+  status: ClassStatus;
+  instructor: { id: string; username: string; displayName: string | null } | null;
+  joinCode: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ClassRosterEntry {
+  userId: string;
+  username: string;
+  displayName: string | null;
+  role: ClassRole;
+  joinedAt: string;
+}
+
+export interface ClassTaskSummary {
+  id: string;
+  kind: ClassTaskKind;
+  title: string;
+  descriptionMd: string;
+  url: string | null;
+  dueAt: string | null;
+  xpReward: number;
+  createdAt: string;
+  myCompleted: boolean;
+}
+
+export interface ClassDetailResponse {
+  class: ClassDetail;
+  myRole: ClassRole;
+  myXp: number;
+  roster: ClassRosterEntry[];
+  tasks: ClassTaskSummary[];
+}
+
+export interface ClassEquippedCosmetic {
+  slot: string;
+  emoji: string | null;
+  slug: string;
+}
+
+export interface ClassLeaderboardEntry {
+  userId: string;
+  username: string;
+  displayName: string | null;
+  role: ClassRole;
+  xp: number;
+  pet: {
+    species: string;
+    name: string;
+    equipped: ClassEquippedCosmetic[];
+  } | null;
+}
+
+export interface ClassLeaderboardResponse {
+  entries: ClassLeaderboardEntry[];
+}
+
+export interface ClassAttendanceEntry {
+  id: string;
+  userId: string;
+  username: string;
+  displayName: string | null;
+  sessionDate: string;
+  status: AttendanceStatus;
+  recordedAt: string;
+}
+
+export interface ClassAttendanceResponse {
+  entries: ClassAttendanceEntry[];
+}
+
+export interface ClassTaskGrade {
+  pass: boolean;
+  feedback: string;
+}
+
+export interface ClassTaskSubmission {
+  id: string;
+  userId: string;
+  username: string;
+  displayName: string | null;
+  content: string | null;
+  wasLate: boolean;
+  grade: ClassTaskGrade | null;
+  submittedAt: string;
+  gradedAt: string | null;
+}
+
+export interface ClassTaskSubmissionsResponse {
+  task: {
+    id: string;
+    kind: ClassTaskKind;
+    title: string;
+    descriptionMd: string;
+    url: string | null;
+    dueAt: string | null;
+  };
+  submissions: ClassTaskSubmission[];
+}
+
+export interface CreateClassRequest {
+  slug: string;
+  title: string;
+  term?: string;
+  description?: string;
+  syllabusMd?: string;
+}
+
+export interface UpdateClassRequest {
+  title?: string;
+  term?: string;
+  description?: string;
+  syllabusMd?: string;
+  status?: ClassStatus;
+}
+
+export interface CreateClassTaskRequest {
+  kind: ClassTaskKind;
+  title: string;
+  descriptionMd?: string;
+  url?: string | null;
+  dueAt?: string | null;
+  xpReward?: number | null;
+}
+
+export interface UpdateClassTaskRequest {
+  title?: string;
+  descriptionMd?: string;
+  url?: string | null;
+  dueAt?: string | null;
+  xpReward?: number | null;
+}
+
+export interface CompleteClassTaskRequest {
+  content?: string | null;
+}
+
+export interface CompleteClassTaskResponse {
+  ok: true;
+  xpGranted: number;
+  petHatched: { species: string; name: string } | null;
+}
+
+export interface GradeClassTaskRequest {
+  pass: boolean;
+  feedback?: string;
+}
+
+export interface RecordAttendanceRequest {
+  sessionDate: string;
+  entries: Array<{ userId: string; status: AttendanceStatus }>;
+}
+
+export interface GrantCosmeticRequest {
+  userId: string;
+  cosmeticSlug: string;
+  note?: string;
+}
+
+export interface PetCosmeticDef {
+  id: string;
+  slug: string;
+  name: string;
+  slot: CosmeticSlot;
+  renderKind: "emoji" | "svg";
+  emoji: string | null;
+  rarity: CosmeticRarity;
+  grantOnly: boolean;
+  description: string;
+}
+
+export interface PetCosmeticsCatalogResponse {
+  cosmetics: PetCosmeticDef[];
+}
+
+export interface PetInventoryItem {
+  id: string;
+  slug: string;
+  name: string;
+  slot: CosmeticSlot;
+  emoji: string | null;
+  rarity: CosmeticRarity;
+  description: string;
+  equipped: boolean;
+  acquiredAt: string;
+  grantedNote: string | null;
+}
+
+export interface MyPetResponse {
+  pet: {
+    id: string;
+    species: string;
+    speciesEmoji: string;
+    speciesLabel: string;
+    name: string;
+    hatchedAt: string;
+  } | null;
+  totalXp: number;
+  hatchThresholdXp: number;
+  inventory: PetInventoryItem[];
+}
