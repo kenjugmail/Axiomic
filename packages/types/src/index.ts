@@ -3611,12 +3611,22 @@ export interface ShopItem {
   rarity: CosmeticRarity;
   description: string;
   xpCost: number;
+  // S95 — discounted price applied today if `featured` is true,
+  // else equal to xpCost. Server is the source of truth — the buy
+  // route re-derives the discount and ignores any client claim.
+  effectiveCost: number;
+  featured: boolean;
   owned: boolean;
   affordable: boolean;
 }
 
 export interface ShopResponse {
   balance: number;
+  // S95 — the slug the server picked as today's featured cosmetic
+  // (deterministic from UTC date). null if the shop has zero
+  // purchasable items.
+  featuredSlug: string | null;
+  featuredDiscountPercent: number;
   items: ShopItem[];
 }
 
@@ -3628,6 +3638,11 @@ export interface BuyCosmeticResponse {
   ok: true;
   balance: number;
   cosmeticSlug: string;
+  // S95 — actual XP burned (may be discounted) + whether it was
+  // bought as today's featured. Lets the UI flash a "saved N XP!"
+  // toast when the discount applied.
+  amountSpent?: number;
+  wasFeatured?: boolean;
 }
 
 // GET /me/pet/balance — small probe for the balance widget. Returns

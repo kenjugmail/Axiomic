@@ -1168,6 +1168,109 @@ describe("S89 XP shop", () => {
   });
 });
 
+describe("S95 daily-featured shop rotation", () => {
+  test("shop response includes featuredSlug + discounted effectiveCost on the featured item", async () => {
+    const instructor = await signup("featinst1");
+    const student = await signup("featstud1");
+    const slug = `cls-feat-list-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    const shop = await req("/me/pet/shop", { headers: cookieHeader(student.cookie) });
+    expect(shop.status).toBe(200);
+    const data = (await shop.json()) as {
+      featuredSlug: string | null;
+      featuredDiscountPercent: number;
+      items: Array<{
+        slug: string;
+        xpCost: number;
+        effectiveCost: number;
+        featured: boolean;
+      }>;
+    };
+    expect(data.featuredSlug).not.toBeNull();
+    expect(data.featuredDiscountPercent).toBe(50);
+    const featured = data.items.find((i) => i.featured);
+    expect(featured).toBeDefined();
+    expect(featured?.slug).toBe(data.featuredSlug);
+    // Discount: ceil(xpCost * 0.5)
+    expect(featured?.effectiveCost).toBe(Math.ceil(featured!.xpCost * 0.5));
+    // Non-featured items keep their full price.
+    const nonFeatured = data.items.find((i) => !i.featured);
+    expect(nonFeatured).toBeDefined();
+    expect(nonFeatured?.effectiveCost).toBe(nonFeatured?.xpCost);
+  });
+
+  test("featured slug stable across consecutive shop reads on the same day", async () => {
+    const u = await signup("featstud2");
+    const a = await req("/me/pet/shop", { headers: cookieHeader(u.cookie) });
+    const b = await req("/me/pet/shop", { headers: cookieHeader(u.cookie) });
+    const aData = (await a.json()) as { featuredSlug: string };
+    const bData = (await b.json()) as { featuredSlug: string };
+    expect(aData.featuredSlug).toBe(bData.featuredSlug);
+  });
+
+  test("buying the featured cosmetic charges the discounted price", async () => {
+    const instructor = await signup("featinst3");
+    const student = await signup("featstud3");
+    const slug = `cls-feat-buy-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    // Earn enough XP via several graded homeworks. 30 graded passes
+    // = 30 * (30 + 20) = 1500 XP, comfortably above any one cosmetic.
+    for (let i = 0; i < 30; i++) {
+      const t = await req(`/classes/${slug}/tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+        body: JSON.stringify({ kind: "homework", title: `T${i}` }),
+      });
+      const { taskId } = (await t.json()) as { taskId: string };
+      await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+        body: JSON.stringify({ content: `Submission ${i} long enough for the validator.` }),
+      });
+      await req(`/classes/${slug}/tasks/${taskId}/grade/${student.userId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+        body: JSON.stringify({ pass: true }),
+      });
+    }
+    // Read shop to learn today's featured slug + discounted price.
+    const shop = await req("/me/pet/shop", { headers: cookieHeader(student.cookie) });
+    const shopData = (await shop.json()) as {
+      featuredSlug: string;
+      items: Array<{ slug: string; xpCost: number; effectiveCost: number; featured: boolean }>;
+    };
+    const featured = shopData.items.find((i) => i.slug === shopData.featuredSlug)!;
+    expect(featured.effectiveCost).toBeLessThan(featured.xpCost);
+
+    // Buy it. The response should report the discounted amountSpent.
+    const buy = await req("/me/pet/buy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ cosmeticSlug: featured.slug }),
+    });
+    expect(buy.status).toBe(201);
+    const buyData = (await buy.json()) as { amountSpent: number; wasFeatured: boolean };
+    expect(buyData.wasFeatured).toBe(true);
+    expect(buyData.amountSpent).toBe(featured.effectiveCost);
+
+    // Balance probe: spentXp matches the discounted amount, not the
+    // full xpCost.
+    const bal = await req("/me/pet/balance", { headers: cookieHeader(student.cookie) });
+    const balData = (await bal.json()) as { spentXp: number };
+    expect(balData.spentXp).toBe(featured.effectiveCost);
+  });
+});
+
 describe("S93 instructor analytics dashboard", () => {
   test("non-instructor cannot read analytics (403)", async () => {
     const instructor = await signup("anainst1");

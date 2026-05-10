@@ -303,7 +303,45 @@ petPublicRouter.get("/:username/pet-display", (c) => {
 // =================================================================
 // S89 — XP shop.
 // =================================================================
+// S89 — XP shop.
 //
+// S95 — daily-featured rotation. One purchasable cosmetic per UTC
+// day is "featured" and gets a SHOP_FEATURED_DISCOUNT_PERCENT
+// discount. The pick is deterministic from today's date hashed
+// against the shop slug list, so the same cosmetic shows everywhere
+// for the day and rolls over at midnight UTC. Encourages daily
+// shop revisits without inventing a new state model.
+// =================================================================
+
+const SHOP_FEATURED_DISCOUNT_PERCENT = 50;
+
+// FNV-1a 32-bit. Tiny, no deps, good-enough distribution for picking
+// one cosmetic out of a small list once per day.
+function fnv1a(s: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+  }
+  return h >>> 0;
+}
+
+// Deterministic featured pick for a given UTC day key. Returns the
+// cosmetic slug from `shopSlugs` selected by hashing `dayKey`.
+// Pure function — testable without a clock.
+export function pickFeaturedCosmetic(dayKey: string, shopSlugs: string[]): string | null {
+  if (shopSlugs.length === 0) return null;
+  const sorted = [...shopSlugs].sort();
+  const idx = fnv1a(dayKey) % sorted.length;
+  return sorted[idx];
+}
+
+function discountedCost(xpCost: number): number {
+  // Round UP so the math always favors the shop (and matches the
+  // "pay 50%" framing — 25 cost at 50% off is 13, not 12).
+  return Math.ceil(xpCost * (1 - SHOP_FEATURED_DISCOUNT_PERCENT / 100));
+}
+
 // GET /me/pet/shop — list cosmetics with non-null xpCost plus the
 // user's balance + ownership flags. The web shop renders this
 // directly without needing the full catalog.
@@ -327,20 +365,31 @@ petRouter.get("/shop", requireAuth, (c) => {
       .map((r) => r.slug),
   );
 
+  const today = new Date().toISOString().slice(0, 10);
+  const featuredSlug = pickFeaturedCosmetic(today, items.map((it) => it.slug));
+
   const balance = xpBalanceForUser(user.id);
   return c.json({
     balance,
-    items: items.map((it) => ({
-      slug: it.slug,
-      name: it.name,
-      slot: it.slot,
-      emoji: it.emoji,
-      rarity: it.rarity,
-      description: it.description,
-      xpCost: it.xpCost!,
-      owned: ownedSlugs.has(it.slug),
-      affordable: balance >= (it.xpCost ?? 0),
-    })),
+    featuredSlug,
+    featuredDiscountPercent: SHOP_FEATURED_DISCOUNT_PERCENT,
+    items: items.map((it) => {
+      const featured = it.slug === featuredSlug;
+      const effectiveCost = featured ? discountedCost(it.xpCost!) : it.xpCost!;
+      return {
+        slug: it.slug,
+        name: it.name,
+        slot: it.slot,
+        emoji: it.emoji,
+        rarity: it.rarity,
+        description: it.description,
+        xpCost: it.xpCost!,
+        effectiveCost,
+        featured,
+        owned: ownedSlugs.has(it.slug),
+        affordable: balance >= effectiveCost,
+      };
+    }),
   });
 });
 
@@ -385,10 +434,27 @@ petRouter.post(
       .get();
     if (owned) return c.json({ error: "Already owned" }, 409);
 
+    // S95 — recompute the price server-side so a client can't
+    // claim a discount that isn't valid today. We don't trust the
+    // client to tell us "this is featured" — we re-derive it from
+    // today's UTC date against the current shop slug list.
+    const allShopSlugs = db
+      .select({ slug: petCosmetics.slug })
+      .from(petCosmetics)
+      .where(sql`${petCosmetics.xpCost} is not null`)
+      .all()
+      .map((r) => r.slug);
+    const today = new Date().toISOString().slice(0, 10);
+    const featuredToday = pickFeaturedCosmetic(today, allShopSlugs);
+    const finalCost =
+      cosmeticSlug === featuredToday
+        ? discountedCost(cosmetic.xpCost)
+        : cosmetic.xpCost;
+
     const balance = xpBalanceForUser(user.id);
-    if (balance < cosmetic.xpCost) {
+    if (balance < finalCost) {
       return c.json(
-        { error: "Insufficient XP", balance, xpCost: cosmetic.xpCost },
+        { error: "Insufficient XP", balance, xpCost: finalCost },
         402,
       );
     }
@@ -396,14 +462,16 @@ petRouter.post(
     // SQLite (better-sqlite3) auto-commits each statement. To make
     // the spend + grant atomic, wrap both writes in a transaction
     // — if the inventory insert collides with a concurrent grant,
-    // the purchase rolls back and the user keeps the XP.
+    // the purchase rolls back and the user keeps the XP. The
+    // recorded purchase amount is the discounted finalCost so the
+    // ledger reflects the actual XP burned.
     db.transaction((tx) => {
       tx.insert(xpPurchases)
         .values({
           id: randomUUID(),
           userId: user.id,
           cosmeticSlug,
-          amount: cosmetic.xpCost!,
+          amount: finalCost,
         })
         .run();
       tx.insert(petInventory)
@@ -419,8 +487,10 @@ petRouter.post(
     return c.json(
       {
         ok: true,
-        balance: balance - cosmetic.xpCost,
+        balance: balance - finalCost,
         cosmeticSlug,
+        amountSpent: finalCost,
+        wasFeatured: cosmeticSlug === featuredToday,
       },
       201,
     );

@@ -42,11 +42,18 @@ export function ShopPage() {
 
   const buy = async (item: ShopItem) => {
     if (item.owned || !item.affordable) return;
-    if (!confirm(`Spend ${item.xpCost} XP on ${item.emoji ?? ""} ${item.name}?`)) return;
+    const cost = item.effectiveCost;
+    if (!confirm(`Spend ${cost} XP on ${item.emoji ?? ""} ${item.name}?`)) return;
     setBusy(item.slug);
     try {
       const r = await api.pet.buy({ cosmeticSlug: item.slug });
-      toast.success(`Got ${item.name}! Balance: ${r.balance} XP`);
+      // S95 — surface the discount in the toast when it applied.
+      const saved = r.wasFeatured && r.amountSpent != null ? item.xpCost - r.amountSpent : 0;
+      toast.success(
+        saved > 0
+          ? `Got ${item.name}! Saved ${saved} XP — balance: ${r.balance}`
+          : `Got ${item.name}! Balance: ${r.balance} XP`,
+      );
       reload();
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Buy failed");
@@ -107,13 +114,21 @@ export function ShopPage() {
         <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {data.items.map((item) => {
             const rarityBorder = RARITY_BORDER[item.rarity] ?? "border-border";
+            // S95 — featured cards get a colored ring + a corner
+            // badge so the discount is unmissable.
+            const featuredBorder = item.featured ? "ring-2 ring-amber-500/60 border-amber-500/40" : rarityBorder;
             return (
               <li
                 key={item.slug}
-                className={`p-4 rounded-md border ${rarityBorder} flex flex-col items-center text-center gap-2 ${
+                className={`relative p-4 rounded-md border ${featuredBorder} flex flex-col items-center text-center gap-2 ${
                   item.owned ? "opacity-60" : ""
                 }`}
               >
+                {item.featured && !item.owned && (
+                  <span className="absolute -top-2 -right-2 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500 text-white shadow-sm">
+                    Featured −{data.featuredDiscountPercent}%
+                  </span>
+                )}
                 <div className="text-4xl py-2">{item.emoji ?? "🎁"}</div>
                 <div className="text-sm font-medium">{item.name}</div>
                 <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -139,17 +154,27 @@ export function ShopPage() {
                       disabled={busy === item.slug}
                       className="w-full text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60 inline-flex items-center justify-center gap-1.5"
                     >
-                      {busy === item.slug ? "Buying…" : `Spend ${item.xpCost} XP`}
+                      {busy === item.slug ? "Buying…" : (
+                        <>
+                          Spend {item.effectiveCost} XP
+                          {item.featured && (
+                            <span className="line-through opacity-60 ml-1">{item.xpCost}</span>
+                          )}
+                        </>
+                      )}
                     </button>
                   ) : (
                     <button
                       type="button"
                       disabled
-                      title={`Need ${item.xpCost - data.balance} more XP`}
+                      title={`Need ${item.effectiveCost - data.balance} more XP`}
                       className="w-full text-xs px-3 py-1.5 rounded-md border border-border text-muted-foreground inline-flex items-center justify-center gap-1.5"
                     >
                       <Lock className="w-3.5 h-3.5" />
-                      {item.xpCost} XP
+                      {item.effectiveCost} XP
+                      {item.featured && (
+                        <span className="line-through opacity-60 ml-1">{item.xpCost}</span>
+                      )}
                     </button>
                   )}
                 </div>
