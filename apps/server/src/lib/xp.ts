@@ -40,6 +40,11 @@ export const XP_AMOUNTS = {
   // challenge (smaller community, instructor may push several per
   // week) but bigger than a regular quiz pass.
   "class-question-correct": 15,
+  // S106 — capstone-track completion by a member of a cohort
+  // linked to this class. Fires once per (user, trackId) so re-
+  // running the completion check doesn't double-pay. Large reward
+  // because completing a track is a real milestone.
+  "cohort-capstone-completed": 100,
 } as const;
 
 // Sources with default amounts in XP_AMOUNTS.

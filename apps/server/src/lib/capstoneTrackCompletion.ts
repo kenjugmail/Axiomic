@@ -14,10 +14,58 @@ import {
   capstoneTrackCompletions,
   capstoneTracks,
   capstones,
+  classes,
+  classEnrollments,
+  cohortMembers,
   getDb,
   users,
 } from "@axiomic/db";
 import { canonicalJson, sign } from "./signing";
+import { grantXp } from "./xp";
+
+// S106 — When a capstone-track completion is minted for a user, if
+// that user belongs to any cohort that's linked to a class they're
+// enrolled in, grant 'cohort-capstone-completed' XP scoped to that
+// class. Idempotent at the grantXp layer (unique on (userId,
+// source, sourceRefId)) so re-running this is safe.
+//
+// Best-effort: caught + logged. A failure here must not unwind the
+// completion record itself.
+function maybeAwardCohortClassXp(userId: string, trackId: string) {
+  try {
+    const db = getDb();
+    const memberCohorts = db
+      .select({ cohortId: cohortMembers.cohortId })
+      .from(cohortMembers)
+      .where(eq(cohortMembers.userId, userId))
+      .all();
+    if (memberCohorts.length === 0) return;
+    const cohortIds = memberCohorts.map((m) => m.cohortId);
+
+    const linkedClasses = db
+      .select({ classId: classes.id, linkedCohortId: classes.linkedCohortId })
+      .from(classes)
+      .innerJoin(classEnrollments, eq(classEnrollments.classId, classes.id))
+      .where(
+        and(
+          eq(classEnrollments.userId, userId),
+          inArray(classes.linkedCohortId, cohortIds),
+        ),
+      )
+      .all();
+
+    for (const cls of linkedClasses) {
+      grantXp({
+        userId,
+        classId: cls.classId,
+        source: "cohort-capstone-completed",
+        sourceRefId: trackId,
+      });
+    }
+  } catch (err) {
+    console.error("maybeAwardCohortClassXp failed", { userId, trackId, err });
+  }
+}
 
 export interface TrackCompletionManifest {
   issuer: string;
@@ -157,6 +205,9 @@ export function maybeMintTrackCompletions(userId: string): MintedTrackCompletion
         signedTranscriptJson,
       })
       .run();
+
+    // S106 — fan completion XP out to any linked class.
+    maybeAwardCohortClassXp(userId, track.id);
 
     minted.push({
       trackId: track.id,

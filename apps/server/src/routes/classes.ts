@@ -24,6 +24,7 @@ import {
   classTaskCompletions,
   classTasks,
   classes,
+  cohorts,
   petCosmetics,
   petInventory,
   pets,
@@ -76,6 +77,9 @@ const createClassSchema = z.object({
   welcomeMessageMd: z.string().max(10000).optional().default(""),
   // S102 — opt-in to the public directory.
   discoverable: z.boolean().optional().default(false),
+  // S106 — optional linked cohort. Caller must own the cohort at
+  // the route layer (no schema FK).
+  linkedCohortId: z.string().min(1).max(64).optional().nullable(),
 });
 
 const updateClassSchema = z.object({
@@ -85,6 +89,8 @@ const updateClassSchema = z.object({
   syllabusMd: z.string().max(50000).optional(),
   welcomeMessageMd: z.string().max(10000).optional(),
   discoverable: z.boolean().optional(),
+  // S106 — set/clear the linked cohort. Pass null to unlink.
+  linkedCohortId: z.string().min(1).max(64).nullable().optional(),
   status: z.enum(["active", "archived"]).optional(),
 });
 
@@ -264,6 +270,20 @@ classesRouter.post("/", requireAuth, zValidator("json", createClassSchema), asyn
   }
   if (!joinCode) return c.json({ error: "Could not generate join code, retry" }, 500);
 
+  // S106 — if a linkedCohortId is provided at create time, validate
+  // that the caller owns that cohort. (Same check as on update.)
+  if (data.linkedCohortId) {
+    const cohort = db
+      .select({ creatorId: cohorts.creatorId })
+      .from(cohorts)
+      .where(eq(cohorts.id, data.linkedCohortId))
+      .get();
+    if (!cohort) return c.json({ error: "Cohort not found" }, 404);
+    if (cohort.creatorId !== user.id) {
+      return c.json({ error: "You don't own that cohort" }, 403);
+    }
+  }
+
   db.insert(classes)
     .values({
       id,
@@ -274,6 +294,7 @@ classesRouter.post("/", requireAuth, zValidator("json", createClassSchema), asyn
       syllabusMd: data.syllabusMd ?? "",
       welcomeMessageMd: data.welcomeMessageMd ?? "",
       discoverable: data.discoverable ?? false,
+      linkedCohortId: data.linkedCohortId ?? null,
       joinCode,
       instructorId: user.id,
     })
@@ -398,6 +419,7 @@ classesRouter.get("/:slug", requireAuth, requireEnrolledInClass, async (c) => {
       syllabusMd: cls.syllabusMd,
       welcomeMessageMd: cls.welcomeMessageMd,
       discoverable: cls.discoverable,
+      linkedCohortId: cls.linkedCohortId,
       status: cls.status,
       instructor: instructor
         ? {
@@ -453,6 +475,24 @@ classesRouter.put(
     if (data.syllabusMd != null) patch.syllabusMd = data.syllabusMd;
     if (data.welcomeMessageMd != null) patch.welcomeMessageMd = data.welcomeMessageMd;
     if (data.discoverable != null) patch.discoverable = data.discoverable;
+    // S106 — linked cohort. null clears; a string sets. Validate
+    // ownership at this layer (the schema has no FK).
+    if (data.linkedCohortId !== undefined) {
+      if (data.linkedCohortId === null) {
+        patch.linkedCohortId = null;
+      } else {
+        const cohort = db
+          .select({ creatorId: cohorts.creatorId })
+          .from(cohorts)
+          .where(eq(cohorts.id, data.linkedCohortId))
+          .get();
+        if (!cohort) return c.json({ error: "Cohort not found" }, 404);
+        if (cohort.creatorId !== cls.instructorId) {
+          return c.json({ error: "You don't own that cohort" }, 403);
+        }
+        patch.linkedCohortId = data.linkedCohortId;
+      }
+    }
     if (data.status != null) patch.status = data.status;
 
     db.update(classes).set(patch).where(eq(classes.id, cls.id)).run();

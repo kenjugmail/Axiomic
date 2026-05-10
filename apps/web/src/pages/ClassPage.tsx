@@ -173,6 +173,18 @@ export function ClassPage() {
               )}
             </span>
           )}
+          {/* S106 — linked cohort chip. Only shown when set. */}
+          {cls.linkedCohortId && (
+            <Link
+              to={`/cohorts`}
+              className="inline-flex items-center gap-1 text-foreground hover:text-primary"
+              title="This class is linked to a cohort — capstone work in the cohort grants class XP"
+            >
+              <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-violet-500/15 text-violet-700 dark:text-violet-300">
+                linked cohort
+              </span>
+            </Link>
+          )}
         </div>
         {cls.description && (
           <p className="text-sm text-muted-foreground mt-3 leading-relaxed">

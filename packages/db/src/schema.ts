@@ -2310,6 +2310,13 @@ export const classes = sqliteTable("classes", {
   // share link or join code dictation. Default false: instructors
   // explicitly opt in.
   discoverable: integer("discoverable", { mode: "boolean" }).notNull().default(false),
+  // S106 — optional link to a cohort. When set, capstone-track
+  // completions by members of that cohort grant class XP (via the
+  // grantXp source 'cohort-capstone-completed'). Set by the
+  // instructor on edit; route validates that the caller owns both
+  // the class and the cohort. No FK so the schema-load order stays
+  // simple; correctness lives at the route layer.
+  linkedCohortId: text("linked_cohort_id"),
   // Short alphanumeric code students enter to self-enroll. Generated
   // server-side; rotatable by the instructor.
   joinCode: text("join_code").notNull(),

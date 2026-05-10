@@ -3301,6 +3301,9 @@ export interface ClassDetail {
   welcomeMessageMd: string;
   // S102 — opt-in to the public directory at /classes/discover.
   discoverable: boolean;
+  // S106 — when set, capstone-track completions by members of that
+  // cohort grant class XP via the 'cohort-capstone-completed' source.
+  linkedCohortId: string | null;
   status: ClassStatus;
   instructor: { id: string; username: string; displayName: string | null } | null;
   joinCode: string | null;
@@ -3420,6 +3423,7 @@ export interface CreateClassRequest {
   syllabusMd?: string;
   welcomeMessageMd?: string;
   discoverable?: boolean;
+  linkedCohortId?: string | null;
 }
 
 export interface UpdateClassRequest {
@@ -3429,6 +3433,7 @@ export interface UpdateClassRequest {
   syllabusMd?: string;
   welcomeMessageMd?: string;
   discoverable?: boolean;
+  linkedCohortId?: string | null;
   status?: ClassStatus;
 }
 

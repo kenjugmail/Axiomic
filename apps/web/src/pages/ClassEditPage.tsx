@@ -7,6 +7,7 @@ import type { ClassDetailResponse, ClassStatus } from "@axiomic/types";
 import { api, ApiError } from "../lib/api";
 import { Skeleton } from "../components/ui";
 import { toast } from "../stores/toast";
+import { useAuthStore } from "../stores/auth";
 
 export function ClassEditPage() {
   const { slug = "" } = useParams<{ slug: string }>();
@@ -19,6 +20,10 @@ export function ClassEditPage() {
   const [syllabusMd, setSyllabusMd] = useState("");
   const [welcomeMessageMd, setWelcomeMessageMd] = useState("");
   const [discoverable, setDiscoverable] = useState(false);
+  // S106 — linked cohort. Empty string means "no link" (server
+  // takes null on the wire).
+  const [linkedCohortId, setLinkedCohortId] = useState<string>("");
+  const [myCohorts, setMyCohorts] = useState<Array<{ id: string; slug: string; name: string }>>([]);
   const [status, setStatus] = useState<ClassStatus>("active");
   const [saving, setSaving] = useState(false);
   const [rotating, setRotating] = useState(false);
@@ -34,10 +39,31 @@ export function ClassEditPage() {
         setSyllabusMd(r.class.syllabusMd);
         setWelcomeMessageMd(r.class.welcomeMessageMd ?? "");
         setDiscoverable(!!r.class.discoverable);
+        setLinkedCohortId(r.class.linkedCohortId ?? "");
         setStatus(r.class.status);
       })
       .catch((e) => setError(e?.message ?? "Failed to load class"));
   }, [slug]);
+
+  // S106 — load the cohorts created by the current user so the
+  // picker shows only the ones the user can legitimately link.
+  // GET /cohorts surfaces creatorUsername, not creatorId, so we
+  // match by username via useAuthStore. The server re-validates
+  // ownership on update either way.
+  const meUsername = useAuthStore((s) => s.user?.username) ?? null;
+  useEffect(() => {
+    if (!meUsername) return;
+    let cancelled = false;
+    fetch("/api/v1/cohorts", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("Failed"))))
+      .then((d: { cohorts: Array<{ id: string; slug: string; name: string; creatorUsername: string }> }) => {
+        if (cancelled) return;
+        const owned = d.cohorts.filter((c) => c.creatorUsername === meUsername);
+        setMyCohorts(owned.map((c) => ({ id: c.id, slug: c.slug, name: c.name })));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [meUsername]);
 
   const save = async () => {
     setSaving(true);
@@ -49,6 +75,8 @@ export function ClassEditPage() {
         syllabusMd,
         welcomeMessageMd,
         discoverable,
+        // S106 — empty string means "no link"; server takes null.
+        linkedCohortId: linkedCohortId ? linkedCohortId : null,
         status,
       });
       toast.success("Saved");
@@ -142,6 +170,24 @@ export function ClassEditPage() {
             </select>
           </Field>
         </div>
+        {/* S106 — linked cohort picker. Only cohorts created by the
+            current user show up; server re-validates ownership on
+            save. Empty option means "not linked". */}
+        <Field label="Linked cohort (optional)">
+          <select
+            value={linkedCohortId}
+            onChange={(e) => setLinkedCohortId(e.target.value)}
+            className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background"
+          >
+            <option value="">No linked cohort</option>
+            {myCohorts.map((c) => (
+              <option key={c.id} value={c.id}>{c.name} ({c.slug})</option>
+            ))}
+          </select>
+          <span className="text-[10px] text-muted-foreground mt-1 block">
+            When linked, capstone-track completions by cohort members enrolled in this class grant class XP.
+          </span>
+        </Field>
         <label className="flex items-center gap-2 text-sm cursor-pointer">
           <input
             type="checkbox"
