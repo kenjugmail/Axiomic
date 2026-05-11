@@ -93,18 +93,32 @@ export function loadEnv(): Env {
   if (cached) return cached;
   const parsed = envSchema.safeParse(process.env);
   if (!parsed.success) {
-    // We log instead of throwing so a typo doesn't take the server
-    // down at import time; coerced defaults still apply for the
-    // valid keys.
+    // In production, an invalid env should fail boot loudly — a typo
+    // in CORS_ORIGIN or a malformed sample rate silently falling back
+    // to defaults is the exact failure mode we want to surface before
+    // serving requests. In development/test, warn and fall back so a
+    // single bad value doesn't block local work.
+    const fieldErrors = parsed.error.flatten().fieldErrors;
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "envConfig: env validation failed in production: " +
+          JSON.stringify(fieldErrors),
+      );
+    }
     console.warn(
       "envConfig: some env vars failed validation, using defaults where possible:",
-      parsed.error.flatten().fieldErrors,
+      fieldErrors,
     );
     cached = envSchema.parse({});
     return cached;
   }
   cached = parsed.data;
   return cached;
+}
+
+// Test-only: reset the cache so each test can inject its own env.
+export function _resetEnvCacheForTests(): void {
+  cached = null;
 }
 
 // Convenience accessor — `env.PORT` reads cleaner than `loadEnv().PORT`
