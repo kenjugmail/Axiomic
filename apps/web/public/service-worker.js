@@ -13,7 +13,6 @@
 // click into a deep link would require shipping that logic twice.
 
 /* global self */
-/* eslint-disable no-unused-vars */
 
 self.addEventListener("push", (event) => {
   let payload = null;

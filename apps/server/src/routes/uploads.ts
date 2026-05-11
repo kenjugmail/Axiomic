@@ -5,6 +5,7 @@ import { mkdir, writeFile, readFile, unlink } from "fs/promises";
 import path from "path";
 import { getDb, attachments, users } from "@axiomic/db";
 import { requireAuth } from "../middleware/auth";
+import { checkRateLimit } from "../lib/rateLimit";
 import { env } from "../lib/envConfig";
 import type { Env } from "../env";
 
@@ -63,9 +64,75 @@ function extFor(mime: string, originalName: string): string {
   }
 }
 
+// S108 — Magic-byte signatures for the MIMEs we accept. file.type is
+// client-supplied and can be spoofed; the actual bytes have to match
+// what the declared type promises. Each entry is a list of valid
+// prefixes (some formats have multiple magic numbers).
+const MAGIC_BYTES: Record<string, number[][]> = {
+  "image/png": [[0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]],
+  "image/jpeg": [[0xff, 0xd8, 0xff]],
+  "image/gif": [
+    [0x47, 0x49, 0x46, 0x38, 0x37, 0x61],
+    [0x47, 0x49, 0x46, 0x38, 0x39, 0x61],
+  ],
+  // WebP is RIFF...WEBP — we check the RIFF marker and the WEBP tag
+  // separately in matchesMagic() because of the 4-byte size in between.
+  "image/webp": [[0x52, 0x49, 0x46, 0x46]],
+  // MP4 has a 4-byte size header before "ftyp"; the magic-match
+  // helper checks bytes 4..8 for "ftyp" when this is the declared
+  // type.
+  "video/mp4": [[0x66, 0x74, 0x79, 0x70]],
+  "video/webm": [[0x1a, 0x45, 0xdf, 0xa3]],
+  "application/pdf": [[0x25, 0x50, 0x44, 0x46]],
+};
+
+function matchesMagic(declaredMime: string, bytes: Uint8Array): boolean {
+  const patterns = MAGIC_BYTES[declaredMime];
+  if (!patterns) return false;
+  if (declaredMime === "video/mp4") {
+    // bytes 4..8 must spell "ftyp"
+    if (bytes.length < 8) return false;
+    return (
+      bytes[4] === 0x66 &&
+      bytes[5] === 0x74 &&
+      bytes[6] === 0x79 &&
+      bytes[7] === 0x70
+    );
+  }
+  if (declaredMime === "image/webp") {
+    // bytes 0..4 RIFF, bytes 8..12 WEBP
+    if (bytes.length < 12) return false;
+    return (
+      bytes[0] === 0x52 &&
+      bytes[1] === 0x49 &&
+      bytes[2] === 0x46 &&
+      bytes[3] === 0x46 &&
+      bytes[8] === 0x57 &&
+      bytes[9] === 0x45 &&
+      bytes[10] === 0x42 &&
+      bytes[11] === 0x50
+    );
+  }
+  return patterns.some((p) => {
+    if (bytes.length < p.length) return false;
+    for (let i = 0; i < p.length; i++) {
+      if (bytes[i] !== p[i]) return false;
+    }
+    return true;
+  });
+}
+
 uploadsRouter.post("/", requireAuth, async (c) => {
   const user = c.get("user")!;
   const db = getDb();
+
+  // S108 — Per-user rate-limit. 30 uploads / minute is generous for
+  // a power user editing a long article (image-heavy walkthroughs)
+  // and tight enough to deter a misbehaving client.
+  const rateKey = `uploads:u:${user.id}`;
+  if (!checkRateLimit(rateKey, 30, 60_000)) {
+    return c.json({ error: "Upload rate limit reached. Slow down." }, 429);
+  }
 
   const form = await c.req.formData();
   const file = form.get("file");
@@ -91,6 +158,22 @@ uploadsRouter.post("/", requireAuth, async (c) => {
     return c.json({ error: "User storage quota exceeded" }, 413);
   }
 
+  const bytes = new Uint8Array(await file.arrayBuffer());
+
+  // S108 — Magic-byte check. The client's Content-Type can lie
+  // (a .zip with Content-Type: image/png passes the MIME allowlist
+  // above); the first bytes of the actual payload have to match the
+  // declared type or we reject as 415.
+  if (!matchesMagic(file.type, bytes)) {
+    return c.json(
+      {
+        error: "File content does not match the declared MIME type.",
+        declaredType: file.type,
+      },
+      415,
+    );
+  }
+
   const id = randomUUID();
   const now = new Date();
   const yyyy = String(now.getFullYear());
@@ -99,7 +182,6 @@ uploadsRouter.post("/", requireAuth, async (c) => {
   const relPath = path.join(yyyy, mm, `${id}.${ext}`);
   const absPath = path.join(uploadsRoot(), relPath);
   await mkdir(path.dirname(absPath), { recursive: true });
-  const bytes = new Uint8Array(await file.arrayBuffer());
   await writeFile(absPath, bytes);
 
   db.insert(attachments)

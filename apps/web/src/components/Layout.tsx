@@ -344,6 +344,10 @@ export function Layout() {
         <div
           className="sm:hidden fixed inset-0 z-50 bg-background/70 backdrop-blur-sm animate-fade-in"
           onClick={() => setMobileNavOpen(false)}
+          role="presentation"
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setMobileNavOpen(false);
+          }}
         >
           <div
             className="absolute left-0 top-0 bottom-0 w-72 max-w-[80%] bg-card border-r border-border shadow-floating flex flex-col"

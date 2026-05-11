@@ -107,16 +107,18 @@ export function SettingsPage() {
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Profile</h2>
         <div>
-          <label className="block text-sm font-medium mb-1">Username</label>
+          <label htmlFor="settings-username" className="block text-sm font-medium mb-1">Username</label>
           <input
+            id="settings-username"
             value={settings.username}
             disabled
             className="w-full px-3 py-2 rounded-md border border-input bg-muted text-muted-foreground text-sm"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Display name</label>
+          <label htmlFor="settings-display-name" className="block text-sm font-medium mb-1">Display name</label>
           <input
+            id="settings-display-name"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             placeholder={settings.username}
@@ -125,8 +127,9 @@ export function SettingsPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Bio</label>
+          <label htmlFor="settings-bio" className="block text-sm font-medium mb-1">Bio</label>
           <textarea
+            id="settings-bio"
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             rows={3}
@@ -143,10 +146,11 @@ export function SettingsPage() {
           dashboard. Leave unset for a balanced experience.
         </p>
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label htmlFor="settings-primary-persona" className="block text-sm font-medium mb-1">
             Primary focus
           </label>
           <select
+            id="settings-primary-persona"
             value={primaryPersona}
             onChange={(e) =>
               setPrimaryPersona(
@@ -173,8 +177,9 @@ export function SettingsPage() {
           feed and is required to claim authored papers.
         </p>
         <div>
-          <label className="block text-sm font-medium mb-1">ORCID</label>
+          <label htmlFor="settings-orcid" className="block text-sm font-medium mb-1">ORCID</label>
           <input
+            id="settings-orcid"
             value={orcid}
             onChange={(e) => setOrcid(e.target.value)}
             placeholder="0000-0000-0000-0000"
@@ -195,10 +200,11 @@ export function SettingsPage() {
           </p>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label htmlFor="settings-scholar-url" className="block text-sm font-medium mb-1">
             Google Scholar URL
           </label>
           <input
+            id="settings-scholar-url"
             type="url"
             value={scholarUrl}
             onChange={(e) => setScholarUrl(e.target.value)}
@@ -209,10 +215,11 @@ export function SettingsPage() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label htmlFor="settings-bluesky" className="block text-sm font-medium mb-1">
               Bluesky handle
             </label>
             <input
+              id="settings-bluesky"
               value={blueskyHandle}
               onChange={(e) => setBlueskyHandle(e.target.value)}
               placeholder="@user.bsky.social"
@@ -221,10 +228,11 @@ export function SettingsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label htmlFor="settings-twitter" className="block text-sm font-medium mb-1">
               Twitter / X handle
             </label>
             <input
+              id="settings-twitter"
               value={twitterHandle}
               onChange={(e) => setTwitterHandle(e.target.value)}
               placeholder="@username"
@@ -234,8 +242,9 @@ export function SettingsPage() {
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Institution</label>
+          <label htmlFor="settings-institution" className="block text-sm font-medium mb-1">Institution</label>
           <input
+            id="settings-institution"
             value={institution}
             onChange={(e) => setInstitution(e.target.value)}
             placeholder="Stanford, MIT, Independent…"

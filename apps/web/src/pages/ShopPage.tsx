@@ -37,7 +37,6 @@ export function ShopPage() {
   useEffect(() => {
     if (!user) return;
     reload();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const buy = async (item: ShopItem) => {
