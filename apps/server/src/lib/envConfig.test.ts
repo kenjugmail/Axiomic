@@ -6,7 +6,7 @@
 // warn-and-fallback behavior so a single bad value doesn't block work.
 
 import { describe, test, expect, beforeEach, afterAll, mock } from "bun:test";
-import { loadEnv, _resetEnvCacheForTests } from "./envConfig";
+import { loadEnv, _resetEnvCacheForTests, assertProductionSecrets } from "./envConfig";
 
 const snapshot = { ...process.env };
 
@@ -70,5 +70,69 @@ describe("envConfig validation", () => {
     const env = loadEnv();
     expect(env.NODE_ENV).toBe("production");
     expect(env.CORS_ORIGIN).toBe("https://demo.axiomic.app");
+  });
+});
+
+describe("assertProductionSecrets (Phase I)", () => {
+  beforeEach(() => {
+    restoreEnv();
+    _resetEnvCacheForTests();
+  });
+
+  afterAll(() => {
+    restoreEnv();
+    _resetEnvCacheForTests();
+  });
+
+  test("dev: no-op (does not throw)", () => {
+    process.env.NODE_ENV = "development";
+    expect(() => assertProductionSecrets()).not.toThrow();
+  });
+
+  test("test: no-op (does not throw)", () => {
+    process.env.NODE_ENV = "test";
+    expect(() => assertProductionSecrets()).not.toThrow();
+  });
+
+  test("production: throws when SESSION_SECRET missing", () => {
+    process.env.NODE_ENV = "production";
+    process.env.AXIOMIC_SIGNING_PRIVATE_KEY_HEX = "deadbeef";
+    process.env.RESEND_API_KEY = "re_xxx";
+    delete process.env.SESSION_SECRET;
+    expect(() => assertProductionSecrets()).toThrow(/SESSION_SECRET/);
+  });
+
+  test("production: throws when AXIOMIC_SIGNING_PRIVATE_KEY_HEX missing", () => {
+    process.env.NODE_ENV = "production";
+    process.env.SESSION_SECRET = "s3cret";
+    process.env.RESEND_API_KEY = "re_xxx";
+    delete process.env.AXIOMIC_SIGNING_PRIVATE_KEY_HEX;
+    expect(() => assertProductionSecrets()).toThrow(/AXIOMIC_SIGNING_PRIVATE_KEY_HEX/);
+  });
+
+  test("production: throws when RESEND_API_KEY missing", () => {
+    process.env.NODE_ENV = "production";
+    process.env.SESSION_SECRET = "s3cret";
+    process.env.AXIOMIC_SIGNING_PRIVATE_KEY_HEX = "deadbeef";
+    delete process.env.RESEND_API_KEY;
+    expect(() => assertProductionSecrets()).toThrow(/RESEND_API_KEY/);
+  });
+
+  test("production: lists all missing in error message", () => {
+    process.env.NODE_ENV = "production";
+    delete process.env.SESSION_SECRET;
+    delete process.env.AXIOMIC_SIGNING_PRIVATE_KEY_HEX;
+    delete process.env.RESEND_API_KEY;
+    expect(() => assertProductionSecrets()).toThrow(
+      /SESSION_SECRET.*AXIOMIC_SIGNING_PRIVATE_KEY_HEX.*RESEND_API_KEY/,
+    );
+  });
+
+  test("production: passes when all secrets set", () => {
+    process.env.NODE_ENV = "production";
+    process.env.SESSION_SECRET = "s3cret";
+    process.env.AXIOMIC_SIGNING_PRIVATE_KEY_HEX = "deadbeef";
+    process.env.RESEND_API_KEY = "re_xxx";
+    expect(() => assertProductionSecrets()).not.toThrow();
   });
 });

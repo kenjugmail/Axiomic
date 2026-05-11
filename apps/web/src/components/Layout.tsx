@@ -341,18 +341,14 @@ export function Layout() {
       </header>
 
       {mobileNavOpen && (
-        <div
-          className="sm:hidden fixed inset-0 z-50 bg-background/70 backdrop-blur-sm animate-fade-in"
-          onClick={() => setMobileNavOpen(false)}
-          role="presentation"
-          onKeyDown={(e) => {
-            if (e.key === "Escape") setMobileNavOpen(false);
-          }}
-        >
-          <div
-            className="absolute left-0 top-0 bottom-0 w-72 max-w-[80%] bg-card border-r border-border shadow-floating flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="sm:hidden fixed inset-0 z-50 animate-fade-in">
+          <button
+            type="button"
+            aria-label="Close menu"
+            onClick={() => setMobileNavOpen(false)}
+            className="absolute inset-0 bg-background/70 backdrop-blur-sm"
+          />
+          <div className="absolute left-0 top-0 bottom-0 w-72 max-w-[80%] bg-card border-r border-border shadow-floating flex flex-col">
             <div className="flex items-center justify-between px-4 h-14 border-b border-border">
               <span className="font-display text-lg font-semibold">Axiomic</span>
               <button

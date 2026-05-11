@@ -6,6 +6,8 @@ import { and, eq, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { getSessionUser, requireAuth, requireVerifiedEmail } from "../middleware/auth";
 import { notify, notifyMentions, toPreview } from "../lib/notifications";
+import { checkRateLimit } from "../lib/rateLimit";
+import { env } from "../lib/envConfig";
 import type { Env } from "../env";
 
 const commentsRouter = new Hono<Env>();
@@ -107,6 +109,9 @@ const createSchema = z.object({
 commentsRouter.post("/", requireVerifiedEmail, zValidator("json", createSchema), async (c) => {
   const { pageId, content, parentId } = c.req.valid("json");
   const user = c.get("user")!;
+  if (env.NODE_ENV !== "test" && !checkRateLimit(`comment:${user.id}`, 30, 60_000)) {
+    return c.json({ error: "Rate limited. Slow down." }, 429);
+  }
   const db = getDb();
 
   const id = randomUUID();

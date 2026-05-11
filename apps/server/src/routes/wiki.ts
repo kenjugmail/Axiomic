@@ -5,6 +5,8 @@ import { getDb, wikiPages, pageVersions, forumTopics, domains, users, forumPosts
 import { eq, like, or, desc, sql, count } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { requireAuth, requireVerifiedEmail } from "../middleware/auth";
+import { checkRateLimit } from "../lib/rateLimit";
+import { env } from "../lib/envConfig";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import {
   nodesForWikiSlug,
@@ -211,6 +213,9 @@ const createSchema = z.object({
 wiki.post("/", requireVerifiedEmail, zValidator("json", createSchema), async (c) => {
   const body = c.req.valid("json");
   const user = c.get("user")!;
+  if (env.NODE_ENV !== "test" && !checkRateLimit(`wiki-create:${user.id}`, 5, 60_000)) {
+    return c.json({ error: "Rate limited. Slow down." }, 429);
+  }
   const db = getDb();
 
   const existing = db
@@ -257,6 +262,9 @@ wiki.post("/:slug/restore", requireVerifiedEmail, zValidator("json", restoreSche
   const slug = c.req.param("slug");
   const { version } = c.req.valid("json");
   const user = c.get("user")!;
+  if (env.NODE_ENV !== "test" && !checkRateLimit(`wiki-restore:${user.id}`, 10, 60_000)) {
+    return c.json({ error: "Rate limited. Slow down." }, 429);
+  }
   const db = getDb();
 
   const page = db.select().from(wikiPages).where(eq(wikiPages.slug, slug)).get();

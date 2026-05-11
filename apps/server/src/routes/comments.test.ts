@@ -6,6 +6,7 @@
 
 import { describe, test, expect, beforeAll } from "bun:test";
 import { app } from "../index";
+import { checkRateLimit, rateLimits } from "../lib/rateLimit";
 
 async function req(path: string, opts?: RequestInit): Promise<Response> {
   return await app.fetch(new Request(`http://localhost/api/v1${path}`, opts));
@@ -221,5 +222,16 @@ describe("comments route (Sprint 67b)", () => {
       body: JSON.stringify({ value: 1 }),
     });
     expect(res.status).toBe(401);
+  });
+});
+
+describe("Comments: rate limiter math (Phase I)", () => {
+  test("comment: 30 succeed, 31st rejected", () => {
+    const key = `comment:user-${testId}-1`;
+    rateLimits.delete(key);
+    for (let i = 0; i < 30; i++) {
+      expect(checkRateLimit(key, 30, 60_000)).toBe(true);
+    }
+    expect(checkRateLimit(key, 30, 60_000)).toBe(false);
   });
 });

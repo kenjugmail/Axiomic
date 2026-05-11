@@ -69,16 +69,18 @@ export function AiDraftSlideDialog({ kind, onAccept, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm animate-fade-in flex items-start justify-center px-4 py-12"
-      onClick={onClose}
+      className="fixed inset-0 z-50 animate-fade-in flex items-start justify-center px-4 py-12"
       role="dialog"
       aria-modal="true"
       aria-label="Draft slide with AI"
     >
-      <div
-        className="w-full max-w-xl bg-card border border-border rounded-xl shadow-floating overflow-hidden flex flex-col max-h-[80vh]"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <button
+        type="button"
+        aria-label="Close dialog"
+        onClick={onClose}
+        className="absolute inset-0 bg-background/70 backdrop-blur-sm"
+      />
+      <div className="relative w-full max-w-xl bg-card border border-border rounded-xl shadow-floating overflow-hidden flex flex-col max-h-[80vh]">
         <div className="flex items-center justify-between px-4 h-12 border-b border-border shrink-0">
           <span className="inline-flex items-center gap-1.5 text-sm font-semibold">
             <Sparkles className="w-4 h-4" strokeWidth={2} />

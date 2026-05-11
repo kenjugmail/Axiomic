@@ -1,5 +1,6 @@
 import { describe, test, expect, beforeAll } from "bun:test";
 import { app } from "../index";
+import { checkRateLimit, rateLimits } from "../lib/rateLimit";
 
 async function req(path: string, opts?: RequestInit): Promise<Response> {
   return await app.fetch(new Request(`http://localhost/api/v1${path}`, opts));
@@ -232,16 +233,56 @@ describe("Forum: reputation aggregation", () => {
 });
 
 describe("Forum: AI thread summary", () => {
-  test("summarize returns SSE stream", async () => {
-    process.env.NODE_ENV = "test";
-    // Pick any seeded slug.
+  test("summarize requires auth", async () => {
     const list = (await (await req("/forum/topics?sort=new")).json()) as any;
     const slug = list.topics[0].slug;
     const res = await req(`/forum/topics/${slug}/summarize`, { method: "POST" });
+    expect(res.status).toBe(401);
+  });
+
+  test("summarize returns SSE stream", async () => {
+    process.env.NODE_ENV = "test";
+    const { cookie } = await signupAndCookie("summarize");
+    // Pick any seeded slug.
+    const list = (await (await req("/forum/topics?sort=new")).json()) as any;
+    const slug = list.topics[0].slug;
+    const res = await req(`/forum/topics/${slug}/summarize`, {
+      method: "POST",
+      headers: cookieHeader(cookie),
+    });
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toContain("text/event-stream");
     const text = await res.text();
     expect(text).toContain("data:");
     expect(text).toContain("[DONE]");
+  });
+});
+
+describe("Forum: rate limiter math (Phase I)", () => {
+  test("forum-topic: 10 succeed, 11th rejected", () => {
+    const key = `forum-topic:user-${testId}-1`;
+    rateLimits.delete(key);
+    for (let i = 0; i < 10; i++) {
+      expect(checkRateLimit(key, 10, 60_000)).toBe(true);
+    }
+    expect(checkRateLimit(key, 10, 60_000)).toBe(false);
+  });
+
+  test("forum-reply: 30 succeed, 31st rejected", () => {
+    const key = `forum-reply:user-${testId}-1`;
+    rateLimits.delete(key);
+    for (let i = 0; i < 30; i++) {
+      expect(checkRateLimit(key, 30, 60_000)).toBe(true);
+    }
+    expect(checkRateLimit(key, 30, 60_000)).toBe(false);
+  });
+
+  test("forum-summarize: 5 succeed, 6th rejected", () => {
+    const key = `forum-summarize:user-${testId}-1`;
+    rateLimits.delete(key);
+    for (let i = 0; i < 5; i++) {
+      expect(checkRateLimit(key, 5, 60_000)).toBe(true);
+    }
+    expect(checkRateLimit(key, 5, 60_000)).toBe(false);
   });
 });

@@ -131,7 +131,7 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
+      <button type="button" aria-label="Close search" onClick={onClose} className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
 
       {/* Dialog */}
       <div className="relative w-full max-w-lg bg-card border border-border rounded-xl shadow-2xl overflow-hidden">

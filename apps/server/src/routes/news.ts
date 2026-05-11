@@ -20,6 +20,8 @@ import { and, asc, count, desc, eq, isNull, max, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { getSessionUser, requireAuth, requireVerifiedEmail } from "../middleware/auth";
 import { notify, notifyMentions } from "../lib/notifications";
+import { checkRateLimit } from "../lib/rateLimit";
+import { env } from "../lib/envConfig";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import { publishToArticle } from "../lib/liveBus";
 import { wikiPagesForArticle } from "../lib/crossLinks";
@@ -528,6 +530,9 @@ const createSchema = z.object({
 newsRouter.post("/", requireVerifiedEmail, zValidator("json", createSchema), async (c) => {
   const body = c.req.valid("json");
   const user = c.get("user")!;
+  if (env.NODE_ENV !== "test" && !checkRateLimit(`news-create:${user.id}`, 5, 60_000)) {
+    return c.json({ error: "Rate limited. Slow down." }, 429);
+  }
   const db = getDb();
 
   const dup = db
@@ -616,6 +621,9 @@ newsRouter.put("/:slug", requireVerifiedEmail, zValidator("json", updateSchema),
   const slug = c.req.param("slug")!;
   const data = c.req.valid("json");
   const user = c.get("user")!;
+  if (env.NODE_ENV !== "test" && !checkRateLimit(`news-update:${user.id}`, 20, 60_000)) {
+    return c.json({ error: "Rate limited. Slow down." }, 429);
+  }
   const db = getDb();
 
   const article = db

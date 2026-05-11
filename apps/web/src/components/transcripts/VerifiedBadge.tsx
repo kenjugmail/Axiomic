@@ -129,15 +129,17 @@ function TranscriptDialog({
   const m = data.manifest;
   return (
     <div
-      className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm flex items-start justify-center p-4 sm:p-8"
+      className="fixed inset-0 z-50 flex items-start justify-center p-4 sm:p-8"
       role="dialog"
       aria-modal="true"
-      onClick={onClose}
     >
-      <div
-        className="w-full max-w-xl bg-card border border-border rounded-xl shadow-elevated overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <button
+        type="button"
+        aria-label="Close dialog"
+        onClick={onClose}
+        className="absolute inset-0 bg-background/70 backdrop-blur-sm"
+      />
+      <div className="relative w-full max-w-xl bg-card border border-border rounded-xl shadow-elevated overflow-hidden">
         <header className="flex items-start justify-between gap-3 px-4 py-3 border-b border-border">
           <div>
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground">

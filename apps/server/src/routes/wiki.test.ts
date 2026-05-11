@@ -6,6 +6,7 @@
 
 import { describe, test, expect, beforeAll } from "bun:test";
 import { app } from "../index";
+import { checkRateLimit, rateLimits } from "../lib/rateLimit";
 
 async function req(path: string, opts?: RequestInit): Promise<Response> {
   return await app.fetch(new Request(`http://localhost/api/v1${path}`, opts));
@@ -323,5 +324,25 @@ describe("wiki route (Sprint 66b)", () => {
     const body = (await res.json()) as any;
     expect(Array.isArray(body.pages)).toBe(true);
     expect(body.pages.some((p: any) => p.slug === slug)).toBe(true);
+  });
+});
+
+describe("Wiki: rate limiter math (Phase I)", () => {
+  test("wiki-create: 5 succeed, 6th rejected", () => {
+    const key = `wiki-create:user-${testId}-1`;
+    rateLimits.delete(key);
+    for (let i = 0; i < 5; i++) {
+      expect(checkRateLimit(key, 5, 60_000)).toBe(true);
+    }
+    expect(checkRateLimit(key, 5, 60_000)).toBe(false);
+  });
+
+  test("wiki-restore: 10 succeed, 11th rejected", () => {
+    const key = `wiki-restore:user-${testId}-1`;
+    rateLimits.delete(key);
+    for (let i = 0; i < 10; i++) {
+      expect(checkRateLimit(key, 10, 60_000)).toBe(true);
+    }
+    expect(checkRateLimit(key, 10, 60_000)).toBe(false);
   });
 });

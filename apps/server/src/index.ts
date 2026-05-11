@@ -107,7 +107,7 @@ import {
   verifyWithPublicKey,
 } from "./lib/signing";
 import type { Env } from "./env";
-import { env, warnOnInsecureConfig } from "./lib/envConfig";
+import { env, warnOnInsecureConfig, assertProductionSecrets } from "./lib/envConfig";
 import { setServerExecBackend } from "./lib/serverExec";
 import { localProcessBackend } from "./lib/serverExecLocal";
 
@@ -343,6 +343,7 @@ if (import.meta.main) {
       `⚠️  DEV_AUTH_BYPASS enabled — every request is authed as "${env.DEV_AUTH_BYPASS_USER}". DO NOT USE IN PRODUCTION.`,
     );
   }
+  assertProductionSecrets();
   warnOnInsecureConfig();
 }
 

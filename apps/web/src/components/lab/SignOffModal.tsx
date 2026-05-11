@@ -52,15 +52,17 @@ export function SignOffModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
-      onClick={onCancel}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in"
       role="dialog"
       aria-modal="true"
     >
-      <div
-        className="w-full max-w-md rounded-xl border border-border bg-card shadow-floating"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <button
+        type="button"
+        aria-label="Close dialog"
+        onClick={onCancel}
+        className="absolute inset-0 bg-background/70 backdrop-blur-sm"
+      />
+      <div className="relative w-full max-w-md rounded-xl border border-border bg-card shadow-floating">
         <div className="px-5 py-4 border-b border-border flex items-center justify-between">
           <h2 className="font-display text-lg font-semibold tracking-tight">
             {isReject ? "Send back for changes" : "Sign off on this run"}

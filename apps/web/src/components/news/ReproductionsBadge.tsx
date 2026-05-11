@@ -93,7 +93,7 @@ function ReproductionsListModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh]">
-      <div className="absolute inset-0 bg-background/70 backdrop-blur-sm animate-fade-in" onClick={onClose} />
+      <button type="button" aria-label="Close dialog" onClick={onClose} className="absolute inset-0 bg-background/70 backdrop-blur-sm animate-fade-in" />
       <div className="relative w-full max-w-2xl bg-card border border-border rounded-xl shadow-floating animate-fade-in flex flex-col max-h-[80vh]">
         <div className="px-5 py-3 border-b border-border flex items-center justify-between">
           <h2 className="text-base font-semibold flex items-center gap-2">

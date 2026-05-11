@@ -42,16 +42,18 @@ export function LessonPreviewModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm animate-fade-in"
-      onClick={onClose}
+      className="fixed inset-0 z-50 animate-fade-in"
       role="dialog"
       aria-modal="true"
       aria-label="Lesson preview"
     >
-      <div
-        className="absolute inset-x-0 top-8 bottom-8 max-w-4xl mx-4 sm:mx-auto bg-card border border-border rounded-xl shadow-floating flex flex-col overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <button
+        type="button"
+        aria-label="Close preview"
+        onClick={onClose}
+        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+      />
+      <div className="absolute inset-x-0 top-8 bottom-8 max-w-4xl mx-4 sm:mx-auto bg-card border border-border rounded-xl shadow-floating flex flex-col overflow-hidden">
         <div className="px-4 sm:px-6 h-12 border-b border-border flex items-center gap-3">
           <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
             Preview · unsaved

@@ -1,5 +1,6 @@
 import { describe, test, expect } from "bun:test";
 import { app } from "../index";
+import { checkRateLimit, rateLimits } from "../lib/rateLimit";
 
 async function req(path: string, opts?: RequestInit): Promise<Response> {
   return await app.fetch(new Request(`http://localhost/api/v1${path}`, opts));
@@ -1155,5 +1156,25 @@ describe("news related", () => {
     expect(body.articles.length).toBeGreaterThan(0);
     expect(body.articles.length).toBeLessThanOrEqual(4);
     expect(body.articles.every((a) => a.slug !== `related-0-${testId}`)).toBe(true);
+  });
+});
+
+describe("News: rate limiter math (Phase I)", () => {
+  test("news-create: 5 succeed, 6th rejected", () => {
+    const key = `news-create:user-${testId}-1`;
+    rateLimits.delete(key);
+    for (let i = 0; i < 5; i++) {
+      expect(checkRateLimit(key, 5, 60_000)).toBe(true);
+    }
+    expect(checkRateLimit(key, 5, 60_000)).toBe(false);
+  });
+
+  test("news-update: 20 succeed, 21st rejected", () => {
+    const key = `news-update:user-${testId}-1`;
+    rateLimits.delete(key);
+    for (let i = 0; i < 20; i++) {
+      expect(checkRateLimit(key, 20, 60_000)).toBe(true);
+    }
+    expect(checkRateLimit(key, 20, 60_000)).toBe(false);
   });
 });
