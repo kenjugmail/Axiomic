@@ -29,10 +29,12 @@ COPY --from=build /app/apps/server ./apps/server
 COPY --from=build /app/apps/web/dist ./apps/web/dist
 COPY --from=build /app/packages ./packages
 COPY --from=build /app/seed-content ./seed-content
+COPY --from=build /app/scripts ./scripts
 
-# Migrate and seed against an empty DB inside the image.
-# (For a real deployment, mount a volume and run these on first boot instead.)
-RUN bun run db:migrate && bun run db:seed
+# Migrations run at container start (see scripts/entrypoint.sh), not at
+# image build, so the persistent volume's DB stays canonical and we don't
+# need to rebuild the image to apply schema changes. Seed only runs on
+# first boot when SEED_ON_BOOT=1 is set in the deploy environment.
 
 EXPOSE 3000
 
@@ -40,4 +42,4 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD bun -e "fetch('http://localhost:'+(process.env.PORT||3000)+'/api/v1/ready').then(r=>{if(r.status!==200)process.exit(1)}).catch(()=>process.exit(1))"
 
-CMD ["bun", "run", "apps/server/src/index.ts"]
+CMD ["bash", "scripts/entrypoint.sh"]
