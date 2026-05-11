@@ -6,8 +6,8 @@
 // happens server-side at /api/v1/keys/verify, so this page is a thin
 // shell around POSTing the bundle and rendering the result.
 
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   AlertTriangle,
   Check,
@@ -27,12 +27,19 @@ interface VerifyResult {
 }
 
 export function VerifyPage() {
+  const [params] = useSearchParams();
+  const artifactParam = params.get("artifact");
   const [text, setText] = useState("");
   const [result, setResult] = useState<VerifyResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [serverKey, setServerKey] = useState<string | null>(null);
   const [keyCopied, setKeyCopied] = useState(false);
+  // Auto-load state for ?artifact=<slug> deep links. We render a
+  // banner so the visitor sees what's happening rather than the
+  // textarea silently filling itself.
+  const [autoLoading, setAutoLoading] = useState<boolean>(Boolean(artifactParam));
+  const [autoLoadError, setAutoLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/v1/keys/signing")
@@ -43,30 +50,15 @@ export function VerifyPage() {
       .catch(() => {});
   }, []);
 
-  const onVerify = async () => {
+  const verifyBundle = useCallback(async (bundle: { manifest: unknown; signature: string; publicKey?: string }) => {
     setError("");
     setResult(null);
     setBusy(true);
     try {
-      let parsed: any;
-      try {
-        parsed = JSON.parse(text);
-      } catch {
-        throw new Error("That isn't valid JSON.");
-      }
-      if (!parsed || typeof parsed !== "object" || !parsed.manifest || !parsed.signature) {
-        throw new Error(
-          'Bundle must include both "manifest" and "signature".',
-        );
-      }
       const res = await fetch("/api/v1/keys/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          manifest: parsed.manifest,
-          signature: parsed.signature,
-          publicKey: parsed.publicKey,
-        }),
+        body: JSON.stringify(bundle),
       });
       const data = (await res.json()) as VerifyResult;
       setResult(data);
@@ -75,6 +67,67 @@ export function VerifyPage() {
     } finally {
       setBusy(false);
     }
+  }, []);
+
+  // Pre-populate from /api/v1/capstones/c/:slug/transcript when
+  // ?artifact=<slug> is on the URL. Used by the pitch demo and any
+  // shareable verify link from a capstone artifact page.
+  useEffect(() => {
+    if (!artifactParam) return;
+    let cancelled = false;
+    setAutoLoadError(null);
+    setAutoLoading(true);
+    fetch(`/api/v1/capstones/c/${encodeURIComponent(artifactParam)}/transcript`)
+      .then(async (r) => {
+        if (!r.ok) {
+          throw new Error(
+            r.status === 404
+              ? `No completed capstone artifact with slug "${artifactParam}".`
+              : `Could not load transcript (HTTP ${r.status}).`,
+          );
+        }
+        return (await r.json()) as { manifest: unknown; signature: string; publicKey?: string };
+      })
+      .then((bundle) => {
+        if (cancelled) return;
+        setText(JSON.stringify(bundle, null, 2));
+        return verifyBundle({
+          manifest: bundle.manifest,
+          signature: bundle.signature,
+          publicKey: bundle.publicKey,
+        });
+      })
+      .catch((e: Error) => {
+        if (cancelled) return;
+        setAutoLoadError(e.message);
+      })
+      .finally(() => {
+        if (!cancelled) setAutoLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [artifactParam, verifyBundle]);
+
+  const onVerify = async () => {
+    setError("");
+    setResult(null);
+    let parsed: any;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      setError("That isn't valid JSON.");
+      return;
+    }
+    if (!parsed || typeof parsed !== "object" || !parsed.manifest || !parsed.signature) {
+      setError('Bundle must include both "manifest" and "signature".');
+      return;
+    }
+    await verifyBundle({
+      manifest: parsed.manifest,
+      signature: parsed.signature,
+      publicKey: parsed.publicKey,
+    });
   };
 
   const onPasteSample = () => {
@@ -114,6 +167,24 @@ export function VerifyPage() {
         field is checked against the issuer; you can also pin to this
         Axiomic instance's published key.
       </p>
+
+      {artifactParam && (
+        <div
+          className={`mt-4 rounded-md border p-3 text-xs ${
+            autoLoadError
+              ? "border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-300"
+              : autoLoading
+              ? "border-border bg-muted/40 text-muted-foreground"
+              : "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+          }`}
+        >
+          {autoLoading
+            ? `Loading signed transcript for "${artifactParam}"…`
+            : autoLoadError
+            ? autoLoadError
+            : `Loaded signed transcript for "${artifactParam}". Verifying…`}
+        </div>
+      )}
 
       <div className="mt-6 rounded-lg border border-border bg-card p-3">
         <div className="flex items-center justify-between gap-3 mb-2">

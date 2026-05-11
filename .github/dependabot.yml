@@ -1,0 +1,40 @@
+# Dependabot configuration for Axiomic.
+#
+# Weekly schedule keeps PR noise low. npm + github-actions ecosystems
+# cover the JS deps (root + workspaces) and the CI workflow files.
+# Minor + patch updates are grouped into single PRs per ecosystem so
+# reviewers see one batched PR per week instead of a flood.
+version: 2
+
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    groups:
+      minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+    # Major versions arrive as individual PRs so we can review breaking
+    # changes case by case.
+    ignore: []
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "ci"

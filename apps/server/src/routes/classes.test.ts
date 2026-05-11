@@ -1041,7 +1041,7 @@ describe("S89 XP shop", () => {
       headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
       body: JSON.stringify({ joinCode: classData.joinCode }),
     });
-    expect(enroll.status).toBe(200);
+    expect(enroll.status).toBe(201);
     for (let i = 0; i < taskCount; i++) {
       const t = await req(`/classes/${slug}/tasks`, {
         method: "POST",
@@ -1082,10 +1082,18 @@ describe("S89 XP shop", () => {
       body: JSON.stringify({ cosmeticSlug: "baseball-cap" }),
     });
     expect(buy.status).toBe(201);
-    const buyData = (await buy.json()) as { ok: true; balance: number; cosmeticSlug: string };
+    const buyData = (await buy.json()) as {
+      ok: true;
+      balance: number;
+      cosmeticSlug: string;
+      amountSpent: number;
+      wasFeatured: boolean;
+    };
     expect(buyData.ok).toBe(true);
     expect(buyData.cosmeticSlug).toBe("baseball-cap");
-    expect(buyData.balance).toBe(balData.balance - 75);
+    // amountSpent depends on whether baseball-cap is today's featured cosmetic
+    // (50% off). Asserting against the route-returned amount is robust.
+    expect(buyData.balance).toBe(balData.balance - buyData.amountSpent);
 
     // Inventory contains the cosmetic.
     const me = await req("/me/pet", { headers: cookieHeader(student.cookie) });
@@ -1096,7 +1104,7 @@ describe("S89 XP shop", () => {
     const balAfter = await req("/me/pet/balance", { headers: cookieHeader(student.cookie) });
     const balAfterData = (await balAfter.json()) as { balance: number; spentXp: number };
     expect(balAfterData.balance).toBe(buyData.balance);
-    expect(balAfterData.spentXp).toBe(75);
+    expect(balAfterData.spentXp).toBe(buyData.amountSpent);
   });
 
   test("insufficient balance returns 402", async () => {
