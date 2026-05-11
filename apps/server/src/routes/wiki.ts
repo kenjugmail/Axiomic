@@ -7,6 +7,7 @@ import { randomUUID } from "crypto";
 import { requireAuth, requireVerifiedEmail } from "../middleware/auth";
 import { checkRateLimit } from "../lib/rateLimit";
 import { env } from "../lib/envConfig";
+import { parseLimit } from "../lib/listLimit";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import {
   nodesForWikiSlug,
@@ -22,6 +23,7 @@ wiki.get("/", async (c) => {
   const db = getDb();
   const category = c.req.query("category");
   const search = c.req.query("search");
+  const limit = parseLimit(c.req.query("limit"), 50, 200);
 
   let query = db.select().from(wikiPages);
 
@@ -38,7 +40,7 @@ wiki.get("/", async (c) => {
     ) as any;
   }
 
-  const pages = query.all();
+  const pages = query.limit(limit).all();
   return c.json({ pages });
 });
 
@@ -46,6 +48,7 @@ wiki.get("/", async (c) => {
 wiki.get("/search", async (c) => {
   const q = c.req.query("q") || "";
   const db = getDb();
+  const limit = parseLimit(c.req.query("limit"), 20, 50);
 
   if (!q.trim()) {
     return c.json({ results: [] });
@@ -61,6 +64,7 @@ wiki.get("/search", async (c) => {
         like(wikiPages.category, `%${q}%`)
       )
     )
+    .limit(limit)
     .all();
 
   return c.json({ results });
@@ -69,7 +73,11 @@ wiki.get("/search", async (c) => {
 // Get page categories
 wiki.get("/categories", async (c) => {
   const db = getDb();
-  const pages = db.select({ category: wikiPages.category }).from(wikiPages).all();
+  const pages = db
+    .select({ category: wikiPages.category })
+    .from(wikiPages)
+    .limit(500)
+    .all();
   const categories = [...new Set(pages.map((p) => p.category))].sort();
   return c.json({ categories });
 });

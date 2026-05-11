@@ -210,6 +210,8 @@ function DisplayBlock({ d }: { d: Display }) {
       <img
         src={`data:image/png;base64,${d.data}`}
         alt="Cell output"
+        loading="lazy"
+        decoding="async"
         className="max-w-full rounded border border-border"
       />
     );

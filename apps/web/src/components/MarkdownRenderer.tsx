@@ -520,7 +520,15 @@ export function MarkdownRenderer({
               img: ({ src, alt, ...props }) => {
                 const safe = safeHref(typeof src === "string" ? src : undefined);
                 if (!safe) return null;
-                return <img src={safe} alt={alt || ""} {...props} />;
+                return (
+                  <img
+                    src={safe}
+                    alt={alt || ""}
+                    loading="lazy"
+                    decoding="async"
+                    {...props}
+                  />
+                );
               },
               h1: ({ children, ...props }) => {
                 const id = String(children).toLowerCase().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-");

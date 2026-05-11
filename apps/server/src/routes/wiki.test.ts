@@ -346,3 +346,26 @@ describe("Wiki: rate limiter math (Phase I)", () => {
     expect(checkRateLimit(key, 10, 60_000)).toBe(false);
   });
 });
+
+describe("Wiki: list-limit caps (Phase J)", () => {
+  test("GET /wiki?limit=99999 clamps to <=200", async () => {
+    const res = await req("/wiki?limit=99999");
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { pages: unknown[] };
+    expect(body.pages.length).toBeLessThanOrEqual(200);
+  });
+
+  test("GET /wiki?limit=-5 falls back to default", async () => {
+    const res = await req("/wiki?limit=-5");
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { pages: unknown[] };
+    expect(body.pages.length).toBeLessThanOrEqual(50);
+  });
+
+  test("GET /wiki/search?q=a&limit=99999 clamps to <=50", async () => {
+    const res = await req("/wiki/search?q=a&limit=99999");
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { results: unknown[] };
+    expect(body.results.length).toBeLessThanOrEqual(50);
+  });
+});

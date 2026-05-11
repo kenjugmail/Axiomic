@@ -127,15 +127,22 @@ export const pageVersions = sqliteTable("page_versions", {
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
 });
 
-export const comments = sqliteTable("comments", {
-  id: text("id").primaryKey(),
-  pageId: text("page_id").notNull().references(() => wikiPages.id),
-  parentId: text("parent_id"),
-  userId: text("user_id").notNull().references(() => users.id),
-  content: text("content").notNull(),
-  editedAt: text("edited_at"),
-  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
-});
+export const comments = sqliteTable(
+  "comments",
+  {
+    id: text("id").primaryKey(),
+    pageId: text("page_id").notNull().references(() => wikiPages.id),
+    parentId: text("parent_id"),
+    userId: text("user_id").notNull().references(() => users.id),
+    content: text("content").notNull(),
+    editedAt: text("edited_at"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    userIdx: index("comments_user_idx").on(t.userId, t.createdAt),
+    pageIdx: index("comments_page_idx").on(t.pageId, t.createdAt),
+  }),
+);
 
 export const commentEdits = sqliteTable("comment_edits", {
   id: text("id").primaryKey(),
@@ -258,28 +265,42 @@ export const domains = sqliteTable("domains", {
 
 // postType is one of: claim, question, derivation, critique, synthesis, prediction.
 // Validated at the API layer (Zod enum). SQLite has no native enum.
-export const forumTopics = sqliteTable("forum_topics", {
-  id: text("id").primaryKey(),
-  slug: text("slug").notNull().unique(),
-  title: text("title").notNull(),
-  body: text("body").notNull(),
-  postType: text("post_type").notNull(),
-  domainId: text("domain_id").notNull().references(() => domains.id),
-  authorId: text("author_id").notNull().references(() => users.id),
-  wikiPageId: text("wiki_page_id").references(() => wikiPages.id),
-  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
-  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
-});
+export const forumTopics = sqliteTable(
+  "forum_topics",
+  {
+    id: text("id").primaryKey(),
+    slug: text("slug").notNull().unique(),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    postType: text("post_type").notNull(),
+    domainId: text("domain_id").notNull().references(() => domains.id),
+    authorId: text("author_id").notNull().references(() => users.id),
+    wikiPageId: text("wiki_page_id").references(() => wikiPages.id),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+    updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    authorIdx: index("forum_topics_author_idx").on(t.authorId, t.createdAt),
+    domainIdx: index("forum_topics_domain_idx").on(t.domainId, t.createdAt),
+  }),
+);
 
-export const forumPosts = sqliteTable("forum_posts", {
-  id: text("id").primaryKey(),
-  topicId: text("topic_id").notNull().references(() => forumTopics.id),
-  parentId: text("parent_id"),
-  authorId: text("author_id").notNull().references(() => users.id),
-  body: text("body").notNull(),
-  editedAt: text("edited_at"),
-  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
-});
+export const forumPosts = sqliteTable(
+  "forum_posts",
+  {
+    id: text("id").primaryKey(),
+    topicId: text("topic_id").notNull().references(() => forumTopics.id),
+    parentId: text("parent_id"),
+    authorId: text("author_id").notNull().references(() => users.id),
+    body: text("body").notNull(),
+    editedAt: text("edited_at"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    topicIdx: index("forum_posts_topic_idx").on(t.topicId, t.createdAt),
+    authorIdx: index("forum_posts_author_idx").on(t.authorId, t.createdAt),
+  }),
+);
 
 export const forumPostEdits = sqliteTable("forum_post_edits", {
   id: text("id").primaryKey(),
@@ -382,42 +403,49 @@ export const flashcardReviews = sqliteTable("flashcard_reviews", {
 //     the proposed fields onto the parent article.
 // News bodies are markdown with the same `::viz[name]` directive
 // support as wiki pages, so authors can embed live visualizations.
-export const newsArticles = sqliteTable("news_articles", {
-  id: text("id").primaryKey(),
-  slug: text("slug").notNull().unique(),
-  title: text("title").notNull(),
-  summary: text("summary").notNull().default(""),
-  body: text("body").notNull(),
-  // Optional research-paper fields. abstract is a longer-form intro
-  // (one to two paragraphs) that renders ABOVE the body in the
-  // article view. references is a JSON array of { label, url? }.
-  // coauthors is a JSON array of usernames; together with authorId
-  // the byline lists everyone who contributed.
-  abstract: text("abstract").notNull().default(""),
-  referencesJson: text("references_json").notNull().default("[]"),
-  coauthorsJson: text("coauthors_json").notNull().default("[]"),
-  // Visual flourish — drives the gradient hero on the article and card
-  // in the list. coverEmoji is a single emoji (📰 default); accentColor
-  // is one of indigo|emerald|rose|amber|sky|violet (validated at API).
-  coverEmoji: text("cover_emoji").notNull().default("📰"),
-  accentColor: text("accent_color").notNull().default("indigo"),
-  // Publication state. Drafts are visible only to the author.
-  // Validated at API to be "draft" | "published".
-  status: text("status").notNull().default("published"),
-  // JSON array of lowercase kebab-case tag strings. Stored as text
-  // since SQLite has no native array; parsed by the API layer.
-  tags: text("tags").notNull().default("[]"),
-  authorId: text("author_id").notNull().references(() => users.id),
-  // Tracks the most recent applied edit (the author's direct edit, or
-  // an approved proposal). Null on a fresh article — same as authorId.
-  lastEditorId: text("last_editor_id").references(() => users.id),
-  // Set when an author has used Paper→Lesson to derive a teaching
-  // lesson from this article. Surfaces a "📚 Lesson available" badge on
-  // the article view that deep-links to the lesson.
-  derivedLessonNodeId: text("derived_lesson_node_id"),
-  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
-  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
-});
+export const newsArticles = sqliteTable(
+  "news_articles",
+  {
+    id: text("id").primaryKey(),
+    slug: text("slug").notNull().unique(),
+    title: text("title").notNull(),
+    summary: text("summary").notNull().default(""),
+    body: text("body").notNull(),
+    // Optional research-paper fields. abstract is a longer-form intro
+    // (one to two paragraphs) that renders ABOVE the body in the
+    // article view. references is a JSON array of { label, url? }.
+    // coauthors is a JSON array of usernames; together with authorId
+    // the byline lists everyone who contributed.
+    abstract: text("abstract").notNull().default(""),
+    referencesJson: text("references_json").notNull().default("[]"),
+    coauthorsJson: text("coauthors_json").notNull().default("[]"),
+    // Visual flourish — drives the gradient hero on the article and card
+    // in the list. coverEmoji is a single emoji (📰 default); accentColor
+    // is one of indigo|emerald|rose|amber|sky|violet (validated at API).
+    coverEmoji: text("cover_emoji").notNull().default("📰"),
+    accentColor: text("accent_color").notNull().default("indigo"),
+    // Publication state. Drafts are visible only to the author.
+    // Validated at API to be "draft" | "published".
+    status: text("status").notNull().default("published"),
+    // JSON array of lowercase kebab-case tag strings. Stored as text
+    // since SQLite has no native array; parsed by the API layer.
+    tags: text("tags").notNull().default("[]"),
+    authorId: text("author_id").notNull().references(() => users.id),
+    // Tracks the most recent applied edit (the author's direct edit, or
+    // an approved proposal). Null on a fresh article — same as authorId.
+    lastEditorId: text("last_editor_id").references(() => users.id),
+    // Set when an author has used Paper→Lesson to derive a teaching
+    // lesson from this article. Surfaces a "📚 Lesson available" badge on
+    // the article view that deep-links to the lesson.
+    derivedLessonNodeId: text("derived_lesson_node_id"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+    updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    authorIdx: index("news_articles_author_idx").on(t.authorId, t.createdAt),
+    statusIdx: index("news_articles_status_idx").on(t.status, t.createdAt),
+  }),
+);
 
 // Proposed edits from anyone-but-the-author. Status flows pending →
 // (approved | rejected). Approving copies the proposed fields onto

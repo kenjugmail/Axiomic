@@ -125,6 +125,10 @@ export function AttachmentsPage() {
                   <img
                     src={a.url}
                     alt={a.originalName}
+                    loading="lazy"
+                    decoding="async"
+                    width={48}
+                    height={48}
                     className="w-full h-full object-cover"
                   />
                 ) : a.kind === "video" ? (

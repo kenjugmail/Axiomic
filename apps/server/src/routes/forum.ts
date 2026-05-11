@@ -137,7 +137,7 @@ function userVotesFor(
 
 forum.get("/domains", (c) => {
   const db = getDb();
-  const list = db.select().from(domains).orderBy(domains.title).all();
+  const list = db.select().from(domains).orderBy(domains.title).limit(200).all();
   return c.json({ domains: list });
 });
 

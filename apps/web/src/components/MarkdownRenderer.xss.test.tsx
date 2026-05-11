@@ -71,4 +71,13 @@ describe("MarkdownRenderer XSS protection (untrusted mode)", () => {
     expect(html).toContain("<strong");
     expect(html).toMatch(/href=["']?https:\/\/example\.com/);
   });
+
+  test("(Phase J) markdown images get loading=lazy + decoding=async", () => {
+    // The img renderer should add lazy-load + async-decode so a long
+    // wiki page doesn't stall on offscreen images. Untrusted-mode
+    // matters most because it's what news/forum content runs through.
+    const html = renderUntrusted("![alt text](https://example.com/foo.png)");
+    expect(html).toMatch(/loading=["']?lazy/);
+    expect(html).toMatch(/decoding=["']?async/);
+  });
 });

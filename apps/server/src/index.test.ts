@@ -357,6 +357,37 @@ describe("AI", () => {
   });
 });
 
+describe("Request body size limit (Phase J)", () => {
+  test("POST with Content-Length over 10MB returns 413", async () => {
+    const res = await req("/auth/signup", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": String(11 * 1024 * 1024),
+      },
+      body: JSON.stringify({ username: "x", email: "x@x.com", password: "xxxxxxxx" }),
+    });
+    expect(res.status).toBe(413);
+  });
+
+  test("POST with reasonable Content-Length passes the size middleware", async () => {
+    // We don't care about the auth outcome — just that it isn't a 413.
+    const res = await req("/auth/signup", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": "200",
+      },
+      body: JSON.stringify({
+        username: `bs_${testId}`,
+        email: `bs_${testId}@example.com`,
+        password: "testpass123",
+      }),
+    });
+    expect(res.status).not.toBe(413);
+  });
+});
+
 function findInTree(comments: any[], id: string): any {
   for (const c of comments) {
     if (c.id === id) return c;

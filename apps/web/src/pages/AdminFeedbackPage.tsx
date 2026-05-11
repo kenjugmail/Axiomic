@@ -58,7 +58,7 @@ export function AdminFeedbackPage() {
       </p>
 
       {loading && (
-        <div className="text-sm text-muted-foreground">Loading reports…</div>
+        <EmptyState title="Loading reports…" description="Fetching feedback submissions." />
       )}
       {error && !loading && (
         <ErrorState error={error} status={status} onRetry={retry} />

@@ -150,9 +150,11 @@ newsRouter.get("/", async (c) => {
     .from(newsArticles)
     .innerJoin(users, eq(newsArticles.authorId, users.id))
     .where(eq(newsArticles.status, "published"))
-    .orderBy(desc(newsArticles.createdAt));
+    .orderBy(desc(newsArticles.createdAt))
+    .limit(500);
   // Filters applied in JS — SQLite JSON1 isn't always present and the
-  // article count is small. Acceptable until the table grows.
+  // article count is small. The .limit(500) caps memory + JSON-parse
+  // cost; revisit pagination semantics once we cross that threshold.
   let rows = baseQuery.all();
   if (tag) {
     const t = tag.toLowerCase();
