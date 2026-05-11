@@ -21,6 +21,11 @@ import {
   wikiPages,
   type Db,
 } from "@axiomic/db";
+import type { PrimaryPersona } from "@axiomic/types";
+import {
+  isPrimaryPersona,
+  PERSONA_COACH_LABELS,
+} from "./persona";
 
 const RECENT_MISTAKE_DAYS = 30;
 const RECENT_MISTAKE_LIMIT = 5;
@@ -113,6 +118,8 @@ export interface CoachContext {
   // they're uncertain, and the suggestion ranker prioritizes a primer
   // pointing at the goal's surface.
   onboardingGoal: OnboardingGoal | null;
+  /** Hub-and-spoke audience segment from onboarding / settings. */
+  primaryPersona: PrimaryPersona | null;
 }
 
 // Strip markdown / formatting from a question stem so the LLM sees
@@ -281,13 +288,21 @@ export function buildCoachContext(
 
   // Sprint 63b — pull the user's stated goal so the AI tutor can
   // reference it. One indexed lookup; cheap.
-  const goalRow = db
-    .select({ goal: users.onboardingGoal })
+  const prefsRow = db
+    .select({
+      goal: users.onboardingGoal,
+      persona: users.primaryPersona,
+    })
     .from(users)
     .where(eq(users.id, userId))
     .get();
-  const onboardingGoal = isOnboardingGoal(goalRow?.goal ?? null)
-    ? (goalRow!.goal as OnboardingGoal)
+  const onboardingGoal = isOnboardingGoal(prefsRow?.goal ?? null)
+    ? (prefsRow!.goal as OnboardingGoal)
+    : null;
+  const primaryPersona: PrimaryPersona | null = isPrimaryPersona(
+    prefsRow?.persona ?? null,
+  )
+    ? (prefsRow!.persona as PrimaryPersona)
     : null;
 
   return {
@@ -297,6 +312,7 @@ export function buildCoachContext(
     currentLessonProgress,
     prerequisiteGaps,
     onboardingGoal,
+    primaryPersona,
   };
 }
 
@@ -418,6 +434,11 @@ export function summarizeCoachContext(ctx: CoachContext): string {
   if (ctx.onboardingGoal) {
     lines.push(
       `Active goal: ${GOAL_LABELS[ctx.onboardingGoal]}. When the user is uncertain about what to do next, gently steer toward this goal.`,
+    );
+  }
+  if (ctx.primaryPersona) {
+    lines.push(
+      `Primary focus: ${PERSONA_COACH_LABELS[ctx.primaryPersona]}. Keep examples and next-step suggestions aligned with this area when ambiguous.`,
     );
   }
   if (lines.length === 0) return "";

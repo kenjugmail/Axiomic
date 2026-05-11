@@ -171,6 +171,12 @@ export function ExamPage() {
         )}
       </section>
 
+      <div className="mt-4 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+        Exam attempts are performance diagnostics (scores + percentile), not signed
+        credentials. Signed proof artifacts are published on capstone and track
+        completion pages.
+      </div>
+
       {user && completedAttempts.length > 0 && (
         <section className="mt-10">
           <h2 className="font-display text-lg font-semibold mb-3 inline-flex items-center gap-1.5">

@@ -4,6 +4,15 @@
 // joined-in `username`, computed `score`, threaded `children`), the
 // API-shape lives here, and the row type stays in @axiomic/db.
 
+/** Marketing / nav audience segment; stored after onboarding or in settings. */
+export type PrimaryPersona =
+  | "learn"
+  | "research"
+  | "build"
+  | "teach"
+  | "lab"
+  | "prove";
+
 export interface User {
   id: string;
   username: string;
@@ -13,6 +22,7 @@ export interface User {
   // Sprint 52 — 'admin' unlocks the approval queue; 'member' for everyone else.
   role?: string;
   createdAt?: string;
+  primaryPersona?: PrimaryPersona | null;
 }
 
 export interface WikiPage {
@@ -1636,6 +1646,7 @@ export interface UserSettings {
   twitterHandle?: string | null;
   institution?: string | null;
   hIndex?: number | null;
+  primaryPersona?: PrimaryPersona | null;
 }
 
 export interface SettingsResponse {
@@ -1657,6 +1668,7 @@ export interface SettingsUpdateInput {
   blueskyHandle?: string | null;
   twitterHandle?: string | null;
   institution?: string | null;
+  primaryPersona?: PrimaryPersona | null;
 }
 
 // --- Mastery summary ---

@@ -37,6 +37,7 @@ describe("Sprint 63b — onboarding goal in coach context", () => {
     const u = await signup("unset");
     const ctx = buildCoachContext(u.userId);
     expect(ctx.onboardingGoal).toBeNull();
+    expect(ctx.primaryPersona).toBeNull();
   });
 
   test("buildCoachContext returns the goal when set on the user", async () => {
@@ -48,6 +49,29 @@ describe("Sprint 63b — onboarding goal in coach context", () => {
       .run();
     const ctx = buildCoachContext(u.userId);
     expect(ctx.onboardingGoal).toBe("publish_paper");
+    expect(ctx.primaryPersona).toBeNull();
+  });
+
+  test("buildCoachContext returns primary persona when set", async () => {
+    const u = await signup("pers");
+    const db = getDb();
+    db.update(users)
+      .set({ primaryPersona: "lab" })
+      .where(eq(users.id, u.userId))
+      .run();
+    const ctx = buildCoachContext(u.userId);
+    expect(ctx.primaryPersona).toBe("lab");
+  });
+
+  test("buildCoachContext rejects unknown persona values", async () => {
+    const u = await signup("badpers");
+    const db = getDb();
+    db.update(users)
+      .set({ primaryPersona: "not_valid" })
+      .where(eq(users.id, u.userId))
+      .run();
+    const ctx = buildCoachContext(u.userId);
+    expect(ctx.primaryPersona).toBeNull();
   });
 
   test("buildCoachContext rejects unknown goal values", async () => {

@@ -15,6 +15,7 @@ import {
 import { getOrEmbed } from "../lib/embeddingCache";
 import { buildTutorModePrompt } from "../lib/tutorModes";
 import { logger } from "../lib/logger";
+import { PERSONA_CTA_URLS, PERSONA_COACH_LABELS } from "../lib/persona";
 
 const ai = new Hono();
 
@@ -1161,6 +1162,16 @@ function rankSuggestions(ctx: ReturnType<typeof buildCoachContext>): CoachSugges
       title: GOAL_CTA_LABELS[goal],
       body: `${GOAL_LABELS[goal]} — your stated goal. Pick up here when you're not sure what to work on.`,
       ctaUrl: GOAL_CTA_URLS[goal],
+    });
+  }
+
+  if (out.length < 3 && ctx.primaryPersona) {
+    const p = ctx.primaryPersona;
+    out.push({
+      kind: "primer",
+      title: "Open your focus area",
+      body: `${PERSONA_COACH_LABELS[p]} — matches how you said you use Axiomic.`,
+      ctaUrl: PERSONA_CTA_URLS[p],
     });
   }
 

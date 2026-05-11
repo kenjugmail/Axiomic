@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Download, Trophy } from "lucide-react";
+import { Download, FileCheck2, Trophy } from "lucide-react";
 import { api } from "../lib/api";
 import type { PathCertificateResponse } from "@axiomic/types";
 
@@ -182,6 +182,22 @@ export function PathCertificatePage() {
           See profile
         </Link>
       </div>
+
+      <section className="mt-8 rounded-lg border border-border bg-card p-4">
+        <h2 className="text-sm font-semibold inline-flex items-center gap-2">
+          <FileCheck2 className="w-4 h-4 text-primary" strokeWidth={2} />
+          Proof notes
+        </h2>
+        <p className="text-xs text-muted-foreground mt-2 max-w-prose">
+          This certificate is a rendered completion card (not a signed transcript
+          bundle). For byte-level verification, use signed capstone or track
+          artifacts and validate them at{" "}
+          <Link to="/verify" className="text-primary hover:underline">
+            /verify
+          </Link>
+          .
+        </p>
+      </section>
     </div>
   );
 }

@@ -14,49 +14,51 @@ import { SearchDialog } from "./SearchDialog";
 import { NotificationBell } from "./NotificationBell";
 import { ShortcutsDialog } from "./ShortcutsDialog";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
+import { NAV_PILLARS } from "../marketing/hubs";
+import { AUDIENCES } from "../marketing/audiences";
 
-const PRIMARY_NAV: Array<{ to: string; label: string }> = [
-  { to: "/wiki", label: "Wiki" },
-  { to: "/forum", label: "Forum" },
-  { to: "/news", label: "News" },
-  { to: "/research", label: "Research" },
-  { to: "/capstones", label: "Capstones" },
-  // S86 — classroom engagement gamification.
-  { to: "/classes", label: "Classes" },
-  { to: "/paths", label: "Paths" },
-  // Sprint 78 — exam track surfaces. Without these the SAT/GRE/MCAT/
-  // USMLE flows were reachable only by typing the URL.
-  { to: "/exams", label: "Exams" },
-  // Sprint 79 — lab protocol + equipment library.
-  { to: "/lab/protocols", label: "Lab" },
+type NavItem = { to: string; label: string };
+type NavSection = { heading: string; links: NavItem[] };
+
+const MORE_NAV_PUBLIC_SECTIONS: NavSection[] = [
+  {
+    heading: "Community",
+    links: [
+      { to: "/forum", label: "Forum" },
+      { to: "/news", label: "News" },
+      { to: "/cohorts", label: "Cohorts" },
+      { to: "/leaderboard", label: "Leaderboard" },
+    ],
+  },
+  {
+    heading: "Discover",
+    links: [
+      { to: "/challenge", label: "Daily challenge" },
+      { to: "/grants", label: "Funding" },
+      { to: "/lab/safety-certs", label: "Safety certifications" },
+      { to: "/lab/equipment", label: "Equipment manuals" },
+      { to: "/misconceptions", label: "Misconception marketplace" },
+      { to: "/capstones/review-queue", label: "Peer review queue" },
+      { to: "/verify", label: "Verify a transcript" },
+      { to: "/demo/competency-loop", label: "Competency loop tour" },
+      { to: "/explore/pets", label: "Pet showcase" },
+      { to: "/shop", label: "Shop" },
+    ],
+  },
 ];
 
-const SECONDARY_NAV_PUBLIC: Array<{ to: string; label: string }> = [
-  { to: "/challenge", label: "Daily challenge" },
-  { to: "/leaderboard", label: "Leaderboard" },
-  { to: "/cohorts", label: "Cohorts" },
-  // Sprint 78 — funding feed lives in the secondary menu so it's
-  // discoverable but doesn't crowd the primary nav.
-  { to: "/grants", label: "Funding" },
-  // Sprint 80 — safety cert catalog. Discoverable from "More" so PIs
-  // and interns can browse without hunting through a protocol page.
-  { to: "/lab/safety-certs", label: "Safety certifications" },
-  { to: "/lab/equipment", label: "Equipment manuals" },
-  { to: "/misconceptions", label: "Misconception marketplace" },
-  { to: "/capstones/review-queue", label: "Peer review queue" },
-  { to: "/verify", label: "Verify a transcript" },
-];
-
-const SECONDARY_NAV_USER: Array<{ to: string; label: string }> = [
-  { to: "/feed", label: "Feed" },
-  { to: "/flashcards", label: "Flashcards" },
-  { to: "/review/mistakes", label: "Review mistakes" },
-  // Sprint 80 — intern + mentor lab dashboard.
-  { to: "/me/lab", label: "My lab" },
-  { to: "/me/mri", label: "Knowledge MRI" },
-  { to: "/me/weak-concepts", label: "Weak concepts" },
-  { to: "/me/mentors", label: "Mentors" },
-];
+const MORE_NAV_USER_SECTION: NavSection = {
+  heading: "My workspace",
+  links: [
+    { to: "/feed", label: "Feed" },
+    { to: "/flashcards", label: "Flashcards" },
+    { to: "/review/mistakes", label: "Review mistakes" },
+    { to: "/me/lab", label: "My lab" },
+    { to: "/me/mri", label: "Knowledge MRI" },
+    { to: "/me/weak-concepts", label: "Weak concepts" },
+    { to: "/me/mentors", label: "Mentors" },
+  ],
+};
 
 export function Layout() {
   const { user, logout } = useAuthStore();
@@ -149,10 +151,13 @@ export function Layout() {
     setThemeOpen(false);
   };
 
-  const secondary = [
-    ...SECONDARY_NAV_PUBLIC,
-    ...(user ? SECONDARY_NAV_USER : []),
+  const moreSections = [
+    ...MORE_NAV_PUBLIC_SECTIONS,
+    ...(user ? [MORE_NAV_USER_SECTION] : []),
   ];
+  const focusAudience = user?.primaryPersona
+    ? AUDIENCES[user.primaryPersona as keyof typeof AUDIENCES]
+    : null;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -170,8 +175,16 @@ export function Layout() {
             <Link to="/" className="font-display text-lg font-semibold tracking-tight">
               Axiomic
             </Link>
+            {focusAudience && (
+              <Link
+                to={focusAudience.primaryCta.to}
+                className="hidden lg:inline text-xs text-muted-foreground hover:text-foreground"
+              >
+                Your focus: {focusAudience.title}
+              </Link>
+            )}
             <nav className="hidden sm:flex items-center gap-5 text-sm">
-              {PRIMARY_NAV.map((item) => (
+              {NAV_PILLARS.map((item) => (
                 <Link
                   key={item.to}
                   to={item.to}
@@ -199,18 +212,25 @@ export function Layout() {
                 {moreOpen && (
                   <div
                     role="menu"
-                    className="absolute left-0 top-full mt-2 min-w-[200px] rounded-lg border border-border bg-card shadow-elevated py-1 animate-fade-in"
+                    className="absolute left-0 top-full mt-2 min-w-[260px] rounded-lg border border-border bg-card shadow-elevated py-2 animate-fade-in"
                   >
-                    {secondary.map((item) => (
-                      <Link
-                        key={item.to}
-                        to={item.to}
-                        role="menuitem"
-                        onClick={() => setMoreOpen(false)}
-                        className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/40"
-                      >
-                        {item.label}
-                      </Link>
+                    {moreSections.map((section) => (
+                      <div key={section.heading} className="py-1">
+                        <div className="px-3 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+                          {section.heading}
+                        </div>
+                        {section.links.map((item) => (
+                          <Link
+                            key={item.to}
+                            to={item.to}
+                            role="menuitem"
+                            onClick={() => setMoreOpen(false)}
+                            className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/40"
+                          >
+                            {item.label}
+                          </Link>
+                        ))}
+                      </div>
                     ))}
                   </div>
                 )}
@@ -341,7 +361,7 @@ export function Layout() {
               <div className="px-3 pt-2 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground">
                 Browse
               </div>
-              {PRIMARY_NAV.map((item) => (
+              {NAV_PILLARS.map((item) => (
                 <Link
                   key={item.to}
                   to={item.to}
@@ -351,18 +371,22 @@ export function Layout() {
                   {item.label}
                 </Link>
               ))}
-              <div className="px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground">
-                Practice
-              </div>
-              {secondary.map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setMobileNavOpen(false)}
-                  className="block px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/40"
-                >
-                  {item.label}
-                </Link>
+              {moreSections.map((section) => (
+                <div key={section.heading}>
+                  <div className="px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+                    {section.heading}
+                  </div>
+                  {section.links.map((item) => (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      onClick={() => setMobileNavOpen(false)}
+                      className="block px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/40"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
               ))}
               {user && (
                 <>

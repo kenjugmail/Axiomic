@@ -25,6 +25,9 @@ import type {
 import { PostTypeBadge } from "../components/PostTypeBadge";
 import { WelcomeBanner } from "../components/WelcomeBanner";
 import { useAuthStore } from "../stores/auth";
+import { MarketingHero } from "./home/MarketingHero";
+import { AudiencePathGrid } from "./home/AudiencePathGrid";
+import { AUDIENCES } from "../marketing/audiences";
 
 // Featured lesson — surface to first-time visitors only. Signed-in
 // users see the personalized "continue learning" card instead.
@@ -155,39 +158,11 @@ export function HomePage() {
       {!user ? (
         // --- Signed-out: marketing hero + features + featured lesson ----
         <>
-          <section>
-            <div className="max-w-3xl mx-auto px-4 py-16 sm:py-20 text-center">
-              <h1 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.05] mb-5">
-                Deep knowledge,
-                <br />
-                beautifully structured.
-              </h1>
-              <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8 leading-relaxed">
-                Interactive lessons, tiered wiki articles, structured forum debate,
-                and gamified mastery paths — for modern ML and beyond.
-              </p>
-              <div className="flex gap-3 justify-center flex-wrap">
-                <Link
-                  to="/demo/attention"
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors duration-fast text-sm"
-                >
-                  ✨ Try it: 3 minutes on attention
-                </Link>
-                <Link
-                  to="/wiki"
-                  className="inline-flex items-center px-5 py-2.5 border border-border text-foreground rounded-md font-medium hover:bg-accent/40 transition-colors duration-fast text-sm"
-                >
-                  Explore the wiki
-                </Link>
-                <Link
-                  to={defaultPath ? `/paths/${defaultPath.slug}` : "/paths"}
-                  className="inline-flex items-center px-5 py-2.5 border border-border text-foreground rounded-md font-medium hover:bg-accent/40 transition-colors duration-fast text-sm"
-                >
-                  Start learning
-                </Link>
-              </div>
-            </div>
-          </section>
+          <MarketingHero
+            defaultPathTo={defaultPath ? `/paths/${defaultPath.slug}` : "/paths"}
+          />
+
+          <AudiencePathGrid />
 
           <section className="border-t border-border bg-muted/30">
             <div className="max-w-5xl mx-auto px-4 py-16">
@@ -286,9 +261,38 @@ export function HomePage() {
         <section className="border-b border-border bg-gradient-to-b from-primary/5 to-transparent">
           <div className="max-w-5xl mx-auto px-4 py-10">
             <h1 className="text-2xl font-bold mb-1">Welcome back, {greeting}.</h1>
-            <p className="text-sm text-muted-foreground mb-6">
+            <p className="text-sm text-muted-foreground mb-2">
               Pick up where you left off, clear today's queue, or jump back into a discussion.
             </p>
+            <p className="text-xs text-muted-foreground mb-6">
+              <Link to="/demo/competency-loop" className="text-primary hover:underline font-medium">
+                Competency loop tour
+              </Link>
+              <span className="mx-1">—</span>
+              curated links from wiki through verification.
+            </p>
+
+            {user.primaryPersona && user.primaryPersona in AUDIENCES && (
+                <div className="mb-6 rounded-xl border border-border bg-card/80 px-4 py-3">
+                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">
+                    Suggested for your focus ·{" "}
+                    {AUDIENCES[user.primaryPersona].title}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {AUDIENCES[user.primaryPersona].relatedLinks
+                      .slice(0, 4)
+                      .map((link) => (
+                        <Link
+                          key={link.to}
+                          to={link.to}
+                          className="inline-flex items-center rounded-md border border-border bg-background px-2.5 py-1.5 text-xs font-medium text-foreground hover:bg-accent/40 transition-colors"
+                        >
+                          {link.label}
+                        </Link>
+                      ))}
+                  </div>
+                </div>
+              )}
 
             <div className="grid md:grid-cols-2 gap-4">
               {/* Continue learning */}

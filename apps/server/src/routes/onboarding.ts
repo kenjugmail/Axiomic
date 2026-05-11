@@ -11,6 +11,7 @@ import {
 } from "@axiomic/db";
 import { requireAuth } from "../middleware/auth";
 import type { Env } from "../env";
+import { isPrimaryPersona } from "../lib/persona";
 
 export const onboardingRouter = new Hono<Env>();
 
@@ -30,6 +31,10 @@ const bodySchema = z.object({
       "ship_misconception",
     ])
     .optional(),
+  // Hub-and-spoke primary audience (learn / research / …).
+  persona: z
+    .enum(["learn", "research", "build", "teach", "lab", "prove"])
+    .optional(),
 });
 
 // GET /api/v1/onboarding/status — has the current user already
@@ -43,6 +48,7 @@ onboardingRouter.get("/status", requireAuth, async (c) => {
       onboardedAt: users.onboardedAt,
       startingPathSlug: users.startingPathSlug,
       onboardingGoal: users.onboardingGoal,
+      primaryPersona: users.primaryPersona,
     })
     .from(users)
     .where(eq(users.id, user.id))
@@ -51,6 +57,9 @@ onboardingRouter.get("/status", requireAuth, async (c) => {
     onboarded: !!row?.onboardedAt,
     startingPathSlug: row?.startingPathSlug ?? null,
     onboardingGoal: row?.onboardingGoal ?? null,
+    primaryPersona: isPrimaryPersona(row?.primaryPersona ?? null)
+      ? row!.primaryPersona
+      : null,
   });
 });
 
@@ -64,7 +73,7 @@ onboardingRouter.post(
   zValidator("json", bodySchema),
   async (c) => {
     const user = c.get("user")!;
-    const { pathSlug, goal } = c.req.valid("json");
+    const { pathSlug, goal, persona } = c.req.valid("json");
     const db = getDb();
 
     // Resolve the path slug to an id when present. Reject unknown slugs
@@ -87,6 +96,9 @@ onboardingRouter.post(
     };
     if (goal !== undefined) {
       updates.onboardingGoal = goal;
+    }
+    if (persona !== undefined) {
+      updates.primaryPersona = persona;
     }
     db.update(users)
       .set(updates as typeof users.$inferInsert)

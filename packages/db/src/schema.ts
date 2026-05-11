@@ -35,6 +35,9 @@ export const users = sqliteTable("users", {
   //   'join_cohort' | 'ship_misconception' | null. Feeds the AI
   //   coach's system prompt and the home dashboard "next step" CTA.
   onboardingGoal: text("onboarding_goal"),
+  // Hub-and-spoke onboarding: which audience path describes the user.
+  // One of learn | research | build | teach | lab | prove, or null.
+  primaryPersona: text("primary_persona"),
   // Sprint 69 — researcher profile fields.
   //   orcid: 0000-0000-0000-0000 format identifier; lets us link
   //     internal users to external author records (OpenAlex, arXiv).

@@ -107,10 +107,12 @@ export function VerifyPage() {
         Verify a transcript
       </h1>
       <p className="text-sm text-muted-foreground mt-2 max-w-prose">
-        Paste a signed capstone transcript below. Signatures are
-        ed25519. The bundle's <code className="px-1 py-0.5 rounded bg-muted text-[11px]">publicKey</code> field is checked
-        against the issuer; you can also pin to this Axiomic instance's
-        published key.
+        Paste a signed transcript bundle to check proof of work. This
+        verifies the credential signature on what was learned, done, and
+        published. Signatures are ed25519. The bundle's{" "}
+        <code className="px-1 py-0.5 rounded bg-muted text-[11px]">publicKey</code>{" "}
+        field is checked against the issuer; you can also pin to this
+        Axiomic instance's published key.
       </p>
 
       <div className="mt-6 rounded-lg border border-border bg-card p-3">
@@ -196,6 +198,7 @@ export function VerifyPage() {
                 <strong>{manifest.capstone?.title}</strong> · v
                 {manifest.capstone?.version}
               </div>
+              <div>Signed evidence for learn → do → prove.</div>
               <div>
                 Completed by{" "}
                 <strong>

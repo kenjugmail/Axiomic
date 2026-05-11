@@ -1,10 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Check, Sparkles } from "lucide-react";
-import { api, type MasteryPath, type OnboardingGoal } from "../lib/api";
+import {
+  api,
+  type MasteryPath,
+  type OnboardingGoal,
+  type PrimaryPersona,
+} from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
 import { toast } from "../stores/toast";
+import { AUDIENCES, AUDIENCE_IDS } from "../marketing/audiences";
 
 const ACCENTS = [
   "bg-accent-indigo",
@@ -13,8 +19,6 @@ const ACCENTS = [
   "bg-accent-amber",
 ];
 
-// Sprint 54 — onboarding goals. Surfaces both at signup and as a chip
-// on the home dashboard ("Your goal: …").
 const GOALS: Array<{
   id: OnboardingGoal;
   label: string;
@@ -47,14 +51,15 @@ const GOALS: Array<{
   },
 ];
 
-// Three-step welcome wizard: intro → path picker → confirm. Optional
-// throughout — a Skip link on every step posts to /onboarding with no
-// pathSlug so the user isn't re-prompted next visit.
+type Step = 0 | 1 | 2 | 3;
+
 export function OnboardingPage() {
   const navigate = useNavigate();
+  const fetchUser = useAuthStore((s) => s.fetchUser);
   const { user, loading: authLoading } = useAuthStore();
   const [paths, setPaths] = useState<MasteryPath[] | null>(null);
-  const [step, setStep] = useState<0 | 1 | 2>(0);
+  const [step, setStep] = useState<Step>(0);
+  const [persona, setPersona] = useState<PrimaryPersona | null>(null);
   const [picked, setPicked] = useState<MasteryPath | null>(null);
   const [goal, setGoal] = useState<OnboardingGoal | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -66,12 +71,10 @@ export function OnboardingPage() {
       .catch(() => setPaths([]));
   }, []);
 
-  // If the user reaches /welcome without an account, send them to signup.
   useEffect(() => {
     if (!authLoading && !user) navigate("/signup");
   }, [user, authLoading, navigate]);
 
-  // If they've already onboarded, skip straight to the dashboard.
   useEffect(() => {
     if (!user) return;
     api.onboarding
@@ -86,7 +89,12 @@ export function OnboardingPage() {
     if (submitting) return;
     setSubmitting(true);
     try {
-      const r = await api.onboarding.complete(chosen?.slug, goal ?? undefined);
+      const r = await api.onboarding.complete(
+        chosen?.slug,
+        goal ?? undefined,
+        persona ?? undefined,
+      );
+      await fetchUser();
       if (chosen && r.firstNodeSlug) {
         navigate(`/paths/${chosen.slug}/lessons/${r.firstNodeSlug}`, {
           replace: true,
@@ -106,7 +114,7 @@ export function OnboardingPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-12 min-h-[60vh] flex flex-col">
       <div className="flex items-center gap-2 mb-6">
-        {[0, 1, 2].map((i) => (
+        {[0, 1, 2, 3].map((i) => (
           <span
             key={i}
             className={`h-1.5 flex-1 rounded-full transition-colors duration-fast ${
@@ -121,24 +129,58 @@ export function OnboardingPage() {
           <>
             <div className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-primary mb-2">
               <Sparkles className="w-3 h-3" strokeWidth={2} />
-              Welcome
+              Step 1 · Focus
             </div>
             <h1 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight leading-tight mb-3">
-              Let's set you up.
+              What brings you to Axiomic?
             </h1>
-            <p className="text-base text-muted-foreground mb-6">
-              Pick a starting path and we'll drop you into the first lesson.
-              You can switch paths any time — nothing is locked.
+            <p className="text-base text-muted-foreground mb-5">
+              We use this to tune navigation hints and the AI coach. You can
+              change it anytime in settings.
             </p>
+            <div className="grid sm:grid-cols-2 gap-2 mb-6">
+              {AUDIENCE_IDS.map((id, i) => {
+                const def = AUDIENCES[id];
+                const active = persona === id;
+                const accent = ACCENTS[i % ACCENTS.length];
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setPersona(active ? null : id)}
+                    className={`group relative text-left rounded-lg border p-3 transition-colors duration-fast ${
+                      active
+                        ? "border-primary ring-1 ring-primary/40 bg-primary/5"
+                        : "border-border hover:bg-accent/30"
+                    }`}
+                  >
+                    <span
+                      className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-lg ${accent}`}
+                    />
+                    <div className="pl-2 text-sm font-semibold flex items-center gap-1.5">
+                      {def.title.replace(/^For /, "")}
+                      {active && (
+                        <Check className="w-3.5 h-3.5 text-primary" strokeWidth={2.5} />
+                      )}
+                    </div>
+                    <p className="pl-2 text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                      {def.tagline}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
             <div className="flex items-center gap-3 flex-wrap">
               <button
+                type="button"
                 onClick={() => setStep(1)}
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors duration-fast"
               >
-                Choose a path
+                Continue
                 <ArrowRight className="w-3.5 h-3.5" strokeWidth={2} />
               </button>
               <button
+                type="button"
                 onClick={() => finish(undefined)}
                 disabled={submitting}
                 className="text-sm text-muted-foreground hover:text-foreground"
@@ -151,8 +193,49 @@ export function OnboardingPage() {
 
         {step === 1 && (
           <>
+            <div className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-primary mb-2">
+              <Sparkles className="w-3 h-3" strokeWidth={2} />
+              Step 2 · Welcome
+            </div>
+            <h1 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight leading-tight mb-3">
+              Let's set you up.
+            </h1>
+            <p className="text-base text-muted-foreground mb-6">
+              Pick a starting path and we'll drop you into the first lesson.
+              You can switch paths any time — nothing is locked.
+            </p>
+            <div className="flex items-center gap-3 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setStep(2)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors duration-fast"
+              >
+                Choose a path
+                <ArrowRight className="w-3.5 h-3.5" strokeWidth={2} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setStep(0)}
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={() => finish(undefined)}
+                disabled={submitting}
+                className="ml-auto text-sm text-muted-foreground hover:text-foreground"
+              >
+                Skip and explore on my own
+              </button>
+            </div>
+          </>
+        )}
+
+        {step === 2 && (
+          <>
             <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">
-              Step 2 · Pick a path
+              Step 3 · Pick a path
             </div>
             <h2 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight leading-tight mb-3">
               What do you want to learn first?
@@ -182,6 +265,7 @@ export function OnboardingPage() {
                   return (
                     <button
                       key={p.id}
+                      type="button"
                       onClick={() => setPicked(p)}
                       className={`group relative pl-5 pr-4 py-4 rounded-lg border bg-card text-left transition-all duration-fast ${
                         active
@@ -211,7 +295,8 @@ export function OnboardingPage() {
             )}
             <div className="flex items-center gap-3 mt-6 flex-wrap">
               <button
-                onClick={() => setStep(2)}
+                type="button"
+                onClick={() => setStep(3)}
                 disabled={!picked}
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
               >
@@ -219,12 +304,14 @@ export function OnboardingPage() {
                 <ArrowRight className="w-3.5 h-3.5" strokeWidth={2} />
               </button>
               <button
-                onClick={() => setStep(0)}
+                type="button"
+                onClick={() => setStep(1)}
                 className="text-sm text-muted-foreground hover:text-foreground"
               >
                 Back
               </button>
               <button
+                type="button"
                 onClick={() => finish(undefined)}
                 disabled={submitting}
                 className="ml-auto text-sm text-muted-foreground hover:text-foreground"
@@ -235,10 +322,10 @@ export function OnboardingPage() {
           </>
         )}
 
-        {step === 2 && picked && (
+        {step === 3 && picked && (
           <>
             <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">
-              Step 3 · Confirm
+              Step 4 · Confirm
             </div>
             <h2 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight leading-tight mb-3">
               You're starting with {picked.title}.
@@ -276,6 +363,7 @@ export function OnboardingPage() {
             </div>
             <div className="flex items-center gap-3 flex-wrap">
               <button
+                type="button"
                 onClick={() => finish(picked)}
                 disabled={submitting}
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
@@ -284,7 +372,8 @@ export function OnboardingPage() {
                 <ArrowRight className="w-3.5 h-3.5" strokeWidth={2} />
               </button>
               <button
-                onClick={() => setStep(1)}
+                type="button"
+                onClick={() => setStep(2)}
                 className="text-sm text-muted-foreground hover:text-foreground"
               >
                 Back

@@ -7,6 +7,7 @@ export interface SessionUser {
   // Sprint 52 — 'admin' unlocks /admin/* routes; 'member' is everyone else.
   role: string;
   createdAt: string;
+  primaryPersona: string | null;
 }
 
 export type Env = {

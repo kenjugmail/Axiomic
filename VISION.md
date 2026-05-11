@@ -4,6 +4,13 @@ This document is the source of truth for what we're building. Everything downstr
 
 ## What we're building
 
+Axiomic is a **competency operating system** for hard technical domains: one
+shared engine (content, assessment, real work, proof, and groups) with
+audience-specific *front doors* in the product so learners, builders,
+teachers, researchers, and lab teams each see a coherent path. The four
+pillars below remain the architectural core; hub-and-spoke positioning is
+how we explain and route users without fragmenting the codebase.
+
 Axiomic is a unified intellectual platform combining four interlocking pieces:
 
 1. **An open educational wiki** spanning every field of science and engineering. Tiered explanations per topic — elementary, undergraduate, graduate, cutting-edge research. Reader picks their level. Interactive visualizations are first-class. Free for all readers.

@@ -121,11 +121,14 @@ export function CapstoneTrackPage() {
                 <span>
                   You earned this track on {new Date(completed.completedAt).toLocaleDateString()}.
                 </span>
+                <span className="text-xs text-muted-foreground">
+                  Signed credential added to your proof record.
+                </span>
                 <Link
                   to={`/tracks/c/${completed.artifactPageSlug}`}
                   className="ml-auto text-xs underline inline-flex items-center gap-1"
                 >
-                  View public artifact <ExternalLink className="w-3 h-3" />
+                  View public credential <ExternalLink className="w-3 h-3" />
                 </Link>
               </div>
             )}
@@ -234,7 +237,7 @@ export function CapstoneTrackPage() {
                           to={`/capstones/c/${c.artifactPageSlug}`}
                           className="underline hover:text-foreground"
                         >
-                          your artifact →
+                          your proof artifact →
                         </Link>
                       </>
                     )}

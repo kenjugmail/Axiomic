@@ -141,6 +141,11 @@ const AttachmentsPage = lazy(() =>
 const DemoAttentionPage = lazy(() =>
   import("./pages/DemoAttentionPage").then((m) => ({ default: m.DemoAttentionPage })),
 );
+const DemoCompetencyLoopPage = lazy(() =>
+  import("./pages/DemoCompetencyLoopPage").then((m) => ({
+    default: m.DemoCompetencyLoopPage,
+  })),
+);
 const ResearchListPage = lazy(() =>
   import("./pages/ResearchListPage").then((m) => ({ default: m.ResearchListPage })),
 );
@@ -371,6 +376,12 @@ const ProtocolWizardPage = lazy(() =>
     default: m.ProtocolWizardPage,
   })),
 );
+const ForAudiencePage = lazy(() =>
+  import("./pages/ForAudiencePage").then((m) => ({ default: m.ForAudiencePage })),
+);
+const HubPage = lazy(() =>
+  import("./pages/HubPage").then((m) => ({ default: m.HubPage })),
+);
 
 function PageFallback() {
   return (
@@ -392,6 +403,8 @@ function AppRoutes() {
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<HomePage />} />
+          <Route path="/for/:audienceId" element={<ForAudiencePage />} />
+          <Route path="/hub/:pillarId" element={<HubPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/welcome" element={<OnboardingPage />} />
@@ -454,6 +467,7 @@ function AppRoutes() {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/settings/attachments" element={<AttachmentsPage />} />
           <Route path="/demo/attention" element={<DemoAttentionPage />} />
+          <Route path="/demo/competency-loop" element={<DemoCompetencyLoopPage />} />
           <Route path="/research" element={<ResearchListPage />} />
           <Route path="/research/feed" element={<ResearchFeedPage />} />
           {/* Sprint 71 — Funding feed. */}

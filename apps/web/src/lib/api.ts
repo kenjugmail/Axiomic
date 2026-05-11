@@ -174,6 +174,7 @@ import type {
   ReputationResponse,
   UnreadCountResponse,
   User,
+  PrimaryPersona,
   UserNodeProgress,
   WikiListResponse,
   WikiPage,
@@ -673,8 +674,13 @@ export const api = {
         onboarded: boolean;
         startingPathSlug: string | null;
         onboardingGoal: OnboardingGoal | null;
+        primaryPersona: PrimaryPersona | null;
       }>("/onboarding/status"),
-    complete: (pathSlug?: string, goal?: OnboardingGoal) =>
+    complete: (
+      pathSlug?: string,
+      goal?: OnboardingGoal,
+      persona?: PrimaryPersona | null,
+    ) =>
       request<{
         onboarded: true;
         startingPathSlug: string | null;
@@ -684,6 +690,7 @@ export const api = {
         body: JSON.stringify({
           ...(pathSlug ? { pathSlug } : {}),
           ...(goal ? { goal } : {}),
+          ...(persona ? { persona } : {}),
         }),
       }),
   },
@@ -1807,6 +1814,7 @@ export type {
   SavedFlashcard,
   SearchResultItem,
   User,
+  PrimaryPersona,
   UserNodeProgress,
   WikiPage,
 };

@@ -249,7 +249,12 @@ export function CapstonePage() {
                   All milestones passed
                 </h3>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Your public artifact page is live.
+                  Your public artifact page is live. Exams are diagnostics; this
+                  capstone page is signed proof. Verify signatures at{" "}
+                  <Link to="/verify" className="text-primary hover:underline">
+                    /verify
+                  </Link>
+                  .
                 </p>
               </div>
               <Link

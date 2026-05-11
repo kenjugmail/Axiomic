@@ -139,9 +139,22 @@ export function CapstoneWorkspacePage() {
       <h1 className="font-display text-2xl font-semibold tracking-tight mb-1">
         {capstone.coverEmoji} {capstone.title}
       </h1>
-      <p className="text-sm text-muted-foreground mb-6">
+      <p className="text-sm text-muted-foreground mb-4">
         Working on milestone {activeIdx + 1} of {capstone.milestones.length}
       </p>
+      <div className="mb-6 rounded-lg border border-border bg-muted/25 px-3 py-2.5 text-xs text-muted-foreground leading-relaxed">
+        <span className="font-medium text-foreground">Proof context: </span>
+        Work you submit here becomes part of your capstone artifact and any
+        signed transcripts. Treat exams elsewhere as diagnostics; this
+        workspace is where execution evidence is assembled.{" "}
+        <Link to="/verify" className="text-primary hover:underline">
+          Verify signatures
+        </Link>
+        {" · "}
+        <Link to="/demo/competency-loop" className="text-primary hover:underline">
+          Competency loop tour
+        </Link>
+      </div>
 
       {/* Progress bar */}
       <ol className="flex gap-1 mb-6">
@@ -200,13 +213,18 @@ export function CapstoneWorkspacePage() {
       {enrollment.completedAt && enrollment.artifactPageSlug && (
         <div className="mt-8 rounded-md border border-emerald-500/40 bg-emerald-500/5 p-4 text-center">
           <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-            Capstone complete — artifact page is live.
+            Capstone complete — your public proof page is live.
+          </p>
+          <p className="text-xs text-muted-foreground mt-2 max-w-md mx-auto leading-relaxed">
+            This artifact is the durable record peers and hiring loops can
+            inspect; byte-level signature checks use the verifier, not this
+            page alone.
           </p>
           <Link
             to={`/capstones/c/${enrollment.artifactPageSlug}`}
             className="text-xs px-3 py-1.5 rounded-md bg-emerald-500 text-white hover:bg-emerald-600 mt-3 inline-block"
           >
-            View artifact page
+            View proof artifact
           </Link>
         </div>
       )}

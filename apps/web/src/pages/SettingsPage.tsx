@@ -3,12 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { useThemeStore } from "../stores/theme";
-import type { ThemePreference, UserSettings } from "@axiomic/types";
+import type { PrimaryPersona, ThemePreference, UserSettings } from "@axiomic/types";
+import { AUDIENCES, AUDIENCE_IDS } from "../marketing/audiences";
 import { readPushState, subscribePush, unsubscribePush, type PushState } from "../lib/pushClient";
 import { toast } from "../stores/toast";
 
 export function SettingsPage() {
-  const { user, loading: authLoading } = useAuthStore();
+  const { user, loading: authLoading, fetchUser } = useAuthStore();
   const { theme, setTheme } = useThemeStore();
   const navigate = useNavigate();
 
@@ -25,6 +26,9 @@ export function SettingsPage() {
   const [blueskyHandle, setBlueskyHandle] = useState("");
   const [twitterHandle, setTwitterHandle] = useState("");
   const [institution, setInstitution] = useState("");
+  const [primaryPersona, setPrimaryPersona] = useState<PrimaryPersona | "">(
+    "",
+  );
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +53,7 @@ export function SettingsPage() {
         setBlueskyHandle(settings.blueskyHandle ?? "");
         setTwitterHandle(settings.twitterHandle ?? "");
         setInstitution(settings.institution ?? "");
+        setPrimaryPersona(settings.primaryPersona ?? "");
       })
       .catch((e) => setError(e.message ?? "Failed to load settings"));
   }, [user, authLoading, navigate]);
@@ -68,9 +73,11 @@ export function SettingsPage() {
         blueskyHandle: blueskyHandle.trim() || null,
         twitterHandle: twitterHandle.trim() || null,
         institution: institution.trim() || null,
+        primaryPersona: primaryPersona === "" ? null : primaryPersona,
       });
       setSettings(next);
       setSavedAt(Date.now());
+      void fetchUser();
     } catch (e: any) {
       setError(e?.message ?? "Save failed");
     } finally {
@@ -126,6 +133,35 @@ export function SettingsPage() {
             maxLength={2000}
             className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm resize-y"
           />
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">How you use Axiomic</h2>
+        <p className="text-xs text-muted-foreground -mt-2">
+          Shapes default coach hints and the shortcuts on your home
+          dashboard. Leave unset for a balanced experience.
+        </p>
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Primary focus
+          </label>
+          <select
+            value={primaryPersona}
+            onChange={(e) =>
+              setPrimaryPersona(
+                (e.target.value || "") as PrimaryPersona | "",
+              )
+            }
+            className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm"
+          >
+            <option value="">Not set</option>
+            {AUDIENCE_IDS.map((id) => (
+              <option key={id} value={id}>
+                {AUDIENCES[id].title}
+              </option>
+            ))}
+          </select>
         </div>
       </section>
 

@@ -46,6 +46,7 @@ describe("Settings: defaults and round-trip", () => {
     expect(data.settings.theme).toBe("system");
     expect(data.settings.notifyMentions).toBe(true);
     expect(data.settings.notifyReplies).toBe(true);
+    expect(data.settings.primaryPersona ?? null).toBeNull();
   });
 
   test("PUT updates fields and GET reflects them", async () => {
@@ -80,6 +81,24 @@ describe("Settings: defaults and round-trip", () => {
       body: JSON.stringify({ theme: "neon" }),
     });
     expect(res.status).toBe(400);
+  });
+
+  test("PUT updates primaryPersona", async () => {
+    const u = await signup("pp");
+    const put = await req("/settings", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...cookieHeader(u.cookie),
+      },
+      body: JSON.stringify({ primaryPersona: "research" }),
+    });
+    expect(put.status).toBe(200);
+    const putData = (await put.json()) as { settings: { primaryPersona: string } };
+    expect(putData.settings.primaryPersona).toBe("research");
+    const get = await req("/settings", { headers: cookieHeader(u.cookie) });
+    const data = (await get.json()) as { settings: { primaryPersona: string } };
+    expect(data.settings.primaryPersona).toBe("research");
   });
 });
 

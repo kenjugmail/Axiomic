@@ -50,6 +50,7 @@ const SESSION_USER_COLUMNS = {
   bio: users.bio,
   role: users.role,
   createdAt: users.createdAt,
+  primaryPersona: users.primaryPersona,
 } as const;
 
 function devBypassEnabled(): boolean {

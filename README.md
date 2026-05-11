@@ -1,8 +1,12 @@
 # Axiomic
 
-**Deep Knowledge, Beautifully Structured**
+**Learn deeply. Build real things. Prove what you know.**
 
-An open educational platform combining interactive wiki, AI-powered learning, and structured mastery paths — starting with modern machine learning and transformer architectures.
+A **competency operating system** for serious technical work: interactive wiki
+and lessons, research and lab surfaces, classes and cohorts, exams and
+diagnostics, capstones and credential tracks, plus a **verification** path for
+signed artifacts — starting with modern machine learning and transformer
+architectures.
 
 ## Quick Start
 
@@ -22,6 +26,12 @@ bun run dev      # starts server (port 3000) and web (port 5173)
 Then open [http://localhost:5173](http://localhost:5173).
 
 ## What's Inside
+
+### Competency loop tour
+
+Static walkthrough of live routes (wiki → exams → weak concepts → tracks →
+verify): open **[Competency loop tour](/demo/competency-loop)** locally after
+`bun run dev` (same path on your deployed host).
 
 ### Wiki (32+ pages)
 - Transformer architecture topics from tokens to mechanistic interpretability

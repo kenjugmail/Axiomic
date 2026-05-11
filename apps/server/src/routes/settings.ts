@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { getDb, users } from "@axiomic/db";
 import { requireAuth } from "../middleware/auth";
 import type { Env } from "../env";
+import { isPrimaryPersona } from "../lib/persona";
 
 export const settingsRouter = new Hono<Env>();
 
@@ -39,6 +40,10 @@ const twitterHandleSchema = z
   .regex(/^@?[a-z0-9_]{1,40}$/i, "Twitter handle must be alphanumeric")
   .nullable();
 
+const primaryPersonaSchema = z
+  .enum(["learn", "research", "build", "teach", "lab", "prove"])
+  .nullable();
+
 const updateSchema = z.object({
   theme: themeSchema.optional(),
   notifyMentions: z.boolean().optional(),
@@ -61,6 +66,7 @@ const updateSchema = z.object({
   blueskyHandle: blueskyHandleSchema.optional(),
   twitterHandle: twitterHandleSchema.optional(),
   institution: z.string().max(200).nullable().optional(),
+  primaryPersona: primaryPersonaSchema.optional(),
 });
 
 settingsRouter.get("/", requireAuth, async (c) => {
@@ -83,6 +89,7 @@ settingsRouter.get("/", requireAuth, async (c) => {
       twitterHandle: users.twitterHandle,
       institution: users.institution,
       hIndex: users.hIndex,
+      primaryPersona: users.primaryPersona,
     })
     .from(users)
     .where(eq(users.id, user.id))
@@ -90,10 +97,15 @@ settingsRouter.get("/", requireAuth, async (c) => {
 
   if (!row) return c.json({ error: "User not found" }, 404);
 
+  const primaryPersona = isPrimaryPersona(row.primaryPersona ?? null)
+    ? row.primaryPersona
+    : null;
+
   return c.json({
     settings: {
       ...row,
       theme: row.theme as z.infer<typeof themeSchema>,
+      primaryPersona,
     },
   });
 });
@@ -124,6 +136,9 @@ settingsRouter.put(
       fields.twitterHandle = patch.twitterHandle?.replace(/^@/, "") ?? null;
     }
     if (patch.institution !== undefined) fields.institution = patch.institution;
+    if (patch.primaryPersona !== undefined) {
+      fields.primaryPersona = patch.primaryPersona;
+    }
 
     if (Object.keys(fields).length > 0) {
       fields.updatedAt = new Date().toISOString();
@@ -171,15 +186,21 @@ settingsRouter.put(
         twitterHandle: users.twitterHandle,
         institution: users.institution,
         hIndex: users.hIndex,
+        primaryPersona: users.primaryPersona,
       })
       .from(users)
       .where(eq(users.id, user.id))
       .get();
 
+    const primaryPersona = isPrimaryPersona(row?.primaryPersona ?? null)
+      ? row!.primaryPersona
+      : null;
+
     return c.json({
       settings: {
         ...row,
         theme: row?.theme as z.infer<typeof themeSchema>,
+        primaryPersona,
       },
     });
   },

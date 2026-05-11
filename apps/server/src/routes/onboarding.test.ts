@@ -48,6 +48,7 @@ describe("Onboarding", () => {
     const data = (await res.json()) as any;
     expect(data.onboarded).toBe(false);
     expect(data.startingPathSlug).toBeNull();
+    expect(data.primaryPersona).toBeNull();
   });
 
   test("POST without pathSlug marks onboarded with no path", async () => {
@@ -123,5 +124,36 @@ describe("Onboarding", () => {
       body: JSON.stringify({ pathSlug: "ml-engineer" }),
     });
     expect(res.status).toBe(401);
+  });
+
+  test("POST persists primary persona", async () => {
+    const u = await signup("pers");
+    const post = await req("/onboarding", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...cookieHeader(u.cookie),
+      },
+      body: JSON.stringify({ persona: "lab" }),
+    });
+    expect(post.status).toBe(200);
+    const st = await req("/onboarding/status", {
+      headers: cookieHeader(u.cookie),
+    });
+    const data = (await st.json()) as { primaryPersona: string | null };
+    expect(data.primaryPersona).toBe("lab");
+  });
+
+  test("POST rejects invalid persona", async () => {
+    const u = await signup("badp");
+    const post = await req("/onboarding", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...cookieHeader(u.cookie),
+      },
+      body: JSON.stringify({ persona: "invalid_persona" }),
+    });
+    expect(post.status).toBe(400);
   });
 });

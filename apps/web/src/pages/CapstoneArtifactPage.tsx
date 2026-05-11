@@ -79,6 +79,9 @@ export function CapstoneArtifactPageView() {
               · completed{" "}
               {new Date(enrollment.completedAt).toLocaleDateString()}
             </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Public proof record: what they learned, built, and can now verify.
+            </p>
           </div>
           <button
             type="button"
@@ -94,7 +97,7 @@ export function CapstoneArtifactPageView() {
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
             <span className="text-emerald-700 dark:text-emerald-300">
               {submissions.length} milestone{submissions.length === 1 ? "" : "s"} passed —
-              verified by AI grader
+              signed evidence ready for credential review
             </span>
           </div>
           <VerifiedBadge artifactSlug={enrollment.artifactPageSlug} />

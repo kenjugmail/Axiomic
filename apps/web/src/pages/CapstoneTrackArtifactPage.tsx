@@ -88,6 +88,9 @@ export function CapstoneTrackArtifactPage() {
               {learnerName} earned the {data.track.title}
             </h1>
             <p className="text-sm text-muted-foreground mt-2">{data.track.summary}</p>
+            <p className="text-xs text-muted-foreground mt-2">
+              Credential record: learn → do → prove, with signed evidence.
+            </p>
             <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1">
                 <Award className="w-3.5 h-3.5" />
@@ -114,6 +117,9 @@ export function CapstoneTrackArtifactPage() {
         <h2 className="font-display text-lg font-semibold tracking-tight mb-3">
           Capstones in this credential
         </h2>
+        <p className="text-xs text-muted-foreground mb-3">
+          Each completed capstone links to the public artifact used to issue this credential.
+        </p>
         <ol className="space-y-2">
           {(manifest?.capstones ?? []).map((c, idx) => (
             <li
@@ -148,7 +154,7 @@ export function CapstoneTrackArtifactPage() {
                         to={`/capstones/c/${c.artifactPageSlug}`}
                         className="underline hover:text-foreground"
                       >
-                        artifact →
+                        proof artifact →
                       </Link>
                     </>
                   )}
