@@ -1654,6 +1654,10 @@ export interface UserSettings {
   institution?: string | null;
   hIndex?: number | null;
   primaryPersona?: PrimaryPersona | null;
+  // S109 — Pending email change. When the user requests an email
+  // change, this is set to the requested new address until they
+  // click the verify link. The Settings page surfaces it inline.
+  pendingEmail?: string | null;
 }
 
 export interface SettingsResponse {

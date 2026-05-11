@@ -309,6 +309,27 @@ export const api = {
     verifyEmail: (token: string) =>
       request<OkResponse>("/auth/verify-email", { method: "POST", body: JSON.stringify({ token }) }),
     resendVerify: () => request<OkResponse>("/auth/resend-verify", { method: "POST" }),
+    // S109 — password recovery + rotation.
+    forgotPassword: (email: string) =>
+      request<void>("/auth/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      }),
+    resetPassword: (token: string, newPassword: string) =>
+      request<OkResponse>("/auth/reset-password", {
+        method: "POST",
+        body: JSON.stringify({ token, newPassword }),
+      }),
+    changePassword: (currentPassword: string, newPassword: string) =>
+      request<{ ok: true; otherSessionsRevoked: number }>("/auth/change-password", {
+        method: "POST",
+        body: JSON.stringify({ currentPassword, newPassword }),
+      }),
+    verifyEmailChange: (token: string) =>
+      request<{ ok: true; newEmail: string }>("/auth/verify-email-change", {
+        method: "POST",
+        body: JSON.stringify({ token }),
+      }),
   },
   feedback: {
     submit: (data: { kind: "bug" | "idea" | "praise"; message: string }) =>
@@ -1646,6 +1667,25 @@ export const api = {
         body: JSON.stringify({ password }),
       }),
     exportData: () => request<unknown>("/me/export"),
+    // S109 — email change + session management.
+    changeEmail: (newEmail: string, currentPassword: string) =>
+      request<{ ok: true; pendingEmail: string }>("/me/email-change", {
+        method: "POST",
+        body: JSON.stringify({ newEmail, currentPassword }),
+      }),
+    sessions: () =>
+      request<{
+        sessions: Array<{
+          id: string;
+          createdAt: string;
+          expiresAt: string;
+          userAgent: string | null;
+          ip: string | null;
+          current: boolean;
+        }>;
+      }>("/me/sessions"),
+    revokeSession: (id: string) =>
+      request<OkResponse>(`/me/sessions/${encodeURIComponent(id)}`, { method: "DELETE" }),
   },
   flashcards: {
     save: (data: { pageSlug: string; pageTitle: string; front: string; back: string }) =>

@@ -18,6 +18,7 @@ import {
   comments,
   contentProposals,
   cohortInvitations,
+  emailVerificationTokens,
   forumPosts,
   getDb,
   masteryNodes,
@@ -27,12 +28,23 @@ import {
   petCosmetics,
   petInventory,
   pets,
+  sessions,
   users,
   userProgress,
   wikiPages,
   xpGrants,
 } from "@axiomic/db";
-import { destroySession, requireAuth } from "../middleware/auth";
+import { randomBytes } from "crypto";
+import { z } from "zod";
+import { zValidator } from "@hono/zod-validator";
+import {
+  currentSessionId,
+  destroySession,
+  requireAuth,
+} from "../middleware/auth";
+import { checkRateLimit } from "../lib/rateLimit";
+import { env } from "../lib/envConfig";
+import { sendEmail } from "../lib/email";
 import { runDetectorForUser } from "../lib/misconceptionDetector";
 import { buildKnowledgeMri } from "../lib/knowledgeMri";
 import { currentStreak } from "../lib/achievements";
@@ -562,6 +574,14 @@ meRouter.delete("/", requireAuth, async (c) => {
 // large histories this could be large but typical sizes are < 1 MB.
 meRouter.get("/export", requireAuth, async (c) => {
   const me = c.get("user")!;
+  // S109 — rate-limit /me/export to 5/hour/user. The response can be
+  // a few MB for power users; an unrate-limited GET is a small DOS
+  // amplifier. Skipped in NODE_ENV=test.
+  if (env.NODE_ENV !== "test") {
+    if (!checkRateLimit(`export:u:${me.id}`, 5, 60 * 60_000)) {
+      return c.json({ error: "Too many export requests. Try again later." }, 429);
+    }
+  }
   const db = getDb();
 
   const profile = db
@@ -621,4 +641,126 @@ meRouter.get("/export", requireAuth, async (c) => {
     pets: myPets,
     cosmeticsOwned: myCosmetics,
   });
+});
+
+// =================================================================
+// S109 — Account hygiene: email change + session list/revoke.
+// =================================================================
+
+// POST /me/email-change — start the email change flow. Requires the
+// caller's current password (so a stolen session cookie can't
+// redirect the verify email to an attacker-controlled inbox).
+// Mints a verification token bound to the NEW address, stores the
+// requested address in users.pendingEmail.
+meRouter.post(
+  "/email-change",
+  requireAuth,
+  zValidator(
+    "json",
+    z.object({
+      newEmail: z.string().email(),
+      currentPassword: z.string(),
+    }),
+  ),
+  async (c) => {
+    const me = c.get("user")!;
+    const { newEmail, currentPassword } = c.req.valid("json");
+    const db = getDb();
+    const row = db
+      .select({ passwordHash: users.passwordHash })
+      .from(users)
+      .where(eq(users.id, me.id))
+      .get();
+    if (!row) return c.json({ error: "User not found" }, 404);
+    const ok = await Bun.password.verify(currentPassword, row.passwordHash, "bcrypt");
+    if (!ok) return c.json({ error: "Current password is incorrect" }, 401);
+
+    // Reject if the new address is already in use by another account.
+    const taken = db.select({ id: users.id }).from(users).where(eq(users.email, newEmail)).get();
+    if (taken && taken.id !== me.id) {
+      return c.json({ error: "That email is already in use" }, 409);
+    }
+
+    db.update(users).set({ pendingEmail: newEmail }).where(eq(users.id, me.id)).run();
+
+    // Mint a token tied to this user and dispatch the verify email
+    // to the NEW address. The verify route checks pendingEmail
+    // matches at consume time so an attacker can't intercept a
+    // stale verify link and bind it to a third address.
+    db.delete(emailVerificationTokens)
+      .where(eq(emailVerificationTokens.userId, me.id))
+      .run();
+    const token = randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    db.insert(emailVerificationTokens).values({
+      token,
+      userId: me.id,
+      expiresAt,
+    }).run();
+
+    // Build the verify URL the same way auth.ts does.
+    const origin =
+      c.req.header("origin") ??
+      (c.req.header("host") ? `https://${c.req.header("host")}` : "https://axiomic.app");
+    const verifyUrl = `${origin.replace(/\/$/, "")}/verify-email-change?token=${token}`;
+    sendEmail({
+      to: newEmail,
+      subject: "Confirm your new Axiomic email",
+      html:
+        `<p>Click the link below to confirm <strong>${newEmail}</strong> as your new login email.</p>` +
+        `<p><a href="${verifyUrl}">${verifyUrl}</a></p>` +
+        `<p>This link expires in 24 hours. If you didn't request this change, ignore the email.</p>`,
+      text: `Click the link below to confirm ${newEmail} as your new login email.\n\n${verifyUrl}\n\nThis link expires in 24 hours.`,
+    }).catch(() => {
+      // best-effort; user can re-request
+    });
+
+    return c.json({ ok: true, pendingEmail: newEmail });
+  },
+);
+
+// GET /me/sessions — list active sessions for the caller. The
+// current session is flagged so the UI can disable its revoke button.
+meRouter.get("/sessions", requireAuth, async (c) => {
+  const me = c.get("user")!;
+  const db = getDb();
+  const cur = currentSessionId(c);
+  const rows = db
+    .select({
+      id: sessions.id,
+      createdAt: sessions.createdAt,
+      expiresAt: sessions.expiresAt,
+      userAgent: sessions.userAgent,
+      ip: sessions.ip,
+    })
+    .from(sessions)
+    .where(eq(sessions.userId, me.id))
+    .all();
+  return c.json({
+    sessions: rows.map((r) => ({ ...r, current: r.id === cur })),
+  });
+});
+
+// DELETE /me/sessions/:id — revoke another device. Refuses to revoke
+// the calling session (use /auth/logout for that).
+meRouter.delete("/sessions/:id", requireAuth, async (c) => {
+  const me = c.get("user")!;
+  const id = c.req.param("id")!;
+  const cur = currentSessionId(c);
+  if (cur === id) {
+    return c.json(
+      { error: "Use /auth/logout to sign out the current device." },
+      400,
+    );
+  }
+  const db = getDb();
+  const row = db
+    .select({ userId: sessions.userId })
+    .from(sessions)
+    .where(eq(sessions.id, id))
+    .get();
+  if (!row) return c.json({ error: "Session not found" }, 404);
+  if (row.userId !== me.id) return c.json({ error: "Not your session" }, 403);
+  db.delete(sessions).where(eq(sessions.id, id)).run();
+  return c.json({ ok: true });
 });

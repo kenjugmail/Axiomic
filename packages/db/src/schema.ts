@@ -74,6 +74,11 @@ export const users = sqliteTable("users", {
   //   sweeper hard-deletes the row (FK cascades clean content).
   emailVerifiedAt: text("email_verified_at"),
   deletedAt: text("deleted_at"),
+  // S109 — Pending email change. When the user requests an email
+  // change, we write the new address here and mint a verification
+  // token tied to it. The verify-email-change route copies
+  // pendingEmail → email when the link is clicked.
+  pendingEmail: text("pending_email"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
 }, (t) => ({
@@ -92,6 +97,10 @@ export const sessions = sqliteTable("sessions", {
   id: text("id").primaryKey(),
   userId: text("user_id").notNull().references(() => users.id),
   expiresAt: text("expires_at").notNull(),
+  // S109 — populated at session create. Lets the user see their
+  // active sessions and revoke individual devices from settings.
+  userAgent: text("user_agent"),
+  ip: text("ip"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
 });
 
@@ -2719,4 +2728,20 @@ export const feedbackReports = sqliteTable("feedback_reports", {
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
 }, (t) => ({
   createdIdx: index("feedback_reports_created_idx").on(t.createdAt),
+}));
+
+// =================================================================
+// S109 — Auth recovery + account hygiene.
+// =================================================================
+
+// Password reset tokens. Issued by POST /auth/forgot-password,
+// consumed by POST /auth/reset-password. Single-use: row deleted on
+// successful reset. 1-hour expiry.
+export const passwordResetTokens = sqliteTable("password_reset_tokens", {
+  token: text("token").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  expiresAt: text("expires_at").notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  userIdx: index("password_reset_tokens_user_idx").on(t.userId),
 }));

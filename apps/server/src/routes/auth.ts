@@ -22,11 +22,18 @@ import {
   authLoginAttempts,
   emailVerificationTokens,
   getDb,
+  passwordResetTokens,
   users,
 } from "@axiomic/db";
 import { and, eq, gt, sql } from "drizzle-orm";
 import { randomUUID, randomBytes } from "crypto";
-import { createSession, destroySession, getSessionUser } from "../middleware/auth";
+import {
+  createSession,
+  currentSessionId,
+  destroyAllSessions,
+  destroySession,
+  getSessionUser,
+} from "../middleware/auth";
 import { checkRateLimit } from "../lib/rateLimit";
 import { verifyTurnstile } from "../lib/turnstile";
 import { sendEmail } from "../lib/email";
@@ -325,5 +332,207 @@ auth.post("/resend-verify", async (c) => {
   await sendVerifyEmail(user.id, user.email, appBaseUrl(c));
   return c.json({ ok: true });
 });
+
+// =================================================================
+// S109 — Password reset + change password.
+// =================================================================
+
+const PASSWORD_RESET_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
+
+async function sendPasswordResetEmail(
+  userId: string,
+  email: string,
+  baseUrl: string,
+): Promise<void> {
+  const db = getDb();
+  const token = randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + PASSWORD_RESET_EXPIRY_MS).toISOString();
+  // Idempotent: if a previous unused token exists, drop it so only one
+  // active link is in flight at a time.
+  db.delete(passwordResetTokens)
+    .where(eq(passwordResetTokens.userId, userId))
+    .run();
+  db.insert(passwordResetTokens)
+    .values({ token, userId, expiresAt })
+    .run();
+  const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+  const subject = "Reset your Axiomic password";
+  const text = `Someone (hopefully you) requested a password reset for your Axiomic account.\n\nReset link (expires in 1 hour):\n${resetUrl}\n\nIf you didn't request this, you can safely ignore this email.`;
+  const html =
+    `<p>Someone (hopefully you) requested a password reset for your Axiomic account.</p>` +
+    `<p>Reset link (expires in 1 hour): <a href="${resetUrl}">${resetUrl}</a></p>` +
+    `<p>If you didn't request this, you can safely ignore this email.</p>`;
+  await sendEmail({ to: email, subject, html, text });
+}
+
+// POST /auth/forgot-password — request a reset email. Rate-limited
+// per IP. ALWAYS returns 204 regardless of whether the email exists
+// so an attacker can't enumerate registered accounts via this route.
+auth.post(
+  "/forgot-password",
+  zValidator("json", z.object({ email: z.string().email() })),
+  async (c) => {
+    const ip = clientIp(c);
+    if (env.NODE_ENV !== "test") {
+      const key = `forgot-pw:${ip ?? "anon"}`;
+      if (!checkRateLimit(key, 5, 60_000)) {
+        // Even on rate-limit we hide the 429 from leaking enumeration.
+        // Return 204; the legitimate user can try again next minute.
+        return c.body(null, 204);
+      }
+    }
+    const { email } = c.req.valid("json");
+    const db = getDb();
+    const user = db.select().from(users).where(eq(users.email, email)).get();
+    if (user && !user.deletedAt) {
+      sendPasswordResetEmail(user.id, user.email, appBaseUrl(c)).catch((e) => {
+        logger.warn({
+          kind: "auth.forgot_password.email_failed",
+          msg: "password reset email send failed",
+          err: String(e),
+        });
+      });
+    }
+    // Always 204 — never leak existence.
+    return c.body(null, 204);
+  },
+);
+
+// POST /auth/reset-password — consume the token, update the
+// password, destroy ALL sessions for the user (so anyone who already
+// had a stolen cookie is kicked out).
+auth.post(
+  "/reset-password",
+  zValidator(
+    "json",
+    z.object({
+      token: z.string().min(16).max(128),
+      newPassword: z.string().min(8),
+    }),
+  ),
+  async (c) => {
+    const { token, newPassword } = c.req.valid("json");
+    const db = getDb();
+    const row = db
+      .select()
+      .from(passwordResetTokens)
+      .where(eq(passwordResetTokens.token, token))
+      .get();
+    if (!row) {
+      return c.json({ error: "Invalid or expired reset link" }, 400);
+    }
+    if (new Date(row.expiresAt).getTime() < Date.now()) {
+      db.delete(passwordResetTokens).where(eq(passwordResetTokens.token, token)).run();
+      return c.json({ error: "Reset link expired. Request a new one." }, 400);
+    }
+    const passwordHash = await Bun.password.hash(newPassword, "bcrypt");
+    db.update(users)
+      .set({ passwordHash })
+      .where(eq(users.id, row.userId))
+      .run();
+    db.delete(passwordResetTokens).where(eq(passwordResetTokens.token, token)).run();
+    // Forced sign-out everywhere. Anyone holding a session cookie for
+    // this account loses it on their next request.
+    destroyAllSessions(row.userId);
+    return c.json({ ok: true });
+  },
+);
+
+// POST /auth/verify-email-change — confirm a pending email change.
+// User clicked the link sent to the NEW address. Copies
+// pendingEmail → email, marks emailVerifiedAt, deletes the token,
+// and (defense in depth) destroys every other session so the old
+// address can't continue using whatever cookie it held.
+auth.post(
+  "/verify-email-change",
+  zValidator("json", z.object({ token: z.string().min(16).max(128) })),
+  async (c) => {
+    const { token } = c.req.valid("json");
+    const db = getDb();
+    const tok = db
+      .select()
+      .from(emailVerificationTokens)
+      .where(eq(emailVerificationTokens.token, token))
+      .get();
+    if (!tok) return c.json({ error: "Invalid or expired link" }, 400);
+    if (new Date(tok.expiresAt).getTime() < Date.now()) {
+      db.delete(emailVerificationTokens)
+        .where(eq(emailVerificationTokens.token, token))
+        .run();
+      return c.json({ error: "Verification link expired. Request a new one." }, 400);
+    }
+    const u = db.select().from(users).where(eq(users.id, tok.userId)).get();
+    if (!u || !u.pendingEmail) {
+      return c.json({ error: "No pending email change for this account." }, 400);
+    }
+    // Make sure the pending address is still free.
+    const taken = db.select({ id: users.id }).from(users).where(eq(users.email, u.pendingEmail)).get();
+    if (taken && taken.id !== u.id) {
+      // Someone else grabbed it between request and verify. Clear
+      // the pending flag so the user can try a different one.
+      db.update(users).set({ pendingEmail: null }).where(eq(users.id, u.id)).run();
+      db.delete(emailVerificationTokens)
+        .where(eq(emailVerificationTokens.token, token))
+        .run();
+      return c.json({ error: "That email is no longer available." }, 409);
+    }
+    db.update(users)
+      .set({
+        email: u.pendingEmail,
+        pendingEmail: null,
+        emailVerifiedAt: new Date().toISOString(),
+      })
+      .where(eq(users.id, u.id))
+      .run();
+    db.delete(emailVerificationTokens)
+      .where(eq(emailVerificationTokens.token, token))
+      .run();
+    // Forced sign-out everywhere except the calling browser (which
+    // might not be signed in at all — clicking the link from email
+    // often opens an anonymous tab — in which case this revokes
+    // every existing session).
+    const cur = currentSessionId(c);
+    destroyAllSessions(u.id, cur);
+    return c.json({ ok: true, newEmail: u.pendingEmail });
+  },
+);
+
+// POST /auth/change-password — authenticated user rotates their own
+// password. Verifies the old password (so a stolen session cookie
+// can't be used to lock out the real user), then destroys every
+// OTHER session, keeping the current browser logged in.
+auth.post(
+  "/change-password",
+  zValidator(
+    "json",
+    z.object({
+      currentPassword: z.string(),
+      newPassword: z.string().min(8),
+    }),
+  ),
+  async (c) => {
+    const user = await getSessionUser(c);
+    if (!user) return c.json({ error: "Unauthorized" }, 401);
+    const { currentPassword, newPassword } = c.req.valid("json");
+    const db = getDb();
+    const row = db
+      .select({ passwordHash: users.passwordHash })
+      .from(users)
+      .where(eq(users.id, user.id))
+      .get();
+    if (!row) return c.json({ error: "User not found" }, 404);
+    const ok = await Bun.password.verify(currentPassword, row.passwordHash, "bcrypt");
+    if (!ok) return c.json({ error: "Current password is incorrect" }, 401);
+    const passwordHash = await Bun.password.hash(newPassword, "bcrypt");
+    db.update(users)
+      .set({ passwordHash })
+      .where(eq(users.id, user.id))
+      .run();
+    // Keep the calling browser logged in; kill every other device.
+    const cur = currentSessionId(c);
+    const removed = destroyAllSessions(user.id, cur);
+    return c.json({ ok: true, otherSessionsRevoked: removed });
+  },
+);
 
 export { auth };

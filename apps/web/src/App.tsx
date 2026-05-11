@@ -302,6 +302,17 @@ const VerifyEmailPage = lazy(() =>
   import("./pages/VerifyEmailPage").then((m) => ({ default: m.VerifyEmailPage })),
 );
 
+// S109 — Forgot-password + reset-password landings.
+const ForgotPasswordPage = lazy(() =>
+  import("./pages/ForgotPasswordPage").then((m) => ({ default: m.ForgotPasswordPage })),
+);
+const ResetPasswordPage = lazy(() =>
+  import("./pages/ResetPasswordPage").then((m) => ({ default: m.ResetPasswordPage })),
+);
+const VerifyEmailChangePage = lazy(() =>
+  import("./pages/VerifyEmailChangePage").then((m) => ({ default: m.VerifyEmailChangePage })),
+);
+
 // Sprint 37 — Public transcript verifier (paste-and-check).
 const VerifyPage = lazy(() =>
   import("./pages/VerifyPage").then((m) => ({ default: m.VerifyPage })),
@@ -440,6 +451,9 @@ function AppRoutes() {
           <Route path="/forum/graph" element={<ArgumentMapPage />} />
           <Route path="/verify" element={<VerifyPage />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/verify-email-change" element={<VerifyEmailChangePage />} />
           <Route
             path="/misconceptions"
             element={<MisconceptionMarketplacePage />}
