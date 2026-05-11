@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { api, type Comment } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { MarkdownRenderer } from "./MarkdownRenderer";
@@ -17,17 +17,17 @@ export function Comments({ pageId }: CommentsProps) {
   const [submitting, setSubmitting] = useState(false);
   const user = useAuthStore((s) => s.user);
 
-  const loadComments = () => {
+  const loadComments = useCallback(() => {
     setLoading(true);
     api.comments
       .list(pageId, sort)
       .then((data) => setComments(data.comments))
       .finally(() => setLoading(false));
-  };
+  }, [pageId, sort]);
 
   useEffect(() => {
     loadComments();
-  }, [pageId, sort]);
+  }, [loadComments]);
 
   const handleSubmit = async () => {
     if (!newComment.trim() || submitting) return;

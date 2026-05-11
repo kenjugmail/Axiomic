@@ -1,6 +1,6 @@
 # Axiomic — Architecture
 
-Last refreshed: Sprint 62.
+Last refreshed: Sprint 107.
 
 ## System Overview
 
@@ -47,7 +47,7 @@ Last refreshed: Sprint 62.
                       │
 ┌─────────────────────┴─────────────────────────────────────────────┐
 │  Database  (packages/db)                                          │
-│  SQLite + drizzle-orm. 35 migrations land 60+ tables.             │
+│  SQLite + drizzle-orm. 50+ migrations land 100+ tables.           │
 └───────────────────────────────────────────────────────────────────┘
 
 ┌────────────────────────────────────────────────────┐
@@ -186,7 +186,7 @@ All server-side env reads are centralized in `apps/server/src/lib/envConfig.ts`.
 
 ## Testing
 
-- **Server (`apps/server`)** — `bun:test`. 354+ tests covering routes + libs (1 known pre-existing flake on the misconception-detector idempotency test). `bun run --filter @axiomic/server test`.
+- **Server (`apps/server`)** — `bun:test`. 700+ tests covering routes + libs. A small number of full-suite flakes have been observed (recommendation ranker, research feed, gamification shop) that pass on isolated reruns with a fresh seeded DB — likely shared global state (search-index cache, seeded gamification rows). `bun run --filter @axiomic/server test`.
 - **Web (`apps/web`)** — `vitest`. Tests cover markdown rendering, theme, JS kernel, viz components, ConceptCard, MarkdownRenderer directives. `bun run --filter @axiomic/web test`.
 - **End-to-end (`tests/e2e`)** — Playwright. Specs cover auth, core flow, lessons, lesson authoring, onboarding, theme, XSS protection, research publish, capstone transcript flow, misconception marketplace, cohort invite, verify, argument map. `bun run --filter @axiomic/web test:e2e`.
 - **CI** — `.github/workflows/ci.yml` runs typecheck → migrate → seed → unit → build → e2e.
