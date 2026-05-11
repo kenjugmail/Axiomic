@@ -334,6 +334,19 @@ export const api = {
   feedback: {
     submit: (data: { kind: "bug" | "idea" | "praise"; message: string }) =>
       request<OkResponse>("/feedback", { method: "POST", body: JSON.stringify(data) }),
+    // S109 — admin inbox. Returns the 200 most recent reports.
+    listAdmin: () =>
+      request<{
+        reports: Array<{
+          id: string;
+          userId: string | null;
+          kind: string;
+          message: string;
+          currentUrl: string | null;
+          browserUa: string | null;
+          createdAt: string;
+        }>;
+      }>("/feedback/admin"),
   },
   wiki: {
     list: (params?: { category?: string; search?: string }) => {

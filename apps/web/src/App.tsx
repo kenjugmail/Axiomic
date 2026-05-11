@@ -222,6 +222,12 @@ const AdminErrorStatsPage = lazy(() =>
     default: m.AdminErrorStatsPage,
   })),
 );
+// S109 — admin feedback inbox.
+const AdminFeedbackPage = lazy(() =>
+  import("./pages/AdminFeedbackPage").then((m) => ({
+    default: m.AdminFeedbackPage,
+  })),
+);
 const CapstonePage = lazy(() =>
   import("./pages/CapstonePage").then((m) => ({ default: m.CapstonePage })),
 );
@@ -578,6 +584,7 @@ function AppRoutes() {
           <Route path="/invitations/:token" element={<CohortInvitationAcceptPage />} />
           <Route path="/admin/approvals" element={<AdminApprovalsPage />} />
           <Route path="/admin/errors" element={<AdminErrorStatsPage />} />
+          <Route path="/admin/feedback" element={<AdminFeedbackPage />} />
           <Route path="/me/weak-concepts" element={<WeakConceptsPage />} />
           <Route path="/me/mri" element={<KnowledgeMRIPage />} />
           <Route path="/me/mentors" element={<MentorDashboardPage />} />
