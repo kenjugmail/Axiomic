@@ -53,6 +53,7 @@ import { adminRouter } from "./routes/admin";
 import { capstoneTracksRouter } from "./routes/capstoneTracks";
 import { cohortInvitationsRouter } from "./routes/cohortInvitations";
 import { meRouter } from "./routes/me";
+import { feedbackRouter } from "./routes/feedback";
 import { usersRouter } from "./routes/users";
 import { protocolsRouter } from "./routes/protocols";
 import { equipmentRouter } from "./routes/equipment";
@@ -71,6 +72,7 @@ import {
   protocolRunsMeRouter,
 } from "./routes/protocolRuns";
 import { notifyExpiringCertsJob } from "./jobs/notifyExpiringCerts";
+import { hardDeleteSoftDeletedUsersJob, cleanupOldLoginAttemptsJob } from "./lib/userCleanupJob";
 import { bootstrapAdmin } from "./lib/bootstrapAdmin";
 import { prewarmSearchIndex } from "./lib/searchIndex";
 import { userFromCookieHeader } from "./middleware/auth";
@@ -253,6 +255,7 @@ app.route("/admin", adminRouter);
 app.route("/tracks", capstoneTracksRouter);
 app.route("/cohort-invitations", cohortInvitationsRouter);
 app.route("/me", meRouter);
+app.route("/feedback", feedbackRouter);
 app.route("/users", usersRouter);
 // Sprint 79 — Lab protocol + equipment library.
 app.route("/lab/protocols", protocolsRouter);
@@ -300,6 +303,10 @@ if (process.env.DISABLE_JOB_RUNNER !== "1") {
   registerJob(finalizeStaleExamAttemptsJob);
   // Sprint 80 — daily cert-expiry warnings (30d/7d/1d ahead).
   registerJob(notifyExpiringCertsJob);
+  // S108 — hard-delete soft-deleted users after the 30-day grace
+  // period + expire the login-attempts ring buffer.
+  registerJob(hardDeleteSoftDeletedUsersJob);
+  registerJob(cleanupOldLoginAttemptsJob);
   startJobRunner();
 }
 

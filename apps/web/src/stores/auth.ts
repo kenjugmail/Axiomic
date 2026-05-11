@@ -7,7 +7,7 @@ interface AuthState {
   error: string | null;
   fetchUser: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
-  signup: (username: string, email: string, password: string) => Promise<void>;
+  signup: (username: string, email: string, password: string, turnstileToken?: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -36,10 +36,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  signup: async (username, email, password) => {
+  signup: async (username, email, password, turnstileToken) => {
     set({ error: null });
     try {
-      const { user } = await api.auth.signup({ username, email, password });
+      const { user } = await api.auth.signup({ username, email, password, turnstileToken });
       set({ user });
     } catch (err: any) {
       set({ error: err.message });

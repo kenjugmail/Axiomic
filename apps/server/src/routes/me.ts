@@ -9,12 +9,16 @@
 import { Hono } from "hono";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import {
+  capstoneEnrollments,
+  capstoneSubmissions,
   capstoneTrackCompletions,
   capstoneTracks,
-  contentProposals,
-  cohortInvitations,
   classes,
   classEnrollments,
+  comments,
+  contentProposals,
+  cohortInvitations,
+  forumPosts,
   getDb,
   masteryNodes,
   misconceptionCatalog,
@@ -22,11 +26,13 @@ import {
   notifications,
   petCosmetics,
   petInventory,
+  pets,
+  users,
   userProgress,
   wikiPages,
   xpGrants,
 } from "@axiomic/db";
-import { requireAuth } from "../middleware/auth";
+import { destroySession, requireAuth } from "../middleware/auth";
 import { runDetectorForUser } from "../lib/misconceptionDetector";
 import { buildKnowledgeMri } from "../lib/knowledgeMri";
 import { currentStreak } from "../lib/achievements";
@@ -508,5 +514,111 @@ meRouter.get("/progress", requireAuth, async (c) => {
       ownedSlugs,
     },
     windowDays: PROGRESS_DAY_WINDOW,
+  });
+});
+
+// =================================================================
+// S108 — Beta-readiness: account deletion + data export.
+// =================================================================
+
+// DELETE /me — soft-delete the caller's account.
+//
+// Soft delete: set deletedAt, scrub display fields, rotate the
+// session cookie. The 30-day sweeper job (lib/userCleanupJob.ts)
+// hard-deletes the row + cascades content removal.
+// Account-takeover prevention: require password re-entry in the body.
+meRouter.delete("/", requireAuth, async (c) => {
+  const me = c.get("user")!;
+  const body = (await c.req.json().catch(() => ({}))) as { password?: string };
+  if (!body.password) {
+    return c.json({ error: "Password required to confirm deletion" }, 400);
+  }
+  const db = getDb();
+  const row = db.select({ passwordHash: users.passwordHash }).from(users).where(eq(users.id, me.id)).get();
+  if (!row) return c.json({ error: "User not found" }, 404);
+  const ok = await Bun.password.verify(body.password, row.passwordHash, "bcrypt");
+  if (!ok) return c.json({ error: "Password incorrect" }, 401);
+
+  const now = new Date().toISOString();
+  db.update(users)
+    .set({
+      deletedAt: now,
+      displayName: "[deleted]",
+      bio: "",
+      // Scrubbing email + username on soft-delete would break their
+      // own join-back-with-recovery flow. Wait for the 30-day sweeper
+      // to cascade-delete the row.
+    })
+    .where(eq(users.id, me.id))
+    .run();
+
+  await destroySession(c);
+  return c.json({ ok: true, scheduledHardDeleteAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() });
+});
+
+// GET /me/export — JSON dump of everything user-scoped. Used by the
+// Settings "Export my data" button. Returned as a single JSON
+// document (Bun's Hono will set Content-Length); for users with very
+// large histories this could be large but typical sizes are < 1 MB.
+meRouter.get("/export", requireAuth, async (c) => {
+  const me = c.get("user")!;
+  const db = getDb();
+
+  const profile = db
+    .select({
+      id: users.id,
+      username: users.username,
+      email: users.email,
+      displayName: users.displayName,
+      bio: users.bio,
+      role: users.role,
+      orcid: users.orcid,
+      scholarUrl: users.scholarUrl,
+      blueskyHandle: users.blueskyHandle,
+      institution: users.institution,
+      createdAt: users.createdAt,
+      emailVerifiedAt: users.emailVerifiedAt,
+    })
+    .from(users)
+    .where(eq(users.id, me.id))
+    .get();
+
+  const myComments = db.select().from(comments).where(eq(comments.userId, me.id)).all();
+  const myForumPosts = db.select().from(forumPosts).where(eq(forumPosts.authorId, me.id)).all();
+  const myCapstones = db.select().from(capstoneEnrollments).where(eq(capstoneEnrollments.userId, me.id)).all();
+  const submissionRows = myCapstones.length
+    ? db
+        .select()
+        .from(capstoneSubmissions)
+        .where(inArray(capstoneSubmissions.enrollmentId, myCapstones.map((e) => e.id)))
+        .all()
+    : [];
+  const myXp = db.select().from(xpGrants).where(eq(xpGrants.userId, me.id)).all();
+  const myClasses = db
+    .select({
+      classId: classEnrollments.classId,
+      slug: classes.slug,
+      title: classes.title,
+      role: classEnrollments.role,
+      joinedAt: classEnrollments.joinedAt,
+    })
+    .from(classEnrollments)
+    .innerJoin(classes, eq(classes.id, classEnrollments.classId))
+    .where(eq(classEnrollments.userId, me.id))
+    .all();
+  const myPets = db.select().from(pets).where(eq(pets.userId, me.id)).all();
+  const myCosmetics = db.select().from(petInventory).where(eq(petInventory.userId, me.id)).all();
+
+  return c.json({
+    exportedAt: new Date().toISOString(),
+    profile,
+    comments: myComments,
+    forumPosts: myForumPosts,
+    capstoneEnrollments: myCapstones,
+    capstoneSubmissions: submissionRows,
+    xpGrants: myXp,
+    classes: myClasses,
+    pets: myPets,
+    cosmeticsOwned: myCosmetics,
   });
 });

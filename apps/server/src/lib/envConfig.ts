@@ -83,6 +83,30 @@ const envSchema = z.object({
   SENTRY_DSN: z.string().optional(),
   SENTRY_ENVIRONMENT: z.string().optional(),
   SENTRY_TRACES_SAMPLE_RATE: z.coerce.number().optional(),
+
+  // S108 — Beta hardening.
+  //
+  // TURNSTILE_SECRET_KEY: Cloudflare Turnstile server-side secret.
+  // When unset, captcha verification short-circuits to "pass" so dev
+  // and CI stay green without a Turnstile account. In production the
+  // signup route returns 400 if the secret is set but verify fails.
+  //
+  // RESEND_API_KEY: Resend SDK key for transactional email. When unset,
+  // the email layer logs the email body to stdout instead of sending —
+  // a developer can finish the verify-email flow locally by clicking
+  // the link from the server log.
+  //
+  // EMAIL_FROM: From-address on outgoing email. Defaults to
+  // "noreply@axiomic.app".
+  //
+  // APP_BASE_URL: External base URL the verify-email link should
+  // point at (e.g. https://demo.axiomic.app). Defaults to the
+  // request's origin if absent; pin in production to avoid host
+  // header injection attacks against the verify link.
+  TURNSTILE_SECRET_KEY: z.string().optional(),
+  RESEND_API_KEY: z.string().optional(),
+  EMAIL_FROM: z.string().default("noreply@axiomic.app"),
+  APP_BASE_URL: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

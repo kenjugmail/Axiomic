@@ -16,6 +16,8 @@ import { ShortcutsDialog } from "./ShortcutsDialog";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { NAV_PILLARS } from "../marketing/hubs";
 import { AUDIENCES } from "../marketing/audiences";
+import { VerifyEmailBanner } from "./VerifyEmailBanner";
+import { FeedbackWidget } from "./FeedbackWidget";
 
 type NavItem = { to: string; label: string };
 type NavSection = { heading: string; links: NavItem[] };
@@ -437,9 +439,12 @@ export function Layout() {
         </div>
       )}
 
+      <VerifyEmailBanner />
+
       <main className="flex-1">
         <Outlet />
       </main>
+      <FeedbackWidget />
       <footer className="border-t border-border py-6 text-center text-sm text-muted-foreground">
         Axiomic — Deep Knowledge, Beautifully Structured
       </footer>
