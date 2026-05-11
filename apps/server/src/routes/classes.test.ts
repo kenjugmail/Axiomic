@@ -1036,28 +1036,32 @@ describe("S89 XP shop", () => {
   // don't break the suite.
   type TestUser = { cookie: string; userId: string; username: string };
   async function earnXpForBuyTest(slug: string, classData: { joinCode: string }, instructor: TestUser, student: TestUser, taskCount: number) {
-    await req(`/classes/${slug}/enroll`, {
+    const enroll = await req(`/classes/${slug}/enroll`, {
       method: "POST",
       headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
       body: JSON.stringify({ joinCode: classData.joinCode }),
     });
+    expect(enroll.status).toBe(200);
     for (let i = 0; i < taskCount; i++) {
       const t = await req(`/classes/${slug}/tasks`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
         body: JSON.stringify({ kind: "homework", title: `PSet ${i}` }),
       });
+      expect(t.status).toBe(201);
       const { taskId } = (await t.json()) as { taskId: string };
-      await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+      const complete = await req(`/classes/${slug}/tasks/${taskId}/complete`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
         body: JSON.stringify({ content: `Submission for task ${i}, sufficient length to satisfy validator.` }),
       });
-      await req(`/classes/${slug}/tasks/${taskId}/grade/${student.userId}`, {
+      expect(complete.status).toBe(200);
+      const grade = await req(`/classes/${slug}/tasks/${taskId}/grade/${student.userId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
         body: JSON.stringify({ pass: true }),
       });
+      expect(grade.status).toBe(200);
     }
   }
 

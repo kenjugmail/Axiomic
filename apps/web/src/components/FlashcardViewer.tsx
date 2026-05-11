@@ -69,8 +69,13 @@ export function FlashcardViewer({
   const current = cards[currentIndex];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-label="Flashcards">
+      <button
+        type="button"
+        aria-label="Close flashcards"
+        onClick={onClose}
+        className="absolute inset-0 bg-background/80 backdrop-blur-sm cursor-default"
+      />
       <div className="relative w-full max-w-lg bg-card border border-border rounded-xl shadow-2xl p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold">Flashcards</h3>
@@ -97,9 +102,12 @@ export function FlashcardViewer({
         ) : (
           <>
             {/* Card */}
-            <div
+            <button
+              type="button"
               onClick={() => setFlipped(!flipped)}
-              className="min-h-[200px] p-6 rounded-lg border border-border bg-background cursor-pointer hover:bg-accent/30 transition-colors flex items-center justify-center text-center"
+              aria-pressed={flipped}
+              aria-label={flipped ? "Show question" : "Show answer"}
+              className="w-full min-h-[200px] p-6 rounded-lg border border-border bg-background cursor-pointer hover:bg-accent/30 transition-colors flex items-center justify-center text-center"
             >
               {flipped ? (
                 <div className="text-sm">
@@ -108,7 +116,7 @@ export function FlashcardViewer({
               ) : (
                 <p className="font-medium">{current.front}</p>
               )}
-            </div>
+            </button>
             <p className="text-xs text-muted-foreground text-center mt-2">
               {flipped ? "Click to see question" : "Click to reveal answer"}
             </p>
