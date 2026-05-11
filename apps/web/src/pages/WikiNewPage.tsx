@@ -187,8 +187,9 @@ export function WikiNewPage() {
       {/* Page metadata */}
       <div className="grid sm:grid-cols-3 gap-3 mb-4">
         <div className="sm:col-span-2">
-          <label className="block text-xs font-medium text-muted-foreground mb-1">Title</label>
+          <label htmlFor="wiki-new-title" className="block text-xs font-medium text-muted-foreground mb-1">Title</label>
           <input
+            id="wiki-new-title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g. Layer Normalization"
@@ -196,8 +197,9 @@ export function WikiNewPage() {
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-muted-foreground mb-1">Category</label>
+          <label htmlFor="wiki-new-category" className="block text-xs font-medium text-muted-foreground mb-1">Category</label>
           <input
+            id="wiki-new-category"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             placeholder="uncategorized"
@@ -260,6 +262,9 @@ export function WikiNewPage() {
       {draftOpen && (
         <div className="mb-3 rounded-lg border border-primary/40 bg-primary/5 p-3 flex items-start gap-2 flex-wrap">
           <input
+             
+            // input appears only in response to a user click on
+            // "AI draft"; focusing on appear is the expected UX.
             autoFocus
             value={draftTopic}
             onChange={(e) => setDraftTopic(e.target.value)}

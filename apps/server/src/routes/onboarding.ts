@@ -1,13 +1,12 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { eq, and, asc, sql } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import {
   getDb,
   users,
   masteryPaths,
   masteryNodes,
-  lessonProgress,
 } from "@axiomic/db";
 import { requireAuth } from "../middleware/auth";
 import type { Env } from "../env";

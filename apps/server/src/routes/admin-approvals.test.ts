@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeAll, afterAll } from "bun:test";
+import { describe, test, expect } from "bun:test";
 import { app } from "../index";
 import { eq } from "drizzle-orm";
 import { getDb, users } from "@axiomic/db";

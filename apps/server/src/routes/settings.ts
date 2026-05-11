@@ -90,6 +90,7 @@ settingsRouter.get("/", requireAuth, async (c) => {
       institution: users.institution,
       hIndex: users.hIndex,
       primaryPersona: users.primaryPersona,
+      pendingEmail: users.pendingEmail,
     })
     .from(users)
     .where(eq(users.id, user.id))

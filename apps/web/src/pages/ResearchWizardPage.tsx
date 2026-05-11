@@ -365,10 +365,15 @@ function StepTopic({
   return (
     <div className="space-y-5">
       <div>
-        <label className="block text-xs font-medium text-muted-foreground mb-1">
+        <label htmlFor="rw-title" className="block text-xs font-medium text-muted-foreground mb-1">
           Title
         </label>
         <input
+          id="rw-title"
+           
+          // field of a multi-step wizard; focusing on entry is the
+          // expected UX, and the page is reached only via deliberate
+          // navigation from /research/new (no surprise focus jumps).
           autoFocus
           value={state.title}
           onChange={(e) => setField("title", e.target.value)}
@@ -378,11 +383,12 @@ function StepTopic({
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-muted-foreground mb-1">
+        <label htmlFor="rw-research-question" className="block text-xs font-medium text-muted-foreground mb-1">
           Research question{" "}
           <span className="text-[10px]">(optional, but helps the outliner focus)</span>
         </label>
         <textarea
+          id="rw-research-question"
           value={state.researchQuestion}
           onChange={(e) => setField("researchQuestion", e.target.value)}
           rows={2}
@@ -391,10 +397,10 @@ function StepTopic({
         />
       </div>
 
-      <div>
-        <label className="block text-xs font-medium text-muted-foreground mb-2">
+      <div role="group" aria-labelledby="rw-format-label">
+        <div id="rw-format-label" className="block text-xs font-medium text-muted-foreground mb-2">
           Format
-        </label>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
           {FORMATS.map((f) => (
             <button
@@ -416,10 +422,10 @@ function StepTopic({
         </div>
       </div>
 
-      <div>
-        <label className="block text-xs font-medium text-muted-foreground mb-2">
+      <div role="group" aria-labelledby="rw-tier-label">
+        <div id="rw-tier-label" className="block text-xs font-medium text-muted-foreground mb-2">
           Reading depth (the canonical tier the wizard drafts)
-        </label>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           {TIERS.map((t) => (
             <button
@@ -441,10 +447,10 @@ function StepTopic({
         </div>
       </div>
 
-      <div>
-        <label className="block text-xs font-medium text-muted-foreground mb-2">
+      <div role="group" aria-labelledby="rw-length-label">
+        <div id="rw-length-label" className="block text-xs font-medium text-muted-foreground mb-2">
           Length target
-        </label>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           {LENGTHS.map((l) => (
             <button
@@ -1338,10 +1344,11 @@ function StepReview({
 
       <div className="grid sm:grid-cols-[1fr_auto] gap-3">
         <div>
-          <label className="block text-xs font-medium text-muted-foreground mb-1">
+          <label htmlFor="rw-slug" className="block text-xs font-medium text-muted-foreground mb-1">
             Slug
           </label>
           <input
+            id="rw-slug"
             value={state.slug}
             onChange={(e) => {
               slugTouchedRef.current = true;
@@ -1352,10 +1359,11 @@ function StepReview({
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-muted-foreground mb-1">
+          <label htmlFor="rw-cover" className="block text-xs font-medium text-muted-foreground mb-1">
             Cover
           </label>
           <input
+            id="rw-cover"
             value={state.coverEmoji}
             onChange={(e) => setField("coverEmoji", e.target.value)}
             maxLength={4}

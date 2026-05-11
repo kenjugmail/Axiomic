@@ -2,7 +2,6 @@
 
 import { describe, test, expect } from "bun:test";
 import { randomUUID } from "crypto";
-import { eq } from "drizzle-orm";
 import { getDb, grants, users } from "@axiomic/db";
 import {
   matchGrantsForUser,

@@ -283,10 +283,11 @@ export function ProtocolEditPage({ mode }: { mode: Mode }) {
       <div className="space-y-4">
         {mode === "new" && (
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+            <label htmlFor="proto-slug" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
               Slug (kebab-case, immutable)
             </label>
             <input
+              id="proto-slug"
               type="text"
               value={form.slug}
               onChange={(e) =>
@@ -299,10 +300,11 @@ export function ProtocolEditPage({ mode }: { mode: Mode }) {
         )}
 
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+          <label htmlFor="proto-title" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
             Title
           </label>
           <input
+            id="proto-title"
             type="text"
             value={form.title}
             onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
@@ -312,10 +314,11 @@ export function ProtocolEditPage({ mode }: { mode: Mode }) {
 
         <div className="grid sm:grid-cols-3 gap-3">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+            <label htmlFor="proto-discipline" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
               Discipline
             </label>
             <select
+              id="proto-discipline"
               value={form.discipline}
               onChange={(e) =>
                 setForm((p) => ({
@@ -333,10 +336,11 @@ export function ProtocolEditPage({ mode }: { mode: Mode }) {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+            <label htmlFor="proto-category" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
               Category
             </label>
             <input
+              id="proto-category"
               type="text"
               value={form.category}
               onChange={(e) =>
@@ -347,10 +351,11 @@ export function ProtocolEditPage({ mode }: { mode: Mode }) {
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+            <label htmlFor="proto-minutes" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
               Estimated minutes
             </label>
             <input
+              id="proto-minutes"
               type="number"
               min={1}
               value={form.estimatedMinutes}
@@ -363,10 +368,11 @@ export function ProtocolEditPage({ mode }: { mode: Mode }) {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+          <label htmlFor="proto-summary" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
             Summary
           </label>
           <input
+            id="proto-summary"
             type="text"
             value={form.summary}
             onChange={(e) =>
@@ -377,10 +383,11 @@ export function ProtocolEditPage({ mode }: { mode: Mode }) {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+          <label htmlFor="proto-body" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
             Body (Markdown — undergrad tier)
           </label>
           <textarea
+            id="proto-body"
             value={form.contentUndergrad}
             onChange={(e) =>
               setForm((p) => ({ ...p, contentUndergrad: e.target.value }))
@@ -392,10 +399,11 @@ export function ProtocolEditPage({ mode }: { mode: Mode }) {
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+            <label htmlFor="proto-bsl" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
               Biosafety level (1-4, optional)
             </label>
             <input
+              id="proto-bsl"
               type="number"
               min={1}
               max={4}
@@ -407,10 +415,11 @@ export function ProtocolEditPage({ mode }: { mode: Mode }) {
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+            <label htmlFor="proto-certs" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
               Required certs (CSV of slugs)
             </label>
             <input
+              id="proto-certs"
               type="text"
               value={form.requiredCerts}
               onChange={(e) =>
@@ -423,10 +432,11 @@ export function ProtocolEditPage({ mode }: { mode: Mode }) {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+          <label htmlFor="proto-equipment" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
             Equipment required (CSV of slugs)
           </label>
           <input
+            id="proto-equipment"
             type="text"
             value={form.equipmentRequired}
             onChange={(e) =>
@@ -438,10 +448,11 @@ export function ProtocolEditPage({ mode }: { mode: Mode }) {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+          <label htmlFor="proto-hazards" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
             Hazards (Markdown)
           </label>
           <textarea
+            id="proto-hazards"
             value={form.hazardsMd}
             onChange={(e) =>
               setForm((p) => ({ ...p, hazardsMd: e.target.value }))

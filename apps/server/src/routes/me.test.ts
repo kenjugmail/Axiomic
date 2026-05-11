@@ -1,6 +1,18 @@
 import { describe, test, expect, afterAll } from "bun:test";
 import { app } from "../index";
-import { getDb, masteryNodes, masteryPaths, misconceptionCatalog, quizMistakes, userProgress, users, wikiPages, pageVersions } from "@axiomic/db";
+import {
+  emailVerificationTokens,
+  getDb,
+  masteryNodes,
+  masteryPaths,
+  misconceptionCatalog,
+  pageVersions,
+  quizMistakes,
+  sessions,
+  userProgress,
+  users,
+  wikiPages,
+} from "@axiomic/db";
 import { eq, inArray, like } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
@@ -297,5 +309,317 @@ describe("GET /me/progress (S94)", () => {
     expect(standing?.totalMembers).toBe(2);
     expect(standing?.myXp).toBeGreaterThan(0);
     expect(standing?.myRank).toBe(2);
+  });
+});
+
+// =================================================================
+// S109 — Phase E coverage: email change, session list/revoke.
+// =================================================================
+
+describe("POST /me/email-change (Phase E)", () => {
+  test("unauthenticated returns 401", async () => {
+    const res = await req("/me/email-change", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        newEmail: `new_${testId}@example.com`,
+        currentPassword: "testpass123",
+      }),
+    });
+    expect(res.status).toBe(401);
+  });
+
+  test("correct password writes pendingEmail and mints a verify token", async () => {
+    const me = await signup("ec_ok");
+    const newEmail = `ec_ok_new_${testId}_${randomUUID().slice(0, 4)}@example.com`;
+    const res = await req("/me/email-change", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(me.cookie) },
+      body: JSON.stringify({ newEmail, currentPassword: "testpass123" }),
+    });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { ok: boolean; pendingEmail: string };
+    expect(body.ok).toBe(true);
+    expect(body.pendingEmail).toBe(newEmail);
+
+    const row = getDb()
+      .select({ pe: users.pendingEmail })
+      .from(users)
+      .where(eq(users.id, me.userId))
+      .get();
+    expect(row?.pe).toBe(newEmail);
+
+    const tok = getDb()
+      .select()
+      .from(emailVerificationTokens)
+      .where(eq(emailVerificationTokens.userId, me.userId))
+      .get();
+    expect(tok).toBeTruthy();
+  });
+
+  test("wrong password returns 401 and pendingEmail unchanged", async () => {
+    const me = await signup("ec_wp");
+    const res = await req("/me/email-change", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(me.cookie) },
+      body: JSON.stringify({
+        newEmail: `whatever_${testId}@example.com`,
+        currentPassword: "completelyWRONG",
+      }),
+    });
+    expect(res.status).toBe(401);
+    const row = getDb()
+      .select({ pe: users.pendingEmail })
+      .from(users)
+      .where(eq(users.id, me.userId))
+      .get();
+    expect(row?.pe).toBeFalsy();
+  });
+
+  test("new email already taken by a different user returns 409", async () => {
+    const a = await signup("ec_t1");
+    const b = await signup("ec_t2");
+    const res = await req("/me/email-change", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(a.cookie) },
+      body: JSON.stringify({
+        newEmail: `mc_ec_t2_${testId}@example.com`.slice(0, 30 + 12),
+        currentPassword: "testpass123",
+      }),
+    });
+    // The exact stored email for b is `mc_ec_t2_${testId}@example.com`
+    // (signup helper slices at 30 chars BEFORE adding the @ suffix).
+    // Build it from the user row to avoid a copy-paste-drift bug.
+    const target = getDb().select({ email: users.email }).from(users).where(eq(users.id, b.userId)).get();
+    expect(target?.email).toBeTruthy();
+    const retry = await req("/me/email-change", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(a.cookie) },
+      body: JSON.stringify({
+        newEmail: target!.email,
+        currentPassword: "testpass123",
+      }),
+    });
+    expect(retry.status).toBe(409);
+  });
+});
+
+describe("POST /auth/verify-email-change (Phase E)", () => {
+  // Helper: signup user, post /me/email-change, return token bound
+  // to the user's new pending email.
+  async function setupPendingChange(label: string) {
+    const me = await signup(label);
+    const newEmail = `${label}_pe_${testId}_${randomUUID().slice(0, 4)}@example.com`;
+    const change = await req("/me/email-change", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(me.cookie) },
+      body: JSON.stringify({ newEmail, currentPassword: "testpass123" }),
+    });
+    expect(change.status).toBe(200);
+    const tok = getDb()
+      .select()
+      .from(emailVerificationTokens)
+      .where(eq(emailVerificationTokens.userId, me.userId))
+      .get();
+    return { me, newEmail, token: tok!.token };
+  }
+
+  test("valid token flips email, clears pendingEmail, sets emailVerifiedAt, kills other sessions", async () => {
+    const { me, newEmail, token } = await setupPendingChange("ve_ok");
+    // Sign in a second time to create a second session that should
+    // get killed.
+    const targetEmail = getDb().select({ email: users.email }).from(users).where(eq(users.id, me.userId)).get()!.email;
+    const second = await req("/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: targetEmail, password: "testpass123" }),
+    });
+    expect(second.status).toBe(200);
+    const beforeSessions = getDb()
+      .select()
+      .from(sessions)
+      .where(eq(sessions.userId, me.userId))
+      .all();
+    expect(beforeSessions.length).toBeGreaterThanOrEqual(2);
+
+    // Call verify-email-change WITHOUT a cookie (the user clicks the
+    // link from their new email in a fresh tab). All existing
+    // sessions should be revoked.
+    const res = await req("/auth/verify-email-change", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+    });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { ok: boolean; newEmail: string };
+    expect(body.newEmail).toBe(newEmail);
+
+    const after = getDb()
+      .select({ email: users.email, pe: users.pendingEmail, ev: users.emailVerifiedAt })
+      .from(users)
+      .where(eq(users.id, me.userId))
+      .get();
+    expect(after?.email).toBe(newEmail);
+    expect(after?.pe).toBeNull();
+    expect(after?.ev).toBeTruthy();
+
+    const afterSessions = getDb()
+      .select()
+      .from(sessions)
+      .where(eq(sessions.userId, me.userId))
+      .all();
+    expect(afterSessions.length).toBe(0);
+  });
+
+  test("expired token returns 400 and pendingEmail is preserved", async () => {
+    const { me, token } = await setupPendingChange("ve_exp");
+    getDb()
+      .update(emailVerificationTokens)
+      .set({ expiresAt: new Date(Date.now() - 60_000).toISOString() })
+      .where(eq(emailVerificationTokens.token, token))
+      .run();
+
+    const res = await req("/auth/verify-email-change", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+    });
+    expect(res.status).toBe(400);
+
+    // pendingEmail remains so the user can re-request.
+    const row = getDb()
+      .select({ pe: users.pendingEmail })
+      .from(users)
+      .where(eq(users.id, me.userId))
+      .get();
+    expect(row?.pe).toBeTruthy();
+  });
+
+  test("invalid token returns 400", async () => {
+    const res = await req("/auth/verify-email-change", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: "deadbeef".repeat(8) }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  test("if pendingEmail was claimed by someone else, returns 409 and clears pending", async () => {
+    const { me, newEmail, token } = await setupPendingChange("ve_race");
+    // Simulate someone else grabbing the address between request and verify.
+    getDb()
+      .update(users)
+      .set({ email: newEmail })
+      .where(eq(users.id, (await signup("ve_clm")).userId))
+      .run();
+
+    const res = await req("/auth/verify-email-change", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+    });
+    expect(res.status).toBe(409);
+
+    // pendingEmail should be cleared so the original user can retry.
+    const row = getDb()
+      .select({ pe: users.pendingEmail })
+      .from(users)
+      .where(eq(users.id, me.userId))
+      .get();
+    expect(row?.pe).toBeNull();
+  });
+});
+
+describe("GET /me/sessions + DELETE /me/sessions/:id (Phase E)", () => {
+  test("GET unauthenticated returns 401", async () => {
+    const res = await req("/me/sessions");
+    expect(res.status).toBe(401);
+  });
+
+  test("lists every session for the caller; `current` is true only on the calling cookie", async () => {
+    const me = await signup("ss_list");
+    const targetEmail = getDb().select({ email: users.email }).from(users).where(eq(users.id, me.userId)).get()!.email;
+
+    // Second login → second session.
+    const second = await req("/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: targetEmail, password: "testpass123" }),
+    });
+    expect(second.status).toBe(200);
+
+    const list = await req("/me/sessions", { headers: cookieHeader(me.cookie) });
+    expect(list.status).toBe(200);
+    const body = (await list.json()) as { sessions: Array<{ id: string; current: boolean }> };
+    expect(body.sessions.length).toBeGreaterThanOrEqual(2);
+    const current = body.sessions.filter((s) => s.current);
+    expect(current.length).toBe(1);
+  });
+
+  test("DELETE removes another session belonging to the caller", async () => {
+    const me = await signup("ss_del");
+    const targetEmail = getDb().select({ email: users.email }).from(users).where(eq(users.id, me.userId)).get()!.email;
+    const second = await req("/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: targetEmail, password: "testpass123" }),
+    });
+    expect(second.status).toBe(200);
+
+    const list = await req("/me/sessions", { headers: cookieHeader(me.cookie) });
+    const body = (await list.json()) as { sessions: Array<{ id: string; current: boolean }> };
+    const other = body.sessions.find((s) => !s.current);
+    expect(other).toBeTruthy();
+
+    const del = await req(`/me/sessions/${other!.id}`, {
+      method: "DELETE",
+      headers: cookieHeader(me.cookie),
+    });
+    expect(del.status).toBe(200);
+
+    const remaining = getDb()
+      .select()
+      .from(sessions)
+      .where(eq(sessions.id, other!.id))
+      .get();
+    expect(remaining).toBeUndefined();
+  });
+
+  test("DELETE on calling session returns 400", async () => {
+    const me = await signup("ss_self");
+    // Pull the calling session's id from /me/sessions.
+    const list = await req("/me/sessions", { headers: cookieHeader(me.cookie) });
+    const body = (await list.json()) as { sessions: Array<{ id: string; current: boolean }> };
+    const cur = body.sessions.find((s) => s.current)!;
+
+    const del = await req(`/me/sessions/${cur.id}`, {
+      method: "DELETE",
+      headers: cookieHeader(me.cookie),
+    });
+    expect(del.status).toBe(400);
+  });
+
+  test("DELETE on someone else's session returns 403", async () => {
+    const owner = await signup("ss_own");
+    const intruder = await signup("ss_int");
+    // Get owner's session id.
+    const list = await req("/me/sessions", { headers: cookieHeader(owner.cookie) });
+    const body = (await list.json()) as { sessions: Array<{ id: string }> };
+    const targetId = body.sessions[0]!.id;
+
+    const del = await req(`/me/sessions/${targetId}`, {
+      method: "DELETE",
+      headers: cookieHeader(intruder.cookie),
+    });
+    expect(del.status).toBe(403);
+  });
+
+  test("DELETE on a non-existent id returns 404", async () => {
+    const me = await signup("ss_404");
+    const del = await req("/me/sessions/does-not-exist-xyz", {
+      method: "DELETE",
+      headers: cookieHeader(me.cookie),
+    });
+    expect(del.status).toBe(404);
   });
 });

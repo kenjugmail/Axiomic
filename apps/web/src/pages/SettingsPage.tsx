@@ -345,6 +345,15 @@ export function SettingsPage() {
         </p>
       </section>
 
+      {/* S109 — Email change + active sessions live between Storage
+          and the Danger zone — they're "account hygiene," not
+          destructive. */}
+      <EmailChangeCard
+        currentEmail={settings.email ?? ""}
+        pendingEmail={settings.pendingEmail ?? null}
+      />
+      <SessionsCard />
+
       {/* S108 — Danger zone: export + delete. Soft-delete sets a
           deletedAt timestamp; the background job hard-deletes after
           30 days. Export is a one-shot JSON dump of user-scoped data. */}
@@ -514,6 +523,8 @@ function DangerZone() {
     <section className="space-y-3 pt-6 border-t border-rose-500/30">
       <h2 className="text-lg font-semibold text-rose-700 dark:text-rose-400">Danger zone</h2>
 
+      <ChangePasswordCard />
+
       <div className="rounded-lg border border-border bg-card p-4 space-y-2">
         <div className="text-sm font-medium">Export my data</div>
         <p className="text-xs text-muted-foreground">
@@ -587,6 +598,320 @@ function DangerZone() {
             {deleteError && <p className="text-xs text-rose-600 dark:text-rose-400">{deleteError}</p>}
           </div>
         )}
+      </div>
+    </section>
+  );
+}
+
+// S109 — Change password from settings. Verifies current password,
+// rotates the hash, and tells the user how many other devices were
+// logged out (server destroys every session except the calling one).
+function ChangePasswordCard() {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirm) {
+      setError("New passwords don't match.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setError("New password must be at least 8 characters.");
+      return;
+    }
+    setError(null);
+    setBusy(true);
+    try {
+      const res = await api.auth.changePassword(currentPassword, newPassword);
+      const tail = res.otherSessionsRevoked > 0
+        ? ` — ${res.otherSessionsRevoked} other device${res.otherSessionsRevoked === 1 ? "" : "s"} signed out.`
+        : "";
+      toast.success(`Password updated${tail}`);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirm("");
+    } catch (e: any) {
+      setError(e?.message ?? "Could not change password");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <form
+      onSubmit={onSubmit}
+      className="rounded-lg border border-border bg-card p-4 space-y-2"
+    >
+      <div className="text-sm font-medium">Change password</div>
+      <p className="text-xs text-muted-foreground">
+        Updates your password and signs out every other device.
+      </p>
+      <div className="grid sm:grid-cols-3 gap-2 pt-1">
+        <div>
+          <label htmlFor="cp-current" className="block text-[11px] text-muted-foreground mb-1">
+            Current password
+          </label>
+          <input
+            id="cp-current"
+            type="password"
+            autoComplete="current-password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            className="w-full px-2 py-1.5 text-sm rounded-md border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+        <div>
+          <label htmlFor="cp-new" className="block text-[11px] text-muted-foreground mb-1">
+            New password
+          </label>
+          <input
+            id="cp-new"
+            type="password"
+            autoComplete="new-password"
+            minLength={8}
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            className="w-full px-2 py-1.5 text-sm rounded-md border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+        <div>
+          <label htmlFor="cp-confirm" className="block text-[11px] text-muted-foreground mb-1">
+            Confirm new
+          </label>
+          <input
+            id="cp-confirm"
+            type="password"
+            autoComplete="new-password"
+            minLength={8}
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            className="w-full px-2 py-1.5 text-sm rounded-md border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+      </div>
+      {error && <p className="text-xs text-rose-600 dark:text-rose-400">{error}</p>}
+      <div className="pt-1">
+        <button
+          type="submit"
+          disabled={busy || !currentPassword || !newPassword || !confirm}
+          className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40 disabled:opacity-50"
+        >
+          {busy ? "Saving…" : "Change password"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+// S109 — Inline email change form. Verifies password client-side
+// (server re-verifies), sends a verify link to the new address,
+// surfaces the pending state inline.
+function EmailChangeCard({
+  currentEmail,
+  pendingEmail,
+}: {
+  currentEmail: string;
+  pendingEmail: string | null;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState<string | null>(pendingEmail);
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setBusy(true);
+    try {
+      const res = await api.me.changeEmail(newEmail, password);
+      setPending(res.pendingEmail);
+      setNewEmail("");
+      setPassword("");
+      setEditing(false);
+      toast.success(`Verification email sent to ${res.pendingEmail}.`);
+    } catch (e: any) {
+      setError(e?.message ?? "Could not start email change");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="pt-6 border-t border-border">
+      <h2 className="text-lg font-semibold mb-2">Email</h2>
+      <div className="rounded-lg border border-border bg-card p-4 text-sm space-y-2">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <div className="text-xs text-muted-foreground">Login email</div>
+            <div className="font-medium">{currentEmail}</div>
+            {pending && (
+              <div className="mt-1 text-xs text-amber-700 dark:text-amber-400">
+                Pending change to <strong>{pending}</strong> — click the link in the verify email to confirm.
+              </div>
+            )}
+          </div>
+          {!editing && (
+            <button
+              type="button"
+              onClick={() => setEditing(true)}
+              className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40"
+            >
+              Change email
+            </button>
+          )}
+        </div>
+        {editing && (
+          <form onSubmit={onSubmit} className="pt-2 grid sm:grid-cols-2 gap-2">
+            <div>
+              <label htmlFor="email-change-new" className="block text-[11px] text-muted-foreground mb-1">
+                New email
+              </label>
+              <input
+                id="email-change-new"
+                type="email"
+                autoComplete="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                required
+                className="w-full px-2 py-1.5 text-sm rounded-md border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+            <div>
+              <label htmlFor="email-change-password" className="block text-[11px] text-muted-foreground mb-1">
+                Current password
+              </label>
+              <input
+                id="email-change-password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-2 py-1.5 text-sm rounded-md border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+            {error && (
+              <p className="sm:col-span-2 text-xs text-rose-600 dark:text-rose-400">{error}</p>
+            )}
+            <div className="sm:col-span-2 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setEditing(false);
+                  setError(null);
+                  setNewEmail("");
+                  setPassword("");
+                }}
+                className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={busy || !newEmail || !password}
+                className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              >
+                {busy ? "Sending…" : "Send verification email"}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </section>
+  );
+}
+
+// S109 — Active sessions card. Lists all session rows for the user
+// with a small "Sign out" button per non-current row.
+function SessionsCard() {
+  const [items, setItems] = useState<Array<{
+    id: string;
+    createdAt: string;
+    expiresAt: string;
+    userAgent: string | null;
+    ip: string | null;
+    current: boolean;
+  }> | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const reload = async () => {
+    try {
+      const { sessions: list } = await api.me.sessions();
+      setItems(list);
+      setError(null);
+    } catch (e: any) {
+      setError(e?.message ?? "Could not load sessions");
+    }
+  };
+
+  useEffect(() => {
+    reload();
+  }, []);
+
+  const revoke = async (id: string) => {
+    try {
+      await api.me.revokeSession(id);
+      toast.success("Device signed out.");
+      reload();
+    } catch (e: any) {
+      toast.error("Could not revoke session", e?.message ?? "");
+    }
+  };
+
+  return (
+    <section className="pt-6 border-t border-border">
+      <h2 className="text-lg font-semibold mb-2">Active sessions</h2>
+      <p className="text-xs text-muted-foreground mb-3">
+        Every device currently signed in to your account. Sign out
+        any you don't recognize.
+      </p>
+      <div className="rounded-lg border border-border bg-card divide-y divide-border">
+        {items === null && !error && (
+          <div className="p-4 text-xs text-muted-foreground">Loading sessions…</div>
+        )}
+        {error && (
+          <div className="p-4 text-xs text-rose-600 dark:text-rose-400">{error}</div>
+        )}
+        {items?.length === 0 && (
+          <div className="p-4 text-xs text-muted-foreground">No active sessions.</div>
+        )}
+        {items?.map((s) => {
+          const ua = s.userAgent ?? "unknown device";
+          const created = new Date(s.createdAt).toLocaleString();
+          return (
+            <div key={s.id} className="p-3 flex items-start justify-between gap-3 flex-wrap text-xs">
+              <div className="min-w-0">
+                <div className="font-medium break-words">
+                  {ua}
+                  {s.current && (
+                    <span className="ml-2 inline-block text-[10px] uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                      This device
+                    </span>
+                  )}
+                </div>
+                <div className="text-muted-foreground">
+                  Started {created}
+                  {s.ip ? ` · ${s.ip}` : ""}
+                </div>
+              </div>
+              {!s.current && (
+                <button
+                  type="button"
+                  onClick={() => revoke(s.id)}
+                  className="text-xs px-2.5 py-1 rounded-md border border-border hover:bg-accent/40"
+                >
+                  Sign out
+                </button>
+              )}
+            </div>
+          );
+        })}
       </div>
     </section>
   );

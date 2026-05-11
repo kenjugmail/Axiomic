@@ -222,6 +222,12 @@ const AdminErrorStatsPage = lazy(() =>
     default: m.AdminErrorStatsPage,
   })),
 );
+// S109 — admin feedback inbox.
+const AdminFeedbackPage = lazy(() =>
+  import("./pages/AdminFeedbackPage").then((m) => ({
+    default: m.AdminFeedbackPage,
+  })),
+);
 const CapstonePage = lazy(() =>
   import("./pages/CapstonePage").then((m) => ({ default: m.CapstonePage })),
 );
@@ -300,6 +306,17 @@ const ArgumentMapPage = lazy(() =>
 // S108 — Email-verify landing for the link in the sent verify email.
 const VerifyEmailPage = lazy(() =>
   import("./pages/VerifyEmailPage").then((m) => ({ default: m.VerifyEmailPage })),
+);
+
+// S109 — Forgot-password + reset-password landings.
+const ForgotPasswordPage = lazy(() =>
+  import("./pages/ForgotPasswordPage").then((m) => ({ default: m.ForgotPasswordPage })),
+);
+const ResetPasswordPage = lazy(() =>
+  import("./pages/ResetPasswordPage").then((m) => ({ default: m.ResetPasswordPage })),
+);
+const VerifyEmailChangePage = lazy(() =>
+  import("./pages/VerifyEmailChangePage").then((m) => ({ default: m.VerifyEmailChangePage })),
 );
 
 // Sprint 37 — Public transcript verifier (paste-and-check).
@@ -440,6 +457,9 @@ function AppRoutes() {
           <Route path="/forum/graph" element={<ArgumentMapPage />} />
           <Route path="/verify" element={<VerifyPage />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/verify-email-change" element={<VerifyEmailChangePage />} />
           <Route
             path="/misconceptions"
             element={<MisconceptionMarketplacePage />}
@@ -564,6 +584,7 @@ function AppRoutes() {
           <Route path="/invitations/:token" element={<CohortInvitationAcceptPage />} />
           <Route path="/admin/approvals" element={<AdminApprovalsPage />} />
           <Route path="/admin/errors" element={<AdminErrorStatsPage />} />
+          <Route path="/admin/feedback" element={<AdminFeedbackPage />} />
           <Route path="/me/weak-concepts" element={<WeakConceptsPage />} />
           <Route path="/me/mri" element={<KnowledgeMRIPage />} />
           <Route path="/me/mentors" element={<MentorDashboardPage />} />

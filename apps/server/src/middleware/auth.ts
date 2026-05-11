@@ -1,7 +1,7 @@
 import { Context, Next } from "hono";
 import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import { getDb, sessions, users } from "@axiomic/db";
-import { eq, and, gt } from "drizzle-orm";
+import { eq, and, gt, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import type { Env } from "../env";
 import { env } from "../lib/envConfig";
@@ -14,10 +14,18 @@ export async function createSession(c: Context, userId: string): Promise<string>
   const sessionId = randomUUID();
   const expiresAt = new Date(Date.now() + SESSION_DURATION_MS).toISOString();
 
+  // S109 — capture the calling client's UA + IP so the user can see
+  // and revoke devices from settings. Both are nullable.
+  const userAgent = c.req.header("user-agent")?.slice(0, 500) ?? null;
+  const xff = c.req.header("x-forwarded-for");
+  const ip = xff ? xff.split(",")[0]?.trim().slice(0, 64) ?? null : null;
+
   db.insert(sessions).values({
     id: sessionId,
     userId,
     expiresAt,
+    userAgent,
+    ip,
   }).run();
 
   setCookie(c, SESSION_COOKIE, sessionId, {
@@ -33,6 +41,13 @@ export async function createSession(c: Context, userId: string): Promise<string>
   return sessionId;
 }
 
+// S109 — Expose the current session id without revealing the cookie
+// to other modules. Used by /auth/change-password to keep the
+// calling browser logged in while destroying every other session.
+export function currentSessionId(c: Context): string | undefined {
+  return getCookie(c, SESSION_COOKIE);
+}
+
 export async function destroySession(c: Context): Promise<void> {
   const sessionId = getCookie(c, SESSION_COOKIE);
   if (sessionId) {
@@ -40,6 +55,22 @@ export async function destroySession(c: Context): Promise<void> {
     db.delete(sessions).where(eq(sessions.id, sessionId)).run();
   }
   deleteCookie(c, SESSION_COOKIE, { path: "/" });
+}
+
+// S109 — Destroy every session row for a user. Used by:
+//   - /auth/reset-password (forced sign-out everywhere after a reset)
+//   - /auth/change-password (everywhere except current — passes `exceptId`)
+//   - /me/email-change once the new address verifies
+// Returns the number of rows removed.
+export function destroyAllSessions(userId: string, exceptId?: string): number {
+  const db = getDb();
+  const filter = exceptId
+    ? and(eq(sessions.userId, userId), sql`${sessions.id} <> ${exceptId}`)
+    : eq(sessions.userId, userId);
+  const rows = db.select({ id: sessions.id }).from(sessions).where(filter).all();
+  if (rows.length === 0) return 0;
+  db.delete(sessions).where(filter).run();
+  return rows.length;
 }
 
 const SESSION_USER_COLUMNS = {

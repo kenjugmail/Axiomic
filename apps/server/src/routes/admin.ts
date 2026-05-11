@@ -21,7 +21,6 @@ import {
   jobLeases,
   jobRuns,
   masteryNodes,
-  masteryPaths,
   newsArticles,
   researchPapers,
   users,

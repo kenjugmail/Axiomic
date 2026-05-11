@@ -44,13 +44,10 @@ function simpleTokenize(text: string): string[] {
 
 export function TokenizerPlayground() {
   const [text, setText] = useState("The transformer architecture revolutionized natural language processing");
-  const [showSteps, setShowSteps] = useState(false);
-
   const tokens = useMemo(() => simpleTokenize(text), [text]);
 
   const handleReset = () => {
     setText("The transformer architecture revolutionized natural language processing");
-    setShowSteps(false);
   };
 
   return (
@@ -104,7 +101,7 @@ export function TokenizerPlayground() {
           <div className="mt-3 text-xs text-muted-foreground">
             <span className="font-medium">Token IDs:</span>{" "}
             <span className="font-mono">
-              [{tokens.map((t, i) => {
+              [{tokens.map((t, _i) => {
                 // Simple hash for token ID
                 let hash = 0;
                 for (let j = 0; j < t.length; j++) hash = ((hash << 5) - hash + t.charCodeAt(j)) | 0;

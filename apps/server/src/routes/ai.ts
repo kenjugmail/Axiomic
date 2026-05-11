@@ -364,7 +364,6 @@ ai.get("/flashcards/:slug", async (c) => {
   const slug = c.req.param("slug");
   const tier = c.req.query("tier") || "intro";
   const db = getDb();
-  const provider = getAIProvider();
 
   const page = db.select().from(wikiPages).where(eq(wikiPages.slug, slug)).get();
   if (!page) return c.json({ cards: [] });
@@ -390,7 +389,7 @@ ai.get("/flashcards/:slug", async (c) => {
   return c.json({ cards });
 });
 
-function generateFlashcards(title: string, content: string, tier: string) {
+function generateFlashcards(title: string, content: string, _tier: string) {
   // Extract key concepts from markdown
   const headings = content.match(/^#{1,3}\s+(.+)/gm) || [];
   const cards = [];

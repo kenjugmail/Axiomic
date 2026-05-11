@@ -18,7 +18,6 @@ import {
   quizMistakes,
   userProgress,
   users,
-  wikiPages,
   type Db,
 } from "@axiomic/db";
 import type { PrimaryPersona } from "@axiomic/types";

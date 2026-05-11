@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import {
   ArrowDown,
   ArrowLeft,
@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { api } from "../lib/api";
 import { toast } from "../stores/toast";
-import type { Lesson, LessonSlide } from "@axiomic/types";
+import type { LessonSlide } from "@axiomic/types";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { AiDraftSlideDialog } from "../components/lesson/AiDraftSlideDialog";
 import { LessonPreviewModal } from "../components/lesson/LessonPreviewModal";
@@ -50,7 +50,6 @@ export function LessonEditPage() {
     pathSlug: string;
     nodeSlug: string;
   }>();
-  const navigate = useNavigate();
   const { user, loading: authLoading } = useAuthStore();
 
   const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
@@ -915,7 +914,7 @@ function TextSlideEditor({
     <div className="space-y-4">
       <div>
         <div className="flex items-center justify-between mb-1">
-          <label className="block text-xs font-medium text-muted-foreground">
+          <label htmlFor="lesson-edit-title" className="block text-xs font-medium text-muted-foreground">
             Title
           </label>
           <button
@@ -930,6 +929,7 @@ function TextSlideEditor({
           </button>
         </div>
         <input
+          id="lesson-edit-title"
           ref={titleRef}
           value={slide.title ?? ""}
           onChange={(e) => onChange({ ...slide, title: e.target.value })}
@@ -939,7 +939,7 @@ function TextSlideEditor({
       </div>
       <div>
         <div className="flex items-center justify-between mb-1">
-          <label className="block text-xs font-medium text-muted-foreground">
+          <label htmlFor="lesson-edit-body" className="block text-xs font-medium text-muted-foreground">
             Body (markdown)
           </label>
           <div className="flex items-center gap-3">
@@ -976,6 +976,7 @@ function TextSlideEditor({
           </div>
         ) : (
           <textarea
+            id="lesson-edit-body"
             ref={bodyRef}
             value={slide.body}
             onChange={(e) => onChange({ ...slide, body: e.target.value })}
@@ -987,9 +988,9 @@ function TextSlideEditor({
       </div>
       <div>
         <div className="flex items-center justify-between mb-1">
-          <label className="block text-xs font-medium text-muted-foreground">
+          <div className="block text-xs font-medium text-muted-foreground">
             Visualization (optional)
-          </label>
+          </div>
           <button
             type="button"
             onClick={() => setVizOpen(true)}
@@ -1077,10 +1078,11 @@ function QuestionSlideEditor({
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-xs font-medium text-muted-foreground mb-1">
+        <label htmlFor="lesson-q-kind" className="block text-xs font-medium text-muted-foreground mb-1">
           Question kind
         </label>
         <select
+          id="lesson-q-kind"
           value={q.kind ?? "multiple_choice"}
           onChange={(e) =>
             onChange({
@@ -1101,10 +1103,11 @@ function QuestionSlideEditor({
         </select>
       </div>
       <div>
-        <label className="block text-xs font-medium text-muted-foreground mb-1">
+        <label htmlFor="lesson-q-id" className="block text-xs font-medium text-muted-foreground mb-1">
           Question id (unique within lesson)
         </label>
         <input
+          id="lesson-q-id"
           value={q.id ?? ""}
           onChange={(e) =>
             onChange({
@@ -1117,10 +1120,11 @@ function QuestionSlideEditor({
         />
       </div>
       <div>
-        <label className="block text-xs font-medium text-muted-foreground mb-1">
+        <label htmlFor="lesson-q-prompt" className="block text-xs font-medium text-muted-foreground mb-1">
           Prompt
         </label>
         <textarea
+          id="lesson-q-prompt"
           value={q.question ?? ""}
           onChange={(e) =>
             onChange({
@@ -1183,15 +1187,16 @@ function MultipleChoiceEditor({
   };
 
   return (
-    <div className="space-y-2">
-      <label className="block text-xs font-medium text-muted-foreground">
+    <div className="space-y-2" role="radiogroup" aria-labelledby="lesson-mc-options-label">
+      <div id="lesson-mc-options-label" className="block text-xs font-medium text-muted-foreground">
         Options (mark the correct one)
-      </label>
+      </div>
       {opts.map((o, i) => (
         <div key={i} className="flex items-center gap-2">
           <input
             type="radio"
             name="correctIndex"
+            aria-label={`Option ${i + 1} is correct`}
             checked={correctIndex === i}
             onChange={() => onChange({ ...q, correctIndex: i })}
           />
@@ -1336,10 +1341,11 @@ function CodeEditor({
   return (
     <div className="space-y-3">
       <div>
-        <label className="block text-[11px] font-medium text-muted-foreground mb-1">
+        <label htmlFor="lesson-code-starter" className="block text-[11px] font-medium text-muted-foreground mb-1">
           Starter code
         </label>
         <textarea
+          id="lesson-code-starter"
           value={q.starterCode ?? ""}
           onChange={(e) => onChange({ ...q, starterCode: e.target.value })}
           rows={6}
@@ -1412,10 +1418,11 @@ function RawJsonEditor({
   const [err, setErr] = useState<string | null>(null);
   return (
     <div>
-      <label className="block text-xs font-medium text-muted-foreground mb-1">
+      <label htmlFor="lesson-q-json" className="block text-xs font-medium text-muted-foreground mb-1">
         Question JSON (advanced — schema depends on kind)
       </label>
       <textarea
+        id="lesson-q-json"
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={() => {

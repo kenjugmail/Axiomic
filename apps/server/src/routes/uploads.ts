@@ -4,7 +4,7 @@ import { randomUUID } from "crypto";
 import { mkdir, writeFile, readFile, unlink } from "fs/promises";
 import path from "path";
 import { getDb, attachments, users } from "@axiomic/db";
-import { requireAuth } from "../middleware/auth";
+import { requireAuth, requireVerifiedEmail } from "../middleware/auth";
 import { checkRateLimit } from "../lib/rateLimit";
 import { env } from "../lib/envConfig";
 import type { Env } from "../env";
@@ -122,7 +122,7 @@ function matchesMagic(declaredMime: string, bytes: Uint8Array): boolean {
   });
 }
 
-uploadsRouter.post("/", requireAuth, async (c) => {
+uploadsRouter.post("/", requireVerifiedEmail, async (c) => {
   const user = c.get("user")!;
   const db = getDb();
 
