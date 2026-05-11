@@ -13,34 +13,39 @@ type DemoStep = {
 
 const STEPS: DemoStep[] = [
   {
-    title: "Read the source concept",
-    detail: "Start in wiki to anchor terminology and definitions.",
+    title: "Diagnose",
+    detail:
+      "What does this learner already know — with evidence, not self-report? Tiered explanations and tracked progress reveal gaps before they compound.",
     to: "/wiki",
-    cta: "Open wiki index",
+    cta: "Open wiki",
   },
   {
-    title: "Run a timed competency check",
-    detail: "Use the exam framework for score + percentile diagnostics.",
+    title: "Assess",
+    detail:
+      "Timed competency checks with section-level scoring and percentile diagnostics. No multiple-choice-only theatrics.",
     to: "/exams",
     cta: "Open exams",
   },
   {
-    title: "Inspect weak concepts",
-    detail: "Review model-detected weak areas after attempts and lessons.",
+    title: "Remediate",
+    detail:
+      "Weak concepts surface automatically from the learner's own work — quizzes, lesson interactions, capstone submissions — not from a curriculum guess.",
     to: "/me/weak-concepts",
     cta: "Open weak concepts",
   },
   {
-    title: "Build portfolio proof",
-    detail: "Complete capstone-track work and publish artifact pages.",
+    title: "Build",
+    detail:
+      "Capstones produce original artifacts — code, papers, lab reports — graded against a public rubric. Portfolio, not test score.",
     to: "/tracks",
     cta: "Open tracks",
   },
   {
-    title: "Verify transcript signatures",
-    detail: "Validate signed artifact bundles at byte level.",
-    to: "/verify",
-    cta: "Open verifier",
+    title: "Verify",
+    detail:
+      "Signed transcripts any employer or institution can verify in seconds against Axiomic's public ed25519 key. No phone-home, no trust-us.",
+    to: "/verify?artifact=demo-student-6-clip-style-retriever",
+    cta: "Verify a real credential",
   },
 ];
 
@@ -54,8 +59,9 @@ export function DemoCompetencyLoopPage() {
         Competency loop demo
       </h1>
       <p className="text-sm text-muted-foreground mt-2 max-w-prose">
-        Static walkthrough of Axiomic's learn → assess → diagnose → build →
-        verify loop. Every link below is a live route from the app router.
+        How Axiomic turns "I took a course" into "here is a signed,
+        verifiable record of what I can do." Five steps. Every link
+        below is a live route in this build.
       </p>
 
       <ol className="mt-6 space-y-3">
@@ -83,6 +89,37 @@ export function DemoCompetencyLoopPage() {
           </li>
         ))}
       </ol>
+
+      {/* Audience-specific exits. Both land on routes that exist in
+          this build — the institution path goes to the public class
+          directory; the evaluator path opens the pre-populated verify
+          page for the seeded demo capstone. */}
+      <div className="mt-8 grid sm:grid-cols-2 gap-3">
+        <Link
+          to="/classes/discover"
+          className="rounded-lg border border-border bg-card p-4 hover:border-primary/40 transition-colors"
+        >
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            For institutions
+          </div>
+          <div className="mt-1 text-sm font-semibold">Show me cohort tools</div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            Class directory, roster progress, instructor dashboards.
+          </div>
+        </Link>
+        <Link
+          to="/verify?artifact=demo-student-6-clip-style-retriever"
+          className="rounded-lg border border-border bg-card p-4 hover:border-primary/40 transition-colors"
+        >
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            For evaluators
+          </div>
+          <div className="mt-1 text-sm font-semibold">Verify a real credential</div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            Live signature check against the seeded demo capstone artifact.
+          </div>
+        </Link>
+      </div>
     </div>
   );
 }

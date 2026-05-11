@@ -12,6 +12,8 @@ import {
   newsArticles,
   capstones,
   capstoneMilestones,
+  capstoneEnrollments,
+  capstoneSubmissions,
   capstoneTracks,
   capstoneTrackCapstones,
   misconceptionCatalog,
@@ -27,8 +29,13 @@ import {
   safetyCertifications,
   // S86 — pet cosmetic catalog.
   petCosmetics,
+  // S108 — demo cohort seed for college / investor pitches.
+  classes,
+  classEnrollments,
+  classTasks,
+  classTaskCompletions,
 } from "./index";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import fs from "fs";
 import path from "path";
@@ -133,6 +140,10 @@ async function seed() {
 
   // S86 — pet cosmetic catalog. Idempotent on slug.
   seedPetCosmetics();
+
+  // S108 — demo cohort + signed-capstone artifact for the pitch demo
+  // path. Depends on capstones (clip-style-retriever) being seeded.
+  await seedDemoCohort();
 
   console.log("Seeding complete.");
 }
@@ -2501,6 +2512,259 @@ function seedPetCosmetics() {
     count++;
   }
   console.log(`  Seeded ${count} pet cosmetic${count === 1 ? "" : "s"}.`);
+}
+
+// S108 — Demo cohort for the pitch path.
+//
+// Adds one instructor, six students, one class ("Intro to Machine
+// Learning — Spring 2026"), three tasks, and a fully-completed
+// signed capstone for `demo-student-6` against the `clip-style-retriever`
+// capstone. Idempotent on slug: re-running seed is safe and the
+// instructor/students are reused if they already exist.
+//
+// All accounts share the password `demo` (hashed below). They are
+// only safe to use on a controlled demo deploy; pitch deploy config
+// should disable signups or require an invite to prevent these from
+// being attacked in production.
+async function seedDemoCohort() {
+  const DEMO_PASSWORD_HASH = Bun.password.hashSync("demo");
+
+  function ensureUser(username: string, displayName: string, bio: string): string {
+    const existing = db.select({ id: users.id }).from(users).where(eq(users.username, username)).get();
+    if (existing) return existing.id;
+    const id = randomUUID();
+    db.insert(users).values({
+      id,
+      username,
+      email: `${username}@axiomic.local`,
+      passwordHash: DEMO_PASSWORD_HASH,
+      displayName,
+      bio,
+    }).run();
+    return id;
+  }
+
+  const instructorId = ensureUser(
+    "demo-instructor",
+    "Dr. Demo Instructor",
+    "Pitch-demo instructor account. Teaches Intro to Machine Learning — Spring 2026.",
+  );
+
+  const studentIds: string[] = [];
+  for (let i = 1; i <= 6; i++) {
+    studentIds.push(
+      ensureUser(
+        `demo-student-${i}`,
+        `Demo Student ${i}`,
+        `Pitch-demo student account in Intro to Machine Learning — Spring 2026.`,
+      ),
+    );
+  }
+  const completeStudentId = studentIds[5]; // demo-student-6
+
+  // Class. Stable slug + joinCode so the pitch demo can reference
+  // them by URL / clipboard without re-reading the seed output.
+  const CLASS_SLUG = "intro-to-ml-demo";
+  const CLASS_JOIN_CODE = "DEMO2026";
+  let classId: string;
+  const existingClass = db.select({ id: classes.id }).from(classes).where(eq(classes.slug, CLASS_SLUG)).get();
+  if (existingClass) {
+    classId = existingClass.id;
+  } else {
+    classId = randomUUID();
+    db.insert(classes).values({
+      id: classId,
+      slug: CLASS_SLUG,
+      title: "Intro to Machine Learning — Spring 2026",
+      term: "Spring 2026",
+      description:
+        "Demo cohort used to showcase Axiomic's classroom and competency-verification flow to college administrators and investors.",
+      syllabusMd:
+        "# Syllabus\n\nWeek 1: Foundations (linear models, loss functions)\nWeek 2: Optimization (SGD, momentum)\nWeek 3: Neural nets\nWeek 4: Contrastive learning + capstone kickoff\nWeek 5: Capstone milestones 1-2\nWeek 6: Capstone milestones 3-4 + final review",
+      welcomeMessageMd:
+        "Welcome! This class showcases Axiomic's classroom + verification flow. Open the cohort dashboard to see roster progress, or jump straight to a student's signed capstone artifact.",
+      discoverable: true,
+      joinCode: CLASS_JOIN_CODE,
+      status: "active",
+      instructorId,
+    }).run();
+  }
+
+  // Enroll every student. Idempotent on (classId, userId).
+  for (const studentId of studentIds) {
+    const existing = db
+      .select({ id: classEnrollments.id })
+      .from(classEnrollments)
+      .where(and(eq(classEnrollments.classId, classId), eq(classEnrollments.userId, studentId)))
+      .get();
+    if (existing) continue;
+    db.insert(classEnrollments).values({
+      id: randomUUID(),
+      classId,
+      userId: studentId,
+      role: "student",
+    }).run();
+  }
+
+  // Three demo tasks. Idempotent by (classId, title).
+  const demoTasks: Array<{ title: string; kind: "reading" | "homework"; descriptionMd: string; xpReward: number; }> = [
+    {
+      title: "Read: What is a loss function?",
+      kind: "reading",
+      descriptionMd: "Read the linked wiki page on loss functions.",
+      xpReward: 10,
+    },
+    {
+      title: "Homework: Implement softmax from scratch",
+      kind: "homework",
+      descriptionMd: "Implement the softmax function and verify gradients against autograd.",
+      xpReward: 25,
+    },
+    {
+      title: "Homework: Train a small MLP on MNIST",
+      kind: "homework",
+      descriptionMd: "Train a 2-layer MLP on MNIST. Report final test accuracy.",
+      xpReward: 30,
+    },
+  ];
+
+  const taskIds: string[] = [];
+  for (const t of demoTasks) {
+    const existing = db
+      .select({ id: classTasks.id })
+      .from(classTasks)
+      .where(and(eq(classTasks.classId, classId), eq(classTasks.title, t.title)))
+      .get();
+    if (existing) {
+      taskIds.push(existing.id);
+      continue;
+    }
+    const taskId = randomUUID();
+    db.insert(classTasks).values({
+      id: taskId,
+      classId,
+      kind: t.kind,
+      title: t.title,
+      descriptionMd: t.descriptionMd,
+      xpReward: t.xpReward,
+      createdById: instructorId,
+    }).run();
+    taskIds.push(taskId);
+  }
+
+  function ensureCompletion(taskId: string, studentId: string, payload: {
+    content: string | null;
+    gradeJson?: string;
+    gradedAt?: string;
+  }) {
+    const existing = db
+      .select({ id: classTaskCompletions.id })
+      .from(classTaskCompletions)
+      .where(and(eq(classTaskCompletions.taskId, taskId), eq(classTaskCompletions.userId, studentId)))
+      .get();
+    if (existing) return;
+    db.insert(classTaskCompletions).values({
+      id: randomUUID(),
+      taskId,
+      userId: studentId,
+      content: payload.content,
+      gradeJson: payload.gradeJson,
+      gradedAt: payload.gradedAt,
+    }).run();
+  }
+
+  // Mid-progress for students 1 and 2: each completes the first task.
+  for (let i = 0; i < 2; i++) {
+    ensureCompletion(taskIds[0], studentIds[i], { content: null });
+  }
+
+  // Fully-complete student: demo-student-6. All three tasks completed
+  // and graded as passing. Capstone enrollment + signed transcript
+  // happen below.
+  const now = new Date().toISOString();
+  for (const taskId of taskIds) {
+    ensureCompletion(taskId, completeStudentId, {
+      content: "Submitted for demo. Pass on review.",
+      gradeJson: JSON.stringify({ pass: true, feedback: "Strong submission. Pass." }),
+      gradedAt: now,
+    });
+  }
+
+  // Signed capstone artifact. Look up the clip-style-retriever capstone
+  // (seeded earlier) and the demo student. Create an enrollment with
+  // completedAt set + artifactPageSlug populated so /verify and the
+  // transcript route work end-to-end. If the capstone wasn't seeded
+  // (e.g. seed-content/capstones missing), skip with a warning instead
+  // of failing the whole seed.
+  const targetCapstoneSlug = "clip-style-retriever";
+  const targetCapstone = db
+    .select({ id: capstones.id, title: capstones.title })
+    .from(capstones)
+    .where(eq(capstones.slug, targetCapstoneSlug))
+    .get();
+  if (!targetCapstone) {
+    console.warn(`  Demo seed: capstone '${targetCapstoneSlug}' not seeded; skipping signed transcript.`);
+  } else {
+    const ARTIFACT_SLUG = `demo-student-6-${targetCapstoneSlug}`;
+    const existingEnrollment = db
+      .select({ id: capstoneEnrollments.id })
+      .from(capstoneEnrollments)
+      .where(eq(capstoneEnrollments.artifactPageSlug, ARTIFACT_SLUG))
+      .get();
+    let enrollmentId: string;
+    if (existingEnrollment) {
+      enrollmentId = existingEnrollment.id;
+    } else {
+      enrollmentId = randomUUID();
+      const startedAt = new Date(Date.now() - 1000 * 60 * 60 * 24 * 60).toISOString(); // 60 days ago
+      const completedAt = new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(); // 2 days ago
+      db.insert(capstoneEnrollments).values({
+        id: enrollmentId,
+        capstoneId: targetCapstone.id,
+        userId: completeStudentId,
+        startedAt,
+        completedAt,
+        artifactPageSlug: ARTIFACT_SLUG,
+      }).run();
+    }
+
+    // Insert a passing submission for every milestone on this capstone.
+    // Idempotent on (enrollmentId, milestoneId) via the unique index.
+    const milestoneRows = db
+      .select({ id: capstoneMilestones.id, order: capstoneMilestones.order, title: capstoneMilestones.title })
+      .from(capstoneMilestones)
+      .where(eq(capstoneMilestones.capstoneId, targetCapstone.id))
+      .all();
+    milestoneRows.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    const submittedAt = new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString();
+    const gradedAt = new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString();
+    for (const m of milestoneRows) {
+      const existingSub = db
+        .select({ id: capstoneSubmissions.id })
+        .from(capstoneSubmissions)
+        .where(and(eq(capstoneSubmissions.enrollmentId, enrollmentId), eq(capstoneSubmissions.milestoneId, m.id)))
+        .get();
+      if (existingSub) continue;
+      const score = 0.85 + (m.order ?? 0) * 0.02; // 0.85, 0.87, 0.89, 0.91
+      db.insert(capstoneSubmissions).values({
+        id: randomUUID(),
+        enrollmentId,
+        milestoneId: m.id,
+        writeup: `Demo submission for "${m.title}". Auto-passed by seed for pitch path.`,
+        status: "passed",
+        aiGradeJson: JSON.stringify({
+          totalScore: Number(score.toFixed(2)),
+          summary: `Strong work on "${m.title}". Demo grade for pitch path.`,
+          gradedBy: "axiomic-demo-seed",
+        }),
+        submittedAt,
+        gradedAt,
+      }).run();
+    }
+    console.log(`  Demo cohort: signed-transcript artifact ready at /verify?artifact=${ARTIFACT_SLUG}`);
+  }
+
+  console.log("  Demo cohort seeded: 1 instructor + 6 students, joinCode " + CLASS_JOIN_CODE + ".");
 }
 
 seed().catch(console.error);
