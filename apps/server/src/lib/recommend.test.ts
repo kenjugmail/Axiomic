@@ -10,7 +10,7 @@
 //   - rankFromFollows returns nothing when the user follows nobody
 //   - recordImpressions doesn't throw and survives idempotency
 
-import { describe, test, expect, beforeAll } from "bun:test";
+import { describe, test, expect, beforeEach } from "bun:test";
 import { randomUUID } from "crypto";
 import { eq } from "drizzle-orm";
 import {
@@ -45,10 +45,9 @@ async function ensureTestUser(): Promise<string> {
 }
 
 describe("recommend ranker (Sprint 70)", () => {
-  beforeAll(async () => {
-    // Force a build so we know the index has the seeded research
-    // papers indexed before the ranker runs. Some prior tests may
-    // have invalidated the cache.
+  beforeEach(async () => {
+    // Rebuild before each test so no individual test can observe a stale
+    // index left by test-created content inserted in a prior test.
     invalidateSearchIndex();
     await getSearchIndex();
   });

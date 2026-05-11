@@ -4,9 +4,18 @@
 // `personalized` flag, that anonymous traffic still gets the trending
 // rail, and that score breakdowns shape-match the type contract.
 
-import { describe, test, expect } from "bun:test";
+import { describe, test, expect, beforeAll } from "bun:test";
 import { app } from "../index";
 import type { ResearchFeedResponse } from "@axiomic/types";
+import { getSearchIndex, invalidateSearchIndex } from "../lib/searchIndex";
+
+beforeAll(async () => {
+  // Ensure the search index is built from seeded data before any test runs.
+  // Without this, the index relies on a background prewarm that can fail
+  // silently if another worker holds a DB write lock at startup.
+  invalidateSearchIndex();
+  await getSearchIndex();
+});
 
 async function getFeed(): Promise<ResearchFeedResponse> {
   const res = await app.fetch(
