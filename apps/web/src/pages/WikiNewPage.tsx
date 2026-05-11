@@ -262,7 +262,7 @@ export function WikiNewPage() {
       {draftOpen && (
         <div className="mb-3 rounded-lg border border-primary/40 bg-primary/5 p-3 flex items-start gap-2 flex-wrap">
           <input
-            // eslint-disable-next-line jsx-a11y/no-autofocus -- the
+             
             // input appears only in response to a user click on
             // "AI draft"; focusing on appear is the expected UX.
             autoFocus

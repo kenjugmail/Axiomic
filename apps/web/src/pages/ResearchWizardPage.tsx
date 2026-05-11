@@ -370,7 +370,7 @@ function StepTopic({
         </label>
         <input
           id="rw-title"
-          // eslint-disable-next-line jsx-a11y/no-autofocus -- first
+           
           // field of a multi-step wizard; focusing on entry is the
           // expected UX, and the page is reached only via deliberate
           // navigation from /research/new (no surprise focus jumps).

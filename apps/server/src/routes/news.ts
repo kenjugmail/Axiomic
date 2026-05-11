@@ -18,7 +18,7 @@ import {
 } from "@axiomic/db";
 import { and, asc, count, desc, eq, isNull, max, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
-import { requireAuth, getSessionUser } from "../middleware/auth";
+import { getSessionUser, requireAuth, requireVerifiedEmail } from "../middleware/auth";
 import { notify, notifyMentions } from "../lib/notifications";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import { publishToArticle } from "../lib/liveBus";
@@ -525,7 +525,7 @@ const createSchema = z.object({
   coauthors: z.array(z.string()).optional(),
 });
 
-newsRouter.post("/", requireAuth, zValidator("json", createSchema), async (c) => {
+newsRouter.post("/", requireVerifiedEmail, zValidator("json", createSchema), async (c) => {
   const body = c.req.valid("json");
   const user = c.get("user")!;
   const db = getDb();
@@ -612,7 +612,7 @@ const updateSchema = z.object({
   coauthors: z.array(z.string()).optional(),
 });
 
-newsRouter.put("/:slug", requireAuth, zValidator("json", updateSchema), async (c) => {
+newsRouter.put("/:slug", requireVerifiedEmail, zValidator("json", updateSchema), async (c) => {
   const slug = c.req.param("slug")!;
   const data = c.req.valid("json");
   const user = c.get("user")!;

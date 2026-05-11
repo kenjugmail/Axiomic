@@ -4,7 +4,7 @@ import { z } from "zod";
 import { getDb, wikiPages, pageVersions, forumTopics, domains, users, forumPosts, forumVotes } from "@axiomic/db";
 import { eq, like, or, desc, sql, count } from "drizzle-orm";
 import { randomUUID } from "crypto";
-import { requireAuth } from "../middleware/auth";
+import { requireAuth, requireVerifiedEmail } from "../middleware/auth";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import {
   nodesForWikiSlug,
@@ -208,7 +208,7 @@ const createSchema = z.object({
   editMessage: z.string().optional(),
 });
 
-wiki.post("/", requireAuth, zValidator("json", createSchema), async (c) => {
+wiki.post("/", requireVerifiedEmail, zValidator("json", createSchema), async (c) => {
   const body = c.req.valid("json");
   const user = c.get("user")!;
   const db = getDb();
@@ -253,7 +253,7 @@ const restoreSchema = z.object({
   version: z.number().int().min(1),
 });
 
-wiki.post("/:slug/restore", requireAuth, zValidator("json", restoreSchema), async (c) => {
+wiki.post("/:slug/restore", requireVerifiedEmail, zValidator("json", restoreSchema), async (c) => {
   const slug = c.req.param("slug");
   const { version } = c.req.valid("json");
   const user = c.get("user")!;

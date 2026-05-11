@@ -3,7 +3,7 @@
 import { describe, test, expect } from "bun:test";
 import { eq } from "drizzle-orm";
 import { app } from "../index";
-import { getDb, researchPapers, users } from "@axiomic/db";
+import { getDb, users } from "@axiomic/db";
 
 async function req(path: string, opts?: RequestInit): Promise<Response> {
   return await app.fetch(new Request(`http://localhost/api/v1${path}`, opts));

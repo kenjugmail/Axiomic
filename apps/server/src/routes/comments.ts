@@ -2,9 +2,9 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { getDb, comments, votes, users, commentEdits, wikiPages } from "@axiomic/db";
-import { eq, and, desc, asc, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
-import { requireAuth, getSessionUser } from "../middleware/auth";
+import { getSessionUser, requireAuth, requireVerifiedEmail } from "../middleware/auth";
 import { notify, notifyMentions, toPreview } from "../lib/notifications";
 import type { Env } from "../env";
 
@@ -104,7 +104,7 @@ const createSchema = z.object({
   parentId: z.string().optional(),
 });
 
-commentsRouter.post("/", requireAuth, zValidator("json", createSchema), async (c) => {
+commentsRouter.post("/", requireVerifiedEmail, zValidator("json", createSchema), async (c) => {
   const { pageId, content, parentId } = c.req.valid("json");
   const user = c.get("user")!;
   const db = getDb();

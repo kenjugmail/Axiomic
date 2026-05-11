@@ -115,10 +115,10 @@ export function ResearchPaperEditor({ draft, onChange, slugEditable }: Props) {
   return (
     <div className="space-y-5">
       {/* Format selector */}
-      <div>
-        <label className="block text-xs font-medium text-muted-foreground mb-2">
+      <div role="group" aria-labelledby="rpe-format-label">
+        <div id="rpe-format-label" className="block text-xs font-medium text-muted-foreground mb-2">
           Paper format
-        </label>
+        </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {FORMAT_OPTIONS.map((f) => (
             <button
@@ -143,10 +143,11 @@ export function ResearchPaperEditor({ draft, onChange, slugEditable }: Props) {
       {/* Title + emoji + accent */}
       <div className="grid sm:grid-cols-[1fr_auto_auto] gap-3">
         <div>
-          <label className="block text-xs font-medium text-muted-foreground mb-1">
+          <label htmlFor="rpe-title" className="block text-xs font-medium text-muted-foreground mb-1">
             Title
           </label>
           <input
+            id="rpe-title"
             value={draft.title}
             onChange={(e) => set("title", e.target.value)}
             placeholder="A precise, descriptive paper title."
@@ -154,10 +155,11 @@ export function ResearchPaperEditor({ draft, onChange, slugEditable }: Props) {
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-muted-foreground mb-1">
+          <label htmlFor="rpe-cover" className="block text-xs font-medium text-muted-foreground mb-1">
             Cover
           </label>
           <input
+            id="rpe-cover"
             value={draft.coverEmoji}
             onChange={(e) => set("coverEmoji", e.target.value)}
             placeholder="📄"
@@ -165,10 +167,10 @@ export function ResearchPaperEditor({ draft, onChange, slugEditable }: Props) {
             className="w-20 px-3 py-2 rounded-md border border-input bg-background text-2xl text-center focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
-        <div>
-          <label className="block text-xs font-medium text-muted-foreground mb-1">
+        <div role="group" aria-labelledby="rpe-accent-label">
+          <div id="rpe-accent-label" className="block text-xs font-medium text-muted-foreground mb-1">
             Accent
-          </label>
+          </div>
           <div className="flex gap-1 py-2">
             {ACCENT_OPTIONS.map((c) => (
               <button
@@ -190,13 +192,14 @@ export function ResearchPaperEditor({ draft, onChange, slugEditable }: Props) {
       {/* Slug + summary */}
       <div className="grid sm:grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-medium text-muted-foreground mb-1">
+          <label htmlFor="rpe-slug" className="block text-xs font-medium text-muted-foreground mb-1">
             Slug{" "}
             <span className="font-mono text-[10px]">
               (/research/{draft.slug || "..."})
             </span>
           </label>
           <input
+            id="rpe-slug"
             value={draft.slug}
             onChange={(e) => slugEditable && set("slug", e.target.value)}
             placeholder="kebab-case-title"
@@ -205,10 +208,11 @@ export function ResearchPaperEditor({ draft, onChange, slugEditable }: Props) {
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-muted-foreground mb-1">
+          <label htmlFor="rpe-summary" className="block text-xs font-medium text-muted-foreground mb-1">
             One-line summary
           </label>
           <input
+            id="rpe-summary"
             value={draft.summary}
             onChange={(e) => set("summary", e.target.value)}
             placeholder="One sentence shown on the list view."
@@ -220,10 +224,11 @@ export function ResearchPaperEditor({ draft, onChange, slugEditable }: Props) {
 
       {/* Abstract */}
       <div>
-        <label className="block text-xs font-medium text-muted-foreground mb-1">
+        <label htmlFor="rpe-abstract" className="block text-xs font-medium text-muted-foreground mb-1">
           Abstract
         </label>
         <textarea
+          id="rpe-abstract"
           value={draft.abstract}
           onChange={(e) => set("abstract", e.target.value)}
           rows={3}
@@ -451,10 +456,11 @@ function TagsRow({
 }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-muted-foreground mb-1">
+      <label htmlFor="rpe-tags" className="block text-xs font-medium text-muted-foreground mb-1">
         Tags <span className="text-[10px]">(lowercase kebab-case, max 8)</span>
       </label>
       <input
+        id="rpe-tags"
         value={draft.tags.join(", ")}
         onChange={(e) =>
           setTags(

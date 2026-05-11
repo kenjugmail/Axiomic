@@ -20,7 +20,7 @@ import {
 import { count, desc, eq, and, sql, inArray, asc } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { getAIProvider } from "@axiomic/ai";
-import { requireAuth, getSessionUser } from "../middleware/auth";
+import { getSessionUser, requireAuth, requireVerifiedEmail } from "../middleware/auth";
 import { notify, notifyMentions, toPreview } from "../lib/notifications";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import { nodesForWikiSlug } from "../lib/crossLinks";
@@ -596,7 +596,7 @@ forum.get("/graph", async (c) => {
   });
 });
 
-forum.post("/topics", requireAuth, zValidator("json", createTopicSchema), async (c) => {
+forum.post("/topics", requireVerifiedEmail, zValidator("json", createTopicSchema), async (c) => {
   const { title, body, postType, domainSlug, wikiPageId, poll } = c.req.valid("json");
   const user = c.get("user")!;
   const db = getDb();

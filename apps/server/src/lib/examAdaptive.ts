@@ -17,7 +17,7 @@
 // across difficulty bands [1,2,3,4,5] so the score report can
 // surface a per-difficulty accuracy curve for the post-mortem.
 
-import { eq, inArray, notInArray, sql } from "drizzle-orm";
+import { inArray, notInArray, sql } from "drizzle-orm";
 import { examQuestions, getDb } from "@axiomic/db";
 
 const RECENT_WINDOW = 5;

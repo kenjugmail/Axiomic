@@ -6,7 +6,7 @@
 // test runner (NODE_ENV=test gates stdout output, so we verify
 // console.error stays silent).
 
-import { describe, test, expect, beforeEach, afterEach, spyOn } from "bun:test";
+import { describe, test, expect, beforeEach, spyOn } from "bun:test";
 import {
   recordError,
   getRecentErrors,

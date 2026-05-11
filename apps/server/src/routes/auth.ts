@@ -192,6 +192,12 @@ auth.post("/signup", zValidator("json", signupSchema), async (c) => {
     email,
     passwordHash,
     displayName: displayName || username,
+    // S109 — auto-verify in the test environment so existing test
+    // helpers can publish/comment/upload without each test having to
+    // first mint and consume a verify-email token. Tests that
+    // specifically exercise the verify-email or requireVerifiedEmail
+    // flow reset this column to null manually after signup.
+    emailVerifiedAt: env.NODE_ENV === "test" ? new Date().toISOString() : null,
   }).run();
 
   // Fire-and-forget the verify email. We don't await because the
@@ -513,6 +519,20 @@ auth.post(
   async (c) => {
     const user = await getSessionUser(c);
     if (!user) return c.json({ error: "Unauthorized" }, 401);
+    // S109 — rate-limit the current-password check so a session-cookie
+    // holder can't brute-force the user's current password. Keyed by
+    // user id + IP so legitimate use from a single browser isn't
+    // affected by other sessions hitting the limit. Skipped in test.
+    if (env.NODE_ENV !== "test") {
+      const ip = clientIp(c);
+      const key = `pw-change:${user.id}:${ip ?? "anon"}`;
+      if (!checkRateLimit(key, 5, 60_000)) {
+        return c.json(
+          { error: "Too many password change attempts. Try again in a minute." },
+          429,
+        );
+      }
+    }
     const { currentPassword, newPassword } = c.req.valid("json");
     const db = getDb();
     const row = db
