@@ -23,6 +23,13 @@ export interface User {
   role?: string;
   createdAt?: string;
   primaryPersona?: PrimaryPersona | null;
+  // S108 — Email verification state. Null means the user hasn't
+  // clicked the verify link yet; a verify-email banner appears in
+  // Layout and publish/upload routes return 403 until set.
+  emailVerifiedAt?: string | null;
+  // S108 — Set when the user soft-deletes their account. The 30-day
+  // sweeper hard-deletes after that. Login refuses while this is set.
+  deletedAt?: string | null;
 }
 
 export interface WikiPage {

@@ -33,6 +33,10 @@ export function PrereqXray({ wikiSlugs, className }: Props) {
   const { user } = useAuthStore();
   const [entries, setEntries] = useState<PrereqXrayEntry[] | null>(null);
 
+  // Extract the join into its own value so the effect's dep array
+  // is a simple list, satisfying react-hooks/exhaustive-deps.
+  const wikiSlugsKey = wikiSlugs.join(",");
+
   useEffect(() => {
     if (!user || wikiSlugs.length === 0) {
       setEntries(null);
@@ -42,7 +46,11 @@ export function PrereqXray({ wikiSlugs, className }: Props) {
       .prereqStatus(wikiSlugs)
       .then((r) => setEntries(r.entries))
       .catch(() => setEntries(null));
-  }, [user, wikiSlugs.join(",")]);
+    // wikiSlugs is the actual data we depend on; wikiSlugsKey is a
+    // stable string fingerprint to keep the dep array statically
+    // checkable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, wikiSlugsKey]);
 
   if (wikiSlugs.length === 0) return null;
 

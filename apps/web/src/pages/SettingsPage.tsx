@@ -107,16 +107,18 @@ export function SettingsPage() {
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Profile</h2>
         <div>
-          <label className="block text-sm font-medium mb-1">Username</label>
+          <label htmlFor="settings-username" className="block text-sm font-medium mb-1">Username</label>
           <input
+            id="settings-username"
             value={settings.username}
             disabled
             className="w-full px-3 py-2 rounded-md border border-input bg-muted text-muted-foreground text-sm"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Display name</label>
+          <label htmlFor="settings-display-name" className="block text-sm font-medium mb-1">Display name</label>
           <input
+            id="settings-display-name"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             placeholder={settings.username}
@@ -125,8 +127,9 @@ export function SettingsPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Bio</label>
+          <label htmlFor="settings-bio" className="block text-sm font-medium mb-1">Bio</label>
           <textarea
+            id="settings-bio"
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             rows={3}
@@ -143,10 +146,11 @@ export function SettingsPage() {
           dashboard. Leave unset for a balanced experience.
         </p>
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label htmlFor="settings-primary-persona" className="block text-sm font-medium mb-1">
             Primary focus
           </label>
           <select
+            id="settings-primary-persona"
             value={primaryPersona}
             onChange={(e) =>
               setPrimaryPersona(
@@ -173,8 +177,9 @@ export function SettingsPage() {
           feed and is required to claim authored papers.
         </p>
         <div>
-          <label className="block text-sm font-medium mb-1">ORCID</label>
+          <label htmlFor="settings-orcid" className="block text-sm font-medium mb-1">ORCID</label>
           <input
+            id="settings-orcid"
             value={orcid}
             onChange={(e) => setOrcid(e.target.value)}
             placeholder="0000-0000-0000-0000"
@@ -195,10 +200,11 @@ export function SettingsPage() {
           </p>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label htmlFor="settings-scholar-url" className="block text-sm font-medium mb-1">
             Google Scholar URL
           </label>
           <input
+            id="settings-scholar-url"
             type="url"
             value={scholarUrl}
             onChange={(e) => setScholarUrl(e.target.value)}
@@ -209,10 +215,11 @@ export function SettingsPage() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label htmlFor="settings-bluesky" className="block text-sm font-medium mb-1">
               Bluesky handle
             </label>
             <input
+              id="settings-bluesky"
               value={blueskyHandle}
               onChange={(e) => setBlueskyHandle(e.target.value)}
               placeholder="@user.bsky.social"
@@ -221,10 +228,11 @@ export function SettingsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label htmlFor="settings-twitter" className="block text-sm font-medium mb-1">
               Twitter / X handle
             </label>
             <input
+              id="settings-twitter"
               value={twitterHandle}
               onChange={(e) => setTwitterHandle(e.target.value)}
               placeholder="@username"
@@ -234,8 +242,9 @@ export function SettingsPage() {
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Institution</label>
+          <label htmlFor="settings-institution" className="block text-sm font-medium mb-1">Institution</label>
           <input
+            id="settings-institution"
             value={institution}
             onChange={(e) => setInstitution(e.target.value)}
             placeholder="Stanford, MIT, Independent…"
@@ -335,6 +344,11 @@ export function SettingsPage() {
           you've uploaded across articles, lessons, posts, and comments.
         </p>
       </section>
+
+      {/* S108 — Danger zone: export + delete. Soft-delete sets a
+          deletedAt timestamp; the background job hard-deletes after
+          30 days. Export is a one-shot JSON dump of user-scoped data. */}
+      <DangerZone />
     </div>
   );
 }
@@ -446,5 +460,134 @@ function ToggleRow({
         )}
       </div>
     </label>
+  );
+}
+
+// S108 — Danger zone: export-my-data + soft-delete-account.
+function DangerZone() {
+  const navigate = useNavigate();
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const onExport = async () => {
+    setExporting(true);
+    setExportError(null);
+    try {
+      const data = await api.me.exportData();
+      // Trigger a download client-side. Blob URL is cleaned up after
+      // a beat so the browser actually flushes the download.
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `axiomic-export-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e: any) {
+      setExportError(e?.message ?? "Export failed");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const onDelete = async () => {
+    if (!confirmPassword) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await api.me.deleteAccount(confirmPassword);
+      // Login session is destroyed server-side; just kick to login.
+      navigate("/login");
+    } catch (e: any) {
+      setDeleteError(e?.message ?? "Delete failed");
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <section className="space-y-3 pt-6 border-t border-rose-500/30">
+      <h2 className="text-lg font-semibold text-rose-700 dark:text-rose-400">Danger zone</h2>
+
+      <div className="rounded-lg border border-border bg-card p-4 space-y-2">
+        <div className="text-sm font-medium">Export my data</div>
+        <p className="text-xs text-muted-foreground">
+          Downloads a JSON file containing your profile, posts, comments,
+          capstone enrollments, XP history, classes, and cosmetics. Useful
+          for backups and GDPR-style data-portability requests.
+        </p>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onExport}
+            disabled={exporting}
+            className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40 disabled:opacity-50"
+          >
+            {exporting ? "Preparing…" : "Download export"}
+          </button>
+          {exportError && <span className="text-xs text-rose-600 dark:text-rose-400">{exportError}</span>}
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-rose-500/40 bg-rose-500/5 p-4 space-y-2">
+        <div className="text-sm font-medium">Delete my account</div>
+        <p className="text-xs text-muted-foreground">
+          Marks your account for deletion. You'll be logged out immediately
+          and your content will show "[deleted]" as the author. After 30
+          days, the account is permanently removed and all your posts,
+          comments, capstones, and XP history are deleted.
+        </p>
+        {!showConfirm ? (
+          <button
+            type="button"
+            onClick={() => setShowConfirm(true)}
+            className="text-xs px-3 py-1.5 rounded-md border border-rose-500/40 text-rose-700 dark:text-rose-400 hover:bg-rose-500/10"
+          >
+            Delete my account…
+          </button>
+        ) : (
+          <div className="space-y-2">
+            <label htmlFor="delete-confirm-password" className="block text-xs">
+              Type your password to confirm.
+            </label>
+            <input
+              id="delete-confirm-password"
+              type="password"
+              autoComplete="current-password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full max-w-xs px-3 py-2 text-sm rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={onDelete}
+                disabled={deleting || !confirmPassword}
+                className="text-xs px-3 py-1.5 rounded-md bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-50"
+              >
+                {deleting ? "Deleting…" : "Yes, delete my account"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowConfirm(false);
+                  setConfirmPassword("");
+                  setDeleteError(null);
+                }}
+                className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40"
+              >
+                Cancel
+              </button>
+            </div>
+            {deleteError && <p className="text-xs text-rose-600 dark:text-rose-400">{deleteError}</p>}
+          </div>
+        )}
+      </div>
+    </section>
   );
 }

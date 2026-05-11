@@ -127,7 +127,6 @@ export async function runJs(
     })();
   `;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func
     const fn = new Function("globalThis", "console", "axiomicFiles", wrapper) as (
       g: Record<string, unknown>,
       c: typeof wrappedConsole,

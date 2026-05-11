@@ -50,7 +50,6 @@ function emit(level: LogLevel, fields: string | LogFields): void {
   if (env.NODE_ENV === "test" && (level === "info" || level === "debug")) {
     return;
   }
-  // eslint-disable-next-line no-console -- this IS the logger
   const stream = level === "error" || level === "warn" ? console.error : console.log;
   try {
     stream(JSON.stringify(line));

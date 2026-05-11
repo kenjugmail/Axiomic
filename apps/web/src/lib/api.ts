@@ -295,12 +295,24 @@ export class ApiError extends Error {
 
 export const api = {
   auth: {
-    signup: (data: { username: string; email: string; password: string }) =>
+    signup: (data: {
+      username: string;
+      email: string;
+      password: string;
+      turnstileToken?: string;
+    }) =>
       request<AuthResponse>("/auth/signup", { method: "POST", body: JSON.stringify(data) }),
     login: (data: { email: string; password: string }) =>
       request<AuthResponse>("/auth/login", { method: "POST", body: JSON.stringify(data) }),
     logout: () => request<OkResponse>("/auth/logout", { method: "POST" }),
     me: () => request<MeResponse>("/auth/me"),
+    verifyEmail: (token: string) =>
+      request<OkResponse>("/auth/verify-email", { method: "POST", body: JSON.stringify({ token }) }),
+    resendVerify: () => request<OkResponse>("/auth/resend-verify", { method: "POST" }),
+  },
+  feedback: {
+    submit: (data: { kind: "bug" | "idea" | "praise"; message: string }) =>
+      request<OkResponse>("/feedback", { method: "POST", body: JSON.stringify(data) }),
   },
   wiki: {
     list: (params?: { category?: string; search?: string }) => {
@@ -1627,6 +1639,13 @@ export const api = {
           accentColor: string;
         }>;
       }>("/me/track-completions"),
+    // S108 — soft-delete + data export.
+    deleteAccount: (password: string) =>
+      request<{ ok: true; scheduledHardDeleteAt: string }>("/me", {
+        method: "DELETE",
+        body: JSON.stringify({ password }),
+      }),
+    exportData: () => request<unknown>("/me/export"),
   },
   flashcards: {
     save: (data: { pageSlug: string; pageTitle: string; front: string; back: string }) =>

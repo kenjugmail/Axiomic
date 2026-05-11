@@ -66,6 +66,14 @@ export const users = sqliteTable("users", {
   hIndex: integer("h_index"),
   publicationCorpusVectorJson: text("publication_corpus_vector_json"),
   externalAuthorIdsJson: text("external_author_ids_json").notNull().default("[]"),
+  // S108 — Beta-readiness: email verification + soft account deletion.
+  // emailVerifiedAt: null until the user clicks the verify link. Used
+  //   by requireVerifiedEmail() to gate publish + upload routes.
+  // deletedAt: null for live users. Set to an ISO timestamp on
+  //   self-service account deletion. Login is refused; the 30-day
+  //   sweeper hard-deletes the row (FK cascades clean content).
+  emailVerifiedAt: text("email_verified_at"),
+  deletedAt: text("deleted_at"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
 }, (t) => ({
@@ -2660,4 +2668,55 @@ export const classQuestionAttempts = sqliteTable("class_question_attempts", {
 }, (t) => ({
   uniq: uniqueIndex("class_question_attempts_uniq").on(t.questionId, t.userId),
   questionIdx: index("class_question_attempts_question_idx").on(t.questionId),
+}));
+
+// =================================================================
+// S108 — Beta-readiness: auth abuse + email verification + feedback.
+// =================================================================
+
+// Per-attempt log of login activity. Used by the lockout middleware
+// to count failures in the last 15 minutes per (email, ip). Cleaned
+// up by an existing periodic job in lib/jobs.ts (24h retention is
+// enough for the lockout window).
+export const authLoginAttempts = sqliteTable("auth_login_attempts", {
+  id: text("id").primaryKey(),
+  // email is the field the login route accepts; we bucket by it so
+  // an attacker can't bypass lockout by rotating IPs.
+  email: text("email").notNull(),
+  ip: text("ip"),
+  success: integer("success", { mode: "boolean" }).notNull(),
+  attemptedAt: text("attempted_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  // Hot path for the lockout query: count failures in last N minutes
+  // for an email. Index lets the lookup stay O(log N).
+  emailIdx: index("auth_login_attempts_email_idx").on(t.email, t.attemptedAt),
+}));
+
+// Email-verification tokens. Issued on signup and on /me/resend-verify.
+// Single-use: deleted (or marked used) on successful verify.
+// Expires after 24h. Token is a random hex string.
+export const emailVerificationTokens = sqliteTable("email_verification_tokens", {
+  token: text("token").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  expiresAt: text("expires_at").notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  userIdx: index("email_verification_tokens_user_idx").on(t.userId),
+}));
+
+// Bug-report / feedback inbox. Beta testers click the floating widget
+// to drop a row here. Admin reads them at /admin/feedback. Kind is a
+// rough triage hint ("bug" | "idea" | "praise") — not validated as a
+// strict enum at the DB layer to keep the schema flexible.
+export const feedbackReports = sqliteTable("feedback_reports", {
+  id: text("id").primaryKey(),
+  // Anonymous reports allowed: userId null is OK.
+  userId: text("user_id").references(() => users.id, { onDelete: "set null" }),
+  kind: text("kind").notNull(),
+  message: text("message").notNull(),
+  currentUrl: text("current_url"),
+  browserUa: text("browser_ua"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  createdIdx: index("feedback_reports_created_idx").on(t.createdAt),
 }));

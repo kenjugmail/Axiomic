@@ -51,6 +51,9 @@ const SESSION_USER_COLUMNS = {
   role: users.role,
   createdAt: users.createdAt,
   primaryPersona: users.primaryPersona,
+  // S108 — surfaced for the verify-email banner + requireVerifiedEmail.
+  emailVerifiedAt: users.emailVerifiedAt,
+  deletedAt: users.deletedAt,
 } as const;
 
 function devBypassEnabled(): boolean {
@@ -124,6 +127,30 @@ export async function requireAuth(c: Context<Env>, next: Next) {
   const user = await getSessionUser(c);
   if (!user) {
     return c.json({ error: "Unauthorized" }, 401);
+  }
+  c.set("user", user);
+  return next();
+}
+
+// S108 — Gate destructive / outbound-visible actions behind email
+// verification. Login still works without verification (so the user
+// can read the verify-email banner and request a resend); publishing
+// + uploading is what we want to block until they prove the email is
+// theirs. Applied as middleware on POST /wiki publish, POST /uploads,
+// and similar.
+export async function requireVerifiedEmail(c: Context<Env>, next: Next) {
+  const user = await getSessionUser(c);
+  if (!user) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+  if (!user.emailVerifiedAt) {
+    return c.json(
+      {
+        error: "Email verification required",
+        message: "Verify your email address before publishing or uploading content.",
+      },
+      403,
+    );
   }
   c.set("user", user);
   return next();

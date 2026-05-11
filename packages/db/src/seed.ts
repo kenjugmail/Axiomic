@@ -1944,6 +1944,9 @@ function ensureForumUser(username: string, displayName: string, bio: string): st
     passwordHash: FORUM_SEED_PASSWORD_HASH,
     displayName,
     bio,
+    // S108 — seeded users are pre-verified so tests and the demo
+    // cohort can publish/upload without the verify-email gate.
+    emailVerifiedAt: new Date().toISOString(),
   }).run();
   return id;
 }
@@ -2175,6 +2178,7 @@ async function seedCapstones() {
         passwordHash: FORUM_SEED_PASSWORD_HASH,
         displayName: "Axiomic system",
         bio: "Authored capstones + reference content shipped with the platform.",
+        emailVerifiedAt: new Date().toISOString(),
       })
       .run();
     systemUser = { id };
@@ -2540,6 +2544,9 @@ async function seedDemoCohort() {
       passwordHash: DEMO_PASSWORD_HASH,
       displayName,
       bio,
+      // S108 — demo accounts are pre-verified so the pitch path can
+      // publish/upload without the verify-email gate.
+      emailVerifiedAt: new Date().toISOString(),
     }).run();
     return id;
   }

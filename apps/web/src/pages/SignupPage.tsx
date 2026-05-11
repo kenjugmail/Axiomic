@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/auth";
+import { TurnstileWidget } from "../components/TurnstileWidget";
 
 export function SignupPage() {
   const [username, setUsername] = useState("");
@@ -8,6 +9,12 @@ export function SignupPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  // S108 — Turnstile token. `null` when the captcha isn't loaded yet
+  // OR when VITE_TURNSTILE_SITE_KEY is unset (dev / self-hosted-no-captcha).
+  // The submit handler treats `null` as "no captcha required by the
+  // server" because the server-side verify bypasses too in that case.
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const onTurnstileToken = useCallback((t: string | null) => setTurnstileToken(t), []);
   const signup = useAuthStore((s) => s.signup);
   const navigate = useNavigate();
 
@@ -16,7 +23,7 @@ export function SignupPage() {
     setError("");
     setLoading(true);
     try {
-      await signup(username, email, password);
+      await signup(username, email, password, turnstileToken ?? undefined);
       // Brand-new users go through the onboarding wizard. Existing
       // users (re-signup is blocked) never reach this branch.
       navigate("/welcome");
@@ -35,8 +42,9 @@ export function SignupPage() {
       )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1.5">Username</label>
+          <label htmlFor="signup-username" className="block text-sm font-medium mb-1.5">Username</label>
           <input
+            id="signup-username"
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
@@ -48,18 +56,21 @@ export function SignupPage() {
           <p className="text-xs text-muted-foreground mt-1">Letters, numbers, hyphens, underscores only</p>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1.5">Email</label>
+          <label htmlFor="signup-email" className="block text-sm font-medium mb-1.5">Email</label>
           <input
+            id="signup-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             className="w-full px-3 py-2 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
+          <p className="text-xs text-muted-foreground mt-1">We'll send a one-time verify link.</p>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1.5">Password</label>
+          <label htmlFor="signup-password" className="block text-sm font-medium mb-1.5">Password</label>
           <input
+            id="signup-password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -69,6 +80,7 @@ export function SignupPage() {
           />
           <p className="text-xs text-muted-foreground mt-1">At least 8 characters</p>
         </div>
+        <TurnstileWidget onToken={onTurnstileToken} />
         <button
           type="submit"
           disabled={loading}

@@ -51,6 +51,15 @@ void initSentry();
 export interface CaptureContext {
   kind?: string;
   fields?: Record<string, unknown>;
+  // S108 — Request-level context. When the error handler has these
+  // they're forwarded to Sentry as proper structured fields (user
+  // tags + route tag) instead of buried in `fields`. Makes the
+  // Sentry "filter by user / route" UI actually useful.
+  userId?: string;
+  userRole?: string;
+  route?: string;
+  method?: string;
+  statusCode?: number;
 }
 
 export function captureError(err: unknown, context?: CaptureContext): void {
@@ -64,14 +73,33 @@ export function captureError(err: unknown, context?: CaptureContext): void {
     fields: {
       errorClass: e.name,
       ...(context?.fields ?? {}),
+      ...(context?.userId ? { userId: context.userId } : {}),
+      ...(context?.userRole ? { userRole: context.userRole } : {}),
+      ...(context?.route ? { route: context.route } : {}),
+      ...(context?.method ? { method: context.method } : {}),
+      ...(context?.statusCode ? { statusCode: context.statusCode } : {}),
     },
   };
   recordError(entry);
 
   if (sentryReady && sentryModule) {
     try {
+      // Sentry's user/tags are first-class fields; everything else
+      // goes into `extra`.
+      if (context?.userId) {
+        sentryModule.setUser({
+          id: context.userId,
+          ...(context.userRole ? { role: context.userRole } : {}),
+        });
+      }
       sentryModule.captureException(e, {
-        tags: { kind: entry.kind },
+        tags: {
+          kind: entry.kind,
+          ...(context?.route ? { route: context.route } : {}),
+          ...(context?.method ? { method: context.method } : {}),
+          ...(context?.statusCode ? { statusCode: String(context.statusCode) } : {}),
+          ...(context?.userRole ? { user_role: context.userRole } : {}),
+        },
         extra: context?.fields,
       });
     } catch {

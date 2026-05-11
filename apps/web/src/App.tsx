@@ -297,6 +297,11 @@ const PaperVersionPage = lazy(() =>
 const ArgumentMapPage = lazy(() =>
   import("./pages/ArgumentMapPage").then((m) => ({ default: m.ArgumentMapPage })),
 );
+// S108 — Email-verify landing for the link in the sent verify email.
+const VerifyEmailPage = lazy(() =>
+  import("./pages/VerifyEmailPage").then((m) => ({ default: m.VerifyEmailPage })),
+);
+
 // Sprint 37 — Public transcript verifier (paste-and-check).
 const VerifyPage = lazy(() =>
   import("./pages/VerifyPage").then((m) => ({ default: m.VerifyPage })),
@@ -434,6 +439,7 @@ function AppRoutes() {
           <Route path="/forum/t/:slug" element={<ForumTopicPage />} />
           <Route path="/forum/graph" element={<ArgumentMapPage />} />
           <Route path="/verify" element={<VerifyPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route
             path="/misconceptions"
             element={<MisconceptionMarketplacePage />}

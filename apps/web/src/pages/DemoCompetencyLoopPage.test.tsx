@@ -19,14 +19,21 @@ function renderPage(): { text: string; hrefs: string[] } {
 }
 
 describe("DemoCompetencyLoopPage", () => {
-  test("renders checklist headings and proof-route links", () => {
+  test("renders the diagnose/assess/remediate/build/verify story and CTA links", () => {
     const { text, hrefs } = renderPage();
     expect(text).toContain("Competency loop demo");
-    expect(text).toContain("Run a timed competency check");
-    expect(text).toContain("Verify transcript signatures");
-    expect(text).toContain("Build portfolio proof");
+    expect(text).toContain("Diagnose");
+    expect(text).toContain("Assess");
+    expect(text).toContain("Remediate");
+    expect(text).toContain("Build");
+    expect(text).toContain("Verify");
     expect(hrefs).toContain("/exams");
     expect(hrefs).toContain("/tracks");
-    expect(hrefs).toContain("/verify");
+    // Verify CTA goes to the pre-populated demo artifact slug.
+    expect(
+      hrefs.some((h) => h.startsWith("/verify?artifact=demo-student-6-clip-style-retriever")),
+    ).toBe(true);
+    // Institution CTA.
+    expect(hrefs).toContain("/classes/discover");
   });
 });
