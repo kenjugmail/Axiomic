@@ -8,7 +8,7 @@
 // v1 uses a plain monospace textarea as the editor. Tab inserts two
 // spaces; ⌘/Ctrl+Enter runs the cell. CodeMirror is a follow-up.
 
-import { useEffect, useImperativeHandle, useRef, useState, forwardRef } from "react";
+import { useCallback, useEffect, useImperativeHandle, useRef, useState, forwardRef } from "react";
 import { Loader2, Play, RotateCcw, Terminal } from "lucide-react";
 import { getKernel, type Display, type RunResult } from "../../lib/pyodideKernel";
 import { runJs } from "../../lib/jsKernel";
@@ -51,7 +51,7 @@ export const CodeCell = forwardRef<CodeCellHandle, Props>(function CodeCell(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const run = async (): Promise<{ ok: boolean }> => {
+  const run = useCallback(async (): Promise<{ ok: boolean }> => {
     if (running) return { ok: false };
     setRunning(true);
     try {
@@ -72,7 +72,7 @@ export const CodeCell = forwardRef<CodeCellHandle, Props>(function CodeCell(
     } finally {
       setRunning(false);
     }
-  };
+  }, [running, isJs, kernelKey, code]);
 
   // Expose run() to the parent so a document-level "Run all" can
   // sequence cells. Memoized via useImperativeHandle.

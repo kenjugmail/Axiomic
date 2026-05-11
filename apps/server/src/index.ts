@@ -73,6 +73,7 @@ import {
 } from "./routes/protocolRuns";
 import { notifyExpiringCertsJob } from "./jobs/notifyExpiringCerts";
 import { hardDeleteSoftDeletedUsersJob, cleanupOldLoginAttemptsJob } from "./lib/userCleanupJob";
+import { captureError } from "./lib/observability";
 import { bootstrapAdmin } from "./lib/bootstrapAdmin";
 import { prewarmSearchIndex } from "./lib/searchIndex";
 import { userFromCookieHeader } from "./middleware/auth";
@@ -280,6 +281,24 @@ app.route("/lab", labProtocolsTroubleshootingRouter);
 // Pre-warm the search index in the background so the first user query
 // doesn't pay the embedding-build cost.
 prewarmSearchIndex();
+
+// S108 — Global error handler. Catches anything a route throws past
+// its own try/catch, records it to the error sampler + Sentry with
+// request-level context (route, method, status, user), and returns
+// a generic 500 to the client. The per-route handlers already cover
+// validation + expected errors; this is the last-resort net.
+app.onError((err, c) => {
+  const user = c.get("user") as { id?: string; role?: string } | undefined;
+  captureError(err, {
+    kind: "route.unhandled",
+    route: c.req.path,
+    method: c.req.method,
+    statusCode: 500,
+    userId: user?.id,
+    userRole: user?.role,
+  });
+  return c.json({ error: "Internal server error" }, 500);
+});
 
 // Sprint 52 — promote the configured user to admin if no admin exists.
 bootstrapAdmin(env.BOOTSTRAP_ADMIN_USERNAME);
