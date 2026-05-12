@@ -19,6 +19,13 @@
 //   acc:  bottom = petSize*(dy/100) PX, right = petSize*(dx/100) PX, rotate(rot)
 
 import { CosmeticGlyphSVG } from "./CosmeticGlyphSVG";
+import { SPECIES_HEAD_ANCHOR_Y, SPECIES_ACC_DY_BOOST } from "./PetSVG";
+
+// Baseline head-anchor (matches the cat/fox/owl/bear majority). The
+// per-species offset is computed as (anchor - BASELINE) * petSize
+// and added to the head `top` so the cosmetic lands on the actual
+// head, not the viewBox top.
+const HEAD_ANCHOR_BASELINE = 0.46;
 
 type OverlaySlot = "head" | "eyes" | "acc";
 
@@ -83,6 +90,11 @@ interface CosmeticOverlayProps {
   slot: OverlaySlot;
   rarity?: "common" | "rare" | "epic" | "legendary";
   petSize: number;
+  // Phase 10D — drives per-species anchor adjustments (e.g. frog's
+  // head sits high in the viewBox; penguin's body is tall, so acc
+  // needs lifting off the floor). Unknown / undefined species fall
+  // back to baseline behavior.
+  species?: string;
 }
 
 export function CosmeticOverlay({
@@ -90,6 +102,7 @@ export function CosmeticOverlay({
   slot,
   rarity,
   petSize,
+  species,
 }: CosmeticOverlayProps): JSX.Element {
   const baseSz =
     slot === "head"
@@ -100,24 +113,43 @@ export function CosmeticOverlay({
   const accT = slot === "acc" ? (ACC_TUNE[slug] ?? DEFAULT_ACC) : null;
   const sz = Math.round(baseSz * (accT?.s ?? 1));
 
+  // Phase 10D — per-species offsets.
+  const speciesAnchor =
+    species && SPECIES_HEAD_ANCHOR_Y[species] !== undefined
+      ? SPECIES_HEAD_ANCHOR_Y[species]
+      : HEAD_ANCHOR_BASELINE;
+  const speciesHeadDeltaPx = Math.round(
+    (speciesAnchor - HEAD_ANCHOR_BASELINE) * petSize,
+  );
+  const speciesAccDyBoost =
+    species && SPECIES_ACC_DY_BOOST[species] !== undefined
+      ? SPECIES_ACC_DY_BOOST[species]
+      : 0;
+
   let pos: React.CSSProperties = {};
   let cssTx = "";
   if (slot === "head") {
     const lift = HEAD_OFFSET[slug] ?? 0.1;
+    // Baseline: top = -sz * lift (cap sits above head).
+    // Per-species: add speciesHeadDeltaPx so frog (anchor 0.30) gets
+    // a NEGATIVE delta (cap moves further up; head is higher), while
+    // hedgehog (anchor 0.56) gets a POSITIVE delta (cap moves down
+    // onto the lower-sitting head).
     pos = {
-      top: `${Math.round(-sz * lift)}px`,
+      top: `${Math.round(-sz * lift + speciesHeadDeltaPx)}px`,
       left: "50%",
     };
     cssTx = "translateX(-50%) rotate(-3deg)";
   } else if (slot === "eyes") {
     pos = {
-      top: `${Math.round(petSize * 0.34)}px`,
+      top: `${Math.round(petSize * 0.34 + speciesHeadDeltaPx)}px`,
       left: "50%",
     };
     cssTx = "translateX(-50%)";
   } else {
+    const baseDy = accT?.dy ?? DEFAULT_ACC.dy;
     pos = {
-      bottom: `${Math.round(petSize * ((accT?.dy ?? DEFAULT_ACC.dy) / 100))}px`,
+      bottom: `${Math.round(petSize * ((baseDy + speciesAccDyBoost) / 100))}px`,
       right: `${Math.round(petSize * ((accT?.dx ?? DEFAULT_ACC.dx) / 100))}px`,
     };
     cssTx = `rotate(${accT?.rot ?? DEFAULT_ACC.rot}deg)`;

@@ -485,7 +485,13 @@ export function MyPetPage() {
                   >
                     {label} · {items.length}
                   </h3>
-                  <span className="text-[11px]" style={{ color: "var(--ink-4)" }}>
+                  <span
+                    className="text-[11px]"
+                    style={{ color: "var(--ink-4)" }}
+                    role="status"
+                    aria-live="polite"
+                    aria-atomic="true"
+                  >
                     {equippedHere ? `Equipped: ${equippedHere.name}` : "Nothing equipped"}
                   </span>
                 </div>
@@ -494,14 +500,16 @@ export function MyPetPage() {
                 </p>
                 {items.length === 0 ? (
                   <div
-                    className="text-xs px-3 py-4 rounded-lg border border-dashed text-center"
+                    className="text-xs px-3 py-3 rounded-lg border border-dashed flex items-center justify-between gap-3 flex-wrap"
                     style={{ borderColor: "var(--line)", color: "var(--ink-4)" }}
                   >
-                    No items yet —{" "}
-                    <Link to="/shop" className="underline" style={{ color: "var(--accent)" }}>
-                      visit the XP Shop
+                    <span>No {label.toLowerCase()} items yet — earn via XP or instructor grant.</span>
+                    <Link
+                      to="/shop"
+                      className="pet-btn ghost text-xs whitespace-nowrap"
+                    >
+                      Browse shop →
                     </Link>
-                    {" "}or wait for an instructor grant.
                   </div>
                 ) : (
                   <div className="cos-grid">
@@ -564,12 +572,43 @@ export function MyPetPage() {
         const allTiles = [...owned, ...unowned];
         if (allTiles.length === 0) return null;
         const showPetTabs = data.pets.length >= 2;
+        const ownsOnlyDefault =
+          data.ownedSkins.length <= 1 &&
+          data.ownedSkins.every((s) => s.slug === "default");
         return (
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-              <h2 className="text-sm font-semibold">
-                Skins ({data.ownedSkins.length} owned)
-              </h2>
+            {/* Phase 10C — primary header pill now surfaces the active
+                skin's name + rarity inline so the user sees what's on
+                their pet without scrolling the grid. */}
+            <div className="flex items-baseline justify-between mb-3 flex-wrap gap-3">
+              <div className="flex items-baseline gap-3 flex-wrap">
+                <h2 className="text-sm font-semibold">
+                  Skins ({data.ownedSkins.length} owned)
+                </h2>
+                {data.activeSkin && data.activeSkin.slug !== "default" && (
+                  <span
+                    className="inline-flex items-center gap-1.5 text-[11px] px-2 py-0.5 rounded-full"
+                    style={{
+                      background: "var(--accent-soft)",
+                      color: "var(--accent)",
+                      border: "1px solid color-mix(in oklab, var(--accent) 25%, var(--line))",
+                    }}
+                  >
+                    Active: {data.activeSkin.name}
+                    {data.activeSkin.rarity && (
+                      <span
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: "50%",
+                          background: `var(--r-${data.activeSkin.rarity})`,
+                          display: "inline-block",
+                        }}
+                      />
+                    )}
+                  </span>
+                )}
+              </div>
               {skinShop && (
                 <span
                   className="text-xs tabular-nums"
@@ -579,6 +618,22 @@ export function MyPetPage() {
                 </span>
               )}
             </div>
+            {ownsOnlyDefault && (
+              <div
+                className="text-xs px-3 py-2 mb-3 rounded-lg border border-dashed flex items-center justify-between gap-3 flex-wrap"
+                style={{ borderColor: "var(--line)", color: "var(--ink-3)" }}
+              >
+                <span>
+                  You're on the Original skin. First color shift from 220 XP.
+                </span>
+                <Link
+                  to="/skins"
+                  className="pet-btn ghost text-xs whitespace-nowrap"
+                >
+                  Browse all skins →
+                </Link>
+              </div>
+            )}
             {showPetTabs && (
               <div
                 role="tablist"

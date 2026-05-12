@@ -288,6 +288,7 @@ export function PetAvatar({
           slot={slot}
           rarity={cos.rarity}
           petSize={petSize}
+          species={species}
         />
       ))}
       {showLevelBadge && (

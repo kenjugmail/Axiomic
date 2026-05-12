@@ -164,7 +164,9 @@ export function ForumTopicPage() {
 
       <h1 className="text-2xl font-semibold tracking-tight">{topic.title}</h1>
       <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1 mb-4">
-        <PetByUsername username={topic.authorUsername} size="xs" />
+        {/* Phase 10B — bumped from xs (24px) to sm (36px) so the pet
+            actually reads as a recognizable mascot next to the OP. */}
+        <PetByUsername username={topic.authorUsername} size="sm" />
         <Link
           to={`/profile/${topic.authorUsername}`}
           className="hover:text-foreground"
@@ -443,7 +445,9 @@ function PostItem({
             {/* S88 — pet next to reply author. PetByUsername caches
                 per-username at module level, so a thread with N
                 replies fires at most one fetch per unique author. */}
-            <PetByUsername username={post.authorUsername} size="xs" />
+            {/* Phase 10B — sm (36px) so equipped cosmetics actually
+                render in replies. */}
+            <PetByUsername username={post.authorUsername} size="sm" />
             <Link
               to={`/profile/${post.authorUsername}`}
               className="font-medium text-foreground hover:text-primary"

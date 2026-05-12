@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Outlet, Link, useNavigate } from "react-router-dom";
+import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Check,
   ChevronDown,
@@ -20,15 +20,28 @@ import { VerifyEmailBanner } from "./VerifyEmailBanner";
 import { FeedbackWidget } from "./FeedbackWidget";
 import { PetMomentsHost, DevSpeciesProvider, TweaksPanel } from "../pet";
 
-type NavItem = { to: string; label: string };
+import {
+  EXTRA_NAV_PILLARS,
+  PET_ROUTES,
+  isRouteActive,
+  type NavItem,
+} from "./nav-constants";
+
 type NavSection = { heading: string; links: NavItem[] };
 
+// Phase 10A — drastically deduped. Forum/News are top-level
+// pillars now (EXTRA_NAV_PILLARS). Items already linked from a
+// pillar hub page (/cohorts via Build, /challenge via Learn,
+// /grants via Research, /verify via Prove, lab pages via Lab,
+// /capstones/review-queue via Build, /demo/competency-loop in 3
+// hubs) are removed from this menu — they're already discoverable
+// from their owning tab. Pet system entries removed entirely
+// because they're in the dedicated Pet dropdown (signed-in) plus
+// a single Discover fallback below for anonymous users.
 const MORE_NAV_PUBLIC_SECTIONS: NavSection[] = [
   {
     heading: "Community",
     links: [
-      { to: "/forum", label: "Forum" },
-      { to: "/news", label: "News" },
       { to: "/cohorts", label: "Cohorts" },
       { to: "/leaderboard", label: "Leaderboard" },
     ],
@@ -36,24 +49,9 @@ const MORE_NAV_PUBLIC_SECTIONS: NavSection[] = [
   {
     heading: "Discover",
     links: [
-      { to: "/challenge", label: "Daily challenge" },
-      { to: "/grants", label: "Funding" },
-      { to: "/lab/safety-certs", label: "Safety certifications" },
-      { to: "/lab/equipment", label: "Equipment manuals" },
       { to: "/misconceptions", label: "Misconception marketplace" },
-      { to: "/capstones/review-queue", label: "Peer review queue" },
-      { to: "/verify", label: "Verify a transcript" },
-      { to: "/demo/competency-loop", label: "Competency loop tour" },
-    ],
-  },
-  // Public Pet entries — duplicate of the signed-in Pet dropdown so
-  // anonymous browsers can find the showcase and shop.
-  {
-    heading: "Pet system",
-    links: [
+      // Single fallback so anonymous users find the pet ecosystem.
       { to: "/explore/pets", label: "Pet showcase" },
-      { to: "/skins", label: "All skins" },
-      { to: "/shop", label: "XP Shop" },
     ],
   },
 ];
@@ -78,6 +76,7 @@ export function Layout() {
   const { user, logout } = useAuthStore();
   const { theme, setTheme } = useThemeStore();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchOpen, setSearchOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -220,23 +219,52 @@ export function Layout() {
               </Link>
             )}
             <nav className="hidden sm:flex items-center gap-5 text-sm">
-              {NAV_PILLARS.map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  className="text-muted-foreground hover:text-foreground transition-colors duration-fast"
-                >
-                  {item.label}
-                </Link>
-              ))}
-              {user && (
+              {[...NAV_PILLARS, ...EXTRA_NAV_PILLARS].map((item) => {
+                const active = isRouteActive(location.pathname, item.to);
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    aria-current={active ? "page" : undefined}
+                    className={
+                      "transition-colors duration-fast " +
+                      (active
+                        ? "text-foreground font-medium"
+                        : "text-muted-foreground hover:text-foreground")
+                    }
+                    style={
+                      active
+                        ? { borderBottom: "2px solid currentColor", paddingBottom: 1 }
+                        : undefined
+                    }
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+              {user && (() => {
+                const petActive = PET_ROUTES.some((r) =>
+                  isRouteActive(location.pathname, r),
+                );
+                return (
                 <div ref={petMenuRef} className="relative">
                   <button
                     type="button"
                     onClick={() => setPetMenuOpen((v) => !v)}
-                    className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors duration-fast"
+                    className={
+                      "inline-flex items-center gap-1 transition-colors duration-fast " +
+                      (petActive
+                        ? "text-foreground font-medium"
+                        : "text-muted-foreground hover:text-foreground")
+                    }
                     aria-expanded={petMenuOpen}
                     aria-haspopup="menu"
+                    aria-current={petActive ? "page" : undefined}
+                    style={
+                      petActive
+                        ? { borderBottom: "2px solid currentColor", paddingBottom: 1 }
+                        : undefined
+                    }
                   >
                     Pet
                     <ChevronDown
@@ -278,7 +306,8 @@ export function Layout() {
                     </div>
                   )}
                 </div>
-              )}
+                );
+              })()}
               <div ref={moreRef} className="relative">
                 <button
                   type="button"
@@ -469,7 +498,7 @@ export function Layout() {
               <div className="px-3 pt-2 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground">
                 Browse
               </div>
-              {NAV_PILLARS.map((item) => (
+              {[...NAV_PILLARS, ...EXTRA_NAV_PILLARS].map((item) => (
                 <Link
                   key={item.to}
                   to={item.to}
