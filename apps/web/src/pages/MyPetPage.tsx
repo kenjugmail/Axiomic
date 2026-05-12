@@ -21,6 +21,7 @@ import {
   PetWhereCard,
   RenameMomentModal,
   SwitchPetModal,
+  CosmeticChip,
   petMoments,
 } from "../pet";
 import { toast } from "../stores/toast";
@@ -63,6 +64,24 @@ export function MyPetPage() {
       setSkinShop(shop);
     } catch {
       // shop is optional; the owned-skins grid still renders without it
+    }
+  };
+
+  // Phase 9 — inline cosmetic picker: click a tile to equip; click
+  // an already-equipped tile to take it off. Reload after each
+  // mutation so the pet hero updates immediately.
+  const toggleEquip = async (item: PetInventoryItem) => {
+    try {
+      if (item.equipped) {
+        await api.pet.unequip(item.slug);
+        toast.info(`Removed ${item.name}`);
+      } else {
+        await api.pet.equip(item.slug);
+        toast.success(`Equipped ${item.name}`);
+      }
+      await reload();
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Couldn't update");
     }
   };
 
@@ -414,6 +433,102 @@ export function MyPetPage() {
         />
       )}
 
+      {/* Phase 9 — inline cosmetic picker. Lives right under the hero
+          so users immediately see they can equip / unequip. Group
+          inventory by slot; click a tile to equip; click the equipped
+          tile to take it off. */}
+      <section
+        className="rounded-2xl border overflow-hidden mb-8"
+        style={{ borderColor: "var(--line)", background: "var(--bg-elev)" }}
+      >
+        <header
+          className="px-6 py-4 flex items-baseline justify-between gap-4"
+          style={{ borderBottom: "1px solid var(--line)" }}
+        >
+          <div className="min-w-0">
+            <h2 className="text-base font-semibold">Cosmetics</h2>
+            <p className="text-xs mt-1" style={{ color: "var(--ink-3)" }}>
+              One item per slot. Click a tile to equip; click the equipped
+              tile again to take it off.
+            </p>
+          </div>
+          <Link
+            to="/me/inventory"
+            className="text-xs underline whitespace-nowrap"
+            style={{ color: "var(--ink-3)" }}
+          >
+            Full inventory ({data.inventory.length}) →
+          </Link>
+        </header>
+        <div className="px-6 py-5">
+          {(["head", "eyes", "accessory"] as const).map((slotKey) => {
+            const items = data.inventory.filter((i) => i.slot === slotKey);
+            const label =
+              slotKey === "head"
+                ? "Head"
+                : slotKey === "eyes"
+                  ? "Eyes"
+                  : "Accessory";
+            const help =
+              slotKey === "head"
+                ? "Worn on top — caps, crowns, wreaths."
+                : slotKey === "eyes"
+                  ? "Glasses, monocles, eye effects."
+                  : "Held or worn beside — books, mugs, trophies.";
+            const equippedHere = items.find((i) => i.equipped) ?? null;
+            return (
+              <div key={slotKey} className="mb-6 last:mb-0">
+                <div className="flex items-baseline justify-between mb-1 gap-3 flex-wrap">
+                  <h3
+                    className="text-[11px] font-semibold tracking-widest uppercase"
+                    style={{ color: "var(--ink-3)" }}
+                  >
+                    {label} · {items.length}
+                  </h3>
+                  <span className="text-[11px]" style={{ color: "var(--ink-4)" }}>
+                    {equippedHere ? `Equipped: ${equippedHere.name}` : "Nothing equipped"}
+                  </span>
+                </div>
+                <p className="text-[11.5px] mb-3" style={{ color: "var(--ink-4)" }}>
+                  {help}
+                </p>
+                {items.length === 0 ? (
+                  <div
+                    className="text-xs px-3 py-4 rounded-lg border border-dashed text-center"
+                    style={{ borderColor: "var(--line)", color: "var(--ink-4)" }}
+                  >
+                    No items yet —{" "}
+                    <Link to="/shop" className="underline" style={{ color: "var(--accent)" }}>
+                      visit the XP Shop
+                    </Link>
+                    {" "}or wait for an instructor grant.
+                  </div>
+                ) : (
+                  <div className="cos-grid">
+                    {items.map((item) => (
+                      <CosmeticChip
+                        key={item.id}
+                        slug={item.slug}
+                        name={item.name}
+                        slot={item.slot}
+                        rarity={item.rarity}
+                        description={
+                          item.grantedNote
+                            ? `“${item.grantedNote}” — ${item.description}`
+                            : item.description
+                        }
+                        equipped={item.equipped}
+                        onClick={() => toggleEquip(item)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
       {/* Evolution chain (existing Phase S100 surface, kept for the
           past/future-forms timeline). */}
       {pet && (
@@ -527,27 +642,6 @@ export function MyPetPage() {
           </div>
         );
       })()}
-
-      {/* Inventory summary + link out to the standalone page (Phase 3). */}
-      <section
-        className="rounded-2xl border p-5 flex items-center justify-between gap-4"
-        style={{ borderColor: "var(--line)", background: "var(--bg-elev)" }}
-      >
-        <div className="min-w-0">
-          <h2 className="text-sm font-semibold">
-            Inventory ({data.inventory.length})
-          </h2>
-          <p
-            className="text-xs mt-0.5"
-            style={{ color: "var(--ink-3)" }}
-          >
-            Filter by slot, rarity, or how each item was obtained.
-          </p>
-        </div>
-        <Link to="/me/inventory" className="pet-btn primary">
-          View inventory
-        </Link>
-      </section>
 
       {/* Modals */}
       {pet && (

@@ -23,6 +23,7 @@ import {
   getDb,
 } from "@axiomic/db";
 import { requireAuth, getSessionUser } from "../middleware/auth";
+import { ensurePetCosmeticsCatalog } from "../lib/petCosmeticsCatalog";
 import { ACHIEVEMENTS } from "../lib/achievements";
 import { totalXpForUser, xpBalanceForUser, PET_HATCH_THRESHOLD_XP, maybeHatchPet, isDevBypass } from "../lib/xp";
 import {
@@ -229,6 +230,12 @@ function devSeedFullCatalog(userId: string): void {
 petRouter.get("/", requireAuth, (c) => {
   const user = c.get("user")!;
   const db = getDb();
+
+  // Phase 9 — sync pet_cosmetics catalog with the seed JSON on
+  // first request after a 60s window. Throttled so it's not a per-
+  // request cost. Fixes the slot-data drift bug that was rendering
+  // every starter cosmetic as accessory-slot.
+  ensurePetCosmeticsCatalog();
 
   // Phase X — defensive auto-hatch for users created before the
   // signup-time hatch wiring (e.g., the dev-bypass `alice`, seeded

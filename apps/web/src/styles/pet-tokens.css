@@ -724,8 +724,17 @@
   align-items: center;
   gap: 6px;
   aspect-ratio: 1 / 1.15;
-  cursor: default;
+  /* Phase 9 polish — these tiles are <button>s; surface the clickability. */
+  cursor: pointer;
   transition: transform .1s, box-shadow .15s, border-color .15s;
+}
+.cos-tile:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.cos-tile:disabled {
+  cursor: default;
+  opacity: 0.55;
 }
 .cos-tile::before {
   /* Rarity tile-tint as a soft radial gradient. */

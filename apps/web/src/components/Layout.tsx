@@ -44,9 +44,16 @@ const MORE_NAV_PUBLIC_SECTIONS: NavSection[] = [
       { to: "/capstones/review-queue", label: "Peer review queue" },
       { to: "/verify", label: "Verify a transcript" },
       { to: "/demo/competency-loop", label: "Competency loop tour" },
+    ],
+  },
+  // Public Pet entries — duplicate of the signed-in Pet dropdown so
+  // anonymous browsers can find the showcase and shop.
+  {
+    heading: "Pet system",
+    links: [
       { to: "/explore/pets", label: "Pet showcase" },
       { to: "/skins", label: "All skins" },
-      { to: "/shop", label: "Shop" },
+      { to: "/shop", label: "XP Shop" },
     ],
   },
 ];
@@ -54,9 +61,10 @@ const MORE_NAV_PUBLIC_SECTIONS: NavSection[] = [
 const MORE_NAV_USER_SECTION: NavSection = {
   heading: "My workspace",
   links: [
+    // Phase 9 — pet / inventory moved into a dedicated Pet dropdown
+    // and mobile-nav Pet section, so they're omitted here to avoid
+    // duplication.
     { to: "/feed", label: "Feed" },
-    { to: "/me/pet", label: "My pet" },
-    { to: "/me/inventory", label: "Inventory" },
     { to: "/flashcards", label: "Flashcards" },
     { to: "/review/mistakes", label: "Review mistakes" },
     { to: "/me/lab", label: "My lab" },
@@ -73,6 +81,8 @@ export function Layout() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [petMenuOpen, setPetMenuOpen] = useState(false);
+  const petMenuRef = useRef<HTMLDivElement | null>(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement | null>(null);
@@ -117,6 +127,25 @@ export function Layout() {
       document.removeEventListener("keydown", onKey);
     };
   }, [moreOpen]);
+
+  // Phase 9 — Pet dropdown close-on-outside-click + Esc.
+  useEffect(() => {
+    if (!petMenuOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (petMenuRef.current && !petMenuRef.current.contains(e.target as Node)) {
+        setPetMenuOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPetMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [petMenuOpen]);
 
   // Lock body scroll while the mobile drawer is open.
   useEffect(() => {
@@ -200,6 +229,56 @@ export function Layout() {
                   {item.label}
                 </Link>
               ))}
+              {user && (
+                <div ref={petMenuRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setPetMenuOpen((v) => !v)}
+                    className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors duration-fast"
+                    aria-expanded={petMenuOpen}
+                    aria-haspopup="menu"
+                  >
+                    Pet
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 transition-transform duration-fast ${
+                        petMenuOpen ? "rotate-180" : ""
+                      }`}
+                      strokeWidth={2}
+                    />
+                  </button>
+                  {petMenuOpen && (
+                    <div
+                      role="menu"
+                      tabIndex={-1}
+                      className="absolute right-0 top-full mt-2 w-60 rounded-lg border border-border bg-card shadow-elevated p-1 animate-fade-in"
+                      style={{ zIndex: 60 }}
+                    >
+                      {[
+                        { to: "/me/pet", label: "My pet", hint: "Hero, evolve, equip" },
+                        { to: "/me/inventory", label: "Inventory", hint: "Filter & sort" },
+                        { to: "/shop", label: "XP Shop", hint: "Spend XP on cosmetics" },
+                        { to: "/skins", label: "All skins", hint: "Owned + locked tiles" },
+                        { to: "/explore/pets", label: "Pet showcase", hint: "Browse community pets" },
+                      ].map((item) => (
+                        <Link
+                          key={item.to}
+                          to={item.to}
+                          onClick={() => setPetMenuOpen(false)}
+                          className="flex flex-col gap-0.5 px-3 py-2 rounded-md hover:bg-accent/40 focus:bg-accent/40 focus:outline-none text-sm transition-colors"
+                          role="menuitem"
+                        >
+                          <span className="font-medium text-foreground">
+                            {item.label}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {item.hint}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
               <div ref={moreRef} className="relative">
                 <button
                   type="button"
@@ -419,6 +498,25 @@ export function Layout() {
               ))}
               {user && (
                 <>
+                  <div className="px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Pet
+                  </div>
+                  {[
+                    { to: "/me/pet", label: "My pet" },
+                    { to: "/me/inventory", label: "Inventory" },
+                    { to: "/shop", label: "XP Shop" },
+                    { to: "/skins", label: "All skins" },
+                    { to: "/explore/pets", label: "Pet showcase" },
+                  ].map((item) => (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      onClick={() => setMobileNavOpen(false)}
+                      className="block px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/40"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
                   <div className="px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground">
                     Account
                   </div>
