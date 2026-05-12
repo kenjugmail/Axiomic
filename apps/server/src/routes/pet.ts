@@ -26,7 +26,6 @@ import { totalXpForUser, xpBalanceForUser, PET_HATCH_THRESHOLD_XP } from "../lib
 import {
   petSpeciesBySlug,
   randomPetSpecies,
-  emojiForSpeciesAtLevel,
   xpForNextLevel,
   petSkinBySlug,
   petSkinBySlugOrDefault,
@@ -127,12 +126,16 @@ petRouter.get("/", requireAuth, (c) => {
       slug: r.slug,
       name: cos?.name ?? r.slug,
       slot: cos?.slot ?? "accessory",
-      emoji: cos?.emoji ?? null,
+      // Phase M — emoji nulled out for all cosmetics; CosmeticGlyphSVG
+      // resolves visuals from slug. Field retained for type compat
+      // until next-phase removal.
+      emoji: null,
       rarity: cos?.rarity ?? "common",
       description: cos?.description ?? "",
       equipped: r.equipped,
       acquiredAt: r.acquiredAt,
       grantedNote: r.grantedNote,
+      failSmall: cos?.failSmall ?? false,
     };
   });
 
@@ -170,17 +173,14 @@ petRouter.get("/", requireAuth, (c) => {
       ? {
           id: pet.id,
           species: pet.species,
-          // S86 base emoji (level-1 form) — kept for back-compat;
-          // the level-aware emoji lives in `levelEmoji` below.
-          speciesEmoji: speciesMeta?.emoji ?? "🥚",
           speciesLabel: speciesMeta?.label ?? pet.species,
           name: pet.name,
           hatchedAt: pet.hatchedAt,
-          // S90 — pet evolution surface. levelEmoji is what the UI
-          // should actually render. nextLevelXp is null at max level.
+          // S90 — pet evolution surface. nextLevelXp is null at max level.
+          // Phase M — speciesEmoji + levelEmoji removed; PetSilhouetteSVG
+          // resolves visuals on the client from the species slug alone.
           level: pet.level,
           maxLevel: MAX_PET_LEVEL,
-          levelEmoji: emojiForSpeciesAtLevel(pet.species, pet.level),
           nextLevelXp: xpForNextLevel(pet.level),
           // Phase L — currently-equipped skin slug. The full def is
           // hoisted to the top-level `activeSkin` so it sits next to
@@ -189,11 +189,10 @@ petRouter.get("/", requireAuth, (c) => {
           // S100 — full evolution chain for this species, so the UI
           // can render the past + future forms next to the current
           // pet ("here's what's coming"). Each entry pairs a level
-          // with its threshold and the species' emoji at that level.
+          // with its threshold; no emoji (Phase M).
           evolutionChain: PET_LEVEL_THRESHOLDS.map((threshold, i) => ({
             level: i + 1,
             threshold,
-            emoji: emojiForSpeciesAtLevel(pet.species, i + 1),
           })),
         }
       : null,
@@ -213,7 +212,6 @@ petRouter.get("/", requireAuth, (c) => {
           id: p.id,
           species: p.species,
           speciesLabel: meta?.label ?? p.species,
-          speciesEmoji: emojiForSpeciesAtLevel(p.species, p.level),
           level: p.level,
           name: p.name,
           hatchedAt: p.hatchedAt,
@@ -526,7 +524,8 @@ petPublicRouter.get("/:username/pet-display", (c) => {
     .select({
       slug: petInventory.cosmeticSlug,
       slot: petCosmetics.slot,
-      emoji: petCosmetics.emoji,
+      rarity: petCosmetics.rarity,
+      failSmall: petCosmetics.failSmall,
     })
     .from(petInventory)
     .innerJoin(petCosmetics, eq(petCosmetics.slug, petInventory.cosmeticSlug))
@@ -541,10 +540,8 @@ petPublicRouter.get("/:username/pet-display", (c) => {
   return c.json({
     pet: {
       species: pet.species,
-      // S90 — speciesEmoji follows the pet's current level, so
-      // bylines show the level-3 form on a leveled-up pet without
-      // any UI changes downstream.
-      speciesEmoji: emojiForSpeciesAtLevel(pet.species, pet.level),
+      // Phase M — speciesEmoji dropped; PetSilhouetteSVG renders the
+      // species from the slug alone (no emoji anywhere in the pipeline).
       level: pet.level,
       name: pet.name,
       equipped: equippedRows,
@@ -644,7 +641,8 @@ petRouter.get("/shop", requireAuth, (c) => {
         slug: it.slug,
         name: it.name,
         slot: it.slot,
-        emoji: it.emoji,
+        // Phase M — emoji null across the catalog.
+        emoji: null,
         rarity: it.rarity,
         description: it.description,
         xpCost: it.xpCost!,
@@ -652,6 +650,7 @@ petRouter.get("/shop", requireAuth, (c) => {
         featured,
         owned: ownedSlugs.has(it.slug),
         affordable: balance >= effectiveCost,
+        failSmall: it.failSmall,
       };
     }),
   });
@@ -1105,9 +1104,11 @@ petPublicRouter.get("/:username/cosmetics-gallery", (c) => {
         slug: c.slug,
         name: c.name,
         slot: c.slot,
-        emoji: c.emoji,
+        // Phase M — emoji null across the catalog.
+        emoji: null,
         rarity: c.rarity,
         description: c.description,
+        failSmall: c.failSmall,
         // Indicates how it can be obtained — purely informational.
         // 'shop' = has xpCost, 'grant' = grantOnly with no xpCost.
         // The server doesn't enforce on this read, just tags.
@@ -1156,8 +1157,9 @@ petPublicRouter.get("/showcase", (c) => {
   // by any meaningful read of the word.
   const decoratedFiltered = decoratedRows.filter((r) => r.equippedCount > 0);
 
-  // For each decorated user fetch their equipped slugs + emojis so
-  // PetView on the client renders correctly.
+  // For each decorated user fetch their equipped slugs + rarity so
+  // PetAvatar can render the silhouette + cosmetic overlays. Phase M
+  // drops the emoji column — CosmeticGlyphSVG resolves visuals from slug.
   const decoratedUserIds = decoratedFiltered.map((r) => r.userId);
   const decoratedEquipped = decoratedUserIds.length
     ? db
@@ -1165,7 +1167,7 @@ petPublicRouter.get("/showcase", (c) => {
           userId: petInventory.userId,
           slug: petInventory.cosmeticSlug,
           slot: petCosmetics.slot,
-          emoji: petCosmetics.emoji,
+          rarity: petCosmetics.rarity,
         })
         .from(petInventory)
         .innerJoin(petCosmetics, eq(petCosmetics.slug, petInventory.cosmeticSlug))
@@ -1177,10 +1179,10 @@ petPublicRouter.get("/showcase", (c) => {
         )
         .all()
     : [];
-  const equippedByUser = new Map<string, Array<{ slot: string; emoji: string | null; slug: string }>>();
+  const equippedByUser = new Map<string, Array<{ slot: string; slug: string; rarity: string }>>();
   for (const e of decoratedEquipped) {
     const arr = equippedByUser.get(e.userId) ?? [];
-    arr.push({ slot: e.slot, emoji: e.emoji, slug: e.slug });
+    arr.push({ slot: e.slot, slug: e.slug, rarity: e.rarity });
     equippedByUser.set(e.userId, arr);
   }
 
@@ -1190,7 +1192,6 @@ petPublicRouter.get("/showcase", (c) => {
     displayName: r.displayName,
     pet: {
       species: r.species,
-      speciesEmoji: emojiForSpeciesAtLevel(r.species, r.level),
       level: r.level,
       name: r.petName,
       equipped: equippedByUser.get(r.userId) ?? [],
@@ -1225,13 +1226,12 @@ petPublicRouter.get("/showcase", (c) => {
     displayName: r.displayName,
     pet: {
       species: r.species,
-      speciesEmoji: emojiForSpeciesAtLevel(r.species, r.level),
       level: r.level,
       name: r.petName,
       // Equipped is not surfaced on this list — keeps the payload
       // small. The client can navigate to the user profile for the
       // dressed-up view.
-      equipped: [] as Array<{ slot: string; emoji: string | null; slug: string }>,
+      equipped: [] as Array<{ slot: string; slug: string }>,
     },
     hatchedAt: r.hatchedAt,
   }));

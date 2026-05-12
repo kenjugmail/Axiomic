@@ -1,99 +1,88 @@
-// Phase L — SkinTile.
+// Phase M — SkinTile (design spec).
 //
-// Catalog tile for one skin. Shows a mini-PetAvatar preview with
-// the skin applied (so the user sees the actual FX), name, rarity,
-// and obtain hint. Click handler is wired by the parent — the tile
-// is purely presentational beyond the button + aria-pressed state.
+// 96px preview circle inside a tile with rarity-tinted radial-gradient
+// background. Skin name in the display font, rarity glyph in mono at
+// the top-right corner, uppercase letterspaced obtain hint below the
+// name. Owned/unowned/equipped states match the design system.
+//
+// The preview hosts a mini-PetAvatar with the tile's skin applied so
+// the user sees how the FX would look on THEIR pet (species + level
+// passed from the parent).
 
 import type { PetSkinDef } from "@axiomic/types";
 import { PetAvatar } from "./PetAvatar";
+import { ObtainabilityCallout } from "./ObtainabilityCallout";
 
 interface SkinTileProps {
   skin: PetSkinDef;
-  // Owner's pet, used for the inline preview so the user sees how
-  // it'd look on THEIR pet. Optional — if absent we render the
-  // egg glyph at level 1.
+  // Owner's pet — used so the preview reflects how the skin looks
+  // on the user's actual species + level. Optional; falls back to
+  // the egg silhouette.
   previewSpecies?: string;
-  previewSpeciesEmoji?: string;
   previewLevel?: number;
   owned: boolean;
   equipped: boolean;
-  // When owned + not equipped, click should equip. When unowned and
-  // affordable (xpCost set), click should buy. The parent decides.
   onClick?: () => void;
-  // Optional obtain-hint override (e.g. effective XP cost after a
-  // shop discount; we keep this open even though Phase L's shop
-  // doesn't yet feature skins).
-  obtainHint?: string;
   disabled?: boolean;
 }
 
 export function SkinTile({
   skin,
   previewSpecies,
-  previewSpeciesEmoji,
   previewLevel,
   owned,
   equipped,
   onClick,
-  obtainHint,
   disabled,
 }: SkinTileProps) {
-  const defaultHint =
-    skin.obtain === "default"
-      ? "Default"
-      : skin.obtain === "grant"
-        ? "Instructor grant"
-        : skin.obtain === "comp"
-          ? "Competition prize"
-          : skin.xpCost != null
-            ? `${skin.xpCost.toLocaleString()} XP`
-            : "Special";
-  const hint = obtainHint ?? defaultHint;
+  const classes = [
+    "skin-tile",
+    skin.rarity,
+    owned ? "owned" : "unowned",
+    equipped ? "equipped" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  // Rarity corner uses a Unicode lozenge (no emoji).
+  const cornerGlyph =
+    skin.rarity === "legendary" ? "★" : skin.rarity === "epic" ? "⬥" : "◆";
 
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-pressed={equipped}
       disabled={disabled}
-      className={`relative flex flex-col items-center gap-2 p-3 rounded-md border transition-colors text-center ${
-        equipped ? "bg-emerald-500/5" : "bg-background"
-      } ${disabled ? "opacity-50 cursor-not-allowed" : onClick ? "hover:bg-accent/40 cursor-pointer" : ""} ${
-        !owned ? "opacity-70" : ""
-      }`}
-      style={{ borderColor: `var(--r-${skin.rarity})` }}
+      className={classes}
+      aria-pressed={equipped}
       title={skin.description}
     >
-      <div className="shrink-0">
+      <span className="skin-corner" aria-hidden="true">
+        {cornerGlyph}
+      </span>
+      <span className="skin-preview">
         <PetAvatar
           species={previewSpecies ?? "cat"}
-          speciesEmoji={previewSpeciesEmoji}
           level={previewLevel ?? 1}
           skin={skin.fx}
-          size={64}
+          size={80}
           showCosmetics={false}
           ariaLabel={`${skin.name} preview`}
         />
-      </div>
-      <div className="min-w-0 w-full">
-        <div className="text-sm font-medium truncate">{skin.name}</div>
-        <div
-          className="text-[10px] uppercase tracking-wider"
-          style={{ color: `var(--r-${skin.rarity})` }}
-        >
-          {skin.rarity}
-        </div>
-        <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">
-          {hint}
-          {equipped && (
-            <span className="ml-1.5 text-emerald-600">· equipped</span>
-          )}
-          {!owned && !equipped && (
-            <span className="ml-1.5 text-muted-foreground">· locked</span>
-          )}
-        </div>
-      </div>
+      </span>
+      <span className="skin-nm">{skin.name}</span>
+      <span className="skin-meta">
+        {equipped
+          ? "Equipped"
+          : owned
+            ? "Owned"
+            : skin.obtain === "default"
+              ? "Default"
+              : null}
+      </span>
+      {!owned && skin.obtain !== "default" && (
+        <ObtainabilityCallout obtain={skin.obtain} cost={skin.xpCost ?? null} />
+      )}
     </button>
   );
 }

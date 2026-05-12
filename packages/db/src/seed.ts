@@ -2511,6 +2511,8 @@ function seedPetCosmetics() {
       description: c.description ?? "",
       // S89 — null = not for sale; positive int = purchasable.
       xpCost: typeof c.xpCost === "number" && c.xpCost > 0 ? c.xpCost : null,
+      // Phase M — failSmall flag (hides cosmetic on tiny avatars).
+      failSmall: c.failSmall === true,
     };
     if (existing) {
       db.update(petCosmetics).set(values).where(eq(petCosmetics.id, existing.id)).run();

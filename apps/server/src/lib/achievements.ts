@@ -7,6 +7,7 @@ import {
   getDb,
   masteryNodes,
   petInventory,
+  petSkinInventory,
   userAchievements,
   userProgress,
   type Db,
@@ -45,6 +46,10 @@ export interface Achievement {
   // achievement is awarded. Cosmetic-granted notification fires too,
   // tagged with the achievement's title in the note.
   rewardCosmeticSlug?: string;
+  // Phase M — analog for skin grants. The named pet skin is inserted
+  // into pet_skin_inventory (idempotent on (userId, skinSlug)) on
+  // award; a skin_granted notification fires.
+  rewardSkinSlug?: string;
 }
 
 function countActivity(db: Db, userId: string, kind: ActivityKind | "any"): number {
@@ -177,6 +182,9 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: "Completed every Apprentice node on the ML Engineer path",
     icon: "🎓",
     rewardCosmeticSlug: "grad-cap",
+    // Phase M — completing a whole path tier earns the legendary
+    // Aurora skin too. Visible "graduation" reward.
+    rewardSkinSlug: "aurora",
     predicate: (db, uid) => {
       const r = countCompletedAtLevel(db, uid, "ml-engineer", "apprentice");
       return r.total > 0 && r.done >= r.total;
@@ -196,6 +204,9 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: "Seven consecutive days of learning activity",
     icon: "🌟",
     rewardCosmeticSlug: "gold-star",
+    // Phase M — week streak also unlocks the Midnight skin (the
+    // "late-night studier" vibe matches the achievement's feel).
+    rewardSkinSlug: "midnight",
     predicate: (db, uid) => currentStreak(db, uid) >= 7,
   },
   // Authoring achievements — wiki-style open editing means every signed-in
@@ -220,6 +231,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: "Edited twenty-five lessons",
     icon: "🏆",
     rewardCosmeticSlug: "ribbon",
+    // Phase M — long-form editorial work earns the Verdant skin.
+    rewardSkinSlug: "verdant",
     predicate: (db, uid) => countActivity(db, uid, "lesson_edit") >= 25,
   },
 ];
@@ -304,10 +317,34 @@ export function evaluateAchievements(userId: string, db: Db = getDb()): string[]
             subjectType: "cosmetic",
             subjectId: a.rewardCosmeticSlug,
             contextSlug: null,
-            preview: `${a.icon} ${a.title} — earned a cosmetic`,
+            preview: `${a.title} — earned a cosmetic`,
           });
         } catch (err) {
           console.error("achievement cosmetic grant failed", a.slug, err);
+        }
+      }
+      // Phase M — analog skin grant. Idempotent on (userId, skinSlug)
+      // via pet_skin_inventory's UNIQUE index. Best-effort like
+      // cosmetic grants — failures log but don't unwind.
+      if (a.rewardSkinSlug) {
+        try {
+          db.insert(petSkinInventory).values({
+            id: randomUUID(),
+            userId,
+            skinSlug: a.rewardSkinSlug,
+            grantedNote: `Earned for the ${a.title} achievement`,
+          }).onConflictDoNothing().run();
+          void notify({
+            recipientId: userId,
+            actorId: null,
+            kind: "skin_granted",
+            subjectType: "pet_skin",
+            subjectId: a.rewardSkinSlug,
+            contextSlug: null,
+            preview: `${a.title} — earned a skin`,
+          });
+        } catch (err) {
+          console.error("achievement skin grant failed", a.slug, err);
         }
       }
     } catch (err) {

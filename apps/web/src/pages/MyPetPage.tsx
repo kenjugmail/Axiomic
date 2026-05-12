@@ -3,6 +3,7 @@
 // is inline with the pet preview.
 
 import { useEffect, useState } from "react";
+import { useLiveEvents } from "../hooks/useLiveEvents";
 import { Link } from "react-router-dom";
 import { Pencil, Egg, Sparkles, BarChart3 } from "lucide-react";
 import type { CosmeticSlot, MyPetResponse, PetInventoryItem, PetSkinDef, SkinShopResponse } from "@axiomic/types";
@@ -27,6 +28,24 @@ export function MyPetPage() {
   // skin shop response includes owned/affordable flags computed
   // server-side.
   const [skinShop, setSkinShop] = useState<SkinShopResponse | null>(null);
+  // Phase M — one-shot hatch-burst flag, toggled by the WebSocket
+  // pet_hatched notification. The CSS keyframe runs for 800ms;
+  // we clear the flag at 900ms so a second hatch can fire it again.
+  const [hatchBurst, setHatchBurst] = useState(false);
+
+  // Phase M — listen for pet_hatched notifications and pop the burst.
+  // Other notification kinds are ignored at this surface.
+  useLiveEvents({
+    onEvent: (e) => {
+      if (e.kind !== "notification") return;
+      if (e.notification.kind !== "pet_hatched") return;
+      setHatchBurst(true);
+      // Reload to surface the new pet (when a SECOND pet hatches the
+      // server emits this; the active-pet UI updates).
+      void reload();
+      window.setTimeout(() => setHatchBurst(false), 900);
+    },
+  });
 
   const reload = async () => {
     const r = await api.pet.me();
@@ -191,19 +210,25 @@ export function MyPetPage() {
         />
       )}
 
-      {/* Pet preview / hatching prompt */}
+      {/* Pet preview / hatching prompt — Phase M adopts the pet-hero-split
+          layout from the design (1.1fr / 1fr two-column at desktop, collapses
+          to single column on mobile via pet-tokens.css). */}
       {data.pet ? (
-        <div className="rounded-lg border border-border p-6 mb-8 flex items-center gap-6 flex-wrap">
-          <div>
+        <div className="pet-hero-split mb-8">
+          <div style={{ display: "flex", justifyContent: "center" }}>
             <PetAvatar
               species={data.pet.species}
-              speciesEmoji={data.pet.levelEmoji}
               level={data.pet.level}
               equipped={equippedObj}
               skin={data.activeSkin?.fx ?? null}
               size={128}
               hero
               ring={highestEquippedRarity || false}
+              aboutToEvolve={
+                data.pet.nextLevelXp != null &&
+                data.totalXp >= 0.85 * data.pet.nextLevelXp
+              }
+              hatchBurst={hatchBurst}
               ariaLabel={`${data.pet.name || data.pet.speciesLabel}, level ${data.pet.level}`}
             />
           </div>
@@ -237,7 +262,7 @@ export function MyPetPage() {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-2xl font-semibold">{data.pet.name}</h2>
                 <button
                   type="button"
@@ -247,6 +272,11 @@ export function MyPetPage() {
                 >
                   <Pencil className="w-3.5 h-3.5" />
                 </button>
+                {/* Phase M — skin-pill shows the active skin's name next to the
+                    pet name. Adopts the design's .skin-pill styling. */}
+                {data.activeSkin && data.activeSkin.slug !== "default" && (
+                  <span className="skin-pill">{data.activeSkin.name}</span>
+                )}
               </div>
             )}
             <div className="text-xs text-muted-foreground mt-1">
@@ -353,13 +383,12 @@ export function MyPetPage() {
                 </span>
               )}
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+            <div className="skin-grid">
               {allTiles.map((skin) => (
                 <SkinTile
                   key={skin.slug}
                   skin={skin}
                   previewSpecies={data.pet?.species}
-                  previewSpeciesEmoji={data.pet?.levelEmoji}
                   previewLevel={data.pet?.level}
                   owned={ownedSlugs.has(skin.slug)}
                   equipped={skin.slug === activeSlug}
@@ -387,13 +416,14 @@ export function MyPetPage() {
                 <h3 className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
                   {slot}
                 </h3>
-                <div className="grid sm:grid-cols-2 gap-2">
+                {/* Phase M — .cos-grid.rhythmic lets legendary tiles span 2x2
+                    and epic span 2x1 (design's masonry behavior). */}
+                <div className="cos-grid rhythmic">
                   {items.map((item) => (
                     <CosmeticChip
                       key={item.id}
                       slug={item.slug}
                       name={item.name}
-                      emoji={item.emoji}
                       slot={item.slot}
                       rarity={item.rarity}
                       description={

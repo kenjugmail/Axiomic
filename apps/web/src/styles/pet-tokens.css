@@ -1,0 +1,935 @@
+/* Phase M — Pet design tokens (scoped to pet UI to avoid global token collisions).
+ *
+ * Adopted from the Claude Design tokens.css. The design defines a separate
+ * token namespace (--bg/--ink/--line/--accent/--s-*/--r-*) that overlaps
+ * with Axiomic's existing tokens (--background/--foreground/--accent/etc.).
+ *
+ * Strategy: scope these tokens to the *roots* of pet design components
+ * via the .pet-stage, .cos-tile, .cos-grid, .skin-tile, etc. selectors.
+ * CSS custom properties inherit, so everything inside those roots resolves
+ * to the design values; the rest of Axiomic continues to read the global
+ * theme tokens unchanged.
+ *
+ * Only the "warm-scholarly" direction is wired in this phase. The other
+ * four directions from tokens.css are tracked as future work.
+ *
+ * Webfonts (Newsreader / Geist / Geist Mono) are NOT imported. Tokens
+ * fall back to system-font stacks; pet display surfaces look fine with
+ * Inter / Source Serif until a future phase adds the webfonts.
+ */
+
+@layer base {
+  :where(
+    .pet-stage,
+    .cos-tile,
+    .cos-grid,
+    .skin-tile,
+    .skin-grid,
+    .pet-hero-split,
+    .slot-row,
+    .rar,
+    .obtain,
+    .skin-pill,
+    .detail-art,
+    .pet-emotes
+  ) {
+    /* Type */
+    --font-display: "Newsreader", "Source Serif 4", Georgia, serif;
+    --font-sans: "Geist", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+    /* Spacing scale */
+    --s-1: 4px;  --s-2: 8px;  --s-3: 12px;  --s-4: 16px;
+    --s-5: 20px; --s-6: 24px; --s-7: 32px;  --s-8: 40px;
+    --s-9: 56px; --s-10: 72px;
+
+    /* Radii (namespaced to --pet-radius-* to avoid clobbering the global --radius). */
+    --pet-radius-sm: 6px;
+    --pet-radius: 10px;
+    --pet-radius-lg: 16px;
+    --pet-radius-xl: 22px;
+
+    /* Surfaces — warm-scholarly light defaults */
+    --bg: #f6f2ea;
+    --bg-elev: #fbf8f2;
+    --bg-sunk: #ece6da;
+    --ink: #1d1b16;
+    --ink-2: #3c372d;
+    --ink-3: #6f6a5d;
+    --ink-4: #a9a496;
+    --line: rgba(29, 27, 22, 0.12);
+    --line-strong: rgba(29, 27, 22, 0.22);
+    --accent: #7a4cc7;
+    --accent-ink: #f6f2ea;
+    --accent-soft: rgba(122, 76, 199, 0.10);
+    --warn: #b45309;
+    --ok: #1f7a4a;
+
+    /* Rarity colors. Existing Phase L globals also define --r-* at :root;
+       these scoped values override only inside pet contexts but the hex
+       values match Phase L for visual continuity. */
+    --r-common: #8a8576;
+    --r-rare: #2f6bd3;
+    --r-epic: #7c3aed;
+    --r-legendary: #b45309;
+
+    /* Rarity intensity multiplier (0–1). Reserved for future runtime
+       tweakability via a settings UI; sticks at default for now. */
+    --rarity-i: 0.6;
+
+    /* Density multiplier + effective small-pet size. Same future-tweak note. */
+    --density: 1;
+    --pet-dense: 32px;
+
+    /* Shadows */
+    --shadow-1: 0 1px 0 rgba(255,255,255,.4) inset, 0 1px 2px rgba(29,27,22,.06);
+    --shadow-2: 0 1px 0 rgba(255,255,255,.5) inset, 0 6px 16px -8px rgba(29,27,22,.18);
+    --shadow-equipped: 0 0 0 1px var(--accent), 0 4px 14px -6px rgba(122,76,199,.45);
+  }
+
+  /* Dark mode — same scoped roots, retuned values. */
+  .dark :where(
+    .pet-stage,
+    .cos-tile,
+    .cos-grid,
+    .skin-tile,
+    .skin-grid,
+    .pet-hero-split,
+    .slot-row,
+    .rar,
+    .obtain,
+    .skin-pill,
+    .detail-art,
+    .pet-emotes
+  ) {
+    --bg: #161310;
+    --bg-elev: #1d1a15;
+    --bg-sunk: #0f0d0a;
+    --ink: #f0ebdf;
+    --ink-2: #d5cfc0;
+    --ink-3: #8c8775;
+    --ink-4: #5a5648;
+    --line: rgba(240,235,223,.10);
+    --line-strong: rgba(240,235,223,.22);
+    --accent: #c4a7ff;
+    --accent-ink: #1a0f2e;
+    --accent-soft: rgba(196,167,255,.12);
+    --r-common: #aaaaaa;
+    --r-rare: #6ea8ff;
+    --r-epic: #c084fc;
+    --r-legendary: #fbbf24;
+  }
+}
+
+/* ============================================================
+ * Pet stage chrome + idle animations.
+ * ============================================================ */
+
+.pet-stage {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 38%, var(--bg-elev) 0%, var(--bg-sunk) 78%);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  isolation: isolate;
+  overflow: visible;
+}
+.pet-stage::before {
+  /* Floor disc that anchors the pet visually. */
+  content: "";
+  position: absolute;
+  left: 14%; right: 14%;
+  bottom: 8%;
+  height: 6%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center,
+    color-mix(in oklch, var(--ink) 16%, transparent) 0%,
+    transparent 70%);
+  z-index: 0;
+  pointer-events: none;
+}
+.pet-stage .pet {
+  position: relative;
+  z-index: 1;
+  animation: pet-breathe 4.6s ease-in-out infinite;
+  transform-origin: 50% 70%;
+  display: grid;
+  place-items: center;
+}
+.pet-stage[data-mood="happy"] .pet { animation-duration: 2.4s; }
+.pet-stage:hover .pet { animation-duration: 2.2s; }
+
+@keyframes pet-breathe {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-1.2%) scale(1.018); }
+}
+
+/* Eye blink — eyes scale around their own bbox center.
+   The PetSilhouetteSVG emits `<circle class="eye">` elements so this hits. */
+.pet-stage svg .eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pet-blink 5.4s infinite;
+}
+.pet-stage svg .eye:nth-of-type(odd) { animation-delay: .04s; }
+@keyframes pet-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95%           { transform: scaleY(0.08); }
+}
+
+/* Ear twitch — the silhouette wraps both ears in a single `<g>`. */
+.pet-stage svg > g > path:nth-child(1),
+.pet-stage svg > g > path:nth-child(2) {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: ear-twitch 7.2s ease-in-out infinite;
+}
+.pet-stage svg > g > path:nth-child(2) { animation-delay: .18s; }
+@keyframes ear-twitch {
+  0%, 88%, 100% { transform: rotate(0deg); }
+  91%           { transform: rotate(-3deg); }
+  94%           { transform: rotate(2deg); }
+  97%           { transform: rotate(0deg); }
+}
+
+/* Hover lift on cosmetics. */
+.pet-stage:hover .cos-overlay { transition: transform .3s cubic-bezier(.2,.9,.3,1.3); }
+.pet-stage:hover .cos-overlay { transform: var(--cos-tx, none) translateY(-1px); }
+
+/* Mood-driven hop (continuous loop while data-mood="hop"). */
+.pet-stage[data-mood="hop"] .pet { animation: pet-hop 1.2s cubic-bezier(.3,.8,.4,1.2) infinite; }
+
+/* User-triggered single-shot actions. */
+.pet-stage[data-action="hop"]    .pet { animation: pet-hop 1.0s cubic-bezier(.3,.8,.4,1.2) 1; }
+.pet-stage[data-action="wiggle"] .pet { animation: pet-wiggle .9s ease-in-out 1; }
+.pet-stage[data-action="twirl"]  .pet { animation: pet-twirl 1.1s cubic-bezier(.3,.7,.3,1) 1; }
+.pet-stage[data-action="sniff"]  .pet { animation: pet-sniff 1.4s ease-in-out 1; }
+.pet-stage[data-action="pat"]    .pet { animation: pet-pat .8s ease-in-out 1; }
+
+@keyframes pet-hop {
+  0%   { transform: translateY(0) scale(1); }
+  35%  { transform: translateY(-12%) scale(1.02, .98); }
+  60%  { transform: translateY(0) scale(.98, 1.04); }
+  100% { transform: translateY(0) scale(1); }
+}
+@keyframes pet-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-8deg); }
+  45% { transform: rotate(7deg); }
+  70% { transform: rotate(-4deg); }
+  90% { transform: rotate(2deg); }
+}
+@keyframes pet-twirl {
+  0%   { transform: rotate(0) scale(1); }
+  50%  { transform: rotate(180deg) scale(.92); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+@keyframes pet-sniff {
+  0%, 100% { transform: translateY(0) scale(1); }
+  40% { transform: translateY(6%) scale(1.04, .96); }
+  70% { transform: translateY(-2%) scale(.98, 1.02); }
+}
+@keyframes pet-pat {
+  0%, 100% { transform: scaleY(1) translateY(0); }
+  35% { transform: scaleY(.86) translateY(3%); }
+  70% { transform: scaleY(1.04) translateY(-1%); }
+}
+
+/* Floating-emote overlay (heart on pat, sparkle on play). */
+.pet-stage[data-action] .pet-emotes { animation: emote-float 1.1s ease-out 1; }
+.pet-emotes {
+  position: absolute;
+  top: 6%; left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0;
+  color: var(--accent);
+}
+@keyframes emote-float {
+  0%   { opacity: 0; transform: translate(-50%, 0) scale(.6); }
+  20%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -38px) scale(1.1); }
+}
+
+/* About-to-evolve glow. */
+.pet-stage.about-to-evolve::before {
+  /* override the floor-disc rule with the evolve glow */
+  content: "";
+  position: absolute;
+  inset: -10%;
+  left: auto; right: auto; bottom: auto; height: auto;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in oklch, var(--accent) 18%, transparent) 0%, transparent 60%);
+  animation: evolve-glow 2.4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+@keyframes evolve-glow {
+  0%,100% { opacity: .4; transform: scale(.95); }
+  50%     { opacity: 1;  transform: scale(1.05); }
+}
+
+/* Hatch burst — radial pop when a pet hatches. Toggled by adding the class
+   for ~800ms; PetAvatar removes it via setTimeout. */
+.pet-stage.hatch-burst::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%,
+    color-mix(in oklch, var(--accent) 60%, white) 0%, transparent 50%);
+  opacity: 0;
+  animation: pet-burst .8s ease-out forwards;
+  z-index: 4;
+}
+@keyframes pet-burst {
+  0%   { opacity: 0; transform: scale(.3); }
+  40%  { opacity: 1; }
+  100% { opacity: 0; transform: scale(2.4); }
+}
+
+/* Hero stage — sparkles ::after. */
+.pet-stage.hero { overflow: visible; }
+.pet-stage.hero::after {
+  content: "";
+  position: absolute;
+  inset: -8%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 18% 22%, color-mix(in oklch, var(--accent) 35%, transparent) 0 1.5px, transparent 2px),
+    radial-gradient(circle at 84% 30%, color-mix(in oklch, var(--accent) 22%, transparent) 0 1px, transparent 2px),
+    radial-gradient(circle at 78% 80%, color-mix(in oklch, var(--accent) 30%, transparent) 0 1.5px, transparent 2px),
+    radial-gradient(circle at 10% 78%, color-mix(in oklch, var(--accent) 18%, transparent) 0 1px, transparent 2px);
+  z-index: 0;
+  animation: pet-sparkle 5.5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes pet-sparkle {
+  0%, 100% { opacity: .4; transform: rotate(0deg) scale(1); }
+  50%      { opacity: .9; transform: rotate(3deg) scale(1.04); }
+}
+
+/* ============================================================
+ * Rarity rings on the pet-stage.
+ * Rarity = shape + label + hue, not hue alone.
+ * ============================================================ */
+
+.pet-stage[class*="ring-"] { border-radius: 50%; }
+.pet-stage.ring-common {
+  box-shadow: 0 0 0 1.5px var(--r-common);
+}
+.pet-stage.ring-rare {
+  box-shadow:
+    0 0 0 1.5px var(--r-rare),
+    0 0 0 4px color-mix(in oklch, var(--r-rare) calc(var(--rarity-i) * 30%), transparent);
+}
+.pet-stage.ring-epic {
+  box-shadow:
+    0 0 0 1.5px var(--r-epic),
+    0 0 0 5px color-mix(in oklch, var(--r-epic) calc(var(--rarity-i) * 35%), transparent),
+    0 0 14px -2px color-mix(in oklch, var(--r-epic) calc(var(--rarity-i) * 70%), transparent);
+}
+.pet-stage.ring-legendary {
+  box-shadow:
+    0 0 0 1.5px var(--r-legendary),
+    0 0 0 5px color-mix(in oklch, var(--r-legendary) calc(var(--rarity-i) * 40%), transparent),
+    0 0 18px -1px color-mix(in oklch, var(--r-legendary) calc(var(--rarity-i) * 70%), transparent);
+}
+
+/* When the skin has FX (particles or animated), tone the outer glow down so
+   the avatar doesn't double up on two effects. The crisp inner stroke stays. */
+.pet-stage[data-skin-fx="true"].ring-rare {
+  box-shadow: 0 0 0 1.5px var(--r-rare);
+}
+.pet-stage[data-skin-fx="true"].ring-epic {
+  box-shadow:
+    0 0 0 1.5px var(--r-epic),
+    0 0 0 3px color-mix(in oklch, var(--r-epic) calc(var(--rarity-i) * 20%), transparent);
+}
+.pet-stage[data-skin-fx="true"].ring-legendary {
+  box-shadow:
+    0 0 0 1.5px var(--r-legendary),
+    0 0 0 3px color-mix(in oklch, var(--r-legendary) calc(var(--rarity-i) * 22%), transparent);
+}
+
+/* Cosmetic overlay polish. Folds in the orphan declarations from the
+   source tokens.css (z-index/filter/animation got separated from the
+   .cos-overlay rule in the original file). */
+.cos-overlay {
+  position: absolute;
+  pointer-events: none;
+  z-index: 2;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.18));
+  animation: cos-in .35s cubic-bezier(.2,.9,.3,1.3) both;
+  transition: filter .3s;
+}
+@keyframes cos-in {
+  from { opacity: 0; transform: var(--cos-tx, none) translateY(-4px) scale(.9); }
+  to   { opacity: 1; transform: var(--cos-tx, none) translateY(0) scale(1); }
+}
+
+/* Faint white halo on cosmetics when the skin is transparent (Phantom etc.). */
+.pet-stage[data-skin-trans="true"] .cos-overlay {
+  filter: drop-shadow(0 0 1.2px rgba(255,255,255,.95))
+          drop-shadow(0 0 2px rgba(255,255,255,.55));
+}
+
+/* Phase L's overlay-fallback disc (rarity-tinted initial) — kept available
+   for the CosmeticGlyphSVG catch-all branch. */
+.cos-overlay-fallback {
+  display: inline-grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  font-weight: 700;
+  color: #fff;
+  font-family: var(--font-sans);
+}
+.cos-overlay-fallback.rar-common { background: var(--r-common); }
+.cos-overlay-fallback.rar-rare { background: var(--r-rare); }
+.cos-overlay-fallback.rar-epic { background: var(--r-epic); }
+.cos-overlay-fallback.rar-legendary { background: var(--r-legendary); }
+
+/* ============================================================
+ * Cosmetic tile.
+ * ============================================================ */
+
+.cos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+  gap: var(--s-3);
+}
+/* Rhythmic variant — legendary tiles span 2x2, epic span 2x1.
+   Opt-in by adding `rhythmic` to the grid. */
+.cos-grid.rhythmic .cos-tile.legendary { grid-column: span 2; grid-row: span 2; }
+.cos-grid.rhythmic .cos-tile.epic { grid-column: span 2; }
+
+.cos-tile {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--pet-radius);
+  padding: var(--s-3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  aspect-ratio: 1 / 1.15;
+  cursor: default;
+  transition: transform .1s, box-shadow .15s, border-color .15s;
+}
+.cos-tile::before {
+  /* Rarity tile-tint as a soft radial gradient. */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 80% at 50% 30%, var(--tile-tint, transparent) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+.cos-tile.common    { --tile-tint: color-mix(in oklab, var(--ink-4) 8%, transparent); }
+.cos-tile.rare      { --tile-tint: color-mix(in oklab, var(--r-rare) 18%, transparent); }
+.cos-tile.epic      { --tile-tint: color-mix(in oklab, var(--r-epic) 22%, transparent); }
+.cos-tile.legendary { --tile-tint: color-mix(in oklab, var(--r-legendary) 28%, transparent); }
+
+/* Legendary foil-spin — only when owned (not while locked). */
+.cos-tile.legendary.owned:not(.unowned)::after {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    color-mix(in oklab, var(--r-legendary) 18%, transparent) 40deg,
+    transparent 80deg, transparent 200deg,
+    color-mix(in oklab, var(--r-legendary) 18%, transparent) 240deg,
+    transparent 280deg
+  );
+  animation: foil-spin 8s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+@keyframes foil-spin { to { transform: rotate(360deg); } }
+.cos-tile > * { position: relative; z-index: 1; }
+
+.cos-tile:hover { border-color: var(--line-strong); transform: translateY(-1px); }
+.cos-tile .glyph {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  font-size: 38px;
+  line-height: 1;
+  color: var(--ink-2);
+}
+.cos-tile:hover .glyph svg {
+  transform: translateY(-2px) rotate(-2deg);
+  transition: transform .25s cubic-bezier(.2,.9,.3,1.3);
+}
+.cos-tile .glyph svg { transition: transform .25s; }
+.cos-tile .nm {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+  text-align: center;
+  line-height: 1.2;
+  width: 100%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.cos-tile.unowned { background: var(--bg-sunk); }
+.cos-tile.unowned .glyph { filter: grayscale(1); opacity: .42; }
+.cos-tile.unowned .nm { color: var(--ink-4); }
+.cos-tile.equipped {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-equipped);
+}
+/* Picker-selected state (distinct from equipped). Used in grant dialog,
+   competition prize picker. */
+.cos-tile.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent) 28%, transparent);
+}
+.cos-tile.equipped::after {
+  content: "EQUIPPED";
+  position: absolute;
+  top: 6px; left: 50%; transform: translateX(-50%);
+  font-size: 8.5px; font-weight: 700; letter-spacing: .12em;
+  color: var(--accent-ink);
+  background: var(--accent);
+  padding: 2px 6px;
+  border-radius: 3px;
+  z-index: 2;
+}
+/* The legendary foil-spin uses ::after too; keep both by not displaying
+   the EQUIPPED label on legendary-owned tiles (rarity is the signal). */
+.cos-tile.legendary.equipped::after { content: none; }
+
+.cos-tile.equipped .glyph { animation: equip-pop .35s cubic-bezier(.2,.9,.3,1.2); }
+@keyframes equip-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.18) rotate(-3deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+.cos-tile .corner {
+  position: absolute;
+  top: 6px; right: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--ink-3);
+  z-index: 2;
+}
+.cos-tile.legendary .corner { color: var(--r-legendary); }
+.cos-tile.epic .corner { color: var(--r-epic); }
+.cos-tile.rare .corner { color: var(--r-rare); }
+
+/* Obtain hint on unowned tiles (discovery cue in someone else's gallery). */
+.cos-tile .obtain-hint {
+  position: absolute;
+  top: 8px; left: 8px;
+  width: 18px; height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  color: var(--ink-3);
+  background: color-mix(in oklch, var(--bg-sunk) 70%, transparent);
+  border: 1px solid var(--line);
+  z-index: 2;
+}
+.cos-tile .obtain-hint.xp    { color: var(--ink-3); }
+.cos-tile .obtain-hint.grant { color: var(--ok); }
+.cos-tile .obtain-hint.comp  { color: var(--r-legendary); }
+
+/* ============================================================
+ * RarityBadge — distinct shape per rarity.
+ * ============================================================ */
+
+.rar {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  font-family: var(--font-sans);
+  padding: 3px 8px 3px 7px;
+  border: 1px solid currentColor;
+  color: var(--r-common);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.rar .glyph { font-size: 9px; line-height: 1; }
+.rar.common { color: var(--r-common); border-radius: 4px; }
+.rar.rare   { color: var(--r-rare); border-radius: 999px; }
+.rar.epic {
+  color: var(--r-epic);
+  border-radius: 4px;
+  border-style: double;
+  border-width: 3px;
+  padding: 1px 6px;
+}
+.rar.legendary {
+  color: var(--r-legendary);
+  border-radius: 0;
+  border-style: dashed;
+  font-style: italic;
+  font-family: var(--font-display);
+  text-transform: lowercase;
+  letter-spacing: 0;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+/* ============================================================
+ * ObtainabilityCallout.
+ * ============================================================ */
+
+.obtain {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--bg-sunk);
+  color: var(--ink-2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.obtain .dot { width: 6px; height: 6px; border-radius: 50%; }
+.obtain.xp .dot    { background: var(--accent); }
+.obtain.grant .dot { background: var(--ok); }
+.obtain.comp .dot  { background: var(--warn); }
+
+/* ============================================================
+ * Skin tile + grid + skin layer + particles + animated.
+ * ============================================================ */
+
+.skin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px;
+}
+.skin-tile {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto auto;
+  justify-items: center;
+  gap: 6px;
+  padding: 18px 12px 12px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: border-color .15s, transform .12s, box-shadow .15s;
+  font-family: inherit;
+  color: var(--ink);
+}
+.skin-tile:hover {
+  border-color: var(--line-strong);
+  transform: translateY(-1px);
+}
+.skin-tile.equipped {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent) 22%, transparent);
+}
+.skin-tile.unowned { opacity: .55; }
+.skin-tile .skin-corner {
+  position: absolute;
+  top: 6px; right: 8px;
+  font-size: 11px;
+  color: var(--ink-4);
+  font-family: var(--font-mono);
+}
+.skin-tile.rare      .skin-corner { color: var(--r-rare); }
+.skin-tile.epic      .skin-corner { color: var(--r-epic); }
+.skin-tile.legendary .skin-corner { color: var(--r-legendary); }
+.skin-tile .skin-preview {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--bg-sunk);
+  border: 1px solid var(--line);
+}
+.skin-tile.rare      .skin-preview { background: radial-gradient(circle at 50% 45%, color-mix(in oklab, var(--r-rare) 14%, var(--bg-sunk)), var(--bg-sunk)); }
+.skin-tile.epic      .skin-preview { background: radial-gradient(circle at 50% 45%, color-mix(in oklab, var(--r-epic) 16%, var(--bg-sunk)), var(--bg-sunk)); }
+.skin-tile.legendary .skin-preview { background: radial-gradient(circle at 50% 45%, color-mix(in oklab, var(--r-legendary) 18%, var(--bg-sunk)), var(--bg-sunk)); }
+.skin-tile .skin-nm {
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.2;
+  font-family: var(--font-display);
+}
+.skin-tile .skin-meta {
+  font-size: 10px;
+  letter-spacing: .08em;
+  color: var(--ink-4);
+  text-transform: uppercase;
+}
+
+/* Skin layer (renders inside .pet-stage). */
+.pet-skin-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.pet-skin-bg {
+  position: absolute;
+  inset: 0;
+}
+
+/* Particles — pseudo-element radial-gradient dots drifting on infinite
+   keyframes. PetAvatar's SkinFX subcomponent renders <div class="pet-particles stars">
+   (or embers/petals/snow). The design's pt-* keyframes drive the motion. */
+.pet-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.7;
+  z-index: 0;
+}
+.pet-particles.stars::before,
+.pet-particles.stars::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 18% 22%, rgba(255,255,255,.9) 0.5px, transparent 1px),
+    radial-gradient(circle at 72% 62%, rgba(255,255,255,.7) 0.6px, transparent 1px),
+    radial-gradient(circle at 38% 78%, rgba(255,255,255,.6) 0.4px, transparent 1px),
+    radial-gradient(circle at 88% 18%, rgba(255,255,255,.8) 0.5px, transparent 1px);
+  animation: pt-stars 3.5s ease-in-out infinite;
+}
+.pet-particles.stars::after { animation-delay: 1.75s; }
+.pet-particles.embers::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 30% 80%, rgba(255,140,40,.55) 0.8px, transparent 1.2px),
+    radial-gradient(circle at 60% 70%, rgba(255,180,80,.45) 0.7px, transparent 1.1px),
+    radial-gradient(circle at 45% 60%, rgba(255,120,30,.5) 0.6px, transparent 1px);
+  animation: pt-embers 2.6s ease-out infinite;
+}
+.pet-particles.petals::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 22% 30%, rgba(232,168,184,.7) 1px, transparent 1.6px),
+    radial-gradient(circle at 70% 55%, rgba(232,168,184,.55) 0.9px, transparent 1.4px);
+  animation: pt-petals 4s linear infinite;
+}
+.pet-particles.snow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 18% 20%, rgba(255,255,255,.85) 1px, transparent 1.6px),
+    radial-gradient(circle at 64% 40%, rgba(255,255,255,.7) 0.8px, transparent 1.4px),
+    radial-gradient(circle at 40% 70%, rgba(255,255,255,.75) 0.9px, transparent 1.5px);
+  animation: pt-snow 5s linear infinite;
+}
+
+@keyframes pt-stars {
+  0%, 100% { opacity: 0; transform: translateY(0) scale(.8); }
+  50%      { opacity: 1; transform: translateY(-3px) scale(1.2); }
+}
+@keyframes pt-embers {
+  0%   { opacity: 0; transform: translateY(2px) scale(.6); }
+  35%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-14px) scale(1.4); }
+}
+@keyframes pt-petals {
+  0%   { opacity: 0; transform: translate(0,2px) rotate(0); }
+  50%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(6px,-10px) rotate(80deg); }
+}
+@keyframes pt-snow {
+  0%   { opacity: 0; transform: translateY(-4px); }
+  40%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(8px); }
+}
+
+/* Animated skin backdrops (legendary skins). Aurora = slow hue-rotate sweep;
+   crystal = opacity pulse over a radial gradient. */
+.pet-anim-aurora {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background: linear-gradient(140deg,
+    rgba(110,231,183,.30) 0%,
+    rgba(80,140,220,.28) 50%,
+    rgba(200,140,220,.28) 100%);
+  animation: skin-aurora 7s ease-in-out infinite;
+}
+.pet-anim-crystal {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, rgba(154,223,240,.30), transparent 65%);
+  animation: skin-crystal 4s ease-in-out infinite;
+}
+
+@keyframes skin-aurora {
+  0%, 100% { filter: hue-rotate(0deg); opacity: 0.8; }
+  50%      { filter: hue-rotate(45deg); opacity: 1; }
+}
+@keyframes skin-crystal {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.7; }
+  50%      { transform: scale(1.06) rotate(2deg); opacity: 1; }
+}
+
+/* Level badge — small pill at bottom-left, accent colored. */
+.pet-level-badge {
+  position: absolute;
+  bottom: 6%;
+  left: 6%;
+  z-index: 3;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+/* Inventory-skin pill (shows the equipped skin's name in the pet header). */
+.skin-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  font-size: 11px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--accent) 14%, transparent);
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+}
+
+/* ============================================================
+ * Pet hero split layout for MyPetPage.
+ * ============================================================ */
+
+.pet-hero-split {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 32px;
+  align-items: center;
+  padding: 32px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+@media (max-width: 820px) {
+  .pet-hero-split { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+ * Slot row (head/eyes/acc equipped display with empty state).
+ * ============================================================ */
+
+.slot-row {
+  display: grid;
+  grid-template-columns: 92px 1fr auto;
+  gap: var(--s-4);
+  align-items: center;
+  padding: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--pet-radius);
+  background: var(--bg-elev);
+}
+.slot-row + .slot-row { margin-top: var(--s-2); }
+.slot-row .slot-name {
+  font-size: 12px;
+  color: var(--ink-3);
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.slot-row .slot-val {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-width: 0;
+}
+.slot-row .slot-val .glyph { font-size: 22px; }
+.slot-row .slot-val .vn { font-weight: 500; }
+.slot-row .slot-val .vmeta { font-size: 12px; color: var(--ink-3); }
+.slot-row .slot-empty { color: var(--ink-4); font-style: italic; font-size: 13px; }
+.slot-row .glyph-box {
+  width: 52px; height: 52px;
+  border-radius: 10px;
+  background: var(--bg-sunk);
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.slot-row .glyph-box.empty {
+  border-style: dashed;
+  color: var(--ink-4);
+  font-size: 22px;
+  font-weight: 300;
+}
+
+/* ============================================================
+ * Detail-art (used by skin/cosmetic detail sheet).
+ * ============================================================ */
+
+.detail-art {
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  position: relative;
+}
+.detail-art.legendary { background: radial-gradient(circle at 50% 35%, color-mix(in oklab, var(--r-legendary) 22%, var(--bg-elev)), var(--bg-elev)); border-color: color-mix(in oklab, var(--r-legendary) 40%, var(--line)); }
+.detail-art.epic      { background: radial-gradient(circle at 50% 35%, color-mix(in oklab, var(--r-epic) 20%, var(--bg-elev)), var(--bg-elev)); border-color: color-mix(in oklab, var(--r-epic) 30%, var(--line)); }
+.detail-art.rare      { background: radial-gradient(circle at 50% 35%, color-mix(in oklab, var(--r-rare) 18%, var(--bg-elev)), var(--bg-elev)); border-color: color-mix(in oklab, var(--r-rare) 30%, var(--line)); }
+
+/* ============================================================
+ * Reduced motion — disable all pet animations.
+ * ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .pet-stage .pet,
+  .pet-stage svg .eye,
+  .pet-stage svg > g > path,
+  .pet-stage.hero::after,
+  .pet-stage.about-to-evolve::before,
+  .pet-stage.hatch-burst::after,
+  .pet-stage[data-action] .pet-emotes,
+  .cos-tile.legendary.owned:not(.unowned)::after,
+  .cos-tile.equipped .glyph,
+  .cos-overlay {
+    animation: none !important;
+  }
+}

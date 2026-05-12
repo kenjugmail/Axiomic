@@ -11,6 +11,7 @@ import { Plus, Lock } from "lucide-react";
 import type { MyPetResponse } from "@axiomic/types";
 import { api, ApiError } from "../../lib/api";
 import { toast } from "../../stores/toast";
+import { PetSilhouetteSVG } from "./PetSilhouetteSVG";
 
 interface PetSwapStripProps {
   pets: MyPetResponse["pets"];
@@ -73,13 +74,15 @@ export function PetSwapStrip({ pets, totalXp, petCap, nextHatchXp, onChanged }: 
                 onClick={() => !isActive && switchTo(p.id)}
                 disabled={isActive || busy !== null}
                 title={`${p.speciesLabel} · Lv ${p.level}`}
-                className={`w-12 h-12 rounded-md border flex items-center justify-center text-2xl transition-colors ${
+                className={`w-12 h-12 rounded-md border flex items-center justify-center transition-colors ${
                   isActive
                     ? "ring-2 ring-primary border-primary bg-primary/5 cursor-default"
                     : "border-border hover:bg-accent/40"
                 }`}
               >
-                {p.speciesEmoji}
+                <span style={{ width: 36, height: 36, display: "inline-block" }}>
+                  <PetSilhouetteSVG species={p.species} level={p.level} />
+                </span>
               </button>
             </li>
           );

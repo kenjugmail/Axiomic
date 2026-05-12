@@ -41,7 +41,7 @@ import {
 } from "../middleware/classAuth";
 import { grantXp, classXpForUser, XP_AMOUNTS } from "../lib/xp";
 import { notify } from "../lib/notifications";
-import { emojiForSpeciesAtLevel, petSkinBySlug } from "../lib/pets";
+import { petSkinBySlug } from "../lib/pets";
 import type { Env } from "../env";
 
 export const classesRouter = new Hono<Env>();
@@ -669,12 +669,12 @@ classesRouter.get(
           .all()
       : [];
     const cosmeticBySlug = new Map(cosmeticRows.map((r) => [r.slug, r]));
-    const equippedByUser = new Map<string, Array<{ slot: string; emoji: string | null; slug: string }>>();
+    const equippedByUser = new Map<string, Array<{ slot: string; slug: string; rarity: string; failSmall: boolean }>>();
     for (const e of equippedRows) {
       const cos = cosmeticBySlug.get(e.cosmeticSlug);
       if (!cos) continue;
       const list = equippedByUser.get(e.userId) ?? [];
-      list.push({ slot: cos.slot, emoji: cos.emoji, slug: cos.slug });
+      list.push({ slot: cos.slot, slug: cos.slug, rarity: cos.rarity, failSmall: cos.failSmall });
       equippedByUser.set(e.userId, list);
     }
 
@@ -691,10 +691,9 @@ classesRouter.get(
               species: pet.species,
               name: pet.name,
               equipped: equippedByUser.get(m.userId) ?? [],
-              // S90 — evolution-aware emoji + level for the
-              // leaderboard row's PetView.
+              // Phase M — levelEmoji removed; PetAvatar resolves
+              // species visuals via the silhouette renderer.
               level: pet.level,
-              levelEmoji: emojiForSpeciesAtLevel(pet.species, pet.level),
             }
           : null,
       };
@@ -1313,7 +1312,7 @@ classesRouter.post(
       contextSlug: cls.slug,
       preview:
         (note?.trim() ? `${note.trim()} — ` : "") +
-        `${cosmetic.emoji ?? ""} ${cosmetic.name}`.trim(),
+        `Earned the ${cosmetic.name} cosmetic`,
     });
 
     return c.json({ ok: true, alreadyOwned: false }, 201);

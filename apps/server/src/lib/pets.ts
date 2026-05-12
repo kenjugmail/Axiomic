@@ -4,32 +4,37 @@
 // data (loaded from `seed-content/pet-cosmetics/cosmetics.json`)
 // because professors will eventually want to extend the catalog.
 //
-// S90 — added evolution chain. Each species supplies an emoji per
-// level (1, 2, 3). Some species don't have a clean unicode
-// progression — those reuse the level-1 emoji at higher levels and
-// rely on the level badge for visual signaling.
+// S90 — added evolution chain (levels 1-3). No per-level emoji
+// today — Phase M switched to SVG-only rendering (no emojis
+// anywhere in the pet UI).
 
 export interface PetSpecies {
   slug: string;
   label: string;
-  emoji: string;
-  // Length 3: emojiByLevel[level - 1] for levels 1, 2, 3.
-  // Off-by-one because levels are 1-indexed in the data model.
-  emojiByLevel: [string, string, string];
 }
 
-// Cleanly-progressing species use a different glyph at each level.
-// Others repeat — we'd rather have an honest "no visual change" than
-// a forced-fit emoji that looks weird ("turtle becomes a whale").
+// 16 species — 8 from Axiomic's original catalog + 8 from the
+// Claude Design pet-data.ts. PetSilhouetteSVG on the client owns
+// the per-species parameter map; this list just gates which slugs
+// are legal at the server.
 export const PET_SPECIES: PetSpecies[] = [
-  { slug: "cat",     label: "Cat",     emoji: "🐱", emojiByLevel: ["🐱", "🐱", "🐈"] },
-  { slug: "dog",     label: "Dog",     emoji: "🐶", emojiByLevel: ["🐶", "🐶", "🐕"] },
-  { slug: "rabbit",  label: "Rabbit",  emoji: "🐰", emojiByLevel: ["🐰", "🐰", "🐇"] },
-  { slug: "fox",     label: "Fox",     emoji: "🦊", emojiByLevel: ["🦊", "🦊", "🦊"] },
-  { slug: "turtle",  label: "Turtle",  emoji: "🐢", emojiByLevel: ["🐢", "🐢", "🐢"] },
-  { slug: "dragon",  label: "Dragon",  emoji: "🐉", emojiByLevel: ["🐉", "🐉", "🐲"] },
-  { slug: "owl",     label: "Owl",     emoji: "🦉", emojiByLevel: ["🐥", "🦉", "🦅"] },
-  { slug: "penguin", label: "Penguin", emoji: "🐧", emojiByLevel: ["🐧", "🐧", "🐧"] },
+  { slug: "cat", label: "Cat" },
+  { slug: "dog", label: "Dog" },
+  { slug: "rabbit", label: "Rabbit" },
+  { slug: "fox", label: "Fox" },
+  { slug: "turtle", label: "Turtle" },
+  { slug: "dragon", label: "Dragon" },
+  { slug: "owl", label: "Owl" },
+  { slug: "penguin", label: "Penguin" },
+  // Phase M — 8 new species.
+  { slug: "hedgehog", label: "Hedgehog" },
+  { slug: "capybara", label: "Capybara" },
+  { slug: "otter", label: "Otter" },
+  { slug: "axolotl", label: "Axolotl" },
+  { slug: "frog", label: "Frog" },
+  { slug: "panda", label: "Panda" },
+  { slug: "ferret", label: "Ferret" },
+  { slug: "seal", label: "Seal" },
 ];
 
 export function petSpeciesBySlug(slug: string): PetSpecies | undefined {
@@ -52,10 +57,9 @@ export function randomPetSpecies(): PetSpecies {
 // punishing — level 2 ≈ couple weeks of class engagement, level 3 ≈
 // a full course's worth.
 //
-// Adding more levels later: append to PET_LEVEL_THRESHOLDS and
-// extend each species' emojiByLevel tuple. The level computation
-// is "highest threshold the user has crossed" so it's robust to
-// adding new tiers.
+// Adding more levels later: append to PET_LEVEL_THRESHOLDS. The
+// level computation is "highest threshold the user has crossed"
+// so it's robust to adding new tiers.
 export const PET_LEVEL_THRESHOLDS: number[] = [50, 250, 750];
 export const MAX_PET_LEVEL = PET_LEVEL_THRESHOLDS.length;
 
@@ -77,12 +81,27 @@ export function xpForNextLevel(level: number): number | null {
   return PET_LEVEL_THRESHOLDS[level]; // PET_LEVEL_THRESHOLDS is 0-indexed
 }
 
-export function emojiForSpeciesAtLevel(speciesSlug: string, level: number): string {
-  const sp = petSpeciesBySlug(speciesSlug);
-  if (!sp) return "🥚";
-  const idx = Math.min(Math.max(0, level - 1), MAX_PET_LEVEL - 1);
-  return sp.emojiByLevel[idx];
-}
+// Phase M — eye-anchor radius per species, used by PetSilhouetteSVG
+// to place the cosmetic "eyes" slot proportionally. Adapted from
+// the design's EYE_RADIUS_BY_SPECIES table.
+export const EYE_RADIUS_BY_SPECIES: Record<string, number> = {
+  cat: 2.4,
+  dog: 2.4,
+  rabbit: 2.0,
+  fox: 2.2,
+  turtle: 2.0,
+  dragon: 2.4,
+  owl: 3.4,
+  penguin: 2.6,
+  hedgehog: 2.2,
+  capybara: 2.1,
+  otter: 2.3,
+  axolotl: 1.8,
+  frog: 3.0,
+  panda: 2.5,
+  ferret: 2.1,
+  seal: 2.4,
+};
 
 // =============================================================
 // Phase L — Pet skin catalog (data-driven; lives in pet_skins).

@@ -1,4 +1,4 @@
-// Phase L — SkinTile render tests.
+// Phase M — SkinTile render tests.
 
 import { describe, expect, test } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -40,61 +40,58 @@ const legendarySkin: PetSkinDef = {
   fx: { ...baseSkin.fx, animated: "aurora" },
 };
 
-describe("SkinTile — Phase L", () => {
-  test("equipped tile gets aria-pressed=true", () => {
+describe("SkinTile — Phase M", () => {
+  test("equipped tile gets aria-pressed=true and the equipped class", () => {
     const root = render(
-      <SkinTile skin={baseSkin} owned equipped={true} previewSpeciesEmoji="🐱" />,
+      <SkinTile skin={baseSkin} owned equipped={true} previewSpecies="cat" />,
     );
     const btn = root.querySelector("button");
     expect(btn?.getAttribute("aria-pressed")).toBe("true");
-    expect(root.textContent).toContain("equipped");
+    expect(btn!.className).toContain("equipped");
+    expect(root.textContent).toContain("Equipped");
   });
 
-  test("unequipped owned tile shows the rarity + name and no 'locked' badge", () => {
+  test("owned non-equipped tile shows the skin name + 'Owned' meta", () => {
     const root = render(
-      <SkinTile skin={baseSkin} owned equipped={false} previewSpeciesEmoji="🐱" />,
+      <SkinTile skin={baseSkin} owned equipped={false} previewSpecies="cat" />,
     );
+    const btn = root.querySelector("button");
+    expect(btn!.className).toContain("owned");
     expect(root.textContent).toContain("Verdant");
-    expect(root.textContent).toContain("common");
-    expect(root.textContent).not.toContain("locked");
-    expect(root.textContent).toContain("280 XP");
+    expect(root.textContent).toContain("Owned");
   });
 
-  test("unowned tile shows the 'locked' indicator", () => {
+  test("unowned tile renders the obtain callout", () => {
     const root = render(
-      <SkinTile
-        skin={baseSkin}
-        owned={false}
-        equipped={false}
-        previewSpeciesEmoji="🐱"
-      />,
+      <SkinTile skin={baseSkin} owned={false} equipped={false} previewSpecies="cat" />,
     );
-    expect(root.textContent).toContain("locked");
+    const btn = root.querySelector("button");
+    expect(btn!.className).toContain("unowned");
+    // ObtainabilityCallout for xp 280.
+    expect(root.querySelector(".obtain")).not.toBeNull();
+    expect(root.textContent).toContain("280");
   });
 
-  test("legendary grant-only skin shows 'Instructor grant' obtain hint", () => {
+  test("legendary grant-only skin shows 'Instructor grant' obtain callout", () => {
     const root = render(
-      <SkinTile
-        skin={legendarySkin}
-        owned={false}
-        equipped={false}
-        previewSpeciesEmoji="🐱"
-      />,
+      <SkinTile skin={legendarySkin} owned={false} equipped={false} previewSpecies="cat" />,
     );
     expect(root.textContent).toContain("Instructor grant");
   });
 
   test("legendary skin renders the aurora animation layer in the preview", () => {
     const root = render(
-      <SkinTile
-        skin={legendarySkin}
-        owned
-        equipped={true}
-        previewSpeciesEmoji="🐱"
-      />,
+      <SkinTile skin={legendarySkin} owned equipped={true} previewSpecies="cat" />,
     );
-    // The mini-PetAvatar preview inside should include the animated layer.
     const aurora = root.querySelector(".pet-anim-aurora");
     expect(aurora).not.toBeNull();
+  });
+
+  test("each rarity class is set on the tile (drives gradient bg via pet-tokens.css)", () => {
+    const root = render(
+      <SkinTile skin={baseSkin} owned equipped={false} previewSpecies="cat" />,
+    );
+    const btn = root.querySelector(".skin-tile");
+    expect(btn!.className).toContain("common");
   });
 });

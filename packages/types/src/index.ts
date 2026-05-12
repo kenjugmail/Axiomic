@@ -3364,8 +3364,11 @@ export interface ClassDetailResponse {
 
 export interface ClassEquippedCosmetic {
   slot: string;
-  emoji: string | null;
   slug: string;
+  // Phase M — emoji dropped (SVG-only). rarity + failSmall now flow
+  // through so the avatar can render the cosmetic at the right size.
+  rarity?: "common" | "rare" | "epic" | "legendary";
+  failSmall?: boolean;
 }
 
 export interface ClassLeaderboardEntry {
@@ -3378,10 +3381,9 @@ export interface ClassLeaderboardEntry {
     species: string;
     name: string;
     equipped: ClassEquippedCosmetic[];
-    // S90 — pet evolution. Level-aware glyph + level number for the
-    // leaderboard row's PetView.
+    // S90 — pet evolution level for the leaderboard row's PetAvatar.
+    // Phase M — levelEmoji dropped (SVG-only).
     level?: number;
-    levelEmoji?: string;
   } | null;
 }
 
@@ -3525,6 +3527,8 @@ export interface PetCosmeticDef {
   name: string;
   slot: CosmeticSlot;
   renderKind: "emoji" | "svg";
+  // Phase M — emoji stays nullable for back-compat but most rows now
+  // have null here; CosmeticGlyphSVG resolves visuals from slug alone.
   emoji: string | null;
   rarity: CosmeticRarity;
   grantOnly: boolean;
@@ -3533,6 +3537,8 @@ export interface PetCosmeticDef {
   // XP shop. (grantOnly is a S86 flag we keep around for back-
   // compat; xpCost is the source of truth for shop visibility.)
   xpCost?: number | null;
+  // Phase M — when true, cosmetic hides on tiny avatars (24–36px).
+  failSmall?: boolean;
 }
 
 export interface PetCosmeticsCatalogResponse {
@@ -3550,32 +3556,28 @@ export interface PetInventoryItem {
   equipped: boolean;
   acquiredAt: string;
   grantedNote: string | null;
+  // Phase M — propagates to PetAvatar for small-size hiding.
+  failSmall?: boolean;
 }
 
 export interface MyPetResponse {
   pet: {
     id: string;
     species: string;
-    // Level-1 form. Kept around for back-compat with code that
-    // reads speciesEmoji directly. New code should use levelEmoji.
-    speciesEmoji: string;
     speciesLabel: string;
     name: string;
     hatchedAt: string;
     // S90 — pet evolution.
     level: number;
     maxLevel: number;
-    // Emoji for the pet's current level. PetView renders this.
-    levelEmoji: string;
     // XP threshold for the next level, or null at max.
     nextLevelXp: number | null;
     // S100 — full chain for the user's species. UI renders the
     // past + future forms alongside the current one so progression
-    // is visible at a glance.
+    // is visible at a glance. Phase M — no emoji field.
     evolutionChain: Array<{
       level: number;
       threshold: number;
-      emoji: string;
     }>;
     // Phase L — currently-equipped skin slug. Full def is on the
     // top-level `activeSkin` field below.
@@ -3598,7 +3600,6 @@ export interface MyPetResponse {
     id: string;
     species: string;
     speciesLabel: string;
-    speciesEmoji: string;
     level: number;
     name: string;
     hatchedAt: string;
@@ -3690,13 +3691,10 @@ export interface UpdateCompetitionRequest {
 export interface UserPetDisplay {
   pet: {
     species: string;
-    // S90 — speciesEmoji here is level-aware: it's the glyph for
-    // the pet's current level, so bylines automatically reflect
-    // evolution without per-byline level-aware code.
-    speciesEmoji: string;
+    // Phase M — speciesEmoji dropped (SVG-only rendering).
     level: number;
     name: string;
-    equipped: Array<{ slot: string; emoji: string | null; slug: string }>;
+    equipped: Array<{ slot: string; slug: string; rarity?: "common" | "rare" | "epic" | "legendary"; failSmall?: boolean }>;
     // Phase L — currently-equipped skin so bylines render skin FX
     // in one round-trip.
     activeSkin: PetSkinDef;
@@ -3913,13 +3911,12 @@ export interface CosmeticGalleryResponse {
 
 export interface PetShowcaseEquippedItem {
   slot: string;
-  emoji: string | null;
   slug: string;
+  rarity?: "common" | "rare" | "epic" | "legendary";
 }
 
 export interface PetShowcasePet {
   species: string;
-  speciesEmoji: string;
   level: number;
   name: string;
   equipped: PetShowcaseEquippedItem[];

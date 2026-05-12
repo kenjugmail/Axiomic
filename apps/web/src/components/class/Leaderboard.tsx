@@ -8,18 +8,8 @@ import { useState } from "react";
 import { Trophy, Sparkles } from "lucide-react";
 import type { ClassLeaderboardEntry, ClassRole } from "@axiomic/types";
 import { PetAvatar } from "../pet/PetAvatar";
+import { PetSilhouetteSVG } from "../pet/PetSilhouetteSVG";
 import { GrantCosmeticDialog } from "../pet/GrantCosmeticDialog";
-
-const SPECIES_EMOJI: Record<string, string> = {
-  cat: "🐱",
-  dog: "🐶",
-  rabbit: "🐰",
-  fox: "🦊",
-  turtle: "🐢",
-  dragon: "🐉",
-  owl: "🦉",
-  penguin: "🐧",
-};
 
 interface LeaderboardProps {
   classSlug: string;
@@ -53,14 +43,6 @@ export function Leaderboard({
       <ol className="space-y-2">
         {entries.map((e, i) => {
           const isMe = e.userId === currentUserId;
-          // S90 — prefer the level-aware emoji from the server.
-          // Falls back to the static SPECIES_EMOJI map if the
-          // server hasn't sent levelEmoji yet (defensive — should
-          // not happen post-S90 but keeps the leaderboard rendering
-          // through any deploy-skew window).
-          const speciesEmoji = e.pet
-            ? e.pet.levelEmoji ?? SPECIES_EMOJI[e.pet.species] ?? "🥚"
-            : "🥚";
           return (
             <li
               key={e.userId}
@@ -75,7 +57,6 @@ export function Leaderboard({
                 {e.pet ? (
                   <PetAvatar
                     species={e.pet.species}
-                    speciesEmoji={speciesEmoji}
                     level={e.pet.level ?? 1}
                     equipped={{
                       head: e.pet.equipped.find((x) => x.slot === "head") ?? null,
@@ -86,7 +67,10 @@ export function Leaderboard({
                     ariaLabel={`${e.displayName || e.username}'s pet`}
                   />
                 ) : (
-                  <span className="text-2xl text-muted-foreground">🥚</span>
+                  <div style={{ width: 36, height: 36 }}>
+                    {/* No pet yet — render the egg silhouette. */}
+                    <PetSilhouetteSVG />
+                  </div>
                 )}
               </div>
               <div className="flex-1 min-w-0">

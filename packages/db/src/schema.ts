@@ -2539,6 +2539,10 @@ export const petCosmetics = sqliteTable("pet_cosmetics", {
   // available via instructor grant or competition prize).
   // Non-null = students can spend XP to buy it.
   xpCost: integer("xp_cost"),
+  // Phase M — when true, this cosmetic doesn't render well below 36px
+  // and the PetAvatar hides it for tiny avatars (24-36px bylines /
+  // class roster). False (default) cosmetics render at all sizes ≥24px.
+  failSmall: integer("fail_small", { mode: "boolean" }).notNull().default(false),
 });
 
 // What each user owns + which pieces are equipped on their pet.

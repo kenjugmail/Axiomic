@@ -1,29 +1,26 @@
-// Phase L — PetAvatar.
+// Phase M — PetAvatar.
 //
-// Replaces the older PetView. Same emoji-based pet rendering, but
-// the component shape now matches the design-system spec:
-//   - numeric `size` prop (px), not a t-shirt size string
-//   - slug-keyed `equipped` object, not a slot array
-//   - optional `skin` FX layer (gradient bg + particles + glow filter
-//     + animated overlay + rarity ring)
-//   - optional `ring` rarity (renders an inset border via CSS token)
-//   - optional `hero` flag (slightly thicker ring + larger level badge)
+// SVG-only renderer. The visual stack from outside in:
 //
-// Per the Phase L plan, the *inside* still renders the species emoji
-// (passed as `speciesEmoji`, resolved server-side). When real per-
-// species SVG silhouettes ship, this component's render block is the
-// only thing that changes; call sites stay stable.
+//   1. .pet-stage  — design-token framed root. Gets rarity-ring class,
+//      data-mood, data-action, data-skin-fx, data-skin-trans attrs.
+//      Sets stage size from `size` prop. Idle animations (breathe, blink,
+//      ear-twitch) and action animations (hop/wiggle/twirl/sniff/pat)
+//      are all CSS-driven from pet-tokens.css.
+//   2. .pet-skin-layer (optional) — bg gradient + particles + animated.
+//   3. .pet — wraps the silhouette; receives skin filter + glow.
+//   4. <PetSilhouetteSVG /> — the actual pet art (or egg pre-hatch).
+//   5. .cos-overlay × N — slot-positioned <CosmeticGlyphSVG /> overlays.
+//   6. .pet-level-badge — small accent pill at bottom-left.
+//   7. .pet-emotes — floating heart/sparkle when an action is firing.
 //
-// Cosmetics:
-//   - When a cosmetic has an `emoji`, we render the unicode glyph at
-//     its slot position (head / eyes / accessory).
-//   - When `emoji` is null (all Phase L additions seed with
-//     `renderKind=svg, emoji=null`), we render a rarity-tinted disc
-//     with the cosmetic's first-letter initial. Drop-in replacement
-//     until a real SVG glyph registry lands.
-//   - Auto-hide below 36px regardless — the avatar becomes illegible.
+// No emojis anywhere. `speciesEmoji` prop is gone — silhouette resolves
+// the species slug internally, falling back to an SVG egg.
 
+import { Heart, Sparkles } from "lucide-react";
 import type { CSSProperties } from "react";
+import { PetSilhouetteSVG, type PetMood } from "./PetSilhouetteSVG";
+import { CosmeticGlyphSVG, type Rarity } from "./CosmeticGlyphSVG";
 
 export type PetSkinFx = {
   filter: string | null;
@@ -35,22 +32,21 @@ export type PetSkinFx = {
   animated: "aurora" | "crystal" | null;
 };
 
+export type PetAction = "hop" | "wiggle" | "twirl" | "sniff" | "pat";
+
 export interface PetAvatarCosmetic {
   slug: string;
-  emoji: string | null;
-  rarity?: "common" | "rare" | "epic" | "legendary";
+  rarity?: Rarity;
+  // Optional per-cosmetic small-size fallback flag. When true, the
+  // overlay hides between 24-36px even though showCosmetics is true.
+  // Without the flag, default behavior is to hide at <24px only.
+  failSmall?: boolean;
 }
 
 export interface PetAvatarProps {
-  // Species slug, used for the aria label. Not used to resolve the
-  // emoji — that's passed in pre-resolved via `speciesEmoji` so this
-  // component never has to know the species catalog.
-  species: string;
-  // The level-aware emoji glyph (server returns this in MyPetResponse
-  // and /users/:username/pet-display as either `speciesEmoji` or
-  // `levelEmoji`). Falls back to the egg if absent.
-  speciesEmoji?: string;
-  level: number;
+  // Species slug. Silhouette renders the egg when undefined / unknown.
+  species?: string;
+  level?: number;
   equipped?: {
     head?: PetAvatarCosmetic | null;
     eyes?: PetAvatarCosmetic | null;
@@ -58,25 +54,48 @@ export interface PetAvatarProps {
   };
   skin?: PetSkinFx | null;
   size?: number;
-  ring?: false | "common" | "rare" | "epic" | "legendary";
+  ring?: false | Rarity;
   showCosmetics?: boolean;
   hero?: boolean;
+  // Mood drives subtle changes to the silhouette mouth + stage breathe
+  // rate via CSS data-mood attr.
+  mood?: PetMood;
+  // Action fires a one-shot animation on the stage. null/undefined = idle.
+  action?: PetAction | null;
+  // Triggers the pulsing about-to-evolve glow.
+  aboutToEvolve?: boolean;
+  // Triggers a one-shot radial burst when set true. Parent should
+  // flip to false after ~900ms (the keyframe duration) to allow a
+  // re-fire on the next pet_hatched event.
+  hatchBurst?: boolean;
   ariaLabel?: string;
+  className?: string;
 }
 
 // Slot positioning is preserved from PetView so visual fidelity at
-// existing sizes is identical. Tuned for system-emoji bounding boxes.
+// existing sizes is identical. Tuned for the SVG silhouette bounding box.
 const SLOT_STYLE: Record<"head" | "eyes" | "acc", CSSProperties> = {
-  head: { top: "-22%", left: "50%", transform: "translateX(-50%) rotate(-8deg)" },
-  eyes: { top: "12%", left: "50%", transform: "translateX(-50%)" },
-  acc: { bottom: "-8%", right: "-10%" },
+  head: {
+    top: "-18%",
+    left: "50%",
+    transform: "translateX(-50%) rotate(-6deg)",
+  },
+  eyes: {
+    top: "30%",
+    left: "50%",
+    transform: "translateX(-50%)",
+  },
+  acc: {
+    bottom: "-4%",
+    right: "-6%",
+  },
 };
 
-const COSMETIC_SCALE = 0.55;
-// Below this size the cosmetic overlays cease to read; hide for
-// legibility. Matches the design's `failSmall` UX intent without
-// per-cosmetic metadata.
-const COSMETIC_HIDE_BELOW_PX = 36;
+const COSMETIC_SCALE = 0.42;
+// Below 24px, every cosmetic is too small to read; hide all.
+const COSMETIC_MIN_PX = 24;
+// Between 24 and 36px, only cosmetics flagged failSmall=true hide.
+const COSMETIC_FAILSMALL_BREAKPOINT_PX = 36;
 
 function hexToRgba(hex: string, alpha: number): string {
   const h = hex.replace("#", "");
@@ -84,35 +103,6 @@ function hexToRgba(hex: string, alpha: number): string {
   const g = parseInt(h.slice(2, 4), 16);
   const b = parseInt(h.slice(4, 6), 16);
   return `rgba(${r},${g},${b},${alpha})`;
-}
-
-function CosmeticOverlay({
-  cos,
-  fontSize,
-}: {
-  cos: PetAvatarCosmetic;
-  fontSize: number;
-}) {
-  if (cos.emoji) {
-    return <span style={{ fontSize, lineHeight: 1 }}>{cos.emoji}</span>;
-  }
-  // Fallback for emoji=null (renderKind=svg) cosmetics. First-letter
-  // initial in a rarity-tinted disc. The disc fills the overlay span;
-  // initial is sized off the parent font-size.
-  const initial = (cos.slug || "?").charAt(0).toUpperCase();
-  const rarity = cos.rarity ?? "common";
-  return (
-    <span
-      className={`cos-overlay-fallback rar-${rarity}`}
-      style={{
-        width: fontSize,
-        height: fontSize,
-        fontSize: Math.round(fontSize * 0.6),
-      }}
-    >
-      {initial}
-    </span>
-  );
 }
 
 function SkinFX({ fx }: { fx: PetSkinFx }) {
@@ -128,39 +118,69 @@ function SkinFX({ fx }: { fx: PetSkinFx }) {
   );
 }
 
+// Floating-emote overlay. The pet-emotes element is animated by
+// pet-tokens.css whenever data-action is set on the stage.
+function PetEmote({ action }: { action: PetAction | null | undefined }) {
+  if (!action) return null;
+  const iconSize = 18;
+  // Heart for pat, sparkle for hop/wiggle/twirl/sniff (default play).
+  if (action === "pat") {
+    return (
+      <div className="pet-emotes" aria-hidden="true">
+        <Heart size={iconSize} fill="currentColor" />
+      </div>
+    );
+  }
+  return (
+    <div className="pet-emotes" aria-hidden="true">
+      <Sparkles size={iconSize} />
+    </div>
+  );
+}
+
 export function PetAvatar({
   species,
-  speciesEmoji,
-  level,
+  level = 1,
   equipped,
   skin,
   size = 96,
   ring = false,
   showCosmetics = true,
   hero = false,
+  mood = "calm",
+  action = null,
+  aboutToEvolve = false,
+  hatchBurst = false,
   ariaLabel,
-}: PetAvatarProps) {
+  className,
+}: PetAvatarProps): JSX.Element {
   const px = size;
-  const petSize = Math.round(px * 0.78);
+  const petSize = Math.round(px * 0.82);
   const cosmeticSize = Math.round(px * COSMETIC_SCALE);
-  const cosmeticsVisible = showCosmetics && px >= COSMETIC_HIDE_BELOW_PX;
 
-  // Resolve the species glyph. Egg is the safe fallback — same as the
-  // server-side helper. Caller almost always passes this in.
-  const glyph = speciesEmoji ?? "🥚";
+  // Cosmetic visibility tiering.
+  const tooSmallForAny = px < COSMETIC_MIN_PX;
+  const inFailSmallRange = px < COSMETIC_FAILSMALL_BREAKPOINT_PX;
 
   const ringClass = ring ? `ring-${ring}` : "";
   const heroClass = hero ? "hero" : "";
-  const stageClass = `pet-stage ${ringClass} ${heroClass}`.trim();
+  const evolveClass = aboutToEvolve ? "about-to-evolve" : "";
+  const hatchClass = hatchBurst ? "hatch-burst" : "";
+  const stageClass = `pet-stage ${ringClass} ${heroClass} ${evolveClass} ${hatchClass} ${className ?? ""}`
+    .replace(/\s+/g, " ")
+    .trim();
 
-  // Skin filter + glow are inline because they're per-skin and
-  // computed (glow needs hex-to-rgba). Keep them on the inner .pet
-  // so the rarity ring (on .pet-stage) doesn't inherit the blur.
+  // Skin FX intersection with rarity ring is dampened by the stage's
+  // data-skin-fx attr; the CSS handles tone-down so we don't have to.
+  const hasSkinFx = !!(skin && (skin.particles || skin.animated));
+  const skinTrans = !!(skin && skin.opacity < 0.8);
+
+  // Skin filter + glow are inline because they're per-skin and computed
+  // (glow needs hex-to-rgba). Keep them on the inner .pet so the rarity
+  // ring (on .pet-stage) doesn't inherit the blur.
   const petStyle: CSSProperties = {
     width: petSize,
     height: petSize,
-    fontSize: petSize,
-    lineHeight: 1,
     opacity: skin?.opacity ?? 1,
   };
   if (skin) {
@@ -168,7 +188,10 @@ export function PetAvatar({
     if (skin.filter) parts.push(skin.filter);
     if (skin.glow) {
       parts.push(
-        `drop-shadow(0 0 ${skin.glow.blur * 0.5}px ${hexToRgba(skin.glow.color, Math.min(1, skin.glow.alpha + 0.1))})`,
+        `drop-shadow(0 0 ${skin.glow.blur * 0.5}px ${hexToRgba(
+          skin.glow.color,
+          Math.min(1, skin.glow.alpha + 0.1),
+        )})`,
       );
     }
     if (parts.length) petStyle.filter = parts.join(" ");
@@ -177,24 +200,30 @@ export function PetAvatar({
   const showLevelBadge = level >= 1 && (hero || px >= 56);
 
   // Selectively pick which equipped slots to render. We intentionally
-  // drop the 'eyes' slot from the overlay layer — the existing PetView
-  // also skipped eyes (kept for hatching/level animations). Matches
-  // the design's `equipped.eyes` (currently unused on the overlay).
-  const items = cosmeticsVisible
-    ? (["head", "acc"] as const)
-        .map((slot) => {
-          const c = equipped?.[slot] ?? null;
-          return c ? { slot, cos: c } : null;
-        })
-        .filter((x): x is { slot: "head" | "acc"; cos: PetAvatarCosmetic } => !!x)
-    : [];
+  // drop the 'eyes' slot from the overlay layer — the legacy PetView
+  // also skipped eyes and the eye-cosmetic SVGs need different anchor
+  // logic per species (future work). Matches the design's behavior of
+  // not rendering eye glyphs on the avatar at the current scale.
+  const items: Array<{ slot: "head" | "acc"; cos: PetAvatarCosmetic }> = [];
+  if (showCosmetics && !tooSmallForAny) {
+    const head = equipped?.head ?? null;
+    const acc = equipped?.acc ?? null;
+    const shouldHide = (c: PetAvatarCosmetic) =>
+      inFailSmallRange && c.failSmall === true;
+    if (head && !shouldHide(head)) items.push({ slot: "head", cos: head });
+    if (acc && !shouldHide(acc)) items.push({ slot: "acc", cos: acc });
+  }
 
   return (
     <div
       role="img"
-      aria-label={ariaLabel ?? `${species} pet, level ${level}`}
+      aria-label={ariaLabel ?? `${species ?? "egg"} pet, level ${level}`}
       className={stageClass}
-      style={{ width: px, height: px, fontSize: px }}
+      data-mood={mood}
+      data-action={action ?? undefined}
+      data-skin-fx={hasSkinFx ? "true" : undefined}
+      data-skin-trans={skinTrans ? "true" : undefined}
+      style={{ width: px, height: px }}
     >
       {skin && (
         <div className="pet-skin-layer">
@@ -202,7 +231,7 @@ export function PetAvatar({
         </div>
       )}
       <div className="pet" style={petStyle}>
-        <span className="pet-emoji">{glyph}</span>
+        <PetSilhouetteSVG species={species} level={level} mood={mood} />
       </div>
       {items.map(({ slot, cos }) => (
         <span
@@ -213,10 +242,13 @@ export function PetAvatar({
             ...SLOT_STYLE[slot],
             width: cosmeticSize,
             height: cosmeticSize,
-            fontSize: cosmeticSize,
           }}
         >
-          <CosmeticOverlay cos={cos} fontSize={cosmeticSize} />
+          <CosmeticGlyphSVG
+            slug={cos.slug}
+            rarity={cos.rarity ?? "common"}
+            size={cosmeticSize}
+          />
         </span>
       ))}
       {showLevelBadge && (
@@ -224,6 +256,7 @@ export function PetAvatar({
           Lv{level}
         </span>
       )}
+      <PetEmote action={action} />
     </div>
   );
 }

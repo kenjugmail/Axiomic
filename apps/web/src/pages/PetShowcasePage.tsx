@@ -75,7 +75,6 @@ export function PetShowcasePage() {
                 >
                   <PetAvatar
                     species={entry.pet.species}
-                    speciesEmoji={entry.pet.speciesEmoji}
                     level={entry.pet.level}
                     equipped={{
                       head: entry.pet.equipped.find((x) => x.slot === "head") ?? null,
@@ -120,7 +119,6 @@ export function PetShowcasePage() {
                 >
                   <PetAvatar
                     species={entry.pet.species}
-                    speciesEmoji={entry.pet.speciesEmoji}
                     level={entry.pet.level}
                     equipped={{
                       head: entry.pet.equipped.find((x) => x.slot === "head") ?? null,

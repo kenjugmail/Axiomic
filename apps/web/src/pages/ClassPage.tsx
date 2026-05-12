@@ -35,6 +35,7 @@ import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { Leaderboard } from "../components/class/Leaderboard";
 import { AttendanceGrid } from "../components/class/AttendanceGrid";
 import { CompetitionsList } from "../components/class/CompetitionsList";
+import { PetByUsername } from "../components/pet/PetByUsername";
 import { ClassQuestionWidget } from "../components/class/ClassQuestionWidget";
 import { toast } from "../stores/toast";
 
@@ -695,10 +696,15 @@ function RosterPanel({
           key={m.userId}
           className="flex items-center justify-between gap-3 p-3 rounded-md border border-border"
         >
-          <div>
-            <div className="text-sm font-medium">{m.displayName || m.username}</div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              {m.role} · joined {formatDate(m.joinedAt)}
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Phase M — pet avatar inline with the username. xs size
+                (24px) — cosmetics auto-hide for failSmall items. */}
+            <PetByUsername username={m.username} size="xs" />
+            <div className="min-w-0">
+              <div className="text-sm font-medium">{m.displayName || m.username}</div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                {m.role} · joined {formatDate(m.joinedAt)}
+              </div>
             </div>
           </div>
           {isInstructor && m.role !== "instructor" && (

@@ -3,10 +3,11 @@
 // Aspirational widget: shows all 3 forms of the user's species
 // horizontally. Past + current forms render full color; unreached
 // forms are grayed with a "X XP to unlock" caption underneath.
-// Helps the player see the destination, not just today's level.
+// Phase M — switched to mini-PetSilhouetteSVG per level (no emoji).
 
 import { ChevronRight } from "lucide-react";
 import type { MyPetResponse } from "@axiomic/types";
+import { PetSilhouetteSVG } from "./PetSilhouetteSVG";
 
 type Pet = NonNullable<MyPetResponse["pet"]>;
 
@@ -30,12 +31,13 @@ export function EvolutionChain({ pet, totalXp }: EvolutionChainProps) {
             <div key={entry.level} className="contents">
               <div className="flex flex-col items-center gap-1 text-center min-w-0">
                 <div
-                  className={`text-3xl ${reached ? "" : "opacity-30 grayscale"} ${
+                  className={`${reached ? "" : "opacity-30 grayscale"} ${
                     isCurrent ? "scale-110" : ""
                   }`}
+                  style={{ width: 48, height: 48 }}
                   title={`Level ${entry.level}`}
                 >
-                  {entry.emoji}
+                  <PetSilhouetteSVG species={pet.species} level={entry.level} />
                 </div>
                 <div className={`text-[10px] uppercase tracking-wider ${
                   isCurrent ? "text-primary font-semibold" : "text-muted-foreground"

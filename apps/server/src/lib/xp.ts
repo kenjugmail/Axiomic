@@ -15,7 +15,6 @@ import {
   randomPetSpecies,
   petSpeciesBySlug,
   levelForXp,
-  emojiForSpeciesAtLevel,
   MAX_PET_LEVEL,
 } from "./pets";
 import { currentStreak } from "./achievements";
@@ -313,7 +312,6 @@ export function maybeLevelUp(userId: string): number | null {
   // same crossing dedup at the partial-unique-index layer.
   const speciesLabel = petSpeciesBySlug(pet.species)?.label ?? "Your pet";
   for (let lv = pet.level + 1; lv <= newLevel; lv++) {
-    const emoji = emojiForSpeciesAtLevel(pet.species, lv);
     void notify({
       recipientId: userId,
       actorId: null,
@@ -321,7 +319,7 @@ export function maybeLevelUp(userId: string): number | null {
       subjectType: "pet",
       subjectId: `${pet.id}:lv${lv}`,
       contextSlug: null,
-      preview: `${speciesLabel} reached level ${lv} ${emoji}`,
+      preview: `${speciesLabel} reached level ${lv}`,
     });
   }
   return newLevel;

@@ -117,23 +117,22 @@ export function PetByUsername({
     );
   }
 
-  // Phase L — convert the API's slot-keyed array to the PetAvatar's
-  // {head, eyes, acc} object shape. The server uses 'accessory'; the
-  // component uses 'acc' (matching design convention).
+  // Phase M — convert API's slot-keyed array to the PetAvatar's
+  // {head, eyes, acc} object shape. Server uses 'accessory'; the
+  // component uses 'acc' (matching design convention). The API
+  // also includes failSmall per cosmetic (Phase M.12); pass it
+  // through so byline pets hide failSmall cosmetics at 24px.
   const equippedObj = {
-    head: pet.equipped.find((e) => e.slot === "head") ?? null,
-    eyes: pet.equipped.find((e) => e.slot === "eyes") ?? null,
-    acc: pet.equipped.find((e) => e.slot === "accessory") ?? null,
+    head: findEquipped(pet.equipped, "head"),
+    eyes: findEquipped(pet.equipped, "eyes"),
+    acc: findEquipped(pet.equipped, "accessory"),
   };
   const px = FALLBACK_PX[size];
 
   return (
     <span className={className} style={{ display: "inline-block" }}>
-      {/* S90 — speciesEmoji from the API is already level-aware,
-          so the byline reflects evolution without level prop. */}
       <PetAvatar
         species={pet.species}
-        speciesEmoji={pet.speciesEmoji}
         level={pet.level}
         equipped={equippedObj}
         skin={pet.activeSkin?.fx ?? null}
@@ -141,6 +140,22 @@ export function PetByUsername({
       />
     </span>
   );
+}
+
+// Helper: server returns equipped as an array; PetAvatar wants slot-keyed
+// object. The PetCosmetic shape now omits `emoji` (Phase M.13 drops it),
+// but the response may still surface `failSmall` and `rarity` per item.
+function findEquipped(
+  arr: Pet["equipped"],
+  slot: string,
+): { slug: string; rarity?: "common" | "rare" | "epic" | "legendary"; failSmall?: boolean } | null {
+  const found = arr.find((e) => e.slot === slot);
+  if (!found) return null;
+  return {
+    slug: found.slug,
+    rarity: (found as { rarity?: "common" | "rare" | "epic" | "legendary" }).rarity,
+    failSmall: (found as { failSmall?: boolean }).failSmall,
+  };
 }
 
 // Test hook: clears the module-level cache. Not part of the public

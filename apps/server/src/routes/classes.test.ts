@@ -817,12 +817,11 @@ describe("/users/:username/pet-display (S87)", () => {
     const data = (await res.json()) as {
       pet: {
         species: string;
-        speciesEmoji: string;
-        equipped: Array<{ slug: string; emoji: string | null }>;
+        equipped: Array<{ slug: string }>;
       } | null;
     };
     expect(data.pet).not.toBeNull();
-    expect(data.pet?.speciesEmoji).toBeTruthy();
+    expect(data.pet?.species).toBeTruthy();
     expect(data.pet?.equipped.some((e) => e.slug === "fire")).toBe(true);
   });
 });
@@ -2018,7 +2017,7 @@ describe("S100 evolution chain on /me/pet", () => {
     const data = (await me.json()) as {
       pet: {
         species: string;
-        evolutionChain: Array<{ level: number; threshold: number; emoji: string }>;
+        evolutionChain: Array<{ level: number; threshold: number }>;
       };
     };
     expect(data.pet.evolutionChain.length).toBe(3);
@@ -2030,10 +2029,8 @@ describe("S100 evolution chain on /me/pet", () => {
         data.pet.evolutionChain[i - 1].threshold,
       );
     }
-    // Each emoji is non-empty.
-    for (const entry of data.pet.evolutionChain) {
-      expect(entry.emoji.length).toBeGreaterThan(0);
-    }
+    // Phase M — emoji field dropped from evolutionChain; SVG silhouette
+    // owns rendering on the client.
   });
 });
 

@@ -1,85 +1,121 @@
-// S86 — Catalog list item for a cosmetic.
-// Used in the inventory grid + grant-cosmetic dialog.
+// Phase M — CosmeticChip / cos-tile.
 //
-// Phase L — rarity colors switched to the --r-* CSS tokens (also
-// used by PetAvatar's ring). Cosmetics with emoji=null (the new
-// renderKind=svg additions) render an initial-disc fallback in the
-// rarity color, identical to PetAvatar's CosmeticOverlay fallback.
+// Replaces Phase L's flat chip with the design's full .cos-tile spec:
+//   - aspect-ratio 1:1.15
+//   - rarity radial tile-tint via the .common/.rare/.epic/.legendary class
+//   - legendary foil-spin animation when owned
+//   - equip-pop animation on the glyph when equipped
+//   - .unowned state: grayscale + opacity drop
+//   - rarity glyph at top-right corner
+//   - RarityBadge + ObtainabilityCallout in the tile's metadata strip
+//   - CosmeticGlyphSVG renders the actual cosmetic art
 
 import type { CosmeticRarity, CosmeticSlot } from "@axiomic/types";
+import { CosmeticGlyphSVG } from "./CosmeticGlyphSVG";
+import { RarityBadge } from "./RarityBadge";
+import { ObtainabilityCallout, type Obtain } from "./ObtainabilityCallout";
+
+const RARITY_GLYPH: Record<CosmeticRarity, string> = {
+  common: "◆",
+  rare: "◆",
+  epic: "⬥",
+  legendary: "★",
+};
 
 interface CosmeticChipProps {
   slug: string;
   name: string;
-  emoji: string | null;
   slot: CosmeticSlot;
   rarity: CosmeticRarity;
   description?: string;
   equipped?: boolean;
-  onClick?: () => void;
+  owned?: boolean;
+  // Distinct from `equipped` — "currently selected in a picker" (e.g.
+  // when choosing a prize cosmetic for a competition, or a grant target).
+  // Renders a ring around the tile.
   selected?: boolean;
+  onClick?: () => void;
+  // When the tile is unowned in someone else's gallery, surface how to
+  // obtain it. The viewer-is-owner case omits the callout (it's already
+  // known what they earned).
+  obtain?: Obtain;
+  obtainCost?: number | null;
 }
 
 export function CosmeticChip({
   slug,
   name,
-  emoji,
   slot,
   rarity,
   description,
   equipped,
-  onClick,
+  owned = true,
   selected,
+  onClick,
+  obtain,
+  obtainCost,
 }: CosmeticChipProps) {
-  const initial = (slug || "?").charAt(0).toUpperCase();
+  const classes = [
+    "cos-tile",
+    rarity,
+    owned ? "owned" : "unowned",
+    equipped ? "equipped" : "",
+    selected ? "selected" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`relative text-left p-3 rounded-md border transition-colors ${
-        selected
-          ? "ring-2 ring-primary"
-          : onClick
-            ? "hover:bg-accent/40 cursor-pointer"
-            : ""
-      } ${equipped ? "bg-emerald-500/5" : "bg-background"}`}
-      style={{ borderColor: `var(--r-${rarity})` }}
+      className={classes}
+      title={description || name}
+      aria-pressed={!!equipped}
     >
-      <div className="flex items-start gap-3">
-        {emoji ? (
-          <div className="text-2xl leading-none">{emoji}</div>
-        ) : (
-          // Phase L — emoji=null fallback. Matches PetAvatar's
-          // CosmeticOverlay so the catalog + the avatar agree.
-          <div
-            className={`cos-overlay-fallback rar-${rarity}`}
-            style={{ width: 28, height: 28, fontSize: 16 }}
-          >
-            {initial}
-          </div>
+      <span className="corner" aria-hidden="true">
+        {RARITY_GLYPH[rarity]}
+      </span>
+      <span className="glyph">
+        <CosmeticGlyphSVG
+          slug={slug}
+          rarity={rarity}
+          size={48}
+          tone={owned ? "full" : "muted"}
+        />
+      </span>
+      <span className="nm" title={name}>
+        {name}
+      </span>
+      {/* Metadata strip — rarity + (when unowned + obtainable) callout. */}
+      <span
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 6,
+          marginTop: 2,
+          width: "100%",
+          flexWrap: "wrap",
+        }}
+      >
+        <RarityBadge rarity={rarity} compact />
+        {!owned && obtain && obtain !== "default" && (
+          <ObtainabilityCallout obtain={obtain} cost={obtainCost ?? null} />
         )}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium truncate">{name}</span>
-            <span
-              className="text-[10px] uppercase tracking-wider"
-              style={{ color: `var(--r-${rarity})` }}
-            >
-              {rarity}
-            </span>
-          </div>
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-            {slot}
-            {equipped && <span className="ml-1.5 text-emerald-600">· equipped</span>}
-          </div>
-          {description && (
-            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-              {description}
-            </p>
-          )}
-        </div>
-      </div>
+      </span>
+      {/* Slot metadata — useful in the equipment grid. Tiny + muted. */}
+      <span
+        style={{
+          fontSize: 9,
+          letterSpacing: ".08em",
+          textTransform: "uppercase",
+          color: "var(--ink-4)",
+          marginTop: 1,
+        }}
+      >
+        {slot}
+      </span>
     </button>
   );
 }
