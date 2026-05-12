@@ -15,6 +15,7 @@ import {
   petCosmetics,
   petInventory,
   petSkinInventory,
+  petSkins,
   pets,
   users,
   xpGrants,
@@ -77,6 +78,121 @@ export function nextHatchThreshold(currentPetCount: number): number | null {
 // GET /me/pet — pet + inventory + total XP + threshold so the UI
 // can show "X more XP until your pet hatches" before the first
 // cross of the threshold.
+// Phase X — when DEV_AUTH_BYPASS is on, the dev user shouldn't have
+// to grind to test cosmetics, skins, or multi-pet UI. On every
+// /me/pet GET we top them up: every cosmetic owned (and one of each
+// slot equipped on the active pet so the renderer + animations have
+// something to show), every skin owned, plus a few extra pets so
+// the per-pet skin switcher tabs render.
+//
+// Idempotent — does nothing once the dev user is fully seeded.
+function devSeedFullCatalog(userId: string): void {
+  if (!isDevBypass(userId)) return;
+  const db = getDb();
+
+  // 1. Grant every cosmetic to the user.
+  const allCosmetics = db
+    .select({ slug: petCosmetics.slug, slot: petCosmetics.slot })
+    .from(petCosmetics)
+    .all();
+  const ownedCosmeticRows = db
+    .select({ slug: petInventory.cosmeticSlug })
+    .from(petInventory)
+    .where(eq(petInventory.userId, userId))
+    .all();
+  const ownedCosmeticSet = new Set(ownedCosmeticRows.map((r) => r.slug));
+  for (const c of allCosmetics) {
+    if (ownedCosmeticSet.has(c.slug)) continue;
+    db.insert(petInventory)
+      .values({
+        id: randomUUID(),
+        userId,
+        cosmeticSlug: c.slug,
+        equipped: false,
+      })
+      .onConflictDoNothing()
+      .run();
+  }
+
+  // 2. Grant every skin.
+  const allSkinSlugs = db.select({ slug: petSkins.slug }).from(petSkins).all();
+  const ownedSkinRows = db
+    .select({ slug: petSkinInventory.skinSlug })
+    .from(petSkinInventory)
+    .where(eq(petSkinInventory.userId, userId))
+    .all();
+  const ownedSkinSet = new Set(ownedSkinRows.map((r) => r.slug));
+  for (const s of allSkinSlugs) {
+    if (ownedSkinSet.has(s.slug)) continue;
+    db.insert(petSkinInventory)
+      .values({
+        id: randomUUID(),
+        userId,
+        skinSlug: s.slug,
+      })
+      .onConflictDoNothing()
+      .run();
+  }
+
+  // 3. Ensure 3 pets exist (varied species for the switcher tabs).
+  const DEV_PET_SPECIES = ["cat", "fox", "owl"];
+  const existingPets = db.select().from(pets).where(eq(pets.userId, userId)).all();
+  const existingSpecies = new Set(existingPets.map((p) => p.species));
+  let activePetId: string | null = existingPets[0]?.id ?? null;
+  for (const species of DEV_PET_SPECIES) {
+    if (existingSpecies.has(species)) continue;
+    const petId = randomUUID();
+    db.insert(pets)
+      .values({
+        id: petId,
+        userId,
+        species,
+        level: 2,
+        activeSkinSlug: "default",
+      })
+      .run();
+    if (!activePetId) activePetId = petId;
+  }
+  if (activePetId) {
+    db.update(users).set({ activePetId }).where(eq(users.id, userId)).run();
+  }
+
+  // 4. Auto-equip ONE cosmetic per slot on the active pet so the
+  // renderer + cosmetic-overlay animations have something visible.
+  const slots = ["head", "eyes", "accessory"] as const;
+  for (const slot of slots) {
+    const anyEquipped = db
+      .select({ id: petInventory.id })
+      .from(petInventory)
+      .innerJoin(petCosmetics, eq(petCosmetics.slug, petInventory.cosmeticSlug))
+      .where(
+        and(
+          eq(petInventory.userId, userId),
+          eq(petInventory.equipped, true),
+          eq(petCosmetics.slot, slot),
+        ),
+      )
+      .get();
+    if (anyEquipped) continue;
+    const first = db
+      .select({ id: petInventory.id })
+      .from(petInventory)
+      .innerJoin(petCosmetics, eq(petCosmetics.slug, petInventory.cosmeticSlug))
+      .where(
+        and(
+          eq(petInventory.userId, userId),
+          eq(petCosmetics.slot, slot),
+        ),
+      )
+      .get();
+    if (!first) continue;
+    db.update(petInventory)
+      .set({ equipped: true })
+      .where(eq(petInventory.id, first.id))
+      .run();
+  }
+}
+
 petRouter.get("/", requireAuth, (c) => {
   const user = c.get("user")!;
   const db = getDb();
@@ -86,6 +202,11 @@ petRouter.get("/", requireAuth, (c) => {
   // forum users, or anyone whose account predates this change).
   // Idempotent: no-op if a pet already exists.
   maybeHatchPet(user.id);
+
+  // Phase X — dev convenience: grant the bypass user the full
+  // cosmetic + skin catalog, 3 pets, and one equipped item per slot.
+  // Production has no effect (gated by isDevBypass).
+  devSeedFullCatalog(user.id);
 
   // S104 — pet is now the user's ACTIVE pet (one of possibly many).
   // The pets array further down surfaces every pet they own.
@@ -392,19 +513,23 @@ petRouter.post("/hatch-another", requireAuth, (c) => {
     // is here without any pet, send them through that path.
     return c.json({ error: "Earn XP to hatch your first pet automatically" }, 400);
   }
-  if (owned.length >= MAX_PETS_PER_USER) {
+  // Phase X — dev bypass: no XP threshold, no pet cap.
+  const devBypass = isDevBypass(user.id);
+  if (!devBypass && owned.length >= MAX_PETS_PER_USER) {
     return c.json({ error: "Pet cap reached", petCap: MAX_PETS_PER_USER }, 409);
   }
-  const threshold = nextHatchThreshold(owned.length);
-  if (threshold == null) {
-    return c.json({ error: "No more hatches available" }, 409);
-  }
-  const totalXp = totalXpForUser(user.id);
-  if (totalXp < threshold) {
-    return c.json(
-      { error: "Need more XP to hatch another pet", totalXp, threshold },
-      402,
-    );
+  if (!devBypass) {
+    const threshold = nextHatchThreshold(owned.length);
+    if (threshold == null) {
+      return c.json({ error: "No more hatches available" }, 409);
+    }
+    const totalXp = totalXpForUser(user.id);
+    if (totalXp < threshold) {
+      return c.json(
+        { error: "Need more XP to hatch another pet", totalXp, threshold },
+        402,
+      );
+    }
   }
 
   const species = randomPetSpecies();
