@@ -19,6 +19,8 @@ import { AUDIENCES } from "../marketing/audiences";
 import { VerifyEmailBanner } from "./VerifyEmailBanner";
 import { FeedbackWidget } from "./FeedbackWidget";
 import { PetMomentsHost } from "./pet/PetMomentsHost";
+import { DevSpeciesProvider } from "./dev/DevSpeciesContext";
+import { TweaksPanel } from "./dev/TweaksPanel";
 
 type NavItem = { to: string; label: string };
 type NavSection = { heading: string; links: NavItem[] };
@@ -166,6 +168,7 @@ export function Layout() {
     : null;
 
   return (
+    <DevSpeciesProvider>
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-border bg-card/95 backdrop-blur sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-3">
@@ -477,6 +480,8 @@ export function Layout() {
       <SearchDialog isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
       <ShortcutsDialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
       <PetMomentsHost />
+      <TweaksPanel />
     </div>
+    </DevSpeciesProvider>
   );
 }

@@ -17,10 +17,10 @@
 // No emojis anywhere. `speciesEmoji` prop is gone — silhouette resolves
 // the species slug internally, falling back to an SVG egg.
 
-import { Heart, Sparkles } from "lucide-react";
 import type { CSSProperties } from "react";
 import { PetSilhouetteSVG, type PetMood } from "./PetSilhouetteSVG";
 import { CosmeticGlyphSVG, type Rarity } from "./CosmeticGlyphSVG";
+import { useDevSpeciesOverride } from "../dev/DevSpeciesContext";
 
 export type PetSkinFx = {
   filter: string | null;
@@ -120,23 +120,68 @@ function SkinFX({ fx }: { fx: PetSkinFx }) {
 
 // Floating-emote overlay. The pet-emotes element is animated by
 // pet-tokens.css whenever data-action is set on the stage.
+//
+// Phase 8D — each action has a distinct emote glyph ported verbatim
+// from the prototype's components.jsx:75-92. The 22×22 viewBox keeps
+// the SVG crisp at the pet-stage emote size.
 function PetEmote({ action }: { action: PetAction | null | undefined }) {
   if (!action) return null;
-  const iconSize = 18;
-  // Heart for pat, sparkle for hop/wiggle/twirl/sniff (default play).
-  if (action === "pat") {
-    return (
-      <div className="pet-emotes" aria-hidden="true">
-        <Heart size={iconSize} fill="currentColor" />
-      </div>
-    );
-  }
+  const Glyph = EMOTE_SVG[action];
+  if (!Glyph) return null;
   return (
     <div className="pet-emotes" aria-hidden="true">
-      <Sparkles size={iconSize} />
+      <Glyph />
     </div>
   );
 }
+
+const EMOTE_SVG: Record<PetAction, () => JSX.Element> = {
+  pat: () => (
+    <svg width={22} height={22} viewBox="0 0 24 24">
+      <path
+        fill="#d97c7c"
+        stroke="#7a2c2c"
+        strokeWidth={1.6}
+        d="M12 21s-7-4.3-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.7-7 10-7 10z"
+      />
+    </svg>
+  ),
+  twirl: () => (
+    <svg width={22} height={22} viewBox="0 0 24 24">
+      <path
+        fill="#d8a04e"
+        stroke="#7a5828"
+        strokeWidth={1.4}
+        d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"
+      />
+    </svg>
+  ),
+  wiggle: () => (
+    <svg width={22} height={22} viewBox="0 0 24 24">
+      <circle cx={12} cy={12} r={6} fill="#7ac1d5" stroke="#2a5680" strokeWidth={1.4} />
+      <path
+        d="M9 11l2 2 4-4"
+        fill="none"
+        stroke="#1a3a5a"
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
+  sniff: () => (
+    <svg width={22} height={22} viewBox="0 0 24 24">
+      <circle cx={8} cy={14} r={2} fill="#9a6b3a" />
+      <circle cx={14} cy={10} r={2.4} fill="#9a6b3a" />
+      <circle cx={18} cy={16} r={1.6} fill="#9a6b3a" />
+    </svg>
+  ),
+  hop: () => (
+    <svg width={22} height={22} viewBox="0 0 24 24">
+      <path fill="#d8a04e" d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z" />
+    </svg>
+  ),
+};
 
 export function PetAvatar({
   species,
@@ -154,6 +199,10 @@ export function PetAvatar({
   ariaLabel,
   className,
 }: PetAvatarProps): JSX.Element {
+  // Phase 8E — dev TweaksPanel can force a species globally without
+  // touching the server. Returns null when no override is set.
+  const devSpecies = useDevSpeciesOverride();
+  if (devSpecies) species = devSpecies;
   const px = size;
   const petSize = Math.round(px * 0.82);
   const cosmeticSize = Math.round(px * COSMETIC_SCALE);
