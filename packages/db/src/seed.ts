@@ -30,6 +30,8 @@ import {
   // S86 — pet cosmetic catalog.
   petCosmetics,
   petSkins,
+  pets,
+  petSkinInventory,
   // S108 — demo cohort seed for college / investor pitches.
   classes,
   classEnrollments,
@@ -1931,10 +1933,10 @@ const SEED_DOMAINS = [
 ];
 
 const SEED_FORUM_USERS = [
-  { username: "alice", displayName: "Alice", bio: "Mech-interp researcher." },
-  { username: "bob", displayName: "Bob", bio: "Optimization & math foundations." },
-  { username: "carol", displayName: "Carol", bio: "Theoretical ML." },
-  { username: "dave", displayName: "Dave", bio: "Systems and inference engineering." },
+  { username: "alice", displayName: "Alice", bio: "Mech-interp researcher.", species: "cat", level: 2 },
+  { username: "bob", displayName: "Bob", bio: "Optimization & math foundations.", species: "fox", level: 2 },
+  { username: "carol", displayName: "Carol", bio: "Theoretical ML.", species: "owl", level: 1 },
+  { username: "dave", displayName: "Dave", bio: "Systems and inference engineering.", species: "otter", level: 1 },
 ];
 
 function ensureForumUser(username: string, displayName: string, bio: string): string {
@@ -1953,6 +1955,28 @@ function ensureForumUser(username: string, displayName: string, bio: string): st
     emailVerifiedAt: new Date().toISOString(),
   }).run();
   return id;
+}
+
+// Give a seeded forum user a starter pet so forum bylines,
+// leaderboards, and PetByUsername render visible avatars on a
+// fresh DB. Idempotent: skip when the user already owns a pet.
+function ensureStarterPet(userId: string, species: string, level: number): void {
+  const existing = db.select({ id: pets.id }).from(pets).where(eq(pets.userId, userId)).get();
+  if (existing) return;
+  const petId = randomUUID();
+  db.insert(pets).values({
+    id: petId,
+    userId,
+    species,
+    level,
+    activeSkinSlug: "default",
+  }).run();
+  db.update(users).set({ activePetId: petId }).where(eq(users.id, userId)).run();
+  db.insert(petSkinInventory).values({
+    id: randomUUID(),
+    userId,
+    skinSlug: "default",
+  }).onConflictDoNothing().run();
 }
 
 function ensureDomain(slug: string, title: string, description: string): string {
@@ -2031,20 +2055,24 @@ function parseForumTopic(file: string, content: string): ForumTopicFrontmatter |
 }
 
 async function seedForum() {
-  // Skip if already seeded.
+  // Forum users + their starter pets are seeded unconditionally so
+  // bylines render avatars even on re-seeds against an already-
+  // populated DB. The topic/post creation below remains guarded.
+  for (const d of SEED_DOMAINS) {
+    ensureDomain(d.slug, d.title, d.description);
+  }
+  const userIds = new Map<string, string>();
+  for (const u of SEED_FORUM_USERS) {
+    const id = ensureForumUser(u.username, u.displayName, u.bio);
+    userIds.set(u.username, id);
+    ensureStarterPet(id, u.species, u.level);
+  }
+
+  // Skip if topics are already seeded.
   const anyTopic = db.select().from(forumTopics).get();
   if (anyTopic) {
     console.log("  Forum already seeded, skipping.");
     return;
-  }
-
-  for (const d of SEED_DOMAINS) {
-    ensureDomain(d.slug, d.title, d.description);
-  }
-
-  const userIds = new Map<string, string>();
-  for (const u of SEED_FORUM_USERS) {
-    userIds.set(u.username, ensureForumUser(u.username, u.displayName, u.bio));
   }
 
   const forumDir = path.join(import.meta.dir, "../../../seed-content/forum/topics");

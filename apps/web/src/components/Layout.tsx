@@ -54,6 +54,7 @@ const MORE_NAV_USER_SECTION: NavSection = {
   heading: "My workspace",
   links: [
     { to: "/feed", label: "Feed" },
+    { to: "/me/pet", label: "My pet" },
     { to: "/flashcards", label: "Flashcards" },
     { to: "/review/mistakes", label: "Review mistakes" },
     { to: "/me/lab", label: "My lab" },
