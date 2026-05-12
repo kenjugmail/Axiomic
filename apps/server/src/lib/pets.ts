@@ -44,10 +44,23 @@ export function petSpeciesBySlug(slug: string): PetSpecies | undefined {
   return PET_SPECIES.find((s) => s.slug === slug);
 }
 
+// Phase 9 polish — the prototype's pets-svg.jsx defines hand-drawn
+// art for 13 species (cat/dog/fox/owl/rabbit/turtle/dragon/penguin/
+// bear/hedgehog/axolotl/frog/panda). The other 4 (capybara/otter/
+// ferret/seal) render via the parametric PetSilhouetteSVG, which
+// is less detailed and looks visibly inferior to a freshly-hatched
+// user. Bias the random hatch toward species with bespoke art.
+const HAND_DRAWN_SPECIES = new Set([
+  "cat", "dog", "fox", "owl", "rabbit", "turtle", "dragon",
+  "penguin", "bear", "hedgehog", "axolotl", "frog", "panda",
+]);
+
 // Random species selection for hatching. Uses Math.random — fine
 // for hatch flavor; not security-critical.
 export function randomPetSpecies(): PetSpecies {
-  return PET_SPECIES[Math.floor(Math.random() * PET_SPECIES.length)];
+  const drawn = PET_SPECIES.filter((s) => HAND_DRAWN_SPECIES.has(s.slug));
+  const pool = drawn.length > 0 ? drawn : PET_SPECIES;
+  return pool[Math.floor(Math.random() * pool.length)];
 }
 
 // =============================================================
