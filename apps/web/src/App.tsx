@@ -252,6 +252,9 @@ const ClassTaskPage = lazy(() =>
 const MyPetPage = lazy(() =>
   import("./pages/MyPetPage").then((m) => ({ default: m.MyPetPage })),
 );
+const InventoryPage = lazy(() =>
+  import("./pages/InventoryPage").then((m) => ({ default: m.InventoryPage })),
+);
 const SkinShowcasePage = lazy(() =>
   import("./pages/SkinShowcasePage").then((m) => ({ default: m.SkinShowcasePage })),
 );
@@ -576,6 +579,7 @@ function AppRoutes() {
           />
           <Route path="/classes/:slug/analytics" element={<ClassAnalyticsPage />} />
           <Route path="/me/pet" element={<MyPetPage />} />
+          <Route path="/me/inventory" element={<InventoryPage />} />
           <Route path="/me/progress" element={<MyProgressPage />} />
           <Route path="/skins" element={<SkinShowcasePage />} />
           <Route path="/explore/pets" element={<PetShowcasePage />} />

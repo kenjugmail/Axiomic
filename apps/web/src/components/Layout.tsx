@@ -56,6 +56,7 @@ const MORE_NAV_USER_SECTION: NavSection = {
   links: [
     { to: "/feed", label: "Feed" },
     { to: "/me/pet", label: "My pet" },
+    { to: "/me/inventory", label: "Inventory" },
     { to: "/flashcards", label: "Flashcards" },
     { to: "/review/mistakes", label: "Review mistakes" },
     { to: "/me/lab", label: "My lab" },

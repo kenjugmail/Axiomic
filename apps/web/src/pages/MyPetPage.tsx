@@ -7,15 +7,13 @@ import { useEffect, useState } from "react";
 import { useLiveEvents } from "../hooks/useLiveEvents";
 import { Link } from "react-router-dom";
 import { Egg, Sparkles } from "lucide-react";
-import type { CosmeticSlot, MyPetResponse, PetInventoryItem, PetSkinDef, SkinShopResponse } from "@axiomic/types";
+import type { MyPetResponse, PetInventoryItem, PetSkinDef, SkinShopResponse } from "@axiomic/types";
 import { api, ApiError } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
-import { useThemeStore } from "../stores/theme";
 import { Skeleton } from "../components/ui";
 import { PetAvatar } from "../components/pet/PetAvatar";
 import { PetSilhouetteSVG } from "../components/pet/PetSilhouetteSVG";
 import { EvolutionChain } from "../components/pet/EvolutionChain";
-import { CosmeticChip } from "../components/pet/CosmeticChip";
 import { SkinTile } from "../components/pet/SkinTile";
 import { PetActionsRow, usePetAction } from "../components/pet/PetActionsRow";
 import { PetWhereCard } from "../components/pet/PetWhereCard";
@@ -26,7 +24,6 @@ import { petMoments } from "../stores/petMoments";
 
 export function MyPetPage() {
   const { user } = useAuthStore();
-  const rhythmicGrid = useThemeStore((s) => s.rhythmicGrid);
   const [data, setData] = useState<MyPetResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [skinShop, setSkinShop] = useState<SkinShopResponse | null>(null);
@@ -79,19 +76,6 @@ export function MyPetPage() {
       // ignore — section just hides the locked tiles
     });
   }, [user]);
-
-  const toggleEquip = async (item: PetInventoryItem) => {
-    try {
-      if (item.equipped) {
-        await api.pet.unequip(item.slug);
-      } else {
-        await api.pet.equip(item.slug);
-      }
-      reload();
-    } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "Failed");
-    }
-  };
 
   // Phase L — skin equip/buy.
   const handleSkinClick = async (skin: PetSkinDef) => {
@@ -199,15 +183,6 @@ export function MyPetPage() {
     );
   }
 
-  // Group inventory by slot for the rendering grid.
-  const grouped: Record<CosmeticSlot, PetInventoryItem[]> = {
-    head: [],
-    eyes: [],
-    accessory: [],
-  };
-  for (const item of data.inventory) {
-    grouped[item.slot]?.push(item);
-  }
   const equippedItems = data.inventory.filter((i) => i.equipped);
   const equippedObj = {
     head: equippedItems.find((i) => i.slot === "head") ?? null,
@@ -550,45 +525,26 @@ export function MyPetPage() {
         );
       })()}
 
-      {/* Inventory by slot (existing). */}
-      <h2 className="text-sm font-semibold mb-3">Inventory ({data.inventory.length})</h2>
-      {data.inventory.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          No cosmetics yet. Professors and TAs can grant cosmetics to recognize good work.
-        </p>
-      ) : (
-        <div className="space-y-5">
-          {(["head", "eyes", "accessory"] as CosmeticSlot[]).map((slot) => {
-            const items = grouped[slot];
-            if (items.length === 0) return null;
-            return (
-              <section key={slot}>
-                <h3 className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
-                  {slot}
-                </h3>
-                <div className={`cos-grid${rhythmicGrid ? " rhythmic" : ""}`}>
-                  {items.map((item) => (
-                    <CosmeticChip
-                      key={item.id}
-                      slug={item.slug}
-                      name={item.name}
-                      slot={item.slot}
-                      rarity={item.rarity}
-                      description={
-                        item.grantedNote
-                          ? `“${item.grantedNote}” — ${item.description}`
-                          : item.description
-                      }
-                      equipped={item.equipped}
-                      onClick={pet ? () => toggleEquip(item) : undefined}
-                    />
-                  ))}
-                </div>
-              </section>
-            );
-          })}
+      {/* Inventory summary + link out to the standalone page (Phase 3). */}
+      <section
+        className="rounded-2xl border p-5 flex items-center justify-between gap-4"
+        style={{ borderColor: "var(--line)", background: "var(--bg-elev)" }}
+      >
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold">
+            Inventory ({data.inventory.length})
+          </h2>
+          <p
+            className="text-xs mt-0.5"
+            style={{ color: "var(--ink-3)" }}
+          >
+            Filter by slot, rarity, or how each item was obtained.
+          </p>
         </div>
-      )}
+        <Link to="/me/inventory" className="pet-btn primary">
+          View inventory
+        </Link>
+      </section>
 
       {/* Modals */}
       {pet && (
