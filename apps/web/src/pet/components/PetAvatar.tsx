@@ -20,7 +20,8 @@
 import type { CSSProperties } from "react";
 import { PetSilhouetteSVG, type PetMood } from "./PetSilhouetteSVG";
 import { PetSVG, PROTOTYPE_SPECIES } from "./PetSVG";
-import { CosmeticGlyphSVG, type Rarity } from "./CosmeticGlyphSVG";
+import { CosmeticOverlay } from "./CosmeticOverlay";
+import type { Rarity } from "./CosmeticGlyphSVG";
 import { useDevSpeciesOverride } from "../dev/DevSpeciesContext";
 
 export type PetSkinFx = {
@@ -73,26 +74,10 @@ export interface PetAvatarProps {
   className?: string;
 }
 
-// Slot positioning is preserved from PetView so visual fidelity at
-// existing sizes is identical. Tuned for the SVG silhouette bounding box.
-const SLOT_STYLE: Record<"head" | "eyes" | "acc", CSSProperties> = {
-  head: {
-    top: "-18%",
-    left: "50%",
-    transform: "translateX(-50%) rotate(-6deg)",
-  },
-  eyes: {
-    top: "30%",
-    left: "50%",
-    transform: "translateX(-50%)",
-  },
-  acc: {
-    bottom: "-4%",
-    right: "-6%",
-  },
-};
+// Phase 9A — SLOT_STYLE + COSMETIC_SCALE removed. The CosmeticOverlay
+// component owns its own positioning + sizing via the prototype's
+// HEAD_OFFSET / ACC_TUNE maps. PetAvatar just feeds it slot+slug.
 
-const COSMETIC_SCALE = 0.42;
 // Below 24px, every cosmetic is too small to read; hide all.
 const COSMETIC_MIN_PX = 24;
 // Between 24 and 36px, only cosmetics flagged failSmall=true hide.
@@ -205,8 +190,9 @@ export function PetAvatar({
   const devSpecies = useDevSpeciesOverride();
   if (devSpecies) species = devSpecies;
   const px = size;
-  const petSize = Math.round(px * 0.82);
-  const cosmeticSize = Math.round(px * COSMETIC_SCALE);
+  // Phase 9A — petSize matches the prototype's 0.78 ratio (was 0.82).
+  // CosmeticOverlay derives all overlay sizes from petSize.
+  const petSize = Math.round(px * 0.78);
 
   // Cosmetic visibility tiering.
   const tooSmallForAny = px < COSMETIC_MIN_PX;
@@ -247,7 +233,10 @@ export function PetAvatar({
     if (parts.length) petStyle.filter = parts.join(" ");
   }
 
-  const showLevelBadge = level >= 1 && (hero || px >= 56);
+  // Phase 9B — Lv badge only on the hero card (≥80 px or hero=true).
+  // At 24/32/40/56 px the badge crowded out the face. The prototype
+  // only renders Lv on the hero stage.
+  const showLevelBadge = level >= 1 && (hero || px >= 80);
 
   // Selectively pick which equipped slots to render. We intentionally
   // drop the 'eyes' slot from the overlay layer — the legacy PetView
@@ -293,22 +282,13 @@ export function PetAvatar({
         )}
       </div>
       {items.map(({ slot, cos }) => (
-        <span
+        <CosmeticOverlay
           key={slot}
-          className="cos-overlay"
-          title={cos.slug}
-          style={{
-            ...SLOT_STYLE[slot],
-            width: cosmeticSize,
-            height: cosmeticSize,
-          }}
-        >
-          <CosmeticGlyphSVG
-            slug={cos.slug}
-            rarity={cos.rarity ?? "common"}
-            size={cosmeticSize}
-          />
-        </span>
+          slug={cos.slug}
+          slot={slot}
+          rarity={cos.rarity}
+          petSize={petSize}
+        />
       ))}
       {showLevelBadge && (
         <span className="pet-level-badge" title={`Level ${level}`}>

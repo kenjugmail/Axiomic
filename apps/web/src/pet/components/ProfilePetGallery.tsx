@@ -23,10 +23,10 @@ import type {
   UserPetDisplay,
 } from "@axiomic/types";
 import { api } from "../../lib/api";
-import { Skeleton } from "../ui";
-import { PetAvatar, type PetAvatarCosmetic } from "../pet/PetAvatar";
-import { CosmeticGlyphSVG, type Rarity } from "../pet/CosmeticGlyphSVG";
-import { RarityBadge } from "../pet/RarityBadge";
+import { Skeleton } from "../../components/ui";
+import { PetAvatar, type PetAvatarCosmetic } from "./PetAvatar";
+import { CosmeticGlyphSVG, type Rarity } from "./CosmeticGlyphSVG";
+import { RarityBadge } from "./RarityBadge";
 
 interface Props {
   username: string;

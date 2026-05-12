@@ -18,9 +18,7 @@ import { NAV_PILLARS } from "../marketing/hubs";
 import { AUDIENCES } from "../marketing/audiences";
 import { VerifyEmailBanner } from "./VerifyEmailBanner";
 import { FeedbackWidget } from "./FeedbackWidget";
-import { PetMomentsHost } from "./pet/PetMomentsHost";
-import { DevSpeciesProvider } from "./dev/DevSpeciesContext";
-import { TweaksPanel } from "./dev/TweaksPanel";
+import { PetMomentsHost, DevSpeciesProvider, TweaksPanel } from "../pet";
 
 type NavItem = { to: string; label: string };
 type NavSection = { heading: string; links: NavItem[] };

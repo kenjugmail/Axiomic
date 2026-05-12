@@ -8,6 +8,7 @@
 import { ChevronRight } from "lucide-react";
 import type { MyPetResponse } from "@axiomic/types";
 import { PetSilhouetteSVG } from "./PetSilhouetteSVG";
+import { PetSVG, PROTOTYPE_SPECIES } from "./PetSVG";
 
 type Pet = NonNullable<MyPetResponse["pet"]>;
 
@@ -37,7 +38,19 @@ export function EvolutionChain({ pet, totalXp }: EvolutionChainProps) {
                   style={{ width: 48, height: 48 }}
                   title={`Level ${entry.level}`}
                 >
-                  <PetSilhouetteSVG species={pet.species} level={entry.level} />
+                  {/* Phase 9E — use the prototype's hand-drawn PetSVG
+                      when the species is supported; legacy species
+                      (capybara/otter/ferret/seal) keep the parametric
+                      silhouette. */}
+                  {PROTOTYPE_SPECIES.has(pet.species) ? (
+                    <PetSVG
+                      species={pet.species}
+                      level={entry.level}
+                      size={48}
+                    />
+                  ) : (
+                    <PetSilhouetteSVG species={pet.species} level={entry.level} />
+                  )}
                 </div>
                 <div className={`text-[10px] uppercase tracking-wider ${
                   isCurrent ? "text-primary font-semibold" : "text-muted-foreground"

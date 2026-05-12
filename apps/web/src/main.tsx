@@ -4,6 +4,10 @@ import { BrowserRouter } from "react-router-dom";
 import { App } from "./App";
 import { initObservability, captureError } from "./lib/observability";
 import "./styles/globals.css";
+// Phase 9 — pet styles loaded as a side-effect CSS import so they
+// bypass the Tailwind @layer pipeline that mangles the @layer base
+// :where(...) block in this file. See the note in globals.css.
+import "./styles/pet-tokens.css";
 
 // Sprint 66c — kick off Sentry init early. No-op when VITE_SENTRY_DSN
 // is unset (dev / tests). Errors after init are routed through the

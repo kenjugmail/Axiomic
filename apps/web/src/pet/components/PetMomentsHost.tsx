@@ -18,7 +18,7 @@ import { useEffect, useState } from "react";
 import { useLiveEvents } from "../../hooks/useLiveEvents";
 import { api } from "../../lib/api";
 import { useAuthStore } from "../../stores/auth";
-import { usePetMomentsStore } from "../../stores/petMoments";
+import { usePetMomentsStore } from "../store";
 import { HatchMoment } from "./HatchMoment";
 import { LevelUpMoment } from "./LevelUpMoment";
 import { GrantMoment } from "./GrantMoment";

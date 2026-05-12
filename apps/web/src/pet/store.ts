@@ -10,7 +10,7 @@
 
 import { create } from "zustand";
 import type { PetSkinDef } from "@axiomic/types";
-import type { PetAvatarCosmetic } from "../components/pet/PetAvatar";
+import type { PetAvatarCosmetic } from "./components/PetAvatar";
 
 type PetIdentity = {
   species: string;

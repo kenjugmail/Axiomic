@@ -26,7 +26,7 @@ import { api, type Notification } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { notificationLink } from "../components/NotificationBell";
 import { EmptyState } from "../components/ui/EmptyState";
-import { petMoments } from "../stores/petMoments";
+import { petMoments } from "../pet";
 
 type Filter = "all" | "unread";
 

@@ -14,8 +14,8 @@
 import { useState } from "react";
 import { useThemeStore, type Theme, type Direction, DIRECTION_OPTIONS } from "../../stores/theme";
 import { useDevSpeciesSet } from "./DevSpeciesContext";
-import { petMoments } from "../../stores/petMoments";
-import { ConfirmDialog } from "../pet/ConfirmDialog";
+import { petMoments } from "../store";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import {
   TweakSection,
   TweakSelect,

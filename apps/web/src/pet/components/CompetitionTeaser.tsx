@@ -3,7 +3,7 @@
 // the prize is, how it's obtained, and when results post — without
 // any leaderboard pressure or countdown. Port of moments.jsx:211-248.
 
-import { Modal } from "../ui/Modal";
+import { Modal } from "../../components/ui/Modal";
 import { CosmeticGlyphSVG, type Rarity } from "./CosmeticGlyphSVG";
 import { RarityBadge } from "./RarityBadge";
 import { ObtainabilityCallout } from "./ObtainabilityCallout";

@@ -6,7 +6,7 @@
 
 import { useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
-import { Modal } from "../ui/Modal";
+import { Modal } from "../../components/ui/Modal";
 import { PetAvatar } from "./PetAvatar";
 
 type Phase = "egg" | "crack" | "reveal";

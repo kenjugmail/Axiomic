@@ -11,12 +11,11 @@ import type {
   ReputationByDomain,
 } from "@axiomic/types";
 import { AchievementsGallery } from "../components/AchievementsGallery";
-import { ProfilePetGallery } from "../components/profile/ProfilePetGallery";
+import { ProfilePetGallery, PetByUsername } from "../pet";
 import { MasteryPortfolio } from "../components/profile/MasteryPortfolio";
 import { ActivityHeatmap } from "../components/ActivityHeatmap";
 import { FollowButton } from "../components/FollowButton";
 import { SkillTree } from "../components/profile/SkillTree";
-import { PetByUsername } from "../components/pet/PetByUsername";
 
 const LEVEL_COLORS: Record<string, string> = {
   apprentice: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",

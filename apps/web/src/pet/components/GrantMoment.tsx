@@ -3,7 +3,7 @@
 // Renders the cosmetic glyph at a hero scale + name + rarity + obtain
 // callout. Two-button footer: Thanks (close) / Equip now (caller wires).
 
-import { Modal } from "../ui/Modal";
+import { Modal } from "../../components/ui/Modal";
 import { CosmeticGlyphSVG, type Rarity } from "./CosmeticGlyphSVG";
 import { RarityBadge } from "./RarityBadge";
 import { ObtainabilityCallout } from "./ObtainabilityCallout";

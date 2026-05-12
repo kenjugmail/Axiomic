@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Network } from "lucide-react";
-import { PetByUsername } from "../components/pet/PetByUsername";
+import { PetByUsername } from "../pet";
 import {
   api,
   type ForumPost,

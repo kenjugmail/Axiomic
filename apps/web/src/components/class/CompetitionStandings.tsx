@@ -6,7 +6,7 @@
 import { Link } from "react-router-dom";
 import { Trophy } from "lucide-react";
 import type { CompetitionStandingEntry } from "@axiomic/types";
-import { PetByUsername } from "../pet/PetByUsername";
+import { PetByUsername } from "../../pet";
 
 interface CompetitionStandingsProps {
   entries: CompetitionStandingEntry[];

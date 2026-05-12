@@ -16,7 +16,7 @@ import { Sparkles, Award, ChevronRight } from "lucide-react";
 import type { PetShowcaseResponse } from "@axiomic/types";
 import { api } from "../lib/api";
 import { Skeleton } from "../components/ui";
-import { PetAvatar } from "../components/pet/PetAvatar";
+import { PetAvatar } from "../pet";
 
 export function PetShowcasePage() {
   const [data, setData] = useState<PetShowcaseResponse | null>(null);
