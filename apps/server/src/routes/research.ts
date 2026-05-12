@@ -25,7 +25,7 @@ import {
   users,
 } from "@axiomic/db";
 import { requireAuth, getSessionUser } from "../middleware/auth";
-import { notify, notifyMentions } from "../lib/notifications";
+import { notify, notifyMany, notifyMentions } from "../lib/notifications";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import { extractReferencedWikiSlugs } from "../lib/crossLinks";
 import {
@@ -1252,17 +1252,14 @@ researchRouter.post(
     recipients.delete(user.id);
     for (const m of mentioned) recipients.delete(m);
 
-    for (const recipientId of recipients) {
-      await notify({
-        recipientId,
-        actorId: user.id,
-        kind: "claim_thread_reply",
-        subjectType: "claim_thread",
-        subjectId: threadId,
-        contextSlug: slug,
-        preview: previewSnippet(content),
-      });
-    }
+    await notifyMany(recipients, {
+      actorId: user.id,
+      kind: "claim_thread_reply",
+      subjectType: "claim_thread",
+      subjectId: threadId,
+      contextSlug: slug,
+      preview: previewSnippet(content),
+    });
 
     return c.json({ commentId: id }, 201);
   },

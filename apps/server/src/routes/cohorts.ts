@@ -342,33 +342,54 @@ cohortsRouter.post(
     const created: Array<{ email: string; token: string; status: string }> = [];
     const skipped: Array<{ email: string; reason: string }> = [];
 
+    // Phase K — single bulk INSERT instead of one INSERT per email.
+    // Dedupe-and-filter pass first, then one .values([...]) call.
+    // Notifications stay per-recipient — each invitee's notification
+    // points at a distinct invitationId/token so notifyMany doesn't
+    // apply (the shared metadata is different per row).
+    const toInsert: Array<{
+      id: string;
+      email: string;
+      token: string;
+    }> = [];
     for (const email of lowered) {
       if (blocked.has(email)) {
         skipped.push({ email, reason: "already invited" });
         continue;
       }
-      const token = newInviteToken();
       const id = randomUUID();
-      db.insert(cohortInvitations).values({
-        id,
+      const token = newInviteToken();
+      toInsert.push({ id, email, token });
+      blocked.add(email);
+    }
+
+    if (toInsert.length > 0) {
+      const rows = toInsert.map((x) => ({
+        id: x.id,
         cohortId: cohort.id,
         inviterId: me.id,
-        email,
-        token,
+        email: x.email,
+        token: x.token,
         message: body.message ?? "",
-      }).run();
-      created.push({ email, token, status: "pending" });
-      blocked.add(email);
+      }));
+      const CHUNK = 100;
+      for (let i = 0; i < rows.length; i += CHUNK) {
+        const chunk = rows.slice(i, i + CHUNK);
+        db.insert(cohortInvitations).values(chunk).run();
+      }
+    }
 
-      // If the invitee already has an account with this email, drop
-      // a notification in their bell.
+    // After the bulk insert, surface created rows + drop notifications
+    // for any invitee who already has an account.
+    for (const x of toInsert) {
+      created.push({ email: x.email, token: x.token, status: "pending" });
       const existingUser = db
         .select({ id: users.id })
         .from(users)
-        .where(eq(users.email, email))
+        .where(eq(users.email, x.email))
         .get();
       if (existingUser) {
-        notifyCohortInvitation(existingUser.id, me.id, id, token, cohort.name);
+        notifyCohortInvitation(existingUser.id, me.id, x.id, x.token, cohort.name);
       }
     }
 

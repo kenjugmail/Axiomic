@@ -196,24 +196,26 @@ labGroupsRouter.post(
       }
     }
 
-    const inserted: string[] = [];
-    for (const userId of targets) {
-      const id = randomUUID();
-      db.insert(labAssignments)
-        .values({
-          id,
-          cohortId: cohort.id,
-          assignedToUserId: userId,
-          assignedById: me.id,
-          masteryPathSlug: data.masteryPathSlug ?? null,
-          protocolSlug: data.protocolSlug ?? null,
-          certSlug: data.certSlug ?? null,
-          dueAt: data.dueAt ?? null,
-          notesMd: data.notesMd ?? null,
-        })
-        .run();
-      inserted.push(id);
+    // Phase K — single bulk INSERT instead of one INSERT per target.
+    // Chunk at 100 to stay under SQLite's variable-count limit
+    // (~999 vars / 9 cols ≈ 110 rows max — round down for headroom).
+    const rows = targets.map((userId) => ({
+      id: randomUUID(),
+      cohortId: cohort.id,
+      assignedToUserId: userId,
+      assignedById: me.id,
+      masteryPathSlug: data.masteryPathSlug ?? null,
+      protocolSlug: data.protocolSlug ?? null,
+      certSlug: data.certSlug ?? null,
+      dueAt: data.dueAt ?? null,
+      notesMd: data.notesMd ?? null,
+    }));
+    const CHUNK = 100;
+    for (let i = 0; i < rows.length; i += CHUNK) {
+      const chunk = rows.slice(i, i + CHUNK);
+      if (chunk.length > 0) db.insert(labAssignments).values(chunk).run();
     }
+    const inserted = rows.map((r) => r.id);
 
     return c.json(
       { ok: true, cohortId: cohort.id, assignmentIds: inserted },

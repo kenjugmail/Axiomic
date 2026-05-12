@@ -54,28 +54,31 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
     [navigate, onClose],
   );
 
+  // Group: keyword / both first, pure semantic ("Related") below.
+  const direct = results.filter((r) => r.matchedBy !== "semantic");
+  const related = results.filter((r) => r.matchedBy === "semantic");
+
+  // Flat ordered list — same order the rendered rows use, so the
+  // selectedIndex into this list matches what the user sees.
+  const ordered = [...direct, ...related];
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setSelectedIndex((i) => Math.min(i + 1, results.length - 1));
+      setSelectedIndex((i) =>
+        ordered.length === 0 ? 0 : Math.min(i + 1, ordered.length - 1),
+      );
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setSelectedIndex((i) => Math.max(i - 1, 0));
-    } else if (e.key === "Enter" && results[selectedIndex]) {
-      handleSelect(results[selectedIndex]);
+    } else if (e.key === "Enter" && ordered[selectedIndex]) {
+      handleSelect(ordered[selectedIndex]);
     } else if (e.key === "Escape") {
       onClose();
     }
   };
 
   if (!isOpen) return null;
-
-  // Group: keyword / both first, pure semantic ("Related") below.
-  const direct = results.filter((r) => r.matchedBy !== "semantic");
-  const related = results.filter((r) => r.matchedBy === "semantic");
-
-  // Flat ordered list to drive keyboard navigation.
-  const ordered = [...direct, ...related];
 
   const renderRow = (r: SearchResultItem, flatIdx: number) => {
     const trailing =
@@ -90,13 +93,17 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
               : `forum · ${r.postType}`;
     const semanticChip = r.matchedBy === "semantic";
     const bothChip = r.matchedBy === "both";
+    const isSelected = flatIdx === selectedIndex;
     return (
       <button
         key={r.id}
+        id={`search-result-${flatIdx}`}
+        role="option"
+        aria-selected={isSelected}
         onClick={() => handleSelect(r)}
         onMouseEnter={() => setSelectedIndex(flatIdx)}
         className={`w-full text-left px-3 py-2 rounded-md text-sm flex items-center justify-between gap-3 ${
-          flatIdx === selectedIndex
+          isSelected
             ? "bg-accent text-accent-foreground"
             : "text-foreground hover:bg-accent/50"
         }`}
@@ -134,7 +141,12 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
       <button type="button" aria-label="Close search" onClick={onClose} className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
 
       {/* Dialog */}
-      <div className="relative w-full max-w-lg bg-card border border-border rounded-xl shadow-2xl overflow-hidden">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Search"
+        className="relative w-full max-w-lg bg-card border border-border rounded-xl shadow-2xl overflow-hidden"
+      >
         <div className="flex items-center gap-3 px-4 border-b border-border">
           <svg className="w-4 h-4 text-muted-foreground shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -145,13 +157,26 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Search wiki, forum, or paraphrase a question..."
+            role="combobox"
+            aria-label="Search"
+            aria-expanded={ordered.length > 0}
+            aria-controls="search-results-listbox"
+            aria-autocomplete="list"
+            aria-activedescendant={
+              ordered.length > 0 ? `search-result-${selectedIndex}` : undefined
+            }
             className="flex-1 py-3 bg-transparent text-foreground outline-none text-sm"
           />
           <kbd className="hidden sm:block text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">ESC</kbd>
         </div>
 
         {ordered.length > 0 && (
-          <div className="max-h-[60vh] overflow-y-auto p-2">
+          <div
+            id="search-results-listbox"
+            role="listbox"
+            aria-label="Search results"
+            className="max-h-[60vh] overflow-y-auto p-2"
+          >
             {direct.length > 0 && (
               <>
                 {direct.map((r, i) => renderRow(r, i))}

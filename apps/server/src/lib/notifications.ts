@@ -177,84 +177,145 @@ function kindGate(
 // (potentially) inserted, false when gated out — callers use this to
 // decide whether to fall back to a less-specific notification kind.
 // Best-effort: any DB error is swallowed and logged.
+//
+// Phase K — implemented as a thin n=1 wrapper over notifyMany() so the
+// pref/insert/push semantics live in exactly one place.
 export async function notify(args: NotifyArgs, db: Db = getDb()): Promise<boolean> {
-  // Skip self-notifications, but only when actorId is a real user. System
-  // events (actorId === null) are allowed to land in the recipient's bell —
-  // that's how mastery_level_up notifies the user about their own milestone.
-  if (args.actorId !== null && args.actorId === args.recipientId) return false;
-  try {
-    const gate = kindGate(args.kind);
-    if (gate) {
-      const prefs = db
+  const { recipientId, ...shared } = args;
+  const { inserted } = await notifyMany([recipientId], shared, db);
+  return inserted > 0;
+}
+
+// Phase K — chunk size for the bulk INSERT. SQLite's default
+// SQLITE_MAX_VARIABLE_NUMBER is 999 and the notifications row has 8
+// columns, so 100 rows per INSERT keeps us well under the cap with
+// room for the prefs SELECT we may run in the same chunk.
+const NOTIFY_CHUNK_SIZE = 100;
+
+// Phase K — batched fan-out for the (very common) shape of "one event,
+// many recipients, identical metadata except for recipientId". Callers
+// like forum follow-publish and news article publish previously looped
+// notify() per follower, which fired 1–3 queries per recipient. This
+// helper folds the prefs lookup into one SELECT, the insert into one
+// (chunked) INSERT, and keeps the per-user WebSocket / Web Push fan-out
+// as fire-and-forget calls — those are in-memory and unavoidably per-user.
+export async function notifyMany(
+  recipients: string[] | Set<string>,
+  shared: Omit<NotifyArgs, "recipientId">,
+  db: Db = getDb(),
+): Promise<{ inserted: number; skipped: number }> {
+  // Step A: normalize + self-skip. System events (actorId === null)
+  // intentionally land in the recipient's own bell (e.g. mastery_level_up),
+  // so we only drop actorId when it's a real user.
+  const ids = [...new Set(recipients)].filter(
+    (r) => shared.actorId === null || r !== shared.actorId,
+  );
+  if (ids.length === 0) return { inserted: 0, skipped: 0 };
+
+  let filtered = ids;
+  let skipped = 0;
+
+  // Step B: bulk preference gating. One SELECT replaces N — the user
+  // can have opted out of mentions/replies/mastery. Always-on kinds
+  // (gate === null) skip this step entirely.
+  const gate = kindGate(shared.kind);
+  if (gate) {
+    try {
+      const prefRows = db
         .select({
+          id: users.id,
           notifyMentions: users.notifyMentions,
           notifyReplies: users.notifyReplies,
           notifyMastery: users.notifyMastery,
         })
         .from(users)
-        .where(eq(users.id, args.recipientId))
-        .get();
-      if (prefs && prefs[gate] === false) return false;
+        .where(inArray(users.id, ids))
+        .all();
+      const prefById = new Map(prefRows.map((r) => [r.id, r]));
+      filtered = ids.filter((id) => {
+        const row = prefById.get(id);
+        // Mirror notify()'s single-row behavior: if the user has no
+        // row (deleted) we drop them; if they have a row with the
+        // gate set false they opted out.
+        if (!row) return false;
+        return row[gate] !== false;
+      });
+      skipped = ids.length - filtered.length;
+    } catch (err) {
+      console.error("notifyMany prefs lookup failed", err);
+      return { inserted: 0, skipped: ids.length };
     }
+  }
 
-    const id = randomUUID();
-    const createdAt = new Date().toISOString();
-    await db
-      .insert(notifications)
-      .values({
-        id,
-        userId: args.recipientId,
-        actorId: args.actorId,
-        kind: args.kind,
-        subjectType: args.subjectType,
-        subjectId: args.subjectId,
-        contextSlug: args.contextSlug,
-        preview: args.preview,
-      })
-      .onConflictDoNothing();
+  if (filtered.length === 0) return { inserted: 0, skipped };
 
-    // Best-effort live push to the recipient's open WebSockets. The
-    // dedup index above may have squashed the row; fetching the actor
-    // username is what the bell shows. Failures here don't cause the
-    // notify() call to fail.
-    try {
-      let actor: { id: string; username: string } | null = null;
-      if (args.actorId) {
-        const row = db
-          .select({ id: users.id, username: users.username })
-          .from(users)
-          .where(eq(users.id, args.actorId))
-          .get();
-        actor = row ?? null;
-      }
+  // Step C: bulk INSERT (chunked). Each recipient still gets its own
+  // UUID — the WebSocket payload carries the row id, and clients
+  // dedupe by it. The partial unique index handles cross-call
+  // idempotence, same as the single-row path.
+  const rowIds: string[] = filtered.map(() => randomUUID());
+  const createdAt = new Date().toISOString();
+  try {
+    for (let offset = 0; offset < filtered.length; offset += NOTIFY_CHUNK_SIZE) {
+      const chunk = filtered.slice(offset, offset + NOTIFY_CHUNK_SIZE);
+      const rows = chunk.map((recipientId, i) => ({
+        id: rowIds[offset + i],
+        userId: recipientId,
+        actorId: shared.actorId,
+        kind: shared.kind,
+        subjectType: shared.subjectType,
+        subjectId: shared.subjectId,
+        contextSlug: shared.contextSlug,
+        preview: shared.preview,
+      }));
+      await db.insert(notifications).values(rows).onConflictDoNothing();
+    }
+  } catch (err) {
+    console.error("notifyMany insert failed", err);
+    return { inserted: 0, skipped };
+  }
+
+  // Step D: live push. WebSocket + Web Push are per-user by nature
+  // (one open socket per session, one push subscription per device),
+  // but they're in-memory / fire-and-forget so the loop is cheap.
+  // Actor lookup is shared — one SELECT instead of N.
+  try {
+    let actor: { id: string; username: string } | null = null;
+    if (shared.actorId) {
+      const row = db
+        .select({ id: users.id, username: users.username })
+        .from(users)
+        .where(eq(users.id, shared.actorId))
+        .get();
+      actor = row ?? null;
+    }
+    for (let i = 0; i < filtered.length; i++) {
       const payload = {
         kind: "notification" as const,
         notification: {
-          id,
-          kind: args.kind,
-          subjectType: args.subjectType,
-          subjectId: args.subjectId,
-          contextSlug: args.contextSlug,
-          preview: args.preview,
+          id: rowIds[i],
+          kind: shared.kind,
+          subjectType: shared.subjectType,
+          subjectId: shared.subjectId,
+          contextSlug: shared.contextSlug,
+          preview: shared.preview,
           readAt: null,
           createdAt,
           actor,
         },
       };
-      publishToUser(args.recipientId, payload);
-      // S107a — Web Push fan-out. Best-effort; pushToUser swallows
-      // per-subscription failures and prunes dead endpoints. Fired
-      // async so we don't block the response on outbound HTTP to
-      // push services.
-      void pushToUser(args.recipientId, payload);
-    } catch {
-      // ignore live-push errors
+      try {
+        publishToUser(filtered[i], payload);
+        void pushToUser(filtered[i], payload);
+      } catch {
+        // ignore per-recipient live-push errors
+      }
     }
-    return true;
-  } catch (err) {
-    console.error("notify failed", err);
-    return false;
+  } catch {
+    // ignore actor-lookup / fan-out errors
   }
+
+  return { inserted: filtered.length, skipped };
 }
 
 interface NotifyMentionsArgs {

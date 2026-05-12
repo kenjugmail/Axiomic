@@ -32,7 +32,7 @@ import {
   users,
 } from "@axiomic/db";
 import { requireAuth } from "../middleware/auth";
-import { notify } from "../lib/notifications";
+import { notify, notifyMany } from "../lib/notifications";
 import { activeCertSlugsForUser } from "./safetyCerts";
 import type { Env } from "../env";
 
@@ -560,17 +560,14 @@ protocolRunsRouter.post(
     }
 
     const recipients = mentorsForIntern(user.id);
-    for (const recipientId of recipients) {
-      await notify({
-        recipientId,
-        actorId: user.id,
-        kind: "lab_signoff_requested",
-        subjectType: "lab_protocol_run",
-        subjectId: run.id,
-        contextSlug: protocol.slug,
-        preview: protocol.title,
-      });
-    }
+    await notifyMany(recipients, {
+      actorId: user.id,
+      kind: "lab_signoff_requested",
+      subjectType: "lab_protocol_run",
+      subjectId: run.id,
+      contextSlug: protocol.slug,
+      preview: protocol.title,
+    });
 
     return c.json({
       ok: true,

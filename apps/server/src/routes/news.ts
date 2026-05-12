@@ -19,7 +19,7 @@ import {
 import { and, asc, count, desc, eq, isNull, max, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { getSessionUser, requireAuth, requireVerifiedEmail } from "../middleware/auth";
-import { notify, notifyMentions } from "../lib/notifications";
+import { notify, notifyMany, notifyMentions } from "../lib/notifications";
 import { checkRateLimit } from "../lib/rateLimit";
 import { env } from "../lib/envConfig";
 import { invalidateSearchIndex } from "../lib/searchIndex";
@@ -590,17 +590,17 @@ async function fanOutNewsPublished(
       .from(userFollows)
       .where(eq(userFollows.followeeId, authorId))
       .all();
-    for (const f of followers) {
-      await notify({
-        recipientId: f.id,
+    await notifyMany(
+      followers.map((f) => f.id),
+      {
         actorId: authorId,
         kind: "news_published",
         subjectType: "news_article",
         subjectId: articleId,
         contextSlug: slug,
         preview: previewFrom(`Published "${title}"`),
-      });
-    }
+      },
+    );
   } catch (err) {
     console.error("follower fanout (news) failed", err);
   }
@@ -1894,17 +1894,14 @@ newsRouter.post(
     recipients.delete(user.id);
     for (const m of mentioned) recipients.delete(m);
 
-    for (const recipientId of recipients) {
-      await notify({
-        recipientId,
-        actorId: user.id,
-        kind: "claim_thread_reply",
-        subjectType: "claim_thread",
-        subjectId: threadId,
-        contextSlug: slug,
-        preview: previewFrom(content),
-      });
-    }
+    await notifyMany(recipients, {
+      actorId: user.id,
+      kind: "claim_thread_reply",
+      subjectType: "claim_thread",
+      subjectId: threadId,
+      contextSlug: slug,
+      preview: previewFrom(content),
+    });
 
     return c.json({ commentId: id }, 201);
   },

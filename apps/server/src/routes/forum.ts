@@ -21,7 +21,7 @@ import { count, desc, eq, and, sql, inArray, asc } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { getAIProvider } from "@axiomic/ai";
 import { getSessionUser, requireAuth, requireVerifiedEmail } from "../middleware/auth";
-import { notify, notifyMentions, toPreview } from "../lib/notifications";
+import { notify, notifyMany, notifyMentions, toPreview } from "../lib/notifications";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import { nodesForWikiSlug } from "../lib/crossLinks";
 import { recordActivityAndEvaluate } from "../lib/achievements";
@@ -670,17 +670,17 @@ forum.post("/topics", requireVerifiedEmail, zValidator("json", createTopicSchema
       .from(userFollows)
       .where(eq(userFollows.followeeId, user.id))
       .all();
-    for (const f of followers) {
-      await notify({
-        recipientId: f.id,
+    await notifyMany(
+      followers.map((f) => f.id),
+      {
         actorId: user.id,
         kind: "forum_topic_posted",
         subjectType: "topic",
         subjectId: id,
         contextSlug: slug,
         preview: toPreview(body || title),
-      });
-    }
+      },
+    );
   } catch (err) {
     console.error("follower fanout (topic) failed", err);
   }
