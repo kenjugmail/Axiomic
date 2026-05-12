@@ -13,10 +13,11 @@ export interface PetSpecies {
   label: string;
 }
 
-// 16 species — 8 from Axiomic's original catalog + 8 from the
-// Claude Design pet-data.ts. PetSilhouetteSVG on the client owns
-// the per-species parameter map; this list just gates which slugs
-// are legal at the server.
+// 17 species — 8 from Axiomic's original catalog + 8 from Claude
+// Design's pet-data.ts + 1 (bear) added in Phase 8C for prototype
+// parity. PetSilhouetteSVG on the client owns the per-species
+// parameter map; this list just gates which slugs are legal at the
+// server.
 export const PET_SPECIES: PetSpecies[] = [
   { slug: "cat", label: "Cat" },
   { slug: "dog", label: "Dog" },
@@ -35,6 +36,8 @@ export const PET_SPECIES: PetSpecies[] = [
   { slug: "panda", label: "Panda" },
   { slug: "ferret", label: "Ferret" },
   { slug: "seal", label: "Seal" },
+  // Phase 8C — prototype parity.
+  { slug: "bear", label: "Bear" },
 ];
 
 export function petSpeciesBySlug(slug: string): PetSpecies | undefined {
@@ -101,6 +104,7 @@ export const EYE_RADIUS_BY_SPECIES: Record<string, number> = {
   panda: 2.5,
   ferret: 2.1,
   seal: 2.4,
+  bear: 2.6,
 };
 
 // =============================================================

@@ -230,6 +230,20 @@ const SPECIES_PARAMS: Record<string, SpeciesParams> = {
     mouth: "smile",
     level3: "glow", level3Color: "#c0c0c0",
   },
+  // Phase 8C — prototype parity. Warm brown body, short round ears
+  // at the very top, stubby tail. Heavier proportions than fox/dog
+  // to read as a bear at small sizes.
+  bear: {
+    baseColor: "#8a5a35", bellyColor: "#c8a575", earInnerColor: "#5a3a1f",
+    earShape: "round", earLength: 0.45,
+    tailShape: "short", tailColor: "#5a3a1f",
+    bodyCx: 50, bodyCy: 70, bodyRx: 26, bodyRy: 18,
+    headCx: 50, headCy: 42, headR: 20,
+    eyeOffsetX: 7, eyeOffsetY: -1, eyeRadius: 2.6, eyeFill: "#1d1b16",
+    noseDot: true, noseFill: "#1d1b16",
+    mouth: "smile",
+    level3: "tufts", level3Color: "#5a3a1f",
+  },
 };
 
 function speciesParams(species: string | undefined): SpeciesParams | null {
