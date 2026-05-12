@@ -73,6 +73,8 @@ export function Layout() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [petMenuOpen, setPetMenuOpen] = useState(false);
+  const petMenuRef = useRef<HTMLDivElement | null>(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement | null>(null);
@@ -117,6 +119,25 @@ export function Layout() {
       document.removeEventListener("keydown", onKey);
     };
   }, [moreOpen]);
+
+  // Phase 9 — Pet dropdown close-on-outside-click + Esc.
+  useEffect(() => {
+    if (!petMenuOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (petMenuRef.current && !petMenuRef.current.contains(e.target as Node)) {
+        setPetMenuOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPetMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [petMenuOpen]);
 
   // Lock body scroll while the mobile drawer is open.
   useEffect(() => {
@@ -200,6 +221,55 @@ export function Layout() {
                   {item.label}
                 </Link>
               ))}
+              {user && (
+                <div ref={petMenuRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setPetMenuOpen((v) => !v)}
+                    className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors duration-fast"
+                    aria-expanded={petMenuOpen}
+                    aria-haspopup="menu"
+                  >
+                    Pet
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 transition-transform duration-fast ${
+                        petMenuOpen ? "rotate-180" : ""
+                      }`}
+                      strokeWidth={2}
+                    />
+                  </button>
+                  {petMenuOpen && (
+                    <div
+                      role="menu"
+                      className="absolute right-0 mt-2 w-56 rounded-lg border bg-card shadow-lg overflow-hidden"
+                      style={{ borderColor: "var(--line)", zIndex: 60 }}
+                    >
+                      {[
+                        { to: "/me/pet", label: "My pet", hint: "Hero, evolve, equip" },
+                        { to: "/me/inventory", label: "Inventory", hint: "Filter & sort" },
+                        { to: "/shop", label: "XP Shop", hint: "Spend XP on cosmetics" },
+                        { to: "/skins", label: "All skins", hint: "Owned + locked tiles" },
+                        { to: "/explore/pets", label: "Pet showcase", hint: "Browse community pets" },
+                      ].map((item) => (
+                        <Link
+                          key={item.to}
+                          to={item.to}
+                          onClick={() => setPetMenuOpen(false)}
+                          className="flex flex-col px-3 py-2 hover:bg-accent/40 text-sm"
+                          role="menuitem"
+                        >
+                          <span className="font-medium" style={{ color: "var(--ink)" }}>
+                            {item.label}
+                          </span>
+                          <span className="text-xs" style={{ color: "var(--ink-3)" }}>
+                            {item.hint}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
               <div ref={moreRef} className="relative">
                 <button
                   type="button"

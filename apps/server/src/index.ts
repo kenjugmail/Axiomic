@@ -75,6 +75,7 @@ import { notifyExpiringCertsJob } from "./jobs/notifyExpiringCerts";
 import { hardDeleteSoftDeletedUsersJob, cleanupOldLoginAttemptsJob } from "./lib/userCleanupJob";
 import { captureError } from "./lib/observability";
 import { bootstrapAdmin } from "./lib/bootstrapAdmin";
+import { ensurePetCosmeticsCatalog } from "./lib/petCosmeticsCatalog";
 import { prewarmSearchIndex } from "./lib/searchIndex";
 import { userFromCookieHeader } from "./middleware/auth";
 import {
@@ -317,6 +318,12 @@ app.onError((err, c) => {
 
 // Sprint 52 — promote the configured user to admin if no admin exists.
 bootstrapAdmin(env.BOOTSTRAP_ADMIN_USERNAME);
+
+// Phase 9 — sync the pet_cosmetics catalog with seed JSON on boot.
+// Idempotent (only writes rows that have drifted from JSON). Fixes
+// the slot-data-stale bug that was rendering every starter cosmetic
+// as accessory-slot regardless of its actual slot.
+ensurePetCosmeticsCatalog();
 
 // Sprint 69 — register external-source ingest cron jobs and start the
 // runner. Set DISABLE_JOB_RUNNER=1 in tests / one-off CLI invocations
