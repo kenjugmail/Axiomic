@@ -22,10 +22,7 @@ import { api, ApiError } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
 import { toast } from "../stores/toast";
-import { CosmeticGlyphSVG } from "../components/pet/CosmeticGlyphSVG";
-import { PetAvatar } from "../components/pet/PetAvatar";
-import { RarityBadge } from "../components/pet/RarityBadge";
-import { ObtainabilityCallout } from "../components/pet/ObtainabilityCallout";
+import { CosmeticGlyphSVG, PetAvatar, RarityBadge, ObtainabilityCallout } from "../pet";
 
 const SLOT_LABEL: Record<CosmeticSlot, string> = {
   head: "Head",

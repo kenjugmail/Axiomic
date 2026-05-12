@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from "react";
 import type { PetSkinDef } from "@axiomic/types";
-import { Modal } from "../ui/Modal";
+import { Modal } from "../../components/ui/Modal";
 import { PetAvatar, type PetAvatarCosmetic } from "./PetAvatar";
 import { RarityBadge } from "./RarityBadge";
 

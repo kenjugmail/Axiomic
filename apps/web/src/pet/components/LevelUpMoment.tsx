@@ -7,7 +7,7 @@
 // collapse to ~1ms (handled globally by pet-tokens.css).
 
 import { useEffect, useState } from "react";
-import { Modal } from "../ui/Modal";
+import { Modal } from "../../components/ui/Modal";
 import { Check } from "lucide-react";
 import { PetAvatar } from "./PetAvatar";
 

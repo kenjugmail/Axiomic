@@ -2,7 +2,7 @@
 // Port of extras.jsx:5-30. Used for destructive or
 // state-changing actions (e.g. switch active pet).
 
-import { Modal } from "../ui/Modal";
+import { Modal } from "../../components/ui/Modal";
 
 interface Props {
   open: boolean;

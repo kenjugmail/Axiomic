@@ -35,7 +35,7 @@ import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { Leaderboard } from "../components/class/Leaderboard";
 import { AttendanceGrid } from "../components/class/AttendanceGrid";
 import { CompetitionsList } from "../components/class/CompetitionsList";
-import { PetByUsername } from "../components/pet/PetByUsername";
+import { PetByUsername } from "../pet";
 import { ClassQuestionWidget } from "../components/class/ClassQuestionWidget";
 import { toast } from "../stores/toast";
 

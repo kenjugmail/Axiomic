@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
 import type { PetCosmeticDef } from "@axiomic/types";
 import { api, ApiError } from "../../lib/api";
-import { CosmeticChip } from "../pet/CosmeticChip";
+import { CosmeticChip } from "../../pet";
 import { toast } from "../../stores/toast";
 
 interface CreateCompetitionDialogProps {

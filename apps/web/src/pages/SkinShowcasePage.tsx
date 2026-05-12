@@ -16,7 +16,7 @@ import type {
 import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { useThemeStore } from "../stores/theme";
-import { SkinTile } from "../components/pet/SkinTile";
+import { SkinTile } from "../pet";
 import { Modal } from "../components/ui/Modal";
 import { Skeleton } from "../components/ui";
 

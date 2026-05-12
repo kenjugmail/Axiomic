@@ -4,7 +4,7 @@
 // silhouette reads clean).
 
 import { useEffect, useRef, useState } from "react";
-import { Modal } from "../ui/Modal";
+import { Modal } from "../../components/ui/Modal";
 import { PetAvatar } from "./PetAvatar";
 
 interface Props {

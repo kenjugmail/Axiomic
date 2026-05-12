@@ -11,10 +11,7 @@ import { api, ApiError } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { useThemeStore } from "../stores/theme";
 import { Skeleton } from "../components/ui";
-import { CosmeticChip } from "../components/pet/CosmeticChip";
-import { SkinTile } from "../components/pet/SkinTile";
-import { FilterChips } from "../components/pet/FilterChips";
-import { CosmeticDetailSheet } from "../components/pet/CosmeticDetailSheet";
+import { CosmeticChip, SkinTile, FilterChips, CosmeticDetailSheet } from "../pet";
 import { EmptyState } from "../components/ui/EmptyState";
 import { toast } from "../stores/toast";
 

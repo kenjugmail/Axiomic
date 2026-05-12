@@ -7,9 +7,7 @@
 import { useState } from "react";
 import { Trophy, Sparkles } from "lucide-react";
 import type { ClassLeaderboardEntry, ClassRole } from "@axiomic/types";
-import { PetAvatar } from "../pet/PetAvatar";
-import { PetSilhouetteSVG } from "../pet/PetSilhouetteSVG";
-import { GrantCosmeticDialog } from "../pet/GrantCosmeticDialog";
+import { PetAvatar, PetSilhouetteSVG, GrantCosmeticDialog } from "../../pet";
 
 interface LeaderboardProps {
   classSlug: string;

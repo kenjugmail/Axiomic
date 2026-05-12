@@ -23,7 +23,7 @@ import type {
 import { assertQuestionKind } from "@axiomic/types";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { TutorMount } from "../components/ai/TutorMount";
-import { PetByUsername } from "../components/pet/PetByUsername";
+import { PetByUsername } from "../pet";
 import { QuestionRenderer, isAnswered } from "../components/quiz/QuestionRenderer";
 import { LessonNotes } from "../components/mastery/LessonNotes";
 import { PreviewViz } from "../components/lesson/PreviewViz";
