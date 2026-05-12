@@ -44,6 +44,7 @@ const MORE_NAV_PUBLIC_SECTIONS: NavSection[] = [
       { to: "/verify", label: "Verify a transcript" },
       { to: "/demo/competency-loop", label: "Competency loop tour" },
       { to: "/explore/pets", label: "Pet showcase" },
+      { to: "/skins", label: "All skins" },
       { to: "/shop", label: "Shop" },
     ],
   },

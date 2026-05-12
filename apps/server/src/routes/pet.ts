@@ -21,7 +21,8 @@ import {
   xpPurchases,
   getDb,
 } from "@axiomic/db";
-import { requireAuth } from "../middleware/auth";
+import { requireAuth, getSessionUser } from "../middleware/auth";
+import { ACHIEVEMENTS } from "../lib/achievements";
 import { totalXpForUser, xpBalanceForUser, PET_HATCH_THRESHOLD_XP } from "../lib/xp";
 import {
   petSpeciesBySlug,
@@ -216,6 +217,7 @@ petRouter.get("/", requireAuth, (c) => {
           name: p.name,
           hatchedAt: p.hatchedAt,
           isActive: p.id === pet?.id,
+          activeSkinSlug: p.activeSkinSlug,
         };
       }),
     petCap: MAX_PETS_PER_USER,
@@ -490,6 +492,96 @@ petCatalogRouter.get("/", (c) => {
 export const petSkinCatalogRouter = new Hono<Env>();
 petSkinCatalogRouter.get("/", (c) => {
   return c.json({ skins: allPetSkins() });
+});
+
+// Phase N — Skin showcase enrichment. Each skin gets a source label
+// (xp / achievement / competition / starter) plus, if the caller is
+// signed in, ownership + per-pet equipped state. The unauth path
+// returns ownership/equipped as nulls/empty so the same payload can
+// drive a public marketing-style showcase page.
+petSkinCatalogRouter.get("/catalog", async (c) => {
+  const skins = allPetSkins();
+  const db = getDb();
+
+  // Build a slug→achievement reverse index so each skin's source line
+  // can mention the awarding achievement by title.
+  const achievementBySkinSlug = new Map<string, { slug: string; title: string }>();
+  for (const a of ACHIEVEMENTS) {
+    if (a.rewardSkinSlug) {
+      achievementBySkinSlug.set(a.rewardSkinSlug, { slug: a.slug, title: a.title });
+    }
+  }
+
+  const sessionUser = await getSessionUser(c);
+
+  // Per-user ownership + per-pet equipped state, only when authed.
+  const ownedSlugs = new Set<string>();
+  const equippedBySkinSlug = new Map<string, string[]>();
+  if (sessionUser) {
+    const ownedRows = db
+      .select({ slug: petSkinInventory.skinSlug })
+      .from(petSkinInventory)
+      .where(eq(petSkinInventory.userId, sessionUser.id))
+      .all();
+    for (const r of ownedRows) ownedSlugs.add(r.slug);
+
+    const userPets = db
+      .select({ id: pets.id, activeSkinSlug: pets.activeSkinSlug })
+      .from(pets)
+      .where(eq(pets.userId, sessionUser.id))
+      .all();
+    for (const p of userPets) {
+      const list = equippedBySkinSlug.get(p.activeSkinSlug) ?? [];
+      list.push(p.id);
+      equippedBySkinSlug.set(p.activeSkinSlug, list);
+    }
+  }
+
+  const enriched = skins.map((skin) => {
+    let source: "xp" | "achievement" | "competition" | "starter";
+    let sourceDetail:
+      | { xpCost?: number; achievementSlug?: string; achievementLabel?: string }
+      | null = null;
+
+    if (skin.obtain === "default") {
+      source = "starter";
+    } else if (skin.obtain === "xp") {
+      source = "xp";
+      if (skin.xpCost != null) sourceDetail = { xpCost: skin.xpCost };
+    } else if (skin.obtain === "comp") {
+      source = "competition";
+    } else {
+      // "grant" — match against achievement catalog.
+      const ach = achievementBySkinSlug.get(skin.slug);
+      if (ach) {
+        source = "achievement";
+        sourceDetail = {
+          achievementSlug: ach.slug,
+          achievementLabel: ach.title,
+        };
+      } else {
+        // Grant skins without a matching achievement still exist (e.g.
+        // manual instructor grants) — surface as "achievement" without
+        // a label so the UI can render a generic "earn this through a
+        // grant" line.
+        source = "achievement";
+      }
+    }
+
+    return {
+      slug: skin.slug,
+      displayName: skin.name,
+      rarity: skin.rarity,
+      description: skin.description,
+      fx: skin.fx,
+      source,
+      sourceDetail,
+      owned: sessionUser ? ownedSlugs.has(skin.slug) : null,
+      equippedOnPetIds: equippedBySkinSlug.get(skin.slug) ?? [],
+    };
+  });
+
+  return c.json({ skins: enriched, authenticated: !!sessionUser });
 });
 
 // S87 — Public per-username pet display, used by the

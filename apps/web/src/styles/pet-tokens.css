@@ -10,13 +10,21 @@
  * to the design values; the rest of Axiomic continues to read the global
  * theme tokens unchanged.
  *
- * Only the "warm-scholarly" direction is wired in this phase. The other
- * four directions from tokens.css are tracked as future work.
+ * Phase N adds four alternate directions (academic-neutral,
+ * modern-productivity, tech-forward, editorial-print) — each with light
+ * + dark variants — selected via [data-dir="..."] on <html>.
  *
- * Webfonts (Newsreader / Geist / Geist Mono) are NOT imported. Tokens
- * fall back to system-font stacks; pet display surfaces look fine with
- * Inter / Source Serif until a future phase adds the webfonts.
+ * Webfonts (Newsreader / Geist / Geist Mono) are imported via
+ * @fontsource in apps/web/src/styles/fonts.css.
  */
+
+/* Runtime-tweakable tokens. Live at :root so settings sliders can override
+ * them via inline style on <html>; inherits down into .pet-stage etc. */
+:root {
+  --rarity-i: 0.6;
+  --density: 1;
+  --pet-dense: 32px;
+}
 
 @layer base {
   :where(
@@ -73,13 +81,11 @@
     --r-epic: #7c3aed;
     --r-legendary: #b45309;
 
-    /* Rarity intensity multiplier (0–1). Reserved for future runtime
-       tweakability via a settings UI; sticks at default for now. */
-    --rarity-i: 0.6;
-
-    /* Density multiplier + effective small-pet size. Same future-tweak note. */
-    --density: 1;
-    --pet-dense: 32px;
+    /* --rarity-i / --density / --pet-dense intentionally NOT set here;
+       they live on :root so settings-page sliders can override them via
+       inline style on <html> (a direct rule on .pet-stage would beat the
+       inherited inline style; a :root default lets inheritance flow
+       through unimpeded). See the :root block above. */
 
     /* Shadows */
     --shadow-1: 0 1px 0 rgba(255,255,255,.4) inset, 0 1px 2px rgba(29,27,22,.06);
@@ -118,6 +124,264 @@
     --r-rare: #6ea8ff;
     --r-epic: #c084fc;
     --r-legendary: #fbbf24;
+  }
+
+  /* ─── Direction: academic-neutral (light) ─── */
+  [data-dir="academic-neutral"] :where(
+    .pet-stage,
+    .cos-tile,
+    .cos-grid,
+    .skin-tile,
+    .skin-grid,
+    .pet-hero-split,
+    .slot-row,
+    .rar,
+    .obtain,
+    .skin-pill,
+    .detail-art,
+    .pet-emotes
+  ) {
+    --font-display: "Geist Variable", "Geist", ui-sans-serif, system-ui, sans-serif;
+    --font-sans: "Geist Variable", "Geist", ui-sans-serif, system-ui, sans-serif;
+    --bg: #f4f4f5;
+    --bg-elev: #ffffff;
+    --bg-sunk: #e7e7ea;
+    --ink: #18181b;
+    --ink-2: #27272a;
+    --ink-3: #52525b;
+    --ink-4: #a1a1aa;
+    --line: rgba(24, 24, 27, 0.10);
+    --line-strong: rgba(24, 24, 27, 0.20);
+    --accent: #1d4ed8;
+    --accent-ink: #ffffff;
+    --accent-soft: rgba(29, 78, 216, 0.10);
+    --r-rare: #1d4ed8;
+  }
+
+  /* ─── Direction: academic-neutral (dark) ─── */
+  .dark[data-dir="academic-neutral"] :where(
+    .pet-stage,
+    .cos-tile,
+    .cos-grid,
+    .skin-tile,
+    .skin-grid,
+    .pet-hero-split,
+    .slot-row,
+    .rar,
+    .obtain,
+    .skin-pill,
+    .detail-art,
+    .pet-emotes
+  ) {
+    --bg: #0a0a0b;
+    --bg-elev: #131316;
+    --bg-sunk: #050506;
+    --ink: #fafafa;
+    --ink-2: #d4d4d8;
+    --ink-3: #71717a;
+    --ink-4: #52525b;
+    --line: rgba(255, 255, 255, 0.08);
+    --line-strong: rgba(255, 255, 255, 0.18);
+    --accent: #60a5fa;
+    --accent-ink: #04122a;
+    --accent-soft: rgba(96, 165, 250, 0.12);
+    --r-rare: #60a5fa;
+  }
+
+  /* ─── Direction: modern-productivity (light) — Linear-ish ─── */
+  [data-dir="modern-productivity"] :where(
+    .pet-stage,
+    .cos-tile,
+    .cos-grid,
+    .skin-tile,
+    .skin-grid,
+    .pet-hero-split,
+    .slot-row,
+    .rar,
+    .obtain,
+    .skin-pill,
+    .detail-art,
+    .pet-emotes
+  ) {
+    --font-display: "Geist Variable", "Geist", ui-sans-serif, sans-serif;
+    --font-sans: "Geist Variable", "Geist", ui-sans-serif, sans-serif;
+    --bg: #fafafa;
+    --bg-elev: #ffffff;
+    --bg-sunk: #f0f0f1;
+    --ink: #0a0a0a;
+    --ink-2: #262626;
+    --ink-3: #525252;
+    --ink-4: #a3a3a3;
+    --line: rgba(10, 10, 10, 0.08);
+    --line-strong: rgba(10, 10, 10, 0.16);
+    --accent: #5b5bd6;
+    --accent-ink: #ffffff;
+    --accent-soft: rgba(91, 91, 214, 0.10);
+  }
+
+  /* ─── Direction: modern-productivity (dark) ─── */
+  .dark[data-dir="modern-productivity"] :where(
+    .pet-stage,
+    .cos-tile,
+    .cos-grid,
+    .skin-tile,
+    .skin-grid,
+    .pet-hero-split,
+    .slot-row,
+    .rar,
+    .obtain,
+    .skin-pill,
+    .detail-art,
+    .pet-emotes
+  ) {
+    --bg: #0a0a0a;
+    --bg-elev: #141414;
+    --bg-sunk: #050505;
+    --ink: #fafafa;
+    --ink-2: #d4d4d4;
+    --ink-3: #737373;
+    --ink-4: #525252;
+    --line: rgba(255, 255, 255, 0.07);
+    --line-strong: rgba(255, 255, 255, 0.16);
+    --accent: #a5a5f7;
+    --accent-ink: #0a0a2e;
+    --accent-soft: rgba(165, 165, 247, 0.12);
+  }
+
+  /* ─── Direction: editorial-print (light) ─── */
+  [data-dir="editorial-print"] :where(
+    .pet-stage,
+    .cos-tile,
+    .cos-grid,
+    .skin-tile,
+    .skin-grid,
+    .pet-hero-split,
+    .slot-row,
+    .rar,
+    .obtain,
+    .skin-pill,
+    .detail-art,
+    .pet-emotes
+  ) {
+    --font-display: "Newsreader", Georgia, serif;
+    --font-sans: "Newsreader", Georgia, serif;
+    --bg: #efece4;
+    --bg-elev: #f7f4ec;
+    --bg-sunk: #e4e0d4;
+    --ink: #161514;
+    --ink-2: #2a2622;
+    --ink-3: #5a544a;
+    --ink-4: #989080;
+    --line: rgba(22, 21, 20, 0.18);
+    --line-strong: rgba(22, 21, 20, 0.36);
+    --accent: #8a2c2c;
+    --accent-ink: #f7f4ec;
+    --accent-soft: rgba(138, 44, 44, 0.10);
+    --r-rare: #2a5c8a;
+    --r-epic: #6a2c8a;
+    --r-legendary: #8a5a2c;
+  }
+
+  /* ─── Direction: editorial-print (dark) ─── */
+  .dark[data-dir="editorial-print"] :where(
+    .pet-stage,
+    .cos-tile,
+    .cos-grid,
+    .skin-tile,
+    .skin-grid,
+    .pet-hero-split,
+    .slot-row,
+    .rar,
+    .obtain,
+    .skin-pill,
+    .detail-art,
+    .pet-emotes
+  ) {
+    --bg: #14110d;
+    --bg-elev: #1b1813;
+    --bg-sunk: #0c0a07;
+    --ink: #efe9da;
+    --ink-2: #d6cfbe;
+    --ink-3: #968d78;
+    --ink-4: #615a48;
+    --line: rgba(239, 233, 218, 0.18);
+    --line-strong: rgba(239, 233, 218, 0.36);
+    --accent: #e07a7a;
+    --accent-ink: #1b1813;
+    --accent-soft: rgba(224, 122, 122, 0.12);
+    --r-rare: #6aa3d5;
+    --r-epic: #b876d8;
+    --r-legendary: #d8a26a;
+  }
+
+  /* ─── Direction: tech-forward (DARK base — applies for both light & dark; the :not(.dark) override below restores a light variant) ─── */
+  [data-dir="tech-forward"] :where(
+    .pet-stage,
+    .cos-tile,
+    .cos-grid,
+    .skin-tile,
+    .skin-grid,
+    .pet-hero-split,
+    .slot-row,
+    .rar,
+    .obtain,
+    .skin-pill,
+    .detail-art,
+    .pet-emotes
+  ) {
+    --font-display: "Geist Mono Variable", "Geist Mono", ui-monospace, monospace;
+    --font-sans: "Geist Variable", "Geist", ui-sans-serif, sans-serif;
+    --bg: #0c0d10;
+    --bg-elev: #16181d;
+    --bg-sunk: #08090b;
+    --ink: #e8e8ea;
+    --ink-2: #c8c8cc;
+    --ink-3: #8a8a90;
+    --ink-4: #56565c;
+    --line: rgba(255, 255, 255, 0.08);
+    --line-strong: rgba(255, 255, 255, 0.18);
+    --accent: #6ee7b7;
+    --accent-ink: #062a1c;
+    --accent-soft: rgba(110, 231, 183, 0.10);
+    --r-common: #6b7280;
+    --r-rare: #38bdf8;
+    --r-epic: #c084fc;
+    --r-legendary: #fbbf24;
+    --shadow-1: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+    --shadow-2: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 8px 24px rgba(0, 0, 0, 0.4);
+    --shadow-equipped: 0 0 0 1px var(--accent), 0 0 18px -2px var(--accent);
+  }
+
+  /* ─── Direction: tech-forward (LIGHT override — wins by specificity when not in dark mode) ─── */
+  [data-dir="tech-forward"]:not(.dark) :where(
+    .pet-stage,
+    .cos-tile,
+    .cos-grid,
+    .skin-tile,
+    .skin-grid,
+    .pet-hero-split,
+    .slot-row,
+    .rar,
+    .obtain,
+    .skin-pill,
+    .detail-art,
+    .pet-emotes
+  ) {
+    --bg: #f5f6f7;
+    --bg-elev: #ffffff;
+    --bg-sunk: #ebedf0;
+    --ink: #0c0d10;
+    --ink-2: #2a2c33;
+    --ink-3: #686d78;
+    --ink-4: #aab0bc;
+    --line: rgba(12, 13, 16, 0.08);
+    --line-strong: rgba(12, 13, 16, 0.18);
+    --accent: #059669;
+    --accent-ink: #ffffff;
+    --accent-soft: rgba(5, 150, 105, 0.10);
+    --shadow-1: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 1px 2px rgba(12, 13, 16, 0.06);
+    --shadow-2: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 6px 16px -8px rgba(12, 13, 16, 0.18);
+    --shadow-equipped: 0 0 0 1px var(--accent), 0 4px 14px -6px var(--accent);
   }
 }
 

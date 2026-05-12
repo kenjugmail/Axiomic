@@ -8,12 +8,15 @@
   </head>
   <body>
     <script>
-      // Pre-paint theme apply so we don't flash. Mirrors stores/theme.ts.
+      // Pre-paint theme + direction + density + rarity-i apply so we don't
+      // flash. Mirrors stores/theme.ts so the store can read the same DOM
+      // state without re-applying.
       (function () {
         try {
+          var root = document.documentElement;
+          var c = root.classList;
           var t = localStorage.getItem("axiomic-theme") || "system";
           var dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-          var c = document.documentElement.classList;
           if (t === "system") { if (dark) c.add("dark"); }
           else if (t === "dark") c.add("dark");
           else if (t === "dim") { c.add("dark"); c.add("theme-dim"); }
@@ -21,6 +24,28 @@
           else if (t === "high-contrast") {
             c.add("theme-high-contrast");
             if (dark) c.add("dark");
+          }
+          var dir = localStorage.getItem("axiomic-direction");
+          var allowed = [
+            "warm-scholarly","academic-neutral","modern-productivity",
+            "tech-forward","editorial-print"
+          ];
+          if (dir && dir !== "warm-scholarly" && allowed.indexOf(dir) >= 0) {
+            root.setAttribute("data-dir", dir);
+          }
+          function clamp01(n) { return Math.max(0, Math.min(1, n)); }
+          var dRaw = localStorage.getItem("axiomic-density");
+          if (dRaw !== null) {
+            var d = clamp01(parseFloat(dRaw));
+            if (d === d) {
+              root.style.setProperty("--density", String(d));
+              root.style.setProperty("--pet-dense", Math.round(24 + d * 16) + "px");
+            }
+          }
+          var rRaw = localStorage.getItem("axiomic-rarity-i");
+          if (rRaw !== null) {
+            var r = clamp01(parseFloat(rRaw));
+            if (r === r) root.style.setProperty("--rarity-i", String(r));
           }
         } catch (e) {}
       })();

@@ -9,8 +9,10 @@ import { Pencil, Egg, Sparkles, BarChart3 } from "lucide-react";
 import type { CosmeticSlot, MyPetResponse, PetInventoryItem, PetSkinDef, SkinShopResponse } from "@axiomic/types";
 import { api, ApiError } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
+import { useThemeStore } from "../stores/theme";
 import { Skeleton } from "../components/ui";
 import { PetAvatar } from "../components/pet/PetAvatar";
+import { PetSilhouetteSVG } from "../components/pet/PetSilhouetteSVG";
 import { PetSwapStrip } from "../components/pet/PetSwapStrip";
 import { EvolutionChain } from "../components/pet/EvolutionChain";
 import { CosmeticChip } from "../components/pet/CosmeticChip";
@@ -19,6 +21,7 @@ import { toast } from "../stores/toast";
 
 export function MyPetPage() {
   const { user } = useAuthStore();
+  const rhythmicGrid = useThemeStore((s) => s.rhythmicGrid);
   const [data, setData] = useState<MyPetResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [editingName, setEditingName] = useState(false);
@@ -32,6 +35,13 @@ export function MyPetPage() {
   // pet_hatched notification. The CSS keyframe runs for 800ms;
   // we clear the flag at 900ms so a second hatch can fire it again.
   const [hatchBurst, setHatchBurst] = useState(false);
+  // Phase N — which pet the skin grid is editing. Defaults to the
+  // active pet; users with 2+ pets can switch via the per-pet tab strip
+  // above the skin grid. Null means "no pet selected yet" (pre-hatch).
+  const [skinTargetPetId, setSkinTargetPetId] = useState<string | null>(null);
+  // Per-tab in-flight set, keyed by pet id, to prevent overlapping
+  // mutations from desyncing the optimistic activeSkinSlug state.
+  const [skinBusyPetId, setSkinBusyPetId] = useState<string | null>(null);
 
   // Phase M — listen for pet_hatched notifications and pop the burst.
   // Other notification kinds are ignored at this surface.
@@ -64,6 +74,13 @@ export function MyPetPage() {
     api.pet.me().then((r) => {
       setData(r);
       if (r.pet) setName(r.pet.name);
+      // First load: snap the skin-equip target to the active pet.
+      // Subsequent reloads keep whatever the user picked, unless
+      // the previously-selected pet was deleted.
+      setSkinTargetPetId((prev) => {
+        if (prev && r.pets.some((p) => p.id === prev)) return prev;
+        return r.pet?.id ?? null;
+      });
     }).catch((e) => setError(e?.message ?? "Failed to load"));
     api.pet.skinShop().then(setSkinShop).catch(() => {
       // ignore — section just hides the locked tiles
@@ -87,19 +104,26 @@ export function MyPetPage() {
   // equipped → unequip (reset to default). Not owned + affordable
   // → buy (with optimistic balance). Not owned + not affordable
   // → tooltip-only; the tile shows "locked".
+  // Phase N — equip targets `skinTargetPetId` so users with multiple
+  // pets can dress each one independently. We disable while a per-pet
+  // mutation is in flight so back-to-back clicks don't desync.
   const handleSkinClick = async (skin: PetSkinDef) => {
-    if (!data?.pet) return;
+    if (!data?.pet || !skinTargetPetId) return;
+    const targetPet = data.pets.find((p) => p.id === skinTargetPetId);
+    if (!targetPet) return;
+    if (skinBusyPetId === skinTargetPetId) return;
     const owned = data.ownedSkins.some((s) => s.slug === skin.slug);
-    const isEquipped = data.activeSkin?.slug === skin.slug;
+    const isEquippedOnTarget = targetPet.activeSkinSlug === skin.slug;
+    setSkinBusyPetId(skinTargetPetId);
     try {
-      if (isEquipped) {
+      if (isEquippedOnTarget) {
         if (skin.slug === "default") return; // can't unequip default
-        await api.pet.skinUnequip();
+        await api.pet.skinUnequip(skinTargetPetId);
         await reload();
         return;
       }
       if (owned) {
-        await api.pet.skinEquip(skin.slug);
+        await api.pet.skinEquip(skin.slug, skinTargetPetId);
         await reload();
         return;
       }
@@ -114,10 +138,12 @@ export function MyPetPage() {
         return;
       }
       await api.pet.buySkin(skin.slug);
-      await api.pet.skinEquip(skin.slug);
+      await api.pet.skinEquip(skin.slug, skinTargetPetId);
       await reload();
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Failed");
+    } finally {
+      setSkinBusyPetId(null);
     }
   };
 
@@ -348,13 +374,17 @@ export function MyPetPage() {
       )}
 
       {/* Phase L — Skins. Owned-first, then shop. Hidden when there's
-          no pet yet (skin only makes sense once something's hatched). */}
+          no pet yet (skin only makes sense once something's hatched).
+          Phase N — tabs above the grid let users with 2+ pets pick
+          which one they're equipping. The "equipped" pip on each tile
+          resolves against the *selected* pet, not the user's active. */}
       {data.pet && (() => {
-        // Build the full ordered list: owned skins first (with the
-        // equipped one bubbled to the front), then shop skins the user
-        // doesn't yet own. Keeps the equipped state immediately visible.
+        const targetPet = data.pets.find((p) => p.id === skinTargetPetId)
+          ?? data.pets.find((p) => p.isActive)
+          ?? data.pets[0];
+        if (!targetPet) return null;
         const ownedSlugs = new Set(data.ownedSkins.map((s) => s.slug));
-        const activeSlug = data.activeSkin?.slug ?? "default";
+        const activeSlug = targetPet.activeSkinSlug || "default";
         const owned = [...data.ownedSkins].sort((a, b) => {
           if (a.slug === activeSlug) return -1;
           if (b.slug === activeSlug) return 1;
@@ -373,23 +403,69 @@ export function MyPetPage() {
           }));
         const allTiles = [...owned, ...unowned];
         if (allTiles.length === 0) return null;
+        const showPetTabs = data.pets.length >= 2;
         return (
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold">Skins ({data.ownedSkins.length} owned)</h2>
+            <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+              <h2 className="text-sm font-semibold">
+                Skins ({data.ownedSkins.length} owned)
+              </h2>
               {skinShop && (
                 <span className="text-xs text-muted-foreground tabular-nums">
                   Balance: {skinShop.balance.toLocaleString()} XP
                 </span>
               )}
             </div>
+            {showPetTabs && (
+              <div
+                role="tablist"
+                aria-label="Equip skin on pet"
+                className="flex flex-wrap gap-2 mb-3"
+              >
+                {data.pets.map((p) => {
+                  const active = p.id === targetPet.id;
+                  const busy = skinBusyPetId === p.id;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={active}
+                      data-testid={`skin-pet-tab-${p.id}`}
+                      onClick={() => setSkinTargetPetId(p.id)}
+                      disabled={busy}
+                      className={`inline-flex items-center gap-2 px-2.5 py-1.5 rounded-full border text-xs transition-colors ${
+                        active
+                          ? "border-primary bg-primary/10 text-foreground"
+                          : "border-input text-muted-foreground hover:text-foreground"
+                      } disabled:opacity-50`}
+                    >
+                      <span
+                        className="inline-block"
+                        style={{ width: 20, height: 20 }}
+                      >
+                        <PetSilhouetteSVG species={p.species} level={p.level} />
+                      </span>
+                      <span className="font-medium">
+                        {p.name || p.speciesLabel}
+                      </span>
+                      {p.isActive && (
+                        <span className="text-[9px] uppercase tracking-wider text-primary">
+                          Active
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             <div className="skin-grid">
               {allTiles.map((skin) => (
                 <SkinTile
                   key={skin.slug}
                   skin={skin}
-                  previewSpecies={data.pet?.species}
-                  previewLevel={data.pet?.level}
+                  previewSpecies={targetPet.species}
+                  previewLevel={targetPet.level}
                   owned={ownedSlugs.has(skin.slug)}
                   equipped={skin.slug === activeSlug}
                   onClick={() => handleSkinClick(skin)}
@@ -417,8 +493,9 @@ export function MyPetPage() {
                   {slot}
                 </h3>
                 {/* Phase M — .cos-grid.rhythmic lets legendary tiles span 2x2
-                    and epic span 2x1 (design's masonry behavior). */}
-                <div className="cos-grid rhythmic">
+                    and epic span 2x1 (design's masonry behavior).
+                    Phase N — toggleable via Settings → Design preferences. */}
+                <div className={`cos-grid${rhythmicGrid ? " rhythmic" : ""}`}>
                   {items.map((item) => (
                     <CosmeticChip
                       key={item.id}

@@ -3604,6 +3604,10 @@ export interface MyPetResponse {
     name: string;
     hatchedAt: string;
     isActive: boolean;
+    // Phase N — per-pet active skin slug. Lets the multi-pet skin
+    // picker show EQUIPPED state against the right pet without
+    // having to refetch when switching tabs.
+    activeSkinSlug: string;
   }>;
   petCap: number;
   nextHatchXp: number | null;
@@ -3744,6 +3748,34 @@ export interface SkinShopItem {
 export interface SkinShopResponse {
   balance: number;
   items: SkinShopItem[];
+}
+
+// Phase N — Skin showcase catalog. Public, but auth-aware: when the
+// caller is signed in, `owned` and `equippedOnPetIds` carry per-user
+// state; otherwise `owned` is null and `equippedOnPetIds` is [].
+export type PetSkinSource = "xp" | "achievement" | "competition" | "starter";
+export interface PetSkinShowcaseEntry {
+  slug: string;
+  displayName: string;
+  rarity: PetSkinRarity;
+  description: string;
+  fx: PetSkinFx;
+  source: PetSkinSource;
+  sourceDetail:
+    | {
+        xpCost?: number;
+        achievementSlug?: string;
+        achievementLabel?: string;
+      }
+    | null;
+  /** True when the signed-in user owns this skin; null when unauthenticated. */
+  owned: boolean | null;
+  /** Pet ids that have this skin equipped right now. Empty when unauthed/unowned. */
+  equippedOnPetIds: string[];
+}
+export interface PetSkinShowcaseResponse {
+  skins: PetSkinShowcaseEntry[];
+  authenticated: boolean;
 }
 
 // =============================================================

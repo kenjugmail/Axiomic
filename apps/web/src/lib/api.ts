@@ -210,6 +210,8 @@ import type {
   // Phase L — pet skin types.
   PetSkinDef,
   SkinShopResponse,
+  // Phase N — skin showcase response.
+  PetSkinShowcaseResponse,
   // S97 — pet showcase.
   PetShowcaseResponse,
   // S98 — profile cosmetic gallery.
@@ -1470,6 +1472,8 @@ export const api = {
         body: JSON.stringify({ skinSlug }),
       }),
     skinCatalog: () => request<{ skins: PetSkinDef[] }>("/pet-skins"),
+    skinShowcase: () =>
+      request<PetSkinShowcaseResponse>("/pet-skins/catalog"),
   },
   tracks: {
     list: () =>

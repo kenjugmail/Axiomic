@@ -1,0 +1,22 @@
+/* Phase N — Self-hosted webfonts for the pet/cosmetic design directions.
+ *
+ * Three families cover all five directions:
+ *  - Newsreader      → warm-scholarly + editorial-print display
+ *  - Geist Variable  → academic-neutral + modern-productivity + tech-forward sans
+ *  - Geist Mono Var  → tech-forward display + universal --font-mono
+ *
+ * Variable axis ships a single file per family, keeping the bundle around
+ * 80–100 KB compressed. System-font fallbacks remain in place via the
+ * --font-display / --font-sans / --font-mono token stacks.
+ */
+
+/* Newsreader — italic 400 powers the legendary RarityBadge label. */
+@import "@fontsource/newsreader/400.css";
+@import "@fontsource/newsreader/600.css";
+@import "@fontsource/newsreader/400-italic.css";
+
+/* Geist (variable axis) — covers 100..900 in one file. */
+@import "@fontsource-variable/geist";
+
+/* Geist Mono (variable axis). */
+@import "@fontsource-variable/geist-mono";

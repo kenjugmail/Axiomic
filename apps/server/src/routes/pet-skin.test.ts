@@ -254,4 +254,61 @@ describe("Phase L — pet skin endpoints", () => {
     const cosmic = data.items.find((it: any) => it.slug === "cosmic");
     expect(cosmic.affordable).toBe(false); // 1450 > 400
   });
+
+  // ─── Phase N — public showcase catalog ───────────────────────────
+
+  test("GET /pet-skins/catalog (anon) returns owned=null for every skin", async () => {
+    const res = await req("/pet-skins/catalog");
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as any;
+    expect(data.authenticated).toBe(false);
+    expect(Array.isArray(data.skins)).toBe(true);
+    expect(data.skins.length).toBeGreaterThanOrEqual(12);
+    for (const s of data.skins) {
+      expect(s.owned).toBeNull();
+      expect(s.equippedOnPetIds).toEqual([]);
+    }
+  });
+
+  test("GET /pet-skins/catalog tags sources from the obtain field", async () => {
+    const res = await req("/pet-skins/catalog");
+    const data = (await res.json()) as any;
+    const bySlug = new Map<string, any>(
+      data.skins.map((s: any) => [s.slug, s]),
+    );
+    expect(bySlug.get("default").source).toBe("starter");
+    expect(bySlug.get("midnight").source).toBe("xp");
+    expect(bySlug.get("midnight").sourceDetail.xpCost).toBe(340);
+    expect(bySlug.get("aurora").source).toBe("achievement");
+    expect(bySlug.get("aurora").sourceDetail.achievementSlug).toBe(
+      "apprentice_ml",
+    );
+    expect(bySlug.get("aurora").sourceDetail.achievementLabel).toBe(
+      "ML Apprentice",
+    );
+    expect(bySlug.get("crystalline").source).toBe("competition");
+  });
+
+  test("GET /pet-skins/catalog (authed) reports ownership + equipped pet ids", async () => {
+    const me = await signup("showcase");
+    const petId = ensurePet(me.username);
+    // Hit /me/pet once to autoprovision the default skin into inventory.
+    await req("/me/pet", { headers: cookieHeader(me.cookie) });
+
+    const res = await req("/pet-skins/catalog", {
+      headers: cookieHeader(me.cookie),
+    });
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as any;
+    expect(data.authenticated).toBe(true);
+    const bySlug = new Map<string, any>(
+      data.skins.map((s: any) => [s.slug, s]),
+    );
+    // Default is auto-owned + equipped on the pet we just created.
+    expect(bySlug.get("default").owned).toBe(true);
+    expect(bySlug.get("default").equippedOnPetIds).toContain(petId);
+    // A skin we never bought / earned shows as not-owned.
+    expect(bySlug.get("aurora").owned).toBe(false);
+    expect(bySlug.get("aurora").equippedOnPetIds).toEqual([]);
+  });
 });

@@ -7,10 +7,19 @@ import type { PrimaryPersona, ThemePreference, UserSettings } from "@axiomic/typ
 import { AUDIENCES, AUDIENCE_IDS } from "../marketing/audiences";
 import { readPushState, subscribePush, unsubscribePush, type PushState } from "../lib/pushClient";
 import { toast } from "../stores/toast";
+import { DirectionPicker } from "../components/settings/DirectionPicker";
+import { RangeSlider } from "../components/settings/RangeSlider";
 
 export function SettingsPage() {
   const { user, loading: authLoading, fetchUser } = useAuthStore();
-  const { theme, setTheme } = useThemeStore();
+  const theme = useThemeStore((s) => s.theme);
+  const setTheme = useThemeStore((s) => s.setTheme);
+  const density = useThemeStore((s) => s.density);
+  const setDensity = useThemeStore((s) => s.setDensity);
+  const rarityIntensity = useThemeStore((s) => s.rarityIntensity);
+  const setRarityIntensity = useThemeStore((s) => s.setRarityIntensity);
+  const rhythmicGrid = useThemeStore((s) => s.rhythmicGrid);
+  const setRhythmicGrid = useThemeStore((s) => s.setRhythmicGrid);
   const navigate = useNavigate();
 
   const [settings, setSettings] = useState<UserSettings | null>(null);
@@ -284,6 +293,41 @@ export function SettingsPage() {
           <p className="text-xs text-muted-foreground mt-1">
             Saved automatically on change.
           </p>
+        </div>
+
+        <div className="space-y-4 pt-2 border-t border-input/50">
+          <div>
+            <h3 className="text-sm font-semibold mb-1">Design direction</h3>
+            <p className="text-xs text-muted-foreground mb-3">
+              Affects pet, cosmetic, and skin surfaces. Stored locally; not
+              synced across devices.
+            </p>
+            <DirectionPicker />
+          </div>
+
+          <RangeSlider
+            label="Pet density"
+            description="Small-pet avatar size in lists & rosters (24px → 40px)."
+            value={density}
+            onChange={setDensity}
+            format={(v) => `${Math.round(24 + v * 16)}px`}
+            testId="density-slider"
+          />
+
+          <RangeSlider
+            label="Rarity intensity"
+            description="Strength of rarity ring glow on legendary/epic pets and tiles."
+            value={rarityIntensity}
+            onChange={setRarityIntensity}
+            testId="rarity-i-slider"
+          />
+
+          <ToggleRow
+            label="Rhythmic cosmetic grid"
+            description="Lay legendary tiles 2×2 and epic tiles 2×1 in cosmetic galleries."
+            checked={rhythmicGrid}
+            onChange={setRhythmicGrid}
+          />
         </div>
 
         <div className="space-y-3">
