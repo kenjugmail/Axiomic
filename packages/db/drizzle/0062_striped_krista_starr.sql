@@ -1,0 +1,1 @@
+ALTER TABLE `pet_cosmetics` ADD `fail_small` integer DEFAULT false NOT NULL;

@@ -13,6 +13,8 @@ import {
   users,
   petInventory,
   petCosmetics,
+  petSkinInventory,
+  petSkins,
   activityEvents,
   forumTopics,
 } from "@axiomic/db";
@@ -128,5 +130,72 @@ describe("evaluateAchievements grants cosmetic rewards (S92)", () => {
     evaluateAchievements(u);
     const inv = db.select().from(petInventory).where(eq(petInventory.userId, u)).all();
     expect(inv.some((i) => i.cosmeticSlug === "rose")).toBe(true);
+  });
+});
+
+// Phase M — rewardSkinSlug analog.
+describe("evaluateAchievements grants skin rewards (Phase M)", () => {
+  beforeAll(() => {
+    // Make sure the catalog has the skins the wired achievements reference.
+    const db = getDb();
+    for (const slug of ["midnight", "verdant", "aurora"]) {
+      const existing = db.select({ id: petSkins.id }).from(petSkins).where(eq(petSkins.slug, slug)).get();
+      if (!existing) {
+        db.insert(petSkins).values({
+          id: randomUUID(),
+          slug,
+          name: slug,
+          rarity: slug === "aurora" ? "legendary" : "common",
+          obtain: slug === "aurora" ? "grant" : "xp",
+          xpCost: slug === "aurora" ? null : 280,
+          description: "",
+          fxOpacity: 1,
+        }).run();
+      }
+    }
+  });
+
+  test("streak_7 grants the midnight skin (alongside the existing gold-star cosmetic)", () => {
+    const u = makeUser("streak7sk");
+    seedActivityForDays(u, 7);
+    const newly = evaluateAchievements(u);
+    expect(newly).toContain("streak_7");
+    const skinInv = getDb()
+      .select()
+      .from(petSkinInventory)
+      .where(eq(petSkinInventory.userId, u))
+      .all();
+    expect(skinInv.some((i) => i.skinSlug === "midnight")).toBe(true);
+  });
+
+  test("re-evaluation doesn't double-grant the skin", () => {
+    const u = makeUser("skidemp");
+    seedActivityForDays(u, 7);
+    evaluateAchievements(u);
+    const before = getDb()
+      .select()
+      .from(petSkinInventory)
+      .where(eq(petSkinInventory.userId, u))
+      .all().length;
+    evaluateAchievements(u);
+    const after = getDb()
+      .select()
+      .from(petSkinInventory)
+      .where(eq(petSkinInventory.userId, u))
+      .all().length;
+    expect(after).toBe(before);
+  });
+
+  test("achievement without rewardSkinSlug doesn't grant a skin", () => {
+    const u = makeUser("nosk");
+    recordActivity(u, "node_completed");
+    evaluateAchievements(u);
+    const skinInv = getDb()
+      .select()
+      .from(petSkinInventory)
+      .where(eq(petSkinInventory.userId, u))
+      .all();
+    // first_steps has no rewardSkinSlug — inventory stays empty.
+    expect(skinInv.length).toBe(0);
   });
 });

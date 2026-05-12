@@ -14,19 +14,23 @@ import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import {
   petCosmetics,
   petInventory,
+  petSkinInventory,
   pets,
   users,
   xpGrants,
   xpPurchases,
   getDb,
 } from "@axiomic/db";
-import { requireAuth } from "../middleware/auth";
+import { requireAuth, getSessionUser } from "../middleware/auth";
+import { ACHIEVEMENTS } from "../lib/achievements";
 import { totalXpForUser, xpBalanceForUser, PET_HATCH_THRESHOLD_XP } from "../lib/xp";
 import {
   petSpeciesBySlug,
   randomPetSpecies,
-  emojiForSpeciesAtLevel,
   xpForNextLevel,
+  petSkinBySlug,
+  petSkinBySlugOrDefault,
+  allPetSkins,
   MAX_PET_LEVEL,
   PET_LEVEL_THRESHOLDS,
 } from "../lib/pets";
@@ -123,45 +127,78 @@ petRouter.get("/", requireAuth, (c) => {
       slug: r.slug,
       name: cos?.name ?? r.slug,
       slot: cos?.slot ?? "accessory",
-      emoji: cos?.emoji ?? null,
+      // Phase M — emoji nulled out for all cosmetics; CosmeticGlyphSVG
+      // resolves visuals from slug. Field retained for type compat
+      // until next-phase removal.
+      emoji: null,
       rarity: cos?.rarity ?? "common",
       description: cos?.description ?? "",
       equipped: r.equipped,
       acquiredAt: r.acquiredAt,
       grantedNote: r.grantedNote,
+      failSmall: cos?.failSmall ?? false,
     };
   });
 
   const speciesMeta = pet ? petSpeciesBySlug(pet.species) : null;
+
+  // Phase L — autoprovision the 'default' skin on first read so
+  // the user always has a baseline + the picker has at least one
+  // owned tile to show. Cheap (one INSERT OR IGNORE) and lazy.
+  const skinInvRows = db
+    .select({ slug: petSkinInventory.skinSlug })
+    .from(petSkinInventory)
+    .where(eq(petSkinInventory.userId, user.id))
+    .all();
+  let ownedSkinSlugs = skinInvRows.map((r) => r.slug);
+  if (ownedSkinSlugs.length === 0) {
+    try {
+      db.insert(petSkinInventory)
+        .values({ id: randomUUID(), userId: user.id, skinSlug: "default" })
+        .onConflictDoNothing()
+        .run();
+      ownedSkinSlugs = ["default"];
+    } catch {
+      // best-effort; the response still works without ownership rows
+    }
+  }
+  const ownedSkins = ownedSkinSlugs
+    .map((slug) => petSkinBySlug(slug))
+    .filter((s): s is NonNullable<typeof s> => !!s);
+  const activeSkin = pet
+    ? petSkinBySlugOrDefault(pet.activeSkinSlug)
+    : petSkinBySlugOrDefault("default");
 
   return c.json({
     pet: pet
       ? {
           id: pet.id,
           species: pet.species,
-          // S86 base emoji (level-1 form) — kept for back-compat;
-          // the level-aware emoji lives in `levelEmoji` below.
-          speciesEmoji: speciesMeta?.emoji ?? "🥚",
           speciesLabel: speciesMeta?.label ?? pet.species,
           name: pet.name,
           hatchedAt: pet.hatchedAt,
-          // S90 — pet evolution surface. levelEmoji is what the UI
-          // should actually render. nextLevelXp is null at max level.
+          // S90 — pet evolution surface. nextLevelXp is null at max level.
+          // Phase M — speciesEmoji + levelEmoji removed; PetSilhouetteSVG
+          // resolves visuals on the client from the species slug alone.
           level: pet.level,
           maxLevel: MAX_PET_LEVEL,
-          levelEmoji: emojiForSpeciesAtLevel(pet.species, pet.level),
           nextLevelXp: xpForNextLevel(pet.level),
+          // Phase L — currently-equipped skin slug. The full def is
+          // hoisted to the top-level `activeSkin` so it sits next to
+          // ownedSkins in the response shape.
+          activeSkinSlug: pet.activeSkinSlug,
           // S100 — full evolution chain for this species, so the UI
           // can render the past + future forms next to the current
           // pet ("here's what's coming"). Each entry pairs a level
-          // with its threshold and the species' emoji at that level.
+          // with its threshold; no emoji (Phase M).
           evolutionChain: PET_LEVEL_THRESHOLDS.map((threshold, i) => ({
             level: i + 1,
             threshold,
-            emoji: emojiForSpeciesAtLevel(pet.species, i + 1),
           })),
         }
       : null,
+    activeSkin,
+    ownedSkins,
     totalXp,
     hatchThresholdXp: PET_HATCH_THRESHOLD_XP,
     // S104 — full pet list so the UI can render the swap strip.
@@ -176,11 +213,11 @@ petRouter.get("/", requireAuth, (c) => {
           id: p.id,
           species: p.species,
           speciesLabel: meta?.label ?? p.species,
-          speciesEmoji: emojiForSpeciesAtLevel(p.species, p.level),
           level: p.level,
           name: p.name,
           hatchedAt: p.hatchedAt,
           isActive: p.id === pet?.id,
+          activeSkinSlug: p.activeSkinSlug,
         };
       }),
     petCap: MAX_PETS_PER_USER,
@@ -449,6 +486,104 @@ petCatalogRouter.get("/", (c) => {
   return c.json({ cosmetics: rows });
 });
 
+// Phase L — public skin catalog. Same auth posture as /pet-cosmetics:
+// the inventory UI shows ALL skins (owned + unowned) so users see
+// what's available to chase.
+export const petSkinCatalogRouter = new Hono<Env>();
+petSkinCatalogRouter.get("/", (c) => {
+  return c.json({ skins: allPetSkins() });
+});
+
+// Phase N — Skin showcase enrichment. Each skin gets a source label
+// (xp / achievement / competition / starter) plus, if the caller is
+// signed in, ownership + per-pet equipped state. The unauth path
+// returns ownership/equipped as nulls/empty so the same payload can
+// drive a public marketing-style showcase page.
+petSkinCatalogRouter.get("/catalog", async (c) => {
+  const skins = allPetSkins();
+  const db = getDb();
+
+  // Build a slug→achievement reverse index so each skin's source line
+  // can mention the awarding achievement by title.
+  const achievementBySkinSlug = new Map<string, { slug: string; title: string }>();
+  for (const a of ACHIEVEMENTS) {
+    if (a.rewardSkinSlug) {
+      achievementBySkinSlug.set(a.rewardSkinSlug, { slug: a.slug, title: a.title });
+    }
+  }
+
+  const sessionUser = await getSessionUser(c);
+
+  // Per-user ownership + per-pet equipped state, only when authed.
+  const ownedSlugs = new Set<string>();
+  const equippedBySkinSlug = new Map<string, string[]>();
+  if (sessionUser) {
+    const ownedRows = db
+      .select({ slug: petSkinInventory.skinSlug })
+      .from(petSkinInventory)
+      .where(eq(petSkinInventory.userId, sessionUser.id))
+      .all();
+    for (const r of ownedRows) ownedSlugs.add(r.slug);
+
+    const userPets = db
+      .select({ id: pets.id, activeSkinSlug: pets.activeSkinSlug })
+      .from(pets)
+      .where(eq(pets.userId, sessionUser.id))
+      .all();
+    for (const p of userPets) {
+      const list = equippedBySkinSlug.get(p.activeSkinSlug) ?? [];
+      list.push(p.id);
+      equippedBySkinSlug.set(p.activeSkinSlug, list);
+    }
+  }
+
+  const enriched = skins.map((skin) => {
+    let source: "xp" | "achievement" | "competition" | "starter";
+    let sourceDetail:
+      | { xpCost?: number; achievementSlug?: string; achievementLabel?: string }
+      | null = null;
+
+    if (skin.obtain === "default") {
+      source = "starter";
+    } else if (skin.obtain === "xp") {
+      source = "xp";
+      if (skin.xpCost != null) sourceDetail = { xpCost: skin.xpCost };
+    } else if (skin.obtain === "comp") {
+      source = "competition";
+    } else {
+      // "grant" — match against achievement catalog.
+      const ach = achievementBySkinSlug.get(skin.slug);
+      if (ach) {
+        source = "achievement";
+        sourceDetail = {
+          achievementSlug: ach.slug,
+          achievementLabel: ach.title,
+        };
+      } else {
+        // Grant skins without a matching achievement still exist (e.g.
+        // manual instructor grants) — surface as "achievement" without
+        // a label so the UI can render a generic "earn this through a
+        // grant" line.
+        source = "achievement";
+      }
+    }
+
+    return {
+      slug: skin.slug,
+      displayName: skin.name,
+      rarity: skin.rarity,
+      description: skin.description,
+      fx: skin.fx,
+      source,
+      sourceDetail,
+      owned: sessionUser ? ownedSlugs.has(skin.slug) : null,
+      equippedOnPetIds: equippedBySkinSlug.get(skin.slug) ?? [],
+    };
+  });
+
+  return c.json({ skins: enriched, authenticated: !!sessionUser });
+});
+
 // S87 — Public per-username pet display, used by the
 // PetByUsername wrapper to render pets next to bylines anywhere
 // (forum topics, lesson author, profile page, ...). Returns the
@@ -481,7 +616,8 @@ petPublicRouter.get("/:username/pet-display", (c) => {
     .select({
       slug: petInventory.cosmeticSlug,
       slot: petCosmetics.slot,
-      emoji: petCosmetics.emoji,
+      rarity: petCosmetics.rarity,
+      failSmall: petCosmetics.failSmall,
     })
     .from(petInventory)
     .innerJoin(petCosmetics, eq(petCosmetics.slug, petInventory.cosmeticSlug))
@@ -496,13 +632,14 @@ petPublicRouter.get("/:username/pet-display", (c) => {
   return c.json({
     pet: {
       species: pet.species,
-      // S90 — speciesEmoji follows the pet's current level, so
-      // bylines show the level-3 form on a leveled-up pet without
-      // any UI changes downstream.
-      speciesEmoji: emojiForSpeciesAtLevel(pet.species, pet.level),
+      // Phase M — speciesEmoji dropped; PetSilhouetteSVG renders the
+      // species from the slug alone (no emoji anywhere in the pipeline).
       level: pet.level,
       name: pet.name,
       equipped: equippedRows,
+      // Phase L — active skin so the byline avatar renders with
+      // skin FX in one round-trip (no separate skin fetch).
+      activeSkin: petSkinBySlugOrDefault(pet.activeSkinSlug),
     },
   });
 });
@@ -596,7 +733,8 @@ petRouter.get("/shop", requireAuth, (c) => {
         slug: it.slug,
         name: it.name,
         slot: it.slot,
-        emoji: it.emoji,
+        // Phase M — emoji null across the catalog.
+        emoji: null,
         rarity: it.rarity,
         description: it.description,
         xpCost: it.xpCost!,
@@ -604,6 +742,7 @@ petRouter.get("/shop", requireAuth, (c) => {
         featured,
         owned: ownedSlugs.has(it.slug),
         affordable: balance >= effectiveCost,
+        failSmall: it.failSmall,
       };
     }),
   });
@@ -736,6 +875,255 @@ petRouter.post(
   },
 );
 
+// =================================================================
+// Phase L — Skin endpoints.
+// =================================================================
+//
+// Skins parallel cosmetics but the equipped state is per-pet
+// (pets.activeSkinSlug) rather than per-user. The 'default' skin
+// is always owned and always available — calls to unequip just
+// equip 'default' rather than null the column.
+
+const skinEquipSchema = z.object({
+  skinSlug: z.string().min(1).max(64),
+  // S104 — optional petId so users with multiple pets can change
+  // a non-active pet's skin without first activating it. Defaults
+  // to the user's active pet.
+  petId: z.string().min(1).max(64).optional(),
+});
+
+// POST /me/pet/skin/equip — set pets.active_skin_slug. Verifies
+// ownership in pet_skin_inventory unless it's the 'default' skin
+// (always allowed). Idempotent.
+petRouter.post(
+  "/skin/equip",
+  requireAuth,
+  zValidator("json", skinEquipSchema),
+  (c) => {
+    const user = c.get("user")!;
+    const { skinSlug, petId } = c.req.valid("json");
+    const db = getDb();
+
+    const skin = petSkinBySlug(skinSlug);
+    if (!skin) return c.json({ error: "Skin not found" }, 404);
+
+    // Owned check (default is always free).
+    if (skinSlug !== "default") {
+      const owned = db
+        .select({ id: petSkinInventory.id })
+        .from(petSkinInventory)
+        .where(
+          and(
+            eq(petSkinInventory.userId, user.id),
+            eq(petSkinInventory.skinSlug, skinSlug),
+          ),
+        )
+        .get();
+      if (!owned) return c.json({ error: "Skin not owned" }, 403);
+    }
+
+    // Resolve target pet: explicit petId or fall back to active.
+    let targetPetId = petId;
+    if (!targetPetId) {
+      const userRow = db
+        .select({ activePetId: users.activePetId })
+        .from(users)
+        .where(eq(users.id, user.id))
+        .get();
+      targetPetId = userRow?.activePetId ?? undefined;
+    }
+    if (!targetPetId) {
+      return c.json({ error: "No pet to equip skin on" }, 404);
+    }
+
+    // Verify the pet belongs to the user before mutating.
+    const targetPet = db
+      .select({ id: pets.id, userId: pets.userId })
+      .from(pets)
+      .where(eq(pets.id, targetPetId))
+      .get();
+    if (!targetPet || targetPet.userId !== user.id) {
+      return c.json({ error: "Pet not found" }, 404);
+    }
+
+    db.update(pets)
+      .set({ activeSkinSlug: skinSlug })
+      .where(eq(pets.id, targetPetId))
+      .run();
+
+    return c.json({ ok: true, activeSkin: skin });
+  },
+);
+
+// POST /me/pet/skin/unequip — convenience for "go back to default".
+// Equivalent to equip({ skinSlug: 'default' }) but doesn't require
+// the client to know the magic slug name.
+const skinUnequipSchema = z.object({
+  petId: z.string().min(1).max(64).optional(),
+});
+petRouter.post(
+  "/skin/unequip",
+  requireAuth,
+  zValidator("json", skinUnequipSchema),
+  (c) => {
+    const user = c.get("user")!;
+    const { petId } = c.req.valid("json");
+    const db = getDb();
+
+    let targetPetId = petId;
+    if (!targetPetId) {
+      const userRow = db
+        .select({ activePetId: users.activePetId })
+        .from(users)
+        .where(eq(users.id, user.id))
+        .get();
+      targetPetId = userRow?.activePetId ?? undefined;
+    }
+    if (!targetPetId) {
+      return c.json({ error: "No pet" }, 404);
+    }
+    const targetPet = db
+      .select({ id: pets.id, userId: pets.userId })
+      .from(pets)
+      .where(eq(pets.id, targetPetId))
+      .get();
+    if (!targetPet || targetPet.userId !== user.id) {
+      return c.json({ error: "Pet not found" }, 404);
+    }
+    db.update(pets)
+      .set({ activeSkinSlug: "default" })
+      .where(eq(pets.id, targetPetId))
+      .run();
+    return c.json({ ok: true, activeSkin: petSkinBySlugOrDefault("default") });
+  },
+);
+
+// GET /me/pet/skin-shop — purchasable skins (xpCost not null) with
+// ownership + affordability flags. Mirrors GET /shop for cosmetics.
+petRouter.get("/skin-shop", requireAuth, (c) => {
+  const user = c.get("user")!;
+  const db = getDb();
+
+  const items = allPetSkins().filter((s) => s.xpCost != null);
+  const ownedSlugs = new Set(
+    db
+      .select({ slug: petSkinInventory.skinSlug })
+      .from(petSkinInventory)
+      .where(eq(petSkinInventory.userId, user.id))
+      .all()
+      .map((r) => r.slug),
+  );
+  const balance = xpBalanceForUser(user.id);
+  return c.json({
+    balance,
+    items: items.map((s) => ({
+      slug: s.slug,
+      name: s.name,
+      rarity: s.rarity,
+      description: s.description,
+      xpCost: s.xpCost!,
+      fx: s.fx,
+      owned: ownedSlugs.has(s.slug),
+      affordable: balance >= s.xpCost!,
+    })),
+  });
+});
+
+// POST /me/pet/buy-skin — spend XP to own a skin. Mirrors /buy:
+// atomic xp_purchases + pet_skin_inventory insert, 402 on
+// insufficient balance, 409 on already-owned.
+const buySkinSchema = z.object({
+  skinSlug: z.string().min(1).max(64),
+});
+petRouter.post(
+  "/buy-skin",
+  requireAuth,
+  zValidator("json", buySkinSchema),
+  (c) => {
+    const user = c.get("user")!;
+    const { skinSlug } = c.req.valid("json");
+    const db = getDb();
+
+    const skin = petSkinBySlug(skinSlug);
+    if (!skin) return c.json({ error: "Skin not found" }, 404);
+    if (skin.xpCost == null) {
+      return c.json({ error: "This skin is not for sale" }, 400);
+    }
+
+    const owned = db
+      .select({ id: petSkinInventory.id })
+      .from(petSkinInventory)
+      .where(
+        and(
+          eq(petSkinInventory.userId, user.id),
+          eq(petSkinInventory.skinSlug, skinSlug),
+        ),
+      )
+      .get();
+    if (owned) return c.json({ error: "Already owned" }, 409);
+
+    const finalCost = skin.xpCost;
+    let preTxBalance = -1;
+    try {
+      db.transaction((tx) => {
+        const earnedRow = tx
+          .select({ total: sql<number>`coalesce(sum(${xpGrants.amount}), 0)` })
+          .from(xpGrants)
+          .where(eq(xpGrants.userId, user.id))
+          .get();
+        const spentRow = tx
+          .select({ total: sql<number>`coalesce(sum(${xpPurchases.amount}), 0)` })
+          .from(xpPurchases)
+          .where(eq(xpPurchases.userId, user.id))
+          .get();
+        const liveBalance = Number(earnedRow?.total ?? 0) - Number(spentRow?.total ?? 0);
+        preTxBalance = liveBalance;
+        if (liveBalance < finalCost) {
+          throw new InsufficientBalanceError(liveBalance, finalCost);
+        }
+        tx.insert(xpPurchases)
+          .values({
+            id: randomUUID(),
+            userId: user.id,
+            // xp_purchases.cosmetic_slug is a free-form text field —
+            // reusing it for skins keeps one ledger table. Prefix
+            // so audits can tell them apart.
+            cosmeticSlug: `skin:${skinSlug}`,
+            amount: finalCost,
+          })
+          .run();
+        tx.insert(petSkinInventory)
+          .values({
+            id: randomUUID(),
+            userId: user.id,
+            skinSlug,
+          })
+          .run();
+      });
+    } catch (err) {
+      if (err instanceof InsufficientBalanceError) {
+        return c.json(
+          { error: "Insufficient XP", balance: err.balance, xpCost: err.cost },
+          402,
+        );
+      }
+      throw err;
+    }
+    return c.json(
+      {
+        ok: true,
+        balance: preTxBalance - finalCost,
+        skinSlug,
+        amountSpent: finalCost,
+      },
+      201,
+    );
+  },
+);
+
+// GET /pet-skins — public catalog. Mirror of /pet-cosmetics.
+// Mounted via petCatalogRouter below.
+
 // GET /me/pet/balance — lightweight balance probe. Web pages that
 // just want to show "XP: ###" without the full shop payload hit
 // this. Returns lifetime XP too so the UI can show "###/### XP" or
@@ -808,9 +1196,11 @@ petPublicRouter.get("/:username/cosmetics-gallery", (c) => {
         slug: c.slug,
         name: c.name,
         slot: c.slot,
-        emoji: c.emoji,
+        // Phase M — emoji null across the catalog.
+        emoji: null,
         rarity: c.rarity,
         description: c.description,
+        failSmall: c.failSmall,
         // Indicates how it can be obtained — purely informational.
         // 'shop' = has xpCost, 'grant' = grantOnly with no xpCost.
         // The server doesn't enforce on this read, just tags.
@@ -859,8 +1249,9 @@ petPublicRouter.get("/showcase", (c) => {
   // by any meaningful read of the word.
   const decoratedFiltered = decoratedRows.filter((r) => r.equippedCount > 0);
 
-  // For each decorated user fetch their equipped slugs + emojis so
-  // PetView on the client renders correctly.
+  // For each decorated user fetch their equipped slugs + rarity so
+  // PetAvatar can render the silhouette + cosmetic overlays. Phase M
+  // drops the emoji column — CosmeticGlyphSVG resolves visuals from slug.
   const decoratedUserIds = decoratedFiltered.map((r) => r.userId);
   const decoratedEquipped = decoratedUserIds.length
     ? db
@@ -868,7 +1259,7 @@ petPublicRouter.get("/showcase", (c) => {
           userId: petInventory.userId,
           slug: petInventory.cosmeticSlug,
           slot: petCosmetics.slot,
-          emoji: petCosmetics.emoji,
+          rarity: petCosmetics.rarity,
         })
         .from(petInventory)
         .innerJoin(petCosmetics, eq(petCosmetics.slug, petInventory.cosmeticSlug))
@@ -880,10 +1271,10 @@ petPublicRouter.get("/showcase", (c) => {
         )
         .all()
     : [];
-  const equippedByUser = new Map<string, Array<{ slot: string; emoji: string | null; slug: string }>>();
+  const equippedByUser = new Map<string, Array<{ slot: string; slug: string; rarity: string }>>();
   for (const e of decoratedEquipped) {
     const arr = equippedByUser.get(e.userId) ?? [];
-    arr.push({ slot: e.slot, emoji: e.emoji, slug: e.slug });
+    arr.push({ slot: e.slot, slug: e.slug, rarity: e.rarity });
     equippedByUser.set(e.userId, arr);
   }
 
@@ -893,7 +1284,6 @@ petPublicRouter.get("/showcase", (c) => {
     displayName: r.displayName,
     pet: {
       species: r.species,
-      speciesEmoji: emojiForSpeciesAtLevel(r.species, r.level),
       level: r.level,
       name: r.petName,
       equipped: equippedByUser.get(r.userId) ?? [],
@@ -928,13 +1318,12 @@ petPublicRouter.get("/showcase", (c) => {
     displayName: r.displayName,
     pet: {
       species: r.species,
-      speciesEmoji: emojiForSpeciesAtLevel(r.species, r.level),
       level: r.level,
       name: r.petName,
       // Equipped is not surfaced on this list — keeps the payload
       // small. The client can navigate to the user profile for the
       // dressed-up view.
-      equipped: [] as Array<{ slot: string; emoji: string | null; slug: string }>,
+      equipped: [] as Array<{ slot: string; slug: string }>,
     },
     hatchedAt: r.hatchedAt,
   }));

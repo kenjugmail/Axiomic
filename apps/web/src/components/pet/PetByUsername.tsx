@@ -1,6 +1,6 @@
 // S87 — PetByUsername.
 //
-// Wraps PetView with a self-fetched + cached lookup of a user's pet
+// Wraps PetAvatar with a self-fetched + cached lookup of a user's pet
 // + equipped cosmetics. Used wherever a username appears in the UI
 // (forum topic OP, lesson author byline, profile page header) so a
 // pet renders inline next to the name.
@@ -17,7 +17,7 @@
 import { useEffect, useState } from "react";
 import type { UserPetDisplay } from "@axiomic/types";
 import { api } from "../../lib/api";
-import { PetView } from "./PetView";
+import { PetAvatar } from "./PetAvatar";
 
 type Pet = NonNullable<UserPetDisplay["pet"]>;
 type CacheEntry = { fetchedAt: number; pet: Pet | null };
@@ -117,18 +117,45 @@ export function PetByUsername({
     );
   }
 
+  // Phase M — convert API's slot-keyed array to the PetAvatar's
+  // {head, eyes, acc} object shape. Server uses 'accessory'; the
+  // component uses 'acc' (matching design convention). The API
+  // also includes failSmall per cosmetic (Phase M.12); pass it
+  // through so byline pets hide failSmall cosmetics at 24px.
+  const equippedObj = {
+    head: findEquipped(pet.equipped, "head"),
+    eyes: findEquipped(pet.equipped, "eyes"),
+    acc: findEquipped(pet.equipped, "accessory"),
+  };
+  const px = FALLBACK_PX[size];
+
   return (
     <span className={className} style={{ display: "inline-block" }}>
-      {/* S90 — speciesEmoji from the API is already level-aware,
-          so the byline reflects evolution without level prop. */}
-      <PetView
-        speciesEmoji={pet.speciesEmoji}
-        equipped={pet.equipped}
-        size={size}
+      <PetAvatar
+        species={pet.species}
         level={pet.level}
+        equipped={equippedObj}
+        skin={pet.activeSkin?.fx ?? null}
+        size={px}
       />
     </span>
   );
+}
+
+// Helper: server returns equipped as an array; PetAvatar wants slot-keyed
+// object. The PetCosmetic shape now omits `emoji` (Phase M.13 drops it),
+// but the response may still surface `failSmall` and `rarity` per item.
+function findEquipped(
+  arr: Pet["equipped"],
+  slot: string,
+): { slug: string; rarity?: "common" | "rare" | "epic" | "legendary"; failSmall?: boolean } | null {
+  const found = arr.find((e) => e.slot === slot);
+  if (!found) return null;
+  return {
+    slug: found.slug,
+    rarity: (found as { rarity?: "common" | "rare" | "epic" | "legendary" }).rarity,
+    failSmall: (found as { failSmall?: boolean }).failSmall,
+  };
 }
 
 // Test hook: clears the module-level cache. Not part of the public

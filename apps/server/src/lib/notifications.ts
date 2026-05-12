@@ -36,7 +36,9 @@ export type NotificationKind =
   | "competition_won"
   | "pet_hatched"
   // S90 — pet evolution.
-  | "pet_leveled_up";
+  | "pet_leveled_up"
+  // Phase L — pet skin grant.
+  | "skin_granted";
 
 export type NotificationSubject =
   | "topic"
@@ -60,7 +62,9 @@ export type NotificationSubject =
   // S88 — classroom + pet engagement loop.
   | "cosmetic"
   | "competition"
-  | "pet";
+  | "pet"
+  // Phase L — skin grant.
+  | "pet_skin";
 
 const MAX_MENTIONS_PER_BODY = 10;
 const PREVIEW_MAX = 140;
@@ -163,6 +167,7 @@ function kindGate(
     case "competition_won":
     case "pet_hatched":
     case "pet_leveled_up":
+    case "skin_granted":
       // News flow + follow events + admin pipeline + funding
       // alerts + Sprint 80 lab operational signals + S88
       // classroom/pet events + S90 pet evolution are direct +

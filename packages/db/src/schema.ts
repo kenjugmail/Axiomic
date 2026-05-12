@@ -2505,6 +2505,11 @@ export const pets = sqliteTable("pets", {
   // detect a level-up exactly once and emit a notification when it
   // happens.
   level: integer("level").notNull().default(1),
+  // Phase L — pet skin slug. Resolved at read-time against pet_skins
+  // catalog. 'default' is the always-owned baseline so the column is
+  // never nullable; users get the visual baseline even before they've
+  // touched the skin picker.
+  activeSkinSlug: text("active_skin_slug").notNull().default("default"),
 }, (t) => ({
   speciesIdx: index("pets_species_idx").on(t.species),
   // S104 — replaces the prior UNIQUE on userId. Non-unique now;
@@ -2534,6 +2539,10 @@ export const petCosmetics = sqliteTable("pet_cosmetics", {
   // available via instructor grant or competition prize).
   // Non-null = students can spend XP to buy it.
   xpCost: integer("xp_cost"),
+  // Phase M — when true, this cosmetic doesn't render well below 36px
+  // and the PetAvatar hides it for tiny avatars (24-36px bylines /
+  // class roster). False (default) cosmetics render at all sizes ≥24px.
+  failSmall: integer("fail_small", { mode: "boolean" }).notNull().default(false),
 });
 
 // What each user owns + which pieces are equipped on their pet.
@@ -2554,6 +2563,58 @@ export const petInventory = sqliteTable("pet_inventory", {
 }, (t) => ({
   uniq: uniqueIndex("pet_inventory_uniq").on(t.userId, t.cosmeticSlug),
   userIdx: index("pet_inventory_user_idx").on(t.userId, t.equipped),
+}));
+
+// Phase L — Skin catalog. A skin is a full-pet visual treatment
+// (gradient/glow/particles/filter) layered behind + around the pet
+// emoji or future SVG silhouette. Unlike cosmetics, only one skin
+// is equipped per pet (tracked on pets.activeSkinSlug). The FX
+// fields are flat columns rather than JSON so we can query/type
+// them directly; nullable for skins that don't use that effect.
+export const petSkins = sqliteTable("pet_skins", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  // 'common' | 'rare' | 'epic' | 'legendary'. UI flair only.
+  rarity: text("rarity").notNull().default("common"),
+  // 'xp' | 'grant' | 'comp' | 'default'. Mirrors petCosmetics.
+  // 'default' = always owned, can't be granted (the baseline skin).
+  obtain: text("obtain").notNull().default("xp"),
+  // NULL = not for sale (granted/competition-only); positive int =
+  // purchasable via XP shop.
+  xpCost: integer("xp_cost"),
+  description: text("description").notNull().default(""),
+  // FX layer — see Phase L plan for the source-of-truth shape. All
+  // nullable so a skin can opt into any subset of effects.
+  fxFilter: text("fx_filter"),
+  fxOpacity: real("fx_opacity").notNull().default(1.0),
+  fxGlowColor: text("fx_glow_color"),
+  fxGlowBlur: real("fx_glow_blur"),
+  fxGlowAlpha: real("fx_glow_alpha"),
+  fxBg: text("fx_bg"),
+  // 'stars' | 'embers' | 'petals' | 'snow' | null.
+  fxParticles: text("fx_particles"),
+  fxRing: text("fx_ring"),
+  // 'aurora' | 'crystal' | null.
+  fxAnimated: text("fx_animated"),
+});
+
+// Phase L — Per-user ownership of skins. Mirrors petInventory shape
+// (acquiredAt + grantedById + grantedInClassId + grantedNote) so
+// the grant pipelines look identical. No 'equipped' flag here —
+// equipped state lives on pets.activeSkinSlug because skins are
+// per-pet, not per-user.
+export const petSkinInventory = sqliteTable("pet_skin_inventory", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id),
+  skinSlug: text("skin_slug").notNull(),
+  acquiredAt: text("acquired_at").default(sql`(datetime('now'))`).notNull(),
+  grantedById: text("granted_by_id").references(() => users.id),
+  grantedInClassId: text("granted_in_class_id").references(() => classes.id),
+  grantedNote: text("granted_note"),
+}, (t) => ({
+  uniq: uniqueIndex("pet_skin_inventory_uniq").on(t.userId, t.skinSlug),
+  userIdx: index("pet_skin_inventory_user_idx").on(t.userId),
 }));
 
 // =============================================================

@@ -207,6 +207,11 @@ import type {
   CreateCompetitionRequest,
   UpdateCompetitionRequest,
   UserPetDisplay,
+  // Phase L — pet skin types.
+  PetSkinDef,
+  SkinShopResponse,
+  // Phase N — skin showcase response.
+  PetSkinShowcaseResponse,
   // S97 — pet showcase.
   PetShowcaseResponse,
   // S98 — profile cosmetic gallery.
@@ -1444,6 +1449,31 @@ export const api = {
         method: "PUT",
         body: JSON.stringify({ name }),
       }),
+    // Phase L — pet skin equip / unequip / shop / buy.
+    skinEquip: (skinSlug: string, petId?: string) =>
+      request<{ ok: true; activeSkin: PetSkinDef }>("/me/pet/skin/equip", {
+        method: "POST",
+        body: JSON.stringify(petId ? { skinSlug, petId } : { skinSlug }),
+      }),
+    skinUnequip: (petId?: string) =>
+      request<{ ok: true; activeSkin: PetSkinDef }>("/me/pet/skin/unequip", {
+        method: "POST",
+        body: JSON.stringify(petId ? { petId } : {}),
+      }),
+    skinShop: () => request<SkinShopResponse>("/me/pet/skin-shop"),
+    buySkin: (skinSlug: string) =>
+      request<{
+        ok: true;
+        balance: number;
+        skinSlug: string;
+        amountSpent: number;
+      }>("/me/pet/buy-skin", {
+        method: "POST",
+        body: JSON.stringify({ skinSlug }),
+      }),
+    skinCatalog: () => request<{ skins: PetSkinDef[] }>("/pet-skins"),
+    skinShowcase: () =>
+      request<PetSkinShowcaseResponse>("/pet-skins/catalog"),
   },
   tracks: {
     list: () =>

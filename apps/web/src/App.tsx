@@ -252,6 +252,9 @@ const ClassTaskPage = lazy(() =>
 const MyPetPage = lazy(() =>
   import("./pages/MyPetPage").then((m) => ({ default: m.MyPetPage })),
 );
+const SkinShowcasePage = lazy(() =>
+  import("./pages/SkinShowcasePage").then((m) => ({ default: m.SkinShowcasePage })),
+);
 const CompetitionDetailPage = lazy(() =>
   import("./pages/CompetitionDetailPage").then((m) => ({ default: m.CompetitionDetailPage })),
 );
@@ -574,6 +577,7 @@ function AppRoutes() {
           <Route path="/classes/:slug/analytics" element={<ClassAnalyticsPage />} />
           <Route path="/me/pet" element={<MyPetPage />} />
           <Route path="/me/progress" element={<MyProgressPage />} />
+          <Route path="/skins" element={<SkinShowcasePage />} />
           <Route path="/explore/pets" element={<PetShowcasePage />} />
           <Route path="/join/:slug/:joinCode" element={<JoinClassPage />} />
           <Route path="/classes/discover" element={<ClassesDirectoryPage />} />

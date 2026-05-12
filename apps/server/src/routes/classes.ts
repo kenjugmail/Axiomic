@@ -27,6 +27,7 @@ import {
   cohorts,
   petCosmetics,
   petInventory,
+  petSkinInventory,
   pets,
   users,
   xpGrants,
@@ -40,7 +41,7 @@ import {
 } from "../middleware/classAuth";
 import { grantXp, classXpForUser, XP_AMOUNTS } from "../lib/xp";
 import { notify } from "../lib/notifications";
-import { emojiForSpeciesAtLevel } from "../lib/pets";
+import { petSkinBySlug } from "../lib/pets";
 import type { Env } from "../env";
 
 export const classesRouter = new Hono<Env>();
@@ -137,6 +138,13 @@ const recordAttendanceSchema = z.object({
 const grantCosmeticSchema = z.object({
   userId: z.string().min(1),
   cosmeticSlug: slugSchema,
+  note: z.string().max(500).optional().default(""),
+});
+
+// Phase L — instructor skin grant (mirror of grantCosmeticSchema).
+const grantSkinSchema = z.object({
+  userId: z.string().min(1),
+  skinSlug: slugSchema,
   note: z.string().max(500).optional().default(""),
 });
 
@@ -661,12 +669,12 @@ classesRouter.get(
           .all()
       : [];
     const cosmeticBySlug = new Map(cosmeticRows.map((r) => [r.slug, r]));
-    const equippedByUser = new Map<string, Array<{ slot: string; emoji: string | null; slug: string }>>();
+    const equippedByUser = new Map<string, Array<{ slot: string; slug: string; rarity: string; failSmall: boolean }>>();
     for (const e of equippedRows) {
       const cos = cosmeticBySlug.get(e.cosmeticSlug);
       if (!cos) continue;
       const list = equippedByUser.get(e.userId) ?? [];
-      list.push({ slot: cos.slot, emoji: cos.emoji, slug: cos.slug });
+      list.push({ slot: cos.slot, slug: cos.slug, rarity: cos.rarity, failSmall: cos.failSmall });
       equippedByUser.set(e.userId, list);
     }
 
@@ -683,10 +691,9 @@ classesRouter.get(
               species: pet.species,
               name: pet.name,
               equipped: equippedByUser.get(m.userId) ?? [],
-              // S90 — evolution-aware emoji + level for the
-              // leaderboard row's PetView.
+              // Phase M — levelEmoji removed; PetAvatar resolves
+              // species visuals via the silhouette renderer.
               level: pet.level,
-              levelEmoji: emojiForSpeciesAtLevel(pet.species, pet.level),
             }
           : null,
       };
@@ -1305,7 +1312,89 @@ classesRouter.post(
       contextSlug: cls.slug,
       preview:
         (note?.trim() ? `${note.trim()} — ` : "") +
-        `${cosmetic.emoji ?? ""} ${cosmetic.name}`.trim(),
+        `Earned the ${cosmetic.name} cosmetic`,
+    });
+
+    return c.json({ ok: true, alreadyOwned: false }, 201);
+  },
+);
+
+// Phase L — POST /classes/:slug/grant-skin. Mirror of grant-cosmetic
+// for the skin catalog. Same membership + idempotency rules.
+classesRouter.post(
+  "/:slug/grant-skin",
+  requireAuth,
+  requireInstructorOrTa,
+  zValidator("json", grantSkinSchema),
+  async (c) => {
+    const cls = c.get("classRow");
+    const granter = c.get("user")!;
+    const { userId, skinSlug, note } = c.req.valid("json");
+    const db = getDb();
+
+    const isInstructor = userId === cls.instructorId;
+    const enrollment = isInstructor
+      ? null
+      : db
+          .select({ id: classEnrollments.id })
+          .from(classEnrollments)
+          .where(
+            and(
+              eq(classEnrollments.classId, cls.id),
+              eq(classEnrollments.userId, userId),
+            ),
+          )
+          .get();
+    if (!isInstructor && !enrollment) {
+      return c.json({ error: "Recipient is not a member of this class" }, 404);
+    }
+
+    const skin = petSkinBySlug(skinSlug);
+    if (!skin) return c.json({ error: "Skin not found" }, 404);
+
+    const existing = db
+      .select()
+      .from(petSkinInventory)
+      .where(
+        and(
+          eq(petSkinInventory.userId, userId),
+          eq(petSkinInventory.skinSlug, skinSlug),
+        ),
+      )
+      .get();
+    if (existing) {
+      db.update(petSkinInventory)
+        .set({
+          grantedById: granter.id,
+          grantedInClassId: cls.id,
+          grantedNote: note ?? null,
+        })
+        .where(eq(petSkinInventory.id, existing.id))
+        .run();
+      return c.json({ ok: true, alreadyOwned: true });
+    }
+
+    db.insert(petSkinInventory)
+      .values({
+        id: randomUUID(),
+        userId,
+        skinSlug,
+        grantedById: granter.id,
+        grantedInClassId: cls.id,
+        grantedNote: note ?? null,
+      })
+      .run();
+
+    void notify({
+      recipientId: userId,
+      actorId: granter.id,
+      kind: "skin_granted",
+      subjectType: "pet_skin",
+      subjectId: skinSlug,
+      contextSlug: cls.slug,
+      preview:
+        (note?.trim() ? `${note.trim()} — ` : "") +
+        `Earned the ${skin.name} skin`,
     });
 
     return c.json({ ok: true, alreadyOwned: false }, 201);

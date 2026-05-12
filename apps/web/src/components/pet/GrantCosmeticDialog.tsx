@@ -84,7 +84,6 @@ export function GrantCosmeticDialog({
                   key={c.slug}
                   slug={c.slug}
                   name={c.name}
-                  emoji={c.emoji}
                   slot={c.slot}
                   rarity={c.rarity}
                   description={c.description}
