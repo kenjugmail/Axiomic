@@ -21,8 +21,8 @@ import { PetActionsRow, usePetAction } from "../components/pet/PetActionsRow";
 import { PetWhereCard } from "../components/pet/PetWhereCard";
 import { RenameMomentModal } from "../components/pet/RenameMomentModal";
 import { SwitchPetModal } from "../components/pet/SwitchPetModal";
-import { LevelUpMoment } from "../components/pet/LevelUpMoment";
 import { toast } from "../stores/toast";
+import { petMoments } from "../stores/petMoments";
 
 export function MyPetPage() {
   const { user } = useAuthStore();
@@ -43,7 +43,6 @@ export function MyPetPage() {
   const [petAction, triggerAction] = usePetAction();
   const [renameOpen, setRenameOpen] = useState(false);
   const [switchOpen, setSwitchOpen] = useState(false);
-  const [levelUpOpen, setLevelUpOpen] = useState(false);
 
   // Phase M — listen for pet_hatched notifications and pop the burst.
   useLiveEvents({
@@ -127,6 +126,23 @@ export function MyPetPage() {
       await api.pet.buySkin(skin.slug);
       await api.pet.skinEquip(skin.slug, skinTargetPetId);
       await reload();
+      // First non-default equip → reveal moment. The store animates
+      // default → just-equipped for visual closure.
+      if (skin.slug !== "default" && data.pet) {
+        const equippedNow = buildEquippedFromInventory(data.inventory);
+        petMoments.show({
+          kind: "skin-reveal",
+          pet: {
+            species: targetPet.species,
+            level: targetPet.level,
+            maxLevel: data.pet.maxLevel,
+            name: targetPet.name || targetPet.speciesLabel,
+            speciesLabel: targetPet.speciesLabel,
+          },
+          equipped: equippedNow,
+          skin,
+        });
+      }
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Failed");
     } finally {
@@ -359,7 +375,18 @@ export function MyPetPage() {
                 <button
                   type="button"
                   className="pet-btn"
-                  onClick={() => setLevelUpOpen(true)}
+                  onClick={() =>
+                    petMoments.show({
+                      kind: "level-up",
+                      pet: {
+                        species: pet.species,
+                        level: pet.level,
+                        maxLevel: pet.maxLevel,
+                        name: pet.name || pet.speciesLabel,
+                        speciesLabel: pet.speciesLabel,
+                      },
+                    })
+                  }
                   disabled={atMaxLevel}
                   title={atMaxLevel ? "At final form" : "Preview the next evolution"}
                 >
@@ -591,20 +618,22 @@ export function MyPetPage() {
             activePetId={pet.id}
             onCommit={commitSwitch}
           />
-          <LevelUpMoment
-            open={levelUpOpen}
-            onClose={() => setLevelUpOpen(false)}
-            pet={{
-              species: pet.species,
-              level: pet.level,
-              maxLevel: pet.maxLevel,
-              name: pet.name || pet.speciesLabel,
-            }}
-          />
         </>
       )}
     </div>
   );
+}
+
+// Used by handleSkinClick to build the equipped triple at the moment
+// the user clicks; this is needed because the SkinRevealMoment shows
+// the *currently-equipped cosmetics* over the new skin.
+function buildEquippedFromInventory(inventory: PetInventoryItem[]) {
+  const equippedItems = inventory.filter((i) => i.equipped);
+  return {
+    head: equippedItems.find((i) => i.slot === "head") ?? null,
+    eyes: equippedItems.find((i) => i.slot === "eyes") ?? null,
+    acc: equippedItems.find((i) => i.slot === "accessory") ?? null,
+  };
 }
 
 // Small chip primitive matching the prototype's `.chip` (rounded

@@ -18,6 +18,7 @@ import { NAV_PILLARS } from "../marketing/hubs";
 import { AUDIENCES } from "../marketing/audiences";
 import { VerifyEmailBanner } from "./VerifyEmailBanner";
 import { FeedbackWidget } from "./FeedbackWidget";
+import { PetMomentsHost } from "./pet/PetMomentsHost";
 
 type NavItem = { to: string; label: string };
 type NavSection = { heading: string; links: NavItem[] };
@@ -474,6 +475,7 @@ export function Layout() {
       </footer>
       <SearchDialog isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
       <ShortcutsDialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+      <PetMomentsHost />
     </div>
   );
 }
