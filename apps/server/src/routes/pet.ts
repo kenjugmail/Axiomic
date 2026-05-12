@@ -23,7 +23,7 @@ import {
 } from "@axiomic/db";
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { ACHIEVEMENTS } from "../lib/achievements";
-import { totalXpForUser, xpBalanceForUser, PET_HATCH_THRESHOLD_XP } from "../lib/xp";
+import { totalXpForUser, xpBalanceForUser, PET_HATCH_THRESHOLD_XP, maybeHatchPet, isDevBypass } from "../lib/xp";
 import {
   petSpeciesBySlug,
   randomPetSpecies,
@@ -80,6 +80,12 @@ export function nextHatchThreshold(currentPetCount: number): number | null {
 petRouter.get("/", requireAuth, (c) => {
   const user = c.get("user")!;
   const db = getDb();
+
+  // Phase X — defensive auto-hatch for users created before the
+  // signup-time hatch wiring (e.g., the dev-bypass `alice`, seeded
+  // forum users, or anyone whose account predates this change).
+  // Idempotent: no-op if a pet already exists.
+  maybeHatchPet(user.id);
 
   // S104 — pet is now the user's ACTIVE pet (one of possibly many).
   // The pets array further down surfaces every pet they own.
@@ -816,33 +822,40 @@ petRouter.post(
     // landed first. We throw to roll back; the caller maps the
     // throw to a 402.
     let preTxBalance = -1;
+    const devBypass = isDevBypass(user.id);
     try {
       db.transaction((tx) => {
-        const earnedRow = tx
-          .select({ total: sql<number>`coalesce(sum(${xpGrants.amount}), 0)` })
-          .from(xpGrants)
-          .where(eq(xpGrants.userId, user.id))
-          .get();
-        const spentRow = tx
-          .select({ total: sql<number>`coalesce(sum(${xpPurchases.amount}), 0)` })
-          .from(xpPurchases)
-          .where(eq(xpPurchases.userId, user.id))
-          .get();
-        const liveBalance = Number(earnedRow?.total ?? 0) - Number(spentRow?.total ?? 0);
-        preTxBalance = liveBalance;
-        if (liveBalance < finalCost) {
-          // Use a sentinel error so the catch knows to map to 402
-          // rather than 500.
-          throw new InsufficientBalanceError(liveBalance, finalCost);
+        if (devBypass) {
+          // Phase X — dev bypass: unlimited balance, no spend ledger
+          // write. Lifetime XP and leaderboard stay untouched.
+          preTxBalance = xpBalanceForUser(user.id);
+        } else {
+          const earnedRow = tx
+            .select({ total: sql<number>`coalesce(sum(${xpGrants.amount}), 0)` })
+            .from(xpGrants)
+            .where(eq(xpGrants.userId, user.id))
+            .get();
+          const spentRow = tx
+            .select({ total: sql<number>`coalesce(sum(${xpPurchases.amount}), 0)` })
+            .from(xpPurchases)
+            .where(eq(xpPurchases.userId, user.id))
+            .get();
+          const liveBalance = Number(earnedRow?.total ?? 0) - Number(spentRow?.total ?? 0);
+          preTxBalance = liveBalance;
+          if (liveBalance < finalCost) {
+            // Use a sentinel error so the catch knows to map to 402
+            // rather than 500.
+            throw new InsufficientBalanceError(liveBalance, finalCost);
+          }
+          tx.insert(xpPurchases)
+            .values({
+              id: randomUUID(),
+              userId: user.id,
+              cosmeticSlug,
+              amount: finalCost,
+            })
+            .run();
         }
-        tx.insert(xpPurchases)
-          .values({
-            id: randomUUID(),
-            userId: user.id,
-            cosmeticSlug,
-            amount: finalCost,
-          })
-          .run();
         tx.insert(petInventory)
           .values({
             id: randomUUID(),
@@ -1064,34 +1077,41 @@ petRouter.post(
 
     const finalCost = skin.xpCost;
     let preTxBalance = -1;
+    const devBypass = isDevBypass(user.id);
     try {
       db.transaction((tx) => {
-        const earnedRow = tx
-          .select({ total: sql<number>`coalesce(sum(${xpGrants.amount}), 0)` })
-          .from(xpGrants)
-          .where(eq(xpGrants.userId, user.id))
-          .get();
-        const spentRow = tx
-          .select({ total: sql<number>`coalesce(sum(${xpPurchases.amount}), 0)` })
-          .from(xpPurchases)
-          .where(eq(xpPurchases.userId, user.id))
-          .get();
-        const liveBalance = Number(earnedRow?.total ?? 0) - Number(spentRow?.total ?? 0);
-        preTxBalance = liveBalance;
-        if (liveBalance < finalCost) {
-          throw new InsufficientBalanceError(liveBalance, finalCost);
+        if (devBypass) {
+          // Phase X — dev bypass: unlimited balance, no spend ledger
+          // write. Lifetime XP and leaderboard stay untouched.
+          preTxBalance = xpBalanceForUser(user.id);
+        } else {
+          const earnedRow = tx
+            .select({ total: sql<number>`coalesce(sum(${xpGrants.amount}), 0)` })
+            .from(xpGrants)
+            .where(eq(xpGrants.userId, user.id))
+            .get();
+          const spentRow = tx
+            .select({ total: sql<number>`coalesce(sum(${xpPurchases.amount}), 0)` })
+            .from(xpPurchases)
+            .where(eq(xpPurchases.userId, user.id))
+            .get();
+          const liveBalance = Number(earnedRow?.total ?? 0) - Number(spentRow?.total ?? 0);
+          preTxBalance = liveBalance;
+          if (liveBalance < finalCost) {
+            throw new InsufficientBalanceError(liveBalance, finalCost);
+          }
+          tx.insert(xpPurchases)
+            .values({
+              id: randomUUID(),
+              userId: user.id,
+              // xp_purchases.cosmetic_slug is a free-form text field —
+              // reusing it for skins keeps one ledger table. Prefix
+              // so audits can tell them apart.
+              cosmeticSlug: `skin:${skinSlug}`,
+              amount: finalCost,
+            })
+            .run();
         }
-        tx.insert(xpPurchases)
-          .values({
-            id: randomUUID(),
-            userId: user.id,
-            // xp_purchases.cosmetic_slug is a free-form text field —
-            // reusing it for skins keeps one ledger table. Prefix
-            // so audits can tell them apart.
-            cosmeticSlug: `skin:${skinSlug}`,
-            amount: finalCost,
-          })
-          .run();
         tx.insert(petSkinInventory)
           .values({
             id: randomUUID(),

@@ -2,22 +2,21 @@
 // non-null xpCost. Owned items appear with a muted "Owned" badge;
 // affordability gates the buy button. Lifetime XP stays untouched
 // — only the spendable balance moves.
+//
+// Phase X — migrated to the .pet-shop / .cos-grid / .cos-tile /
+// .pet-btn design system. Tiles now share the same warm-paper look
+// as /me/pet and /skins; rarity coloring + faded-unowned state are
+// handled by pet-tokens.css (.cos-tile.{rarity} + .cos-tile.unowned).
 
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Sparkles, Lock, Check } from "lucide-react";
+import { Lock, Check } from "lucide-react";
 import type { ShopItem, ShopResponse } from "@axiomic/types";
 import { api, ApiError } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
 import { toast } from "../stores/toast";
-
-const RARITY_BORDER: Record<string, string> = {
-  common: "border-border",
-  rare: "border-blue-500/40",
-  epic: "border-purple-500/40",
-  legendary: "border-amber-500/40",
-};
+import { CosmeticGlyphSVG } from "../components/pet/CosmeticGlyphSVG";
 
 export function ShopPage() {
   const { user } = useAuthStore();
@@ -85,63 +84,95 @@ export function ShopPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div className="pet-shop max-w-3xl mx-auto px-4 py-8">
       <div className="mb-3 text-xs text-muted-foreground">
         <Link to="/me/pet" className="hover:text-foreground">My pet</Link>
         {" / shop"}
       </div>
-      <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-4 mb-6 flex items-center gap-3">
-        <Sparkles className="w-5 h-5 text-amber-500 shrink-0" />
-        <div className="flex-1">
-          <div className="text-xs text-muted-foreground">Spendable balance</div>
-          <div className="text-2xl font-semibold tabular-nums">
-            {data.balance} <span className="text-base font-normal text-muted-foreground">XP</span>
+
+      <div className="pet-balance mb-6">
+        <div>
+          <div className="label">Spendable balance</div>
+          <div className="amount tabular-nums">
+            {data.balance.toLocaleString()}{" "}
+            <span style={{ fontSize: 14, color: "var(--ink-3)" }}>XP</span>
           </div>
         </div>
-        <div className="text-[10px] uppercase tracking-wider text-muted-foreground text-right max-w-[12rem]">
+        <div className="note">
           Lifetime XP on the leaderboard never decreases — only spendable balance moves.
         </div>
       </div>
 
-      <h1 className="font-display text-xl font-semibold tracking-tight mb-3">Cosmetic shop</h1>
+      <h1
+        className="mb-3"
+        style={{
+          fontFamily: "var(--font-display)",
+          fontSize: 22,
+          fontWeight: 600,
+          color: "var(--ink)",
+          letterSpacing: "-0.01em",
+        }}
+      >
+        Cosmetic shop
+      </h1>
 
       {data.items.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-8 text-center">
+        <p className="text-sm py-8 text-center" style={{ color: "var(--ink-3)" }}>
           No cosmetics for sale. Earn the rest via instructor grants or competition prizes.
         </p>
       ) : (
-        <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <ul className="cos-grid">
           {data.items.map((item) => {
-            const rarityBorder = RARITY_BORDER[item.rarity] ?? "border-border";
-            // S95 — featured cards get a colored ring + a corner
-            // badge so the discount is unmissable.
-            const featuredBorder = item.featured ? "ring-2 ring-amber-500/60 border-amber-500/40" : rarityBorder;
+            const classes = [
+              "cos-tile",
+              item.rarity,
+              item.owned ? "unowned" : "",
+            ]
+              .filter(Boolean)
+              .join(" ");
             return (
-              <li
-                key={item.slug}
-                className={`relative p-4 rounded-md border ${featuredBorder} flex flex-col items-center text-center gap-2 ${
-                  item.owned ? "opacity-60" : ""
-                }`}
-              >
+              <li key={item.slug} className={classes}>
                 {item.featured && !item.owned && (
-                  <span className="absolute -top-2 -right-2 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500 text-white shadow-sm">
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: -8,
+                      right: -8,
+                      fontSize: 9,
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      letterSpacing: ".08em",
+                      padding: "3px 8px",
+                      borderRadius: 999,
+                      background: "var(--r-legendary)",
+                      color: "var(--accent-ink)",
+                      boxShadow: "0 1px 2px rgba(0,0,0,.15)",
+                    }}
+                  >
                     Featured −{data.featuredDiscountPercent}%
                   </span>
                 )}
-                <div className="text-4xl py-2">{item.emoji ?? "🎁"}</div>
-                <div className="text-sm font-medium">{item.name}</div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  {item.slot} · {item.rarity}
+                <span className="corner">{item.rarity}</span>
+                <div className="glyph">
+                  <CosmeticGlyphSVG
+                    slug={item.slug}
+                    rarity={item.rarity}
+                    size={48}
+                    tone={item.owned ? "muted" : "full"}
+                  />
                 </div>
-                {item.description && (
-                  <p className="text-xs text-muted-foreground line-clamp-2">{item.description}</p>
-                )}
-                <div className="mt-auto pt-2 w-full">
+                <div className="nm">{item.name}</div>
+                <span className="obtain xp">
+                  <span className="dot" />
+                  {item.slot}
+                </span>
+                <div style={{ marginTop: "auto", paddingTop: 6, width: "100%" }}>
                   {item.owned ? (
                     <button
                       type="button"
                       disabled
-                      className="w-full text-xs px-3 py-1.5 rounded-md border border-border text-muted-foreground inline-flex items-center justify-center gap-1.5"
+                      className="pet-btn"
+                      style={{ width: "100%" }}
                     >
                       <Check className="w-3.5 h-3.5" />
                       Owned
@@ -151,13 +182,18 @@ export function ShopPage() {
                       type="button"
                       onClick={() => buy(item)}
                       disabled={busy === item.slug}
-                      className="w-full text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60 inline-flex items-center justify-center gap-1.5"
+                      className="pet-btn primary"
+                      style={{ width: "100%" }}
                     >
-                      {busy === item.slug ? "Buying…" : (
+                      {busy === item.slug ? (
+                        "Buying…"
+                      ) : (
                         <>
                           Spend {item.effectiveCost} XP
                           {item.featured && (
-                            <span className="line-through opacity-60 ml-1">{item.xpCost}</span>
+                            <span style={{ textDecoration: "line-through", opacity: 0.6, marginLeft: 4 }}>
+                              {item.xpCost}
+                            </span>
                           )}
                         </>
                       )}
@@ -167,12 +203,15 @@ export function ShopPage() {
                       type="button"
                       disabled
                       title={`Need ${item.effectiveCost - data.balance} more XP`}
-                      className="w-full text-xs px-3 py-1.5 rounded-md border border-border text-muted-foreground inline-flex items-center justify-center gap-1.5"
+                      className="pet-btn"
+                      style={{ width: "100%" }}
                     >
                       <Lock className="w-3.5 h-3.5" />
                       {item.effectiveCost} XP
                       {item.featured && (
-                        <span className="line-through opacity-60 ml-1">{item.xpCost}</span>
+                        <span style={{ textDecoration: "line-through", opacity: 0.6, marginLeft: 4 }}>
+                          {item.xpCost}
+                        </span>
                       )}
                     </button>
                   )}

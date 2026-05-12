@@ -123,32 +123,38 @@ describe("grantXp + maybeHatchPet", () => {
     expect(classXpForUser(userId, classB)).toBe(XP_AMOUNTS["homework-submitted"]);
   });
 
-  test("pet auto-hatches at threshold; subsequent grants don't re-hatch", () => {
+  test("first grantXp auto-hatches the pet; subsequent grants don't re-hatch", () => {
+    // Phase X — threshold is 0, so the very first XP grant hatches.
     const u = makeUser("b");
-    // Stack up grants until we cross the threshold.
-    grantXp({ userId: u, source: "homework-submitted", sourceRefId: "hh-1" }); // 30
-    expect(totalXpForUser(u)).toBe(30);
-
-    let r = grantXp({ userId: u, source: "homework-submitted", sourceRefId: "hh-2" }); // 60
+    let r = grantXp({ userId: u, source: "homework-submitted", sourceRefId: "hh-1" }); // 30
     expect(r.granted).toBe(true);
     expect(r.petHatched).toBeDefined();
     expect(r.petHatched?.species).toBeTruthy();
+    expect(totalXpForUser(u)).toBe(30);
 
-    // A second grant past the threshold doesn't try to hatch again.
+    // A second grant doesn't re-hatch (maybeHatchPet is idempotent).
+    r = grantXp({ userId: u, source: "homework-submitted", sourceRefId: "hh-2" });
+    expect(r.granted).toBe(true);
+    expect(r.petHatched).toBeUndefined();
+
     r = grantXp({ userId: u, source: "reading-done", sourceRefId: "rr-1" });
     expect(r.granted).toBe(true);
     expect(r.petHatched).toBeUndefined();
 
-    // DB state confirms one pet.
+    // DB state confirms exactly one pet for this user.
     const found = getDb().select().from(pets).where(eq(pets.userId, u)).all();
     expect(found.length).toBe(1);
   });
 
-  test("maybeHatchPet does nothing below threshold", () => {
+  test("maybeHatchPet hatches a user with 0 XP (threshold removed)", () => {
+    // Phase X — threshold is 0, so a brand-new user with no XP
+    // grants still hatches when maybeHatchPet is called directly.
     const u = makeUser("c");
-    grantXp({ userId: u, source: "reading-done", sourceRefId: "rr-2" });
     const r = maybeHatchPet(u);
-    expect(r).toBeNull();
+    expect(r).not.toBeNull();
+    expect(r?.species).toBeTruthy();
+    // Second call is a no-op (pet already exists).
+    expect(maybeHatchPet(u)).toBeNull();
   });
 
   test("amount override beats default", () => {
@@ -165,8 +171,9 @@ describe("grantXp + maybeHatchPet", () => {
   });
 
   test("threshold constant matches expectation", () => {
-    expect(PET_HATCH_THRESHOLD_XP).toBeGreaterThan(0);
-    expect(PET_HATCH_THRESHOLD_XP).toBeLessThanOrEqual(100);
+    // Phase X — auto-hatch on signup means the threshold is 0; pets
+    // appear immediately on account creation.
+    expect(PET_HATCH_THRESHOLD_XP).toBe(0);
   });
 });
 

@@ -51,7 +51,11 @@ export type XpSource = keyof typeof XP_AMOUNTS | "streak-day-bonus";
 
 // Pet auto-hatches at this XP threshold. Low so the first homework
 // or two reveals the pet — fast feedback.
-export const PET_HATCH_THRESHOLD_XP = 50;
+// Phase X — auto-hatch on signup. The threshold is preserved for
+// backwards-compat with any future "pre-hatch egg" UX, but is 0 so
+// every signed-up user hatches immediately (signup handler + GET
+// /me/pet both call maybeHatchPet defensively).
+export const PET_HATCH_THRESHOLD_XP = 0;
 
 // S87 — Streak-day bonus tuning.
 //
@@ -250,12 +254,41 @@ export function maybeGrantStreakBonus(userId: string): GrantXpResult | null {
   });
 }
 
+// Phase X — when DEV_AUTH_BYPASS=1 (the local dev mode), the
+// bypass user shouldn't have to grind XP to test the shop. These
+// helpers short-circuit balance and spend writes for that user only.
+// Production builds (no env var) are completely unaffected because
+// devBypassUserId() returns null.
+const DEV_XP_BALANCE = 10_000_000;
+let _devBypassUserIdCache: string | null | undefined = undefined;
+
+export function devBypassUserId(): string | null {
+  if (_devBypassUserIdCache !== undefined) return _devBypassUserIdCache;
+  if (process.env.DEV_AUTH_BYPASS !== "1" || process.env.NODE_ENV === "production") {
+    _devBypassUserIdCache = null;
+    return null;
+  }
+  const username = process.env.DEV_AUTH_BYPASS_USER || "alice";
+  const row = getDb()
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.username, username))
+    .get();
+  _devBypassUserIdCache = row?.id ?? null;
+  return _devBypassUserIdCache;
+}
+
+export function isDevBypass(userId: string): boolean {
+  return devBypassUserId() === userId;
+}
+
 // S89 — XP balance: lifetime grants minus shop purchases. Used by
 // the shop's affordability check + balance widgets. Lifetime XP
 // (totalXpForUser) is what the leaderboard reads — that's
 // intentionally unaffected by purchases so spenders don't fall
 // behind on the achievement view.
 export function xpBalanceForUser(userId: string): number {
+  if (isDevBypass(userId)) return DEV_XP_BALANCE;
   const db = getDb();
   const earned = totalXpForUser(userId);
   const spentRow = db

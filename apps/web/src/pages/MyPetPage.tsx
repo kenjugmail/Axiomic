@@ -272,7 +272,7 @@ export function MyPetPage() {
                 <button
                   type="button"
                   onClick={saveName}
-                  className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+                  className="pet-btn primary"
                 >
                   Save
                 </button>
@@ -282,7 +282,7 @@ export function MyPetPage() {
                     setName(data.pet?.name ?? "");
                     setEditingName(false);
                   }}
-                  className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40"
+                  className="pet-btn"
                 >
                   Cancel
                 </button>
@@ -354,12 +354,15 @@ export function MyPetPage() {
           </div>
         </div>
       ) : (
+        // Phase X — auto-hatch on signup means data.pet is normally
+        // non-null. This is a defensive fallback if hatching didn't
+        // complete server-side (e.g., transient DB error); a reload
+        // usually fixes it.
         <div className="rounded-lg border border-dashed border-border p-6 mb-8 text-center">
           <Egg className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
-          <p className="text-sm font-medium">Your pet is still in its egg.</p>
+          <p className="text-sm font-medium">Hatching your pet…</p>
           <p className="text-xs text-muted-foreground mt-1">
-            {data.totalXp} / {data.hatchThresholdXp} XP — earn{" "}
-            {Math.max(0, data.hatchThresholdXp - data.totalXp)} more XP to hatch.
+            Refresh if your pet doesn't appear in a moment.
           </p>
         </div>
       )}
@@ -411,7 +414,10 @@ export function MyPetPage() {
                 Skins ({data.ownedSkins.length} owned)
               </h2>
               {skinShop && (
-                <span className="text-xs text-muted-foreground tabular-nums">
+                <span
+                  className="text-xs tabular-nums"
+                  style={{ color: "var(--ink-3)", fontFamily: "var(--font-mono)" }}
+                >
                   Balance: {skinShop.balance.toLocaleString()} XP
                 </span>
               )}
@@ -434,11 +440,15 @@ export function MyPetPage() {
                       data-testid={`skin-pet-tab-${p.id}`}
                       onClick={() => setSkinTargetPetId(p.id)}
                       disabled={busy}
-                      className={`inline-flex items-center gap-2 px-2.5 py-1.5 rounded-full border text-xs transition-colors ${
-                        active
-                          ? "border-primary bg-primary/10 text-foreground"
-                          : "border-input text-muted-foreground hover:text-foreground"
-                      } disabled:opacity-50`}
+                      className="pet-btn"
+                      style={{
+                        borderRadius: 999,
+                        fontSize: 11,
+                        padding: "4px 10px",
+                        borderColor: active ? "var(--accent)" : "var(--line)",
+                        background: active ? "var(--accent-soft)" : "var(--bg-elev)",
+                        color: active ? "var(--ink)" : "var(--ink-3)",
+                      }}
                     >
                       <span
                         className="inline-block"
