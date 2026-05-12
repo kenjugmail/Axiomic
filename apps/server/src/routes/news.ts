@@ -19,7 +19,9 @@ import {
 import { and, asc, count, desc, eq, isNull, max, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { getSessionUser, requireAuth, requireVerifiedEmail } from "../middleware/auth";
-import { notify, notifyMentions } from "../lib/notifications";
+import { notify, notifyMany, notifyMentions } from "../lib/notifications";
+import { checkRateLimit } from "../lib/rateLimit";
+import { env } from "../lib/envConfig";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import { publishToArticle } from "../lib/liveBus";
 import { wikiPagesForArticle } from "../lib/crossLinks";
@@ -148,9 +150,11 @@ newsRouter.get("/", async (c) => {
     .from(newsArticles)
     .innerJoin(users, eq(newsArticles.authorId, users.id))
     .where(eq(newsArticles.status, "published"))
-    .orderBy(desc(newsArticles.createdAt));
+    .orderBy(desc(newsArticles.createdAt))
+    .limit(500);
   // Filters applied in JS — SQLite JSON1 isn't always present and the
-  // article count is small. Acceptable until the table grows.
+  // article count is small. The .limit(500) caps memory + JSON-parse
+  // cost; revisit pagination semantics once we cross that threshold.
   let rows = baseQuery.all();
   if (tag) {
     const t = tag.toLowerCase();
@@ -528,6 +532,9 @@ const createSchema = z.object({
 newsRouter.post("/", requireVerifiedEmail, zValidator("json", createSchema), async (c) => {
   const body = c.req.valid("json");
   const user = c.get("user")!;
+  if (env.NODE_ENV !== "test" && !checkRateLimit(`news-create:${user.id}`, 5, 60_000)) {
+    return c.json({ error: "Rate limited. Slow down." }, 429);
+  }
   const db = getDb();
 
   const dup = db
@@ -583,17 +590,17 @@ async function fanOutNewsPublished(
       .from(userFollows)
       .where(eq(userFollows.followeeId, authorId))
       .all();
-    for (const f of followers) {
-      await notify({
-        recipientId: f.id,
+    await notifyMany(
+      followers.map((f) => f.id),
+      {
         actorId: authorId,
         kind: "news_published",
         subjectType: "news_article",
         subjectId: articleId,
         contextSlug: slug,
         preview: previewFrom(`Published "${title}"`),
-      });
-    }
+      },
+    );
   } catch (err) {
     console.error("follower fanout (news) failed", err);
   }
@@ -616,6 +623,9 @@ newsRouter.put("/:slug", requireVerifiedEmail, zValidator("json", updateSchema),
   const slug = c.req.param("slug")!;
   const data = c.req.valid("json");
   const user = c.get("user")!;
+  if (env.NODE_ENV !== "test" && !checkRateLimit(`news-update:${user.id}`, 20, 60_000)) {
+    return c.json({ error: "Rate limited. Slow down." }, 429);
+  }
   const db = getDb();
 
   const article = db
@@ -1884,17 +1894,14 @@ newsRouter.post(
     recipients.delete(user.id);
     for (const m of mentioned) recipients.delete(m);
 
-    for (const recipientId of recipients) {
-      await notify({
-        recipientId,
-        actorId: user.id,
-        kind: "claim_thread_reply",
-        subjectType: "claim_thread",
-        subjectId: threadId,
-        contextSlug: slug,
-        preview: previewFrom(content),
-      });
-    }
+    await notifyMany(recipients, {
+      actorId: user.id,
+      kind: "claim_thread_reply",
+      subjectType: "claim_thread",
+      subjectId: threadId,
+      contextSlug: slug,
+      preview: previewFrom(content),
+    });
 
     return c.json({ commentId: id }, 201);
   },

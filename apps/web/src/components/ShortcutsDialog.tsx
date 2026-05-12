@@ -24,7 +24,7 @@ export function ShortcutsDialog({ open, onClose }: Props) {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]">
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
+      <button type="button" aria-label="Close dialog" onClick={onClose} className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
       <div className="relative w-full max-w-md bg-card border border-border rounded-xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b border-border flex items-center justify-between">
           <h2 className="text-base font-semibold">Keyboard shortcuts</h2>

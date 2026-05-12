@@ -9,6 +9,8 @@ import { Eye, Users } from "lucide-react";
 import type { CapstoneReviewQueueItem } from "@axiomic/types";
 import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
+import { EmptyState } from "../components/EmptyState";
+import { ErrorState } from "../components/ErrorState";
 
 export function CapstoneReviewQueuePage() {
   const user = useAuthStore((s) => s.user);
@@ -46,16 +48,15 @@ export function CapstoneReviewQueuePage() {
         </p>
       </div>
 
-      {error && (
-        <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p>
-      )}
+      {error && <ErrorState error={error} />}
       {items === null && !error && (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <EmptyState title="Loading…" description="Fetching the review queue." />
       )}
       {items && items.length === 0 && (
-        <p className="text-sm text-muted-foreground">
-          No completed artifacts yet.
-        </p>
+        <EmptyState
+          title="No completed artifacts yet"
+          description="Reviews show up once teammates complete their capstone work."
+        />
       )}
 
       {items && items.length > 0 && (

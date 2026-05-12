@@ -13,6 +13,8 @@ import type {
 } from "@axiomic/types";
 import { api } from "../lib/api";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
+import { EmptyState } from "../components/EmptyState";
+import { ErrorState } from "../components/ErrorState";
 import { TierToggle } from "../components/research/TierToggle";
 
 const VALID_TIERS: ResearchPaperTier[] = ["intro", "undergrad", "grad"];
@@ -68,9 +70,7 @@ export function PaperVersionPage() {
         {versionN}
       </div>
 
-      {error && (
-        <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p>
-      )}
+      {error && <ErrorState error={error} />}
 
       {data && (
         <>
@@ -128,7 +128,7 @@ export function PaperVersionPage() {
       )}
 
       {!data && !error && (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <EmptyState title="Loading…" description="Fetching this version." />
       )}
     </div>
   );

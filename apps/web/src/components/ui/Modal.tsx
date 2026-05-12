@@ -59,7 +59,9 @@ export function Modal({
         topAligned ? "pt-[6vh]" : "pt-[15vh]",
       )}
     >
-      <div
+      <button
+        type="button"
+        aria-label="Close dialog"
         className="absolute inset-0 bg-background/70 backdrop-blur-sm animate-fade-in"
         onClick={onClose}
       />

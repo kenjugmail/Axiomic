@@ -107,7 +107,7 @@ import {
   verifyWithPublicKey,
 } from "./lib/signing";
 import type { Env } from "./env";
-import { env, warnOnInsecureConfig } from "./lib/envConfig";
+import { env, warnOnInsecureConfig, assertProductionSecrets } from "./lib/envConfig";
 import { setServerExecBackend } from "./lib/serverExec";
 import { localProcessBackend } from "./lib/serverExecLocal";
 
@@ -132,6 +132,19 @@ app.use(
     credentials: true,
   }),
 );
+
+// Phase J — fail-fast on oversize request bodies. 10MB is generous for
+// uploads (multipart goes through here too) and a hard cap against a
+// 100MB JSON-blob DoS that would otherwise be parsed into memory.
+const BODY_LIMIT_BYTES = 10 * 1024 * 1024;
+app.use("*", async (c, next) => {
+  const len = c.req.header("content-length");
+  if (len && parseInt(len, 10) > BODY_LIMIT_BYTES) {
+    return c.json({ error: "Request body too large (max 10MB)" }, 413);
+  }
+  return next();
+});
+
 app.use("*", logger());
 
 app.get("/health", (c) => c.json({ status: "ok", timestamp: new Date().toISOString() }));
@@ -343,6 +356,7 @@ if (import.meta.main) {
       `⚠️  DEV_AUTH_BYPASS enabled — every request is authed as "${env.DEV_AUTH_BYPASS_USER}". DO NOT USE IN PRODUCTION.`,
     );
   }
+  assertProductionSecrets();
   warnOnInsecureConfig();
 }
 

@@ -41,16 +41,18 @@ export function ReportEditModal({ nodeId, version, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm animate-fade-in flex items-center justify-center px-4"
-      onClick={onClose}
+      className="fixed inset-0 z-50 animate-fade-in flex items-center justify-center px-4"
       role="dialog"
       aria-modal="true"
       aria-label="Report this edit"
     >
-      <div
-        className="w-full max-w-md bg-card border border-border rounded-xl shadow-floating overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <button
+        type="button"
+        aria-label="Close dialog"
+        onClick={onClose}
+        className="absolute inset-0 bg-background/70 backdrop-blur-sm"
+      />
+      <div className="relative w-full max-w-md bg-card border border-border rounded-xl shadow-floating overflow-hidden">
         <div className="flex items-center justify-between px-4 h-12 border-b border-border">
           <span className="inline-flex items-center gap-1.5 text-sm font-semibold">
             <Flag className="w-4 h-4" strokeWidth={2} />

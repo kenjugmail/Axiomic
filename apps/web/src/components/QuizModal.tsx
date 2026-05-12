@@ -178,7 +178,7 @@ export function QuizModal({ nodeId, nodeTitle, onClose, onPassed }: QuizModalPro
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[8vh]">
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
+      <button type="button" aria-label="Close dialog" onClick={onClose} className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
       <div className="relative w-full max-w-2xl bg-card border border-border rounded-xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
         <div className="px-5 py-4 border-b border-border flex items-center justify-between">
           <div>

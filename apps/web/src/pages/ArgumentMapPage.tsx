@@ -12,6 +12,8 @@ import { ArrowLeft, MessageSquare, Network } from "lucide-react";
 import type { ArgumentMapResponse, PostType } from "@axiomic/types";
 import { api } from "../lib/api";
 import { PostTypeBadge } from "../components/PostTypeBadge";
+import { EmptyState } from "../components/EmptyState";
+import { ErrorState } from "../components/ErrorState";
 
 const NODE_W = 200;
 const NODE_H = 72;
@@ -192,10 +194,14 @@ export function ArgumentMapPage() {
       )}
 
       {error && (
-        <p className="mt-4 text-sm text-rose-600 dark:text-rose-400">{error}</p>
+        <div className="mt-4">
+          <ErrorState error={error} />
+        </div>
       )}
       {!data && !error && (
-        <p className="mt-4 text-sm text-muted-foreground">Loading…</p>
+        <div className="mt-4">
+          <EmptyState title="Loading…" description="Fetching the argument map." />
+        </div>
       )}
 
       {data && layout && (

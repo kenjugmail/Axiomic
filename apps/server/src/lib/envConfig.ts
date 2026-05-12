@@ -155,35 +155,48 @@ export const env: Env = new Proxy({} as Env, {
   },
 });
 
-// Production warnings — surfaced once at server boot.
+// Production fail-fast — refuses to boot if the secrets that
+// would silently degrade to ephemeral keys / stdout-only email are
+// missing. Run before warnOnInsecureConfig and before app.fetch.
+export function assertProductionSecrets(): void {
+  const e = loadEnv();
+  if (e.NODE_ENV !== "production") return;
+  const missing: string[] = [];
+  if (!e.SESSION_SECRET) missing.push("SESSION_SECRET");
+  if (!e.AXIOMIC_SIGNING_PRIVATE_KEY_HEX) missing.push("AXIOMIC_SIGNING_PRIVATE_KEY_HEX");
+  if (!e.RESEND_API_KEY) missing.push("RESEND_API_KEY");
+  if (missing.length > 0) {
+    throw new Error(
+      `Refusing to boot in production: required env vars unset: ${missing.join(", ")}. ` +
+        `Generate signing keys with \`bash scripts/generate-signing-key.sh\` and ` +
+        `set SESSION_SECRET / RESEND_API_KEY in the deploy environment.`,
+    );
+  }
+}
+
+// Production warnings — surfaced once at server boot. These cover
+// the misconfigurations that aren't fatal (TURNSTILE silently
+// degrades, CORS_ORIGIN is a tunable default).
 export function warnOnInsecureConfig(): void {
   const e = loadEnv();
   if (e.NODE_ENV !== "production") return;
   const warnings: string[] = [];
-  if (!e.AXIOMIC_SIGNING_PRIVATE_KEY_HEX) {
-    warnings.push(
-      "AXIOMIC_SIGNING_PRIVATE_KEY_HEX is not set in production. Capstone " +
-        "transcripts will sign under an EPHEMERAL key and stop verifying " +
-        "after every restart. Generate one with `bash scripts/generate-signing-key.sh` " +
-        "and set it in your environment.",
-    );
-  }
   if (e.DEV_AUTH_BYPASS === "1") {
     warnings.push(
       "DEV_AUTH_BYPASS=1 in production is dangerous: every request runs as " +
         `${e.DEV_AUTH_BYPASS_USER} regardless of session cookie. Disable.`,
     );
   }
-  if (!e.SESSION_SECRET) {
-    warnings.push(
-      "SESSION_SECRET is not set; session signing falls back to defaults. " +
-        "Set a strong random value before public deploy.",
-    );
-  }
   if (e.CORS_ORIGIN === "http://localhost:5173") {
     warnings.push(
       "CORS_ORIGIN is still the dev default (http://localhost:5173). " +
         "Set it to your production frontend URL(s); comma-separate for multi-origin.",
+    );
+  }
+  if (!e.TURNSTILE_SECRET_KEY) {
+    warnings.push(
+      "TURNSTILE_SECRET_KEY is not set; signup captcha verification " +
+        "short-circuits to pass. Configure Cloudflare Turnstile before public deploy.",
     );
   }
   if (warnings.length > 0) {

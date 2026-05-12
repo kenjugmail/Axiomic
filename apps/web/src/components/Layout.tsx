@@ -214,6 +214,28 @@ export function Layout() {
                 {moreOpen && (
                   <div
                     role="menu"
+                    tabIndex={-1}
+                    onKeyDown={(e) => {
+                      // Phase K — arrow-key traversal between menuitems.
+                      // ArrowDown/Up move focus through links in DOM
+                      // order; wraps at the ends.
+                      if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+                      e.preventDefault();
+                      const items = Array.from(
+                        e.currentTarget.querySelectorAll<HTMLAnchorElement>(
+                          '[role="menuitem"]',
+                        ),
+                      );
+                      if (items.length === 0) return;
+                      const idx = items.indexOf(
+                        document.activeElement as HTMLAnchorElement,
+                      );
+                      const next =
+                        e.key === "ArrowDown"
+                          ? items[(idx + 1) % items.length]
+                          : items[(idx - 1 + items.length) % items.length];
+                      next?.focus();
+                    }}
                     className="absolute left-0 top-full mt-2 min-w-[260px] rounded-lg border border-border bg-card shadow-elevated py-2 animate-fade-in"
                   >
                     {moreSections.map((section) => (
@@ -227,7 +249,7 @@ export function Layout() {
                             to={item.to}
                             role="menuitem"
                             onClick={() => setMoreOpen(false)}
-                            className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/40"
+                            className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/40 focus:bg-accent/40 focus:outline-none"
                           >
                             {item.label}
                           </Link>
@@ -341,18 +363,14 @@ export function Layout() {
       </header>
 
       {mobileNavOpen && (
-        <div
-          className="sm:hidden fixed inset-0 z-50 bg-background/70 backdrop-blur-sm animate-fade-in"
-          onClick={() => setMobileNavOpen(false)}
-          role="presentation"
-          onKeyDown={(e) => {
-            if (e.key === "Escape") setMobileNavOpen(false);
-          }}
-        >
-          <div
-            className="absolute left-0 top-0 bottom-0 w-72 max-w-[80%] bg-card border-r border-border shadow-floating flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="sm:hidden fixed inset-0 z-50 animate-fade-in">
+          <button
+            type="button"
+            aria-label="Close menu"
+            onClick={() => setMobileNavOpen(false)}
+            className="absolute inset-0 bg-background/70 backdrop-blur-sm"
+          />
+          <div className="absolute left-0 top-0 bottom-0 w-72 max-w-[80%] bg-card border-r border-border shadow-floating flex flex-col">
             <div className="flex items-center justify-between px-4 h-14 border-b border-border">
               <span className="font-display text-lg font-semibold">Axiomic</span>
               <button

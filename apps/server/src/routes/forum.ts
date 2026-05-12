@@ -21,11 +21,12 @@ import { count, desc, eq, and, sql, inArray, asc } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { getAIProvider } from "@axiomic/ai";
 import { getSessionUser, requireAuth, requireVerifiedEmail } from "../middleware/auth";
-import { notify, notifyMentions, toPreview } from "../lib/notifications";
+import { notify, notifyMany, notifyMentions, toPreview } from "../lib/notifications";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import { nodesForWikiSlug } from "../lib/crossLinks";
 import { recordActivityAndEvaluate } from "../lib/achievements";
-import { checkRateLimit, rateLimitIdentity } from "../lib/rateLimit";
+import { checkRateLimit } from "../lib/rateLimit";
+import { env } from "../lib/envConfig";
 import type { Env } from "../env";
 
 const forum = new Hono<Env>();
@@ -136,7 +137,7 @@ function userVotesFor(
 
 forum.get("/domains", (c) => {
   const db = getDb();
-  const list = db.select().from(domains).orderBy(domains.title).all();
+  const list = db.select().from(domains).orderBy(domains.title).limit(200).all();
   return c.json({ domains: list });
 });
 
@@ -599,6 +600,9 @@ forum.get("/graph", async (c) => {
 forum.post("/topics", requireVerifiedEmail, zValidator("json", createTopicSchema), async (c) => {
   const { title, body, postType, domainSlug, wikiPageId, poll } = c.req.valid("json");
   const user = c.get("user")!;
+  if (env.NODE_ENV !== "test" && !checkRateLimit(`forum-topic:${user.id}`, 10, 60_000)) {
+    return c.json({ error: "Rate limited. Slow down." }, 429);
+  }
   const db = getDb();
 
   const dom = db.select().from(domains).where(eq(domains.slug, domainSlug)).get();
@@ -666,17 +670,17 @@ forum.post("/topics", requireVerifiedEmail, zValidator("json", createTopicSchema
       .from(userFollows)
       .where(eq(userFollows.followeeId, user.id))
       .all();
-    for (const f of followers) {
-      await notify({
-        recipientId: f.id,
+    await notifyMany(
+      followers.map((f) => f.id),
+      {
         actorId: user.id,
         kind: "forum_topic_posted",
         subjectType: "topic",
         subjectId: id,
         contextSlug: slug,
         preview: toPreview(body || title),
-      });
-    }
+      },
+    );
   } catch (err) {
     console.error("follower fanout (topic) failed", err);
   }
@@ -748,6 +752,9 @@ forum.post(
   async (c) => {
     const { body, parentId } = c.req.valid("json");
     const user = c.get("user")!;
+    if (env.NODE_ENV !== "test" && !checkRateLimit(`forum-reply:${user.id}`, 30, 60_000)) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
     const db = getDb();
 
     const topic = db
@@ -1040,14 +1047,12 @@ forum.get("/users/:username/reputation", (c) => {
 
 // --- AI thread summarizer (SSE) -----------------------------------------
 
-forum.post("/topics/:slug/summarize", async (c) => {
-  // The summarizer hits the AI provider — gate it behind the same
-  // rate limiter as the rest of /ai/* so an unauth'd caller can't
-  // burn inference cost in a tight loop. Auth'd users get a per-user
-  // bucket; anonymous gets a per-IP+UA bucket.
-  const user = await getSessionUser(c);
-  const key = rateLimitIdentity(c, user?.id);
-  if (!checkRateLimit(`forum-summarize:${key}`, 5, 60_000)) {
+forum.post("/topics/:slug/summarize", requireAuth, async (c) => {
+  // The summarizer hits the AI provider — auth required so we can
+  // attribute cost to a real user, and per-user rate-limited so no
+  // single user can burn inference cost in a tight loop.
+  const user = c.get("user")!;
+  if (!checkRateLimit(`forum-summarize:${user.id}`, 5, 60_000)) {
     return c.json({ error: "Rate limited. Try again in a minute." }, 429);
   }
 
@@ -1060,7 +1065,7 @@ forum.post("/topics/:slug/summarize", async (c) => {
       postType: forumTopics.postType,
     })
     .from(forumTopics)
-    .where(eq(forumTopics.slug, c.req.param("slug")))
+    .where(eq(forumTopics.slug, c.req.param("slug")!))
     .get();
   if (!topic) return c.json({ error: "Topic not found" }, 404);
 
