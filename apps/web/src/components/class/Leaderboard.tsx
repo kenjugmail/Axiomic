@@ -7,7 +7,7 @@
 import { useState } from "react";
 import { Trophy, Sparkles } from "lucide-react";
 import type { ClassLeaderboardEntry, ClassRole } from "@axiomic/types";
-import { PetView } from "../pet/PetView";
+import { PetAvatar } from "../pet/PetAvatar";
 import { GrantCosmeticDialog } from "../pet/GrantCosmeticDialog";
 
 const SPECIES_EMOJI: Record<string, string> = {
@@ -73,10 +73,17 @@ export function Leaderboard({
               </span>
               <div className="w-14 shrink-0 flex items-center justify-center">
                 {e.pet ? (
-                  <PetView
+                  <PetAvatar
+                    species={e.pet.species}
                     speciesEmoji={speciesEmoji}
-                    equipped={e.pet.equipped}
-                    size="sm"
+                    level={e.pet.level ?? 1}
+                    equipped={{
+                      head: e.pet.equipped.find((x) => x.slot === "head") ?? null,
+                      eyes: e.pet.equipped.find((x) => x.slot === "eyes") ?? null,
+                      acc: e.pet.equipped.find((x) => x.slot === "accessory") ?? null,
+                    }}
+                    size={36}
+                    ariaLabel={`${e.displayName || e.username}'s pet`}
                   />
                 ) : (
                   <span className="text-2xl text-muted-foreground">🥚</span>

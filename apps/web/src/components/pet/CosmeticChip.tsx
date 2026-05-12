@@ -1,21 +1,12 @@
 // S86 — Catalog list item for a cosmetic.
 // Used in the inventory grid + grant-cosmetic dialog.
+//
+// Phase L — rarity colors switched to the --r-* CSS tokens (also
+// used by PetAvatar's ring). Cosmetics with emoji=null (the new
+// renderKind=svg additions) render an initial-disc fallback in the
+// rarity color, identical to PetAvatar's CosmeticOverlay fallback.
 
 import type { CosmeticRarity, CosmeticSlot } from "@axiomic/types";
-
-const RARITY_BORDER: Record<CosmeticRarity, string> = {
-  common: "border-border",
-  rare: "border-sky-500/50",
-  epic: "border-violet-500/60",
-  legendary: "border-amber-500/70",
-};
-
-const RARITY_BADGE: Record<CosmeticRarity, string> = {
-  common: "text-muted-foreground",
-  rare: "text-sky-600 dark:text-sky-400",
-  epic: "text-violet-600 dark:text-violet-400",
-  legendary: "text-amber-600 dark:text-amber-400",
-};
 
 interface CosmeticChipProps {
   slug: string;
@@ -30,6 +21,7 @@ interface CosmeticChipProps {
 }
 
 export function CosmeticChip({
+  slug,
   name,
   emoji,
   slot,
@@ -39,27 +31,41 @@ export function CosmeticChip({
   onClick,
   selected,
 }: CosmeticChipProps) {
-  const border = RARITY_BORDER[rarity] ?? RARITY_BORDER.common;
-  const badge = RARITY_BADGE[rarity] ?? RARITY_BADGE.common;
+  const initial = (slug || "?").charAt(0).toUpperCase();
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`relative text-left p-3 rounded-md border transition-colors ${border} ${
+      className={`relative text-left p-3 rounded-md border transition-colors ${
         selected
           ? "ring-2 ring-primary"
           : onClick
             ? "hover:bg-accent/40 cursor-pointer"
             : ""
       } ${equipped ? "bg-emerald-500/5" : "bg-background"}`}
+      style={{ borderColor: `var(--r-${rarity})` }}
     >
       <div className="flex items-start gap-3">
-        <div className="text-2xl leading-none">{emoji ?? "❓"}</div>
+        {emoji ? (
+          <div className="text-2xl leading-none">{emoji}</div>
+        ) : (
+          // Phase L — emoji=null fallback. Matches PetAvatar's
+          // CosmeticOverlay so the catalog + the avatar agree.
+          <div
+            className={`cos-overlay-fallback rar-${rarity}`}
+            style={{ width: 28, height: 28, fontSize: 16 }}
+          >
+            {initial}
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium truncate">{name}</span>
-            <span className={`text-[10px] uppercase tracking-wider ${badge}`}>
+            <span
+              className="text-[10px] uppercase tracking-wider"
+              style={{ color: `var(--r-${rarity})` }}
+            >
               {rarity}
             </span>
           </div>

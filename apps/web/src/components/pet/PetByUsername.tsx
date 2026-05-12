@@ -1,6 +1,6 @@
 // S87 — PetByUsername.
 //
-// Wraps PetView with a self-fetched + cached lookup of a user's pet
+// Wraps PetAvatar with a self-fetched + cached lookup of a user's pet
 // + equipped cosmetics. Used wherever a username appears in the UI
 // (forum topic OP, lesson author byline, profile page header) so a
 // pet renders inline next to the name.
@@ -17,7 +17,7 @@
 import { useEffect, useState } from "react";
 import type { UserPetDisplay } from "@axiomic/types";
 import { api } from "../../lib/api";
-import { PetView } from "./PetView";
+import { PetAvatar } from "./PetAvatar";
 
 type Pet = NonNullable<UserPetDisplay["pet"]>;
 type CacheEntry = { fetchedAt: number; pet: Pet | null };
@@ -117,15 +117,27 @@ export function PetByUsername({
     );
   }
 
+  // Phase L — convert the API's slot-keyed array to the PetAvatar's
+  // {head, eyes, acc} object shape. The server uses 'accessory'; the
+  // component uses 'acc' (matching design convention).
+  const equippedObj = {
+    head: pet.equipped.find((e) => e.slot === "head") ?? null,
+    eyes: pet.equipped.find((e) => e.slot === "eyes") ?? null,
+    acc: pet.equipped.find((e) => e.slot === "accessory") ?? null,
+  };
+  const px = FALLBACK_PX[size];
+
   return (
     <span className={className} style={{ display: "inline-block" }}>
       {/* S90 — speciesEmoji from the API is already level-aware,
           so the byline reflects evolution without level prop. */}
-      <PetView
+      <PetAvatar
+        species={pet.species}
         speciesEmoji={pet.speciesEmoji}
-        equipped={pet.equipped}
-        size={size}
         level={pet.level}
+        equipped={equippedObj}
+        skin={pet.activeSkin?.fx ?? null}
+        size={px}
       />
     </span>
   );

@@ -29,6 +29,7 @@ import {
   safetyCertifications,
   // S86 — pet cosmetic catalog.
   petCosmetics,
+  petSkins,
   // S108 — demo cohort seed for college / investor pitches.
   classes,
   classEnrollments,
@@ -140,6 +141,9 @@ async function seed() {
 
   // S86 — pet cosmetic catalog. Idempotent on slug.
   seedPetCosmetics();
+
+  // Phase L — pet skin catalog. Idempotent on slug.
+  seedPetSkins();
 
   // S108 — demo cohort + signed-capstone artifact for the pitch demo
   // path. Depends on capstones (clip-style-retriever) being seeded.
@@ -2516,6 +2520,58 @@ function seedPetCosmetics() {
     count++;
   }
   console.log(`  Seeded ${count} pet cosmetic${count === 1 ? "" : "s"}.`);
+}
+
+// Phase L — pet skin catalog. Idempotent on slug. Reads
+// `seed-content/pet-skins/skins.json` (single file, list of skins
+// with nested fx object) and flattens the fx fields into the flat
+// columns on pet_skins. Same shape as seedPetCosmetics().
+function seedPetSkins() {
+  const file = path.join(import.meta.dir, "../../../seed-content/pet-skins/skins.json");
+  if (!fs.existsSync(file)) return;
+  let parsed: any;
+  try {
+    parsed = JSON.parse(fs.readFileSync(file, "utf-8"));
+  } catch {
+    console.warn("  Skipping pet skins: invalid JSON.");
+    return;
+  }
+  const list = Array.isArray(parsed?.skins) ? parsed.skins : [];
+  let count = 0;
+  for (const s of list) {
+    if (!s?.slug || !s?.name) continue;
+    const fx = s.fx ?? {};
+    const glow = fx.glow ?? null;
+    const values = {
+      slug: s.slug,
+      name: s.name,
+      rarity: s.rarity ?? "common",
+      obtain: s.obtain ?? "xp",
+      xpCost: typeof s.xpCost === "number" && s.xpCost > 0 ? s.xpCost : null,
+      description: s.description ?? "",
+      fxFilter: typeof fx.filter === "string" ? fx.filter : null,
+      fxOpacity: typeof fx.opacity === "number" ? fx.opacity : 1,
+      fxGlowColor: glow?.color ?? null,
+      fxGlowBlur: typeof glow?.blur === "number" ? glow.blur : null,
+      fxGlowAlpha: typeof glow?.alpha === "number" ? glow.alpha : null,
+      fxBg: typeof fx.bg === "string" ? fx.bg : null,
+      fxParticles: typeof fx.particles === "string" ? fx.particles : null,
+      fxRing: typeof fx.ring === "string" ? fx.ring : null,
+      fxAnimated: typeof fx.animated === "string" ? fx.animated : null,
+    };
+    const existing = db
+      .select({ id: petSkins.id })
+      .from(petSkins)
+      .where(eq(petSkins.slug, s.slug))
+      .get();
+    if (existing) {
+      db.update(petSkins).set(values).where(eq(petSkins.id, existing.id)).run();
+    } else {
+      db.insert(petSkins).values({ id: randomUUID(), ...values }).run();
+    }
+    count++;
+  }
+  console.log(`  Seeded ${count} pet skin${count === 1 ? "" : "s"}.`);
 }
 
 // S108 — Demo cohort for the pitch path.

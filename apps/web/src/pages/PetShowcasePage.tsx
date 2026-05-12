@@ -2,7 +2,7 @@
 //
 // Two sections:
 //   - mostDecorated: top users by equipped cosmetic count, full
-//     PetView with cosmetics on display.
+//     PetAvatar with cosmetics on display.
 //   - recentTopLevel: most recent users to evolve to level 2 or 3.
 //     Pet-only (no cosmetic decoration on this list — keep it
 //     focused on the evolution glow-up).
@@ -16,7 +16,7 @@ import { Sparkles, Award, ChevronRight } from "lucide-react";
 import type { PetShowcaseResponse } from "@axiomic/types";
 import { api } from "../lib/api";
 import { Skeleton } from "../components/ui";
-import { PetView } from "../components/pet/PetView";
+import { PetAvatar } from "../components/pet/PetAvatar";
 
 export function PetShowcasePage() {
   const [data, setData] = useState<PetShowcaseResponse | null>(null);
@@ -73,11 +73,17 @@ export function PetShowcasePage() {
                   to={`/u/${entry.username}`}
                   className="flex items-center gap-3 p-3 rounded-md border border-border hover:bg-accent/30 transition-colors"
                 >
-                  <PetView
+                  <PetAvatar
+                    species={entry.pet.species}
                     speciesEmoji={entry.pet.speciesEmoji}
-                    equipped={entry.pet.equipped}
-                    size="md"
                     level={entry.pet.level}
+                    equipped={{
+                      head: entry.pet.equipped.find((x) => x.slot === "head") ?? null,
+                      eyes: entry.pet.equipped.find((x) => x.slot === "eyes") ?? null,
+                      acc: entry.pet.equipped.find((x) => x.slot === "accessory") ?? null,
+                    }}
+                    size={56}
+                    ariaLabel={`${entry.displayName || entry.username}'s pet`}
                   />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium truncate">
@@ -112,11 +118,18 @@ export function PetShowcasePage() {
                   to={`/u/${entry.username}`}
                   className="flex flex-col items-center gap-1.5 p-3 rounded-md border border-border hover:bg-accent/30 transition-colors text-center"
                 >
-                  <PetView
+                  <PetAvatar
+                    species={entry.pet.species}
                     speciesEmoji={entry.pet.speciesEmoji}
-                    equipped={entry.pet.equipped}
-                    size="lg"
                     level={entry.pet.level}
+                    equipped={{
+                      head: entry.pet.equipped.find((x) => x.slot === "head") ?? null,
+                      eyes: entry.pet.equipped.find((x) => x.slot === "eyes") ?? null,
+                      acc: entry.pet.equipped.find((x) => x.slot === "accessory") ?? null,
+                    }}
+                    size={80}
+                    hero
+                    ariaLabel={`${entry.displayName || entry.username}'s pet`}
                   />
                   <div className="text-sm font-medium truncate w-full">
                     {entry.displayName || entry.username}

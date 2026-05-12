@@ -83,3 +83,114 @@ export function emojiForSpeciesAtLevel(speciesSlug: string, level: number): stri
   const idx = Math.min(Math.max(0, level - 1), MAX_PET_LEVEL - 1);
   return sp.emojiByLevel[idx];
 }
+
+// =============================================================
+// Phase L — Pet skin catalog (data-driven; lives in pet_skins).
+// =============================================================
+//
+// Unlike species, skins ARE data — the catalog grows over time as
+// designers add seasonal/event skins. Loaded from `pet_skins` once
+// per process and cached. Tests run against a fresh seed so the
+// cache picks up changes; in dev/prod the cache is fine for a
+// process lifetime because the catalog is append-only.
+
+import { getDb, petSkins } from "@axiomic/db";
+
+export type SkinRarity = "common" | "rare" | "epic" | "legendary";
+export type SkinObtain = "xp" | "grant" | "comp" | "default";
+export type SkinParticles = "stars" | "embers" | "petals" | "snow";
+export type SkinAnimated = "aurora" | "crystal";
+
+export interface PetSkinFx {
+  filter: string | null;
+  opacity: number;
+  glow: { color: string; blur: number; alpha: number } | null;
+  bg: string | null;
+  particles: SkinParticles | null;
+  ring: string | null;
+  animated: SkinAnimated | null;
+}
+
+export interface PetSkinDef {
+  slug: string;
+  name: string;
+  rarity: SkinRarity;
+  obtain: SkinObtain;
+  xpCost: number | null;
+  description: string;
+  fx: PetSkinFx;
+}
+
+// Row shape (lifted off drizzle's inferred select type) → public
+// PetSkinDef. Hoists the nested fx object out of the flat columns.
+function rowToSkin(row: typeof petSkins.$inferSelect): PetSkinDef {
+  const glow =
+    row.fxGlowColor && row.fxGlowBlur != null && row.fxGlowAlpha != null
+      ? { color: row.fxGlowColor, blur: row.fxGlowBlur, alpha: row.fxGlowAlpha }
+      : null;
+  return {
+    slug: row.slug,
+    name: row.name,
+    rarity: row.rarity as SkinRarity,
+    obtain: row.obtain as SkinObtain,
+    xpCost: row.xpCost ?? null,
+    description: row.description,
+    fx: {
+      filter: row.fxFilter,
+      opacity: row.fxOpacity,
+      glow,
+      bg: row.fxBg,
+      particles: (row.fxParticles as SkinParticles | null) ?? null,
+      ring: row.fxRing,
+      animated: (row.fxAnimated as SkinAnimated | null) ?? null,
+    },
+  };
+}
+
+let SKIN_CACHE: Map<string, PetSkinDef> | null = null;
+
+function loadSkinCache(): Map<string, PetSkinDef> {
+  if (SKIN_CACHE) return SKIN_CACHE;
+  const rows = getDb().select().from(petSkins).all();
+  const map = new Map<string, PetSkinDef>();
+  for (const r of rows) map.set(r.slug, rowToSkin(r));
+  SKIN_CACHE = map;
+  return map;
+}
+
+// Test seam: tests reseed the catalog between cases, so they need
+// to invalidate the cache. Production code shouldn't call this.
+export function _resetPetSkinCache(): void {
+  SKIN_CACHE = null;
+}
+
+export function petSkinBySlug(slug: string): PetSkinDef | undefined {
+  return loadSkinCache().get(slug);
+}
+
+// Always returns something — falls back to 'default' if the slug
+// is missing (e.g. a stale equipped value pointing at a deleted
+// skin). Default itself is always seeded.
+export function petSkinBySlugOrDefault(slug: string): PetSkinDef {
+  return petSkinBySlug(slug) ?? petSkinBySlug("default") ?? {
+    slug: "default",
+    name: "Original",
+    rarity: "common",
+    obtain: "default",
+    xpCost: null,
+    description: "",
+    fx: {
+      filter: null,
+      opacity: 1,
+      glow: null,
+      bg: null,
+      particles: null,
+      ring: null,
+      animated: null,
+    },
+  };
+}
+
+export function allPetSkins(): PetSkinDef[] {
+  return [...loadSkinCache().values()];
+}

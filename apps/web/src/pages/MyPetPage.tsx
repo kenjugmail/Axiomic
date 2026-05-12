@@ -5,14 +5,15 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Pencil, Egg, Sparkles, BarChart3 } from "lucide-react";
-import type { CosmeticSlot, MyPetResponse, PetInventoryItem } from "@axiomic/types";
+import type { CosmeticSlot, MyPetResponse, PetInventoryItem, PetSkinDef, SkinShopResponse } from "@axiomic/types";
 import { api, ApiError } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
-import { PetView } from "../components/pet/PetView";
+import { PetAvatar } from "../components/pet/PetAvatar";
 import { PetSwapStrip } from "../components/pet/PetSwapStrip";
 import { EvolutionChain } from "../components/pet/EvolutionChain";
 import { CosmeticChip } from "../components/pet/CosmeticChip";
+import { SkinTile } from "../components/pet/SkinTile";
 import { toast } from "../stores/toast";
 
 export function MyPetPage() {
@@ -21,11 +22,22 @@ export function MyPetPage() {
   const [error, setError] = useState<string | null>(null);
   const [editingName, setEditingName] = useState(false);
   const [name, setName] = useState("");
+  // Phase L — skin shop list (everything available, owned + unowned).
+  // The catalog read is public so we don't gate it on auth, and the
+  // skin shop response includes owned/affordable flags computed
+  // server-side.
+  const [skinShop, setSkinShop] = useState<SkinShopResponse | null>(null);
 
   const reload = async () => {
     const r = await api.pet.me();
     setData(r);
     if (r.pet) setName(r.pet.name);
+    try {
+      const shop = await api.pet.skinShop();
+      setSkinShop(shop);
+    } catch {
+      // shop is optional; the owned-skins grid still renders without it
+    }
   };
 
   useEffect(() => {
@@ -34,6 +46,9 @@ export function MyPetPage() {
       setData(r);
       if (r.pet) setName(r.pet.name);
     }).catch((e) => setError(e?.message ?? "Failed to load"));
+    api.pet.skinShop().then(setSkinShop).catch(() => {
+      // ignore — section just hides the locked tiles
+    });
   }, [user]);
 
   const toggleEquip = async (item: PetInventoryItem) => {
@@ -44,6 +59,44 @@ export function MyPetPage() {
         await api.pet.equip(item.slug);
       }
       reload();
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Failed");
+    }
+  };
+
+  // Phase L — skin equip/buy. Owned + not equipped → equip. Owned +
+  // equipped → unequip (reset to default). Not owned + affordable
+  // → buy (with optimistic balance). Not owned + not affordable
+  // → tooltip-only; the tile shows "locked".
+  const handleSkinClick = async (skin: PetSkinDef) => {
+    if (!data?.pet) return;
+    const owned = data.ownedSkins.some((s) => s.slug === skin.slug);
+    const isEquipped = data.activeSkin?.slug === skin.slug;
+    try {
+      if (isEquipped) {
+        if (skin.slug === "default") return; // can't unequip default
+        await api.pet.skinUnequip();
+        await reload();
+        return;
+      }
+      if (owned) {
+        await api.pet.skinEquip(skin.slug);
+        await reload();
+        return;
+      }
+      // Not owned. Find in shop for affordability check.
+      const shopItem = skinShop?.items.find((i) => i.slug === skin.slug);
+      if (!shopItem) {
+        toast.error("This skin is not for sale");
+        return;
+      }
+      if (!shopItem.affordable) {
+        toast.error(`Need ${shopItem.xpCost} XP to buy this skin`);
+        return;
+      }
+      await api.pet.buySkin(skin.slug);
+      await api.pet.skinEquip(skin.slug);
+      await reload();
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Failed");
     }
@@ -95,9 +148,27 @@ export function MyPetPage() {
   for (const item of data.inventory) {
     grouped[item.slot]?.push(item);
   }
-  const equipped = data.inventory
-    .filter((i) => i.equipped)
-    .map((i) => ({ slot: i.slot, emoji: i.emoji, slug: i.slug }));
+  const equippedItems = data.inventory.filter((i) => i.equipped);
+  // Phase L — PetAvatar takes a slot-keyed object. Build it from the
+  // equipped subset. Carries `rarity` through so the SVG-fallback
+  // disc gets the right tint when emoji is null.
+  const equippedObj = {
+    head: equippedItems.find((i) => i.slot === "head") ?? null,
+    eyes: equippedItems.find((i) => i.slot === "eyes") ?? null,
+    acc: equippedItems.find((i) => i.slot === "accessory") ?? null,
+  };
+  // Phase L — pick the "highest equipped rarity" for the hero ring.
+  // Empty / common-only ring renders as a subtle line; epic/legendary
+  // make the avatar pop on ProfilePage / MyPetPage.
+  const RARITY_ORDER = ["common", "rare", "epic", "legendary"] as const;
+  const highestEquippedRarity = equippedItems.reduce<typeof RARITY_ORDER[number] | null>(
+    (acc, i) => {
+      const r = (i.rarity ?? "common") as typeof RARITY_ORDER[number];
+      if (acc === null) return r;
+      return RARITY_ORDER.indexOf(r) > RARITY_ORDER.indexOf(acc) ? r : acc;
+    },
+    null,
+  );
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
@@ -124,11 +195,16 @@ export function MyPetPage() {
       {data.pet ? (
         <div className="rounded-lg border border-border p-6 mb-8 flex items-center gap-6 flex-wrap">
           <div>
-            <PetView
+            <PetAvatar
+              species={data.pet.species}
               speciesEmoji={data.pet.levelEmoji}
-              equipped={equipped}
-              size="xl"
               level={data.pet.level}
+              equipped={equippedObj}
+              skin={data.activeSkin?.fx ?? null}
+              size={128}
+              hero
+              ring={highestEquippedRarity || false}
+              ariaLabel={`${data.pet.name || data.pet.speciesLabel}, level ${data.pet.level}`}
             />
           </div>
           <div className="flex-1 min-w-0">
@@ -240,6 +316,60 @@ export function MyPetPage() {
           <EvolutionChain pet={data.pet} totalXp={data.totalXp} />
         </div>
       )}
+
+      {/* Phase L — Skins. Owned-first, then shop. Hidden when there's
+          no pet yet (skin only makes sense once something's hatched). */}
+      {data.pet && (() => {
+        // Build the full ordered list: owned skins first (with the
+        // equipped one bubbled to the front), then shop skins the user
+        // doesn't yet own. Keeps the equipped state immediately visible.
+        const ownedSlugs = new Set(data.ownedSkins.map((s) => s.slug));
+        const activeSlug = data.activeSkin?.slug ?? "default";
+        const owned = [...data.ownedSkins].sort((a, b) => {
+          if (a.slug === activeSlug) return -1;
+          if (b.slug === activeSlug) return 1;
+          return 0;
+        });
+        const unowned = (skinShop?.items ?? [])
+          .filter((it) => !ownedSlugs.has(it.slug))
+          .map<PetSkinDef>((it) => ({
+            slug: it.slug,
+            name: it.name,
+            rarity: it.rarity,
+            obtain: "xp",
+            xpCost: it.xpCost,
+            description: it.description,
+            fx: it.fx,
+          }));
+        const allTiles = [...owned, ...unowned];
+        if (allTiles.length === 0) return null;
+        return (
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold">Skins ({data.ownedSkins.length} owned)</h2>
+              {skinShop && (
+                <span className="text-xs text-muted-foreground tabular-nums">
+                  Balance: {skinShop.balance.toLocaleString()} XP
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+              {allTiles.map((skin) => (
+                <SkinTile
+                  key={skin.slug}
+                  skin={skin}
+                  previewSpecies={data.pet?.species}
+                  previewSpeciesEmoji={data.pet?.levelEmoji}
+                  previewLevel={data.pet?.level}
+                  owned={ownedSlugs.has(skin.slug)}
+                  equipped={skin.slug === activeSlug}
+                  onClick={() => handleSkinClick(skin)}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Inventory by slot */}
       <h2 className="text-sm font-semibold mb-3">Inventory ({data.inventory.length})</h2>

@@ -3577,7 +3577,16 @@ export interface MyPetResponse {
       threshold: number;
       emoji: string;
     }>;
+    // Phase L — currently-equipped skin slug. Full def is on the
+    // top-level `activeSkin` field below.
+    activeSkinSlug: string;
   } | null;
+  // Phase L — currently-active skin (resolved from pet.activeSkinSlug)
+  // and the set of skins this user owns. ownedSkins is empty until
+  // the autoprovision lands the default; the first GET /me/pet
+  // primes it.
+  activeSkin: PetSkinDef;
+  ownedSkins: PetSkinDef[];
   totalXp: number;
   hatchThresholdXp: number;
   inventory: PetInventoryItem[];
@@ -3688,7 +3697,55 @@ export interface UserPetDisplay {
     level: number;
     name: string;
     equipped: Array<{ slot: string; emoji: string | null; slug: string }>;
+    // Phase L — currently-equipped skin so bylines render skin FX
+    // in one round-trip.
+    activeSkin: PetSkinDef;
   } | null;
+}
+
+// =============================================================
+// Phase L — Pet skin types.
+// =============================================================
+
+export type PetSkinRarity = "common" | "rare" | "epic" | "legendary";
+export type PetSkinObtain = "xp" | "grant" | "comp" | "default";
+export type PetSkinParticles = "stars" | "embers" | "petals" | "snow";
+export type PetSkinAnimated = "aurora" | "crystal";
+
+export interface PetSkinFx {
+  filter: string | null;
+  opacity: number;
+  glow: { color: string; blur: number; alpha: number } | null;
+  bg: string | null;
+  particles: PetSkinParticles | null;
+  ring: string | null;
+  animated: PetSkinAnimated | null;
+}
+
+export interface PetSkinDef {
+  slug: string;
+  name: string;
+  rarity: PetSkinRarity;
+  obtain: PetSkinObtain;
+  xpCost: number | null;
+  description: string;
+  fx: PetSkinFx;
+}
+
+export interface SkinShopItem {
+  slug: string;
+  name: string;
+  rarity: PetSkinRarity;
+  description: string;
+  xpCost: number;
+  fx: PetSkinFx;
+  owned: boolean;
+  affordable: boolean;
+}
+
+export interface SkinShopResponse {
+  balance: number;
+  items: SkinShopItem[];
 }
 
 // =============================================================
