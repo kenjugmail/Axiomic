@@ -433,6 +433,102 @@ export function MyPetPage() {
         />
       )}
 
+      {/* Phase 9 — inline cosmetic picker. Lives right under the hero
+          so users immediately see they can equip / unequip. Group
+          inventory by slot; click a tile to equip; click the equipped
+          tile to take it off. */}
+      <section
+        className="rounded-2xl border overflow-hidden mb-8"
+        style={{ borderColor: "var(--line)", background: "var(--bg-elev)" }}
+      >
+        <header
+          className="px-6 py-4 flex items-baseline justify-between gap-4"
+          style={{ borderBottom: "1px solid var(--line)" }}
+        >
+          <div className="min-w-0">
+            <h2 className="text-base font-semibold">Cosmetics</h2>
+            <p className="text-xs mt-1" style={{ color: "var(--ink-3)" }}>
+              One item per slot. Click a tile to equip; click the equipped
+              tile again to take it off.
+            </p>
+          </div>
+          <Link
+            to="/me/inventory"
+            className="text-xs underline whitespace-nowrap"
+            style={{ color: "var(--ink-3)" }}
+          >
+            Full inventory ({data.inventory.length}) →
+          </Link>
+        </header>
+        <div className="px-6 py-5">
+          {(["head", "eyes", "accessory"] as const).map((slotKey) => {
+            const items = data.inventory.filter((i) => i.slot === slotKey);
+            const label =
+              slotKey === "head"
+                ? "Head"
+                : slotKey === "eyes"
+                  ? "Eyes"
+                  : "Accessory";
+            const help =
+              slotKey === "head"
+                ? "Worn on top — caps, crowns, wreaths."
+                : slotKey === "eyes"
+                  ? "Glasses, monocles, eye effects."
+                  : "Held or worn beside — books, mugs, trophies.";
+            const equippedHere = items.find((i) => i.equipped) ?? null;
+            return (
+              <div key={slotKey} className="mb-6 last:mb-0">
+                <div className="flex items-baseline justify-between mb-1 gap-3 flex-wrap">
+                  <h3
+                    className="text-[11px] font-semibold tracking-widest uppercase"
+                    style={{ color: "var(--ink-3)" }}
+                  >
+                    {label} · {items.length}
+                  </h3>
+                  <span className="text-[11px]" style={{ color: "var(--ink-4)" }}>
+                    {equippedHere ? `Equipped: ${equippedHere.name}` : "Nothing equipped"}
+                  </span>
+                </div>
+                <p className="text-[11.5px] mb-3" style={{ color: "var(--ink-4)" }}>
+                  {help}
+                </p>
+                {items.length === 0 ? (
+                  <div
+                    className="text-xs px-3 py-4 rounded-lg border border-dashed text-center"
+                    style={{ borderColor: "var(--line)", color: "var(--ink-4)" }}
+                  >
+                    No items yet —{" "}
+                    <Link to="/shop" className="underline" style={{ color: "var(--accent)" }}>
+                      visit the XP Shop
+                    </Link>
+                    {" "}or wait for an instructor grant.
+                  </div>
+                ) : (
+                  <div className="cos-grid">
+                    {items.map((item) => (
+                      <CosmeticChip
+                        key={item.id}
+                        slug={item.slug}
+                        name={item.name}
+                        slot={item.slot}
+                        rarity={item.rarity}
+                        description={
+                          item.grantedNote
+                            ? `“${item.grantedNote}” — ${item.description}`
+                            : item.description
+                        }
+                        equipped={item.equipped}
+                        onClick={() => toggleEquip(item)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
       {/* Evolution chain (existing Phase S100 surface, kept for the
           past/future-forms timeline). */}
       {pet && (
@@ -546,98 +642,6 @@ export function MyPetPage() {
           </div>
         );
       })()}
-
-      {/* Phase 9 — inline cosmetic picker. Group inventory by slot
-          (Head / Eyes / Accessory); click a tile to equip; click an
-          already-equipped tile to unequip. Reload after each
-          mutation so the pet hero reflects the change immediately. */}
-      <section
-        className="rounded-2xl border overflow-hidden"
-        style={{ borderColor: "var(--line)", background: "var(--bg-elev)" }}
-      >
-        <header
-          className="px-6 py-4 flex items-baseline justify-between"
-          style={{ borderBottom: "1px solid var(--line)" }}
-        >
-          <div className="min-w-0">
-            <h2 className="text-base font-semibold">Cosmetics</h2>
-            <p className="text-xs mt-1" style={{ color: "var(--ink-3)" }}>
-              One item per slot. Click a tile to equip; click the equipped
-              tile again to take it off.
-            </p>
-          </div>
-          <Link
-            to="/me/inventory"
-            className="text-xs underline"
-            style={{ color: "var(--ink-3)" }}
-          >
-            Full inventory ({data.inventory.length})
-          </Link>
-        </header>
-        <div className="px-6 py-5">
-          {(["head", "eyes", "accessory"] as const).map((slotKey) => {
-            const items = data.inventory.filter((i) => i.slot === slotKey);
-            const label =
-              slotKey === "head"
-                ? "Head"
-                : slotKey === "eyes"
-                  ? "Eyes"
-                  : "Accessory";
-            const help =
-              slotKey === "head"
-                ? "Worn on top — caps, crowns, wreaths."
-                : slotKey === "eyes"
-                  ? "Glasses, monocles, eye effects."
-                  : "Held or worn beside — books, mugs, trophies.";
-            const equippedHere = items.find((i) => i.equipped) ?? null;
-            return (
-              <div key={slotKey} className="mb-6 last:mb-0">
-                <div className="flex items-baseline justify-between mb-2">
-                  <h3
-                    className="text-[11px] font-semibold tracking-widest uppercase"
-                    style={{ color: "var(--ink-3)" }}
-                  >
-                    {label} · {items.length}
-                  </h3>
-                  <span className="text-[11px]" style={{ color: "var(--ink-4)" }}>
-                    {equippedHere ? `Equipped: ${equippedHere.name}` : "Nothing equipped"}
-                  </span>
-                </div>
-                <p className="text-[11.5px] mb-3" style={{ color: "var(--ink-4)" }}>
-                  {help}
-                </p>
-                {items.length === 0 ? (
-                  <div
-                    className="text-xs px-3 py-4 rounded-lg border border-dashed text-center"
-                    style={{ borderColor: "var(--line)", color: "var(--ink-4)" }}
-                  >
-                    No items yet. Earn via the XP shop or instructor grants.
-                  </div>
-                ) : (
-                  <div className="cos-grid">
-                    {items.map((item) => (
-                      <CosmeticChip
-                        key={item.id}
-                        slug={item.slug}
-                        name={item.name}
-                        slot={item.slot}
-                        rarity={item.rarity}
-                        description={
-                          item.grantedNote
-                            ? `“${item.grantedNote}” — ${item.description}`
-                            : item.description
-                        }
-                        equipped={item.equipped}
-                        onClick={() => toggleEquip(item)}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </section>
 
       {/* Modals */}
       {pet && (

@@ -44,9 +44,16 @@ const MORE_NAV_PUBLIC_SECTIONS: NavSection[] = [
       { to: "/capstones/review-queue", label: "Peer review queue" },
       { to: "/verify", label: "Verify a transcript" },
       { to: "/demo/competency-loop", label: "Competency loop tour" },
+    ],
+  },
+  // Public Pet entries — duplicate of the signed-in Pet dropdown so
+  // anonymous browsers can find the showcase and shop.
+  {
+    heading: "Pet system",
+    links: [
       { to: "/explore/pets", label: "Pet showcase" },
       { to: "/skins", label: "All skins" },
-      { to: "/shop", label: "Shop" },
+      { to: "/shop", label: "XP Shop" },
     ],
   },
 ];
@@ -54,9 +61,10 @@ const MORE_NAV_PUBLIC_SECTIONS: NavSection[] = [
 const MORE_NAV_USER_SECTION: NavSection = {
   heading: "My workspace",
   links: [
+    // Phase 9 — pet / inventory moved into a dedicated Pet dropdown
+    // and mobile-nav Pet section, so they're omitted here to avoid
+    // duplication.
     { to: "/feed", label: "Feed" },
-    { to: "/me/pet", label: "My pet" },
-    { to: "/me/inventory", label: "Inventory" },
     { to: "/flashcards", label: "Flashcards" },
     { to: "/review/mistakes", label: "Review mistakes" },
     { to: "/me/lab", label: "My lab" },
@@ -241,8 +249,9 @@ export function Layout() {
                   {petMenuOpen && (
                     <div
                       role="menu"
-                      className="absolute right-0 mt-2 w-56 rounded-lg border bg-card shadow-lg overflow-hidden"
-                      style={{ borderColor: "var(--line)", zIndex: 60 }}
+                      tabIndex={-1}
+                      className="absolute right-0 top-full mt-2 w-60 rounded-lg border border-border bg-card shadow-elevated p-1 animate-fade-in"
+                      style={{ zIndex: 60 }}
                     >
                       {[
                         { to: "/me/pet", label: "My pet", hint: "Hero, evolve, equip" },
@@ -255,13 +264,13 @@ export function Layout() {
                           key={item.to}
                           to={item.to}
                           onClick={() => setPetMenuOpen(false)}
-                          className="flex flex-col px-3 py-2 hover:bg-accent/40 text-sm"
+                          className="flex flex-col gap-0.5 px-3 py-2 rounded-md hover:bg-accent/40 focus:bg-accent/40 focus:outline-none text-sm transition-colors"
                           role="menuitem"
                         >
-                          <span className="font-medium" style={{ color: "var(--ink)" }}>
+                          <span className="font-medium text-foreground">
                             {item.label}
                           </span>
-                          <span className="text-xs" style={{ color: "var(--ink-3)" }}>
+                          <span className="text-xs text-muted-foreground">
                             {item.hint}
                           </span>
                         </Link>
@@ -489,6 +498,25 @@ export function Layout() {
               ))}
               {user && (
                 <>
+                  <div className="px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Pet
+                  </div>
+                  {[
+                    { to: "/me/pet", label: "My pet" },
+                    { to: "/me/inventory", label: "Inventory" },
+                    { to: "/shop", label: "XP Shop" },
+                    { to: "/skins", label: "All skins" },
+                    { to: "/explore/pets", label: "Pet showcase" },
+                  ].map((item) => (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      onClick={() => setMobileNavOpen(false)}
+                      className="block px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/40"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
                   <div className="px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground">
                     Account
                   </div>
