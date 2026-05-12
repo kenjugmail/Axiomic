@@ -20,6 +20,7 @@
 import type { CSSProperties } from "react";
 import { PetSilhouetteSVG, type PetMood } from "./PetSilhouetteSVG";
 import { CosmeticGlyphSVG, type Rarity } from "./CosmeticGlyphSVG";
+import { useDevSpeciesOverride } from "../dev/DevSpeciesContext";
 
 export type PetSkinFx = {
   filter: string | null;
@@ -198,6 +199,10 @@ export function PetAvatar({
   ariaLabel,
   className,
 }: PetAvatarProps): JSX.Element {
+  // Phase 8E — dev TweaksPanel can force a species globally without
+  // touching the server. Returns null when no override is set.
+  const devSpecies = useDevSpeciesOverride();
+  if (devSpecies) species = devSpecies;
   const px = size;
   const petSize = Math.round(px * 0.82);
   const cosmeticSize = Math.round(px * COSMETIC_SCALE);
