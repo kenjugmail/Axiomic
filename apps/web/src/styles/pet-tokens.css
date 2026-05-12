@@ -1315,4 +1315,17 @@
   .cos-overlay {
     animation: none !important;
   }
+
+  /* Phase 7 — blanket override matching the prototype's tokens.css.
+     Catches inline `animation:` styles on the new moment / sheet
+     modals (HatchMoment, GrantMoment, SkinRevealMoment,
+     CosmeticDetailSheet, etc.). Keyframes still resolve to their
+     end state — just instantaneously. */
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
 }

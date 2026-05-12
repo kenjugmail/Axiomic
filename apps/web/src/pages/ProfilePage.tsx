@@ -11,7 +11,7 @@ import type {
   ReputationByDomain,
 } from "@axiomic/types";
 import { AchievementsGallery } from "../components/AchievementsGallery";
-import { CosmeticsGallery } from "../components/profile/CosmeticsGallery";
+import { ProfilePetGallery } from "../components/profile/ProfilePetGallery";
 import { MasteryPortfolio } from "../components/profile/MasteryPortfolio";
 import { ActivityHeatmap } from "../components/ActivityHeatmap";
 import { FollowButton } from "../components/FollowButton";
@@ -358,13 +358,11 @@ export function ProfilePage() {
           </section>
         )}
 
-        {/* S98 — public cosmetic gallery. The component fetches its
-            own data and renders nothing on error so a brand-new user
-            page doesn't block on it. */}
-        <section>
-          <h2 className="text-lg font-semibold mb-3">Cosmetics</h2>
-          <CosmeticsGallery username={username} />
-        </section>
+        {/* Phase 4 — ProfilePetGallery combines the prototype's
+            "Where {name}'s pet appears" size preview + slot-grouped
+            cosmetics gallery with obtain hints on unowned tiles.
+            Replaces the S98 CosmeticsGallery; same backing endpoints. */}
+        <ProfilePetGallery username={username} />
 
         {isOwnProfile && (
           <>

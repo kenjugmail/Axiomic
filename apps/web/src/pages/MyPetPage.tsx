@@ -1,57 +1,52 @@
-// S86 — "My pet" — pet preview at the top, inventory grid below.
-// Click a cosmetic to equip; another click unequips. Rename input
-// is inline with the pet preview.
+// S86 — "My pet". Phase 1 of the prototype migration:
+// hero matches the design with chips, action buttons, and modal-driven
+// Rename + Switch + Preview level-up. Skins + inventory sections from
+// Phase L–N are preserved below the hero.
 
 import { useEffect, useState } from "react";
 import { useLiveEvents } from "../hooks/useLiveEvents";
 import { Link } from "react-router-dom";
-import { Pencil, Egg, Sparkles, BarChart3 } from "lucide-react";
-import type { CosmeticSlot, MyPetResponse, PetInventoryItem, PetSkinDef, SkinShopResponse } from "@axiomic/types";
+import { Egg, Sparkles } from "lucide-react";
+import type { MyPetResponse, PetInventoryItem, PetSkinDef, SkinShopResponse } from "@axiomic/types";
 import { api, ApiError } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
-import { useThemeStore } from "../stores/theme";
 import { Skeleton } from "../components/ui";
 import { PetAvatar } from "../components/pet/PetAvatar";
 import { PetSilhouetteSVG } from "../components/pet/PetSilhouetteSVG";
-import { PetSwapStrip } from "../components/pet/PetSwapStrip";
 import { EvolutionChain } from "../components/pet/EvolutionChain";
-import { CosmeticChip } from "../components/pet/CosmeticChip";
 import { SkinTile } from "../components/pet/SkinTile";
+import { PetActionsRow, usePetAction } from "../components/pet/PetActionsRow";
+import { PetWhereCard } from "../components/pet/PetWhereCard";
+import { RenameMomentModal } from "../components/pet/RenameMomentModal";
+import { SwitchPetModal } from "../components/pet/SwitchPetModal";
 import { toast } from "../stores/toast";
+import { petMoments } from "../stores/petMoments";
 
 export function MyPetPage() {
   const { user } = useAuthStore();
-  const rhythmicGrid = useThemeStore((s) => s.rhythmicGrid);
   const [data, setData] = useState<MyPetResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState(false);
-  const [name, setName] = useState("");
-  // Phase L — skin shop list (everything available, owned + unowned).
-  // The catalog read is public so we don't gate it on auth, and the
-  // skin shop response includes owned/affordable flags computed
-  // server-side.
   const [skinShop, setSkinShop] = useState<SkinShopResponse | null>(null);
   // Phase M — one-shot hatch-burst flag, toggled by the WebSocket
   // pet_hatched notification. The CSS keyframe runs for 800ms;
   // we clear the flag at 900ms so a second hatch can fire it again.
   const [hatchBurst, setHatchBurst] = useState(false);
   // Phase N — which pet the skin grid is editing. Defaults to the
-  // active pet; users with 2+ pets can switch via the per-pet tab strip
-  // above the skin grid. Null means "no pet selected yet" (pre-hatch).
+  // active pet; users with 2+ pets can switch via the per-pet tab strip.
   const [skinTargetPetId, setSkinTargetPetId] = useState<string | null>(null);
-  // Per-tab in-flight set, keyed by pet id, to prevent overlapping
-  // mutations from desyncing the optimistic activeSkinSlug state.
   const [skinBusyPetId, setSkinBusyPetId] = useState<string | null>(null);
 
+  // Phase 1 — pet action animation + modal control.
+  const [petAction, triggerAction] = usePetAction();
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [switchOpen, setSwitchOpen] = useState(false);
+
   // Phase M — listen for pet_hatched notifications and pop the burst.
-  // Other notification kinds are ignored at this surface.
   useLiveEvents({
     onEvent: (e) => {
       if (e.kind !== "notification") return;
       if (e.notification.kind !== "pet_hatched") return;
       setHatchBurst(true);
-      // Reload to surface the new pet (when a SECOND pet hatches the
-      // server emits this; the active-pet UI updates).
       void reload();
       window.setTimeout(() => setHatchBurst(false), 900);
     },
@@ -60,7 +55,6 @@ export function MyPetPage() {
   const reload = async () => {
     const r = await api.pet.me();
     setData(r);
-    if (r.pet) setName(r.pet.name);
     try {
       const shop = await api.pet.skinShop();
       setSkinShop(shop);
@@ -73,10 +67,6 @@ export function MyPetPage() {
     if (!user) return;
     api.pet.me().then((r) => {
       setData(r);
-      if (r.pet) setName(r.pet.name);
-      // First load: snap the skin-equip target to the active pet.
-      // Subsequent reloads keep whatever the user picked, unless
-      // the previously-selected pet was deleted.
       setSkinTargetPetId((prev) => {
         if (prev && r.pets.some((p) => p.id === prev)) return prev;
         return r.pet?.id ?? null;
@@ -87,26 +77,7 @@ export function MyPetPage() {
     });
   }, [user]);
 
-  const toggleEquip = async (item: PetInventoryItem) => {
-    try {
-      if (item.equipped) {
-        await api.pet.unequip(item.slug);
-      } else {
-        await api.pet.equip(item.slug);
-      }
-      reload();
-    } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "Failed");
-    }
-  };
-
-  // Phase L — skin equip/buy. Owned + not equipped → equip. Owned +
-  // equipped → unequip (reset to default). Not owned + affordable
-  // → buy (with optimistic balance). Not owned + not affordable
-  // → tooltip-only; the tile shows "locked".
-  // Phase N — equip targets `skinTargetPetId` so users with multiple
-  // pets can dress each one independently. We disable while a per-pet
-  // mutation is in flight so back-to-back clicks don't desync.
+  // Phase L — skin equip/buy.
   const handleSkinClick = async (skin: PetSkinDef) => {
     if (!data?.pet || !skinTargetPetId) return;
     const targetPet = data.pets.find((p) => p.id === skinTargetPetId);
@@ -117,7 +88,7 @@ export function MyPetPage() {
     setSkinBusyPetId(skinTargetPetId);
     try {
       if (isEquippedOnTarget) {
-        if (skin.slug === "default") return; // can't unequip default
+        if (skin.slug === "default") return;
         await api.pet.skinUnequip(skinTargetPetId);
         await reload();
         return;
@@ -127,7 +98,6 @@ export function MyPetPage() {
         await reload();
         return;
       }
-      // Not owned. Find in shop for affordability check.
       const shopItem = skinShop?.items.find((i) => i.slug === skin.slug);
       if (!shopItem) {
         toast.error("This skin is not for sale");
@@ -140,6 +110,23 @@ export function MyPetPage() {
       await api.pet.buySkin(skin.slug);
       await api.pet.skinEquip(skin.slug, skinTargetPetId);
       await reload();
+      // First non-default equip → reveal moment. The store animates
+      // default → just-equipped for visual closure.
+      if (skin.slug !== "default" && data.pet) {
+        const equippedNow = buildEquippedFromInventory(data.inventory);
+        petMoments.show({
+          kind: "skin-reveal",
+          pet: {
+            species: targetPet.species,
+            level: targetPet.level,
+            maxLevel: data.pet.maxLevel,
+            name: targetPet.name || targetPet.speciesLabel,
+            speciesLabel: targetPet.speciesLabel,
+          },
+          equipped: equippedNow,
+          skin,
+        });
+      }
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Failed");
     } finally {
@@ -147,11 +134,23 @@ export function MyPetPage() {
     }
   };
 
-  const saveName = async () => {
-    if (!name.trim()) return;
+  const commitRename = async (name: string) => {
     try {
-      await api.pet.rename(name.trim());
-      setEditingName(false);
+      await api.pet.rename(name);
+      setRenameOpen(false);
+      toast.success(`Renamed to ${name}.`);
+      reload();
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Failed");
+    }
+  };
+
+  const commitSwitch = async (petId: string) => {
+    try {
+      await api.pet.activate(petId);
+      setSwitchOpen(false);
+      const newActive = data?.pets.find((p) => p.id === petId);
+      if (newActive) toast.success(`Switched to your ${newActive.name || newActive.speciesLabel}.`);
       reload();
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Failed");
@@ -184,27 +183,12 @@ export function MyPetPage() {
     );
   }
 
-  // Group inventory by slot for the rendering grid.
-  const grouped: Record<CosmeticSlot, PetInventoryItem[]> = {
-    head: [],
-    eyes: [],
-    accessory: [],
-  };
-  for (const item of data.inventory) {
-    grouped[item.slot]?.push(item);
-  }
   const equippedItems = data.inventory.filter((i) => i.equipped);
-  // Phase L — PetAvatar takes a slot-keyed object. Build it from the
-  // equipped subset. Carries `rarity` through so the SVG-fallback
-  // disc gets the right tint when emoji is null.
   const equippedObj = {
     head: equippedItems.find((i) => i.slot === "head") ?? null,
     eyes: equippedItems.find((i) => i.slot === "eyes") ?? null,
     acc: equippedItems.find((i) => i.slot === "accessory") ?? null,
   };
-  // Phase L — pick the "highest equipped rarity" for the hero ring.
-  // Empty / common-only ring renders as a subtle line; epic/legendary
-  // make the avatar pop on ProfilePage / MyPetPage.
   const RARITY_ORDER = ["common", "rare", "epic", "legendary"] as const;
   const highestEquippedRarity = equippedItems.reduce<typeof RARITY_ORDER[number] | null>(
     (acc, i) => {
@@ -215,149 +199,198 @@ export function MyPetPage() {
     null,
   );
 
+  // Phase 1 — XP progress bar. Compute progress within the current level
+  // band (prev → next threshold) rather than absolute totalXp / nextLevelXp,
+  // which gives a misleading pct on higher levels.
+  const pet = data.pet;
+  const atMaxLevel = pet ? pet.level >= pet.maxLevel : false;
+  const prevThreshold = (() => {
+    if (!pet) return 0;
+    const entry = pet.evolutionChain.find((e) => e.level === pet.level);
+    return entry?.threshold ?? 0;
+  })();
+  const nextThreshold = pet?.nextLevelXp ?? null;
+  const xpInBand = Math.max(0, data.totalXp - prevThreshold);
+  const xpBandSize = nextThreshold != null ? Math.max(1, nextThreshold - prevThreshold) : 1;
+  const xpPct = nextThreshold != null
+    ? Math.min(100, Math.round((xpInBand / xpBandSize) * 100))
+    : 100;
+  const xpToNext = nextThreshold != null
+    ? Math.max(0, nextThreshold - data.totalXp)
+    : 0;
+
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="font-display text-2xl font-semibold tracking-tight mb-1">My pet</h1>
-      <p className="text-sm text-muted-foreground mb-6">
-        Hatched at {data.hatchThresholdXp} XP. Earn more XP by completing class tasks
-        and platform engagement (lessons, quizzes, code questions).
-      </p>
-
-      {/* S104 — multi-pet strip. Renders above the hero so the
-          user sees their whole roster + the next-hatch affordance
-          at a glance. Hides itself pre-hatch. */}
-      {data.pet && (
-        <PetSwapStrip
-          pets={data.pets}
-          totalXp={data.totalXp}
-          petCap={data.petCap}
-          nextHatchXp={data.nextHatchXp}
-          onChanged={() => reload()}
-        />
-      )}
-
-      {/* Pet preview / hatching prompt — Phase M adopts the pet-hero-split
-          layout from the design (1.1fr / 1fr two-column at desktop, collapses
-          to single column on mobile via pet-tokens.css). */}
-      {data.pet ? (
-        <div className="pet-hero-split mb-8">
-          <div style={{ display: "flex", justifyContent: "center" }}>
-            <PetAvatar
-              species={data.pet.species}
-              level={data.pet.level}
-              equipped={equippedObj}
-              skin={data.activeSkin?.fx ?? null}
-              size={128}
-              hero
-              ring={highestEquippedRarity || false}
-              aboutToEvolve={
-                data.pet.nextLevelXp != null &&
-                data.totalXp >= 0.85 * data.pet.nextLevelXp
-              }
-              hatchBurst={hatchBurst}
-              ariaLabel={`${data.pet.name || data.pet.speciesLabel}, level ${data.pet.level}`}
-            />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-              {data.pet.speciesLabel}
-            </div>
-            {editingName ? (
-              <div className="flex items-center gap-2">
-                <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="text-lg font-semibold px-2 py-1 rounded-md border border-border bg-background"
-                />
-                <button
-                  type="button"
-                  onClick={saveName}
-                  className="pet-btn primary"
-                >
-                  Save
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setName(data.pet?.name ?? "");
-                    setEditingName(false);
-                  }}
-                  className="pet-btn"
-                >
-                  Cancel
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-2xl font-semibold">{data.pet.name}</h2>
-                <button
-                  type="button"
-                  onClick={() => setEditingName(true)}
-                  className="text-muted-foreground hover:text-foreground p-1"
-                  aria-label="Rename"
-                >
-                  <Pencil className="w-3.5 h-3.5" />
-                </button>
-                {/* Phase M — skin-pill shows the active skin's name next to the
-                    pet name. Adopts the design's .skin-pill styling. */}
-                {data.activeSkin && data.activeSkin.slug !== "default" && (
-                  <span className="skin-pill">{data.activeSkin.name}</span>
-                )}
-              </div>
-            )}
-            <div className="text-xs text-muted-foreground mt-1">
-              Level {data.pet.level} of {data.pet.maxLevel} · {data.totalXp} XP earned ·
-              hatched {formatDate(data.pet.hatchedAt)}
-            </div>
-            {/* S90 — XP-to-next-level bar. Hidden at max level. */}
-            {data.pet.nextLevelXp != null && (
-              <div className="mt-2">
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-                  {Math.max(0, data.pet.nextLevelXp - data.totalXp)} XP to level {data.pet.level + 1}
-                </div>
-                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary"
-                    style={{
-                      width: `${Math.min(100, Math.round((data.totalXp / data.pet.nextLevelXp) * 100))}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-            {/* S89 — link to the XP shop. Lives next to the pet
-                preview so spending XP is one click away from
-                seeing the pet you're dressing up.
-                S94 — also link to /me/progress for the dashboard. */}
-            <div className="mt-2 flex items-center gap-3 flex-wrap">
-              <Link
-                to="/shop"
-                className="text-xs text-primary hover:underline inline-flex items-center gap-1"
-              >
-                <Sparkles className="w-3 h-3" />
-                Browse shop
-              </Link>
-              <Link
-                to="/me/progress"
-                className="text-xs text-primary hover:underline inline-flex items-center gap-1"
-              >
-                <BarChart3 className="w-3 h-3" />
-                My progress
-              </Link>
-              <Link
-                to="/explore/pets"
-                className="text-xs text-primary hover:underline inline-flex items-center gap-1"
-              >
-                See others' pets
-              </Link>
-            </div>
-          </div>
+    <div className="max-w-5xl mx-auto px-4 py-8">
+      {/* Header — crumb + title + sub (matches the prototype's main-hd pattern). */}
+      <div className="mb-6">
+        <div
+          className="text-[11px] font-semibold tracking-widest uppercase mb-1"
+          style={{ color: "var(--ink-3)" }}
+        >
+          My Pet
         </div>
+        <h1 className="font-display text-3xl font-semibold tracking-tight">My Pet</h1>
+        <p
+          className="mt-2 text-sm max-w-xl"
+          style={{ color: "var(--ink-3)" }}
+        >
+          Identity, evolution progress, and the equip surface for your active pet.
+        </p>
+      </div>
+
+      {/* Hero card */}
+      {pet ? (
+        <section
+          className="rounded-2xl border mb-8 overflow-hidden"
+          style={{ borderColor: "var(--line)", background: "var(--bg-elev)" }}
+        >
+          <div className="flex flex-col md:flex-row gap-8 p-8 items-center">
+            <div className="flex-shrink-0 flex justify-center">
+              <PetAvatar
+                species={pet.species}
+                level={pet.level}
+                equipped={equippedObj}
+                skin={data.activeSkin?.fx ?? null}
+                size={180}
+                hero
+                ring={highestEquippedRarity || false}
+                action={petAction}
+                aboutToEvolve={
+                  pet.nextLevelXp != null &&
+                  data.totalXp >= 0.85 * pet.nextLevelXp
+                }
+                hatchBurst={hatchBurst}
+                ariaLabel={`${pet.name || pet.speciesLabel}, level ${pet.level}`}
+              />
+            </div>
+            <div className="flex-1 min-w-0 flex flex-col gap-4">
+              <div>
+                <div
+                  className="text-[11px] font-semibold tracking-widest uppercase"
+                  style={{ color: "var(--ink-4)" }}
+                >
+                  Active pet
+                </div>
+                <h2
+                  className="font-display text-3xl font-semibold mt-1"
+                  style={{ letterSpacing: "-0.015em" }}
+                >
+                  {pet.name || pet.speciesLabel}
+                </h2>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <Chip>{pet.speciesLabel}</Chip>
+                  <Chip>
+                    <Sparkles className="w-3 h-3" />
+                    Level {pet.level}
+                    {atMaxLevel ? " · Final form" : ""}
+                  </Chip>
+                  <Chip mono>{data.totalXp.toLocaleString()} XP lifetime</Chip>
+                  {data.activeSkin && data.activeSkin.slug !== "default" && (
+                    <span className="skin-pill">{data.activeSkin.name}</span>
+                  )}
+                </div>
+              </div>
+
+              {nextThreshold != null ? (
+                <div>
+                  <div className="flex items-baseline justify-between mb-1.5">
+                    <span
+                      className="text-[12.5px] font-medium"
+                      style={{ color: "var(--ink-3)" }}
+                    >
+                      Progress to level {pet.level + 1}
+                    </span>
+                    <span
+                      className="text-[12.5px] font-mono tabular-nums"
+                      style={{ color: "var(--ink-3)" }}
+                    >
+                      {xpInBand.toLocaleString()} / {xpBandSize.toLocaleString()} XP
+                    </span>
+                  </div>
+                  <div
+                    className="h-1.5 rounded-full overflow-hidden border"
+                    style={{
+                      background: "var(--bg-sunk)",
+                      borderColor: "var(--line)",
+                    }}
+                  >
+                    <div
+                      className="h-full rounded-full transition-[width] duration-500"
+                      style={{
+                        width: `${xpPct}%`,
+                        background: "var(--accent)",
+                      }}
+                    />
+                  </div>
+                  <div
+                    className="text-[11.5px] mt-1.5"
+                    style={{ color: "var(--ink-4)" }}
+                  >
+                    {xpToNext.toLocaleString()} XP until the next evolution.
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <div
+                    className="text-[12.5px] font-medium"
+                    style={{ color: "var(--ink-3)" }}
+                  >
+                    Final evolution reached
+                  </div>
+                  <div
+                    className="text-[11.5px] mt-1"
+                    style={{ color: "var(--ink-4)" }}
+                  >
+                    Your pet is at its final form. Lifetime XP keeps climbing.
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-2 items-center">
+                <button
+                  type="button"
+                  className="pet-btn"
+                  onClick={() =>
+                    petMoments.show({
+                      kind: "level-up",
+                      pet: {
+                        species: pet.species,
+                        level: pet.level,
+                        maxLevel: pet.maxLevel,
+                        name: pet.name || pet.speciesLabel,
+                        speciesLabel: pet.speciesLabel,
+                      },
+                    })
+                  }
+                  disabled={atMaxLevel}
+                  title={atMaxLevel ? "At final form" : "Preview the next evolution"}
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Preview level-up
+                </button>
+                <PetActionsRow onAction={triggerAction} disabled={petAction !== null} />
+                <button
+                  type="button"
+                  className="pet-btn ghost"
+                  onClick={() => setRenameOpen(true)}
+                >
+                  Rename pet
+                </button>
+                <button
+                  type="button"
+                  className="pet-btn ghost"
+                  onClick={() => setSwitchOpen(true)}
+                  disabled={data.pets.length < 2}
+                  title={data.pets.length < 2 ? "Hatch another pet to switch" : "Switch which pet is active"}
+                >
+                  Switch active pet
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
       ) : (
-        // Phase X — auto-hatch on signup means data.pet is normally
-        // non-null. This is a defensive fallback if hatching didn't
-        // complete server-side (e.g., transient DB error); a reload
-        // usually fixes it.
+        // Defensive fallback while auto-hatch is still finishing.
         <div className="rounded-lg border border-dashed border-border p-6 mb-8 text-center">
           <Egg className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
           <p className="text-sm font-medium">Hatching your pet…</p>
@@ -367,21 +400,27 @@ export function MyPetPage() {
         </div>
       )}
 
-      {/* S100 — evolution chain preview. Renders only after hatch
-          since pre-hatch users see the egg-to-hatch progress bar
-          above instead. */}
-      {data.pet && (
+      {/* Where your pet appears — sizes preview. */}
+      {pet && (
+        <PetWhereCard
+          species={pet.species}
+          level={pet.level}
+          equipped={equippedObj}
+          skin={data.activeSkin?.fx ?? null}
+          ring={highestEquippedRarity || false}
+        />
+      )}
+
+      {/* Evolution chain (existing Phase S100 surface, kept for the
+          past/future-forms timeline). */}
+      {pet && (
         <div className="mb-8">
-          <EvolutionChain pet={data.pet} totalXp={data.totalXp} />
+          <EvolutionChain pet={pet} totalXp={data.totalXp} />
         </div>
       )}
 
-      {/* Phase L — Skins. Owned-first, then shop. Hidden when there's
-          no pet yet (skin only makes sense once something's hatched).
-          Phase N — tabs above the grid let users with 2+ pets pick
-          which one they're equipping. The "equipped" pip on each tile
-          resolves against the *selected* pet, not the user's active. */}
-      {data.pet && (() => {
+      {/* Phase L/N — Skins section (existing). */}
+      {pet && (() => {
         const targetPet = data.pets.find((p) => p.id === skinTargetPetId)
           ?? data.pets.find((p) => p.isActive)
           ?? data.pets[0];
@@ -486,58 +525,95 @@ export function MyPetPage() {
         );
       })()}
 
-      {/* Inventory by slot */}
-      <h2 className="text-sm font-semibold mb-3">Inventory ({data.inventory.length})</h2>
-      {data.inventory.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          No cosmetics yet. Professors and TAs can grant cosmetics to recognize good work.
-        </p>
-      ) : (
-        <div className="space-y-5">
-          {(["head", "eyes", "accessory"] as CosmeticSlot[]).map((slot) => {
-            const items = grouped[slot];
-            if (items.length === 0) return null;
-            return (
-              <section key={slot}>
-                <h3 className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
-                  {slot}
-                </h3>
-                {/* Phase M — .cos-grid.rhythmic lets legendary tiles span 2x2
-                    and epic span 2x1 (design's masonry behavior).
-                    Phase N — toggleable via Settings → Design preferences. */}
-                <div className={`cos-grid${rhythmicGrid ? " rhythmic" : ""}`}>
-                  {items.map((item) => (
-                    <CosmeticChip
-                      key={item.id}
-                      slug={item.slug}
-                      name={item.name}
-                      slot={item.slot}
-                      rarity={item.rarity}
-                      description={
-                        item.grantedNote
-                          ? `“${item.grantedNote}” — ${item.description}`
-                          : item.description
-                      }
-                      equipped={item.equipped}
-                      onClick={data.pet ? () => toggleEquip(item) : undefined}
-                    />
-                  ))}
-                </div>
-              </section>
-            );
-          })}
+      {/* Inventory summary + link out to the standalone page (Phase 3). */}
+      <section
+        className="rounded-2xl border p-5 flex items-center justify-between gap-4"
+        style={{ borderColor: "var(--line)", background: "var(--bg-elev)" }}
+      >
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold">
+            Inventory ({data.inventory.length})
+          </h2>
+          <p
+            className="text-xs mt-0.5"
+            style={{ color: "var(--ink-3)" }}
+          >
+            Filter by slot, rarity, or how each item was obtained.
+          </p>
         </div>
+        <Link to="/me/inventory" className="pet-btn primary">
+          View inventory
+        </Link>
+      </section>
+
+      {/* Modals */}
+      {pet && (
+        <>
+          <RenameMomentModal
+            open={renameOpen}
+            onClose={() => setRenameOpen(false)}
+            pet={{
+              species: pet.species,
+              level: pet.level,
+              name: pet.name,
+              speciesLabel: pet.speciesLabel,
+            }}
+            onCommit={commitRename}
+          />
+          <SwitchPetModal
+            open={switchOpen}
+            onClose={() => setSwitchOpen(false)}
+            pets={data.pets.map((p) => ({
+              id: p.id,
+              species: p.species,
+              speciesLabel: p.speciesLabel,
+              level: p.level,
+              name: p.name,
+              isActive: p.isActive,
+            }))}
+            activePetId={pet.id}
+            onCommit={commitSwitch}
+          />
+        </>
       )}
     </div>
   );
 }
 
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+// Used by handleSkinClick to build the equipped triple at the moment
+// the user clicks; this is needed because the SkinRevealMoment shows
+// the *currently-equipped cosmetics* over the new skin.
+function buildEquippedFromInventory(inventory: PetInventoryItem[]) {
+  const equippedItems = inventory.filter((i) => i.equipped);
+  return {
+    head: equippedItems.find((i) => i.slot === "head") ?? null,
+    eyes: equippedItems.find((i) => i.slot === "eyes") ?? null,
+    acc: equippedItems.find((i) => i.slot === "accessory") ?? null,
+  };
+}
+
+// Small chip primitive matching the prototype's `.chip` (rounded
+// pill, muted bg, scoped via the pet tokens). Inline so we don't
+// have to add another file for a 10-line component.
+function Chip({
+  children,
+  mono = false,
+}: {
+  children: React.ReactNode;
+  mono?: boolean;
+}): JSX.Element {
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border whitespace-nowrap"
+      style={{
+        background: "var(--bg-sunk)",
+        color: "var(--ink-2)",
+        borderColor: "var(--line)",
+        fontFamily: mono ? "var(--font-mono)" : "var(--font-sans)",
+        lineHeight: 1.4,
+      }}
+    >
+      {children}
+    </span>
+  );
 }

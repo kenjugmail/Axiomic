@@ -18,6 +18,7 @@ import { NAV_PILLARS } from "../marketing/hubs";
 import { AUDIENCES } from "../marketing/audiences";
 import { VerifyEmailBanner } from "./VerifyEmailBanner";
 import { FeedbackWidget } from "./FeedbackWidget";
+import { PetMomentsHost } from "./pet/PetMomentsHost";
 
 type NavItem = { to: string; label: string };
 type NavSection = { heading: string; links: NavItem[] };
@@ -55,6 +56,7 @@ const MORE_NAV_USER_SECTION: NavSection = {
   links: [
     { to: "/feed", label: "Feed" },
     { to: "/me/pet", label: "My pet" },
+    { to: "/me/inventory", label: "Inventory" },
     { to: "/flashcards", label: "Flashcards" },
     { to: "/review/mistakes", label: "Review mistakes" },
     { to: "/me/lab", label: "My lab" },
@@ -474,6 +476,7 @@ export function Layout() {
       </footer>
       <SearchDialog isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
       <ShortcutsDialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+      <PetMomentsHost />
     </div>
   );
 }
