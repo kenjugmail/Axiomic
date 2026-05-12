@@ -87,7 +87,10 @@ export function CosmeticChip({
       <span className="nm" title={name}>
         {name}
       </span>
-      {/* Metadata strip — rarity + (when unowned + obtainable) callout. */}
+      {/* Metadata strip — rarity + (when unowned + obtainable) callout.
+          Phase 9C — slot label removed; the InventoryPage groups tiles
+          by slot via a section header instead, matching the prototype's
+          CosmeticTile (components.jsx:119-166) which never showed slot. */}
       <span
         style={{
           display: "flex",
@@ -103,18 +106,6 @@ export function CosmeticChip({
         {!owned && obtain && obtain !== "default" && (
           <ObtainabilityCallout obtain={obtain} cost={obtainCost ?? null} />
         )}
-      </span>
-      {/* Slot metadata — useful in the equipment grid. Tiny + muted. */}
-      <span
-        style={{
-          fontSize: 9,
-          letterSpacing: ".08em",
-          textTransform: "uppercase",
-          color: "var(--ink-4)",
-          marginTop: 1,
-        }}
-      >
-        {slot}
       </span>
     </button>
   );

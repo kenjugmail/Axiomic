@@ -330,7 +330,7 @@ function ShopRow({
 }) {
   return (
     <div
-      className="grid items-center gap-3 p-3 rounded-xl"
+      className="grid items-start gap-3 p-3 rounded-xl"
       style={{
         border: "1px solid var(--line)",
         background: "var(--bg-elev)",
@@ -384,14 +384,18 @@ function ShopRow({
           </p>
         )}
       </div>
-      <div>
+      {/* Phase 9D — Buy/Owned column lives on its own row centerline so
+          it never visually collides with the wrapping metadata flex. */}
+      <div style={{ alignSelf: "center" }}>
         {item.owned ? (
-          <span
-            className="inline-flex items-center gap-1.5 text-xs"
-            style={{ color: "var(--ink-3)" }}
+          <button
+            type="button"
+            disabled
+            className="pet-btn"
+            style={{ minWidth: 84 }}
           >
             <Check className="w-3 h-3" /> Owned
-          </span>
+          </button>
         ) : item.affordable ? (
           <button
             type="button"
@@ -441,7 +445,7 @@ function ShopSkinRow({
 }) {
   return (
     <div
-      className="grid items-center gap-3 p-3 rounded-xl"
+      className="grid items-start gap-3 p-3 rounded-xl"
       style={{
         border: "1px solid var(--line)",
         background: "var(--bg-elev)",
@@ -486,14 +490,16 @@ function ShopSkinRow({
           </p>
         )}
       </div>
-      <div>
+      <div style={{ alignSelf: "center" }}>
         {item.owned ? (
-          <span
-            className="inline-flex items-center gap-1.5 text-xs"
-            style={{ color: "var(--ink-3)" }}
+          <button
+            type="button"
+            disabled
+            className="pet-btn"
+            style={{ minWidth: 84 }}
           >
             <Check className="w-3 h-3" /> Owned
-          </span>
+          </button>
         ) : item.affordable ? (
           <button
             type="button"

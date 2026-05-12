@@ -277,6 +277,50 @@ export function InventoryPage(): JSX.Element {
           title="Nothing matches"
           description="Try clearing a filter or your search."
         />
+      ) : slot === "all" ? (
+        // Phase 9C — when no slot filter is set, group tiles by slot
+        // with a header. Lifted from the prototype's surfaces.jsx —
+        // CosmeticTile itself never showed the slot label.
+        <>
+          {(["head", "eyes", "accessory"] as const).map((slotKey) => {
+            const items = filtered.filter((c) => c.slot === slotKey);
+            if (items.length === 0) return null;
+            const label =
+              slotKey === "head"
+                ? "Head"
+                : slotKey === "eyes"
+                  ? "Eyes"
+                  : "Accessory";
+            return (
+              <section key={slotKey} className="mb-5">
+                <h3
+                  className="text-[11px] font-semibold tracking-widest uppercase mb-2"
+                  style={{ color: "var(--ink-3)" }}
+                >
+                  {label} · {items.length}
+                </h3>
+                <div className={`cos-grid${rhythmicGrid ? " rhythmic" : ""}`}>
+                  {items.map((item) => (
+                    <CosmeticChip
+                      key={item.id}
+                      slug={item.slug}
+                      name={item.name}
+                      slot={item.slot}
+                      rarity={item.rarity}
+                      description={
+                        item.grantedNote
+                          ? `“${item.grantedNote}” — ${item.description}`
+                          : item.description
+                      }
+                      equipped={item.equipped}
+                      onClick={() => setActiveItem(item)}
+                    />
+                  ))}
+                </div>
+              </section>
+            );
+          })}
+        </>
       ) : (
         <div className={`cos-grid${rhythmicGrid ? " rhythmic" : ""}`}>
           {filtered.map((item) => (
