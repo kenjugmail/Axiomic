@@ -19,6 +19,7 @@
 
 import type { CSSProperties } from "react";
 import { PetSilhouetteSVG, type PetMood } from "./PetSilhouetteSVG";
+import { PetSVG, PROTOTYPE_SPECIES } from "./PetSVG";
 import { CosmeticGlyphSVG, type Rarity } from "./CosmeticGlyphSVG";
 import { useDevSpeciesOverride } from "../dev/DevSpeciesContext";
 
@@ -280,7 +281,16 @@ export function PetAvatar({
         </div>
       )}
       <div className="pet" style={petStyle}>
-        <PetSilhouetteSVG species={species} level={level} mood={mood} />
+        {species && PROTOTYPE_SPECIES.has(species) ? (
+          <PetSVG
+            species={species}
+            level={level}
+            size={petSize}
+            eyeSlug={equipped?.eyes?.slug ?? null}
+          />
+        ) : (
+          <PetSilhouetteSVG species={species} level={level} mood={mood} />
+        )}
       </div>
       {items.map(({ slot, cos }) => (
         <span

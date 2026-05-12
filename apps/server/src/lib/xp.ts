@@ -10,7 +10,7 @@
 import { randomUUID } from "crypto";
 import { sql } from "drizzle-orm";
 import { eq } from "drizzle-orm";
-import { getDb, pets, users, xpGrants, xpPurchases } from "@axiomic/db";
+import { getDb, pets, petInventory, users, xpGrants, xpPurchases } from "@axiomic/db";
 import {
   randomPetSpecies,
   petSpeciesBySlug,
@@ -211,6 +211,27 @@ export function maybeHatchPet(userId: string): { species: string; name: string }
     .set({ activePetId: petId })
     .where(eq(users.id, userId))
     .run();
+
+  // Phase 8 (prototype parity) — grant + auto-equip a starter cosmetic
+  // trio so the new pet doesn't look bare on /me/pet from day one.
+  // Matches the prototype's SEED_OWNERSHIP.equipped. Idempotent —
+  // ON CONFLICT DO NOTHING on (userId, cosmeticSlug).
+  const STARTER_PACK: Array<{ slug: string; equipped: boolean }> = [
+    { slug: "study-cap", equipped: true },
+    { slug: "glasses", equipped: true },
+    { slug: "office-hours-mug", equipped: true },
+  ];
+  for (const item of STARTER_PACK) {
+    db.insert(petInventory)
+      .values({
+        id: randomUUID(),
+        userId,
+        cosmeticSlug: item.slug,
+        equipped: item.equipped,
+      })
+      .onConflictDoNothing()
+      .run();
+  }
 
   // S88 — surface the hatch event in the user's notification bell.
   // System-emitted (actorId=null) since it's an automatic milestone.

@@ -77,6 +77,39 @@ export function nextHatchThreshold(currentPetCount: number): number | null {
 
 // GET /me/pet — pet + inventory + total XP + threshold so the UI
 // can show "X more XP until your pet hatches" before the first
+// Phase 8 (prototype parity) — grant + auto-equip a 3-item starter
+// pack so every user's pet looks "lived-in" from day one. Matches
+// the prototype's SEED_OWNERSHIP.equipped. Idempotent — only fires
+// for users with zero cosmetics owned (so it doesn't second-guess a
+// user who deliberately unequipped everything).
+const STARTER_PACK: Array<{ slug: string; equipped: boolean }> = [
+  { slug: "study-cap", equipped: true },
+  { slug: "glasses", equipped: true },
+  { slug: "office-hours-mug", equipped: true },
+];
+
+function ensureStarterCosmetics(userId: string): void {
+  const db = getDb();
+  const owned = db
+    .select({ slug: petInventory.cosmeticSlug })
+    .from(petInventory)
+    .where(eq(petInventory.userId, userId))
+    .limit(1)
+    .get();
+  if (owned) return;
+  for (const item of STARTER_PACK) {
+    db.insert(petInventory)
+      .values({
+        id: randomUUID(),
+        userId,
+        cosmeticSlug: item.slug,
+        equipped: item.equipped,
+      })
+      .onConflictDoNothing()
+      .run();
+  }
+}
+
 // cross of the threshold.
 // Phase X — when DEV_AUTH_BYPASS is on, the dev user shouldn't have
 // to grind to test cosmetics, skins, or multi-pet UI. On every
@@ -202,6 +235,11 @@ petRouter.get("/", requireAuth, (c) => {
   // forum users, or anyone whose account predates this change).
   // Idempotent: no-op if a pet already exists.
   maybeHatchPet(user.id);
+
+  // Phase 8 (prototype parity) — defensive starter-pack grant for
+  // users created before the starter wiring landed in maybeHatchPet.
+  // No-op once the user owns at least one cosmetic.
+  ensureStarterCosmetics(user.id);
 
   // Phase X — dev convenience: grant the bypass user the full
   // cosmetic + skin catalog, 3 pets, and one equipped item per slot.
