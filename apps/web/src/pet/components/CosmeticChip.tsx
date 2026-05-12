@@ -45,7 +45,10 @@ interface CosmeticChipProps {
 export function CosmeticChip({
   slug,
   name,
-  slot,
+  // Phase 9C — slot is kept in the props (callers still pass it)
+  // for forward-compat but no longer rendered: the InventoryPage
+  // groups by slot via section headers instead.
+  slot: _slot,
   rarity,
   description,
   equipped,

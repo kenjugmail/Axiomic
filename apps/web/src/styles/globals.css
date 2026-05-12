@@ -7,8 +7,12 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Phase M — Pet design tokens + chrome (scoped to pet UI selectors). */
-@import "./pet-tokens.css";
+/* Phase 9 — pet-tokens.css used to be @import'd here, but PostCSS
+   silently drops @imports that appear after a non-@import rule
+   (the @tailwind directives above expand to rules). That caused
+   the entire pet stylesheet to disappear from the built bundle.
+   Fix: load it as a side-effect JS import from main.tsx instead,
+   so Vite processes it standalone outside Tailwind's pipeline. */
 
 @layer base {
   :root {

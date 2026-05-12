@@ -133,4 +133,55 @@ describe("PetAvatar — Phase M", () => {
     );
     expect(root.querySelector(".pet-stage")!.className).toContain("about-to-evolve");
   });
+
+  // ─── Phase 9 fixes ──────────────────────────────────────────
+
+  test("Phase 9B — Lv badge only at hero or px >= 80", () => {
+    const px56 = render(<PetAvatar species="fox" level={2} size={56} />);
+    expect(px56.textContent).not.toContain("Lv2");
+
+    const px80 = render(<PetAvatar species="fox" level={2} size={80} />);
+    expect(px80.textContent).toContain("Lv2");
+
+    const hero56 = render(<PetAvatar species="fox" level={2} size={56} hero />);
+    expect(hero56.textContent).toContain("Lv2");
+  });
+
+  test("Phase 9A — head cosmetic gets negative-px top via HEAD_OFFSET", () => {
+    // For study-cap on petSize = 0.78 * 200 = 156, baseSz = 156*0.66 = 103.
+    // HEAD_OFFSET["study-cap"] = 0.06 → top = round(-103 * 0.06) = -6 px.
+    const root = render(
+      <PetAvatar
+        species="fox"
+        level={1}
+        size={200}
+        equipped={{ head: { slug: "study-cap", rarity: "common" } }}
+      />,
+    );
+    const overlay = root.querySelector(".cos-overlay") as HTMLElement | null;
+    expect(overlay).not.toBeNull();
+    const style = overlay!.getAttribute("style") ?? "";
+    // Top should be a small negative-px number, not -18% (the old bug).
+    expect(style).toMatch(/top\s*:\s*-?\d+px/);
+    expect(style).not.toMatch(/top\s*:\s*-18%/);
+    expect(style).toContain("translateX(-50%)");
+    expect(style).toContain("rotate(-3deg)");
+  });
+
+  test("Phase 9A — accessory cosmetic gets bottom/right offsets via ACC_TUNE", () => {
+    const root = render(
+      <PetAvatar
+        species="fox"
+        level={1}
+        size={200}
+        equipped={{ acc: { slug: "office-hours-mug", rarity: "rare" } }}
+      />,
+    );
+    const overlay = root.querySelector(".cos-overlay") as HTMLElement | null;
+    expect(overlay).not.toBeNull();
+    const style = overlay!.getAttribute("style") ?? "";
+    expect(style).toMatch(/bottom\s*:\s*\d+px/);
+    expect(style).toMatch(/right\s*:\s*-?\d+px/);
+    expect(style).toContain("rotate(2deg)"); // ACC_TUNE["office-hours-mug"].rot
+  });
 });
