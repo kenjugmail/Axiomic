@@ -39,6 +39,7 @@ import { verifyTurnstile } from "../lib/turnstile";
 import { sendEmail } from "../lib/email";
 import { env } from "../lib/envConfig";
 import { logger } from "../lib/logger";
+import { maybeHatchPet } from "../lib/xp";
 
 const auth = new Hono();
 
@@ -199,6 +200,11 @@ auth.post("/signup", zValidator("json", signupSchema), async (c) => {
     // flow reset this column to null manually after signup.
     emailVerifiedAt: env.NODE_ENV === "test" ? new Date().toISOString() : null,
   }).run();
+
+  // Phase X — auto-hatch the user's first pet at signup so /me/pet,
+  // forum bylines, and leaderboards have a visible avatar immediately.
+  // Idempotent (no-op if a pet already exists for this user).
+  maybeHatchPet(userId);
 
   // Fire-and-forget the verify email. We don't await because the
   // network call to Resend can be slow and the user shouldn't wait

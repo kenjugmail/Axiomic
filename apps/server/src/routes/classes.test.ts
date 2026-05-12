@@ -762,12 +762,16 @@ describe("class competitions (S87)", () => {
 });
 
 describe("/users/:username/pet-display (S87)", () => {
-  test("returns null pet for users without one", async () => {
+  test("returns a pet for fresh signups (auto-hatch on signup)", async () => {
+    // Phase X — every signup auto-hatches the user's first pet, so
+    // pet-display now returns a populated `pet` object for any
+    // brand-new user without further activity.
     const u = await signup("nopet1");
     const res = await req(`/users/${u.username}/pet-display`);
     expect(res.status).toBe(200);
-    const data = (await res.json()) as { pet: unknown };
-    expect(data.pet).toBeNull();
+    const data = (await res.json()) as { pet: { species: string } | null };
+    expect(data.pet).not.toBeNull();
+    expect(data.pet?.species).toBeTruthy();
   });
 
   test("returns species + equipped cosmetics when pet + equip exist", async () => {

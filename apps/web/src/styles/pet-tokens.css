@@ -39,7 +39,11 @@
     .obtain,
     .skin-pill,
     .detail-art,
-    .pet-emotes
+    .pet-emotes,
+    .pet-shop,
+    .pet-btn,
+    .pet-card,
+    .pet-balance
   ) {
     /* Type */
     --font-display: "Newsreader", "Source Serif 4", Georgia, serif;
@@ -106,7 +110,11 @@
     .obtain,
     .skin-pill,
     .detail-art,
-    .pet-emotes
+    .pet-emotes,
+    .pet-shop,
+    .pet-btn,
+    .pet-card,
+    .pet-balance
   ) {
     --bg: #161310;
     --bg-elev: #1d1a15;
@@ -139,7 +147,11 @@
     .obtain,
     .skin-pill,
     .detail-art,
-    .pet-emotes
+    .pet-emotes,
+    .pet-shop,
+    .pet-btn,
+    .pet-card,
+    .pet-balance
   ) {
     --font-display: "Geist Variable", "Geist", ui-sans-serif, system-ui, sans-serif;
     --font-sans: "Geist Variable", "Geist", ui-sans-serif, system-ui, sans-serif;
@@ -171,7 +183,11 @@
     .obtain,
     .skin-pill,
     .detail-art,
-    .pet-emotes
+    .pet-emotes,
+    .pet-shop,
+    .pet-btn,
+    .pet-card,
+    .pet-balance
   ) {
     --bg: #0a0a0b;
     --bg-elev: #131316;
@@ -201,7 +217,11 @@
     .obtain,
     .skin-pill,
     .detail-art,
-    .pet-emotes
+    .pet-emotes,
+    .pet-shop,
+    .pet-btn,
+    .pet-card,
+    .pet-balance
   ) {
     --font-display: "Geist Variable", "Geist", ui-sans-serif, sans-serif;
     --font-sans: "Geist Variable", "Geist", ui-sans-serif, sans-serif;
@@ -232,7 +252,11 @@
     .obtain,
     .skin-pill,
     .detail-art,
-    .pet-emotes
+    .pet-emotes,
+    .pet-shop,
+    .pet-btn,
+    .pet-card,
+    .pet-balance
   ) {
     --bg: #0a0a0a;
     --bg-elev: #141414;
@@ -261,7 +285,11 @@
     .obtain,
     .skin-pill,
     .detail-art,
-    .pet-emotes
+    .pet-emotes,
+    .pet-shop,
+    .pet-btn,
+    .pet-card,
+    .pet-balance
   ) {
     --font-display: "Newsreader", Georgia, serif;
     --font-sans: "Newsreader", Georgia, serif;
@@ -295,7 +323,11 @@
     .obtain,
     .skin-pill,
     .detail-art,
-    .pet-emotes
+    .pet-emotes,
+    .pet-shop,
+    .pet-btn,
+    .pet-card,
+    .pet-balance
   ) {
     --bg: #14110d;
     --bg-elev: #1b1813;
@@ -327,7 +359,11 @@
     .obtain,
     .skin-pill,
     .detail-art,
-    .pet-emotes
+    .pet-emotes,
+    .pet-shop,
+    .pet-btn,
+    .pet-card,
+    .pet-balance
   ) {
     --font-display: "Geist Mono Variable", "Geist Mono", ui-monospace, monospace;
     --font-sans: "Geist Variable", "Geist", ui-sans-serif, sans-serif;
@@ -365,7 +401,11 @@
     .obtain,
     .skin-pill,
     .detail-art,
-    .pet-emotes
+    .pet-emotes,
+    .pet-shop,
+    .pet-btn,
+    .pet-card,
+    .pet-balance
   ) {
     --bg: #f5f6f7;
     --bg-elev: #ffffff;
@@ -1178,6 +1218,85 @@
 .detail-art.legendary { background: radial-gradient(circle at 50% 35%, color-mix(in oklab, var(--r-legendary) 22%, var(--bg-elev)), var(--bg-elev)); border-color: color-mix(in oklab, var(--r-legendary) 40%, var(--line)); }
 .detail-art.epic      { background: radial-gradient(circle at 50% 35%, color-mix(in oklab, var(--r-epic) 20%, var(--bg-elev)), var(--bg-elev)); border-color: color-mix(in oklab, var(--r-epic) 30%, var(--line)); }
 .detail-art.rare      { background: radial-gradient(circle at 50% 35%, color-mix(in oklab, var(--r-rare) 18%, var(--bg-elev)), var(--bg-elev)); border-color: color-mix(in oklab, var(--r-rare) 30%, var(--line)); }
+
+/* ============================================================
+ * Phase X — pet-scoped button + card + balance primitives.
+ * Named `.pet-*` so they don't collide with global Axiomic UI;
+ * they pick up the same scoped tokens as .cos-tile / .skin-tile
+ * because the selector list at the top of @layer base now
+ * includes .pet-shop / .pet-btn / .pet-card / .pet-balance.
+ * ============================================================ */
+
+.pet-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font: 500 12.5px/1 var(--font-sans);
+  background: var(--bg-elev);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--pet-radius);
+  cursor: pointer;
+  transition: border-color .12s, transform .1s, background .12s;
+}
+.pet-btn:hover:not(:disabled) {
+  border-color: var(--line-strong);
+  transform: translateY(-1px);
+}
+.pet-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.pet-btn.primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+.pet-btn.primary:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--accent) 92%, black);
+  border-color: color-mix(in oklab, var(--accent) 92%, black);
+}
+.pet-btn.ghost {
+  background: transparent;
+}
+
+.pet-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--pet-radius-lg);
+  padding: var(--s-5);
+}
+
+.pet-balance {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  background: linear-gradient(180deg,
+    color-mix(in oklab, var(--r-legendary) 8%, var(--bg-elev)),
+    var(--bg-elev));
+  border: 1px solid color-mix(in oklab, var(--r-legendary) 28%, var(--line));
+  border-radius: var(--pet-radius);
+}
+.pet-balance .label {
+  font-size: 11px;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+.pet-balance .amount {
+  font: 600 24px/1 var(--font-display);
+  color: var(--ink);
+}
+.pet-balance .note {
+  font-size: 11px;
+  color: var(--ink-4);
+  margin-left: auto;
+  max-width: 14rem;
+  text-align: right;
+}
 
 /* ============================================================
  * Reduced motion — disable all pet animations.
