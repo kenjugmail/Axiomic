@@ -629,6 +629,26 @@ describe("Mastery: lesson analytics", () => {
     viewer = await signup("an");
     const path = await getPath("ml-engineer");
     nodeId = path.nodes[0].id;
+    // Earlier mastery tests in this file edit lesson drafts on the
+    // first node; the resulting draft can drop slideCount to 1,
+    // which makes the route filter out slideIdx=1 events. Pin a
+    // 2-slide lesson on the node so the slideIdx=1 storage path
+    // (and the "views across users" rollup test below) stay valid
+    // regardless of test order.
+    const { getDb, masteryNodes } = await import("@axiomic/db");
+    const { eq } = await import("drizzle-orm");
+    getDb()
+      .update(masteryNodes)
+      .set({
+        lessonData: JSON.stringify({
+          slides: [
+            { kind: "text", title: "Slide 0", body: "Fixture slide zero." },
+            { kind: "text", title: "Slide 1", body: "Fixture slide one." },
+          ],
+        }),
+      })
+      .where(eq(masteryNodes.id, nodeId))
+      .run();
   });
 
   test("POST slide-event requires auth", async () => {
@@ -656,9 +676,12 @@ describe("Mastery: lesson analytics", () => {
 
   test("POST slide-event is idempotent per (user,slide,kind)", async () => {
     // Re-firing the same event doesn't double-count thanks to the
-    // unique index.
+    // unique index. We verify at the storage layer rather than via
+    // the analytics rollup, because /lesson-analytics aggregates
+    // across users and the persistent test DB accumulates rows
+    // from prior runs.
     for (let i = 0; i < 3; i++) {
-      await req(`/mastery/nodes/${nodeId}/slide-event`, {
+      const res = await req(`/mastery/nodes/${nodeId}/slide-event`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -666,10 +689,28 @@ describe("Mastery: lesson analytics", () => {
         },
         body: JSON.stringify({ slideIdx: 1, kind: "viewed" }),
       });
+      expect(res.status).toBe(200);
     }
-    const res = await req(`/mastery/nodes/${nodeId}/lesson-analytics`);
-    const data = (await res.json()) as any;
-    expect(data.slides[1].views).toBe(1);
+    const { getDb, lessonSlideEvents, users } = await import("@axiomic/db");
+    const { and, eq } = await import("drizzle-orm");
+    const userRow = getDb()
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.username, viewer.username))
+      .get();
+    const rows = getDb()
+      .select({ id: lessonSlideEvents.id })
+      .from(lessonSlideEvents)
+      .where(
+        and(
+          eq(lessonSlideEvents.nodeId, nodeId),
+          eq(lessonSlideEvents.userId, userRow!.id),
+          eq(lessonSlideEvents.slideIdx, 1),
+          eq(lessonSlideEvents.kind, "viewed"),
+        ),
+      )
+      .all();
+    expect(rows.length).toBe(1);
   });
 
   test("GET analytics aggregates views + correctness across users", async () => {

@@ -17,6 +17,22 @@ import {
   rejectClaimRequest,
 } from "./authorClaim";
 
+// users.orcid has a UNIQUE index. Hardcoded ORCID literals collide
+// across runs against a persistent test DB, so each test mints a
+// unique-per-run ORCID via `freshOrcid()`. Format stays valid
+// (dddd-dddd-dddd-dddX) — the checksum digit isn't validated by
+// the lookup code so we use 'X' freely.
+let orcidCounter = 1000;
+function freshOrcid(): string {
+  const n = (orcidCounter++).toString().padStart(4, "0");
+  // 16-digit number split into 4-digit groups, last as 'X' so the
+  // shape is plausible.
+  const rnd = Math.floor(Math.random() * 1e12)
+    .toString()
+    .padStart(12, "0");
+  return `${n}-${rnd.slice(0, 4)}-${rnd.slice(4, 8)}-${rnd.slice(8, 11)}X`;
+}
+
 function makeUser(orcid?: string): string {
   const id = randomUUID();
   const username = `ac-${Math.random().toString(36).slice(2, 10)}`;
@@ -54,7 +70,7 @@ function makeExternalPaper(
 
 describe("authorClaim (Sprint 72)", () => {
   test("ORCID auto-claim inserts an authorship row", () => {
-    const orcid = "0000-0001-2345-678X";
+    const orcid = freshOrcid();
     const userId = makeUser(orcid);
     const paperId = makeExternalPaper([
       { name: "Other Author" },
@@ -75,7 +91,7 @@ describe("authorClaim (Sprint 72)", () => {
   });
 
   test("ORCID auto-claim is idempotent on rerun", () => {
-    const orcid = "0000-0001-1111-2222";
+    const orcid = freshOrcid();
     const userId = makeUser(orcid);
     makeExternalPaper([{ name: "Me", orcid }]);
     const map = new Map([[orcid, userId]]);
@@ -87,7 +103,7 @@ describe("authorClaim (Sprint 72)", () => {
   });
 
   test("ORCID with https://orcid.org/ prefix is normalized", () => {
-    const orcid = "0000-0002-3333-4444";
+    const orcid = freshOrcid();
     const userId = makeUser(orcid);
     const paperId = makeExternalPaper([
       { name: "Me", orcid: `https://orcid.org/${orcid}` },
@@ -105,21 +121,25 @@ describe("authorClaim (Sprint 72)", () => {
   });
 
   test("ORCID auto-claim does nothing when no ORCID match exists", () => {
-    const userId = makeUser("0000-0003-5555-6666");
-    makeExternalPaper([{ name: "Me", orcid: "0000-0009-9999-0000" }]);
+    const userOrcid = freshOrcid();
+    const paperOrcid = freshOrcid();
+    const userId = makeUser(userOrcid);
+    makeExternalPaper([{ name: "Me", orcid: paperOrcid }]);
     const result = claimAuthorshipsByOrcid(
-      new Map([["0000-0003-5555-6666", userId]]),
+      new Map([[userOrcid, userId]]),
     );
     expect(result.inserted).toBe(0);
   });
 
   test("buildOrcidUserMap collects every ORCID-bearing user", () => {
-    makeUser("0000-0004-1111-1111");
-    makeUser("0000-0004-2222-2222");
+    const orcidA = freshOrcid();
+    const orcidB = freshOrcid();
+    makeUser(orcidA);
+    makeUser(orcidB);
     const map = buildOrcidUserMap();
     expect(map.size).toBeGreaterThanOrEqual(2);
-    expect(map.has("0000-0004-1111-1111")).toBe(true);
-    expect(map.has("0000-0004-2222-2222")).toBe(true);
+    expect(map.has(orcidA)).toBe(true);
+    expect(map.has(orcidB)).toBe(true);
   });
 
   test("approveClaimRequest writes authorship + marks claim approved", () => {

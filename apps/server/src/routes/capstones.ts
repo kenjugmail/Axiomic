@@ -573,8 +573,12 @@ capstonesRouter.get("/c/:artifactSlug", async (c) => {
 // review.
 capstonesRouter.get("/review-queue", async (c) => {
   const db = getDb();
+  // Cap at 200. The queue is a per-program admin tool used to surface
+  // under-reviewed artifacts; reviewers may want a wider lens across a
+  // backlog of completed capstones. The in-memory sort over 3× this
+  // candidate set is still trivial.
   const limit = Math.min(
-    50,
+    200,
     Math.max(1, parseInt(c.req.query("limit") ?? "20", 10) || 20),
   );
 
