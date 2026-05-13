@@ -126,7 +126,10 @@ export function LevelUpMoment({ open, onClose, pet }: Props): JSX.Element | null
               width="28"
               height="20"
               viewBox="0 0 28 20"
-              style={{ animation: "lvl-arrow .35s ease-out", flex: "none" }}
+              style={{
+                animation: reduceMotion ? "none" : "lvl-arrow .35s ease-out",
+                flex: "none",
+              }}
               aria-hidden="true"
             >
               <path

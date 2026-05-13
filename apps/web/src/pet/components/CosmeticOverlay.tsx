@@ -18,6 +18,7 @@
 //   eyes: top = petSize * 0.34 PX, left = 50%, transform translateX(-50%)
 //   acc:  bottom = petSize*(dy/100) PX, right = petSize*(dx/100) PX, rotate(rot)
 
+import { memo } from "react";
 import { CosmeticGlyphSVG } from "./CosmeticGlyphSVG";
 import { SPECIES_HEAD_ANCHOR_Y, SPECIES_ACC_DY_BOOST } from "./PetSVG";
 
@@ -97,7 +98,8 @@ interface CosmeticOverlayProps {
   species?: string;
 }
 
-export function CosmeticOverlay({
+// Phase 13E — memoized; all props are primitives.
+function CosmeticOverlayImpl({
   slug,
   slot,
   rarity,
@@ -169,3 +171,5 @@ export function CosmeticOverlay({
     </div>
   );
 }
+
+export const CosmeticOverlay = memo(CosmeticOverlayImpl);

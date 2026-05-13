@@ -184,6 +184,16 @@ function findEquipped(
   };
 }
 
+// Phase 13F — public cache invalidation. Surfaces that mutate the
+// current user's pet (equip / unequip / rename / skin equip /
+// switch active pet) call this with the user's username so the
+// next byline render fetches fresh data instead of waiting up to
+// 60 s for the TTL to expire.
+export function invalidatePetCacheFor(username: string): void {
+  cache.delete(username);
+  inFlight.delete(username);
+}
+
 // Test hook: clears the module-level cache. Not part of the public
 // API; tests can call it via `__clearPetCache()` import.
 export function __clearPetCache() {

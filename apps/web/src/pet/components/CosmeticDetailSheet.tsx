@@ -7,6 +7,8 @@
 // right-aligned slide is a distinctive part of the prototype's UX.
 
 import { useEffect, useRef } from "react";
+import { useEscapeStack } from "../../hooks/useEscapeStack";
+import { useReducedMotion } from "../hooks/useReducedMotion";
 import { X } from "lucide-react";
 import type { CosmeticSlot, PetInventoryItem } from "@axiomic/types";
 import { PetAvatar, type PetAvatarCosmetic } from "./PetAvatar";
@@ -51,14 +53,17 @@ export function CosmeticDetailSheet({
   // users don't fall through to the page underneath.
   const sheetRef = useRef<HTMLDivElement>(null);
   const equipBtnRef = useRef<HTMLButtonElement>(null);
+  // Phase 13D — suppress inline scrim + sheet-in animations under
+  // prefers-reduced-motion.
+  const reduceMotion = useReducedMotion();
+
+  // Phase 13C — Escape handled by the shared stack so only the
+  // top-most open overlay closes per key press.
+  useEscapeStack(open, onClose);
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-        return;
-      }
       if (e.key !== "Tab") return;
       const root = sheetRef.current;
       if (!root) return;
@@ -107,7 +112,10 @@ export function CosmeticDetailSheet({
         type="button"
         aria-label="Close"
         className="absolute inset-0"
-        style={{ background: "rgba(0,0,0,.42)", animation: "shade .2s ease-out" }}
+        style={{
+          background: "rgba(0,0,0,.42)",
+          animation: reduceMotion ? "none" : "shade .2s ease-out",
+        }}
         onClick={onClose}
       />
       <aside
@@ -117,7 +125,7 @@ export function CosmeticDetailSheet({
           width: "min(440px, 100%)",
           background: "var(--bg)",
           borderLeft: "1px solid var(--line)",
-          animation: "sheet-in .28s cubic-bezier(.2,.9,.3,1)",
+          animation: reduceMotion ? "none" : "sheet-in .28s cubic-bezier(.2,.9,.3,1)",
           boxShadow: "-16px 0 40px rgba(0,0,0,.18)",
         }}
       >

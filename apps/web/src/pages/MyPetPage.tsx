@@ -23,6 +23,7 @@ import {
   RenameMomentModal,
   SwitchPetModal,
   CosmeticChip,
+  invalidatePetCacheFor,
   petMoments,
 } from "../pet";
 import { toast } from "../stores/toast";
@@ -69,6 +70,15 @@ export function MyPetPage() {
     }
   };
 
+  // Phase 13F — after a user-initiated mutation we both reload
+  // local state AND invalidate the PetByUsername module-level
+  // cache so the user's own forum byline / profile chip reflects
+  // the change on next render (instead of waiting up to 60 s).
+  const reloadAfterMutation = async () => {
+    await reload();
+    if (user) invalidatePetCacheFor(user.username);
+  };
+
   // Phase 9 — inline cosmetic picker: click a tile to equip; click
   // Phase 11E — single-pet users see the "Hatch another" CTA in
   // the action row; this handler fires the hatch + reload.
@@ -78,7 +88,7 @@ export function MyPetPage() {
     try {
       const r = await api.pet.hatchAnother();
       toast.success(`Hatched a ${r.pet?.species ?? "new pet"}!`);
-      await reload();
+      await reloadAfterMutation();
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Couldn't hatch");
     } finally {
@@ -97,7 +107,7 @@ export function MyPetPage() {
         await api.pet.equip(item.slug);
         toast.success(`Equipped ${item.name}`);
       }
-      await reload();
+      await reloadAfterMutation();
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Couldn't update");
     }
@@ -140,12 +150,12 @@ export function MyPetPage() {
       if (isEquippedOnTarget) {
         if (skin.slug === "default") return;
         await api.pet.skinUnequip(skinTargetPetId);
-        await reload();
+        await reloadAfterMutation();
         return;
       }
       if (owned) {
         await api.pet.skinEquip(skin.slug, skinTargetPetId);
-        await reload();
+        await reloadAfterMutation();
         return;
       }
       const shopItem = skinShop?.items.find((i) => i.slug === skin.slug);
@@ -159,7 +169,7 @@ export function MyPetPage() {
       }
       await api.pet.buySkin(skin.slug);
       await api.pet.skinEquip(skin.slug, skinTargetPetId);
-      await reload();
+      await reloadAfterMutation();
       // First non-default equip → reveal moment. The store animates
       // default → just-equipped for visual closure.
       if (skin.slug !== "default" && data.pet) {
@@ -189,7 +199,7 @@ export function MyPetPage() {
       await api.pet.rename(name);
       setRenameOpen(false);
       toast.success(`Renamed to ${name}.`);
-      reload();
+      reloadAfterMutation();
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Failed");
     }
@@ -201,7 +211,7 @@ export function MyPetPage() {
       setSwitchOpen(false);
       const newActive = data?.pets.find((p) => p.id === petId);
       if (newActive) toast.success(`Switched to your ${newActive.name || newActive.speciesLabel}.`);
-      reload();
+      reloadAfterMutation();
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Failed");
     }

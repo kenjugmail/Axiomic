@@ -35,5 +35,15 @@ describe("PetByUsername — Phase 10B size contract", () => {
     const mod = await import("./PetByUsername");
     expect(mod.PetByUsername).toBeDefined();
     expect(mod.__clearPetCache).toBeDefined();
+    // Phase 13F — public cache invalidation helper.
+    expect(mod.invalidatePetCacheFor).toBeDefined();
+  });
+
+  test("Phase 13F — invalidatePetCacheFor is a per-username clear", async () => {
+    const mod = await import("./PetByUsername");
+    // Smoke-test: helper is callable + idempotent. Cache state is
+    // internal; calling with an unknown name should not throw.
+    expect(() => mod.invalidatePetCacheFor("nobody")).not.toThrow();
+    expect(() => mod.invalidatePetCacheFor("nobody")).not.toThrow();
   });
 });

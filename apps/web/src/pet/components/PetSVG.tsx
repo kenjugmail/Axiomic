@@ -11,7 +11,7 @@
 // Axiomic's descriptive slugs (`glasses`) to the prototype's
 // kind keys (`e-glasses`) so this file stays a verbatim port.
 
-import { createContext, useContext } from "react";
+import { createContext, memo, useContext } from "react";
 
 const stroke = "var(--pet-stroke, var(--ink))";
 
@@ -688,7 +688,8 @@ interface PetSVGProps {
   eyeSlug?: string | null;
 }
 
-export function PetSVG({ species, level = 1, size = 80, eyeSlug = null }: PetSVGProps): JSX.Element {
+// Phase 13E — memoized; all props are primitives.
+function PetSVGImpl({ species, level = 1, size = 80, eyeSlug = null }: PetSVGProps): JSX.Element {
   const Body = species ? SPECIES[species] : null;
   const eyeKind = eyeSlug ? EYE_SLUG_TO_KIND[eyeSlug] ?? null : null;
   return (
@@ -706,3 +707,5 @@ export function PetSVG({ species, level = 1, size = 80, eyeSlug = null }: PetSVG
     </svg>
   );
 }
+
+export const PetSVG = memo(PetSVGImpl);

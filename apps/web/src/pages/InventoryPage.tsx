@@ -11,7 +11,13 @@ import { api, ApiError } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { useThemeStore } from "../stores/theme";
 import { Skeleton } from "../components/ui";
-import { CosmeticChip, SkinTile, FilterChips, CosmeticDetailSheet } from "../pet";
+import {
+  CosmeticChip,
+  SkinTile,
+  FilterChips,
+  CosmeticDetailSheet,
+  invalidatePetCacheFor,
+} from "../pet";
 import { EmptyState } from "../components/ui/EmptyState";
 import { toast } from "../stores/toast";
 
@@ -74,6 +80,9 @@ export function InventoryPage(): JSX.Element {
         await api.pet.equip(item.slug);
       }
       await reload();
+      // Phase 13F — invalidate the byline cache for our own
+      // username so forum / profile chips reflect immediately.
+      if (user) invalidatePetCacheFor(user.username);
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Failed");
     }

@@ -1,6 +1,6 @@
-import { useEffect } from "react";
 import { X } from "lucide-react";
 import { cn } from "../../lib/cn";
+import { useEscapeStack } from "../../hooks/useEscapeStack";
 
 type Size = "sm" | "md" | "lg" | "xl";
 
@@ -41,14 +41,10 @@ export function Modal({
   children,
   footer,
 }: Props) {
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+  // Phase 13C — route through the shared Escape-stack so only the
+  // topmost open overlay closes per key press. Prevents a stacked
+  // sheet + modal combo from both closing on a single Escape.
+  useEscapeStack(open, onClose);
 
   if (!open) return null;
 
