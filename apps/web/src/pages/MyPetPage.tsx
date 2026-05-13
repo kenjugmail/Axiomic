@@ -49,13 +49,29 @@ export function MyPetPage() {
   const [hatchingAnother, setHatchingAnother] = useState(false);
 
   // Phase M — listen for pet_hatched notifications and pop the burst.
+  // Phase 14C — also reload on cosmetic_granted / pet_leveled_up /
+  // skin_granted / competition_won so a grant/level-up in tab B is
+  // reflected immediately in tab A. The PetMomentsHost component
+  // surfaces the celebratory modal independently from notifications,
+  // so reload alone is enough — the modal won't double-fire.
   useLiveEvents({
     onEvent: (e) => {
       if (e.kind !== "notification") return;
-      if (e.notification.kind !== "pet_hatched") return;
-      setHatchBurst(true);
-      void reload();
-      window.setTimeout(() => setHatchBurst(false), 900);
+      const kind = e.notification.kind;
+      if (kind === "pet_hatched") {
+        setHatchBurst(true);
+        void reloadAfterMutation();
+        window.setTimeout(() => setHatchBurst(false), 900);
+        return;
+      }
+      if (
+        kind === "cosmetic_granted" ||
+        kind === "skin_granted" ||
+        kind === "pet_leveled_up" ||
+        kind === "competition_won"
+      ) {
+        void reloadAfterMutation();
+      }
     },
   });
 

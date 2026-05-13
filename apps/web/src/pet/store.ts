@@ -11,6 +11,31 @@
 import { create } from "zustand";
 import type { PetSkinDef } from "@axiomic/types";
 import type { PetAvatarCosmetic } from "./components/PetAvatar";
+import { toast } from "../stores/toast";
+
+// Phase 14B — cap the queued moments so a burst (admin granting
+// 50 cosmetics in a loop, or a long-disconnected reconnect
+// replaying buffered notifications) doesn't make the user dismiss
+// dozens of modals. Oldest queued moments are dropped first and a
+// single overflow toast fires per cap event.
+export const PET_MOMENTS_MAX_QUEUE = 6;
+let overflowToastFiredAt = 0;
+const OVERFLOW_TOAST_COOLDOWN_MS = 5000;
+function fireOverflowToastOnce(): void {
+  const now = Date.now();
+  if (Math.abs(now - overflowToastFiredAt) < OVERFLOW_TOAST_COOLDOWN_MS) return;
+  overflowToastFiredAt = now;
+  toast.info(
+    "A flurry of pet updates",
+    "Showing the most recent — older ones were skipped.",
+  );
+}
+
+// Test-only escape hatch — vitest can reset the cooldown between
+// burst tests so the second one observes a fresh toast.
+export function __resetPetMomentsOverflow(): void {
+  overflowToastFiredAt = 0;
+}
 
 type PetIdentity = {
   species: string;
@@ -78,7 +103,14 @@ export const usePetMomentsStore = create<PetMomentsState>((set, get) => ({
       // a duplicate of A. Same fix for grants (per-slug uniqueness).
       if (isSameMoment(state.current, m)) return;
       if (state.queue.some((q) => isSameMoment(q, m))) return;
-      set({ queue: [...state.queue, m] });
+      // Phase 14B — cap the queue. Drop oldest, fire a one-shot
+      // overflow toast so the user knows something happened.
+      let nextQueue = [...state.queue, m];
+      if (nextQueue.length > PET_MOMENTS_MAX_QUEUE) {
+        nextQueue = nextQueue.slice(nextQueue.length - PET_MOMENTS_MAX_QUEUE);
+        fireOverflowToastOnce();
+      }
+      set({ queue: nextQueue });
     }
   },
   dismiss: () => {

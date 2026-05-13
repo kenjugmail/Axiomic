@@ -9,8 +9,11 @@ import {
   petMoments,
   usePetMomentsStore,
   isSameMoment,
+  PET_MOMENTS_MAX_QUEUE,
+  __resetPetMomentsOverflow,
   type PetMoment,
 } from "./store";
+import { useToastStore } from "../stores/toast";
 
 const pet = {
   species: "fox",
@@ -97,5 +100,54 @@ describe("petMoments store — Phase 12B dedup", () => {
       expect(state.current.skin.slug).toBe("cosmic");
     }
     expect(state.queue.length).toBe(0);
+  });
+});
+
+// Phase 14B — bounded queue.
+describe("petMoments store — Phase 14B queue cap", () => {
+  beforeEach(() => {
+    petMoments.clear();
+    useToastStore.getState().clear();
+    __resetPetMomentsOverflow();
+  });
+
+  test("queue caps at PET_MOMENTS_MAX_QUEUE and drops oldest", () => {
+    // First show sets `current`, so it doesn't count toward the
+    // queue. The next N+1 shows fill + spill the queue.
+    const total = PET_MOMENTS_MAX_QUEUE + 4 + 1; // +1 for current, +4 spilled
+    for (let i = 0; i < total; i++) {
+      petMoments.show(grant(`slug-${i}`));
+    }
+    const state = usePetMomentsStore.getState();
+    expect(state.current).not.toBeNull();
+    expect(state.queue.length).toBeLessThanOrEqual(PET_MOMENTS_MAX_QUEUE);
+    // The current is the very first one shown (slug-0). The
+    // queue tail should hold the *newest* shows (highest indices).
+    if (state.current?.kind === "grant") {
+      expect(state.current.item.slug).toBe("slug-0");
+    }
+    const lastQueued = state.queue[state.queue.length - 1];
+    if (lastQueued?.kind === "grant") {
+      expect(lastQueued.item.slug).toBe(`slug-${total - 1}`);
+    }
+  });
+
+  test("overflow fires an info toast exactly once per burst", () => {
+    // 1 current + cap + 5 overflows.
+    for (let i = 0; i < PET_MOMENTS_MAX_QUEUE + 6; i++) {
+      petMoments.show(grant(`s-${i}`));
+    }
+    const toasts = useToastStore.getState().toasts;
+    // Cooldown guard means only one toast fires in the same tick.
+    expect(toasts.length).toBe(1);
+    expect(toasts[0]?.kind).toBe("info");
+  });
+
+  test("queue under cap doesn't drop or toast", () => {
+    petMoments.show(grant("a"));
+    petMoments.show(grant("b"));
+    petMoments.show(grant("c"));
+    expect(usePetMomentsStore.getState().queue.length).toBe(2);
+    expect(useToastStore.getState().toasts.length).toBe(0);
   });
 });

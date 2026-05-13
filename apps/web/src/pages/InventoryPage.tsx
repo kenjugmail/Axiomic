@@ -10,6 +10,7 @@ import type { CosmeticSlot, MyPetResponse, PetInventoryItem, PetSkinDef } from "
 import { api, ApiError } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { useThemeStore } from "../stores/theme";
+import { useLiveEvents } from "../hooks/useLiveEvents";
 import { Skeleton } from "../components/ui";
 import {
   CosmeticChip,
@@ -71,6 +72,27 @@ export function InventoryPage(): JSX.Element {
       setError(e instanceof Error ? e.message : "Failed to reload");
     }
   };
+
+  // Phase 14C — cross-tab WS sync. A grant or skin-grant from
+  // another tab (or the admin dashboard) should immediately appear
+  // in the user's inventory here. Also handles level-up + comp
+  // wins so the silhouette + new items show up.
+  useLiveEvents({
+    onEvent: (e) => {
+      if (e.kind !== "notification") return;
+      const kind = e.notification.kind;
+      if (
+        kind === "cosmetic_granted" ||
+        kind === "skin_granted" ||
+        kind === "pet_leveled_up" ||
+        kind === "competition_won" ||
+        kind === "pet_hatched"
+      ) {
+        void reload();
+        if (user) invalidatePetCacheFor(user.username);
+      }
+    },
+  });
 
   const toggleEquip = async (item: PetInventoryItem) => {
     try {

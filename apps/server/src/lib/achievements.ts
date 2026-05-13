@@ -32,7 +32,19 @@ export type ActivityKind =
   // S91 — counts as activity for streak bonuses (S87) and gives
   // users a low-friction way to keep their streak alive on quiet
   // days.
-  | "daily_challenge";
+  | "daily_challenge"
+  // Phase 14D — pet-engagement signals. Not used for streaks (don't
+  // count toward daily-active). Surface in the profile heatmap so
+  // grooming the pet shows up alongside study activity.
+  | "pet_equip"
+  | "pet_unequip"
+  | "pet_buy_cosmetic"
+  | "pet_buy_skin"
+  | "pet_skin_equip"
+  | "pet_skin_unequip"
+  | "pet_rename"
+  | "pet_hatch_another"
+  | "pet_activate";
 
 export interface Achievement {
   slug: string;
