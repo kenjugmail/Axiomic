@@ -16,12 +16,14 @@ import { randomUUID } from "crypto";
 import {
   getDb,
   misconceptionCatalog,
+  misconceptionDiagnoses,
   misconceptionSubmissionVotes,
   misconceptionSubmissions,
   users,
   wikiPages,
 } from "@axiomic/db";
 import { requireAuth, getSessionUser } from "../middleware/auth";
+import { requireAdmin } from "../middleware/requireAdmin";
 import type { Env } from "../env";
 
 export const misconceptionsRouter = new Hono<Env>();
@@ -129,6 +131,39 @@ misconceptionsRouter.get(
       myVotes = new Map(voteRows.map((v) => [v.submissionId, v.value]));
     }
 
+    // Phase 16C — live-usage counts. For each (conceptSlug, key) in
+    // the result page, look up how many users currently carry an
+    // active diagnosis with that key. We GROUP BY in a single query
+    // so the cost is bounded by the page size, not row count.
+    const keyPairs = rows.map((r) => ({ c: r.conceptSlug, k: r.key }));
+    const liveCount = new Map<string, number>();
+    if (keyPairs.length > 0) {
+      const allKeys = [...new Set(keyPairs.map((p) => p.k))];
+      const allSlugs = [...new Set(keyPairs.map((p) => p.c))];
+      const liveRows = db
+        .select({
+          conceptSlug: misconceptionDiagnoses.conceptSlug,
+          key: misconceptionDiagnoses.misconceptionKey,
+          n: sql<number>`COUNT(*)`,
+        })
+        .from(misconceptionDiagnoses)
+        .where(
+          and(
+            eq(misconceptionDiagnoses.status, "active"),
+            sql`${misconceptionDiagnoses.misconceptionKey} IN ${allKeys}`,
+            sql`${misconceptionDiagnoses.conceptSlug} IN ${allSlugs}`,
+          ),
+        )
+        .groupBy(
+          misconceptionDiagnoses.conceptSlug,
+          misconceptionDiagnoses.misconceptionKey,
+        )
+        .all();
+      for (const r of liveRows) {
+        liveCount.set(`${r.conceptSlug}::${r.key}`, Number(r.n));
+      }
+    }
+
     return c.json({
       submissions: rows.map((r) => ({
         id: r.id,
@@ -147,6 +182,7 @@ misconceptionsRouter.get(
         catalogId: r.catalogId,
         createdAt: r.createdAt,
         decidedAt: r.decidedAt,
+        liveDiagnosisCount: liveCount.get(`${r.conceptSlug}::${r.key}`) ?? 0,
       })),
       promotionThreshold: PROMOTION_THRESHOLD,
     });
@@ -417,6 +453,133 @@ misconceptionsRouter.post(
       catalogId: promotedCatalogId,
       threshold: PROMOTION_THRESHOLD,
     });
+  },
+);
+
+// Phase 16C — admin moderation surface. Admins can force-merge an
+// "open" submission ahead of the auto-promote threshold (e.g.,
+// urgent fix the community hasn't seen yet) or reject one outright.
+// Both actions record `decidedBy` + `decidedAt` for an audit trail.
+
+const moderateSchema = z.object({
+  action: z.union([z.literal("approve"), z.literal("reject")]),
+});
+
+misconceptionsRouter.get("/moderate/queue", requireAdmin, async (c) => {
+  const db = getDb();
+  // Pending = anything still "open". Order by oldest-first so the
+  // backlog drains FIFO.
+  const rows = db
+    .select({
+      id: misconceptionSubmissions.id,
+      conceptSlug: misconceptionSubmissions.conceptSlug,
+      key: misconceptionSubmissions.key,
+      label: misconceptionSubmissions.label,
+      description: misconceptionSubmissions.description,
+      status: misconceptionSubmissions.status,
+      voteScore: misconceptionSubmissions.voteScore,
+      catalogId: misconceptionSubmissions.catalogId,
+      proposerUsername: users.username,
+      createdAt: misconceptionSubmissions.createdAt,
+      decidedAt: misconceptionSubmissions.decidedAt,
+    })
+    .from(misconceptionSubmissions)
+    .innerJoin(users, eq(misconceptionSubmissions.proposerId, users.id))
+    .where(eq(misconceptionSubmissions.status, "open"))
+    .orderBy(asc(misconceptionSubmissions.createdAt))
+    .all();
+  return c.json({
+    submissions: rows.map((r) => ({
+      id: r.id,
+      conceptSlug: r.conceptSlug,
+      key: r.key,
+      label: r.label,
+      description: r.description,
+      status: r.status,
+      voteScore: r.voteScore,
+      catalogId: r.catalogId,
+      proposerUsername: r.proposerUsername,
+      createdAt: r.createdAt,
+      decidedAt: r.decidedAt,
+    })),
+  });
+});
+
+misconceptionsRouter.post(
+  "/:id/moderate",
+  requireAdmin,
+  zValidator("json", moderateSchema),
+  async (c) => {
+    const admin = c.get("user")!;
+    const id = c.req.param("id");
+    const { action } = c.req.valid("json");
+    const db = getDb();
+
+    const submission = db
+      .select()
+      .from(misconceptionSubmissions)
+      .where(eq(misconceptionSubmissions.id, id))
+      .get();
+    if (!submission) return c.json({ error: "Submission not found" }, 404);
+    if (submission.status !== "open") {
+      return c.json(
+        { error: "Only open submissions can be moderated" },
+        400,
+      );
+    }
+
+    const now = new Date().toISOString();
+    if (action === "reject") {
+      db.update(misconceptionSubmissions)
+        .set({
+          status: "rejected",
+          decidedAt: now,
+          decidedBy: admin.id,
+          updatedAt: now,
+        })
+        .where(eq(misconceptionSubmissions.id, id))
+        .run();
+      return c.json({ status: "rejected", catalogId: null });
+    }
+
+    // action === "approve" — force-merge into the catalog if not
+    // already present, then flip status='merged'.
+    const catalogRow = db
+      .select({ id: misconceptionCatalog.id })
+      .from(misconceptionCatalog)
+      .where(
+        and(
+          eq(misconceptionCatalog.conceptSlug, submission.conceptSlug),
+          eq(misconceptionCatalog.key, submission.key),
+        ),
+      )
+      .get();
+    let catalogId: string;
+    if (catalogRow) {
+      catalogId = catalogRow.id;
+    } else {
+      catalogId = randomUUID();
+      db.insert(misconceptionCatalog).values({
+        id: catalogId,
+        conceptSlug: submission.conceptSlug,
+        key: submission.key,
+        label: submission.label,
+        description: submission.description,
+        probeQuestionsJson: submission.probeQuestionsJson,
+        correctionPromptTemplate: submission.correctionPromptTemplate,
+      }).run();
+    }
+    db.update(misconceptionSubmissions)
+      .set({
+        status: "merged",
+        catalogId,
+        decidedAt: now,
+        decidedBy: admin.id,
+        updatedAt: now,
+      })
+      .where(eq(misconceptionSubmissions.id, id))
+      .run();
+    return c.json({ status: "merged", catalogId });
   },
 );
 

@@ -77,6 +77,7 @@ function safeParseStrArray(json: string): string[] {
 // GET /tracks — published only.
 capstoneTracksRouter.get("/", async (c) => {
   const db = getDb();
+  const session = await getSessionUser(c);
   const rows = db
     .select()
     .from(capstoneTracks)
@@ -105,6 +106,36 @@ capstoneTracksRouter.get("/", async (c) => {
     .where(inArray(capstoneTrackCompletions.trackId, trackIds))
     .all();
 
+  // Phase 16D — per-user progress map keyed by trackId. Counts how
+  // many required capstones in each track this user has completed.
+  // Lets the client group tracks into "In progress" / "Recommended"
+  // / "All" without an extra round-trip.
+  const myCompletedByTrack = new Map<string, number>();
+  if (session) {
+    const myCompletedCapstones = new Set(
+      db
+        .select({ capstoneId: capstoneEnrollments.capstoneId })
+        .from(capstoneEnrollments)
+        .where(
+          and(
+            eq(capstoneEnrollments.userId, session.id),
+            sql`${capstoneEnrollments.completedAt} IS NOT NULL`,
+          ),
+        )
+        .all()
+        .map((r) => r.capstoneId),
+    );
+    for (const link of counts) {
+      if (link.optional !== 0) continue;
+      if (myCompletedCapstones.has(link.capstoneId)) {
+        myCompletedByTrack.set(
+          link.trackId,
+          (myCompletedByTrack.get(link.trackId) ?? 0) + 1,
+        );
+      }
+    }
+  }
+
   const tracks = rows.map((t) => {
     const links = counts.filter((c) => c.trackId === t.id);
     const required = links.filter((l) => l.optional === 0).length;
@@ -124,6 +155,7 @@ capstoneTracksRouter.get("/", async (c) => {
       optionalCount: optional,
       earnedBy,
       updatedAt: t.updatedAt,
+      myCompletedRequired: myCompletedByTrack.get(t.id) ?? 0,
     };
   });
 

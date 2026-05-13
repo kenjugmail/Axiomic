@@ -658,6 +658,31 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ value }),
       }),
+    // Phase 16C — admin queue + moderation actions.
+    moderateQueue: () =>
+      request<{
+        submissions: Array<{
+          id: string;
+          conceptSlug: string;
+          key: string;
+          label: string;
+          description: string;
+          status: string;
+          voteScore: number;
+          catalogId: string | null;
+          proposerUsername: string;
+          createdAt: string;
+          decidedAt: string | null;
+        }>;
+      }>("/misconceptions/moderate/queue"),
+    moderate: (id: string, action: "approve" | "reject") =>
+      request<{ status: string; catalogId: string | null }>(
+        `/misconceptions/${id}/moderate`,
+        {
+          method: "POST",
+          body: JSON.stringify({ action }),
+        },
+      ),
   },
   versions: {
     paperList: (slug: string) =>
@@ -1491,6 +1516,9 @@ export const api = {
           optionalCount: number;
           earnedBy: number;
           updatedAt: string;
+          // Phase 16D — 0 for signed-out callers. Lets the client
+          // group tracks without a per-track round-trip.
+          myCompletedRequired: number;
         }>;
       }>("/tracks"),
     get: (slug: string, tier?: "intro" | "undergrad" | "grad") => {

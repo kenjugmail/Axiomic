@@ -3,7 +3,7 @@
 import { describe, test, expect, beforeAll } from "bun:test";
 import { eq } from "drizzle-orm";
 import { app } from "../index";
-import { exams, getDb } from "@axiomic/db";
+import { examAttempts, exams, getDb } from "@axiomic/db";
 
 describe("/exams (Sprint 73)", () => {
   let satExists = false;
@@ -84,4 +84,92 @@ describe("/exams (Sprint 73)", () => {
     );
     expect(res.status).toBe(401);
   });
+
+  // ----- Phase 16A — attempt-detail correctIndex/isCorrect gating -----
+
+  test(
+    "attempt detail strips the answer key while in progress and exposes it once completed",
+    async () => {
+      if (!satExists) return;
+
+      // Sign up a fresh user via the auth route so we get a real cookie.
+      const testId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      const username = `ex_${testId}`.slice(0, 30);
+      const signup = await app.fetch(
+        new Request("http://localhost/api/v1/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username,
+            email: `${username}@example.com`,
+            password: "testpass123",
+          }),
+        }),
+      );
+      expect([200, 201]).toContain(signup.status);
+      const cookie = (signup.headers.get("set-cookie") ?? "").split(";")[0]!;
+
+      const start = await app.fetch(
+        new Request("http://localhost/api/v1/exams/sat/attempts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", cookie },
+          body: JSON.stringify({ mode: "section", sectionSlug: "math" }),
+        }),
+      );
+      // Some seed setups may not include the 'math' section. If start
+      // failed for content reasons, skip the test rather than failing
+      // on environment drift.
+      if (start.status !== 200 && start.status !== 201) return;
+      const startBody = (await start.json()) as { id?: string; attemptId?: string };
+      const attemptId = startBody.attemptId ?? startBody.id;
+      if (!attemptId) return;
+
+      const inProgress = await app.fetch(
+        new Request(`http://localhost/api/v1/exams/attempts/${attemptId}`, {
+          headers: { cookie },
+        }),
+      );
+      expect(inProgress.status).toBe(200);
+      const inProgressBody = (await inProgress.json()) as {
+        sections: Array<{
+          questions: Array<{ correctIndex: number | null; type: string }>;
+        }>;
+        answers: Array<{ isCorrect: boolean | null }>;
+      };
+      for (const sec of inProgressBody.sections) {
+        for (const q of sec.questions) {
+          // No correctIndex should leak during an active attempt.
+          expect(q.correctIndex).toBeNull();
+        }
+      }
+
+      // Flip completedAt directly to simulate post-submit without
+      // exercising the full submit + grade pipeline (which depends on
+      // answers + scoring config beyond this test's scope).
+      getDb()
+        .update(examAttempts)
+        .set({ completedAt: new Date().toISOString() })
+        .where(eq(examAttempts.id, attemptId))
+        .run();
+
+      const completed = await app.fetch(
+        new Request(`http://localhost/api/v1/exams/attempts/${attemptId}`, {
+          headers: { cookie },
+        }),
+      );
+      expect(completed.status).toBe(200);
+      const completedBody = (await completed.json()) as {
+        sections: Array<{
+          questions: Array<{ correctIndex: number | null; type: string }>;
+        }>;
+      };
+      // Now the multiple-choice questions should expose correctIndex.
+      const mcQuestions = completedBody.sections
+        .flatMap((s) => s.questions)
+        .filter((q) => q.type === "multiple_choice");
+      if (mcQuestions.length > 0) {
+        expect(mcQuestions[0]!.correctIndex).not.toBeNull();
+      }
+    },
+  );
 });

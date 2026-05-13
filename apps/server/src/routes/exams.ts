@@ -84,6 +84,9 @@ interface QuestionPayload {
   // Sprint 75 — essay-only fields. Null/0 for multiple_choice.
   rubricMd: string | null;
   maxEssayScore: number | null;
+  // Phase 16A — answer key. Caller decides whether to expose it (only
+  // completed attempts get correctIndex in the response).
+  correctIndex: number | null;
 }
 
 function loadQuestions(ids: string[]): Map<string, QuestionPayload> {
@@ -100,6 +103,7 @@ function loadQuestions(ids: string[]): Map<string, QuestionPayload> {
       rubricMd: examQuestions.rubricMd,
       maxEssayScore: examQuestions.maxEssayScore,
       topicTagsJson: examQuestions.topicTagsJson,
+      correctIndex: examQuestions.correctIndex,
     })
     .from(examQuestions)
     .all();
@@ -114,18 +118,21 @@ function loadQuestions(ids: string[]): Map<string, QuestionPayload> {
   const out = new Map<string, QuestionPayload>();
   for (const r of rows) {
     if (!wanted.has(r.id)) continue;
+    const qType = (r.type as "multiple_choice" | "essay") ?? "multiple_choice";
     out.set(r.id, {
       id: r.id,
       sectionId: r.sectionId,
       sectionSlug: slugById.get(r.sectionId) ?? "",
       ordinal: 0, // filled by the caller relative to manifest order
-      type: (r.type as "multiple_choice" | "essay") ?? "multiple_choice",
+      type: qType,
       difficulty: r.difficulty,
       promptMd: r.promptMd,
       options: safeJsonArray<{ label: string; text: string }>(r.optionsJson),
       topicTags: safeJsonArray<string>(r.topicTagsJson),
       rubricMd: r.rubricMd,
       maxEssayScore: r.maxEssayScore,
+      // Essay rows store 0 for correctIndex but it's meaningless there.
+      correctIndex: qType === "essay" ? null : r.correctIndex,
     });
   }
   return out;
@@ -329,6 +336,10 @@ examsRouter.get("/attempts/:id", requireAuth, async (c) => {
     .where(eq(examAttemptAnswers.attemptId, id))
     .all();
 
+  // Phase 16A — only expose the answer key after the attempt is
+  // completed, so the in-progress fetch can't be inspected to cheat.
+  const completed = attempt.completedAt != null;
+
   return c.json({
     id: attempt.id,
     mode: attempt.mode,
@@ -341,7 +352,12 @@ examsRouter.get("/attempts/:id", requireAuth, async (c) => {
       slug: s.slug,
       questions: s.questionIds.map((qid, ordinal) => {
         const q = questions.get(qid);
-        return q ? { ...q, ordinal } : null;
+        if (!q) return null;
+        return {
+          ...q,
+          ordinal,
+          correctIndex: completed ? q.correctIndex : null,
+        };
       }).filter((x) => x !== null),
     })),
     answers: answers.map((a) => ({
@@ -352,6 +368,7 @@ examsRouter.get("/attempts/:id", requireAuth, async (c) => {
       essayFeedbackMd: a.essayFeedbackMd,
       flagged: a.flagged === 1,
       timeSpentMs: a.timeSpentMs,
+      isCorrect: completed && a.isCorrect != null ? a.isCorrect === 1 : null,
     })),
   });
 });

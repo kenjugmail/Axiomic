@@ -8,6 +8,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
+  Activity,
   ChevronDown,
   ChevronUp,
   CheckCircle2,
@@ -16,11 +17,12 @@ import {
   Sparkles,
 } from "lucide-react";
 import type {
+  MisconceptionSubmissionDetail,
   MisconceptionSubmissionListItem,
   MisconceptionSubmissionListResponse,
 } from "@axiomic/types";
 import { api } from "../lib/api";
-import { Skeleton } from "../components/ui";
+import { Modal, Skeleton } from "../components/ui";
 import { useAuthStore } from "../stores/auth";
 
 type SortKey = "votes" | "recent" | "decided";
@@ -47,6 +49,7 @@ export function MisconceptionMarketplacePage() {
   const [sort, setSort] = useState<SortKey>("votes");
   const [status, setStatus] = useState<StatusFilter>("open");
   const [showForm, setShowForm] = useState(false);
+  const [detailId, setDetailId] = useState<string | null>(null);
 
   const load = async () => {
     setError("");
@@ -188,6 +191,7 @@ export function MisconceptionMarketplacePage() {
               <SubmissionRow
                 submission={s}
                 onVote={onVote}
+                onOpenDetail={() => setDetailId(s.id)}
                 canVote={!!user && s.status === "open"}
                 threshold={data.promotionThreshold}
               />
@@ -204,22 +208,144 @@ export function MisconceptionMarketplacePage() {
           to propose a misconception or vote on existing ones.
         </p>
       )}
+
+      <DetailModal
+        id={detailId}
+        onClose={() => setDetailId(null)}
+        threshold={data?.promotionThreshold ?? 5}
+      />
     </div>
+  );
+}
+
+// Phase 16C — full-detail modal lazily fetched when the user clicks
+// a tile. Shows the full description, probe questions, correction
+// template (if set), live-usage indicator, and the proposer.
+function DetailModal({
+  id,
+  onClose,
+  threshold,
+}: {
+  id: string | null;
+  onClose: () => void;
+  threshold: number;
+}) {
+  const [submission, setSubmission] =
+    useState<MisconceptionSubmissionDetail | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!id) {
+      setSubmission(null);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    setError("");
+    api.misconceptions
+      .get(id)
+      .then((r) => {
+        if (!cancelled) setSubmission(r.submission);
+      })
+      .catch((e: unknown) => {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : "Failed to load");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  return (
+    <Modal
+      open={!!id}
+      onClose={onClose}
+      size="lg"
+      title={submission?.label ?? "Misconception detail"}
+    >
+      {loading && <Skeleton className="h-40" />}
+      {error && (
+        <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p>
+      )}
+      {submission && (
+        <div className="space-y-4" data-testid="misconception-detail">
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground inline-flex items-center gap-1.5 flex-wrap">
+            <Link
+              to={`/wiki/${submission.conceptSlug}`}
+              className="hover:text-foreground"
+            >
+              <code className="px-1 py-0.5 rounded bg-muted">
+                {submission.conceptSlug}
+              </code>
+            </Link>
+            <span>·</span>
+            <span>@{submission.proposerUsername}</span>
+            <span>·</span>
+            <span>{new Date(submission.createdAt).toLocaleDateString()}</span>
+            <span>·</span>
+            <span className="font-mono">+{submission.voteScore}</span>
+            {submission.status === "open" && (
+              <span className="text-primary">
+                · {Math.max(0, threshold - submission.voteScore)} more to merge
+              </span>
+            )}
+          </div>
+          <section>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+              Full description
+            </div>
+            <p className="text-sm leading-relaxed whitespace-pre-wrap">
+              {submission.description}
+            </p>
+          </section>
+          {submission.probeQuestions.length > 0 && (
+            <section>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                Probe questions
+              </div>
+              <ul className="text-sm space-y-1 list-disc pl-5">
+                {submission.probeQuestions.map((q, i) => (
+                  <li key={i}>{q}</li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {submission.correctionPromptTemplate && (
+            <section>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                Correction prompt template
+              </div>
+              <pre className="text-xs font-mono whitespace-pre-wrap rounded-md border border-border bg-muted/40 p-2">
+                {submission.correctionPromptTemplate}
+              </pre>
+            </section>
+          )}
+        </div>
+      )}
+    </Modal>
   );
 }
 
 function SubmissionRow({
   submission: s,
   onVote,
+  onOpenDetail,
   canVote,
   threshold,
 }: {
   submission: MisconceptionSubmissionListItem;
   onVote: (id: string, value: -1 | 0 | 1) => void;
+  onOpenDetail: () => void;
   canVote: boolean;
   threshold: number;
 }) {
   const remaining = Math.max(0, threshold - s.voteScore);
+  const liveCount = s.liveDiagnosisCount ?? 0;
   return (
     <div className="rounded-md border border-border p-3 hover:bg-accent/20 transition-colors">
       <div className="flex gap-3">
@@ -256,7 +382,14 @@ function SubmissionRow({
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 flex-wrap">
-            <h3 className="text-sm font-medium leading-snug">{s.label}</h3>
+            <button
+              type="button"
+              onClick={onOpenDetail}
+              data-testid="open-detail"
+              className="text-left text-sm font-medium leading-snug hover:text-primary"
+            >
+              {s.label}
+            </button>
             {s.status === "merged" && (
               <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40">
                 <CheckCircle2 className="w-2.5 h-2.5" strokeWidth={2} />
@@ -266,6 +399,16 @@ function SubmissionRow({
             {s.status === "rejected" && (
               <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/40">
                 Rejected
+              </span>
+            )}
+            {liveCount > 0 && (
+              <span
+                data-testid="live-usage-badge"
+                title={`Currently surfacing on ${liveCount} learner${liveCount === 1 ? "" : "s"}' diagnoses`}
+                className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/40"
+              >
+                <Activity className="w-2.5 h-2.5" strokeWidth={2} />
+                Live · {liveCount}
               </span>
             )}
           </div>

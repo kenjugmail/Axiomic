@@ -19,9 +19,11 @@ import {
   contentProposals,
   cohortInvitations,
   emailVerificationTokens,
+  flashcards,
   forumPosts,
   getDb,
   masteryNodes,
+  masteryPaths,
   misconceptionCatalog,
   misconceptionDiagnoses,
   notifications,
@@ -175,12 +177,70 @@ meRouter.get("/weak-concepts", requireAuth, async (c) => {
   const slugs = [...new Set(visible.map((r) => r.conceptSlug))];
   const wikis = slugs.length
     ? db
-        .select({ slug: wikiPages.slug, title: wikiPages.title })
+        .select({ id: wikiPages.id, slug: wikiPages.slug, title: wikiPages.title })
         .from(wikiPages)
         .where(inArray(wikiPages.slug, slugs))
         .all()
     : [];
   const titleBySlug = new Map(wikis.map((w) => [w.slug, w.title]));
+  const pageIdBySlug = new Map(wikis.map((w) => [w.slug, w.id]));
+
+  // Phase 16B — gather data needed for `nextSteps` hints. One bulk
+  // query per data source so we stay flat regardless of diagnosis
+  // count. Mastery nodes is a small table (≤ a few hundred rows),
+  // and the JSON-array pageIds parse happens once.
+  const cardSlugs = new Set(
+    db
+      .select({ pageSlug: flashcards.pageSlug })
+      .from(flashcards)
+      .where(
+        and(
+          eq(flashcards.userId, user.id),
+          inArray(flashcards.pageSlug, slugs),
+        ),
+      )
+      .all()
+      .map((r) => r.pageSlug),
+  );
+
+  const allNodes = db
+    .select({
+      slug: masteryNodes.slug,
+      pathId: masteryNodes.pathId,
+      pageIds: masteryNodes.pageIds,
+      quizData: masteryNodes.quizData,
+    })
+    .from(masteryNodes)
+    .all();
+  const pathSlugById = new Map(
+    db
+      .select({ id: masteryPaths.id, slug: masteryPaths.slug })
+      .from(masteryPaths)
+      .all()
+      .map((p) => [p.id, p.slug]),
+  );
+  // Build a pageId → { pathSlug, nodeSlug } index for nodes that
+  // actually carry a quiz. First match wins — most concepts only
+  // appear under one node anyway.
+  const quizNodeByPageId = new Map<string, { pathSlug: string; nodeSlug: string }>();
+  for (const n of allNodes) {
+    if (!n.quizData) continue;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(n.pageIds);
+    } catch {
+      continue;
+    }
+    if (!Array.isArray(parsed)) continue;
+    const pathSlug = pathSlugById.get(n.pathId);
+    if (!pathSlug) continue;
+    for (const pid of parsed) {
+      if (typeof pid !== "string") continue;
+      if (!quizNodeByPageId.has(pid)) {
+        quizNodeByPageId.set(pid, { pathSlug, nodeSlug: n.slug });
+      }
+    }
+  }
 
   return c.json({
     diagnoses: visible.map((r) => {
@@ -192,6 +252,9 @@ meRouter.get("/weak-concepts", requireAuth, async (c) => {
         // ignore
       }
       const cat = catalogByKey.get(r.misconceptionKey);
+      const wikiSlug = titleBySlug.has(r.conceptSlug) ? r.conceptSlug : null;
+      const pageId = pageIdBySlug.get(r.conceptSlug);
+      const quizPath = pageId ? quizNodeByPageId.get(pageId) ?? null : null;
       return {
         id: r.id,
         conceptSlug: r.conceptSlug,
@@ -204,6 +267,11 @@ meRouter.get("/weak-concepts", requireAuth, async (c) => {
         status: r.status,
         firstSeenAt: r.firstSeenAt,
         lastSeenAt: r.lastSeenAt,
+        nextSteps: {
+          wikiSlug,
+          quizPath,
+          hasFlashcards: cardSlugs.has(r.conceptSlug),
+        },
       };
     }),
   });

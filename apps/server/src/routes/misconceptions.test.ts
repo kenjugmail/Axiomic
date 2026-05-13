@@ -11,6 +11,7 @@ import {
   getDb,
   misconceptionCatalog,
   misconceptionSubmissions,
+  users,
 } from "@axiomic/db";
 import { and, eq } from "drizzle-orm";
 
@@ -253,5 +254,124 @@ describe("Sprint 38 — misconception marketplace", () => {
       body: JSON.stringify({ ...VALID_SUBMISSION, conceptSlug: slug, key }),
     });
     expect(res.status).toBe(409);
+  });
+
+  // ----- Phase 16C — moderator queue + approve/reject -----
+
+  test("moderator queue requires admin role", async () => {
+    const anon = await req("/misconceptions/moderate/queue");
+    expect(anon.status).toBe(401);
+
+    const { cookie } = await signup("nonadmin");
+    const member = await req("/misconceptions/moderate/queue", {
+      headers: cookieHeader(cookie),
+    });
+    expect(member.status).toBe(403);
+  });
+
+  test("admin can list the open queue and approve a submission", async () => {
+    // Seed a submission to moderate.
+    const { cookie: proposerCookie } = await signup("propose");
+    const submission = {
+      conceptSlug: `mp-mod-${testId}`,
+      key: `mp-mod-${testId}`,
+      label: "A moderator-approved misconception worth catching",
+      description:
+        "This proposal exists purely so the moderator queue test has something to act on. Forty plus chars is the schema minimum.",
+      probeQuestions: ["Does this look right to you?"],
+    };
+    const submitRes = await req("/misconceptions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(proposerCookie) },
+      body: JSON.stringify(submission),
+    });
+    expect(submitRes.status).toBe(201);
+    const { id } = (await submitRes.json()) as { id: string };
+
+    // Promote a fresh user to admin so we can hit the gated endpoint.
+    const { cookie: adminCookie, userId: adminId } = await signup("admin");
+    getDb()
+      .update(users)
+      .set({ role: "admin" })
+      .where(eq(users.id, adminId))
+      .run();
+
+    const queueRes = await req("/misconceptions/moderate/queue", {
+      headers: cookieHeader(adminCookie),
+    });
+    expect(queueRes.status).toBe(200);
+    const queue = (await queueRes.json()) as {
+      submissions: Array<{ id: string; status: string }>;
+    };
+    expect(queue.submissions.find((s) => s.id === id)).toBeDefined();
+
+    const decideRes = await req(`/misconceptions/${id}/moderate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(adminCookie) },
+      body: JSON.stringify({ action: "approve" }),
+    });
+    expect(decideRes.status).toBe(200);
+    const decided = (await decideRes.json()) as { status: string; catalogId: string | null };
+    expect(decided.status).toBe("merged");
+    expect(decided.catalogId).toBeTruthy();
+
+    // Submission row reflects the decision.
+    const row = getDb()
+      .select()
+      .from(misconceptionSubmissions)
+      .where(eq(misconceptionSubmissions.id, id))
+      .get();
+    expect(row?.status).toBe("merged");
+    expect(row?.decidedBy).toBe(adminId);
+  });
+
+  test("reject decision flips status without writing to the catalog", async () => {
+    const { cookie: proposerCookie } = await signup("rejprop");
+    const submission = {
+      conceptSlug: `mp-rej-${testId}`,
+      key: `mp-rej-${testId}`,
+      label: "A misconception the admin is going to reject",
+      description:
+        "This proposal exists purely so the moderator reject path is tested end-to-end. Forty plus chars is the schema minimum requirement.",
+    };
+    const submitRes = await req("/misconceptions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(proposerCookie) },
+      body: JSON.stringify(submission),
+    });
+    const { id } = (await submitRes.json()) as { id: string };
+
+    const { cookie: adminCookie, userId: adminId } = await signup("admin2");
+    getDb()
+      .update(users)
+      .set({ role: "admin" })
+      .where(eq(users.id, adminId))
+      .run();
+
+    const decideRes = await req(`/misconceptions/${id}/moderate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(adminCookie) },
+      body: JSON.stringify({ action: "reject" }),
+    });
+    expect(decideRes.status).toBe(200);
+
+    const row = getDb()
+      .select()
+      .from(misconceptionSubmissions)
+      .where(eq(misconceptionSubmissions.id, id))
+      .get();
+    expect(row?.status).toBe("rejected");
+    expect(row?.catalogId).toBeNull();
+    const catalogRow = getDb()
+      .select()
+      .from(misconceptionCatalog)
+      .where(
+        and(
+          eq(misconceptionCatalog.conceptSlug, submission.conceptSlug),
+          eq(misconceptionCatalog.key, submission.key),
+        ),
+      )
+      .get();
+    expect(catalogRow).toBeUndefined();
   });
 });

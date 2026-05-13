@@ -16,7 +16,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Flag, Send, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Flag, Send, X } from "lucide-react";
 import type {
   ExamAttemptState,
   ExamQuestionPayload,
@@ -24,6 +24,7 @@ import type {
 } from "@axiomic/types";
 import { api } from "../lib/api";
 import { Skeleton } from "../components/ui";
+import { MarkdownRenderer } from "../components/MarkdownRenderer";
 
 interface FlatQuestion extends ExamQuestionPayload {
   globalIndex: number;
@@ -338,6 +339,7 @@ export function ExamRunnerPage() {
             Final score: <span className="font-mono font-semibold">{state.scoreScaled ?? "—"}</span>
           </p>
         )}
+        <ReviewByQuestion state={state} />
       </div>
     );
   }
@@ -555,5 +557,178 @@ export function ExamRunnerPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// Phase 16A — score-report review block. Renders each question with
+// the student's selection, correctness indicator, and (for essays)
+// the AI grader's feedback markdown. Collapsed by default so the
+// quick-glance score totals stay above the fold; click expands.
+function ReviewByQuestion({ state }: { state: ExamAttemptState }) {
+  const [open, setOpen] = useState(false);
+  const answerByQ = useMemo(() => {
+    const map = new Map<string, (typeof state.answers)[number]>();
+    for (const a of state.answers) map.set(a.questionId, a);
+    return map;
+  }, [state.answers]);
+
+  const allQuestions = useMemo(
+    () => state.sections.flatMap((s) => s.questions),
+    [state.sections],
+  );
+  // Server only returns isCorrect/correctIndex once the attempt is
+  // completed. If the attempt is still in progress somehow (e.g.,
+  // arrived here via a stale state) just skip the review.
+  if (!state.completedAt) return null;
+  const total = allQuestions.length;
+  const correct = state.answers.filter((a) => a.isCorrect === true).length;
+
+  return (
+    <section className="mt-6">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full text-left rounded-lg border border-border bg-card px-4 py-3 hover:bg-accent flex items-center justify-between"
+      >
+        <div>
+          <div className="font-display text-base font-semibold">
+            Question-by-question review
+          </div>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            {correct} of {total} multiple-choice correct · click to {open ? "hide" : "expand"}
+          </div>
+        </div>
+        <span className="text-muted-foreground text-sm" aria-hidden>
+          {open ? "▾" : "▸"}
+        </span>
+      </button>
+      {open && (
+        <ol className="mt-3 space-y-3">
+          {allQuestions.map((q, i) => {
+            const a = answerByQ.get(q.id);
+            return (
+              <ReviewQuestionCard key={q.id} q={q} index={i} answer={a} />
+            );
+          })}
+        </ol>
+      )}
+    </section>
+  );
+}
+
+function ReviewQuestionCard({
+  q,
+  index,
+  answer,
+}: {
+  q: ExamQuestionPayload;
+  index: number;
+  answer: ExamAttemptState["answers"][number] | undefined;
+}) {
+  const isEssay = q.type === "essay";
+  const isCorrect = answer?.isCorrect === true;
+  const isWrong = answer?.isCorrect === false;
+  return (
+    <li
+      data-testid="review-question"
+      className={`rounded-lg border bg-card p-4 ${
+        isCorrect
+          ? "border-emerald-500/30"
+          : isWrong
+            ? "border-rose-500/30"
+            : "border-border"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          Q{index + 1} · {q.sectionSlug}
+        </div>
+        {isCorrect && (
+          <span
+            data-testid="correct-badge"
+            className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400"
+          >
+            <Check className="w-3.5 h-3.5" /> Correct
+          </span>
+        )}
+        {isWrong && (
+          <span
+            data-testid="wrong-badge"
+            className="inline-flex items-center gap-1 text-xs text-rose-600 dark:text-rose-400"
+          >
+            <X className="w-3.5 h-3.5" /> Incorrect
+          </span>
+        )}
+      </div>
+      <div className="mt-2 prose prose-sm dark:prose-invert max-w-none">
+        <MarkdownRenderer content={q.promptMd} />
+      </div>
+
+      {!isEssay && (
+        <ul className="mt-3 space-y-1.5">
+          {q.options.map((opt, idx) => {
+            const userPicked = answer?.selectedIndex === idx;
+            const isAnswer = q.correctIndex === idx;
+            return (
+              <li
+                key={idx}
+                className={`text-sm rounded-md border px-3 py-1.5 flex items-center gap-2 ${
+                  isAnswer
+                    ? "border-emerald-500/40 bg-emerald-500/5"
+                    : userPicked
+                      ? "border-rose-500/40 bg-rose-500/5"
+                      : "border-border"
+                }`}
+              >
+                <span className="font-mono text-xs text-muted-foreground w-5">
+                  {opt.label}
+                </span>
+                <span className="flex-1">{opt.text}</span>
+                {isAnswer && (
+                  <span className="text-[10px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                    Answer
+                  </span>
+                )}
+                {userPicked && !isAnswer && (
+                  <span className="text-[10px] uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                    Your pick
+                  </span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {isEssay && answer?.essayResponse && (
+        <details className="mt-3">
+          <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
+            Your response
+          </summary>
+          <pre className="mt-2 whitespace-pre-wrap text-sm font-sans rounded-md border border-border bg-muted/30 p-3">
+            {answer.essayResponse}
+          </pre>
+        </details>
+      )}
+
+      {isEssay && answer?.essayFeedbackMd && (
+        <div
+          data-testid="essay-feedback"
+          className="mt-3 rounded-md border border-sky-500/30 bg-sky-500/5 p-3"
+        >
+          <div className="text-[10px] uppercase tracking-wider text-sky-700 dark:text-sky-300">
+            AI feedback
+            {answer.essayScore != null && q.maxEssayScore != null && (
+              <span className="ml-2 font-mono">
+                {answer.essayScore}/{q.maxEssayScore}
+              </span>
+            )}
+          </div>
+          <div className="mt-1 prose prose-sm dark:prose-invert max-w-none">
+            <MarkdownRenderer content={answer.essayFeedbackMd} />
+          </div>
+        </div>
+      )}
+    </li>
   );
 }

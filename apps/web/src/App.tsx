@@ -335,6 +335,11 @@ const MisconceptionMarketplacePage = lazy(() =>
     default: m.MisconceptionMarketplacePage,
   })),
 );
+const MisconceptionsModerationPage = lazy(() =>
+  import("./pages/MisconceptionsModerationPage").then((m) => ({
+    default: m.MisconceptionsModerationPage,
+  })),
+);
 // Sprint 39 — Capstone peer review queue.
 const CapstoneReviewQueuePage = lazy(() =>
   import("./pages/CapstoneReviewQueuePage").then((m) => ({
@@ -469,6 +474,10 @@ function AppRoutes() {
           <Route
             path="/misconceptions"
             element={<MisconceptionMarketplacePage />}
+          />
+          <Route
+            path="/misconceptions/moderate"
+            element={<MisconceptionsModerationPage />}
           />
           <Route
             path="/capstones/review-queue"

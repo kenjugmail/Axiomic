@@ -522,6 +522,10 @@ export interface ExamQuestionPayload {
   // Essay-only. Null/0 for multiple-choice.
   rubricMd: string | null;
   maxEssayScore: number | null;
+  // Phase 16A — only present on a completed attempt's review payload.
+  // Server strips this during an in-progress attempt so the answer key
+  // doesn't leak. Always null for essay questions.
+  correctIndex?: number | null;
 }
 
 export interface ExamAttemptAnswer {
@@ -533,6 +537,10 @@ export interface ExamAttemptAnswer {
   essayFeedbackMd?: string | null;
   flagged: boolean;
   timeSpentMs: number;
+  // Phase 16A — multiple-choice correctness flag. Server sets this on
+  // submit. null while attempt is in progress or for essay rows where
+  // the rubric score is what matters.
+  isCorrect?: boolean | null;
 }
 
 export interface ExamAttemptState {
@@ -1563,6 +1571,10 @@ export interface MisconceptionSubmissionListItem {
   catalogId: string | null;
   createdAt: string;
   decidedAt: string | null;
+  // Phase 16C — count of currently-active diagnoses keyed by this
+  // misconception. 0 for unmerged submissions; >0 indicates the tutor
+  // and detector are using it in production today.
+  liveDiagnosisCount?: number;
 }
 
 export interface MisconceptionSubmissionListResponse {
@@ -2704,6 +2716,25 @@ export interface MisconceptionEvidence {
   snippet: string;
 }
 
+// Phase 16B — concrete next-step suggestions surfaced on the
+// /me/weak-concepts page. The UI renders pills only for the steps
+// where the relevant content exists, so we don't link learners to
+// dead ends.
+export interface MisconceptionNextSteps {
+  // Wiki page slug to re-read, when a page actually exists for this
+  // concept. Mirrors `conceptSlug` but is null when the slug doesn't
+  // resolve to a published wiki page yet.
+  wikiSlug: string | null;
+  // The mastery-path + node slugs to deep-link a quiz retake. Null
+  // when no node references this concept's page or none of the
+  // referencing nodes carry a quizData payload.
+  quizPath: { pathSlug: string; nodeSlug: string } | null;
+  // True when the user has at least one flashcard tagged with this
+  // concept's pageSlug. We don't expose a count to avoid privacy
+  // weirdness across cross-user comparison.
+  hasFlashcards: boolean;
+}
+
 export interface MisconceptionDiagnosis {
   id: string;
   conceptSlug: string;
@@ -2716,6 +2747,8 @@ export interface MisconceptionDiagnosis {
   status: MisconceptionStatus;
   firstSeenAt: string;
   lastSeenAt: string;
+  // Phase 16B — optional so existing callers stay compatible.
+  nextSteps?: MisconceptionNextSteps;
 }
 
 export interface WeakConceptsResponse {
