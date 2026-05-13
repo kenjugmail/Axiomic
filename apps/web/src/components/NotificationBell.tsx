@@ -46,6 +46,8 @@ export function notificationLink(n: Notification): string {
         : "/notifications";
     case "pet":
       return "/me/pet";
+    case "pet_skin":
+      return "/skins";
     case "claim_thread":
     case "reproduction":
     case "capstone_track":
@@ -124,6 +126,8 @@ function kindLabel(kind: Notification["kind"]): string {
       return "your egg hatched";
     case "pet_leveled_up":
       return "your pet leveled up";
+    case "skin_granted":
+      return "granted you a skin";
     default: {
       // Exhaustiveness check: future NotificationKind additions force
       // a TS error here, prompting the author to add a case.

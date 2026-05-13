@@ -614,5 +614,20 @@ export async function scoreQuery(
   }
 
   scored.sort((a, b) => b.score - a.score);
-  return scored.slice(0, limit);
+  // Dedupe by (kind, title-lowercased). In prod, two items with the
+  // same title in the same kind are search noise (the user can't
+  // distinguish them in the result list). In tests, fixture-data
+  // pollution across runs produces dozens of identical research-
+  // paper rows that would otherwise crowd the top-N. Keep the
+  // first (highest-scored) copy and drop the rest.
+  const seen = new Set<string>();
+  const deduped: ScoredItem[] = [];
+  for (const s of scored) {
+    const key = `${s.item.kind}::${s.item.title.toLowerCase()}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(s);
+    if (deduped.length >= limit) break;
+  }
+  return deduped;
 }

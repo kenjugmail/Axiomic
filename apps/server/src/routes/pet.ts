@@ -9,7 +9,7 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { randomUUID } from "crypto";
+import { createHash, randomUUID } from "crypto";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import {
   petCosmetics,
@@ -24,7 +24,10 @@ import {
 } from "@axiomic/db";
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { ensurePetCosmeticsCatalog } from "../lib/petCosmeticsCatalog";
+import { checkRateLimit } from "../lib/rateLimit";
+import { env } from "../lib/envConfig";
 import { ACHIEVEMENTS } from "../lib/achievements";
+import { recordPetActivity } from "../lib/petActivity";
 import { totalXpForUser, xpBalanceForUser, PET_HATCH_THRESHOLD_XP, maybeHatchPet, isDevBypass } from "../lib/xp";
 import {
   petSpeciesBySlug,
@@ -49,8 +52,22 @@ const equipSchema = z.object({
     .regex(/^[a-z0-9][a-z0-9-]*$/, "lowercase, digits, hyphens"),
 });
 
+// Phase 13B — block angle brackets, curly braces, and ASCII
+// control characters. Plain text + accents/CJK still accepted.
+// Trim leading/trailing whitespace before length check.
+// eslint-disable-next-line no-control-regex
+const PET_NAME_RE = /^[^<>{}\x00-\x1f\x7f]+$/;
 const renameSchema = z.object({
-  name: z.string().min(1).max(40),
+  name: z
+    .string()
+    .transform((s) => s.trim())
+    .pipe(
+      z
+        .string()
+        .min(1, "Name can't be empty")
+        .max(30, "Names are capped at 30 characters")
+        .regex(PET_NAME_RE, "Use plain text (no <, >, {, }, or control chars)"),
+    ),
   // S104 — optional petId so users with multiple pets can rename a
   // non-active one without first activating it. Defaults to active.
   petId: z.string().min(1).max(64).optional(),
@@ -74,6 +91,27 @@ const ADDITIONAL_HATCH_THRESHOLDS: number[] = [
 export function nextHatchThreshold(currentPetCount: number): number | null {
   if (currentPetCount >= MAX_PETS_PER_USER) return null;
   return ADDITIONAL_HATCH_THRESHOLDS[currentPetCount] ?? null;
+}
+
+// Phase 13A — per-user rate-limit gate for pet mutation endpoints.
+// Returns null when the request passes; returns the 429 Response
+// when the budget is exceeded so callers can `return rateLimited;`.
+// Skipped under NODE_ENV=test so unit tests don't trip the limiter.
+function rateLimitPetMutation(
+  userId: string,
+  bucket: string,
+  max: number,
+): { ok: true } | { ok: false; status: 429; body: { error: string } } {
+  if (env.NODE_ENV === "test") return { ok: true };
+  const key = `pet:${bucket}:${userId}`;
+  if (!checkRateLimit(key, max, 60_000)) {
+    return {
+      ok: false,
+      status: 429,
+      body: { error: "Slow down — try again in a minute." },
+    };
+  }
+  return { ok: true };
 }
 
 // GET /me/pet — pet + inventory + total XP + threshold so the UI
@@ -341,7 +379,7 @@ petRouter.get("/", requireAuth, (c) => {
     ? petSkinBySlugOrDefault(pet.activeSkinSlug)
     : petSkinBySlugOrDefault("default");
 
-  return c.json({
+  const body = {
     pet: pet
       ? {
           id: pet.id,
@@ -397,94 +435,152 @@ petRouter.get("/", requireAuth, (c) => {
     // threshold for the user's next hatch.
     nextHatchXp: nextHatchThreshold(allPets.length),
     inventory,
-  });
+  };
+
+  // Phase 14E — ETag + If-None-Match. The /me/pet payload runs
+  // ~30-45 KB and is fetched on every page load. Hashing the
+  // serialized body (cheap SHA-1, truncated to 16 hex chars) lets
+  // the client get a 304 when nothing changed.
+  //
+  // Phase 15B — Cache-Control: private, must-revalidate, max-age=0.
+  // Without this, the browser HTTP cache treats /me/pet as
+  // non-cacheable and never auto-attaches If-None-Match on the
+  // next fetch(). must-revalidate forces a conditional GET on
+  // every read so the 304 path actually fires end-to-end.
+  const serialized = JSON.stringify(body);
+  const etag = `"${createHash("sha1").update(serialized).digest("hex").slice(0, 16)}"`;
+  c.header("Cache-Control", "private, must-revalidate, max-age=0");
+  const ifNoneMatch = c.req.header("if-none-match");
+  if (ifNoneMatch && ifNoneMatch === etag) {
+    c.header("ETag", etag);
+    return c.body(null, 304);
+  }
+  c.header("ETag", etag);
+  c.header("Content-Type", "application/json; charset=UTF-8");
+  return c.body(serialized, 200);
 });
 
 // POST /me/pet/equip — equip a cosmetic. Auto-unequips any other
 // item in the same slot so renderings always have at most one item
 // per slot.
+//
+// Phase 14A — wraps read+writes in a single db.transaction so two
+// concurrent equips against the same slot can't both pass the
+// pre-write read and both succeed. better-sqlite3 serializes
+// transactions, so the second equip sees the first's writes.
+class EquipNotOwnedError extends Error {
+  constructor() {
+    super("not_owned");
+    this.name = "EquipNotOwnedError";
+  }
+}
+class EquipCosmeticMissingError extends Error {
+  constructor() {
+    super("cosmetic_missing");
+    this.name = "EquipCosmeticMissingError";
+  }
+}
 petRouter.post(
   "/equip",
   requireAuth,
   zValidator("json", equipSchema),
   (c) => {
     const user = c.get("user")!;
+    const rl = rateLimitPetMutation(user.id, "equip", 30);
+    if (!rl.ok) return c.json(rl.body, rl.status);
     const { cosmeticSlug } = c.req.valid("json");
     const db = getDb();
 
-    const owned = db
-      .select()
-      .from(petInventory)
-      .where(
-        and(
-          eq(petInventory.userId, user.id),
-          eq(petInventory.cosmeticSlug, cosmeticSlug),
-        ),
-      )
-      .get();
-    if (!owned) {
-      return c.json({ error: "You don't own that cosmetic" }, 404);
-    }
-    const cosmetic = db
-      .select()
-      .from(petCosmetics)
-      .where(eq(petCosmetics.slug, cosmeticSlug))
-      .get();
-    if (!cosmetic) {
-      return c.json({ error: "Cosmetic not found" }, 404);
-    }
+    try {
+      db.transaction((tx) => {
+        const owned = tx
+          .select()
+          .from(petInventory)
+          .where(
+            and(
+              eq(petInventory.userId, user.id),
+              eq(petInventory.cosmeticSlug, cosmeticSlug),
+            ),
+          )
+          .get();
+        if (!owned) throw new EquipNotOwnedError();
+        const cosmetic = tx
+          .select()
+          .from(petCosmetics)
+          .where(eq(petCosmetics.slug, cosmeticSlug))
+          .get();
+        if (!cosmetic) throw new EquipCosmeticMissingError();
 
-    // Unequip everything else in this slot.
-    const otherInSlot = db
-      .select({
-        id: petInventory.id,
-        slug: petInventory.cosmeticSlug,
-      })
-      .from(petInventory)
-      .innerJoin(petCosmetics, eq(petCosmetics.slug, petInventory.cosmeticSlug))
-      .where(
-        and(
-          eq(petInventory.userId, user.id),
-          eq(petCosmetics.slot, cosmetic.slot),
-          eq(petInventory.equipped, true),
-        ),
-      )
-      .all();
-    for (const o of otherInSlot) {
-      if (o.slug !== cosmeticSlug) {
-        db.update(petInventory)
-          .set({ equipped: false })
-          .where(eq(petInventory.id, o.id))
+        const otherInSlot = tx
+          .select({
+            id: petInventory.id,
+            slug: petInventory.cosmeticSlug,
+          })
+          .from(petInventory)
+          .innerJoin(petCosmetics, eq(petCosmetics.slug, petInventory.cosmeticSlug))
+          .where(
+            and(
+              eq(petInventory.userId, user.id),
+              eq(petCosmetics.slot, cosmetic.slot),
+              eq(petInventory.equipped, true),
+            ),
+          )
+          .all();
+        for (const o of otherInSlot) {
+          if (o.slug !== cosmeticSlug) {
+            tx.update(petInventory)
+              .set({ equipped: false })
+              .where(eq(petInventory.id, o.id))
+              .run();
+          }
+        }
+
+        tx.update(petInventory)
+          .set({ equipped: true })
+          .where(eq(petInventory.id, owned.id))
           .run();
+      });
+    } catch (err) {
+      if (err instanceof EquipNotOwnedError) {
+        return c.json({ error: "You don't own that cosmetic" }, 404);
       }
+      if (err instanceof EquipCosmeticMissingError) {
+        return c.json({ error: "Cosmetic not found" }, 404);
+      }
+      throw err;
     }
-
-    db.update(petInventory)
-      .set({ equipped: true })
-      .where(eq(petInventory.id, owned.id))
-      .run();
+    recordPetActivity(user.id, "pet_equip", cosmeticSlug);
     return c.json({ ok: true });
   },
 );
 
 // POST /me/pet/unequip — remove a single cosmetic from the pet.
+//
+// Phase 14A — wrapped in a transaction for parity with /equip,
+// though the single UPDATE is already atomic. The wrapper keeps
+// the two handlers structurally identical.
 petRouter.post(
   "/unequip",
   requireAuth,
   zValidator("json", equipSchema),
   (c) => {
     const user = c.get("user")!;
+    const rl = rateLimitPetMutation(user.id, "equip", 30);
+    if (!rl.ok) return c.json(rl.body, rl.status);
     const { cosmeticSlug } = c.req.valid("json");
     const db = getDb();
-    db.update(petInventory)
-      .set({ equipped: false })
-      .where(
-        and(
-          eq(petInventory.userId, user.id),
-          eq(petInventory.cosmeticSlug, cosmeticSlug),
-        ),
-      )
-      .run();
+    db.transaction((tx) => {
+      tx.update(petInventory)
+        .set({ equipped: false })
+        .where(
+          and(
+            eq(petInventory.userId, user.id),
+            eq(petInventory.cosmeticSlug, cosmeticSlug),
+          ),
+        )
+        .run();
+    });
+    recordPetActivity(user.id, "pet_unequip", cosmeticSlug);
     return c.json({ ok: true });
   },
 );
@@ -498,6 +594,8 @@ petRouter.put(
   zValidator("json", renameSchema),
   (c) => {
     const user = c.get("user")!;
+    const rl = rateLimitPetMutation(user.id, "rename", 5);
+    if (!rl.ok) return c.json(rl.body, rl.status);
     const { name, petId } = c.req.valid("json");
     const db = getDb();
     let targetPet: { id: string } | undefined;
@@ -526,6 +624,7 @@ petRouter.put(
       .set({ name: name.trim() })
       .where(eq(pets.id, targetPet.id))
       .run();
+    recordPetActivity(user.id, "pet_rename", targetPet.id);
     return c.json({ ok: true });
   },
 );
@@ -546,6 +645,8 @@ petRouter.put(
 // the hero pet immediately.
 petRouter.post("/hatch-another", requireAuth, (c) => {
   const user = c.get("user")!;
+  const rl = rateLimitPetMutation(user.id, "hatch-another", 3);
+  if (!rl.ok) return c.json(rl.body, rl.status);
   const db = getDb();
 
   const owned = db
@@ -605,6 +706,7 @@ petRouter.post("/hatch-another", requireAuth, (c) => {
     contextSlug: null,
     preview: `A new ${species.label} hatched!`,
   });
+  recordPetActivity(user.id, "pet_hatch_another", petId);
 
   return c.json(
     {
@@ -633,6 +735,8 @@ petRouter.post(
   zValidator("json", activateSchema),
   (c) => {
     const user = c.get("user")!;
+    const rl = rateLimitPetMutation(user.id, "activate", 30);
+    if (!rl.ok) return c.json(rl.body, rl.status);
     const { petId } = c.req.valid("json");
     const db = getDb();
     const row = db
@@ -647,6 +751,7 @@ petRouter.post(
       .set({ activePetId: petId })
       .where(eq(users.id, user.id))
       .run();
+    recordPetActivity(user.id, "pet_activate", petId);
     return c.json({ ok: true });
   },
 );
@@ -940,6 +1045,8 @@ petRouter.post(
   zValidator("json", buySchema),
   (c) => {
     const user = c.get("user")!;
+    const rl = rateLimitPetMutation(user.id, "buy", 20);
+    if (!rl.ok) return c.json(rl.body, rl.status);
     const { cosmeticSlug } = c.req.valid("json");
     const db = getDb();
 
@@ -1044,6 +1151,7 @@ petRouter.post(
       }
       throw err;
     }
+    recordPetActivity(user.id, "pet_buy_cosmetic", cosmeticSlug);
 
     return c.json(
       {
@@ -1084,6 +1192,8 @@ petRouter.post(
   zValidator("json", skinEquipSchema),
   (c) => {
     const user = c.get("user")!;
+    const rl = rateLimitPetMutation(user.id, "skin-equip", 30);
+    if (!rl.ok) return c.json(rl.body, rl.status);
     const { skinSlug, petId } = c.req.valid("json");
     const db = getDb();
 
@@ -1133,6 +1243,7 @@ petRouter.post(
       .set({ activeSkinSlug: skinSlug })
       .where(eq(pets.id, targetPetId))
       .run();
+    recordPetActivity(user.id, "pet_skin_equip", skinSlug);
 
     return c.json({ ok: true, activeSkin: skin });
   },
@@ -1150,6 +1261,8 @@ petRouter.post(
   zValidator("json", skinUnequipSchema),
   (c) => {
     const user = c.get("user")!;
+    const rl = rateLimitPetMutation(user.id, "skin-equip", 30);
+    if (!rl.ok) return c.json(rl.body, rl.status);
     const { petId } = c.req.valid("json");
     const db = getDb();
 
@@ -1177,6 +1290,7 @@ petRouter.post(
       .set({ activeSkinSlug: "default" })
       .where(eq(pets.id, targetPetId))
       .run();
+    recordPetActivity(user.id, "pet_skin_unequip", targetPetId);
     return c.json({ ok: true, activeSkin: petSkinBySlugOrDefault("default") });
   },
 );
@@ -1224,6 +1338,8 @@ petRouter.post(
   zValidator("json", buySkinSchema),
   (c) => {
     const user = c.get("user")!;
+    const rl = rateLimitPetMutation(user.id, "buy", 20);
+    if (!rl.ok) return c.json(rl.body, rl.status);
     const { skinSlug } = c.req.valid("json");
     const db = getDb();
 
@@ -1299,6 +1415,7 @@ petRouter.post(
       }
       throw err;
     }
+    recordPetActivity(user.id, "pet_buy_skin", skinSlug);
     return c.json(
       {
         ok: true,

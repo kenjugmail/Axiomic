@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { Modal } from "../../components/ui/Modal";
 import { Check } from "lucide-react";
 import { PetAvatar } from "./PetAvatar";
+import { useReducedMotion } from "../hooks/useReducedMotion";
 
 interface Props {
   open: boolean;
@@ -39,6 +40,11 @@ export function LevelUpMoment({ open, onClose, pet }: Props): JSX.Element | null
   const [phase, setPhase] = useState<Phase>("before");
   const atMax = pet.level >= pet.maxLevel;
   const newLevel = Math.min(pet.maxLevel, pet.level + 1);
+  // Phase 11B — inline transitions bypass the CSS reduced-motion
+  // override. Collapse all phase-swap durations when the OS asks.
+  const reduceMotion = useReducedMotion();
+  const tx = (s: string) =>
+    reduceMotion ? s.replace(/\.\d+s/g, "0.01s") : s;
 
   useEffect(() => {
     if (!open) {
@@ -80,7 +86,7 @@ export function LevelUpMoment({ open, onClose, pet }: Props): JSX.Element | null
           className="inline-flex items-center justify-center"
           style={{
             gap: phase === "compare" ? 28 : 0,
-            transition: "gap .35s cubic-bezier(.2,.8,.3,1)",
+            transition: tx("gap .35s cubic-bezier(.2,.8,.3,1)"),
           }}
         >
           {/* Current form — visible during before+compare, fades during after */}
@@ -91,7 +97,7 @@ export function LevelUpMoment({ open, onClose, pet }: Props): JSX.Element | null
                 phase === "after"
                   ? "scale(.88) translateX(-12px)"
                   : "scale(1)",
-              transition: "opacity .35s, transform .35s",
+              transition: tx("opacity .35s, transform .35s"),
               width: phase === "after" ? 0 : 160,
               overflow: "visible",
             }}
@@ -120,7 +126,10 @@ export function LevelUpMoment({ open, onClose, pet }: Props): JSX.Element | null
               width="28"
               height="20"
               viewBox="0 0 28 20"
-              style={{ animation: "lvl-arrow .35s ease-out", flex: "none" }}
+              style={{
+                animation: reduceMotion ? "none" : "lvl-arrow .35s ease-out",
+                flex: "none",
+              }}
               aria-hidden="true"
             >
               <path
@@ -141,7 +150,7 @@ export function LevelUpMoment({ open, onClose, pet }: Props): JSX.Element | null
               style={{
                 opacity: phase === "before" ? 0 : 1,
                 transform: phase === "before" ? "scale(.92)" : "scale(1)",
-                transition: "opacity .35s, transform .35s",
+                transition: tx("opacity .35s, transform .35s"),
                 width: phase === "before" ? 0 : 160,
               }}
             >

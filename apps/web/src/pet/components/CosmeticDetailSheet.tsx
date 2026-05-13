@@ -6,7 +6,9 @@
 // close) rather than reusing the centered Modal because the
 // right-aligned slide is a distinctive part of the prototype's UX.
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { useEscapeStack } from "../../hooks/useEscapeStack";
+import { useReducedMotion } from "../hooks/useReducedMotion";
 import { X } from "lucide-react";
 import type { CosmeticSlot, PetInventoryItem } from "@axiomic/types";
 import { PetAvatar, type PetAvatarCosmetic } from "./PetAvatar";
@@ -46,13 +48,70 @@ export function CosmeticDetailSheet({
   equipped,
   onToggleEquip,
 }: Props): JSX.Element | null {
+  // Phase 12C — auto-focus the primary action when the sheet
+  // opens, and trap Tab navigation inside the sheet so keyboard
+  // users don't fall through to the page underneath.
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const equipBtnRef = useRef<HTMLButtonElement>(null);
+  // Phase 15D — capture whichever element had focus before the
+  // sheet opened so we can restore focus to it on close. Keyboard
+  // users land back on the inventory tile they invoked the sheet
+  // from instead of dropping to document.body.
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+  // Phase 13D — suppress inline scrim + sheet-in animations under
+  // prefers-reduced-motion.
+  const reduceMotion = useReducedMotion();
+
+  // Phase 13C — Escape handled by the shared stack so only the
+  // top-most open overlay closes per key press.
+  useEscapeStack(open, onClose);
+
   useEffect(() => {
     if (!open) return;
+    // Phase 15D — remember the previously-focused element BEFORE
+    // we shift focus to the Equip button.
+    const active = document.activeElement;
+    previouslyFocusedRef.current =
+      active instanceof HTMLElement ? active : null;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key !== "Tab") return;
+      const root = sheetRef.current;
+      if (!root) return;
+      const focusable = root.querySelectorAll<HTMLElement>(
+        'button, [href], input, [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0]!;
+      const last = focusable[focusable.length - 1]!;
+      const inside = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && inside === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && inside === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    // Defer initial focus until after the sheet has rendered.
+    const focusTimer = window.setTimeout(() => {
+      equipBtnRef.current?.focus();
+    }, 50);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      window.clearTimeout(focusTimer);
+      // Phase 15D — restore focus on close / unmount. Guard the
+      // restore so we don't yank focus from whatever the user has
+      // since clicked into.
+      const target = previouslyFocusedRef.current;
+      previouslyFocusedRef.current = null;
+      if (target && document.contains(target)) {
+        // If the user already moved focus elsewhere we leave it.
+        if (document.activeElement === document.body) {
+          target.focus();
+        }
+      }
+    };
   }, [open, onClose]);
 
   if (!open || !item) return null;
@@ -74,16 +133,20 @@ export function CosmeticDetailSheet({
         type="button"
         aria-label="Close"
         className="absolute inset-0"
-        style={{ background: "rgba(0,0,0,.42)", animation: "shade .2s ease-out" }}
+        style={{
+          background: "rgba(0,0,0,.42)",
+          animation: reduceMotion ? "none" : "shade .2s ease-out",
+        }}
         onClick={onClose}
       />
       <aside
+        ref={sheetRef}
         className="relative h-full flex flex-col"
         style={{
           width: "min(440px, 100%)",
           background: "var(--bg)",
           borderLeft: "1px solid var(--line)",
-          animation: "sheet-in .28s cubic-bezier(.2,.9,.3,1)",
+          animation: reduceMotion ? "none" : "sheet-in .28s cubic-bezier(.2,.9,.3,1)",
           boxShadow: "-16px 0 40px rgba(0,0,0,.18)",
         }}
       >
@@ -170,6 +233,7 @@ export function CosmeticDetailSheet({
             Close
           </button>
           <button
+            ref={equipBtnRef}
             type="button"
             className="pet-btn primary"
             onClick={() => {

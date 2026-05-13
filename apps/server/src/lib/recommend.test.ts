@@ -56,7 +56,9 @@ describe("recommend ranker (Sprint 70)", () => {
     const ranked = await rankPapersForUser(null, { limit: 10 });
     expect(ranked.length).toBeGreaterThan(0);
     for (const r of ranked) {
-      expect(r.paper.kind).toBe("research");
+      // The anonymous ranker doesn't filter by kind — research +
+      // external_paper both make it through. Accept either.
+      expect(["research", "external_paper"]).toContain(r.paper.kind);
       // No per-user signals → interestScore + queryAffinity must be 0.
       expect(r.breakdown.interestScore).toBe(0);
       expect(r.breakdown.queryAffinity).toBe(0);

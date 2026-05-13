@@ -1304,7 +1304,9 @@ export type NotificationKind =
   | "competition_won"
   | "pet_hatched"
   // S90 — pet evolution.
-  | "pet_leveled_up";
+  | "pet_leveled_up"
+  // Phase M — pet skin grants from achievements / instructor.
+  | "skin_granted";
 
 export type NotificationSubject =
   | "topic"
@@ -1325,7 +1327,9 @@ export type NotificationSubject =
   // S88 — classroom + pet engagement loop.
   | "cosmetic"
   | "competition"
-  | "pet";
+  | "pet"
+  // Phase M — pet skin grants reference the skin slug as subjectId.
+  | "pet_skin";
 
 export const NOTIFICATION_KINDS: NotificationKind[] = [
   "mention",
@@ -1355,6 +1359,7 @@ export const NOTIFICATION_KINDS: NotificationKind[] = [
   "competition_won",
   "pet_hatched",
   "pet_leveled_up",
+  "skin_granted",
 ];
 
 export const NOTIFICATION_SUBJECTS: NotificationSubject[] = [
@@ -1375,6 +1380,7 @@ export const NOTIFICATION_SUBJECTS: NotificationSubject[] = [
   "cosmetic",
   "competition",
   "pet",
+  "pet_skin",
 ];
 
 export interface Notification {

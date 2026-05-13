@@ -88,9 +88,25 @@ export function PetByUsername({
     };
   }, [username]);
 
-  // Loading: render nothing. Page text already shows the username,
-  // pet just floats in alongside when ready.
-  if (pet === undefined) return null;
+  // Phase 12D — loading state renders a sized placeholder so the
+  // surrounding row (forum byline, profile chip, etc.) reserves the
+  // pet's footprint and doesn't visibly jump when the fetch resolves.
+  if (pet === undefined) {
+    const px = FALLBACK_PX[size];
+    return (
+      <span
+        className={className}
+        aria-hidden="true"
+        style={{
+          display: "inline-block",
+          width: px,
+          height: px,
+          borderRadius: "9999px",
+          background: "color-mix(in oklab, var(--ink-4) 10%, transparent)",
+        }}
+      />
+    );
+  }
 
   if (!pet) {
     if (!fallbackInitial) return null;
@@ -129,8 +145,18 @@ export function PetByUsername({
   };
   const px = FALLBACK_PX[size];
 
+  // Phase 11F — title shows pet name + species on hover so the
+  // byline communicates context at small sizes.
+  const tooltip = pet.name
+    ? `${pet.name}, ${username}'s ${pet.species}`
+    : `${username}'s ${pet.species}`;
+
   return (
-    <span className={className} style={{ display: "inline-block" }}>
+    <span
+      className={className}
+      style={{ display: "inline-block" }}
+      title={tooltip}
+    >
       <PetAvatar
         species={pet.species}
         level={pet.level}
@@ -156,6 +182,16 @@ function findEquipped(
     rarity: (found as { rarity?: "common" | "rare" | "epic" | "legendary" }).rarity,
     failSmall: (found as { failSmall?: boolean }).failSmall,
   };
+}
+
+// Phase 13F — public cache invalidation. Surfaces that mutate the
+// current user's pet (equip / unequip / rename / skin equip /
+// switch active pet) call this with the user's username so the
+// next byline render fetches fresh data instead of waiting up to
+// 60 s for the TTL to expire.
+export function invalidatePetCacheFor(username: string): void {
+  cache.delete(username);
+  inFlight.delete(username);
 }
 
 // Test hook: clears the module-level cache. Not part of the public

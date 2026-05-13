@@ -86,6 +86,8 @@ function kindLabel(kind: Notification["kind"]): string {
       return "your egg hatched";
     case "pet_leveled_up":
       return "your pet leveled up";
+    case "skin_granted":
+      return "granted you a skin";
     default: {
       const _exhaustive: never = kind;
       void _exhaustive;
@@ -128,6 +130,8 @@ function iconForKind(kind: Notification["kind"]): LucideIcon {
     case "lab_cert_expiring":
       return FlaskConical;
     case "cosmetic_granted":
+      return Award;
+    case "skin_granted":
       return Award;
     case "competition_won":
       return Trophy;

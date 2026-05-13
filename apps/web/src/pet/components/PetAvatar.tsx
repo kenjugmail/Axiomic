@@ -202,7 +202,10 @@ export function PetAvatar({
   const heroClass = hero ? "hero" : "";
   const evolveClass = aboutToEvolve ? "about-to-evolve" : "";
   const hatchClass = hatchBurst ? "hatch-burst" : "";
-  const stageClass = `pet-stage ${ringClass} ${heroClass} ${evolveClass} ${hatchClass} ${className ?? ""}`
+  // Phase 12F — the .pet-stage::before floor disc reads as visual
+  // noise at byline sizes. Suppress it below 32 px.
+  const compactClass = px < 32 ? "compact" : "";
+  const stageClass = `pet-stage ${ringClass} ${heroClass} ${evolveClass} ${hatchClass} ${compactClass} ${className ?? ""}`
     .replace(/\s+/g, " ")
     .trim();
 
@@ -288,6 +291,7 @@ export function PetAvatar({
           slot={slot}
           rarity={cos.rarity}
           petSize={petSize}
+          species={species}
         />
       ))}
       {showLevelBadge && (

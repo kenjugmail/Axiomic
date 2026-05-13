@@ -68,12 +68,32 @@ export function CosmeticChip({
     .filter(Boolean)
     .join(" ");
 
+  // Phase 11G — richer hover tooltip that surfaces rarity, equip
+  // state, and obtain hint when relevant. Browser title attribute
+  // shows after ~500ms hover so it's a discovery affordance, not
+  // a primary information channel.
+  const rarityLabel = rarity.charAt(0).toUpperCase() + rarity.slice(1);
+  const stateLabel = equipped
+    ? "Equipped"
+    : !owned
+      ? obtain === "xp" && obtainCost != null
+        ? `${obtainCost.toLocaleString()} XP shop`
+        : obtain === "grant"
+          ? "Instructor grant"
+          : obtain === "comp"
+            ? "Competition prize"
+            : "Locked"
+      : "Owned";
+  const tooltip = description
+    ? `${name} — ${rarityLabel} · ${stateLabel} — ${description}`
+    : `${name} — ${rarityLabel} · ${stateLabel}`;
+
   return (
     <button
       type="button"
       onClick={onClick}
       className={classes}
-      title={description || name}
+      title={tooltip}
       aria-pressed={!!equipped}
     >
       <span className="corner" aria-hidden="true">

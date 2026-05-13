@@ -17,6 +17,7 @@ import path from "path";
 import { randomUUID } from "crypto";
 import { eq } from "drizzle-orm";
 import { getDb, petCosmetics } from "@axiomic/db";
+import { logger } from "./logger";
 
 interface CosmeticEntry {
   slug: string;
@@ -63,8 +64,15 @@ function runSeed(file: string): void {
   let parsed: { cosmetics: CosmeticEntry[] };
   try {
     parsed = JSON.parse(fs.readFileSync(file, "utf-8"));
-  } catch {
-    console.warn("[pet] cosmetics.json invalid, skipping catalog seed");
+  } catch (err) {
+    // Phase 15G — route through the structured logger so prod
+    // observability picks it up. Boot-time seed failures are
+    // worth a warn.
+    logger.warn({
+      kind: "pet_catalog_invalid_json",
+      msg: "cosmetics.json invalid, skipping catalog seed",
+      err: err instanceof Error ? err.message : String(err),
+    });
     return;
   }
   const list = Array.isArray(parsed.cosmetics) ? parsed.cosmetics : [];
@@ -107,6 +115,10 @@ function runSeed(file: string): void {
     }
   }
   if (upserted > 0) {
-    console.log(`[pet] catalog synced (${upserted} rows touched)`);
+    logger.info({
+      kind: "pet_catalog_synced",
+      msg: "pet_cosmetics catalog synced",
+      rowsTouched: upserted,
+    });
   }
 }

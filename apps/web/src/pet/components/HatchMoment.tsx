@@ -8,8 +8,14 @@ import { useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { Modal } from "../../components/ui/Modal";
 import { PetAvatar } from "./PetAvatar";
+import { useReducedMotion } from "../hooks/useReducedMotion";
 
 type Phase = "egg" | "crack" | "reveal";
+
+// Phase 15E — stable empty-equipped reference so PetAvatar's
+// React.memo (Phase 13E) doesn't bust on every parent render
+// from a freshly-allocated inline `{}`.
+const NO_COSMETICS = {} as const;
 
 interface Props {
   open: boolean;
@@ -23,6 +29,8 @@ interface Props {
 export function HatchMoment({ open, onClose, pet, onCommit }: Props): JSX.Element | null {
   const [phase, setPhase] = useState<Phase>("egg");
   const [name, setName] = useState(pet.name);
+  // Phase 13D — egg-shake + pop are inline animations; gate them.
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     if (!open) {
@@ -99,22 +107,32 @@ export function HatchMoment({ open, onClose, pet, onCommit }: Props): JSX.Elemen
             className="inline-block"
             style={{
               animation:
-                phase === "crack" ? "egg-shake .5s ease-in-out 2" : "none",
+                reduceMotion
+                  ? "none"
+                  : phase === "crack"
+                    ? "egg-shake .5s ease-in-out 2"
+                    : "none",
             }}
           >
             <PetAvatar
               size={160}
-              equipped={{}}
+              equipped={NO_COSMETICS}
               showCosmetics={false}
               ariaLabel="A pet egg, hatching"
             />
           </div>
         ) : (
-          <div style={{ animation: "pop .35s cubic-bezier(.2,.9,.3,1.2)" }}>
+          <div
+            style={{
+              animation: reduceMotion
+                ? "none"
+                : "pop .35s cubic-bezier(.2,.9,.3,1.2)",
+            }}
+          >
             <PetAvatar
               species={pet.species}
               level={1}
-              equipped={{}}
+              equipped={NO_COSMETICS}
               size={160}
               showCosmetics={false}
               ariaLabel={`Your ${pet.speciesLabel}`}

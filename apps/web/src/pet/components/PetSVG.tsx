@@ -11,7 +11,7 @@
 // Axiomic's descriptive slugs (`glasses`) to the prototype's
 // kind keys (`e-glasses`) so this file stays a verbatim port.
 
-import { createContext, useContext } from "react";
+import { createContext, memo, useContext } from "react";
 
 const stroke = "var(--pet-stroke, var(--ink))";
 
@@ -647,6 +647,40 @@ const SPECIES: Record<string, (p: SpeciesProps) => JSX.Element> = {
 
 export const PROTOTYPE_SPECIES = new Set(Object.keys(SPECIES));
 
+// Phase 10D — per-species head anchor y (as a fraction of petSize,
+// derived from PetSVG's actual head-ellipse cy value in the 100×100
+// viewBox). Baseline is 0.46 (cat / fox / owl / bear). Species
+// whose heads sit higher or lower in the viewBox get adjusted so
+// head cosmetics anchor on the actual head, not the stage top.
+//
+// CosmeticOverlay reads this map and adds `(anchor - 0.46) * petSize`
+// to the head `top` offset. Species not in the map fall back to
+// baseline behavior (good for the 4 parametric-fallback species).
+export const SPECIES_HEAD_ANCHOR_Y: Record<string, number> = {
+  cat: 0.46,
+  dog: 0.44,
+  fox: 0.46,
+  owl: 0.46,
+  rabbit: 0.48,
+  turtle: 0.32,
+  dragon: 0.44,
+  penguin: 0.44,
+  bear: 0.46,
+  hedgehog: 0.56,
+  axolotl: 0.48,
+  frog: 0.30,
+  panda: 0.48,
+};
+
+// Per-species accessory bottom-anchor adjustment in % of petSize.
+// Tall species (penguin body cy=58 ry=28; turtle shell cy=58 rx=32)
+// need the acc lifted off the very bottom of the stage so it reads
+// as "held by the pet" rather than "floating on the floor".
+export const SPECIES_ACC_DY_BOOST: Record<string, number> = {
+  penguin: 12,
+  turtle: 8,
+};
+
 interface PetSVGProps {
   species: string | undefined;
   level?: number;
@@ -654,7 +688,8 @@ interface PetSVGProps {
   eyeSlug?: string | null;
 }
 
-export function PetSVG({ species, level = 1, size = 80, eyeSlug = null }: PetSVGProps): JSX.Element {
+// Phase 13E — memoized; all props are primitives.
+function PetSVGImpl({ species, level = 1, size = 80, eyeSlug = null }: PetSVGProps): JSX.Element {
   const Body = species ? SPECIES[species] : null;
   const eyeKind = eyeSlug ? EYE_SLUG_TO_KIND[eyeSlug] ?? null : null;
   return (
@@ -672,3 +707,5 @@ export function PetSVG({ species, level = 1, size = 80, eyeSlug = null }: PetSVG
     </svg>
   );
 }
+
+export const PetSVG = memo(PetSVGImpl);

@@ -144,6 +144,14 @@ export function ShopPage() {
   const lowBalance = balance < LOW_BAL_THRESHOLD;
   const featuredDiscount = data.featuredDiscountPercent;
 
+  // Phase 14F — "All collected" celebration. When the user owns
+  // every purchasable cosmetic AND every purchasable skin, surface
+  // a positive top-of-page state instead of letting the empty grids
+  // read as silent dead air.
+  const anyCosmeticUnowned = data.items.some((i) => !i.owned);
+  const anySkinUnowned = (skinShop?.items ?? []).some((s) => !s.owned);
+  const anyPurchasable = anyCosmeticUnowned || anySkinUnowned;
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="mb-6">
@@ -238,6 +246,39 @@ export function ShopPage() {
           </div>
         )}
       </section>
+
+      {!anyPurchasable && (
+        <section
+          className="rounded-2xl border mb-6 px-6 py-5 flex items-start gap-3"
+          style={{
+            borderColor: "var(--line)",
+            background: "var(--accent-soft)",
+          }}
+        >
+          <Sparkles
+            className="w-5 h-5 flex-none mt-0.5"
+            style={{ color: "var(--r-legendary)" }}
+          />
+          <div className="min-w-0">
+            <h2 className="text-base font-semibold">
+              You've collected everything in the shop
+            </h2>
+            <p className="mt-1 text-sm" style={{ color: "var(--ink-3)" }}>
+              Grant-only and competition-only items still live in the wild —
+              keep an eye out. Until then, see what other learners have
+              equipped on the{" "}
+              <Link
+                to="/explore/pets"
+                className="underline"
+                style={{ color: "var(--accent)" }}
+              >
+                pet showcase
+              </Link>
+              .
+            </p>
+          </div>
+        </section>
+      )}
 
       {(["head", "eyes", "accessory"] as CosmeticSlot[]).map((slot) => {
         const items = itemsBySlot[slot];

@@ -8,6 +8,7 @@ import type { PetSkinDef } from "@axiomic/types";
 import { Modal } from "../../components/ui/Modal";
 import { PetAvatar, type PetAvatarCosmetic } from "./PetAvatar";
 import { RarityBadge } from "./RarityBadge";
+import { useReducedMotion } from "../hooks/useReducedMotion";
 
 interface Props {
   open: boolean;
@@ -29,6 +30,11 @@ export function SkinRevealMoment({
   skin,
 }: Props): JSX.Element | null {
   const [phase, setPhase] = useState<"before" | "after">("before");
+  // Phase 11B — inline transitions bypass the CSS reduced-motion
+  // override. Collapse the durations when the OS asks.
+  const reduceMotion = useReducedMotion();
+  const tx = (s: string) =>
+    reduceMotion ? s.replace(/\.\d+s/g, "0.01s") : s;
 
   useEffect(() => {
     if (!open) {
@@ -68,7 +74,7 @@ export function SkinRevealMoment({
         >
           <div
             style={{
-              transition: "opacity .5s, transform .5s",
+              transition: tx("opacity .5s, transform .5s"),
               opacity: phase === "before" ? 1 : 0,
               transform: phase === "before" ? "scale(1)" : "scale(.92)",
               position: "absolute",
@@ -87,7 +93,7 @@ export function SkinRevealMoment({
           </div>
           <div
             style={{
-              transition: "opacity .7s, transform .7s",
+              transition: tx("opacity .7s, transform .7s"),
               opacity: phase === "before" ? 0 : 1,
               transform: phase === "before" ? "scale(1.05)" : "scale(1)",
               position: "absolute",

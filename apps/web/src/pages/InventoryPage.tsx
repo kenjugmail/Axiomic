@@ -10,8 +10,15 @@ import type { CosmeticSlot, MyPetResponse, PetInventoryItem, PetSkinDef } from "
 import { api, ApiError } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { useThemeStore } from "../stores/theme";
+import { useLiveEvents } from "../hooks/useLiveEvents";
 import { Skeleton } from "../components/ui";
-import { CosmeticChip, SkinTile, FilterChips, CosmeticDetailSheet } from "../pet";
+import {
+  CosmeticChip,
+  SkinTile,
+  FilterChips,
+  CosmeticDetailSheet,
+  invalidatePetCacheFor,
+} from "../pet";
 import { EmptyState } from "../components/ui/EmptyState";
 import { toast } from "../stores/toast";
 
@@ -41,9 +48,20 @@ export function InventoryPage(): JSX.Element {
 
   useEffect(() => {
     if (!user) return;
+    // Phase 12A — cancel-on-unmount guard so navigating away
+    // during the in-flight /me/pet doesn't fire setData on an
+    // unmounted component.
+    let cancelled = false;
     api.pet.me()
-      .then(setData)
-      .catch((e) => setError(e?.message ?? "Failed to load"));
+      .then((r) => {
+        if (!cancelled) setData(r);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(e?.message ?? "Failed to load");
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
   const reload = async () => {
@@ -55,6 +73,27 @@ export function InventoryPage(): JSX.Element {
     }
   };
 
+  // Phase 14C — cross-tab WS sync. A grant or skin-grant from
+  // another tab (or the admin dashboard) should immediately appear
+  // in the user's inventory here. Also handles level-up + comp
+  // wins so the silhouette + new items show up.
+  useLiveEvents({
+    onEvent: (e) => {
+      if (e.kind !== "notification") return;
+      const kind = e.notification.kind;
+      if (
+        kind === "cosmetic_granted" ||
+        kind === "skin_granted" ||
+        kind === "pet_leveled_up" ||
+        kind === "competition_won" ||
+        kind === "pet_hatched"
+      ) {
+        void reload();
+        if (user) invalidatePetCacheFor(user.username);
+      }
+    },
+  });
+
   const toggleEquip = async (item: PetInventoryItem) => {
     try {
       if (item.equipped) {
@@ -63,6 +102,9 @@ export function InventoryPage(): JSX.Element {
         await api.pet.equip(item.slug);
       }
       await reload();
+      // Phase 13F — invalidate the byline cache for our own
+      // username so forum / profile chips reflect immediately.
+      if (user) invalidatePetCacheFor(user.username);
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Failed");
     }
@@ -199,43 +241,53 @@ export function InventoryPage(): JSX.Element {
         </select>
       </div>
 
-      <FilterChips<SlotFilter>
-        label="Slot"
-        value={slot}
-        onChange={setSlot}
-        options={[
-          { value: "all", label: "All" },
-          { value: "head", label: "Head" },
-          { value: "eyes", label: "Eyes" },
-          { value: "accessory", label: "Accessory" },
-          { value: "skin", label: "Skins" },
-        ]}
-      />
-      <FilterChips<RarityFilter>
-        label="Rarity"
-        value={rarity}
-        onChange={setRarity}
-        options={[
-          { value: "all", label: "All" },
-          { value: "common", label: "Common" },
-          { value: "rare", label: "Rare" },
-          { value: "epic", label: "Epic" },
-          { value: "legendary", label: "Legendary" },
-        ]}
-      />
-      <FilterChips<SourceFilter>
-        label="Source"
-        value={source}
-        onChange={setSource}
-        options={[
-          { value: "all", label: "All" },
-          { value: "xp", label: "XP shop" },
-          { value: "grant", label: "Granted" },
-        ]}
-      />
+      {/* Phase 12E — wrap each FilterChips row in a min-height
+          container so toggling a chip doesn't reflow the grid
+          below when the wrapped pill bar changes row count.
+          Single-row baseline is 32 px (one pill + the label). */}
+      <div style={{ minHeight: 32 }}>
+        <FilterChips<SlotFilter>
+          label="Slot"
+          value={slot}
+          onChange={setSlot}
+          options={[
+            { value: "all", label: "All" },
+            { value: "head", label: "Head" },
+            { value: "eyes", label: "Eyes" },
+            { value: "accessory", label: "Accessory" },
+            { value: "skin", label: "Skins" },
+          ]}
+        />
+      </div>
+      <div style={{ minHeight: 32 }}>
+        <FilterChips<RarityFilter>
+          label="Rarity"
+          value={rarity}
+          onChange={setRarity}
+          options={[
+            { value: "all", label: "All" },
+            { value: "common", label: "Common" },
+            { value: "rare", label: "Rare" },
+            { value: "epic", label: "Epic" },
+            { value: "legendary", label: "Legendary" },
+          ]}
+        />
+      </div>
+      <div style={{ minHeight: 32 }}>
+        <FilterChips<SourceFilter>
+          label="Source"
+          value={source}
+          onChange={setSource}
+          options={[
+            { value: "all", label: "All" },
+            { value: "xp", label: "XP shop" },
+            { value: "grant", label: "Granted" },
+          ]}
+        />
+      </div>
 
       <div
-        className="text-xs my-3"
+        className="text-xs my-3 tabular-nums"
         style={{ color: "var(--ink-3)" }}
       >
         Showing {visibleCount} of {total} {showingSkins ? "skins" : "owned"}

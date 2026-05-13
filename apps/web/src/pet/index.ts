@@ -19,7 +19,7 @@ export type {
 } from "./components/PetAvatar";
 export type { PetMood } from "./components/PetSilhouetteSVG";
 
-export { PetByUsername, __clearPetCache } from "./components/PetByUsername";
+export { PetByUsername, __clearPetCache, invalidatePetCacheFor } from "./components/PetByUsername";
 export { PetSVG, PROTOTYPE_SPECIES } from "./components/PetSVG";
 export { PetSilhouetteSVG } from "./components/PetSilhouetteSVG";
 export { CosmeticGlyphSVG, __BESPOKE_GLYPH_SLUGS } from "./components/CosmeticGlyphSVG";
@@ -54,6 +54,9 @@ export { CompetitionTeaser } from "./components/CompetitionTeaser";
 export { ConfirmDialog } from "./components/ConfirmDialog";
 export { RenameMomentModal } from "./components/RenameMomentModal";
 export { SwitchPetModal } from "./components/SwitchPetModal";
+
+// ─── Hooks ────────────────────────────────────────────────────
+export { useReducedMotion } from "./hooks/useReducedMotion";
 
 // ─── Dev affordances ──────────────────────────────────────────
 export { TweaksPanel, isDevTweaksEnabled } from "./dev/TweaksPanel";

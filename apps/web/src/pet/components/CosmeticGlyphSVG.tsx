@@ -18,7 +18,7 @@
 // to theme; fills are named hex tints from the prototype so the
 // glyphs keep their hand-drawn character across themes.
 
-import type { CSSProperties } from "react";
+import { memo, type CSSProperties } from "react";
 
 export type Rarity = "common" | "rare" | "epic" | "legendary";
 export type GlyphTone = "full" | "muted";
@@ -711,7 +711,8 @@ function FallbackDisc({
 // Component
 // ─────────────────────────────────────────────────────────────
 
-export function CosmeticGlyphSVG({
+// Phase 13E — memoized; props are all primitives.
+function CosmeticGlyphSVGImpl({
   slug,
   rarity = "common",
   size = 24,
@@ -755,6 +756,10 @@ export function CosmeticGlyphSVG({
     </span>
   );
 }
+
+// Phase 13E — memoized export. All props are primitives, so React's
+// default shallow comparison is enough.
+export const CosmeticGlyphSVG = memo(CosmeticGlyphSVGImpl);
 
 // Test hook: lets a snapshot test enumerate all slugs we have
 // bespoke art for. Not part of the public surface.

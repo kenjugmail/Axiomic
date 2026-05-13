@@ -1,0 +1,1 @@
+CREATE INDEX `activity_user_kind_idx` ON `activity_events` (`user_id`,`kind`);
