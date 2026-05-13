@@ -6,7 +6,7 @@
 // close) rather than reusing the centered Modal because the
 // right-aligned slide is a distinctive part of the prototype's UX.
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import type { CosmeticSlot, PetInventoryItem } from "@axiomic/types";
 import { PetAvatar, type PetAvatarCosmetic } from "./PetAvatar";
@@ -46,13 +46,46 @@ export function CosmeticDetailSheet({
   equipped,
   onToggleEquip,
 }: Props): JSX.Element | null {
+  // Phase 12C — auto-focus the primary action when the sheet
+  // opens, and trap Tab navigation inside the sheet so keyboard
+  // users don't fall through to the page underneath.
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const equipBtnRef = useRef<HTMLButtonElement>(null);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const root = sheetRef.current;
+      if (!root) return;
+      const focusable = root.querySelectorAll<HTMLElement>(
+        'button, [href], input, [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0]!;
+      const last = focusable[focusable.length - 1]!;
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    // Defer initial focus until after the sheet has rendered.
+    const focusTimer = window.setTimeout(() => {
+      equipBtnRef.current?.focus();
+    }, 50);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      window.clearTimeout(focusTimer);
+    };
   }, [open, onClose]);
 
   if (!open || !item) return null;
@@ -78,6 +111,7 @@ export function CosmeticDetailSheet({
         onClick={onClose}
       />
       <aside
+        ref={sheetRef}
         className="relative h-full flex flex-col"
         style={{
           width: "min(440px, 100%)",
@@ -170,6 +204,7 @@ export function CosmeticDetailSheet({
             Close
           </button>
           <button
+            ref={equipBtnRef}
             type="button"
             className="pet-btn primary"
             onClick={() => {

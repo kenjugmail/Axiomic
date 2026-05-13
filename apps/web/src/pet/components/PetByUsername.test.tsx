@@ -20,16 +20,15 @@ function render(node: React.ReactNode): HTMLElement {
 describe("PetByUsername — Phase 10B size contract", () => {
   test("size='sm' produces the 36px fallback initial", () => {
     __clearPetCache();
-    // Before the fetch resolves, PetByUsername renders nothing
-    // (loading state), so it can't produce DOM in SSR. We test the
-    // fallback-initial path by passing an initial: a fallback span
-    // appears with width=36px once `pet` resolves to null. We
-    // can't trigger that resolution in SSR, but we can verify the
-    // module exports the cache-clear helper so tests can isolate.
+    // Phase 12D — loading state now renders a sized placeholder
+    // (instead of null) so forum bylines don't visibly jump when
+    // the fetch resolves. See PetByUsername.placeholder.test.tsx
+    // for the full per-size assertions.
     expect(typeof __clearPetCache).toBe("function");
     const root = render(<PetByUsername username="alice" size="sm" />);
-    // SSR loading state renders no DOM — empty host is expected.
-    expect(root.children.length).toBe(0);
+    const span = root.querySelector("span");
+    expect(span).not.toBeNull();
+    expect(span!.getAttribute("style") ?? "").toContain("width:36px");
   });
 
   test("module exports the symbols pet/index.ts re-exports", async () => {

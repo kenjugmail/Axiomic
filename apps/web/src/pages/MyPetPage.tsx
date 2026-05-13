@@ -105,16 +105,26 @@ export function MyPetPage() {
 
   useEffect(() => {
     if (!user) return;
+    // Phase 12A — guard async setState against unmount.
+    let cancelled = false;
     api.pet.me().then((r) => {
+      if (cancelled) return;
       setData(r);
       setSkinTargetPetId((prev) => {
         if (prev && r.pets.some((p) => p.id === prev)) return prev;
         return r.pet?.id ?? null;
       });
-    }).catch((e) => setError(e?.message ?? "Failed to load"));
-    api.pet.skinShop().then(setSkinShop).catch(() => {
+    }).catch((e) => {
+      if (!cancelled) setError(e?.message ?? "Failed to load");
+    });
+    api.pet.skinShop().then((s) => {
+      if (!cancelled) setSkinShop(s);
+    }).catch(() => {
       // ignore — section just hides the locked tiles
     });
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
   // Phase L — skin equip/buy.

@@ -88,9 +88,25 @@ export function PetByUsername({
     };
   }, [username]);
 
-  // Loading: render nothing. Page text already shows the username,
-  // pet just floats in alongside when ready.
-  if (pet === undefined) return null;
+  // Phase 12D — loading state renders a sized placeholder so the
+  // surrounding row (forum byline, profile chip, etc.) reserves the
+  // pet's footprint and doesn't visibly jump when the fetch resolves.
+  if (pet === undefined) {
+    const px = FALLBACK_PX[size];
+    return (
+      <span
+        className={className}
+        aria-hidden="true"
+        style={{
+          display: "inline-block",
+          width: px,
+          height: px,
+          borderRadius: "9999px",
+          background: "color-mix(in oklab, var(--ink-4) 10%, transparent)",
+        }}
+      />
+    );
+  }
 
   if (!pet) {
     if (!fallbackInitial) return null;

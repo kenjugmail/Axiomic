@@ -41,9 +41,20 @@ export function InventoryPage(): JSX.Element {
 
   useEffect(() => {
     if (!user) return;
+    // Phase 12A — cancel-on-unmount guard so navigating away
+    // during the in-flight /me/pet doesn't fire setData on an
+    // unmounted component.
+    let cancelled = false;
     api.pet.me()
-      .then(setData)
-      .catch((e) => setError(e?.message ?? "Failed to load"));
+      .then((r) => {
+        if (!cancelled) setData(r);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(e?.message ?? "Failed to load");
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
   const reload = async () => {
@@ -199,43 +210,53 @@ export function InventoryPage(): JSX.Element {
         </select>
       </div>
 
-      <FilterChips<SlotFilter>
-        label="Slot"
-        value={slot}
-        onChange={setSlot}
-        options={[
-          { value: "all", label: "All" },
-          { value: "head", label: "Head" },
-          { value: "eyes", label: "Eyes" },
-          { value: "accessory", label: "Accessory" },
-          { value: "skin", label: "Skins" },
-        ]}
-      />
-      <FilterChips<RarityFilter>
-        label="Rarity"
-        value={rarity}
-        onChange={setRarity}
-        options={[
-          { value: "all", label: "All" },
-          { value: "common", label: "Common" },
-          { value: "rare", label: "Rare" },
-          { value: "epic", label: "Epic" },
-          { value: "legendary", label: "Legendary" },
-        ]}
-      />
-      <FilterChips<SourceFilter>
-        label="Source"
-        value={source}
-        onChange={setSource}
-        options={[
-          { value: "all", label: "All" },
-          { value: "xp", label: "XP shop" },
-          { value: "grant", label: "Granted" },
-        ]}
-      />
+      {/* Phase 12E — wrap each FilterChips row in a min-height
+          container so toggling a chip doesn't reflow the grid
+          below when the wrapped pill bar changes row count.
+          Single-row baseline is 32 px (one pill + the label). */}
+      <div style={{ minHeight: 32 }}>
+        <FilterChips<SlotFilter>
+          label="Slot"
+          value={slot}
+          onChange={setSlot}
+          options={[
+            { value: "all", label: "All" },
+            { value: "head", label: "Head" },
+            { value: "eyes", label: "Eyes" },
+            { value: "accessory", label: "Accessory" },
+            { value: "skin", label: "Skins" },
+          ]}
+        />
+      </div>
+      <div style={{ minHeight: 32 }}>
+        <FilterChips<RarityFilter>
+          label="Rarity"
+          value={rarity}
+          onChange={setRarity}
+          options={[
+            { value: "all", label: "All" },
+            { value: "common", label: "Common" },
+            { value: "rare", label: "Rare" },
+            { value: "epic", label: "Epic" },
+            { value: "legendary", label: "Legendary" },
+          ]}
+        />
+      </div>
+      <div style={{ minHeight: 32 }}>
+        <FilterChips<SourceFilter>
+          label="Source"
+          value={source}
+          onChange={setSource}
+          options={[
+            { value: "all", label: "All" },
+            { value: "xp", label: "XP shop" },
+            { value: "grant", label: "Granted" },
+          ]}
+        />
+      </div>
 
       <div
-        className="text-xs my-3"
+        className="text-xs my-3 tabular-nums"
         style={{ color: "var(--ink-3)" }}
       >
         Showing {visibleCount} of {total} {showingSkins ? "skins" : "owned"}

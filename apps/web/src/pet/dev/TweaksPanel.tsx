@@ -102,7 +102,10 @@ export function TweaksPanel(): JSX.Element | null {
           position: "fixed",
           right: 16,
           bottom: 16,
-          zIndex: 2147483646,
+          // Phase 12G — sit BELOW modals (z-50 in this app) and
+          // toasts (z-60) so the panel doesn't bleed over the
+          // foreground when dev users replay moment modals.
+          zIndex: 40,
           padding: "6px 10px",
           borderRadius: 999,
           background: "rgba(250,249,247,.78)",
@@ -127,7 +130,10 @@ export function TweaksPanel(): JSX.Element | null {
           position: "fixed",
           right: 16,
           bottom: 16,
-          zIndex: 2147483646,
+          // Phase 12G — sit BELOW modals (z-50 in this app) and
+          // toasts (z-60) so the panel doesn't bleed over the
+          // foreground when dev users replay moment modals.
+          zIndex: 40,
           width: 280,
           maxHeight: "calc(100vh - 32px)",
           display: "flex",
