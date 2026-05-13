@@ -354,6 +354,11 @@ export const activityEvents = sqliteTable(
   },
   (t) => ({
     userDayIdx: index("activity_user_day_idx").on(t.userId, t.day),
+    // Phase 15F — covers `WHERE user_id = ? AND kind = ?` filters
+    // hit by achievement predicates, currentStreak's pet-kind
+    // exclusion, and the heatmap query. Phase 14D widened the table
+    // with 9 pet kinds so this seek path matters more.
+    userKindIdx: index("activity_user_kind_idx").on(t.userId, t.kind),
   }),
 );
 

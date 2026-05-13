@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { and, count, eq, gte, sql } from "drizzle-orm";
+import { and, count, eq, gte, notInArray, sql } from "drizzle-orm";
 import {
   activityEvents,
   flashcards,
@@ -15,6 +15,11 @@ import {
 // S92 — local lazy reference to the notification helper so an
 // achievement reward grant surfaces in the user's bell.
 import { notify } from "./notifications";
+// Phase 15A — pet-engagement kinds are written to activity_events
+// for the profile heatmap (Phase 14D) but they should NOT extend
+// the daily learning streak. Filter them out at query time wherever
+// "activity = learning" is the intended signal.
+import { PET_ACTIVITY_KINDS } from "./petActivity";
 
 // Hardcoded achievement catalog. Adding one is one entry here + one
 // `predicate` that knows how to detect when it's earned. We deliberately
@@ -103,11 +108,20 @@ function countCompletedAtLevel(db: Db, userId: string, pathSlug: string, level: 
 // number of consecutive trailing days (today, yesterday, ...) on which
 // the user logged at least one activity event. We compute it by reading
 // the distinct day keys and walking backward from today's UTC date.
+//
+// Phase 15A — pet-engagement events (equipping cosmetics, renaming,
+// hatching another) are written to activity_events for the profile
+// heatmap but are excluded here. Streaks track learning effort only.
 export function currentStreak(db: Db, userId: string): number {
   const rows = db
     .selectDistinct({ day: activityEvents.day })
     .from(activityEvents)
-    .where(eq(activityEvents.userId, userId))
+    .where(
+      and(
+        eq(activityEvents.userId, userId),
+        notInArray(activityEvents.kind, [...PET_ACTIVITY_KINDS]),
+      ),
+    )
     .all();
   const days = new Set(rows.map((r) => r.day));
   let streak = 0;
@@ -385,11 +399,19 @@ export function activityHeatmap(userId: string, days: number, db: Db = getDb()):
   cutoff.setUTCDate(cutoff.getUTCDate() - (days - 1));
   const cutoffKey = cutoff.toISOString().slice(0, 10);
 
+  // Phase 15A — exclude pet-engagement kinds. The heatmap is a
+  // learning signal; equipping cosmetics doesn't count as a green
+  // square. Comment-only Phase 14D would have hit this had we
+  // surfaced the comment as a runtime filter then.
   const rows = db
     .select({ day: activityEvents.day, n: count() })
     .from(activityEvents)
     .where(
-      and(eq(activityEvents.userId, userId), gte(activityEvents.day, cutoffKey)),
+      and(
+        eq(activityEvents.userId, userId),
+        gte(activityEvents.day, cutoffKey),
+        notInArray(activityEvents.kind, [...PET_ACTIVITY_KINDS]),
+      ),
     )
     .groupBy(activityEvents.day)
     .all();

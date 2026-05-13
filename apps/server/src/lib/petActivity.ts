@@ -21,6 +21,22 @@ export type PetActivityKind =
   | "pet_hatch_another"
   | "pet_activate";
 
+// Phase 15A — single source of truth for "which activity kinds are
+// pet-engagement (and should NOT count toward learning streak +
+// heatmap)". currentStreak + activityHeatmap import this set to
+// filter the relevant rows out at query time.
+export const PET_ACTIVITY_KINDS: readonly PetActivityKind[] = [
+  "pet_equip",
+  "pet_unequip",
+  "pet_buy_cosmetic",
+  "pet_buy_skin",
+  "pet_skin_equip",
+  "pet_skin_unequip",
+  "pet_rename",
+  "pet_hatch_another",
+  "pet_activate",
+] as const;
+
 // Records a pet-engagement event. The optional ref slug is logged
 // for debugging but not persisted — the activity_events.kind column
 // is the only signal the heatmap reads.

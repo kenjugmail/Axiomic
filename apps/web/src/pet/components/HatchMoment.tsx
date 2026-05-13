@@ -12,6 +12,11 @@ import { useReducedMotion } from "../hooks/useReducedMotion";
 
 type Phase = "egg" | "crack" | "reveal";
 
+// Phase 15E — stable empty-equipped reference so PetAvatar's
+// React.memo (Phase 13E) doesn't bust on every parent render
+// from a freshly-allocated inline `{}`.
+const NO_COSMETICS = {} as const;
+
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -111,7 +116,7 @@ export function HatchMoment({ open, onClose, pet, onCommit }: Props): JSX.Elemen
           >
             <PetAvatar
               size={160}
-              equipped={{}}
+              equipped={NO_COSMETICS}
               showCosmetics={false}
               ariaLabel="A pet egg, hatching"
             />
@@ -127,7 +132,7 @@ export function HatchMoment({ open, onClose, pet, onCommit }: Props): JSX.Elemen
             <PetAvatar
               species={pet.species}
               level={1}
-              equipped={{}}
+              equipped={NO_COSMETICS}
               size={160}
               showCosmetics={false}
               ariaLabel={`Your ${pet.speciesLabel}`}

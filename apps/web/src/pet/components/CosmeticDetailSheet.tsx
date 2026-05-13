@@ -53,6 +53,11 @@ export function CosmeticDetailSheet({
   // users don't fall through to the page underneath.
   const sheetRef = useRef<HTMLDivElement>(null);
   const equipBtnRef = useRef<HTMLButtonElement>(null);
+  // Phase 15D — capture whichever element had focus before the
+  // sheet opened so we can restore focus to it on close. Keyboard
+  // users land back on the inventory tile they invoked the sheet
+  // from instead of dropping to document.body.
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
   // Phase 13D — suppress inline scrim + sheet-in animations under
   // prefers-reduced-motion.
   const reduceMotion = useReducedMotion();
@@ -63,6 +68,11 @@ export function CosmeticDetailSheet({
 
   useEffect(() => {
     if (!open) return;
+    // Phase 15D — remember the previously-focused element BEFORE
+    // we shift focus to the Equip button.
+    const active = document.activeElement;
+    previouslyFocusedRef.current =
+      active instanceof HTMLElement ? active : null;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Tab") return;
       const root = sheetRef.current;
@@ -73,11 +83,11 @@ export function CosmeticDetailSheet({
       if (focusable.length === 0) return;
       const first = focusable[0]!;
       const last = focusable[focusable.length - 1]!;
-      const active = document.activeElement as HTMLElement | null;
-      if (e.shiftKey && active === first) {
+      const inside = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && inside === first) {
         e.preventDefault();
         last.focus();
-      } else if (!e.shiftKey && active === last) {
+      } else if (!e.shiftKey && inside === last) {
         e.preventDefault();
         first.focus();
       }
@@ -90,6 +100,17 @@ export function CosmeticDetailSheet({
     return () => {
       document.removeEventListener("keydown", onKey);
       window.clearTimeout(focusTimer);
+      // Phase 15D — restore focus on close / unmount. Guard the
+      // restore so we don't yank focus from whatever the user has
+      // since clicked into.
+      const target = previouslyFocusedRef.current;
+      previouslyFocusedRef.current = null;
+      if (target && document.contains(target)) {
+        // If the user already moved focus elsewhere we leave it.
+        if (document.activeElement === document.body) {
+          target.focus();
+        }
+      }
     };
   }, [open, onClose]);
 

@@ -85,6 +85,16 @@ describe("Phase 14E — /me/pet ETag", () => {
     expect(etag).toMatch(/^"[a-f0-9]{16}"$/);
   });
 
+  test("Phase 15B — Cache-Control: must-revalidate is set", async () => {
+    const me = await signup("cc");
+    const res = await req("/me/pet", { headers: cookieHeader(me.cookie) });
+    expect(res.status).toBe(200);
+    const cc = res.headers.get("cache-control");
+    expect(cc).toBeTruthy();
+    expect(cc!.toLowerCase()).toContain("must-revalidate");
+    expect(cc!.toLowerCase()).toContain("private");
+  });
+
   test("second GET with matching If-None-Match returns 304", async () => {
     const me = await signup("match");
     const r1 = await req("/me/pet", { headers: cookieHeader(me.cookie) });

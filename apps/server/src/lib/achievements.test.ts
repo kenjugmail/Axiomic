@@ -18,7 +18,7 @@ import {
   activityEvents,
   forumTopics,
 } from "@axiomic/db";
-import { evaluateAchievements, recordActivity } from "./achievements";
+import { activityHeatmap, currentStreak, evaluateAchievements, recordActivity } from "./achievements";
 
 let testRun = "";
 beforeAll(() => {
@@ -197,5 +197,69 @@ describe("evaluateAchievements grants skin rewards (Phase M)", () => {
       .all();
     // first_steps has no rewardSkinSlug — inventory stays empty.
     expect(skinInv.length).toBe(0);
+  });
+});
+
+// Phase 15A — pet-engagement kinds are recorded in activity_events
+// for the profile heatmap, but they must NOT extend the learning
+// streak or fill the heatmap. Equipping a hat is engagement, not
+// effort.
+describe("currentStreak + activityHeatmap exclude pet kinds (Phase 15A)", () => {
+  const db = getDb();
+  test("a user with only pet_equip events has streak=0", () => {
+    const u = makeUser("petStreak");
+    const today = new Date().toISOString().slice(0, 10);
+    db.insert(activityEvents).values({
+      id: randomUUID(),
+      userId: u,
+      kind: "pet_equip",
+      day: today,
+    }).run();
+    expect(currentStreak(db, u)).toBe(0);
+  });
+
+  test("a user with pet_equip + node_completed today has streak=1", () => {
+    const u = makeUser("petPlusLearn");
+    const today = new Date().toISOString().slice(0, 10);
+    db.insert(activityEvents).values({
+      id: randomUUID(),
+      userId: u,
+      kind: "pet_equip",
+      day: today,
+    }).run();
+    db.insert(activityEvents).values({
+      id: randomUUID(),
+      userId: u,
+      kind: "node_completed",
+      day: today,
+    }).run();
+    expect(currentStreak(db, u)).toBe(1);
+  });
+
+  test("activityHeatmap excludes pet kinds in the day count", () => {
+    const u = makeUser("petHeat");
+    const today = new Date().toISOString().slice(0, 10);
+    // 2 pet events + 1 real event — count should be 1.
+    db.insert(activityEvents).values({
+      id: randomUUID(),
+      userId: u,
+      kind: "pet_buy_cosmetic",
+      day: today,
+    }).run();
+    db.insert(activityEvents).values({
+      id: randomUUID(),
+      userId: u,
+      kind: "pet_skin_equip",
+      day: today,
+    }).run();
+    db.insert(activityEvents).values({
+      id: randomUUID(),
+      userId: u,
+      kind: "quiz_passed",
+      day: today,
+    }).run();
+    const heatmap = activityHeatmap(u, 7, db);
+    const todayCell = heatmap.find((c) => c.day === today);
+    expect(todayCell?.count).toBe(1);
   });
 });

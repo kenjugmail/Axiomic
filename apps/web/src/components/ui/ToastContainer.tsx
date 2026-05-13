@@ -11,7 +11,7 @@ export function ToastContainer() {
   if (toasts.length === 0) return null;
   return (
     <div
-      className="fixed z-[60] flex flex-col gap-2 pointer-events-none inset-x-0 bottom-4 px-3 items-center sm:items-end sm:right-4 sm:left-auto sm:bottom-4 sm:px-0"
+      className="fixed z-40 flex flex-col gap-2 pointer-events-none inset-x-0 bottom-4 px-3 items-center sm:items-end sm:right-4 sm:left-auto sm:bottom-4 sm:px-0"
       aria-label="Notifications"
     >
       {toasts.map((t) => (

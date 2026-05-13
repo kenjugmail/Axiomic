@@ -441,8 +441,15 @@ petRouter.get("/", requireAuth, (c) => {
   // ~30-45 KB and is fetched on every page load. Hashing the
   // serialized body (cheap SHA-1, truncated to 16 hex chars) lets
   // the client get a 304 when nothing changed.
+  //
+  // Phase 15B — Cache-Control: private, must-revalidate, max-age=0.
+  // Without this, the browser HTTP cache treats /me/pet as
+  // non-cacheable and never auto-attaches If-None-Match on the
+  // next fetch(). must-revalidate forces a conditional GET on
+  // every read so the 304 path actually fires end-to-end.
   const serialized = JSON.stringify(body);
   const etag = `"${createHash("sha1").update(serialized).digest("hex").slice(0, 16)}"`;
+  c.header("Cache-Control", "private, must-revalidate, max-age=0");
   const ifNoneMatch = c.req.header("if-none-match");
   if (ifNoneMatch && ifNoneMatch === etag) {
     c.header("ETag", etag);
