@@ -55,6 +55,9 @@ export { ConfirmDialog } from "./components/ConfirmDialog";
 export { RenameMomentModal } from "./components/RenameMomentModal";
 export { SwitchPetModal } from "./components/SwitchPetModal";
 
+// ─── Hooks ────────────────────────────────────────────────────
+export { useReducedMotion } from "./hooks/useReducedMotion";
+
 // ─── Dev affordances ──────────────────────────────────────────
 export { TweaksPanel, isDevTweaksEnabled } from "./dev/TweaksPanel";
 export {

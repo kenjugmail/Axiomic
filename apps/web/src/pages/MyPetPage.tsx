@@ -14,6 +14,7 @@ import { Skeleton } from "../components/ui";
 import {
   PetAvatar,
   PetSilhouetteSVG,
+  PetSVG,
   EvolutionChain,
   SkinTile,
   PetActionsRow,
@@ -44,6 +45,7 @@ export function MyPetPage() {
   const [petAction, triggerAction] = usePetAction();
   const [renameOpen, setRenameOpen] = useState(false);
   const [switchOpen, setSwitchOpen] = useState(false);
+  const [hatchingAnother, setHatchingAnother] = useState(false);
 
   // Phase M — listen for pet_hatched notifications and pop the burst.
   useLiveEvents({
@@ -68,6 +70,22 @@ export function MyPetPage() {
   };
 
   // Phase 9 — inline cosmetic picker: click a tile to equip; click
+  // Phase 11E — single-pet users see the "Hatch another" CTA in
+  // the action row; this handler fires the hatch + reload.
+  const hatchAnotherPet = async () => {
+    if (hatchingAnother) return;
+    setHatchingAnother(true);
+    try {
+      const r = await api.pet.hatchAnother();
+      toast.success(`Hatched a ${r.pet?.species ?? "new pet"}!`);
+      await reload();
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Couldn't hatch");
+    } finally {
+      setHatchingAnother(false);
+    }
+  };
+
   // an already-equipped tile to take it off. Reload after each
   // mutation so the pet hero updates immediately.
   const toggleEquip = async (item: PetInventoryItem) => {
@@ -294,8 +312,9 @@ export function MyPetPage() {
                   Active pet
                 </div>
                 <h2
-                  className="font-display text-3xl font-semibold mt-1"
+                  className="font-display text-3xl font-semibold mt-1 truncate"
                   style={{ letterSpacing: "-0.015em" }}
+                  title={pet.name || pet.speciesLabel}
                 >
                   {pet.name || pet.speciesLabel}
                 </h2>
@@ -401,25 +420,81 @@ export function MyPetPage() {
                 <button
                   type="button"
                   className="pet-btn ghost"
-                  onClick={() => setSwitchOpen(true)}
-                  disabled={data.pets.length < 2}
-                  title={data.pets.length < 2 ? "Hatch another pet to switch" : "Switch which pet is active"}
+                  onClick={() => {
+                    // Phase 11E — for single-pet users this button
+                    // triggers the hatch-another flow directly
+                    // rather than opening the (empty) switch modal.
+                    if (data.pets.length < 2) {
+                      hatchAnotherPet();
+                    } else {
+                      setSwitchOpen(true);
+                    }
+                  }}
+                  disabled={hatchingAnother}
+                  title={
+                    data.pets.length < 2
+                      ? "Hatch another pet (costs nothing — pets share your XP)"
+                      : "Switch which pet is active"
+                  }
                 >
-                  Switch active pet
+                  {data.pets.length < 2 ? "Hatch another" : "Switch active pet"}
                 </button>
               </div>
             </div>
           </div>
         </section>
       ) : (
-        // Defensive fallback while auto-hatch is still finishing.
-        <div className="rounded-lg border border-dashed border-border p-6 mb-8 text-center">
-          <Egg className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
-          <p className="text-sm font-medium">Hatching your pet…</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Refresh if your pet doesn't appear in a moment.
-          </p>
-        </div>
+        // Phase 11C — aspirational first-run state. Replaces the
+        // bare "Hatching..." fallback with a welcome card that gives
+        // new users somewhere to go while the auto-hatch finishes.
+        <section
+          className="rounded-2xl border mb-8 overflow-hidden"
+          style={{
+            borderColor: "var(--line)",
+            background: "var(--bg-elev)",
+          }}
+        >
+          <div className="px-8 py-10 grid items-center gap-8 sm:grid-cols-[auto_1fr]">
+            <div
+              className="pet-stage"
+              style={{ width: 140, height: 140 }}
+              role="img"
+              aria-label="Your egg, about to hatch"
+            >
+              <div className="pet" style={{ width: 110, height: 110 }}>
+                <PetSVG species={undefined} level={1} size={110} />
+              </div>
+            </div>
+            <div className="min-w-0">
+              <div
+                className="text-[11px] font-semibold tracking-widest uppercase mb-1"
+                style={{ color: "var(--ink-3)" }}
+              >
+                Welcome
+              </div>
+              <h2 className="font-display text-2xl font-semibold leading-tight">
+                Your egg is almost ready
+              </h2>
+              <p
+                className="mt-2 text-sm max-w-md"
+                style={{ color: "var(--ink-2)" }}
+              >
+                Pets auto-hatch a moment after signup. If you don't see
+                yours yet, refresh in a few seconds — sometimes the egg
+                takes its time.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-2">
+                <Link to="/paths" className="pet-btn primary">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Earn your first XP
+                </Link>
+                <Link to="/explore/pets" className="pet-btn ghost">
+                  See community pets
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
       )}
 
       {/* Where your pet appears — sizes preview. */}
@@ -668,7 +743,11 @@ export function MyPetPage() {
                       >
                         <PetSilhouetteSVG species={p.species} level={p.level} />
                       </span>
-                      <span className="font-medium">
+                      <span
+                        className="font-medium truncate"
+                        style={{ maxWidth: 110 }}
+                        title={p.name || p.speciesLabel}
+                      >
                         {p.name || p.speciesLabel}
                       </span>
                       {p.isActive && (

@@ -952,11 +952,44 @@
   border-color: var(--line-strong);
   transform: translateY(-1px);
 }
+/* Phase 11D — focus ring parity with .cos-tile. */
+.skin-tile:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 .skin-tile.equipped {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent) 22%, transparent);
 }
 .skin-tile.unowned { opacity: .55; }
+/* Phase 11D — legendary foil-spin animation parity with .cos-tile.
+   Owned legendary skins get a slowly-rotating soft glow that
+   matches the cosmetic-tile signal. */
+.skin-tile.legendary:not(.unowned)::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    color-mix(in oklab, var(--r-legendary) 22%, transparent) 60deg,
+    transparent 120deg,
+    transparent 240deg,
+    color-mix(in oklab, var(--r-legendary) 16%, transparent) 300deg,
+    transparent 360deg
+  );
+  pointer-events: none;
+  animation: skin-foil-spin 8s linear infinite;
+  z-index: 0;
+}
+.skin-tile.legendary:not(.unowned) > * {
+  position: relative;
+  z-index: 1;
+}
+@keyframes skin-foil-spin {
+  to { transform: rotate(360deg); }
+}
 .skin-tile .skin-corner {
   position: absolute;
   top: 6px; right: 8px;

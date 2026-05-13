@@ -129,8 +129,18 @@ export function PetByUsername({
   };
   const px = FALLBACK_PX[size];
 
+  // Phase 11F — title shows pet name + species on hover so the
+  // byline communicates context at small sizes.
+  const tooltip = pet.name
+    ? `${pet.name}, ${username}'s ${pet.species}`
+    : `${username}'s ${pet.species}`;
+
   return (
-    <span className={className} style={{ display: "inline-block" }}>
+    <span
+      className={className}
+      style={{ display: "inline-block" }}
+      title={tooltip}
+    >
       <PetAvatar
         species={pet.species}
         level={pet.level}
