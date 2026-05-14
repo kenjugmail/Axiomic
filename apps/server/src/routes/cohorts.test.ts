@@ -131,6 +131,47 @@ describe("Sprint 43 — cohorts", () => {
     });
     expect(r2.status).toBe(409);
   });
+
+  // ----- Phase 17C — activity feed -----
+
+  test("activity endpoint 404s on unknown cohort", async () => {
+    const r = await req("/cohorts/totally-not-a-real-cohort-slug/activity");
+    expect(r.status).toBe(404);
+  });
+
+  test("activity endpoint surfaces recent member joins", async () => {
+    const owner = await signup("ac1");
+    const slug = `cohort-ac1-${testId}`;
+    const create = await req("/cohorts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(owner.cookie) },
+      body: JSON.stringify({
+        slug,
+        name: "Activity feed test cohort",
+        description: "for testing the activity feed",
+        visibility: "open",
+      }),
+    });
+    expect(create.status).toBe(201);
+
+    const joiner = await signup("ac2");
+    const joinRes = await req(`/cohorts/${slug}/join`, {
+      method: "POST",
+      headers: cookieHeader(joiner.cookie),
+    });
+    expect([200, 201]).toContain(joinRes.status);
+
+    const activity = await req(`/cohorts/${slug}/activity`);
+    expect(activity.status).toBe(200);
+    const body = (await activity.json()) as {
+      events: Array<{ kind: string; actorUsername: string }>;
+    };
+    // Both creator and joiner produce "joined" rows when created within
+    // the 30-day window.
+    const joins = body.events.filter((e) => e.kind === "joined");
+    const usernames = new Set(joins.map((e) => e.actorUsername));
+    expect(usernames.has(joiner.username)).toBe(true);
+  });
 });
 
 describe("Sprint 43 — mentor relationships", () => {

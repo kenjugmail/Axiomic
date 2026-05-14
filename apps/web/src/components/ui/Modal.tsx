@@ -1,8 +1,19 @@
+import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { cn } from "../../lib/cn";
 import { useEscapeStack } from "../../hooks/useEscapeStack";
 
 type Size = "sm" | "md" | "lg" | "xl";
+
+// Phase 17B — return-focus + Tab cycling helpers.
+const FOCUSABLE_SELECTOR =
+  "a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex=\"-1\"])";
+
+function getFocusable(root: HTMLElement): HTMLElement[] {
+  return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+    (el) => !el.hasAttribute("data-focus-trap-sentinel"),
+  );
+}
 
 const SIZE: Record<Size, string> = {
   sm: "max-w-sm",
@@ -46,6 +57,66 @@ export function Modal({
   // sheet + modal combo from both closing on a single Escape.
   useEscapeStack(open, onClose);
 
+  // Phase 17B — focus trap + return-focus. On open we capture the
+  // currently focused element (the trigger), move focus into the
+  // dialog, and cycle Tab/Shift+Tab between the first and last
+  // focusable controls. On close we hand focus back to the trigger
+  // so keyboard users don't lose their place.
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    triggerRef.current = (document.activeElement as HTMLElement) ?? null;
+    const panel = panelRef.current;
+    if (panel) {
+      const focusables = getFocusable(panel);
+      const target = focusables[0] ?? panel;
+      // Defer one frame so the modal's children have mounted before
+      // we measure focusables. Without this we sometimes focus the
+      // empty container.
+      requestAnimationFrame(() => target.focus());
+    }
+    return () => {
+      const t = triggerRef.current;
+      // Some triggers unmount (e.g., a tile that re-renders). Guard
+      // against focusing a detached node.
+      if (t && document.body.contains(t)) {
+        t.focus();
+      }
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      const panel = panelRef.current;
+      if (!panel) return;
+      const focusables = getFocusable(panel);
+      if (focusables.length === 0) {
+        e.preventDefault();
+        return;
+      }
+      const first = focusables[0]!;
+      const last = focusables[focusables.length - 1]!;
+      const active = document.activeElement;
+      if (e.shiftKey) {
+        if (active === first || !panel.contains(active)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (active === last || !panel.contains(active)) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
+
   if (!open) return null;
 
   return (
@@ -62,8 +133,10 @@ export function Modal({
         onClick={onClose}
       />
       <div
+        ref={panelRef}
+        tabIndex={-1}
         className={cn(
-          "relative w-full bg-card border border-border rounded-xl shadow-floating overflow-hidden flex flex-col max-h-[88vh] animate-fade-in",
+          "relative w-full bg-card border border-border rounded-xl shadow-floating overflow-hidden flex flex-col max-h-[88vh] animate-fade-in focus:outline-none",
           SIZE[size],
         )}
         role="dialog"

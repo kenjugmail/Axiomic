@@ -659,8 +659,14 @@ export const api = {
         body: JSON.stringify({ value }),
       }),
     // Phase 16C — admin queue + moderation actions.
-    moderateQueue: () =>
-      request<{
+    // Phase 17A — cursor pagination so the page doesn't load the
+    // entire backlog into memory at once.
+    moderateQueue: (params?: { cursor?: string; limit?: number }) => {
+      const sp = new URLSearchParams();
+      if (params?.cursor) sp.set("cursor", params.cursor);
+      if (params?.limit) sp.set("limit", String(params.limit));
+      const qs = sp.toString();
+      return request<{
         submissions: Array<{
           id: string;
           conceptSlug: string;
@@ -674,7 +680,10 @@ export const api = {
           createdAt: string;
           decidedAt: string | null;
         }>;
-      }>("/misconceptions/moderate/queue"),
+        hasMore: boolean;
+        nextCursor: string | null;
+      }>(`/misconceptions/moderate/queue${qs ? `?${qs}` : ""}`);
+    },
     moderate: (id: string, action: "approve" | "reject") =>
       request<{ status: string; catalogId: string | null }>(
         `/misconceptions/${id}/moderate`,

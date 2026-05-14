@@ -296,7 +296,9 @@ describe("Sprint 38 — misconception marketplace", () => {
       .where(eq(users.id, adminId))
       .run();
 
-    const queueRes = await req("/misconceptions/moderate/queue", {
+    // Use the max page size so we don't get filtered to the start of
+    // a long backlog when other tests have seeded data.
+    const queueRes = await req("/misconceptions/moderate/queue?limit=200", {
       headers: cookieHeader(adminCookie),
     });
     expect(queueRes.status).toBe(200);
@@ -323,6 +325,62 @@ describe("Sprint 38 — misconception marketplace", () => {
       .get();
     expect(row?.status).toBe("merged");
     expect(row?.decidedBy).toBe(adminId);
+  });
+
+  test("moderator queue paginates via limit + cursor", async () => {
+    // Seed 3 open submissions from distinct proposers, then query
+    // with limit=2 and walk the cursor.
+    const distinct = ["q1", "q2", "q3"];
+    for (const tag of distinct) {
+      const proposer = await signup(`page${tag}`);
+      const res = await req("/misconceptions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(proposer.cookie) },
+        body: JSON.stringify({
+          conceptSlug: `mp-page-${tag}-${testId}`,
+          key: `mp-page-${tag}-${testId}`,
+          label: `Pagination test misconception ${tag}`,
+          description:
+            `One more proposal so we can walk the moderator queue cursor across pages. Forty plus chars. ${tag}`,
+        }),
+      });
+      expect(res.status).toBe(201);
+    }
+
+    const { cookie: adminCookie, userId: adminId } = await signup("admpag");
+    getDb()
+      .update(users)
+      .set({ role: "admin" })
+      .where(eq(users.id, adminId))
+      .run();
+
+    const firstRes = await req(
+      "/misconceptions/moderate/queue?limit=2",
+      { headers: cookieHeader(adminCookie) },
+    );
+    expect(firstRes.status).toBe(200);
+    const first = (await firstRes.json()) as {
+      submissions: Array<{ id: string }>;
+      hasMore: boolean;
+      nextCursor: string | null;
+    };
+    expect(first.submissions.length).toBe(2);
+    expect(first.hasMore).toBe(true);
+    expect(first.nextCursor).toBeTruthy();
+
+    const secondRes = await req(
+      `/misconceptions/moderate/queue?limit=2&cursor=${encodeURIComponent(first.nextCursor!)}`,
+      { headers: cookieHeader(adminCookie) },
+    );
+    expect(secondRes.status).toBe(200);
+    const second = (await secondRes.json()) as {
+      submissions: Array<{ id: string }>;
+    };
+    // Second page must not repeat first page's rows.
+    const firstIds = new Set(first.submissions.map((s) => s.id));
+    for (const s of second.submissions) {
+      expect(firstIds.has(s.id)).toBe(false);
+    }
   });
 
   test("reject decision flips status without writing to the catalog", async () => {

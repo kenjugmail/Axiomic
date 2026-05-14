@@ -8,9 +8,12 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { and, desc, eq, ne, or, sql } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, ne, or, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import {
+  capstoneEnrollments,
+  capstoneMilestones,
+  capstoneSubmissions,
   capstones,
   cohortInvitations,
   cohortMembers,
@@ -181,6 +184,147 @@ cohortsRouter.get("/:slug", async (c) => {
       createdAt: row.createdAt,
     },
   });
+});
+
+// Phase 17C — Cohort activity feed. Aggregates "things members did"
+// from existing tables (no new schema): recent cohort joins, recent
+// capstone submissions, recent capstone completions. Sorted desc by
+// timestamp, capped to 50 events.
+cohortsRouter.get("/:slug/activity", async (c) => {
+  const slug = c.req.param("slug")!;
+  const db = getDb();
+  const cohort = db
+    .select({ id: cohorts.id })
+    .from(cohorts)
+    .where(eq(cohorts.slug, slug))
+    .get();
+  if (!cohort) return c.json({ error: "Cohort not found" }, 404);
+
+  const members = db
+    .select({
+      userId: cohortMembers.userId,
+      joinedAt: cohortMembers.joinedAt,
+      username: users.username,
+    })
+    .from(cohortMembers)
+    .innerJoin(users, eq(cohortMembers.userId, users.id))
+    .where(eq(cohortMembers.cohortId, cohort.id))
+    .all();
+
+  type ActivityEvent =
+    | {
+        kind: "joined";
+        ts: string;
+        actorUsername: string;
+        refSlug: null;
+        refTitle: null;
+      }
+    | {
+        kind: "submitted_milestone" | "completed_capstone";
+        ts: string;
+        actorUsername: string;
+        refSlug: string;
+        refTitle: string;
+      };
+
+  const events: ActivityEvent[] = [];
+
+  // Joins from this cohort, last 30 days.
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    .toISOString();
+  for (const m of members) {
+    if (m.joinedAt < thirtyDaysAgo) continue;
+    events.push({
+      kind: "joined",
+      ts: m.joinedAt,
+      actorUsername: m.username,
+      refSlug: null,
+      refTitle: null,
+    });
+  }
+
+  // Capstone submissions + completions by these members. Bulk pull
+  // each in one query keyed on userId set.
+  const memberIds = members.map((m) => m.userId);
+  const usernameByUserId = new Map(members.map((m) => [m.userId, m.username]));
+
+  if (memberIds.length > 0) {
+    // Completed capstones: capstoneEnrollments rows with completedAt
+    // not null, joined to capstones for the title.
+    const completions = db
+      .select({
+        userId: capstoneEnrollments.userId,
+        completedAt: capstoneEnrollments.completedAt,
+        capstoneSlug: capstones.slug,
+        capstoneTitle: capstones.title,
+      })
+      .from(capstoneEnrollments)
+      .innerJoin(capstones, eq(capstoneEnrollments.capstoneId, capstones.id))
+      .where(
+        and(
+          inArray(capstoneEnrollments.userId, memberIds),
+          sql`${capstoneEnrollments.completedAt} IS NOT NULL`,
+          gt(capstoneEnrollments.completedAt, thirtyDaysAgo),
+        ),
+      )
+      .all();
+    for (const r of completions) {
+      if (!r.completedAt) continue;
+      const actor = usernameByUserId.get(r.userId);
+      if (!actor) continue;
+      events.push({
+        kind: "completed_capstone",
+        ts: r.completedAt,
+        actorUsername: actor,
+        refSlug: r.capstoneSlug,
+        refTitle: r.capstoneTitle,
+      });
+    }
+
+    // Passed milestone submissions: join through enrollments + capstones
+    // + milestones to expose the milestone title.
+    const submissions = db
+      .select({
+        userId: capstoneEnrollments.userId,
+        submittedAt: capstoneSubmissions.submittedAt,
+        capstoneSlug: capstones.slug,
+        milestoneTitle: capstoneMilestones.title,
+        status: capstoneSubmissions.status,
+      })
+      .from(capstoneSubmissions)
+      .innerJoin(
+        capstoneEnrollments,
+        eq(capstoneSubmissions.enrollmentId, capstoneEnrollments.id),
+      )
+      .innerJoin(capstones, eq(capstoneEnrollments.capstoneId, capstones.id))
+      .innerJoin(
+        capstoneMilestones,
+        eq(capstoneSubmissions.milestoneId, capstoneMilestones.id),
+      )
+      .where(
+        and(
+          inArray(capstoneEnrollments.userId, memberIds),
+          eq(capstoneSubmissions.status, "passed"),
+          gt(capstoneSubmissions.submittedAt, thirtyDaysAgo),
+        ),
+      )
+      .all();
+    for (const r of submissions) {
+      const actor = usernameByUserId.get(r.userId);
+      if (!actor) continue;
+      events.push({
+        kind: "submitted_milestone",
+        ts: r.submittedAt,
+        actorUsername: actor,
+        refSlug: r.capstoneSlug,
+        refTitle: r.milestoneTitle,
+      });
+    }
+  }
+
+  events.sort((a, b) => (a.ts < b.ts ? 1 : a.ts > b.ts ? -1 : 0));
+
+  return c.json({ events: events.slice(0, 50) });
 });
 
 cohortsRouter.post(

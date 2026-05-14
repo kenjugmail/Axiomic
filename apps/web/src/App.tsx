@@ -340,6 +340,11 @@ const MisconceptionsModerationPage = lazy(() =>
     default: m.MisconceptionsModerationPage,
   })),
 );
+const CohortDetailPage = lazy(() =>
+  import("./pages/CohortDetailPage").then((m) => ({
+    default: m.CohortDetailPage,
+  })),
+);
 // Sprint 39 — Capstone peer review queue.
 const CapstoneReviewQueuePage = lazy(() =>
   import("./pages/CapstoneReviewQueuePage").then((m) => ({
@@ -484,6 +489,7 @@ function AppRoutes() {
             element={<CapstoneReviewQueuePage />}
           />
           <Route path="/cohorts" element={<CohortsPage />} />
+          <Route path="/cohorts/:slug" element={<CohortDetailPage />} />
           <Route path="/forum/:domain" element={<ForumListPage />} />
           <Route path="/news" element={<NewsListPage />} />
           <Route path="/news/new" element={<NewsNewPage />} />

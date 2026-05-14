@@ -43,7 +43,7 @@ export function WeakConceptsPage() {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user?.id]);
 
   const refresh = async () => {
     setRefreshing(true);
@@ -180,12 +180,19 @@ export function WeakConceptsPage() {
 function NextStepPills({ d }: { d: MisconceptionDiagnosis }) {
   const ns = d.nextSteps;
   if (!ns) return null;
-  const pills: Array<{ to: string; label: string; icon: typeof BookOpen }> = [];
+  const conceptName = d.conceptTitle ?? d.conceptSlug;
+  const pills: Array<{
+    to: string;
+    label: string;
+    icon: typeof BookOpen;
+    ariaLabel: string;
+  }> = [];
   if (ns.wikiSlug) {
     pills.push({
       to: `/wiki/${ns.wikiSlug}`,
       label: "Re-read wiki",
       icon: BookOpen,
+      ariaLabel: `Re-read the wiki page for ${conceptName}`,
     });
   }
   if (ns.quizPath) {
@@ -193,6 +200,7 @@ function NextStepPills({ d }: { d: MisconceptionDiagnosis }) {
       to: `/paths/${ns.quizPath.pathSlug}/${ns.quizPath.nodeSlug}?retake=1`,
       label: "Retake quiz",
       icon: Target,
+      ariaLabel: `Retake the quiz for ${conceptName}`,
     });
   }
   if (ns.hasFlashcards) {
@@ -200,6 +208,7 @@ function NextStepPills({ d }: { d: MisconceptionDiagnosis }) {
       to: `/flashcards?page=${d.conceptSlug}`,
       label: "Drill flashcards",
       icon: Layers,
+      ariaLabel: `Drill flashcards for ${conceptName}`,
     });
   }
   if (pills.length === 0) return null;
@@ -214,9 +223,10 @@ function NextStepPills({ d }: { d: MisconceptionDiagnosis }) {
           <Link
             key={p.label}
             to={p.to}
+            aria-label={p.ariaLabel}
             className="text-[11px] px-2.5 py-1 rounded-full border border-border text-muted-foreground hover:bg-accent/40 hover:text-foreground inline-flex items-center gap-1"
           >
-            <Icon className="w-3 h-3" />
+            <Icon className="w-3 h-3" aria-hidden="true" />
             {p.label}
           </Link>
         );

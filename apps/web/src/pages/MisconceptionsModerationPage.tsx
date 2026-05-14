@@ -21,6 +21,9 @@ export function MisconceptionsModerationPage() {
   const [rows, setRows] = useState<QueueRow[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     if (!user || user.role !== "admin") return;
@@ -28,7 +31,10 @@ export function MisconceptionsModerationPage() {
     api.misconceptions
       .moderateQueue()
       .then((r) => {
-        if (!cancelled) setRows(r.submissions);
+        if (cancelled) return;
+        setRows(r.submissions);
+        setHasMore(r.hasMore);
+        setCursor(r.nextCursor);
       })
       .catch((e: unknown) => {
         if (!cancelled) {
@@ -39,7 +45,22 @@ export function MisconceptionsModerationPage() {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user?.id]);
+
+  const loadMore = async () => {
+    if (!cursor || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const r = await api.misconceptions.moderateQueue({ cursor });
+      setRows((prev) => (prev ? [...prev, ...r.submissions] : r.submissions));
+      setHasMore(r.hasMore);
+      setCursor(r.nextCursor);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to load more");
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -103,6 +124,7 @@ export function MisconceptionsModerationPage() {
       )}
 
       {rows && rows.length > 0 && (
+        <>
         <ul className="space-y-3">
           {rows.map((r) => (
             <li
@@ -163,6 +185,19 @@ export function MisconceptionsModerationPage() {
             </li>
           ))}
         </ul>
+        {hasMore && (
+          <div className="mt-4 flex justify-center">
+            <button
+              type="button"
+              onClick={loadMore}
+              disabled={loadingMore}
+              className="text-xs px-4 py-1.5 rounded-md border border-border hover:bg-accent/40 disabled:opacity-50"
+            >
+              {loadingMore ? "Loading…" : "Load more"}
+            </button>
+          </div>
+        )}
+        </>
       )}
     </div>
   );

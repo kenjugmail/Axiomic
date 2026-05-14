@@ -11,7 +11,7 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import {
   getDb,
@@ -467,8 +467,21 @@ const moderateSchema = z.object({
 
 misconceptionsRouter.get("/moderate/queue", requireAdmin, async (c) => {
   const db = getDb();
-  // Pending = anything still "open". Order by oldest-first so the
-  // backlog drains FIFO.
+  // Phase 17A — paginate via createdAt cursor. Backlog drains FIFO so
+  // cursor = the last seen createdAt; client passes it back to fetch
+  // the next page. Default 50, hard cap 200 to avoid OOM if an admin
+  // hand-tunes the URL.
+  const limit = Math.min(
+    200,
+    Math.max(1, parseInt(c.req.query("limit") ?? "50", 10) || 50),
+  );
+  const cursor = c.req.query("cursor");
+  const whereExpr = cursor
+    ? and(
+        eq(misconceptionSubmissions.status, "open"),
+        gt(misconceptionSubmissions.createdAt, cursor),
+      )
+    : eq(misconceptionSubmissions.status, "open");
   const rows = db
     .select({
       id: misconceptionSubmissions.id,
@@ -485,11 +498,15 @@ misconceptionsRouter.get("/moderate/queue", requireAdmin, async (c) => {
     })
     .from(misconceptionSubmissions)
     .innerJoin(users, eq(misconceptionSubmissions.proposerId, users.id))
-    .where(eq(misconceptionSubmissions.status, "open"))
+    .where(whereExpr)
     .orderBy(asc(misconceptionSubmissions.createdAt))
+    .limit(limit + 1) // fetch one extra to detect hasMore cheaply
     .all();
+  const hasMore = rows.length > limit;
+  const page = hasMore ? rows.slice(0, limit) : rows;
+  const nextCursor = hasMore ? page[page.length - 1]!.createdAt : null;
   return c.json({
-    submissions: rows.map((r) => ({
+    submissions: page.map((r) => ({
       id: r.id,
       conceptSlug: r.conceptSlug,
       key: r.key,
@@ -502,6 +519,8 @@ misconceptionsRouter.get("/moderate/queue", requireAdmin, async (c) => {
       createdAt: r.createdAt,
       decidedAt: r.decidedAt,
     })),
+    hasMore,
+    nextCursor,
   });
 });
 

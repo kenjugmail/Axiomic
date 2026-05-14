@@ -412,9 +412,16 @@ function SubmissionRow({
               </span>
             )}
           </div>
-          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-            {s.descriptionPreview}
-          </p>
+          <button
+            type="button"
+            onClick={onOpenDetail}
+            aria-label={`Open details for ${s.label}`}
+            className="text-left w-full block"
+          >
+            <p className="text-xs text-muted-foreground mt-1 line-clamp-2 hover:text-foreground transition-colors">
+              {s.descriptionPreview}
+            </p>
+          </button>
           <div className="flex items-baseline gap-2 mt-2 text-[11px] text-muted-foreground flex-wrap">
             <Link
               to={`/wiki/${s.conceptSlug}`}
@@ -434,6 +441,14 @@ function SubmissionRow({
             </Link>
             <span>·</span>
             <span>{new Date(s.createdAt).toLocaleDateString()}</span>
+            <span>·</span>
+            <button
+              type="button"
+              onClick={onOpenDetail}
+              className="text-primary hover:underline"
+            >
+              Details →
+            </button>
             {s.status === "open" && remaining > 0 && (
               <>
                 <span>·</span>
