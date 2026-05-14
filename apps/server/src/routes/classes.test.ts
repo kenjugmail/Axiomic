@@ -2625,6 +2625,94 @@ describe("S93 instructor analytics dashboard", () => {
     expect(listBody.variants.length).toBe(2);
   });
 
+  test("instructor inline-edit overwrites variant promptMd; non-instructor denied", async () => {
+    const instructor = await signup("edit-inst");
+    const student = await signup("edit-stu");
+    const slug = `cls-edit-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    const enr = await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    expect(enr.status).toBe(201);
+
+    const taskRes = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        kind: "homework",
+        title: "Edit-flow test task",
+        descriptionMd: "Original task body.",
+      }),
+    });
+    const { taskId } = (await taskRes.json()) as { taskId: string };
+
+    // Generate variants for the (one) enrolled student.
+    await req(`/classes/${slug}/tasks/${taskId}/variants`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({}),
+    });
+
+    const newPrompt = "Hand-edited prompt body for the student to focus on attention scaling. ".repeat(2);
+    // Instructor edits the variant in place.
+    const upd = await req(
+      `/classes/${slug}/tasks/${taskId}/variants/${student.userId}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+        body: JSON.stringify({ promptMd: newPrompt }),
+      },
+    );
+    expect(upd.status).toBe(200);
+
+    // Student fetches their variant — should see the new prompt.
+    const got = await req(`/classes/${slug}/tasks/${taskId}/variant`, {
+      headers: cookieHeader(student.cookie),
+    });
+    expect(got.status).toBe(200);
+    const gotBody = (await got.json()) as {
+      variant: { promptMd: string } | null;
+    };
+    expect(gotBody.variant?.promptMd).toBe(newPrompt);
+
+    // Student tries to edit their own variant — denied (instructor-only).
+    const denied = await req(
+      `/classes/${slug}/tasks/${taskId}/variants/${student.userId}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+        body: JSON.stringify({ promptMd: "Trying to overwrite my own variant" }),
+      },
+    );
+    expect([403, 404]).toContain(denied.status);
+
+    // PUT with no fields → 400.
+    const empty = await req(
+      `/classes/${slug}/tasks/${taskId}/variants/${student.userId}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+        body: JSON.stringify({}),
+      },
+    );
+    expect(empty.status).toBe(400);
+
+    // PUT to a missing studentId → 404.
+    const missing = await req(
+      `/classes/${slug}/tasks/${taskId}/variants/does-not-exist`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+        body: JSON.stringify({
+          promptMd: "Some hand-edited prompt body for a nonexistent student row.",
+        }),
+      },
+    );
+    expect(missing.status).toBe(404);
+  });
+
   test("auto-grade fires for submissions on a variant-backed task", async () => {
     const instructor = await signup("ag-inst");
     const student = await signup("ag-stu");
@@ -2656,7 +2744,11 @@ describe("S93 instructor analytics dashboard", () => {
     });
     expect(gen.status).toBe(200);
 
-    // Submit homework as the student.
+    // Submit homework as the student. Phase 22B made auto-grade
+    // fire-and-forget, so /complete returns immediately. The grade
+    // lands asynchronously on the next tick — wait a beat before
+    // reading. Under the mock provider the AI returns instantly so
+    // a small wait is plenty.
     const submit = await req(`/classes/${slug}/tasks/${taskId}/complete`, {
       method: "POST",
       headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
@@ -2666,6 +2758,7 @@ describe("S93 instructor analytics dashboard", () => {
       }),
     });
     expect(submit.status).toBe(200);
+    await new Promise((r) => setTimeout(r, 200));
 
     // Instructor view shows the submission with an AI-generated grade.
     const subs = await req(`/classes/${slug}/tasks/${taskId}/submissions`, {

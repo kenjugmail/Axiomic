@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { CheckCircle2, Sparkles, Wand2, XCircle } from "lucide-react";
+import { CheckCircle2, Pencil, Sparkles, Wand2, XCircle } from "lucide-react";
 import type { ClassTaskSubmissionsResponse } from "@axiomic/types";
 import { api, ApiError } from "../lib/api";
 import { Modal, Skeleton } from "../components/ui";
@@ -354,7 +354,19 @@ function VariantsPanel({
           {rows && rows.length > 0 && (
             <button
               type="button"
-              onClick={() => generate(true)}
+              onClick={() => {
+                // Phase 22D — destructive: overwrites any manual
+                // edits made via the variant preview modal. Make
+                // the cost explicit before firing the AI calls.
+                const n = rows.length;
+                if (
+                  window.confirm(
+                    `Overwrite all ${n} existing variant${n === 1 ? "" : "s"}? Any manual edits will be lost.`,
+                  )
+                ) {
+                  generate(true);
+                }
+              }}
               disabled={generating}
               className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -407,46 +419,149 @@ function VariantsPanel({
         }
       >
         {previewing && (
-          <div className="space-y-4">
-            <section>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-                Personalized prompt
-              </div>
-              <div className="prose prose-sm dark:prose-invert max-w-none">
-                <MarkdownRenderer content={previewing.promptMd} />
-              </div>
-            </section>
-            {previewing.rationale && (
-              <section>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-                  Why these emphases
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {previewing.rationale}
-                </p>
-              </section>
-            )}
-            {previewing.rubric && (
-              <section>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-                  Rubric ({previewing.rubric.criteria.length} criteria,
-                  pass at {Math.round(previewing.rubric.passingScore * 100)}%)
-                </div>
-                <ul className="text-xs space-y-1 list-disc pl-5">
-                  {previewing.rubric.criteria.map((c) => (
-                    <li key={c.id}>
-                      <span className="font-mono text-muted-foreground">
-                        {c.weight ?? 1} pt{(c.weight ?? 1) === 1 ? "" : "s"}
-                      </span>{" "}
-                      — {c.description}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
-          </div>
+          <VariantPreviewBody
+            classSlug={classSlug}
+            taskId={taskId}
+            variant={previewing}
+            onSaved={async () => {
+              setPreviewing(null);
+              await load();
+            }}
+          />
         )}
       </Modal>
     </section>
+  );
+}
+
+// Phase 22C — preview modal body with edit toggle. Lets the
+// instructor hand-tune promptMd without re-burning an AI call.
+// Rubric editing is out of scope for v1 (the criteria list is
+// small but already shaped enough that markdown editing isn't
+// natural — a dedicated rubric editor would warrant its own UI).
+function VariantPreviewBody({
+  classSlug,
+  taskId,
+  variant,
+  onSaved,
+}: {
+  classSlug: string;
+  taskId: string;
+  variant: VariantRow;
+  onSaved: () => Promise<void> | void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(variant.promptMd);
+  const [saving, setSaving] = useState(false);
+
+  // Re-sync the draft when a different variant is opened.
+  useEffect(() => {
+    setDraft(variant.promptMd);
+    setEditing(false);
+  }, [variant.id, variant.promptMd]);
+
+  const save = async () => {
+    if (draft.trim().length < 10) {
+      toast.error("Prompt is too short.");
+      return;
+    }
+    setSaving(true);
+    try {
+      await api.classes.updateTaskVariant(
+        classSlug,
+        taskId,
+        variant.studentId,
+        { promptMd: draft },
+      );
+      toast.success("Variant updated");
+      await onSaved();
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <section>
+        <div className="flex items-center justify-between mb-1">
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            Personalized prompt
+          </div>
+          {!editing && (
+            <button
+              type="button"
+              onClick={() => setEditing(true)}
+              data-testid="edit-variant"
+              className="text-[11px] inline-flex items-center gap-1 text-primary hover:underline"
+            >
+              <Pencil className="w-3 h-3" />
+              Edit
+            </button>
+          )}
+        </div>
+        {editing ? (
+          <div className="space-y-2">
+            <textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              rows={12}
+              className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background font-mono"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setDraft(variant.promptMd);
+                  setEditing(false);
+                }}
+                className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={save}
+                disabled={saving || draft.trim().length < 10}
+                className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? "Saving…" : "Save"}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="prose prose-sm dark:prose-invert max-w-none">
+            <MarkdownRenderer content={variant.promptMd} />
+          </div>
+        )}
+      </section>
+      {variant.rationale && !editing && (
+        <section>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+            Why these emphases
+          </div>
+          <p className="text-sm text-muted-foreground">{variant.rationale}</p>
+        </section>
+      )}
+      {variant.rubric && !editing && (
+        <section>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+            Rubric ({variant.rubric.criteria.length} criteria, pass at{" "}
+            {Math.round(variant.rubric.passingScore * 100)}%)
+          </div>
+          <ul className="text-xs space-y-1 list-disc pl-5">
+            {variant.rubric.criteria.map((c) => (
+              <li key={c.id}>
+                <span className="font-mono text-muted-foreground">
+                  {c.weight ?? 1} pt{(c.weight ?? 1) === 1 ? "" : "s"}
+                </span>{" "}
+                — {c.description}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </div>
   );
 }

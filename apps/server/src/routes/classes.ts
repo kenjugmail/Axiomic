@@ -37,7 +37,10 @@ import {
 import { requireAuth } from "../middleware/auth";
 import { checkRateLimit } from "../lib/rateLimit";
 import { env } from "../lib/envConfig";
-import { buildWeaknessProfile } from "../lib/studentWeaknesses";
+import {
+  buildWeaknessProfile,
+  prebuildWeaknessContext,
+} from "../lib/studentWeaknesses";
 import {
   generateAssignmentVariant,
   variantSeed,
@@ -866,6 +869,9 @@ classesRouter.post(
     if (!task || task.classId !== cls.id) {
       return c.json({ error: "Task not found" }, 404);
     }
+    // Alias for the worker closure below — TypeScript can't preserve
+    // the narrowing across the async boundary.
+    const baseTask = task;
 
     // Pull every student enrollment (skip TAs and observers — they
     // don't submit homework). Instructor is implicit and also skipped.
@@ -898,72 +904,99 @@ classesRouter.post(
     }
     const level = (cls.level as "intro" | "undergrad" | "grad" | null) ?? null;
 
-    let generated = 0;
+    // Phase 22A — partition into work + skipped up front so we
+    // don't pay the AI cost for already-generated rows when
+    // regenerate=false.
+    const toProcess: Array<{ userId: string; alreadyExists: boolean }> = [];
     let skipped = 0;
-    const errors: Array<{ studentId: string; reason: string }> = [];
-
     for (const s of students) {
-      if (!regenerate && existingSet.has(s.userId)) {
+      const alreadyExists = existingSet.has(s.userId);
+      if (!regenerate && alreadyExists) {
         skipped++;
         continue;
       }
-      try {
-        const weakness = await buildWeaknessProfile({
-          userId: s.userId,
-          topicSlugs,
-          level,
-        });
-        const variant = await generateAssignmentVariant({
-          baseTask: {
-            title: task.title,
-            descriptionMd: task.descriptionMd,
-          },
-          classMeta: { level, title: cls.title },
-          weakness,
-          seed: variantSeed(taskId, s.userId),
-        });
-        const variantId = existingSet.has(s.userId)
-          ? null
-          : randomUUID();
-        if (variantId) {
-          db.insert(classTaskVariants)
-            .values({
-              id: variantId,
-              taskId,
-              studentId: s.userId,
-              promptMd: variant.promptMd,
-              rubricJson: JSON.stringify(variant.rubric),
-              weaknessSnapshotJson: JSON.stringify(weakness),
-              generationSeed: variantSeed(taskId, s.userId),
-              rationale: variant.rationale,
-              generatedById: user.id,
-            })
-            .run();
-        } else {
-          db.update(classTaskVariants)
-            .set({
-              promptMd: variant.promptMd,
-              rubricJson: JSON.stringify(variant.rubric),
-              weaknessSnapshotJson: JSON.stringify(weakness),
-              generationSeed: variantSeed(taskId, s.userId),
-              rationale: variant.rationale,
-              generatedAt: new Date().toISOString(),
-              generatedById: user.id,
-            })
-            .where(
-              and(
-                eq(classTaskVariants.taskId, taskId),
-                eq(classTaskVariants.studentId, s.userId),
-              ),
-            )
-            .run();
+      toProcess.push({ userId: s.userId, alreadyExists });
+    }
+
+    // Phase 22A — hoist the masteryNodes/masteryPaths load out of
+    // the per-student profile builder. The context is identical
+    // across the batch; loading it once turns N table scans into
+    // 1 and lets the inner profile build skip its own loader.
+    const weaknessCtx = prebuildWeaknessContext();
+
+    // Phase 22A — bounded-concurrency pool. AI providers can
+    // handle a few concurrent requests cleanly but we don't want
+    // to fire 30+ in parallel and trip their rate limits. 5 is
+    // the sweet spot for our typical Ollama setup; tune via env
+    // if a different ceiling matters.
+    const concurrency = 5;
+    const errors: Array<{ studentId: string; reason: string }> = [];
+    let generated = 0;
+    let cursor = 0;
+
+    async function worker(): Promise<void> {
+      while (cursor < toProcess.length) {
+        const idx = cursor++;
+        const item = toProcess[idx]!;
+        try {
+          const weakness = await buildWeaknessProfile(
+            { userId: item.userId, topicSlugs, level },
+            weaknessCtx,
+          );
+          const variant = await generateAssignmentVariant({
+            baseTask: {
+              title: baseTask.title,
+              descriptionMd: baseTask.descriptionMd,
+            },
+            classMeta: { level, title: cls.title },
+            weakness,
+            seed: variantSeed(taskId, item.userId),
+          });
+          if (item.alreadyExists) {
+            db.update(classTaskVariants)
+              .set({
+                promptMd: variant.promptMd,
+                rubricJson: JSON.stringify(variant.rubric),
+                weaknessSnapshotJson: JSON.stringify(weakness),
+                generationSeed: variantSeed(taskId, item.userId),
+                rationale: variant.rationale,
+                generatedAt: new Date().toISOString(),
+                generatedById: user.id,
+              })
+              .where(
+                and(
+                  eq(classTaskVariants.taskId, taskId),
+                  eq(classTaskVariants.studentId, item.userId),
+                ),
+              )
+              .run();
+          } else {
+            db.insert(classTaskVariants)
+              .values({
+                id: randomUUID(),
+                taskId,
+                studentId: item.userId,
+                promptMd: variant.promptMd,
+                rubricJson: JSON.stringify(variant.rubric),
+                weaknessSnapshotJson: JSON.stringify(weakness),
+                generationSeed: variantSeed(taskId, item.userId),
+                rationale: variant.rationale,
+                generatedById: user.id,
+              })
+              .run();
+          }
+          generated++;
+        } catch (e) {
+          const reason = e instanceof Error ? e.message : String(e);
+          errors.push({ studentId: item.userId, reason });
         }
-        generated++;
-      } catch (e) {
-        const reason = e instanceof Error ? e.message : String(e);
-        errors.push({ studentId: s.userId, reason });
       }
     }
+
+    const workerCount = Math.min(concurrency, Math.max(1, toProcess.length));
+    await Promise.all(
+      Array.from({ length: workerCount }, () => worker()),
+    );
 
     return c.json({ generated, skipped, errors });
   },
@@ -1057,6 +1090,92 @@ classesRouter.get(
         generatedAt: row.generatedAt,
       },
     });
+  },
+);
+
+// Phase 22C — instructor inline-edit. The AI sometimes mis-targets;
+// rather than re-burning a token on Regenerate, an instructor can
+// hand-edit promptMd (or swap in a curated rubric) directly. The
+// generatedAt bumps so the audit trail shows the manual touch.
+const updateVariantSchema = z.object({
+  promptMd: z.string().min(10).max(20_000).optional(),
+  rubric: z
+    .object({
+      criteria: z
+        .array(
+          z.object({
+            id: z.string().min(1).max(80),
+            description: z.string().min(1).max(500),
+            weight: z.number().positive().max(100).optional(),
+          }),
+        )
+        .min(1)
+        .max(10),
+      passingScore: z.number().min(0).max(1),
+    })
+    .optional(),
+  // Optional fresh rationale the instructor can leave for their
+  // own future reference + the audit log.
+  rationale: z.string().max(2000).optional(),
+});
+
+classesRouter.put(
+  "/:slug/tasks/:taskId/variants/:studentId",
+  requireAuth,
+  requireInstructor,
+  zValidator("json", updateVariantSchema),
+  async (c) => {
+    const cls = c.get("classRow");
+    const user = c.get("user")!;
+    const taskId = c.req.param("taskId")!;
+    const studentId = c.req.param("studentId")!;
+    const data = c.req.valid("json");
+    const db = getDb();
+
+    const task = db
+      .select({ classId: classTasks.classId })
+      .from(classTasks)
+      .where(eq(classTasks.id, taskId))
+      .get();
+    if (!task || task.classId !== cls.id) {
+      return c.json({ error: "Task not found" }, 404);
+    }
+
+    const existing = db
+      .select({ id: classTaskVariants.id })
+      .from(classTaskVariants)
+      .where(
+        and(
+          eq(classTaskVariants.taskId, taskId),
+          eq(classTaskVariants.studentId, studentId),
+        ),
+      )
+      .get();
+    if (!existing) {
+      return c.json({ error: "Variant not found" }, 404);
+    }
+
+    if (
+      data.promptMd === undefined &&
+      data.rubric === undefined &&
+      data.rationale === undefined
+    ) {
+      return c.json({ error: "Nothing to update" }, 400);
+    }
+
+    const patch: Record<string, unknown> = {
+      generatedAt: new Date().toISOString(),
+      generatedById: user.id,
+    };
+    if (data.promptMd !== undefined) patch.promptMd = data.promptMd;
+    if (data.rubric !== undefined) patch.rubricJson = JSON.stringify(data.rubric);
+    if (data.rationale !== undefined) patch.rationale = data.rationale;
+
+    db.update(classTaskVariants)
+      .set(patch)
+      .where(eq(classTaskVariants.id, existing.id))
+      .run();
+    return c.json({ ok: true });
   },
 );
 
@@ -1172,12 +1291,21 @@ classesRouter.post(
           )
           .get();
         if (variant) {
-          await autoGradeVariantSubmission({
+          // Phase 22B — fire-and-forget. The student gets an
+          // immediate response; the AI-graded result lands on the
+          // submission row when grading finishes (or never, if the
+          // upstream times out — instructor falls back to manual).
+          // The helper logs + swallows internally; the .catch is
+          // defensive belt-and-suspenders to keep an unhandled
+          // promise rejection from crashing the process.
+          void autoGradeVariantSubmission({
             taskId,
             studentId: user.id,
             content: data.content,
             promptMd: variant.promptMd,
             rubricJson: variant.rubricJson,
+          }).catch(() => {
+            // already logged inside the helper
           });
         }
       }
@@ -1230,11 +1358,17 @@ async function autoGradeVariantSubmission(opts: {
     .join("\n");
 
   try {
+    // Phase 22B — 15 s ceiling on the upstream call so a stuck
+    // provider doesn't pin the auto-grade helper forever. On
+    // abort, gradeEssay's catch swallows the error and falls back
+    // to its heuristic scorer; we still write a gradeJson so the
+    // instructor sees something rather than null forever.
     const graded = await gradeEssay({
       promptMd: opts.promptMd,
       rubricMd,
       maxScore: totalWeight,
       essayResponse: opts.content,
+      signal: AbortSignal.timeout(15_000),
     });
     const pass =
       graded.score / totalWeight >= rubric.passingScore;

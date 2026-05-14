@@ -50,6 +50,45 @@ export interface BuildProfileOptions {
   windowDays?: number;
 }
 
+// Phase 22A — masteryNodes is a small-but-not-tiny table (a few
+// hundred rows). When bulk-generating variants for a 30-student
+// class, the per-student profile build used to re-load it 30 times.
+// Callers can now precompute the shared context once and pass it
+// in; the loaded shape is identical to the inline-loaded version so
+// existing single-shot callers don't change.
+export interface PrebuiltWeaknessContext {
+  nodeToSlug: Map<string, string>;
+  nodeTitles: Map<string, string>;
+}
+
+export function prebuildWeaknessContext(): PrebuiltWeaknessContext {
+  const db = getDb();
+  const allNodes = db
+    .select({
+      id: masteryNodes.id,
+      pageIds: masteryNodes.pageIds,
+      title: masteryNodes.title,
+    })
+    .from(masteryNodes)
+    .all();
+  const nodeToSlug = new Map<string, string>();
+  const nodeTitles = new Map<string, string>();
+  for (const n of allNodes) {
+    let primarySlug: string | null = null;
+    try {
+      const parsed = JSON.parse(n.pageIds);
+      if (Array.isArray(parsed) && typeof parsed[0] === "string") {
+        primarySlug = parsed[0];
+      }
+    } catch {}
+    if (primarySlug) {
+      nodeToSlug.set(n.id, primarySlug);
+      nodeTitles.set(n.id, n.title);
+    }
+  }
+  return { nodeToSlug, nodeTitles };
+}
+
 interface InternalAccumulator {
   signals: WeaknessSignal[];
   rawScore: number;
@@ -70,6 +109,7 @@ function recencyWeight(iso: string, windowDays: number): number {
 
 export async function buildWeaknessProfile(
   opts: BuildProfileOptions,
+  ctx?: PrebuiltWeaknessContext,
 ): Promise<WeaknessProfile> {
   const { userId, topicSlugs, level } = opts;
   const maxTopics = opts.maxTopics ?? 5;
@@ -125,27 +165,19 @@ export async function buildWeaknessProfile(
 
   // 2. Mastery nodes whose primary page slug is in topic scope —
   // collect node ids so we can join quizMistakes and userProgress.
-  const allNodes = db
-    .select({
-      id: masteryNodes.id,
-      pageIds: masteryNodes.pageIds,
-      title: masteryNodes.title,
-    })
-    .from(masteryNodes)
-    .all();
+  // Reuses the caller-supplied context when present (Phase 22A
+  // bulk-generate hoists this load out of the per-student loop).
+  const fullContext = ctx ?? prebuildWeaknessContext();
+  // Re-scope the supplied context to this request's topic slugs.
+  // The prebuilt map is global (every node); the local maps only
+  // hold entries whose primary slug is in scope.
   const nodeToSlug = new Map<string, string>();
   const nodeTitles = new Map<string, string>();
-  for (const n of allNodes) {
-    let primarySlug: string | null = null;
-    try {
-      const parsed = JSON.parse(n.pageIds);
-      if (Array.isArray(parsed) && typeof parsed[0] === "string") {
-        primarySlug = parsed[0];
-      }
-    } catch {}
-    if (primarySlug && topicSet.has(primarySlug)) {
-      nodeToSlug.set(n.id, primarySlug);
-      nodeTitles.set(n.id, n.title);
+  for (const [nodeId, slug] of fullContext.nodeToSlug) {
+    if (topicSet.has(slug)) {
+      nodeToSlug.set(nodeId, slug);
+      const title = fullContext.nodeTitles.get(nodeId);
+      if (title) nodeTitles.set(nodeId, title);
     }
   }
   const scopedNodeIds = [...nodeToSlug.keys()];

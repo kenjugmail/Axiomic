@@ -1402,6 +1402,29 @@ export const api = {
           generatedAt: string;
         } | null;
       }>(`/classes/${slug}/tasks/${taskId}/variant`),
+    // Phase 22C — instructor inline-edit. Lets the instructor
+    // hand-tune a generated variant instead of burning another AI
+    // call on Regenerate when the AI mostly got it right.
+    updateTaskVariant: (
+      slug: string,
+      taskId: string,
+      studentId: string,
+      data: {
+        promptMd?: string;
+        rubric?: {
+          criteria: Array<{ id: string; description: string; weight?: number }>;
+          passingScore: number;
+        };
+        rationale?: string;
+      },
+    ) =>
+      request<{ ok: true }>(
+        `/classes/${slug}/tasks/${taskId}/variants/${studentId}`,
+        {
+          method: "PUT",
+          body: JSON.stringify(data),
+        },
+      ),
     recordAttendance: (slug: string, data: RecordAttendanceRequest) =>
       request<{ ok: true; xpGrants: Array<{ userId: string; amount: number }> }>(
         `/classes/${slug}/attendance`,

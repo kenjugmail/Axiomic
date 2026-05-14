@@ -66,8 +66,6 @@ function ensurePath(): string {
       slug: "wk-test-path",
       title: "Weakness test path",
       description: "",
-      icon: "🧪",
-      order: 999,
     })
     .run();
   return id;
@@ -171,6 +169,40 @@ describe("buildWeaknessProfile (Phase 21A)", () => {
     expect(
       profile.topics.find((t) => t.conceptSlug === outOfScope),
     ).toBeUndefined();
+  });
+
+  test("prebuilt context yields the same profile as uncached path", async () => {
+    const userId = freshUser();
+    const testId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const conceptSlug = `wk-ctx-${testId}`;
+    ensureWikiPage(conceptSlug, "Context-test concept");
+    const db = getDb();
+    db.insert(misconceptionDiagnoses)
+      .values({
+        id: randomUUID(),
+        userId,
+        conceptSlug,
+        misconceptionKey: "wk-ctx-key",
+        label: "Context-test misconception",
+        confidence: 0.75,
+        status: "active",
+      })
+      .run();
+
+    const { prebuildWeaknessContext } = await import("./studentWeaknesses");
+    const ctx = prebuildWeaknessContext();
+    const cached = await buildWeaknessProfile(
+      { userId, topicSlugs: [conceptSlug], level: "intro" },
+      ctx,
+    );
+    const fresh = await buildWeaknessProfile({
+      userId,
+      topicSlugs: [conceptSlug],
+      level: "intro",
+    });
+    expect(cached.topics.length).toBe(fresh.topics.length);
+    expect(cached.topics[0]?.conceptSlug).toBe(fresh.topics[0]?.conceptSlug);
+    expect(cached.strengths).toEqual(fresh.strengths);
   });
 
   test("inactive (coached/resolved/dismissed) diagnoses don't count", async () => {

@@ -17,6 +17,12 @@ export interface EssayGradeRequest {
   rubricMd: string;
   maxScore: number;
   essayResponse: string;
+  // Phase 22B — optional cancellation. Forwarded to the AI
+  // provider's stream so a stalled upstream call doesn't pin
+  // the caller indefinitely. Pass `AbortSignal.timeout(N)` to
+  // bound runtime; on abort `gradeEssay` falls through to its
+  // heuristic fallback.
+  signal?: AbortSignal;
 }
 
 export interface EssayGradeResult {
@@ -143,6 +149,7 @@ export async function gradeEssay(
       messages: [
         { role: "user", content: buildUserPrompt(req) },
       ],
+      signal: req.signal,
       onToken: (t) => {
         raw += t;
       },
