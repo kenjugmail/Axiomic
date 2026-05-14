@@ -41,8 +41,10 @@ describe("/grants (Sprint 71)", () => {
   });
 
   test("GET / returns the seeded grant with expected payload shape", async () => {
+    // limit=500 because the persistent test DB accumulates grants
+    // across runs (Phase 20B cap bump matches this).
     const res = await app.fetch(
-      new Request("http://localhost/api/v1/grants?limit=50"),
+      new Request("http://localhost/api/v1/grants?limit=500"),
     );
     expect(res.status).toBe(200);
     const body = (await res.json()) as { items: Array<{ id: string }> };

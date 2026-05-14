@@ -488,14 +488,31 @@ auth.post(
         .run();
       return c.json({ error: "That email is no longer available." }, 409);
     }
-    db.update(users)
-      .set({
-        email: u.pendingEmail,
-        pendingEmail: null,
-        emailVerifiedAt: new Date().toISOString(),
-      })
-      .where(eq(users.id, u.id))
-      .run();
+    // Phase 20A — the line 481 pre-check can be raced. If a
+    // concurrent verify between here and the UPDATE below grabs the
+    // same address, the UNIQUE constraint on users.email throws.
+    // Catch it, clear pendingEmail, and surface the same 409 the
+    // pre-check returns rather than a 500 with a SQLite stack.
+    try {
+      db.update(users)
+        .set({
+          email: u.pendingEmail,
+          pendingEmail: null,
+          emailVerifiedAt: new Date().toISOString(),
+        })
+        .where(eq(users.id, u.id))
+        .run();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (/UNIQUE/i.test(msg) && /email/i.test(msg)) {
+        db.update(users).set({ pendingEmail: null }).where(eq(users.id, u.id)).run();
+        db.delete(emailVerificationTokens)
+          .where(eq(emailVerificationTokens.token, token))
+          .run();
+        return c.json({ error: "That email is no longer available." }, 409);
+      }
+      throw e;
+    }
     db.delete(emailVerificationTokens)
       .where(eq(emailVerificationTokens.token, token))
       .run();
