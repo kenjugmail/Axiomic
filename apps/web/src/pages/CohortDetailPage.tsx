@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Skeleton } from "../components/ui";
 import { EmptyState } from "../components/ui/EmptyState";
+import { relativeTime } from "../lib/dates";
 
 interface CohortMember {
   username: string;
@@ -234,7 +235,7 @@ export function CohortDetailPage() {
                       {phraseFor(e)}
                     </div>
                     <div className="text-[10px] text-muted-foreground mt-0.5">
-                      {new Date(e.ts).toLocaleString()}
+                      {relativeTime(e.ts)}
                     </div>
                   </div>
                 </li>

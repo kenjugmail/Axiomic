@@ -24,6 +24,8 @@ import {
 } from "@axiomic/db";
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { notifyCohortInvitation } from "../lib/notifications";
+import { checkRateLimit } from "../lib/rateLimit";
+import { env } from "../lib/envConfig";
 import type { Env } from "../env";
 
 // Sprint 52 — URL-safe token generator for cohort invitations.
@@ -468,6 +470,18 @@ cohortsRouter.post(
   zValidator("json", inviteSchema),
   async (c) => {
     const me = c.get("user")!;
+
+    // Phase 19B — cap invitation sends per organizer. Each call may
+    // include up to 50 emails (the inviteSchema cap); 5 calls/min
+    // = 250 invites/min, enough for a legitimate cohort kickoff and
+    // small enough to bound abuse from a compromised account.
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`cohort-invite:${me.id}`, 5, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
+
     const slug = c.req.param("slug")!;
     const body = c.req.valid("json");
     const db = getDb();
@@ -755,6 +769,18 @@ mentorsRouter.post(
   zValidator("json", requestMentorSchema),
   async (c) => {
     const user = c.get("user")!;
+
+    // Phase 19A — throttle the mentor-request fan-out. 10/min is
+    // generous for legitimate use (a thoughtful user might send 1-2
+    // requests per sitting); the cap catches a compromised account
+    // blasting every user with notifications + email.
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`mentor-request:${user.id}`, 10, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
+
     const data = c.req.valid("json");
     const db = getDb();
     const mentor = db

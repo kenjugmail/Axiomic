@@ -172,4 +172,59 @@ describe("/exams (Sprint 73)", () => {
       }
     },
   );
+
+  // ----- Phase 19C — concurrent-submit race protection -----
+
+  test(
+    "concurrent submits on the same attempt resolve to exactly one winner",
+    async () => {
+      if (!satExists) return;
+
+      const testId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      const username = `ex2_${testId}`.slice(0, 30);
+      const signup = await app.fetch(
+        new Request("http://localhost/api/v1/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username,
+            email: `${username}@example.com`,
+            password: "testpass123",
+          }),
+        }),
+      );
+      expect([200, 201]).toContain(signup.status);
+      const cookie = (signup.headers.get("set-cookie") ?? "").split(";")[0]!;
+
+      const start = await app.fetch(
+        new Request("http://localhost/api/v1/exams/sat/attempts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", cookie },
+          body: JSON.stringify({ mode: "section", sectionSlug: "math" }),
+        }),
+      );
+      if (start.status !== 200 && start.status !== 201) return;
+      const startBody = (await start.json()) as { id?: string; attemptId?: string };
+      const attemptId = startBody.attemptId ?? startBody.id;
+      if (!attemptId) return;
+
+      // Fire two submits concurrently. The atomic claim should let
+      // exactly one through; the loser sees "Already submitted".
+      const submit = () =>
+        app.fetch(
+          new Request(`http://localhost/api/v1/exams/attempts/${attemptId}/submit`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", cookie },
+          }),
+        );
+      const [a, b] = await Promise.all([submit(), submit()]);
+
+      const statuses = [a.status, b.status].sort();
+      // One success (200), one already-submitted (400). Exact codes
+      // can shift if seed content drifts; assert the dual-claim
+      // signature: not both 200, not both 400.
+      expect(statuses[0]).toBe(200);
+      expect(statuses[1]).toBe(400);
+    },
+  );
 });

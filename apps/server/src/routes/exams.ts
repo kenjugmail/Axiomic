@@ -22,7 +22,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { randomUUID } from "crypto";
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 import {
   examAttempts,
   examAttemptAnswers,
@@ -583,6 +583,26 @@ examsRouter.post("/attempts/:id/submit", requireAuth, async (c) => {
   if (!id) return c.json({ error: "Missing id" }, 400);
   const db = getDb();
 
+  // Phase 19C — atomic claim. Two concurrent submits (spam-click,
+  // dual tabs, retry-on-flaky-network) used to both pass a stale
+  // `select then check completedAt` guard and both run the
+  // expensive essay grader. Replace with a conditional UPDATE that
+  // only succeeds while completedAt IS NULL; the loser sees 0
+  // changes and gets "Already submitted" without doing any work.
+  const claim = db
+    .update(examAttempts)
+    .set({ completedAt: new Date().toISOString() })
+    .where(
+      and(
+        eq(examAttempts.id, id),
+        eq(examAttempts.userId, me.id),
+        sql`${examAttempts.completedAt} IS NULL`,
+      ),
+    )
+    .run();
+  const claimedRows =
+    (claim as unknown as { changes?: number }).changes ?? 0;
+
   const attempt = db
     .select()
     .from(examAttempts)
@@ -590,7 +610,10 @@ examsRouter.post("/attempts/:id/submit", requireAuth, async (c) => {
     .get();
   if (!attempt) return c.json({ error: "Not found" }, 404);
   if (attempt.userId !== me.id) return c.json({ error: "Forbidden" }, 403);
-  if (attempt.completedAt) {
+  if (claimedRows === 0) {
+    // The atomic claim missed: either an earlier submit already
+    // landed (concurrent caller) or the attempt was never in a
+    // submittable state. Both surface as "Already submitted".
     return c.json({ error: "Already submitted" }, 400);
   }
 
