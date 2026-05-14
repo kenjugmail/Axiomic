@@ -166,7 +166,7 @@ export function MisconceptionsModerationPage() {
                     type="button"
                     disabled={busy === r.id}
                     onClick={() => decide(r.id, "approve")}
-                    className="text-xs px-3 py-1.5 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 inline-flex items-center gap-1.5 disabled:opacity-50"
+                    className="text-xs px-3 py-1.5 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Check className="w-3.5 h-3.5" />
                     Approve
@@ -175,7 +175,7 @@ export function MisconceptionsModerationPage() {
                     type="button"
                     disabled={busy === r.id}
                     onClick={() => decide(r.id, "reject")}
-                    className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40 inline-flex items-center gap-1.5 disabled:opacity-50"
+                    className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40 inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <X className="w-3.5 h-3.5" />
                     Reject
@@ -191,7 +191,7 @@ export function MisconceptionsModerationPage() {
               type="button"
               onClick={loadMore}
               disabled={loadingMore}
-              className="text-xs px-4 py-1.5 rounded-md border border-border hover:bg-accent/40 disabled:opacity-50"
+              className="text-xs px-4 py-1.5 rounded-md border border-border hover:bg-accent/40 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loadingMore ? "Loading…" : "Load more"}
             </button>

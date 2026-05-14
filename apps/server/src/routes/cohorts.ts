@@ -190,15 +190,41 @@ cohortsRouter.get("/:slug", async (c) => {
 // from existing tables (no new schema): recent cohort joins, recent
 // capstone submissions, recent capstone completions. Sorted desc by
 // timestamp, capped to 50 events.
+//
+// Phase 18A — privacy gate. Open cohorts stay public (the rest of
+// the cohort surface is too). Invite-only cohorts require the
+// caller to be a member; non-members and anonymous callers get 403.
+// Without this, anyone with the slug could enumerate who's working
+// on what inside a private cohort.
 cohortsRouter.get("/:slug/activity", async (c) => {
   const slug = c.req.param("slug")!;
   const db = getDb();
   const cohort = db
-    .select({ id: cohorts.id })
+    .select({ id: cohorts.id, visibility: cohorts.visibility })
     .from(cohorts)
     .where(eq(cohorts.slug, slug))
     .get();
   if (!cohort) return c.json({ error: "Cohort not found" }, 404);
+
+  if (cohort.visibility !== "open") {
+    const session = await getSessionUser(c);
+    if (!session) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+    const membership = db
+      .select({ id: cohortMembers.id })
+      .from(cohortMembers)
+      .where(
+        and(
+          eq(cohortMembers.cohortId, cohort.id),
+          eq(cohortMembers.userId, session.id),
+        ),
+      )
+      .get();
+    if (!membership) {
+      return c.json({ error: "Member-only cohort" }, 403);
+    }
+  }
 
   const members = db
     .select({

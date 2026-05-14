@@ -139,6 +139,40 @@ describe("Sprint 43 — cohorts", () => {
     expect(r.status).toBe(404);
   });
 
+  // Phase 18A — invite-only cohorts gate the activity feed by
+  // membership. Open cohorts stay public.
+  test("invite-only activity feed rejects non-members + anonymous", async () => {
+    const owner = await signup("priv-own");
+    const slug = `cohort-priv-${testId}`;
+    const create = await req("/cohorts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(owner.cookie) },
+      body: JSON.stringify({
+        slug,
+        name: "Invite-only activity test",
+        visibility: "invite",
+      }),
+    });
+    expect(create.status).toBe(201);
+
+    // Anonymous caller → 401.
+    const anon = await req(`/cohorts/${slug}/activity`);
+    expect(anon.status).toBe(401);
+
+    // Signed-in but not a member → 403.
+    const stranger = await signup("priv-str");
+    const denied = await req(`/cohorts/${slug}/activity`, {
+      headers: cookieHeader(stranger.cookie),
+    });
+    expect(denied.status).toBe(403);
+
+    // Owner is the implicit organizer member → 200.
+    const allowed = await req(`/cohorts/${slug}/activity`, {
+      headers: cookieHeader(owner.cookie),
+    });
+    expect(allowed.status).toBe(200);
+  });
+
   test("activity endpoint surfaces recent member joins", async () => {
     const owner = await signup("ac1");
     const slug = `cohort-ac1-${testId}`;

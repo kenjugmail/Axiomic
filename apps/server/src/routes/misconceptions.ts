@@ -24,6 +24,8 @@ import {
 } from "@axiomic/db";
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { requireAdmin } from "../middleware/requireAdmin";
+import { checkRateLimit } from "../lib/rateLimit";
+import { env } from "../lib/envConfig";
 import type { Env } from "../env";
 
 export const misconceptionsRouter = new Hono<Env>();
@@ -275,6 +277,16 @@ misconceptionsRouter.post(
     const data = c.req.valid("json");
     const db = getDb();
 
+    // Phase 18B — throttle abuse. 5 submissions per user per minute
+    // is generous for legitimate proposals; abuse spikes hit the
+    // wall quickly. Mirror comments.ts:112 by skipping in tests.
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`misconception-submit:${user.id}`, 5, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
+
     // Reject if (conceptSlug, key) already exists in the catalog.
     const existingCatalog = db
       .select({ id: misconceptionCatalog.id })
@@ -342,6 +354,16 @@ misconceptionsRouter.post(
     const id = c.req.param("id");
     const { value } = c.req.valid("json");
     const db = getDb();
+
+    // Phase 18B — votes are clicker-friendly so the limit is higher
+    // than for submissions. 30 per minute catches vote-bombing while
+    // leaving genuine browsing-and-voting untouched.
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`misconception-vote:${user.id}`, 30, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
 
     const submission = db
       .select()

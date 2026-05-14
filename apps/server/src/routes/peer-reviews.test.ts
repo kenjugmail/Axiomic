@@ -278,11 +278,11 @@ describe("Sprint 39 — peer review", () => {
         feedback: "Looks good to me, ready to ship.",
       }),
     });
-    // limit=200 because the persistent test DB accumulates many
-    // completed enrollments across runs. With the lower 50-cap a
-    // newly-reviewed fixture can fall outside the slice; the route
-    // now allows up to 200 so both new fixtures stay in view.
-    const res = await req("/capstones/review-queue?limit=200");
+    // limit=500 because the persistent test DB accumulates many
+    // completed enrollments across runs. Phase 18C bumped the route
+    // cap from 200 → 500 because 200 was insufficient at current
+    // accumulation. With 500 both fresh fixtures stay in view.
+    const res = await req("/capstones/review-queue?limit=500");
     expect(res.status).toBe(200);
     const data = (await res.json()) as any;
     const aIdx = (data.artifacts as any[]).findIndex(

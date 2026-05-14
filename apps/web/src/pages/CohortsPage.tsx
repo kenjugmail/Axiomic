@@ -10,6 +10,11 @@ import { useAuthStore } from "../stores/auth";
 import { toast } from "../stores/toast";
 import { Skeleton } from "../components/ui";
 
+// Phase 18D — cheap inline email validator. We're not trying to be
+// RFC 5322-perfect; we just want to catch the obvious typos before
+// hitting the server.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 interface CohortListItem {
   id: string;
   slug: string;
@@ -352,7 +357,7 @@ function CreateCohortForm({
         <button
           type="submit"
           disabled={busy}
-          className="text-sm px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          className="text-sm px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {busy ? "Creating…" : "Create cohort"}
         </button>
@@ -415,6 +420,16 @@ function CohortInvitePanel({
         .filter(Boolean);
       if (list.length === 0) {
         setError("Enter at least one email.");
+        return;
+      }
+      // Phase 18D — client-side email validation. Reject before the
+      // round-trip so the user sees their typo immediately instead of
+      // after a server error.
+      const invalid = list.filter((e) => !EMAIL_RE.test(e));
+      if (invalid.length > 0) {
+        setError(
+          `Invalid email${invalid.length === 1 ? "" : "s"}: ${invalid.join(", ")}`,
+        );
         return;
       }
       const r = await fetch(`/api/v1/cohorts/${slug}/invitations`, {
@@ -482,7 +497,7 @@ function CohortInvitePanel({
               <button
                 type="submit"
                 disabled={busy || !emails.trim()}
-                className="text-xs px-3 py-1 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                className="text-xs px-3 py-1 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {busy ? "Sending…" : "Send invitations"}
               </button>
