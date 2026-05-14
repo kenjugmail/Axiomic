@@ -16,6 +16,7 @@ import { z } from "zod";
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import {
+  classAnnouncements,
   classAttendance,
   classCompetitions,
   classEnrollments,
@@ -123,6 +124,8 @@ const createTaskSchema = z.object({
   url: z.string().url().max(500).nullable().optional(),
   dueAt: dueAtSchema,
   xpReward: z.number().int().min(1).max(500).nullable().optional(),
+  // Phase 23C — optional Classwork-tab grouping label.
+  topic: z.string().min(1).max(80).nullable().optional(),
 });
 
 const updateTaskSchema = createTaskSchema.partial().extend({
@@ -489,6 +492,9 @@ classesRouter.get("/:slug", requireAuth, requireEnrolledInClass, async (c) => {
       url: t.url,
       dueAt: t.dueAt,
       xpReward: t.xpReward ?? defaultTaskXp(t.kind as "reading" | "homework"),
+      // Phase 23C — null falls into the "(no topic)" bucket on the
+      // Classwork tab.
+      topic: t.topic,
       createdAt: t.createdAt,
       myCompleted: completedTaskIds.has(t.id),
     })),
@@ -768,6 +774,7 @@ classesRouter.post(
         url: data.url ?? null,
         dueAt: data.dueAt ?? null,
         xpReward: data.xpReward ?? null,
+        topic: data.topic ?? null,
         createdById: user.id,
       })
       .run();
@@ -802,6 +809,7 @@ classesRouter.put(
     if (data.url !== undefined) patch.url = data.url;
     if (data.dueAt !== undefined) patch.dueAt = data.dueAt;
     if (data.xpReward !== undefined) patch.xpReward = data.xpReward;
+    if (data.topic !== undefined) patch.topic = data.topic;
     if (Object.keys(patch).length === 0) return c.json({ ok: true });
 
     db.update(classTasks).set(patch).where(eq(classTasks.id, taskId)).run();
@@ -2807,6 +2815,326 @@ classesRouter.get(
           correctCount: Number(s?.correct ?? 0),
         };
       }),
+    });
+  },
+);
+
+// ---------- Phase 23A — class stream / announcements ----------
+
+const createAnnouncementSchema = z.object({
+  bodyMd: z.string().min(10).max(20_000),
+  pinned: z.boolean().optional().default(false),
+});
+
+const updateAnnouncementSchema = z.object({
+  bodyMd: z.string().min(10).max(20_000).optional(),
+  pinned: z.boolean().optional(),
+});
+
+// GET /classes/:slug/announcements — any enrollee. Pinned-first,
+// then newest. Capped at 50 because the stream isn't a paginated
+// surface in v1.
+classesRouter.get(
+  "/:slug/announcements",
+  requireAuth,
+  requireEnrolledInClass,
+  async (c) => {
+    const cls = c.get("classRow");
+    const db = getDb();
+    const rows = db
+      .select({
+        id: classAnnouncements.id,
+        authorId: classAnnouncements.authorId,
+        authorUsername: users.username,
+        authorDisplayName: users.displayName,
+        bodyMd: classAnnouncements.bodyMd,
+        pinned: classAnnouncements.pinned,
+        createdAt: classAnnouncements.createdAt,
+        updatedAt: classAnnouncements.updatedAt,
+      })
+      .from(classAnnouncements)
+      .innerJoin(users, eq(classAnnouncements.authorId, users.id))
+      .where(eq(classAnnouncements.classId, cls.id))
+      .orderBy(desc(classAnnouncements.pinned), desc(classAnnouncements.createdAt))
+      .limit(50)
+      .all();
+    return c.json({
+      announcements: rows.map((r) => ({
+        id: r.id,
+        authorId: r.authorId,
+        authorUsername: r.authorUsername,
+        authorDisplayName: r.authorDisplayName,
+        bodyMd: r.bodyMd,
+        pinned: !!r.pinned,
+        createdAt: r.createdAt,
+        updatedAt: r.updatedAt,
+      })),
+    });
+  },
+);
+
+// POST /classes/:slug/announcements — instructor or TA only.
+// Throttled per author so a runaway script can't flood the stream.
+classesRouter.post(
+  "/:slug/announcements",
+  requireAuth,
+  requireInstructorOrTa,
+  zValidator("json", createAnnouncementSchema),
+  async (c) => {
+    const cls = c.get("classRow");
+    const user = c.get("user")!;
+    const data = c.req.valid("json");
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`class-announce:${user.id}`, 5, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
+    const id = randomUUID();
+    const now = new Date().toISOString();
+    getDb()
+      .insert(classAnnouncements)
+      .values({
+        id,
+        classId: cls.id,
+        authorId: user.id,
+        bodyMd: data.bodyMd,
+        pinned: data.pinned ?? false,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .run();
+    return c.json({ id }, 201);
+  },
+);
+
+// PUT /classes/:slug/announcements/:id — author or instructor.
+// TA-authored posts can be edited by the original author or by
+// the instructor; non-author/non-instructor returns 403.
+classesRouter.put(
+  "/:slug/announcements/:id",
+  requireAuth,
+  requireInstructorOrTa,
+  zValidator("json", updateAnnouncementSchema),
+  async (c) => {
+    const cls = c.get("classRow");
+    const user = c.get("user")!;
+    const id = c.req.param("id")!;
+    const data = c.req.valid("json");
+    if (data.bodyMd === undefined && data.pinned === undefined) {
+      return c.json({ error: "Nothing to update" }, 400);
+    }
+    const db = getDb();
+    const row = db
+      .select()
+      .from(classAnnouncements)
+      .where(eq(classAnnouncements.id, id))
+      .get();
+    if (!row || row.classId !== cls.id) {
+      return c.json({ error: "Announcement not found" }, 404);
+    }
+    if (row.authorId !== user.id && cls.instructorId !== user.id) {
+      return c.json({ error: "Author or instructor only" }, 403);
+    }
+    const patch: Record<string, unknown> = {
+      updatedAt: new Date().toISOString(),
+    };
+    if (data.bodyMd !== undefined) patch.bodyMd = data.bodyMd;
+    if (data.pinned !== undefined) patch.pinned = data.pinned;
+    db.update(classAnnouncements)
+      .set(patch)
+      .where(eq(classAnnouncements.id, id))
+      .run();
+    return c.json({ ok: true });
+  },
+);
+
+// DELETE /classes/:slug/announcements/:id — author or instructor.
+classesRouter.delete(
+  "/:slug/announcements/:id",
+  requireAuth,
+  requireInstructorOrTa,
+  async (c) => {
+    const cls = c.get("classRow");
+    const user = c.get("user")!;
+    const id = c.req.param("id")!;
+    const db = getDb();
+    const row = db
+      .select({
+        id: classAnnouncements.id,
+        classId: classAnnouncements.classId,
+        authorId: classAnnouncements.authorId,
+      })
+      .from(classAnnouncements)
+      .where(eq(classAnnouncements.id, id))
+      .get();
+    if (!row || row.classId !== cls.id) {
+      return c.json({ error: "Announcement not found" }, 404);
+    }
+    if (row.authorId !== user.id && cls.instructorId !== user.id) {
+      return c.json({ error: "Author or instructor only" }, 403);
+    }
+    db.delete(classAnnouncements)
+      .where(eq(classAnnouncements.id, id))
+      .run();
+    return c.json({ ok: true });
+  },
+);
+
+// ---------- Phase 23B — gradebook matrix ----------
+
+// GET /classes/:slug/gradebook — instructor or TA only. Returns
+// a students × tasks matrix the instructor can scan in one view.
+// Computes per-student + per-task summaries server-side so the UI
+// stays a thin renderer.
+classesRouter.get(
+  "/:slug/gradebook",
+  requireAuth,
+  requireInstructorOrTa,
+  async (c) => {
+    const cls = c.get("classRow");
+    const db = getDb();
+
+    const tasks = db
+      .select({
+        id: classTasks.id,
+        title: classTasks.title,
+        kind: classTasks.kind,
+        dueAt: classTasks.dueAt,
+        topic: classTasks.topic,
+      })
+      .from(classTasks)
+      .where(eq(classTasks.classId, cls.id))
+      .orderBy(asc(classTasks.dueAt), desc(classTasks.createdAt))
+      .all();
+
+    const studentsRows = db
+      .select({
+        userId: classEnrollments.userId,
+        username: users.username,
+        displayName: users.displayName,
+        role: classEnrollments.role,
+      })
+      .from(classEnrollments)
+      .innerJoin(users, eq(classEnrollments.userId, users.id))
+      .where(
+        and(
+          eq(classEnrollments.classId, cls.id),
+          eq(classEnrollments.role, "student"),
+        ),
+      )
+      .orderBy(asc(users.username))
+      .all();
+
+    if (tasks.length === 0 || studentsRows.length === 0) {
+      return c.json({
+        tasks: tasks.map((t) => ({
+          id: t.id,
+          title: t.title,
+          kind: t.kind,
+          dueAt: t.dueAt,
+          topic: t.topic,
+        })),
+        students: studentsRows.map((s) => ({
+          userId: s.userId,
+          username: s.username,
+          displayName: s.displayName,
+        })),
+        cells: [],
+      });
+    }
+
+    const taskIds = tasks.map((t) => t.id);
+    const completions = db
+      .select({
+        taskId: classTaskCompletions.taskId,
+        userId: classTaskCompletions.userId,
+        gradeJson: classTaskCompletions.gradeJson,
+        wasLate: classTaskCompletions.wasLate,
+        submittedAt: classTaskCompletions.submittedAt,
+        gradedAt: classTaskCompletions.gradedAt,
+      })
+      .from(classTaskCompletions)
+      .where(inArray(classTaskCompletions.taskId, taskIds))
+      .all();
+
+    interface Cell {
+      taskId: string;
+      userId: string;
+      status: "missing" | "submitted" | "passed" | "failed";
+      score: number | null;
+      maxScore: number | null;
+      wasLate: boolean;
+      submittedAt: string | null;
+      aiGenerated: boolean;
+    }
+    const cells: Cell[] = [];
+    const cellByPair = new Map<string, Cell>();
+    for (const comp of completions) {
+      let parsed: {
+        score?: number;
+        maxScore?: number;
+        pass?: boolean;
+        aiGenerated?: boolean;
+      } | null = null;
+      if (comp.gradeJson) {
+        try {
+          parsed = JSON.parse(comp.gradeJson);
+        } catch {
+          // ignore — treat as ungraded
+        }
+      }
+      let status: Cell["status"] = "submitted";
+      if (parsed && typeof parsed.pass === "boolean") {
+        status = parsed.pass ? "passed" : "failed";
+      }
+      const cell: Cell = {
+        taskId: comp.taskId,
+        userId: comp.userId,
+        status,
+        score: parsed?.score ?? null,
+        maxScore: parsed?.maxScore ?? null,
+        wasLate: !!comp.wasLate,
+        submittedAt: comp.submittedAt,
+        aiGenerated: parsed?.aiGenerated === true,
+      };
+      cells.push(cell);
+      cellByPair.set(`${cell.taskId}::${cell.userId}`, cell);
+    }
+    // Fill in missing cells so the client doesn't have to
+    // cross-reference taskIds × userIds itself.
+    for (const t of tasks) {
+      for (const s of studentsRows) {
+        const key = `${t.id}::${s.userId}`;
+        if (!cellByPair.has(key)) {
+          cells.push({
+            taskId: t.id,
+            userId: s.userId,
+            status: "missing",
+            score: null,
+            maxScore: null,
+            wasLate: false,
+            submittedAt: null,
+            aiGenerated: false,
+          });
+        }
+      }
+    }
+
+    return c.json({
+      tasks: tasks.map((t) => ({
+        id: t.id,
+        title: t.title,
+        kind: t.kind,
+        dueAt: t.dueAt,
+        topic: t.topic,
+      })),
+      students: studentsRows.map((s) => ({
+        userId: s.userId,
+        username: s.username,
+        displayName: s.displayName,
+      })),
+      cells,
     });
   },
 );

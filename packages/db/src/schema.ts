@@ -2428,6 +2428,10 @@ export const classTasks = sqliteTable("class_tasks", {
   url: text("url"),
   dueAt: text("due_at"),
   xpReward: integer("xp_reward"),
+  // Phase 23C — optional grouping label for the Classwork tab
+  // ("Week 1: Linear Algebra"). Free-form so instructors can
+  // organize however the class needs. Null = "(no topic)" bucket.
+  topic: text("topic"),
   createdById: text("created_by_id").notNull().references(() => users.id),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
 }, (t) => ({
@@ -2512,6 +2516,33 @@ export const classAttendance = sqliteTable("class_attendance", {
 }, (t) => ({
   pk: uniqueIndex("class_attendance_pk").on(t.classId, t.userId, t.sessionDate),
   classDateIdx: index("class_attendance_class_date_idx").on(t.classId, t.sessionDate),
+}));
+
+// Phase 23A — class stream / announcements. Persistent
+// instructor-authored posts that show in chronological feed at
+// the top of the class page. Anyone enrolled reads; instructor
+// + TAs post / edit / delete. Pinned items sort first.
+//
+// Replaces the prior pattern of stuffing announcements into
+// classes.welcomeMessageMd (single string, no history).
+export const classAnnouncements = sqliteTable("class_announcements", {
+  id: text("id").primaryKey(),
+  classId: text("class_id").notNull()
+    .references(() => classes.id, { onDelete: "cascade" }),
+  authorId: text("author_id").notNull().references(() => users.id),
+  bodyMd: text("body_md").notNull(),
+  // Boolean stored as 0/1 (matches the rest of this schema).
+  pinned: integer("pinned", { mode: "boolean" }).notNull().default(false),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  // Stream feed reads: pinned-first, then newest. The composite
+  // index covers the typical sort.
+  feedIdx: index("class_announcements_feed_idx").on(
+    t.classId,
+    t.pinned,
+    t.createdAt,
+  ),
 }));
 
 // XP ledger. Append-only; the leaderboard query sums this per user

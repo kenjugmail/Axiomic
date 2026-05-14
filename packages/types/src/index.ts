@@ -3389,6 +3389,8 @@ export interface ClassTaskSummary {
   url: string | null;
   dueAt: string | null;
   xpReward: number;
+  // Phase 23C — optional topic label for Classwork-tab grouping.
+  topic?: string | null;
   createdAt: string;
   myCompleted: boolean;
 }
@@ -3528,6 +3530,7 @@ export interface CreateClassTaskRequest {
   url?: string | null;
   dueAt?: string | null;
   xpReward?: number | null;
+  topic?: string | null;
 }
 
 export interface UpdateClassTaskRequest {
@@ -3536,6 +3539,7 @@ export interface UpdateClassTaskRequest {
   url?: string | null;
   dueAt?: string | null;
   xpReward?: number | null;
+  topic?: string | null;
 }
 
 export interface CompleteClassTaskRequest {

@@ -2771,4 +2771,217 @@ describe("S93 instructor analytics dashboard", () => {
     expect(subsBody.submissions.length).toBe(1);
     expect(subsBody.submissions[0]!.grade).not.toBeNull();
   });
+
+  // ----- Phase 23A — class stream / announcements -----
+
+  test("instructor posts an announcement; enrolled student reads; non-author denied edit", async () => {
+    const instructor = await signup("ann-inst");
+    const student = await signup("ann-stu");
+    const slug = `cls-ann-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    const enr = await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    expect(enr.status).toBe(201);
+
+    const post = await req(`/classes/${slug}/announcements`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        bodyMd: "Welcome to the class. Read chapter 1 by Friday.",
+        pinned: true,
+      }),
+    });
+    expect(post.status).toBe(201);
+    const { id: announcementId } = (await post.json()) as { id: string };
+
+    // Student reads the stream + sees the post.
+    const list = await req(`/classes/${slug}/announcements`, {
+      headers: cookieHeader(student.cookie),
+    });
+    expect(list.status).toBe(200);
+    const listBody = (await list.json()) as {
+      announcements: Array<{ id: string; pinned: boolean; bodyMd: string }>;
+    };
+    const found = listBody.announcements.find((a) => a.id === announcementId);
+    expect(found).toBeDefined();
+    expect(found?.pinned).toBe(true);
+
+    // Student can't post.
+    const denied = await req(`/classes/${slug}/announcements`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ bodyMd: "I shouldn't be able to post this." }),
+    });
+    expect(denied.status).toBe(403);
+
+    // Student can't edit.
+    const editDenied = await req(
+      `/classes/${slug}/announcements/${announcementId}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+        body: JSON.stringify({ bodyMd: "Hijacked announcement body" }),
+      },
+    );
+    expect(editDenied.status).toBe(403);
+
+    // Instructor can edit + unpin.
+    const upd = await req(
+      `/classes/${slug}/announcements/${announcementId}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+        body: JSON.stringify({ pinned: false }),
+      },
+    );
+    expect(upd.status).toBe(200);
+
+    // Instructor deletes.
+    const del = await req(
+      `/classes/${slug}/announcements/${announcementId}`,
+      {
+        method: "DELETE",
+        headers: cookieHeader(instructor.cookie),
+      },
+    );
+    expect(del.status).toBe(200);
+  });
+
+  // ----- Phase 23B — gradebook matrix -----
+
+  test("instructor sees gradebook with cells for each student/task; student denied", async () => {
+    const instructor = await signup("gb-inst");
+    const student = await signup("gb-stu");
+    const slug = `cls-gb-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    const enr = await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    expect(enr.status).toBe(201);
+
+    // Two homework tasks.
+    const t1Res = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        kind: "homework",
+        title: "Gradebook task A",
+        descriptionMd: "...",
+      }),
+    });
+    const t2Res = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        kind: "homework",
+        title: "Gradebook task B",
+        descriptionMd: "...",
+      }),
+    });
+    const t1 = ((await t1Res.json()) as { taskId: string }).taskId;
+    const t2 = ((await t2Res.json()) as { taskId: string }).taskId;
+
+    // Student submits one of the two.
+    await req(`/classes/${slug}/tasks/${t1}/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ content: "My writeup body for task A." }),
+    });
+
+    const gb = await req(`/classes/${slug}/gradebook`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    expect(gb.status).toBe(200);
+    const body = (await gb.json()) as {
+      tasks: Array<{ id: string }>;
+      students: Array<{ userId: string }>;
+      cells: Array<{ taskId: string; userId: string; status: string }>;
+    };
+    expect(body.tasks.length).toBeGreaterThanOrEqual(2);
+    expect(body.students.find((s) => s.userId === student.userId)).toBeDefined();
+    // Server pre-fills missing cells, so every (task, student)
+    // pair from this run should be represented.
+    const cellA = body.cells.find(
+      (c) => c.taskId === t1 && c.userId === student.userId,
+    );
+    const cellB = body.cells.find(
+      (c) => c.taskId === t2 && c.userId === student.userId,
+    );
+    expect(cellA).toBeDefined();
+    expect(cellB).toBeDefined();
+    expect(cellB?.status).toBe("missing");
+
+    // Student is denied.
+    const denied = await req(`/classes/${slug}/gradebook`, {
+      headers: cookieHeader(student.cookie),
+    });
+    expect(denied.status).toBe(403);
+  });
+
+  // ----- Phase 23C — task topic round-trip -----
+
+  test("topic round-trips through create + update + class detail", async () => {
+    const instructor = await signup("tp-inst");
+    const slug = `cls-tp-${testRun}`;
+    await createClass(instructor.cookie, slug);
+
+    const created = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        kind: "reading",
+        title: "Topic-tagged reading",
+        descriptionMd: "Read chapter 3.",
+        topic: "Week 1: Linear Algebra",
+      }),
+    });
+    expect(created.status).toBe(201);
+    const { taskId } = (await created.json()) as { taskId: string };
+
+    const detail = await req(`/classes/${slug}`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    const detailBody = (await detail.json()) as {
+      tasks: Array<{ id: string; topic?: string | null }>;
+    };
+    const t = detailBody.tasks.find((x) => x.id === taskId);
+    expect(t?.topic).toBe("Week 1: Linear Algebra");
+
+    // Rename topic via PUT.
+    const upd = await req(`/classes/${slug}/tasks/${taskId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ topic: "Week 2: Calculus" }),
+    });
+    expect(upd.status).toBe(200);
+    const detail2 = await req(`/classes/${slug}`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    const detail2Body = (await detail2.json()) as {
+      tasks: Array<{ id: string; topic?: string | null }>;
+    };
+    expect(detail2Body.tasks.find((x) => x.id === taskId)?.topic).toBe(
+      "Week 2: Calculus",
+    );
+
+    // Clear topic by passing null.
+    const upd2 = await req(`/classes/${slug}/tasks/${taskId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ topic: null }),
+    });
+    expect(upd2.status).toBe(200);
+    const detail3 = await req(`/classes/${slug}`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    const detail3Body = (await detail3.json()) as {
+      tasks: Array<{ id: string; topic?: string | null }>;
+    };
+    expect(detail3Body.tasks.find((x) => x.id === taskId)?.topic).toBeNull();
+  });
 });

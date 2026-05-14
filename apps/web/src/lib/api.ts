@@ -1425,6 +1425,67 @@ export const api = {
           body: JSON.stringify(data),
         },
       ),
+    // Phase 23A — class stream / announcements.
+    listAnnouncements: (slug: string) =>
+      request<{
+        announcements: Array<{
+          id: string;
+          authorId: string;
+          authorUsername: string;
+          authorDisplayName: string | null;
+          bodyMd: string;
+          pinned: boolean;
+          createdAt: string;
+          updatedAt: string;
+        }>;
+      }>(`/classes/${slug}/announcements`),
+    createAnnouncement: (
+      slug: string,
+      data: { bodyMd: string; pinned?: boolean },
+    ) =>
+      request<{ id: string }>(`/classes/${slug}/announcements`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    updateAnnouncement: (
+      slug: string,
+      id: string,
+      data: { bodyMd?: string; pinned?: boolean },
+    ) =>
+      request<OkResponse>(`/classes/${slug}/announcements/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    deleteAnnouncement: (slug: string, id: string) =>
+      request<OkResponse>(`/classes/${slug}/announcements/${id}`, {
+        method: "DELETE",
+      }),
+    // Phase 23B — gradebook matrix.
+    gradebook: (slug: string) =>
+      request<{
+        tasks: Array<{
+          id: string;
+          title: string;
+          kind: string;
+          dueAt: string | null;
+          topic: string | null;
+        }>;
+        students: Array<{
+          userId: string;
+          username: string;
+          displayName: string | null;
+        }>;
+        cells: Array<{
+          taskId: string;
+          userId: string;
+          status: "missing" | "submitted" | "passed" | "failed";
+          score: number | null;
+          maxScore: number | null;
+          wasLate: boolean;
+          submittedAt: string | null;
+          aiGenerated: boolean;
+        }>;
+      }>(`/classes/${slug}/gradebook`),
     recordAttendance: (slug: string, data: RecordAttendanceRequest) =>
       request<{ ok: true; xpGrants: Array<{ userId: string; amount: number }> }>(
         `/classes/${slug}/attendance`,

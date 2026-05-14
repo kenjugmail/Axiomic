@@ -246,6 +246,11 @@ const ClassPage = lazy(() =>
 const ClassEditPage = lazy(() =>
   import("./pages/ClassEditPage").then((m) => ({ default: m.ClassEditPage })),
 );
+const ClassGradebookPage = lazy(() =>
+  import("./pages/ClassGradebookPage").then((m) => ({
+    default: m.ClassGradebookPage,
+  })),
+);
 const ClassTaskPage = lazy(() =>
   import("./pages/ClassTaskPage").then((m) => ({ default: m.ClassTaskPage })),
 );
@@ -587,6 +592,10 @@ function AppRoutes() {
           <Route path="/classes" element={<ClassesListPage />} />
           <Route path="/classes/:slug" element={<ClassPage />} />
           <Route path="/classes/:slug/edit" element={<ClassEditPage />} />
+          <Route
+            path="/classes/:slug/gradebook"
+            element={<ClassGradebookPage />}
+          />
           <Route path="/classes/:slug/tasks/:taskId" element={<ClassTaskPage />} />
           <Route
             path="/classes/:slug/competitions/:competitionId"

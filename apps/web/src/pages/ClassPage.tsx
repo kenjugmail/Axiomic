@@ -10,7 +10,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
+  BookCheck,
   ListChecks,
+  Megaphone,
+  Pin,
   Trophy,
   Users,
   CalendarCheck,
@@ -29,6 +32,7 @@ import type {
   LeaderboardWindow,
 } from "@axiomic/types";
 import { api, ApiError } from "../lib/api";
+import { relativeTime } from "../lib/dates";
 import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
@@ -39,7 +43,13 @@ import { PetByUsername } from "../pet";
 import { ClassQuestionWidget } from "../components/class/ClassQuestionWidget";
 import { toast } from "../stores/toast";
 
-type Tab = "tasks" | "leaderboard" | "competitions" | "roster" | "attendance";
+type Tab =
+  | "stream"
+  | "tasks"
+  | "leaderboard"
+  | "competitions"
+  | "roster"
+  | "attendance";
 
 export function ClassPage() {
   const { slug = "" } = useParams<{ slug: string }>();
@@ -47,7 +57,7 @@ export function ClassPage() {
   const [data, setData] = useState<ClassDetailResponse | null>(null);
   const [leaderboard, setLeaderboard] = useState<ClassLeaderboardResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<Tab>("tasks");
+  const [tab, setTab] = useState<Tab>("stream");
   const [creatingTask, setCreatingTask] = useState(false);
 
   const reload = async () => {
@@ -225,8 +235,11 @@ export function ClassPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-border mb-4 flex-wrap">
+        <TabButton active={tab === "stream"} onClick={() => setTab("stream")}>
+          <Megaphone className="w-3.5 h-3.5" /> Stream
+        </TabButton>
         <TabButton active={tab === "tasks"} onClick={() => setTab("tasks")}>
-          <ListChecks className="w-3.5 h-3.5" /> Tasks
+          <ListChecks className="w-3.5 h-3.5" /> Classwork
         </TabButton>
         <TabButton active={tab === "leaderboard"} onClick={() => setTab("leaderboard")}>
           <Trophy className="w-3.5 h-3.5" /> Leaderboard
@@ -242,9 +255,21 @@ export function ClassPage() {
             <TabButton active={tab === "attendance"} onClick={() => setTab("attendance")}>
               <CalendarCheck className="w-3.5 h-3.5" /> Attendance
             </TabButton>
+            {/* Phase 23B — gradebook is its own page so the matrix
+                can take the full width without crowding the tabs. */}
+            <Link
+              to={`/classes/${slug}/gradebook`}
+              className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+            >
+              <BookCheck className="w-3.5 h-3.5" /> Gradebook
+            </Link>
           </>
         )}
       </div>
+
+      {tab === "stream" && (
+        <ClassStream classSlug={slug} canPost={isInstructorOrTa} />
+      )}
 
       {tab === "tasks" && (
         <section>
@@ -269,17 +294,15 @@ export function ClassPage() {
               No readings or homework yet.
             </p>
           ) : (
-            <ul className="space-y-2">
-              {data.tasks.map((t) => (
-                <TaskRow
-                  key={t.id}
-                  classSlug={slug}
-                  task={t}
-                  myRole={data.myRole}
-                  onChanged={reload}
-                />
-              ))}
-            </ul>
+            // Phase 23C — group by topic. Topicless tasks fall into
+            // "(no topic)" at the bottom. Within each group keep
+            // the server's order (asc dueAt, desc createdAt).
+            <ClasswarkGroups
+              tasks={data.tasks}
+              classSlug={slug}
+              myRole={data.myRole}
+              onChanged={reload}
+            />
           )}
           {creatingTask && (
             <CreateTaskDialog
@@ -387,9 +410,14 @@ function TaskRow({
   const [content, setContent] = useState("");
   // Phase 21 — personalized variant (null until we've checked).
   // Loaded the first time a student opens the submit form on a
-  // homework task.
+  // homework task. Phase 23D added rubric so the student sees
+  // what they'll be graded on before they write.
   const [variant, setVariant] = useState<{
     promptMd: string;
+    rubric: {
+      criteria: Array<{ id: string; description: string; weight?: number }>;
+      passingScore: number;
+    } | null;
   } | null>(null);
   const [variantLoaded, setVariantLoaded] = useState(false);
 
@@ -405,7 +433,11 @@ function TaskRow({
       .myTaskVariant(classSlug, task.id)
       .then((r) => {
         if (!cancelled) {
-          setVariant(r.variant);
+          setVariant(
+            r.variant
+              ? { promptMd: r.variant.promptMd, rubric: r.variant.rubric }
+              : null,
+          );
           setVariantLoaded(true);
         }
       })
@@ -550,6 +582,30 @@ function TaskRow({
               <div className="prose prose-sm dark:prose-invert max-w-none">
                 <MarkdownRenderer content={variant.promptMd} />
               </div>
+              {/* Phase 23D — show the rubric the auto-grader will
+                  use, so the student knows what counts before they
+                  start writing. Mirror Google Classroom's
+                  "Grading rubric" pre-submit visibility. */}
+              {variant.rubric && variant.rubric.criteria.length > 0 && (
+                <div
+                  data-testid="task-variant-rubric"
+                  className="mt-3 pt-3 border-t border-violet-500/20"
+                >
+                  <div className="text-[10px] uppercase tracking-wider text-violet-700 dark:text-violet-300 mb-1.5">
+                    Graded on (pass at{" "}
+                    {Math.round(variant.rubric.passingScore * 100)}%)
+                  </div>
+                  <ul className="text-xs space-y-0.5 list-disc pl-5">
+                    {variant.rubric.criteria.map((c) => (
+                      <li key={c.id}>
+                        <span className="font-medium">
+                          {c.description.split("—")[0].trim()}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
           <textarea
@@ -596,6 +652,8 @@ function CreateTaskDialog({
   const [descriptionMd, setDescriptionMd] = useState("");
   const [url, setUrl] = useState("");
   const [dueAt, setDueAt] = useState("");
+  // Phase 23C — optional grouping label, e.g. "Week 1: Linear Algebra".
+  const [topic, setTopic] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const submit = async () => {
@@ -608,6 +666,7 @@ function CreateTaskDialog({
         descriptionMd: descriptionMd.trim(),
         url: kind === "reading" && url.trim() ? url.trim() : null,
         dueAt: dueAt ? dueAt : null,
+        topic: topic.trim() ? topic.trim() : null,
       });
       toast.success("Task created");
       onCreated();
@@ -671,6 +730,17 @@ function CreateTaskDialog({
               onChange={(e) => setDescriptionMd(e.target.value)}
               rows={4}
               className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background font-mono"
+            />
+          </label>
+          <label className="block">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 block">
+              Topic (optional)
+            </span>
+            <input
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              placeholder="Week 1: Linear Algebra"
+              className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background"
             />
           </label>
           <label className="block">
@@ -777,3 +847,247 @@ function formatDate(iso: string): string {
   });
 }
 
+// Phase 23C — Classwork tab grouping. Tasks land in topic buckets;
+// "(no topic)" sweeps up legacy + skipped entries at the bottom so
+// nothing hides from the instructor.
+function ClasswarkGroups({
+  tasks,
+  classSlug,
+  myRole,
+  onChanged,
+}: {
+  tasks: ClassDetailResponse["tasks"];
+  classSlug: string;
+  myRole: ClassRole;
+  onChanged: () => void;
+}) {
+  const groups = new Map<string, ClassDetailResponse["tasks"]>();
+  for (const t of tasks) {
+    const key = t.topic && t.topic.trim() ? t.topic.trim() : "";
+    const arr = groups.get(key) ?? [];
+    arr.push(t);
+    groups.set(key, arr);
+  }
+  // Render named topics in stable order (alphabetical) then the
+  // unnamed bucket. Stable ordering keeps the page from reshuffling
+  // when an instructor renames a single task's topic.
+  const named = [...groups.keys()].filter((k) => k).sort();
+  const ordered = named.concat(groups.has("") ? [""] : []);
+  return (
+    <div className="space-y-5">
+      {ordered.map((key) => {
+        const items = groups.get(key) ?? [];
+        return (
+          <div key={key || "__notopic"} data-testid="topic-group">
+            <h3 className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">
+              {key || "(no topic)"} · {items.length} task
+              {items.length === 1 ? "" : "s"}
+            </h3>
+            <ul className="space-y-2">
+              {items.map((t) => (
+                <TaskRow
+                  key={t.id}
+                  classSlug={classSlug}
+                  task={t}
+                  myRole={myRole}
+                  onChanged={onChanged}
+                />
+              ))}
+            </ul>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Phase 23A — class stream. Persistent announcement feed at the
+// top of the class page. Pinned items show first; instructor +
+// TA can post / edit / delete; everyone enrolled reads.
+type AnnouncementRow = Awaited<
+  ReturnType<typeof api.classes.listAnnouncements>
+>["announcements"][number];
+
+function ClassStream({
+  classSlug,
+  canPost,
+}: {
+  classSlug: string;
+  canPost: boolean;
+}) {
+  const [rows, setRows] = useState<AnnouncementRow[] | null>(null);
+  const [composing, setComposing] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [pinned, setPinned] = useState(false);
+  const [posting, setPosting] = useState(false);
+
+  const load = async () => {
+    try {
+      const r = await api.classes.listAnnouncements(classSlug);
+      setRows(r.announcements);
+    } catch (e) {
+      toast.error(e instanceof ApiError ? e.message : "Stream load failed");
+      setRows([]);
+    }
+  };
+
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [classSlug]);
+
+  const submit = async () => {
+    if (draft.trim().length < 10) {
+      toast.error("Announcement is too short.");
+      return;
+    }
+    setPosting(true);
+    try {
+      await api.classes.createAnnouncement(classSlug, {
+        bodyMd: draft.trim(),
+        pinned,
+      });
+      setDraft("");
+      setPinned(false);
+      setComposing(false);
+      await load();
+    } catch (e) {
+      toast.error(e instanceof ApiError ? e.message : "Post failed");
+    } finally {
+      setPosting(false);
+    }
+  };
+
+  const togglePin = async (row: AnnouncementRow) => {
+    try {
+      await api.classes.updateAnnouncement(classSlug, row.id, {
+        pinned: !row.pinned,
+      });
+      await load();
+    } catch (e) {
+      toast.error(e instanceof ApiError ? e.message : "Update failed");
+    }
+  };
+
+  const remove = async (row: AnnouncementRow) => {
+    if (!window.confirm("Delete this announcement?")) return;
+    try {
+      await api.classes.deleteAnnouncement(classSlug, row.id);
+      await load();
+    } catch (e) {
+      toast.error(e instanceof ApiError ? e.message : "Delete failed");
+    }
+  };
+
+  return (
+    <section className="space-y-4">
+      {canPost && !composing && (
+        <button
+          type="button"
+          onClick={() => setComposing(true)}
+          className="w-full text-left text-sm rounded-md border border-dashed border-border px-4 py-3 text-muted-foreground hover:border-primary hover:text-foreground"
+        >
+          Post an announcement…
+        </button>
+      )}
+      {canPost && composing && (
+        <div className="rounded-md border border-border bg-card p-3 space-y-2">
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            rows={5}
+            placeholder="Markdown supported. Keep it short — students see this at the top of the class."
+            className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background font-mono"
+          />
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <label className="text-xs inline-flex items-center gap-1.5">
+              <input
+                type="checkbox"
+                checked={pinned}
+                onChange={(e) => setPinned(e.target.checked)}
+              />
+              Pin to top
+            </label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setComposing(false);
+                  setDraft("");
+                  setPinned(false);
+                }}
+                className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={submit}
+                disabled={posting || draft.trim().length < 10}
+                className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {posting ? "Posting…" : "Post"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {rows === null && <Skeleton className="h-24" />}
+      {rows && rows.length === 0 && (
+        <p className="text-sm text-muted-foreground py-8 text-center">
+          No announcements yet.
+        </p>
+      )}
+      {rows && rows.length > 0 && (
+        <ul className="space-y-3">
+          {rows.map((r) => (
+            <li
+              key={r.id}
+              data-testid="announcement"
+              className={`rounded-md border bg-card p-4 ${
+                r.pinned ? "border-primary/40 bg-primary/5" : "border-border"
+              }`}
+            >
+              <div className="flex items-baseline justify-between gap-3 flex-wrap mb-1.5">
+                <div className="text-xs text-muted-foreground inline-flex items-center gap-2 flex-wrap">
+                  <span className="font-medium text-foreground">
+                    {r.authorDisplayName ?? `@${r.authorUsername}`}
+                  </span>
+                  <span>·</span>
+                  <span>{relativeTime(r.createdAt)}</span>
+                  {r.pinned && (
+                    <span className="inline-flex items-center gap-1 text-primary">
+                      <Pin className="w-3 h-3" />
+                      pinned
+                    </span>
+                  )}
+                </div>
+                {canPost && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => togglePin(r)}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      {r.pinned ? "Unpin" : "Pin"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => remove(r)}
+                      className="text-rose-600 dark:text-rose-400 hover:underline"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                <MarkdownRenderer content={r.bodyMd} />
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
