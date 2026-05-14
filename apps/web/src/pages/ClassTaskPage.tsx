@@ -11,6 +11,7 @@ import { api, ApiError } from "../lib/api";
 import { Modal, Skeleton } from "../components/ui";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { toast } from "../stores/toast";
+import { useAuthStore } from "../stores/auth";
 
 export function ClassTaskPage() {
   const { slug = "", taskId = "" } = useParams<{ slug: string; taskId: string }>();
@@ -60,9 +61,15 @@ export function ClassTaskPage() {
         <Link to={`/classes/${slug}`} className="hover:text-foreground">{slug}</Link>
         {" / task"}
       </div>
-      <h1 className="font-display text-2xl font-semibold tracking-tight mb-2">
-        {data.task.title}
-      </h1>
+      <div className="flex items-baseline justify-between gap-3 flex-wrap mb-2">
+        <h1 className="font-display text-2xl font-semibold tracking-tight">
+          {data.task.title}
+        </h1>
+        {/* Phase 24D — instructor escape hatch to reuse this task
+            in another class they own. Variants do NOT clone — the
+            target class regenerates fresh. */}
+        <CloneTaskButton sourceSlug={slug} taskId={taskId} />
+      </div>
       {data.task.descriptionMd && (
         <div className="prose-sm max-w-none mb-6 rounded-md bg-muted/30 border border-border p-3">
           <MarkdownRenderer
@@ -104,6 +111,11 @@ export function ClassTaskPage() {
           ))}
         </ul>
       )}
+
+      {/* Phase 24A — per-task discussion. Sits below submissions
+          so the instructor sees their grading queue first, then
+          any clarifying questions. Any enrollee can post. */}
+      <TaskDiscussion classSlug={slug} taskId={taskId} />
     </div>
   );
 }
@@ -563,5 +575,291 @@ function VariantPreviewBody({
         </section>
       )}
     </div>
+  );
+}
+
+// Phase 24A — per-task discussion. Flat list, newest-first. Any
+// enrollee posts; author edits own; author or instructor deletes.
+type DiscussionRow = Awaited<
+  ReturnType<typeof api.classes.listTaskDiscussions>
+>["posts"][number];
+
+function TaskDiscussion({
+  classSlug,
+  taskId,
+}: {
+  classSlug: string;
+  taskId: string;
+}) {
+  const me = useAuthStore((s) => s.user);
+  const [rows, setRows] = useState<DiscussionRow[] | null>(null);
+  const [draft, setDraft] = useState("");
+  const [posting, setPosting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState("");
+
+  const load = async () => {
+    try {
+      const r = await api.classes.listTaskDiscussions(classSlug, taskId);
+      setRows(r.posts);
+    } catch (e) {
+      toast.error(e instanceof ApiError ? e.message : "Discussion load failed");
+      setRows([]);
+    }
+  };
+
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [classSlug, taskId]);
+
+  const post = async () => {
+    if (draft.trim().length < 5) return;
+    setPosting(true);
+    try {
+      await api.classes.postTaskDiscussion(classSlug, taskId, draft.trim());
+      setDraft("");
+      await load();
+    } catch (e) {
+      toast.error(e instanceof ApiError ? e.message : "Post failed");
+    } finally {
+      setPosting(false);
+    }
+  };
+
+  const saveEdit = async (id: string) => {
+    if (editDraft.trim().length < 5) return;
+    try {
+      await api.classes.updateTaskDiscussion(
+        classSlug,
+        taskId,
+        id,
+        editDraft.trim(),
+      );
+      setEditingId(null);
+      setEditDraft("");
+      await load();
+    } catch (e) {
+      toast.error(e instanceof ApiError ? e.message : "Edit failed");
+    }
+  };
+
+  const remove = async (id: string) => {
+    if (!window.confirm("Delete this post?")) return;
+    try {
+      await api.classes.deleteTaskDiscussion(classSlug, taskId, id);
+      await load();
+    } catch (e) {
+      toast.error(e instanceof ApiError ? e.message : "Delete failed");
+    }
+  };
+
+  return (
+    <section className="mt-8" data-testid="task-discussion">
+      <h2 className="text-sm font-semibold mb-3">Discussion</h2>
+      {me && (
+        <div className="rounded-md border border-border bg-card p-3 mb-3 space-y-2">
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            rows={3}
+            placeholder="Ask a clarifying question about this task…"
+            className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background"
+          />
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={post}
+              disabled={posting || draft.trim().length < 5}
+              className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {posting ? "Posting…" : "Post"}
+            </button>
+          </div>
+        </div>
+      )}
+      {rows === null && <Skeleton className="h-20" />}
+      {rows && rows.length === 0 && (
+        <p className="text-sm text-muted-foreground">No questions yet.</p>
+      )}
+      {rows && rows.length > 0 && (
+        <ul className="space-y-3">
+          {rows.map((r) => {
+            const isAuthor = me?.id === r.userId;
+            return (
+              <li
+                key={r.id}
+                className="rounded-md border border-border bg-card p-3"
+                data-testid="discussion-post"
+              >
+                <div className="flex items-baseline justify-between gap-3 flex-wrap mb-1.5">
+                  <div className="text-xs text-muted-foreground inline-flex items-center gap-2 flex-wrap">
+                    <Link
+                      to={`/profile/${r.username}`}
+                      className="font-medium text-foreground hover:text-primary"
+                    >
+                      {r.displayName ?? `@${r.username}`}
+                    </Link>
+                    <span>·</span>
+                    <span>{new Date(r.createdAt).toLocaleString()}</span>
+                  </div>
+                  {isAuthor && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingId(r.id);
+                          setEditDraft(r.bodyMd);
+                        }}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => remove(r.id)}
+                        className="text-rose-600 dark:text-rose-400 hover:underline"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {editingId === r.id ? (
+                  <div className="space-y-2">
+                    <textarea
+                      value={editDraft}
+                      onChange={(e) => setEditDraft(e.target.value)}
+                      rows={3}
+                      className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background"
+                    />
+                    <div className="flex justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingId(null);
+                          setEditDraft("");
+                        }}
+                        className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => saveEdit(r.id)}
+                        disabled={editDraft.trim().length < 5}
+                        className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="prose prose-sm dark:prose-invert max-w-none">
+                    <MarkdownRenderer content={r.bodyMd} />
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+// Phase 24D — clone a task into another instructor-owned class.
+// Lazily fetches the caller's class list when the picker opens so
+// the page load stays cheap.
+function CloneTaskButton({
+  sourceSlug,
+  taskId,
+}: {
+  sourceSlug: string;
+  taskId: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [targets, setTargets] = useState<
+    Array<{ slug: string; title: string }> | null
+  >(null);
+  const [busy, setBusy] = useState(false);
+
+  const openPicker = async () => {
+    setOpen(true);
+    if (targets !== null) return;
+    try {
+      const r = await api.classes.list();
+      // `teaching` is exactly "classes I instruct" — exclude the
+      // source class itself so the picker doesn't offer a no-op.
+      const mine = r.teaching.filter((c) => c.slug !== sourceSlug);
+      setTargets(mine.map((c) => ({ slug: c.slug, title: c.title })));
+    } catch (e) {
+      toast.error(e instanceof ApiError ? e.message : "Couldn't load classes");
+      setTargets([]);
+    }
+  };
+
+  const clone = async (targetSlug: string) => {
+    setBusy(true);
+    try {
+      const r = await api.classes.cloneTask(sourceSlug, taskId, targetSlug);
+      toast.success(`Cloned to ${targetSlug}`);
+      setOpen(false);
+      // Surface the new task URL so the instructor can jump there
+      // immediately if they want to set the due date.
+      window.location.href = `/classes/${r.targetClassSlug}/tasks/${r.taskId}`;
+    } catch (e) {
+      toast.error(e instanceof ApiError ? e.message : "Clone failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={openPicker}
+        className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40 inline-flex items-center gap-1.5"
+      >
+        Clone to…
+      </button>
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        size="md"
+        title="Clone task to another class"
+      >
+        {targets === null && <Skeleton className="h-20" />}
+        {targets && targets.length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            You don't instruct any other classes.
+          </p>
+        )}
+        {targets && targets.length > 0 && (
+          <ul className="space-y-1.5">
+            {targets.map((t) => (
+              <li key={t.slug}>
+                <button
+                  type="button"
+                  onClick={() => clone(t.slug)}
+                  disabled={busy}
+                  className="w-full text-left text-sm rounded-md border border-border px-3 py-2 hover:bg-accent/40 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span className="font-medium">{t.title}</span>
+                  <span className="text-xs text-muted-foreground ml-2">
+                    {t.slug}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="text-[11px] text-muted-foreground mt-3">
+          Title, description, topic, kind, and XP reward will be copied.
+          Due date resets; AI variants are not copied.
+        </p>
+      </Modal>
+    </>
   );
 }

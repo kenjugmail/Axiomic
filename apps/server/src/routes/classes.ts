@@ -20,9 +20,11 @@ import {
   classAttendance,
   classCompetitions,
   classEnrollments,
+  classMaterials,
   classQuestions,
   classQuestionAttempts,
   classTaskCompletions,
+  classTaskDiscussions,
   classTaskVariants,
   classTasks,
   classes,
@@ -3136,5 +3138,376 @@ classesRouter.get(
       })),
       cells,
     });
+  },
+);
+
+// ---------- Phase 24A — per-task discussion threads ----------
+
+const createDiscussionSchema = z.object({
+  bodyMd: z.string().min(5).max(4000),
+});
+const updateDiscussionSchema = z.object({
+  bodyMd: z.string().min(5).max(4000),
+});
+
+// GET /classes/:slug/tasks/:taskId/discussions — any enrollee.
+// Returns last 100 posts newest-first with author display info.
+classesRouter.get(
+  "/:slug/tasks/:taskId/discussions",
+  requireAuth,
+  requireEnrolledInClass,
+  async (c) => {
+    const cls = c.get("classRow");
+    const taskId = c.req.param("taskId")!;
+    const db = getDb();
+    const task = db
+      .select({ classId: classTasks.classId })
+      .from(classTasks)
+      .where(eq(classTasks.id, taskId))
+      .get();
+    if (!task || task.classId !== cls.id) {
+      return c.json({ error: "Task not found" }, 404);
+    }
+    const rows = db
+      .select({
+        id: classTaskDiscussions.id,
+        userId: classTaskDiscussions.userId,
+        username: users.username,
+        displayName: users.displayName,
+        bodyMd: classTaskDiscussions.bodyMd,
+        createdAt: classTaskDiscussions.createdAt,
+        updatedAt: classTaskDiscussions.updatedAt,
+      })
+      .from(classTaskDiscussions)
+      .innerJoin(users, eq(classTaskDiscussions.userId, users.id))
+      .where(eq(classTaskDiscussions.taskId, taskId))
+      .orderBy(desc(classTaskDiscussions.createdAt))
+      .limit(100)
+      .all();
+    return c.json({ posts: rows });
+  },
+);
+
+// POST /classes/:slug/tasks/:taskId/discussions — any enrollee.
+// Rate-limited per author to keep a stuck client from flooding.
+classesRouter.post(
+  "/:slug/tasks/:taskId/discussions",
+  requireAuth,
+  requireEnrolledInClass,
+  zValidator("json", createDiscussionSchema),
+  async (c) => {
+    const cls = c.get("classRow");
+    const user = c.get("user")!;
+    const taskId = c.req.param("taskId")!;
+    const data = c.req.valid("json");
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`task-discuss:${user.id}`, 10, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
+    const db = getDb();
+    const task = db
+      .select({ classId: classTasks.classId })
+      .from(classTasks)
+      .where(eq(classTasks.id, taskId))
+      .get();
+    if (!task || task.classId !== cls.id) {
+      return c.json({ error: "Task not found" }, 404);
+    }
+    const id = randomUUID();
+    const now = new Date().toISOString();
+    db.insert(classTaskDiscussions)
+      .values({
+        id,
+        taskId,
+        userId: user.id,
+        bodyMd: data.bodyMd,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .run();
+    return c.json({ id }, 201);
+  },
+);
+
+// PUT /classes/:slug/tasks/:taskId/discussions/:id — author only.
+classesRouter.put(
+  "/:slug/tasks/:taskId/discussions/:id",
+  requireAuth,
+  requireEnrolledInClass,
+  zValidator("json", updateDiscussionSchema),
+  async (c) => {
+    const cls = c.get("classRow");
+    const user = c.get("user")!;
+    const taskId = c.req.param("taskId")!;
+    const id = c.req.param("id")!;
+    const data = c.req.valid("json");
+    const db = getDb();
+    const row = db
+      .select()
+      .from(classTaskDiscussions)
+      .where(eq(classTaskDiscussions.id, id))
+      .get();
+    if (!row || row.taskId !== taskId) {
+      return c.json({ error: "Post not found" }, 404);
+    }
+    // Belt-and-suspenders: the row belongs to a task in this class.
+    const task = db
+      .select({ classId: classTasks.classId })
+      .from(classTasks)
+      .where(eq(classTasks.id, row.taskId))
+      .get();
+    if (!task || task.classId !== cls.id) {
+      return c.json({ error: "Post not found" }, 404);
+    }
+    if (row.userId !== user.id) {
+      return c.json({ error: "Author only" }, 403);
+    }
+    db.update(classTaskDiscussions)
+      .set({ bodyMd: data.bodyMd, updatedAt: new Date().toISOString() })
+      .where(eq(classTaskDiscussions.id, id))
+      .run();
+    return c.json({ ok: true });
+  },
+);
+
+// DELETE /classes/:slug/tasks/:taskId/discussions/:id — author OR
+// instructor (moderation escape hatch).
+classesRouter.delete(
+  "/:slug/tasks/:taskId/discussions/:id",
+  requireAuth,
+  requireEnrolledInClass,
+  async (c) => {
+    const cls = c.get("classRow");
+    const user = c.get("user")!;
+    const taskId = c.req.param("taskId")!;
+    const id = c.req.param("id")!;
+    const db = getDb();
+    const row = db
+      .select()
+      .from(classTaskDiscussions)
+      .where(eq(classTaskDiscussions.id, id))
+      .get();
+    if (!row || row.taskId !== taskId) {
+      return c.json({ error: "Post not found" }, 404);
+    }
+    const task = db
+      .select({ classId: classTasks.classId })
+      .from(classTasks)
+      .where(eq(classTasks.id, row.taskId))
+      .get();
+    if (!task || task.classId !== cls.id) {
+      return c.json({ error: "Post not found" }, 404);
+    }
+    const isAuthor = row.userId === user.id;
+    const isInstructor = cls.instructorId === user.id;
+    if (!isAuthor && !isInstructor) {
+      return c.json({ error: "Author or instructor only" }, 403);
+    }
+    db.delete(classTaskDiscussions)
+      .where(eq(classTaskDiscussions.id, id))
+      .run();
+    return c.json({ ok: true });
+  },
+);
+
+// ---------- Phase 24B — non-graded class materials ----------
+
+const createMaterialSchema = z.object({
+  title: z.string().min(1).max(200),
+  descriptionMd: z.string().max(5000).optional().default(""),
+  url: z.string().url().max(500).nullable().optional(),
+  kind: z.enum(["note", "link", "file"]).optional().default("note"),
+  sortOrder: z.number().int().min(-9999).max(9999).optional(),
+});
+
+const updateMaterialSchema = createMaterialSchema.partial();
+
+// GET /classes/:slug/materials — any enrollee.
+classesRouter.get(
+  "/:slug/materials",
+  requireAuth,
+  requireEnrolledInClass,
+  async (c) => {
+    const cls = c.get("classRow");
+    const rows = getDb()
+      .select()
+      .from(classMaterials)
+      .where(eq(classMaterials.classId, cls.id))
+      .orderBy(asc(classMaterials.sortOrder), asc(classMaterials.createdAt))
+      .all();
+    return c.json({
+      materials: rows.map((r) => ({
+        id: r.id,
+        title: r.title,
+        descriptionMd: r.descriptionMd,
+        url: r.url,
+        kind: r.kind as "note" | "link" | "file",
+        sortOrder: r.sortOrder,
+        createdAt: r.createdAt,
+        updatedAt: r.updatedAt,
+      })),
+    });
+  },
+);
+
+// POST /classes/:slug/materials — instructor or TA.
+classesRouter.post(
+  "/:slug/materials",
+  requireAuth,
+  requireInstructorOrTa,
+  zValidator("json", createMaterialSchema),
+  async (c) => {
+    const cls = c.get("classRow");
+    const user = c.get("user")!;
+    const data = c.req.valid("json");
+    const db = getDb();
+    // Default sortOrder = max+1 so new materials land at the end.
+    let sortOrder = data.sortOrder ?? 0;
+    if (data.sortOrder === undefined) {
+      const max = db
+        .select({ m: sql<number>`MAX(${classMaterials.sortOrder})` })
+        .from(classMaterials)
+        .where(eq(classMaterials.classId, cls.id))
+        .get();
+      sortOrder = Number(max?.m ?? 0) + 1;
+    }
+    const id = randomUUID();
+    const now = new Date().toISOString();
+    db.insert(classMaterials)
+      .values({
+        id,
+        classId: cls.id,
+        title: data.title.trim(),
+        descriptionMd: data.descriptionMd ?? "",
+        url: data.url ?? null,
+        kind: data.kind ?? "note",
+        sortOrder,
+        createdById: user.id,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .run();
+    return c.json({ id }, 201);
+  },
+);
+
+// PUT /classes/:slug/materials/:id — instructor or TA.
+classesRouter.put(
+  "/:slug/materials/:id",
+  requireAuth,
+  requireInstructorOrTa,
+  zValidator("json", updateMaterialSchema),
+  async (c) => {
+    const cls = c.get("classRow");
+    const id = c.req.param("id")!;
+    const data = c.req.valid("json");
+    const db = getDb();
+    const row = db
+      .select()
+      .from(classMaterials)
+      .where(eq(classMaterials.id, id))
+      .get();
+    if (!row || row.classId !== cls.id) {
+      return c.json({ error: "Material not found" }, 404);
+    }
+    const patch: Record<string, unknown> = {
+      updatedAt: new Date().toISOString(),
+    };
+    if (data.title !== undefined) patch.title = data.title.trim();
+    if (data.descriptionMd !== undefined) patch.descriptionMd = data.descriptionMd;
+    if (data.url !== undefined) patch.url = data.url;
+    if (data.kind !== undefined) patch.kind = data.kind;
+    if (data.sortOrder !== undefined) patch.sortOrder = data.sortOrder;
+    db.update(classMaterials).set(patch).where(eq(classMaterials.id, id)).run();
+    return c.json({ ok: true });
+  },
+);
+
+// DELETE /classes/:slug/materials/:id — instructor or TA.
+classesRouter.delete(
+  "/:slug/materials/:id",
+  requireAuth,
+  requireInstructorOrTa,
+  async (c) => {
+    const cls = c.get("classRow");
+    const id = c.req.param("id")!;
+    const db = getDb();
+    const row = db
+      .select({ classId: classMaterials.classId })
+      .from(classMaterials)
+      .where(eq(classMaterials.id, id))
+      .get();
+    if (!row || row.classId !== cls.id) {
+      return c.json({ error: "Material not found" }, 404);
+    }
+    db.delete(classMaterials).where(eq(classMaterials.id, id)).run();
+    return c.json({ ok: true });
+  },
+);
+
+// ---------- Phase 24D — clone task across classes ----------
+
+const cloneTaskSchema = z.object({
+  targetClassSlug: z.string().min(1).max(120),
+});
+
+classesRouter.post(
+  "/:slug/tasks/:taskId/clone",
+  requireAuth,
+  requireInstructor,
+  zValidator("json", cloneTaskSchema),
+  async (c) => {
+    const cls = c.get("classRow");
+    const user = c.get("user")!;
+    const taskId = c.req.param("taskId")!;
+    const { targetClassSlug } = c.req.valid("json");
+    const db = getDb();
+
+    const sourceTask = db
+      .select()
+      .from(classTasks)
+      .where(eq(classTasks.id, taskId))
+      .get();
+    if (!sourceTask || sourceTask.classId !== cls.id) {
+      return c.json({ error: "Task not found" }, 404);
+    }
+
+    const target = db
+      .select()
+      .from(classes)
+      .where(eq(classes.slug, targetClassSlug))
+      .get();
+    if (!target) {
+      return c.json({ error: "Target class not found" }, 404);
+    }
+    if (target.instructorId !== user.id) {
+      return c.json({ error: "You don't own the target class" }, 403);
+    }
+    if (target.status !== "active") {
+      return c.json({ error: "Target class is archived" }, 400);
+    }
+
+    // Copy the task body but reset dueAt — clone is typically used
+    // term-over-term where the schedule shifts. Variants are NOT
+    // copied; they're a per-class personalization that the
+    // instructor regenerates after enrollment lands in the target.
+    const newId = randomUUID();
+    db.insert(classTasks)
+      .values({
+        id: newId,
+        classId: target.id,
+        kind: sourceTask.kind,
+        title: sourceTask.title,
+        descriptionMd: sourceTask.descriptionMd,
+        url: sourceTask.url,
+        dueAt: null,
+        xpReward: sourceTask.xpReward,
+        topic: sourceTask.topic,
+        createdById: user.id,
+      })
+      .run();
+    return c.json({ taskId: newId, targetClassSlug }, 201);
   },
 );

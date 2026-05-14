@@ -1460,6 +1460,101 @@ export const api = {
       request<OkResponse>(`/classes/${slug}/announcements/${id}`, {
         method: "DELETE",
       }),
+    // Phase 24A — per-task discussion threads.
+    listTaskDiscussions: (slug: string, taskId: string) =>
+      request<{
+        posts: Array<{
+          id: string;
+          userId: string;
+          username: string;
+          displayName: string | null;
+          bodyMd: string;
+          createdAt: string;
+          updatedAt: string;
+        }>;
+      }>(`/classes/${slug}/tasks/${taskId}/discussions`),
+    postTaskDiscussion: (slug: string, taskId: string, bodyMd: string) =>
+      request<{ id: string }>(
+        `/classes/${slug}/tasks/${taskId}/discussions`,
+        {
+          method: "POST",
+          body: JSON.stringify({ bodyMd }),
+        },
+      ),
+    updateTaskDiscussion: (
+      slug: string,
+      taskId: string,
+      id: string,
+      bodyMd: string,
+    ) =>
+      request<OkResponse>(
+        `/classes/${slug}/tasks/${taskId}/discussions/${id}`,
+        {
+          method: "PUT",
+          body: JSON.stringify({ bodyMd }),
+        },
+      ),
+    deleteTaskDiscussion: (slug: string, taskId: string, id: string) =>
+      request<OkResponse>(
+        `/classes/${slug}/tasks/${taskId}/discussions/${id}`,
+        { method: "DELETE" },
+      ),
+    // Phase 24B — non-graded class materials.
+    listMaterials: (slug: string) =>
+      request<{
+        materials: Array<{
+          id: string;
+          title: string;
+          descriptionMd: string;
+          url: string | null;
+          kind: "note" | "link" | "file";
+          sortOrder: number;
+          createdAt: string;
+          updatedAt: string;
+        }>;
+      }>(`/classes/${slug}/materials`),
+    createMaterial: (
+      slug: string,
+      data: {
+        title: string;
+        descriptionMd?: string;
+        url?: string | null;
+        kind?: "note" | "link" | "file";
+        sortOrder?: number;
+      },
+    ) =>
+      request<{ id: string }>(`/classes/${slug}/materials`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    updateMaterial: (
+      slug: string,
+      id: string,
+      data: {
+        title?: string;
+        descriptionMd?: string;
+        url?: string | null;
+        kind?: "note" | "link" | "file";
+        sortOrder?: number;
+      },
+    ) =>
+      request<OkResponse>(`/classes/${slug}/materials/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    deleteMaterial: (slug: string, id: string) =>
+      request<OkResponse>(`/classes/${slug}/materials/${id}`, {
+        method: "DELETE",
+      }),
+    // Phase 24D — clone a task into another instructor-owned class.
+    cloneTask: (slug: string, taskId: string, targetClassSlug: string) =>
+      request<{ taskId: string; targetClassSlug: string }>(
+        `/classes/${slug}/tasks/${taskId}/clone`,
+        {
+          method: "POST",
+          body: JSON.stringify({ targetClassSlug }),
+        },
+      ),
     // Phase 23B — gradebook matrix.
     gradebook: (slug: string) =>
       request<{

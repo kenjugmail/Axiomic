@@ -2501,6 +2501,44 @@ export const classTaskVariants = sqliteTable("class_task_variants", {
   studentIdx: index("class_task_variants_student_idx").on(t.studentId, t.generatedAt),
 }));
 
+// Phase 24A — per-task discussion thread. Flat (no parentId) so the
+// UI stays simple; matches the GC pattern where assignment comments
+// are a flat list. Any enrollee can post; author can edit own; author
+// or instructor can delete (moderation escape hatch).
+export const classTaskDiscussions = sqliteTable("class_task_discussions", {
+  id: text("id").primaryKey(),
+  taskId: text("task_id").notNull()
+    .references(() => classTasks.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id),
+  bodyMd: text("body_md").notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  taskIdx: index("class_task_discussions_task_idx").on(t.taskId, t.createdAt),
+}));
+
+// Phase 24B — non-graded class materials. Distinct from classTasks
+// so no submission / XP / variant affordances surface in the UI.
+// Instructor authors; any enrollee reads. sortOrder is set by
+// instructor's up/down controls (no drag library in v1).
+export const classMaterials = sqliteTable("class_materials", {
+  id: text("id").primaryKey(),
+  classId: text("class_id").notNull()
+    .references(() => classes.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  descriptionMd: text("description_md").notNull().default(""),
+  url: text("url"),
+  // 'note' | 'link' | 'file'. 'file' is a placeholder for future
+  // upload integration — for now it renders the same as 'link'.
+  kind: text("kind").notNull().default("note"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdById: text("created_by_id").notNull().references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  classIdx: index("class_materials_class_idx").on(t.classId, t.sortOrder, t.createdAt),
+}));
+
 // One row per (class, user, sessionDate). Instructor or TA records.
 // status='present'|'absent'|'late'|'excused'. Present + late grant
 // XP; absent + excused grant none. sessionDate is YYYY-MM-DD.

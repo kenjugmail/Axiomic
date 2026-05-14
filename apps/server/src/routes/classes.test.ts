@@ -2984,4 +2984,219 @@ describe("S93 instructor analytics dashboard", () => {
     };
     expect(detail3Body.tasks.find((x) => x.id === taskId)?.topic).toBeNull();
   });
+
+  // ----- Phase 24A — per-task discussion threads -----
+
+  test("discussion thread: enrollee posts, peers read, author edits, instructor moderates", async () => {
+    const instructor = await signup("disc-inst");
+    const studentA = await signup("disc-stuA");
+    const studentB = await signup("disc-stuB");
+    const slug = `cls-disc-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    for (const s of [studentA, studentB]) {
+      const enr = await req(`/classes/${slug}/enroll`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(s.cookie) },
+        body: JSON.stringify({ joinCode: created.joinCode }),
+      });
+      expect(enr.status).toBe(201);
+    }
+    const taskRes = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        kind: "homework",
+        title: "Discussion-target task",
+        descriptionMd: "Please ask clarifying questions in the thread.",
+      }),
+    });
+    const { taskId } = (await taskRes.json()) as { taskId: string };
+
+    // Student A posts.
+    const postA = await req(`/classes/${slug}/tasks/${taskId}/discussions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(studentA.cookie) },
+      body: JSON.stringify({ bodyMd: "What does part 3 mean exactly?" }),
+    });
+    expect(postA.status).toBe(201);
+    const { id: postAId } = (await postA.json()) as { id: string };
+
+    // Student B sees the thread.
+    const list = await req(`/classes/${slug}/tasks/${taskId}/discussions`, {
+      headers: cookieHeader(studentB.cookie),
+    });
+    expect(list.status).toBe(200);
+    const listBody = (await list.json()) as {
+      posts: Array<{ id: string; bodyMd: string }>;
+    };
+    expect(listBody.posts.find((p) => p.id === postAId)).toBeDefined();
+
+    // Student A edits their own post.
+    const editA = await req(
+      `/classes/${slug}/tasks/${taskId}/discussions/${postAId}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...cookieHeader(studentA.cookie) },
+        body: JSON.stringify({ bodyMd: "Edited: what does part 3 mean exactly?" }),
+      },
+    );
+    expect(editA.status).toBe(200);
+
+    // Student B can't edit student A's post.
+    const editDenied = await req(
+      `/classes/${slug}/tasks/${taskId}/discussions/${postAId}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...cookieHeader(studentB.cookie) },
+        body: JSON.stringify({ bodyMd: "Hijacked!" }),
+      },
+    );
+    expect(editDenied.status).toBe(403);
+
+    // Instructor can delete (moderation).
+    const del = await req(
+      `/classes/${slug}/tasks/${taskId}/discussions/${postAId}`,
+      {
+        method: "DELETE",
+        headers: cookieHeader(instructor.cookie),
+      },
+    );
+    expect(del.status).toBe(200);
+
+    // Outsider can't view the thread.
+    const outsider = await signup("disc-out");
+    const denied = await req(
+      `/classes/${slug}/tasks/${taskId}/discussions`,
+      { headers: cookieHeader(outsider.cookie) },
+    );
+    expect([403, 404]).toContain(denied.status);
+  });
+
+  // ----- Phase 24B — non-graded materials -----
+
+  test("materials CRUD: instructor writes, student reads, write denied for student", async () => {
+    const instructor = await signup("mat-inst");
+    const student = await signup("mat-stu");
+    const slug = `cls-mat-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+
+    const post = await req(`/classes/${slug}/materials`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        title: "Syllabus overview",
+        descriptionMd: "Read this before the first class.",
+        kind: "note",
+      }),
+    });
+    expect(post.status).toBe(201);
+    const { id } = (await post.json()) as { id: string };
+
+    // Student reads.
+    const list = await req(`/classes/${slug}/materials`, {
+      headers: cookieHeader(student.cookie),
+    });
+    expect(list.status).toBe(200);
+    const listBody = (await list.json()) as {
+      materials: Array<{ id: string; title: string }>;
+    };
+    expect(listBody.materials.find((m) => m.id === id)).toBeDefined();
+
+    // Student can't create.
+    const denied = await req(`/classes/${slug}/materials`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ title: "Hijack material" }),
+    });
+    expect(denied.status).toBe(403);
+
+    // Instructor updates.
+    const upd = await req(`/classes/${slug}/materials/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ title: "Syllabus v2" }),
+    });
+    expect(upd.status).toBe(200);
+
+    // Instructor deletes.
+    const del = await req(`/classes/${slug}/materials/${id}`, {
+      method: "DELETE",
+      headers: cookieHeader(instructor.cookie),
+    });
+    expect(del.status).toBe(200);
+  });
+
+  // ----- Phase 24D — clone task across classes -----
+
+  test("clone task: round-trips title + topic; rejects when caller doesn't own target", async () => {
+    const instructor = await signup("clone-inst");
+    const slugA = `cls-clone-a-${testRun}`;
+    const slugB = `cls-clone-b-${testRun}`;
+    await createClass(instructor.cookie, slugA);
+    await createClass(instructor.cookie, slugB);
+
+    // Create a task with a topic in class A.
+    const taskRes = await req(`/classes/${slugA}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        kind: "homework",
+        title: "Clone-me task",
+        descriptionMd: "Reusable problem set",
+        topic: "Week 1: Foundations",
+        dueAt: "2026-12-31T23:59:00.000Z",
+      }),
+    });
+    const { taskId } = (await taskRes.json()) as { taskId: string };
+
+    // Clone into class B.
+    const clone = await req(
+      `/classes/${slugA}/tasks/${taskId}/clone`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+        body: JSON.stringify({ targetClassSlug: slugB }),
+      },
+    );
+    expect(clone.status).toBe(201);
+    const { taskId: newId } = (await clone.json()) as { taskId: string };
+
+    // Confirm B got the new task with same title + topic, but
+    // dueAt reset to null.
+    const detail = await req(`/classes/${slugB}`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    const detailBody = (await detail.json()) as {
+      tasks: Array<{
+        id: string;
+        title: string;
+        topic?: string | null;
+        dueAt: string | null;
+      }>;
+    };
+    const cloned = detailBody.tasks.find((t) => t.id === newId);
+    expect(cloned).toBeDefined();
+    expect(cloned?.title).toBe("Clone-me task");
+    expect(cloned?.topic).toBe("Week 1: Foundations");
+    expect(cloned?.dueAt).toBeNull();
+
+    // Stranger can't clone into A→B even if they enrolled in A.
+    const stranger = await signup("clone-str");
+    const denied = await req(
+      `/classes/${slugA}/tasks/${taskId}/clone`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(stranger.cookie) },
+        body: JSON.stringify({ targetClassSlug: slugB }),
+      },
+    );
+    // Could be 403 (instructor-only on source) or 404 (middleware
+    // doesn't even surface the class). Either signals denial.
+    expect([403, 404]).toContain(denied.status);
+  });
 });
