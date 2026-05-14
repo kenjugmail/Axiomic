@@ -385,8 +385,37 @@ function TaskRow({
   const [submitting, setSubmitting] = useState(false);
   const [showSubmit, setShowSubmit] = useState(false);
   const [content, setContent] = useState("");
+  // Phase 21 — personalized variant (null until we've checked).
+  // Loaded the first time a student opens the submit form on a
+  // homework task.
+  const [variant, setVariant] = useState<{
+    promptMd: string;
+  } | null>(null);
+  const [variantLoaded, setVariantLoaded] = useState(false);
 
   const dueLabel = task.dueAt ? formatDate(task.dueAt) : null;
+
+  useEffect(() => {
+    if (variantLoaded) return;
+    if (isStaff) return;
+    if (task.kind !== "homework") return;
+    if (!showSubmit) return;
+    let cancelled = false;
+    api.classes
+      .myTaskVariant(classSlug, task.id)
+      .then((r) => {
+        if (!cancelled) {
+          setVariant(r.variant);
+          setVariantLoaded(true);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setVariantLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [showSubmit, isStaff, task.kind, task.id, classSlug, variantLoaded]);
 
   const markReadingDone = async () => {
     setSubmitting(true);
@@ -509,6 +538,20 @@ function TaskRow({
       </div>
       {showSubmit && task.kind === "homework" && (
         <div className="mt-3 space-y-2">
+          {variant && (
+            <div
+              data-testid="task-variant"
+              className="rounded-md border border-violet-500/30 bg-violet-500/5 p-3"
+            >
+              <div className="text-[10px] uppercase tracking-wider text-violet-700 dark:text-violet-300 flex items-center gap-1 mb-1.5">
+                <Sparkles className="w-3 h-3" />
+                Personalized for you
+              </div>
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                <MarkdownRenderer content={variant.promptMd} />
+              </div>
+            </div>
+          )}
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}

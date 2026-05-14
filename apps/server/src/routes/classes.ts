@@ -22,6 +22,7 @@ import {
   classQuestions,
   classQuestionAttempts,
   classTaskCompletions,
+  classTaskVariants,
   classTasks,
   classes,
   cohorts,
@@ -34,6 +35,14 @@ import {
   getDb,
 } from "@axiomic/db";
 import { requireAuth } from "../middleware/auth";
+import { checkRateLimit } from "../lib/rateLimit";
+import { env } from "../lib/envConfig";
+import { buildWeaknessProfile } from "../lib/studentWeaknesses";
+import {
+  generateAssignmentVariant,
+  variantSeed,
+} from "../lib/generateAssignmentVariant";
+import { gradeEssay } from "../lib/essayGrader";
 import {
   requireEnrolledInClass,
   requireInstructor,
@@ -93,6 +102,11 @@ const updateClassSchema = z.object({
   // S106 — set/clear the linked cohort. Pass null to unlink.
   linkedCohortId: z.string().min(1).max(64).nullable().optional(),
   status: z.enum(["active", "archived"]).optional(),
+  // Phase 21 — class difficulty calibration + topic scope feeding
+  // the AI variant generator. Null level + empty topic list = no
+  // scoping; generator falls back to the base task body.
+  level: z.enum(["intro", "undergrad", "grad"]).nullable().optional(),
+  topicSlugs: z.array(z.string().min(1).max(120)).max(50).optional(),
 });
 
 const enrollSchema = z.object({
@@ -417,6 +431,19 @@ classesRouter.get("/:slug", requireAuth, requireEnrolledInClass, async (c) => {
   // share it with students) when the caller is teaching.
   const showJoinCode = role === "instructor" || role === "ta";
 
+  // Phase 21 — surface level + parsed topicSlugs so the edit page +
+  // student-facing UI can read them. Empty array when the JSON is
+  // malformed or absent.
+  let topicSlugs: string[] = [];
+  try {
+    const parsed = JSON.parse(cls.topicSlugsJson);
+    if (Array.isArray(parsed)) {
+      topicSlugs = parsed.filter((s): s is string => typeof s === "string");
+    }
+  } catch {
+    // ignore — empty list
+  }
+
   return c.json({
     class: {
       id: cls.id,
@@ -429,6 +456,8 @@ classesRouter.get("/:slug", requireAuth, requireEnrolledInClass, async (c) => {
       discoverable: cls.discoverable,
       linkedCohortId: cls.linkedCohortId,
       status: cls.status,
+      level: cls.level,
+      topicSlugs,
       instructor: instructor
         ? {
             id: instructor.id,
@@ -502,6 +531,11 @@ classesRouter.put(
       }
     }
     if (data.status != null) patch.status = data.status;
+    // Phase 21 — accept null to clear level; an enum value to set.
+    if (data.level !== undefined) patch.level = data.level;
+    if (data.topicSlugs !== undefined) {
+      patch.topicSlugsJson = JSON.stringify(data.topicSlugs);
+    }
 
     db.update(classes).set(patch).where(eq(classes.id, cls.id)).run();
     return c.json({ ok: true });
@@ -795,6 +829,245 @@ classesRouter.delete(
   },
 );
 
+// ---------- Phase 21 — AI-personalized assignment variants ----------
+
+const generateVariantsSchema = z.object({
+  regenerate: z.boolean().optional().default(false),
+});
+
+// POST /classes/:slug/tasks/:taskId/variants — instructor triggers
+// bulk variant generation. One AI call per enrolled student.
+// By default we skip students who already have a variant for this
+// task; passing regenerate=true overwrites every existing row.
+classesRouter.post(
+  "/:slug/tasks/:taskId/variants",
+  requireAuth,
+  requireInstructor,
+  zValidator("json", generateVariantsSchema),
+  async (c) => {
+    const cls = c.get("classRow");
+    const user = c.get("user")!;
+    const taskId = c.req.param("taskId")!;
+    const { regenerate } = c.req.valid("json");
+
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`variants-gen:${user.id}`, 10, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
+
+    const db = getDb();
+    const task = db
+      .select()
+      .from(classTasks)
+      .where(eq(classTasks.id, taskId))
+      .get();
+    if (!task || task.classId !== cls.id) {
+      return c.json({ error: "Task not found" }, 404);
+    }
+
+    // Pull every student enrollment (skip TAs and observers — they
+    // don't submit homework). Instructor is implicit and also skipped.
+    const students = db
+      .select({ userId: classEnrollments.userId })
+      .from(classEnrollments)
+      .where(
+        and(
+          eq(classEnrollments.classId, cls.id),
+          eq(classEnrollments.role, "student"),
+        ),
+      )
+      .all();
+
+    const existing = db
+      .select({ studentId: classTaskVariants.studentId })
+      .from(classTaskVariants)
+      .where(eq(classTaskVariants.taskId, taskId))
+      .all();
+    const existingSet = new Set(existing.map((r) => r.studentId));
+
+    let topicSlugs: string[] = [];
+    try {
+      const parsed = JSON.parse(cls.topicSlugsJson);
+      if (Array.isArray(parsed)) {
+        topicSlugs = parsed.filter((s): s is string => typeof s === "string");
+      }
+    } catch {
+      // bad json — treat as empty
+    }
+    const level = (cls.level as "intro" | "undergrad" | "grad" | null) ?? null;
+
+    let generated = 0;
+    let skipped = 0;
+    const errors: Array<{ studentId: string; reason: string }> = [];
+
+    for (const s of students) {
+      if (!regenerate && existingSet.has(s.userId)) {
+        skipped++;
+        continue;
+      }
+      try {
+        const weakness = await buildWeaknessProfile({
+          userId: s.userId,
+          topicSlugs,
+          level,
+        });
+        const variant = await generateAssignmentVariant({
+          baseTask: {
+            title: task.title,
+            descriptionMd: task.descriptionMd,
+          },
+          classMeta: { level, title: cls.title },
+          weakness,
+          seed: variantSeed(taskId, s.userId),
+        });
+        const variantId = existingSet.has(s.userId)
+          ? null
+          : randomUUID();
+        if (variantId) {
+          db.insert(classTaskVariants)
+            .values({
+              id: variantId,
+              taskId,
+              studentId: s.userId,
+              promptMd: variant.promptMd,
+              rubricJson: JSON.stringify(variant.rubric),
+              weaknessSnapshotJson: JSON.stringify(weakness),
+              generationSeed: variantSeed(taskId, s.userId),
+              rationale: variant.rationale,
+              generatedById: user.id,
+            })
+            .run();
+        } else {
+          db.update(classTaskVariants)
+            .set({
+              promptMd: variant.promptMd,
+              rubricJson: JSON.stringify(variant.rubric),
+              weaknessSnapshotJson: JSON.stringify(weakness),
+              generationSeed: variantSeed(taskId, s.userId),
+              rationale: variant.rationale,
+              generatedAt: new Date().toISOString(),
+              generatedById: user.id,
+            })
+            .where(
+              and(
+                eq(classTaskVariants.taskId, taskId),
+                eq(classTaskVariants.studentId, s.userId),
+              ),
+            )
+            .run();
+        }
+        generated++;
+      } catch (e) {
+        const reason = e instanceof Error ? e.message : String(e);
+        errors.push({ studentId: s.userId, reason });
+      }
+    }
+
+    return c.json({ generated, skipped, errors });
+  },
+);
+
+// GET /classes/:slug/tasks/:taskId/variants — instructor list view.
+// Returns each variant joined to the student's display info so the
+// roster table can render without follow-up requests.
+classesRouter.get(
+  "/:slug/tasks/:taskId/variants",
+  requireAuth,
+  requireInstructorOrTa,
+  async (c) => {
+    const cls = c.get("classRow");
+    const taskId = c.req.param("taskId")!;
+    const db = getDb();
+    const task = db
+      .select({ classId: classTasks.classId })
+      .from(classTasks)
+      .where(eq(classTasks.id, taskId))
+      .get();
+    if (!task || task.classId !== cls.id) {
+      return c.json({ error: "Task not found" }, 404);
+    }
+    const rows = db
+      .select({
+        id: classTaskVariants.id,
+        studentId: classTaskVariants.studentId,
+        studentUsername: users.username,
+        studentDisplayName: users.displayName,
+        promptMd: classTaskVariants.promptMd,
+        rubricJson: classTaskVariants.rubricJson,
+        rationale: classTaskVariants.rationale,
+        generatedAt: classTaskVariants.generatedAt,
+      })
+      .from(classTaskVariants)
+      .innerJoin(users, eq(classTaskVariants.studentId, users.id))
+      .where(eq(classTaskVariants.taskId, taskId))
+      .all();
+    return c.json({
+      variants: rows.map((r) => ({
+        id: r.id,
+        studentId: r.studentId,
+        studentUsername: r.studentUsername,
+        studentDisplayName: r.studentDisplayName,
+        promptMd: r.promptMd,
+        rubric: safeJson(r.rubricJson),
+        rationale: r.rationale,
+        generatedAt: r.generatedAt,
+      })),
+    });
+  },
+);
+
+// GET /classes/:slug/tasks/:taskId/variant — any enrolled user gets
+// their OWN variant (or null if no variant has been generated yet,
+// in which case the UI falls back to the base task body).
+classesRouter.get(
+  "/:slug/tasks/:taskId/variant",
+  requireAuth,
+  requireEnrolledInClass,
+  async (c) => {
+    const cls = c.get("classRow");
+    const me = c.get("user")!;
+    const taskId = c.req.param("taskId")!;
+    const db = getDb();
+    const task = db
+      .select({ classId: classTasks.classId })
+      .from(classTasks)
+      .where(eq(classTasks.id, taskId))
+      .get();
+    if (!task || task.classId !== cls.id) {
+      return c.json({ error: "Task not found" }, 404);
+    }
+    const row = db
+      .select()
+      .from(classTaskVariants)
+      .where(
+        and(
+          eq(classTaskVariants.taskId, taskId),
+          eq(classTaskVariants.studentId, me.id),
+        ),
+      )
+      .get();
+    if (!row) return c.json({ variant: null });
+    return c.json({
+      variant: {
+        id: row.id,
+        promptMd: row.promptMd,
+        rubric: safeJson(row.rubricJson),
+        generatedAt: row.generatedAt,
+      },
+    });
+  },
+);
+
+function safeJson(raw: string): unknown {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
 // POST /classes/:slug/tasks/:taskId/complete — student marks done.
 // Reading: idempotent on (taskId, userId); content optional. XP
 // granted on first completion only via the unique-index in xp_grants.
@@ -874,6 +1147,42 @@ classesRouter.post(
       amount: task.xpReward ?? undefined,
     });
 
+    // Phase 21C — auto-grade homework variants. If the student has
+    // a personalized variant with a structured rubric, run the AI
+    // grader and write the result to gradeJson. Manual grades (via
+    // /grade/:userId) still take precedence — that endpoint
+    // overwrites gradeJson on its own. We skip auto-grading if the
+    // homework has already been manually graded (existing.gradeJson
+    // not null AND not aiGenerated).
+    if (task.kind === "homework" && data.content) {
+      const priorGrade = existing?.gradeJson
+        ? (safeJson(existing.gradeJson) as { aiGenerated?: boolean } | null)
+        : null;
+      const manualGradeStands =
+        priorGrade && priorGrade.aiGenerated !== true;
+      if (!manualGradeStands) {
+        const variant = db
+          .select()
+          .from(classTaskVariants)
+          .where(
+            and(
+              eq(classTaskVariants.taskId, taskId),
+              eq(classTaskVariants.studentId, user.id),
+            ),
+          )
+          .get();
+        if (variant) {
+          await autoGradeVariantSubmission({
+            taskId,
+            studentId: user.id,
+            content: data.content,
+            promptMd: variant.promptMd,
+            rubricJson: variant.rubricJson,
+          });
+        }
+      }
+    }
+
     return c.json({
       ok: true,
       xpGranted: result.granted ? result.amount : 0,
@@ -881,6 +1190,79 @@ classesRouter.post(
     });
   },
 );
+
+// Phase 21C — auto-grade a variant submission against its rubric.
+// Stringifies the structured rubric as markdown so we can reuse the
+// existing essay grader. Writes result back to
+// classTaskCompletions.gradeJson with aiGenerated=true so a later
+// manual grade can recognize + override it.
+async function autoGradeVariantSubmission(opts: {
+  taskId: string;
+  studentId: string;
+  content: string;
+  promptMd: string;
+  rubricJson: string;
+}): Promise<void> {
+  const db = getDb();
+  let rubric: {
+    criteria: Array<{ id: string; description: string; weight?: number }>;
+    passingScore: number;
+  } | null = null;
+  try {
+    rubric = JSON.parse(opts.rubricJson);
+  } catch {
+    // bad rubric — skip auto-grade entirely.
+    return;
+  }
+  if (!rubric || !Array.isArray(rubric.criteria) || rubric.criteria.length === 0) {
+    return;
+  }
+  // Convert structured rubric to a markdown checklist the existing
+  // essay grader understands. maxScore = sum of weights (or count
+  // when weights absent) so the returned score is comparable across
+  // rubrics.
+  const totalWeight = rubric.criteria.reduce(
+    (s, c) => s + (c.weight ?? 1),
+    0,
+  );
+  const rubricMd = rubric.criteria
+    .map((c) => `- (${c.weight ?? 1} pts) ${c.description}`)
+    .join("\n");
+
+  try {
+    const graded = await gradeEssay({
+      promptMd: opts.promptMd,
+      rubricMd,
+      maxScore: totalWeight,
+      essayResponse: opts.content,
+    });
+    const pass =
+      graded.score / totalWeight >= rubric.passingScore;
+    const gradeJson = JSON.stringify({
+      score: graded.score,
+      maxScore: totalWeight,
+      pass,
+      feedback: graded.feedbackMd,
+      aiGenerated: true,
+      gradedAt: new Date().toISOString(),
+    });
+    db.update(classTaskCompletions)
+      .set({
+        gradeJson,
+        gradedAt: new Date().toISOString(),
+      })
+      .where(
+        and(
+          eq(classTaskCompletions.taskId, opts.taskId),
+          eq(classTaskCompletions.userId, opts.studentId),
+        ),
+      )
+      .run();
+  } catch {
+    // Auto-grade is best-effort. Failure leaves gradeJson null
+    // and the instructor can grade manually.
+  }
+}
 
 // POST /classes/:slug/tasks/:taskId/grade/:userId — instructor or
 // TA grades a homework submission. Pass triggers a bonus XP grant.

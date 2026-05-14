@@ -5,10 +5,10 @@
 
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, Sparkles, Wand2, XCircle } from "lucide-react";
 import type { ClassTaskSubmissionsResponse } from "@axiomic/types";
 import { api, ApiError } from "../lib/api";
-import { Skeleton } from "../components/ui";
+import { Modal, Skeleton } from "../components/ui";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { toast } from "../stores/toast";
 
@@ -71,6 +71,11 @@ export function ClassTaskPage() {
           />
         </div>
       )}
+
+      {/* Phase 21D — instructor variant management. Sits between
+          the description and submissions so the workflow is:
+          read base task → generate variants → grade submissions. */}
+      <VariantsPanel classSlug={slug} taskId={taskId} />
 
       {/* S103 — bulk-grade affordance. Surfaces only when there are
           ungraded submissions to act on. */}
@@ -260,5 +265,188 @@ function BulkGradeBar({
         {busy ? "Grading…" : "Pass all ungraded"}
       </button>
     </div>
+  );
+}
+
+// Phase 21D — instructor-side panel for managing AI-personalized
+// assignment variants on this task. Bulk-generate button +
+// per-student roster with rationale preview + per-row regenerate.
+type VariantRow = Awaited<
+  ReturnType<typeof api.classes.listTaskVariants>
+>["variants"][number];
+
+function VariantsPanel({
+  classSlug,
+  taskId,
+}: {
+  classSlug: string;
+  taskId: string;
+}) {
+  const [rows, setRows] = useState<VariantRow[] | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [previewing, setPreviewing] = useState<VariantRow | null>(null);
+
+  const load = async () => {
+    try {
+      const r = await api.classes.listTaskVariants(classSlug, taskId);
+      setRows(r.variants);
+    } catch (e) {
+      toast.error(
+        e instanceof ApiError ? e.message : "Failed to load variants",
+      );
+      setRows([]);
+    }
+  };
+
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [classSlug, taskId]);
+
+  const generate = async (regenerate: boolean) => {
+    setGenerating(true);
+    try {
+      const r = await api.classes.generateTaskVariants(
+        classSlug,
+        taskId,
+        regenerate,
+      );
+      toast.success(
+        `Generated ${r.generated} variant${r.generated === 1 ? "" : "s"}` +
+          (r.skipped > 0 ? ` (${r.skipped} skipped)` : ""),
+      );
+      await load();
+    } catch (e) {
+      toast.error(
+        e instanceof ApiError ? e.message : "Variant generation failed",
+      );
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  return (
+    <section
+      data-testid="variants-panel"
+      className="mb-6 rounded-md border border-violet-500/30 bg-violet-500/5 p-4"
+    >
+      <header className="flex items-baseline justify-between gap-3 flex-wrap mb-3">
+        <div>
+          <h2 className="text-sm font-semibold inline-flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4 text-violet-600 dark:text-violet-300" />
+            Personalized variants
+          </h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            AI rewrites the assignment to emphasize each student's weak
+            concepts at the class's level.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => generate(false)}
+            disabled={generating}
+            className="text-xs px-3 py-1.5 rounded-md bg-violet-600 text-white hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
+          >
+            <Wand2 className="w-3.5 h-3.5" />
+            {generating ? "Generating…" : "Generate"}
+          </button>
+          {rows && rows.length > 0 && (
+            <button
+              type="button"
+              onClick={() => generate(true)}
+              disabled={generating}
+              className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Regenerate all
+            </button>
+          )}
+        </div>
+      </header>
+      {rows === null ? (
+        <Skeleton className="h-20" />
+      ) : rows.length === 0 ? (
+        <p className="text-xs text-muted-foreground">
+          No variants yet. Click "Generate" to produce one personalized
+          assignment per enrolled student.
+        </p>
+      ) : (
+        <ul className="space-y-1.5">
+          {rows.map((r) => (
+            <li
+              key={r.id}
+              className="rounded border border-border bg-card px-3 py-2 text-sm flex items-baseline justify-between gap-3 flex-wrap"
+            >
+              <div className="min-w-0 flex-1">
+                <div className="font-medium">
+                  {r.studentDisplayName ?? `@${r.studentUsername}`}
+                </div>
+                <div className="text-xs text-muted-foreground line-clamp-1">
+                  {r.rationale || "—"}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPreviewing(r)}
+                className="text-xs text-primary hover:underline"
+              >
+                Preview →
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <Modal
+        open={!!previewing}
+        onClose={() => setPreviewing(null)}
+        size="lg"
+        title={
+          previewing
+            ? `Variant for ${previewing.studentDisplayName ?? "@" + previewing.studentUsername}`
+            : ""
+        }
+      >
+        {previewing && (
+          <div className="space-y-4">
+            <section>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                Personalized prompt
+              </div>
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                <MarkdownRenderer content={previewing.promptMd} />
+              </div>
+            </section>
+            {previewing.rationale && (
+              <section>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                  Why these emphases
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {previewing.rationale}
+                </p>
+              </section>
+            )}
+            {previewing.rubric && (
+              <section>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                  Rubric ({previewing.rubric.criteria.length} criteria,
+                  pass at {Math.round(previewing.rubric.passingScore * 100)}%)
+                </div>
+                <ul className="text-xs space-y-1 list-disc pl-5">
+                  {previewing.rubric.criteria.map((c) => (
+                    <li key={c.id}>
+                      <span className="font-mono text-muted-foreground">
+                        {c.weight ?? 1} pt{(c.weight ?? 1) === 1 ? "" : "s"}
+                      </span>{" "}
+                      — {c.description}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </div>
+        )}
+      </Modal>
+    </section>
   );
 }

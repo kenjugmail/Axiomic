@@ -1364,6 +1364,44 @@ export const api = {
       ),
     taskSubmissions: (slug: string, taskId: string) =>
       request<ClassTaskSubmissionsResponse>(`/classes/${slug}/tasks/${taskId}/submissions`),
+    // Phase 21 — AI-personalized assignment variants.
+    generateTaskVariants: (slug: string, taskId: string, regenerate = false) =>
+      request<{
+        generated: number;
+        skipped: number;
+        errors: Array<{ studentId: string; reason: string }>;
+      }>(`/classes/${slug}/tasks/${taskId}/variants`, {
+        method: "POST",
+        body: JSON.stringify({ regenerate }),
+      }),
+    listTaskVariants: (slug: string, taskId: string) =>
+      request<{
+        variants: Array<{
+          id: string;
+          studentId: string;
+          studentUsername: string;
+          studentDisplayName: string | null;
+          promptMd: string;
+          rubric: {
+            criteria: Array<{ id: string; description: string; weight?: number }>;
+            passingScore: number;
+          } | null;
+          rationale: string;
+          generatedAt: string;
+        }>;
+      }>(`/classes/${slug}/tasks/${taskId}/variants`),
+    myTaskVariant: (slug: string, taskId: string) =>
+      request<{
+        variant: {
+          id: string;
+          promptMd: string;
+          rubric: {
+            criteria: Array<{ id: string; description: string; weight?: number }>;
+            passingScore: number;
+          } | null;
+          generatedAt: string;
+        } | null;
+      }>(`/classes/${slug}/tasks/${taskId}/variant`),
     recordAttendance: (slug: string, data: RecordAttendanceRequest) =>
       request<{ ok: true; xpGrants: Array<{ userId: string; amount: number }> }>(
         `/classes/${slug}/attendance`,

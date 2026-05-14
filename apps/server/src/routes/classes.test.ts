@@ -2527,4 +2527,155 @@ describe("S93 instructor analytics dashboard", () => {
     expect(ghostRow?.daysSinceLastActivity).toBeNull();
     expect(ghostRow?.totalXp).toBe(0);
   });
+
+  // ----- Phase 21 — AI-personalized variants -----
+
+  test("variant generation roundtrip: instructor creates, student fetches own, peer denied", async () => {
+    const instructor = await signup("var-inst");
+    const studentA = await signup("var-stuA");
+    const studentB = await signup("var-stuB");
+    const slug = `cls-var-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+
+    // Set level + a topic the weakness aggregator can scope to. Even
+    // empty signals are fine — the generator's default-variant
+    // fallback gives us a deterministic prompt.
+    const upd = await req(`/classes/${slug}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        level: "undergrad",
+        topicSlugs: [`var-test-${testRun}`],
+      }),
+    });
+    expect(upd.status).toBe(200);
+
+    // Both students enroll.
+    for (const s of [studentA, studentB]) {
+      const enr = await req(`/classes/${slug}/enroll`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(s.cookie) },
+        body: JSON.stringify({ joinCode: created.joinCode }),
+      });
+      expect(enr.status).toBe(201);
+    }
+
+    // Instructor creates a homework task.
+    const taskRes = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        kind: "homework",
+        title: "Explain softmax temperature",
+        descriptionMd: "Write 200 words on how temperature changes softmax outputs.",
+      }),
+    });
+    expect(taskRes.status).toBe(201);
+    const { taskId } = (await taskRes.json()) as { taskId: string };
+
+    // Bulk generate. Mock provider's prose doesn't parse, so the
+    // generator falls back to default-variant — but rows still land.
+    const gen = await req(`/classes/${slug}/tasks/${taskId}/variants`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ regenerate: false }),
+    });
+    expect(gen.status).toBe(200);
+    const genBody = (await gen.json()) as { generated: number; skipped: number };
+    expect(genBody.generated).toBe(2);
+
+    // Re-running without regenerate skips both.
+    const gen2 = await req(`/classes/${slug}/tasks/${taskId}/variants`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ regenerate: false }),
+    });
+    const gen2Body = (await gen2.json()) as { generated: number; skipped: number };
+    expect(gen2Body.generated).toBe(0);
+    expect(gen2Body.skipped).toBe(2);
+
+    // Student A fetches their variant.
+    const myA = await req(`/classes/${slug}/tasks/${taskId}/variant`, {
+      headers: cookieHeader(studentA.cookie),
+    });
+    expect(myA.status).toBe(200);
+    const aBody = (await myA.json()) as {
+      variant: { id: string; promptMd: string } | null;
+    };
+    expect(aBody.variant).not.toBeNull();
+    expect(aBody.variant!.promptMd.length).toBeGreaterThan(10);
+
+    // Non-enrolled user can't fetch the variant. The middleware
+    // collapses non-enrollment to a 404 to avoid leaking class
+    // existence; both signal a denied read.
+    const outsider = await signup("var-outsider");
+    const denied = await req(`/classes/${slug}/tasks/${taskId}/variant`, {
+      headers: cookieHeader(outsider.cookie),
+    });
+    expect([403, 404]).toContain(denied.status);
+
+    // Instructor sees the roster of variants.
+    const list = await req(`/classes/${slug}/tasks/${taskId}/variants`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    expect(list.status).toBe(200);
+    const listBody = (await list.json()) as {
+      variants: Array<{ studentId: string }>;
+    };
+    expect(listBody.variants.length).toBe(2);
+  });
+
+  test("auto-grade fires for submissions on a variant-backed task", async () => {
+    const instructor = await signup("ag-inst");
+    const student = await signup("ag-stu");
+    const slug = `cls-ag-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    const enr = await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    expect(enr.status).toBe(201);
+
+    const taskRes = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        kind: "homework",
+        title: "Auto-grade test homework",
+        descriptionMd: "Submit something so the auto-grader runs.",
+      }),
+    });
+    const { taskId } = (await taskRes.json()) as { taskId: string };
+
+    // Generate the variant.
+    const gen = await req(`/classes/${slug}/tasks/${taskId}/variants`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({}),
+    });
+    expect(gen.status).toBe(200);
+
+    // Submit homework as the student.
+    const submit = await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({
+        content:
+          "Temperature controls how peaked the softmax is. High T flattens; low T sharpens. With T → 0 we approach argmax behavior.",
+      }),
+    });
+    expect(submit.status).toBe(200);
+
+    // Instructor view shows the submission with an AI-generated grade.
+    const subs = await req(`/classes/${slug}/tasks/${taskId}/submissions`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    expect(subs.status).toBe(200);
+    const subsBody = (await subs.json()) as {
+      submissions: Array<{ grade: unknown }>;
+    };
+    expect(subsBody.submissions.length).toBe(1);
+    expect(subsBody.submissions[0]!.grade).not.toBeNull();
+  });
 });

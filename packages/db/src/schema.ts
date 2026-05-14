@@ -2377,6 +2377,16 @@ export const classes = sqliteTable("classes", {
   // accepting new enrollments + new tasks.
   status: text("status").notNull().default("active"),
   instructorId: text("instructor_id").notNull().references(() => users.id),
+  // Phase 21 — class difficulty calibration. 'intro' | 'undergrad' |
+  // 'grad' | null. Feeds the AI variant generator so a transformer
+  // class for ML PhDs gets very different prompts from one for first-
+  // year CS students.
+  level: text("level"),
+  // Phase 21 — JSON array of wiki/concept slugs the class covers.
+  // The weakness aggregator filters signal sources to this scope so
+  // an ML class doesn't pull in a student's organic chemistry
+  // mistakes. Empty array (default) = use all signals.
+  topicSlugsJson: text("topic_slugs_json").notNull().default("[]"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
 }, (t) => ({
@@ -2437,15 +2447,54 @@ export const classTaskCompletions = sqliteTable("class_task_completions", {
   content: text("content"),
   // Late-flag computed at completion time vs task.dueAt.
   wasLate: integer("was_late", { mode: "boolean" }).notNull().default(false),
-  // Instructor-set grade. JSON: {score, feedback}. Null until
-  // graded. S86 keeps grading manual (no AI grader for class
-  // homework yet).
+  // Grade JSON: {score, feedback, perCriterion?, aiGenerated?}.
+  // Null until graded. Phase 21 added the auto-grader path for
+  // submissions of personalized variants; manual instructor grades
+  // still win on conflict.
   gradeJson: text("grade_json"),
   submittedAt: text("submitted_at").default(sql`(datetime('now'))`).notNull(),
   gradedAt: text("graded_at"),
 }, (t) => ({
   pk: uniqueIndex("class_task_completions_pk").on(t.taskId, t.userId),
   userIdx: index("class_task_completions_user_idx").on(t.userId, t.submittedAt),
+}));
+
+// Phase 21 — per-student personalized variant of a class task.
+// An instructor authors a base classTask; the AI generator produces
+// one variant per enrolled student, tuned to their weakness profile
+// and the class's level. Variants share the base task's learning
+// objective but emphasize concepts the student is weak on. The
+// existing classTaskCompletions row (keyed on taskId + userId) still
+// holds the student's submission; the variant only carries the
+// generated prompt + rubric.
+export const classTaskVariants = sqliteTable("class_task_variants", {
+  id: text("id").primaryKey(),
+  taskId: text("task_id").notNull()
+    .references(() => classTasks.id, { onDelete: "cascade" }),
+  studentId: text("student_id").notNull().references(() => users.id),
+  // The personalized prompt markdown shown to the student in place
+  // of the base task's descriptionMd.
+  promptMd: text("prompt_md").notNull(),
+  // Structured rubric the auto-grader reads. JSON:
+  // { criteria: [{ id, description, weight? }], passingScore }.
+  rubricJson: text("rubric_json").notNull(),
+  // Compact snapshot of the weakness signals that informed
+  // generation, so we can re-rank or audit later without re-querying.
+  weaknessSnapshotJson: text("weakness_snapshot_json").notNull(),
+  // Deterministic seed (hash of taskId + studentId + signal digest)
+  // so mock-provider tests stay reproducible.
+  generationSeed: text("generation_seed").notNull(),
+  // Free-form "why we wrote it this way" string returned by the
+  // generator; surfaced to the instructor in the variant preview.
+  rationale: text("rationale").notNull().default(""),
+  generatedAt: text("generated_at").default(sql`(datetime('now'))`).notNull(),
+  // The instructor who triggered the generation. Null for lazy
+  // first-view generation (new enrollee joining after the initial
+  // bulk run).
+  generatedById: text("generated_by_id").references(() => users.id),
+}, (t) => ({
+  pk: uniqueIndex("class_task_variants_pk").on(t.taskId, t.studentId),
+  studentIdx: index("class_task_variants_student_idx").on(t.studentId, t.generatedAt),
 }));
 
 // One row per (class, user, sessionDate). Instructor or TA records.

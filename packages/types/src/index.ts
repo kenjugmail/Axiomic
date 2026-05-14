@@ -3499,6 +3499,10 @@ export interface UpdateClassRequest {
   discoverable?: boolean;
   linkedCohortId?: string | null;
   status?: ClassStatus;
+  // Phase 21 — class difficulty + topic scope feeding the AI
+  // variant generator.
+  level?: "intro" | "undergrad" | "grad" | null;
+  topicSlugs?: string[];
 }
 
 // S102 — public class directory entry.
