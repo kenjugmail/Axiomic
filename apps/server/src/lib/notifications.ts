@@ -42,7 +42,13 @@ export type NotificationKind =
   // Phase 25A — class stream + per-task discussion notifications.
   // Both always-on; per-user mute toggle deferred.
   | "class_announcement"
-  | "class_discussion_post";
+  | "class_discussion_post"
+  // Phase 27 — hackathon lifecycle events. All always-on; the
+  // judging-complete + prize-won events are direct and rare,
+  // so no per-user mute toggle in v1.
+  | "hackathon_registered"
+  | "hackathon_judging_complete"
+  | "hackathon_prize_won";
 
 export type NotificationSubject =
   | "topic"
@@ -72,7 +78,13 @@ export type NotificationSubject =
   // Phase 25A — classroom feed surfaces. subjectId carries the
   // announcement / discussion row id; contextSlug is the class slug.
   | "class_announcement"
-  | "class_task_discussion";
+  | "class_task_discussion"
+  // Phase 27 — hackathon entities. subjectId carries the
+  // hackathon / team / prize row id; contextSlug is the
+  // hackathon slug.
+  | "hackathon"
+  | "hackathon_team"
+  | "hackathon_prize";
 
 const MAX_MENTIONS_PER_BODY = 10;
 const PREVIEW_MAX = 140;
@@ -178,11 +190,15 @@ function kindGate(
     case "skin_granted":
     case "class_announcement":
     case "class_discussion_post":
+    case "hackathon_registered":
+    case "hackathon_judging_complete":
+    case "hackathon_prize_won":
       // News flow + follow events + admin pipeline + funding
       // alerts + Sprint 80 lab operational signals + S88
       // classroom/pet events + S90 pet evolution + Phase 25A
-      // classroom feed surfaces are direct + low-volume — always
-      // on (per-user mute toggle deferred).
+      // classroom feed surfaces + Phase 27 hackathon lifecycle
+      // events are direct + low-volume — always on (per-user
+      // mute toggle deferred).
       return null;
   }
 }

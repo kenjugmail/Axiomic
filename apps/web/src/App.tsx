@@ -355,6 +355,22 @@ const CohortDetailPage = lazy(() =>
     default: m.CohortDetailPage,
   })),
 );
+// Phase 27 — Hackathons + engineering competitions.
+const HackathonsListPage = lazy(() =>
+  import("./pages/HackathonsListPage").then((m) => ({
+    default: m.HackathonsListPage,
+  })),
+);
+const HackathonDetailPage = lazy(() =>
+  import("./pages/HackathonDetailPage").then((m) => ({
+    default: m.HackathonDetailPage,
+  })),
+);
+const HackathonNewPage = lazy(() =>
+  import("./pages/HackathonNewPage").then((m) => ({
+    default: m.HackathonNewPage,
+  })),
+);
 // Sprint 39 — Capstone peer review queue.
 const CapstoneReviewQueuePage = lazy(() =>
   import("./pages/CapstoneReviewQueuePage").then((m) => ({
@@ -500,6 +516,10 @@ function AppRoutes() {
           />
           <Route path="/cohorts" element={<CohortsPage />} />
           <Route path="/cohorts/:slug" element={<CohortDetailPage />} />
+          {/* Phase 27 — Hackathons. */}
+          <Route path="/hackathons" element={<HackathonsListPage />} />
+          <Route path="/hackathons/new" element={<HackathonNewPage />} />
+          <Route path="/hackathons/:slug" element={<HackathonDetailPage />} />
           <Route path="/forum/:domain" element={<ForumListPage />} />
           <Route path="/news" element={<NewsListPage />} />
           <Route path="/news/new" element={<NewsNewPage />} />

@@ -1726,6 +1726,244 @@ export const api = {
     skinShowcase: () =>
       request<PetSkinShowcaseResponse>("/pet-skins/catalog"),
   },
+  // Phase 27 — hackathons + engineering competitions.
+  hackathons: {
+    discover: () =>
+      request<{
+        hackathons: Array<{
+          id: string;
+          slug: string;
+          title: string;
+          coverEmoji: string;
+          fieldTag: string;
+          hostMode: string;
+          status: string;
+          startsAt: string | null;
+          endsAt: string | null;
+          maxTeamSize: number;
+        }>;
+      }>("/hackathons/discover"),
+    list: () =>
+      request<{
+        hosting: Array<{
+          id: string;
+          slug: string;
+          title: string;
+          coverEmoji: string;
+          fieldTag: string;
+          hostMode: string;
+          status: string;
+          startsAt: string | null;
+          endsAt: string | null;
+          maxTeamSize: number;
+        }>;
+        registered: Array<{
+          id: string;
+          slug: string;
+          title: string;
+          coverEmoji: string;
+          fieldTag: string;
+          hostMode: string;
+          status: string;
+          startsAt: string | null;
+          endsAt: string | null;
+          maxTeamSize: number;
+        }>;
+      }>("/hackathons"),
+    get: (slug: string) =>
+      request<{
+        hackathon: {
+          id: string;
+          slug: string;
+          title: string;
+          descriptionMd: string;
+          rulesMd: string;
+          fieldTag: string;
+          coverEmoji: string;
+          hostMode: "public" | "class" | "cohort";
+          hostContext:
+            | { kind: "class" | "cohort"; slug: string; title: string }
+            | null;
+          discoverable: boolean;
+          status: "draft" | "registration" | "active" | "judging" | "ended";
+          maxTeamSize: number;
+          judgingMode: "manual" | "ai_rubric";
+          rubric: {
+            criteria: Array<{
+              id: string;
+              description: string;
+              weight?: number;
+            }>;
+            passingScore: number;
+          } | null;
+          registrationOpensAt: string | null;
+          registrationClosesAt: string | null;
+          startsAt: string | null;
+          endsAt: string | null;
+          createdAt: string;
+          updatedAt: string;
+          isOrganizer: boolean;
+        };
+        prizes: Array<{
+          id: string;
+          rank: number;
+          title: string;
+          descriptionMd: string;
+          xpAmount: number;
+          cosmeticSlug: string | null;
+          skinSlug: string | null;
+          badgeSlug: string | null;
+          maxWinners: number;
+        }>;
+        teams: Array<{
+          id: string;
+          name: string;
+          captainId: string;
+          createdAt: string;
+          members: Array<{
+            userId: string;
+            username: string;
+            displayName: string | null;
+            role: string;
+          }>;
+        }>;
+        submissions: Array<{
+          id: string;
+          teamId: string;
+          title: string;
+          writeup: string;
+          artifacts: unknown[];
+          submittedAt: string;
+          aiGrade: unknown | null;
+          gradedAt: string | null;
+        }>;
+        awards: Array<{
+          id: string;
+          prizeId: string;
+          teamId: string;
+          awardedAt: string;
+        }>;
+        myTeamId: string | null;
+      }>(`/hackathons/${slug}`),
+    create: (data: {
+      slug: string;
+      title: string;
+      descriptionMd?: string;
+      rulesMd?: string;
+      fieldTag?: string;
+      coverEmoji?: string;
+      hostMode?: "public" | "class" | "cohort";
+      hostClassSlug?: string | null;
+      hostCohortSlug?: string | null;
+      maxTeamSize?: number;
+      judgingMode?: "manual" | "ai_rubric";
+      rubric?: {
+        criteria: Array<{ id: string; description: string; weight?: number }>;
+        passingScore: number;
+      } | null;
+      registrationOpensAt?: string | null;
+      registrationClosesAt?: string | null;
+      startsAt?: string | null;
+      endsAt?: string | null;
+    }) =>
+      request<{ id: string; slug: string }>("/hackathons", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    update: (
+      slug: string,
+      data: Partial<{
+        title: string;
+        descriptionMd: string;
+        rulesMd: string;
+        fieldTag: string;
+        coverEmoji: string;
+        maxTeamSize: number;
+        judgingMode: "manual" | "ai_rubric";
+        rubric: {
+          criteria: Array<{ id: string; description: string; weight?: number }>;
+          passingScore: number;
+        } | null;
+        registrationOpensAt: string | null;
+        registrationClosesAt: string | null;
+        startsAt: string | null;
+        endsAt: string | null;
+      }>,
+    ) =>
+      request<OkResponse>(`/hackathons/${slug}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    publish: (slug: string) =>
+      request<OkResponse>(`/hackathons/${slug}/publish`, { method: "POST" }),
+    delete: (slug: string) =>
+      request<OkResponse>(`/hackathons/${slug}`, { method: "DELETE" }),
+    createPrize: (
+      slug: string,
+      data: {
+        rank?: number;
+        title: string;
+        descriptionMd?: string;
+        xpAmount?: number;
+        cosmeticSlug?: string | null;
+        skinSlug?: string | null;
+        badgeSlug?: string | null;
+        maxWinners?: number;
+      },
+    ) =>
+      request<{ id: string }>(`/hackathons/${slug}/prizes`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    deletePrize: (slug: string, prizeId: string) =>
+      request<OkResponse>(`/hackathons/${slug}/prizes/${prizeId}`, {
+        method: "DELETE",
+      }),
+    createTeam: (slug: string, name: string) =>
+      request<{ teamId: string }>(`/hackathons/${slug}/teams`, {
+        method: "POST",
+        body: JSON.stringify({ name }),
+      }),
+    registerSolo: (slug: string) =>
+      request<{ teamId: string }>(`/hackathons/${slug}/register-solo`, {
+        method: "POST",
+      }),
+    joinTeam: (slug: string, teamId: string) =>
+      request<OkResponse>(`/hackathons/${slug}/teams/${teamId}/join`, {
+        method: "POST",
+      }),
+    leaveTeam: (slug: string, teamId: string) =>
+      request<OkResponse>(`/hackathons/${slug}/teams/${teamId}/leave`, {
+        method: "POST",
+      }),
+    submit: (
+      slug: string,
+      teamId: string,
+      data: {
+        title: string;
+        writeup?: string;
+        artifacts?: Array<{
+          kind: "github" | "colab" | "demo" | "paper" | "other";
+          url: string;
+          label: string;
+        }>;
+      },
+    ) =>
+      request<{ id: string }>(
+        `/hackathons/${slug}/teams/${teamId}/submission`,
+        { method: "POST", body: JSON.stringify(data) },
+      ),
+    judge: (slug: string) =>
+      request<{ graded: number; errors: number }>(
+        `/hackathons/${slug}/judge`,
+        { method: "POST" },
+      ),
+    awardPrize: (slug: string, prizeId: string, teamId: string) =>
+      request<OkResponse>(
+        `/hackathons/${slug}/prizes/${prizeId}/award`,
+        { method: "POST", body: JSON.stringify({ teamId }) },
+      ),
+  },
   tracks: {
     list: () =>
       request<{

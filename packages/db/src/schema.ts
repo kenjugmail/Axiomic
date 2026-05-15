@@ -2957,3 +2957,164 @@ export const passwordResetTokens = sqliteTable("password_reset_tokens", {
 }, (t) => ({
   userIdx: index("password_reset_tokens_user_idx").on(t.userId),
 }));
+
+// ============================================================
+// Phase 27 — Hackathons + engineering competitions.
+//
+// Distinct from classCompetitions (which is hard-scoped to one
+// class). Hackathons are tenant-level entities that can be
+// public, scoped to a class, or scoped to a cohort. Hosts
+// define teams, submissions, judging mode, and prize tiers
+// that fan out XP + pet cosmetics/skins + badges to winning
+// teams via the existing grant infrastructure.
+// ============================================================
+
+export const hackathons = sqliteTable("hackathons", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  descriptionMd: text("description_md").notNull().default(""),
+  rulesMd: text("rules_md").notNull().default(""),
+  // Free-form so we can host "all fields" — recommended values
+  // surfaced in the UI datalist but anything's accepted.
+  fieldTag: text("field_tag").notNull().default("other"),
+  coverEmoji: text("cover_emoji").notNull().default("🏆"),
+  // 'public' | 'class' | 'cohort'. For 'class' hostClassId is
+  // required; for 'cohort' hostCohortId is required. Validated
+  // at the route layer, not via DB constraint.
+  hostMode: text("host_mode").notNull().default("public"),
+  hostClassId: text("host_class_id"),
+  hostCohortId: text("host_cohort_id"),
+  // Publicly listed in /hackathons/discover when true. Flips on
+  // publish; organizer can toggle.
+  discoverable: integer("discoverable", { mode: "boolean" }).notNull().default(false),
+  // 'draft' | 'registration' | 'active' | 'judging' | 'ended'.
+  // draft -> registration via /publish; registration -> active
+  // when startsAt is reached; active -> judging via /judge;
+  // judging -> ended when judging completes.
+  status: text("status").notNull().default("draft"),
+  // Soft cap; team-join refuses when at this size. Solo = 1.
+  maxTeamSize: integer("max_team_size").notNull().default(4),
+  // 'manual' | 'ai_rubric'. v1 supports both; peer-vote deferred.
+  judgingMode: text("judging_mode").notNull().default("manual"),
+  // Same shape as Phase 21B variant rubric:
+  // { criteria: [{id, description, weight?}], passingScore }.
+  // Null when judgingMode='manual'.
+  rubricJson: text("rubric_json"),
+  registrationOpensAt: text("registration_opens_at"),
+  registrationClosesAt: text("registration_closes_at"),
+  startsAt: text("starts_at"),
+  endsAt: text("ends_at"),
+  createdById: text("created_by_id").notNull().references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  // Directory: /hackathons/discover scans discoverable + status
+  // + soonest-starting first.
+  discoverIdx: index("hackathons_discover_idx").on(
+    t.discoverable,
+    t.status,
+    t.startsAt,
+  ),
+  // "My hosted hackathons" list.
+  organizerIdx: index("hackathons_organizer_idx").on(t.createdById, t.createdAt),
+}));
+
+export const hackathonTeams = sqliteTable("hackathon_teams", {
+  id: text("id").primaryKey(),
+  hackathonId: text("hackathon_id").notNull()
+    .references(() => hackathons.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  // The team captain submits on behalf of the team and is the
+  // sole edit gate. Promotes oldest member if captain leaves.
+  captainId: text("captain_id").notNull().references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  hackathonIdx: index("hackathon_teams_hackathon_idx").on(t.hackathonId),
+}));
+
+// One row per (team, user). The denormalized hackathonId lets us
+// enforce one-team-per-user-per-hackathon at the DB level.
+export const hackathonTeamMembers = sqliteTable("hackathon_team_members", {
+  id: text("id").primaryKey(),
+  teamId: text("team_id").notNull()
+    .references(() => hackathonTeams.id, { onDelete: "cascade" }),
+  hackathonId: text("hackathon_id").notNull()
+    .references(() => hackathons.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id),
+  // 'captain' | 'member'. Captain stored on team.captainId too;
+  // mirror here for fast role lookups without a join.
+  role: text("role").notNull().default("member"),
+  joinedAt: text("joined_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  // One team per user per hackathon.
+  perHackathonUq: uniqueIndex("hackathon_team_members_user_uq")
+    .on(t.hackathonId, t.userId),
+  // Standard team-membership uniqueness.
+  perTeamUq: uniqueIndex("hackathon_team_members_team_uq")
+    .on(t.teamId, t.userId),
+}));
+
+export const hackathonSubmissions = sqliteTable("hackathon_submissions", {
+  id: text("id").primaryKey(),
+  hackathonId: text("hackathon_id").notNull()
+    .references(() => hackathons.id, { onDelete: "cascade" }),
+  teamId: text("team_id").notNull()
+    .references(() => hackathonTeams.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  writeup: text("writeup").notNull().default(""),
+  // JSON array of {kind: 'github'|'colab'|'demo'|'paper'|'other',
+  // url: string, label: string}.
+  artifactsJson: text("artifacts_json").notNull().default("[]"),
+  submittedAt: text("submitted_at").default(sql`(datetime('now'))`).notNull(),
+  // AI grader output (Phase 21B essayGrader shape) — populated
+  // by /judge when judgingMode='ai_rubric'. Null otherwise.
+  aiGradeJson: text("ai_grade_json"),
+  gradedAt: text("graded_at"),
+  // Organizer scratchpad — never shown to the team. Manual notes
+  // surface alongside aiGradeJson in the organizer view.
+  manualNotesMd: text("manual_notes_md").notNull().default(""),
+}, (t) => ({
+  // One submission per team (re-submit overwrites in place).
+  teamUq: uniqueIndex("hackathon_submissions_team_uq").on(t.teamId),
+}));
+
+export const hackathonPrizes = sqliteTable("hackathon_prizes", {
+  id: text("id").primaryKey(),
+  hackathonId: text("hackathon_id").notNull()
+    .references(() => hackathons.id, { onDelete: "cascade" }),
+  // 1 = winner, 2 = runner-up, 3 = third place, 0 = non-tier
+  // (e.g. "Best UX", "People's Choice"). Used for sort + label.
+  rank: integer("rank").notNull().default(0),
+  title: text("title").notNull(),
+  descriptionMd: text("description_md").notNull().default(""),
+  // Reward bundle. xpAmount goes through grantXp's idempotent
+  // grant; cosmetic/skin/badge slugs grant the matching reward
+  // when set. All optional — at least one is the practical
+  // requirement, but enforced only as good-vibe by the UI.
+  xpAmount: integer("xp_amount").notNull().default(0),
+  cosmeticSlug: text("cosmetic_slug"),
+  skinSlug: text("skin_slug"),
+  // Mints a userAchievements row (existing table). First-time
+  // only thanks to the unique index on (userId, slug).
+  badgeSlug: text("badge_slug"),
+  // Number of teams this prize can be awarded to (1 = single
+  // winner, >1 = ties allowed, e.g. multiple runners-up).
+  maxWinners: integer("max_winners").notNull().default(1),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  hackathonIdx: index("hackathon_prizes_hackathon_idx").on(t.hackathonId, t.rank),
+}));
+
+export const hackathonPrizeAwards = sqliteTable("hackathon_prize_awards", {
+  id: text("id").primaryKey(),
+  prizeId: text("prize_id").notNull()
+    .references(() => hackathonPrizes.id, { onDelete: "cascade" }),
+  teamId: text("team_id").notNull()
+    .references(() => hackathonTeams.id, { onDelete: "cascade" }),
+  awardedById: text("awarded_by_id").notNull().references(() => users.id),
+  awardedAt: text("awarded_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  // Idempotent award — same prize can't go to the same team twice.
+  prizeTeamUq: uniqueIndex("hackathon_prize_awards_uq").on(t.prizeId, t.teamId),
+}));

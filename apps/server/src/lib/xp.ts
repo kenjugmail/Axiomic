@@ -44,6 +44,11 @@ export const XP_AMOUNTS = {
   // running the completion check doesn't double-pay. Large reward
   // because completing a track is a real milestone.
   "cohort-capstone-completed": 100,
+  // Phase 27 — hackathon prize grant. Default amount is the
+  // organizer's prize.xpAmount when set; falls back to this
+  // when the prize was created with xpAmount=0 (so a
+  // cosmetic-only prize still grants a small token of XP).
+  "hackathon-prize": 50,
 } as const;
 
 // Sources with default amounts in XP_AMOUNTS.

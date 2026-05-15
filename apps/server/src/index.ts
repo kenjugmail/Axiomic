@@ -44,6 +44,7 @@ import { harvestSocialResearcherPostsJob } from "./jobs/harvestSocialResearcherP
 import { finalizeStaleExamAttemptsJob } from "./jobs/finalizeStaleExamAttempts";
 import { capstonesRouter } from "./routes/capstones";
 import { classesRouter } from "./routes/classes";
+import { hackathonsRouter } from "./routes/hackathons";
 import { petRouter, petCatalogRouter, petPublicRouter, petSkinCatalogRouter } from "./routes/pet";
 import { misconceptionsRouter } from "./routes/misconceptions";
 import { kernelFilesRouter } from "./routes/kernelFiles";
@@ -281,6 +282,7 @@ app.route("/external-papers", paperAuthorQuestionsRouter);
 app.route("/exams", examsRouter);
 app.route("/capstones", capstonesRouter);
 app.route("/classes", classesRouter);
+app.route("/hackathons", hackathonsRouter);
 app.route("/me/pet", petRouter);
 app.route("/pet-cosmetics", petCatalogRouter);
 // Phase L — public skin catalog.
