@@ -24,6 +24,18 @@ function ymd(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+// Phase 25B — bucket a UTC-stored timestamp by LOCAL calendar day.
+// Previously we did `t.dueAt.slice(0, 10)` which is the UTC date
+// — a task due at 03:00 UTC landed on the UTC day even though the
+// student perceives the deadline as 10pm the prior local day.
+// Using ymd() against a parsed Date pulls the local YYYY-MM-DD,
+// matching how the grid cells render via `date.getDate()`.
+function localDateKey(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso.slice(0, 10);
+  return ymd(d);
+}
+
 function startOfMonth(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), 1);
 }
@@ -68,7 +80,7 @@ export function ClassCalendarPage() {
     if (!data) return m;
     for (const t of data.tasks) {
       if (!t.dueAt) continue;
-      const key = t.dueAt.slice(0, 10);
+      const key = localDateKey(t.dueAt);
       const arr = m.get(key) ?? [];
       arr.push(t);
       m.set(key, arr);

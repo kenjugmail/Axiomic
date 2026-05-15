@@ -610,24 +610,11 @@ function TaskRow({
                   start writing. Mirror Google Classroom's
                   "Grading rubric" pre-submit visibility. */}
               {variant.rubric && variant.rubric.criteria.length > 0 && (
-                <div
-                  data-testid="task-variant-rubric"
-                  className="mt-3 pt-3 border-t border-violet-500/20"
-                >
-                  <div className="text-[10px] uppercase tracking-wider text-violet-700 dark:text-violet-300 mb-1.5">
-                    Graded on (pass at{" "}
-                    {Math.round(variant.rubric.passingScore * 100)}%)
-                  </div>
-                  <ul className="text-xs space-y-0.5 list-disc pl-5">
-                    {variant.rubric.criteria.map((c) => (
-                      <li key={c.id}>
-                        <span className="font-medium">
-                          {c.description.split("—")[0].trim()}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                <RubricSelfCheck
+                  classSlug={classSlug}
+                  taskId={task.id}
+                  rubric={variant.rubric}
+                />
               )}
             </div>
           )}
@@ -1020,6 +1007,8 @@ function ClassStream({
   // Phase 24E — edit-in-place. Saves a round-trip vs. delete + repost.
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState("");
+  // Phase 25D — Write / Preview tab toggle on the composer.
+  const [composerMode, setComposerMode] = useState<"write" | "preview">("write");
 
   const load = async () => {
     try {
@@ -1050,6 +1039,7 @@ function ClassStream({
       setDraft("");
       setPinned(false);
       setComposing(false);
+      setComposerMode("write");
       await load();
     } catch (e) {
       toast.error(e instanceof ApiError ? e.message : "Post failed");
@@ -1109,13 +1099,41 @@ function ClassStream({
       )}
       {canPost && composing && (
         <div className="rounded-md border border-border bg-card p-3 space-y-2">
-          <textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            rows={5}
-            placeholder="Markdown supported. Keep it short — students see this at the top of the class."
-            className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background font-mono"
-          />
+          {/* Phase 25D — Write / Preview tab toggle so the author
+              can verify how the markdown renders before posting. */}
+          <div className="flex gap-1 text-[11px]">
+            {(["write", "preview"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setComposerMode(m)}
+                className={`px-2 py-0.5 rounded ${
+                  composerMode === m
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {m === "write" ? "Write" : "Preview"}
+              </button>
+            ))}
+          </div>
+          {composerMode === "write" ? (
+            <textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              rows={5}
+              placeholder="Markdown supported. Keep it short — students see this at the top of the class."
+              className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background font-mono"
+            />
+          ) : draft.trim().length > 0 ? (
+            <div className="min-h-[5rem] rounded-md border border-border bg-background px-3 py-2 prose prose-sm dark:prose-invert max-w-none">
+              <MarkdownRenderer content={draft} />
+            </div>
+          ) : (
+            <div className="min-h-[5rem] rounded-md border border-border bg-background px-3 py-2 text-sm text-muted-foreground">
+              Nothing to preview yet — switch to Write.
+            </div>
+          )}
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <label className="text-xs inline-flex items-center gap-1.5">
               <input
@@ -1132,6 +1150,7 @@ function ClassStream({
                   setComposing(false);
                   setDraft("");
                   setPinned(false);
+                  setComposerMode("write");
                 }}
                 className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40"
               >
@@ -1535,6 +1554,95 @@ function MaterialEditor({
           {saving ? "Saving…" : initial ? "Save" : "Add"}
         </button>
       </div>
+    </div>
+  );
+}
+
+// Phase 25D — student-side rubric self-check. Pure client UI:
+// checked state persists in localStorage keyed by criterion id
+// so the student can survey themselves before submitting +
+// resume across reloads. No server persistence; the rubric is
+// still solely what the auto-grader scores against.
+function RubricSelfCheck({
+  classSlug,
+  taskId,
+  rubric,
+}: {
+  classSlug: string;
+  taskId: string;
+  rubric: {
+    criteria: Array<{ id: string; description: string; weight?: number }>;
+    passingScore: number;
+  };
+}) {
+  const storageKey = `rubric-check:${classSlug}:${taskId}`;
+  const [checked, setChecked] = useState<Record<string, boolean>>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch {
+      return {};
+    }
+  });
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(checked));
+    } catch {
+      // ignore — quota/private-mode
+    }
+  }, [checked, storageKey]);
+  const tickedCount = Object.values(checked).filter(Boolean).length;
+  return (
+    <div
+      data-testid="task-variant-rubric"
+      className="mt-3 pt-3 border-t border-violet-500/20"
+    >
+      <div className="flex items-baseline justify-between gap-2 mb-1.5">
+        <div className="text-[10px] uppercase tracking-wider text-violet-700 dark:text-violet-300">
+          Graded on (pass at {Math.round(rubric.passingScore * 100)}%)
+        </div>
+        {tickedCount > 0 && (
+          <button
+            type="button"
+            onClick={() => setChecked({})}
+            className="text-[10px] text-muted-foreground hover:text-foreground"
+          >
+            Reset
+          </button>
+        )}
+      </div>
+      <ul className="text-xs space-y-1">
+        {rubric.criteria.map((c) => {
+          const isChecked = !!checked[c.id];
+          return (
+            <li key={c.id}>
+              <label className="inline-flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isChecked}
+                  onChange={(e) =>
+                    setChecked((prev) => ({ ...prev, [c.id]: e.target.checked }))
+                  }
+                  className="mt-0.5"
+                />
+                <span
+                  className={
+                    isChecked
+                      ? "text-muted-foreground line-through"
+                      : "font-medium"
+                  }
+                >
+                  {c.description.split("—")[0].trim()}
+                </span>
+              </label>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

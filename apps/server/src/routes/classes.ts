@@ -55,7 +55,7 @@ import {
   requireInstructorOrTa,
 } from "../middleware/classAuth";
 import { grantXp, classXpForUser, XP_AMOUNTS } from "../lib/xp";
-import { notify } from "../lib/notifications";
+import { notify, notifyMany } from "../lib/notifications";
 import { petSkinBySlug } from "../lib/pets";
 import type { Env } from "../env";
 
@@ -2894,8 +2894,8 @@ classesRouter.post(
     }
     const id = randomUUID();
     const now = new Date().toISOString();
-    getDb()
-      .insert(classAnnouncements)
+    const db = getDb();
+    db.insert(classAnnouncements)
       .values({
         id,
         classId: cls.id,
@@ -2906,6 +2906,32 @@ classesRouter.post(
         updatedAt: now,
       })
       .run();
+
+    // Phase 25A — fan out a notification to every enrollee except
+    // the author. Best-effort: notifyMany swallows errors so a
+    // notification failure can't break the post.
+    const enrollees = db
+      .select({ userId: classEnrollments.userId })
+      .from(classEnrollments)
+      .where(eq(classEnrollments.classId, cls.id))
+      .all()
+      .map((r) => r.userId)
+      .filter((uid) => uid !== user.id);
+    if (enrollees.length > 0) {
+      const preview =
+        data.bodyMd.length > 120
+          ? data.bodyMd.slice(0, 117).trimEnd() + "…"
+          : data.bodyMd;
+      void notifyMany(enrollees, {
+        actorId: user.id,
+        kind: "class_announcement",
+        subjectType: "class_announcement",
+        subjectId: id,
+        contextSlug: cls.slug,
+        preview: `${cls.title}: ${preview}`,
+      });
+    }
+
     return c.json({ id }, 201);
   },
 );
@@ -3227,6 +3253,41 @@ classesRouter.post(
         updatedAt: now,
       })
       .run();
+
+    // Phase 25A — notify the instructor + anyone who has submitted
+    // on this task (they care if someone's asking questions about
+    // it). De-duplicate; exclude the poster. notifyMany handles
+    // empty-set gracefully.
+    const submitters = db
+      .select({ userId: classTaskCompletions.userId })
+      .from(classTaskCompletions)
+      .where(eq(classTaskCompletions.taskId, taskId))
+      .all()
+      .map((r) => r.userId);
+    const recipients = [...new Set([cls.instructorId, ...submitters])].filter(
+      (uid) => uid !== user.id,
+    );
+    if (recipients.length > 0) {
+      // Look up the task title once for a useful preview.
+      const taskRow = db
+        .select({ title: classTasks.title })
+        .from(classTasks)
+        .where(eq(classTasks.id, taskId))
+        .get();
+      const preview =
+        data.bodyMd.length > 120
+          ? data.bodyMd.slice(0, 117).trimEnd() + "…"
+          : data.bodyMd;
+      void notifyMany(recipients, {
+        actorId: user.id,
+        kind: "class_discussion_post",
+        subjectType: "class_task_discussion",
+        subjectId: id,
+        contextSlug: cls.slug,
+        preview: taskRow ? `${taskRow.title}: ${preview}` : preview,
+      });
+    }
+
     return c.json({ id }, 201);
   },
 );

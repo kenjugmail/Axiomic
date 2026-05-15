@@ -3199,4 +3199,129 @@ describe("S93 instructor analytics dashboard", () => {
     // doesn't even surface the class). Either signals denial.
     expect([403, 404]).toContain(denied.status);
   });
+
+  // ----- Phase 25A — notifications on announcements + discussions -----
+
+  test("announcement post fans out a notification to enrollees but not the author", async () => {
+    const { getDb, notifications } = await import("@axiomic/db");
+    const { eq, and } = await import("drizzle-orm");
+    const instructor = await signup("ann-not-inst");
+    const student = await signup("ann-not-stu");
+    const slug = `cls-ann-not-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    const enr = await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    expect(enr.status).toBe(201);
+
+    const post = await req(`/classes/${slug}/announcements`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        bodyMd: "Heads up — first quiz on Friday.",
+        pinned: false,
+      }),
+    });
+    expect(post.status).toBe(201);
+    const { id: announcementId } = (await post.json()) as { id: string };
+
+    // notifyMany is fire-and-forget; give it a beat to land. Mock
+    // provider returns instantly so this is a tiny wait.
+    await new Promise((r) => setTimeout(r, 100));
+
+    // Student got a notification keyed on the announcement.
+    const studentRows = getDb()
+      .select()
+      .from(notifications)
+      .where(
+        and(
+          eq(notifications.userId, student.userId),
+          eq(notifications.kind, "class_announcement"),
+          eq(notifications.subjectId, announcementId),
+        ),
+      )
+      .all();
+    expect(studentRows.length).toBe(1);
+
+    // Author did NOT get one.
+    const authorRows = getDb()
+      .select()
+      .from(notifications)
+      .where(
+        and(
+          eq(notifications.userId, instructor.userId),
+          eq(notifications.kind, "class_announcement"),
+          eq(notifications.subjectId, announcementId),
+        ),
+      )
+      .all();
+    expect(authorRows.length).toBe(0);
+  });
+
+  test("discussion post notifies the instructor + the task's submitter, not the poster", async () => {
+    const { getDb, notifications } = await import("@axiomic/db");
+    const { eq, and } = await import("drizzle-orm");
+    const instructor = await signup("disc-not-inst");
+    const submitter = await signup("disc-not-sub");
+    const poster = await signup("disc-not-post");
+    const slug = `cls-disc-not-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    for (const s of [submitter, poster]) {
+      const enr = await req(`/classes/${slug}/enroll`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(s.cookie) },
+        body: JSON.stringify({ joinCode: created.joinCode }),
+      });
+      expect(enr.status).toBe(201);
+    }
+
+    // Create a homework task; submitter completes it; poster then
+    // asks a question in the discussion.
+    const taskRes = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        kind: "homework",
+        title: "Discussion-notify task",
+        descriptionMd: "Submit a writeup so notifications can target you.",
+      }),
+    });
+    const { taskId } = (await taskRes.json()) as { taskId: string };
+
+    const sub = await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(submitter.cookie) },
+      body: JSON.stringify({ content: "Here is my submitted writeup body." }),
+    });
+    expect(sub.status).toBe(200);
+
+    const postRes = await req(`/classes/${slug}/tasks/${taskId}/discussions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(poster.cookie) },
+      body: JSON.stringify({ bodyMd: "What does part 2 mean exactly?" }),
+    });
+    expect(postRes.status).toBe(201);
+    const { id: postId } = (await postRes.json()) as { id: string };
+    await new Promise((r) => setTimeout(r, 100));
+
+    const sawNotif = (userId: string) =>
+      getDb()
+        .select()
+        .from(notifications)
+        .where(
+          and(
+            eq(notifications.userId, userId),
+            eq(notifications.kind, "class_discussion_post"),
+            eq(notifications.subjectId, postId),
+          ),
+        )
+        .all().length;
+    // Instructor + submitter should both have a notification.
+    expect(sawNotif(instructor.userId)).toBe(1);
+    expect(sawNotif(submitter.userId)).toBe(1);
+    // The poster shouldn't notify themselves.
+    expect(sawNotif(poster.userId)).toBe(0);
+  });
 });

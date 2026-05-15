@@ -54,6 +54,50 @@ export function ClassGradebookPage() {
     return m;
   }, [data]);
 
+  // Phase 25C — running averages computed client-side from the
+  // same cell map. Returns null when there are no graded cells in
+  // scope (so the UI can render "—" instead of a misleading 0%).
+  const studentAvg = useMemo(() => {
+    const m = new Map<string, { pct: number; sum: number; max: number } | null>();
+    if (!data) return m;
+    for (const s of data.students) {
+      let sum = 0;
+      let max = 0;
+      for (const t of data.tasks) {
+        const c = cellByPair.get(`${t.id}::${s.userId}`);
+        if (!c || c.score == null || c.maxScore == null) continue;
+        sum += c.score;
+        max += c.maxScore;
+      }
+      m.set(s.userId, max > 0 ? { pct: sum / max, sum, max } : null);
+    }
+    return m;
+  }, [data, cellByPair]);
+
+  const taskAvg = useMemo(() => {
+    const m = new Map<string, { pct: number; sum: number; max: number } | null>();
+    if (!data) return m;
+    for (const t of data.tasks) {
+      let sum = 0;
+      let max = 0;
+      for (const s of data.students) {
+        const c = cellByPair.get(`${t.id}::${s.userId}`);
+        if (!c || c.score == null || c.maxScore == null) continue;
+        sum += c.score;
+        max += c.maxScore;
+      }
+      m.set(t.id, max > 0 ? { pct: sum / max, sum, max } : null);
+    }
+    return m;
+  }, [data, cellByPair]);
+
+  function avgTone(pct: number | null | undefined): string {
+    if (pct == null) return "text-muted-foreground";
+    if (pct >= 0.8) return "text-emerald-700 dark:text-emerald-400";
+    if (pct >= 0.6) return "text-amber-700 dark:text-amber-400";
+    return "text-rose-700 dark:text-rose-400";
+  }
+
   if (!user) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16 text-center">
@@ -98,7 +142,7 @@ export function ClassGradebookPage() {
     : data.students;
 
   const csv = () => {
-    const header = ["Student", ...data.tasks.map((t) => t.title)];
+    const header = ["Student", ...data.tasks.map((t) => t.title), "Avg"];
     const lines = [header.join(",")];
     for (const s of data.students) {
       const cells = data.tasks.map((t) => {
@@ -109,10 +153,22 @@ export function ClassGradebookPage() {
         }
         return c.status;
       });
+      const avg = studentAvg.get(s.userId);
+      const avgCell = avg ? `${Math.round(avg.pct * 100)}%` : "";
       lines.push(
-        [JSON.stringify(s.displayName ?? s.username), ...cells].join(","),
+        [JSON.stringify(s.displayName ?? s.username), ...cells, avgCell].join(","),
       );
     }
+    // Phase 25C — append the class-avg footer row.
+    const footer = ["Class avg"]
+      .concat(
+        data.tasks.map((t) => {
+          const a = taskAvg.get(t.id);
+          return a ? `${Math.round(a.pct * 100)}%` : "";
+        }),
+      )
+      .concat([""]);
+    lines.push(footer.join(","));
     const blob = new Blob([lines.join("\n")], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -196,33 +252,79 @@ export function ClassGradebookPage() {
                     )}
                   </th>
                 ))}
+                {/* Phase 25C — running per-student average. Sticky
+                    right so it stays visible while scrolling tasks. */}
+                <th className="text-right px-3 py-2 align-bottom whitespace-nowrap bg-muted/80 backdrop-blur sticky right-0 z-10">
+                  Avg
+                </th>
               </tr>
             </thead>
             <tbody>
-              {visibleStudents.map((s) => (
-                <tr key={s.userId} className="border-t border-border">
-                  <td className="px-3 py-2 sticky left-0 bg-card border-r border-border">
-                    <Link
-                      to={`/profile/${s.username}`}
-                      className="hover:text-primary"
-                    >
-                      {s.displayName ?? `@${s.username}`}
-                    </Link>
-                  </td>
-                  {data.tasks.map((t) => {
-                    const c = cellByPair.get(`${t.id}::${s.userId}`);
-                    return (
-                      <td
-                        key={t.id}
-                        className="px-3 py-2 border-r border-border"
+              {visibleStudents.map((s) => {
+                const avg = studentAvg.get(s.userId);
+                return (
+                  <tr key={s.userId} className="border-t border-border">
+                    <td className="px-3 py-2 sticky left-0 bg-card border-r border-border">
+                      <Link
+                        to={`/profile/${s.username}`}
+                        className="hover:text-primary"
                       >
-                        <GradeCell cell={c} classSlug={slug} taskId={t.id} />
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
+                        {s.displayName ?? `@${s.username}`}
+                      </Link>
+                    </td>
+                    {data.tasks.map((t) => {
+                      const c = cellByPair.get(`${t.id}::${s.userId}`);
+                      return (
+                        <td
+                          key={t.id}
+                          className="px-3 py-2 border-r border-border"
+                        >
+                          <GradeCell cell={c} classSlug={slug} taskId={t.id} />
+                        </td>
+                      );
+                    })}
+                    <td
+                      className="px-3 py-2 text-right sticky right-0 bg-card font-mono"
+                      data-testid="student-avg"
+                    >
+                      {avg ? (
+                        <span className={avgTone(avg.pct)}>
+                          {Math.round(avg.pct * 100)}%
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
+            <tfoot className="bg-muted/40">
+              <tr className="border-t-2 border-border">
+                <td className="px-3 py-2 sticky left-0 bg-muted/60 backdrop-blur border-r border-border text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Class avg
+                </td>
+                {data.tasks.map((t) => {
+                  const avg = taskAvg.get(t.id);
+                  return (
+                    <td
+                      key={t.id}
+                      className="px-3 py-2 border-r border-border font-mono"
+                      data-testid="task-class-avg"
+                    >
+                      {avg ? (
+                        <span className={avgTone(avg.pct)}>
+                          {Math.round(avg.pct * 100)}%
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                  );
+                })}
+                <td className="px-3 py-2 sticky right-0 bg-muted/60 backdrop-blur" />
+              </tr>
+            </tfoot>
           </table>
         </div>
       )}

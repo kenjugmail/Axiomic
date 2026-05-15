@@ -38,7 +38,11 @@ export type NotificationKind =
   // S90 — pet evolution.
   | "pet_leveled_up"
   // Phase L — pet skin grant.
-  | "skin_granted";
+  | "skin_granted"
+  // Phase 25A — class stream + per-task discussion notifications.
+  // Both always-on; per-user mute toggle deferred.
+  | "class_announcement"
+  | "class_discussion_post";
 
 export type NotificationSubject =
   | "topic"
@@ -64,7 +68,11 @@ export type NotificationSubject =
   | "competition"
   | "pet"
   // Phase L — skin grant.
-  | "pet_skin";
+  | "pet_skin"
+  // Phase 25A — classroom feed surfaces. subjectId carries the
+  // announcement / discussion row id; contextSlug is the class slug.
+  | "class_announcement"
+  | "class_task_discussion";
 
 const MAX_MENTIONS_PER_BODY = 10;
 const PREVIEW_MAX = 140;
@@ -168,10 +176,13 @@ function kindGate(
     case "pet_hatched":
     case "pet_leveled_up":
     case "skin_granted":
+    case "class_announcement":
+    case "class_discussion_post":
       // News flow + follow events + admin pipeline + funding
       // alerts + Sprint 80 lab operational signals + S88
-      // classroom/pet events + S90 pet evolution are direct +
-      // low-volume — always on.
+      // classroom/pet events + S90 pet evolution + Phase 25A
+      // classroom feed surfaces are direct + low-volume — always
+      // on (per-user mute toggle deferred).
       return null;
   }
 }
