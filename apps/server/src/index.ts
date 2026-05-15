@@ -134,6 +134,30 @@ app.use(
   }),
 );
 
+// Phase 26A — baseline HTTP security headers on every response.
+// CSP is intentionally deferred — needs an inventory of every
+// inline script + external origin (KaTeX, Sentry, Turnstile,
+// etc.). HSTS lives at the reverse-proxy layer so it survives
+// upstream redirects.
+app.use("*", async (c, next) => {
+  await next();
+  // Clickjacking defense. The app has no legitimate iframe-embed
+  // surface in v1.
+  c.header("X-Frame-Options", "DENY");
+  // Disable MIME sniffing so a JSON response can't be reinterpreted
+  // as something executable.
+  c.header("X-Content-Type-Options", "nosniff");
+  // Leak less to outbound links. Same-origin nav stays full
+  // referrer; cross-origin sends only the origin.
+  c.header("Referrer-Policy", "strict-origin-when-cross-origin");
+  // Explicitly deny browser features we don't use, so a future
+  // dependency that asks for them gets blocked at the platform.
+  c.header(
+    "Permissions-Policy",
+    "geolocation=(), microphone=(), camera=(), payment=(), usb=()",
+  );
+});
+
 // Phase J — fail-fast on oversize request bodies. 10MB is generous for
 // uploads (multipart goes through here too) and a hard cap against a
 // 100MB JSON-blob DoS that would otherwise be parsed into memory.

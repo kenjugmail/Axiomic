@@ -22,6 +22,19 @@ describe("Health & Readiness", () => {
     expect(typeof data.timestamp).toBe("string");
   });
 
+  // Phase 26A — every response should carry the baseline security
+  // headers. Lock that down so a future middleware reshuffle that
+  // accidentally drops one fails CI loudly.
+  test("baseline security headers ride every response", async () => {
+    const res = await req("/health");
+    expect(res.headers.get("X-Frame-Options")).toBe("DENY");
+    expect(res.headers.get("X-Content-Type-Options")).toBe("nosniff");
+    expect(res.headers.get("Referrer-Policy")).toBe(
+      "strict-origin-when-cross-origin",
+    );
+    expect(res.headers.get("Permissions-Policy")).toContain("geolocation=()");
+  });
+
   test("/ready reports db and ai status", async () => {
     const res = await req("/ready");
     expect(res.status).toBe(200);
