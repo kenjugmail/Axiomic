@@ -341,6 +341,32 @@ export function VerifyPage() {
           </Link>
         </p>
       </section>
+
+      <section className="mt-8 rounded-lg border border-border bg-card p-4">
+        <h2 className="text-sm font-semibold mb-2">Embed &amp; integrate</h2>
+        <p className="text-xs text-muted-foreground mb-2">
+          Drop the chrome-free verifier into any site:
+        </p>
+        <pre className="text-[11px] bg-background border border-border rounded-md p-2 overflow-x-auto">
+          {`<iframe src="${typeof window !== "undefined" ? window.location.origin : ""}/embed/verify"
+        width="640" height="480" style="border:0"></iframe>`}
+        </pre>
+        <p className="text-xs text-muted-foreground mt-3">
+          Public, CORS-open, no-auth API:{" "}
+          <code className="text-[11px]">
+            /.well-known/axiomic-signing-pubkey
+          </code>
+          ,{" "}
+          <code className="text-[11px]">
+            /api/v1/public/users/:username/credentials
+          </code>
+          ,{" "}
+          <code className="text-[11px]">
+            /api/v1/public/research/:kind/:id/provenance
+          </code>
+          .
+        </p>
+      </section>
     </div>
   );
 }

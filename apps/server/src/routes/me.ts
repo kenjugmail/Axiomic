@@ -52,6 +52,9 @@ import { buildKnowledgeMri } from "../lib/knowledgeMri";
 import { recordMasterySnapshot, buildReadiness } from "../lib/readiness";
 import { currentStreak } from "../lib/achievements";
 import { totalXpForUser } from "../lib/xp";
+import { gradeEssay } from "../lib/essayGrader";
+import { resolveMisconceptionIfProven } from "../lib/tutorResolution";
+import { buildGoalPath } from "../lib/goalPlanner";
 import type { Env } from "../env";
 
 export const meRouter = new Hono<Env>();
@@ -303,6 +306,21 @@ meRouter.get("/readiness", requireAuth, async (c) => {
   return c.json(buildReadiness(user.id));
 });
 
+// Phase 31B — prerequisite-ordered path from the user's current
+// mastery state to a target credential (capstone/track/exam).
+meRouter.get("/goal-path", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const kind = c.req.query("kind");
+  const slug = (c.req.query("slug") ?? "").trim();
+  if (
+    (kind !== "capstone" && kind !== "track" && kind !== "exam") ||
+    !slug
+  ) {
+    return c.json({ error: "kind (capstone|track|exam) + slug required" }, 400);
+  }
+  return c.json(buildGoalPath(user.id, { kind, slug }));
+});
+
 meRouter.post("/weak-concepts/refresh", requireAuth, async (c) => {
   const user = c.get("user")!;
   const upserts = await runDetectorForUser(user.id);
@@ -329,6 +347,104 @@ meRouter.post("/weak-concepts/:id/dismiss", requireAuth, async (c) => {
     .run();
   return c.json({ ok: true });
 });
+
+// Phase 31A — prove a misconception is resolved. The user answers
+// a misconception-probing drill; we AI-grade it server-side and,
+// on a passing score, flip the diagnosis status→'resolved'
+// (closing the active→coached→resolved loop). Idempotent.
+meRouter.post(
+  "/weak-concepts/:id/prove",
+  requireAuth,
+  zValidator("json", z.object({ answer: z.string().min(1).max(4000) })),
+  async (c) => {
+    const user = c.get("user")!;
+    const id = c.req.param("id")!;
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`tutor-prove:${user.id}`, 10, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
+    const db = getDb();
+    const diag = db
+      .select()
+      .from(misconceptionDiagnoses)
+      .where(eq(misconceptionDiagnoses.id, id))
+      .get();
+    if (!diag || diag.userId !== user.id) {
+      return c.json({ error: "Diagnosis not found" }, 404);
+    }
+    if (diag.status === "resolved" || diag.status === "dismissed") {
+      return c.json({
+        resolved: false,
+        alreadyResolved: true,
+        score: null,
+        feedbackMd: `Already ${diag.status}.`,
+        reason: `already ${diag.status}`,
+      });
+    }
+    const { answer } = c.req.valid("json");
+    const cat = db
+      .select({
+        description: misconceptionCatalog.description,
+        probeQuestionsJson: misconceptionCatalog.probeQuestionsJson,
+        correctionPromptTemplate:
+          misconceptionCatalog.correctionPromptTemplate,
+      })
+      .from(misconceptionCatalog)
+      .where(eq(misconceptionCatalog.key, diag.misconceptionKey))
+      .get();
+    let probe = `Explain ${diag.conceptSlug} correctly, directly addressing this misconception: ${diag.label}`;
+    try {
+      const qs = JSON.parse(cat?.probeQuestionsJson ?? "[]");
+      if (Array.isArray(qs) && typeof qs[0] === "string" && qs[0]) {
+        probe = qs[0];
+      }
+    } catch {
+      // keep the fallback probe
+    }
+    const rubricMd = [
+      `The answer must demonstrate the learner no longer holds this misconception: "${diag.label}".`,
+      cat?.description ? `Context: ${cat.description}` : "",
+      cat?.correctionPromptTemplate
+        ? `A correct understanding looks like: ${cat.correctionPromptTemplate}`
+        : "",
+      "Score 100 only if the answer is correct AND explicitly avoids the misconception; score low if it repeats the misconception.",
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    let score = 0;
+    let feedbackMd = "";
+    try {
+      const g = await gradeEssay({
+        promptMd: probe,
+        rubricMd,
+        maxScore: 100,
+        essayResponse: answer,
+        signal: AbortSignal.timeout(20_000),
+      });
+      score = g.score;
+      feedbackMd = g.feedbackMd;
+    } catch {
+      return c.json(
+        { error: "Grading is busy — try again in a moment." },
+        503,
+      );
+    }
+    const r = resolveMisconceptionIfProven(user.id, id, {
+      kind: "essay",
+      score: score / 100,
+    });
+    return c.json({
+      resolved: r.resolved,
+      alreadyResolved: false,
+      score,
+      feedbackMd,
+      reason: r.reason,
+    });
+  },
+);
 
 // Sprint 31 — Prereq X-ray. Takes a comma-separated wikiSlugs query
 // and returns mastery status per slug. Mastered = user has positive

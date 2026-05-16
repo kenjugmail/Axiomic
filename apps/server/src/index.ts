@@ -48,6 +48,7 @@ import { hackathonsRouter } from "./routes/hackathons";
 import { bountiesRouter } from "./routes/bounties";
 import { reproductionsRouter } from "./routes/reproductions";
 import { reviewRoomsRouter } from "./routes/review-rooms";
+import { publicApiRouter } from "./routes/publicApi";
 import { recruiterRouter } from "./routes/recruiter";
 import {
   credentialsRouter,
@@ -300,6 +301,8 @@ app.route("/recruiter", recruiterRouter);
 app.route("/credentials", credentialsRouter);
 // Mounted before /me so the more-specific subtree wins.
 app.route("/me/credentials", meCredentialsRouter);
+// Phase 31D — versioned, CORS-open public API namespace.
+app.route("/public", publicApiRouter);
 app.route("/me/pet", petRouter);
 app.route("/pet-cosmetics", petCatalogRouter);
 // Phase L — public skin catalog.
@@ -426,6 +429,19 @@ export default {
       const data: WSData = { userId, subscriptions: new Set() };
       if (server.upgrade(req, { data })) return;
       return new Response("Upgrade failed", { status: 500 });
+    }
+    // Phase 31D — true app-root signing-key discovery. `app` is
+    // basePath("/api/v1") so this can't live on the Hono app;
+    // serve it here, before delegating.
+    if (url.pathname === "/.well-known/axiomic-signing-pubkey") {
+      return new Response(publicKeyHex(), {
+        status: 200,
+        headers: {
+          "content-type": "text/plain; charset=utf-8",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=3600",
+        },
+      });
     }
     return app.fetch(req);
   },

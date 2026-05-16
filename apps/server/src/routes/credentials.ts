@@ -31,6 +31,10 @@ import {
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { publicKeyHex, signCredential } from "../lib/signing";
 import {
+  computeAxiomicScore,
+  signAxiomicScore,
+} from "../lib/compositeScore";
+import {
   type Skill,
   fetchTargetTags,
   parseSlugList,
@@ -443,6 +447,36 @@ credentialsRouter.get("/:username", async (c) => {
   });
 });
 
+// Phase 31C — public signed Axiomic Score (same privacy gate as
+// the wallet). Re-verifiable through /api/v1/keys/verify.
+credentialsRouter.get("/:username/composite-score", async (c) => {
+  const username = c.req.param("username")!;
+  const db = getDb();
+  const u = db
+    .select({
+      id: users.id,
+      username: users.username,
+      displayName: users.displayName,
+      credentialsPublic: users.credentialsPublic,
+    })
+    .from(users)
+    .where(eq(users.username, username))
+    .get();
+  if (!u) return c.json({ error: "User not found" }, 404);
+  if (!u.credentialsPublic) {
+    const session = await getSessionUser(c);
+    if (session?.id !== u.id) {
+      return c.json({ error: "This portfolio is private" }, 403);
+    }
+  }
+  const s = await computeAxiomicScore(u.id, u.username);
+  return c.json({
+    user: { username: u.username, displayName: u.displayName },
+    ...s,
+    credential: signAxiomicScore(u.id, u.username, s),
+  });
+});
+
 // Phase 29C — recruiter-facing "skills proven, by which
 // credentials" rollup. Same privacy gate as the wallet.
 credentialsRouter.get("/:username/skills-summary", async (c) => {
@@ -566,6 +600,16 @@ Verify at /verify or fetch the signed bundle at
 });
 
 export const meCredentialsRouter = new Hono<Env>();
+
+// Phase 31C — the caller's own signed Axiomic Score.
+meCredentialsRouter.get("/composite-score", requireAuth, async (c) => {
+  const me = c.get("user")!;
+  const s = await computeAxiomicScore(me.id, me.username);
+  return c.json({
+    ...s,
+    credential: signAxiomicScore(me.id, me.username, s),
+  });
+});
 
 // GET /me/credentials — caller's own. ?format=json returns just
 // the signed-credential bundle for offline batch verification.

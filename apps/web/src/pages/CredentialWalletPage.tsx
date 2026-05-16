@@ -162,6 +162,8 @@ export function CredentialWalletPage() {
         </p>
       </header>
 
+      <AxiomicScoreCard username={paramUsername} />
+
       {isOwnView && isPublic !== null && (
         <div className="rounded-lg border border-border bg-card p-4 mb-6 flex items-center justify-between gap-3 flex-wrap">
           <div className="text-sm">
@@ -316,6 +318,83 @@ export function CredentialWalletPage() {
           re-verify offline.
         </p>
       )}
+    </div>
+  );
+}
+
+// Phase 31C — the unified, signed Axiomic Score. Hidden on
+// 403/404 (private portfolio) — never blocks the wallet.
+function AxiomicScoreCard({ username }: { username?: string }) {
+  const [data, setData] = useState<Awaited<
+    ReturnType<typeof api.credentials.compositeScore>
+  > | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    api.credentials
+      .compositeScore(username)
+      .then((r) => !cancelled && setData(r))
+      .catch(() => !cancelled && setFailed(true));
+    return () => {
+      cancelled = true;
+    };
+  }, [username]);
+
+  if (failed) return null;
+  if (!data) return <Skeleton className="h-24 mb-6" />;
+
+  const parts: Array<{ label: string; n: number }> = [
+    { label: "XP", n: data.breakdown.xp?.weighted ?? 0 },
+    { label: "Credentials", n: data.breakdown.credentials?.weighted ?? 0 },
+    { label: "Reviewer trust", n: data.breakdown.reviewerTrust?.weighted ?? 0 },
+    { label: "Mastery", n: data.breakdown.mastery?.weighted ?? 0 },
+    { label: "Streak", n: data.breakdown.streak?.weighted ?? 0 },
+  ];
+
+  return (
+    <div className="rounded-lg border border-primary/30 bg-primary/5 p-5 mb-6">
+      <div className="flex items-baseline justify-between gap-3 flex-wrap">
+        <h2 className="text-sm font-semibold inline-flex items-center gap-1.5">
+          <Award className="w-4 h-4 text-primary" />
+          Axiomic Score
+        </h2>
+        <span className="text-3xl font-semibold tabular-nums text-primary">
+          {data.score}
+          <span className="text-sm text-muted-foreground font-normal">
+            {" "}
+            / 1000
+          </span>
+        </span>
+      </div>
+      <div className="mt-3 grid grid-cols-2 sm:grid-cols-5 gap-2">
+        {parts.map((p) => (
+          <div key={p.label}>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              {p.label}
+            </div>
+            <div className="h-1.5 rounded-full bg-muted overflow-hidden mt-1">
+              <div
+                className="h-full bg-primary"
+                style={{
+                  width: `${Math.min(100, Math.round((p.n / 0.3) * 100))}%`,
+                }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+      <details className="mt-3">
+        <summary className="text-xs text-muted-foreground cursor-pointer">
+          Signed credential — verify at{" "}
+          <Link to="/verify" className="text-primary hover:underline">
+            /verify
+          </Link>
+        </summary>
+        <pre className="mt-2 text-[10px] bg-background border border-border rounded-md p-2 overflow-x-auto">
+          {JSON.stringify(data.credential, null, 2)}
+        </pre>
+      </details>
     </div>
   );
 }

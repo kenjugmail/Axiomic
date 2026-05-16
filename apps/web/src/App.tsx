@@ -339,6 +339,12 @@ const VerifyEmailChangePage = lazy(() =>
 const VerifyPage = lazy(() =>
   import("./pages/VerifyPage").then((m) => ({ default: m.VerifyPage })),
 );
+// Phase 31D — chrome-free embeddable verifier (no <Layout/>).
+const VerifyWidget = lazy(() =>
+  import("./components/VerifyWidget").then((m) => ({
+    default: m.VerifyWidget,
+  })),
+);
 // Sprint 38 — Misconception marketplace (community-curated catalog).
 const MisconceptionMarketplacePage = lazy(() =>
   import("./pages/MisconceptionMarketplacePage").then((m) => ({
@@ -502,6 +508,9 @@ function AppRoutes() {
           app root; any code can call `toast.success(...)` etc. */}
       <ToastContainer />
       <Routes>
+        {/* Phase 31D — embeddable verifier, intentionally outside
+            <Layout/> so it renders chrome-free in an iframe. */}
+        <Route path="/embed/verify" element={<VerifyWidget />} />
         <Route element={<Layout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/for/:audienceId" element={<ForAudiencePage />} />

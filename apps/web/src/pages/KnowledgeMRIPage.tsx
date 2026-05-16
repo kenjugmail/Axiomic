@@ -11,6 +11,7 @@ import {
   Brain,
   Flame,
   Activity,
+  Target,
   TrendingUp,
 } from "lucide-react";
 import type { KnowledgeMri, KnowledgeMriNode } from "@axiomic/types";
@@ -175,6 +176,9 @@ export function KnowledgeMRIPage() {
 
       {/* Phase 28E — predictive readiness + dated study plan */}
       <ReadinessPanel />
+
+      {/* Phase 31B — prerequisite-ordered goal path */}
+      <GoalPathPanel />
 
       {/* Per-path heatmap */}
       <MriHeatmap
@@ -386,5 +390,133 @@ function Sparkline({ points }: { points: number[] }) {
         strokeLinejoin="round"
       />
     </svg>
+  );
+}
+
+// Phase 31B — pick a target credential; get a prerequisite-ordered
+// path from the user's current mastery state to that goal.
+function GoalPathPanel() {
+  const [kind, setKind] = useState<"capstone" | "track" | "exam">(
+    "capstone",
+  );
+  const [slug, setSlug] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [data, setData] = useState<Awaited<
+    ReturnType<typeof api.me.goalPath>
+  > | null>(null);
+
+  const plan = async () => {
+    if (!slug.trim()) return;
+    setBusy(true);
+    try {
+      setData(await api.me.goalPath(kind, slug.trim()));
+    } catch {
+      setData(null);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-4 sm:p-5 mb-6">
+      <h2 className="text-sm font-semibold mb-3 inline-flex items-center gap-1.5">
+        <Target className="w-4 h-4 text-primary" />
+        Goal path
+      </h2>
+      <div className="flex gap-2 flex-wrap items-end mb-3">
+        <label>
+          <span className="block text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+            Target
+          </span>
+          <select
+            value={kind}
+            onChange={(e) => setKind(e.target.value as typeof kind)}
+            className="text-sm px-2 py-2 rounded-md border border-border bg-background"
+          >
+            <option value="capstone">Capstone</option>
+            <option value="track">Track</option>
+            <option value="exam">Exam</option>
+          </select>
+        </label>
+        <label className="flex-1 min-w-[10rem]">
+          <span className="block text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+            Slug
+          </span>
+          <input
+            value={slug}
+            onChange={(e) => setSlug(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && plan()}
+            placeholder="e.g. transformer-from-scratch"
+            className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background font-mono"
+          />
+        </label>
+        <button
+          type="button"
+          onClick={plan}
+          disabled={busy || !slug.trim()}
+          className="text-sm px-3 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+        >
+          {busy ? "Planning…" : "Plan"}
+        </button>
+      </div>
+
+      {data && !data.resolvable && (
+        <p className="text-sm text-muted-foreground">
+          Couldn't resolve that goal — check the slug.
+        </p>
+      )}
+      {data && data.resolvable && (
+        <div className="space-y-3">
+          {data.estimatedReadyOn && (
+            <div className="text-sm">
+              Projected ready:{" "}
+              <strong>
+                {new Date(data.estimatedReadyOn).toLocaleDateString()}
+              </strong>
+            </div>
+          )}
+          {data.blockedOn.length > 0 && (
+            <div className="text-xs rounded-md border border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300 p-2">
+              Blocked on:{" "}
+              {data.blockedOn.map((b) => b.title).join(", ")}
+            </div>
+          )}
+          {data.steps.length === 0 ? (
+            <p className="text-sm text-emerald-700 dark:text-emerald-300">
+              You've already mastered every prerequisite. 🎉
+            </p>
+          ) : (
+            <ol className="space-y-1.5">
+              {data.steps.map((s, i) => (
+                <li
+                  key={s.nodeId}
+                  className="text-sm flex items-center justify-between gap-3 rounded-md border border-border px-3 py-1.5"
+                >
+                  <span className="min-w-0 truncate">
+                    <span className="text-muted-foreground tabular-nums mr-2">
+                      {i + 1}.
+                    </span>
+                    <Link
+                      to={`/wiki/${s.slug}`}
+                      className="text-primary hover:underline"
+                    >
+                      {s.title}
+                    </Link>
+                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground ml-2">
+                      {s.status === "in_progress" ? "in progress" : "untouched"}
+                    </span>
+                  </span>
+                  {s.estimatedDays != null && (
+                    <span className="text-xs text-muted-foreground tabular-nums shrink-0">
+                      ~{s.estimatedDays}d
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

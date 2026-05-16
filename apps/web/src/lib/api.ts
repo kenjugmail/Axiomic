@@ -2040,6 +2040,46 @@ export const api = {
           }>;
         }>;
       }>(`/credentials/${username}/skills-summary`),
+    // Phase 31C — unified signed Axiomic Score. No username =
+    // the caller's own (auth); username = public (gated).
+    compositeScore: (username?: string) =>
+      request<{
+        user?: { username: string; displayName: string | null };
+        score: number;
+        breakdown: Record<string, any>;
+        issuedAt: string;
+        credential: {
+          manifest: Record<string, unknown>;
+          signature: string;
+          publicKey: string;
+          algorithm: string;
+          canonicalPayload: string;
+        };
+      }>(
+        username
+          ? `/credentials/${username}/composite-score`
+          : `/me/credentials/composite-score`,
+      ),
+  },
+  // Phase 31D — public, CORS-open integration surface.
+  publicApi: {
+    provenance: (targetKind: string, targetId: string) =>
+      request<{
+        target: { kind: string; id: string };
+        reproducedBy: Array<{
+          username: string;
+          confirmedWeight: number | null;
+          mintedAt: string;
+        }>;
+        bountyContributions: Array<{
+          username: string;
+          bountySlug: string;
+          bountyTitle: string;
+          acceptedAt: string;
+        }>;
+      }>(
+        `/public/research/${encodeURIComponent(targetKind)}/${encodeURIComponent(targetId)}/provenance`,
+      ),
   },
   // Phase 28B — reproduction peer review → signed credential.
   reproductions: {
@@ -2603,6 +2643,36 @@ export const api = {
       request<{ upserts: number }>("/me/weak-concepts/refresh", { method: "POST" }),
     dismissWeakConcept: (id: string) =>
       request<OkResponse>(`/me/weak-concepts/${id}/dismiss`, { method: "POST" }),
+    // Phase 31A — prove a misconception is resolved.
+    proveWeakConcept: (id: string, answer: string) =>
+      request<{
+        resolved: boolean;
+        alreadyResolved: boolean;
+        score: number | null;
+        feedbackMd: string;
+        reason: string;
+      }>(`/me/weak-concepts/${id}/prove`, {
+        method: "POST",
+        body: JSON.stringify({ answer }),
+      }),
+    // Phase 31B — prerequisite-ordered path to a target credential.
+    goalPath: (kind: "capstone" | "track" | "exam", slug: string) => {
+      const sp = new URLSearchParams({ kind, slug });
+      return request<{
+        goal: { kind: string; slug: string; title: string | null };
+        steps: Array<{
+          nodeId: string;
+          slug: string;
+          title: string;
+          status: "in_progress" | "untouched";
+          reason: string;
+          estimatedDays: number | null;
+        }>;
+        blockedOn: Array<{ nodeId: string; slug: string; title: string }>;
+        estimatedReadyOn: string | null;
+        resolvable: boolean;
+      }>(`/me/goal-path?${sp.toString()}`);
+    },
     prereqStatus: (wikiSlugs: string[]) => {
       const sp = new URLSearchParams();
       sp.set("wikiSlugs", wikiSlugs.join(","));

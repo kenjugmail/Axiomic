@@ -26,6 +26,7 @@ export function WeakConceptsPage() {
   const { user } = useAuthStore();
   const [diagnoses, setDiagnoses] = useState<MisconceptionDiagnosis[] | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [proveId, setProveId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -147,6 +148,16 @@ export function WeakConceptsPage() {
                   </Link>
                   <button
                     type="button"
+                    onClick={() =>
+                      setProveId(proveId === d.id ? null : d.id)
+                    }
+                    className="text-xs px-3 py-1.5 rounded-md border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10 inline-flex items-center gap-1.5"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    {proveId === d.id ? "Cancel" : "Prove it"}
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => dismiss(d.id)}
                     className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40 inline-flex items-center gap-1.5"
                   >
@@ -155,6 +166,17 @@ export function WeakConceptsPage() {
                   </button>
                 </div>
               </div>
+              {proveId === d.id && (
+                <ProveDrill
+                  id={d.id}
+                  onResolved={() => {
+                    setProveId(null);
+                    setDiagnoses((ds) =>
+                      ds ? ds.filter((x) => x.id !== d.id) : ds,
+                    );
+                  }}
+                />
+              )}
             </li>
           ))}
         </ul>
@@ -231,6 +253,77 @@ function NextStepPills({ d }: { d: MisconceptionDiagnosis }) {
           </Link>
         );
       })}
+    </div>
+  );
+}
+
+// Phase 31A — inline "prove it" drill. A passing AI grade flips
+// the diagnosis to resolved server-side; the card then clears.
+function ProveDrill({
+  id,
+  onResolved,
+}: {
+  id: string;
+  onResolved: () => void;
+}) {
+  const [answer, setAnswer] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [score, setScore] = useState<number | null>(null);
+
+  const submit = async () => {
+    if (!answer.trim()) return;
+    setBusy(true);
+    setFeedback(null);
+    try {
+      const r = await api.me.proveWeakConcept(id, answer.trim());
+      if (r.resolved) {
+        onResolved();
+        return;
+      }
+      setScore(r.score);
+      setFeedback(
+        r.feedbackMd ||
+          "Not quite — revise and try again, addressing the misconception directly.",
+      );
+    } catch (e: any) {
+      setFeedback(e?.message ?? "Couldn't grade — try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="mt-3 rounded-md border border-border bg-background p-3 space-y-2">
+      <p className="text-xs text-muted-foreground">
+        Explain the concept correctly — directly addressing the
+        misconception. A passing answer clears this weakness.
+      </p>
+      <textarea
+        value={answer}
+        onChange={(e) => setAnswer(e.target.value)}
+        rows={4}
+        placeholder="Your explanation…"
+        className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background"
+      />
+      {feedback && (
+        <div className="text-xs rounded-md border border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-200 p-2 whitespace-pre-wrap">
+          {score != null && (
+            <span className="font-semibold">Scored {score}/100. </span>
+          )}
+          {feedback}
+        </div>
+      )}
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={submit}
+          disabled={busy || !answer.trim()}
+          className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+        >
+          {busy ? "Grading…" : "Submit proof"}
+        </button>
+      </div>
     </div>
   );
 }
