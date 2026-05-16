@@ -9,6 +9,7 @@
 //   XP + optional badge (server-side fan-out).
 
 import { useEffect, useState } from "react";
+import { confirm } from "../stores/confirm";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   Check,
@@ -111,7 +112,14 @@ export function BountyDetailPage() {
   };
 
   const removeBounty = async () => {
-    if (!window.confirm("Delete this bounty? Only allowed while open.")) return;
+    if (
+      !(await confirm({
+        title: "Delete this bounty?",
+        body: "Only allowed while open.",
+        destructive: true,
+      }))
+    )
+      return;
     try {
       await api.bounties.delete(slug);
       toast.success("Deleted");

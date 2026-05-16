@@ -16,6 +16,7 @@
 // lands the user on Step 4 (enrich). This is the power-user shortcut.
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { confirm } from "../stores/confirm";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -182,11 +183,13 @@ export function ResearchWizardPage() {
   const setField = <K extends keyof WizardState>(k: K, v: WizardState[K]) =>
     setState((prev) => ({ ...prev, [k]: v }));
 
-  const reset = () => {
+  const reset = async () => {
     if (
-      !confirm(
-        "Discard the wizard state and start over? Anything not saved to a draft will be lost.",
-      )
+      !(await confirm({
+        title: "Discard the wizard state and start over?",
+        body: "Anything not saved to a draft will be lost.",
+        destructive: true,
+      }))
     )
       return;
     setState(EMPTY_STATE);

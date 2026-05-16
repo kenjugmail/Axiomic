@@ -27,6 +27,7 @@ import { nodesForWikiSlug } from "../lib/crossLinks";
 import { recordActivityAndEvaluate } from "../lib/achievements";
 import { checkRateLimit } from "../lib/rateLimit";
 import { env } from "../lib/envConfig";
+import { pageParams } from "../lib/pagination";
 import type { Env } from "../env";
 
 const forum = new Hono<Env>();
@@ -151,8 +152,11 @@ forum.get("/topics", async (c) => {
   const postType = c.req.query("postType");
   const wikiPageId = c.req.query("wikiPageId");
   const sort = c.req.query("sort") || "active";
-  const limit = Math.min(parseInt(c.req.query("limit") || "50"), 100);
-  const offset = parseInt(c.req.query("offset") || "0");
+  const { limit, offset } = pageParams(
+    c.req.query("limit"),
+    c.req.query("offset"),
+    { defLimit: 50, maxLimit: 100 },
+  );
 
   const conditions = [];
 

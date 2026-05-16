@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { confirm } from "../stores/confirm";
 import { useParams, Link } from "react-router-dom";
 import { Layers, MessageSquare, Pencil } from "lucide-react";
 import {
@@ -251,7 +252,13 @@ export function WikiPage() {
                         <button
                           onClick={async () => {
                             if (!slug) return;
-                            if (!confirm(`Restore content from v${v.version}? A new version will be created.`)) return;
+                            if (
+                              !(await confirm({
+                                title: `Restore content from v${v.version}?`,
+                                body: "A new version will be created.",
+                              }))
+                            )
+                              return;
                             try {
                               await api.wiki.restore(slug, v.version);
                               // Re-fetch the page so the restored content shows.

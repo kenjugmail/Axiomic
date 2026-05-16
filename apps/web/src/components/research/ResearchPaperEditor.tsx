@@ -8,6 +8,7 @@
 // disclosure for research-question / hypothesis / method / etc.
 
 import { useState } from "react";
+import { confirm } from "../../stores/confirm";
 import { Loader2, Wand2 } from "lucide-react";
 import { api } from "../../lib/api";
 import { streamTokens } from "../../lib/streamTokens";
@@ -349,9 +350,11 @@ export function ResearchPaperEditor({ draft, onChange, slugEditable }: Props) {
                     if (derivingTier) return;
                     if (
                       hasContent &&
-                      !confirm(
-                        `Replace the existing ${targetLabel} body with an AI-derived version?`,
-                      )
+                      !(await confirm({
+                        title: `Replace the existing ${targetLabel} body?`,
+                        body: "It will be overwritten with an AI-derived version.",
+                        destructive: true,
+                      }))
                     )
                       return;
                     setDerivingTier(target);

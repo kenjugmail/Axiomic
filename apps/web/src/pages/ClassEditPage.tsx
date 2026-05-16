@@ -1,6 +1,7 @@
 // S86 — Class metadata + syllabus editor + join-code rotation.
 
 import { useEffect, useState } from "react";
+import { confirm } from "../stores/confirm";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { RefreshCw } from "lucide-react";
 import type { ClassDetailResponse, ClassStatus } from "@axiomic/types";
@@ -109,7 +110,14 @@ export function ClassEditPage() {
   };
 
   const rotate = async () => {
-    if (!confirm("Generate a new join code? The old one stops working immediately.")) return;
+    if (
+      !(await confirm({
+        title: "Generate a new join code?",
+        body: "The old one stops working immediately.",
+        destructive: true,
+      }))
+    )
+      return;
     setRotating(true);
     try {
       const r = await api.classes.rotateCode(slug);

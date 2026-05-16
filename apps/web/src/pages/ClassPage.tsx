@@ -8,6 +8,7 @@
 //   - Attendance: instructor-only check-in grid.
 
 import { useEffect, useMemo, useState } from "react";
+import { confirm } from "../stores/confirm";
 import { Link, useParams } from "react-router-dom";
 import {
   BookCheck,
@@ -1060,7 +1061,13 @@ function ClassStream({
   };
 
   const remove = async (row: AnnouncementRow) => {
-    if (!window.confirm("Delete this announcement?")) return;
+    if (
+      !(await confirm({
+        title: "Delete this announcement?",
+        destructive: true,
+      }))
+    )
+      return;
     try {
       await api.classes.deleteAnnouncement(classSlug, row.id);
       await load();
@@ -1303,7 +1310,13 @@ function ClassMaterials({
   }, [classSlug]);
 
   const remove = async (id: string) => {
-    if (!window.confirm("Delete this material?")) return;
+    if (
+      !(await confirm({
+        title: "Delete this material?",
+        destructive: true,
+      }))
+    )
+      return;
     try {
       await api.classes.deleteMaterial(classSlug, id);
       await load();

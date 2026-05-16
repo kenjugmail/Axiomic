@@ -10,6 +10,7 @@
 // - Awards summary (after status=ended).
 
 import { useEffect, useState } from "react";
+import { confirm } from "../stores/confirm";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   Award,
@@ -305,7 +306,8 @@ function PrizesSection({
   };
 
   const remove = async (id: string) => {
-    if (!window.confirm("Delete this prize tier?")) return;
+    if (!(await confirm({ title: "Delete this prize tier?", destructive: true })))
+      return;
     try {
       await api.hackathons.deletePrize(slug, id);
       await onChanged();
@@ -622,7 +624,8 @@ function TeamsSection({
   };
 
   const leaveTeam = async (teamId: string) => {
-    if (!window.confirm("Leave this team?")) return;
+    if (!(await confirm({ title: "Leave this team?", destructive: true })))
+      return;
     try {
       await api.hackathons.leaveTeam(slug, teamId);
       toast.success("Left team");
@@ -948,11 +951,16 @@ function OrganizerPanel({
   };
   const judge = async () => {
     if (
-      !window.confirm(
-        hackathon.judgingMode === "ai_rubric"
-          ? "Run AI judging on all submissions? This will call the AI grader per submission."
-          : "Mark judging complete? You can then award prizes.",
-      )
+      !(await confirm({
+        title:
+          hackathon.judgingMode === "ai_rubric"
+            ? "Run AI judging on all submissions?"
+            : "Mark judging complete?",
+        body:
+          hackathon.judgingMode === "ai_rubric"
+            ? "This will call the AI grader per submission."
+            : "You can then award prizes.",
+      }))
     ) {
       return;
     }
@@ -972,7 +980,14 @@ function OrganizerPanel({
     }
   };
   const remove = async () => {
-    if (!window.confirm("Delete this hackathon? Only allowed in draft.")) return;
+    if (
+      !(await confirm({
+        title: "Delete this hackathon?",
+        body: "Only allowed in draft.",
+        destructive: true,
+      }))
+    )
+      return;
     try {
       await api.hackathons.delete(slug);
       toast.success("Deleted");

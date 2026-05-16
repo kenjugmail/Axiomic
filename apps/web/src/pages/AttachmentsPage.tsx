@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { confirm } from "../stores/confirm";
 import { Link, useNavigate } from "react-router-dom";
 import { Trash2, Copy, Image as ImageIcon, Film, FileText } from "lucide-react";
 import {
@@ -45,7 +46,14 @@ export function AttachmentsPage() {
   }, [user, authLoading, navigate]);
 
   const onDelete = async (id: string) => {
-    if (!confirm("Delete this attachment? Markdown links pointing to it will break.")) return;
+    if (
+      !(await confirm({
+        title: "Delete this attachment?",
+        body: "Markdown links pointing to it will break.",
+        destructive: true,
+      }))
+    )
+      return;
     setBusyId(id);
     try {
       await deleteAttachment(id);

@@ -46,7 +46,30 @@ export function ForumTopicPage() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(load, [slug]);
+  // Cancellable initial/route-change load so a slow response for a
+  // previous slug can't overwrite the current topic. `load()` stays
+  // for user-initiated refreshes (reply/summarize).
+  useEffect(() => {
+    if (!slug) return;
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    api.forum
+      .getTopic(slug)
+      .then((d) => {
+        if (!cancelled) setTopic(d.topic);
+      })
+      .catch((e) => {
+        if (!cancelled)
+          setError(e?.message ?? "Couldn't load this topic. Try again.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
 
   const handleReply = async () => {
     if (!slug || !reply.trim() || submitting) return;

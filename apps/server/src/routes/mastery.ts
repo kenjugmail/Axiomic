@@ -28,6 +28,7 @@ import { gradeQuestion } from "../lib/quizGrading";
 import { forumTopicsForNode } from "../lib/crossLinks";
 import { publishToDraft } from "../lib/liveBus";
 import { createProposal, isApprovalGateEnabled } from "../lib/approvals";
+import { pageParams } from "../lib/pagination";
 import type { Env } from "../env";
 
 const mastery = new Hono<Env>();
@@ -978,8 +979,11 @@ mastery.post(
 // rows joined to users + nodes for the public edits feed page.
 mastery.get("/lesson-edits", async (c) => {
   const db = getDb();
-  const limit = Math.min(50, parseInt(c.req.query("limit") ?? "30", 10));
-  const offset = parseInt(c.req.query("offset") ?? "0", 10);
+  const { limit, offset } = pageParams(
+    c.req.query("limit"),
+    c.req.query("offset"),
+    { defLimit: 30, maxLimit: 50 },
+  );
   const username = c.req.query("username");
 
   let editorFilter: string | undefined;

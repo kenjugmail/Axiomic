@@ -4,6 +4,7 @@
 // kind='reading'.
 
 import { useEffect, useState } from "react";
+import { confirm } from "../stores/confirm";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { CheckCircle2, Pencil, Sparkles, Wand2, XCircle } from "lucide-react";
 import type { ClassTaskSubmissionsResponse } from "@axiomic/types";
@@ -245,7 +246,12 @@ function BulkGradeBar({
   if (ungraded.length === 0) return null;
 
   const passAll = async () => {
-    if (!confirm(`Mark ${ungraded.length} ungraded submission${ungraded.length === 1 ? "" : "s"} as passed?`)) return;
+    if (
+      !(await confirm({
+        title: `Mark ${ungraded.length} ungraded submission${ungraded.length === 1 ? "" : "s"} as passed?`,
+      }))
+    )
+      return;
     setBusy(true);
     try {
       const r = await api.classes.bulkGradeTask(
@@ -366,15 +372,17 @@ function VariantsPanel({
           {rows && rows.length > 0 && (
             <button
               type="button"
-              onClick={() => {
+              onClick={async () => {
                 // Phase 22D — destructive: overwrites any manual
                 // edits made via the variant preview modal. Make
                 // the cost explicit before firing the AI calls.
                 const n = rows.length;
                 if (
-                  window.confirm(
-                    `Overwrite all ${n} existing variant${n === 1 ? "" : "s"}? Any manual edits will be lost.`,
-                  )
+                  await confirm({
+                    title: `Overwrite all ${n} existing variant${n === 1 ? "" : "s"}?`,
+                    body: "Any manual edits will be lost.",
+                    destructive: true,
+                  })
                 ) {
                   generate(true);
                 }
@@ -645,7 +653,8 @@ function TaskDiscussion({
   };
 
   const remove = async (id: string) => {
-    if (!window.confirm("Delete this post?")) return;
+    if (!(await confirm({ title: "Delete this post?", destructive: true })))
+      return;
     try {
       await api.classes.deleteTaskDiscussion(classSlug, taskId, id);
       await load();

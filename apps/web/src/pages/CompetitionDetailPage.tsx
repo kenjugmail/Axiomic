@@ -4,6 +4,7 @@
 // instructor controls (publish / end), countdown / ended badge.
 
 import { useEffect, useState } from "react";
+import { confirm } from "../stores/confirm";
 import { Link, useParams } from "react-router-dom";
 import { Trophy, Clock, PlayCircle, StopCircle } from "lucide-react";
 import type { CompetitionDetailResponse } from "@axiomic/types";
@@ -54,7 +55,14 @@ export function CompetitionDetailPage() {
   };
 
   const end = async () => {
-    if (!confirm("End the competition now and distribute prizes?")) return;
+    if (
+      !(await confirm({
+        title: "End the competition now?",
+        body: "Prizes will be distributed. This can't be undone.",
+        destructive: true,
+      }))
+    )
+      return;
     setBusy(true);
     try {
       const r = await api.classes.endCompetition(slug, competitionId);

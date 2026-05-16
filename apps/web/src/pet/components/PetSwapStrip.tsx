@@ -7,6 +7,7 @@
 // otherwise. Hidden entirely when the cap is reached.
 
 import { useState } from "react";
+import { confirm } from "../../stores/confirm";
 import { Plus, Lock } from "lucide-react";
 import type { MyPetResponse } from "@axiomic/types";
 import { api, ApiError } from "../../lib/api";
@@ -38,7 +39,14 @@ export function PetSwapStrip({ pets, totalXp, petCap, nextHatchXp, onChanged }: 
 
   const hatchAnother = async () => {
     if (nextHatchXp == null || totalXp < nextHatchXp) return;
-    if (!confirm("Hatch a new pet? Random species. (Free — no XP cost.)")) return;
+    if (
+      !(await confirm({
+        title: "Hatch a new pet?",
+        body: "Random species. Free — no XP cost.",
+        confirmLabel: "Hatch",
+      }))
+    )
+      return;
     setBusy("hatch");
     try {
       const r = await api.pet.hatchAnother();

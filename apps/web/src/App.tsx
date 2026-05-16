@@ -9,6 +9,7 @@ import {
 import { Layout } from "./components/Layout";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { ToastContainer } from "./components/ui/ToastContainer";
+import { ConfirmContainer } from "./components/ui/ConfirmContainer";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { SignupPage } from "./pages/SignupPage";
@@ -513,6 +514,7 @@ function AppRoutes() {
       {/* Sprint 64a — global toast notifications. Mounted once at the
           app root; any code can call `toast.success(...)` etc. */}
       <ToastContainer />
+      <ConfirmContainer />
       <Routes>
         {/* Phase 31D — embeddable verifier, intentionally outside
             <Layout/> so it renders chrome-free in an iframe. */}

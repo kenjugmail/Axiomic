@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { confirm } from "../../stores/confirm";
 import {
   Code2,
   FlaskConical,
@@ -120,7 +121,14 @@ export function ArtifactsSection({
   };
 
   const remove = async (id: string) => {
-    if (!confirm("Remove this artifact? Receipts that referenced it stay attached to the article.")) return;
+    if (
+      !(await confirm({
+        title: "Remove this artifact?",
+        body: "Receipts that referenced it stay attached to the article.",
+        destructive: true,
+      }))
+    )
+      return;
     setBusy(true);
     try {
       await apiSurface.deleteArtifact(articleSlug, id);

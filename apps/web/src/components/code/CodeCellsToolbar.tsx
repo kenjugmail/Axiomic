@@ -14,6 +14,7 @@
 // anywhere on the page.
 
 import { useEffect, useState } from "react";
+import { confirm } from "../../stores/confirm";
 import { Loader2, Play, RotateCcw, Shield, X } from "lucide-react";
 import {
   getKernel,
@@ -73,9 +74,11 @@ export function CodeCellsToolbar({
 
   const restart = async () => {
     if (
-      !confirm(
-        "Restart the Python kernel? Variables in every cell on this page will be cleared.",
-      )
+      !(await confirm({
+        title: "Restart the Python kernel?",
+        body: "Variables in every cell on this page will be cleared.",
+        destructive: true,
+      }))
     )
       return;
     await getKernel(kernelKey).reset();

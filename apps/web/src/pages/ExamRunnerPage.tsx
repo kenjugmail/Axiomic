@@ -15,6 +15,7 @@
 // question comes from POST /next-adaptive instead of the manifest.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { confirm } from "../stores/confirm";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Check, ChevronLeft, ChevronRight, Flag, Send, X } from "lucide-react";
 import type {
@@ -83,34 +84,43 @@ export function ExamRunnerPage() {
     [state],
   );
 
-  const loadState = useCallback(async () => {
-    if (!attemptId) return;
-    try {
-      const s = await api.exams.getAttempt(attemptId);
-      setState(s);
-      const next = new Map<
-        string,
-        {
-          selectedIndex: number | null;
-          essayResponse: string | null;
-          flagged: boolean;
+  const loadState = useCallback(
+    async (alive: () => boolean = () => true) => {
+      if (!attemptId) return;
+      try {
+        const s = await api.exams.getAttempt(attemptId);
+        if (!alive()) return; // a newer attemptId superseded this
+        setState(s);
+        const next = new Map<
+          string,
+          {
+            selectedIndex: number | null;
+            essayResponse: string | null;
+            flagged: boolean;
+          }
+        >();
+        for (const a of s.answers) {
+          next.set(a.questionId, {
+            selectedIndex: a.selectedIndex,
+            essayResponse: a.essayResponse ?? null,
+            flagged: a.flagged,
+          });
         }
-      >();
-      for (const a of s.answers) {
-        next.set(a.questionId, {
-          selectedIndex: a.selectedIndex,
-          essayResponse: a.essayResponse ?? null,
-          flagged: a.flagged,
-        });
+        setLocalAnswers(next);
+      } catch (e) {
+        if (alive())
+          setError(e instanceof Error ? e.message : "Failed to load attempt");
       }
-      setLocalAnswers(next);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load attempt");
-    }
-  }, [attemptId]);
+    },
+    [attemptId],
+  );
 
   useEffect(() => {
-    loadState();
+    let alive = true;
+    loadState(() => alive);
+    return () => {
+      alive = false;
+    };
   }, [loadState]);
 
   // Tick the clock every second.
@@ -360,11 +370,12 @@ export function ExamRunnerPage() {
         <div className="flex items-center gap-3 text-sm">
           <button
             type="button"
-            onClick={() => {
+            onClick={async () => {
               if (
-                window.confirm(
-                  "Leave without submitting? Your progress is saved but you'll be back on the exam page.",
-                )
+                await confirm({
+                  title: "Leave without submitting?",
+                  body: "Your progress is saved but you'll be back on the exam page.",
+                })
               ) {
                 navigate(`/exams/${slug}`);
               }
@@ -533,11 +544,13 @@ export function ExamRunnerPage() {
         <div className="max-w-6xl mx-auto flex items-center justify-end">
           <button
             type="button"
-            onClick={() => {
+            onClick={async () => {
               if (
-                window.confirm(
-                  "Submit your exam now? You won't be able to change answers after this.",
-                )
+                await confirm({
+                  title: "Submit your exam now?",
+                  body: "You won't be able to change answers after this.",
+                  confirmLabel: "Submit",
+                })
               ) {
                 doSubmit();
               }

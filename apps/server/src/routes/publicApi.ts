@@ -34,6 +34,7 @@ import {
 import { getOrg, listOrgMembers } from "../lib/orgs";
 import { orgAttestations } from "@axiomic/db";
 import { toVerifiableCredential } from "../lib/vc";
+import { clampInt } from "../lib/pagination";
 import type { SignedCredential } from "../lib/signing";
 import type { Env } from "../env";
 
@@ -135,8 +136,12 @@ publicApiRouter.get("/transparency/tree-head", (c) => {
   return c.json(getTreeHead());
 });
 publicApiRouter.get("/transparency/leaves", (c) => {
-  const since = parseInt(c.req.query("since") ?? "0", 10) || 0;
-  const limit = parseInt(c.req.query("limit") ?? "200", 10) || 200;
+  const since = clampInt(c.req.query("since"), {
+    def: 0,
+    min: 0,
+    max: Number.MAX_SAFE_INTEGER,
+  });
+  const limit = clampInt(c.req.query("limit"), { def: 200, min: 1, max: 1000 });
   return c.json({ leaves: listLeaves(since, limit), treeHead: getTreeHead() });
 });
 // Phase 33D — consume a selective-disclosure share link. Bypasses
