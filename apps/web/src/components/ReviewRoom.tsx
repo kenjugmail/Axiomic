@@ -14,7 +14,11 @@ import { relativeTime } from "../lib/dates";
 import { Skeleton } from "./ui";
 import { toast } from "../stores/toast";
 
-type RoomKind = "reproduction" | "capstone_submission";
+type RoomKind =
+  | "reproduction"
+  | "capstone_submission"
+  | "cohort_study"
+  | "bounty_collaboration";
 
 interface Msg {
   id: string;

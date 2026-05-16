@@ -72,6 +72,7 @@ const MORE_NAV_USER_SECTION: NavSection = {
     { to: "/me/weak-concepts", label: "Weak concepts" },
     { to: "/me/credentials", label: "Credentials" },
     { to: "/reproductions/review", label: "Reproduction review" },
+    { to: "/recruiter", label: "Recruiter search" },
     { to: "/me/mentors", label: "Mentors" },
   ],
 };

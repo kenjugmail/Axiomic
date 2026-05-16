@@ -22,6 +22,7 @@ import {
 import { api, ApiError } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
+import { ReviewRoom } from "../components/ReviewRoom";
 import { Skeleton } from "../components/ui";
 import { toast } from "../stores/toast";
 
@@ -217,6 +218,10 @@ export function BountyDetailPage() {
           mySubmission={mySubmission}
           onChanged={reload}
         />
+      )}
+
+      {myClaim && !isPoster && (
+        <CollaboratorPanel slug={slug} bountyId={b.id} />
       )}
 
       {/* Poster review panel */}
@@ -632,6 +637,91 @@ function PosterPanel({
             );
           })}
         </ul>
+      )}
+    </section>
+  );
+}
+
+// ---------- collaboration matcher (Phase 30D) ----------
+
+function CollaboratorPanel({
+  slug,
+  bountyId,
+}: {
+  slug: string;
+  bountyId: string;
+}) {
+  const [matches, setMatches] = useState<Awaited<
+    ReturnType<typeof api.bounties.matchCollaborator>
+  > | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [roomOpen, setRoomOpen] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    api.bounties
+      .matchCollaborator(slug)
+      .then((r) => !cancelled && setMatches(r))
+      .catch(() => !cancelled && setFailed(true));
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
+
+  if (failed) return null;
+
+  return (
+    <section className="mb-6 rounded-md border border-primary/30 bg-primary/5 p-4">
+      <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
+        <h2 className="text-sm font-semibold">Find a collaborator</h2>
+        <button
+          type="button"
+          onClick={() => setRoomOpen((v) => !v)}
+          className="text-xs px-3 py-1.5 rounded-md border border-primary/40 text-primary hover:bg-primary/10"
+        >
+          {roomOpen ? "Hide room" : "Open shared room"}
+        </button>
+      </div>
+      <p className="text-xs text-muted-foreground mb-3">
+        Other people working this bounty who share your weak spots —
+        co-work it in a live room.
+      </p>
+      {!matches ? (
+        <Skeleton className="h-16" />
+      ) : matches.matches.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          No other claimants to match with yet.
+        </p>
+      ) : (
+        <ul className="space-y-2">
+          {matches.matches.map((m) => (
+            <li
+              key={m.username}
+              className="rounded-md border border-border bg-card p-3"
+              data-testid="collaborator-match"
+            >
+              <div className="flex items-baseline justify-between gap-3 flex-wrap">
+                <Link
+                  to={`/u/${m.username}/skills`}
+                  className="text-sm font-medium hover:text-primary"
+                >
+                  {m.displayName ?? `@${m.username}`}
+                </Link>
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  {Math.round(m.overlapScore * 100)}% overlap
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {m.reason}
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
+      {roomOpen && (
+        <div className="mt-3">
+          <ReviewRoom kind="bounty_collaboration" roomId={bountyId} />
+        </div>
       )}
     </section>
   );

@@ -62,7 +62,11 @@ export function subscribeDraft(
   ws.data?.subscriptions.add(`draft:${key}`);
 }
 
-export type RoomKind = "reproduction" | "capstone_submission";
+export type RoomKind =
+  | "reproduction"
+  | "capstone_submission"
+  | "cohort_study"
+  | "bounty_collaboration";
 
 export function subscribeRoom(
   ws: WS,

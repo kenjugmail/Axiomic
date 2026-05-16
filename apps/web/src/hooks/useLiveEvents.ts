@@ -117,7 +117,11 @@ export interface DraftChannel {
 }
 
 // Phase 29B — collaborative review room channels.
-export type RoomKind = "reproduction" | "capstone_submission";
+export type RoomKind =
+  | "reproduction"
+  | "capstone_submission"
+  | "cohort_study"
+  | "bounty_collaboration";
 
 export interface RoomChannel {
   kind: RoomKind;

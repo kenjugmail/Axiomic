@@ -56,7 +56,10 @@ export type NotificationKind =
   | "bounty_accepted"
   // Phase 29B — a new message in a collaborative review room.
   // Always-on; direct ping to other room participants.
-  | "review_room_message";
+  | "review_room_message"
+  // Phase 30B — a cohort study session was scheduled. Always-on;
+  // direct fan-out to cohort members.
+  | "cohort_session_scheduled";
 
 export type NotificationSubject =
   | "topic"
@@ -98,7 +101,10 @@ export type NotificationSubject =
   | "research_bounty"
   // Phase 29B — collaborative review room. subjectId carries
   // `${roomKind}:${roomId}`.
-  | "review_room";
+  | "review_room"
+  // Phase 30B — cohort study session. subjectId = session id;
+  // contextSlug = cohort slug.
+  | "cohort_study_session";
 
 const MAX_MENTIONS_PER_BODY = 10;
 const PREVIEW_MAX = 140;
@@ -211,6 +217,7 @@ function kindGate(
     case "bounty_claimed":
     case "bounty_accepted":
     case "review_room_message":
+    case "cohort_session_scheduled":
       // News flow + follow events + admin pipeline + funding
       // alerts + Sprint 80 lab operational signals + S88
       // classroom/pet events + S90 pet evolution + Phase 25A

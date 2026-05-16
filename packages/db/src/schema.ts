@@ -1411,6 +1411,33 @@ export const cohortMembers = sqliteTable("cohort_members", {
   userIdx: index("cohort_members_user_idx").on(t.userId, t.role),
 }));
 
+// Phase 30B — scheduled live study sessions for a cohort. The
+// session row id doubles as the liveBus room id (the
+// "roomId = entity id" pattern). Append-only chat reuses the
+// Phase 29B reviewRoomMessages model via RoomKind="cohort_study".
+export const cohortStudySessions = sqliteTable(
+  "cohort_study_sessions",
+  {
+    id: text("id").primaryKey(),
+    cohortId: text("cohort_id")
+      .notNull()
+      .references(() => cohorts.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    scheduledAt: text("scheduled_at").notNull(),
+    roomId: text("room_id").notNull(),
+    createdById: text("created_by_id")
+      .notNull()
+      .references(() => users.id),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    cohortIdx: index("cohort_study_sessions_cohort_idx").on(
+      t.cohortId,
+      t.scheduledAt,
+    ),
+  }),
+);
+
 // One-to-one mentor relationships outside of cohorts. A user offers
 // themselves as a mentor in their profile; another user can request
 // the relationship; once accepted, the mentee's questions surface
@@ -3297,5 +3324,63 @@ export const masterySnapshots = sqliteTable(
   (t) => ({
     uq: uniqueIndex("mastery_snapshots_uq").on(t.userId, t.capturedOn),
     userIdx: index("mastery_snapshots_user_idx").on(t.userId, t.capturedOn),
+  }),
+);
+
+// Phase 30C — denormalized per-user skill index for the recruiter
+// search. Self-healing: refreshed best-effort whenever a user's
+// wallet is built (any view). credentialsPublic=false deletes the
+// user's rows so opting out removes discoverability. Nothing
+// authoritative reads it — it's a search accelerator only.
+export const userSkillIndex = sqliteTable(
+  "user_skill_index",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    skillSlug: text("skill_slug").notNull(),
+    skillTitle: text("skill_title").notNull(),
+    proofCount: integer("proof_count").notNull().default(0),
+    latestProofAt: text("latest_proof_at"),
+  },
+  (t) => ({
+    uq: uniqueIndex("user_skill_index_uq").on(t.userId, t.skillSlug),
+    skillIdx: index("user_skill_index_skill_idx").on(
+      t.skillSlug,
+      t.proofCount,
+    ),
+  }),
+);
+
+// Phase 30C — recruiter-saved candidate lists (talent pools).
+export const userTalentPools = sqliteTable(
+  "user_talent_pools",
+  {
+    id: text("id").primaryKey(),
+    ownerId: text("owner_id").notNull().references(() => users.id),
+    name: text("name").notNull(),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    ownerIdx: index("user_talent_pools_owner_idx").on(t.ownerId),
+  }),
+);
+
+export const talentPoolMembers = sqliteTable(
+  "talent_pool_members",
+  {
+    id: text("id").primaryKey(),
+    poolId: text("pool_id")
+      .notNull()
+      .references(() => userTalentPools.id, { onDelete: "cascade" }),
+    candidateUserId: text("candidate_user_id")
+      .notNull()
+      .references(() => users.id),
+    addedAt: text("added_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uq: uniqueIndex("talent_pool_members_uq").on(
+      t.poolId,
+      t.candidateUserId,
+    ),
   }),
 );

@@ -5,12 +5,15 @@
 // Each helper is best-effort: a missing/garbled linkage degrades
 // to an empty result, never throws, so the wallet stays robust.
 
-import { inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
+import { randomUUID } from "crypto";
 import {
   getDb,
   masteryPaths,
   newsArticles,
   researchPapers,
+  userSkillIndex,
+  users,
   wikiPages,
 } from "@axiomic/db";
 
@@ -114,3 +117,74 @@ export function toSkills(
   }
   return skills;
 }
+
+// Phase 30C — keep the denormalized recruiter search index in
+// sync from a freshly-built wallet's skills summary. Self-healing
+// + idempotent: called best-effort on every wallet build.
+// credentialsPublic=false ⇒ the user's rows are deleted so opting
+// out removes discoverability. Never throws (caller try/catch too).
+export function refreshUserSkillIndex(
+  userId: string,
+  summary: Array<{
+    slug: string;
+    skill: string;
+    provenBy: Array<{ earnedAt: string }>;
+  }>,
+): void {
+  const db = getDb();
+  const pref = db
+    .select({ credentialsPublic: users.credentialsPublic })
+    .from(users)
+    .where(eq(users.id, userId))
+    .get();
+
+  if (!pref || pref.credentialsPublic === false) {
+    db.delete(userSkillIndex)
+      .where(eq(userSkillIndex.userId, userId))
+      .run();
+    return;
+  }
+
+  const wantSlugs = new Set(summary.map((s) => s.slug));
+  // Drop rows for skills the user no longer proves.
+  const existing = db
+    .select({ id: userSkillIndex.id, skillSlug: userSkillIndex.skillSlug })
+    .from(userSkillIndex)
+    .where(eq(userSkillIndex.userId, userId))
+    .all();
+  const staleIds = existing
+    .filter((r) => !wantSlugs.has(r.skillSlug))
+    .map((r) => r.id);
+  if (staleIds.length > 0) {
+    db.delete(userSkillIndex)
+      .where(inArray(userSkillIndex.id, staleIds))
+      .run();
+  }
+
+  for (const s of summary) {
+    const latest = s.provenBy.reduce<string | null>(
+      (mx, p) => (mx == null || p.earnedAt > mx ? p.earnedAt : mx),
+      null,
+    );
+    db.insert(userSkillIndex)
+      .values({
+        id: randomUUID(),
+        userId,
+        skillSlug: s.slug,
+        skillTitle: s.skill,
+        proofCount: s.provenBy.length,
+        latestProofAt: latest,
+      })
+      .onConflictDoUpdate({
+        target: [userSkillIndex.userId, userSkillIndex.skillSlug],
+        set: {
+          skillTitle: s.skill,
+          proofCount: s.provenBy.length,
+          latestProofAt: latest,
+        },
+      })
+      .run();
+  }
+}
+
+void and;

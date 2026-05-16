@@ -27,6 +27,7 @@ import { env } from "../lib/envConfig";
 import { notify } from "../lib/notifications";
 import { grantXp } from "../lib/xp";
 import { gradeEssay } from "../lib/essayGrader";
+import { listCollaborators, rankCollaborators } from "../lib/collabMatch";
 import type { Env } from "../env";
 
 export const bountiesRouter = new Hono<Env>();
@@ -599,6 +600,73 @@ bountiesRouter.post(
       .where(eq(bountyClaims.id, claim.id))
       .run();
     return c.json({ ok: true });
+  },
+);
+
+// Phase 30D — collaboration matcher. Fellow non-rejected
+// claimants of this bounty, with a shared-weakness snippet. Only
+// a claimant (or the poster) may see the roster.
+bountiesRouter.get("/:slug/collaborators", requireAuth, async (c) => {
+  const me = c.get("user")!;
+  const db = getDb();
+  const b = db
+    .select({ id: researchBounties.id, posterId: researchBounties.posterId })
+    .from(researchBounties)
+    .where(eq(researchBounties.slug, c.req.param("slug")!))
+    .get();
+  if (!b) return c.json({ error: "Bounty not found" }, 404);
+  if (b.posterId !== me.id) {
+    const claim = db
+      .select({ status: bountyClaims.status })
+      .from(bountyClaims)
+      .where(
+        and(
+          eq(bountyClaims.bountyId, b.id),
+          eq(bountyClaims.userId, me.id),
+        ),
+      )
+      .get();
+    if (!claim || claim.status === "rejected") {
+      return c.json({ error: "Claim this bounty first" }, 403);
+    }
+  }
+  const collaborators = await listCollaborators(b.id, me.id);
+  return c.json({ bountyId: b.id, collaborators });
+});
+
+// Phase 30D — top-N ranked collaborators for the caller.
+bountiesRouter.get(
+  "/:slug/match-collaborator",
+  requireAuth,
+  async (c) => {
+    const me = c.get("user")!;
+    const db = getDb();
+    const b = db
+      .select({
+        id: researchBounties.id,
+        posterId: researchBounties.posterId,
+      })
+      .from(researchBounties)
+      .where(eq(researchBounties.slug, c.req.param("slug")!))
+      .get();
+    if (!b) return c.json({ error: "Bounty not found" }, 404);
+    if (b.posterId !== me.id) {
+      const claim = db
+        .select({ status: bountyClaims.status })
+        .from(bountyClaims)
+        .where(
+          and(
+            eq(bountyClaims.bountyId, b.id),
+            eq(bountyClaims.userId, me.id),
+          ),
+        )
+        .get();
+      if (!claim || claim.status === "rejected") {
+        return c.json({ error: "Claim this bounty first" }, 403);
+      }
+    }
+    const matches = await rankCollaborators(b.id, me.id, 3);
+    return c.json({ bountyId: b.id, matches });
   },
 );
 

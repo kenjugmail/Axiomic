@@ -8,14 +8,19 @@ import { Link, useParams } from "react-router-dom";
 import {
   Activity,
   Award,
+  CalendarClock,
   CheckCircle2,
   ExternalLink,
+  TrendingUp,
   UserPlus,
   Users,
 } from "lucide-react";
+import { api, ApiError } from "../lib/api";
 import { Skeleton } from "../components/ui";
 import { EmptyState } from "../components/ui/EmptyState";
+import { ReviewRoom } from "../components/ReviewRoom";
 import { relativeTime } from "../lib/dates";
+import { toast } from "../stores/toast";
 
 interface CohortMember {
   username: string;
@@ -244,7 +249,205 @@ export function CohortDetailPage() {
           )}
         </section>
       </div>
+
+      <CohortProgressPanel slug={slug} />
+      <CohortSessionsPanel slug={slug} />
     </div>
+  );
+}
+
+function CohortProgressPanel({ slug }: { slug: string }) {
+  const [data, setData] = useState<Awaited<
+    ReturnType<typeof api.cohorts.progress>
+  > | null>(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    api.cohorts
+      .progress(slug)
+      .then((r) => !cancelled && setData(r))
+      .catch(() => !cancelled && setFailed(true));
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
+  if (failed) return null;
+  return (
+    <section className="mt-6 rounded-lg border border-border bg-card p-5">
+      <h2 className="text-sm font-semibold mb-3 inline-flex items-center gap-1.5">
+        <TrendingUp className="w-4 h-4 text-primary" />
+        Group progress
+        {data && (
+          <span className="text-[10px] font-normal text-muted-foreground">
+            {data.milestonesCleared} milestone
+            {data.milestonesCleared === 1 ? "" : "s"} cleared
+          </span>
+        )}
+      </h2>
+      {!data ? (
+        <Skeleton className="h-20" />
+      ) : data.members.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No members yet.</p>
+      ) : (
+        <ul className="space-y-2">
+          {data.members.map((m) => {
+            const total = m.mastered + m.weakConcepts || 1;
+            const pct = Math.round((m.mastered / total) * 100);
+            return (
+              <li key={m.username} className="text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <Link
+                    to={`/profile/${m.username}`}
+                    className="hover:text-primary"
+                  >
+                    {m.displayName ?? `@${m.username}`}
+                  </Link>
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {m.mastered} mastered · {m.capstonesCompleted} capstone
+                    {m.capstonesCompleted === 1 ? "" : "s"}
+                  </span>
+                </div>
+                <div className="mt-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full bg-primary"
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function CohortSessionsPanel({ slug }: { slug: string }) {
+  const [data, setData] = useState<Awaited<
+    ReturnType<typeof api.cohorts.sessions>
+  > | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [openRoom, setOpenRoom] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [title, setTitle] = useState("");
+  const [when, setWhen] = useState("");
+
+  const reload = () =>
+    api.cohorts
+      .sessions(slug)
+      .then(setData)
+      .catch(() => setFailed(true));
+  useEffect(() => {
+    let cancelled = false;
+    api.cohorts
+      .sessions(slug)
+      .then((r) => !cancelled && setData(r))
+      .catch(() => !cancelled && setFailed(true));
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
+
+  const create = async () => {
+    if (!title.trim() || !when) return;
+    try {
+      await api.cohorts.createSession(slug, {
+        title: title.trim(),
+        scheduledAt: new Date(when).toISOString(),
+      });
+      toast.success("Session scheduled");
+      setTitle("");
+      setWhen("");
+      setCreating(false);
+      reload();
+    } catch (e) {
+      toast.error(e instanceof ApiError ? e.message : "Couldn't schedule");
+    }
+  };
+
+  if (failed) return null;
+  return (
+    <section className="mt-6 rounded-lg border border-border bg-card p-5">
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <h2 className="text-sm font-semibold inline-flex items-center gap-1.5">
+          <CalendarClock className="w-4 h-4 text-primary" />
+          Study sessions
+        </h2>
+        <button
+          type="button"
+          onClick={() => setCreating((v) => !v)}
+          className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40"
+        >
+          {creating ? "Cancel" : "Schedule"}
+        </button>
+      </div>
+      {creating && (
+        <div className="flex gap-2 flex-wrap mb-3">
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Session title"
+            className="flex-1 min-w-[10rem] text-sm px-3 py-2 rounded-md border border-border bg-background"
+          />
+          <input
+            type="datetime-local"
+            value={when}
+            onChange={(e) => setWhen(e.target.value)}
+            className="text-sm px-3 py-2 rounded-md border border-border bg-background"
+          />
+          <button
+            type="button"
+            onClick={create}
+            disabled={!title.trim() || !when}
+            className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          >
+            Create
+          </button>
+        </div>
+      )}
+      {!data ? (
+        <Skeleton className="h-16" />
+      ) : data.sessions.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          No sessions scheduled. Organizers and mentors can schedule
+          one.
+        </p>
+      ) : (
+        <ul className="space-y-2">
+          {data.sessions.map((s) => (
+            <li
+              key={s.id}
+              className="rounded-md border border-border p-3"
+              data-testid="cohort-session"
+            >
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <div className="text-sm font-medium">{s.title}</div>
+                  <div className="text-[11px] text-muted-foreground">
+                    {new Date(s.scheduledAt).toLocaleString()} · by{" "}
+                    {s.createdByUsername}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setOpenRoom(openRoom === s.id ? null : s.id)
+                  }
+                  className="text-xs px-3 py-1.5 rounded-md border border-primary/40 text-primary hover:bg-primary/10"
+                >
+                  {openRoom === s.id ? "Leave room" : "Join live room"}
+                </button>
+              </div>
+              {openRoom === s.id && (
+                <div className="mt-3">
+                  <ReviewRoom kind="cohort_study" roomId={s.roomId} />
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 

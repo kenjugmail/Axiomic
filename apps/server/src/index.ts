@@ -48,6 +48,7 @@ import { hackathonsRouter } from "./routes/hackathons";
 import { bountiesRouter } from "./routes/bounties";
 import { reproductionsRouter } from "./routes/reproductions";
 import { reviewRoomsRouter } from "./routes/review-rooms";
+import { recruiterRouter } from "./routes/recruiter";
 import {
   credentialsRouter,
   meCredentialsRouter,
@@ -295,6 +296,7 @@ app.route("/hackathons", hackathonsRouter);
 app.route("/bounties", bountiesRouter);
 app.route("/reproductions", reproductionsRouter);
 app.route("/review-rooms", reviewRoomsRouter);
+app.route("/recruiter", recruiterRouter);
 app.route("/credentials", credentialsRouter);
 // Mounted before /me so the more-specific subtree wins.
 app.route("/me/credentials", meCredentialsRouter);
@@ -453,7 +455,9 @@ export default {
           msg &&
           msg.type === "subscribe_room" &&
           (msg.kind === "reproduction" ||
-            msg.kind === "capstone_submission") &&
+            msg.kind === "capstone_submission" ||
+            msg.kind === "cohort_study" ||
+            msg.kind === "bounty_collaboration") &&
           typeof msg.roomId === "string"
         ) {
           subscribeRoom(ws, msg.kind as RoomKind, msg.roomId);

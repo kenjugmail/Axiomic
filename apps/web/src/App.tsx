@@ -388,6 +388,11 @@ const CredentialSkillsPage = lazy(() =>
     default: m.CredentialSkillsPage,
   })),
 );
+const RecruiterSearchPage = lazy(() =>
+  import("./pages/RecruiterSearchPage").then((m) => ({
+    default: m.RecruiterSearchPage,
+  })),
+);
 const BountiesListPage = lazy(() =>
   import("./pages/BountiesListPage").then((m) => ({
     default: m.BountiesListPage,
@@ -563,6 +568,8 @@ function AppRoutes() {
             path="/u/:username/skills"
             element={<CredentialSkillsPage />}
           />
+          {/* Phase 30C — recruiter search dashboard. */}
+          <Route path="/recruiter" element={<RecruiterSearchPage />} />
           <Route
             path="/reproductions/review"
             element={<ReproductionReviewPage />}

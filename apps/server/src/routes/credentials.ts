@@ -34,6 +34,7 @@ import {
   type Skill,
   fetchTargetTags,
   parseSlugList,
+  refreshUserSkillIndex,
   resolvePathTitles,
   resolveWikiTitles,
   toSkills,
@@ -69,7 +70,10 @@ interface WalletItem {
   _target?: { kind: string; id: string };
 }
 
-function buildWallet(userId: string, username: string): WalletItem[] {
+export function buildWallet(
+  userId: string,
+  username: string,
+): WalletItem[] {
   const db = getDb();
   const items: WalletItem[] = [];
 
@@ -316,6 +320,13 @@ function buildWallet(userId: string, username: string): WalletItem[] {
   }
 
   annotateSkills(items);
+  // Phase 30C — self-heal the recruiter search index from this
+  // wallet view (best-effort; must never break a wallet render).
+  try {
+    refreshUserSkillIndex(userId, buildSkillsSummary(items));
+  } catch {
+    // index refresh is non-critical
+  }
   items.sort((a, b) => (a.earnedAt < b.earnedAt ? 1 : -1));
   return items;
 }
@@ -359,7 +370,7 @@ function annotateSkills(items: WalletItem[]): void {
 
 // Phase 29C — invert the annotated wallet into a recruiter-facing
 // "skills proven, and by which credentials" rollup.
-function buildSkillsSummary(items: WalletItem[]): Array<{
+export function buildSkillsSummary(items: WalletItem[]): Array<{
   skill: string;
   slug: string;
   provenBy: Array<{ kind: string; title: string; earnedAt: string }>;

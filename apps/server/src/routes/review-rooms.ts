@@ -13,11 +13,16 @@ import { z } from "zod";
 import { and, asc, eq, ne } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import {
+  bountyClaims,
   capstoneEnrollments,
   capstoneSubmissions,
   capstonePeerReviews,
+  cohortMembers,
+  cohortStudySessions,
+  cohorts,
   getDb,
   reproductions,
+  researchBounties,
   reviewRoomMessages,
   users,
 } from "@axiomic/db";
@@ -30,7 +35,12 @@ import type { Env } from "../env";
 
 export const reviewRoomsRouter = new Hono<Env>();
 
-const ROOM_KINDS = ["reproduction", "capstone_submission"] as const;
+const ROOM_KINDS = [
+  "reproduction",
+  "capstone_submission",
+  "cohort_study",
+  "bounty_collaboration",
+] as const;
 
 const postSchema = z.object({
   bodyMd: z.string().min(1).max(4000),
@@ -64,30 +74,78 @@ function canAccess(
     if (!r) return false;
     return r.status === "success" || r.reproducerId === userId;
   }
-  // capstone_submission
-  const sub = db
-    .select({ enrollmentId: capstoneSubmissions.enrollmentId })
-    .from(capstoneSubmissions)
-    .where(eq(capstoneSubmissions.id, roomId))
+  if (kind === "capstone_submission") {
+    const sub = db
+      .select({ enrollmentId: capstoneSubmissions.enrollmentId })
+      .from(capstoneSubmissions)
+      .where(eq(capstoneSubmissions.id, roomId))
+      .get();
+    if (!sub) return false;
+    const owner = db
+      .select({ userId: capstoneEnrollments.userId })
+      .from(capstoneEnrollments)
+      .where(eq(capstoneEnrollments.id, sub.enrollmentId))
+      .get();
+    if (owner?.userId === userId) return true;
+    const reviewed = db
+      .select({ id: capstonePeerReviews.id })
+      .from(capstonePeerReviews)
+      .where(
+        and(
+          eq(capstonePeerReviews.submissionId, roomId),
+          eq(capstonePeerReviews.reviewerId, userId),
+        ),
+      )
+      .get();
+    return !!reviewed;
+  }
+  if (kind === "cohort_study") {
+    // roomId is a cohort_study_sessions.id → its cohort's members
+    // (or the cohort creator) may enter.
+    const session = db
+      .select({ cohortId: cohortStudySessions.cohortId })
+      .from(cohortStudySessions)
+      .where(eq(cohortStudySessions.id, roomId))
+      .get();
+    if (!session) return false;
+    const cohort = db
+      .select({ creatorId: cohorts.creatorId })
+      .from(cohorts)
+      .where(eq(cohorts.id, session.cohortId))
+      .get();
+    if (cohort?.creatorId === userId) return true;
+    const member = db
+      .select({ id: cohortMembers.id })
+      .from(cohortMembers)
+      .where(
+        and(
+          eq(cohortMembers.cohortId, session.cohortId),
+          eq(cohortMembers.userId, userId),
+        ),
+      )
+      .get();
+    return !!member;
+  }
+  // bounty_collaboration — roomId is a researchBounties.id; any
+  // non-rejected claimant or the poster may co-work.
+  const bounty = db
+    .select({ posterId: researchBounties.posterId })
+    .from(researchBounties)
+    .where(eq(researchBounties.id, roomId))
     .get();
-  if (!sub) return false;
-  const owner = db
-    .select({ userId: capstoneEnrollments.userId })
-    .from(capstoneEnrollments)
-    .where(eq(capstoneEnrollments.id, sub.enrollmentId))
-    .get();
-  if (owner?.userId === userId) return true;
-  const reviewed = db
-    .select({ id: capstonePeerReviews.id })
-    .from(capstonePeerReviews)
+  if (!bounty) return false;
+  if (bounty.posterId === userId) return true;
+  const claim = db
+    .select({ status: bountyClaims.status })
+    .from(bountyClaims)
     .where(
       and(
-        eq(capstonePeerReviews.submissionId, roomId),
-        eq(capstonePeerReviews.reviewerId, userId),
+        eq(bountyClaims.bountyId, roomId),
+        eq(bountyClaims.userId, userId),
       ),
     )
     .get();
-  return !!reviewed;
+  return !!claim && claim.status !== "rejected";
 }
 
 // GET /review-rooms/:kind/:roomId/messages — full thread.

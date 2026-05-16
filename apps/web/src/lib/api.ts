@@ -2093,7 +2093,11 @@ export const api = {
   // Phase 29B — collaborative review rooms.
   reviewRooms: {
     messages: (
-      kind: "reproduction" | "capstone_submission",
+      kind:
+        | "reproduction"
+        | "capstone_submission"
+        | "cohort_study"
+        | "bounty_collaboration",
       roomId: string,
     ) =>
       request<{
@@ -2107,7 +2111,11 @@ export const api = {
         }>;
       }>(`/review-rooms/${kind}/${roomId}/messages`),
     postMessage: (
-      kind: "reproduction" | "capstone_submission",
+      kind:
+        | "reproduction"
+        | "capstone_submission"
+        | "cohort_study"
+        | "bounty_collaboration",
       roomId: string,
       bodyMd: string,
       parentId?: string,
@@ -2248,6 +2256,122 @@ export const api = {
       request<OkResponse>(
         `/bounties/${slug}/claims/${claimId}/reject`,
         { method: "POST" },
+      ),
+    // Phase 30D — collaboration matcher.
+    collaborators: (slug: string) =>
+      request<{
+        bountyId: string;
+        collaborators: Array<{
+          username: string;
+          displayName: string | null;
+          overlapScore: number;
+          sharedConcepts: Array<{ slug: string; title: string }>;
+          reason: string;
+        }>;
+      }>(`/bounties/${slug}/collaborators`),
+    matchCollaborator: (slug: string) =>
+      request<{
+        bountyId: string;
+        matches: Array<{
+          username: string;
+          displayName: string | null;
+          overlapScore: number;
+          sharedConcepts: Array<{ slug: string; title: string }>;
+          reason: string;
+        }>;
+      }>(`/bounties/${slug}/match-collaborator`),
+  },
+  // Phase 30B — cohort study groups.
+  cohorts: {
+    progress: (slug: string) =>
+      request<{
+        members: Array<{
+          username: string;
+          displayName: string | null;
+          mastered: number;
+          weakConcepts: number;
+          velocityPerDay: number;
+          capstonesCompleted: number;
+        }>;
+        milestonesCleared: number;
+      }>(`/cohorts/${slug}/progress`),
+    sessions: (slug: string) =>
+      request<{
+        sessions: Array<{
+          id: string;
+          title: string;
+          scheduledAt: string;
+          roomId: string;
+          createdByUsername: string;
+        }>;
+      }>(`/cohorts/${slug}/sessions`),
+    createSession: (
+      slug: string,
+      data: { title: string; scheduledAt: string },
+    ) =>
+      request<{ id: string; roomId: string }>(
+        `/cohorts/${slug}/sessions`,
+        { method: "POST", body: JSON.stringify(data) },
+      ),
+  },
+  // Phase 30C — recruiter dashboard.
+  recruiter: {
+    search: (skill: string, minProofs?: number) => {
+      const sp = new URLSearchParams({ skill });
+      if (minProofs) sp.set("minProofs", String(minProofs));
+      return request<{
+        skill: string;
+        candidates: Array<{
+          username: string;
+          displayName: string | null;
+          skillSlug: string;
+          skillTitle: string;
+          proofCount: number;
+          latestProofAt: string | null;
+        }>;
+      }>(`/recruiter/search?${sp.toString()}`);
+    },
+    skills: () =>
+      request<{
+        skills: Array<{
+          slug: string;
+          title: string;
+          candidates: number;
+        }>;
+      }>("/recruiter/skills"),
+    pools: () =>
+      request<{
+        pools: Array<{
+          id: string;
+          name: string;
+          createdAt: string;
+          count: number;
+        }>;
+      }>("/recruiter/pools"),
+    createPool: (name: string) =>
+      request<{ id: string; name: string }>("/recruiter/pools", {
+        method: "POST",
+        body: JSON.stringify({ name }),
+      }),
+    pool: (id: string) =>
+      request<{
+        pool: { id: string; name: string };
+        members: Array<{
+          candidateUserId: string;
+          username: string;
+          displayName: string | null;
+          addedAt: string;
+        }>;
+      }>(`/recruiter/pools/${id}`),
+    addToPool: (id: string, candidateUsername: string) =>
+      request<OkResponse>(`/recruiter/pools/${id}/members`, {
+        method: "POST",
+        body: JSON.stringify({ candidateUsername }),
+      }),
+    removeFromPool: (id: string, candidateUserId: string) =>
+      request<OkResponse>(
+        `/recruiter/pools/${id}/members/${candidateUserId}`,
+        { method: "DELETE" },
       ),
   },
   tracks: {
@@ -2453,6 +2577,23 @@ export const api = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       }),
+    // Phase 30A — auto-ranked mentor suggestions.
+    candidates: () =>
+      request<{
+        personalized: boolean;
+        candidates: Array<{
+          username: string;
+          displayName: string | null;
+          bio: string | null;
+          score: number;
+          rationale: string;
+          breakdown: {
+            topicMatch: number;
+            domainRep: number;
+            align: number;
+          };
+        }>;
+      }>("/mentors/candidates"),
   },
   me: {
     // S94 — student progress dashboard.
