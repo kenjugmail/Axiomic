@@ -33,6 +33,13 @@ describe("Health & Readiness", () => {
       "strict-origin-when-cross-origin",
     );
     expect(res.headers.get("Permissions-Policy")).toContain("geolocation=()");
+    // Phase 36 — strict CSP (default-src 'none' ⇒ no scripts;
+    // inline <style> allowed for the self-contained portfolio HTML).
+    const csp = res.headers.get("Content-Security-Policy") ?? "";
+    expect(csp).toContain("default-src 'none'");
+    expect(csp).toContain("frame-ancestors 'none'");
+    expect(csp).toContain("style-src 'self' 'unsafe-inline'");
+    expect(csp).not.toContain("script-src"); // falls back to default-src 'none'
   });
 
   test("/ready reports db and ai status", async () => {

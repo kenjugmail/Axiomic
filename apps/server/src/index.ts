@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { sql } from "drizzle-orm";
-import { getDb } from "@axiomic/db";
+import { getDb, closeDb } from "@axiomic/db";
 import { getAIProvider } from "@axiomic/ai";
 import { auth } from "./routes/auth";
 import { wiki } from "./routes/wiki";
@@ -31,7 +31,7 @@ import { authorClaimsRouter } from "./routes/authorClaims";
 import { authorsRouter } from "./routes/authors";
 import { paperAuthorQuestionsRouter } from "./routes/paperAuthorQuestions";
 import { examsRouter } from "./routes/exams";
-import { registerJob, startJobRunner } from "./lib/jobs";
+import { registerJob, startJobRunner, stopJobRunner } from "./lib/jobs";
 import { ingestArxivJob } from "./jobs/ingestArxiv";
 import { ingestOpenAlexJob } from "./jobs/ingestOpenAlex";
 import { ingestPubmedJob } from "./jobs/ingestPubmed";
@@ -154,10 +154,15 @@ app.use(
 );
 
 // Phase 26A — baseline HTTP security headers on every response.
-// CSP is intentionally deferred — needs an inventory of every
-// inline script + external origin (KaTeX, Sentry, Turnstile,
-// etc.). HSTS lives at the reverse-proxy layer so it survives
-// upstream redirects.
+// Phase 36 — CSP added: this server only ever emits JSON and ONE
+// fully self-contained HTML document (the signed-credential
+// portfolio at /credentials/:username/portfolio.html — inline
+// <style>, zero scripts, no external resources). The React SPA is
+// served by a separate static host, so its CSP belongs there
+// (out of scope here) and this header never reaches it. A strict
+// policy is therefore correct + a real escapeHtml backstop. HSTS
+// lives at the reverse-proxy layer so it survives upstream
+// redirects.
 app.use("*", async (c, next) => {
   await next();
   // Clickjacking defense. The app has no legitimate iframe-embed
@@ -174,6 +179,17 @@ app.use("*", async (c, next) => {
   c.header(
     "Permissions-Policy",
     "geolocation=(), microphone=(), camera=(), payment=(), usb=()",
+  );
+  // Strict CSP for the server's own surface. default-src 'none'
+  // ⇒ no scripts (script-src falls back to it) — a hard backstop
+  // for the portfolio HTML behind escapeHtml. style-src
+  // 'unsafe-inline' is required by that page's inline <style>;
+  // img/font allow self + data: only. Inert on JSON responses.
+  c.header(
+    "Content-Security-Policy",
+    "default-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; " +
+      "font-src 'self' data:; base-uri 'none'; form-action 'self'; " +
+      "frame-ancestors 'none'",
   );
 });
 
@@ -481,6 +497,43 @@ if (import.meta.main) {
   }
   assertProductionSecrets();
   warnOnInsecureConfig();
+
+  // Phase 36 — graceful shutdown. Stop the in-process job runner
+  // and flush/close the SQLite handle so a SIGTERM (deploy /
+  // container stop) doesn't strand an open WAL. Idempotent guard
+  // so double signals don't double-exit.
+  let shuttingDown = false;
+  const shutdown = (sig: string) => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.log(`Received ${sig}, shutting down…`);
+    try {
+      stopJobRunner();
+    } catch {}
+    try {
+      closeDb();
+    } catch {}
+    process.exit(0);
+  };
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
+
+  // Phase 36 — last-resort process safety nets. Route errors are
+  // already caught by app.onError; this covers fire-and-forget
+  // work (e.g. `void notify(...)`). An unhandled rejection is
+  // logged and the process continues; an uncaught exception is
+  // logged then the process exits non-zero (Node best practice —
+  // the orchestrator restarts a clean instance).
+  process.on("unhandledRejection", (reason) => {
+    captureError(
+      reason instanceof Error ? reason : new Error(String(reason)),
+      { kind: "process.unhandledRejection" },
+    );
+  });
+  process.on("uncaughtException", (err) => {
+    captureError(err, { kind: "process.uncaughtException" });
+    process.exit(1);
+  });
 }
 
 // Bun.serve passes (req, server) when a `websocket` handler is set.

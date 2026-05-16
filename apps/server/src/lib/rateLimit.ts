@@ -16,12 +16,35 @@ export const rateLimits = new Map<
   { count: number; resetAt: number; rejected: number }
 >();
 
+// Phase 36 — bound memory. Expired entries are inert (an expired
+// entry is treated as fresh below) but were never removed, so a
+// long-running process accumulated keys forever (notably anon
+// `ip:*` keys via X-Forwarded-For rotation). Sweep opportunistically
+// — amortized O(1): only every Nth call, or eagerly once the map
+// grows large. Pure cleanup; no behavior change.
+let callsSinceSweep = 0;
+const SWEEP_EVERY = 1000;
+const SWEEP_SIZE_THRESHOLD = 10_000;
+
+function sweepExpired(now: number): void {
+  for (const [k, v] of rateLimits) {
+    if (now > v.resetAt) rateLimits.delete(k);
+  }
+}
+
 export function checkRateLimit(
   key: string,
   max: number,
   windowMs: number,
 ): boolean {
   const now = Date.now();
+  if (
+    ++callsSinceSweep >= SWEEP_EVERY ||
+    rateLimits.size > SWEEP_SIZE_THRESHOLD
+  ) {
+    callsSinceSweep = 0;
+    sweepExpired(now);
+  }
   const entry = rateLimits.get(key);
   if (!entry || now > entry.resetAt) {
     rateLimits.set(key, { count: 1, resetAt: now + windowMs, rejected: 0 });

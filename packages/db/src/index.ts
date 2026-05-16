@@ -8,6 +8,7 @@ export * from "./schema";
 export { schema };
 
 let _db: ReturnType<typeof createDb> | null = null;
+let _sqlite: Database | null = null;
 
 function findDbPath(): string {
   // Walk up from cwd to find monorepo root (has package.json with workspaces)
@@ -30,6 +31,7 @@ function createDb(url?: string) {
   sqlite.exec("PRAGMA journal_mode = WAL");
   sqlite.exec("PRAGMA busy_timeout = 5000");
   sqlite.exec("PRAGMA foreign_keys = ON");
+  _sqlite = sqlite;
   return drizzle(sqlite, { schema });
 }
 
@@ -38,6 +40,19 @@ export function getDb(url?: string) {
     _db = createDb(url);
   }
   return _db;
+}
+
+// Phase 36 — graceful shutdown: flush WAL + release the file
+// handle so an orphaned -wal/-shm pair isn't left after SIGTERM.
+// Idempotent; safe to call when no connection was opened.
+export function closeDb(): void {
+  if (_sqlite) {
+    try {
+      _sqlite.close();
+    } catch {}
+  }
+  _sqlite = null;
+  _db = null;
 }
 
 export type Db = ReturnType<typeof getDb>;

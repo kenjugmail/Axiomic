@@ -135,4 +135,16 @@ describe("assertProductionSecrets (Phase I)", () => {
     process.env.RESEND_API_KEY = "re_xxx";
     expect(() => assertProductionSecrets()).not.toThrow();
   });
+
+  // Phase 36 — DEV_AUTH_BYPASS=1 is a total auth bypass; it must
+  // be fatal in production, not merely warned, even when every
+  // other secret is correctly configured.
+  test("production: throws when DEV_AUTH_BYPASS=1 (even with all secrets)", () => {
+    process.env.NODE_ENV = "production";
+    process.env.SESSION_SECRET = "s3cret";
+    process.env.AXIOMIC_SIGNING_PRIVATE_KEY_HEX = "deadbeef";
+    process.env.RESEND_API_KEY = "re_xxx";
+    process.env.DEV_AUTH_BYPASS = "1";
+    expect(() => assertProductionSecrets()).toThrow(/DEV_AUTH_BYPASS/);
+  });
 });
