@@ -63,6 +63,23 @@ export function RecruiterSearchPage() {
     }
   };
 
+  const sendOffer = async (username: string) => {
+    const roleSlug = window.prompt(
+      `Send ${username} a verified match offer for which role slug? (e.g. ml-engineer)`,
+    );
+    if (!roleSlug || !roleSlug.trim()) return;
+    try {
+      const r = await api.recruiter.sendOffer(username, roleSlug.trim());
+      toast.success(
+        `Offer sent — ${Math.round(r.coverage * 100)}% verified coverage`,
+      );
+    } catch (e) {
+      toast.error(
+        e instanceof ApiError ? e.message : "Couldn't send offer",
+      );
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <header className="mb-6">
@@ -224,6 +241,13 @@ export function RecruiterSearchPage() {
                         ))}
                       </select>
                     )}
+                    <button
+                      type="button"
+                      onClick={() => sendOffer(cand.username)}
+                      className="text-xs px-2 py-0.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+                    >
+                      Send match offer
+                    </button>
                   </div>
                 </li>
               ))}

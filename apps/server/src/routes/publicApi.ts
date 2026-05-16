@@ -31,6 +31,10 @@ import {
   inclusionProof,
   listLeaves,
 } from "../lib/transparency";
+import { getOrg, listOrgMembers } from "../lib/orgs";
+import { orgAttestations } from "@axiomic/db";
+import { toVerifiableCredential } from "../lib/vc";
+import type { SignedCredential } from "../lib/signing";
 import type { Env } from "../env";
 
 export const publicApiRouter = new Hono<Env>();
@@ -163,4 +167,61 @@ publicApiRouter.get("/transparency/inclusion", (c) => {
     return c.json({ error: "kind + ref query required" }, 400);
   }
   return c.json(inclusionProof(kind, ref));
+});
+
+// Phase 34B — public org verify surface. Profile + members +
+// signed attestations the org has issued; ?format=vc wraps each
+// attestation as a W3C VC with the org as named issuer (33A).
+publicApiRouter.get("/orgs/:slug", (c) => {
+  const org = getOrg(c.req.param("slug")!);
+  if (!org) return c.json({ error: "Org not found" }, 404);
+  const attestations = getDb()
+    .select({
+      id: orgAttestations.id,
+      subjectUserId: orgAttestations.subjectUserId,
+      attestKind: orgAttestations.attestKind,
+      attestRef: orgAttestations.attestRef,
+      statement: orgAttestations.statement,
+      createdAt: orgAttestations.createdAt,
+      signedJson: orgAttestations.signedJson,
+    })
+    .from(orgAttestations)
+    .where(eq(orgAttestations.orgId, org.id))
+    .all();
+  const fmt = c.req.query("format");
+  if (fmt === "vc" || fmt === "ob3") {
+    const host = new URL(c.req.url).host;
+    const vcs = attestations
+      .filter((a) => a.signedJson)
+      .map((a) =>
+        toVerifiableCredential(
+          JSON.parse(a.signedJson) as SignedCredential,
+          { host, subjectUsername: org.slug },
+        ),
+      );
+    return c.json({
+      "@context": ["https://www.w3.org/ns/credentials/v2"],
+      type: ["VerifiablePresentation"],
+      holder: `did:web:${host.replace(/:/g, "%3A")}`,
+      count: vcs.length,
+      verifiableCredential: vcs,
+    });
+  }
+  return c.json({
+    org: {
+      slug: org.slug,
+      name: org.name,
+      descriptionMd: org.descriptionMd,
+      website: org.website,
+      verificationStatus: org.verificationStatus,
+    },
+    members: listOrgMembers(org.id),
+    attestations: attestations.map((a) => ({
+      id: a.id,
+      attestKind: a.attestKind,
+      attestRef: a.attestRef,
+      statement: a.statement,
+      createdAt: a.createdAt,
+    })),
+  });
 });

@@ -7,7 +7,7 @@
 //   - GET /me/prereq-status          — Sprint 31 PrereqXray data
 
 import { Hono } from "hono";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, lte, or, sql } from "drizzle-orm";
 import {
   capstoneEnrollments,
   capstoneSubmissions,
@@ -30,13 +30,15 @@ import {
   petCosmetics,
   petInventory,
   pets,
+  recruiterMatchOffers,
+  learningCommitments,
   sessions,
   users,
   userProgress,
   wikiPages,
   xpGrants,
 } from "@axiomic/db";
-import { randomBytes } from "crypto";
+import { randomBytes, randomUUID } from "crypto";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import {
@@ -58,6 +60,11 @@ import { buildGoalPath } from "../lib/goalPlanner";
 import { analyzeSkillGap } from "../lib/skillGap";
 import { getRole } from "../lib/roles";
 import { createEndorsement, revokeEndorsement } from "../lib/endorsements";
+import { mintShareToken } from "./credentials";
+import { notify } from "../lib/notifications";
+import { signCredential } from "../lib/signing";
+import { appendCredentialEvent } from "../lib/transparency";
+import { collectDecaySignals } from "../jobs/resurfacingDecay";
 import type { Env } from "../env";
 
 export const meRouter = new Hono<Env>();
@@ -425,6 +432,363 @@ meRouter.delete("/endorsements/:id", requireAuth, (c) => {
   const ok = revokeEndorsement(c.req.param("id")!, me.id);
   if (!ok) return c.json({ error: "Not found" }, 404);
   return c.json({ ok: true });
+});
+
+// Phase 34A — candidate side of the recruiter match handshake.
+meRouter.get("/offers", requireAuth, (c) => {
+  const me = c.get("user")!;
+  const rows = getDb()
+    .select({
+      id: recruiterMatchOffers.id,
+      recruiterUsername: users.username,
+      roleSlug: recruiterMatchOffers.roleSlug,
+      roleTitle: recruiterMatchOffers.roleTitle,
+      status: recruiterMatchOffers.status,
+      messageMd: recruiterMatchOffers.messageMd,
+      skillGapJson: recruiterMatchOffers.skillGapJson,
+      signedOfferJson: recruiterMatchOffers.signedOfferJson,
+      createdAt: recruiterMatchOffers.createdAt,
+      respondedAt: recruiterMatchOffers.respondedAt,
+    })
+    .from(recruiterMatchOffers)
+    .innerJoin(users, eq(recruiterMatchOffers.recruiterId, users.id))
+    .where(eq(recruiterMatchOffers.candidateId, me.id))
+    .orderBy(desc(recruiterMatchOffers.createdAt))
+    .all()
+    .map((r) => ({
+      id: r.id,
+      recruiterUsername: r.recruiterUsername,
+      roleSlug: r.roleSlug,
+      roleTitle: r.roleTitle,
+      status: r.status,
+      messageMd: r.messageMd,
+      skillGap: JSON.parse(r.skillGapJson),
+      signedOffer: r.signedOfferJson ? JSON.parse(r.signedOfferJson) : null,
+      createdAt: r.createdAt,
+      respondedAt: r.respondedAt,
+    }));
+  return c.json({ offers: rows });
+});
+
+meRouter.post(
+  "/offers/:id/respond",
+  requireAuth,
+  zValidator("json", z.object({ accept: z.boolean() })),
+  (c) => {
+    const me = c.get("user")!;
+    const { accept } = c.req.valid("json");
+    const db = getDb();
+    const offer = db
+      .select()
+      .from(recruiterMatchOffers)
+      .where(eq(recruiterMatchOffers.id, c.req.param("id")!))
+      .get();
+    if (!offer || offer.candidateId !== me.id) {
+      return c.json({ error: "Offer not found" }, 404);
+    }
+    if (offer.status !== "pending") {
+      return c.json({ error: "Offer already resolved" }, 409);
+    }
+    const now = new Date().toISOString();
+    if (!accept) {
+      db.update(recruiterMatchOffers)
+        .set({ status: "declined", respondedAt: now })
+        .where(eq(recruiterMatchOffers.id, offer.id))
+        .run();
+      return c.json({ ok: true, status: "declined" });
+    }
+    // Accept → auto-mint a 30-day share link to the candidate's
+    // signed wallet, scoped 'all' (the candidate opted in; the
+    // wallet only ever contains signed credentials).
+    const tok = mintShareToken(
+      me.id,
+      { mode: "all" },
+      `Match: ${offer.roleTitle}`,
+      30,
+    );
+    db.update(recruiterMatchOffers)
+      .set({
+        status: "accepted",
+        respondedAt: now,
+        shareTokenId: tok.id,
+        shareUrl: tok.shareUrl,
+      })
+      .where(eq(recruiterMatchOffers.id, offer.id))
+      .run();
+    void notify({
+      recipientId: offer.recruiterId,
+      actorId: me.id,
+      kind: "match_offer_accepted",
+      subjectType: "match_offer",
+      subjectId: offer.id,
+      contextSlug: offer.roleSlug,
+      preview: `${me.username} accepted your match for ${offer.roleTitle} — a verified portfolio link is now available.`,
+    });
+    return c.json({
+      ok: true,
+      status: "accepted",
+      shareUrl: tok.shareUrl,
+    });
+  },
+);
+
+// Phase 34C — the daily "Review & Prove" driver. One fused,
+// ordered payload composed (no schema) from SRS-due flashcards,
+// active weak concepts, decay signals, the active commitment's
+// next goal-path steps, and the review streak.
+meRouter.get("/today", requireAuth, (c) => {
+  const me = c.get("user")!;
+  const db = getDb();
+  const nowIso = new Date().toISOString();
+
+  const dueCards = db
+    .select({ id: flashcards.id, front: flashcards.front })
+    .from(flashcards)
+    .where(
+      and(
+        eq(flashcards.userId, me.id),
+        or(isNull(flashcards.dueAt), lte(flashcards.dueAt, nowIso)),
+      ),
+    )
+    .limit(20)
+    .all();
+
+  const weak = db
+    .select({
+      id: misconceptionDiagnoses.id,
+      conceptSlug: misconceptionDiagnoses.conceptSlug,
+      label: misconceptionDiagnoses.label,
+      confidence: misconceptionDiagnoses.confidence,
+    })
+    .from(misconceptionDiagnoses)
+    .where(
+      and(
+        eq(misconceptionDiagnoses.userId, me.id),
+        eq(misconceptionDiagnoses.status, "active"),
+      ),
+    )
+    .orderBy(desc(misconceptionDiagnoses.confidence))
+    .limit(5)
+    .all();
+
+  const decay = collectDecaySignals(me.id);
+
+  const commitment = db
+    .select()
+    .from(learningCommitments)
+    .where(
+      and(
+        eq(learningCommitments.userId, me.id),
+        eq(learningCommitments.status, "active"),
+      ),
+    )
+    .orderBy(learningCommitments.deadlineAt)
+    .limit(1)
+    .get();
+  let goalNext: Array<{ slug: string; title: string }> = [];
+  let activeCommitment: {
+    id: string;
+    goalTitle: string;
+    deadlineAt: string;
+  } | null = null;
+  if (commitment) {
+    activeCommitment = {
+      id: commitment.id,
+      goalTitle: commitment.goalTitle,
+      deadlineAt: commitment.deadlineAt,
+    };
+    const gp = buildGoalPath(me.id, {
+      kind: commitment.goalKind as
+        | "capstone"
+        | "track"
+        | "exam"
+        | "skills",
+      slug: commitment.goalSlug,
+    });
+    goalNext = gp.steps
+      .slice(0, 3)
+      .map((s) => ({ slug: s.slug, title: s.title }));
+  }
+
+  const streak = currentStreak(db, me.id);
+  const today = nowIso.slice(0, 10);
+  const loggedToday =
+    db
+      .select({ id: xpGrants.id })
+      .from(xpGrants)
+      .where(
+        and(
+          eq(xpGrants.userId, me.id),
+          sql`substr(${xpGrants.awardedAt}, 1, 10) = ${today}`,
+        ),
+      )
+      .get() != null;
+
+  return c.json({
+    dueFlashcards: { count: dueCards.length, sample: dueCards.slice(0, 5) },
+    weakConcepts: weak,
+    decay,
+    activeCommitment,
+    goalPathNext: goalNext,
+    reviewStreak: streak,
+    streakInDanger: streak > 0 && !loggedToday,
+  });
+});
+
+// Phase 34D — signed learning commitments.
+meRouter.post(
+  "/commitments",
+  requireAuth,
+  zValidator(
+    "json",
+    z.object({
+      goalKind: z.enum(["capstone", "track", "exam", "skills"]),
+      goalSlug: z.string().min(1).max(400),
+      deadlineAt: z.string().min(10),
+      witnessUsername: z.string().optional(),
+      cohortId: z.string().optional(),
+      isPublic: z.boolean().optional().default(true),
+    }),
+  ),
+  (c) => {
+    const me = c.get("user")!;
+    const { goalKind, goalSlug, deadlineAt, witnessUsername, cohortId, isPublic } =
+      c.req.valid("json");
+    const when = Date.parse(deadlineAt);
+    if (Number.isNaN(when) || when < Date.now()) {
+      return c.json({ error: "deadlineAt must be a future date" }, 400);
+    }
+    const db = getDb();
+    const gp = buildGoalPath(me.id, { kind: goalKind, slug: goalSlug });
+    if (!gp.resolvable) {
+      return c.json({ error: "That goal can't be resolved." }, 404);
+    }
+    let witnessId: string | null = null;
+    if (witnessUsername) {
+      const w = db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.username, witnessUsername))
+        .get();
+      if (!w) return c.json({ error: "Witness not found" }, 404);
+      witnessId = w.id;
+    }
+    const id = randomUUID();
+    db.insert(learningCommitments)
+      .values({
+        id,
+        userId: me.id,
+        goalKind,
+        goalSlug,
+        goalTitle: gp.goal.title ?? goalSlug,
+        deadlineAt: new Date(when).toISOString(),
+        status: "active",
+        witnessUserId: witnessId,
+        cohortId: cohortId ?? null,
+        isPublic,
+      })
+      .run();
+    if (witnessId) {
+      void notify({
+        recipientId: witnessId,
+        actorId: me.id,
+        kind: "commitment_witnessed",
+        subjectType: "commitment",
+        subjectId: id,
+        contextSlug: null,
+        preview: `${me.username} asked you to witness their commitment: ${gp.goal.title ?? goalSlug}.`,
+      });
+    }
+    return c.json({ ok: true, id }, 201);
+  },
+);
+
+meRouter.get("/commitments", requireAuth, (c) => {
+  const me = c.get("user")!;
+  const rows = getDb()
+    .select()
+    .from(learningCommitments)
+    .where(eq(learningCommitments.userId, me.id))
+    .orderBy(desc(learningCommitments.createdAt))
+    .all();
+  return c.json({ commitments: rows });
+});
+
+meRouter.post("/commitments/:id/abandon", requireAuth, (c) => {
+  const me = c.get("user")!;
+  const r = getDb()
+    .update(learningCommitments)
+    .set({ status: "abandoned" })
+    .where(
+      and(
+        eq(learningCommitments.id, c.req.param("id")!),
+        eq(learningCommitments.userId, me.id),
+        eq(learningCommitments.status, "active"),
+      ),
+    )
+    .run();
+  if (((r as unknown as { changes?: number }).changes ?? 0) === 0) {
+    return c.json({ error: "Not found or not active" }, 404);
+  }
+  return c.json({ ok: true });
+});
+
+meRouter.post("/commitments/:id/complete", requireAuth, (c) => {
+  const me = c.get("user")!;
+  const db = getDb();
+  const cm = db
+    .select()
+    .from(learningCommitments)
+    .where(eq(learningCommitments.id, c.req.param("id")!))
+    .get();
+  if (!cm || cm.userId !== me.id) {
+    return c.json({ error: "Not found" }, 404);
+  }
+  if (cm.status !== "active") {
+    return c.json({ error: "Commitment is not active" }, 409);
+  }
+  // Verify the goal is actually met: no remaining goal-path steps.
+  const gp = buildGoalPath(me.id, {
+    kind: cm.goalKind as "capstone" | "track" | "exam" | "skills",
+    slug: cm.goalSlug,
+  });
+  if (gp.resolvable && gp.steps.length > 0) {
+    return c.json(
+      { error: "Goal not yet met — steps remain.", remaining: gp.steps.length },
+      400,
+    );
+  }
+  const now = new Date().toISOString();
+  db.update(learningCommitments)
+    .set({ status: "completed", completedAt: now })
+    .where(eq(learningCommitments.id, cm.id))
+    .run();
+  const signed = signCredential("commitment_kept", {
+    userId: me.id,
+    username: me.username,
+    goalKind: cm.goalKind,
+    goalSlug: cm.goalSlug,
+    goalTitle: cm.goalTitle,
+    deadlineAt: cm.deadlineAt,
+    completedAt: now,
+  });
+  appendCredentialEvent("issued", "commitment", cm.id, {
+    userId: me.id,
+    goalSlug: cm.goalSlug,
+    completedAt: now,
+  });
+  if (cm.witnessUserId) {
+    void notify({
+      recipientId: cm.witnessUserId,
+      actorId: me.id,
+      kind: "commitment_kept",
+      subjectType: "commitment",
+      subjectId: cm.id,
+      contextSlug: null,
+      preview: `${me.username} kept their commitment: ${cm.goalTitle}.`,
+    });
+  }
+  return c.json({ ok: true, status: "completed", credential: signed });
 });
 
 meRouter.post("/weak-concepts/refresh", requireAuth, async (c) => {

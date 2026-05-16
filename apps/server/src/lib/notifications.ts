@@ -65,7 +65,18 @@ export type NotificationKind =
   | "credential_revoked"
   // Phase 32D — a mastered concept / aging credential is due for
   // a refresh or re-attestation. Muteable via the mastery toggle.
-  | "review_due";
+  | "review_due"
+  // Phase 34A — a recruiter sent a verifiable role match offer /
+  // the candidate accepted. Always-on; direct + rare.
+  | "match_offer_received"
+  | "match_offer_accepted"
+  // Phase 34D — a learning commitment was kept / lapsed, or you
+  // were named a witness. Always-on; direct + rare.
+  | "commitment_kept"
+  | "commitment_lapsed"
+  | "commitment_witnessed"
+  // Phase 34B — an org attested one of your artifacts. Always-on.
+  | "org_attested";
 
 export type NotificationSubject =
   | "topic"
@@ -110,7 +121,13 @@ export type NotificationSubject =
   | "review_room"
   // Phase 30B — cohort study session. subjectId = session id;
   // contextSlug = cohort slug.
-  | "cohort_study_session";
+  | "cohort_study_session"
+  // Phase 34A — recruiter match offer. subjectId = offer id.
+  | "match_offer"
+  // Phase 34D — learning commitment. subjectId = commitment id.
+  | "commitment"
+  // Phase 34B — org attestation. subjectId = attestation id.
+  | "org_attestation";
 
 const MAX_MENTIONS_PER_BODY = 10;
 const PREVIEW_MAX = 140;
@@ -229,6 +246,12 @@ function kindGate(
     case "review_room_message":
     case "cohort_session_scheduled":
     case "credential_revoked":
+    case "match_offer_received":
+    case "match_offer_accepted":
+    case "commitment_kept":
+    case "commitment_lapsed":
+    case "commitment_witnessed":
+    case "org_attested":
       // News flow + follow events + admin pipeline + funding
       // alerts + Sprint 80 lab operational signals + S88
       // classroom/pet events + S90 pet evolution + Phase 25A

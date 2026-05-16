@@ -15,6 +15,7 @@ import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import {
   getDb,
+  recruiterMatchOffers,
   talentPoolMembers,
   userSkillIndex,
   userTalentPools,
@@ -25,6 +26,8 @@ import { checkRateLimit } from "../lib/rateLimit";
 import { env } from "../lib/envConfig";
 import { listRoles, getRole } from "../lib/roles";
 import { analyzeSkillGap } from "../lib/skillGap";
+import { signCredential } from "../lib/signing";
+import { notify } from "../lib/notifications";
 import type { Env } from "../env";
 
 export const recruiterRouter = new Hono<Env>();
@@ -294,3 +297,132 @@ recruiterRouter.delete(
     return c.json({ ok: true });
   },
 );
+
+// Phase 34A — consented recruiter→candidate signed match offer.
+// The offer carries a snapshot of the verifiable skill gap and an
+// Ed25519-signed manifest the candidate (or anyone) can verify
+// through the unchanged /keys/verify.
+recruiterRouter.post(
+  "/offers",
+  requireAuth,
+  zValidator(
+    "json",
+    z.object({
+      candidateUsername: z.string().min(1),
+      roleSlug: z.string().min(1).max(120),
+      messageMd: z.string().max(4000).optional().default(""),
+    }),
+  ),
+  (c) => {
+    const me = c.get("user")!;
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`match-offer:${me.id}`, 30, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
+    const { candidateUsername, roleSlug, messageMd } = c.req.valid("json");
+    const db = getDb();
+    const role = getRole(roleSlug);
+    if (!role) return c.json({ error: "Unknown role" }, 404);
+    const candidate = db
+      .select({ id: users.id, username: users.username })
+      .from(users)
+      .where(eq(users.username, candidateUsername))
+      .get();
+    if (!candidate) return c.json({ error: "Candidate not found" }, 404);
+    if (candidate.id === me.id) {
+      return c.json({ error: "You can't send yourself an offer." }, 400);
+    }
+    const gap = analyzeSkillGap(candidate.id, role.requiredSkillSlugs);
+    const issuedAt = new Date().toISOString();
+    const signed = signCredential("match_offer", {
+      recruiterId: me.id,
+      recruiterUsername: me.username,
+      candidateId: candidate.id,
+      candidateUsername: candidate.username,
+      roleSlug: role.slug,
+      roleTitle: role.title,
+      coverage: gap.coverage,
+      provenSkills: gap.proven.map((p) => p.slug),
+      issuedAt,
+    });
+    const id = randomUUID();
+    try {
+      db.insert(recruiterMatchOffers)
+        .values({
+          id,
+          recruiterId: me.id,
+          candidateId: candidate.id,
+          roleSlug: role.slug,
+          roleTitle: role.title,
+          status: "pending",
+          messageMd,
+          skillGapJson: JSON.stringify(gap),
+          signedOfferJson: JSON.stringify(signed),
+        })
+        .run();
+    } catch {
+      return c.json(
+        { error: "An offer for this candidate + role already exists." },
+        409,
+      );
+    }
+    void notify({
+      recipientId: candidate.id,
+      actorId: me.id,
+      kind: "match_offer_received",
+      subjectType: "match_offer",
+      subjectId: id,
+      contextSlug: role.slug,
+      preview: `${me.username} sent you a verified match for ${role.title} (${Math.round(
+        gap.coverage * 100,
+      )}% covered).`,
+    });
+    return c.json({ ok: true, id, coverage: gap.coverage }, 201);
+  },
+);
+
+recruiterRouter.post("/offers/:id/withdraw", requireAuth, (c) => {
+  const me = c.get("user")!;
+  const db = getDb();
+  const r = db
+    .update(recruiterMatchOffers)
+    .set({ status: "withdrawn", respondedAt: new Date().toISOString() })
+    .where(
+      and(
+        eq(recruiterMatchOffers.id, c.req.param("id")!),
+        eq(recruiterMatchOffers.recruiterId, me.id),
+        eq(recruiterMatchOffers.status, "pending"),
+      ),
+    )
+    .run();
+  if (((r as unknown as { changes?: number }).changes ?? 0) === 0) {
+    return c.json({ error: "Not found or not pending" }, 404);
+  }
+  return c.json({ ok: true });
+});
+
+// Recruiter's sent offers (with current status + any share link
+// the candidate exposed on accept).
+recruiterRouter.get("/offers", requireAuth, (c) => {
+  const me = c.get("user")!;
+  const rows = getDb()
+    .select({
+      id: recruiterMatchOffers.id,
+      candidateId: recruiterMatchOffers.candidateId,
+      candidateUsername: users.username,
+      roleSlug: recruiterMatchOffers.roleSlug,
+      roleTitle: recruiterMatchOffers.roleTitle,
+      status: recruiterMatchOffers.status,
+      shareUrl: recruiterMatchOffers.shareUrl,
+      createdAt: recruiterMatchOffers.createdAt,
+      respondedAt: recruiterMatchOffers.respondedAt,
+    })
+    .from(recruiterMatchOffers)
+    .innerJoin(users, eq(recruiterMatchOffers.candidateId, users.id))
+    .where(eq(recruiterMatchOffers.recruiterId, me.id))
+    .orderBy(desc(recruiterMatchOffers.createdAt))
+    .all();
+  return c.json({ offers: rows });
+});

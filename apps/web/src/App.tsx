@@ -384,6 +384,12 @@ const CredentialWalletPage = lazy(() =>
     default: m.CredentialWalletPage,
   })),
 );
+const TodayPage = lazy(() =>
+  import("./pages/TodayPage").then((m) => ({ default: m.TodayPage })),
+);
+const OrgPage = lazy(() =>
+  import("./pages/OrgPage").then((m) => ({ default: m.OrgPage })),
+);
 const ReproductionReviewPage = lazy(() =>
   import("./pages/ReproductionReviewPage").then((m) => ({
     default: m.ReproductionReviewPage,
@@ -568,6 +574,8 @@ function AppRoutes() {
           <Route path="/hackathons/:slug" element={<HackathonDetailPage />} />
           {/* Phase 28 — credentials · reproductions · bounties. */}
           <Route path="/me/credentials" element={<CredentialWalletPage />} />
+          <Route path="/me/today" element={<TodayPage />} />
+          <Route path="/orgs/:slug" element={<OrgPage />} />
           <Route
             path="/u/:username/credentials"
             element={<CredentialWalletPage />}

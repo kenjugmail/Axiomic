@@ -131,3 +131,82 @@ export const resurfacingDecayJob: JobDefinition = {
     return { itemsProcessed: sent };
   },
 };
+
+// Phase 34C — per-user decay reader. Same predicates the job uses
+// (freshnessBand 'stale', not revoked, RESOLVED_DECAY_DAYS) but
+// scoped to one user and returned synchronously so the daily
+// "Review & Prove" driver and the nightly nudge job agree on what
+// counts as decayed.
+export interface DecaySignals {
+  staleCredentials: Array<{
+    reproductionId: string;
+    mintedAt: string;
+    ageDays: number | null;
+  }>;
+  resolvedToRefresh: Array<{
+    diagnosisId: string;
+    conceptSlug: string;
+    label: string;
+    resolvedAt: string;
+    ageDays: number | null;
+  }>;
+}
+
+export function collectDecaySignals(userId: string): DecaySignals {
+  const db = getDb();
+  const revoked = revokedKeySet();
+  const minted = db
+    .select({
+      id: reproductions.id,
+      mintedAt: reproductions.credentialMintedAt,
+    })
+    .from(reproductions)
+    .where(
+      and(
+        eq(reproductions.reproducerId, userId),
+        isNotNull(reproductions.credentialMintedAt),
+      ),
+    )
+    .all();
+  const staleCredentials: DecaySignals["staleCredentials"] = [];
+  for (const r of minted) {
+    if (!r.mintedAt) continue;
+    if (revoked.has(revocationKey("reproduction", r.id))) continue;
+    if (freshnessBand(r.mintedAt) !== "stale") continue;
+    staleCredentials.push({
+      reproductionId: r.id,
+      mintedAt: r.mintedAt,
+      ageDays: ageDays(r.mintedAt),
+    });
+  }
+
+  const resolved = db
+    .select({
+      id: misconceptionDiagnoses.id,
+      conceptSlug: misconceptionDiagnoses.conceptSlug,
+      label: misconceptionDiagnoses.label,
+      resolvedAt: misconceptionDiagnoses.resolvedAt,
+    })
+    .from(misconceptionDiagnoses)
+    .where(
+      and(
+        eq(misconceptionDiagnoses.userId, userId),
+        eq(misconceptionDiagnoses.status, "resolved"),
+        isNotNull(misconceptionDiagnoses.resolvedAt),
+      ),
+    )
+    .all();
+  const resolvedToRefresh: DecaySignals["resolvedToRefresh"] = [];
+  for (const d of resolved) {
+    const age = ageDays(d.resolvedAt);
+    if (age === null || age < RESOLVED_DECAY_DAYS) continue;
+    resolvedToRefresh.push({
+      diagnosisId: d.id,
+      conceptSlug: d.conceptSlug,
+      label: d.label,
+      resolvedAt: d.resolvedAt as string,
+      ageDays: age,
+    });
+  }
+  return { staleCredentials, resolvedToRefresh };
+}

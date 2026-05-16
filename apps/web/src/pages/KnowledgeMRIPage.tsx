@@ -15,7 +15,8 @@ import {
   TrendingUp,
 } from "lucide-react";
 import type { KnowledgeMri, KnowledgeMriNode } from "@axiomic/types";
-import { api } from "../lib/api";
+import { api, ApiError } from "../lib/api";
+import { toast } from "../stores/toast";
 import { EmptyState } from "../components/ui/EmptyState";
 import { useAuthStore } from "../stores/auth";
 import { MriHeatmap } from "../components/mri/MriHeatmap";
@@ -182,6 +183,9 @@ export function KnowledgeMRIPage() {
 
       {/* Phase 32C — target-a-role signed-proof skill gap */}
       <SkillGapPanel />
+
+      {/* Phase 34D — signed learning commitments */}
+      <CommitmentsPanel />
 
       {/* Per-path heatmap */}
       <MriHeatmap
@@ -703,6 +707,148 @@ function SkillGapPanel() {
             </p>
           )}
         </div>
+      )}
+    </div>
+  );
+}
+
+// Phase 34D — commit to a goal by a deadline. Completion mints a
+// signed "commitment_kept" credential + a transparency leaf.
+function CommitmentsPanel() {
+  const [list, setList] = useState<
+    Awaited<ReturnType<typeof api.me.commitments>>["commitments"] | null
+  >(null);
+  const [kind, setKind] = useState<
+    "capstone" | "track" | "exam" | "skills"
+  >("skills");
+  const [slug, setSlug] = useState("");
+  const [deadline, setDeadline] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const load = () =>
+    api.me
+      .commitments()
+      .then((r) => setList(r.commitments))
+      .catch(() => setList([]));
+  useEffect(() => {
+    load();
+  }, []);
+
+  const create = async () => {
+    if (!slug.trim() || !deadline) return;
+    setBusy(true);
+    try {
+      await api.me.createCommitment({
+        goalKind: kind,
+        goalSlug: slug.trim(),
+        deadlineAt: new Date(deadline).toISOString(),
+      });
+      toast.success("Commitment made");
+      setSlug("");
+      setDeadline("");
+      load();
+    } catch (e) {
+      toast.error(e instanceof ApiError ? e.message : "Could not commit");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const act = async (id: string, kindOf: "complete" | "abandon") => {
+    try {
+      if (kindOf === "complete") {
+        await api.me.completeCommitment(id);
+        toast.success("Commitment kept — signed credential minted");
+      } else {
+        await api.me.abandonCommitment(id);
+        toast.info("Commitment abandoned");
+      }
+      load();
+    } catch (e) {
+      toast.error(
+        e instanceof ApiError ? e.message : "Action failed",
+      );
+    }
+  };
+
+  const active = (list ?? []).filter((c) => c.status === "active");
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-4 sm:p-5 mb-6">
+      <h2 className="text-sm font-semibold mb-1 inline-flex items-center gap-1.5">
+        <Target className="w-4 h-4 text-primary" />
+        Learning commitments
+      </h2>
+      <p className="text-xs text-muted-foreground mb-3">
+        Commit to a goal by a date. Keeping it mints a signed,
+        transparency-logged credential.
+      </p>
+      <div className="flex gap-2 flex-wrap items-end mb-3">
+        <select
+          value={kind}
+          onChange={(e) => setKind(e.target.value as typeof kind)}
+          className="text-sm px-2 py-2 rounded-md border border-border bg-background"
+        >
+          <option value="skills">Skills</option>
+          <option value="capstone">Capstone</option>
+          <option value="track">Track</option>
+          <option value="exam">Exam</option>
+        </select>
+        <input
+          value={slug}
+          onChange={(e) => setSlug(e.target.value)}
+          placeholder={
+            kind === "skills" ? "slug-a,slug-b" : "target slug"
+          }
+          className="flex-1 min-w-[10rem] text-sm px-3 py-2 rounded-md border border-border bg-background font-mono"
+        />
+        <input
+          type="date"
+          value={deadline}
+          onChange={(e) => setDeadline(e.target.value)}
+          className="text-sm px-2 py-2 rounded-md border border-border bg-background"
+        />
+        <button
+          type="button"
+          onClick={create}
+          disabled={busy || !slug.trim() || !deadline}
+          className="text-sm px-3 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+        >
+          Commit
+        </button>
+      </div>
+      {active.length > 0 && (
+        <ul className="space-y-1.5">
+          {active.map((c) => (
+            <li
+              key={c.id}
+              className="text-sm flex items-center justify-between gap-3 rounded-md border border-border px-3 py-1.5 flex-wrap"
+            >
+              <span>
+                <strong>{c.goalTitle}</strong>{" "}
+                <span className="text-muted-foreground">
+                  · due {new Date(c.deadlineAt).toLocaleDateString()}
+                </span>
+              </span>
+              <span className="flex gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => act(c.id, "complete")}
+                  className="text-xs px-2 py-1 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  Mark kept
+                </button>
+                <button
+                  type="button"
+                  onClick={() => act(c.id, "abandon")}
+                  className="text-xs px-2 py-1 rounded-md border border-border hover:bg-accent/40"
+                >
+                  Abandon
+                </button>
+              </span>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );

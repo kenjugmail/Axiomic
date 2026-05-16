@@ -2141,6 +2141,29 @@ export const api = {
           freshness?: "fresh" | "aging" | "stale" | null;
         }>;
       }>(`/public/share/${encodeURIComponent(token)}`),
+    // Phase 34B — public org verify surface.
+    org: (slug: string) =>
+      request<{
+        org: {
+          slug: string;
+          name: string;
+          descriptionMd: string;
+          website: string;
+          verificationStatus: string;
+        };
+        members: Array<{
+          username: string;
+          displayName: string | null;
+          role: string;
+        }>;
+        attestations: Array<{
+          id: string;
+          attestKind: string;
+          attestRef: string;
+          statement: string;
+          createdAt: string;
+        }>;
+      }>(`/public/orgs/${encodeURIComponent(slug)}`),
   },
   // Phase 28B — reproduction peer review → signed credential.
   reproductions: {
@@ -2497,6 +2520,96 @@ export const api = {
           missing: number;
         }>;
       }>(`/recruiter/pools/${id}/gap?role=${encodeURIComponent(role)}`),
+    // Phase 34A — consented match handshake (recruiter side).
+    sendOffer: (
+      candidateUsername: string,
+      roleSlug: string,
+      messageMd?: string,
+    ) =>
+      request<{ ok: true; id: string; coverage: number }>(
+        "/recruiter/offers",
+        {
+          method: "POST",
+          body: JSON.stringify({ candidateUsername, roleSlug, messageMd }),
+        },
+      ),
+    sentOffers: () =>
+      request<{
+        offers: Array<{
+          id: string;
+          candidateUsername: string;
+          roleSlug: string;
+          roleTitle: string;
+          status: string;
+          shareUrl: string | null;
+          createdAt: string;
+          respondedAt: string | null;
+        }>;
+      }>("/recruiter/offers"),
+    withdrawOffer: (id: string) =>
+      request<OkResponse>(`/recruiter/offers/${id}/withdraw`, {
+        method: "POST",
+      }),
+  },
+  // Phase 34B — organization / institution accounts.
+  orgs: {
+    create: (input: {
+      slug: string;
+      name: string;
+      descriptionMd?: string;
+      website?: string;
+    }) =>
+      request<{ ok: true; id: string }>("/orgs", {
+        method: "POST",
+        body: JSON.stringify(input),
+      }),
+    get: (slug: string) =>
+      request<{
+        org: {
+          slug: string;
+          name: string;
+          descriptionMd: string;
+          website: string;
+          verificationStatus: string;
+        };
+        role: string | null;
+        members: Array<{
+          username: string;
+          displayName: string | null;
+          role: string;
+          joinedAt: string;
+        }>;
+      }>(`/orgs/${encodeURIComponent(slug)}`),
+    addMember: (slug: string, username: string, role: string) =>
+      request<OkResponse>(`/orgs/${encodeURIComponent(slug)}/members`, {
+        method: "POST",
+        body: JSON.stringify({ username, role }),
+      }),
+    attest: (
+      slug: string,
+      username: string,
+      attestKind: "reproduction" | "bounty" | "skill",
+      attestRef?: string,
+      statement?: string,
+    ) =>
+      request<{ ok: true; id: string }>(
+        `/orgs/${encodeURIComponent(slug)}/attest`,
+        {
+          method: "POST",
+          body: JSON.stringify({ username, attestKind, attestRef, statement }),
+        },
+      ),
+    myAttestations: () =>
+      request<{
+        attestations: Array<{
+          id: string;
+          orgSlug: string;
+          orgName: string;
+          attestKind: string;
+          statement: string;
+          createdAt: string;
+        }>;
+      }>("/orgs/me/attestations"),
   },
   tracks: {
     list: () =>
@@ -2856,6 +2969,99 @@ export const api = {
       request<OkResponse>(`/me/credentials/share-tokens/${id}`, {
         method: "DELETE",
       }),
+    // Phase 34A — candidate side of the match handshake.
+    offers: () =>
+      request<{
+        offers: Array<{
+          id: string;
+          recruiterUsername: string;
+          roleSlug: string;
+          roleTitle: string;
+          status: string;
+          messageMd: string;
+          skillGap: { coverage: number };
+          signedOffer: {
+            manifest: Record<string, unknown>;
+            signature: string;
+            publicKey: string;
+          } | null;
+          createdAt: string;
+          respondedAt: string | null;
+        }>;
+      }>("/me/offers"),
+    respondOffer: (id: string, accept: boolean) =>
+      request<{ ok: true; status: string; shareUrl?: string }>(
+        `/me/offers/${id}/respond`,
+        { method: "POST", body: JSON.stringify({ accept }) },
+      ),
+    // Phase 34C — the daily Review & Prove driver.
+    today: () =>
+      request<{
+        dueFlashcards: {
+          count: number;
+          sample: Array<{ id: string; front: string }>;
+        };
+        weakConcepts: Array<{
+          id: string;
+          conceptSlug: string;
+          label: string;
+          confidence: number;
+        }>;
+        decay: {
+          staleCredentials: Array<{
+            reproductionId: string;
+            ageDays: number | null;
+          }>;
+          resolvedToRefresh: Array<{
+            diagnosisId: string;
+            conceptSlug: string;
+            label: string;
+            ageDays: number | null;
+          }>;
+        };
+        activeCommitment: {
+          id: string;
+          goalTitle: string;
+          deadlineAt: string;
+        } | null;
+        goalPathNext: Array<{ slug: string; title: string }>;
+        reviewStreak: number;
+        streakInDanger: boolean;
+      }>("/me/today"),
+    // Phase 34D — signed learning commitments.
+    commitments: () =>
+      request<{
+        commitments: Array<{
+          id: string;
+          goalKind: string;
+          goalSlug: string;
+          goalTitle: string;
+          deadlineAt: string;
+          status: string;
+          createdAt: string;
+          completedAt: string | null;
+        }>;
+      }>("/me/commitments"),
+    createCommitment: (input: {
+      goalKind: "capstone" | "track" | "exam" | "skills";
+      goalSlug: string;
+      deadlineAt: string;
+      witnessUsername?: string;
+      isPublic?: boolean;
+    }) =>
+      request<{ ok: true; id: string }>("/me/commitments", {
+        method: "POST",
+        body: JSON.stringify(input),
+      }),
+    abandonCommitment: (id: string) =>
+      request<OkResponse>(`/me/commitments/${id}/abandon`, {
+        method: "POST",
+      }),
+    completeCommitment: (id: string) =>
+      request<{ ok: true; status: string; credential: unknown }>(
+        `/me/commitments/${id}/complete`,
+        { method: "POST" },
+      ),
     prereqStatus: (wikiSlugs: string[]) => {
       const sp = new URLSearchParams();
       sp.set("wikiSlugs", wikiSlugs.join(","));

@@ -53,6 +53,7 @@ import {
 import { ageDays, freshnessBand, type Freshness } from "../lib/freshness";
 import { toVerifiableCredential, toOpenBadge3 } from "../lib/vc";
 import { endorsementsForUser } from "../lib/endorsements";
+import { orgAttestationsForUser } from "../lib/orgs";
 import type { Env } from "../env";
 
 // Phase 33A — re-serialize the inline-signed wallet items into a
@@ -95,7 +96,8 @@ interface WalletItem {
     | "hackathon_prize"
     | "exam"
     | "reproduction"
-    | "bounty";
+    | "bounty"
+    | "org_attestation";
   title: string;
   earnedAt: string;
   signed: boolean;
@@ -373,6 +375,22 @@ export function buildWallet(
       skills: [],
       _revKind: "bounty",
       _revRef: b.bountyId,
+    });
+  }
+
+  // Phase 34B — org attestations OF this user (a separate
+  // institution-signed band; the signed credential names the org
+  // as issuer).
+  for (const a of orgAttestationsForUser(userId)) {
+    items.push({
+      kind: "org_attestation",
+      title: `${a.orgName} attested your ${a.attestKind}`,
+      earnedAt: a.createdAt,
+      signed: true,
+      detailUrl: `/orgs/${a.orgSlug}`,
+      verifyUrl: null,
+      credential: a.signed,
+      skills: [],
     });
   }
 
@@ -807,6 +825,34 @@ function sha256Hex(s: string): string {
   return createHash("sha256").update(s).digest("hex");
 }
 
+// Phase 34A reuse — mint a scoped share token for any user. Used
+// by the owner route below and by an accepted recruiter offer.
+export function mintShareToken(
+  userId: string,
+  scope: ShareScope,
+  label: string,
+  days: number | null,
+): { id: string; token: string; shareUrl: string; expiresAt: string | null } {
+  const token = randomBytes(32).toString("hex");
+  const expiresAt =
+    days && days > 0 && days <= 365
+      ? new Date(Date.now() + days * 86_400_000).toISOString()
+      : null;
+  const id = randomUUID();
+  getDb()
+    .insert(credentialShareTokens)
+    .values({
+      id,
+      userId,
+      tokenHash: sha256Hex(token),
+      scopeJson: JSON.stringify(scope),
+      label: label.slice(0, 120),
+      expiresAt,
+    })
+    .run();
+  return { id, token, shareUrl: `/api/v1/public/share/${token}`, expiresAt };
+}
+
 meCredentialsRouter.post("/share-tokens", requireAuth, async (c) => {
   const me = c.get("user")!;
   const body = (await c.req.json().catch(() => ({}))) as {
@@ -815,38 +861,10 @@ meCredentialsRouter.post("/share-tokens", requireAuth, async (c) => {
     expiresInDays?: number;
   };
   const scope = parseShareScope(body.scope);
-  const token = randomBytes(32).toString("hex");
   const days =
-    typeof body.expiresInDays === "number" &&
-    body.expiresInDays > 0 &&
-    body.expiresInDays <= 365
-      ? body.expiresInDays
-      : null;
-  const expiresAt = days
-    ? new Date(Date.now() + days * 86_400_000).toISOString()
-    : null;
-  const id = randomUUID();
-  getDb()
-    .insert(credentialShareTokens)
-    .values({
-      id,
-      userId: me.id,
-      tokenHash: sha256Hex(token),
-      scopeJson: JSON.stringify(scope),
-      label: (body.label ?? "").slice(0, 120),
-      expiresAt,
-    })
-    .run();
-  return c.json(
-    {
-      id,
-      token,
-      shareUrl: `/api/v1/public/share/${token}`,
-      scope,
-      expiresAt,
-    },
-    201,
-  );
+    typeof body.expiresInDays === "number" ? body.expiresInDays : null;
+  const t = mintShareToken(me.id, scope, body.label ?? "", days);
+  return c.json({ ...t, scope }, 201);
 });
 
 meCredentialsRouter.get("/share-tokens", requireAuth, (c) => {

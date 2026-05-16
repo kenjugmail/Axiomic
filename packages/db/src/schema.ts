@@ -3558,3 +3558,164 @@ export const credentialShareTokens = sqliteTable(
     ),
   }),
 );
+
+// Phase 34A — consented recruiter↔candidate match handshake. A
+// recruiter sends a role-scoped, Ed25519-signed match offer with
+// a snapshot of the verifiable skill gap; the candidate accepts
+// (auto-minting a scoped credential share token) or declines.
+// Mirrors mentorRelationships' two-party request/respond shape.
+export const recruiterMatchOffers = sqliteTable(
+  "recruiter_match_offers",
+  {
+    id: text("id").primaryKey(),
+    recruiterId: text("recruiter_id").notNull().references(() => users.id),
+    candidateId: text("candidate_id").notNull().references(() => users.id),
+    roleSlug: text("role_slug").notNull(),
+    roleTitle: text("role_title").notNull().default(""),
+    // 'pending' | 'accepted' | 'declined' | 'withdrawn'
+    status: text("status").notNull().default("pending"),
+    messageMd: text("message_md").notNull().default(""),
+    // Snapshot of analyzeSkillGap at offer time.
+    skillGapJson: text("skill_gap_json").notNull().default("{}"),
+    // signCredential("match_offer", …) JSON.
+    signedOfferJson: text("signed_offer_json").notNull().default(""),
+    // Set on accept: the scoped credentialShareTokens row id.
+    shareTokenId: text("share_token_id"),
+    // The raw share URL, surfaced back to the recruiter once.
+    shareUrl: text("share_url"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+    respondedAt: text("responded_at"),
+  },
+  (t) => ({
+    // One live offer per (recruiter, candidate, role).
+    uq: uniqueIndex("recruiter_match_offers_uq").on(
+      t.recruiterId,
+      t.candidateId,
+      t.roleSlug,
+    ),
+    candidateIdx: index("recruiter_match_offers_candidate_idx").on(
+      t.candidateId,
+      t.status,
+    ),
+    recruiterIdx: index("recruiter_match_offers_recruiter_idx").on(
+      t.recruiterId,
+      t.createdAt,
+    ),
+  }),
+);
+
+// Phase 34B — organization / institution accounts. The signing
+// key stays per-instance; an org credential is the instance key
+// signing on behalf of a NAMED issuer in the manifest (no per-org
+// keypair). Membership/role mirrors cohortMembers + gateCohort.
+export const orgs = sqliteTable(
+  "orgs",
+  {
+    id: text("id").primaryKey(),
+    slug: text("slug").notNull().unique(),
+    name: text("name").notNull(),
+    descriptionMd: text("description_md").notNull().default(""),
+    website: text("website").notNull().default(""),
+    // 'unverified' | 'verified' — display-only trust badge.
+    verificationStatus: text("verification_status")
+      .notNull()
+      .default("unverified"),
+    creatorId: text("creator_id").notNull().references(() => users.id),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    slugIdx: index("orgs_slug_idx").on(t.slug),
+    creatorIdx: index("orgs_creator_idx").on(t.creatorId),
+  }),
+);
+
+export const orgMembers = sqliteTable(
+  "org_members",
+  {
+    id: text("id").primaryKey(),
+    orgId: text("org_id")
+      .notNull()
+      .references(() => orgs.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull().references(() => users.id),
+    // 'member' | 'admin' | 'verifier' (verifier/admin may attest).
+    role: text("role").notNull().default("member"),
+    joinedAt: text("joined_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uq: uniqueIndex("org_members_uq").on(t.orgId, t.userId),
+    orgIdx: index("org_members_org_idx").on(t.orgId),
+    userIdx: index("org_members_user_idx").on(t.userId),
+  }),
+);
+
+// Phase 34D — signed learning commitments. A learner commits to a
+// goal (capstone/track/exam/skills) by a deadline, optionally
+// witnessed by a mentor or cohort; completion mints a signed
+// "commitment_kept" credential + a transparency leaf.
+export const learningCommitments = sqliteTable(
+  "learning_commitments",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    // 'capstone' | 'track' | 'exam' | 'skills'
+    goalKind: text("goal_kind").notNull(),
+    goalSlug: text("goal_slug").notNull(),
+    goalTitle: text("goal_title").notNull().default(""),
+    deadlineAt: text("deadline_at").notNull(),
+    // 'active' | 'completed' | 'lapsed' | 'abandoned'
+    status: text("status").notNull().default("active"),
+    witnessUserId: text("witness_user_id").references(() => users.id),
+    cohortId: text("cohort_id"),
+    isPublic: integer("is_public", { mode: "boolean" })
+      .notNull()
+      .default(true),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+    completedAt: text("completed_at"),
+  },
+  (t) => ({
+    userIdx: index("learning_commitments_user_idx").on(
+      t.userId,
+      t.status,
+    ),
+    deadlineIdx: index("learning_commitments_deadline_idx").on(
+      t.status,
+      t.deadlineAt,
+    ),
+  }),
+);
+
+// Phase 34B — an org's signed attestation OF a member's artifact
+// (a reproduction / bounty / skill). The instance key signs on
+// behalf of the named org (issuer in the manifest); the event is
+// also written to the Phase 33B transparency log. Surfaces in the
+// member's wallet as an `org_attested` band and on the org's
+// public verify page. revokedAt nullable for withdrawal.
+export const orgAttestations = sqliteTable(
+  "org_attestations",
+  {
+    id: text("id").primaryKey(),
+    orgId: text("org_id")
+      .notNull()
+      .references(() => orgs.id, { onDelete: "cascade" }),
+    subjectUserId: text("subject_user_id")
+      .notNull()
+      .references(() => users.id),
+    attestedByUserId: text("attested_by_user_id")
+      .notNull()
+      .references(() => users.id),
+    // 'reproduction' | 'bounty' | 'skill'
+    attestKind: text("attest_kind").notNull(),
+    // The artifact ref (reproId / bountyId / skillSlug).
+    attestRef: text("attest_ref").notNull().default(""),
+    statement: text("statement").notNull().default(""),
+    signedJson: text("signed_json").notNull().default(""),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+    revokedAt: text("revoked_at"),
+  },
+  (t) => ({
+    subjectIdx: index("org_attestations_subject_idx").on(
+      t.subjectUserId,
+    ),
+    orgIdx: index("org_attestations_org_idx").on(t.orgId),
+  }),
+);

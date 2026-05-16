@@ -64,6 +64,7 @@ const MORE_NAV_USER_SECTION: NavSection = {
     // Phase 9 — pet / inventory moved into a dedicated Pet dropdown
     // and mobile-nav Pet section, so they're omitted here to avoid
     // duplication.
+    { to: "/me/today", label: "Today" },
     { to: "/feed", label: "Feed" },
     { to: "/flashcards", label: "Flashcards" },
     { to: "/review/mistakes", label: "Review mistakes" },

@@ -228,6 +228,7 @@ export function CredentialWalletPage() {
         </div>
       )}
 
+      {isOwnView && <OffersPanel />}
       {isOwnView && <ShareLinksPanel />}
 
       {creds === null && (
@@ -600,6 +601,80 @@ function ShareLinksPanel() {
           ))}
         </ul>
       )}
+    </div>
+  );
+}
+
+// Phase 34A — incoming recruiter match offers. Accepting mints a
+// scoped share link the recruiter can open; the signed offer is
+// independently verifiable at /verify.
+function OffersPanel() {
+  const [offers, setOffers] = useState<
+    Awaited<ReturnType<typeof api.me.offers>>["offers"] | null
+  >(null);
+  const load = () =>
+    api.me
+      .offers()
+      .then((r) => setOffers(r.offers))
+      .catch(() => setOffers([]));
+  useEffect(() => {
+    load();
+  }, []);
+  const respond = async (id: string, accept: boolean) => {
+    try {
+      const r = await api.me.respondOffer(id, accept);
+      toast.success(accept ? "Offer accepted" : "Offer declined");
+      if (accept && r.shareUrl) {
+        toast.info("A verified portfolio link was shared with the recruiter.");
+      }
+      load();
+    } catch {
+      toast.error("Could not respond");
+    }
+  };
+  const pending = (offers ?? []).filter((o) => o.status === "pending");
+  if (pending.length === 0) return null;
+  return (
+    <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 mb-6">
+      <div className="text-sm font-semibold mb-2">
+        Match offers ({pending.length})
+      </div>
+      <ul className="space-y-2">
+        {pending.map((o) => (
+          <li
+            key={o.id}
+            className="rounded-md border border-border bg-card p-3 text-sm flex items-center justify-between gap-3 flex-wrap"
+          >
+            <span>
+              <strong>@{o.recruiterUsername}</strong> — {o.roleTitle}{" "}
+              <span className="text-muted-foreground">
+                · {Math.round((o.skillGap?.coverage ?? 0) * 100)}% verified
+              </span>
+              {o.messageMd && (
+                <span className="block text-xs text-muted-foreground mt-0.5">
+                  {o.messageMd}
+                </span>
+              )}
+            </span>
+            <span className="flex gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => respond(o.id, true)}
+                className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                Accept
+              </button>
+              <button
+                type="button"
+                onClick={() => respond(o.id, false)}
+                className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40"
+              >
+                Decline
+              </button>
+            </span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

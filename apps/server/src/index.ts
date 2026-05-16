@@ -50,6 +50,7 @@ import { reproductionsRouter } from "./routes/reproductions";
 import { reviewRoomsRouter } from "./routes/review-rooms";
 import { publicApiRouter } from "./routes/publicApi";
 import { recruiterRouter } from "./routes/recruiter";
+import { orgsRouter } from "./routes/orgs";
 import {
   credentialsRouter,
   meCredentialsRouter,
@@ -84,6 +85,7 @@ import {
 import { notifyExpiringCertsJob } from "./jobs/notifyExpiringCerts";
 import { resurfacingDecayJob } from "./jobs/resurfacingDecay";
 import { signTreeHeadJob } from "./jobs/signTreeHead";
+import { lapseCommitmentsJob } from "./jobs/lapseCommitments";
 import { hardDeleteSoftDeletedUsersJob, cleanupOldLoginAttemptsJob } from "./lib/userCleanupJob";
 import { captureError } from "./lib/observability";
 import { bootstrapAdmin } from "./lib/bootstrapAdmin";
@@ -351,6 +353,7 @@ app.route("/bounties", bountiesRouter);
 app.route("/reproductions", reproductionsRouter);
 app.route("/review-rooms", reviewRoomsRouter);
 app.route("/recruiter", recruiterRouter);
+app.route("/orgs", orgsRouter);
 app.route("/credentials", credentialsRouter);
 // Mounted before /me so the more-specific subtree wins.
 app.route("/me/credentials", meCredentialsRouter);
@@ -451,6 +454,8 @@ if (process.env.DISABLE_JOB_RUNNER !== "1") {
   registerJob(resurfacingDecayJob);
   // Phase 33B — hourly signed credential-transparency tree head.
   registerJob(signTreeHeadJob);
+  // Phase 34D — daily lapse sweep for learning commitments.
+  registerJob(lapseCommitmentsJob);
   startJobRunner();
 }
 
