@@ -29,7 +29,15 @@ import {
   users,
 } from "@axiomic/db";
 import { requireAuth, getSessionUser } from "../middleware/auth";
-import { signCredential } from "../lib/signing";
+import { publicKeyHex, signCredential } from "../lib/signing";
+import {
+  type Skill,
+  fetchTargetTags,
+  parseSlugList,
+  resolvePathTitles,
+  resolveWikiTitles,
+  toSkills,
+} from "../lib/credentialSkills";
 import type { Env } from "../env";
 
 export const credentialsRouter = new Hono<Env>();
@@ -52,6 +60,13 @@ interface WalletItem {
   verifyUrl: string | null;
   // Inlined signed credential for kinds without a transcript URL.
   credential: ReturnType<typeof signCredential> | null;
+  // Phase 29C — concepts/skills this credential demonstrates.
+  // Default []; populated best-effort by annotateSkills().
+  skills: Skill[];
+  // Internal staging fields (deleted before serialization).
+  _wikiSlugs?: string[];
+  _pathSlugs?: string[];
+  _target?: { kind: string; id: string };
 }
 
 function buildWallet(userId: string, username: string): WalletItem[] {
@@ -65,6 +80,8 @@ function buildWallet(userId: string, username: string): WalletItem[] {
       completedAt: capstoneEnrollments.completedAt,
       artifactPageSlug: capstoneEnrollments.artifactPageSlug,
       title: capstones.title,
+      tags: capstones.tags,
+      prereqWikiSlugs: capstones.prerequisiteWikiSlugs,
     })
     .from(capstoneEnrollments)
     .innerJoin(capstones, eq(capstoneEnrollments.capstoneId, capstones.id))
@@ -86,6 +103,11 @@ function buildWallet(userId: string, username: string): WalletItem[] {
       detailUrl: `/capstones/c/${cap.artifactPageSlug}`,
       verifyUrl: `/api/v1/capstones/c/${cap.artifactPageSlug}/transcript`,
       credential: null,
+      skills: [],
+      _wikiSlugs: [
+        ...parseSlugList(cap.tags),
+        ...parseSlugList(cap.prereqWikiSlugs),
+      ],
     });
   }
 
@@ -113,6 +135,7 @@ function buildWallet(userId: string, username: string): WalletItem[] {
       detailUrl: `/tracks/c/${t.artifactPageSlug}`,
       verifyUrl: `/api/v1/tracks/c/${t.artifactPageSlug}`,
       credential: null,
+      skills: [],
     });
   }
 
@@ -162,6 +185,7 @@ function buildWallet(userId: string, username: string): WalletItem[] {
           prizeTitle: w.prizeTitle,
           awardedAt: w.awardedAt,
         }),
+        skills: [],
       });
     }
   }
@@ -174,6 +198,7 @@ function buildWallet(userId: string, username: string): WalletItem[] {
       scorePercentile: examAttempts.scorePercentile,
       examTitle: exams.title,
       examSlug: exams.slug,
+      pathSlug: exams.pathSlug,
       attemptId: examAttempts.id,
     })
     .from(examAttempts)
@@ -206,6 +231,8 @@ function buildWallet(userId: string, username: string): WalletItem[] {
         scorePercentile: a.scorePercentile,
         completedAt: a.completedAt,
       }),
+      skills: [],
+      _pathSlugs: a.pathSlug ? [a.pathSlug] : [],
     });
   }
 
@@ -242,6 +269,8 @@ function buildWallet(userId: string, username: string): WalletItem[] {
         targetId: r.targetId,
         mintedAt: r.credentialMintedAt,
       }),
+      skills: [],
+      _target: { kind: r.targetKind, id: r.targetId },
     });
   }
 
@@ -282,11 +311,92 @@ function buildWallet(userId: string, username: string): WalletItem[] {
         bountyTitle: b.bountyTitle,
         claimId: b.claimId,
       }),
+      skills: [],
     });
   }
 
+  annotateSkills(items);
   items.sort((a, b) => (a.earnedAt < b.earnedAt ? 1 : -1));
   return items;
+}
+
+// Phase 29C — resolve every item's staged slug/target refs into
+// displayable skills in a few batched queries, then strip the
+// internal staging fields so the response stays clean.
+function annotateSkills(items: WalletItem[]): void {
+  const wikiSlugs: string[] = [];
+  const pathSlugs: string[] = [];
+  const targets: Array<{ kind: string; id: string }> = [];
+  for (const it of items) {
+    if (it._wikiSlugs) wikiSlugs.push(...it._wikiSlugs);
+    if (it._pathSlugs) pathSlugs.push(...it._pathSlugs);
+    if (it._target) targets.push(it._target);
+  }
+  const wikiTitles = resolveWikiTitles(wikiSlugs);
+  const pathTitles = resolvePathTitles(pathSlugs);
+  const targetTags = fetchTargetTags(targets);
+  for (const it of items) {
+    const slugs: string[] = [];
+    const titleMap = new Map<string, string>();
+    if (it._wikiSlugs) {
+      slugs.push(...it._wikiSlugs);
+      for (const [k, v] of wikiTitles) titleMap.set(k, v);
+    }
+    if (it._pathSlugs) {
+      slugs.push(...it._pathSlugs);
+      for (const [k, v] of pathTitles) titleMap.set(k, v);
+    }
+    if (it._target) {
+      const tags = targetTags.get(`${it._target.kind}:${it._target.id}`) ?? [];
+      slugs.push(...tags);
+    }
+    it.skills = toSkills(slugs, titleMap);
+    delete it._wikiSlugs;
+    delete it._pathSlugs;
+    delete it._target;
+  }
+}
+
+// Phase 29C — invert the annotated wallet into a recruiter-facing
+// "skills proven, and by which credentials" rollup.
+function buildSkillsSummary(items: WalletItem[]): Array<{
+  skill: string;
+  slug: string;
+  provenBy: Array<{ kind: string; title: string; earnedAt: string }>;
+}> {
+  const bySlug = new Map<
+    string,
+    {
+      skill: string;
+      slug: string;
+      provenBy: Array<{ kind: string; title: string; earnedAt: string }>;
+    }
+  >();
+  for (const it of items) {
+    for (const s of it.skills) {
+      let row = bySlug.get(s.slug);
+      if (!row) {
+        row = { skill: s.title, slug: s.slug, provenBy: [] };
+        bySlug.set(s.slug, row);
+      }
+      row.provenBy.push({
+        kind: it.kind,
+        title: it.title,
+        earnedAt: it.earnedAt,
+      });
+    }
+  }
+  return [...bySlug.values()].sort(
+    (a, b) => b.provenBy.length - a.provenBy.length,
+  );
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 // GET /credentials/:username — public portfolio. Honors the
@@ -320,6 +430,128 @@ credentialsRouter.get("/:username", async (c) => {
     },
     credentials: items,
   });
+});
+
+// Phase 29C — recruiter-facing "skills proven, by which
+// credentials" rollup. Same privacy gate as the wallet.
+credentialsRouter.get("/:username/skills-summary", async (c) => {
+  const username = c.req.param("username")!;
+  const db = getDb();
+  const u = db
+    .select({
+      id: users.id,
+      username: users.username,
+      displayName: users.displayName,
+      credentialsPublic: users.credentialsPublic,
+    })
+    .from(users)
+    .where(eq(users.username, username))
+    .get();
+  if (!u) return c.json({ error: "User not found" }, 404);
+  if (!u.credentialsPublic) {
+    const session = await getSessionUser(c);
+    if (session?.id !== u.id) {
+      return c.json({ error: "This portfolio is private" }, 403);
+    }
+  }
+  const items = buildWallet(u.id, u.username);
+  return c.json({
+    user: { username: u.username, displayName: u.displayName },
+    skills: buildSkillsSummary(items),
+  });
+});
+
+// Phase 29C — a self-contained, print-friendly public portfolio
+// (HTML + @media print = a clean PDF via the browser, no PDF
+// dependency). Same privacy gate.
+credentialsRouter.get("/:username/portfolio.html", async (c) => {
+  const username = c.req.param("username")!;
+  const db = getDb();
+  const u = db
+    .select({
+      id: users.id,
+      username: users.username,
+      displayName: users.displayName,
+      credentialsPublic: users.credentialsPublic,
+    })
+    .from(users)
+    .where(eq(users.username, username))
+    .get();
+  if (!u) return c.text("User not found", 404);
+  if (!u.credentialsPublic) {
+    const session = await getSessionUser(c);
+    if (session?.id !== u.id) {
+      return c.text("This portfolio is private", 403);
+    }
+  }
+  const items = buildWallet(u.id, u.username);
+  const skills = buildSkillsSummary(items);
+  const name = escapeHtml(u.displayName || u.username);
+  const pubKey = publicKeyHex();
+  const skillRows = skills
+    .map(
+      (s) =>
+        `<tr><td>${escapeHtml(s.skill)}</td><td>${s.provenBy
+          .map((p) => escapeHtml(p.title))
+          .join("; ")}</td></tr>`,
+    )
+    .join("");
+  const credRows = items
+    .map(
+      (it) =>
+        `<li><strong>${escapeHtml(it.title)}</strong> ` +
+        `<span class="muted">· ${escapeHtml(it.kind)} · earned ${escapeHtml(
+          new Date(it.earnedAt).toLocaleDateString(),
+        )}</span>${
+          it.skills.length
+            ? `<div class="skills">${it.skills
+                .map((sk) => `<span>${escapeHtml(sk.title)}</span>`)
+                .join("")}</div>`
+            : ""
+        }</li>`,
+    )
+    .join("");
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${name} — Verifiable credentials</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font: 15px/1.5 -apple-system, system-ui, sans-serif; max-width: 760px;
+         margin: 2rem auto; padding: 0 1.25rem; color: #1a1a1a; }
+  h1 { font-size: 1.6rem; margin: 0 0 .25rem; }
+  h2 { font-size: 1.05rem; margin: 2rem 0 .5rem; border-bottom: 1px solid #ddd;
+       padding-bottom: .25rem; }
+  .muted { color: #666; font-weight: 400; font-size: .85em; }
+  table { width: 100%; border-collapse: collapse; font-size: .92em; }
+  td { padding: .35rem .5rem; border-bottom: 1px solid #eee; vertical-align: top; }
+  td:first-child { font-weight: 600; white-space: nowrap; }
+  ul { list-style: none; padding: 0; }
+  li { padding: .55rem 0; border-bottom: 1px solid #eee; }
+  .skills { margin-top: .3rem; }
+  .skills span { display: inline-block; font-size: .78em; background: #eef;
+    color: #224; border-radius: 999px; padding: .1rem .55rem; margin: .15rem .25rem .15rem 0; }
+  footer { margin-top: 2.5rem; font-size: .78em; color: #888; word-break: break-all; }
+  @media print { body { margin: 0; max-width: none; } a { color: inherit; } }
+</style></head><body>
+<h1>${name}</h1>
+<div class="muted">Verifiable credential portfolio · @${escapeHtml(
+    u.username,
+  )} · ${items.length} credential(s)</div>
+<h2>Skills proven</h2>
+${
+  skills.length
+    ? `<table><tr><td>Skill</td><td>Demonstrated by</td></tr>${skillRows}</table>`
+    : `<p class="muted">No mapped skills yet.</p>`
+}
+<h2>Credentials</h2>
+${credRows ? `<ul>${credRows}</ul>` : `<p class="muted">No credentials yet.</p>`}
+<footer>Every credential is Ed25519-signed and re-verifiable offline
+against this platform public key:<br>${escapeHtml(pubKey)}<br>
+Verify at /verify or fetch the signed bundle at
+/api/v1/me/credentials?format=json.</footer>
+</body></html>`;
+  c.header("Content-Type", "text/html; charset=utf-8");
+  return c.body(html);
 });
 
 export const meCredentialsRouter = new Hono<Env>();

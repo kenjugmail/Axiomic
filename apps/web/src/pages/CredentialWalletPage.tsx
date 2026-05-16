@@ -38,6 +38,7 @@ type Credential = {
   signed: boolean;
   detailUrl: string;
   verifyUrl: string | null;
+  skills: Array<{ slug: string; title: string }>;
 };
 
 const KIND_META: Record<
@@ -266,6 +267,18 @@ export function CredentialWalletPage() {
                         earned {new Date(c.earnedAt).toLocaleDateString()}
                       </span>
                     </div>
+                    {c.skills.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {c.skills.map((s) => (
+                          <span
+                            key={s.slug}
+                            className="text-[11px] px-2 py-0.5 rounded-full bg-primary/10 text-primary"
+                          >
+                            {s.title}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                     <div className="mt-2 flex flex-wrap gap-3 text-xs">
                       <Link
                         to={c.detailUrl}

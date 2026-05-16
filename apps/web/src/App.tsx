@@ -383,6 +383,11 @@ const ReproductionReviewPage = lazy(() =>
     default: m.ReproductionReviewPage,
   })),
 );
+const CredentialSkillsPage = lazy(() =>
+  import("./pages/CredentialSkillsPage").then((m) => ({
+    default: m.CredentialSkillsPage,
+  })),
+);
 const BountiesListPage = lazy(() =>
   import("./pages/BountiesListPage").then((m) => ({
     default: m.BountiesListPage,
@@ -552,6 +557,11 @@ function AppRoutes() {
           <Route
             path="/u/:username/credentials"
             element={<CredentialWalletPage />}
+          />
+          {/* Phase 29C — recruiter skills rollup. */}
+          <Route
+            path="/u/:username/skills"
+            element={<CredentialSkillsPage />}
           />
           <Route
             path="/reproductions/review"

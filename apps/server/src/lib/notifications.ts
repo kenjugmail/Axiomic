@@ -53,7 +53,10 @@ export type NotificationKind =
   // Always-on; direct + rare.
   | "reproduction_verified"
   | "bounty_claimed"
-  | "bounty_accepted";
+  | "bounty_accepted"
+  // Phase 29B — a new message in a collaborative review room.
+  // Always-on; direct ping to other room participants.
+  | "review_room_message";
 
 export type NotificationSubject =
   | "topic"
@@ -92,7 +95,10 @@ export type NotificationSubject =
   | "hackathon_prize"
   // Phase 28 — reproduction credential + research bounty.
   | "reproduction"
-  | "research_bounty";
+  | "research_bounty"
+  // Phase 29B — collaborative review room. subjectId carries
+  // `${roomKind}:${roomId}`.
+  | "review_room";
 
 const MAX_MENTIONS_PER_BODY = 10;
 const PREVIEW_MAX = 140;
@@ -204,6 +210,7 @@ function kindGate(
     case "reproduction_verified":
     case "bounty_claimed":
     case "bounty_accepted":
+    case "review_room_message":
       // News flow + follow events + admin pipeline + funding
       // alerts + Sprint 80 lab operational signals + S88
       // classroom/pet events + S90 pet evolution + Phase 25A

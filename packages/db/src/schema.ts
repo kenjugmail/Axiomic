@@ -623,6 +623,9 @@ export const reproductions = sqliteTable(
     // the signed "Reproduction Verified" credential so it mints
     // exactly once.
     credentialMintedAt: text("credential_minted_at"),
+    // Phase 29A — the summed reviewer trust weight at the moment
+    // of mint (audit + reversibility; null until minted).
+    credentialMintWeight: real("credential_mint_weight"),
     createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   },
   (t) => ({
@@ -3162,6 +3165,34 @@ export const reproductionReviews = sqliteTable(
       t.reviewerId,
     ),
     reproIdx: index("reproduction_reviews_repro_idx").on(t.reproductionId),
+  }),
+);
+
+// Phase 29B — collaborative review rooms. A live (WebSocket-
+// backed) discussion thread attached to a reproduction or a
+// capstone submission so co-reviewers / mentor + reviewee can
+// hash it out together. Polymorphic (roomKind+roomId, no FK) —
+// mirrors reproductions.targetKind/targetId + the liveBus
+// draft:{kind}:{id} precedent. Append-only; single-level threads.
+export const reviewRoomMessages = sqliteTable(
+  "review_room_messages",
+  {
+    id: text("id").primaryKey(),
+    // 'reproduction' | 'capstone_submission'
+    roomKind: text("room_kind").notNull(),
+    roomId: text("room_id").notNull(),
+    authorId: text("author_id").notNull().references(() => users.id),
+    bodyMd: text("body_md").notNull().default(""),
+    // null = top-level; else the parent message id (one level).
+    parentId: text("parent_id"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    roomIdx: index("review_room_messages_room_idx").on(
+      t.roomKind,
+      t.roomId,
+      t.createdAt,
+    ),
   }),
 );
 

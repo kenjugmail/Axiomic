@@ -21,13 +21,21 @@ import { requireAuth } from "../middleware/auth";
 import { checkRateLimit } from "../lib/rateLimit";
 import { env } from "../lib/envConfig";
 import { notify } from "../lib/notifications";
+import {
+  CONFIRM_WEIGHT_THRESHOLD,
+  confirmedWeight,
+  getReviewerReputations,
+  reviewerWeight,
+} from "../lib/reviewerTrust";
 import type { Env } from "../env";
 
 export const reproductionsRouter = new Hono<Env>();
 
-// Two independent confirmations mint the credential. Low for the
-// v1 community size; raise as the reviewer pool grows.
-const CONFIRM_THRESHOLD = 2;
+// Phase 29A — the credential mints when the summed *trust weight*
+// of confirming reviewers crosses CONFIRM_WEIGHT_THRESHOLD
+// (reputation-weighted, replacing the old flat count of 2). A
+// floor keeps every confirmer counting; a ceiling stops a single
+// reviewer soloing the mint.
 
 const reviewSchema = z.object({
   verdict: z.enum(["confirmed", "refuted", "inconclusive"]),
@@ -86,9 +94,10 @@ reproductionsRouter.get("/:id", requireAuth, async (c) => {
     .where(eq(reproductions.id, id))
     .get();
   if (!repro) return c.json({ error: "Reproduction not found" }, 404);
-  const reviews = db
+  const rawReviews = db
     .select({
       id: reproductionReviews.id,
+      reviewerId: reproductionReviews.reviewerId,
       verdict: reproductionReviews.verdict,
       notesMd: reproductionReviews.notesMd,
       createdAt: reproductionReviews.createdAt,
@@ -99,6 +108,26 @@ reproductionsRouter.get("/:id", requireAuth, async (c) => {
     .where(eq(reproductionReviews.reproductionId, id))
     .orderBy(desc(reproductionReviews.createdAt))
     .all();
+
+  // Annotate each review with the reviewer's trust weight so the
+  // UI can show "this reviewer counts 1.8×".
+  const reps = getReviewerReputations(
+    rawReviews.map((r) => r.reviewerId),
+  );
+  const reviews = rawReviews.map((r) => ({
+    id: r.id,
+    verdict: r.verdict,
+    notesMd: r.notesMd,
+    createdAt: r.createdAt,
+    reviewerName: r.reviewerName,
+    weight: reviewerWeight(reps.get(r.reviewerId) ?? 0),
+  }));
+  const currentConfirmedWeight = confirmedWeight(
+    rawReviews
+      .filter((r) => r.verdict === "confirmed")
+      .map((r) => r.reviewerId),
+  );
+
   return c.json({
     reproduction: {
       id: repro.id,
@@ -108,10 +137,12 @@ reproductionsRouter.get("/:id", requireAuth, async (c) => {
       notes: repro.notes,
       evidenceUrl: repro.evidenceUrl,
       credentialMintedAt: repro.credentialMintedAt,
+      credentialMintWeight: repro.credentialMintWeight,
       createdAt: repro.createdAt,
     },
     reviews,
-    confirmThreshold: CONFIRM_THRESHOLD,
+    confirmWeightThreshold: CONFIRM_WEIGHT_THRESHOLD,
+    currentConfirmedWeight,
   });
 });
 
@@ -162,11 +193,11 @@ reproductionsRouter.post(
       return c.json({ error: "You already reviewed this reproduction." }, 409);
     }
 
-    // Mint the credential the moment we cross the confirm
-    // threshold (and only once).
+    // Mint the credential the moment the summed trust weight of
+    // confirming reviewers crosses the threshold (and only once).
     if (!repro.credentialMintedAt) {
-      const confirmedRow = db
-        .select({ n: sql<number>`COUNT(*)` })
+      const confirmerIds = db
+        .select({ reviewerId: reproductionReviews.reviewerId })
         .from(reproductionReviews)
         .where(
           and(
@@ -174,12 +205,13 @@ reproductionsRouter.post(
             eq(reproductionReviews.verdict, "confirmed"),
           ),
         )
-        .get();
-      const confirmed = Number(confirmedRow?.n ?? 0);
-      if (confirmed >= CONFIRM_THRESHOLD) {
+        .all()
+        .map((r) => r.reviewerId);
+      const weight = confirmedWeight(confirmerIds);
+      if (weight >= CONFIRM_WEIGHT_THRESHOLD) {
         const now = new Date().toISOString();
         db.update(reproductions)
-          .set({ credentialMintedAt: now })
+          .set({ credentialMintedAt: now, credentialMintWeight: weight })
           .where(eq(reproductions.id, id))
           .run();
         void notify({

@@ -1086,6 +1086,35 @@ export const api = {
         `/research/feed${qs ? `?${qs}` : ""}`,
       );
     },
+    // Phase 29D — fused research-frontier rail.
+    frontier: (limit?: number) => {
+      const sp = new URLSearchParams();
+      if (limit) sp.set("limit", String(limit));
+      const qs = sp.toString();
+      return request<{
+        personalized: boolean;
+        items: Array<{
+          kind:
+            | "paper"
+            | "external_paper"
+            | "bounty"
+            | "needs_reproduction"
+            | "grant";
+          id: string;
+          title: string;
+          url: string;
+          score: number;
+          reason: string;
+          breakdown: {
+            relevance: number;
+            weakness: number;
+            urgency: number;
+            reproGap: number;
+            total: number;
+          };
+        }>;
+      }>(`/research/feed/frontier${qs ? `?${qs}` : ""}`);
+    },
     // Sprint 70 — cached tier-aware summary lookup. Returns
     // `{ cached: false }` when no summary exists yet (callers should
     // open a streaming connection to generate one).
@@ -1976,6 +2005,7 @@ export const api = {
           signed: boolean;
           detailUrl: string;
           verifyUrl: string | null;
+          skills: Array<{ slug: string; title: string }>;
         }>;
       }>(`/credentials/${username}`),
     mine: () =>
@@ -1988,6 +2018,7 @@ export const api = {
           signed: boolean;
           detailUrl: string;
           verifyUrl: string | null;
+          skills: Array<{ slug: string; title: string }>;
         }>;
       }>("/me/credentials"),
     setVisibility: (isPublic: boolean) =>
@@ -1995,6 +2026,20 @@ export const api = {
         method: "PUT",
         body: JSON.stringify({ public: isPublic }),
       }),
+    // Phase 29C — recruiter skills rollup.
+    skillsSummary: (username: string) =>
+      request<{
+        user: { username: string; displayName: string | null };
+        skills: Array<{
+          skill: string;
+          slug: string;
+          provenBy: Array<{
+            kind: string;
+            title: string;
+            earnedAt: string;
+          }>;
+        }>;
+      }>(`/credentials/${username}/skills-summary`),
   },
   // Phase 28B — reproduction peer review → signed credential.
   reproductions: {
@@ -2021,6 +2066,7 @@ export const api = {
           notes: string | null;
           evidenceUrl: string | null;
           credentialMintedAt: string | null;
+          credentialMintWeight: number | null;
           createdAt: string;
         };
         reviews: Array<{
@@ -2029,8 +2075,10 @@ export const api = {
           notesMd: string;
           createdAt: string;
           reviewerName: string;
+          weight: number;
         }>;
-        confirmThreshold: number;
+        confirmWeightThreshold: number;
+        currentConfirmedWeight: number;
       }>(`/reproductions/${id}`),
     review: (
       id: string,
@@ -2040,6 +2088,43 @@ export const api = {
       request<OkResponse>(`/reproductions/${id}/review`, {
         method: "POST",
         body: JSON.stringify({ verdict, notesMd }),
+      }),
+  },
+  // Phase 29B — collaborative review rooms.
+  reviewRooms: {
+    messages: (
+      kind: "reproduction" | "capstone_submission",
+      roomId: string,
+    ) =>
+      request<{
+        messages: Array<{
+          id: string;
+          authorId: string;
+          authorUsername: string;
+          bodyMd: string;
+          parentId: string | null;
+          createdAt: string;
+        }>;
+      }>(`/review-rooms/${kind}/${roomId}/messages`),
+    postMessage: (
+      kind: "reproduction" | "capstone_submission",
+      roomId: string,
+      bodyMd: string,
+      parentId?: string,
+    ) =>
+      request<{
+        ok: true;
+        message: {
+          id: string;
+          authorId: string;
+          authorUsername: string;
+          bodyMd: string;
+          parentId: string | null;
+          createdAt: string;
+        };
+      }>(`/review-rooms/${kind}/${roomId}/messages`, {
+        method: "POST",
+        body: JSON.stringify({ bodyMd, parentId }),
       }),
   },
   // Phase 28C/D — research bounty marketplace.

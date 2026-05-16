@@ -8,7 +8,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Sparkles, TrendingUp, Users, Info, X } from "lucide-react";
+import {
+  Sparkles,
+  Target,
+  TrendingUp,
+  Users,
+  Info,
+  X,
+} from "lucide-react";
 import type { ResearchFeedItem, ResearchFeedResponse } from "@axiomic/types";
 import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
@@ -407,11 +414,53 @@ function Rail({
   );
 }
 
+function FrontierLink({
+  it,
+}: {
+  it: Awaited<ReturnType<typeof api.research.frontier>>["items"][number];
+}) {
+  const cls =
+    "font-display text-sm font-semibold leading-snug hover:text-primary";
+  // External papers + grants are off-platform URLs; everything
+  // else is an internal route.
+  const external = it.kind === "external_paper" || it.kind === "grant";
+  if (external) {
+    return (
+      <a href={it.url} target="_blank" rel="noreferrer" className={cls}>
+        {it.title}
+      </a>
+    );
+  }
+  return (
+    <Link to={it.url} className={cls}>
+      {it.title}
+    </Link>
+  );
+}
+
 export function ResearchFeedPage() {
   const { user } = useAuthStore();
   const [data, setData] = useState<ResearchFeedResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [drawerItem, setDrawerItem] = useState<ResearchFeedItem | null>(null);
+  const [frontier, setFrontier] = useState<Awaited<
+    ReturnType<typeof api.research.frontier>
+  > | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    api.research
+      .frontier(10)
+      .then((r) => {
+        if (!cancelled) setFrontier(r);
+      })
+      .catch(() => {
+        if (!cancelled) setFrontier({ personalized: false, items: [] });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -490,6 +539,35 @@ export function ResearchFeedPage() {
         </div>
       ) : (
         <>
+          {frontier && frontier.items.length > 0 && (
+            <section className="mb-8">
+              <h2 className="text-sm font-semibold mb-3 inline-flex items-center gap-1.5">
+                <Target className="w-4 h-4 text-primary" />
+                Research frontier
+                <span className="text-[10px] font-normal text-muted-foreground">
+                  papers · bounties · reproductions · grants, ranked for
+                  you
+                </span>
+              </h2>
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {frontier.items.map((it) => (
+                  <li
+                    key={`${it.kind}-${it.id}`}
+                    className="rounded-lg border border-border bg-card p-3 hover:border-primary/40 transition-colors"
+                    data-testid="frontier-item"
+                  >
+                    <FrontierLink it={it} />
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-1.5 flex flex-wrap items-center gap-2">
+                      <span className="px-1.5 py-0.5 rounded-full border border-border">
+                        {it.kind.replace("_", " ")}
+                      </span>
+                      <span>{it.reason}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           {data.personalized && (
             <Rail
               title="For you"

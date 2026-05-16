@@ -2380,7 +2380,30 @@ export type LiveEvent =
       targetId: string;
       userIds: string[];
       usernames: string[];
+    }
+  // Phase 29B — collaborative review rooms.
+  | {
+      type: "room_message";
+      kind: LiveRoomKind;
+      roomId: string;
+      message: {
+        id: string;
+        authorId: string;
+        authorUsername: string;
+        bodyMd: string;
+        parentId: string | null;
+        createdAt: string;
+      };
+    }
+  | {
+      type: "room_presence";
+      kind: LiveRoomKind;
+      roomId: string;
+      userIds: string[];
+      usernames: string[];
     };
+
+export type LiveRoomKind = "reproduction" | "capstone_submission";
 
 // --- Learning-path enrichments ---
 

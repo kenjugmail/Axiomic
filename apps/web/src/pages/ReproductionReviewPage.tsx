@@ -12,6 +12,7 @@ import { api, ApiError } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
 import { EmptyState } from "../components/ui/EmptyState";
+import { ReviewRoom } from "../components/ReviewRoom";
 import { toast } from "../stores/toast";
 
 type QueueItem = {
@@ -30,6 +31,7 @@ export function ReproductionReviewPage() {
   const [items, setItems] = useState<QueueItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [roomId, setRoomId] = useState<string | null>(null);
 
   const reload = () => {
     api.reproductions
@@ -160,15 +162,31 @@ export function ReproductionReviewPage() {
                     onCancel={() => setOpenId(null)}
                   />
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => setOpenId(it.id)}
-                    className="text-xs px-3 py-1.5 rounded-md border border-primary/40 text-primary hover:bg-primary/10"
-                  >
-                    Review this
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setOpenId(it.id)}
+                      className="text-xs px-3 py-1.5 rounded-md border border-primary/40 text-primary hover:bg-primary/10"
+                    >
+                      Review this
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setRoomId(roomId === it.id ? null : it.id)
+                      }
+                      className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40"
+                    >
+                      {roomId === it.id ? "Hide room" : "Discuss live"}
+                    </button>
+                  </div>
                 )}
               </div>
+              {roomId === it.id && (
+                <div className="mt-3">
+                  <ReviewRoom kind="reproduction" roomId={it.id} />
+                </div>
+              )}
             </li>
           ))}
         </ul>

@@ -47,6 +47,7 @@ import { classesRouter } from "./routes/classes";
 import { hackathonsRouter } from "./routes/hackathons";
 import { bountiesRouter } from "./routes/bounties";
 import { reproductionsRouter } from "./routes/reproductions";
+import { reviewRoomsRouter } from "./routes/review-rooms";
 import {
   credentialsRouter,
   meCredentialsRouter,
@@ -88,12 +89,14 @@ import { userFromCookieHeader } from "./middleware/auth";
 import {
   attachUser,
   broadcastDraftPresence,
+  broadcastRoomPresence,
   detach,
   setUsernameResolver,
   subscribeArticle,
   subscribeDraft,
+  subscribeRoom,
 } from "./lib/liveBus";
-import type { DraftKind } from "./lib/liveBus";
+import type { DraftKind, RoomKind } from "./lib/liveBus";
 import { users as usersTable } from "@axiomic/db";
 import { inArray } from "drizzle-orm";
 
@@ -291,6 +294,7 @@ app.route("/classes", classesRouter);
 app.route("/hackathons", hackathonsRouter);
 app.route("/bounties", bountiesRouter);
 app.route("/reproductions", reproductionsRouter);
+app.route("/review-rooms", reviewRoomsRouter);
 app.route("/credentials", credentialsRouter);
 // Mounted before /me so the more-specific subtree wins.
 app.route("/me/credentials", meCredentialsRouter);
@@ -445,6 +449,15 @@ export default {
         ) {
           subscribeDraft(ws, msg.kind as DraftKind, msg.targetId);
           broadcastDraftPresence(msg.kind as DraftKind, msg.targetId);
+        } else if (
+          msg &&
+          msg.type === "subscribe_room" &&
+          (msg.kind === "reproduction" ||
+            msg.kind === "capstone_submission") &&
+          typeof msg.roomId === "string"
+        ) {
+          subscribeRoom(ws, msg.kind as RoomKind, msg.roomId);
+          broadcastRoomPresence(msg.kind as RoomKind, msg.roomId);
         }
       } catch {
         // ignore malformed frames
