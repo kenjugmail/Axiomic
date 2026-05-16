@@ -347,8 +347,49 @@ recruiterRouter.post(
       provenSkills: gap.proven.map((p) => p.slug),
       issuedAt,
     });
-    const id = randomUUID();
-    try {
+    // The unique (recruiter,candidate,role) index means a prior
+    // declined/withdrawn offer would otherwise 409 forever.
+    // Recycle a dead row back to pending; only block a still-live
+    // (pending/accepted) one.
+    const existing = db
+      .select({
+        id: recruiterMatchOffers.id,
+        status: recruiterMatchOffers.status,
+      })
+      .from(recruiterMatchOffers)
+      .where(
+        and(
+          eq(recruiterMatchOffers.recruiterId, me.id),
+          eq(recruiterMatchOffers.candidateId, candidate.id),
+          eq(recruiterMatchOffers.roleSlug, role.slug),
+        ),
+      )
+      .get();
+    let id: string;
+    if (existing) {
+      if (existing.status === "pending" || existing.status === "accepted") {
+        return c.json(
+          { error: "A live offer for this candidate + role already exists." },
+          409,
+        );
+      }
+      id = existing.id;
+      db.update(recruiterMatchOffers)
+        .set({
+          roleTitle: role.title,
+          status: "pending",
+          messageMd,
+          skillGapJson: JSON.stringify(gap),
+          signedOfferJson: JSON.stringify(signed),
+          createdAt: issuedAt,
+          respondedAt: null,
+          shareTokenId: null,
+          shareUrl: null,
+        })
+        .where(eq(recruiterMatchOffers.id, id))
+        .run();
+    } else {
+      id = randomUUID();
       db.insert(recruiterMatchOffers)
         .values({
           id,
@@ -362,11 +403,6 @@ recruiterRouter.post(
           signedOfferJson: JSON.stringify(signed),
         })
         .run();
-    } catch {
-      return c.json(
-        { error: "An offer for this candidate + role already exists." },
-        409,
-      );
     }
     void notify({
       recipientId: candidate.id,

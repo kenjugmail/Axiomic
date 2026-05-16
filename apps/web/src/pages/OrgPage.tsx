@@ -36,7 +36,11 @@ export function OrgPage() {
       api.orgs
         .get(slug)
         .then(setData)
-        .catch(() => {});
+        .catch((e) =>
+          setError((prev) =>
+            prev ?? (e instanceof ApiError ? e.message : null),
+          ),
+        );
     }
   };
   useEffect(() => {
@@ -59,15 +63,32 @@ export function OrgPage() {
     }
   };
 
-  if (error) {
-    return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <Building2 className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">{error}</p>
-      </div>
-    );
-  }
-  if (!pub) {
+  // Fall back to the authed payload if the public endpoint
+  // transiently fails (an admin/member should still see the
+  // page); only hard-error when neither source resolved.
+  const view: Awaited<ReturnType<typeof api.publicApi.org>> | null = pub
+    ? pub
+    : data
+      ? {
+          org: data.org,
+          members: data.members.map((m) => ({
+            username: m.username,
+            displayName: m.displayName,
+            role: m.role,
+          })),
+          attestations: [],
+        }
+      : null;
+
+  if (!view) {
+    if (error) {
+      return (
+        <div className="max-w-2xl mx-auto px-4 py-16 text-center">
+          <Building2 className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">{error}</p>
+        </div>
+      );
+    }
     return (
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-3">
         <Skeleton className="h-24" />
@@ -81,37 +102,37 @@ export function OrgPage() {
       <header className="mb-6">
         <h1 className="font-display text-3xl font-semibold tracking-tight inline-flex items-center gap-2">
           <Building2 className="w-7 h-7 text-primary" />
-          {pub.org.name}
-          {pub.org.verificationStatus === "verified" && (
+          {view.org.name}
+          {view.org.verificationStatus === "verified" && (
             <ShieldCheck
               className="w-5 h-5 text-emerald-600 dark:text-emerald-400"
               aria-label="Verified org"
             />
           )}
         </h1>
-        {pub.org.descriptionMd && (
+        {view.org.descriptionMd && (
           <p className="text-sm text-muted-foreground mt-1 max-w-prose">
-            {pub.org.descriptionMd}
+            {view.org.descriptionMd}
           </p>
         )}
-        {pub.org.website && (
+        {view.org.website && (
           <a
-            href={pub.org.website}
+            href={view.org.website}
             target="_blank"
             rel="noreferrer"
             className="text-xs text-primary hover:underline"
           >
-            {pub.org.website}
+            {view.org.website}
           </a>
         )}
       </header>
 
       <section className="mb-6">
         <h2 className="text-sm font-semibold mb-2">
-          Members ({pub.members.length})
+          Members ({view.members.length})
         </h2>
         <ul className="flex flex-wrap gap-2">
-          {pub.members.map((m) => (
+          {view.members.map((m) => (
             <li
               key={m.username}
               className="text-xs px-2 py-1 rounded-full border border-border"
@@ -156,15 +177,15 @@ export function OrgPage() {
       <section>
         <h2 className="text-sm font-semibold mb-2 inline-flex items-center gap-1.5">
           <BadgeCheck className="w-4 h-4 text-primary" />
-          Signed attestations ({pub.attestations.length})
+          Signed attestations ({view.attestations.length})
         </h2>
-        {pub.attestations.length === 0 ? (
+        {view.attestations.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             This org hasn't issued any attestations yet.
           </p>
         ) : (
           <ul className="space-y-2">
-            {pub.attestations.map((a) => (
+            {view.attestations.map((a) => (
               <li
                 key={a.id}
                 className="rounded-md border border-border p-3 text-sm"

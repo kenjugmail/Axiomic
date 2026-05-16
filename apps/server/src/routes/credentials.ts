@@ -31,6 +31,8 @@ import {
 } from "@axiomic/db";
 import { createHash, randomBytes, randomUUID } from "crypto";
 import { requireAuth, getSessionUser } from "../middleware/auth";
+import { checkRateLimit } from "../lib/rateLimit";
+import { env } from "../lib/envConfig";
 import { publicKeyHex, signCredential } from "../lib/signing";
 import {
   computeAxiomicScore,
@@ -855,6 +857,12 @@ export function mintShareToken(
 
 meCredentialsRouter.post("/share-tokens", requireAuth, async (c) => {
   const me = c.get("user")!;
+  if (
+    env.NODE_ENV !== "test" &&
+    !checkRateLimit(`share-token:${me.id}`, 20, 60_000)
+  ) {
+    return c.json({ error: "Rate limited. Slow down." }, 429);
+  }
   const body = (await c.req.json().catch(() => ({}))) as {
     scope?: unknown;
     label?: string;

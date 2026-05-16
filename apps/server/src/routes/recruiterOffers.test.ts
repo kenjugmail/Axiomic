@@ -184,4 +184,60 @@ describe("recruiter match offers (Phase 34A)", () => {
     );
     expect(wd.status).toBe(200);
   });
+
+  // Phase 35 #3 — a declined/withdrawn offer must NOT block the
+  // recruiter forever; a live (pending/accepted) one still 409s.
+  test("re-offer recycles a dead offer; live offer still 409", async () => {
+    const recruiter = await signup("rr");
+    const cand = await signup("rc");
+    const send = () =>
+      req("/recruiter/offers", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...cookieHeader(recruiter.cookie),
+        },
+        body: JSON.stringify({
+          candidateUsername: cand.username,
+          roleSlug: "ml-engineer",
+        }),
+      });
+
+    expect((await send()).status).toBe(201);
+    // Duplicate while pending → 409.
+    expect((await send()).status).toBe(409);
+
+    // Candidate declines.
+    const inbox = (await (
+      await req("/me/offers", { headers: cookieHeader(cand.cookie) })
+    ).json()) as { offers: Array<{ id: string }> };
+    await req(`/me/offers/${inbox.offers[0].id}/respond`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...cookieHeader(cand.cookie),
+      },
+      body: JSON.stringify({ accept: false }),
+    });
+
+    // Re-offer after decline → recycled, 201 (not 409).
+    expect((await send()).status).toBe(201);
+
+    // Candidate accepts the recycled offer.
+    const inbox2 = (await (
+      await req("/me/offers", { headers: cookieHeader(cand.cookie) })
+    ).json()) as { offers: Array<{ id: string; status: string }> };
+    const pending = inbox2.offers.find((o) => o.status === "pending")!;
+    await req(`/me/offers/${pending.id}/respond`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...cookieHeader(cand.cookie),
+      },
+      body: JSON.stringify({ accept: true }),
+    });
+
+    // Re-offer while accepted (live) → 409.
+    expect((await send()).status).toBe(409);
+  });
 });

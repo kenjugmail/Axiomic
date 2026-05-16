@@ -187,6 +187,7 @@ publicApiRouter.get("/orgs/:slug", (c) => {
     })
     .from(orgAttestations)
     .where(eq(orgAttestations.orgId, org.id))
+    .limit(200)
     .all();
   const fmt = c.req.query("format");
   if (fmt === "vc" || fmt === "ob3") {
@@ -215,7 +216,10 @@ publicApiRouter.get("/orgs/:slug", (c) => {
       website: org.website,
       verificationStatus: org.verificationStatus,
     },
-    members: listOrgMembers(org.id),
+    // Public surface: cap roster size and never expose internal
+    // subject user ids (the non-VC list is for humans; the
+    // ?format=vc branch carries the integrity-bearing payload).
+    members: listOrgMembers(org.id).slice(0, 200),
     attestations: attestations.map((a) => ({
       id: a.id,
       attestKind: a.attestKind,

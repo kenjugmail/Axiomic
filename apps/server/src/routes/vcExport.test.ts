@@ -143,4 +143,89 @@ describe("Verifiable Credentials export (Phase 33A)", () => {
     )!;
     expect(vc2.credentialStatus.revoked).toBe(true);
   });
+
+  // Phase 35 #1 — a VC re-signed under a foreign did:key still
+  // returns valid:true (bytes match THAT key) but MUST report
+  // issuerTrusted:false so relying parties don't accept a forgery.
+  test("issuerTrusted distinguishes instance key from a self-asserted did:key", async () => {
+    const { getDb, reproductions } = await import("@axiomic/db");
+    const { randomUUID, generateKeyPairSync, sign: nodeSign } = await import(
+      "crypto"
+    );
+    const { canonicalJson } = await import("../lib/signing");
+    const { didKeyFromEd25519, base58btcEncode } = await import("../lib/vc");
+    const u = await signup("it");
+
+    const reproId = randomUUID();
+    getDb()
+      .insert(reproductions)
+      .values({
+        id: reproId,
+        articleId: null,
+        targetKind: "research_paper",
+        targetId: `paper-it-${testRun}`,
+        reproducerId: u.userId,
+        status: "success",
+        notes: "n",
+        evidenceUrl: "https://example.com/nb",
+        credentialMintedAt: new Date().toISOString(),
+        credentialMintWeight: 3.0,
+      })
+      .run();
+
+    const bundle = (await (
+      await req("/me/credentials?format=vc", {
+        headers: cookieHeader(u.cookie),
+      })
+    ).json()) as { verifiableCredential: Array<Record<string, any>> };
+    const vc = bundle.verifiableCredential.find((v) =>
+      (v.type as string[]).includes("AxiomicReproductionCredential"),
+    )!;
+
+    // Instance-issued VC → valid + trusted.
+    const ok = (await (
+      await req("/keys/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(vc),
+      })
+    ).json()) as { valid: boolean; issuerTrusted: boolean };
+    expect(ok.valid).toBe(true);
+    expect(ok.issuerTrusted).toBe(true);
+
+    // Forge: re-sign the same payload under an attacker keypair
+    // and self-assert it via proof.verificationMethod did:key.
+    const { publicKey, privateKey } = generateKeyPairSync("ed25519");
+    const rawPub = publicKey
+      .export({ type: "spki", format: "der" })
+      .subarray(-32);
+    const foreignDidKey = didKeyFromEd25519(
+      Buffer.from(rawPub).toString("hex"),
+    );
+    const { proof: _drop, ...rest } = vc;
+    const payload = canonicalJson(rest);
+    const sig = nodeSign(null, Buffer.from(payload, "utf8"), privateKey);
+    const forged = {
+      ...rest,
+      proof: {
+        type: "DataIntegrityProof",
+        cryptosuite: "eddsa-jcs-2022",
+        created: new Date().toISOString(),
+        verificationMethod: foreignDidKey,
+        proofPurpose: "assertionMethod",
+        proofValue: "z" + base58btcEncode(new Uint8Array(sig)),
+      },
+    };
+    const forgedRes = (await (
+      await req("/keys/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(forged),
+      })
+    ).json()) as { valid: boolean; issuerTrusted: boolean };
+    // Bytes verify under the attacker's own key…
+    expect(forgedRes.valid).toBe(true);
+    // …but it is NOT this issuer — the critical assertion.
+    expect(forgedRes.issuerTrusted).toBe(false);
+  });
 });

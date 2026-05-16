@@ -13,6 +13,7 @@ interface VerifyResult {
   publicKey?: string;
   canonicalPayload?: string;
   error?: string;
+  issuerTrusted?: boolean;
 }
 
 export function VerifyWidget() {
@@ -90,6 +91,12 @@ export function VerifyWidget() {
           <div className="font-semibold">
             {result.valid ? "✓ Signature valid" : "✗ Signature invalid"}
           </div>
+          {result.valid && result.issuerTrusted === false && (
+            <div className="mt-1 text-xs font-normal text-amber-800 dark:text-amber-200">
+              ⚠ Self-asserted key — NOT this issuer. Not an Axiomic-issued
+              credential; do not trust as proof.
+            </div>
+          )}
           {result.canonicalPayload && (
             <pre className="mt-2 text-[10px] overflow-x-auto whitespace-pre-wrap">
               {result.canonicalPayload}

@@ -26,17 +26,34 @@ export function RecruiterSearchPage() {
   const [results, setResults] = useState<SearchResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [pools, setPools] = useState<Pools | null>(null);
+  const [roles, setRoles] = useState<
+    Array<{ slug: string; title: string }>
+  >([]);
+  const [sent, setSent] = useState<
+    Awaited<ReturnType<typeof api.recruiter.sentOffers>>["offers"]
+  >([]);
+
+  const reloadSent = () =>
+    api.recruiter
+      .sentOffers()
+      .then((r) => setSent(r.offers))
+      .catch(() => {});
 
   useEffect(() => {
     api.recruiter
       .skills()
       .then(setCatalog)
       .catch(() => setCatalog({ skills: [] }));
+    api.recruiter
+      .roles()
+      .then((r) => setRoles(r.roles))
+      .catch(() => setRoles([]));
     if (user) {
       api.recruiter
         .pools()
         .then(setPools)
         .catch(() => setPools({ pools: [] }));
+      reloadSent();
     }
   }, [user?.id]);
 
@@ -63,19 +80,29 @@ export function RecruiterSearchPage() {
     }
   };
 
-  const sendOffer = async (username: string) => {
-    const roleSlug = window.prompt(
-      `Send ${username} a verified match offer for which role slug? (e.g. ml-engineer)`,
-    );
-    if (!roleSlug || !roleSlug.trim()) return;
+  const sendOffer = async (username: string, roleSlug: string) => {
+    if (!roleSlug) return;
     try {
-      const r = await api.recruiter.sendOffer(username, roleSlug.trim());
+      const r = await api.recruiter.sendOffer(username, roleSlug);
       toast.success(
         `Offer sent — ${Math.round(r.coverage * 100)}% verified coverage`,
       );
+      reloadSent();
     } catch (e) {
       toast.error(
         e instanceof ApiError ? e.message : "Couldn't send offer",
+      );
+    }
+  };
+
+  const withdrawOffer = async (id: string) => {
+    try {
+      await api.recruiter.withdrawOffer(id);
+      toast.success("Offer withdrawn");
+      reloadSent();
+    } catch (e) {
+      toast.error(
+        e instanceof ApiError ? e.message : "Couldn't withdraw",
       );
     }
   };
@@ -241,13 +268,27 @@ export function RecruiterSearchPage() {
                         ))}
                       </select>
                     )}
-                    <button
-                      type="button"
-                      onClick={() => sendOffer(cand.username)}
-                      className="text-xs px-2 py-0.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
-                    >
-                      Send match offer
-                    </button>
+                    {roles.length > 0 && (
+                      <select
+                        defaultValue=""
+                        aria-label={`Send ${cand.username} a match offer for a role`}
+                        onChange={(e) => {
+                          if (e.target.value)
+                            sendOffer(cand.username, e.target.value);
+                          e.target.value = "";
+                        }}
+                        className="text-xs bg-primary text-primary-foreground rounded-md px-1.5 py-0.5"
+                      >
+                        <option value="" disabled>
+                          + Send match offer
+                        </option>
+                        {roles.map((r) => (
+                          <option key={r.slug} value={r.slug}>
+                            {r.title}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </div>
                 </li>
               ))}
@@ -261,6 +302,56 @@ export function RecruiterSearchPage() {
           <Skeleton className="h-16" />
           <Skeleton className="h-16" />
         </div>
+      )}
+
+      {user && sent.length > 0 && (
+        <section className="mt-10 pt-6 border-t border-border">
+          <h2 className="text-sm font-semibold mb-3">
+            Sent match offers ({sent.length})
+          </h2>
+          <ul className="space-y-2">
+            {sent.map((o) => (
+              <li
+                key={o.id}
+                className="text-sm flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2 flex-wrap"
+              >
+                <span>
+                  <strong>@{o.candidateUsername}</strong> — {o.roleTitle}{" "}
+                  <span
+                    className={`text-xs px-1.5 py-0.5 rounded-full ${
+                      o.status === "accepted"
+                        ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                        : o.status === "pending"
+                          ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                          : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {o.status}
+                  </span>
+                  {o.status === "accepted" && o.shareUrl && (
+                    <a
+                      href={o.shareUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="ml-2 text-xs text-primary hover:underline"
+                    >
+                      View verified portfolio →
+                    </a>
+                  )}
+                </span>
+                {o.status === "pending" && (
+                  <button
+                    type="button"
+                    onClick={() => withdrawOffer(o.id)}
+                    className="text-xs px-2 py-1 rounded-md border border-border hover:bg-accent/40 shrink-0"
+                  >
+                    Withdraw
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       {user && (

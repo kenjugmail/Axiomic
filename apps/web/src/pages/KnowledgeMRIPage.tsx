@@ -741,7 +741,7 @@ function CommitmentsPanel() {
       await api.me.createCommitment({
         goalKind: kind,
         goalSlug: slug.trim(),
-        deadlineAt: new Date(deadline).toISOString(),
+        deadlineAt: new Date(`${deadline}T23:59:59`).toISOString(),
       });
       toast.success("Commitment made");
       setSlug("");

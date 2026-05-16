@@ -323,14 +323,21 @@ export function toOpenBadge3(
 export function verifyVerifiableCredential(vc: unknown): {
   valid: boolean;
   issuerKeyHex: string | null;
+  // True ONLY when the proof was made with THIS instance's
+  // issuer key. A self-asserted did: key the caller controls can
+  // make `valid:true` against its own key — relying parties must
+  // gate trust on this flag, not `valid` alone.
+  issuerTrusted: boolean;
 } {
-  if (!vc || typeof vc !== "object") return { valid: false, issuerKeyHex: null };
+  const instanceKey = publicKeyHex();
+  if (!vc || typeof vc !== "object")
+    return { valid: false, issuerKeyHex: null, issuerTrusted: false };
   const obj = vc as Record<string, unknown>;
   const proof = obj.proof as Record<string, unknown> | undefined;
   if (!proof || typeof proof.proofValue !== "string") {
-    return { valid: false, issuerKeyHex: null };
+    return { valid: false, issuerKeyHex: null, issuerTrusted: false };
   }
-  let keyHex = publicKeyHex();
+  let keyHex = instanceKey;
   const vm = typeof proof.verificationMethod === "string"
     ? proof.verificationMethod
     : "";
@@ -338,7 +345,7 @@ export function verifyVerifiableCredential(vc: unknown): {
     try {
       keyHex = didKeyToEd25519Hex(vm.split("#")[0]);
     } catch {
-      return { valid: false, issuerKeyHex: null };
+      return { valid: false, issuerKeyHex: null, issuerTrusted: false };
     }
   }
   const { proof: _omit, ...rest } = obj;
@@ -347,8 +354,12 @@ export function verifyVerifiableCredential(vc: unknown): {
   try {
     sigHex = bytesToHex(mbDecode(proof.proofValue as string));
   } catch {
-    return { valid: false, issuerKeyHex: null };
+    return { valid: false, issuerKeyHex: null, issuerTrusted: false };
   }
   const valid = verifyWithPublicKey(payload, sigHex, keyHex);
-  return { valid, issuerKeyHex: keyHex };
+  return {
+    valid,
+    issuerKeyHex: keyHex,
+    issuerTrusted: valid && keyHex === instanceKey,
+  };
 }

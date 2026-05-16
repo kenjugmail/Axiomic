@@ -218,7 +218,8 @@ app.post("/keys/verify", async (c) => {
   // legacy {manifest,signature} path below is byte-for-byte
   // unchanged.
   if (body && body["@context"] && body.proof) {
-    const { valid, issuerKeyHex } = verifyVerifiableCredential(body);
+    const { valid, issuerKeyHex, issuerTrusted } =
+      verifyVerifiableCredential(body);
     const cs = body.credentialStatus as
       | { credentialKind?: string; credentialRef?: string }
       | undefined;
@@ -231,6 +232,11 @@ app.post("/keys/verify", async (c) => {
       valid,
       format: "vc",
       publicKey: issuerKeyHex ?? publicKeyHex(),
+      // Additive: `valid` proves the bytes match the proof key;
+      // `issuerTrusted` proves that key is THIS issuer's, not a
+      // self-asserted did:key the holder forged. Consumers must
+      // require issuerTrusted, not valid alone.
+      issuerTrusted,
       revoked: rev !== null,
       revocationReason: rev?.reason ?? null,
       ageDays: ageDays(vf),

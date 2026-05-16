@@ -24,6 +24,11 @@ interface VerifyResult {
   publicKey?: string;
   canonicalPayload?: string;
   error?: string;
+  format?: string;
+  // VC path only: false when the proof matched a self-asserted
+  // did:key the holder controls, NOT this issuer's key.
+  issuerTrusted?: boolean;
+  revoked?: boolean;
 }
 
 export function VerifyPage() {
@@ -263,6 +268,26 @@ export function VerifyPage() {
               </>
             )}
           </div>
+          {result.valid && result.issuerTrusted === false && (
+            <div className="mt-2 rounded-md border border-amber-500/50 bg-amber-500/15 px-3 py-2 text-xs text-amber-800 dark:text-amber-200 inline-flex items-start gap-2">
+              <AlertTriangle
+                className="w-4 h-4 mt-0.5 shrink-0"
+                strokeWidth={2}
+              />
+              <span>
+                <strong>Self-asserted key — not this issuer.</strong> The
+                proof matches a key embedded in the credential itself, not
+                Axiomic's issuer key. The bytes are internally consistent
+                but this is <em>not</em> an Axiomic-issued credential. Do
+                not trust it as proof.
+              </span>
+            </div>
+          )}
+          {result.valid && result.issuerTrusted === true && (
+            <div className="mt-2 text-[11px] text-emerald-700/80 dark:text-emerald-300/80">
+              Issued by this Axiomic instance's verified key.
+            </div>
+          )}
           {result.valid && manifest && (
             <div className="text-xs text-foreground/80 mt-2 space-y-1">
               <div>

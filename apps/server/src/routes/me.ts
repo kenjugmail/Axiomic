@@ -652,6 +652,12 @@ meRouter.post(
   ),
   (c) => {
     const me = c.get("user")!;
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`commitment:${me.id}`, 10, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
     const { goalKind, goalSlug, deadlineAt, witnessUsername, cohortId, isPublic } =
       c.req.valid("json");
     const when = Date.parse(deadlineAt);
@@ -752,7 +758,10 @@ meRouter.post("/commitments/:id/complete", requireAuth, (c) => {
     kind: cm.goalKind as "capstone" | "track" | "exam" | "skills",
     slug: cm.goalSlug,
   });
-  if (gp.resolvable && gp.steps.length > 0) {
+  // Must be a resolvable goal with zero remaining steps. An
+  // unresolvable goal (deleted/renamed slug) must NOT mint a
+  // signed credential just because buildGoalPath returns no steps.
+  if (!gp.resolvable || gp.steps.length > 0) {
     return c.json(
       { error: "Goal not yet met — steps remain.", remaining: gp.steps.length },
       400,

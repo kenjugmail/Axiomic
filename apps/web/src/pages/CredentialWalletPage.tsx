@@ -17,7 +17,6 @@ import {
   Award,
   BadgeCheck,
   Clock,
-  Copy,
   Download,
   Eye,
   EyeOff,
@@ -572,22 +571,6 @@ function ShareLinksPanel() {
                 · {t.accessCount} view{t.accessCount === 1 ? "" : "s"}
               </span>
               <span className="flex items-center gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard
-                      ?.writeText(
-                        `${window.location.origin}/api/v1/public/share/`,
-                      )
-                      .catch(() => {});
-                    toast.info(
-                      "The full link is shown once at creation. Revoke + recreate if lost.",
-                    );
-                  }}
-                  className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
-                >
-                  <Copy className="w-3 h-3" />
-                </button>
                 <button
                   type="button"
                   onClick={() => revoke(t.id)}

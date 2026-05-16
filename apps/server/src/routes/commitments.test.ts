@@ -201,4 +201,44 @@ describe("learning commitments (Phase 34D)", () => {
       .all();
     expect(note.length).toBeGreaterThanOrEqual(1);
   });
+
+  // Phase 35 #2 — an unresolvable goal must NOT mint a signed
+  // commitment_kept just because buildGoalPath returns 0 steps.
+  test("complete rejects an unresolvable goal — no credential minted", async () => {
+    const { getDb, learningCommitments } = await import("@axiomic/db");
+    const { randomUUID } = await import("crypto");
+    const { eq } = await import("drizzle-orm");
+    const u = await signup("ur");
+    const id = randomUUID();
+    getDb()
+      .insert(learningCommitments)
+      .values({
+        id,
+        userId: u.userId,
+        goalKind: "skills",
+        goalSlug: `definitely-not-a-real-slug-${testRun}`,
+        goalTitle: "Bogus",
+        deadlineAt: new Date(Date.now() + 30 * 86_400_000).toISOString(),
+        status: "active",
+      })
+      .run();
+    const res = await req(`/me/commitments/${id}/complete`, {
+      method: "POST",
+      headers: cookieHeader(u.cookie),
+    });
+    expect(res.status).toBe(400);
+    // The row stays active; no transparency leaf was written.
+    const row = getDb()
+      .select({ status: learningCommitments.status })
+      .from(learningCommitments)
+      .where(eq(learningCommitments.id, id))
+      .get();
+    expect(row?.status).toBe("active");
+    const inc = (await (
+      await req(
+        `/public/transparency/inclusion?kind=commitment&ref=${id}`,
+      )
+    ).json()) as { events: unknown[] };
+    expect(inc.events.length).toBe(0);
+  });
 });
