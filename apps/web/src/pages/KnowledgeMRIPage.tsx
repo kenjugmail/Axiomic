@@ -6,7 +6,13 @@
 
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { AlertTriangle, Brain, Flame, Activity } from "lucide-react";
+import {
+  AlertTriangle,
+  Brain,
+  Flame,
+  Activity,
+  TrendingUp,
+} from "lucide-react";
 import type { KnowledgeMri, KnowledgeMriNode } from "@axiomic/types";
 import { api } from "../lib/api";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -14,6 +20,8 @@ import { useAuthStore } from "../stores/auth";
 import { MriHeatmap } from "../components/mri/MriHeatmap";
 import { MriRadial } from "../components/mri/MriRadial";
 import { MriDrillPanel } from "../components/mri/MriDrillPanel";
+
+type Readiness = Awaited<ReturnType<typeof api.me.readiness>>;
 
 export function KnowledgeMRIPage() {
   const user = useAuthStore((s) => s.user);
@@ -165,6 +173,9 @@ export function KnowledgeMRIPage() {
         </div>
       </div>
 
+      {/* Phase 28E — predictive readiness + dated study plan */}
+      <ReadinessPanel />
+
       {/* Per-path heatmap */}
       <MriHeatmap
         paths={paths}
@@ -210,5 +221,170 @@ function Stat({
         {value}
       </div>
     </div>
+  );
+}
+
+function ReadinessPanel() {
+  const [data, setData] = useState<Readiness | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    api.me
+      .readiness()
+      .then((r) => {
+        if (!cancelled) setData(r);
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (failed) return null;
+  if (!data) {
+    return (
+      <div className="rounded-lg border border-border bg-card p-4 sm:p-5 mb-6">
+        <div className="text-sm text-muted-foreground">
+          Loading readiness…
+        </div>
+      </div>
+    );
+  }
+
+  const hasTrend = data.snapshots.length >= 2;
+  const velocity = data.velocityPerDay;
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-4 sm:p-5 mb-6">
+      <h2 className="text-sm font-semibold mb-3 inline-flex items-center gap-1.5">
+        <TrendingUp className="w-4 h-4 text-primary" />
+        Readiness
+      </h2>
+
+      {data.snapshots.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          Open this page over a few days — Axiomic snapshots your
+          mastery daily (at no extra cost) and projects when you'll be
+          ready, with a dated plan to get there.
+        </p>
+      ) : (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Velocity
+              </div>
+              <div className="text-2xl font-semibold tabular-nums">
+                {hasTrend ? (
+                  <>
+                    {velocity > 0 ? "+" : ""}
+                    {velocity.toFixed(2)}
+                    <span className="text-xs text-muted-foreground font-normal">
+                      {" "}
+                      /day
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-base text-muted-foreground font-normal">
+                    need 2+ days
+                  </span>
+                )}
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Blockers
+              </div>
+              <div className="text-2xl font-semibold tabular-nums">
+                {data.weakConcepts}
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Projected ready
+              </div>
+              <div className="text-2xl font-semibold tabular-nums">
+                {data.estimatedReadyOn ? (
+                  new Date(data.estimatedReadyOn).toLocaleDateString()
+                ) : (
+                  <span className="text-base text-muted-foreground font-normal">
+                    —
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {data.snapshots.length >= 2 && (
+            <Sparkline points={data.snapshots.map((s) => s.mastered)} />
+          )}
+
+          {data.plan.length > 0 && (
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">
+                Dated study plan
+              </div>
+              <ul className="space-y-1.5">
+                {data.plan.map((p) => (
+                  <li
+                    key={p.conceptSlug}
+                    className="text-sm flex items-center justify-between gap-3 rounded-md border border-border px-3 py-1.5"
+                  >
+                    <Link
+                      to={`/wiki/${p.conceptSlug}`}
+                      className="text-primary hover:underline min-w-0 truncate"
+                    >
+                      {p.conceptTitle ?? p.conceptSlug}
+                    </Link>
+                    <span className="text-xs text-muted-foreground tabular-nums shrink-0">
+                      {p.targetDate
+                        ? new Date(p.targetDate).toLocaleDateString()
+                        : "unscheduled"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Sparkline({ points }: { points: number[] }) {
+  if (points.length < 2) return null;
+  const w = 240;
+  const h = 40;
+  const min = Math.min(...points);
+  const max = Math.max(...points);
+  const span = max - min || 1;
+  const step = w / (points.length - 1);
+  const d = points
+    .map((p, i) => {
+      const x = i * step;
+      const y = h - ((p - min) / span) * h;
+      return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+  return (
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      className="w-full max-w-[240px] h-10 text-primary"
+      preserveAspectRatio="none"
+      aria-label="Mastery trajectory"
+    >
+      <path
+        d={d}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

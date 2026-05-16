@@ -148,6 +148,35 @@ function sortKeys(value: unknown): unknown {
   return value;
 }
 
+// Phase 28A — generic credential signer. Factored from the
+// capstone-transcript path so reproduction (28B) + bounty (28D)
+// credentials all sign the same way: a canonical-JSON manifest
+// plus an ed25519 signature + the public key for offline verify.
+// `kind` namespaces the manifest so a verifier knows what shape
+// to expect (e.g. "capstone", "reproduction", "bounty").
+export interface SignedCredential {
+  manifest: Record<string, unknown> & { kind: string };
+  signature: string;
+  publicKey: string;
+  algorithm: "ed25519";
+  canonicalPayload: string;
+}
+
+export function signCredential(
+  kind: string,
+  payload: Record<string, unknown>,
+): SignedCredential {
+  const manifest = { kind, ...payload };
+  const canonicalPayload = canonicalJson(manifest);
+  return {
+    manifest,
+    signature: sign(canonicalPayload),
+    publicKey: publicKeyHex(),
+    algorithm: "ed25519",
+    canonicalPayload,
+  };
+}
+
 // Test-only hook to reset the cached keypair so the next call
 // regenerates / re-reads the env var.
 export function __resetForTesting() {

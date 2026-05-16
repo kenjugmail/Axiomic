@@ -50,6 +50,8 @@ const MORE_NAV_PUBLIC_SECTIONS: NavSection[] = [
     heading: "Discover",
     links: [
       { to: "/misconceptions", label: "Misconception marketplace" },
+      { to: "/bounties", label: "Research bounties" },
+      { to: "/hackathons", label: "Hackathons" },
       // Single fallback so anonymous users find the pet ecosystem.
       { to: "/explore/pets", label: "Pet showcase" },
     ],
@@ -68,6 +70,8 @@ const MORE_NAV_USER_SECTION: NavSection = {
     { to: "/me/lab", label: "My lab" },
     { to: "/me/mri", label: "Knowledge MRI" },
     { to: "/me/weak-concepts", label: "Weak concepts" },
+    { to: "/me/credentials", label: "Credentials" },
+    { to: "/reproductions/review", label: "Reproduction review" },
     { to: "/me/mentors", label: "Mentors" },
   ],
 };

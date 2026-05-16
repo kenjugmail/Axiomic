@@ -79,6 +79,13 @@ export const users = sqliteTable("users", {
   // token tied to it. The verify-email-change route copies
   // pendingEmail → email when the link is clicked.
   pendingEmail: text("pending_email"),
+  // Phase 28A — gates the public credential wallet at
+  // /u/:username/credentials. Default true: the artifact pages it
+  // aggregates are already public, so the portfolio is too unless
+  // the user opts out.
+  credentialsPublic: integer("credentials_public", { mode: "boolean" })
+    .notNull()
+    .default(true),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
 }, (t) => ({
@@ -611,6 +618,11 @@ export const reproductions = sqliteTable(
     status: text("status").notNull(),
     notes: text("notes"),
     evidenceUrl: text("evidence_url"),
+    // Phase 28B — set once a reproduction crosses the peer-review
+    // confirmation threshold. Null = not yet credentialed. Gates
+    // the signed "Reproduction Verified" credential so it mints
+    // exactly once.
+    credentialMintedAt: text("credential_minted_at"),
     createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   },
   (t) => ({
@@ -3118,3 +3130,141 @@ export const hackathonPrizeAwards = sqliteTable("hackathon_prize_awards", {
   // Idempotent award — same prize can't go to the same team twice.
   prizeTeamUq: uniqueIndex("hackathon_prize_awards_uq").on(t.prizeId, t.teamId),
 }));
+
+// ============================================================
+// Phase 28 — the differentiation chain.
+//   28B: reproduction peer review → signed credential
+//   28C/D: research bounty marketplace → signed credential
+//   28E: longitudinal mastery snapshots → readiness model
+// (28A credential wallet is read-only aggregation; no tables.)
+// ============================================================
+
+// Phase 28B — peer review of a reproduction. Mirrors
+// capstonePeerReviews. Two 'confirmed' verdicts mint the
+// reproduction's signed credential (reproductions.credentialMintedAt).
+export const reproductionReviews = sqliteTable(
+  "reproduction_reviews",
+  {
+    id: text("id").primaryKey(),
+    reproductionId: text("reproduction_id")
+      .notNull()
+      .references(() => reproductions.id, { onDelete: "cascade" }),
+    reviewerId: text("reviewer_id").notNull().references(() => users.id),
+    // 'confirmed' | 'refuted' | 'inconclusive'
+    verdict: text("verdict").notNull(),
+    notesMd: text("notes_md").notNull().default(""),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    // One review per (reproduction, reviewer).
+    uq: uniqueIndex("reproduction_reviews_uq").on(
+      t.reproductionId,
+      t.reviewerId,
+    ),
+    reproIdx: index("reproduction_reviews_repro_idx").on(t.reproductionId),
+  }),
+);
+
+// Phase 28C — research bounty. A poster (researcher / institution)
+// publishes a unit of real work; learners claim + complete it for
+// XP + an optional badge + a signed "Bounty Completed" credential.
+export const researchBounties = sqliteTable(
+  "research_bounties",
+  {
+    id: text("id").primaryKey(),
+    slug: text("slug").notNull().unique(),
+    title: text("title").notNull(),
+    descriptionMd: text("description_md").notNull().default(""),
+    // 'reproduce' | 'extend' | 'analyze' | 'other'
+    kind: text("kind").notNull().default("other"),
+    // Optional linkage to the research artifact this bounty is about.
+    linkedPaperId: text("linked_paper_id"),
+    linkedArticleId: text("linked_article_id"),
+    rewardXp: integer("reward_xp").notNull().default(0),
+    rewardBadgeSlug: text("reward_badge_slug"),
+    // 'open' | 'in_review' | 'completed' | 'closed'
+    status: text("status").notNull().default("open"),
+    maxClaimants: integer("max_claimants").notNull().default(1),
+    deadlineAt: text("deadline_at"),
+    discoverable: integer("discoverable", { mode: "boolean" })
+      .notNull()
+      .default(true),
+    posterId: text("poster_id").notNull().references(() => users.id),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+    updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    discoverIdx: index("research_bounties_discover_idx").on(
+      t.discoverable,
+      t.status,
+      t.createdAt,
+    ),
+    posterIdx: index("research_bounties_poster_idx").on(
+      t.posterId,
+      t.createdAt,
+    ),
+  }),
+);
+
+export const bountyClaims = sqliteTable(
+  "bounty_claims",
+  {
+    id: text("id").primaryKey(),
+    bountyId: text("bounty_id")
+      .notNull()
+      .references(() => researchBounties.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull().references(() => users.id),
+    // 'claimed' | 'submitted' | 'accepted' | 'rejected'
+    status: text("status").notNull().default("claimed"),
+    claimedAt: text("claimed_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    // One claim per user per bounty.
+    uq: uniqueIndex("bounty_claims_uq").on(t.bountyId, t.userId),
+    bountyIdx: index("bounty_claims_bounty_idx").on(t.bountyId, t.status),
+  }),
+);
+
+export const bountySubmissions = sqliteTable(
+  "bounty_submissions",
+  {
+    id: text("id").primaryKey(),
+    claimId: text("claim_id")
+      .notNull()
+      .references(() => bountyClaims.id, { onDelete: "cascade" }),
+    writeup: text("writeup").notNull().default(""),
+    // JSON array of {kind, url, label} — same shape as Phase 27.
+    artifactsJson: text("artifacts_json").notNull().default("[]"),
+    // Advisory AI sanity pass (gradeEssay output). Never gates
+    // acceptance — the poster decides.
+    aiReviewJson: text("ai_review_json"),
+    submittedAt: text("submitted_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    // One submission per claim (re-submit overwrites in place).
+    claimUq: uniqueIndex("bounty_submissions_claim_uq").on(t.claimId),
+  }),
+);
+
+// Phase 28E — daily longitudinal snapshot of a user's mastery
+// posture. Upserted once per user per day when the Knowledge MRI
+// builds. Powers the readiness trajectory + dated study plan.
+export const masterySnapshots = sqliteTable(
+  "mastery_snapshots",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    // YYYY-MM-DD (UTC) — the dedup key alongside userId.
+    capturedOn: text("captured_on").notNull(),
+    masteredCount: integer("mastered_count").notNull().default(0),
+    inProgressCount: integer("in_progress_count").notNull().default(0),
+    untouchedCount: integer("untouched_count").notNull().default(0),
+    avgQuizScore: real("avg_quiz_score"),
+    weakConceptCount: integer("weak_concept_count").notNull().default(0),
+    capturedAt: text("captured_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uq: uniqueIndex("mastery_snapshots_uq").on(t.userId, t.capturedOn),
+    userIdx: index("mastery_snapshots_user_idx").on(t.userId, t.capturedOn),
+  }),
+);

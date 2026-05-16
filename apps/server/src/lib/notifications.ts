@@ -48,7 +48,12 @@ export type NotificationKind =
   // so no per-user mute toggle in v1.
   | "hackathon_registered"
   | "hackathon_judging_complete"
-  | "hackathon_prize_won";
+  | "hackathon_prize_won"
+  // Phase 28 — reproduction credential + research bounty events.
+  // Always-on; direct + rare.
+  | "reproduction_verified"
+  | "bounty_claimed"
+  | "bounty_accepted";
 
 export type NotificationSubject =
   | "topic"
@@ -84,7 +89,10 @@ export type NotificationSubject =
   // hackathon slug.
   | "hackathon"
   | "hackathon_team"
-  | "hackathon_prize";
+  | "hackathon_prize"
+  // Phase 28 — reproduction credential + research bounty.
+  | "reproduction"
+  | "research_bounty";
 
 const MAX_MENTIONS_PER_BODY = 10;
 const PREVIEW_MAX = 140;
@@ -193,6 +201,9 @@ function kindGate(
     case "hackathon_registered":
     case "hackathon_judging_complete":
     case "hackathon_prize_won":
+    case "reproduction_verified":
+    case "bounty_claimed":
+    case "bounty_accepted":
       // News flow + follow events + admin pipeline + funding
       // alerts + Sprint 80 lab operational signals + S88
       // classroom/pet events + S90 pet evolution + Phase 25A

@@ -45,6 +45,12 @@ import { finalizeStaleExamAttemptsJob } from "./jobs/finalizeStaleExamAttempts";
 import { capstonesRouter } from "./routes/capstones";
 import { classesRouter } from "./routes/classes";
 import { hackathonsRouter } from "./routes/hackathons";
+import { bountiesRouter } from "./routes/bounties";
+import { reproductionsRouter } from "./routes/reproductions";
+import {
+  credentialsRouter,
+  meCredentialsRouter,
+} from "./routes/credentials";
 import { petRouter, petCatalogRouter, petPublicRouter, petSkinCatalogRouter } from "./routes/pet";
 import { misconceptionsRouter } from "./routes/misconceptions";
 import { kernelFilesRouter } from "./routes/kernelFiles";
@@ -283,6 +289,11 @@ app.route("/exams", examsRouter);
 app.route("/capstones", capstonesRouter);
 app.route("/classes", classesRouter);
 app.route("/hackathons", hackathonsRouter);
+app.route("/bounties", bountiesRouter);
+app.route("/reproductions", reproductionsRouter);
+app.route("/credentials", credentialsRouter);
+// Mounted before /me so the more-specific subtree wins.
+app.route("/me/credentials", meCredentialsRouter);
 app.route("/me/pet", petRouter);
 app.route("/pet-cosmetics", petCatalogRouter);
 // Phase L — public skin catalog.

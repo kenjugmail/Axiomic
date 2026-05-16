@@ -211,16 +211,26 @@ export function ProfilePage() {
       </div>
 
       <div className="space-y-6">
-        {isOwnProfile && (
-          <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          <Link
+            to={
+              isOwnProfile
+                ? "/me/credentials"
+                : `/u/${username}/credentials`
+            }
+            className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/15 transition-colors"
+          >
+            {isOwnProfile ? "My credentials" : "View credentials"} →
+          </Link>
+          {isOwnProfile && (
             <Link
               to="/me/mri"
               className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300 hover:bg-violet-500/15 transition-colors"
             >
               View Knowledge MRI →
             </Link>
-          </div>
-        )}
+          )}
+        </div>
         {/* Sprint 31 — public mastery portfolio: capstones + research +
             authored wiki + reproductions. Pulled in a single
             aggregate request from /users/:username/portfolio. */}

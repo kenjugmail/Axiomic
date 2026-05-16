@@ -49,6 +49,7 @@ import { env } from "../lib/envConfig";
 import { sendEmail } from "../lib/email";
 import { runDetectorForUser } from "../lib/misconceptionDetector";
 import { buildKnowledgeMri } from "../lib/knowledgeMri";
+import { recordMasterySnapshot, buildReadiness } from "../lib/readiness";
 import { currentStreak } from "../lib/achievements";
 import { totalXpForUser } from "../lib/xp";
 import type { Env } from "../env";
@@ -284,7 +285,22 @@ meRouter.get("/weak-concepts", requireAuth, async (c) => {
 meRouter.get("/knowledge-mri", requireAuth, async (c) => {
   const user = c.get("user")!;
   const mri = await buildKnowledgeMri(user.id);
+  // Phase 28E — capture a daily longitudinal snapshot at zero
+  // extra user cost. Idempotent per UTC day; best-effort so a
+  // snapshot failure can't break the MRI read.
+  try {
+    recordMasterySnapshot(user.id, mri);
+  } catch {
+    // swallow — diagnostics shouldn't 500 on a snapshot write
+  }
   return c.json(mri);
+});
+
+// Phase 28E — readiness projection + dated study plan derived
+// from accumulated mastery snapshots + active weakness diagnoses.
+meRouter.get("/readiness", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  return c.json(buildReadiness(user.id));
 });
 
 meRouter.post("/weak-concepts/refresh", requireAuth, async (c) => {

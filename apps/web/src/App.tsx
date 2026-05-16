@@ -371,6 +371,33 @@ const HackathonNewPage = lazy(() =>
     default: m.HackathonNewPage,
   })),
 );
+// Phase 28 — the differentiation chain: credential wallet,
+// reproduction review, research bounties.
+const CredentialWalletPage = lazy(() =>
+  import("./pages/CredentialWalletPage").then((m) => ({
+    default: m.CredentialWalletPage,
+  })),
+);
+const ReproductionReviewPage = lazy(() =>
+  import("./pages/ReproductionReviewPage").then((m) => ({
+    default: m.ReproductionReviewPage,
+  })),
+);
+const BountiesListPage = lazy(() =>
+  import("./pages/BountiesListPage").then((m) => ({
+    default: m.BountiesListPage,
+  })),
+);
+const BountyDetailPage = lazy(() =>
+  import("./pages/BountyDetailPage").then((m) => ({
+    default: m.BountyDetailPage,
+  })),
+);
+const BountyNewPage = lazy(() =>
+  import("./pages/BountyNewPage").then((m) => ({
+    default: m.BountyNewPage,
+  })),
+);
 // Sprint 39 — Capstone peer review queue.
 const CapstoneReviewQueuePage = lazy(() =>
   import("./pages/CapstoneReviewQueuePage").then((m) => ({
@@ -520,6 +547,19 @@ function AppRoutes() {
           <Route path="/hackathons" element={<HackathonsListPage />} />
           <Route path="/hackathons/new" element={<HackathonNewPage />} />
           <Route path="/hackathons/:slug" element={<HackathonDetailPage />} />
+          {/* Phase 28 — credentials · reproductions · bounties. */}
+          <Route path="/me/credentials" element={<CredentialWalletPage />} />
+          <Route
+            path="/u/:username/credentials"
+            element={<CredentialWalletPage />}
+          />
+          <Route
+            path="/reproductions/review"
+            element={<ReproductionReviewPage />}
+          />
+          <Route path="/bounties" element={<BountiesListPage />} />
+          <Route path="/bounties/new" element={<BountyNewPage />} />
+          <Route path="/bounties/:slug" element={<BountyDetailPage />} />
           <Route path="/forum/:domain" element={<ForumListPage />} />
           <Route path="/news" element={<NewsListPage />} />
           <Route path="/news/new" element={<NewsNewPage />} />

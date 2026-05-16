@@ -49,6 +49,10 @@ export const XP_AMOUNTS = {
   // when the prize was created with xpAmount=0 (so a
   // cosmetic-only prize still grants a small token of XP).
   "hackathon-prize": 50,
+  // Phase 28D — research bounty completion. Falls back to this
+  // when the poster set rewardXp=0 (badge-only bounty). Larger
+  // than a hackathon token grant — bounties are real work.
+  "bounty-completed": 150,
 } as const;
 
 // Sources with default amounts in XP_AMOUNTS.

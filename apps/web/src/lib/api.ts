@@ -1964,6 +1964,207 @@ export const api = {
         { method: "POST", body: JSON.stringify({ teamId }) },
       ),
   },
+  // Phase 28A — verifiable credential wallet.
+  credentials: {
+    forUser: (username: string) =>
+      request<{
+        user: { username: string; displayName: string | null };
+        credentials: Array<{
+          kind: string;
+          title: string;
+          earnedAt: string;
+          signed: boolean;
+          detailUrl: string;
+          verifyUrl: string | null;
+        }>;
+      }>(`/credentials/${username}`),
+    mine: () =>
+      request<{
+        credentialsPublic: boolean;
+        credentials: Array<{
+          kind: string;
+          title: string;
+          earnedAt: string;
+          signed: boolean;
+          detailUrl: string;
+          verifyUrl: string | null;
+        }>;
+      }>("/me/credentials"),
+    setVisibility: (isPublic: boolean) =>
+      request<OkResponse>("/me/credentials/visibility", {
+        method: "PUT",
+        body: JSON.stringify({ public: isPublic }),
+      }),
+  },
+  // Phase 28B — reproduction peer review → signed credential.
+  reproductions: {
+    reviewQueue: () =>
+      request<{
+        reproductions: Array<{
+          id: string;
+          targetKind: string;
+          targetId: string;
+          status: string;
+          notes: string | null;
+          evidenceUrl: string | null;
+          createdAt: string;
+          reproducerName: string;
+        }>;
+      }>("/reproductions/review-queue"),
+    get: (id: string) =>
+      request<{
+        reproduction: {
+          id: string;
+          targetKind: string;
+          targetId: string;
+          status: string;
+          notes: string | null;
+          evidenceUrl: string | null;
+          credentialMintedAt: string | null;
+          createdAt: string;
+        };
+        reviews: Array<{
+          id: string;
+          verdict: string;
+          notesMd: string;
+          createdAt: string;
+          reviewerName: string;
+        }>;
+        confirmThreshold: number;
+      }>(`/reproductions/${id}`),
+    review: (
+      id: string,
+      verdict: "confirmed" | "refuted" | "inconclusive",
+      notesMd: string,
+    ) =>
+      request<OkResponse>(`/reproductions/${id}/review`, {
+        method: "POST",
+        body: JSON.stringify({ verdict, notesMd }),
+      }),
+  },
+  // Phase 28C/D — research bounty marketplace.
+  bounties: {
+    discover: () =>
+      request<{
+        bounties: Array<{
+          id: string;
+          slug: string;
+          title: string;
+          kind: string;
+          status: string;
+          rewardXp: number;
+          maxClaimants: number;
+          deadlineAt: string | null;
+          createdAt: string;
+        }>;
+      }>("/bounties/discover"),
+    list: () =>
+      request<{
+        posted: Array<{
+          id: string;
+          slug: string;
+          title: string;
+          kind: string;
+          status: string;
+          rewardXp: number;
+          maxClaimants: number;
+          deadlineAt: string | null;
+          createdAt: string;
+        }>;
+        claimed: Array<{
+          id: string;
+          slug: string;
+          title: string;
+          kind: string;
+          status: string;
+          rewardXp: number;
+          maxClaimants: number;
+          deadlineAt: string | null;
+          createdAt: string;
+        }>;
+      }>("/bounties"),
+    get: (slug: string) =>
+      request<{
+        bounty: {
+          id: string;
+          slug: string;
+          title: string;
+          descriptionMd: string;
+          kind: string;
+          rewardXp: number;
+          rewardBadgeSlug: string | null;
+          status: string;
+          maxClaimants: number;
+          deadlineAt: string | null;
+          createdAt: string;
+          isPoster: boolean;
+        };
+        claims: Array<{
+          id: string;
+          userId: string;
+          username: string;
+          displayName: string | null;
+          status: string;
+          claimedAt: string;
+        }>;
+        submissions: Array<{
+          id: string;
+          claimId: string;
+          writeup: string;
+          artifacts: unknown[];
+          submittedAt: string;
+          aiReview: unknown | null;
+        }>;
+        myClaim: {
+          id: string;
+          status: string;
+          claimedAt: string;
+        } | null;
+      }>(`/bounties/${slug}`),
+    create: (data: {
+      slug: string;
+      title: string;
+      descriptionMd?: string;
+      kind?: "reproduce" | "extend" | "analyze" | "other";
+      rewardXp?: number;
+      rewardBadgeSlug?: string | null;
+      maxClaimants?: number;
+      deadlineAt?: string | null;
+    }) =>
+      request<{ id: string; slug: string }>("/bounties", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    delete: (slug: string) =>
+      request<OkResponse>(`/bounties/${slug}`, { method: "DELETE" }),
+    claim: (slug: string) =>
+      request<OkResponse>(`/bounties/${slug}/claim`, { method: "POST" }),
+    submit: (
+      slug: string,
+      data: {
+        writeup?: string;
+        artifacts?: Array<{
+          kind: "github" | "colab" | "demo" | "paper" | "other";
+          url: string;
+          label: string;
+        }>;
+      },
+    ) =>
+      request<OkResponse>(`/bounties/${slug}/submit`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    accept: (slug: string, claimId: string) =>
+      request<OkResponse>(
+        `/bounties/${slug}/claims/${claimId}/accept`,
+        { method: "POST" },
+      ),
+    reject: (slug: string, claimId: string) =>
+      request<OkResponse>(
+        `/bounties/${slug}/claims/${claimId}/reject`,
+        { method: "POST" },
+      ),
+  },
   tracks: {
     list: () =>
       request<{
@@ -2182,6 +2383,19 @@ export const api = {
       return request<PrereqXrayResponse>(`/me/prereq-status?${sp.toString()}`);
     },
     knowledgeMri: () => request<KnowledgeMri>("/me/knowledge-mri"),
+    // Phase 28E — readiness projection + dated study plan.
+    readiness: () =>
+      request<{
+        velocityPerDay: number;
+        snapshots: Array<{ capturedOn: string; mastered: number }>;
+        weakConcepts: number;
+        estimatedReadyOn: string | null;
+        plan: Array<{
+          conceptSlug: string;
+          conceptTitle: string | null;
+          targetDate: string;
+        }>;
+      }>("/me/readiness"),
     trackCompletions: () =>
       request<{
         completions: Array<{
