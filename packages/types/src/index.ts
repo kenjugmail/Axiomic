@@ -767,6 +767,13 @@ export interface MasteryNode {
   // pageIds. Capped at 3 per node server-side; clients show "Discuss"
   // chips inline.
   linkedTopics?: LinkedTopicLite[];
+  // Sprint 82 — non-lesson nodes (lab playbooks) carry no lessonData
+  // by design; their content is the linked cert/protocol/equipment.
+  // The server already sends these on the path payload.
+  nodeKind?: "lesson" | "protocol" | "cert" | "equipment-training";
+  protocolSlug?: string | null;
+  certSlug?: string | null;
+  equipmentSlug?: string | null;
 }
 
 export interface UserNodeProgress {
