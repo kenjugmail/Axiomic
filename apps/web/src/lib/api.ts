@@ -2006,6 +2006,11 @@ export const api = {
           detailUrl: string;
           verifyUrl: string | null;
           skills: Array<{ slug: string; title: string }>;
+          // Phase 32A/32B — issuer revocation + derived freshness.
+          revoked?: boolean;
+          revocationReason?: string | null;
+          ageDays?: number | null;
+          freshness?: "fresh" | "aging" | "stale" | null;
         }>;
       }>(`/credentials/${username}`),
     mine: () =>
@@ -2019,6 +2024,11 @@ export const api = {
           detailUrl: string;
           verifyUrl: string | null;
           skills: Array<{ slug: string; title: string }>;
+          // Phase 32A/32B — issuer revocation + derived freshness.
+          revoked?: boolean;
+          revocationReason?: string | null;
+          ageDays?: number | null;
+          freshness?: "fresh" | "aging" | "stale" | null;
         }>;
       }>("/me/credentials"),
     setVisibility: (isPublic: boolean) =>
@@ -2080,6 +2090,17 @@ export const api = {
       }>(
         `/public/research/${encodeURIComponent(targetKind)}/${encodeURIComponent(targetId)}/provenance`,
       ),
+    // Phase 32A — public, externally-checkable revocation feed.
+    revocations: () =>
+      request<{
+        count: number;
+        revocations: Array<{
+          credentialKind: string;
+          credentialRef: string;
+          reason: string;
+          revokedAt: string;
+        }>;
+      }>("/public/revocations"),
   },
   // Phase 28B — reproduction peer review → signed credential.
   reproductions: {
@@ -2413,6 +2434,29 @@ export const api = {
         `/recruiter/pools/${id}/members/${candidateUserId}`,
         { method: "DELETE" },
       ),
+    // Phase 32C — curated target-role catalog + per-candidate gap.
+    roles: () =>
+      request<{
+        roles: Array<{
+          slug: string;
+          title: string;
+          descriptionMd: string;
+          requiredSkillSlugs: string[];
+        }>;
+      }>("/recruiter/roles"),
+    poolGap: (id: string, role: string) =>
+      request<{
+        pool: { id: string; name: string };
+        role: { slug: string; title: string };
+        candidates: Array<{
+          username: string;
+          displayName: string | null;
+          coverage: number;
+          proven: number;
+          weak: number;
+          missing: number;
+        }>;
+      }>(`/recruiter/pools/${id}/gap?role=${encodeURIComponent(role)}`),
   },
   tracks: {
     list: () =>
@@ -2655,8 +2699,12 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ answer }),
       }),
-    // Phase 31B — prerequisite-ordered path to a target credential.
-    goalPath: (kind: "capstone" | "track" | "exam", slug: string) => {
+    // Phase 31B / 32C — prerequisite-ordered path to a target
+    // credential or an explicit skill set (kind=skills).
+    goalPath: (
+      kind: "capstone" | "track" | "exam" | "skills",
+      slug: string,
+    ) => {
       const sp = new URLSearchParams({ kind, slug });
       return request<{
         goal: { kind: string; slug: string; title: string | null };
@@ -2672,6 +2720,51 @@ export const api = {
         estimatedReadyOn: string | null;
         resolvable: boolean;
       }>(`/me/goal-path?${sp.toString()}`);
+    },
+    // Phase 32C — signed-proof skill gap vs a role or skill list,
+    // plus a dependency-ordered path over the gap.
+    skillGap: (opts: { role?: string; skills?: string[] }) => {
+      const sp = new URLSearchParams();
+      if (opts.role) sp.set("role", opts.role);
+      if (opts.skills && opts.skills.length > 0)
+        sp.set("skills", opts.skills.join(","));
+      return request<{
+        role: { slug: string; title: string; descriptionMd: string } | null;
+        gap: {
+          target: string[];
+          proven: Array<{
+            slug: string;
+            title: string;
+            proofCount: number;
+            latestProofAt: string | null;
+          }>;
+          weak: Array<{
+            slug: string;
+            title: string;
+            quizScore: number | null;
+          }>;
+          missing: Array<{ slug: string; title: string }>;
+          coverage: number;
+        };
+        path: {
+          goal: { kind: string; slug: string; title: string | null };
+          steps: Array<{
+            nodeId: string;
+            slug: string;
+            title: string;
+            status: "in_progress" | "untouched";
+            reason: string;
+            estimatedDays: number | null;
+          }>;
+          blockedOn: Array<{
+            nodeId: string;
+            slug: string;
+            title: string;
+          }>;
+          estimatedReadyOn: string | null;
+          resolvable: boolean;
+        } | null;
+      }>(`/me/skill-gap?${sp.toString()}`);
     },
     prereqStatus: (wikiSlugs: string[]) => {
       const sp = new URLSearchParams();

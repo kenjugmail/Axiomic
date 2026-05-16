@@ -59,7 +59,13 @@ export type NotificationKind =
   | "review_room_message"
   // Phase 30B — a cohort study session was scheduled. Always-on;
   // direct fan-out to cohort members.
-  | "cohort_session_scheduled";
+  | "cohort_session_scheduled"
+  // Phase 32A — a signed credential was revoked (e.g. a
+  // reproduction refuted after mint). Always-on; direct + rare.
+  | "credential_revoked"
+  // Phase 32D — a mastered concept / aging credential is due for
+  // a refresh or re-attestation. Muteable via the mastery toggle.
+  | "review_due";
 
 export type NotificationSubject =
   | "topic"
@@ -186,6 +192,10 @@ function kindGate(
       return "notifyReplies";
     case "mastery_level_up":
       return "notifyMastery";
+    // Phase 32D — decay/re-attest nudges ride the same mute toggle
+    // as mastery level-ups (both are learning-progress signals).
+    case "review_due":
+      return "notifyMastery";
     case "news_edit_proposed":
     case "news_edit_approved":
     case "news_edit_rejected":
@@ -218,6 +228,7 @@ function kindGate(
     case "bounty_accepted":
     case "review_room_message":
     case "cohort_session_scheduled":
+    case "credential_revoked":
       // News flow + follow events + admin pipeline + funding
       // alerts + Sprint 80 lab operational signals + S88
       // classroom/pet events + S90 pet evolution + Phase 25A

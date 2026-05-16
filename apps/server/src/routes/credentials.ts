@@ -43,6 +43,12 @@ import {
   resolveWikiTitles,
   toSkills,
 } from "../lib/credentialSkills";
+import {
+  getRevocation,
+  revocationKey,
+  revokedKeySet,
+} from "../lib/revocation";
+import { ageDays, freshnessBand, type Freshness } from "../lib/freshness";
 import type { Env } from "../env";
 
 export const credentialsRouter = new Hono<Env>();
@@ -68,10 +74,18 @@ interface WalletItem {
   // Phase 29C — concepts/skills this credential demonstrates.
   // Default []; populated best-effort by annotateSkills().
   skills: Skill[];
+  // Phase 32A — issuer-asserted revocation (signature still valid).
+  revoked?: boolean;
+  revocationReason?: string | null;
+  // Phase 32B — derived freshness over earnedAt (no re-sign).
+  ageDays?: number | null;
+  freshness?: Freshness | null;
   // Internal staging fields (deleted before serialization).
   _wikiSlugs?: string[];
   _pathSlugs?: string[];
   _target?: { kind: string; id: string };
+  _revKind?: string;
+  _revRef?: string;
 }
 
 export function buildWallet(
@@ -279,6 +293,8 @@ export function buildWallet(
       }),
       skills: [],
       _target: { kind: r.targetKind, id: r.targetId },
+      _revKind: "reproduction",
+      _revRef: r.id,
     });
   }
 
@@ -320,7 +336,24 @@ export function buildWallet(
         claimId: b.claimId,
       }),
       skills: [],
+      _revKind: "bounty",
+      _revRef: b.bountyId,
     });
+  }
+
+  // Phase 32A/32B — annotate the issuer revocation registry + a
+  // derived freshness band. Neither touches the signed bytes: the
+  // signature still verifies; this is presentation/trust metadata.
+  const revokedKeys = revokedKeySet();
+  for (const it of items) {
+    const hasRef = Boolean(it._revKind && it._revRef);
+    it.revoked =
+      hasRef && revokedKeys.has(revocationKey(it._revKind!, it._revRef!));
+    it.revocationReason = it.revoked
+      ? getRevocation(it._revKind!, it._revRef!)?.reason ?? "Revoked."
+      : null;
+    it.ageDays = ageDays(it.earnedAt);
+    it.freshness = freshnessBand(it.earnedAt);
   }
 
   annotateSkills(items);
@@ -369,6 +402,8 @@ function annotateSkills(items: WalletItem[]): void {
     delete it._wikiSlugs;
     delete it._pathSlugs;
     delete it._target;
+    delete it._revKind;
+    delete it._revRef;
   }
 }
 

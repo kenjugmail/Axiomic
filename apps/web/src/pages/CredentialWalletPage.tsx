@@ -16,6 +16,7 @@ import { Link, useParams } from "react-router-dom";
 import {
   Award,
   BadgeCheck,
+  Clock,
   Download,
   Eye,
   EyeOff,
@@ -23,6 +24,7 @@ import {
   FlaskConical,
   GraduationCap,
   ScrollText,
+  ShieldOff,
   Trophy,
 } from "lucide-react";
 import { api, ApiError } from "../lib/api";
@@ -39,6 +41,10 @@ type Credential = {
   detailUrl: string;
   verifyUrl: string | null;
   skills: Array<{ slug: string; title: string }>;
+  revoked?: boolean;
+  revocationReason?: string | null;
+  ageDays?: number | null;
+  freshness?: "fresh" | "aging" | "stale" | null;
 };
 
 const KIND_META: Record<
@@ -251,14 +257,27 @@ export function CredentialWalletPage() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-3 flex-wrap">
-                      <h2 className="font-display text-base font-semibold leading-snug">
+                      <h2
+                        className={`font-display text-base font-semibold leading-snug ${
+                          c.revoked
+                            ? "line-through text-muted-foreground"
+                            : ""
+                        }`}
+                      >
                         {c.title}
                       </h2>
-                      {c.signed && (
-                        <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-1">
-                          <BadgeCheck className="w-3 h-3" />
-                          Signed
+                      {c.revoked ? (
+                        <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300 inline-flex items-center gap-1">
+                          <ShieldOff className="w-3 h-3" />
+                          Revoked
                         </span>
+                      ) : (
+                        c.signed && (
+                          <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-1">
+                            <BadgeCheck className="w-3 h-3" />
+                            Signed
+                          </span>
+                        )
                       )}
                     </div>
                     <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-1 flex flex-wrap items-center gap-2">
@@ -268,7 +287,34 @@ export function CredentialWalletPage() {
                       <span>
                         earned {new Date(c.earnedAt).toLocaleDateString()}
                       </span>
+                      {!c.revoked &&
+                        (c.freshness === "aging" ||
+                          c.freshness === "stale") && (
+                          <span
+                            className={`px-1.5 py-0.5 rounded-full border inline-flex items-center gap-1 ${
+                              c.freshness === "stale"
+                                ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+                                : "border-border"
+                            }`}
+                            title={
+                              c.ageDays != null
+                                ? `${c.ageDays} days old`
+                                : undefined
+                            }
+                          >
+                            <Clock className="w-3 h-3" />
+                            {c.freshness}
+                          </span>
+                        )}
                     </div>
+                    {c.revoked && (
+                      <p className="mt-2 text-xs text-rose-700 dark:text-rose-300">
+                        {c.revocationReason ||
+                          "This credential was revoked by the issuer."}{" "}
+                        The signature still verifies, but the issuer has
+                        withdrawn the claim.
+                      </p>
+                    )}
                     {c.skills.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {c.skills.map((s) => (

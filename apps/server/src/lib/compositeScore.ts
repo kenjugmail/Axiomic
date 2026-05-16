@@ -68,7 +68,8 @@ export async function computeAxiomicScore(
     Math.log10(1 + xpRaw) / Math.log10(1 + XP_LOG_SATURATION),
   );
 
-  const wallet = buildWallet(userId, username);
+  // Phase 32A — revoked credentials must not prop up the score.
+  const wallet = buildWallet(userId, username).filter((it) => !it.revoked);
   const byKind: Record<string, number> = {};
   for (const it of wallet) byKind[it.kind] = (byKind[it.kind] ?? 0) + 1;
   const credRaw = wallet.length;

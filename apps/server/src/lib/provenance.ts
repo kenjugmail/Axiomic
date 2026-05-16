@@ -14,6 +14,7 @@ import {
   researchBounties,
   users,
 } from "@axiomic/db";
+import { revokedKeySet, revocationKey } from "./revocation";
 
 export interface Provenance {
   target: { kind: string; id: string };
@@ -38,6 +39,7 @@ export function buildProvenance(
 
   const repros = db
     .select({
+      id: reproductions.id,
       username: users.username,
       weight: reproductions.credentialMintWeight,
       mintedAt: reproductions.credentialMintedAt,
@@ -52,6 +54,10 @@ export function buildProvenance(
       ),
     )
     .all();
+
+  // Phase 32A — a refuted-then-revoked reproduction is no longer a
+  // verified contribution; drop it from the public attestation.
+  const revoked = revokedKeySet();
 
   // Bounties linked to this artifact, then their accepted claims.
   const linkCol =
@@ -103,7 +109,11 @@ export function buildProvenance(
   return {
     target: { kind: targetKind, id: targetId },
     reproducedBy: repros
-      .filter((r) => r.mintedAt != null)
+      .filter(
+        (r) =>
+          r.mintedAt != null &&
+          !revoked.has(revocationKey("reproduction", r.id)),
+      )
       .map((r) => ({
         username: r.username,
         confirmedWeight: r.weight,

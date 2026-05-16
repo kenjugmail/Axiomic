@@ -25,7 +25,11 @@ import { buildReadiness } from "./readiness";
 
 export const MASTERY_THRESHOLD = 0.7; // mirrors knowledgeMri
 
-export type GoalKind = "capstone" | "track" | "exam";
+// Phase 32C — 'skills' targets an explicit set of skill/concept
+// slugs (e.g. a role's required skills, or an ad-hoc list). The
+// `slug` field carries the comma-joined slug list; everything
+// downstream reuses the existing wiki-slug → node resolution.
+export type GoalKind = "capstone" | "track" | "exam" | "skills";
 export interface GoalRef {
   kind: GoalKind;
   slug: string;
@@ -107,7 +111,7 @@ export function buildGoalPath(userId: string, goal: GoalRef): GoalPath {
         }
       }
     }
-  } else {
+  } else if (goal.kind === "exam") {
     const ex = db
       .select({ title: exams.title, pathSlug: exams.pathSlug })
       .from(exams)
@@ -129,6 +133,17 @@ export function buildGoalPath(userId: string, goal: GoalRef): GoalPath {
             .forEach((n) => seedNodeIds.add(n.id));
         }
       }
+    }
+  } else {
+    // Phase 32C — skills: the slug field is a comma-joined list of
+    // target skill/concept slugs; resolve them via the same
+    // wiki-slug → node mechanism the other kinds use.
+    title = "Target skills";
+    for (const s of goal.slug
+      .split(",")
+      .map((x) => x.trim())
+      .filter(Boolean)) {
+      seedWikiSlugs.add(s);
     }
   }
 

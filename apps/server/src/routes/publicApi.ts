@@ -21,6 +21,7 @@ import {
   signAxiomicScore,
 } from "../lib/compositeScore";
 import { buildProvenance } from "../lib/provenance";
+import { listActiveRevocations } from "../lib/revocation";
 import type { Env } from "../env";
 
 export const publicApiRouter = new Hono<Env>();
@@ -92,3 +93,15 @@ publicApiRouter.get(
     return c.json(buildProvenance(targetKind, targetId));
   },
 );
+
+// Phase 32A — public, externally-checkable revocation feed. Any
+// third party that cached a signed credential offline can poll
+// this to learn the issuer has since withdrawn the claim — the
+// CRL/OCSP analogue for Axiomic credentials. CORS-open (scoped to
+// this router); no auth; no privacy gate (a revocation is a
+// public trust statement, like the signing key itself).
+publicApiRouter.get("/revocations", (c) => {
+  const revocations = listActiveRevocations();
+  c.header("cache-control", "public, max-age=300");
+  return c.json({ count: revocations.length, revocations });
+});

@@ -82,6 +82,7 @@ import {
   protocolRunsMeRouter,
 } from "./routes/protocolRuns";
 import { notifyExpiringCertsJob } from "./jobs/notifyExpiringCerts";
+import { resurfacingDecayJob } from "./jobs/resurfacingDecay";
 import { hardDeleteSoftDeletedUsersJob, cleanupOldLoginAttemptsJob } from "./lib/userCleanupJob";
 import { captureError } from "./lib/observability";
 import { bootstrapAdmin } from "./lib/bootstrapAdmin";
@@ -119,6 +120,8 @@ import {
   verify,
   verifyWithPublicKey,
 } from "./lib/signing";
+import { getRevocation } from "./lib/revocation";
+import { ageDays, freshnessBand } from "./lib/freshness";
 import type { Env } from "./env";
 import { env, warnOnInsecureConfig, assertProductionSecrets } from "./lib/envConfig";
 import { setServerExecBackend } from "./lib/serverExec";
@@ -219,10 +222,34 @@ app.post("/keys/verify", async (c) => {
   const valid = claimedPublicKey
     ? verifyWithPublicKey(payload, signature, claimedPublicKey)
     : verify(payload, signature);
+
+  // Phase 32A/32B — additive trust metadata. The signature result
+  // (`valid`) is UNCHANGED; we additionally tell the verifier
+  // whether the issuer has since revoked the underlying claim
+  // (CRL/OCSP-style) and how old the credential is. A revoked
+  // credential still returns valid:true — the bytes are authentic,
+  // the claim is just withdrawn.
+  const kind = typeof manifest?.kind === "string" ? manifest.kind : null;
+  let ref: string | null = null;
+  let earnedAt: string | null = null;
+  if (kind === "reproduction") {
+    ref = typeof manifest.reproductionId === "string" ? manifest.reproductionId : null;
+    earnedAt = typeof manifest.mintedAt === "string" ? manifest.mintedAt : null;
+  } else if (kind === "bounty") {
+    ref = typeof manifest.bountyId === "string" ? manifest.bountyId : null;
+  } else if (kind === "composite_score") {
+    ref = typeof manifest.userId === "string" ? manifest.userId : null;
+    earnedAt = typeof manifest.issuedAt === "string" ? manifest.issuedAt : null;
+  }
+  const rev = kind && ref ? getRevocation(kind, ref) : null;
   return c.json({
     valid,
     publicKey: claimedPublicKey ?? publicKeyHex(),
     canonicalPayload: payload,
+    revoked: rev !== null,
+    revocationReason: rev?.reason ?? null,
+    ageDays: ageDays(earnedAt),
+    freshness: freshnessBand(earnedAt),
   });
 });
 
@@ -394,6 +421,8 @@ if (process.env.DISABLE_JOB_RUNNER !== "1") {
   // period + expire the login-attempts ring buffer.
   registerJob(hardDeleteSoftDeletedUsersJob);
   registerJob(cleanupOldLoginAttemptsJob);
+  // Phase 32D — proactive decay-aware resurfacing (daily).
+  registerJob(resurfacingDecayJob);
   startJobRunner();
 }
 

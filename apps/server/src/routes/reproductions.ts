@@ -27,6 +27,13 @@ import {
   getReviewerReputations,
   reviewerWeight,
 } from "../lib/reviewerTrust";
+import {
+  REFUTE_WEIGHT_THRESHOLD,
+  getRevocation,
+  revokeCredential,
+  unrevoke,
+} from "../lib/revocation";
+import { requireAdmin } from "../middleware/requireAdmin";
 import type { Env } from "../env";
 
 export const reproductionsRouter = new Hono<Env>();
@@ -227,6 +234,111 @@ reproductionsRouter.post(
       }
     }
 
+    // Phase 32A — dispute reaction. If a credential exists for this
+    // reproduction and the summed trust weight of *refuting*
+    // reviewers crosses the (symmetric) threshold, revoke it. The
+    // ed25519 signature still verifies `valid:true`; the issuer just
+    // asserts the underlying claim no longer holds. `repro` is a
+    // pre-mint snapshot, so re-read the current minted state.
+    const current = db
+      .select({ mintedAt: reproductions.credentialMintedAt })
+      .from(reproductions)
+      .where(eq(reproductions.id, id))
+      .get();
+    if (current?.mintedAt) {
+      const refuterIds = db
+        .select({ reviewerId: reproductionReviews.reviewerId })
+        .from(reproductionReviews)
+        .where(
+          and(
+            eq(reproductionReviews.reproductionId, id),
+            eq(reproductionReviews.verdict, "refuted"),
+          ),
+        )
+        .all()
+        .map((r) => r.reviewerId);
+      // Same summation as the confirm gate (summed reviewer trust).
+      const refuteWeight = confirmedWeight(refuterIds);
+      if (
+        refuteWeight >= REFUTE_WEIGHT_THRESHOLD &&
+        !getRevocation("reproduction", id)
+      ) {
+        revokeCredential(
+          "reproduction",
+          id,
+          "Peer review refuted this reproduction after the credential was minted.",
+          null,
+        );
+        void notify({
+          recipientId: repro.reproducerId,
+          actorId: null,
+          kind: "credential_revoked",
+          subjectType: "reproduction",
+          subjectId: id,
+          contextSlug: null,
+          preview:
+            "A reproduction credential was revoked after peer review refuted it.",
+        });
+      }
+    }
+
     return c.json({ ok: true });
+  },
+);
+
+// Phase 32A — manual issuer/admin revoke + un-revoke (e.g. a
+// refute was itself overturned). Reversible; the signature is
+// never touched. `reason` surfaces in the wallet + public feed.
+const revokeSchema = z.object({
+  reason: z.string().max(500).optional().default(""),
+});
+reproductionsRouter.post(
+  "/:id/revoke",
+  requireAdmin,
+  zValidator("json", revokeSchema),
+  (c) => {
+    const me = c.get("user")!;
+    const id = c.req.param("id")!;
+    const { reason } = c.req.valid("json");
+    const db = getDb();
+    const repro = db
+      .select({ id: reproductions.id, reproducerId: reproductions.reproducerId })
+      .from(reproductions)
+      .where(eq(reproductions.id, id))
+      .get();
+    if (!repro) return c.json({ error: "Reproduction not found" }, 404);
+    revokeCredential(
+      "reproduction",
+      id,
+      reason || "Revoked by an administrator.",
+      me.id,
+    );
+    void notify({
+      recipientId: repro.reproducerId,
+      actorId: null,
+      kind: "credential_revoked",
+      subjectType: "reproduction",
+      subjectId: id,
+      contextSlug: null,
+      preview: "A reproduction credential was revoked by an administrator.",
+    });
+    return c.json({ ok: true, revoked: true });
+  },
+);
+reproductionsRouter.post(
+  "/:id/unrevoke",
+  requireAdmin,
+  (c) => {
+    const me = c.get("user")!;
+    const id = c.req.param("id")!;
+    const db = getDb();
+    const repro = db
+      .select({ id: reproductions.id })
+      .from(reproductions)
+      .where(eq(reproductions.id, id))
+      .get();
+    if (!repro) return c.json({ error: "Reproduction not found" }, 404);
+    unrevoke("reproduction", id, me.id);
+    return c.json({ ok: true, revoked: false });
   },
 );

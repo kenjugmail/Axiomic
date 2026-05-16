@@ -55,6 +55,8 @@ import { totalXpForUser } from "../lib/xp";
 import { gradeEssay } from "../lib/essayGrader";
 import { resolveMisconceptionIfProven } from "../lib/tutorResolution";
 import { buildGoalPath } from "../lib/goalPlanner";
+import { analyzeSkillGap } from "../lib/skillGap";
+import { getRole } from "../lib/roles";
 import type { Env } from "../env";
 
 export const meRouter = new Hono<Env>();
@@ -306,19 +308,62 @@ meRouter.get("/readiness", requireAuth, async (c) => {
   return c.json(buildReadiness(user.id));
 });
 
-// Phase 31B — prerequisite-ordered path from the user's current
-// mastery state to a target credential (capstone/track/exam).
+// Phase 31B / 32C — prerequisite-ordered path from the user's
+// current mastery state to a target credential (capstone/track/
+// exam) or an explicit skill set (kind=skills, slug=a,b,c).
 meRouter.get("/goal-path", requireAuth, async (c) => {
   const user = c.get("user")!;
   const kind = c.req.query("kind");
   const slug = (c.req.query("slug") ?? "").trim();
   if (
-    (kind !== "capstone" && kind !== "track" && kind !== "exam") ||
+    (kind !== "capstone" &&
+      kind !== "track" &&
+      kind !== "exam" &&
+      kind !== "skills") ||
     !slug
   ) {
-    return c.json({ error: "kind (capstone|track|exam) + slug required" }, 400);
+    return c.json(
+      { error: "kind (capstone|track|exam|skills) + slug required" },
+      400,
+    );
   }
   return c.json(buildGoalPath(user.id, { kind, slug }));
+});
+
+// Phase 32C — signed-proof skill-gap vs. a target role or an
+// ad-hoc skill list, plus a dependency-ordered path over the gap.
+meRouter.get("/skill-gap", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const roleSlug = (c.req.query("role") ?? "").trim();
+  const skillsParam = (c.req.query("skills") ?? "").trim();
+  let target: string[] = [];
+  let role: { slug: string; title: string; descriptionMd: string } | null =
+    null;
+  if (roleSlug) {
+    const r = getRole(roleSlug);
+    if (!r) return c.json({ error: "Unknown role" }, 404);
+    role = {
+      slug: r.slug,
+      title: r.title,
+      descriptionMd: r.descriptionMd,
+    };
+    target = r.requiredSkillSlugs;
+  } else if (skillsParam) {
+    target = skillsParam.split(",");
+  } else {
+    return c.json({ error: "role or skills query required" }, 400);
+  }
+  const gap = analyzeSkillGap(user.id, target);
+  // Actionable: order only the actual gap (weak ∪ missing).
+  const gapSlugs = [
+    ...gap.weak.map((w) => w.slug),
+    ...gap.missing.map((m) => m.slug),
+  ];
+  const path =
+    gapSlugs.length > 0
+      ? buildGoalPath(user.id, { kind: "skills", slug: gapSlugs.join(",") })
+      : null;
+  return c.json({ role, gap, path });
 });
 
 meRouter.post("/weak-concepts/refresh", requireAuth, async (c) => {

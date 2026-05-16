@@ -23,6 +23,8 @@ import {
 import { requireAuth } from "../middleware/auth";
 import { checkRateLimit } from "../lib/rateLimit";
 import { env } from "../lib/envConfig";
+import { listRoles, getRole } from "../lib/roles";
+import { analyzeSkillGap } from "../lib/skillGap";
 import type { Env } from "../env";
 
 export const recruiterRouter = new Hono<Env>();
@@ -177,6 +179,57 @@ recruiterRouter.get("/pools/:id", requireAuth, async (c) => {
     .orderBy(desc(talentPoolMembers.addedAt))
     .all();
   return c.json({ pool: { id: pool.id, name: pool.name }, members });
+});
+
+// Phase 32C — curated target-role catalog (public, like /skills).
+recruiterRouter.get("/roles", (c) => {
+  return c.json({ roles: listRoles() });
+});
+
+// Phase 32C — per-candidate signed-proof gap for a pool against a
+// target role. Owner-only; one analyzeSkillGap per member (pools
+// are small). Powers the recruiter "who's closest to this role".
+recruiterRouter.get("/pools/:id/gap", requireAuth, async (c) => {
+  const me = c.get("user")!;
+  const db = getDb();
+  const pool = db
+    .select({ id: userTalentPools.id, ownerId: userTalentPools.ownerId, name: userTalentPools.name })
+    .from(userTalentPools)
+    .where(eq(userTalentPools.id, c.req.param("id")!))
+    .get();
+  if (!pool) return c.json({ error: "Pool not found" }, 404);
+  if (pool.ownerId !== me.id) return c.json({ error: "Owner only" }, 403);
+  const roleSlug = (c.req.query("role") ?? "").trim();
+  const role = roleSlug ? getRole(roleSlug) : null;
+  if (!role) return c.json({ error: "Unknown role" }, 404);
+  const members = db
+    .select({
+      candidateUserId: talentPoolMembers.candidateUserId,
+      username: users.username,
+      displayName: users.displayName,
+    })
+    .from(talentPoolMembers)
+    .innerJoin(users, eq(talentPoolMembers.candidateUserId, users.id))
+    .where(eq(talentPoolMembers.poolId, pool.id))
+    .all();
+  const rows = members
+    .map((m) => {
+      const g = analyzeSkillGap(m.candidateUserId, role.requiredSkillSlugs);
+      return {
+        username: m.username,
+        displayName: m.displayName,
+        coverage: g.coverage,
+        proven: g.proven.length,
+        weak: g.weak.length,
+        missing: g.missing.length,
+      };
+    })
+    .sort((a, b) => b.coverage - a.coverage);
+  return c.json({
+    pool: { id: pool.id, name: pool.name },
+    role: { slug: role.slug, title: role.title },
+    candidates: rows,
+  });
 });
 
 recruiterRouter.post(

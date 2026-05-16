@@ -3384,3 +3384,64 @@ export const talentPoolMembers = sqliteTable(
     ),
   }),
 );
+
+// Phase 32A — verifiable credential revocation registry. Signing
+// + /keys/verify are UNCHANGED; this is an additive issuer-asserted
+// layer (CRL/OCSP-style): the ed25519 signature still verifies
+// `valid:true`, but the issuer can mark the underlying claim
+// revoked (e.g. a reproduction refuted after its credential was
+// minted). One row per (kind, ref), toggled via `active` so an
+// over-turned refute can un-revoke. Nothing reads the signed bytes
+// — wallet/provenance/score/verify just consult this table.
+export const credentialRevocations = sqliteTable(
+  "credential_revocations",
+  {
+    id: text("id").primaryKey(),
+    // 'reproduction' | 'bounty' | 'composite_score' | 'capstone'
+    credentialKind: text("credential_kind").notNull(),
+    // The credential's natural ref: reproId / bountyId / userId / …
+    credentialRef: text("credential_ref").notNull(),
+    reason: text("reason").notNull().default(""),
+    // null = system (auto-revoke on refute weight); else the
+    // issuer/admin who pulled it.
+    revokedByUserId: text("revoked_by_user_id").references(() => users.id),
+    active: integer("active", { mode: "boolean" }).notNull().default(true),
+    revokedAt: text("revoked_at").default(sql`(datetime('now'))`).notNull(),
+    updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uq: uniqueIndex("credential_revocations_uq").on(
+      t.credentialKind,
+      t.credentialRef,
+    ),
+    activeIdx: index("credential_revocations_active_idx").on(
+      t.active,
+      t.revokedAt,
+    ),
+  }),
+);
+
+// Phase 32C — curated target-role catalog for the skill-gap
+// analyzer. A role names a set of skill slugs; the analyzer diffs
+// a user's signed-proof skills (userSkillIndex) + mastery against
+// it. Ad-hoc skill-slug arrays also work with ZERO rows here — the
+// catalog is a convenience, not a requirement.
+export const roleProfiles = sqliteTable(
+  "role_profiles",
+  {
+    id: text("id").primaryKey(),
+    slug: text("slug").notNull().unique(),
+    title: text("title").notNull(),
+    descriptionMd: text("description_md").notNull().default(""),
+    // JSON array of skill slugs the role requires.
+    requiredSkillSlugsJson: text("required_skill_slugs_json")
+      .notNull()
+      .default("[]"),
+    // 'curated' | 'user' — seeded roles vs. future user-defined.
+    source: text("source").notNull().default("curated"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    slugIdx: index("role_profiles_slug_idx").on(t.slug),
+  }),
+);

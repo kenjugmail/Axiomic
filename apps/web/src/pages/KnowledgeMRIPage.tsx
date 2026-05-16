@@ -180,6 +180,9 @@ export function KnowledgeMRIPage() {
       {/* Phase 31B — prerequisite-ordered goal path */}
       <GoalPathPanel />
 
+      {/* Phase 32C — target-a-role signed-proof skill gap */}
+      <SkillGapPanel />
+
       {/* Per-path heatmap */}
       <MriHeatmap
         paths={paths}
@@ -514,6 +517,190 @@ function GoalPathPanel() {
                 </li>
               ))}
             </ol>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Phase 32C — diff your *signed-proof* skills against a target
+// role (or an ad-hoc skill list) and get a dependency-ordered
+// path over the gap. Reuses the GoalPathPanel step rendering.
+function SkillGapPanel() {
+  const [roles, setRoles] = useState<
+    Awaited<ReturnType<typeof api.recruiter.roles>>["roles"]
+  >([]);
+  const [mode, setMode] = useState<"role" | "skills">("role");
+  const [roleSlug, setRoleSlug] = useState("");
+  const [skillsText, setSkillsText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [data, setData] = useState<Awaited<
+    ReturnType<typeof api.me.skillGap>
+  > | null>(null);
+
+  useEffect(() => {
+    api.recruiter
+      .roles()
+      .then((r) => {
+        setRoles(r.roles);
+        if (r.roles[0]) setRoleSlug(r.roles[0].slug);
+      })
+      .catch(() => {});
+  }, []);
+
+  const analyze = async () => {
+    setBusy(true);
+    try {
+      if (mode === "role") {
+        if (!roleSlug) return;
+        setData(await api.me.skillGap({ role: roleSlug }));
+      } else {
+        const skills = skillsText
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+        if (skills.length === 0) return;
+        setData(await api.me.skillGap({ skills }));
+      }
+    } catch {
+      setData(null);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-4 sm:p-5 mb-6">
+      <h2 className="text-sm font-semibold mb-1 inline-flex items-center gap-1.5">
+        <Target className="w-4 h-4 text-primary" />
+        Skill gap vs. a role
+      </h2>
+      <p className="text-xs text-muted-foreground mb-3">
+        Compared against what you've <strong>proven with signed
+        credentials</strong> — not self-reported.
+      </p>
+      <div className="flex gap-2 flex-wrap items-end mb-3">
+        <label>
+          <span className="block text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+            Mode
+          </span>
+          <select
+            value={mode}
+            onChange={(e) => setMode(e.target.value as typeof mode)}
+            className="text-sm px-2 py-2 rounded-md border border-border bg-background"
+          >
+            <option value="role">Role</option>
+            <option value="skills">Ad-hoc skills</option>
+          </select>
+        </label>
+        {mode === "role" ? (
+          <label className="flex-1 min-w-[12rem]">
+            <span className="block text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+              Target role
+            </span>
+            <select
+              value={roleSlug}
+              onChange={(e) => setRoleSlug(e.target.value)}
+              className="w-full text-sm px-2 py-2 rounded-md border border-border bg-background"
+            >
+              {roles.map((r) => (
+                <option key={r.slug} value={r.slug}>
+                  {r.title}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : (
+          <label className="flex-1 min-w-[12rem]">
+            <span className="block text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+              Skill slugs (comma-separated)
+            </span>
+            <input
+              value={skillsText}
+              onChange={(e) => setSkillsText(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && analyze()}
+              placeholder="probability, gradient-descent, attention"
+              className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background font-mono"
+            />
+          </label>
+        )}
+        <button
+          type="button"
+          onClick={analyze}
+          disabled={busy}
+          className="text-sm px-3 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+        >
+          {busy ? "Analyzing…" : "Analyze"}
+        </button>
+      </div>
+
+      {data && (
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-2 text-xs">
+            <span className="px-2 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+              {data.gap.proven.length} proven
+            </span>
+            <span className="px-2 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300">
+              {data.gap.weak.length} weak
+            </span>
+            <span className="px-2 py-1 rounded-full border border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300">
+              {data.gap.missing.length} missing
+            </span>
+            <span className="px-2 py-1 rounded-full border border-border text-muted-foreground">
+              {Math.round(data.gap.coverage * 100)}% covered
+            </span>
+          </div>
+          {(data.gap.weak.length > 0 || data.gap.missing.length > 0) && (
+            <div className="flex flex-wrap gap-1.5">
+              {data.gap.weak.map((w) => (
+                <span
+                  key={`w-${w.slug}`}
+                  className="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300"
+                >
+                  {w.title}
+                </span>
+              ))}
+              {data.gap.missing.map((m) => (
+                <span
+                  key={`m-${m.slug}`}
+                  className="text-[11px] px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-700 dark:text-rose-300"
+                >
+                  {m.title}
+                </span>
+              ))}
+            </div>
+          )}
+          {data.path && data.path.resolvable && data.path.steps.length > 0 ? (
+            <ol className="space-y-1.5">
+              {data.path.steps.map((s, i) => (
+                <li
+                  key={s.nodeId}
+                  className="text-sm flex items-center justify-between gap-3 rounded-md border border-border px-3 py-1.5"
+                >
+                  <span className="min-w-0 truncate">
+                    <span className="text-muted-foreground tabular-nums mr-2">
+                      {i + 1}.
+                    </span>
+                    <Link
+                      to={`/wiki/${s.slug}`}
+                      className="text-primary hover:underline"
+                    >
+                      {s.title}
+                    </Link>
+                  </span>
+                  {s.estimatedDays != null && (
+                    <span className="text-xs text-muted-foreground tabular-nums shrink-0">
+                      ~{s.estimatedDays}d
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="text-sm text-emerald-700 dark:text-emerald-300">
+              No prerequisite gap to close for this target. 🎉
+            </p>
           )}
         </div>
       )}
