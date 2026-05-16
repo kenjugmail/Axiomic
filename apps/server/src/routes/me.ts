@@ -57,6 +57,7 @@ import { resolveMisconceptionIfProven } from "../lib/tutorResolution";
 import { buildGoalPath } from "../lib/goalPlanner";
 import { analyzeSkillGap } from "../lib/skillGap";
 import { getRole } from "../lib/roles";
+import { createEndorsement, revokeEndorsement } from "../lib/endorsements";
 import type { Env } from "../env";
 
 export const meRouter = new Hono<Env>();
@@ -364,6 +365,66 @@ meRouter.get("/skill-gap", requireAuth, async (c) => {
       ? buildGoalPath(user.id, { kind: "skills", slug: gapSlugs.join(",") })
       : null;
   return c.json({ role, gap, path });
+});
+
+// Phase 33C — endorse a peer for a skill. The weight is derived
+// server-side from the caller's OWN proven competency — clients
+// can't inflate it. No self-endorsement; rate-limited.
+meRouter.post(
+  "/endorsements",
+  requireAuth,
+  zValidator(
+    "json",
+    z.object({
+      username: z.string().min(1),
+      skillSlug: z.string().min(1).max(120),
+      skillTitle: z.string().max(200).optional().default(""),
+      note: z.string().max(280).optional().default(""),
+    }),
+  ),
+  (c) => {
+    const me = c.get("user")!;
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`endorse:${me.id}`, 20, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
+    const { username, skillSlug, skillTitle, note } = c.req.valid("json");
+    const endorsee = getDb()
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.username, username))
+      .get();
+    if (!endorsee) return c.json({ error: "User not found" }, 404);
+    if (endorsee.id === me.id) {
+      return c.json({ error: "You can't endorse yourself." }, 400);
+    }
+    const r = createEndorsement(
+      me.id,
+      endorsee.id,
+      skillSlug.trim().toLowerCase(),
+      skillTitle || skillSlug,
+      note,
+    );
+    if (!r.ok) {
+      return c.json(
+        { error: "You've already endorsed this user for this skill." },
+        409,
+      );
+    }
+    return c.json(
+      { ok: true, id: r.value.id, weight: r.value.weight },
+      201,
+    );
+  },
+);
+
+meRouter.delete("/endorsements/:id", requireAuth, (c) => {
+  const me = c.get("user")!;
+  const ok = revokeEndorsement(c.req.param("id")!, me.id);
+  if (!ok) return c.json({ error: "Not found" }, 404);
+  return c.json({ ok: true });
 });
 
 meRouter.post("/weak-concepts/refresh", requireAuth, async (c) => {

@@ -7,17 +7,30 @@
 
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { BadgeCheck, Download, ExternalLink } from "lucide-react";
+import { BadgeCheck, Download, ExternalLink, ThumbsUp } from "lucide-react";
 import { api, ApiError } from "../lib/api";
+import { useAuthStore } from "../stores/auth";
+import { toast } from "../stores/toast";
 import { Skeleton } from "../components/ui";
 import { EmptyState } from "../components/ui/EmptyState";
 
 type Summary = Awaited<ReturnType<typeof api.credentials.skillsSummary>>;
+type Endorsements = Awaited<
+  ReturnType<typeof api.credentials.endorsements>
+>["endorsements"];
 
 export function CredentialSkillsPage() {
   const { username = "" } = useParams<{ username: string }>();
+  const me = useAuthStore((s) => s.user);
   const [data, setData] = useState<Summary | null>(null);
+  const [endo, setEndo] = useState<Endorsements>([]);
   const [error, setError] = useState<string | null>(null);
+
+  const loadEndo = () =>
+    api.credentials
+      .endorsements(username)
+      .then((r) => setEndo(r.endorsements))
+      .catch(() => setEndo([]));
 
   useEffect(() => {
     let cancelled = false;
@@ -33,10 +46,24 @@ export function CredentialSkillsPage() {
           );
         }
       });
+    loadEndo();
     return () => {
       cancelled = true;
     };
   }, [username]);
+
+  const canEndorse = Boolean(me && me.username !== username);
+  const endorse = async (slug: string, title: string) => {
+    try {
+      await api.me.endorse(username, slug, title);
+      toast.success("Endorsement recorded");
+      loadEndo();
+    } catch (e) {
+      toast.error(
+        e instanceof ApiError ? e.message : "Could not endorse",
+      );
+    }
+  };
 
   if (error) {
     return (
@@ -117,9 +144,22 @@ export function CredentialSkillsPage() {
                 <h2 className="font-display text-base font-semibold">
                   {s.skill}
                 </h2>
-                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  {s.provenBy.length} credential
-                  {s.provenBy.length === 1 ? "" : "s"}
+                <span className="inline-flex items-center gap-3">
+                  {canEndorse && (
+                    <button
+                      type="button"
+                      onClick={() => endorse(s.slug, s.skill)}
+                      className="text-[11px] px-2 py-0.5 rounded-full border border-border hover:bg-accent/40 inline-flex items-center gap-1"
+                      title="Your endorsement is weighted by your own proven competency on this skill"
+                    >
+                      <ThumbsUp className="w-3 h-3" />
+                      Endorse
+                    </button>
+                  )}
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    {s.provenBy.length} credential
+                    {s.provenBy.length === 1 ? "" : "s"}
+                  </span>
                 </span>
               </div>
               <ul className="mt-2 space-y-1">
@@ -140,6 +180,62 @@ export function CredentialSkillsPage() {
             </li>
           ))}
         </ul>
+      )}
+
+      {endo.length > 0 && (
+        <section className="mt-8">
+          <h2 className="text-sm font-semibold inline-flex items-center gap-1.5 mb-1">
+            <ThumbsUp className="w-4 h-4 text-primary" />
+            Peer endorsements
+          </h2>
+          <p className="text-xs text-muted-foreground mb-3 max-w-prose">
+            A web-of-trust signal — each endorsement is weighted by
+            the endorser's <em>own</em> proven competency on that
+            skill, so unproven endorsers count for ~0. Separate from
+            signed-credential proof above.
+          </p>
+          <ul className="space-y-3">
+            {endo.map((g) => (
+              <li
+                key={g.skillSlug}
+                className="rounded-lg border border-border bg-card p-4"
+                data-testid="endorsement-row"
+              >
+                <div className="flex items-baseline justify-between gap-3 flex-wrap">
+                  <h3 className="font-display text-base font-semibold">
+                    {g.skillTitle}
+                  </h3>
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    weight {g.totalWeight.toFixed(2)} ·{" "}
+                    {g.endorsements.length} endorser
+                    {g.endorsements.length === 1 ? "" : "s"}
+                  </span>
+                </div>
+                <ul className="mt-2 space-y-1">
+                  {g.endorsements.map((e, i) => (
+                    <li
+                      key={i}
+                      className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap"
+                    >
+                      <span className="text-foreground">
+                        @{e.endorserUsername}
+                      </span>
+                      <span className="text-[11px]">
+                        · weight {e.weight.toFixed(2)} ·{" "}
+                        {new Date(e.createdAt).toLocaleDateString()}
+                      </span>
+                      {e.note && (
+                        <span className="text-[11px] italic">
+                          “{e.note}”
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
     </div>
   );

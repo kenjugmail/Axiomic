@@ -26,8 +26,10 @@ import {
   hackathons,
   reproductions,
   researchBounties,
+  credentialShareTokens,
   users,
 } from "@axiomic/db";
+import { createHash, randomBytes, randomUUID } from "crypto";
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { publicKeyHex, signCredential } from "../lib/signing";
 import {
@@ -49,7 +51,40 @@ import {
   revokedKeySet,
 } from "../lib/revocation";
 import { ageDays, freshnessBand, type Freshness } from "../lib/freshness";
+import { toVerifiableCredential, toOpenBadge3 } from "../lib/vc";
+import { endorsementsForUser } from "../lib/endorsements";
 import type { Env } from "../env";
+
+// Phase 33A — re-serialize the inline-signed wallet items into a
+// standards bundle (W3C VC 2.0 / Open Badges 3.0). Items without
+// an inline credential (capstone/track/exam carry a transcript
+// URL instead) are skipped here — their transcript endpoint is
+// the canonical signed artifact.
+export function serializeVcBundle(
+  items: ReturnType<typeof buildWallet>,
+  username: string,
+  host: string,
+  fmt: "vc" | "ob3",
+): Record<string, unknown> {
+  const creds = items
+    .filter((i) => i.credential)
+    .map((i) =>
+      fmt === "ob3"
+        ? toOpenBadge3(i.credential!, { host, subjectUsername: username })
+        : toVerifiableCredential(i.credential!, {
+            host,
+            subjectUsername: username,
+          }),
+    );
+  return {
+    "@context": ["https://www.w3.org/ns/credentials/v2"],
+    type: ["VerifiablePresentation"],
+    holder: `urn:axiomic:user:${username}`,
+    format: fmt,
+    count: creds.length,
+    verifiableCredential: creds,
+  };
+}
 
 export const credentialsRouter = new Hono<Env>();
 
@@ -473,12 +508,46 @@ credentialsRouter.get("/:username", async (c) => {
     }
   }
   const items = buildWallet(u.id, u.username);
+  const fmt = c.req.query("format");
+  if (fmt === "vc" || fmt === "ob3") {
+    return c.json(
+      serializeVcBundle(items, u.username, new URL(c.req.url).host, fmt),
+    );
+  }
   return c.json({
     user: {
       username: u.username,
       displayName: u.displayName,
     },
     credentials: items,
+  });
+});
+
+// Phase 33C — public peer skill-endorsement web-of-trust band
+// (same privacy gate as the wallet). Separate from signed proof.
+credentialsRouter.get("/:username/endorsements", async (c) => {
+  const username = c.req.param("username")!;
+  const db = getDb();
+  const u = db
+    .select({
+      id: users.id,
+      username: users.username,
+      displayName: users.displayName,
+      credentialsPublic: users.credentialsPublic,
+    })
+    .from(users)
+    .where(eq(users.username, username))
+    .get();
+  if (!u) return c.json({ error: "User not found" }, 404);
+  if (!u.credentialsPublic) {
+    const session = await getSessionUser(c);
+    if (session?.id !== u.id) {
+      return c.json({ error: "This portfolio is private" }, 403);
+    }
+  }
+  return c.json({
+    user: { username: u.username, displayName: u.displayName },
+    endorsements: endorsementsForUser(u.id),
   });
 });
 
@@ -651,7 +720,8 @@ meCredentialsRouter.get("/composite-score", requireAuth, async (c) => {
 meCredentialsRouter.get("/", requireAuth, async (c) => {
   const me = c.get("user")!;
   const items = buildWallet(me.id, me.username);
-  if (c.req.query("format") === "json") {
+  const fmt = c.req.query("format");
+  if (fmt === "json") {
     return c.json({
       issuer: "axiomic",
       generatedAt: new Date().toISOString(),
@@ -660,6 +730,11 @@ meCredentialsRouter.get("/", requireAuth, async (c) => {
         .filter((i) => i.credential)
         .map((i) => i.credential),
     });
+  }
+  if (fmt === "vc" || fmt === "ob3") {
+    return c.json(
+      serializeVcBundle(items, me.username, new URL(c.req.url).host, fmt),
+    );
   }
   const db = getDb();
   const pref = db
@@ -689,6 +764,164 @@ meCredentialsRouter.put("/visibility", requireAuth, async (c) => {
     .run();
   return c.json({ ok: true });
 });
+
+// Phase 33D — selective-disclosure share links. A learner mints a
+// scoped, optionally-expiring token exposing only chosen
+// credential kinds, bypassing the all-or-nothing credentialsPublic
+// gate ONLY for that subset. The raw token is shown once; only its
+// sha256 is stored at rest.
+export interface ShareScope {
+  mode: "all" | "kinds";
+  kinds?: string[];
+}
+
+export function parseShareScope(raw: unknown): ShareScope {
+  if (
+    raw &&
+    typeof raw === "object" &&
+    (raw as { mode?: string }).mode === "kinds" &&
+    Array.isArray((raw as { kinds?: unknown }).kinds)
+  ) {
+    return {
+      mode: "kinds",
+      kinds: (raw as { kinds: unknown[] }).kinds
+        .filter((k): k is string => typeof k === "string")
+        .slice(0, 12),
+    };
+  }
+  return { mode: "all" };
+}
+
+export function filterWalletByScope(
+  items: ReturnType<typeof buildWallet>,
+  scope: ShareScope,
+): ReturnType<typeof buildWallet> {
+  if (scope.mode === "kinds" && scope.kinds) {
+    const set = new Set(scope.kinds);
+    return items.filter((i) => set.has(i.kind));
+  }
+  return items;
+}
+
+function sha256Hex(s: string): string {
+  return createHash("sha256").update(s).digest("hex");
+}
+
+meCredentialsRouter.post("/share-tokens", requireAuth, async (c) => {
+  const me = c.get("user")!;
+  const body = (await c.req.json().catch(() => ({}))) as {
+    scope?: unknown;
+    label?: string;
+    expiresInDays?: number;
+  };
+  const scope = parseShareScope(body.scope);
+  const token = randomBytes(32).toString("hex");
+  const days =
+    typeof body.expiresInDays === "number" &&
+    body.expiresInDays > 0 &&
+    body.expiresInDays <= 365
+      ? body.expiresInDays
+      : null;
+  const expiresAt = days
+    ? new Date(Date.now() + days * 86_400_000).toISOString()
+    : null;
+  const id = randomUUID();
+  getDb()
+    .insert(credentialShareTokens)
+    .values({
+      id,
+      userId: me.id,
+      tokenHash: sha256Hex(token),
+      scopeJson: JSON.stringify(scope),
+      label: (body.label ?? "").slice(0, 120),
+      expiresAt,
+    })
+    .run();
+  return c.json(
+    {
+      id,
+      token,
+      shareUrl: `/api/v1/public/share/${token}`,
+      scope,
+      expiresAt,
+    },
+    201,
+  );
+});
+
+meCredentialsRouter.get("/share-tokens", requireAuth, (c) => {
+  const me = c.get("user")!;
+  const rows = getDb()
+    .select({
+      id: credentialShareTokens.id,
+      scopeJson: credentialShareTokens.scopeJson,
+      label: credentialShareTokens.label,
+      expiresAt: credentialShareTokens.expiresAt,
+      revokedAt: credentialShareTokens.revokedAt,
+      accessCount: credentialShareTokens.accessCount,
+      lastAccessedAt: credentialShareTokens.lastAccessedAt,
+      createdAt: credentialShareTokens.createdAt,
+    })
+    .from(credentialShareTokens)
+    .where(eq(credentialShareTokens.userId, me.id))
+    .orderBy(desc(credentialShareTokens.createdAt))
+    .all()
+    .map((r) => ({ ...r, scope: JSON.parse(r.scopeJson) }));
+  return c.json({ tokens: rows });
+});
+
+meCredentialsRouter.delete("/share-tokens/:id", requireAuth, (c) => {
+  const me = c.get("user")!;
+  const r = getDb()
+    .update(credentialShareTokens)
+    .set({ revokedAt: new Date().toISOString() })
+    .where(
+      and(
+        eq(credentialShareTokens.id, c.req.param("id")!),
+        eq(credentialShareTokens.userId, me.id),
+      ),
+    )
+    .run();
+  if (((r as unknown as { changes?: number }).changes ?? 0) === 0) {
+    return c.json({ error: "Not found" }, 404);
+  }
+  return c.json({ ok: true });
+});
+
+// Resolve + consume a share token (used by the public endpoint).
+// Returns the scoped wallet or null (missing/revoked/expired).
+export function resolveShareToken(token: string):
+  | { username: string; displayName: string | null; scope: ShareScope; items: ReturnType<typeof buildWallet> }
+  | null {
+  const db = getDb();
+  const row = db
+    .select()
+    .from(credentialShareTokens)
+    .where(eq(credentialShareTokens.tokenHash, sha256Hex(token)))
+    .get();
+  if (!row || row.revokedAt) return null;
+  if (row.expiresAt && Date.parse(row.expiresAt) < Date.now()) return null;
+  const u = db
+    .select({ id: users.id, username: users.username, displayName: users.displayName })
+    .from(users)
+    .where(eq(users.id, row.userId))
+    .get();
+  if (!u) return null;
+  db.update(credentialShareTokens)
+    .set({
+      accessCount: row.accessCount + 1,
+      lastAccessedAt: new Date().toISOString(),
+    })
+    .where(eq(credentialShareTokens.id, row.id))
+    .run();
+  const scope = parseShareScope(JSON.parse(row.scopeJson));
+  return {
+    username: u.username,
+    displayName: u.displayName,
+    scope,
+    items: filterWalletByScope(buildWallet(u.id, u.username), scope),
+  };
+}
 
 // suppress unused import lint when desc isn't used in some builds
 void desc;

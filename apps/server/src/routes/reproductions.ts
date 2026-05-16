@@ -34,6 +34,7 @@ import {
   unrevoke,
 } from "../lib/revocation";
 import { requireAdmin } from "../middleware/requireAdmin";
+import { appendCredentialEvent } from "../lib/transparency";
 import type { Env } from "../env";
 
 export const reproductionsRouter = new Hono<Env>();
@@ -221,6 +222,12 @@ reproductionsRouter.post(
           .set({ credentialMintedAt: now, credentialMintWeight: weight })
           .where(eq(reproductions.id, id))
           .run();
+        // Phase 33B — append the issuance to the transparency log
+        // (best-effort; never block the mint).
+        appendCredentialEvent("issued", "reproduction", id, {
+          mintedAt: now,
+          weight,
+        });
         void notify({
           recipientId: repro.reproducerId,
           actorId: null,

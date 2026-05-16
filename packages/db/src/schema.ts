@@ -3445,3 +3445,116 @@ export const roleProfiles = sqliteTable(
     slugIdx: index("role_profiles_slug_idx").on(t.slug),
   }),
 );
+
+// Phase 33B — Certificate-Transparency-style append-only log of
+// credential lifecycle events. Each row hash-chains to the prior
+// (leafHash = sha256(prevHash + canonicalJson(payload))), so any
+// silent rewrite of history breaks the chain and the signed tree
+// head. Two append points: reproduction mint + revoke/unrevoke.
+// Append-only — never UPDATE/DELETE a row.
+export const credentialLog = sqliteTable(
+  "credential_log",
+  {
+    id: text("id").primaryKey(),
+    // Dense, gap-free sequence assigned under a short transaction.
+    leafIndex: integer("leaf_index").notNull(),
+    // 'issued' | 'revoked' | 'unrevoked'
+    eventKind: text("event_kind").notNull(),
+    credentialKind: text("credential_kind").notNull(),
+    credentialRef: text("credential_ref").notNull(),
+    leafHash: text("leaf_hash").notNull(),
+    // Genesis row uses the empty string.
+    prevHash: text("prev_hash").notNull().default(""),
+    payloadJson: text("payload_json").notNull().default("{}"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    leafUq: uniqueIndex("credential_log_leaf_uq").on(t.leafIndex),
+    refIdx: index("credential_log_ref_idx").on(
+      t.credentialKind,
+      t.credentialRef,
+    ),
+  }),
+);
+
+// Phase 33B — periodically-signed tree head. The signature (via
+// signing.ts, the same ed25519 key as every credential) commits
+// to (treeSize, rootHash); a verifier checks the chain up to a
+// signed head and trusts nothing was backdated or silently pulled.
+export const transparencyTreeHeads = sqliteTable(
+  "transparency_tree_heads",
+  {
+    id: text("id").primaryKey(),
+    treeSize: integer("tree_size").notNull(),
+    rootHash: text("root_hash").notNull(),
+    signature: text("signature").notNull(),
+    signedAt: text("signed_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    sizeIdx: index("transparency_tree_heads_size_idx").on(t.treeSize),
+  }),
+);
+
+// Phase 33C — signed peer skill endorsement. weightAtEndorsement
+// is a snapshot of the endorser's OWN proven competency on this
+// skill (userSkillIndex) + reviewer trust at endorsement time —
+// so an endorser with no proof contributes ~0. This is a SEPARATE
+// web-of-trust band; it never mutates userSkillIndex.proofCount
+// (signed-credential proof stays the authoritative signal).
+export const skillEndorsements = sqliteTable(
+  "skill_endorsements",
+  {
+    id: text("id").primaryKey(),
+    endorserId: text("endorser_id").notNull().references(() => users.id),
+    endorseeId: text("endorsee_id").notNull().references(() => users.id),
+    skillSlug: text("skill_slug").notNull(),
+    skillTitle: text("skill_title").notNull().default(""),
+    weightAtEndorsement: real("weight_at_endorsement").notNull().default(0),
+    note: text("note").notNull().default(""),
+    signedJson: text("signed_json").notNull().default(""),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+    revokedAt: text("revoked_at"),
+  },
+  (t) => ({
+    uq: uniqueIndex("skill_endorsements_uq").on(
+      t.endorserId,
+      t.endorseeId,
+      t.skillSlug,
+    ),
+    endorseeIdx: index("skill_endorsements_endorsee_idx").on(
+      t.endorseeId,
+      t.skillSlug,
+    ),
+  }),
+);
+
+// Phase 33D — learner-controlled selective-disclosure share link.
+// The raw token is shown once to the owner and stored only as a
+// sha256 hash at rest (improves on the plaintext auth-token
+// convention — these links are shareable). scopeJson limits which
+// credentials a holder of the link can see, bypassing the
+// all-or-nothing credentialsPublic gate ONLY for that subset.
+export const credentialShareTokens = sqliteTable(
+  "credential_share_tokens",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    tokenHash: text("token_hash").notNull(),
+    // { mode: 'all' } | { mode:'kinds', kinds:[] } | { mode:'ids', ids:[] }
+    scopeJson: text("scope_json").notNull().default('{"mode":"all"}'),
+    label: text("label").notNull().default(""),
+    // null = never expires.
+    expiresAt: text("expires_at"),
+    revokedAt: text("revoked_at"),
+    accessCount: integer("access_count").notNull().default(0),
+    lastAccessedAt: text("last_accessed_at"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    tokenUq: uniqueIndex("credential_share_tokens_token_uq").on(t.tokenHash),
+    ownerIdx: index("credential_share_tokens_owner_idx").on(
+      t.userId,
+      t.createdAt,
+    ),
+  }),
+);

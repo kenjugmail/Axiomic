@@ -83,6 +83,7 @@ import {
 } from "./routes/protocolRuns";
 import { notifyExpiringCertsJob } from "./jobs/notifyExpiringCerts";
 import { resurfacingDecayJob } from "./jobs/resurfacingDecay";
+import { signTreeHeadJob } from "./jobs/signTreeHead";
 import { hardDeleteSoftDeletedUsersJob, cleanupOldLoginAttemptsJob } from "./lib/userCleanupJob";
 import { captureError } from "./lib/observability";
 import { bootstrapAdmin } from "./lib/bootstrapAdmin";
@@ -122,6 +123,7 @@ import {
 } from "./lib/signing";
 import { getRevocation } from "./lib/revocation";
 import { ageDays, freshnessBand } from "./lib/freshness";
+import { didDocument, verifyVerifiableCredential } from "./lib/vc";
 import type { Env } from "./env";
 import { env, warnOnInsecureConfig, assertProductionSecrets } from "./lib/envConfig";
 import { setServerExecBackend } from "./lib/serverExec";
@@ -208,6 +210,30 @@ app.post("/keys/verify", async (c) => {
     body = await c.req.json();
   } catch {
     return c.json({ valid: false, error: "Invalid JSON body" }, 400);
+  }
+  // Phase 33A — additive: a W3C VC / Open Badges 3.0 envelope
+  // (has @context + proof) verifies through the JCS path. The
+  // legacy {manifest,signature} path below is byte-for-byte
+  // unchanged.
+  if (body && body["@context"] && body.proof) {
+    const { valid, issuerKeyHex } = verifyVerifiableCredential(body);
+    const cs = body.credentialStatus as
+      | { credentialKind?: string; credentialRef?: string }
+      | undefined;
+    const rev =
+      cs?.credentialKind && cs?.credentialRef
+        ? getRevocation(cs.credentialKind, cs.credentialRef)
+        : null;
+    const vf = typeof body.validFrom === "string" ? body.validFrom : null;
+    return c.json({
+      valid,
+      format: "vc",
+      publicKey: issuerKeyHex ?? publicKeyHex(),
+      revoked: rev !== null,
+      revocationReason: rev?.reason ?? null,
+      ageDays: ageDays(vf),
+      freshness: freshnessBand(vf),
+    });
   }
   const manifest = body?.manifest;
   const signature = body?.signature;
@@ -423,6 +449,8 @@ if (process.env.DISABLE_JOB_RUNNER !== "1") {
   registerJob(cleanupOldLoginAttemptsJob);
   // Phase 32D — proactive decay-aware resurfacing (daily).
   registerJob(resurfacingDecayJob);
+  // Phase 33B — hourly signed credential-transparency tree head.
+  registerJob(signTreeHeadJob);
   startJobRunner();
 }
 
@@ -467,6 +495,20 @@ export default {
         status: 200,
         headers: {
           "content-type": "text/plain; charset=utf-8",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=3600",
+        },
+      });
+    }
+    // Phase 33A — did:web DID document. Resolves both did:web and
+    // (via the listed verificationMethod) the did:key form used in
+    // every exported Verifiable Credential. Additive — the raw-hex
+    // route above is unchanged.
+    if (url.pathname === "/.well-known/did.json") {
+      return new Response(JSON.stringify(didDocument(url.host)), {
+        status: 200,
+        headers: {
+          "content-type": "application/did+json",
           "access-control-allow-origin": "*",
           "cache-control": "public, max-age=3600",
         },

@@ -17,6 +17,7 @@
 import { randomUUID } from "crypto";
 import { and, eq } from "drizzle-orm";
 import { credentialRevocations, getDb } from "@axiomic/db";
+import { appendCredentialEvent } from "./transparency";
 
 // Symmetric with reproductions' CONFIRM_WEIGHT_THRESHOLD (3.0): it
 // takes as much summed reviewer trust to revoke a minted
@@ -138,20 +139,24 @@ export function revokeCredential(
       })
       .where(eq(credentialRevocations.id, existing.id))
       .run();
-    return;
+  } else {
+    db.insert(credentialRevocations)
+      .values({
+        id: randomUUID(),
+        credentialKind: kind,
+        credentialRef: ref,
+        reason,
+        revokedByUserId: byUserId,
+        active: true,
+        revokedAt: now,
+        updatedAt: now,
+      })
+      .run();
   }
-  db.insert(credentialRevocations)
-    .values({
-      id: randomUUID(),
-      credentialKind: kind,
-      credentialRef: ref,
-      reason,
-      revokedByUserId: byUserId,
-      active: true,
-      revokedAt: now,
-      updatedAt: now,
-    })
-    .run();
+  // Phase 33B — record the revocation in the transparency log
+  // (idempotent: a no-op if the last logged state is already
+  // 'revoked'; best-effort — never break the revoke path).
+  appendCredentialEvent("revoked", kind, ref, { reason });
 }
 
 // Reverse a revocation (e.g. a refute was itself overturned). Safe
@@ -175,4 +180,5 @@ export function unrevoke(
       ),
     )
     .run();
+  appendCredentialEvent("unrevoked", kind, ref, {});
 }

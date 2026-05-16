@@ -2050,6 +2050,23 @@ export const api = {
           }>;
         }>;
       }>(`/credentials/${username}/skills-summary`),
+    // Phase 33C — peer skill-endorsement web-of-trust band.
+    endorsements: (username: string) =>
+      request<{
+        user: { username: string; displayName: string | null };
+        endorsements: Array<{
+          skillSlug: string;
+          skillTitle: string;
+          totalWeight: number;
+          endorsements: Array<{
+            endorserUsername: string;
+            endorserDisplayName: string | null;
+            weight: number;
+            note: string;
+            createdAt: string;
+          }>;
+        }>;
+      }>(`/credentials/${username}/endorsements`),
     // Phase 31C — unified signed Axiomic Score. No username =
     // the caller's own (auth); username = public (gated).
     compositeScore: (username?: string) =>
@@ -2101,6 +2118,29 @@ export const api = {
           revokedAt: string;
         }>;
       }>("/public/revocations"),
+    // Phase 33B — credential transparency log anchor.
+    transparencyTreeHead: () =>
+      request<{
+        treeSize: number;
+        rootHash: string;
+        signed: boolean;
+        signature: string | null;
+        signedAt: string | null;
+        publicKey: string;
+      }>("/public/transparency/tree-head"),
+    // Phase 33D — consume a selective-disclosure share link.
+    share: (token: string) =>
+      request<{
+        user: { username: string; displayName: string | null };
+        scope: { mode: string; kinds?: string[] };
+        credentials: Array<{
+          kind: string;
+          title: string;
+          earnedAt: string;
+          revoked?: boolean;
+          freshness?: "fresh" | "aging" | "stale" | null;
+        }>;
+      }>(`/public/share/${encodeURIComponent(token)}`),
   },
   // Phase 28B — reproduction peer review → signed credential.
   reproductions: {
@@ -2766,6 +2806,56 @@ export const api = {
         } | null;
       }>(`/me/skill-gap?${sp.toString()}`);
     },
+    // Phase 33C — endorse a peer for a skill (weight derived
+    // server-side from the caller's own proven competency).
+    endorse: (
+      username: string,
+      skillSlug: string,
+      skillTitle?: string,
+      note?: string,
+    ) =>
+      request<{ ok: true; id: string; weight: number }>(
+        "/me/endorsements",
+        {
+          method: "POST",
+          body: JSON.stringify({ username, skillSlug, skillTitle, note }),
+        },
+      ),
+    removeEndorsement: (id: string) =>
+      request<OkResponse>(`/me/endorsements/${id}`, { method: "DELETE" }),
+    // Phase 33D — selective-disclosure share links.
+    shareTokens: () =>
+      request<{
+        tokens: Array<{
+          id: string;
+          scope: { mode: string; kinds?: string[] };
+          label: string;
+          expiresAt: string | null;
+          revokedAt: string | null;
+          accessCount: number;
+          lastAccessedAt: string | null;
+          createdAt: string;
+        }>;
+      }>("/me/credentials/share-tokens"),
+    createShareToken: (opts: {
+      scope?: { mode: "all" | "kinds"; kinds?: string[] };
+      label?: string;
+      expiresInDays?: number;
+    }) =>
+      request<{
+        id: string;
+        token: string;
+        shareUrl: string;
+        scope: { mode: string; kinds?: string[] };
+        expiresAt: string | null;
+      }>("/me/credentials/share-tokens", {
+        method: "POST",
+        body: JSON.stringify(opts),
+      }),
+    deleteShareToken: (id: string) =>
+      request<OkResponse>(`/me/credentials/share-tokens/${id}`, {
+        method: "DELETE",
+      }),
     prereqStatus: (wikiSlugs: string[]) => {
       const sp = new URLSearchParams();
       sp.set("wikiSlugs", wikiSlugs.join(","));

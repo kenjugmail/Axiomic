@@ -366,6 +366,22 @@ export function VerifyPage() {
           </code>
           .
         </p>
+        <p className="text-xs text-muted-foreground mt-3">
+          <strong>Standards &amp; transparency.</strong> Every
+          credential is also exportable as a{" "}
+          <strong>W3C Verifiable Credential 2.0 / Open Badges 3.0</strong>{" "}
+          (<code className="text-[11px]">?format=vc</code> on the
+          wallet endpoints) — this verifier accepts a pasted VC
+          envelope directly. The issuer DID document lives at{" "}
+          <code className="text-[11px]">/.well-known/did.json</code>{" "}
+          (did:web + did:key). Issuance &amp; revocation are written
+          to a tamper-evident, hash-chained transparency log with a
+          signed tree head:{" "}
+          <code className="text-[11px]">
+            /api/v1/public/transparency/tree-head
+          </code>
+          .
+        </p>
       </section>
     </div>
   );

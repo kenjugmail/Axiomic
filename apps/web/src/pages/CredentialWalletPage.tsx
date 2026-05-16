@@ -17,14 +17,17 @@ import {
   Award,
   BadgeCheck,
   Clock,
+  Copy,
   Download,
   Eye,
   EyeOff,
   ExternalLink,
   FlaskConical,
   GraduationCap,
+  Link2,
   ScrollText,
   ShieldOff,
+  Trash2,
   Trophy,
 } from "lucide-react";
 import { api, ApiError } from "../lib/api";
@@ -205,6 +208,14 @@ export function CredentialWalletPage() {
               <Download className="w-3 h-3" />
               Export JSON
             </a>
+            <a
+              href="/api/v1/me/credentials?format=vc"
+              className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40 inline-flex items-center gap-1.5"
+              title="W3C Verifiable Credentials 2.0 / Open Badges 3.0 — import into any conformant wallet"
+            >
+              <Download className="w-3 h-3" />
+              Export VC
+            </a>
             <button
               type="button"
               onClick={toggleVisibility}
@@ -216,6 +227,8 @@ export function CredentialWalletPage() {
           </div>
         </div>
       )}
+
+      {isOwnView && <ShareLinksPanel />}
 
       {creds === null && (
         <div className="space-y-3">
@@ -441,6 +454,152 @@ function AxiomicScoreCard({ username }: { username?: string }) {
           {JSON.stringify(data.credential, null, 2)}
         </pre>
       </details>
+    </div>
+  );
+}
+
+// Phase 33D — mint scoped, optionally-expiring share links that
+// expose only chosen credential kinds, bypassing the all-or-
+// nothing public toggle for exactly that subset.
+function ShareLinksPanel() {
+  const [tokens, setTokens] = useState<
+    Awaited<ReturnType<typeof api.me.shareTokens>>["tokens"] | null
+  >(null);
+  const [days, setDays] = useState(30);
+  const [busy, setBusy] = useState(false);
+  const [lastUrl, setLastUrl] = useState<string | null>(null);
+
+  const load = () =>
+    api.me
+      .shareTokens()
+      .then((r) => setTokens(r.tokens))
+      .catch(() => setTokens([]));
+  useEffect(() => {
+    load();
+  }, []);
+
+  const create = async () => {
+    setBusy(true);
+    try {
+      const r = await api.me.createShareToken({
+        scope: { mode: "all" },
+        expiresInDays: days,
+      });
+      const url = `${window.location.origin}${r.shareUrl}`;
+      setLastUrl(url);
+      try {
+        await navigator.clipboard.writeText(url);
+        toast.success("Share link copied to clipboard");
+      } catch {
+        toast.success("Share link created");
+      }
+      load();
+    } catch {
+      toast.error("Could not create share link");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const revoke = async (id: string) => {
+    try {
+      await api.me.deleteShareToken(id);
+      load();
+    } catch {
+      toast.error("Could not revoke");
+    }
+  };
+
+  const active = (tokens ?? []).filter((t) => !t.revokedAt);
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-4 mb-6">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="text-sm font-medium inline-flex items-center gap-1.5">
+          <Link2 className="w-4 h-4 text-primary" />
+          Selective-disclosure share links
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-muted-foreground">
+            Expires in
+            <select
+              value={days}
+              onChange={(e) => setDays(Number(e.target.value))}
+              className="ml-1 text-xs px-1.5 py-1 rounded border border-border bg-background"
+            >
+              <option value={7}>7 days</option>
+              <option value={30}>30 days</option>
+              <option value={90}>90 days</option>
+              <option value={365}>1 year</option>
+            </select>
+          </label>
+          <button
+            type="button"
+            onClick={create}
+            disabled={busy}
+            className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          >
+            Create link
+          </button>
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground mt-1">
+        Anyone with the link sees this wallet (signed + revocation-
+        checked) until it expires — no account, and the rest of your
+        history stays private even if your portfolio is private.
+      </p>
+      {lastUrl && (
+        <div className="mt-2 text-[11px] font-mono break-all rounded-md border border-border bg-muted/30 p-2">
+          {lastUrl}
+        </div>
+      )}
+      {active.length > 0 && (
+        <ul className="mt-3 space-y-1.5">
+          {active.map((t) => (
+            <li
+              key={t.id}
+              className="text-xs flex items-center justify-between gap-3 rounded-md border border-border px-3 py-1.5"
+            >
+              <span className="text-muted-foreground">
+                {t.scope.mode === "kinds"
+                  ? (t.scope.kinds ?? []).join(", ")
+                  : "all credentials"}{" "}
+                ·{" "}
+                {t.expiresAt
+                  ? `expires ${new Date(t.expiresAt).toLocaleDateString()}`
+                  : "no expiry"}{" "}
+                · {t.accessCount} view{t.accessCount === 1 ? "" : "s"}
+              </span>
+              <span className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard
+                      ?.writeText(
+                        `${window.location.origin}/api/v1/public/share/`,
+                      )
+                      .catch(() => {});
+                    toast.info(
+                      "The full link is shown once at creation. Revoke + recreate if lost.",
+                    );
+                  }}
+                  className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+                >
+                  <Copy className="w-3 h-3" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => revoke(t.id)}
+                  className="text-rose-600 dark:text-rose-400 hover:underline inline-flex items-center gap-1"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  Revoke
+                </button>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

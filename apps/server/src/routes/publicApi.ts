@@ -15,13 +15,22 @@ import { cors } from "hono/cors";
 import { eq } from "drizzle-orm";
 import { getDb, users } from "@axiomic/db";
 import { getSessionUser } from "../middleware/auth";
-import { buildWallet } from "./credentials";
+import {
+  buildWallet,
+  serializeVcBundle,
+  resolveShareToken,
+} from "./credentials";
 import {
   computeAxiomicScore,
   signAxiomicScore,
 } from "../lib/compositeScore";
 import { buildProvenance } from "../lib/provenance";
 import { listActiveRevocations } from "../lib/revocation";
+import {
+  getTreeHead,
+  inclusionProof,
+  listLeaves,
+} from "../lib/transparency";
 import type { Env } from "../env";
 
 export const publicApiRouter = new Hono<Env>();
@@ -68,9 +77,16 @@ async function resolvePublicUser(
 publicApiRouter.get("/users/:username/credentials", async (c) => {
   const r = await resolvePublicUser(c);
   if (!r.ok) return r.res;
+  const items = buildWallet(r.id, r.username);
+  const fmt = c.req.query("format");
+  if (fmt === "vc" || fmt === "ob3") {
+    return c.json(
+      serializeVcBundle(items, r.username, new URL(c.req.url).host, fmt),
+    );
+  }
   return c.json({
     user: { username: r.username, displayName: r.displayName },
-    credentials: buildWallet(r.id, r.username),
+    credentials: items,
   });
 });
 
@@ -104,4 +120,47 @@ publicApiRouter.get("/revocations", (c) => {
   const revocations = listActiveRevocations();
   c.header("cache-control", "public, max-age=300");
   return c.json({ count: revocations.length, revocations });
+});
+
+// Phase 33B — public credential transparency log. tree-head is
+// the signed (or current) chain anchor; leaves paginates the log;
+// inclusion proves a specific credential's events chain into the
+// head. Tamper-evident: a verifier recomputes the chain itself.
+publicApiRouter.get("/transparency/tree-head", (c) => {
+  c.header("cache-control", "public, max-age=60");
+  return c.json(getTreeHead());
+});
+publicApiRouter.get("/transparency/leaves", (c) => {
+  const since = parseInt(c.req.query("since") ?? "0", 10) || 0;
+  const limit = parseInt(c.req.query("limit") ?? "200", 10) || 200;
+  return c.json({ leaves: listLeaves(since, limit), treeHead: getTreeHead() });
+});
+// Phase 33D — consume a selective-disclosure share link. Bypasses
+// the all-or-nothing credentialsPublic gate ONLY for the token's
+// scoped subset; 404 on missing/revoked/expired. ?format=vc|ob3
+// composes with 33A.
+publicApiRouter.get("/share/:token", (c) => {
+  const r = resolveShareToken(c.req.param("token")!);
+  if (!r) return c.json({ error: "Invalid or expired share link" }, 404);
+  c.header("cache-control", "no-store");
+  const fmt = c.req.query("format");
+  if (fmt === "vc" || fmt === "ob3") {
+    return c.json(
+      serializeVcBundle(r.items, r.username, new URL(c.req.url).host, fmt),
+    );
+  }
+  return c.json({
+    user: { username: r.username, displayName: r.displayName },
+    scope: r.scope,
+    credentials: r.items,
+  });
+});
+
+publicApiRouter.get("/transparency/inclusion", (c) => {
+  const kind = (c.req.query("kind") ?? "").trim();
+  const ref = (c.req.query("ref") ?? "").trim();
+  if (!kind || !ref) {
+    return c.json({ error: "kind + ref query required" }, 400);
+  }
+  return c.json(inclusionProof(kind, ref));
 });
