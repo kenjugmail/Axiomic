@@ -904,6 +904,133 @@ export const lessonSlideEvents = sqliteTable(
   }),
 );
 
+// ── Phase 0 foundation tables (additive; unblock later phases) ──
+
+// Append-only attempt history. user_progress.quiz_score overwrites
+// (no history) and lesson_slide_events is first-touch only, so
+// confidence/calibration (Phase 4) and retry analytics need this.
+export const quizAttempts = sqliteTable(
+  "quiz_attempts",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    nodeId: text("node_id").notNull().references(() => masteryNodes.id),
+    questionId: text("question_id").notNull(),
+    slideIdx: integer("slide_idx"),
+    attemptNo: integer("attempt_no").notNull().default(1),
+    correct: integer("correct", { mode: "boolean" }).notNull(),
+    // 0..3 self-reported confidence; null when not prompted.
+    confidence: integer("confidence"),
+    answerJson: text("answer_json"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    userQIdx: index("quiz_attempts_user_q_idx").on(t.userId, t.questionId),
+    userNodeIdx: index("quiz_attempts_user_node_idx").on(t.userId, t.nodeId),
+  }),
+);
+
+// Phase 5 — pet "wants to learn" the user's weak concept; clearing
+// the SRS card / re-passing the question completes the quest.
+export const petQuests = sqliteTable(
+  "pet_quests",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    petId: text("pet_id").notNull().references(() => pets.id),
+    conceptSlug: text("concept_slug").notNull(),
+    sourceQuizMistakeId: text("source_quiz_mistake_id"),
+    status: text("status").notNull().default("active"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+    completedAt: text("completed_at"),
+  },
+  (t) => ({
+    userStatusIdx: index("pet_quests_user_status_idx").on(t.userId, t.status),
+  }),
+);
+
+// Phase 6 — synthesis "boss battle" gate config per (path, level).
+export const levelCheckpoints = sqliteTable(
+  "level_checkpoints",
+  {
+    id: text("id").primaryKey(),
+    pathId: text("path_id").notNull().references(() => masteryPaths.id),
+    level: text("level").notNull(),
+    questionRefsJson: text("question_refs_json").notNull().default("[]"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    pathLevelUniq: uniqueIndex("level_checkpoints_path_level_uniq").on(
+      t.pathId,
+      t.level,
+    ),
+  }),
+);
+
+// Phase 6 — per-user boss-battle result; extends the ≥70 unlock
+// gate (must also have passed_at for the level).
+export const userCheckpointResults = sqliteTable(
+  "user_checkpoint_results",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    pathId: text("path_id").notNull().references(() => masteryPaths.id),
+    level: text("level").notNull(),
+    score: real("score").notNull().default(0),
+    passedAt: text("passed_at"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    userPathLevelUniq: uniqueIndex("user_checkpoint_results_uniq").on(
+      t.userId,
+      t.pathId,
+      t.level,
+    ),
+  }),
+);
+
+// Phase 6 — persisted signed Axiomic credential (compositeScore
+// signAxiomicScore is currently ephemeral). verify_id is the
+// public lookup token.
+export const signedCredentials = sqliteTable(
+  "signed_credentials",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    kind: text("kind").notNull(),
+    payloadJson: text("payload_json").notNull(),
+    signature: text("signature").notNull(),
+    verifyId: text("verify_id").notNull(),
+    issuedAt: text("issued_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    verifyUniq: uniqueIndex("signed_credentials_verify_uniq").on(t.verifyId),
+    userIdx: index("signed_credentials_user_idx").on(t.userId, t.issuedAt),
+  }),
+);
+
+// Phase 6 — live co-solve study room presence (summary
+// persistence; live deltas ride liveBus).
+export const studyRoomParticipants = sqliteTable(
+  "study_room_participants",
+  {
+    id: text("id").primaryKey(),
+    sessionId: text("session_id")
+      .notNull()
+      .references(() => cohortStudySessions.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull().references(() => users.id),
+    slideIdx: integer("slide_idx").notNull().default(0),
+    joinedAt: text("joined_at").default(sql`(datetime('now'))`).notNull(),
+    lastSeenAt: text("last_seen_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    sessionUserUniq: uniqueIndex("study_room_participants_uniq").on(
+      t.sessionId,
+      t.userId,
+    ),
+  }),
+);
+
 // User-uploaded files: images (incl. animated GIF/WebP), short videos,
 // and the occasional PDF. Used by the rich composer in posts, the wiki
 // editor, the lesson editor, and the news editor. We store only

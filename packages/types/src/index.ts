@@ -1112,10 +1112,28 @@ export interface LessonSectionSlide {
   body?: string;            // optional markdown intro
 }
 
+// A non-blocking reflective prompt ("explain it back in your own
+// words"). Used by 46 seeded lessons. Carries optional rubric
+// criteria (data already present in seed content). It never blocks
+// progress and is not scored — Phase 5's `teach_back` is the
+// AI-graded variant; the two coexist.
+export interface LessonReflectPrompt {
+  id: string;
+  kind: "explain_back";
+  prompt: string;
+  rubricCriteria?: { id: string; description: string }[];
+}
+
+export interface LessonReflectSlide {
+  kind: "explain_back";
+  question: LessonReflectPrompt;
+}
+
 export type LessonSlide =
   | LessonTextSlide
   | LessonQuestionSlide
-  | LessonSectionSlide;
+  | LessonSectionSlide
+  | LessonReflectSlide;
 
 export interface Lesson {
   slides: LessonSlide[];

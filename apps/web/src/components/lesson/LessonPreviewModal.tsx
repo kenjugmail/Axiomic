@@ -134,6 +134,20 @@ export function LessonPreviewModal({
                 </div>
               )}
             </section>
+          ) : slide.kind === "explain_back" ? (
+            <div className="max-w-xl mx-auto animate-fade-in">
+              <div className="text-[11px] uppercase tracking-wider text-primary mb-2 inline-flex items-center gap-1.5">
+                <HelpCircle className="w-3 h-3" strokeWidth={2} />
+                Explain back · slide {idx + 1} of {slides.length}
+              </div>
+              <h3 className="font-display text-xl sm:text-2xl font-semibold tracking-tight leading-snug mb-5">
+                {slide.question.prompt}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Reflective prompt — answered in the learner's own words.
+                Does not block progress or get scored.
+              </p>
+            </div>
           ) : (
             <div className="max-w-xl mx-auto animate-fade-in">
               <div className="text-[11px] uppercase tracking-wider text-primary mb-2 inline-flex items-center gap-1.5">

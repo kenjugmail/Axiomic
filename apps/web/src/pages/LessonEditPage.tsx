@@ -308,7 +308,9 @@ export function LessonEditPage() {
                     ? s.title || "Untitled"
                     : s.kind === "section"
                       ? s.title || "Section"
-                      : s.question.question
+                      : s.kind === "explain_back"
+                        ? s.question.prompt
+                        : s.question.question
                 }
               >
                 <Icon
@@ -336,7 +338,9 @@ export function LessonEditPage() {
                       ? s.title || "Untitled"
                       : s.kind === "section"
                         ? s.title || "Section"
-                        : s.question.question.slice(0, 40) || "Question"}
+                        : s.kind === "explain_back"
+                          ? s.question.prompt.slice(0, 40) || "Reflect"
+                          : s.question.question.slice(0, 40) || "Question"}
                   </span>
                 </span>
               </button>
@@ -804,6 +808,11 @@ export function LessonEditPage() {
                   slide={slide}
                   onChange={(s) => updateSlide(activeIdx, s)}
                 />
+              ) : slide.kind === "explain_back" ? (
+                <ReflectSlideEditor
+                  slide={slide}
+                  onChange={(s) => updateSlide(activeIdx, s)}
+                />
               ) : (
                 <QuestionSlideEditor
                   slide={slide}
@@ -938,6 +947,53 @@ function SectionSlideEditor({
       </div>
       <p className="text-xs text-muted-foreground">
         A section divider visually groups the slides that follow it. It
+        does not block progress and is not scored.
+      </p>
+    </div>
+  );
+}
+
+function ReflectSlideEditor({
+  slide,
+  onChange,
+}: {
+  slide: LessonSlide & { kind: "explain_back" };
+  onChange: (s: LessonSlide) => void;
+}) {
+  const rubric = slide.question.rubricCriteria ?? [];
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">
+          Reflective prompt
+        </label>
+        <textarea
+          value={slide.question.prompt}
+          onChange={(e) =>
+            onChange({
+              ...slide,
+              question: { ...slide.question, prompt: e.target.value },
+            })
+          }
+          rows={4}
+          className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm"
+          placeholder="Explain in your own words why…"
+        />
+      </div>
+      {rubric.length > 0 && (
+        <div>
+          <label className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">
+            Rubric criteria (reference)
+          </label>
+          <ul className="text-xs text-muted-foreground list-disc pl-5 space-y-0.5">
+            {rubric.map((c) => (
+              <li key={c.id}>{c.description}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <p className="text-xs text-muted-foreground">
+        A reflective prompt — the learner answers in their own words. It
         does not block progress and is not scored.
       </p>
     </div>

@@ -648,6 +648,16 @@ const slideSchema = z.union([
     title: z.string().min(1).max(200),
     body: z.string().max(20000).optional(),
   }),
+  z.object({
+    kind: z.literal("explain_back"),
+    question: z
+      .object({
+        id: z.string().min(1).max(80),
+        kind: z.literal("explain_back"),
+        prompt: z.string().min(1).max(2000),
+      })
+      .passthrough(),
+  }),
 ]);
 
 const lessonBodySchema = z.object({

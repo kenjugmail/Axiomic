@@ -129,17 +129,12 @@ function scoreLocally(question: QuizQuestion, answer: string | undefined): boole
 function slideShortTitle(s: LessonSlide, i: number): string {
   if (s.kind === "text") return s.title || `Slide ${i + 1}`;
   if (s.kind === "section") return s.title || `Section ${i + 1}`;
-  const raw = s as unknown as {
-    kind: string;
-    question?: { question?: string; prompt?: string };
-  };
-  if (raw.kind === "explain_back") {
-    const p = raw.question?.prompt;
-    if (typeof p === "string" && p.length)
-      return p.length > 60 ? p.slice(0, 60) + "…" : p;
+  if (s.kind === "explain_back") {
+    const p = s.question.prompt;
+    if (p && p.length) return p.length > 60 ? p.slice(0, 60) + "…" : p;
     return `Slide ${i + 1}`;
   }
-  const q = raw.question?.question;
+  const q = s.question.question;
   if (typeof q !== "string" || !q.length) return `Slide ${i + 1}`;
   return q.length > 60 ? q.slice(0, 60) + "…" : q;
 }
@@ -764,16 +759,14 @@ export function LessonPage() {
 
           {phase === "playing" &&
             slide &&
-            (slide as unknown as { kind: string }).kind === "explain_back" &&
-            (slide as unknown as { question?: { prompt?: string } }).question
-              ?.prompt && (
+            slide.kind === "explain_back" && (
               <div className="max-w-2xl mx-auto animate-fade-in">
                 <div className="text-[11px] uppercase tracking-wider text-primary mb-2 inline-flex items-center gap-1.5">
                   <NotebookPen className="w-3 h-3" strokeWidth={2} />
                   Explain back · slide {idx + 1} of {slides.length}
                 </div>
                 <h2 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight leading-snug mb-6">
-                  {(slide as unknown as { question: { prompt: string } }).question.prompt}
+                  {slide.question.prompt}
                 </h2>
                 <p className="text-sm text-muted-foreground mb-4">
                   Take a minute to answer in your own words (notes or out loud).
