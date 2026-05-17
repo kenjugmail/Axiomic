@@ -1008,6 +1008,30 @@ export interface GuidedDerivationQuestion {
   explanation?: string;
 }
 
+// Phase 3 — interactive ML sandbox. Sliders feed params into a
+// Python harness (Pyodide, numpy available) that must set a
+// `metrics` dict; pass when metrics[target.metric] satisfies the
+// op. The component emits the same {graded,correct} envelope as
+// free_response so the synchronous graders need no special case.
+export interface MlSandboxParam {
+  name: string; // python global the slider binds to
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  default: number;
+}
+
+export interface MlSandboxQuestion {
+  id: string;
+  kind: "ml_sandbox";
+  question: string;
+  params: MlSandboxParam[];
+  harnessCode: string;
+  target: { metric: string; op: "lt" | "lte" | "gt" | "gte"; value: number };
+  explanation?: string;
+}
+
 export type QuizQuestion =
   | MultipleChoiceQuestion
   | SliderQuestion
@@ -1019,7 +1043,8 @@ export type QuizQuestion =
   | CodeCompletionQuestion
   | FreeResponseQuestion
   | ScenarioQuestion
-  | GuidedDerivationQuestion;
+  | GuidedDerivationQuestion
+  | MlSandboxQuestion;
 
 export interface AiFreeResponseGrade {
   score: number;

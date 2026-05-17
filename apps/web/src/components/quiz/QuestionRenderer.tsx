@@ -11,6 +11,7 @@ import { CodeCompletionQuestion } from "./CodeCompletionQuestion";
 import { FreeResponseQuestion } from "./FreeResponseQuestion";
 import { ScenarioQuestion } from "./ScenarioQuestion";
 import { GuidedDerivationQuestion } from "./GuidedDerivationQuestion";
+import { MlSandboxQuestion } from "./MlSandboxQuestion";
 
 interface Props {
   question: QuizQuestion;
@@ -113,6 +114,15 @@ export function QuestionRenderer({ question, value, onChange, review }: Props) {
           review={review}
         />
       );
+    case "ml_sandbox":
+      return (
+        <MlSandboxQuestion
+          question={q}
+          value={value}
+          onChange={onChange}
+          review={review}
+        />
+      );
   }
 }
 
@@ -172,7 +182,11 @@ export function isAnswered(question: QuizQuestion, value: string | undefined): b
   if (q.kind === "math_expression") {
     return value.trim().length > 0;
   }
-  if (q.kind === "free_response" || q.kind === "scenario") {
+  if (
+    q.kind === "free_response" ||
+    q.kind === "scenario" ||
+    q.kind === "ml_sandbox"
+  ) {
     try {
       const r = JSON.parse(value) as { graded?: boolean };
       return r.graded === true;

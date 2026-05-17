@@ -104,7 +104,8 @@ function scoreLocally(question: QuizQuestion, answer: string | undefined): boole
       }
     }
     case "free_response":
-    case "scenario": {
+    case "scenario":
+    case "ml_sandbox": {
       if (answer === undefined) return false;
       try {
         const r = JSON.parse(answer) as { graded?: boolean; correct?: boolean };

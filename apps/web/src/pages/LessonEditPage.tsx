@@ -1236,6 +1236,7 @@ function QuestionSlideEditor({
           <option value="free_response">free_response</option>
           <option value="scenario">scenario</option>
           <option value="guided_derivation">guided_derivation</option>
+          <option value="ml_sandbox">ml_sandbox</option>
         </select>
       </div>
       <div>
