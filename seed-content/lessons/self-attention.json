@@ -1,6 +1,6 @@
 {
   "meta": {
-    "timeMinutes": 40,
+    "timeMinutes": 45,
     "difficulty": "core",
     "objectives": [
       "Explain how Q,K,V come from the same sequence",
@@ -14,17 +14,17 @@
     {
       "kind": "section",
       "title": "Part 1 — Why self-attention",
-      "body": "You derived attention with separate inputs. Self-attention is the special, powerful case that powers every transformer."
+      "body": "You derived general attention with separate inputs. Self-attention is the special case — Q, K, V all from one sequence — that actually powers every transformer. The specialization has profound consequences for *path length* and *cost*."
     },
     {
       "kind": "text",
-      "title": "Q, K, V from the *same* sequence",
-      "body": "In self-attention all three projections come from one input sequence $X$: $Q=XW^Q,\\,K=XW^K,\\,V=XW^V$. Every token simultaneously asks a question (its query), advertises itself (its key), and offers content (its value) — *to every other token in the same sequence, including itself*. One layer rewrites each token as a relevance-weighted blend of the whole sequence."
+      "title": "Q, K, V from the same sequence",
+      "body": "In **self**-attention, one input sequence $X\\in\\mathbb{R}^{n\\times d}$ produces all three: $Q=XW^Q,;K=XW^K,;V=XW^V$. Every token simultaneously (a) asks a question (its query), (b) advertises what it offers (its key), and (c) carries content (its value) — *to and from every token in the same sequence, itself included*. One self-attention layer therefore rewrites each token as a relevance-weighted blend of the entire sequence: pure **contextualization**. The word *bank* beside *river* vs beside *money* leaves the layer with different output vectors solely because its attention row points at different neighbors — meaning is computed from context, and it emerged from training, not rules."
     },
     {
       "kind": "text",
-      "title": "Full reach in one step",
-      "body": "Recurrence connects token 1 to token 500 through 499 sequential updates (path length $O(n)$, signal decays). Self-attention connects *any* two positions in a **single** operation — path length $O(1)$, fully parallel. That constant path length is *why* transformers learn long-range structure that RNNs couldn't.",
+      "title": "The killer property: O(1) path length",
+      "body": "This is the deep reason transformers beat RNNs. In an RNN the information path from token 1 to token 500 has length 499 (gradient must survive 499 multiplicative steps → vanishing). In self-attention, **any two positions are connected in a single layer** — maximum path length is $\\mathcal{O}(1)$, independent of distance. Gradient between distant tokens no longer has to thread hundreds of Jacobians. Constant path length is *why* transformers learn long-range dependencies (agreement, coreference, document structure) that recurrence could not. Hold this next to the cost fact below — together they define the entire research landscape.",
       "viz": "attention-heatmap-explorer",
       "vizProps": {
         "presetIndex": 1
@@ -33,7 +33,7 @@
     {
       "kind": "text",
       "title": "Every row is a distribution over the sequence",
-      "body": "The weight matrix is $n\\times n$; row $i$ is a softmax distribution over which tokens token $i$ reads from. \"bank\" beside \"river\" vs \"money\" ends up with different output vectors purely because its attention row points at different neighbors — contextualization, emergent from training."
+      "body": "The weight matrix $A=\\text{softmax}(QK^{T}/\\sqrt{d_k})$ is $n\\times n$; row $i$ is a probability distribution over which tokens token $i$ reads from. A 'focused' head has a near one-hot row (attend to one antecedent); a 'diffuse' head spreads weight (average context). Reading these rows is how interpretability researchers reverse-engineer what a layer does — and what you should do to debug a model that attends to the wrong things."
     },
     {
       "kind": "section",
@@ -41,8 +41,8 @@
     },
     {
       "kind": "text",
-      "title": "Same formula, shared source",
-      "body": "$\\text{SelfAttn}(X)=\\text{softmax}\\!\\big(\\tfrac{(XW^Q)(XW^K)^{T}}{\\sqrt{d_k}}\\big)(XW^V)$. Structurally identical to general attention — the only change is that Q, K, V are three *different learned views of one sequence*. Derive the specialization:"
+      "title": "Same formula, shared source — and why that matters",
+      "body": "$\\text{SelfAttn}(X)=\\text{softmax}\\!\\big((XW^Q)(XW^K)^{T}/\\sqrt{d_k}\\big)(XW^V)$. Structurally identical to general attention; the *only* change is that Q, K, V are three learned **views of one sequence**. That sharing is what makes it (a) parallel across all positions and (b) $\\mathcal{O}(1)$ path length. Reconstruct the specialization and its permutation-equivariance property (the reason positional encoding will be needed):"
     },
     {
       "kind": "question",
@@ -105,8 +105,8 @@
     },
     {
       "kind": "text",
-      "title": "Cost: O(n²) in sequence length",
-      "body": "$QK^{T}$ is $n\\times n$ — for $n=4096$ that's ~16M scores *per head per layer*. Attention compute and memory grow **quadratically** with context length. This single fact drives a whole research line: FlashAttention (IO-aware exact attention), sparse/sliding-window patterns, and linear-attention approximations all exist to fight this $O(n^2)$ wall."
+      "title": "Cost: O(n²) in sequence length — quantified",
+      "body": "$S=QK^{T}$ has $n^2$ entries; forming and softmaxing it is $\\mathcal{O}(n^2 d_k)$ time and (naively) $\\mathcal{O}(n^2)$ memory **per head per layer**. At $n=4096$ that's ~16.7M scores per head; with 32 heads × 32 layers, the attention matrices alone are billions of numbers. This single quadratic is the defining engineering constraint of transformers and spawned an entire field of fixes: **FlashAttention** (IO-aware exact attention that never materializes the full $n\\times n$ matrix — same math, tiled to fit SRAM), sliding-window/sparse attention (Longformer, BigBird), and linear-attention approximations (Performer). Knowing *which* of these preserves exact attention vs approximates it is a real engineering decision."
     },
     {
       "kind": "question",
@@ -126,12 +126,12 @@
     },
     {
       "kind": "section",
-      "title": "Part 4 — Causal masking (the pitfall that bites)"
+      "title": "Part 4 — Causal masking: the pitfall that bites"
     },
     {
       "kind": "text",
       "title": "Don't let a token see its own answer",
-      "body": "For autoregressive generation, token $i$ must predict token $i{+}1$ using only tokens $\\le i$. If training attention can see the future, the model learns to \"cheat\" — fluent under teacher forcing, garbage at inference where there is no future. The fix: set pre-softmax scores for $j>i$ to $-\\infty$ (a lower-triangular mask). This train/inference mismatch is one of the most common transformer bugs."
+      "body": "For autoregressive generation, token $i$ must predict token $i{+}1$ from tokens $\\le i$ only. During teacher-forced training the whole sequence is present at once, so *without intervention* position $i$'s attention can read positions $>i$ — including the very token it's supposed to predict. The model then learns a trivial copy shortcut: low training loss, **garbage at inference** where the future doesn't exist. Fix: a **causal mask** — add $-\\infty$ to all scores $S_{ij}$ with $j>i$ *before* softmax, so future weights become exactly 0 (a lower-triangular attention pattern). Encoders (BERT) intentionally omit this (bidirectional); decoders (GPT) require it. This train/inference mismatch is one of the most common and most silent transformer bugs."
     },
     {
       "kind": "question",
@@ -191,6 +191,11 @@
       }
     },
     {
+      "kind": "text",
+      "title": "More boundary conditions",
+      "body": "- **Padding mask:** batched variable-length sequences need pad positions masked too, independently of the causal mask.\n- **Encoder vs decoder vs cross-attention:** self-attention (one sequence), masked self-attention (decoder), and cross-attention (decoder queries attend to encoder keys/values) are the same primitive with different Q/K/V sources and masks.\n- **KV-cache:** at inference, past K/V are cached so each new token is $\\mathcal{O}(n)$ not $\\mathcal{O}(n^2)$ — the cache's memory is what multi-head's GQA later optimizes."
+    },
+    {
       "kind": "question",
       "question": {
         "id": "sa_scen",
@@ -238,7 +243,7 @@
     },
     {
       "kind": "section",
-      "title": "Part 5 — Connections & what's next"
+      "title": "Part 5 — Connections, teach-back & what's next"
     },
     {
       "kind": "explain_back",
@@ -265,7 +270,7 @@
     {
       "kind": "text",
       "title": "What to carry forward",
-      "body": "Self-attention = attention with Q,K,V from one sequence: O(1) path length, O(n²) cost, and a mandatory causal mask for decoders. Next: **[multi-head attention](/paths/ml-engineer/lessons/multi-head-attention)** — why one attention isn't enough."
+      "body": "Self-attention = attention with Q,K,V from one sequence: $\\mathcal{O}(1)$ path length (why it beats RNNs), $\\mathcal{O}(n^2)$ cost (the central scaling pain), and a mandatory causal mask for decoders. Next: **multi-head attention** — one weighting per query isn't enough."
     }
   ]
 }

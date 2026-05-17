@@ -1,6 +1,6 @@
 {
   "meta": {
-    "timeMinutes": 40,
+    "timeMinutes": 45,
     "difficulty": "intro",
     "objectives": [
       "Derive softmax and explain the temperature knob",
@@ -12,22 +12,22 @@
     {
       "kind": "section",
       "title": "Part 1 — Why softmax exists",
-      "body": "Almost every classification decision in deep learning ends in a softmax. Understand it once, deeply."
+      "body": "Nearly every decision a deep net makes ends in a softmax: the classifier head, the language-model head, and the attention weights themselves. It earns one deep, careful pass."
     },
     {
       "kind": "text",
-      "title": "The job: scores → a probability distribution",
-      "body": "A network outputs a vector of unbounded real **logits** $z=[z_1,\\dots,z_K]$ (one per class, or per vocabulary token). To train with cross-entropy and to *sample*, you need a proper probability distribution: every entry $\\ge 0$, all summing to 1. Softmax is the standard, differentiable map that does exactly that — and it's the final step of essentially every transformer (the LM head) and the core of attention weights."
+      "title": "The job: a vector of scores → a probability distribution",
+      "body": "A network's penultimate output is a vector of unbounded real **logits** $z=[z_1,\\dots,z_K]$ — one per class, or per vocabulary token. To train with cross-entropy and to *sample*, you need a genuine probability distribution: every entry $\\ge 0$, all summing to 1, and differentiable so gradients flow. Softmax is the canonical map\n$$\\text{softmax}(z)_i=\\frac{e^{z_i}}{\\sum_{j=1}^{K} e^{z_j}}.$$\nIt is the final operation of essentially every transformer (the LM head over ~50k tokens) and, row-wise, the operation that converts attention scores into attention weights. So you will meet it at least three more times on this path."
     },
     {
       "kind": "text",
-      "title": "Why not just z / sum(z)?",
-      "body": "Naive normalization fails: logits can be **negative** (negative \"probabilities\"), the sum can be zero (divide-by-zero), and it's only linearly sensitive to differences. We want something that (a) is always positive, (b) is monotonic in each $z_i$, and (c) turns score *gaps* into probability *ratios* — a confident gap should dominate. Exponentiation gives all three: $e^{z}>0$ always, and $e^{z_i}/e^{z_j}=e^{z_i-z_j}$ depends only on the gap."
+      "title": "Why not the naive normalizations",
+      "body": "Several obvious alternatives fail concrete requirements:\n\n- $z_i/\\sum_j z_j$: logits can be **negative** (negative \"probabilities\"), the denominator can be 0, and it's only linearly sensitive to gaps.\n- $\\max(0,z_i)/\\sum\\max(0,z_j)$ (ReLU-normalize): kills all information in negative logits and has zero gradient there.\n- $|z_i|/\\sum|z_j|$: non-monotonic — increasing a logit can *decrease* its probability.\n\nWe want three properties at once: outputs always positive, **monotonic** in each $z_i$, and score *gaps* mapped to probability *ratios* (a confident margin should dominate). Exponentiation uniquely delivers all three: $e^{z}>0$ always, strictly increasing, and $e^{z_i}/e^{z_j}=e^{z_i-z_j}$ depends only on the gap. That is *why* it's exp, not an arbitrary choice."
     },
     {
       "kind": "text",
-      "title": "Soft argmax — see it move",
-      "body": "$\\text{softmax}(z)_i=\\dfrac{e^{z_i}}{\\sum_j e^{z_j}}$ is a *smooth* stand-in for argmax: it concentrates on the largest logit but stays differentiable so gradients flow. Drag temperature and watch it slide between \"sharp argmax\" and \"uniform\".",
+      "title": "Soft argmax — and the temperature knob",
+      "body": "Softmax is a smooth, differentiable stand-in for $\\arg\\max$. With a **temperature** $T$, use $\\text{softmax}(z/T)$:\n\n- $T\\to 0^{+}$: the largest logit's weight $\\to 1$ — hard argmax (greedy decoding).\n- $T=1$: the standard distribution.\n- $T\\to\\infty$: every weight $\\to 1/K$ — the uniform distribution (maximum entropy).\n\nThis single scalar is exactly the exploration↔exploitation dial in text generation: low $T$ = safe/repetitive, high $T$ = diverse/risky. Watch it move continuously between one-hot and uniform.",
       "viz": "softmax-temperature-preview"
     },
     {
@@ -36,8 +36,8 @@
     },
     {
       "kind": "text",
-      "title": "Three properties that matter",
-      "body": "1. **Shift-invariance:** $\\text{softmax}(z)=\\text{softmax}(z-c)$ for any constant $c$ (the $e^{-c}$ cancels top and bottom). This is the key to numerical stability.\n2. **Monotonic & smooth:** increasing $z_i$ never decreases $p_i$; everything is differentiable.\n3. **Temperature:** $\\text{softmax}(z/T)$ — $T\\to 0$ → one-hot (greedy), $T\\to\\infty$ → uniform (max entropy). The single knob controlling exploration vs exploitation in generation."
+      "title": "Properties that matter, with proofs in one line each",
+      "body": "1. **Shift invariance:** $\\text{softmax}(z+c\\mathbf{1})=\\text{softmax}(z)$ because $e^{z_i+c}/\\sum e^{z_j+c}=e^{c}e^{z_i}/(e^{c}\\sum e^{z_j})$ — the $e^{c}$ cancels. (This is the key to numerical stability, Part 4.)\n2. **Monotonic & smooth:** $\\partial p_i/\\partial z_i = p_i(1-p_i)>0$; the full Jacobian is $\\partial p_i/\\partial z_j = p_i(\\delta_{ij}-p_j)$ — everywhere differentiable.\n3. **Cross-entropy synergy:** with target $y$ (one-hot) and loss $-\\sum y_i\\log p_i$, the gradient w.r.t. logits collapses to the famously clean $p-y$. This elegance is *because* of softmax's exponential form — a major reason it, and not some other normalizer, is the universal head.\n\nNow reconstruct softmax from its requirements:"
     },
     {
       "kind": "question",
@@ -87,12 +87,12 @@
     },
     {
       "kind": "section",
-      "title": "Part 3 — Worked example & the temperature knob"
+      "title": "Part 3 — Worked example & temperature"
     },
     {
       "kind": "text",
       "title": "By hand: z = [2.0, 1.0, 0.1]",
-      "body": "$e^{2.0}=7.39,;e^{1.0}=2.72,;e^{0.1}=1.11$; sum $=11.22$. So $p=[0.659,\\,0.242,\\,0.099]$ — the top logit gets ~66%, not 100%: confident but not certain. Now divide $z$ by $T=0.5$ first (logits $[4,2,0.2]$): the distribution sharpens toward the max. By $T=2$ it flattens toward uniform. Same logits, different *confidence*."
+      "body": "Exponentiate: $e^{2.0}=7.389,;e^{1.0}=2.718,;e^{0.1}=1.105$; sum $=11.212$. Divide: $p=[0.659,\\,0.242,\\,0.099]$. Read it: the top logit takes ~66% — confident, *not* certain; a gap of 1.0 in logits became a $7.389/2.718\\approx2.7\\times$ ratio in probability (the exp-of-gap property in action). Now temperature: with $T=0.5$ the logits become $[4,2,0.2]$ → distribution sharpens toward $[0.84,0.11,0.05]$. With $T=2$, $[1,0.5,0.05]$ → flattens toward $[0.44,0.27,0.29]$. Same logits, different *confidence* — exactly what a sampler controls."
     },
     {
       "kind": "question",
@@ -155,12 +155,12 @@
     },
     {
       "kind": "section",
-      "title": "Part 4 — Numerical reality (pitfalls)"
+      "title": "Part 4 — Numerical reality (the pitfall that bites)"
     },
     {
       "kind": "text",
-      "title": "exp() overflows — the max-subtraction trick",
-      "body": "$e^{1000}=\\infty$ in float32. Large logits make the naive formula return `inf/inf = NaN`, which then poisons the whole backward pass. Fix, free via shift-invariance: subtract $\\max(z)$ from every logit first. The result is *mathematically identical* but every exponent is now $\\le 0$, so no overflow. Every production softmax does this; it's the canonical numerical-stability example."
+      "title": "exp() overflows — and the max-subtraction fix",
+      "body": "In float32, $e^{89}\\approx 4.5\\times10^{38}$ is near the overflow limit and $e^{1000}=\\infty$. Real logits late in training routinely exceed this, so the *naive* formula returns `inf/inf = NaN`, which then poisons every downstream gradient — a silent, training-killing bug. The fix is **free** by shift invariance: subtract $\\max(z)$ from every logit first. The distribution is provably *identical* (property 1), but now every exponent is $\\le 0$, so each $e^{\\cdot}\\in(0,1]$ — no overflow possible. Every production softmax (PyTorch, JAX, every attention kernel) does exactly this. It is the canonical \"mathematically irrelevant, numerically essential\" transformation."
     },
     {
       "kind": "question",
@@ -226,12 +226,12 @@
     },
     {
       "kind": "section",
-      "title": "Part 5 — Connections & what's next"
+      "title": "Part 5 — Connections, teach-back & what's next"
     },
     {
       "kind": "text",
-      "title": "Where softmax reappears",
-      "body": "You'll meet it three more times on this path: as **attention weights** (softmax over keys), as the **LM head** (softmax over the vocabulary), and paired with **cross-entropy loss** (whose gradient simplifies beautifully to $p-y$ precisely because of softmax's form). It also ties to the loss surface you'll optimize.",
+      "title": "Where softmax reappears on this path",
+      "body": "Three places, all soon: (1) **attention weights** — softmax over the key axis converts $QK^{T}/\\sqrt{d_k}$ scores into the convex weights you saw derived in attention-intro; the $\\sqrt{d_k}$ scaling exists precisely to keep *this* softmax unsaturated. (2) The **LM head** — a softmax over the entire vocabulary produces next-token probabilities; temperature there is your sampler's `temperature` knob. (3) **Cross-entropy training** — softmax + CE is the loss whose gradient is the clean $p-y$. It also connects to the optimization landscape you'll navigate.",
       "viz": "gradient-descent-2d"
     },
     {
@@ -259,7 +259,7 @@
     {
       "kind": "text",
       "title": "What to carry forward",
-      "body": "Softmax = exp-then-normalize: a differentiable soft-argmax with a temperature knob and a mandatory max-subtraction for stability. Next: **[self-attention](/paths/ml-engineer/lessons/self-attention)**, where softmax becomes the weighting over the sequence."
+      "body": "Softmax = exp-then-normalize: the unique smooth, monotonic, gap-to-ratio map to the probability simplex, with a temperature dial and a mandatory max-subtraction for stability. You'll immediately reuse it as the heart of attention weights. Next: **self-attention**."
     }
   ]
 }
