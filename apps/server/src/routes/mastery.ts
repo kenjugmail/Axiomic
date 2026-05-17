@@ -642,6 +642,9 @@ const slideSchema = z.union([
         question: z.string().min(1).max(500),
       })
       .passthrough(),
+    hints: z.array(z.string().max(2000)).max(6).optional(),
+    workedSolution: z.string().max(20000).optional(),
+    retryUntilCorrect: z.boolean().optional(),
   }),
   z.object({
     kind: z.literal("section"),

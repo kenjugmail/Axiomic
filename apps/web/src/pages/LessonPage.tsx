@@ -187,6 +187,10 @@ export function LessonPage() {
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
+  const [hintTier, setHintTier] = useState<Record<string, number>>({});
+  const [solutionShown, setSolutionShown] = useState<Record<string, boolean>>(
+    {},
+  );
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
@@ -370,6 +374,11 @@ export function LessonPage() {
             correct ? "answered_correct" : "answered_wrong",
           )
           .catch(() => {});
+      }
+      // Opt-in: block advance until correct. Feedback/hints/worked
+      // solution are now visible so the learner can fix and retry.
+      if (slide.retryUntilCorrect && !correct) {
+        return;
       }
     }
     if (isLast) {
@@ -744,6 +753,39 @@ export function LessonPage() {
                     setAnswers((a) => ({ ...a, [slide.question.id]: v }))
                   }
                 />
+                {slide.hints && slide.hints.length > 0 && (
+                  <div className="mt-4 space-y-1">
+                    {slide.hints
+                      .slice(0, hintTier[slide.question.id] ?? 0)
+                      .map((h, hi) => (
+                        <p
+                          key={hi}
+                          className="text-sm text-accent-amber/90 flex gap-1.5"
+                        >
+                          <span aria-hidden>💡</span>
+                          <span>{h}</span>
+                        </p>
+                      ))}
+                    {(hintTier[slide.question.id] ?? 0) <
+                      slide.hints.length && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setHintTier((t) => ({
+                            ...t,
+                            [slide.question.id]:
+                              (t[slide.question.id] ?? 0) + 1,
+                          }))
+                        }
+                        className="text-xs text-primary hover:underline"
+                      >
+                        {(hintTier[slide.question.id] ?? 0) === 0
+                          ? "Show a hint"
+                          : "Show another hint"}
+                      </button>
+                    )}
+                  </div>
+                )}
                 {revealed[slide.question.id] && (
                   <div
                     className={`mt-4 rounded-md border p-3 text-sm ${
@@ -772,9 +814,36 @@ export function LessonPage() {
                     )}
                   </div>
                 )}
+                {revealed[slide.question.id] && slide.workedSolution && (
+                  <div className="mt-3">
+                    {solutionShown[slide.question.id] ? (
+                      <div className="rounded-md border border-border bg-muted/40 p-3 text-sm [&_p]:mb-2 [&_p:last-child]:mb-0">
+                        <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1">
+                          Worked solution
+                        </div>
+                        <MarkdownRenderer content={slide.workedSolution} />
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSolutionShown((s) => ({
+                            ...s,
+                            [slide.question.id]: true,
+                          }))
+                        }
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Show worked solution
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
               <p className="text-xs text-muted-foreground mt-3">
-                Answer to advance. Use ← → to navigate.
+                {slide.retryUntilCorrect
+                  ? "Answer correctly to continue. Use ← → to navigate."
+                  : "Answer to advance. Use ← → to navigate."}
               </p>
             </div>
           )}

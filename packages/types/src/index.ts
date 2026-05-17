@@ -1176,6 +1176,12 @@ export interface LessonTextSlide {
 export interface LessonQuestionSlide {
   kind: "question";
   question: QuizQuestion;
+  // Phase 1b — opt-in pedagogy wrappers (slide-level, so they apply
+  // to any question kind without bloating each one). All optional;
+  // absent ⇒ exactly today's non-blocking behaviour.
+  hints?: string[]; // progressive tiers, revealed one at a time
+  workedSolution?: string; // markdown, revealed on demand
+  retryUntilCorrect?: boolean; // block advance until correct
 }
 
 // Phase 44 — a chapter/part divider for "more structured" lessons.
