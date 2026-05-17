@@ -27,20 +27,31 @@ export function ExamPage() {
 
   useEffect(() => {
     if (!slug) return;
+    let cancelled = false;
     setError(null);
     api.exams
       .get(slug)
-      .then((r) => setExam(r.exam))
+      .then((r) => {
+        if (!cancelled) setExam(r.exam);
+      })
       .catch((e: unknown) => {
+        if (cancelled) return;
         setExam(null);
         setError(e instanceof Error ? e.message : "Failed to load exam");
       });
     if (user) {
       api.exams
         .history(slug)
-        .then((r) => setHistory(r.items))
-        .catch(() => setHistory([]));
+        .then((r) => {
+          if (!cancelled) setHistory(r.items);
+        })
+        .catch(() => {
+          if (!cancelled) setHistory([]);
+        });
     }
+    return () => {
+      cancelled = true;
+    };
   }, [slug, user]);
 
   const start = async (

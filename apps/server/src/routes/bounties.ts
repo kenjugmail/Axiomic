@@ -327,6 +327,12 @@ bountiesRouter.delete("/:slug", requireAuth, async (c) => {
 // POST /bounties/:slug/claim — take a slot.
 bountiesRouter.post("/:slug/claim", requireAuth, async (c) => {
   const me = c.get("user")!;
+  if (
+    env.NODE_ENV !== "test" &&
+    !checkRateLimit(`bounty-claim:${me.id}`, 10, 60_000)
+  ) {
+    return c.json({ error: "Rate limited. Slow down." }, 429);
+  }
   const slug = c.req.param("slug")!;
   const db = getDb();
   const b = db
@@ -403,6 +409,12 @@ bountiesRouter.post(
   zValidator("json", submitSchema),
   async (c) => {
     const me = c.get("user")!;
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`bounty-submit:${me.id}`, 20, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
     const slug = c.req.param("slug")!;
     const data = c.req.valid("json");
     const db = getDb();
@@ -493,6 +505,12 @@ bountiesRouter.post(
   requireAuth,
   async (c) => {
     const me = c.get("user")!;
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`bounty-accept:${me.id}`, 30, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
     const slug = c.req.param("slug")!;
     const claimId = c.req.param("claimId")!;
     const db = getDb();
@@ -577,6 +595,12 @@ bountiesRouter.post(
   requireAuth,
   async (c) => {
     const me = c.get("user")!;
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`bounty-reject:${me.id}`, 30, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
     const slug = c.req.param("slug")!;
     const claimId = c.req.param("claimId")!;
     const db = getDb();

@@ -82,10 +82,18 @@ export function ResearchPaperPage() {
 
   useEffect(() => {
     if (!slug) return;
+    let cancelled = false;
     api.research
       .get(slug, tier)
-      .then((r) => setPaper(r.paper))
-      .catch((e) => setError(e?.message ?? "Failed to load paper"));
+      .then((r) => {
+        if (!cancelled) setPaper(r.paper);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(e?.message ?? "Failed to load paper");
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [slug, tier]);
 
   // Sprint 23.5 — claim threads. Same pattern as NewsArticlePage:

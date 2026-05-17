@@ -911,6 +911,12 @@ hackathonsRouter.post(
 // entrants. Creates a one-person team named after the user.
 hackathonsRouter.post("/:slug/register-solo", requireAuth, async (c) => {
   const me = c.get("user")!;
+  if (
+    env.NODE_ENV !== "test" &&
+    !checkRateLimit(`hackathon-register-solo:${me.id}`, 10, 60_000)
+  ) {
+    return c.json({ error: "Rate limited. Slow down." }, 429);
+  }
   const slug = c.req.param("slug")!;
   const db = getDb();
   const h = db.select().from(hackathons).where(eq(hackathons.slug, slug)).get();
@@ -974,6 +980,12 @@ hackathonsRouter.post("/:slug/register-solo", requireAuth, async (c) => {
 
 hackathonsRouter.post("/:slug/teams/:teamId/join", requireAuth, async (c) => {
   const me = c.get("user")!;
+  if (
+    env.NODE_ENV !== "test" &&
+    !checkRateLimit(`hackathon-team-join:${me.id}`, 20, 60_000)
+  ) {
+    return c.json({ error: "Rate limited. Slow down." }, 429);
+  }
   const slug = c.req.param("slug")!;
   const teamId = c.req.param("teamId")!;
   const db = getDb();
@@ -1047,6 +1059,12 @@ hackathonsRouter.post("/:slug/teams/:teamId/join", requireAuth, async (c) => {
 
 hackathonsRouter.post("/:slug/teams/:teamId/leave", requireAuth, async (c) => {
   const me = c.get("user")!;
+  if (
+    env.NODE_ENV !== "test" &&
+    !checkRateLimit(`hackathon-team-leave:${me.id}`, 20, 60_000)
+  ) {
+    return c.json({ error: "Rate limited. Slow down." }, 429);
+  }
   const slug = c.req.param("slug")!;
   const teamId = c.req.param("teamId")!;
   const db = getDb();
@@ -1110,6 +1128,12 @@ hackathonsRouter.post(
   zValidator("json", submitProjectSchema),
   async (c) => {
     const me = c.get("user")!;
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`hackathon-team-submission:${me.id}`, 20, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
     const slug = c.req.param("slug")!;
     const teamId = c.req.param("teamId")!;
     const data = c.req.valid("json");

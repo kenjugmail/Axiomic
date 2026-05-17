@@ -55,10 +55,18 @@ export function NewsArticlePage() {
 
   useEffect(() => {
     if (!slug) return;
+    let cancelled = false;
     api.news
       .get(slug)
-      .then((r) => setArticle(r.article))
-      .catch((e) => setError(e?.message ?? "Failed to load article"));
+      .then((r) => {
+        if (!cancelled) setArticle(r.article);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(e?.message ?? "Failed to load article");
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [slug]);
 
   // Load claim threads for this article. We do this in a separate
