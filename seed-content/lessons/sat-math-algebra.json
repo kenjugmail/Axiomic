@@ -1,0 +1,285 @@
+{
+  "meta": {
+    "timeMinutes": 35,
+    "difficulty": "core",
+    "objectives": [
+      "Define variables in words before writing equations",
+      "Choose substitution vs elimination by least arithmetic",
+      "Re-read and answer the exact quantity the question asks"
+    ],
+    "prereqs": [
+      "sat-rw-standard-english"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "section",
+      "title": "Part 1 — The backbone of SAT Math",
+      "body": "Algebra is ~35% of the Math section and underlies almost everything else. Linear equations, inequalities, systems, and linear functions: get fluent here and the rest of Math gets easier."
+    },
+    {
+      "kind": "text",
+      "title": "What it tests",
+      "body": "- Solve/▶interpret **linear equations & inequalities** in one variable.\n- Solve **systems** of two linear equations (substitution or elimination).\n- Read **linear functions**: slope = rate of change, intercept = starting value.\n- Move fluently between **words, equations, tables, and graphs** of the same relationship.\n\nThe SAT rewards setting the problem up correctly far more than heavy computation."
+    },
+    {
+      "kind": "text",
+      "title": "The habit that prevents most errors",
+      "body": "> **Define the variable in words, in writing, before you write an equation.** \"Let $c$ = cost in dollars of one ticket.\"\n\nMost SAT algebra mistakes are *setup* mistakes (wrong variable, wrong relationship), not arithmetic. A one-line definition makes the equation almost write itself and tells you what the question is actually asking for at the end."
+    },
+    {
+      "kind": "section",
+      "title": "Part 2 — Strategy a top scorer uses"
+    },
+    {
+      "kind": "text",
+      "title": "Substitution vs elimination",
+      "body": "Use **substitution** when one variable is already isolated (or trivially isolatable). Use **elimination** when coefficients line up to cancel by adding/subtracting. Both are always valid — pick the one with less arithmetic for *this* system."
+    },
+    {
+      "kind": "text",
+      "title": "Answer the question that was asked",
+      "body": "SAT systems love to solve for $x$ and $y$ but then ask for $x+y$, $2y$, or \"the value of $x-y$.\" Underline what's requested. Solving correctly and then reporting the wrong quantity is the most common avoidable miss in this domain."
+    },
+    {
+      "kind": "section",
+      "title": "Part 3 — Method: solve a system, step by step"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "alg_gd",
+        "kind": "guided_derivation",
+        "question": "Solve a 2-variable system by elimination",
+        "goal": "Solve $;2x+3y=12;$ and $;2x-;y=4;$ for $(x,y)$ using elimination.",
+        "steps": [
+          {
+            "prompt": "The $2x$ terms are identical. Subtract the second equation from the first. What equation in $y$ results?",
+            "motivation": "Subtracting eliminates $x$ because the $2x$ terms cancel, leaving one equation in one unknown.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "4y = 8",
+                "2y = 16",
+                "4y = 16",
+                "y = 4"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "(2x+3y) − (2x−y) cancels 2x.",
+              "3y − (−y) = 4y, and 12 − 4 = 8."
+            ],
+            "reveal": "Subtracting: (2x−2x) + (3y−(−y)) = 12−4 → 4y = 8."
+          },
+          {
+            "prompt": "Solve 4y = 8 for y.",
+            "motivation": "One linear equation in one unknown — divide.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "y=2",
+                "2"
+              ]
+            },
+            "hints": [
+              "Divide both sides by 4."
+            ],
+            "reveal": "y = 2."
+          },
+          {
+            "prompt": "Back-substitute y = 2 into 2x − y = 4 and solve for x.",
+            "motivation": "With y known, the second equation becomes linear in x alone.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "x=3",
+                "3"
+              ]
+            },
+            "hints": [
+              "2x − 2 = 4."
+            ],
+            "reveal": "2x − 2 = 4 → 2x = 6 → x = 3."
+          },
+          {
+            "prompt": "Why must you check (3, 2) in BOTH original equations, not just one?",
+            "motivation": "A solution must satisfy every equation in the system; checking one can hide an arithmetic slip.",
+            "accepts": {
+              "mode": "text",
+              "rubricCriteria": [
+                {
+                  "id": "c1",
+                  "description": "a system solution must satisfy all equations simultaneously"
+                },
+                {
+                  "id": "c2",
+                  "description": "checking only one equation can miss an error introduced in back-substitution"
+                }
+              ]
+            },
+            "hints": [
+              "What does 'solution of a system' mean?"
+            ],
+            "reveal": "(3,2): 2(3)+3(2)=12 ✓ and 2(3)−2=4 ✓ — valid in both, so it's the solution."
+          }
+        ],
+        "finalResult": "$(x,y)=(3,2)$"
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 4 — A worked example, end to end"
+    },
+    {
+      "kind": "text",
+      "title": "Word problem → equation",
+      "body": "\"A gym charges a \\$40 joining fee plus \\$25 per month. After how many months $m$ does the total reach \\$215?\" Define $m$ = months. Total $=40+25m$. Set $40+25m=215$."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "alg_me",
+        "kind": "math_expression",
+        "question": "Solve 40 + 25m = 215 for m. Enter m = ____ (just the number).",
+        "acceptedAnswers": [
+          "m=7",
+          "7"
+        ],
+        "explanation": "25m = 215 − 40 = 175; m = 175/25 = 7. Always subtract the fixed fee first, then divide by the per-unit rate."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "alg_p1",
+        "kind": "multiple_choice",
+        "question": "In total = 40 + 25m, the 25 represents:",
+        "options": [
+          "The rate of change (cost per month) — the slope",
+          "The starting value",
+          "The total cost",
+          "The number of months"
+        ],
+        "correctIndex": 0,
+        "explanation": "In y = b + mx form, the coefficient of the variable is the rate of change (slope); the constant is the starting value (intercept)."
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 5 — Trap answers & pitfalls"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "alg_scen",
+        "kind": "scenario",
+        "question": "Diagnose the mistake.",
+        "scenario": "A student correctly finds x = 5 and y = 2 for a system, then bubbles 5. The question asked for the value of x + y. They lose the point despite perfect algebra.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "identifies they answered a different quantity than the one requested"
+          },
+          {
+            "id": "c2",
+            "description": "recommends underlining/boxing what the question asks before solving"
+          },
+          {
+            "id": "c3",
+            "description": "notes SAT systems frequently ask for x+y, x−y, 2y, etc., not x or y alone"
+          }
+        ],
+        "explanation": "The algebra was flawless; the read was not. 'Answer the question asked' is a scoring skill: x+y = 7 was required, not x = 5."
+      }
+    },
+    {
+      "kind": "question",
+      "hints": [
+        "Distribute the 3 across (x − 2) first.",
+        "Get all x on one side, constants on the other."
+      ],
+      "workedSolution": "3(x−2) = 3x − 6. So 3x − 6 = 2x + 4 → subtract 2x: x − 6 = 4 → x = 10. The common wrong answers skip the distribution or mishandle the −6.",
+      "retryUntilCorrect": true,
+      "question": {
+        "id": "alg_mc",
+        "kind": "multiple_choice",
+        "question": "If 3(x − 2) = 2x + 4, then x = ?",
+        "options": [
+          "10",
+          "2",
+          "−2",
+          "6"
+        ],
+        "correctIndex": 0,
+        "explanation": "3x − 6 = 2x + 4 → x = 10. Distribute fully before combining; the trap answers come from dropping the −6 or mis-distributing."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "alg_me2",
+        "kind": "math_expression",
+        "question": "Solve the inequality 2x − 1 < 9. Enter the solution as x<____ (number).",
+        "acceptedAnswers": [
+          "x<5",
+          "5"
+        ],
+        "explanation": "2x < 10 → x < 5. (No sign flip here because we never multiplied/divided by a negative — remember to flip the inequality if you ever do.)"
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 6 — Tie it together"
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "alg_eb",
+        "kind": "explain_back",
+        "prompt": "Teach back: your full procedure for an SAT system-of-equations question, including the step most students skip.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "define variables, choose substitution or elimination by least arithmetic"
+          },
+          {
+            "id": "c2",
+            "description": "solve, then RE-READ what quantity the question asked for"
+          },
+          {
+            "id": "c3",
+            "description": "check the pair in both equations"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "alg_fr",
+        "kind": "free_response",
+        "question": "In your own words, what do the slope and intercept of a linear model mean in a real-world SAT word problem? Give an example.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "slope = rate of change per unit"
+          },
+          {
+            "id": "c2",
+            "description": "intercept = starting/fixed value"
+          },
+          {
+            "id": "c3",
+            "description": "ties both to a concrete worded scenario"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "text",
+      "title": "How it scores & what's next",
+      "body": "Algebra is the largest, most learnable Math domain — setup discipline alone moves the score. Next: **Advanced Math**, where you'll derive the quadratic formula and handle nonlinear forms."
+    }
+  ]
+}

@@ -1,0 +1,289 @@
+{
+  "meta": {
+    "timeMinutes": 35,
+    "difficulty": "core",
+    "objectives": [
+      "Derive and apply the quadratic formula; pick the right quadratic form",
+      "Use exponent/radical laws fluently (radicals as fractional powers)",
+      "Always check for extraneous roots in radical equations"
+    ],
+    "prereqs": [
+      "sat-math-algebra"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "section",
+      "title": "Part 1 — Nonlinear, but still rule-based",
+      "body": "Advanced Math (~35% of the Math section) extends algebra to quadratics, polynomials, exponents/radicals, functions, and logs. More forms, same discipline."
+    },
+    {
+      "kind": "text",
+      "title": "What it tests",
+      "body": "- **Quadratics:** solve by factoring, the quadratic formula, or completing the square; read vertex/roots from the right form.\n- **Polynomials & functions:** evaluate, transform, interpret $f(x)$.\n- **Exponents & radicals:** the laws, and rewriting roots as fractional powers.\n- **Logarithms/exponential models:** growth/decay.\n\nThe key skill is choosing the *form* that exposes what's asked."
+    },
+    {
+      "kind": "text",
+      "title": "The three forms of a quadratic",
+      "body": "> Standard $ax^2+bx+c$ → c is the y-intercept. Factored $a(x-r_1)(x-r_2)$ → roots are obvious. Vertex $a(x-h)^2+k$ → the vertex/extremum is obvious.\n\nThe SAT question tells you which feature it wants (roots, vertex, intercept); your move is to get the quadratic into the matching form rather than grinding."
+    },
+    {
+      "kind": "section",
+      "title": "Part 2 — Strategy a top scorer uses"
+    },
+    {
+      "kind": "text",
+      "title": "Factor before you reach for the formula",
+      "body": "Most SAT quadratics factor over nice integers. Try factoring first (fast, error-resistant). Use the quadratic formula only when factoring clearly fails — and even then, simplify the discriminant carefully."
+    },
+    {
+      "kind": "text",
+      "title": "Exponent/radical fluency",
+      "body": "$\\sqrt[n]{x}=x^{1/n}$, $x^ax^b=x^{a+b}$, $(x^a)^b=x^{ab}$, $x^{-a}=1/x^a$. Rewriting radicals as fractional exponents turns scary-looking SAT expressions into one-line simplifications."
+    },
+    {
+      "kind": "section",
+      "title": "Part 3 — Method: derive the quadratic formula"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "adv_gd",
+        "kind": "guided_derivation",
+        "question": "Derive the quadratic formula",
+        "goal": "From $ax^2+bx+c=0;(a\\ne 0)$, derive $x=\\dfrac{-b\\pm\\sqrt{b^2-4ac}}{2a}$ by completing the square.",
+        "steps": [
+          {
+            "prompt": "Divide through by a and move the constant: from x² + (b/a)x + c/a = 0, what is the equation with the constant on the right?",
+            "motivation": "Completing the square needs a leading coefficient of 1 and the constant isolated.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "x² + (b/a)x = −c/a",
+                "x² + (b/a)x = c/a",
+                "x² − (b/a)x = −c/a",
+                "x²+(b/a)x+c/a"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Divide every term by a.",
+              "Subtract c/a from both sides."
+            ],
+            "reveal": "x² + (b/a)x = −c/a."
+          },
+          {
+            "prompt": "To complete the square, add the square of half the x-coefficient to BOTH sides. Half of b/a is b/2a; what do you add?",
+            "motivation": "Adding (b/2a)² makes the left side a perfect square trinomial.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(b/2a)^2",
+                "b^2/4a^2",
+                "(b/(2a))^2",
+                "b^2/(4a^2)"
+              ]
+            },
+            "hints": [
+              "Take half of b/a, then square it."
+            ],
+            "reveal": "Add (b/2a)² = b²/4a² to both sides."
+          },
+          {
+            "prompt": "The left side now factors as a perfect square. Write it.",
+            "motivation": "x² + (b/a)x + (b/2a)² = (x + b/2a)² by construction.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "(x + b/2a)²",
+                "(x − b/2a)²",
+                "(x + b/a)²",
+                "(2x + b)²"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Perfect square: (x + half-the-coefficient)²."
+            ],
+            "reveal": "(x + b/2a)² = −c/a + b²/4a² = (b² − 4ac)/4a²."
+          },
+          {
+            "prompt": "Why does taking the square root introduce the ± sign (and hence two roots)?",
+            "motivation": "√(t²)=|t|: a squared quantity has two real square roots, ±, giving the two solutions.",
+            "accepts": {
+              "mode": "text",
+              "rubricCriteria": [
+                {
+                  "id": "c1",
+                  "description": "square-rooting both sides yields ± (a number and its negative both square to the same value)"
+                },
+                {
+                  "id": "c2",
+                  "description": "this ± is precisely what produces the two roots of a quadratic"
+                }
+              ]
+            },
+            "hints": [
+              "What two numbers square to the same positive value?"
+            ],
+            "reveal": "√ both sides: x + b/2a = ±√(b²−4ac)/2a → x = (−b ± √(b²−4ac))/2a. The ± gives the two roots."
+          }
+        ],
+        "finalResult": "$x=\\dfrac{-b\\pm\\sqrt{b^2-4ac}}{2a}$"
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 4 — A worked example, end to end"
+    },
+    {
+      "kind": "text",
+      "title": "Solve by the best method",
+      "body": "Solve $x^2-5x+6=0$. Factoring is fastest: find two numbers multiplying to 6, summing to −5 → −2 and −3. So $(x-2)(x-3)=0$."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "adv_me",
+        "kind": "math_expression",
+        "question": "Give the two solutions of x² − 5x + 6 = 0, smaller first, as a,b.",
+        "acceptedAnswers": [
+          "2,3",
+          "x=2,x=3",
+          "2, 3"
+        ],
+        "explanation": "(x−2)(x−3)=0 → x = 2 or x = 3. Factoring beat the quadratic formula here — always try it first on SAT quadratics."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "adv_p1",
+        "kind": "multiple_choice",
+        "question": "To read the VERTEX of a parabola directly, put the quadratic in:",
+        "options": [
+          "Vertex form a(x−h)²+k",
+          "Standard form ax²+bx+c",
+          "Factored form a(x−r₁)(x−r₂)",
+          "Slope-intercept form"
+        ],
+        "correctIndex": 0,
+        "explanation": "Vertex form exposes (h,k) immediately; factored exposes roots; standard exposes the y-intercept. Match the form to what's asked."
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 5 — Trap answers & pitfalls"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "adv_scen",
+        "kind": "scenario",
+        "question": "Diagnose the mistake.",
+        "scenario": "Solving √(x) = x − 6, a student squares both sides to get x = x² − 12x + 36, solves the quadratic, and reports both roots. One of them fails in the original equation.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "squaring both sides can introduce EXTRANEOUS solutions"
+          },
+          {
+            "id": "c2",
+            "description": "every candidate must be checked in the ORIGINAL equation"
+          },
+          {
+            "id": "c3",
+            "description": "the root that makes √(x)=x−6 false (e.g., the one with x−6<0) is rejected"
+          }
+        ],
+        "explanation": "Squaring is not reversible — it can create solutions that don't satisfy the original radical equation. Always substitute candidates back; discard extraneous ones."
+      }
+    },
+    {
+      "kind": "question",
+      "hints": [
+        "Write 32 as a power of 2.",
+        "2^(x−2) = 2^x · 2^(−2)."
+      ],
+      "workedSolution": "32 = 2^5 ⇒ x = 5. Then 2^(x−2) = 2^x / 2^2 = 32/4 = 8. The trap answers come from solving for x wrong or mishandling the −2 exponent.",
+      "retryUntilCorrect": true,
+      "question": {
+        "id": "adv_mc",
+        "kind": "multiple_choice",
+        "question": "If 2^(x) = 32, then 2^(x−2) = ?",
+        "options": [
+          "8",
+          "16",
+          "30",
+          "2"
+        ],
+        "correctIndex": 0,
+        "explanation": "2^x = 32 = 2^5 so x = 5; 2^(x−2) = 2^3 = 8. Use the exponent law 2^(x−2)=2^x/2^2 = 32/4 = 8."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "adv_me2",
+        "kind": "math_expression",
+        "question": "Rewrite √(x³) using a fractional exponent: x^(____).",
+        "acceptedAnswers": [
+          "3/2",
+          "x^(3/2)",
+          "x^1.5",
+          "1.5"
+        ],
+        "explanation": "√(x³) = (x³)^(1/2) = x^(3/2). Converting radicals to fractional exponents is the fastest route through SAT radical questions."
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 6 — Tie it together"
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "adv_eb",
+        "kind": "explain_back",
+        "prompt": "Teach back: given a quadratic question, how do you decide among factoring, the formula, and completing the square?",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "try factoring first (fast, integer roots common on SAT)"
+          },
+          {
+            "id": "c2",
+            "description": "use the quadratic formula when factoring clearly fails"
+          },
+          {
+            "id": "c3",
+            "description": "completing the square / vertex form when the vertex or a derivation is needed"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "adv_fr",
+        "kind": "free_response",
+        "question": "Explain why checking solutions in the original equation is mandatory for radical (and some rational) equations.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "squaring/clearing denominators is not reversible and can add extraneous roots"
+          },
+          {
+            "id": "c2",
+            "description": "only substitution into the ORIGINAL equation confirms validity"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "text",
+      "title": "How it scores & what's next",
+      "body": "Advanced Math rewards picking the right form and never trusting an un-checked root. Next: **Problem-Solving & Data Analysis** — ratios, percentages, statistics, and reading real data."
+    }
+  ]
+}
