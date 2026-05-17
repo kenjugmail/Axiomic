@@ -1,4 +1,15 @@
 {
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Run the byte-pair-encoding merge loop by hand",
+      "Explain the vocab-size vs sequence-length tradeoff"
+    ],
+    "prereqs": [
+      "tokens-basics"
+    ]
+  },
   "slides": [
     {
       "kind": "section",
@@ -39,10 +50,22 @@
         "kind": "sortable",
         "question": "Order these BPE training steps correctly (first → last).",
         "items": [
-          { "id": "init", "label": "Initialize vocab with all single characters" },
-          { "id": "count", "label": "Count all adjacent symbol pairs in the corpus" },
-          { "id": "merge", "label": "Merge the single most frequent pair into a new token" },
-          { "id": "repeat", "label": "Repeat until N merges are reached" }
+          {
+            "id": "init",
+            "label": "Initialize vocab with all single characters"
+          },
+          {
+            "id": "count",
+            "label": "Count all adjacent symbol pairs in the corpus"
+          },
+          {
+            "id": "merge",
+            "label": "Merge the single most frequent pair into a new token"
+          },
+          {
+            "id": "repeat",
+            "label": "Repeat until N merges are reached"
+          }
         ],
         "explanation": "BPE is: start from characters → count adjacent pairs → merge the most frequent pair → repeat. Each iteration grows the vocabulary by exactly one token (the new merge), so after N iterations the vocab is base_chars + N."
       }
@@ -90,9 +113,18 @@
         "kind": "explain_back",
         "question": "In 2–3 sentences, explain why BPE beats both word-level and character-level tokenization. Touch on vocabulary size, out-of-vocabulary handling, and sequence length.",
         "rubricCriteria": [
-          { "id": "vocab", "description": "BPE keeps a fixed-size vocabulary (vs unbounded word-level)" },
-          { "id": "oov", "description": "BPE handles unseen words by decomposing into subwords (no <UNK>)" },
-          { "id": "length", "description": "BPE sequences are shorter than character-level for the same text" }
+          {
+            "id": "vocab",
+            "description": "BPE keeps a fixed-size vocabulary (vs unbounded word-level)"
+          },
+          {
+            "id": "oov",
+            "description": "BPE handles unseen words by decomposing into subwords (no <UNK>)"
+          },
+          {
+            "id": "length",
+            "description": "BPE sequences are shorter than character-level for the same text"
+          }
         ],
         "passingScore": 0.6,
         "explanation": "A strong answer: BPE fixes the vocabulary size (unlike word-level, which is unbounded and produces <UNK> on unseen words); it represents any word by composing known subword pieces, so there is no out-of-vocabulary failure; and its sequences are far shorter than character-level for the same text, which keeps the O(n²) attention cost manageable."

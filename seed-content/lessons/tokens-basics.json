@@ -1,4 +1,13 @@
 {
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "intro",
+    "objectives": [
+      "Explain what a token is and why models see ids not text",
+      "Describe how embeddings map ids to vectors"
+    ],
+    "prereqs": []
+  },
   "slides": [
     {
       "kind": "section",
@@ -79,9 +88,18 @@
         "kind": "sortable",
         "question": "Order these from FEWEST to MOST tokens produced for the same 500-word English paragraph.",
         "items": [
-          { "id": "word", "label": "Word-level tokenizer" },
-          { "id": "subword", "label": "Subword (BPE) tokenizer" },
-          { "id": "char", "label": "Character-level tokenizer" }
+          {
+            "id": "word",
+            "label": "Word-level tokenizer"
+          },
+          {
+            "id": "subword",
+            "label": "Subword (BPE) tokenizer"
+          },
+          {
+            "id": "char",
+            "label": "Character-level tokenizer"
+          }
         ],
         "explanation": "Word-level emits roughly one token per word (~500). Subword splits some rare words into 2–3 pieces, so it is a bit higher (~650). Character-level emits one token per character (~2,800). Fewer tokens means shorter sequences and cheaper attention — but word-level pays for it with the out-of-vocabulary problem, which is why subword wins in practice."
       }

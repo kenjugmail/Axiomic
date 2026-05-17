@@ -1,4 +1,15 @@
 {
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Explain why attention needs position information",
+      "Compare sinusoidal vs learned vs rotary encodings"
+    ],
+    "prereqs": [
+      "self-attention"
+    ]
+  },
   "slides": [
     {
       "kind": "section",
@@ -79,9 +90,18 @@
         "kind": "sortable",
         "question": "Order these positional schemes from OLDEST to NEWEST as the dominant default in transformer LLMs.",
         "items": [
-          { "id": "sin", "label": "Sinusoidal (fixed sine/cosine)" },
-          { "id": "learned", "label": "Learned absolute embeddings" },
-          { "id": "rope", "label": "RoPE (rotary)" }
+          {
+            "id": "sin",
+            "label": "Sinusoidal (fixed sine/cosine)"
+          },
+          {
+            "id": "learned",
+            "label": "Learned absolute embeddings"
+          },
+          {
+            "id": "rope",
+            "label": "RoPE (rotary)"
+          }
         ],
         "explanation": "Sinusoidal came with the original 2017 transformer; learned absolute embeddings dominated the BERT/GPT-2 era; RoPE is the current default for modern LLMs because of its relative-position structure and extrapolation. (ALiBi is another modern relative-bias alternative.)"
       }

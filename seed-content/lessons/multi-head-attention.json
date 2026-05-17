@@ -1,4 +1,15 @@
 {
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "core",
+    "objectives": [
+      "Explain why multiple heads beat one big head",
+      "Describe the split/concat/project shape flow"
+    ],
+    "prereqs": [
+      "self-attention"
+    ]
+  },
   "slides": [
     {
       "kind": "section",
@@ -10,7 +21,9 @@
       "title": "Run attention h times in parallel",
       "body": "**Multi-head attention** runs $h$ independent attention computations side by side. Each head has its *own* learned $W_Q^h, W_K^h, W_V^h$, so each can specialize: one head learns locality, another pronoun resolution, another induction (copy the token that followed a previous occurrence).\n\nThe heatmap shows one head's pattern; in a real layer there are $h$ of these, each different. Outputs are concatenated and projected back to $d_{model}$.",
       "viz": "attention-heatmap-explorer",
-      "vizProps": { "presetIndex": 1 }
+      "vizProps": {
+        "presetIndex": 1
+      }
     },
     {
       "kind": "text",
@@ -42,7 +55,9 @@
       "title": "A catalog of head specializations",
       "body": "From BERT/GPT-2 interpretability work:\n\n- **Previous-token heads** — attend one position back (copy what was just said).\n- **Locality heads** — soft attention to a nearby window (syntax).\n- **Punctuation heads** — fixate on commas/periods (phrase boundaries).\n- **Coreference heads** — pronoun → antecedent.\n- **Induction heads** (Olsson et al., 2022) — a two-layer circuit: a previous-token head in layer L feeds an induction head in L+1 that finds the earlier match and reads the token *after* it. This is the core of in-context pattern completion `A B … A → B`.\n\nNot every head is clean: many are diffuse. The **superposition** hypothesis says heads pack multiple weak features together — which is why modern interpretability moved to sparse autoencoders.",
       "viz": "attention-heatmap-explorer",
-      "vizProps": { "presetIndex": 2 }
+      "vizProps": {
+        "presetIndex": 2
+      }
     },
     {
       "kind": "question",

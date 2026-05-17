@@ -1,4 +1,18 @@
 {
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "core",
+    "objectives": [
+      "Assemble attention+FFN+norm+residual into a block",
+      "Explain why blocks stack cleanly"
+    ],
+    "prereqs": [
+      "multi-head-attention",
+      "ffn",
+      "layer-norm",
+      "residual-connections"
+    ]
+  },
   "slides": [
     {
       "kind": "section",
@@ -39,10 +53,22 @@
         "kind": "sortable",
         "question": "Order one pre-norm attention sublayer's steps, first to last.",
         "items": [
-          { "id": "save", "label": "Save the residual (copy of x)" },
-          { "id": "ln", "label": "LayerNorm the input" },
-          { "id": "attn", "label": "Multi-head attention" },
-          { "id": "add", "label": "Add result back to the saved residual" }
+          {
+            "id": "save",
+            "label": "Save the residual (copy of x)"
+          },
+          {
+            "id": "ln",
+            "label": "LayerNorm the input"
+          },
+          {
+            "id": "attn",
+            "label": "Multi-head attention"
+          },
+          {
+            "id": "add",
+            "label": "Add result back to the saved residual"
+          }
         ],
         "explanation": "Pre-norm sublayer: residual = x → x = LN(x) → x = Attention(x) → x = residual + x. The same shape repeats for the FFN sublayer. A whole transformer is just this pattern, twice per block, N blocks deep."
       }

@@ -1,4 +1,13 @@
 {
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "intro",
+    "objectives": [
+      "Derive softmax and explain the temperature knob",
+      "Explain why logits are shifted for numerical stability"
+    ],
+    "prereqs": []
+  },
   "slides": [
     {
       "kind": "section",
@@ -10,7 +19,9 @@
       "title": "The problem softmax solves",
       "body": "A network's final layer outputs **logits** — raw real numbers with no constraints, e.g. `[2.5, 2.0, 1.5, 0.8, 0.3]`. They can be negative; they don't sum to anything in particular. To *act* on them as a choice, we need a **probability distribution**: all values ≥ 0, summing to exactly 1.\n\nSoftmax is the standard map from logits to a distribution:\n\n$$\\sigma(z)_i = \\frac{e^{z_i}}{\\sum_j e^{z_j}}$$\n\nThe exponential guarantees positivity (even for negative logits); dividing by the sum guarantees normalization. The bars on the right show softmax applied to a fixed logit set — the tallest logit gets the most probability, but not *all* of it.",
       "viz": "softmax-temperature-preview",
-      "vizProps": { "value": 1 }
+      "vizProps": {
+        "value": 1
+      }
     },
     {
       "kind": "text",
@@ -26,14 +37,18 @@
       "title": "Dividing by T before the exponential",
       "body": "Insert a single scalar **temperature** $T$ before softmax:\n\n$$\\sigma(z/T)_i = \\frac{e^{z_i/T}}{\\sum_j e^{z_j/T}}$$\n\n- **$T < 1$ (cold):** logits are amplified, the gap widens, the distribution becomes **peaked** — the model gets *confident*.\n- **$T = 1$:** plain softmax.\n- **$T > 1$ (hot):** logits shrink toward each other, the distribution **flattens** toward uniform — the model gets *exploratory*.\n\nThe viz now shows a **cold** distribution ($T = 0.5$). Compare its sharpness to the $T = 1$ slide above.",
       "viz": "softmax-temperature-preview",
-      "vizProps": { "value": 0.5 }
+      "vizProps": {
+        "value": 0.5
+      }
     },
     {
       "kind": "text",
       "title": "The hot regime",
       "body": "Now the **hot** regime ($T = 2$). The same logits, but the bars are far more even — the model is much less sure, and sampling from this distribution produces more varied (and riskier) tokens.\n\nThis is *the* generation knob. Greedy decoding is the $T \\to 0$ limit (argmax). Creative writing settings push $T$ up. Nothing about the network changes — only this one division.",
       "viz": "softmax-temperature-preview",
-      "vizProps": { "value": 2 }
+      "vizProps": {
+        "value": 2
+      }
     },
     {
       "kind": "question",
@@ -46,7 +61,10 @@
         "max": 10,
         "step": 0.1,
         "default": 1,
-        "target": { "min": 4, "max": 10 },
+        "target": {
+          "min": 4,
+          "max": 10
+        },
         "explanation": "As T grows, every z_i / T → 0, so e^(z_i/T) → 1 for all i, and softmax → 1/N uniformly. Large T erases the information in the logits — useful for exploration, fatal for accuracy."
       }
     },

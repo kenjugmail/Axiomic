@@ -1,4 +1,15 @@
 {
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "core",
+    "objectives": [
+      "Explain how Q,K,V come from the same sequence",
+      "Trace how every token attends to every other"
+    ],
+    "prereqs": [
+      "attention-intro"
+    ]
+  },
   "slides": [
     {
       "kind": "section",
@@ -10,7 +21,9 @@
       "title": "Full reach in one layer",
       "body": "In **self-attention**, $Q$, $K$, $V$ are all projections of the *same* input. So every token can pull information from every other token in a single operation.\n\nWhy this is so powerful: an RNN passes information one step at a time (token 100 hears about token 1 only after 99 sequential steps). A CNN sees a fixed window. Self-attention has **full, parallel reach**.\n\nThe heatmap shows a self-attention matrix with a locality bias — most weight near the diagonal. Self-attention *can* be local like this or reach far back; the training signal decides.",
       "viz": "attention-heatmap-explorer",
-      "vizProps": { "presetIndex": 1 }
+      "vizProps": {
+        "presetIndex": 1
+      }
     },
     {
       "kind": "text",
@@ -49,14 +62,36 @@
         "kind": "drag_classify",
         "question": "Sort each transformer family by whether its self-attention uses a causal mask.",
         "items": [
-          { "id": "gpt", "label": "GPT (decoder, text generation)", "bin": "masked" },
-          { "id": "bert", "label": "BERT (encoder, classification)", "bin": "unmasked" },
-          { "id": "llama", "label": "LLaMA (decoder LM)", "bin": "masked" },
-          { "id": "enc", "label": "Encoder stack of a translation model", "bin": "unmasked" }
+          {
+            "id": "gpt",
+            "label": "GPT (decoder, text generation)",
+            "bin": "masked"
+          },
+          {
+            "id": "bert",
+            "label": "BERT (encoder, classification)",
+            "bin": "unmasked"
+          },
+          {
+            "id": "llama",
+            "label": "LLaMA (decoder LM)",
+            "bin": "masked"
+          },
+          {
+            "id": "enc",
+            "label": "Encoder stack of a translation model",
+            "bin": "unmasked"
+          }
         ],
         "bins": [
-          { "id": "masked", "label": "Causal (masked) self-attention" },
-          { "id": "unmasked", "label": "Bidirectional (unmasked)" }
+          {
+            "id": "masked",
+            "label": "Causal (masked) self-attention"
+          },
+          {
+            "id": "unmasked",
+            "label": "Bidirectional (unmasked)"
+          }
         ],
         "explanation": "Autoregressive decoders (GPT, LLaMA) must not see the future, so they mask. Encoders (BERT, the encoder side of a seq2seq model) classify/encode a complete input, so every token may see every other — no mask."
       }

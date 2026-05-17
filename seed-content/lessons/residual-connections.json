@@ -1,4 +1,13 @@
 {
+  "meta": {
+    "timeMinutes": 18,
+    "difficulty": "core",
+    "objectives": [
+      "Explain how residuals keep gradients flowing",
+      "Describe the residual stream as a shared bus"
+    ],
+    "prereqs": []
+  },
   "slides": [
     {
       "kind": "section",
@@ -38,7 +47,12 @@
         "kind": "math_expression",
         "question": "Write a residual layer's output y in terms of input x and the sublayer function F.",
         "starter": "y = x + F(x)",
-        "acceptedAnswers": ["y = x + F(x)", "y=x+F(x)", "x + F(x)", "x+F(x)"],
+        "acceptedAnswers": [
+          "y = x + F(x)",
+          "y=x+F(x)",
+          "x + F(x)",
+          "x+F(x)"
+        ],
         "hint": "Add the input to the sublayer's output.",
         "explanation": "y = x + F(x). The output is NOT just F(x) (that would be a plain layer) and NOT just x (that would skip the layer). It is the sum — F learns a *delta* to add to the running representation."
       }
