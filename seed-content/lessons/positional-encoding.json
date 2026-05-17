@@ -204,6 +204,52 @@
       }
     },
     {
+      "kind": "question",
+      "question": {
+        "id": "pe_scen",
+        "kind": "scenario",
+        "question": "Diagnose the selective failure.",
+        "scenario": "With positional encoding removed, the model still does okay on topic classification but fails completely on 'is token X before token Y?' style tasks.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "without PE, self-attention is permutation-invariant (order-blind)"
+          },
+          {
+            "id": "c2",
+            "description": "order-independent tasks (topic/bag-of-words) survive"
+          },
+          {
+            "id": "c3",
+            "description": "order-dependent tasks fail because position is invisible to the model"
+          }
+        ],
+        "explanation": "No PE ⇒ permuting inputs permutes outputs identically. Bag-of-words-ish tasks tolerate that; anything order-sensitive collapses."
+      }
+    },
+    {
+      "kind": "question",
+      "hints": [
+        "Attention treats input as a set.",
+        "Which tasks actually need order?"
+      ],
+      "workedSolution": "Without PE the network is permutation-equivariant — order-blind. Topic/bag-of-words tasks don't need order; 'before/after' relations are impossible.",
+      "retryUntilCorrect": true,
+      "question": {
+        "id": "pe_mc",
+        "kind": "multiple_choice",
+        "question": "Remove positional encoding entirely. Which degrades MOST?",
+        "options": [
+          "Word-order-sensitive tasks (subject vs object, 'before/after')",
+          "Topic classification",
+          "Vocabulary size",
+          "Embedding-lookup speed"
+        ],
+        "correctIndex": 0,
+        "explanation": "Attention is a set operation; with no PE the model literally cannot tell token order, so order-dependent tasks fail while order-agnostic ones survive."
+      }
+    },
+    {
       "kind": "text",
       "title": "What to carry forward",
       "body": "- Attention is **permutation-invariant**; position must be injected.\n- **Sinusoidal**: fixed waves added to embeddings — extrapolates, original recipe.\n- **RoPE**: rotate Q/K so the score depends only on **relative** offset — the modern default, best long-context behavior.\n- Remove PE and the model collapses to bag-of-words.\n\n**Next:** [Attention](/wiki/attention) and [multi-head attention](/wiki/multi-head-attention) — now that each token's vector carries its position, attention can finally tell *\"dog bites man\"* from *\"man bites dog\"*."

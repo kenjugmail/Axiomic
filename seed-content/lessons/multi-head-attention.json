@@ -174,6 +174,52 @@
       }
     },
     {
+      "kind": "question",
+      "question": {
+        "id": "mha_scen",
+        "kind": "scenario",
+        "question": "Diagnose the quality drop.",
+        "scenario": "A team replaces 8 attention heads of dim 64 with 1 head of dim 512 (identical total parameters). Quality drops on tasks that need several relation types at once.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "a single head produces ONE softmax weighting per query — one relation pattern"
+          },
+          {
+            "id": "c2",
+            "description": "it cannot simultaneously attend to e.g. syntax AND coreference"
+          },
+          {
+            "id": "c3",
+            "description": "multiple heads attend in parallel independent subspaces, then concat+W^O"
+          }
+        ],
+        "explanation": "Total dimensionality isn't the constraint — number of independent attention patterns is. One head = one weighting; h heads = h patterns in parallel."
+      }
+    },
+    {
+      "kind": "question",
+      "hints": [
+        "One softmax row = one weighting pattern.",
+        "Can a single head do syntax AND coreference at once?"
+      ],
+      "workedSolution": "A single head emits one softmax weighting per query — one relation. h heads learn h distinct patterns in separate subspaces, recombined by W^O.",
+      "retryUntilCorrect": true,
+      "question": {
+        "id": "mha_mc",
+        "kind": "multiple_choice",
+        "question": "8 heads of dim 64 vs 1 head of dim 512 (same total dim). The key advantage of 8 heads?",
+        "options": [
+          "It can attend to ~8 different relation patterns in parallel (different subspaces)",
+          "It uses fewer parameters",
+          "It is always faster",
+          "It removes the need for positional encoding"
+        ],
+        "correctIndex": 0,
+        "explanation": "Each head has its own softmax, so it can specialize (one head ~ syntax, another ~ coreference). One big head can only form a single weighting per query."
+      }
+    },
+    {
       "kind": "text",
       "title": "What to carry forward",
       "body": "- Multi-head = $h$ parallel attentions, each in a $d_{model}/h$ subspace, concatenated then mixed by $W_O$.\n- It buys **diversity, not capacity** (same parameter count as one big attention).\n- Heads specialize (previous-token, locality, induction…); some are in **superposition**.\n- **GQA/MQA** share K/V to shrink the inference KV-cache at ~no quality cost.\n\n**Next:** the [feed-forward network](/wiki/feed-forward-networks) — the per-token nonlinearity that holds most of the model's parameters — then [residuals](/wiki/residual-connections), [layer norm](/wiki/layer-normalization), and the full [transformer block](/wiki/transformer-block)."

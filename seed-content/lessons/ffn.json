@@ -182,6 +182,52 @@
       }
     },
     {
+      "kind": "question",
+      "question": {
+        "id": "ffn_scen",
+        "kind": "scenario",
+        "question": "Diagnose what breaks.",
+        "scenario": "Profiling shows the FFN is ~2/3 of per-block FLOPs and params. A teammate proposes deleting it for speed.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "attention's value aggregation is a (softmax-weighted) average — largely linear, cross-token"
+          },
+          {
+            "id": "c2",
+            "description": "the FFN supplies the per-token NONLINEAR transformation/capacity"
+          },
+          {
+            "id": "c3",
+            "description": "removing it collapses representational power; quality craters despite the speedup"
+          }
+        ],
+        "explanation": "Speed isn't free here: the FFN is where per-token nonlinear capacity lives. Attention mostly mixes; the FFN mostly transforms."
+      }
+    },
+    {
+      "kind": "question",
+      "hints": [
+        "Is a weighted average of values linear or nonlinear?",
+        "Where does per-token nonlinearity enter the block?"
+      ],
+      "workedSolution": "Attention aggregates values nearly linearly across tokens. The FFN is the block's per-token nonlinear transform; without it the model loses most capacity.",
+      "retryUntilCorrect": true,
+      "question": {
+        "id": "ffn_mc",
+        "kind": "multiple_choice",
+        "question": "Attention mixes info across tokens. What unique role does the FFN add?",
+        "options": [
+          "Per-token nonlinear feature transformation (capacity)",
+          "Cross-token mixing, same as attention",
+          "Positional encoding",
+          "Tokenization"
+        ],
+        "correctIndex": 0,
+        "explanation": "Attention is a softmax-weighted average of values — largely linear mixing across positions. The FFN (expand→ReLU→contract) is the per-token nonlinearity."
+      }
+    },
+    {
       "kind": "text",
       "title": "What to carry forward",
       "body": "- FFN = up-project → nonlinearity → down-project, **per token** (no cross-token mixing).\n- It holds **~2/3** of a layer's parameters and most stored knowledge.\n- **~4× expansion** is the empirical sweet spot; **SwiGLU** is the modern default activation.\n- Remove it and the model loses its per-token nonlinear power.\n\n**Next:** [Residual connections](/wiki/residual-connections) and [layer normalization](/wiki/layer-normalization) — the glue that makes stacking these blocks trainable — then the full [transformer block](/wiki/transformer-block)."
