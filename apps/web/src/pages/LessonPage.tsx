@@ -217,6 +217,8 @@ export function LessonPage() {
   const [calibration, setCalibration] = useState<
     Array<{ confidence: number; label: string; n: number; accuracy: number }>
   >([]);
+  const [reflection, setReflection] = useState("");
+  const [reflectionSaved, setReflectionSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
@@ -1200,6 +1202,49 @@ export function LessonPage() {
                       ),
                     )}
                   </ul>
+                </div>
+              )}
+              {node && (
+                <div className="max-w-md mx-auto mb-6 text-left rounded-lg border border-border bg-card p-4">
+                  <div className="text-[11px] uppercase tracking-wider text-primary mb-2">
+                    What's still fuzzy?
+                  </div>
+                  {reflectionSaved ? (
+                    <p className="text-sm text-muted-foreground">
+                      Saved to your spaced-review deck — it'll resurface in
+                      Today.
+                    </p>
+                  ) : (
+                    <>
+                      <textarea
+                        value={reflection}
+                        onChange={(e) => setReflection(e.target.value)}
+                        rows={2}
+                        placeholder="One thing you want to revisit…"
+                        className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                      <button
+                        type="button"
+                        disabled={!reflection.trim()}
+                        onClick={() => {
+                          const text = reflection.trim();
+                          if (!text || !node) return;
+                          setReflectionSaved(true);
+                          api.flashcards
+                            .save({
+                              pageSlug: node.slug,
+                              pageTitle: node.title,
+                              front: `Revisit (${node.title}): what was fuzzy?`,
+                              back: text,
+                            })
+                            .catch(() => setReflectionSaved(false));
+                        }}
+                        className="mt-2 inline-flex items-center px-3 py-1.5 text-sm rounded-md bg-primary text-primary-foreground font-medium disabled:opacity-50"
+                      >
+                        Save to review
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
               <div className="flex items-center justify-center gap-3 flex-wrap">
