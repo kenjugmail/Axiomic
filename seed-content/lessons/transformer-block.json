@@ -108,6 +108,116 @@
       "title": "Recap"
     },
     {
+      "kind": "question",
+      "question": {
+        "id": "tb_derive",
+        "kind": "guided_derivation",
+        "question": "Assemble a pre-norm transformer block",
+        "goal": "From: stack attention + FFN so depth trains stably.",
+        "steps": [
+          {
+            "prompt": "Pre-norm block data flow?",
+            "motivation": "Norm *inside* each sublayer and an identity residual *around* it keeps the gradient path clean as depth grows.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "h = x + Attn(LN(x)); out = h + FFN(LN(h))",
+                "Attn then FFN, no residuals",
+                "One LayerNorm at the very end",
+                "FFN before attention, no norm"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Residual wraps each sublayer; LN sits inside it (pre-norm)."
+            ],
+            "reveal": "h = x + Attn(LN(x)); out = h + FFN(LN(h)) — residual around each, norm inside."
+          },
+          {
+            "prompt": "Why does the residual stream let you stack many blocks?",
+            "motivation": "The identity path carries gradient undiminished; each block only learns a delta on top of it.",
+            "accepts": {
+              "mode": "text",
+              "rubricCriteria": [
+                {
+                  "id": "c1",
+                  "description": "the identity/residual path carries gradient without vanishing"
+                },
+                {
+                  "id": "c2",
+                  "description": "each block adds a learned delta to the stream"
+                },
+                {
+                  "id": "c3",
+                  "description": "so depth can grow without the signal degrading"
+                }
+              ]
+            },
+            "hints": [
+              "Think about the gradient through x + f(x)."
+            ],
+            "reveal": "x + f(x) has gradient 1 + f'(x): the +1 keeps gradient flowing, so blocks compose to great depth."
+          }
+        ],
+        "finalResult": "$$h=x+\\text{Attn}(\\text{LN}(x)),\\quad \\text{out}=h+\\text{FFN}(\\text{LN}(h))$$"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "tb_depth",
+        "kind": "ml_sandbox",
+        "question": "Turn the residual off and stack depth — watch the gradient-norm proxy collapse; with residual on it survives (target ≥ 0.1).",
+        "params": [
+          {
+            "name": "L",
+            "label": "depth (blocks)",
+            "min": 1,
+            "max": 60,
+            "step": 1,
+            "default": 24
+          },
+          {
+            "name": "residual",
+            "label": "residual on? (0/1)",
+            "min": 0,
+            "max": 1,
+            "step": 1,
+            "default": 0
+          }
+        ],
+        "harnessCode": "import numpy as np\ng=1.0\nfor _ in range(int(L)):\n    g=g*(1.0+0.0) if residual>=1 else g*0.8\nmetrics={'grad_norm':float(g)}",
+        "target": {
+          "metric": "grad_norm",
+          "op": "gte",
+          "value": 0.1
+        },
+        "explanation": "Without residual the per-block factor (<1) multiplies to ~0 over depth — vanishing gradient. The residual identity (factor 1) keeps it alive."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "tb_teach",
+        "kind": "explain_back",
+        "prompt": "Explain a transformer block to your pet: its two sublayers, the wrapping, and why blocks stack.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "attention + position-wise FFN are the two sublayers"
+          },
+          {
+            "id": "c2",
+            "description": "each is wrapped in LayerNorm (inside) + a residual connection (around)"
+          },
+          {
+            "id": "c3",
+            "description": "the residual stream lets many blocks stack without the signal vanishing"
+          }
+        ]
+      }
+    },
+    {
       "kind": "text",
       "title": "You can now read any transformer",
       "body": "A transformer = **embedding + position → N × (pre-norm attention block + pre-norm FFN block) → unembedding** (often weight-tied to the embedding). That's the entire architecture you just built from scratch.\n\nWhat's left is variant-level detail: [encoder-decoder](/wiki/encoder-decoder) structure, [causal masking](/wiki/masked-self-attention), [training objectives](/wiki/training-objectives), and modern tweaks (RoPE, GQA, SwiGLU) you've already met along the way.\n\nKey takeaways:\n- Block = LN→Attention→+residual, then LN→FFN→+residual\n- $N$ blocks compose $N$ rounds of token-mixing + feature-transform\n- Depth ≠ width — depth buys composition\n- Every modern LLM is this same block, scaled to a different $N$"

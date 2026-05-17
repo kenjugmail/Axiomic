@@ -92,6 +92,99 @@
       "title": "Recap"
     },
     {
+      "kind": "question",
+      "question": {
+        "id": "ln_derive",
+        "kind": "guided_derivation",
+        "question": "Derive LayerNorm",
+        "goal": "From: stabilize each token's activations independent of the batch.",
+        "steps": [
+          {
+            "prompt": "Normalize over which axis?",
+            "motivation": "Per-token over the feature axis makes it batch-size independent — works the same at batch 1 or 1024.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "The feature dimension, per token",
+                "The batch dimension",
+                "The whole tensor at once",
+                "The time axis only"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "It must not depend on other examples in the batch."
+            ],
+            "reveal": "LayerNorm normalizes each token vector over its feature dimension."
+          },
+          {
+            "prompt": "Write LayerNorm(x) (use mean μ, var σ², ε, scale γ, shift β).",
+            "motivation": "Standardize then re-introduce learnable scale/shift so the layer can still represent any mean/variance it needs.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "gamma*(x-mu)/sqrt(sigma^2+eps)+beta",
+                "\\gamma\\frac{x-\\mu}{\\sqrt{\\sigma^2+\\epsilon}}+\\beta",
+                "(x-mu)/sqrt(var+eps)*gamma+beta"
+              ]
+            },
+            "hints": [
+              "Standardize first, then affine with γ, β."
+            ],
+            "reveal": "LN(x) = γ·(x−μ)/√(σ²+ε) + β."
+          }
+        ],
+        "finalResult": "$$\\text{LN}(x)=\\gamma\\,\\frac{x-\\mu}{\\sqrt{\\sigma^2+\\epsilon}}+\\beta$$"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ln_scale",
+        "kind": "ml_sandbox",
+        "question": "Blow the input scale up to 100× — LayerNorm output std should stay ≈ 1 (target ≤ 1.5).",
+        "params": [
+          {
+            "name": "scale",
+            "label": "input scale",
+            "min": 0.1,
+            "max": 100,
+            "step": 0.1,
+            "default": 1
+          }
+        ],
+        "harnessCode": "import numpy as np\nnp.random.seed(0)\nx=np.random.randn(64,256)*float(scale)\nmu=x.mean(1,keepdims=True); var=x.var(1,keepdims=True)\ny=(x-mu)/np.sqrt(var+1e-5)\nmetrics={'out_std':float(y.std())}",
+        "target": {
+          "metric": "out_std",
+          "op": "lte",
+          "value": 1.5
+        },
+        "explanation": "Whatever the input scale, LN renormalizes each token to ~unit variance — that scale-invariance is the whole point."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "ln_teach",
+        "kind": "explain_back",
+        "prompt": "Explain LayerNorm to your pet: what it normalizes, why per-token, and what γ/β are for.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "normalizes each token over its feature dimension"
+          },
+          {
+            "id": "c2",
+            "description": "is independent of batch size (unlike BatchNorm)"
+          },
+          {
+            "id": "c3",
+            "description": "γ and β are learnable scale/shift restoring expressivity"
+          }
+        ]
+      }
+    },
+    {
       "kind": "text",
       "title": "What to carry forward",
       "body": "- LN normalizes **per token across features** → batch/length independent, identical at train & inference.\n- Not batch norm — different axis, no eval-mode footgun.\n- **Pre-norm** placement is the modern default for trainable depth; **RMSNorm** is the common simplification.\n\n**Next:** [Residual connections](/wiki/residual-connections) — the other half of \"why deep transformers train\" — then the full [transformer block](/wiki/transformer-block)."

@@ -89,6 +89,99 @@
       "title": "Recap"
     },
     {
+      "kind": "question",
+      "question": {
+        "id": "ffn_derive",
+        "kind": "guided_derivation",
+        "question": "Derive the position-wise FFN",
+        "goal": "From: give each token its own nonlinear feature mixer between attention layers.",
+        "steps": [
+          {
+            "prompt": "Why expand to a wider hidden layer then project back (d → 4d → d)?",
+            "motivation": "A wider hidden layer + nonlinearity adds per-token capacity to recombine features; projecting back keeps the residual stream width.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Width + nonlinearity adds representational capacity per token",
+                "It reduces parameter count",
+                "It is required for residual connections",
+                "It normalizes the activations"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Think capacity, not efficiency."
+            ],
+            "reveal": "Expand→nonlinearity→contract is a per-token MLP that adds capacity while preserving width."
+          },
+          {
+            "prompt": "Write FFN(x) with one hidden ReLU layer.",
+            "motivation": "Two linear maps with a nonlinearity between them is the minimal universal per-token transform.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "W2*relu(W1 x+b1)+b2",
+                "max(0,xW1+b1)W2+b2",
+                "relu(xW1+b1)W2+b2"
+              ]
+            },
+            "hints": [
+              "Linear → ReLU → linear."
+            ],
+            "reveal": "FFN(x)=W₂·ReLU(W₁x+b₁)+b₂, applied identically at every position."
+          }
+        ],
+        "finalResult": "$$\\text{FFN}(x)=W_2\\,\\text{ReLU}(W_1 x+b_1)+b_2$$"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ffn_params",
+        "kind": "ml_sandbox",
+        "question": "Push the hidden multiplier up and watch the FFN parameter count (millions) — it dominates the block.",
+        "params": [
+          {
+            "name": "m",
+            "label": "hidden multiplier (d→m·d)",
+            "min": 1,
+            "max": 8,
+            "step": 1,
+            "default": 4
+          }
+        ],
+        "harnessCode": "d=512\nparams=2*d*(int(m)*d)\nmetrics={'params_millions':params/1e6}",
+        "target": {
+          "metric": "params_millions",
+          "op": "gte",
+          "value": 2
+        },
+        "explanation": "At d=512, m=4 the FFN alone is ~2M params per block — most transformer parameters live here, not in attention."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "ffn_teach",
+        "kind": "explain_back",
+        "prompt": "Explain the FFN to your pet: what shape it is, why the widening, and why it is per-token.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "a small MLP applied independently to every token (position-wise)"
+          },
+          {
+            "id": "c2",
+            "description": "expand→nonlinearity→contract adds capacity"
+          },
+          {
+            "id": "c3",
+            "description": "holds the majority of the block's parameters"
+          }
+        ]
+      }
+    },
+    {
       "kind": "text",
       "title": "What to carry forward",
       "body": "- FFN = up-project → nonlinearity → down-project, **per token** (no cross-token mixing).\n- It holds **~2/3** of a layer's parameters and most stored knowledge.\n- **~4× expansion** is the empirical sweet spot; **SwiGLU** is the modern default activation.\n- Remove it and the model loses its per-token nonlinear power.\n\n**Next:** [Residual connections](/wiki/residual-connections) and [layer normalization](/wiki/layer-normalization) — the glue that makes stacking these blocks trainable — then the full [transformer block](/wiki/transformer-block)."

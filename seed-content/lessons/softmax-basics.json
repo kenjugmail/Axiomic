@@ -115,6 +115,99 @@
       "title": "Recap"
     },
     {
+      "kind": "question",
+      "question": {
+        "id": "sm_derive",
+        "kind": "guided_derivation",
+        "question": "Derive softmax",
+        "goal": "From: turn a logit vector z into a probability distribution that is differentiable and monotonic in z.",
+        "steps": [
+          {
+            "prompt": "We need outputs ≥0 summing to 1, monotonic in z. Which mapping?",
+            "motivation": "exp is positive, monotone, and turns logit *differences* into probability *ratios* — the property a classifier wants.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Exponentiate then normalize",
+                "Take |z| then normalize",
+                "Square then normalize",
+                "ReLU then divide by count"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Must stay positive and differentiable everywhere."
+            ],
+            "reveal": "exp(z) is positive & monotone; dividing by the sum makes it a distribution."
+          },
+          {
+            "prompt": "Write softmax(z)_i.",
+            "motivation": "Normalizing exp by its sum is the unique map giving a simplex point whose log-odds are linear in z.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "exp(z_i)/sum_j exp(z_j)",
+                "e^{z_i}/\\sum_j e^{z_j}",
+                "exp(z_i)/sum(exp(z))"
+              ]
+            },
+            "hints": [
+              "Numerator exp(z_i); denominator sums over all classes."
+            ],
+            "reveal": "softmax(z)_i = exp(z_i) / Σ_j exp(z_j)."
+          }
+        ],
+        "finalResult": "$$\\text{softmax}(z)_i=\\frac{e^{z_i}}{\\sum_j e^{z_j}}$$"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sm_temp",
+        "kind": "ml_sandbox",
+        "question": "Crank the temperature up until the distribution's entropy is ≥ 1.0 nats (it flattens toward uniform).",
+        "params": [
+          {
+            "name": "T",
+            "label": "temperature",
+            "min": 0.1,
+            "max": 5,
+            "step": 0.1,
+            "default": 1
+          }
+        ],
+        "harnessCode": "import numpy as np\nz=np.array([2.0,1.0,0.1,-0.5,-1.0])\np=np.exp(z/float(T)); p=p/p.sum()\nent=float(-(p*np.log(p+1e-12)).sum())\nmetrics={'entropy':ent}",
+        "target": {
+          "metric": "entropy",
+          "op": "gte",
+          "value": 1
+        },
+        "explanation": "High T flattens softmax → high entropy (uncertain); low T sharpens it toward one-hot. Temperature is the confidence knob."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "sm_teach",
+        "kind": "explain_back",
+        "prompt": "Explain softmax to your pet: why exp, why divide by the sum, and what temperature changes.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "exp keeps values positive and monotonic in the logits"
+          },
+          {
+            "id": "c2",
+            "description": "dividing by the sum makes the outputs a probability distribution (sums to 1)"
+          },
+          {
+            "id": "c3",
+            "description": "temperature controls how sharp vs. uniform the distribution is"
+          }
+        ]
+      }
+    },
+    {
       "kind": "text",
       "title": "What to carry forward",
       "body": "- Softmax turns unconstrained **logits** into a **probability distribution** via $e^{z_i}/\\sum e^{z_j}$.\n- **Temperature** is a single division that interpolates from argmax ($T\\to0$) to uniform ($T\\to\\infty$).\n- It is **shift-invariant**; real code subtracts the max for numerical stability.\n\nYou will meet it again as: **[attention](/wiki/attention) weights** (softmax over query·key scores), the **output head** (softmax over vocabulary logits), and **classification**. Same function, three jobs.\n\n**Next:** [Attention](/wiki/attention) — where softmax decides how much each token listens to every other."
