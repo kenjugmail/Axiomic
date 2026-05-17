@@ -1216,8 +1216,18 @@ export type LessonSlide =
   | LessonSectionSlide
   | LessonReflectSlide;
 
+// Phase 1b — optional lesson-level metadata shown as an intro card
+// on the first slide. All fields optional; absent ⇒ no intro card.
+export interface LessonMeta {
+  timeMinutes?: number;
+  difficulty?: "intro" | "core" | "advanced";
+  objectives?: string[];
+  prereqs?: string[];
+}
+
 export interface Lesson {
   slides: LessonSlide[];
+  meta?: LessonMeta;
 }
 
 export interface LessonResponse {

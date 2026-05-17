@@ -727,6 +727,14 @@ const slideSchema = z.union([
 const lessonBodySchema = z.object({
   slides: z.array(slideSchema).min(1).max(120),
   editMessage: z.string().max(200).optional(),
+  meta: z
+    .object({
+      timeMinutes: z.number().int().min(1).max(600).optional(),
+      difficulty: z.enum(["intro", "core", "advanced"]).optional(),
+      objectives: z.array(z.string().max(300)).max(12).optional(),
+      prereqs: z.array(z.string().max(120)).max(12).optional(),
+    })
+    .optional(),
 });
 
 // PUT /mastery/nodes/:nodeId/lesson — author or replace. With ?draft=1
@@ -741,7 +749,7 @@ mastery.put(
     const user = c.get("user")!;
     const nodeId = c.req.param("nodeId")!;
     const draftMode = c.req.query("draft") === "1";
-    const { slides, editMessage } = c.req.valid("json");
+    const { slides, editMessage, meta } = c.req.valid("json");
     const db = getDb();
 
     const node = db
@@ -770,7 +778,10 @@ mastery.put(
       }
     }
 
-    const lessonData = JSON.stringify({ slides });
+    const lessonData = JSON.stringify({
+      slides,
+      ...(meta ? { meta } : {}),
+    });
     const now = new Date().toISOString();
 
     if (draftMode) {

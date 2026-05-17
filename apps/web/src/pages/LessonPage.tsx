@@ -723,6 +723,48 @@ export function LessonPage() {
             </div>
           )}
 
+          {phase === "playing" &&
+            idx === 0 &&
+            lesson?.meta &&
+            (lesson.meta.timeMinutes ||
+              lesson.meta.difficulty ||
+              (lesson.meta.objectives &&
+                lesson.meta.objectives.length > 0) ||
+              (lesson.meta.prereqs && lesson.meta.prereqs.length > 0)) && (
+              <div className="max-w-3xl mx-auto mb-6 rounded-lg border border-border bg-card p-5 animate-fade-in">
+                <div className="flex items-center gap-2 flex-wrap mb-3">
+                  {lesson.meta.difficulty && (
+                    <span className="text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                      {lesson.meta.difficulty}
+                    </span>
+                  )}
+                  {lesson.meta.timeMinutes && (
+                    <span className="text-xs text-muted-foreground">
+                      ~{lesson.meta.timeMinutes} min
+                    </span>
+                  )}
+                </div>
+                {lesson.meta.objectives &&
+                  lesson.meta.objectives.length > 0 && (
+                    <div className="mb-3">
+                      <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1">
+                        You'll learn
+                      </div>
+                      <ul className="list-disc pl-5 text-sm space-y-0.5">
+                        {lesson.meta.objectives.map((o, i) => (
+                          <li key={i}>{o}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                {lesson.meta.prereqs && lesson.meta.prereqs.length > 0 && (
+                  <div className="text-xs text-muted-foreground">
+                    Prerequisites: {lesson.meta.prereqs.join(" · ")}
+                  </div>
+                )}
+              </div>
+            )}
+
           {phase === "playing" && slide && slide.kind === "text" && (
             <article className="max-w-3xl mx-auto animate-fade-in">
               <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2 inline-flex items-center gap-1.5">
