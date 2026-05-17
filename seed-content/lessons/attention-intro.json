@@ -1,6 +1,6 @@
 {
   "meta": {
-    "timeMinutes": 35,
+    "timeMinutes": 45,
     "difficulty": "core",
     "objectives": [
       "Read an attention heatmap and explain what each row/column means",
@@ -8,29 +8,58 @@
       "Explain why scores are divided by √d_k and what breaks without it",
       "Tune d_k in a live sandbox and see the variance blow-up yourself"
     ],
-    "prereqs": ["softmax-basics", "tokens-basics"]
+    "prereqs": [
+      "softmax-basics",
+      "tokens-basics"
+    ]
   },
   "slides": [
     {
       "kind": "section",
-      "title": "Part 1 — The one idea the whole field is built on",
-      "body": "Attention is the mechanism that replaced recurrence and convolution. Once you can read an attention heatmap and **derive the formula yourself**, the rest of the transformer is bookkeeping. Spend real time here."
+      "title": "Part 1 — Why attention exists",
+      "body": "Before attention, sequence models had a structural problem. Spend a minute on *why* — it makes the mechanism obvious."
     },
     {
       "kind": "text",
-      "title": "What attention computes",
-      "body": "Look at the heatmap. Each **row is a query** (a token asking a question), each **column is a key** (a token advertising itself). Brighter = stronger attention.\n\nNotice the row for **`are`** — almost all its weight sits on **`cats`**. The verb learned it must agree with its subject several tokens back. Nobody coded that rule; it emerged from training.\n\nThe whole point: every token gets to **look at every other token**, weighted by relevance, in a *single* parallel operation. RNNs passed information one step at a time; attention has full reach at once.",
-      "viz": "attention-heatmap-explorer",
-      "vizProps": { "presetIndex": 0 }
+      "title": "The problem with recurrence",
+      "body": "An RNN reads a sequence one token at a time, carrying a hidden state forward. Two consequences hurt:\n\n1. **No parallelism in time.** Token *t* can't be computed until *t−1* is done. A 1000-token sequence is 1000 sequential steps — GPUs sit idle.\n2. **Long-range information decays.** To connect token 1 to token 500, the signal must survive 499 noisy state updates. Gradients vanish; the model forgets.\n\nConvolutions parallelize but only see a fixed local window — reaching far still needs many stacked layers.\n\n> **The ask:** a layer where *every token can see every other token directly, in one parallel operation, weighted by relevance.* That layer is attention."
     },
     {
       "kind": "text",
-      "title": "Three vectors per token: Q, K, V",
-      "body": "Each token is projected three ways:\n\n- **Query (Q):** \"What am I looking for?\"\n- **Key (K):** \"What do I offer?\"\n- **Value (V):** \"What information do I carry?\"\n\nThe score from token $i$ to token $j$ is the dot product $Q_i\\cdot K_j$ — large when query and key align. We are about to *derive* the rest of the formula rather than memorize it."
+      "title": "Where attention sits",
+      "body": "In a transformer block, attention is the **only** component that moves information *between* token positions. Everything else — the FFN, LayerNorm — operates on each token independently. So attention is *the* mechanism by which a transformer relates words to each other. Master it and the rest is plumbing."
     },
     {
       "kind": "section",
-      "title": "Part 2 — Derive it yourself"
+      "title": "Part 2 — Build the intuition"
+    },
+    {
+      "kind": "text",
+      "title": "Attention is a soft dictionary lookup",
+      "body": "Think of a Python dict: you give a **key**, it returns the matching **value**. Attention is the *soft, differentiable* version:\n\n- Each token emits a **query** (\"what am I looking for?\"), a **key** (\"what do I offer?\"), and a **value** (\"what I'll hand over if you pick me\").\n- Instead of an exact key match, you score the query against *every* key, softmax the scores into weights, and return the **weighted average of all values**.\n\nA hard dict returns one value; attention returns a blend, mostly from the best-matching keys. That softness is what makes it learnable by gradient descent."
+    },
+    {
+      "kind": "text",
+      "title": "Reading an attention heatmap",
+      "body": "Each **row** is a query token; each **column** a key token; brightness is the attention weight. Look at the row for `are`: almost all weight sits on `cats` — the verb learned subject–verb agreement across several tokens. Nobody coded that rule; it emerged from training. Drag the controls and watch which tokens attend where.",
+      "viz": "attention-heatmap-explorer",
+      "vizProps": {
+        "presetIndex": 0
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 3 — Formalize it"
+    },
+    {
+      "kind": "text",
+      "title": "Three projections: Q, K, V",
+      "body": "From each token embedding $x_i$ we make three vectors by learned linear maps:\n\n$$Q=XW^Q,\\quad K=XW^K,\\quad V=XW^V$$\n\n$W^Q,W^K\\in\\mathbb{R}^{d\\times d_k}$ and $W^V\\in\\mathbb{R}^{d\\times d_v}$. Q and K live in the same $d_k$-space so their dot product is meaningful; V carries the content that actually gets passed along. These three matrices are *all* the parameters attention has."
+    },
+    {
+      "kind": "text",
+      "title": "Scores → weights → output",
+      "body": "The score from query $i$ to key $j$ is $Q_i\\cdot K_j$ — large when they point the same way. Stack all pairs into $QK^{T}$ (an $n\\times n$ matrix), scale, softmax each row into a distribution, and use it to average the values. You're about to derive every piece of this yourself."
     },
     {
       "kind": "question",
@@ -102,11 +131,19 @@
             "accepts": {
               "mode": "text",
               "rubricCriteria": [
-                { "id": "role", "description": "States V holds the information/content to be aggregated" },
-                { "id": "qk", "description": "Notes Q·K only determines the weights, not the content" }
+                {
+                  "id": "role",
+                  "description": "States V holds the information/content to be aggregated"
+                },
+                {
+                  "id": "qk",
+                  "description": "Notes Q·K only determines the weights, not the content"
+                }
               ]
             },
-            "hints": ["Think about which vector is the 'payload'."],
+            "hints": [
+              "Think about which vector is the 'payload'."
+            ],
             "reveal": "Q and K produce the weights; V is the content. The output is $\\sum_j w_{ij} V_j$ — a relevance-weighted blend of value vectors."
           }
         ],
@@ -116,7 +153,17 @@
     },
     {
       "kind": "section",
-      "title": "Part 3 — See the √d_k effect for real"
+      "title": "Part 4 — A worked example, with shapes"
+    },
+    {
+      "kind": "text",
+      "title": "Walk the shapes end to end",
+      "body": "Take $n=3$ tokens, $d_k=4$. $X$ is $3\\times d$. Then:\n\n- $Q,K,V$ are each $3\\times 4$.\n- $QK^{T}$ is $3\\times 3$ — row $i$ holds token $i$'s similarity to all 3 keys.\n- Divide by $\\sqrt{4}=2$, softmax each row → a $3\\times 3$ weight matrix, rows sum to 1.\n- Multiply by $V$ ($3\\times 4$) → a $3\\times 4$ output: each token is now a relevance-weighted blend of all values.\n\nThree matmuls and a softmax. No loops, fully parallel — exactly what recurrence couldn't give us."
+    },
+    {
+      "kind": "text",
+      "title": "Why divide by √dₖ",
+      "body": "With $d_k$ unit-variance entries, $Q_i\\cdot K_j$ has variance $\\approx d_k$, so std $\\approx\\sqrt{d_k}$. For $d_k=64$ that's std $\\approx 8$ — scores land far apart, softmax saturates into a near one-hot, and its gradient goes to ~0. Dividing by $\\sqrt{d_k}$ renormalizes scores to unit variance and keeps softmax responsive. A one-character constant that decides whether the layer trains at all. See it happen:"
     },
     {
       "kind": "question",
@@ -125,29 +172,40 @@
         "kind": "ml_sandbox",
         "question": "Push d_k up. Find a setting where the *unscaled* score std stays ≤ 1.5 — you can't, which is the point.",
         "params": [
-          { "name": "d_k", "label": "d_k (key dimension)", "min": 8, "max": 256, "step": 8, "default": 64 },
-          { "name": "scale", "label": "divide by √d_k? (0/1)", "min": 0, "max": 1, "step": 1, "default": 0 }
+          {
+            "name": "d_k",
+            "label": "d_k (key dimension)",
+            "min": 8,
+            "max": 256,
+            "step": 8,
+            "default": 64
+          },
+          {
+            "name": "scale",
+            "label": "divide by √d_k? (0/1)",
+            "min": 0,
+            "max": 1,
+            "step": 1,
+            "default": 0
+          }
         ],
         "harnessCode": "import numpy as np\nnp.random.seed(0)\ndk = int(d_k)\nQ = np.random.randn(64, dk)\nK = np.random.randn(64, dk)\ns = Q @ K.T\nif scale >= 1:\n    s = s / np.sqrt(dk)\nmetrics = {\"score_std\": float(s.std()), \"d_k\": float(dk)}",
-        "target": { "metric": "score_std", "op": "lte", "value": 1.5 },
+        "target": {
+          "metric": "score_std",
+          "op": "lte",
+          "value": 1.5
+        },
         "explanation": "Unscaled, std grows like √d_k (≈8 at d_k=64) — softmax saturates. Flip scale=1 and std snaps back to ≈1 at any d_k. That single divisor decides whether the layer trains."
       }
     },
     {
-      "kind": "text",
-      "title": "Why divide by √d_k",
-      "body": "You just watched it: with $d_k=64$ the unscaled dot product has std ≈ 8 — large scores push softmax into a near one-hot regime where gradients vanish. Dividing by $\\sqrt{d_k}$ rescales to unit variance and keeps softmax responsive. A tiny constant with an outsized effect on whether the model trains at all."
-    },
-    {
       "kind": "section",
-      "title": "Part 4 — Read real attention patterns"
+      "title": "Part 5 — Pitfalls & misconceptions"
     },
     {
       "kind": "text",
-      "title": "A coreference pattern",
-      "body": "Here the pronoun **`she`** attends back to its antecedent **`Maria`**. The model learned that pronouns need to know what they refer to, and attention is the mechanism that lets it look back.\n\nIn a real model this is a *circuit* spanning multiple heads and layers (Olsson et al., 2022), but the takeaway stands: trained attention discovers linguistic structure on its own.",
-      "viz": "attention-heatmap-explorer",
-      "vizProps": { "presetIndex": 2 }
+      "title": "The failure you'll actually hit",
+      "body": "The single most common attention bug in practice is forgetting (or mis-scaling) the $\\sqrt{d_k}$ divisor, or — in decoders — forgetting the causal mask. Both produce *plausible-looking* code that trains badly. Diagnose this one:"
     },
     {
       "kind": "question",
@@ -157,9 +215,18 @@
         "question": "Diagnose the failure.",
         "scenario": "A teammate ships an attention layer. Training loss plateaus immediately and never drops. You print the attention matrix: every row is almost perfectly one-hot from step 1. Q, K, V projections look fine.",
         "rubricCriteria": [
-          { "id": "cause", "description": "Identifies missing/incorrect √d_k scaling (or otherwise over-large logits) as the cause" },
-          { "id": "mechanism", "description": "Explains saturated softmax → vanishing gradients → no learning" },
-          { "id": "fix", "description": "Proposes dividing scores by √d_k (or equivalent renormalization)" }
+          {
+            "id": "cause",
+            "description": "Identifies missing/incorrect √d_k scaling (or otherwise over-large logits) as the cause"
+          },
+          {
+            "id": "mechanism",
+            "description": "Explains saturated softmax → vanishing gradients → no learning"
+          },
+          {
+            "id": "fix",
+            "description": "Proposes dividing scores by √d_k (or equivalent renormalization)"
+          }
         ],
         "explanation": "One-hot-from-step-1 + flat loss is the classic unscaled-logits signature. Variance ≈ d_k saturates softmax; its gradient is ~0 so nothing learns. Divide QKᵀ by √d_k."
       }
@@ -187,26 +254,44 @@
       }
     },
     {
+      "kind": "text",
+      "title": "Heads specialize",
+      "body": "A trained model grows heads with distinct jobs. Here a pronoun attends back to its antecedent — a *coreference* head. Other heads do locality, syntax, or patterns we still don't fully understand (the field of mechanistic interpretability is built on the fact that these patterns are real and reproducible).",
+      "viz": "attention-heatmap-explorer",
+      "vizProps": {
+        "presetIndex": 2
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 6 — Connections & what's next"
+    },
+    {
       "kind": "explain_back",
       "question": {
         "id": "att_teach",
         "kind": "explain_back",
         "prompt": "Explain scaled dot-product attention to your pet — in plain words, no formula. Why does every token look at every other token, and what is the √d_k for?",
         "rubricCriteria": [
-          { "id": "blend", "description": "Each token reads a relevance-weighted blend of the others' information" },
-          { "id": "qkv", "description": "Q/K decide the weights, V is the content" },
-          { "id": "scale", "description": "√d_k keeps the softmax from saturating so the layer can learn" }
+          {
+            "id": "blend",
+            "description": "Each token reads a relevance-weighted blend of the others' information"
+          },
+          {
+            "id": "qkv",
+            "description": "Q/K decide the weights, V is the content"
+          },
+          {
+            "id": "scale",
+            "description": "√d_k keeps the softmax from saturating so the layer can learn"
+          }
         ]
       }
     },
     {
-      "kind": "section",
-      "title": "Recap"
-    },
-    {
       "kind": "text",
       "title": "What's next",
-      "body": "You derived attention from scratch, watched √d_k decide trainability, and diagnosed the classic failure. The follow-ups make it practical:\n\n- **[Self-attention](/wiki/self-attention)** — Q, K, V from the *same* sequence.\n- **[Multi-head attention](/wiki/multi-head-attention)** — many subspaces in parallel.\n- **[Causal masking](/wiki/masked-self-attention)** — mask the future for autoregressive generation.\n\nEverything important in a transformer happens in attention; the rest is plumbing around it."
+      "body": "You can derive attention, explain $\\sqrt{d_k}$, and diagnose its classic failure. The follow-ups make it a transformer:\n\n- **[Self-attention](/wiki/self-attention)** — Q,K,V from the *same* sequence.\n- **[Multi-head attention](/wiki/multi-head-attention)** — many subspaces in parallel.\n- **[Causal masking](/wiki/masked-self-attention)** — mask the future for generation.\n\nEverything important in a transformer happens in attention; the rest is plumbing around it."
     }
   ]
 }
