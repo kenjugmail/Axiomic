@@ -1,6 +1,6 @@
 {
   "meta": {
-    "timeMinutes": 32,
+    "timeMinutes": 40,
     "difficulty": "core",
     "objectives": [
       "Explain how residuals keep gradients flowing",
@@ -12,18 +12,17 @@
     {
       "kind": "section",
       "title": "Part 1 — Why depth used to be impossible",
-      "body": "Before residuals, very deep nets trained *worse* than shallow ones. One line of algebra fixed it."
+      "body": "Before residual connections, *adding layers made networks train worse* — not overfit, train worse. One line of algebra removed the ceiling on depth and made modern deep learning possible."
     },
     {
       "kind": "text",
-      "title": "The vanishing/exploding-gradient wall",
-      "body": "Backprop through an $L$-layer plain stack multiplies $L$ Jacobian factors. If each has magnitude $<1$, the product $\\to 0$ over dozens of layers — early layers get ~no gradient and never learn (vanishing). If $>1$, it explodes. A 48-layer plain transformer's loss barely moves; the *depth* is unusable, not the capacity."
+      "title": "The vanishing / exploding gradient wall",
+      "body": "Backprop through an $L$-layer plain stack multiplies $L$ per-layer Jacobians. Let each have spectral norm $\\approx r$. The gradient reaching layer 1 scales like $r^{L}$. If $r<1$ (the typical case with squashing nonlinearities) then $r^{L}\\to 0$ exponentially — early layers receive ~no learning signal (**vanishing**). If $r>1$, $r^{L}\\to\\infty$ (**exploding**). Either way the usable depth is capped: a 48-layer plain transformer's loss barely moves with the same data/LR a residual one trains fine on. This wasn't a tuning problem — it was structural.\n\n> **Context:** He et al. (2015), *Deep Residual Learning* (ResNet), identified the **degradation problem**: a 56-layer plain CNN had *higher training error* than a 20-layer one — strictly an optimization failure. Residuals fixed it and won ImageNet; the idea then carried straight into transformers."
     },
     {
       "kind": "text",
       "title": "The +1 that saves training",
-      "body": "Make each block output $y=x+F(x)$ instead of $y=F(x)$. Differentiate: $\\partial y/\\partial x = I + F'(x)$. That **identity term** is a gradient highway of magnitude ~1 that *no* depth can attenuate — gradient reaches layer 1 of a 100-layer net essentially intact. Same data, same LR: the residual model trains, the plain one doesn't.",
-      "viz": "layer-activations"
+      "body": "Change each block from $y=F(x)$ to $y=x+F(x)$ (an identity *shortcut* around the transformation $F$). Differentiate: $\\dfrac{\\partial y}{\\partial x}=I+\\dfrac{\\partial F}{\\partial x}$. That additive **identity term $I$** is a gradient pathway of magnitude ~1 that *no depth can attenuate* — gradient reaches layer 1 of a 100-layer network essentially intact, regardless of what $F$'s Jacobian does. Same data, same LR: the residual network learns; the plain one doesn't. One `+x` removed the depth ceiling."
     },
     {
       "kind": "question",
@@ -42,11 +41,6 @@
       }
     },
     {
-      "kind": "text",
-      "title": "Worked example: gradient through 50 layers",
-      "body": "Concrete numbers. Suppose each block's local Jacobian has magnitude $0.9$.\n\n- **Plain stack, 50 layers:** gradient scaling $\\approx 0.9^{50}\\approx 0.005$ — early layers get ~0.5% of the signal. Effectively untrained.\n- **Residual, 50 layers:** each factor is $1+0.9\\,(\\text{ish})$ from $I+F'$; the identity keeps the product $\\mathcal{O}(1)$, not $\\to 0$.\n\nFlip the local magnitude to $1.1$ and the plain stack instead *explodes*: $1.1^{50}\\approx 117$. Residuals don't just help vanishing — they tame both failure modes by anchoring the per-layer factor near 1."
-    },
-    {
       "kind": "question",
       "question": {
         "id": "res_q2",
@@ -62,6 +56,11 @@
         "hint": "Add the input to the sublayer's output.",
         "explanation": "y = x + F(x). The output is NOT just F(x) (that would be a plain layer) and NOT just x (that would skip the layer). It is the sum — F learns a *delta* to add to the running representation."
       }
+    },
+    {
+      "kind": "text",
+      "title": "Worked example: gradient through 50 layers",
+      "body": "Make it concrete. Suppose each block's local Jacobian has magnitude $0.9$. **Plain stack, 50 layers:** the gradient scales by $0.9^{50}\\approx 0.005$ — early layers get ~0.5% of the signal: effectively untrained. **Residual stack:** each factor is $I+(\\text{something})$, so the product stays $\\mathcal{O}(1)$ rather than decaying to 0. Flip the local magnitude to $1.1$ and the *plain* stack explodes: $1.1^{50}\\approx 117$. Residuals tame *both* failure modes by anchoring the per-layer multiplier near 1 — which is exactly what the $I$ in $I+\\partial F/\\partial x$ does."
     },
     {
       "kind": "section",
@@ -115,17 +114,17 @@
     },
     {
       "kind": "section",
-      "title": "Part 3 — The residual stream"
+      "title": "Part 3 — The residual stream (the modern mental model)"
     },
     {
       "kind": "text",
       "title": "A shared bus every layer reads and writes",
-      "body": "Modern interpretability reframes it: there's one $d_{model}$-wide **residual stream** running the depth of the network. Each block *reads* it (via its LN'd input), computes a delta, and *adds* that delta back. Information persists by default (the identity path) and is edited incrementally — not recomputed from scratch each layer."
+      "body": "Modern interpretability reframes the architecture around residuals: there is one $d_{model}$-wide **residual stream** running the full depth of the network. Each block *reads* it (through its LayerNorm'd input), computes a delta $F(\\cdot)$, and *adds* that delta back. Information persists **by default** (the identity path) and is *edited incrementally* — not recomputed from scratch each layer. Attention writes/reads it, the FFN writes/reads it. This view explains why you can often ablate or reorder some blocks at inference with surprisingly small damage: each contributes a modest additive edit to a stream that already carries the answer."
     },
     {
       "kind": "text",
       "title": "The 'skip connection' misconception",
-      "body": "It is not an optional bypass for occasional use. The residual path is the **main** channel; $F(x)$ is a *correction* added to it. That's why you can ablate some blocks at inference with surprisingly small damage — each contributes a modest additive edit to a stream that already carries the answer."
+      "body": "It is *not* an occasional optional bypass. The residual path is the **main channel**; $F(x)$ is a *correction* added onto it. Calling it a 'skip' undersells it — most of the signal flows along the identity path, and the sublayers nudge it. Internalizing 'residual stream, not skip connection' is the difference between memorizing the formula and understanding why depth, ablation robustness, and the pre-norm placement (LayerNorm lesson) all work the way they do."
     },
     {
       "kind": "question",
@@ -195,7 +194,7 @@
     },
     {
       "kind": "section",
-      "title": "Part 5 — Connections & what's next"
+      "title": "Part 5 — Connections, teach-back & what's next"
     },
     {
       "kind": "explain_back",
@@ -222,12 +221,12 @@
     {
       "kind": "text",
       "title": "Residuals beyond transformers",
-      "body": "This isn't a transformer trick. Residual connections were introduced by **ResNet (2015)** to solve the *degradation problem*: adding layers to a plain CNN made training accuracy *worse*, not just overfit — pure optimization failure. Residuals let 152-layer CNNs train and won ImageNet. The same identity-path idea now underlies transformers, diffusion U-Nets, and graph nets. When you see $x + F(x)$ anywhere, it's buying trainable depth."
+      "body": "This is not a transformer trick. ResNets (vision), U-Nets (diffusion models), residual blocks in graph and speech networks — anywhere people train deep, you see $x+F(x)$. The identity-path principle is one of the most transferable ideas in deep learning: whenever a deep stack won't train, the first question is \"is there an un-normalized identity path for the gradient?\""
     },
     {
       "kind": "text",
       "title": "What to carry forward",
-      "body": "Residual $y=x+F(x)$ ⇒ $\\partial y/\\partial x=I+F'(x)$: an undiminished gradient path and a persistent information bus that *make* depth work. You now have every part — next: **[assemble the transformer block](/paths/ml-engineer/lessons/transformer-block)**."
+      "body": "Residual $y=x+F(x)\\Rightarrow\\partial y/\\partial x=I+\\partial F/\\partial x$: an undiminished gradient highway and a persistent information bus that *make depth work*. You now hold every component. Next: **assemble the transformer block** and see them compose into GPT-scale models."
     }
   ]
 }

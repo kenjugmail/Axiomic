@@ -1,6 +1,6 @@
 {
   "meta": {
-    "timeMinutes": 45,
+    "timeMinutes": 50,
     "difficulty": "core",
     "objectives": [
       "Assemble attention+FFN+norm+residual into a block",
@@ -17,18 +17,18 @@
     {
       "kind": "section",
       "title": "Part 1 — Assembling the whole thing",
-      "body": "You have every component. A transformer block is just the right wiring of them — and it stacks."
+      "body": "You have every part: attention, FFN, LayerNorm, residuals, positional encoding. A transformer block is the precise wiring of these — and it is the unit that, repeated, becomes GPT."
     },
     {
       "kind": "text",
-      "title": "The block (pre-norm)",
-      "body": "One block, modern pre-norm form:\n\n```\nh = x + MultiHeadAttn(LayerNorm(x))   # mix across tokens\ny = h + FFN(LayerNorm(h))            # transform per token\n```\n\nTwo sublayers, each wrapped in its own LayerNorm (inside) and residual (around). In/out width is $d_{model}$ both times, so blocks are *composable* — stack $N$ of them and nothing else changes.",
+      "title": "The block (pre-norm), in code",
+      "body": "One block, modern pre-norm form:\n\n```\nh = x + MultiHeadAttention(LayerNorm(x))   # mix across tokens\ny = h + FFN(LayerNorm(h))                  # transform per token\n```\n\nTwo sublayers. Each is wrapped in its **own** LayerNorm (applied to the *input*, pre-norm) and its **own** residual add (around the sublayer). Input and output are both $d_{model}$-wide, so a block is an endomorphism on the residual stream — which is exactly why you can stack $N$ of them with nothing else changing. Every component you studied appears here in its place.",
       "viz": "layer-activations"
     },
     {
       "kind": "text",
       "title": "Attention mixes tokens, FFN mixes features",
-      "body": "The division of labor, crisply: **attention** is the only cross-token operation (routing/aggregating information between positions); the **FFN** is the only per-token nonlinear transform (computing on each position independently); **LayerNorm + residual** are the stabilizers that let you stack the pair dozens of times. Every modern LLM is essentially this block repeated."
+      "body": "The crisp division of labor, the one sentence that explains the architecture: **attention** is the only cross-token operation (route/aggregate information *between* positions); the **FFN** is the only per-token nonlinear transform (compute *within* a position); **LayerNorm + residual** are the stabilizers that let you stack the pair dozens of times. Every modern LLM — GPT, Llama, Mistral, the vision-transformer ViT — is essentially this block repeated, with local swaps (RoPE for sinusoidal, SwiGLU for GELU, GQA for MHA, RMSNorm for LayerNorm). Learn the block and you can read all of them."
     },
     {
       "kind": "question",
@@ -171,13 +171,13 @@
     },
     {
       "kind": "text",
-      "title": "How big is big?",
-      "body": "GPT-3: 96 blocks, $d_{model}=12288$, 96 heads, $d_{ff}=4d_{model}$ → 175B params. The block didn't change — it was *scaled and repeated*. Scaling laws say loss falls predictably as a power law in params/data/compute, which is why \"same block, more of it\" has been the dominant strategy."
+      "title": "How big is big? (the scaling story)",
+      "body": "GPT-3: the *same* block, with $d_{model}=12288$, 96 heads, $d_{ff}=4d_{model}$, **stacked 96 times** → 175B parameters. Nothing structural changed from a 6-layer model — it was *scaled and repeated*. **Scaling laws** (Kaplan 2020; Chinchcompute-optimal Hoffmann 2022) showed test loss falls as a smooth power law in parameters, data, and compute, jointly — which is *why* \"same block, more of it, more data\" became the dominant strategy and why architecture churn slowed: the block was good enough; scale was the lever."
     },
     {
       "kind": "text",
       "title": "Pre-norm vs post-norm, one more time",
-      "body": "Post-norm (original) needs LR warmup and is finicky past ~12 layers; pre-norm trains stably at 100+ layers because the residual identity path is never normalized. This single placement choice is *why* the block stacks to GPT-3 depth at all — it ties together everything you learned in the LayerNorm and residual lessons."
+      "body": "This ties the path together. Post-norm (original) is finicky past ~12 layers and needs LR warmup. Pre-norm trains stably at 100+ layers because the residual identity path (residuals lesson) is never renormalized by LayerNorm (LayerNorm lesson). The reason GPT-3 can be 96 blocks deep at all is the *interaction* of two stabilizers you learned separately — that's the payoff of having studied them as pieces."
     },
     {
       "kind": "question",
@@ -274,7 +274,7 @@
     {
       "kind": "text",
       "title": "You can now read any transformer",
-      "body": "Tokens → embeddings → [attention + FFN, each wrapped in LayerNorm + residual] × N → softmax head. Every variant you'll meet (GPT, Llama, ViT) is a tweak on this skeleton — RoPE here, SwiGLU there, GQA for serving. You've built the whole thing from first principles."
+      "body": "The full forward pass, from tokens to text: **tokens → embeddings (+ positional) → [ x + Attn(LN(x)); h + FFN(LN(h)) ] × N → final LayerNorm → softmax over vocabulary**. Every model you'll meet — GPT, Llama, Claude-class decoders, ViT, encoder-decoder T5 — is a parameter choice and a few component swaps on this skeleton you built from first principles. That is the entire ML-Engineer transformer path: you can now derive it, debug it, and scale it."
     }
   ]
 }
