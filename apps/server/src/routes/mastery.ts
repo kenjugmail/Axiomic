@@ -396,6 +396,52 @@ mastery.post(
         answerJson: answerJson ?? null,
       })
       .run();
+
+    // Phase 2c — wire the embedded-lesson miss into the same
+    // misconception pipeline the standalone /quiz uses: upsert the
+    // mistakes log (so the detector, Knowledge MRI and coach context
+    // see it) and, on a miss, kick the detector. Best-effort.
+    const nowIso = new Date().toISOString();
+    const existingMistake = db
+      .select()
+      .from(quizMistakes)
+      .where(
+        and(
+          eq(quizMistakes.userId, user.id),
+          eq(quizMistakes.nodeId, nodeId),
+          eq(quizMistakes.questionId, questionId),
+        ),
+      )
+      .get();
+    if (!correct) {
+      if (existingMistake) {
+        db.update(quizMistakes)
+          .set({
+            occurrences: existingMistake.occurrences + 1,
+            lastWrongAt: nowIso,
+            resolvedAt: null,
+          })
+          .where(eq(quizMistakes.id, existingMistake.id))
+          .run();
+      } else {
+        db.insert(quizMistakes)
+          .values({
+            id: randomUUID(),
+            userId: user.id,
+            nodeId,
+            questionId,
+            occurrences: 1,
+            lastWrongAt: nowIso,
+          })
+          .run();
+      }
+      fireDetectorForUserAsync(user.id);
+    } else if (existingMistake && !existingMistake.resolvedAt) {
+      db.update(quizMistakes)
+        .set({ resolvedAt: nowIso })
+        .where(eq(quizMistakes.id, existingMistake.id))
+        .run();
+    }
     return c.json({ ok: true });
   },
 );

@@ -23,6 +23,7 @@ import type {
 import { assertQuestionKind } from "@axiomic/types";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { TutorMount } from "../components/ai/TutorMount";
+import { dispatchAskTutor } from "../components/ai/askTutorAction";
 import { PetByUsername } from "../pet";
 import { QuestionRenderer, isAnswered } from "../components/quiz/QuestionRenderer";
 import { LessonNotes } from "../components/mastery/LessonNotes";
@@ -892,6 +893,33 @@ export function LessonPage() {
                           content={slide.question.explanation}
                         />
                       </div>
+                    )}
+                    {!isCorrect(slide.question) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const raw = answers[slide.question.id] ?? "";
+                          let ans = raw;
+                          try {
+                            const env = JSON.parse(raw);
+                            if (
+                              env &&
+                              typeof env === "object" &&
+                              typeof env.text === "string"
+                            )
+                              ans = env.text;
+                          } catch {
+                            /* raw answer */
+                          }
+                          dispatchAskTutor({
+                            quote: `I answered this lesson question incorrectly and want to find my misconception.\n\nQuestion: ${slide.question.question}\n\nMy answer: ${ans || "(blank)"}\n\nDon't just give the answer — help me see where my reasoning went wrong.`,
+                          });
+                        }}
+                        className="mt-3 inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" strokeWidth={2} />
+                        Work through this with the tutor
+                      </button>
                     )}
                   </div>
                 )}
