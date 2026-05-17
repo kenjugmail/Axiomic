@@ -1,6 +1,6 @@
 {
   "meta": {
-    "timeMinutes": 40,
+    "timeMinutes": 45,
     "difficulty": "core",
     "objectives": [
       "Explain why attention needs position information",
@@ -13,23 +13,23 @@
   "slides": [
     {
       "kind": "section",
-      "title": "Part 1 — Why position has to be injected",
-      "body": "Self-attention is powerful but has one blind spot you must patch."
+      "title": "Part 1 — Why position must be injected",
+      "body": "Self-attention is astonishingly powerful and has exactly one blind spot. Patch it correctly and you understand why every position-encoding scheme since 2017 looks the way it does."
     },
     {
       "kind": "text",
-      "title": "Attention is permutation-equivariant",
-      "body": "Self-attention is a *set* operation: shuffle the input tokens and the outputs shuffle identically — the math contains no notion of \"first\" or \"after\". But language is ordered: \"dog bites man\" ≠ \"man bites dog\". Position information is **not** in the mechanism; it must be added to the token representations explicitly."
+      "title": "Self-attention is permutation-equivariant",
+      "body": "Stripped of position info, self-attention treats its input as a **set**, not a sequence. Permute the input tokens by any permutation $\\pi$ and the outputs permute by the *same* $\\pi$ — the function commutes with reordering. Proof sketch: $Q,K,V$ are row-wise projections (a permutation of rows permutes them identically), $QK^{T}$ permutes rows and columns, softmax is row-wise, and $AV$ follows — net effect is exactly the input permutation. Consequence: with no position signal, \"dog bites man\" and \"man bites dog\" produce the *same multiset* of outputs. Word order — which carries much of natural-language meaning — is invisible. This is not a bug to fix in attention; it's a property to *complement*."
     },
     {
       "kind": "text",
       "title": "The fix: add a position-dependent vector",
-      "body": "Before the first attention layer, add a vector $PE(pos)$ to each token embedding. Now two copies of the same word at different positions have different representations, so attention *can* condition on order. The design question is only: what should $PE(pos)$ be?"
+      "body": "Before the first attention layer, add a vector $PE(\\text{pos})\\in\\mathbb{R}^{d}$ to each token embedding: $\\tilde{x}_i = x_i + PE(i)$. Now two copies of the same word at different positions have *different* representations, so $Q/K$ derived from them differ, so attention *can* condition on order. The symmetry is broken deliberately and minimally — content still lives in $x_i$, position rides alongside. Every scheme (sinusoidal, learned, RoPE, ALiBi) is a different answer to one question: *what should the position signal be, and where should it enter?*"
     },
     {
       "kind": "text",
-      "title": "Sinusoidal — the original recipe",
-      "body": "$PE_{(pos,2i)}=\\sin\\!\\big(pos/10000^{2i/d}\\big)$, odd indices use $\\cos$. Low dimensions oscillate fast (encode fine/local position), high dimensions slowly (coarse/global position). Geometric wavelengths give every position a unique fingerprint *and* make relative offsets expressible as a linear function — watch the wavelength grow with the dimension index:",
+      "title": "Sinusoidal — the original recipe (and its cleverness)",
+      "body": "$PE_{(pos,2i)}=\\sin\\!\\big(pos/10000^{2i/d}\\big)$, $PE_{(pos,2i+1)}=\\cos(\\cdot)$. Two designed properties: (1) **uniqueness** — each position gets a distinct multi-frequency fingerprint (low dims oscillate fast = fine position, high dims slow = coarse position), so no two positions collide; (2) **linear relative offsets** — because $\\sin(a{+}b),\\cos(a{+}b)$ are linear combinations of $\\sin a,\\cos a,\\sin b,\\cos b$, the encoding of position $pos{+}k$ is a *fixed linear function* of the encoding of $pos$ (independent of $pos$). So a head can learn \"attend 3 tokens back\" as a single linear map that works everywhere — relative position for free, and it extrapolates to lengths unseen in training.",
       "viz": "positional-encoding"
     },
     {
@@ -130,12 +130,12 @@
     {
       "kind": "text",
       "title": "Rotate, don't add",
-      "body": "Rotary Position Embedding (RoPE) **rotates** the Q and K vectors by an angle proportional to position instead of adding a vector. The dot product $Q_i\\cdot K_j$ then depends only on the *relative* offset $i-j$ — relative position falls out of the algebra for free, and it extrapolates to longer contexts far better than learned absolute tables."
+      "body": "Rotary Position Embedding (RoPE) injects position by **rotating** the Q and K vectors (in 2-D coordinate pairs) by an angle proportional to position, *before* the dot product — rather than adding a vector to the embedding. The algebra then makes $Q_i\\!\\cdot\\!K_j$ depend on the **relative** offset $i-j$ exactly, not on absolute $i,j$. Benefits that made it the default (Llama, GPT-NeoX, most 2023+ models): relative-position structure is built into the *attention score itself*, it composes cleanly with the KV-cache, and it extrapolates / can be interpolated to context lengths far beyond training (the basis of long-context fine-tuning)."
     },
     {
       "kind": "text",
       "title": "Why relative position is the right inductive bias",
-      "body": "\"The adjective modifies the next noun\" is a *relative* rule — it shouldn't matter whether it happens at position 5 or 5000. Schemes that bake in relative offsets (RoPE, ALiBi) generalize across lengths; absolute learned embeddings overfit to positions seen in training and break past the trained context window."
+      "body": "Linguistic rules are overwhelmingly *relative*: \"an adjective modifies the following noun\", \"a verb agrees with its subject a few tokens back\". None of these depend on whether the phrase sits at absolute position 5 or 5,000. Encodings that make *relative* offset the natural variable (sinusoidal's linear property, RoPE's rotation, ALiBi's distance penalty) generalize across positions and lengths. Purely *learned absolute* embeddings (a trainable table indexed by position) overfit to positions seen in training and fail hard past the trained context window — the empirical reason the field moved away from them."
     },
     {
       "kind": "question",
@@ -155,12 +155,12 @@
     },
     {
       "kind": "section",
-      "title": "Part 4 — Ablate it & watch it break (pitfalls)"
+      "title": "Part 4 — Ablate it and watch it break"
     },
     {
       "kind": "text",
-      "title": "No PE → order-blind model",
-      "body": "Remove positional encoding entirely and the model still does *okay* on order-agnostic tasks (topic/bag-of-words) but fails completely on anything order-sensitive (\"is X before Y?\", subject vs object). The selective nature of the failure is the tell."
+      "title": "No PE → an order-blind model (selective failure)",
+      "body": "Remove positional encoding entirely and the failure is *diagnostic precisely because it's selective*: order-agnostic tasks (topic classification, bag-of-words sentiment) still work passably, while anything order-dependent — \"is X before Y?\", subject vs object, syntax — collapses, because the model literally cannot distinguish token orderings (permutation equivariance). Seeing *which* capabilities survive tells you the cause is missing position info, not a broken layer. This selective-failure reasoning is a transferable debugging skill."
     },
     {
       "kind": "question",
@@ -233,7 +233,7 @@
     },
     {
       "kind": "section",
-      "title": "Part 5 — Connections & what's next"
+      "title": "Part 5 — Connections, teach-back & what's next"
     },
     {
       "kind": "explain_back",
@@ -260,7 +260,7 @@
     {
       "kind": "text",
       "title": "What to carry forward",
-      "body": "Attention is order-blind; position is injected (added sinusoids, or rotated in via RoPE — the modern default for its relative-offset bias). Next: the per-token compute engine — **[the FFN](/paths/ml-engineer/lessons/ffn)**."
+      "body": "Attention is permutation-equivariant; order is injected — added sinusoids (unique + linear-relative), or rotated in via RoPE (the modern default, relative-by-construction, length-extrapolating). Next: the per-token compute engine that holds most of the parameters — the **FFN**."
     }
   ]
 }

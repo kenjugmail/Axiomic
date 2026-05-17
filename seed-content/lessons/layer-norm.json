@@ -1,6 +1,6 @@
 {
   "meta": {
-    "timeMinutes": 35,
+    "timeMinutes": 40,
     "difficulty": "core",
     "objectives": [
       "Explain what LayerNorm normalizes and why",
@@ -12,23 +12,23 @@
     {
       "kind": "section",
       "title": "Part 1 — Why normalization exists",
-      "body": "Stack 24 blocks naively and activations drift/explode. Normalization is the fix that makes depth trainable."
+      "body": "Stack two dozen blocks naively and activations drift until training diverges. Normalization is the unglamorous fix that makes depth possible at all."
     },
     {
       "kind": "text",
-      "title": "The problem: activation drift with depth",
-      "body": "Each sublayer adds to the residual stream; without normalization the activation scale wanders and compounds over many layers, pushing nonlinearities into saturated regions and gradients toward 0 or ∞. Training becomes hyper-sensitive to init and learning rate. We need to re-stabilize the scale *at every layer*."
+      "title": "The problem: activation drift compounds with depth",
+      "body": "Each sublayer adds its output into the residual stream. Without re-standardization, the activation scale performs a random walk that *compounds* across layers: by layer 20 some features sit at $10^3$, others at $10^{-3}$. Saturating nonlinearities (and softmax inside attention) then operate in flat regions where gradients vanish; the loss becomes hypersensitive to initialization and learning rate. We need to re-fix the scale **at every layer**, cheaply, without destroying the information."
     },
     {
       "kind": "text",
       "title": "What LayerNorm does",
-      "body": "For each token vector independently, LayerNorm standardizes over the **feature** dimension then applies a learned affine: $\\text{LN}(x)=\\gamma\\,\\dfrac{x-\\mu}{\\sqrt{\\sigma^2+\\epsilon}}+\\beta$, with $\\mu,\\sigma^2$ the mean/variance across that token's features. $\\gamma,\\beta$ let the layer re-expand to whatever scale/shift it actually needs.",
+      "body": "For each token vector $x\\in\\mathbb{R}^{d}$ *independently*, compute the mean $\\mu$ and variance $\\sigma^2$ **across that token's $d$ features**, then $\\text{LN}(x)=\\gamma\\odot\\dfrac{x-\\mu}{\\sqrt{\\sigma^2+\\epsilon}}+\\beta$. The normalize step pins the distribution (mean 0, var 1) so scale can't drift; the learned per-feature $\\gamma,\\beta$ let the layer re-express *whatever* scale/shift it actually needs, so normalization costs no representational power. $\\epsilon$ (e.g. $10^{-5}$) prevents divide-by-zero for low-variance tokens.",
       "viz": "layer-activations"
     },
     {
       "kind": "text",
-      "title": "LayerNorm vs BatchNorm",
-      "body": "BatchNorm normalizes each feature across the *batch* — its statistics depend on batch size and other examples, which breaks for variable-length sequences and tiny inference batches. LayerNorm is **per-token, batch-independent**: identical behavior at batch 1 or 1024, train or serve. That independence is why transformers use it.",
+      "title": "LayerNorm vs BatchNorm — the decisive difference",
+      "body": "BatchNorm normalizes each *feature across the batch*, so its statistics depend on batch size and on the *other examples* in the batch. For sequences that's fatal: variable lengths, tiny inference batches (batch=1 in generation), and train/inference statistic mismatch all break it. LayerNorm normalizes **per token across features** — completely independent of batch size and of other examples; identical behavior at batch 1 or 4096, train or serve. That independence — not a marginal accuracy delta — is *why* transformers use LayerNorm.",
       "viz": "layer-activations"
     },
     {
@@ -144,13 +144,13 @@
     },
     {
       "kind": "text",
-      "title": "Pre-norm vs post-norm",
-      "body": "Original transformers put LN *after* the residual add (**post-norm**) and needed careful LR warmup or they diverged. Modern deep models use **pre-norm** — LN *inside* the residual branch, $x + \\text{Sublayer}(\\text{LN}(x))$ — which leaves the identity path un-normalized so gradient flows cleanly through depth without warmup."
+      "title": "Pre-norm vs post-norm (why the field switched)",
+      "body": "Original transformers placed LN *after* the residual add — **post-norm**: $\\text{LN}(x+\\text{Sublayer}(x))$. It needs careful LR warmup and is unstable past ~12 layers, because the residual identity path is itself renormalized every layer, eroding the clean gradient highway. **Pre-norm** — $x+\\text{Sublayer}(\\text{LN}(x))$ — normalizes only the sublayer's *input*, leaving the $x$ identity path untouched, so gradient flows through arbitrarily deep stacks without warmup. Essentially all modern deep transformers are pre-norm. This single placement choice is what makes GPT-3-depth (96 layers) trainable and ties directly to the residual lesson next."
     },
     {
       "kind": "text",
-      "title": "RMSNorm",
-      "body": "Most recent LLMs drop the mean-centering and the $\\beta$ shift, normalizing only by the root-mean-square: $\\text{RMSNorm}(x)=\\gamma\\,x/\\sqrt{\\overline{x^2}+\\epsilon}$. Cheaper, fewer params, empirically as good — the current default (Llama, etc.)."
+      "title": "RMSNorm — the current default",
+      "body": "Most recent LLMs (Llama, etc.) use **RMSNorm**: drop the mean-centering and the $\\beta$ shift, normalize only by the root-mean-square: $\\text{RMSNorm}(x)=\\gamma\\odot x/\\sqrt{\\overline{x^2}+\\epsilon}$. Fewer ops, fewer parameters, no measured quality loss — empirically the re-centering LayerNorm does is not load-bearing, only the re-scaling is. A clean example of simplifying once you understand which part of a mechanism actually matters."
     },
     {
       "kind": "question",
@@ -220,7 +220,7 @@
     },
     {
       "kind": "section",
-      "title": "Part 5 — Connections & what's next"
+      "title": "Part 5 — Connections, teach-back & what's next"
     },
     {
       "kind": "explain_back",
@@ -247,7 +247,7 @@
     {
       "kind": "text",
       "title": "What to carry forward",
-      "body": "LayerNorm = per-token, batch-independent re-standardization (pre-norm placement, RMSNorm variant) that keeps deep stacks stable. Its partner is the **[residual connection](/paths/ml-engineer/lessons/residual-connections)** — next."
+      "body": "LayerNorm = per-token, batch-independent re-standardization with learned $\\gamma,\\beta$; pre-norm placement and the RMSNorm simplification are the modern defaults that make deep stacks stable. Its inseparable partner is the **residual connection** — next."
     }
   ]
 }

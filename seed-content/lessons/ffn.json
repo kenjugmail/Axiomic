@@ -1,6 +1,6 @@
 {
   "meta": {
-    "timeMinutes": 35,
+    "timeMinutes": 40,
     "difficulty": "core",
     "objectives": [
       "Explain the per-token MLP and its expand/contract shape",
@@ -14,22 +14,22 @@
     {
       "kind": "section",
       "title": "Part 1 — Why the FFN exists",
-      "body": "Attention moves information between tokens. Something else has to *transform* it. That's the FFN — and it's most of the parameters."
+      "body": "Attention moves information *between* tokens. Something must *transform* it *within* each token — and that something is where most of a transformer's parameters and FLOPs actually live."
     },
     {
       "kind": "text",
       "title": "Where the parameters actually live",
-      "body": "A transformer block is attention + FFN. Profiling a typical block: the FFN is **~2/3 of the parameters and FLOPs**. Attention is comparatively cheap; the bulk of a model's capacity (and memory) is the stack of position-wise FFNs. \"Scaling the model\" largely means scaling these."
+      "body": "Decompose a standard transformer block's parameter count: attention is $4d_{model}^2$ (the four projections $W^Q,W^K,W^V,W^O$); the FFN with expansion factor 4 is $2\\cdot d_{model}\\cdot 4d_{model}=8d_{model}^2$. So **the FFN is ~2/3 of the block's parameters and FLOPs**; attention is comparatively cheap in parameters (its pain is the $\\mathcal{O}(n^2)$ *activation* cost, not weights). \"Scaling the model\" overwhelmingly means scaling these FFNs. Recent interpretability work even argues FFNs act as key–value *memories* storing factual associations — they are where much of the model's knowledge resides."
     },
     {
       "kind": "text",
       "title": "What the FFN computes",
-      "body": "Per token, independently: $\\text{FFN}(x)=W_2\\,\\sigma(W_1x+b_1)+b_2$. $W_1$ expands $d_{model}\\to d_{ff}$ (typically $4\\times$), a nonlinearity $\\sigma$ fires, $W_2$ contracts back to $d_{model}$. It is a tiny 2-layer MLP applied identically at every position — *no* mixing across tokens (that's attention's job)."
+      "body": "Per token, *independently*: $\\text{FFN}(x)=W_2\\,\\sigma(W_1 x + b_1)+b_2$, with $W_1\\in\\mathbb{R}^{d_{ff}\\times d_{model}}$ expanding to a wider hidden ($d_{ff}\\approx 4d_{model}$), a pointwise nonlinearity $\\sigma$, and $W_2$ contracting back to $d_{model}$. It is a tiny 2-layer MLP applied with *shared weights at every position* and **zero mixing across tokens** — that separation of duties (attention mixes, FFN transforms) is the core architectural idea of the block."
     },
     {
       "kind": "text",
       "title": "Why expand then contract",
-      "body": "The wide hidden layer + nonlinearity is where per-token *capacity* lives: it lets the model compute rich nonlinear features of each token's representation, then project back to the residual width so blocks compose. Attention without an FFN is almost entirely linear mixing — it can route information but barely transform it.",
+      "body": "The wide hidden layer + nonlinearity is where per-token *representational capacity* comes from: it lets the model compute rich nonlinear features of each token's vector, then project them back to the residual-stream width so blocks compose. Intuition: attention's output is (softmax-weighted) *averaging* of value vectors — almost entirely linear mixing across positions; it can route information but barely transform it. Without the FFN, stacking attention is stacking near-linear maps. The FFN is the nonlinearity that makes depth express functions attention alone cannot.",
       "viz": "activation-function-gallery"
     },
     {
@@ -129,8 +129,8 @@
     },
     {
       "kind": "text",
-      "title": "ReLU → GELU → SwiGLU",
-      "body": "ReLU ($\\max(0,x)$) is simple but hard-zeros half its inputs. **GELU** (a smooth, probabilistic gate) became the transformer default. **SwiGLU** (a gated linear unit, used in Llama/PaLM) adds a multiplicative gate and reliably improves quality per parameter — modern FFNs use it with $d_{ff}\\approx\\tfrac{8}{3}d_{model}$ to keep the parameter count matched.",
+      "title": "ReLU → GELU → SwiGLU (and why it kept changing)",
+      "body": "$\\sigma$ evolved for measurable quality-per-parameter gains: **ReLU** $\\max(0,x)$ — simple, but hard-zeros half its inputs (dead units, no gradient there). **GELU** — a smooth, probabilistic gate $x\\,\\Phi(x)$; became the transformer default (BERT/GPT-2). **SwiGLU** — a *gated linear unit*: $(\\,xW \\,)\\odot \\text{SiLU}(xV\\,)$, splitting the hidden into a value and a learned multiplicative gate; reliably better, used in PaLM/Llama. Because GLUs add a third matrix, those models set $d_{ff}\\approx\\tfrac{8}{3}d_{model}$ to hold the parameter count fixed for a fair comparison. The progression is a clean example of empirical architecture search.",
       "viz": "activation-function-gallery"
     },
     {
@@ -168,6 +168,11 @@
     {
       "kind": "section",
       "title": "Part 4 — Pitfalls & misconceptions"
+    },
+    {
+      "kind": "text",
+      "title": "The misconception: 'the FFN is just glue, drop it to go faster'",
+      "body": "Because attention gets the spotlight, engineers under-rate the FFN. But it is ~2/3 of the compute *and* the model's primary nonlinear-transform and knowledge-storage component. Ablating it leaves a near-linear token mixer that cannot represent what transformers actually do — quality collapses. Work through why:"
     },
     {
       "kind": "question",
@@ -217,7 +222,7 @@
     },
     {
       "kind": "section",
-      "title": "Part 5 — Connections & what's next"
+      "title": "Part 5 — Connections, teach-back & what's next"
     },
     {
       "kind": "explain_back",
@@ -244,7 +249,7 @@
     {
       "kind": "text",
       "title": "What to carry forward",
-      "body": "The FFN is the per-token nonlinear transform and most of the model's parameters; attention mixes, the FFN thinks. Next, the two stabilizers that make deep stacks trainable — **[LayerNorm](/paths/ml-engineer/lessons/layer-norm)** and **[residuals](/paths/ml-engineer/lessons/residual-connections)**."
+      "body": "The FFN is the position-wise nonlinear transform — most of the parameters, the knowledge store, the thing attention is not. Block anatomy is nearly complete; next, the two stabilizers that make a deep stack trainable: **LayerNorm**, then **residuals**."
     }
   ]
 }
