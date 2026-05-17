@@ -6,6 +6,7 @@
 
 import { describe, expect, test } from "vitest";
 import { EXTRA_NAV_PILLARS, PET_ROUTES, isRouteActive } from "./nav-constants";
+import { NAV_PILLARS } from "../marketing/hubs";
 
 describe("Layout nav constants — Phase 10A", () => {
   test("EXTRA_NAV_PILLARS has Forum and News", () => {
@@ -35,5 +36,23 @@ describe("Layout nav constants — Phase 10A", () => {
     // Root path is exact-match only.
     expect(isRouteActive("/anything", "/")).toBe(false);
     expect(isRouteActive("/", "/")).toBe(true);
+  });
+
+  // Phase 42 — Research pillar links to the fused frontier feed but
+  // stays highlighted across the whole /research* section.
+  test("Research pillar links to /research/feed, active across /research*", () => {
+    const research = NAV_PILLARS.find((p) => p.id === "research")!;
+    expect(research.to).toBe("/research/feed");
+    expect(research.match).toBe("/research");
+    const activeFor = (path: string) =>
+      isRouteActive(path, research.match ?? research.to);
+    expect(activeFor("/research/feed")).toBe(true);
+    expect(activeFor("/research")).toBe(true);
+    expect(activeFor("/research/paper/abc")).toBe(true);
+    expect(activeFor("/research/new")).toBe(true);
+    expect(activeFor("/news")).toBe(false);
+    // Pillars without `match` fall back to `to` (no regression).
+    const learn = NAV_PILLARS.find((p) => p.id === "learn")!;
+    expect(learn.match ?? learn.to).toBe(learn.to);
   });
 });

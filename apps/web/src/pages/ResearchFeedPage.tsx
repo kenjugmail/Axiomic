@@ -495,15 +495,23 @@ export function ResearchFeedPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
-      <div className="mb-6">
-        <h1 className="font-display text-3xl font-semibold tracking-tight">
-          Research feed
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          {data?.personalized
-            ? "Papers ranked from your publication history, recent searches, and people you follow."
-            : "Trending research papers. Sign in for personalized recommendations."}
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="font-display text-3xl font-semibold tracking-tight">
+            Research feed
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {data?.personalized
+              ? "Papers ranked from your publication history, recent searches, and people you follow."
+              : "Trending research papers. Sign in for personalized recommendations."}
+          </p>
+        </div>
+        <Link
+          to="/research"
+          className="shrink-0 text-sm px-3 py-1.5 rounded-md border border-border hover:bg-accent/40 text-foreground"
+        >
+          Browse the full paper library →
+        </Link>
       </div>
 
       {error && (

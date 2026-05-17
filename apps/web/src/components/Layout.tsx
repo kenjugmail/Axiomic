@@ -226,7 +226,10 @@ export function Layout() {
             )}
             <nav className="hidden sm:flex items-center gap-5 text-sm">
               {[...NAV_PILLARS, ...EXTRA_NAV_PILLARS].map((item) => {
-                const active = isRouteActive(location.pathname, item.to);
+                const active = isRouteActive(
+                  location.pathname,
+                  item.match ?? item.to,
+                );
                 return (
                   <Link
                     key={item.to}

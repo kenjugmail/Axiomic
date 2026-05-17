@@ -14,9 +14,18 @@ export type HubDefinition = {
   links: HubLink[];
 };
 
-export const NAV_PILLARS: Array<{ id: NavPillarId; label: string; to: string }> = [
+export const NAV_PILLARS: Array<{
+  id: NavPillarId;
+  label: string;
+  to: string;
+  // Optional active-state path. The pillar *links* to `to` but is
+  // highlighted whenever the route is within `match` (Phase 42 —
+  // Research links to the fused frontier feed yet stays active
+  // across the whole /research* section). Defaults to `to`.
+  match?: string;
+}> = [
   { id: "learn", label: "Learn", to: "/hub/learn" },
-  { id: "research", label: "Research", to: "/research" },
+  { id: "research", label: "Research", to: "/research/feed", match: "/research" },
   { id: "build", label: "Build", to: "/hub/build" },
   { id: "teach", label: "Teach", to: "/hub/teach" },
   { id: "lab", label: "Lab", to: "/hub/lab" },
@@ -48,10 +57,10 @@ export const HUBS: Record<NavPillarId, HubDefinition> = {
     id: "research",
     label: "Research",
     kicker: "Hub",
-    description: "Research remains centered on the full library and activity feed.",
+    description: "Your research frontier — grants, recommendations, and papers ranked for you — plus the full paper library.",
     links: [
+      { label: "Research feed", to: "/research/feed", description: "Grants, recommendations & papers ranked for you." },
       { label: "Research library", to: "/research", description: "Browse and author papers." },
-      { label: "Research feed", to: "/research/feed", description: "Latest paper activity." },
       { label: "Grants", to: "/grants", description: "Funding opportunities." },
     ],
   },
