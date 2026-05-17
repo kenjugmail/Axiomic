@@ -109,6 +109,83 @@
       "title": "Recap"
     },
     {
+      "kind": "question",
+      "question": {
+        "id": "tok_derive",
+        "kind": "guided_derivation",
+        "question": "From text to model input",
+        "goal": "Reconstruct how raw text becomes something a network can consume.",
+        "steps": [
+          {
+            "prompt": "A net needs fixed numeric input. First step from raw text?",
+            "motivation": "Models operate on integer ids over a fixed vocabulary, not characters.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Split into tokens, map each to an integer id",
+                "Feed raw UTF-8 bytes as floats",
+                "One-hot the entire document",
+                "Hash the whole string to one number"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "The vocabulary is finite and fixed."
+            ],
+            "reveal": "Tokenize → map each token to an id in a fixed vocab."
+          },
+          {
+            "prompt": "Why embed ids into vectors instead of using the integer id directly?",
+            "motivation": "An id is a label, not a magnitude — arithmetic on it is meaningless; a learned vector captures similarity.",
+            "accepts": {
+              "mode": "text",
+              "rubricCriteria": [
+                {
+                  "id": "c1",
+                  "description": "an integer id has no meaningful order or magnitude"
+                },
+                {
+                  "id": "c2",
+                  "description": "embeddings are learnable dense vectors capturing similarity"
+                },
+                {
+                  "id": "c3",
+                  "description": "the embedding table is trained jointly with the model"
+                }
+              ]
+            },
+            "hints": [
+              "Is token 50 'twice' token 25?"
+            ],
+            "reveal": "Ids index a learned embedding table; the vectors — not the ids — carry meaning."
+          }
+        ],
+        "finalResult": "text → tokens → ids → learned embedding vectors"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "tok_teach",
+        "kind": "explain_back",
+        "prompt": "Explain to your pet how text becomes model input.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "tokens are the discrete units the model sees"
+          },
+          {
+            "id": "c2",
+            "description": "ids index an embedding table"
+          },
+          {
+            "id": "c3",
+            "description": "embeddings are learned, not arbitrary numbers"
+          }
+        ]
+      }
+    },
+    {
       "kind": "text",
       "title": "What to carry forward",
       "body": "- The model only ever sees **integers**; every bit of meaning is learned from how those integers co-occur.\n- **Subword** tokenization is the modern standard: bounded vocabulary, no true out-of-vocabulary words.\n- Token count is a **cost** lever — attention is $O(n^2)$ in tokens.\n- Spacing, casing, numbers, and code all tokenize in non-obvious ways that change model behavior.\n\n**Next:** [Word embeddings](/wiki/embeddings) — how each token id becomes a learned vector the network can compute with — then [BPE tokenization](/wiki/bpe-tokenization), the exact algorithm that builds a subword vocabulary."

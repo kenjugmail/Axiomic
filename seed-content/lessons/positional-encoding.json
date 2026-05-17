@@ -111,6 +111,99 @@
       "title": "Recap"
     },
     {
+      "kind": "question",
+      "question": {
+        "id": "pe_derive",
+        "kind": "guided_derivation",
+        "question": "Derive the need for positional encoding",
+        "goal": "From: self-attention ignores order.",
+        "steps": [
+          {
+            "prompt": "Attention is permutation-equivariant, so to encode order we…",
+            "motivation": "Add a position-dependent vector to each token embedding so identical tokens at different positions differ.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Add a position-dependent vector to each token embedding",
+                "Sort the tokens first",
+                "Switch optimizer",
+                "Mask everything but the diagonal"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "You must break the permutation symmetry."
+            ],
+            "reveal": "Add PE(pos) to the embedding so position is visible to attention."
+          },
+          {
+            "prompt": "Write the sinusoidal PE even-index term PE(pos,2i).",
+            "motivation": "Geometric wavelengths give every position a unique code and make relative offsets linear.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "sin(pos/10000^{2i/d})",
+                "sin(pos/10000^(2i/d))",
+                "sin(pos/10000**(2i/d))"
+              ]
+            },
+            "hints": [
+              "sin of pos divided by 10000^(2i/d)."
+            ],
+            "reveal": "PE(pos,2i)=sin(pos/10000^{2i/d}); odd indices use cos."
+          }
+        ],
+        "finalResult": "$$PE_{(pos,2i)}=\\sin\\!\\left(\\frac{pos}{10000^{2i/d}}\\right)$$"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "pe_wave",
+        "kind": "ml_sandbox",
+        "question": "Slide the dimension index up — the sinusoid wavelength grows geometrically (reach ≥ 1000 positions).",
+        "params": [
+          {
+            "name": "i",
+            "label": "dimension index i",
+            "min": 0,
+            "max": 128,
+            "step": 1,
+            "default": 0
+          }
+        ],
+        "harnessCode": "import numpy as np\nd=512.0\nwl=2*np.pi*(10000.0**(2*float(i)/d))\nmetrics={'wavelength':float(wl)}",
+        "target": {
+          "metric": "wavelength",
+          "op": "gte",
+          "value": 1000
+        },
+        "explanation": "Low dims oscillate fast (local position), high dims slowly (global position) — together a unique, relative-offset-friendly code."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "pe_teach",
+        "kind": "explain_back",
+        "prompt": "Explain positional encoding to your pet: why it exists and what sinusoids buy you.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "attention alone has no notion of order"
+          },
+          {
+            "id": "c2",
+            "description": "a position vector is added to each embedding"
+          },
+          {
+            "id": "c3",
+            "description": "sinusoids give unique codes + easy relative offsets"
+          }
+        ]
+      }
+    },
+    {
       "kind": "text",
       "title": "What to carry forward",
       "body": "- Attention is **permutation-invariant**; position must be injected.\n- **Sinusoidal**: fixed waves added to embeddings — extrapolates, original recipe.\n- **RoPE**: rotate Q/K so the score depends only on **relative** offset — the modern default, best long-context behavior.\n- Remove PE and the model collapses to bag-of-words.\n\n**Next:** [Attention](/wiki/attention) and [multi-head attention](/wiki/multi-head-attention) — now that each token's vector carries its position, attention can finally tell *\"dog bites man\"* from *\"man bites dog\"*."

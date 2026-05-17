@@ -135,6 +135,83 @@
       "title": "Recap"
     },
     {
+      "kind": "question",
+      "question": {
+        "id": "bpe_derive",
+        "kind": "guided_derivation",
+        "question": "Derive the BPE merge loop",
+        "goal": "From characters to a useful subword vocabulary.",
+        "steps": [
+          {
+            "prompt": "Each BPE iteration does what?",
+            "motivation": "Greedily merging the most frequent adjacent pair grows tokens where data is dense.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Merge the most frequent adjacent pair into a new token",
+                "Remove the rarest token",
+                "Split the longest token",
+                "Group characters at random"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "It is greedy and frequency-driven."
+            ],
+            "reveal": "Count adjacent pairs; merge the most frequent into one new token; repeat."
+          },
+          {
+            "prompt": "What stops the loop?",
+            "motivation": "You stop when the vocabulary hits its target size — the knob trading vocab size against sequence length.",
+            "accepts": {
+              "mode": "text",
+              "rubricCriteria": [
+                {
+                  "id": "c1",
+                  "description": "stops at the target vocabulary size"
+                },
+                {
+                  "id": "c2",
+                  "description": "(or when no pair is frequent enough)"
+                },
+                {
+                  "id": "c3",
+                  "description": "this knob trades vocab size vs. sequence length"
+                }
+              ]
+            },
+            "hints": [
+              "There is a target vocab-size hyperparameter."
+            ],
+            "reveal": "Repeat until the configured vocab size is reached."
+          }
+        ],
+        "finalResult": "repeat: count adjacent pairs → merge the most frequent → until target vocab size"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "bpe_teach",
+        "kind": "explain_back",
+        "prompt": "Explain BPE to your pet: the merge rule and the tradeoff.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "greedily merges the most frequent adjacent pair"
+          },
+          {
+            "id": "c2",
+            "description": "target vocab size trades sequence length vs. vocab size"
+          },
+          {
+            "id": "c3",
+            "description": "subwords gracefully handle unseen/rare words"
+          }
+        ]
+      }
+    },
+    {
       "kind": "text",
       "title": "What to carry forward",
       "body": "- BPE = start from characters → repeatedly merge the most frequent adjacent pair → fixed-size subword vocab.\n- No `<UNK>`; rare words decompose into seen pieces.\n- **Leading spaces, numbers, and code** tokenize in non-obvious ways that change behavior and cost (~0.75 words/token in English).\n- Variants: WordPiece, Unigram, byte-level — same goal, different merge criterion.\n\n**Next:** [Embeddings](/wiki/embeddings) — turning these token ids into the learned vectors attention operates on."

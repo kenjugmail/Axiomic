@@ -127,6 +127,83 @@
       "title": "Recap"
     },
     {
+      "kind": "question",
+      "question": {
+        "id": "sa_derive",
+        "kind": "guided_derivation",
+        "question": "From attention to SELF-attention",
+        "goal": "You already derived attention; specialize it to one sequence attending to itself.",
+        "steps": [
+          {
+            "prompt": "In self-attention, where do Q, K, V come from?",
+            "motivation": "All three are linear projections of the SAME input — every token queries the same set it belongs to.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "All three are linear projections of the same input sequence",
+                "Q from input, K/V from separate memory",
+                "K from the labels",
+                "V is the positional encoding"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "'Self' = same sequence."
+            ],
+            "reveal": "Q=XWq, K=XWk, V=XWv from the same X — each token attends over the whole sequence (incl. itself)."
+          },
+          {
+            "prompt": "Why is self-attention permutation-equivariant, and what fixes it?",
+            "motivation": "It is a set operation with no built-in order; order must be injected explicitly.",
+            "accepts": {
+              "mode": "text",
+              "rubricCriteria": [
+                {
+                  "id": "c1",
+                  "description": "it treats the input as a set — no inherent order"
+                },
+                {
+                  "id": "c2",
+                  "description": "positional encodings inject order information"
+                },
+                {
+                  "id": "c3",
+                  "description": "so order must be added explicitly to the embeddings"
+                }
+              ]
+            },
+            "hints": [
+              "Shuffle the tokens — does the math change?"
+            ],
+            "reveal": "No positional term ⇒ permuting inputs permutes outputs identically; positional encodings break that symmetry."
+          }
+        ],
+        "finalResult": "Self-attention = Attention(XWq, XWk, XWv) — one sequence attending to itself"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "sa_teach",
+        "kind": "explain_back",
+        "prompt": "Explain self-attention to your pet vs. the attention it already learned.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "Q, K, V all come from the same sequence"
+          },
+          {
+            "id": "c2",
+            "description": "every token attends to every token, including itself"
+          },
+          {
+            "id": "c3",
+            "description": "needs positional information added separately"
+          }
+        ]
+      }
+    },
+    {
       "kind": "text",
       "title": "What to carry forward",
       "body": "- **Self-attention**: Q, K, V from one sequence — every token mixes with every other in one parallel op.\n- Each output row is a **distribution over the whole sequence**, diagonal included.\n- **Causal masking** (upper triangle → −∞) makes decoders autoregressive; encoders go unmasked.\n- Cost is **$O(n^2)$** — the bottleneck behind FlashAttention, GQA, sliding-window, and SSMs.\n\n**Next:** [Multi-head attention](/wiki/multi-head-attention) — run many of these in parallel so one layer can learn many patterns at once."

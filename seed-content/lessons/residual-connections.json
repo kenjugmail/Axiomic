@@ -94,6 +94,74 @@
       "title": "Recap"
     },
     {
+      "kind": "question",
+      "question": {
+        "id": "res_derive",
+        "kind": "guided_derivation",
+        "question": "Derive why residuals enable depth",
+        "goal": "From: plain deep stacks won't train.",
+        "steps": [
+          {
+            "prompt": "Why do plain very-deep stacks fail to train?",
+            "motivation": "Each layer's Jacobian factor <1 multiplies across depth → gradients vanish.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Repeated <1 Jacobian factors make gradients vanish with depth",
+                "Too many parameters",
+                "ReLU is nonlinear",
+                "Softmax saturates"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Think product of many small numbers."
+            ],
+            "reveal": "Backprop multiplies per-layer factors; if each <1, deep products → 0."
+          },
+          {
+            "prompt": "Write a residual block output and its derivative wrt x.",
+            "motivation": "The identity path contributes a +1 to the gradient so it can't vanish.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "y=x+F(x), dy/dx=1+F'(x)",
+                "x+F(x); 1+F'(x)",
+                "y = x + f(x)"
+              ]
+            },
+            "hints": [
+              "Add the input back; differentiate."
+            ],
+            "reveal": "y=x+F(x) ⇒ ∂y/∂x = I + F'(x): the I keeps gradient flowing at any depth."
+          }
+        ],
+        "finalResult": "$$y=x+F(x);\\Rightarrow;\\frac{\\partial y}{\\partial x}=I+F'(x)$$"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "res_teach",
+        "kind": "explain_back",
+        "prompt": "Explain residual connections to your pet: the problem and the one-line fix.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "deep plain nets vanish gradients (product of <1 factors)"
+          },
+          {
+            "id": "c2",
+            "description": "the skip path is the identity, adding a +1 to the gradient"
+          },
+          {
+            "id": "c3",
+            "description": "this lets very deep networks train"
+          }
+        ]
+      }
+    },
+    {
       "kind": "text",
       "title": "What to carry forward",
       "body": "- $y=x+F(x)$ adds **+1** to the gradient → deep stacks train.\n- The **residual stream** is a shared bus every sublayer reads from and adds to.\n- Each layer learns a **delta**, not a full replacement (not a 'skip').\n- With [layer norm](/wiki/layer-normalization), this is *why* 50–100-layer transformers are possible.\n\n**Next:** assemble attention + FFN + residual + norm into the [transformer block](/wiki/transformer-block) — the unit stacked N times to make a real model."

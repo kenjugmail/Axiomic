@@ -106,6 +106,74 @@
       "title": "Recap"
     },
     {
+      "kind": "question",
+      "question": {
+        "id": "mha_derive",
+        "kind": "guided_derivation",
+        "question": "Derive multi-head attention",
+        "goal": "From: one attention can only average one way — give it several.",
+        "steps": [
+          {
+            "prompt": "Why multiple heads instead of one big attention?",
+            "motivation": "Each head attends in its own learned subspace, capturing different relations in parallel.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Each head attends in a different learned subspace, in parallel",
+                "It is only a speed optimization",
+                "It reduces parameters",
+                "Heads are identical redundant copies"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "One softmax can only form one weighting per query."
+            ],
+            "reveal": "h heads = h independent attentions in h subspaces, learned in parallel."
+          },
+          {
+            "prompt": "How are the h head outputs combined?",
+            "motivation": "Concatenate the per-head outputs and mix them with one output projection.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Concat(head_1..head_h)W^O",
+                "concat(heads)W_O",
+                "Concat(head_1,...,head_h)W^O"
+              ]
+            },
+            "hints": [
+              "Concatenate, then one linear map."
+            ],
+            "reveal": "MultiHead = Concat(head₁,…,head_h)·W^O."
+          }
+        ],
+        "finalResult": "$$\\text{MultiHead}=\\text{Concat}(\\text{head}_1,\\dots,\\text{head}_h)W^O$$"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "mha_teach",
+        "kind": "explain_back",
+        "prompt": "Explain multi-head attention to your pet.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "each head is attention in its own learned subspace"
+          },
+          {
+            "id": "c2",
+            "description": "heads run in parallel capturing different relations"
+          },
+          {
+            "id": "c3",
+            "description": "outputs are concatenated then projected by W^O"
+          }
+        ]
+      }
+    },
+    {
       "kind": "text",
       "title": "What to carry forward",
       "body": "- Multi-head = $h$ parallel attentions, each in a $d_{model}/h$ subspace, concatenated then mixed by $W_O$.\n- It buys **diversity, not capacity** (same parameter count as one big attention).\n- Heads specialize (previous-token, locality, induction…); some are in **superposition**.\n- **GQA/MQA** share K/V to shrink the inference KV-cache at ~no quality cost.\n\n**Next:** the [feed-forward network](/wiki/feed-forward-networks) — the per-token nonlinearity that holds most of the model's parameters — then [residuals](/wiki/residual-connections), [layer norm](/wiki/layer-normalization), and the full [transformer block](/wiki/transformer-block)."
