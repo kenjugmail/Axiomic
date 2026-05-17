@@ -1,61 +1,88 @@
 {
   "slides": [
     {
-      "kind": "text",
-      "title": "Why deep networks were hard before residuals",
-      "body": "Pre-2015, training a 50-layer network was nearly impossible. Adding more layers made things *worse*, not better — beyond ~20 layers, accuracy degraded even though the deeper network could in principle represent everything the shallower one did.\n\nThe culprit was gradient flow. By the time the loss gradient propagated back to layer 1 in a deep stack, it had been multiplied through 50 layers of weight matrices and nonlinearities. Either it vanished (each multiplication shrank it) or exploded (each multiplication grew it).\n\n**Residual connections** (He et al. 2015) fix this with a single architectural trick: at each layer, add the input directly to the output.\n\n$$y = x + F(x)$$\n\nWhere `F(x)` is the layer's transformation (attention, FFN, conv block — anything). The identity path `x` flows through unchanged."
+      "kind": "section",
+      "title": "Part 1 — Why depth used to be impossible",
+      "body": "Before 2015, beyond ~20 layers, *adding* layers made networks *worse* — even though a deeper net can represent everything a shallower one can. One architectural trick fixed it and now every deep net uses it."
     },
     {
       "kind": "text",
-      "title": "What residuals do for gradients",
-      "body": "Take the derivative of `y = x + F(x)` with respect to `x`:\n\n$$\\frac{\\partial y}{\\partial x} = 1 + \\frac{\\partial F(x)}{\\partial x}$$\n\nThe `+1` is the magic. Even if `∂F/∂x` is tiny (vanishing gradient) or huge (exploding gradient), the gradient of the residual sum has a healthy `1` in it. The signal flows.\n\nFor a stack of N residual layers, the gradient at layer 1 is the product of `(1 + ∂F_i/∂x)` terms. As long as each term doesn't push wildly far from 1, the product stays bounded.\n\nIn practice, this means **arbitrarily deep networks become trainable**. Modern transformers are 50-100+ layers; without residuals they'd be unusable."
+      "title": "The vanishing/exploding gradient wall",
+      "body": "In a deep stack, the loss gradient is multiplied through every layer's weights and nonlinearities on the way back to layer 1. Each multiplication tends to shrink it (vanish) or grow it (explode). By layer 1 the signal is noise.\n\n**Residual connections** (He et al., 2015): add the input directly to the output.\n\n$$y = x + F(x)$$\n\n$F$ is the layer (attention, FFN, conv — anything). The identity path $x$ flows through untouched, giving the gradient a clean route home."
+    },
+    {
+      "kind": "text",
+      "title": "The +1 that saves training",
+      "body": "Differentiate $y=x+F(x)$:\n\n$$\\frac{\\partial y}{\\partial x}=1+\\frac{\\partial F}{\\partial x}$$\n\nThe **+1** is the magic. Even if $\\partial F/\\partial x$ vanishes or explodes, the sum still has a healthy 1 in it — gradient flows. Over $N$ residual layers the gradient is a product of $(1+\\partial F_i/\\partial x)$ terms; as long as each stays near 1, the product stays bounded. Result: **arbitrarily deep networks become trainable** (modern transformers are 50–100+ layers)."
     },
     {
       "kind": "question",
       "question": {
         "id": "res_q1",
         "kind": "multiple_choice",
-        "question": "What's the gradient of `y = x + F(x)` with respect to `x`?",
+        "question": "What is ∂/∂x of y = x + F(x)?",
         "options": [
-          "`∂F/∂x` only — the `x` term contributes 0",
-          "`1 + ∂F/∂x` — the `+1` from the identity path keeps gradient flow alive even when `∂F/∂x` vanishes",
+          "1 + ∂F/∂x — the +1 from the identity path keeps gradients alive even if ∂F/∂x vanishes",
+          "∂F/∂x only (the x term contributes 0)",
           "Always exactly 1",
-          "The product `1 · ∂F/∂x`"
+          "The product 1 · ∂F/∂x"
         ],
-        "correctIndex": 1,
-        "explanation": "The identity path `x → x` has derivative 1; the `F(x)` path has derivative `∂F/∂x`; sum gives `1 + ∂F/∂x`. The `+1` is what prevents vanishing gradients in deep stacks — even if `F` learns nothing, the gradient still flows backward unchanged through the identity path."
+        "correctIndex": 0,
+        "explanation": "Identity path derivative = 1; F path derivative = ∂F/∂x; sum = 1 + ∂F/∂x. That additive 1 is precisely what prevents vanishing gradients in deep stacks — even a layer that learns nothing still passes the gradient backward unchanged."
       }
-    },
-    {
-      "kind": "text",
-      "title": "The residual stream",
-      "body": "In transformers, the term **residual stream** describes the running sum at each token position as you go up through the layers.\n\n```\nresidual_0 = embed(token) + position\nresidual_1 = residual_0 + attention(LN(residual_0))\nresidual_2 = residual_1 + FFN(LN(residual_1))\n  ...repeat for L layers...\nlogits   = unembed(LN(residual_2L))\n```\n\nEach attention or FFN layer **reads** from the residual stream (via LN), computes an update, and **writes** the update back into the stream by adding it.\n\nThis is why mech-interp researchers talk about \"reading from\" and \"writing to\" the residual stream. The stream is a high-bandwidth shared bus; layers communicate by adding signals to it. The induction-head circuit, for instance, has layer L's previous-token head writing the previous token into the stream, then layer L+1's induction head reading that signal back out."
-    },
-    {
-      "kind": "text",
-      "title": "The 'skip connection' misconception",
-      "body": "A common confusion: people describe residuals as 'skip connections that let layers be skipped.'\n\nThe layer is **not skipped**. The layer's output is **added** to the input. Both the layer's transformation AND the original input contribute to the output:\n\n```\ny = x + F(x)   # NOT just x, NOT just F(x)\n```\n\nThe difference matters. A 'skip' would imply the layer can be ignored at inference. A residual sum says: take the input, *augment it* with whatever F learned to compute. F's job becomes 'learn the *delta* — what to add to the running representation' rather than 'learn the full output.'\n\nThis is why deep residual networks work: each layer learns a small update, and the network as a whole is the sum of all these updates."
     },
     {
       "kind": "question",
       "question": {
         "id": "res_q2",
-        "kind": "multiple_choice",
-        "question": "In a transformer's residual stream, what's the role of layer L's attention sublayer?",
-        "options": [
-          "Replace the residual stream entirely with attention's output",
-          "Read from the residual stream (after layer norm), compute a per-token update, and add the update back to the stream",
-          "Initialize the residual stream",
-          "Stop the gradient flow at this layer"
-        ],
-        "correctIndex": 1,
-        "explanation": "The attention sublayer reads (with LN preprocessing), computes, and writes back additively. It augments the running representation rather than replacing it. This is the residual stream pattern, and it's why the residual connection isn't just plumbing — it's the central abstraction of how transformer layers compose."
+        "kind": "math_expression",
+        "question": "Write a residual layer's output y in terms of input x and the sublayer function F.",
+        "starter": "y = x + F(x)",
+        "acceptedAnswers": ["y = x + F(x)", "y=x+F(x)", "x + F(x)", "x+F(x)"],
+        "hint": "Add the input to the sublayer's output.",
+        "explanation": "y = x + F(x). The output is NOT just F(x) (that would be a plain layer) and NOT just x (that would skip the layer). It is the sum — F learns a *delta* to add to the running representation."
       }
     },
     {
+      "kind": "section",
+      "title": "Part 2 — The residual stream",
+      "body": "The single most useful mental model for how transformer layers compose."
+    },
+    {
       "kind": "text",
-      "title": "What's next",
-      "body": "Residual connections + [[layer-normalization]] together make deep transformer stacks trainable. The combination is so foundational that essentially every neural net since 2016 uses some variant.\n\nKey takeaways:\n- Residuals add `1` to the gradient, preventing vanishing\n- The residual stream is a shared bus that every layer reads from and writes to\n- Each layer learns a *delta*, not a full output replacement\n- Without residuals, deep transformers don't train\n\nNext we'll put attention + FFN + residuals + norm together: the [[transformer-block]]."
+      "title": "A shared bus every layer reads and writes",
+      "body": "The **residual stream** is the running sum at each token position as you go up the layers:\n\n```\nr0 = embed(token) + position\nr1 = r0 + Attention(LN(r0))\nr2 = r1 + FFN(LN(r1))\n... × L layers ...\nlogits = unembed(LN(r_2L))\n```\n\nEach sublayer **reads** from the stream (via LN), computes an update, and **adds** it back. The activation panel shows how each layer's contribution stacks into this running representation. Mech-interp describes circuits as layers \"writing\" a signal into the stream and later layers \"reading\" it back — e.g. an induction circuit.",
+      "viz": "layer-activations"
+    },
+    {
+      "kind": "text",
+      "title": "The 'skip connection' misconception",
+      "body": "Residuals are often mis-described as \"skip connections that let layers be skipped.\" The layer is **not** skipped — its output is *added*:\n\n```\ny = x + F(x)   # NOT just x, NOT just F(x)\n```\n\nF's job becomes \"learn the *delta* — what to add to the running representation,\" not \"produce the full output.\" The network as a whole is the *sum of all these learned updates*. That reframing — every layer is an incremental edit to a shared stream — is why deep residual nets work and how interpretability reasons about them."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "res_q3",
+        "kind": "multiple_choice",
+        "question": "In the residual stream, what is a layer L attention sublayer's role?",
+        "options": [
+          "Read from the stream (after LN), compute a per-token update, and add it back",
+          "Replace the stream entirely with attention's output",
+          "Initialize the stream",
+          "Stop gradient flow at this layer"
+        ],
+        "correctIndex": 0,
+        "explanation": "It reads (LN-preprocessed), computes, and writes additively — augmenting the running representation, never replacing it. This additive-update view is the central abstraction of how transformer layers compose, and why the residual is not mere plumbing."
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Recap"
+    },
+    {
+      "kind": "text",
+      "title": "What to carry forward",
+      "body": "- $y=x+F(x)$ adds **+1** to the gradient → deep stacks train.\n- The **residual stream** is a shared bus every sublayer reads from and adds to.\n- Each layer learns a **delta**, not a full replacement (not a 'skip').\n- With [layer norm](/wiki/layer-normalization), this is *why* 50–100-layer transformers are possible.\n\n**Next:** assemble attention + FFN + residual + norm into the [transformer block](/wiki/transformer-block) — the unit stacked N times to make a real model."
     }
   ]
 }

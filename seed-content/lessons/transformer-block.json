@@ -1,61 +1,90 @@
 {
   "slides": [
     {
-      "kind": "text",
-      "title": "Putting it together",
-      "body": "We've covered every piece. Now let's stack them into a **transformer block** — the unit that gets repeated N times to make a real model.\n\nA modern (pre-norm) transformer block is two sublayers, each wrapped in a residual connection:\n\n```\n# Sublayer 1: attention\nresidual = x\nx = LayerNorm(x)\nx = MultiHeadAttention(x)\nx = residual + x\n\n# Sublayer 2: feed-forward\nresidual = x\nx = LayerNorm(x)\nx = FFN(x)\nx = residual + x\n```\n\nThat's it. Stack 12, 32, 80, or 100 of these and you have GPT-2, LLaMA, or GPT-4. The repetition is the whole architecture."
+      "kind": "section",
+      "title": "Part 1 — Assembling the whole thing",
+      "body": "You've built every piece: tokens, embeddings, position, attention, multi-head, FFN, residuals, norm. This lesson stacks them into the **transformer block** — and the entire model is just this block, repeated."
     },
     {
       "kind": "text",
-      "title": "Pre-norm vs post-norm again",
-      "body": "The block we just wrote is **pre-norm**: layer norm comes *before* attention/FFN, and the residual sum happens *after*.\n\nThe original Vaswani-et-al. transformer was **post-norm**: layer norm comes *after* the residual sum:\n\n```\n# Post-norm version\nx = LayerNorm(x + Attention(x))\nx = LayerNorm(x + FFN(x))\n```\n\nWhy did the field migrate? Pre-norm trains more stably, especially at depth. The reason: in pre-norm, the residual stream itself is never normalized. The pure identity path is preserved. In post-norm, every step normalizes the residual stream, which tends to cause gradient issues at large depth.\n\nGPT-2 onward uses pre-norm. LLaMA uses pre-norm with RMSNorm instead of LayerNorm. The original architecture's exact choice is now mostly historical."
+      "title": "The block (pre-norm)",
+      "body": "A modern transformer block is two sublayers, each wrapped in a residual:\n\n```\n# Sublayer 1 — attention\nresidual = x\nx = LayerNorm(x)\nx = MultiHeadAttention(x)\nx = residual + x\n\n# Sublayer 2 — feed-forward\nresidual = x\nx = LayerNorm(x)\nx = FFN(x)\nx = residual + x\n```\n\nThat's the entire architecture. Stack 12 → GPT-2 small; 32 → LLaMA-2 7B; 96 → GPT-3. The activation panel shows representations evolving block by block as this repeats.",
+      "viz": "layer-activations"
+    },
+    {
+      "kind": "text",
+      "title": "Attention mixes tokens, FFN mixes features",
+      "body": "Each block does exactly two things:\n\n1. **Attention** — every token pulls relevant information from every other token (coreference, lookup, copying). This is the cross-token reasoning step.\n2. **FFN** — each token transforms its updated representation through a per-token MLP. This is where learned *knowledge* is applied.\n\nStacking $N$ blocks composes $N$ rounds of (mix tokens → transform features). By the upper layers the residual stream holds representations synthesizing many rounds of both — which is where depth-dependent abilities (in-context learning, multi-step reasoning) live."
     },
     {
       "kind": "question",
       "question": {
         "id": "tb_q1",
         "kind": "multiple_choice",
-        "question": "In a pre-norm transformer block, what's the order of operations for the attention sublayer?",
+        "question": "Order of operations for the attention sublayer in a PRE-norm block?",
         "options": [
-          "input → attention → layer norm → add to residual",
-          "input → save residual → layer norm → attention → add to residual",
-          "input → add to residual → layer norm → attention",
-          "input → attention → add to residual → layer norm"
+          "save residual → LayerNorm → attention → add to residual",
+          "attention → LayerNorm → add to residual",
+          "add to residual → LayerNorm → attention",
+          "attention → add to residual → LayerNorm"
         ],
-        "correctIndex": 1,
-        "explanation": "Pre-norm: LayerNorm is applied to the input *before* it goes into attention. The output of attention is then added to the saved residual. The residual stream itself is never directly normalized, only the inputs to attention/FFN."
+        "correctIndex": 0,
+        "explanation": "Pre-norm applies LN to the *input* before attention; attention's output is then added to the saved residual. The residual stream itself is never directly normalized — only the sublayer inputs are."
       }
-    },
-    {
-      "kind": "text",
-      "title": "How many blocks?",
-      "body": "Modern model sizes:\n\n- **GPT-2 small**: 12 blocks, d_model=768. ~117M parameters.\n- **GPT-2 large**: 36 blocks, d_model=1280.\n- **LLaMA-2 7B**: 32 blocks, d_model=4096.\n- **LLaMA-2 70B**: 80 blocks, d_model=8192.\n- **GPT-3 175B**: 96 blocks, d_model=12288.\n\nThe relationship between depth and width is roughly: doubling depth ≈ doubling width in terms of parameter count, but they buy different things. **Depth** lets the model build up more abstract representations; **width** lets each layer process more features.\n\nThe Chinchilla scaling laws give specific recommendations for the depth/width ratio at each parameter budget. For practical purposes: every recent open model has converged on similar shapes (32-80 blocks, d_model 4096-8192)."
-    },
-    {
-      "kind": "text",
-      "title": "What every block computes",
-      "body": "Conceptually, each block does two things:\n\n1. **Attention**: every token gets to look at every other token (within the context) and pull in relevant information. This is where the model performs cross-token reasoning — coreference, lookup, copying.\n\n2. **FFN**: each token transforms its updated representation through a per-token MLP. This is where most of the model's *knowledge* is stored — facts, patterns, learned features.\n\nStacking N blocks means the model can compose attention and FFN N times. By layer 30 of a deep model, the residual stream contains representations that synthesize many rounds of cross-token mixing and per-token transformation. This is what gives transformers their depth-related capabilities — chain-of-thought reasoning, in-context learning, and so on, all live in the cumulative effect of stacked blocks."
     },
     {
       "kind": "question",
       "question": {
         "id": "tb_q2",
-        "kind": "multiple_choice",
-        "question": "Why does GPT-3 (175B) use 96 transformer blocks instead of, say, 12 wider blocks at the same parameter count?",
-        "options": [
-          "Wider blocks are easier to parallelize, but the parallelism is wasted",
-          "Depth lets the model compose multiple rounds of attention + FFN; wider blocks at the same parameter count can't do this composition",
-          "12 blocks would be faster but less accurate",
-          "It's an arbitrary choice with no impact on capability"
+        "kind": "sortable",
+        "question": "Order one pre-norm attention sublayer's steps, first to last.",
+        "items": [
+          { "id": "save", "label": "Save the residual (copy of x)" },
+          { "id": "ln", "label": "LayerNorm the input" },
+          { "id": "attn", "label": "Multi-head attention" },
+          { "id": "add", "label": "Add result back to the saved residual" }
         ],
-        "correctIndex": 1,
-        "explanation": "Depth and width aren't interchangeable. Depth lets the model do multi-step computation: layer 5's output is layer 6's input, which is layer 7's input, etc. A network with the same parameters but only 1 block can only do one round of attention + FFN. The Chinchilla and earlier scaling laws give specific depth-width ratios, but the qualitative point is that depth buys composition."
+        "explanation": "Pre-norm sublayer: residual = x → x = LN(x) → x = Attention(x) → x = residual + x. The same shape repeats for the FFN sublayer. A whole transformer is just this pattern, twice per block, N blocks deep."
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 2 — Depth, width, and scale"
+    },
+    {
+      "kind": "text",
+      "title": "How big is big?",
+      "body": "- **GPT-2 small:** 12 blocks, $d_{model}=768$ (~117M params)\n- **LLaMA-2 7B:** 32 blocks, $d_{model}=4096$\n- **LLaMA-2 70B:** 80 blocks, $d_{model}=8192$\n- **GPT-3 175B:** 96 blocks, $d_{model}=12288$\n\nDepth and width are *not* interchangeable. **Width** lets each layer process more features at once; **depth** lets the model *compose* more rounds of attention+FFN (layer 5's output is layer 6's input…). Chinchilla-style scaling laws prescribe the ratio at each compute budget; in practice modern models converged on similar shapes."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "tb_q3",
+        "kind": "multiple_choice",
+        "question": "Why use 96 blocks rather than a few very wide blocks at the same parameter count?",
+        "options": [
+          "Depth lets the model compose many rounds of attention+FFN; a 1-block net at the same params can only do one round",
+          "Wide blocks can't be parallelized",
+          "Fewer blocks would be faster but always less accurate by a fixed amount",
+          "It's arbitrary with no capability impact"
+        ],
+        "correctIndex": 0,
+        "explanation": "Depth buys *composition*: each block's output feeds the next, enabling multi-step computation. The same parameters in one enormous block can only do a single round of mixing+transform. Scaling laws tune the exact depth:width ratio, but qualitatively, depth is what enables staged reasoning."
       }
     },
     {
       "kind": "text",
-      "title": "What's next",
-      "body": "You now know what every layer of a transformer computes. The model = N transformer blocks + an embedding + an unembedding (which is often the transpose of the embedding — weight tying). That's it.\n\nThe rest of what makes a transformer 'work' is at the architecture-variant level: encoder-only ([[encoder-decoder]]), causal masking ([[masked-self-attention]]) for autoregression, training objectives ([[training-objectives]]), and so on. We'll cover those next.\n\nKey takeaways:\n- Block = LN → Attention → residual + LN → FFN → residual\n- Pre-norm is the modern default; post-norm is historical\n- N blocks compose N rounds of attention + FFN\n- All modern LLMs are stacks of this same block, scaled to different N"
+      "title": "Pre-norm vs post-norm, one more time",
+      "body": "The original (Vaswani et al.) block was **post-norm**: `x = LN(x + Sublayer(x))`. Modern models are **pre-norm**: `x = x + Sublayer(LN(x))`.\n\nPre-norm keeps the residual stream un-normalized, preserving the clean gradient highway, so very deep stacks train stably. LLaMA combines pre-norm with **RMSNorm**. The original choice is now mostly historical — but knowing both lets you read any model card or paper diagram correctly."
+    },
+    {
+      "kind": "section",
+      "title": "Recap"
+    },
+    {
+      "kind": "text",
+      "title": "You can now read any transformer",
+      "body": "A transformer = **embedding + position → N × (pre-norm attention block + pre-norm FFN block) → unembedding** (often weight-tied to the embedding). That's the entire architecture you just built from scratch.\n\nWhat's left is variant-level detail: [encoder-decoder](/wiki/encoder-decoder) structure, [causal masking](/wiki/masked-self-attention), [training objectives](/wiki/training-objectives), and modern tweaks (RoPE, GQA, SwiGLU) you've already met along the way.\n\nKey takeaways:\n- Block = LN→Attention→+residual, then LN→FFN→+residual\n- $N$ blocks compose $N$ rounds of token-mixing + feature-transform\n- Depth ≠ width — depth buys composition\n- Every modern LLM is this same block, scaled to a different $N$"
     }
   ]
 }

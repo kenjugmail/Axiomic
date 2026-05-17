@@ -46,6 +46,10 @@ function newQuestionSlide(): LessonSlide {
   };
 }
 
+function newSectionSlide(): LessonSlide {
+  return { kind: "section", title: "New section", body: "" };
+}
+
 export function LessonEditPage() {
   const { pathSlug, nodeSlug } = useParams<{
     pathSlug: string;
@@ -270,6 +274,10 @@ export function LessonEditPage() {
     setSlides((prev) => [...prev, newQuestionSlide()]);
     setActiveIdx(slides.length);
   };
+  const addSection = () => {
+    setSlides((prev) => [...prev, newSectionSlide()]);
+    setActiveIdx(slides.length);
+  };
 
   const slide = slides[activeIdx];
 
@@ -298,7 +306,9 @@ export function LessonEditPage() {
                 title={
                   s.kind === "text"
                     ? s.title || "Untitled"
-                    : s.question.question
+                    : s.kind === "section"
+                      ? s.title || "Section"
+                      : s.question.question
                 }
               >
                 <Icon
@@ -324,7 +334,9 @@ export function LessonEditPage() {
                   <span className="block leading-snug truncate">
                     {s.kind === "text"
                       ? s.title || "Untitled"
-                      : s.question.question.slice(0, 40) || "Question"}
+                      : s.kind === "section"
+                        ? s.title || "Section"
+                        : s.question.question.slice(0, 40) || "Question"}
                   </span>
                 </span>
               </button>
@@ -355,6 +367,16 @@ export function LessonEditPage() {
             Question
           </button>
         </div>
+        <button
+          onClick={() => {
+            addSection();
+            onPick?.();
+          }}
+          className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-md border border-dashed border-border text-xs text-muted-foreground hover:text-foreground hover:bg-accent/40"
+        >
+          <Plus className="w-3.5 h-3.5" strokeWidth={2} />
+          Section divider
+        </button>
         <button
           onClick={() => {
             setAiDraftKind("text");
@@ -442,7 +464,9 @@ export function LessonEditPage() {
     const original =
       target.kind === "text"
         ? target.body
-        : JSON.stringify(target.question, null, 2);
+        : target.kind === "section"
+          ? `${target.title}${target.body ? "\n\n" + target.body : ""}`
+          : JSON.stringify(target.question, null, 2);
 
     let analytics:
       | { views: number; dropOff: number; incorrectRate: number }
@@ -775,6 +799,11 @@ export function LessonEditPage() {
                   slide={slide}
                   onChange={(s) => updateSlide(activeIdx, s)}
                 />
+              ) : slide.kind === "section" ? (
+                <SectionSlideEditor
+                  slide={slide}
+                  onChange={(s) => updateSlide(activeIdx, s)}
+                />
               ) : (
                 <QuestionSlideEditor
                   slide={slide}
@@ -869,6 +898,48 @@ export function LessonEditPage() {
           onClose={() => setAiDraftKind(null)}
         />
       )}
+    </div>
+  );
+}
+
+function SectionSlideEditor({
+  slide,
+  onChange,
+}: {
+  slide: LessonSlide & { kind: "section" };
+  onChange: (s: LessonSlide) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">
+          Section title
+        </label>
+        <input
+          value={slide.title}
+          onChange={(e) => onChange({ ...slide, title: e.target.value })}
+          className="w-full px-3 py-2 rounded-md border border-border bg-background text-lg font-semibold"
+          placeholder="Part 1 — …"
+        />
+      </div>
+      <div>
+        <label className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">
+          Intro (optional, markdown)
+        </label>
+        <textarea
+          value={slide.body ?? ""}
+          onChange={(e) =>
+            onChange({ ...slide, body: e.target.value || undefined })
+          }
+          rows={4}
+          className="w-full px-3 py-2 rounded-md border border-border bg-background font-mono text-sm"
+          placeholder="A short framing paragraph for this section."
+        />
+      </div>
+      <p className="text-xs text-muted-foreground">
+        A section divider visually groups the slides that follow it. It
+        does not block progress and is not scored.
+      </p>
     </div>
   );
 }

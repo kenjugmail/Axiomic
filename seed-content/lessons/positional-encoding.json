@@ -1,14 +1,20 @@
 {
   "slides": [
     {
+      "kind": "section",
+      "title": "Part 1 — Attention is blind to order",
+      "body": "Attention's superpower — every token can see every other — comes with a flaw: it has no idea which token came first. Positional encoding is the fix, and the choice of *which* fix is one of the few architecture decisions that visibly changes a model's behavior at long context."
+    },
+    {
       "kind": "text",
-      "title": "Why position matters",
-      "body": "Attention has a problem: it's **permutation-invariant**. If you shuffle the input tokens, attention computes exactly the same set of pairwise scores — just reordered. To attention, `\"dog bites man\"` and `\"man bites dog\"` look identical.\n\nThis is fine for set-valued data (treat tokens as a bag) but disastrous for language. The model needs to know that `\"the\"` came before `\"cat\"`, and that the third token is three steps after the first.\n\n**Positional encoding** adds position information into the input embeddings so attention can recover order. Three flavors dominate today: sinusoidal, learned absolute, and rotary (RoPE)."
+      "title": "The permutation-invariance problem",
+      "body": "Attention is **permutation-invariant**. Shuffle the input tokens and it computes the same set of pairwise scores, just reordered. To raw attention, *\"dog bites man\"* and *\"man bites dog\"* are identical.\n\nFine for a bag of items; catastrophic for language, where order *is* meaning. We must inject position information into the inputs so attention can recover order.\n\nThe heatmap on the right shows the structured position signal we are about to build — each row is a position, each column a feature.",
+      "viz": "positional-encoding"
     },
     {
       "kind": "text",
       "title": "Sinusoidal — the original recipe",
-      "body": "The original transformer paper used fixed sine/cosine waves at different frequencies:\n\n$$PE_{pos, 2i} = \\sin\\left(\\frac{pos}{10000^{2i/d}}\\right), \\quad PE_{pos, 2i+1} = \\cos\\left(\\frac{pos}{10000^{2i/d}}\\right)$$\n\nEvery position gets a unique vector; nearby positions get similar vectors; far positions get dissimilar ones. The resulting `d_model`-dimensional positional vector is **added** to the token embedding before the first attention layer.\n\nWhy sinusoids? Linear combinations of sines at different frequencies can encode any position offset. The model can, in principle, learn to attend to \"the token 5 positions back\" by learning the right linear projection. In practice, **learned positional embeddings** (BERT, GPT-2) often outperform sinusoidal — until the context length grows past training, where sinusoidal extrapolates better."
+      "body": "The original transformer used fixed sine/cosine waves at geometrically-spaced frequencies:\n\n$$PE_{pos,2i}=\\sin\\!\\left(\\frac{pos}{10000^{2i/d}}\\right),\\quad PE_{pos,2i+1}=\\cos\\!\\left(\\frac{pos}{10000^{2i/d}}\\right)$$\n\nEvery position gets a unique vector; nearby positions get similar vectors. This vector is **added** to the token embedding before layer 1. Because any offset is a linear combination of these sinusoids, the model *can* learn to attend \"5 tokens back\" with the right projection. Notice the banding in the viz: low dimensions oscillate fast, high dimensions slowly — a positional fingerprint."
     },
     {
       "kind": "question",
@@ -17,45 +23,77 @@
         "kind": "multiple_choice",
         "question": "Why does attention need positional encoding at all?",
         "options": [
-          "Attention can't compute dot products without position information",
-          "Attention is permutation-invariant — it sees all token pairs but doesn't know their order",
-          "Positional encoding is required for the softmax to converge",
-          "Without it, the model can't be trained with backpropagation"
+          "Attention is permutation-invariant — it sees every token pair but not their order",
+          "Attention cannot compute dot products without it",
+          "It is required for softmax to converge",
+          "Backpropagation fails without it"
         ],
-        "correctIndex": 1,
-        "explanation": "Attention treats tokens as a set: shuffling the inputs reorders the outputs but doesn't change the underlying computation. Position has to be injected into the inputs (via embeddings added at the start, or rotated into Q/K via RoPE) so the model can reason about order."
+        "correctIndex": 0,
+        "explanation": "Attention treats the input as a set: permuting inputs permutes outputs but doesn't change the computation. Order has to be injected into the inputs (added vectors) or into Q/K (RoPE) so the model can reason about sequence."
       }
     },
     {
-      "kind": "text",
-      "title": "RoPE — the modern default",
-      "body": "Rotary Position Embedding (RoPE) is what every recent open model uses (LLaMA, Mistral, Qwen). The trick: instead of adding position vectors to embeddings, **rotate** the Q and K vectors by an angle proportional to position.\n\nFor each pair of dimensions in Q (and the same pair in K), apply a 2D rotation:\n\n$$\\begin{bmatrix} q'_{2i} \\\\ q'_{2i+1} \\end{bmatrix} = \\begin{bmatrix} \\cos(\\theta_{pos,i}) & -\\sin(\\theta_{pos,i}) \\\\ \\sin(\\theta_{pos,i}) & \\cos(\\theta_{pos,i}) \\end{bmatrix} \\begin{bmatrix} q_{2i} \\\\ q_{2i+1} \\end{bmatrix}$$\n\nWhy this works: the dot product `q' · k'` between two RoPE-rotated vectors only depends on their **relative** position (how far apart they are), not their absolute positions. This is the property you want — `\"the cat\"` and `\"... the cat\"` (with the same two words at different absolute positions) attend the same way.\n\nRoPE also extrapolates surprisingly well to longer contexts than were seen at training, especially with frequency tricks like NTK-aware interpolation."
+      "kind": "section",
+      "title": "Part 2 — RoPE, the modern default"
     },
     {
       "kind": "text",
-      "title": "What breaks without positional encoding",
-      "body": "If you ablate positional encoding (turn it off entirely), three things happen:\n\n1. **The model becomes a bag-of-words.** It can still classify sentiment from word presence, but it can't parse syntax.\n2. **Attention patterns become uniform across positions.** The attention heatmap stops showing diagonals or local-window structure.\n3. **Generation collapses.** Autoregressive sampling produces the same token over and over — no way to know what came before.\n\nThis is sometimes useful as a sanity check: train a small transformer with PE turned off, watch the loss plateau much higher than the same model with PE. The gap is what positional encoding is buying you."
+      "title": "Rotate, don't add",
+      "body": "Every recent open model (LLaMA, Mistral, Qwen) uses **Rotary Position Embedding (RoPE)**. Instead of adding a position vector, RoPE *rotates* each Q and K vector by an angle proportional to its position. For a 2D slice:\n\n$$\\begin{bmatrix} q'_{2i}\\\\ q'_{2i+1}\\end{bmatrix}=\\begin{bmatrix}\\cos\\theta_{p,i} & -\\sin\\theta_{p,i}\\\\ \\sin\\theta_{p,i} & \\cos\\theta_{p,i}\\end{bmatrix}\\begin{bmatrix} q_{2i}\\\\ q_{2i+1}\\end{bmatrix}$$\n\nThe key property: the dot product $q'\\cdot k'$ between two rotated vectors depends **only on their relative offset**, not their absolute positions. *\"the cat\"* attends the same whether it's at the start or buried 900 tokens in."
+    },
+    {
+      "kind": "text",
+      "title": "Why relative position is the right inductive bias",
+      "body": "Language structure is mostly *relative*: a verb agrees with a subject some distance back; a closing bracket matches an opening one a few tokens prior. Absolute position (\"token #347\") is rarely what matters.\n\nRoPE bakes relativity directly into the attention score, so the model never has to learn to subtract positions. It also **extrapolates** — ask for position 8000 after training on lengths up to 4000 and the rotation is still well-defined (especially with NTK-aware frequency scaling). A *learned* absolute embedding simply has no row for position 8000."
     },
     {
       "kind": "question",
       "question": {
         "id": "pe_q2",
         "kind": "multiple_choice",
-        "question": "What's the main practical advantage of RoPE over learned absolute positional embeddings?",
+        "question": "The main practical advantage of RoPE over learned absolute positional embeddings is:",
         "options": [
-          "RoPE uses fewer parameters",
-          "RoPE encodes relative position into Q · K dot products and extrapolates better to longer contexts than were seen at training",
-          "RoPE is faster to compute",
-          "RoPE doesn't need the model to be trained at all"
+          "It encodes RELATIVE position into Q·K and extrapolates to longer contexts than seen at training",
+          "It uses fewer parameters and is faster",
+          "It removes the need to train the model",
+          "It makes attention permutation-invariant again"
         ],
-        "correctIndex": 1,
-        "explanation": "Learned absolute position embeddings memorize the positions seen at training; if you ask for position 8000 after training only on lengths up to 4000, the embedding is undefined. RoPE's rotation is parametric in position, so it generalizes — and the dot product structure means the model only ever 'sees' relative offsets."
+        "correctIndex": 0,
+        "explanation": "Learned absolute embeddings memorize only the positions seen in training — position 8000 is undefined if you trained to 4000. RoPE's rotation is parametric in position and shows up as a relative offset in the dot product, so it generalizes far better to long context."
       }
     },
     {
+      "kind": "section",
+      "title": "Part 3 — Ablate it and watch it break",
+      "body": "The fastest way to internalize what a component buys you is to remove it."
+    },
+    {
       "kind": "text",
-      "title": "What's next",
-      "body": "Positional encoding is the bridge between [[tokens]] and [[attention]]. With position information injected, attention can finally tell `\"dog bites man\"` from `\"man bites dog\"`.\n\nPicking a positional encoding scheme is one of the few architectural choices that meaningfully affects a model's behavior at long context. RoPE has become the default for LLMs because of its extrapolation properties; **ALiBi** (Press et al.) is another common choice that biases attention by relative distance directly.\n\nNext: [[multi-head-attention]], where multiple parallel attention heads each learn different patterns over the same positionally-aware input."
+      "title": "What happens with no positional encoding",
+      "body": "Turn positional encoding fully off and train a small transformer:\n\n1. **It collapses to bag-of-words.** Sentiment from word presence still works; syntax does not.\n2. **Attention maps go uniform.** The diagonal/local-window structure vanishes.\n3. **Generation degenerates.** Autoregressive sampling loops the same token — there's no notion of \"what came before.\"\n\nThe loss plateaus far higher than the same model *with* PE. That gap is precisely the value positional encoding adds — a clean, runnable sanity check."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "pe_q3",
+        "kind": "sortable",
+        "question": "Order these positional schemes from OLDEST to NEWEST as the dominant default in transformer LLMs.",
+        "items": [
+          { "id": "sin", "label": "Sinusoidal (fixed sine/cosine)" },
+          { "id": "learned", "label": "Learned absolute embeddings" },
+          { "id": "rope", "label": "RoPE (rotary)" }
+        ],
+        "explanation": "Sinusoidal came with the original 2017 transformer; learned absolute embeddings dominated the BERT/GPT-2 era; RoPE is the current default for modern LLMs because of its relative-position structure and extrapolation. (ALiBi is another modern relative-bias alternative.)"
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Recap"
+    },
+    {
+      "kind": "text",
+      "title": "What to carry forward",
+      "body": "- Attention is **permutation-invariant**; position must be injected.\n- **Sinusoidal**: fixed waves added to embeddings — extrapolates, original recipe.\n- **RoPE**: rotate Q/K so the score depends only on **relative** offset — the modern default, best long-context behavior.\n- Remove PE and the model collapses to bag-of-words.\n\n**Next:** [Attention](/wiki/attention) and [multi-head attention](/wiki/multi-head-attention) — now that each token's vector carries its position, attention can finally tell *\"dog bites man\"* from *\"man bites dog\"*."
     }
   ]
 }

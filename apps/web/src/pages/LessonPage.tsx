@@ -128,6 +128,7 @@ function scoreLocally(question: QuizQuestion, answer: string | undefined): boole
 
 function slideShortTitle(s: LessonSlide, i: number): string {
   if (s.kind === "text") return s.title || `Slide ${i + 1}`;
+  if (s.kind === "section") return s.title || `Section ${i + 1}`;
   const raw = s as unknown as {
     kind: string;
     question?: { question?: string; prompt?: string };
@@ -425,7 +426,8 @@ export function LessonPage() {
                 setIdx(i);
                 onPick?.();
               }}
-              className={`w-full text-left flex items-start gap-2 px-3 py-2 rounded-md text-xs transition-colors duration-fast ${
+              aria-current={active ? "step" : undefined}
+              className={`w-full text-left flex items-start gap-2 px-3 py-2 rounded-md text-xs transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                 active
                   ? "bg-primary/10 text-foreground"
                   : "text-muted-foreground hover:text-foreground hover:bg-accent/40"
@@ -691,6 +693,23 @@ export function LessonPage() {
             </article>
           )}
 
+          {phase === "playing" && slide && slide.kind === "section" && (
+            <section className="max-w-3xl mx-auto animate-fade-in py-10">
+              <div className="text-[11px] uppercase tracking-wider text-primary mb-3 inline-flex items-center gap-1.5">
+                <BookOpen className="w-3 h-3" strokeWidth={2} />
+                Section · slide {idx + 1} of {slides.length}
+              </div>
+              <h2 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight leading-tight pb-5 mb-5 border-b border-border">
+                {slide.title}
+              </h2>
+              {slide.body && (
+                <div className="font-serif text-lg leading-relaxed text-muted-foreground max-w-prose [&_p]:mb-4">
+                  <MarkdownRenderer content={slide.body} />
+                </div>
+              )}
+            </section>
+          )}
+
           {phase === "playing" && slide && slide.kind === "question" && (
             <div className="max-w-2xl mx-auto animate-fade-in">
               <div className="text-[11px] uppercase tracking-wider text-primary mb-2 inline-flex items-center gap-1.5">
@@ -712,13 +731,28 @@ export function LessonPage() {
                   <div
                     className={`mt-4 rounded-md border p-3 text-sm ${
                       isCorrect(slide.question)
-                        ? "border-accent-emerald/40 bg-accent-emerald/10 text-accent-emerald"
-                        : "border-accent-amber/40 bg-accent-amber/10 text-accent-amber"
+                        ? "border-accent-emerald/40 bg-accent-emerald/10"
+                        : "border-accent-amber/40 bg-accent-amber/10"
                     }`}
                   >
-                    {isCorrect(slide.question)
-                      ? "Correct."
-                      : "Not quite — review the explanation, then continue."}
+                    <div
+                      className={
+                        isCorrect(slide.question)
+                          ? "font-medium text-accent-emerald"
+                          : "font-medium text-accent-amber"
+                      }
+                    >
+                      {isCorrect(slide.question)
+                        ? "Correct."
+                        : "Not quite — review the explanation, then continue."}
+                    </div>
+                    {slide.question.explanation && (
+                      <div className="mt-2 text-foreground/90 [&_p]:mb-2 [&_p:last-child]:mb-0">
+                        <MarkdownRenderer
+                          content={slide.question.explanation}
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

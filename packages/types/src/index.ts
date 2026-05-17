@@ -1103,7 +1103,19 @@ export interface LessonQuestionSlide {
   question: QuizQuestion;
 }
 
-export type LessonSlide = LessonTextSlide | LessonQuestionSlide;
+// Phase 44 — a chapter/part divider for "more structured" lessons.
+// Full-width header (large title + optional markdown intro);
+// participates in slide nav like any slide.
+export interface LessonSectionSlide {
+  kind: "section";
+  title: string;
+  body?: string;            // optional markdown intro
+}
+
+export type LessonSlide =
+  | LessonTextSlide
+  | LessonQuestionSlide
+  | LessonSectionSlide;
 
 export interface Lesson {
   slides: LessonSlide[];

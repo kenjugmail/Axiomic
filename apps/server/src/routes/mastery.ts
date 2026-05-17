@@ -643,10 +643,15 @@ const slideSchema = z.union([
       })
       .passthrough(),
   }),
+  z.object({
+    kind: z.literal("section"),
+    title: z.string().min(1).max(200),
+    body: z.string().max(20000).optional(),
+  }),
 ]);
 
 const lessonBodySchema = z.object({
-  slides: z.array(slideSchema).min(1).max(50),
+  slides: z.array(slideSchema).min(1).max(120),
   editMessage: z.string().max(200).optional(),
 });
 
@@ -1131,7 +1136,7 @@ mastery.post(
 // for authors.
 
 const slideEventSchema = z.object({
-  slideIdx: z.number().int().min(0).max(99),
+  slideIdx: z.number().int().min(0).max(199),
   kind: z.enum(["viewed", "answered_correct", "answered_wrong"]),
 });
 

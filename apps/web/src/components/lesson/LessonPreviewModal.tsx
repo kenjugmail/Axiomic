@@ -119,6 +119,21 @@ export function LessonPreviewModal({
                 )}
               </div>
             </article>
+          ) : slide.kind === "section" ? (
+            <section className="max-w-xl mx-auto animate-fade-in py-6">
+              <div className="text-[11px] uppercase tracking-wider text-primary mb-2 inline-flex items-center gap-1.5">
+                <BookOpen className="w-3 h-3" strokeWidth={2} />
+                Section · slide {idx + 1} of {slides.length}
+              </div>
+              <h3 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight leading-tight pb-4 mb-4 border-b border-border">
+                {slide.title}
+              </h3>
+              {slide.body && (
+                <div className="font-serif text-base leading-relaxed text-muted-foreground [&_p]:mb-3">
+                  <MarkdownRenderer content={slide.body} />
+                </div>
+              )}
+            </section>
           ) : (
             <div className="max-w-xl mx-auto animate-fade-in">
               <div className="text-[11px] uppercase tracking-wider text-primary mb-2 inline-flex items-center gap-1.5">
