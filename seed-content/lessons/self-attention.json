@@ -1,6 +1,6 @@
 {
   "meta": {
-    "timeMinutes": 30,
+    "timeMinutes": 40,
     "difficulty": "core",
     "objectives": [
       "Explain how Q,K,V come from the same sequence",
@@ -13,13 +13,18 @@
   "slides": [
     {
       "kind": "section",
-      "title": "Part 1 — Attention turned on itself",
-      "body": "Self-attention is the special case that powers every transformer: the query, key, and value sequences are *the same sequence*. Every token attends to every other token in one parallel operation — the property RNNs and CNNs could never achieve cheaply."
+      "title": "Part 1 — Why self-attention",
+      "body": "You derived attention with separate inputs. Self-attention is the special, powerful case that powers every transformer."
     },
     {
       "kind": "text",
-      "title": "Full reach in one layer",
-      "body": "In **self-attention**, $Q$, $K$, $V$ are all projections of the *same* input. So every token can pull information from every other token in a single operation.\n\nWhy this is so powerful: an RNN passes information one step at a time (token 100 hears about token 1 only after 99 sequential steps). A CNN sees a fixed window. Self-attention has **full, parallel reach**.\n\nThe heatmap shows a self-attention matrix with a locality bias — most weight near the diagonal. Self-attention *can* be local like this or reach far back; the training signal decides.",
+      "title": "Q, K, V from the *same* sequence",
+      "body": "In self-attention all three projections come from one input sequence $X$: $Q=XW^Q,\\,K=XW^K,\\,V=XW^V$. Every token simultaneously asks a question (its query), advertises itself (its key), and offers content (its value) — *to every other token in the same sequence, including itself*. One layer rewrites each token as a relevance-weighted blend of the whole sequence."
+    },
+    {
+      "kind": "text",
+      "title": "Full reach in one step",
+      "body": "Recurrence connects token 1 to token 500 through 499 sequential updates (path length $O(n)$, signal decays). Self-attention connects *any* two positions in a **single** operation — path length $O(1)$, fully parallel. That constant path length is *why* transformers learn long-range structure that RNNs couldn't.",
       "viz": "attention-heatmap-explorer",
       "vizProps": {
         "presetIndex": 1
@@ -28,16 +33,105 @@
     {
       "kind": "text",
       "title": "Every row is a distribution over the sequence",
-      "body": "Each row of a self-attention matrix is a **probability distribution over the entire input**, including the token itself (the diagonal). The output at position $i$ is a weighted blend of *all* tokens' value vectors, with the model choosing the weights.\n\nThe diagonal carries identity meaning here — *\"my own information is relevant to me.\"* In cross-attention (decoder attending to encoder) there is no diagonal preference, because Q and K come from different sequences. Self-attention is the only flavor where position $i$ attending to position $i$ means \"myself.\""
+      "body": "The weight matrix is $n\\times n$; row $i$ is a softmax distribution over which tokens token $i$ reads from. \"bank\" beside \"river\" vs \"money\" ends up with different output vectors purely because its attention row points at different neighbors — contextualization, emergent from training."
     },
     {
       "kind": "section",
-      "title": "Part 2 — Causal masking: don't peek at the future"
+      "title": "Part 2 — Formalize it"
     },
     {
       "kind": "text",
-      "title": "The mask",
-      "body": "For **autoregressive** generation, predicting token 5 must not see tokens 6, 7, 8 — they don't exist yet at inference. The fix is a **causal mask**: before softmax, every cell above the diagonal is set to $-\\infty$. After softmax those become exactly 0.\n\nEach token attends to itself and all *earlier* positions, never later. During training this lets the model predict every position in parallel while each prediction only looks backward. **Encoder** transformers (BERT) skip the mask; **decoder** transformers (GPT) require it. The viz again — imagine the upper triangle blacked out."
+      "title": "Same formula, shared source",
+      "body": "$\\text{SelfAttn}(X)=\\text{softmax}\\!\\big(\\tfrac{(XW^Q)(XW^K)^{T}}{\\sqrt{d_k}}\\big)(XW^V)$. Structurally identical to general attention — the only change is that Q, K, V are three *different learned views of one sequence*. Derive the specialization:"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sa_derive",
+        "kind": "guided_derivation",
+        "question": "From attention to SELF-attention",
+        "goal": "You already derived attention; specialize it to one sequence attending to itself.",
+        "steps": [
+          {
+            "prompt": "In self-attention, where do Q, K, V come from?",
+            "motivation": "All three are linear projections of the SAME input — every token queries the same set it belongs to.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "All three are linear projections of the same input sequence",
+                "Q from input, K/V from separate memory",
+                "K from the labels",
+                "V is the positional encoding"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "'Self' = same sequence."
+            ],
+            "reveal": "Q=XWq, K=XWk, V=XWv from the same X — each token attends over the whole sequence (incl. itself)."
+          },
+          {
+            "prompt": "Why is self-attention permutation-equivariant, and what fixes it?",
+            "motivation": "It is a set operation with no built-in order; order must be injected explicitly.",
+            "accepts": {
+              "mode": "text",
+              "rubricCriteria": [
+                {
+                  "id": "c1",
+                  "description": "it treats the input as a set — no inherent order"
+                },
+                {
+                  "id": "c2",
+                  "description": "positional encodings inject order information"
+                },
+                {
+                  "id": "c3",
+                  "description": "so order must be added explicitly to the embeddings"
+                }
+              ]
+            },
+            "hints": [
+              "Shuffle the tokens — does the math change?"
+            ],
+            "reveal": "No positional term ⇒ permuting inputs permutes outputs identically; positional encodings break that symmetry."
+          }
+        ],
+        "finalResult": "Self-attention = Attention(XWq, XWk, XWv) — one sequence attending to itself"
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 3 — Worked example & the quadratic wall"
+    },
+    {
+      "kind": "text",
+      "title": "Cost: O(n²) in sequence length",
+      "body": "$QK^{T}$ is $n\\times n$ — for $n=4096$ that's ~16M scores *per head per layer*. Attention compute and memory grow **quadratically** with context length. This single fact drives a whole research line: FlashAttention (IO-aware exact attention), sparse/sliding-window patterns, and linear-attention approximations all exist to fight this $O(n^2)$ wall."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sa_q3",
+        "kind": "multiple_choice",
+        "question": "FlashAttention makes long-context attention much cheaper in memory. How?",
+        "options": [
+          "It computes exact attention but never materializes the full n×n score matrix — it tiles the computation to stay in fast SRAM",
+          "It approximates softmax with a linear kernel",
+          "It drops attention to a local window",
+          "It lowers everything to int8"
+        ],
+        "correctIndex": 0,
+        "explanation": "FlashAttention is exact — same result as standard attention. The win is systems-level: it fuses the softmax and matmul and tiles them so the giant n×n matrix never leaves fast on-chip memory, cutting memory traffic dramatically. It does not change the math, unlike sliding-window or linear-attention approximations."
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 4 — Causal masking (the pitfall that bites)"
+    },
+    {
+      "kind": "text",
+      "title": "Don't let a token see its own answer",
+      "body": "For autoregressive generation, token $i$ must predict token $i{+}1$ using only tokens $\\le i$. If training attention can see the future, the model learns to \"cheat\" — fluent under teacher forcing, garbage at inference where there is no future. The fix: set pre-softmax scores for $j>i$ to $-\\infty$ (a lower-triangular mask). This train/inference mismatch is one of the most common transformer bugs."
     },
     {
       "kind": "question",
@@ -97,113 +191,6 @@
       }
     },
     {
-      "kind": "section",
-      "title": "Part 3 — The quadratic wall",
-      "body": "Self-attention's power has a price that shapes the entire modern architecture landscape."
-    },
-    {
-      "kind": "text",
-      "title": "O(n²) and the innovations that fight it",
-      "body": "Self-attention is $O(n^2)$ in sequence length: 1,000 tokens → a million scores; 100,000 tokens → ten billion. This is *the* transformer bottleneck. Recent architecture work mostly attacks it:\n\n- **FlashAttention** — same math, reordered so the full $n\\times n$ matrix is never materialized (an IO/memory win, not an approximation).\n- **Grouped/Multi-Query attention** — share K and V across heads to shrink the KV-cache.\n- **Sliding-window attention** — restrict each token to a local window (breaks the quadratic, loses global reach).\n- **Linear-attention / SSMs (Mamba, Performer)** — replace softmax with kernels for $O(n)$, at some quality cost.\n\nFull $O(n^2)$ attention is still the quality gold standard when compute allows; everything else is a measured trade-off."
-    },
-    {
-      "kind": "question",
-      "question": {
-        "id": "sa_q3",
-        "kind": "multiple_choice",
-        "question": "FlashAttention makes long-context attention much cheaper in memory. How?",
-        "options": [
-          "It computes exact attention but never materializes the full n×n score matrix — it tiles the computation to stay in fast SRAM",
-          "It approximates softmax with a linear kernel",
-          "It drops attention to a local window",
-          "It lowers everything to int8"
-        ],
-        "correctIndex": 0,
-        "explanation": "FlashAttention is exact — same result as standard attention. The win is systems-level: it fuses the softmax and matmul and tiles them so the giant n×n matrix never leaves fast on-chip memory, cutting memory traffic dramatically. It does not change the math, unlike sliding-window or linear-attention approximations."
-      }
-    },
-    {
-      "kind": "section",
-      "title": "Recap"
-    },
-    {
-      "kind": "question",
-      "question": {
-        "id": "sa_derive",
-        "kind": "guided_derivation",
-        "question": "From attention to SELF-attention",
-        "goal": "You already derived attention; specialize it to one sequence attending to itself.",
-        "steps": [
-          {
-            "prompt": "In self-attention, where do Q, K, V come from?",
-            "motivation": "All three are linear projections of the SAME input — every token queries the same set it belongs to.",
-            "accepts": {
-              "mode": "choice",
-              "options": [
-                "All three are linear projections of the same input sequence",
-                "Q from input, K/V from separate memory",
-                "K from the labels",
-                "V is the positional encoding"
-              ],
-              "correctIndex": 0
-            },
-            "hints": [
-              "'Self' = same sequence."
-            ],
-            "reveal": "Q=XWq, K=XWk, V=XWv from the same X — each token attends over the whole sequence (incl. itself)."
-          },
-          {
-            "prompt": "Why is self-attention permutation-equivariant, and what fixes it?",
-            "motivation": "It is a set operation with no built-in order; order must be injected explicitly.",
-            "accepts": {
-              "mode": "text",
-              "rubricCriteria": [
-                {
-                  "id": "c1",
-                  "description": "it treats the input as a set — no inherent order"
-                },
-                {
-                  "id": "c2",
-                  "description": "positional encodings inject order information"
-                },
-                {
-                  "id": "c3",
-                  "description": "so order must be added explicitly to the embeddings"
-                }
-              ]
-            },
-            "hints": [
-              "Shuffle the tokens — does the math change?"
-            ],
-            "reveal": "No positional term ⇒ permuting inputs permutes outputs identically; positional encodings break that symmetry."
-          }
-        ],
-        "finalResult": "Self-attention = Attention(XWq, XWk, XWv) — one sequence attending to itself"
-      }
-    },
-    {
-      "kind": "explain_back",
-      "question": {
-        "id": "sa_teach",
-        "kind": "explain_back",
-        "prompt": "Explain self-attention to your pet vs. the attention it already learned.",
-        "rubricCriteria": [
-          {
-            "id": "c1",
-            "description": "Q, K, V all come from the same sequence"
-          },
-          {
-            "id": "c2",
-            "description": "every token attends to every token, including itself"
-          },
-          {
-            "id": "c3",
-            "description": "needs positional information added separately"
-          }
-        ]
-      }
-    },
-    {
       "kind": "question",
       "question": {
         "id": "sa_scen",
@@ -250,9 +237,35 @@
       }
     },
     {
+      "kind": "section",
+      "title": "Part 5 — Connections & what's next"
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "sa_teach",
+        "kind": "explain_back",
+        "prompt": "Explain self-attention to your pet vs. the attention it already learned.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "Q, K, V all come from the same sequence"
+          },
+          {
+            "id": "c2",
+            "description": "every token attends to every token, including itself"
+          },
+          {
+            "id": "c3",
+            "description": "needs positional information added separately"
+          }
+        ]
+      }
+    },
+    {
       "kind": "text",
       "title": "What to carry forward",
-      "body": "- **Self-attention**: Q, K, V from one sequence — every token mixes with every other in one parallel op.\n- Each output row is a **distribution over the whole sequence**, diagonal included.\n- **Causal masking** (upper triangle → −∞) makes decoders autoregressive; encoders go unmasked.\n- Cost is **$O(n^2)$** — the bottleneck behind FlashAttention, GQA, sliding-window, and SSMs.\n\n**Next:** [Multi-head attention](/wiki/multi-head-attention) — run many of these in parallel so one layer can learn many patterns at once."
+      "body": "Self-attention = attention with Q,K,V from one sequence: O(1) path length, O(n²) cost, and a mandatory causal mask for decoders. Next: **[multi-head attention](/paths/ml-engineer/lessons/multi-head-attention)** — why one attention isn't enough."
     }
   ]
 }

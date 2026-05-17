@@ -1,6 +1,6 @@
 {
   "meta": {
-    "timeMinutes": 30,
+    "timeMinutes": 40,
     "difficulty": "core",
     "objectives": [
       "Explain why multiple heads beat one big head",
@@ -13,97 +13,31 @@
   "slides": [
     {
       "kind": "section",
-      "title": "Part 1 — One head is not enough",
-      "body": "Single-head attention computes one weighted average per token — every token's output the same way. But a model needs to track syntax (local attention) *and* resolve coreference (long-range) *and* copy patterns, all at once. Multi-head attention is how one layer does many things."
+      "title": "Part 1 — Why one head is not enough",
+      "body": "Self-attention produces *one* weighting per query. Real language needs several at once."
     },
     {
       "kind": "text",
-      "title": "Run attention h times in parallel",
-      "body": "**Multi-head attention** runs $h$ independent attention computations side by side. Each head has its *own* learned $W_Q^h, W_K^h, W_V^h$, so each can specialize: one head learns locality, another pronoun resolution, another induction (copy the token that followed a previous occurrence).\n\nThe heatmap shows one head's pattern; in a real layer there are $h$ of these, each different. Outputs are concatenated and projected back to $d_{model}$.",
-      "viz": "attention-heatmap-explorer",
-      "vizProps": {
-        "presetIndex": 1
-      }
+      "title": "One softmax = one relation",
+      "body": "A single attention head outputs one softmax distribution per query token — it can express exactly **one** way of relating tokens. But \"the verb agrees with its subject\" *and* \"this pronoun refers to that noun\" are different relations the model needs **simultaneously**. One head physically cannot do both for the same query."
     },
     {
       "kind": "text",
-      "title": "The shapes (and why it's the same parameter count)",
-      "body": "Each head projects $d_{model}$ down to $d_k = d_{model}/h$. With $d_{model}=512, h=8$, each head works in 64 dims.\n\n```\nX: [batch, seq, d_model]\n  → per-head W_Q^h, W_K^h, W_V^h\nQ_h,K_h,V_h: [batch, seq, d_k]\n  → scaled dot-product attention\nhead_h: [batch, seq, d_k]\n  → concat over h heads → [batch, seq, d_model]\n  → output projection W_O\nout: [batch, seq, d_model]\n```\n\nKey realization: total parameters ≈ one big $d_{model}\\times d_{model}$ attention. **Multi-head adds *diversity*, not capacity** — the same budget, spent on $h$ different patterns instead of one. $W_O$ is essential: it *mixes* the heads' outputs rather than leaving them side by side."
-    },
-    {
-      "kind": "question",
-      "question": {
-        "id": "mha_q1",
-        "kind": "multiple_choice",
-        "question": "You set h=1 with the same total d_model. Versus an h=8 model, what changes?",
-        "options": [
-          "Nothing — multi-head is just a parallelism optimization",
-          "8× more parameters",
-          "The layer can learn only ONE attention pattern; h=8 could learn up to 8 different patterns at the same capacity",
-          "Single-head is strictly better"
-        ],
-        "correctIndex": 2,
-        "explanation": "Same parameter count either way. The value of multi-head is representational diversity: h=8 can simultaneously be a locality head, an induction head, a punctuation head, etc. Collapsing to h=1 forces one pattern and reliably hurts language modeling."
-      }
-    },
-    {
-      "kind": "section",
-      "title": "Part 2 — What heads actually learn"
-    },
-    {
-      "kind": "text",
-      "title": "A catalog of head specializations",
-      "body": "From BERT/GPT-2 interpretability work:\n\n- **Previous-token heads** — attend one position back (copy what was just said).\n- **Locality heads** — soft attention to a nearby window (syntax).\n- **Punctuation heads** — fixate on commas/periods (phrase boundaries).\n- **Coreference heads** — pronoun → antecedent.\n- **Induction heads** (Olsson et al., 2022) — a two-layer circuit: a previous-token head in layer L feeds an induction head in L+1 that finds the earlier match and reads the token *after* it. This is the core of in-context pattern completion `A B … A → B`.\n\nNot every head is clean: many are diffuse. The **superposition** hypothesis says heads pack multiple weak features together — which is why modern interpretability moved to sparse autoencoders.",
+      "title": "Run attention h times, in parallel",
+      "body": "Multi-head attention splits $d_{model}$ into $h$ subspaces of size $d_k=d_{model}/h$, runs an independent attention in each, concatenates the $h$ outputs, and mixes them with one output projection $W^O$. Each head learns its own Q/K/V projections → its own relation. Crucially the parameter budget is ~the same as one big head (you split the dimension, you don't multiply it).",
       "viz": "attention-heatmap-explorer",
       "vizProps": {
         "presetIndex": 2
       }
     },
     {
-      "kind": "question",
-      "question": {
-        "id": "mha_q2",
-        "kind": "multiple_choice",
-        "question": "An 'induction head' is best described as:",
-        "options": [
-          "A single head that memorizes training sequences",
-          "A two-layer circuit (previous-token head → induction head) that completes patterns like 'A B … A → B' — the backbone of in-context learning",
-          "The first attention head in layer 0",
-          "A head that only attends to punctuation"
-        ],
-        "correctIndex": 1,
-        "explanation": "Induction is compositional: a previous-token head writes 'the token before me' into the residual stream; a later induction head uses that to find the prior occurrence of the current token and attend to whatever followed it. This circuit is strongly linked to in-context learning ability."
-      }
-    },
-    {
       "kind": "section",
-      "title": "Part 3 — Grouped-query attention (the modern tweak)",
-      "body": "The one multi-head variant you'll see in nearly every recent model card."
+      "title": "Part 2 — Formalize it"
     },
     {
       "kind": "text",
-      "title": "Share K and V to shrink the KV-cache",
-      "body": "At inference, autoregressive generation caches every token's K and V for the whole context — with $h=32$ heads that's a lot of memory bandwidth.\n\n**Grouped-query attention (GQA):** keep $h$ query heads but only $g$ shared KV groups (e.g. 32 query heads, 8 KV groups → each KV shared by 4). Memory drops ~4×, quality essentially preserved. **Multi-query attention (MQA)** is the extreme ($g=1$). LLaMA-2 70B and Mistral 7B use GQA with 8 KV heads. Training FLOPs barely change — the win is the inference KV-cache."
-    },
-    {
-      "kind": "question",
-      "question": {
-        "id": "mha_q3",
-        "kind": "multiple_choice",
-        "question": "Why does GQA cut inference memory but leave training cost ≈ unchanged?",
-        "options": [
-          "It only applies at inference; training uses full MHA",
-          "It shrinks the KV-cache (built only during autoregressive decoding); forward/backward FLOPs are dominated by matmuls that barely change",
-          "It uses lower numerical precision",
-          "It runs fewer training steps"
-        ],
-        "correctIndex": 1,
-        "explanation": "GQA's saving is the per-token K/V tensors cached across the context during generation — fewer KV groups ⇒ proportionally smaller cache. Training is FLOP-bound (full sequences, parallel), and those FLOPs are nearly the same, so train cost is ≈ unchanged."
-      }
-    },
-    {
-      "kind": "section",
-      "title": "Recap"
+      "title": "The shapes, end to end",
+      "body": "$d_{model}=512,;h=8\\Rightarrow d_k=64$. Per head: $Q_h,K_h,V_h$ are $n\\times 64$; head output $n\\times 64$. Concatenate 8 heads → $n\\times 512$; apply $W^O\\in\\mathbb{R}^{512\\times512}$ → $n\\times 512$. Same in/out width as the input, so blocks stack. Derive it:"
     },
     {
       "kind": "question",
@@ -152,26 +86,78 @@
       }
     },
     {
-      "kind": "explain_back",
+      "kind": "question",
       "question": {
-        "id": "mha_teach",
-        "kind": "explain_back",
-        "prompt": "Explain multi-head attention to your pet.",
-        "rubricCriteria": [
-          {
-            "id": "c1",
-            "description": "each head is attention in its own learned subspace"
-          },
-          {
-            "id": "c2",
-            "description": "heads run in parallel capturing different relations"
-          },
-          {
-            "id": "c3",
-            "description": "outputs are concatenated then projected by W^O"
-          }
-        ]
+        "id": "mha_q1",
+        "kind": "multiple_choice",
+        "question": "You set h=1 with the same total d_model. Versus an h=8 model, what changes?",
+        "options": [
+          "Nothing — multi-head is just a parallelism optimization",
+          "8× more parameters",
+          "The layer can learn only ONE attention pattern; h=8 could learn up to 8 different patterns at the same capacity",
+          "Single-head is strictly better"
+        ],
+        "correctIndex": 2,
+        "explanation": "Same parameter count either way. The value of multi-head is representational diversity: h=8 can simultaneously be a locality head, an induction head, a punctuation head, etc. Collapsing to h=1 forces one pattern and reliably hurts language modeling."
       }
+    },
+    {
+      "kind": "section",
+      "title": "Part 3 — What heads actually learn"
+    },
+    {
+      "kind": "text",
+      "title": "A catalog of specializations",
+      "body": "Trained models reliably grow recognizable heads: **positional** (attend to ±1 neighbor), **syntactic** (verb→subject), **coreference** (pronoun→antecedent), and the famous **induction heads** (\"…A B … A → predict B\") that underlie in-context learning. These are reproducible enough that reverse-engineering them is its own field (mechanistic interpretability)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mha_q2",
+        "kind": "multiple_choice",
+        "question": "An 'induction head' is best described as:",
+        "options": [
+          "A single head that memorizes training sequences",
+          "A two-layer circuit (previous-token head → induction head) that completes patterns like 'A B … A → B' — the backbone of in-context learning",
+          "The first attention head in layer 0",
+          "A head that only attends to punctuation"
+        ],
+        "correctIndex": 1,
+        "explanation": "Induction is compositional: a previous-token head writes 'the token before me' into the residual stream; a later induction head uses that to find the prior occurrence of the current token and attend to whatever followed it. This circuit is strongly linked to in-context learning ability."
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 4 — The modern memory optimization"
+    },
+    {
+      "kind": "text",
+      "title": "Grouped-query attention (GQA)",
+      "body": "At inference the **KV-cache** (stored K,V for every past token, every head) dominates memory. GQA shares one K/V across a *group* of query heads — e.g. 32 query heads, 8 KV heads → 4× smaller cache with negligible quality loss. It's why Llama-2-70B and most modern LLMs are practical to serve.",
+      "viz": "attention-heatmap-explorer",
+      "vizProps": {
+        "presetIndex": 0
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mha_q3",
+        "kind": "multiple_choice",
+        "question": "Why does GQA cut inference memory but leave training cost ≈ unchanged?",
+        "options": [
+          "It only applies at inference; training uses full MHA",
+          "It shrinks the KV-cache (built only during autoregressive decoding); forward/backward FLOPs are dominated by matmuls that barely change",
+          "It uses lower numerical precision",
+          "It runs fewer training steps"
+        ],
+        "correctIndex": 1,
+        "explanation": "GQA's saving is the per-token K/V tensors cached across the context during generation — fewer KV groups ⇒ proportionally smaller cache. Training is FLOP-bound (full sequences, parallel), and those FLOPs are nearly the same, so train cost is ≈ unchanged."
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 5 — Pitfalls & misconceptions"
     },
     {
       "kind": "question",
@@ -220,9 +206,35 @@
       }
     },
     {
+      "kind": "section",
+      "title": "Part 6 — Connections & what's next"
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "mha_teach",
+        "kind": "explain_back",
+        "prompt": "Explain multi-head attention to your pet.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "each head is attention in its own learned subspace"
+          },
+          {
+            "id": "c2",
+            "description": "heads run in parallel capturing different relations"
+          },
+          {
+            "id": "c3",
+            "description": "outputs are concatenated then projected by W^O"
+          }
+        ]
+      }
+    },
+    {
       "kind": "text",
       "title": "What to carry forward",
-      "body": "- Multi-head = $h$ parallel attentions, each in a $d_{model}/h$ subspace, concatenated then mixed by $W_O$.\n- It buys **diversity, not capacity** (same parameter count as one big attention).\n- Heads specialize (previous-token, locality, induction…); some are in **superposition**.\n- **GQA/MQA** share K/V to shrink the inference KV-cache at ~no quality cost.\n\n**Next:** the [feed-forward network](/wiki/feed-forward-networks) — the per-token nonlinearity that holds most of the model's parameters — then [residuals](/wiki/residual-connections), [layer norm](/wiki/layer-normalization), and the full [transformer block](/wiki/transformer-block)."
+      "body": "Multi-head = h attentions in parallel subspaces, concat + $W^O$, ~same params, many relations at once; GQA shrinks the KV-cache for serving. Next: **[positional encoding](/paths/ml-engineer/lessons/positional-encoding)** — giving order to an order-blind mechanism."
     }
   ]
 }
