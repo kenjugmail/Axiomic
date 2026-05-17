@@ -1,6 +1,6 @@
 {
   "meta": {
-    "timeMinutes": 35,
+    "timeMinutes": 45,
     "difficulty": "core",
     "objectives": [
       "Distinguish percent-of vs percent-change; compose changes multiplicatively",
@@ -15,17 +15,17 @@
     {
       "kind": "section",
       "title": "Part 1 — Math that looks like real life",
-      "body": "Problem-Solving & Data Analysis (~15% of Math) is ratios, rates, percentages, units, statistics, and reading graphs/tables. Low math difficulty, high *care* difficulty — the SAT wins points here on misreads."
+      "body": "Problem-Solving & Data Analysis (~15% of Math) is ratios, rates, units, percentages, statistics, and reading graphs/tables. The math is easy; the SAT scores its points on *misreads*, so this domain rewards care more than cleverness."
     },
     {
       "kind": "text",
       "title": "What it tests",
-      "body": "- **Ratios/proportions/rates** and **unit conversion**.\n- **Percentages**: percent of, percent change, successive changes.\n- **Statistics**: mean, median, range, standard-deviation *concept*, outliers.\n- **Probability** from tables.\n- **Data interpretation**: read values/trends off graphs and two-way tables."
+      "body": "- **Ratios, proportions, rates** and **unit conversion** (the most common setup).\n- **Percentages**: percent *of*, percent *change*, successive changes, percent error.\n- **Statistics**: mean, median, range, standard-deviation *concept* (spread), outliers.\n- **Probability** from two-way tables.\n- **Data interpretation**: pull exact values and trends off scatterplots, bar/line graphs, and tables.\n\nLow difficulty, high precision: the test wins on axis misreads and the percent-of/percent-change confusion below."
     },
     {
       "kind": "text",
       "title": "The distinction that's tested most",
-      "body": "> **percent OF a number ≠ percent CHANGE.** \"20% of 80\" = 16. \"increased by 20%\" = 80 × 1.20 = 96. Successive changes do **not** add: +10% then −10% ≠ 0% (it's ×1.1×0.9 = 0.99 → a 1% net *loss*).\n\nMore SAT data points are lost to this than to any computation."
+      "body": "> **percent OF ≠ percent CHANGE, and successive changes do NOT add.**\n\n- \"20% of 80\" $=0.20\\times 80=16$.\n- \"increased by 20%\" $=80\\times 1.20=96$.\n- \"+10% then −10%\" is $\\times1.10\\times0.90=0.99$ → a **1% net loss**, not 0%.\n\nEach change is a *multiplicative factor* $(1\\pm p/100)$; the net effect is the **product** of factors, never the sum of percents. More SAT data points are lost to this one confusion than to any computation. Convert every change to a factor on sight."
     },
     {
       "kind": "section",
@@ -33,13 +33,13 @@
     },
     {
       "kind": "text",
-      "title": "Carry units like algebra",
-      "body": "Write units and cancel them: $\\frac{60\\ \\text{mi}}{1\\ \\text{hr}}\\times\\frac{1\\ \\text{hr}}{60\\ \\text{min}}=1\\ \\text{mi/min}$. If the units don't cancel to what's asked, the setup is wrong — units are a free error-checker the SAT expects you to use."
+      "title": "Carry units like algebra (a free error-checker)",
+      "body": "Write units on every quantity and cancel them like variables: $\\dfrac{60\\ \\text{mi}}{1\\ \\text{hr}}\\times\\dfrac{1\\ \\text{hr}}{60\\ \\text{min}}=1\\ \\text{mi/min}$. If the units don't cancel to what the question asks for, your setup is wrong — *before* you compute. Dimensional analysis turns 'rate' word problems into mechanical unit-cancellation and catches setup errors the answer choices are designed to reward."
     },
     {
       "kind": "text",
-      "title": "Mean vs median — know which moves",
-      "body": "Adding an outlier swings the **mean** but barely moves the **median**. \"Which measure best represents a typical value when there's a large outlier?\" → median. SAT statistics questions are conceptual, not computational — know how each statistic responds to changes."
+      "title": "Mean vs median — know which one moves",
+      "body": "Statistics questions here are conceptual, not computational. The fact tested repeatedly: adding a large **outlier** swings the **mean** substantially but barely moves the **median** (a positional statistic). So \"which best represents a typical value when there's an extreme value?\" → **median**. Memorize how each statistic *responds to a change*, not just how to compute it."
     },
     {
       "kind": "section",
@@ -136,12 +136,12 @@
     },
     {
       "kind": "section",
-      "title": "Part 4 — A worked example, end to end"
+      "title": "Part 4 — Worked examples, end to end"
     },
     {
       "kind": "text",
-      "title": "A rate item",
-      "body": "\"A printer does 18 pages in 24 seconds. At that rate, how many pages in 2 minutes?\" Rate $=\\frac{18}{24}=0.75$ pages/sec. 2 min = 120 s. Pages $=0.75\\times120$."
+      "title": "Worked example 1 — a rate item with units",
+      "body": "\"A printer prints 18 pages in 24 seconds. At that rate, how many pages in 2 minutes?\" First **convert units**: 2 min = 120 s (the trap is leaving it as 2). Rate $=\\dfrac{18\\ \\text{pg}}{24\\ \\text{s}}=0.75\\ \\text{pg/s}$. Pages $=0.75\\ \\text{pg/s}\\times 120\\ \\text{s}=90$ — units cancel to pages, confirming the setup."
     },
     {
       "kind": "question",
@@ -173,8 +173,18 @@
       }
     },
     {
+      "kind": "text",
+      "title": "Worked example 2 — reverse percent",
+      "body": "\"A shirt costs \\$40 *after* a 20% discount. Original price?\" The trap: add 20% of 40 → \\$48 (wrong). Correct model: \\$40 is $(100-20)\\%=80\\%$ of the original, so original $\\times 0.80 = 40 \\Rightarrow$ original $= 40/0.80 = \\$50$. 'After a discount' means the final equals the original times the *retained* fraction — set up the equation, don't add back a percent of the wrong base."
+    },
+    {
       "kind": "section",
-      "title": "Part 5 — Trap answers & pitfalls"
+      "title": "Part 5 — Trap taxonomy & pitfalls"
+    },
+    {
+      "kind": "text",
+      "title": "The PSD trap families",
+      "body": "1. **Percent add** — adding successive percentages instead of multiplying factors (the dominant trap).\n2. **Wrong base** — taking the percent of the new value when it should be the original (reverse-percent).\n3. **Unit skip** — not converting min↔s, %↔decimal, etc.\n4. **Outlier intuition** — thinking the median moves like the mean (or vice versa).\n\nFactors-not-sums, identify-the-base, carry-units, know-which-statistic-moves: those four habits answer almost the whole domain."
     },
     {
       "kind": "question",
@@ -285,7 +295,7 @@
     {
       "kind": "text",
       "title": "How it scores & what's next",
-      "body": "This domain is lost to misreads, not math — units and the percent-of/percent-change distinction are the whole game. Final domain next: **Geometry & Trigonometry**."
+      "body": "Problem-Solving & Data Analysis is ~15% of Math and is lost to misreads, not math — factors over sums, the right base, carried units, and statistic behavior are the entire game. Final domain: **Geometry & Trigonometry**."
     }
   ]
 }
