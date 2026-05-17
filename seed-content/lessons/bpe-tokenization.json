@@ -212,6 +212,52 @@
       }
     },
     {
+      "kind": "question",
+      "question": {
+        "id": "bpe_scen",
+        "kind": "scenario",
+        "question": "Diagnose the latency regression.",
+        "scenario": "To save memory you shrink the BPE vocabulary from 50k to 8k. Inference latency goes UP, not down.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "a smaller vocab means fewer merges → longer token sequences"
+          },
+          {
+            "id": "c2",
+            "description": "transformer compute scales with sequence length (attention is ~O(n^2))"
+          },
+          {
+            "id": "c3",
+            "description": "the longer sequences outweigh the smaller embedding table → net slower"
+          }
+        ],
+        "explanation": "Vocab size trades embedding-table size against sequence length. Too small a vocab lengthens every sequence, and attention cost grows with length."
+      }
+    },
+    {
+      "kind": "question",
+      "hints": [
+        "Bigger vocab = more/longer merged tokens.",
+        "How does token count per sentence change?"
+      ],
+      "workedSolution": "A larger vocab has more merges, so text encodes into fewer, longer tokens (shorter sequences) — paid for with a larger embedding and output projection.",
+      "retryUntilCorrect": true,
+      "question": {
+        "id": "bpe_mc",
+        "kind": "multiple_choice",
+        "question": "Increasing BPE vocabulary size primarily trades…",
+        "options": [
+          "a larger embedding table for shorter token sequences",
+          "accuracy for nothing",
+          "speed for randomness",
+          "grammar for memory"
+        ],
+        "correctIndex": 0,
+        "explanation": "More merges → longer tokens → fewer tokens per text (shorter sequences) at the cost of a bigger embedding/output matrix."
+      }
+    },
+    {
       "kind": "text",
       "title": "What to carry forward",
       "body": "- BPE = start from characters → repeatedly merge the most frequent adjacent pair → fixed-size subword vocab.\n- No `<UNK>`; rare words decompose into seen pieces.\n- **Leading spaces, numbers, and code** tokenize in non-obvious ways that change behavior and cost (~0.75 words/token in English).\n- Variants: WordPiece, Unigram, byte-level — same goal, different merge criterion.\n\n**Next:** [Embeddings](/wiki/embeddings) — turning these token ids into the learned vectors attention operates on."

@@ -208,6 +208,52 @@
       }
     },
     {
+      "kind": "question",
+      "question": {
+        "id": "sm_scen",
+        "kind": "scenario",
+        "question": "Diagnose the NaN.",
+        "scenario": "Mid-training, logits grow very large and the loss becomes NaN. The softmax is implicated.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "exp() of large logits overflows to inf"
+          },
+          {
+            "id": "c2",
+            "description": "inf/inf in the normalizer yields NaN, which propagates through backprop"
+          },
+          {
+            "id": "c3",
+            "description": "fix: subtract max(logits) before exp (log-sum-exp / numerically-stable softmax)"
+          }
+        ],
+        "explanation": "Naive exp(z) overflows for large z. The standard fix subtracts max(z) first — mathematically identical, numerically safe."
+      }
+    },
+    {
+      "kind": "question",
+      "hints": [
+        "softmax is shift-invariant: softmax(z) = softmax(z−c).",
+        "Pick c so the largest exponent is 0."
+      ],
+      "workedSolution": "Subtracting max(z) exploits softmax's shift-invariance: the distribution is unchanged but every exp argument is ≤ 0, so no overflow.",
+      "retryUntilCorrect": true,
+      "question": {
+        "id": "sm_mc",
+        "kind": "multiple_choice",
+        "question": "Why subtract max(z) before exp in a softmax implementation?",
+        "options": [
+          "Numerical stability — prevents exp overflow; the output is mathematically identical",
+          "It sharpens the distribution",
+          "It speeds up training only",
+          "The gradient doesn't exist otherwise"
+        ],
+        "correctIndex": 0,
+        "explanation": "softmax(z) = softmax(z - c) for any constant c; choosing c = max(z) keeps exponents ≤ 0, avoiding overflow with zero change to the result."
+      }
+    },
+    {
       "kind": "text",
       "title": "What to carry forward",
       "body": "- Softmax turns unconstrained **logits** into a **probability distribution** via $e^{z_i}/\\sum e^{z_j}$.\n- **Temperature** is a single division that interpolates from argmax ($T\\to0$) to uniform ($T\\to\\infty$).\n- It is **shift-invariant**; real code subtracts the max for numerical stability.\n\nYou will meet it again as: **[attention](/wiki/attention) weights** (softmax over query·key scores), the **output head** (softmax over vocabulary logits), and **classification**. Same function, three jobs.\n\n**Next:** [Attention](/wiki/attention) — where softmax decides how much each token listens to every other."

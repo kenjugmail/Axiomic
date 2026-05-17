@@ -186,6 +186,52 @@
       }
     },
     {
+      "kind": "question",
+      "question": {
+        "id": "tok_scen",
+        "kind": "scenario",
+        "question": "Diagnose the tokenization failure.",
+        "scenario": "A model trained on English text suddenly performs terribly on user input full of emoji and rare Unicode symbols. The tokenizer and vocabulary are unchanged.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "rare/unseen characters fragment into many subword or byte fallback tokens"
+          },
+          {
+            "id": "c2",
+            "description": "the sequence balloons / meaning is diluted across many tokens"
+          },
+          {
+            "id": "c3",
+            "description": "fix: broaden tokenizer coverage (e.g. byte-level BPE) or retrain the vocab"
+          }
+        ],
+        "explanation": "Out-of-distribution characters have no merged tokens, so they shatter into many tiny tokens — long, low-signal sequences the model never trained on."
+      }
+    },
+    {
+      "kind": "question",
+      "hints": [
+        "What corpus was the BPE vocab trained on?",
+        "Rare/unseen substrings have no merged token."
+      ],
+      "workedSolution": "BPE's merges come from frequent pairs in training text (mostly prose). Code symbols are rare there, so they remain unmerged subwords — more tokens for the same word count.",
+      "retryUntilCorrect": true,
+      "question": {
+        "id": "tok_mc",
+        "kind": "multiple_choice",
+        "question": "A 10-word English sentence becomes ~12 tokens, but a 10-word code snippet becomes ~40. Why?",
+        "options": [
+          "Code has many rare substrings the BPE vocab never merged, so it fragments into more subword tokens",
+          "The model is simply larger for code",
+          "Code uses more characters per word, nothing else",
+          "Tokenization is random"
+        ],
+        "correctIndex": 0,
+        "explanation": "BPE merges frequent pairs from its (mostly prose) training corpus; code identifiers/punctuation are comparatively rare, so they stay split into many short tokens."
+      }
+    },
+    {
       "kind": "text",
       "title": "What to carry forward",
       "body": "- The model only ever sees **integers**; every bit of meaning is learned from how those integers co-occur.\n- **Subword** tokenization is the modern standard: bounded vocabulary, no true out-of-vocabulary words.\n- Token count is a **cost** lever — attention is $O(n^2)$ in tokens.\n- Spacing, casing, numbers, and code all tokenize in non-obvious ways that change model behavior.\n\n**Next:** [Word embeddings](/wiki/embeddings) — how each token id becomes a learned vector the network can compute with — then [BPE tokenization](/wiki/bpe-tokenization), the exact algorithm that builds a subword vocabulary."

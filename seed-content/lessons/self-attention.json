@@ -204,6 +204,52 @@
       }
     },
     {
+      "kind": "question",
+      "question": {
+        "id": "sa_scen",
+        "kind": "scenario",
+        "question": "Diagnose the train/inference gap.",
+        "scenario": "An autoregressive LM produces fluent text under teacher forcing in training but garbage when generating at inference. Attention is suspected.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "the causal mask is missing/incorrect, so positions attend to future tokens in training"
+          },
+          {
+            "id": "c2",
+            "description": "the model learns to 'cheat' by peeking ahead — impossible at inference"
+          },
+          {
+            "id": "c3",
+            "description": "fix: apply the causal (lower-triangular) attention mask"
+          }
+        ],
+        "explanation": "Without a causal mask, training lets each position see the answer (future tokens); at inference there is no future, so the learned shortcut collapses."
+      }
+    },
+    {
+      "kind": "question",
+      "hints": [
+        "Autoregressive = predict next token from past only.",
+        "What must a position NOT be allowed to see?"
+      ],
+      "workedSolution": "It masks (−∞ before softmax) all positions j>i for query i, enforcing left-to-right information flow so training matches autoregressive inference.",
+      "retryUntilCorrect": true,
+      "question": {
+        "id": "sa_mc",
+        "kind": "multiple_choice",
+        "question": "What does the causal mask in self-attention do?",
+        "options": [
+          "Zeros attention weights to future positions so a token cannot see what it must predict",
+          "Normalizes the keys",
+          "Injects positional information",
+          "Reduces parameter count"
+        ],
+        "correctIndex": 0,
+        "explanation": "The causal mask sets pre-softmax scores for future positions to −∞ so each token attends only to itself and earlier tokens."
+      }
+    },
+    {
       "kind": "text",
       "title": "What to carry forward",
       "body": "- **Self-attention**: Q, K, V from one sequence — every token mixes with every other in one parallel op.\n- Each output row is a **distribution over the whole sequence**, diagonal included.\n- **Causal masking** (upper triangle → −∞) makes decoders autoregressive; encoders go unmasked.\n- Cost is **$O(n^2)$** — the bottleneck behind FlashAttention, GQA, sliding-window, and SSMs.\n\n**Next:** [Multi-head attention](/wiki/multi-head-attention) — run many of these in parallel so one layer can learn many patterns at once."
