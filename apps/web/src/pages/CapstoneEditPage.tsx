@@ -5,6 +5,7 @@
 // criteria are inline forms, runnable tests live in a Python textarea.
 
 import { useEffect, useMemo, useState } from "react";
+import { confirm } from "../stores/confirm";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Plus, Trash2, ChevronDown, ChevronRight, Code2 } from "lucide-react";
 import type {
@@ -509,7 +510,13 @@ function MilestoneRow({
   };
 
   const remove = async () => {
-    if (!confirm(`Delete milestone "${milestone.title}"?`)) return;
+    if (
+      !(await confirm({
+        title: `Delete milestone "${milestone.title}"?`,
+        destructive: true,
+      }))
+    )
+      return;
     await api.capstones.deleteMilestone(slug, milestone.id);
     onChanged();
   };

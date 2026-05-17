@@ -216,6 +216,47 @@ describe("auth route (Sprint 66b)", () => {
     expect(body.user.username).toBe(username);
   });
 
+  // Phase 36 — the session cookie is HMAC-bound (`id.mac`). A
+  // tampered MAC or a bare unsigned id (the pre-Phase-36 format /
+  // a leaked DB session id) must NOT authenticate.
+  test("session cookie HMAC: tampered or unsigned cookie does not authenticate", async () => {
+    const username = nextUsername("mac");
+    const signup = await req("/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username,
+        email: `${username}@example.com`,
+        password: "testpass123",
+      }),
+    });
+    const raw = (signup.headers.get("set-cookie") || "").split(";")[0];
+    const eqIdx = raw.indexOf("=");
+    const name = raw.slice(0, eqIdx);
+    const value = raw.slice(eqIdx + 1);
+    expect(value).toContain("."); // `${id}.${mac}`
+
+    // Valid cookie authenticates.
+    const okRes = await req("/auth/me", { headers: { cookie: raw } });
+    expect(okRes.status).toBe(200);
+    expect(((await okRes.json()) as any).user.username).toBe(username);
+
+    // Flip the last MAC char → must fail closed.
+    const last = value.slice(-1);
+    const tampered = `${name}=${value.slice(0, -1)}${last === "a" ? "b" : "a"}`;
+    const tRes = await req("/auth/me", { headers: { cookie: tampered } });
+    expect(tRes.status).toBe(200);
+    expect(((await tRes.json()) as any).user).toBeNull();
+
+    // Bare id, no MAC (a raw leaked DB session id) → rejected.
+    const bareId = value.slice(0, value.lastIndexOf("."));
+    const bRes = await req("/auth/me", {
+      headers: { cookie: `${name}=${bareId}` },
+    });
+    expect(bRes.status).toBe(200);
+    expect(((await bRes.json()) as any).user).toBeNull();
+  });
+
   test("logout clears the session — subsequent /me with same cookie returns null", async () => {
     const username = nextUsername("logout");
     const signup = await req("/auth/signup", {

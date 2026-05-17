@@ -149,12 +149,30 @@ describe("capstone tracks CRUD (Sprint 52)", () => {
     const list = await req("/tracks");
     expect(list.status).toBe(200);
     const listData = (await list.json()) as {
-      tracks: Array<{ slug: string; capstoneCount: number; requiredCount: number }>;
+      tracks: Array<{
+        slug: string;
+        capstoneCount: number;
+        requiredCount: number;
+        myCompletedRequired: number;
+      }>;
     };
     const ours = listData.tracks.find((t) => t.slug === trackSlug);
     expect(ours).toBeDefined();
     expect(ours!.capstoneCount).toBe(2);
     expect(ours!.requiredCount).toBe(1);
+    // Phase 16D — anonymous caller has zero progress everywhere.
+    expect(ours!.myCompletedRequired).toBe(0);
+
+    // Authenticated but un-enrolled caller also sees zero progress.
+    const newcomer = await signup("a1u");
+    const authList = await req("/tracks", {
+      headers: cookieHeader(newcomer.cookie),
+    });
+    const authData = (await authList.json()) as {
+      tracks: Array<{ slug: string; myCompletedRequired: number }>;
+    };
+    const sameTrack = authData.tracks.find((t) => t.slug === trackSlug);
+    expect(sameTrack!.myCompletedRequired).toBe(0);
   });
 
   test("non-author cannot attach capstones", async () => {

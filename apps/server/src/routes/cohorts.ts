@@ -6,21 +6,32 @@
 // cohorts — a mentee requests, a mentor accepts.
 
 import { Hono } from "hono";
+import type { Context } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { and, desc, eq, ne, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, ne, or, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import {
+  capstoneEnrollments,
+  capstoneMilestones,
+  capstoneSubmissions,
   capstones,
   cohortInvitations,
   cohortMembers,
+  cohortStudySessions,
   cohorts,
   getDb,
+  masterySnapshots,
   mentorRelationships,
   users,
 } from "@axiomic/db";
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { notifyCohortInvitation } from "../lib/notifications";
+import { checkRateLimit } from "../lib/rateLimit";
+import { rankMentorCandidates } from "../lib/mentorMatch";
+import { notifyMany } from "../lib/notifications";
+import { buildReadiness } from "../lib/readiness";
+import { env } from "../lib/envConfig";
 import type { Env } from "../env";
 
 // Sprint 52 — URL-safe token generator for cohort invitations.
@@ -183,6 +194,366 @@ cohortsRouter.get("/:slug", async (c) => {
   });
 });
 
+// Phase 17C — Cohort activity feed. Aggregates "things members did"
+// from existing tables (no new schema): recent cohort joins, recent
+// capstone submissions, recent capstone completions. Sorted desc by
+// timestamp, capped to 50 events.
+//
+// Phase 18A — privacy gate. Open cohorts stay public (the rest of
+// the cohort surface is too). Invite-only cohorts require the
+// caller to be a member; non-members and anonymous callers get 403.
+// Without this, anyone with the slug could enumerate who's working
+// on what inside a private cohort.
+cohortsRouter.get("/:slug/activity", async (c) => {
+  const slug = c.req.param("slug")!;
+  const db = getDb();
+  const cohort = db
+    .select({ id: cohorts.id, visibility: cohorts.visibility })
+    .from(cohorts)
+    .where(eq(cohorts.slug, slug))
+    .get();
+  if (!cohort) return c.json({ error: "Cohort not found" }, 404);
+
+  if (cohort.visibility !== "open") {
+    const session = await getSessionUser(c);
+    if (!session) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+    const membership = db
+      .select({ id: cohortMembers.id })
+      .from(cohortMembers)
+      .where(
+        and(
+          eq(cohortMembers.cohortId, cohort.id),
+          eq(cohortMembers.userId, session.id),
+        ),
+      )
+      .get();
+    if (!membership) {
+      return c.json({ error: "Member-only cohort" }, 403);
+    }
+  }
+
+  const members = db
+    .select({
+      userId: cohortMembers.userId,
+      joinedAt: cohortMembers.joinedAt,
+      username: users.username,
+    })
+    .from(cohortMembers)
+    .innerJoin(users, eq(cohortMembers.userId, users.id))
+    .where(eq(cohortMembers.cohortId, cohort.id))
+    .all();
+
+  type ActivityEvent =
+    | {
+        kind: "joined";
+        ts: string;
+        actorUsername: string;
+        refSlug: null;
+        refTitle: null;
+      }
+    | {
+        kind: "submitted_milestone" | "completed_capstone";
+        ts: string;
+        actorUsername: string;
+        refSlug: string;
+        refTitle: string;
+      };
+
+  const events: ActivityEvent[] = [];
+
+  // Joins from this cohort, last 30 days.
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    .toISOString();
+  for (const m of members) {
+    if (m.joinedAt < thirtyDaysAgo) continue;
+    events.push({
+      kind: "joined",
+      ts: m.joinedAt,
+      actorUsername: m.username,
+      refSlug: null,
+      refTitle: null,
+    });
+  }
+
+  // Capstone submissions + completions by these members. Bulk pull
+  // each in one query keyed on userId set.
+  const memberIds = members.map((m) => m.userId);
+  const usernameByUserId = new Map(members.map((m) => [m.userId, m.username]));
+
+  if (memberIds.length > 0) {
+    // Completed capstones: capstoneEnrollments rows with completedAt
+    // not null, joined to capstones for the title.
+    const completions = db
+      .select({
+        userId: capstoneEnrollments.userId,
+        completedAt: capstoneEnrollments.completedAt,
+        capstoneSlug: capstones.slug,
+        capstoneTitle: capstones.title,
+      })
+      .from(capstoneEnrollments)
+      .innerJoin(capstones, eq(capstoneEnrollments.capstoneId, capstones.id))
+      .where(
+        and(
+          inArray(capstoneEnrollments.userId, memberIds),
+          sql`${capstoneEnrollments.completedAt} IS NOT NULL`,
+          gt(capstoneEnrollments.completedAt, thirtyDaysAgo),
+        ),
+      )
+      .all();
+    for (const r of completions) {
+      if (!r.completedAt) continue;
+      const actor = usernameByUserId.get(r.userId);
+      if (!actor) continue;
+      events.push({
+        kind: "completed_capstone",
+        ts: r.completedAt,
+        actorUsername: actor,
+        refSlug: r.capstoneSlug,
+        refTitle: r.capstoneTitle,
+      });
+    }
+
+    // Passed milestone submissions: join through enrollments + capstones
+    // + milestones to expose the milestone title.
+    const submissions = db
+      .select({
+        userId: capstoneEnrollments.userId,
+        submittedAt: capstoneSubmissions.submittedAt,
+        capstoneSlug: capstones.slug,
+        milestoneTitle: capstoneMilestones.title,
+        status: capstoneSubmissions.status,
+      })
+      .from(capstoneSubmissions)
+      .innerJoin(
+        capstoneEnrollments,
+        eq(capstoneSubmissions.enrollmentId, capstoneEnrollments.id),
+      )
+      .innerJoin(capstones, eq(capstoneEnrollments.capstoneId, capstones.id))
+      .innerJoin(
+        capstoneMilestones,
+        eq(capstoneSubmissions.milestoneId, capstoneMilestones.id),
+      )
+      .where(
+        and(
+          inArray(capstoneEnrollments.userId, memberIds),
+          eq(capstoneSubmissions.status, "passed"),
+          gt(capstoneSubmissions.submittedAt, thirtyDaysAgo),
+        ),
+      )
+      .all();
+    for (const r of submissions) {
+      const actor = usernameByUserId.get(r.userId);
+      if (!actor) continue;
+      events.push({
+        kind: "submitted_milestone",
+        ts: r.submittedAt,
+        actorUsername: actor,
+        refSlug: r.capstoneSlug,
+        refTitle: r.milestoneTitle,
+      });
+    }
+  }
+
+  events.sort((a, b) => (a.ts < b.ts ? 1 : a.ts > b.ts ? -1 : 0));
+
+  return c.json({ events: events.slice(0, 50) });
+});
+
+// Phase 30B — resolve a cohort by slug + apply the invite-only
+// gate (mirrors /:slug/activity). Returns the cohort row or a
+// Response to short-circuit.
+async function gateCohort(
+  c: Context<Env>,
+): Promise<
+  | { ok: true; cohort: { id: string; slug: string }; userId: string | null }
+  | { ok: false; res: Response }
+> {
+  const slug = c.req.param("slug")!;
+  const db = getDb();
+  const cohort = db
+    .select({
+      id: cohorts.id,
+      slug: cohorts.slug,
+      visibility: cohorts.visibility,
+    })
+    .from(cohorts)
+    .where(eq(cohorts.slug, slug))
+    .get();
+  if (!cohort) return { ok: false, res: c.json({ error: "Cohort not found" }, 404) };
+  const session = await getSessionUser(c);
+  if (cohort.visibility !== "open") {
+    if (!session) return { ok: false, res: c.json({ error: "Unauthorized" }, 401) };
+    const membership = db
+      .select({ id: cohortMembers.id })
+      .from(cohortMembers)
+      .where(
+        and(
+          eq(cohortMembers.cohortId, cohort.id),
+          eq(cohortMembers.userId, session.id),
+        ),
+      )
+      .get();
+    if (!membership) {
+      return { ok: false, res: c.json({ error: "Member-only cohort" }, 403) };
+    }
+  }
+  return {
+    ok: true,
+    cohort: { id: cohort.id, slug: cohort.slug },
+    userId: session?.id ?? null,
+  };
+}
+
+// Phase 30B — per-member progress rollup for a cohort.
+cohortsRouter.get("/:slug/progress", async (c) => {
+  const g = await gateCohort(c);
+  if (!g.ok) return g.res;
+  const db = getDb();
+  const members = db
+    .select({
+      userId: cohortMembers.userId,
+      username: users.username,
+      displayName: users.displayName,
+    })
+    .from(cohortMembers)
+    .innerJoin(users, eq(cohortMembers.userId, users.id))
+    .where(eq(cohortMembers.cohortId, g.cohort.id))
+    .all();
+
+  let milestonesCleared = 0;
+  const rows = members.map((m) => {
+    const r = buildReadiness(m.userId);
+    const mastered =
+      r.snapshots.length > 0
+        ? r.snapshots[r.snapshots.length - 1]!.mastered
+        : 0;
+    const caps = db
+      .select({ n: sql<number>`COUNT(*)` })
+      .from(capstoneEnrollments)
+      .where(
+        and(
+          eq(capstoneEnrollments.userId, m.userId),
+          sql`${capstoneEnrollments.completedAt} IS NOT NULL`,
+        ),
+      )
+      .get();
+    const capstonesCompleted = Number(caps?.n ?? 0);
+    milestonesCleared += capstonesCompleted;
+    return {
+      username: m.username,
+      displayName: m.displayName,
+      mastered,
+      weakConcepts: r.weakConcepts,
+      velocityPerDay: r.velocityPerDay,
+      capstonesCompleted,
+    };
+  });
+  return c.json({ members: rows, milestonesCleared });
+});
+
+const sessionSchema = z.object({
+  title: z.string().min(2).max(120),
+  scheduledAt: z.string().datetime(),
+});
+
+// Phase 30B — schedule a live study session (organizer/mentor).
+cohortsRouter.post(
+  "/:slug/sessions",
+  requireAuth,
+  zValidator("json", sessionSchema),
+  async (c) => {
+    const user = c.get("user")!;
+    const db = getDb();
+    const cohort = db
+      .select({
+        id: cohorts.id,
+        slug: cohorts.slug,
+        name: cohorts.name,
+        creatorId: cohorts.creatorId,
+      })
+      .from(cohorts)
+      .where(eq(cohorts.slug, c.req.param("slug")!))
+      .get();
+    if (!cohort) return c.json({ error: "Cohort not found" }, 404);
+    const membership = db
+      .select({ role: cohortMembers.role })
+      .from(cohortMembers)
+      .where(
+        and(
+          eq(cohortMembers.cohortId, cohort.id),
+          eq(cohortMembers.userId, user.id),
+        ),
+      )
+      .get();
+    const canSchedule =
+      cohort.creatorId === user.id ||
+      membership?.role === "organizer" ||
+      membership?.role === "mentor";
+    if (!canSchedule) {
+      return c.json({ error: "Organizers or mentors only" }, 403);
+    }
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`cohort-session:${user.id}`, 10, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
+    const data = c.req.valid("json");
+    const id = randomUUID();
+    db.insert(cohortStudySessions)
+      .values({
+        id,
+        cohortId: cohort.id,
+        title: data.title,
+        scheduledAt: data.scheduledAt,
+        roomId: id,
+        createdById: user.id,
+      })
+      .run();
+
+    const memberIds = db
+      .select({ userId: cohortMembers.userId })
+      .from(cohortMembers)
+      .where(eq(cohortMembers.cohortId, cohort.id))
+      .all()
+      .map((r) => r.userId);
+    if (memberIds.length > 0) {
+      void notifyMany(memberIds, {
+        actorId: user.id,
+        kind: "cohort_session_scheduled",
+        subjectType: "cohort_study_session",
+        subjectId: id,
+        contextSlug: cohort.slug,
+        preview: `New study session in ${cohort.name}: ${data.title}`,
+      });
+    }
+    return c.json({ id, roomId: id }, 201);
+  },
+);
+
+// Phase 30B — list a cohort's study sessions.
+cohortsRouter.get("/:slug/sessions", async (c) => {
+  const g = await gateCohort(c);
+  if (!g.ok) return g.res;
+  const db = getDb();
+  const sessions = db
+    .select({
+      id: cohortStudySessions.id,
+      title: cohortStudySessions.title,
+      scheduledAt: cohortStudySessions.scheduledAt,
+      roomId: cohortStudySessions.roomId,
+      createdByUsername: users.username,
+    })
+    .from(cohortStudySessions)
+    .innerJoin(users, eq(cohortStudySessions.createdById, users.id))
+    .where(eq(cohortStudySessions.cohortId, g.cohort.id))
+    .orderBy(asc(cohortStudySessions.scheduledAt))
+    .all();
+  return c.json({ sessions });
+});
+
 cohortsRouter.post(
   "/",
   requireAuth,
@@ -298,6 +669,18 @@ cohortsRouter.post(
   zValidator("json", inviteSchema),
   async (c) => {
     const me = c.get("user")!;
+
+    // Phase 19B — cap invitation sends per organizer. Each call may
+    // include up to 50 emails (the inviteSchema cap); 5 calls/min
+    // = 250 invites/min, enough for a legitimate cohort kickoff and
+    // small enough to bound abuse from a compromised account.
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`cohort-invite:${me.id}`, 5, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
+
     const slug = c.req.param("slug")!;
     const body = c.req.valid("json");
     const db = getDb();
@@ -542,6 +925,15 @@ mentorsRouter.get("/", async (c) => {
   });
 });
 
+// Phase 30A — auto-ranked mentor suggestions for the caller,
+// by demonstrated fit (strong where the mentee is weak) +
+// reputation + persona/goal alignment.
+mentorsRouter.get("/candidates", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const result = await rankMentorCandidates(user.id, 8);
+  return c.json(result);
+});
+
 // The viewer's relationships in both directions.
 mentorsRouter.get("/me", requireAuth, async (c) => {
   const user = c.get("user")!;
@@ -585,6 +977,18 @@ mentorsRouter.post(
   zValidator("json", requestMentorSchema),
   async (c) => {
     const user = c.get("user")!;
+
+    // Phase 19A — throttle the mentor-request fan-out. 10/min is
+    // generous for legitimate use (a thoughtful user might send 1-2
+    // requests per sitting); the cap catches a compromised account
+    // blasting every user with notifications + email.
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`mentor-request:${user.id}`, 10, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
+
     const data = c.req.valid("json");
     const db = getDb();
     const mentor = db

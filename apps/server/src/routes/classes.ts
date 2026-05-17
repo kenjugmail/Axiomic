@@ -16,12 +16,16 @@ import { z } from "zod";
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import {
+  classAnnouncements,
   classAttendance,
   classCompetitions,
   classEnrollments,
+  classMaterials,
   classQuestions,
   classQuestionAttempts,
   classTaskCompletions,
+  classTaskDiscussions,
+  classTaskVariants,
   classTasks,
   classes,
   cohorts,
@@ -34,13 +38,24 @@ import {
   getDb,
 } from "@axiomic/db";
 import { requireAuth } from "../middleware/auth";
+import { checkRateLimit } from "../lib/rateLimit";
+import { env } from "../lib/envConfig";
+import {
+  buildWeaknessProfile,
+  prebuildWeaknessContext,
+} from "../lib/studentWeaknesses";
+import {
+  generateAssignmentVariant,
+  variantSeed,
+} from "../lib/generateAssignmentVariant";
+import { gradeEssay } from "../lib/essayGrader";
 import {
   requireEnrolledInClass,
   requireInstructor,
   requireInstructorOrTa,
 } from "../middleware/classAuth";
 import { grantXp, classXpForUser, XP_AMOUNTS } from "../lib/xp";
-import { notify } from "../lib/notifications";
+import { notify, notifyMany } from "../lib/notifications";
 import { petSkinBySlug } from "../lib/pets";
 import type { Env } from "../env";
 
@@ -93,6 +108,11 @@ const updateClassSchema = z.object({
   // S106 — set/clear the linked cohort. Pass null to unlink.
   linkedCohortId: z.string().min(1).max(64).nullable().optional(),
   status: z.enum(["active", "archived"]).optional(),
+  // Phase 21 — class difficulty calibration + topic scope feeding
+  // the AI variant generator. Null level + empty topic list = no
+  // scoping; generator falls back to the base task body.
+  level: z.enum(["intro", "undergrad", "grad"]).nullable().optional(),
+  topicSlugs: z.array(z.string().min(1).max(120)).max(50).optional(),
 });
 
 const enrollSchema = z.object({
@@ -106,6 +126,8 @@ const createTaskSchema = z.object({
   url: z.string().url().max(500).nullable().optional(),
   dueAt: dueAtSchema,
   xpReward: z.number().int().min(1).max(500).nullable().optional(),
+  // Phase 23C — optional Classwork-tab grouping label.
+  topic: z.string().min(1).max(80).nullable().optional(),
 });
 
 const updateTaskSchema = createTaskSchema.partial().extend({
@@ -417,6 +439,19 @@ classesRouter.get("/:slug", requireAuth, requireEnrolledInClass, async (c) => {
   // share it with students) when the caller is teaching.
   const showJoinCode = role === "instructor" || role === "ta";
 
+  // Phase 21 — surface level + parsed topicSlugs so the edit page +
+  // student-facing UI can read them. Empty array when the JSON is
+  // malformed or absent.
+  let topicSlugs: string[] = [];
+  try {
+    const parsed = JSON.parse(cls.topicSlugsJson);
+    if (Array.isArray(parsed)) {
+      topicSlugs = parsed.filter((s): s is string => typeof s === "string");
+    }
+  } catch {
+    // ignore — empty list
+  }
+
   return c.json({
     class: {
       id: cls.id,
@@ -429,6 +464,8 @@ classesRouter.get("/:slug", requireAuth, requireEnrolledInClass, async (c) => {
       discoverable: cls.discoverable,
       linkedCohortId: cls.linkedCohortId,
       status: cls.status,
+      level: cls.level,
+      topicSlugs,
       instructor: instructor
         ? {
             id: instructor.id,
@@ -457,6 +494,9 @@ classesRouter.get("/:slug", requireAuth, requireEnrolledInClass, async (c) => {
       url: t.url,
       dueAt: t.dueAt,
       xpReward: t.xpReward ?? defaultTaskXp(t.kind as "reading" | "homework"),
+      // Phase 23C — null falls into the "(no topic)" bucket on the
+      // Classwork tab.
+      topic: t.topic,
       createdAt: t.createdAt,
       myCompleted: completedTaskIds.has(t.id),
     })),
@@ -502,6 +542,11 @@ classesRouter.put(
       }
     }
     if (data.status != null) patch.status = data.status;
+    // Phase 21 — accept null to clear level; an enum value to set.
+    if (data.level !== undefined) patch.level = data.level;
+    if (data.topicSlugs !== undefined) {
+      patch.topicSlugsJson = JSON.stringify(data.topicSlugs);
+    }
 
     db.update(classes).set(patch).where(eq(classes.id, cls.id)).run();
     return c.json({ ok: true });
@@ -731,6 +776,7 @@ classesRouter.post(
         url: data.url ?? null,
         dueAt: data.dueAt ?? null,
         xpReward: data.xpReward ?? null,
+        topic: data.topic ?? null,
         createdById: user.id,
       })
       .run();
@@ -765,6 +811,7 @@ classesRouter.put(
     if (data.url !== undefined) patch.url = data.url;
     if (data.dueAt !== undefined) patch.dueAt = data.dueAt;
     if (data.xpReward !== undefined) patch.xpReward = data.xpReward;
+    if (data.topic !== undefined) patch.topic = data.topic;
     if (Object.keys(patch).length === 0) return c.json({ ok: true });
 
     db.update(classTasks).set(patch).where(eq(classTasks.id, taskId)).run();
@@ -794,6 +841,361 @@ classesRouter.delete(
     return c.json({ ok: true });
   },
 );
+
+// ---------- Phase 21 — AI-personalized assignment variants ----------
+
+const generateVariantsSchema = z.object({
+  regenerate: z.boolean().optional().default(false),
+});
+
+// POST /classes/:slug/tasks/:taskId/variants — instructor triggers
+// bulk variant generation. One AI call per enrolled student.
+// By default we skip students who already have a variant for this
+// task; passing regenerate=true overwrites every existing row.
+classesRouter.post(
+  "/:slug/tasks/:taskId/variants",
+  requireAuth,
+  requireInstructor,
+  zValidator("json", generateVariantsSchema),
+  async (c) => {
+    const cls = c.get("classRow");
+    const user = c.get("user")!;
+    const taskId = c.req.param("taskId")!;
+    const { regenerate } = c.req.valid("json");
+
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`variants-gen:${user.id}`, 10, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
+
+    const db = getDb();
+    const task = db
+      .select()
+      .from(classTasks)
+      .where(eq(classTasks.id, taskId))
+      .get();
+    if (!task || task.classId !== cls.id) {
+      return c.json({ error: "Task not found" }, 404);
+    }
+    // Alias for the worker closure below — TypeScript can't preserve
+    // the narrowing across the async boundary.
+    const baseTask = task;
+
+    // Pull every student enrollment (skip TAs and observers — they
+    // don't submit homework). Instructor is implicit and also skipped.
+    const students = db
+      .select({ userId: classEnrollments.userId })
+      .from(classEnrollments)
+      .where(
+        and(
+          eq(classEnrollments.classId, cls.id),
+          eq(classEnrollments.role, "student"),
+        ),
+      )
+      .all();
+
+    const existing = db
+      .select({ studentId: classTaskVariants.studentId })
+      .from(classTaskVariants)
+      .where(eq(classTaskVariants.taskId, taskId))
+      .all();
+    const existingSet = new Set(existing.map((r) => r.studentId));
+
+    let topicSlugs: string[] = [];
+    try {
+      const parsed = JSON.parse(cls.topicSlugsJson);
+      if (Array.isArray(parsed)) {
+        topicSlugs = parsed.filter((s): s is string => typeof s === "string");
+      }
+    } catch {
+      // bad json — treat as empty
+    }
+    const level = (cls.level as "intro" | "undergrad" | "grad" | null) ?? null;
+
+    // Phase 22A — partition into work + skipped up front so we
+    // don't pay the AI cost for already-generated rows when
+    // regenerate=false.
+    const toProcess: Array<{ userId: string; alreadyExists: boolean }> = [];
+    let skipped = 0;
+    for (const s of students) {
+      const alreadyExists = existingSet.has(s.userId);
+      if (!regenerate && alreadyExists) {
+        skipped++;
+        continue;
+      }
+      toProcess.push({ userId: s.userId, alreadyExists });
+    }
+
+    // Phase 22A — hoist the masteryNodes/masteryPaths load out of
+    // the per-student profile builder. The context is identical
+    // across the batch; loading it once turns N table scans into
+    // 1 and lets the inner profile build skip its own loader.
+    const weaknessCtx = prebuildWeaknessContext();
+
+    // Phase 22A — bounded-concurrency pool. AI providers can
+    // handle a few concurrent requests cleanly but we don't want
+    // to fire 30+ in parallel and trip their rate limits. 5 is
+    // the sweet spot for our typical Ollama setup; tune via env
+    // if a different ceiling matters.
+    const concurrency = 5;
+    const errors: Array<{ studentId: string; reason: string }> = [];
+    let generated = 0;
+    let cursor = 0;
+
+    async function worker(): Promise<void> {
+      while (cursor < toProcess.length) {
+        const idx = cursor++;
+        const item = toProcess[idx]!;
+        try {
+          const weakness = await buildWeaknessProfile(
+            { userId: item.userId, topicSlugs, level },
+            weaknessCtx,
+          );
+          const variant = await generateAssignmentVariant({
+            baseTask: {
+              title: baseTask.title,
+              descriptionMd: baseTask.descriptionMd,
+            },
+            classMeta: { level, title: cls.title },
+            weakness,
+            seed: variantSeed(taskId, item.userId),
+          });
+          if (item.alreadyExists) {
+            db.update(classTaskVariants)
+              .set({
+                promptMd: variant.promptMd,
+                rubricJson: JSON.stringify(variant.rubric),
+                weaknessSnapshotJson: JSON.stringify(weakness),
+                generationSeed: variantSeed(taskId, item.userId),
+                rationale: variant.rationale,
+                generatedAt: new Date().toISOString(),
+                generatedById: user.id,
+              })
+              .where(
+                and(
+                  eq(classTaskVariants.taskId, taskId),
+                  eq(classTaskVariants.studentId, item.userId),
+                ),
+              )
+              .run();
+          } else {
+            db.insert(classTaskVariants)
+              .values({
+                id: randomUUID(),
+                taskId,
+                studentId: item.userId,
+                promptMd: variant.promptMd,
+                rubricJson: JSON.stringify(variant.rubric),
+                weaknessSnapshotJson: JSON.stringify(weakness),
+                generationSeed: variantSeed(taskId, item.userId),
+                rationale: variant.rationale,
+                generatedById: user.id,
+              })
+              .run();
+          }
+          generated++;
+        } catch (e) {
+          const reason = e instanceof Error ? e.message : String(e);
+          errors.push({ studentId: item.userId, reason });
+        }
+      }
+    }
+
+    const workerCount = Math.min(concurrency, Math.max(1, toProcess.length));
+    await Promise.all(
+      Array.from({ length: workerCount }, () => worker()),
+    );
+
+    return c.json({ generated, skipped, errors });
+  },
+);
+
+// GET /classes/:slug/tasks/:taskId/variants — instructor list view.
+// Returns each variant joined to the student's display info so the
+// roster table can render without follow-up requests.
+classesRouter.get(
+  "/:slug/tasks/:taskId/variants",
+  requireAuth,
+  requireInstructorOrTa,
+  async (c) => {
+    const cls = c.get("classRow");
+    const taskId = c.req.param("taskId")!;
+    const db = getDb();
+    const task = db
+      .select({ classId: classTasks.classId })
+      .from(classTasks)
+      .where(eq(classTasks.id, taskId))
+      .get();
+    if (!task || task.classId !== cls.id) {
+      return c.json({ error: "Task not found" }, 404);
+    }
+    const rows = db
+      .select({
+        id: classTaskVariants.id,
+        studentId: classTaskVariants.studentId,
+        studentUsername: users.username,
+        studentDisplayName: users.displayName,
+        promptMd: classTaskVariants.promptMd,
+        rubricJson: classTaskVariants.rubricJson,
+        rationale: classTaskVariants.rationale,
+        generatedAt: classTaskVariants.generatedAt,
+      })
+      .from(classTaskVariants)
+      .innerJoin(users, eq(classTaskVariants.studentId, users.id))
+      .where(eq(classTaskVariants.taskId, taskId))
+      .all();
+    return c.json({
+      variants: rows.map((r) => ({
+        id: r.id,
+        studentId: r.studentId,
+        studentUsername: r.studentUsername,
+        studentDisplayName: r.studentDisplayName,
+        promptMd: r.promptMd,
+        rubric: safeJson(r.rubricJson),
+        rationale: r.rationale,
+        generatedAt: r.generatedAt,
+      })),
+    });
+  },
+);
+
+// GET /classes/:slug/tasks/:taskId/variant — any enrolled user gets
+// their OWN variant (or null if no variant has been generated yet,
+// in which case the UI falls back to the base task body).
+classesRouter.get(
+  "/:slug/tasks/:taskId/variant",
+  requireAuth,
+  requireEnrolledInClass,
+  async (c) => {
+    const cls = c.get("classRow");
+    const me = c.get("user")!;
+    const taskId = c.req.param("taskId")!;
+    const db = getDb();
+    const task = db
+      .select({ classId: classTasks.classId })
+      .from(classTasks)
+      .where(eq(classTasks.id, taskId))
+      .get();
+    if (!task || task.classId !== cls.id) {
+      return c.json({ error: "Task not found" }, 404);
+    }
+    const row = db
+      .select()
+      .from(classTaskVariants)
+      .where(
+        and(
+          eq(classTaskVariants.taskId, taskId),
+          eq(classTaskVariants.studentId, me.id),
+        ),
+      )
+      .get();
+    if (!row) return c.json({ variant: null });
+    return c.json({
+      variant: {
+        id: row.id,
+        promptMd: row.promptMd,
+        rubric: safeJson(row.rubricJson),
+        generatedAt: row.generatedAt,
+      },
+    });
+  },
+);
+
+// Phase 22C — instructor inline-edit. The AI sometimes mis-targets;
+// rather than re-burning a token on Regenerate, an instructor can
+// hand-edit promptMd (or swap in a curated rubric) directly. The
+// generatedAt bumps so the audit trail shows the manual touch.
+const updateVariantSchema = z.object({
+  promptMd: z.string().min(10).max(20_000).optional(),
+  rubric: z
+    .object({
+      criteria: z
+        .array(
+          z.object({
+            id: z.string().min(1).max(80),
+            description: z.string().min(1).max(500),
+            weight: z.number().positive().max(100).optional(),
+          }),
+        )
+        .min(1)
+        .max(10),
+      passingScore: z.number().min(0).max(1),
+    })
+    .optional(),
+  // Optional fresh rationale the instructor can leave for their
+  // own future reference + the audit log.
+  rationale: z.string().max(2000).optional(),
+});
+
+classesRouter.put(
+  "/:slug/tasks/:taskId/variants/:studentId",
+  requireAuth,
+  requireInstructor,
+  zValidator("json", updateVariantSchema),
+  async (c) => {
+    const cls = c.get("classRow");
+    const user = c.get("user")!;
+    const taskId = c.req.param("taskId")!;
+    const studentId = c.req.param("studentId")!;
+    const data = c.req.valid("json");
+    const db = getDb();
+
+    const task = db
+      .select({ classId: classTasks.classId })
+      .from(classTasks)
+      .where(eq(classTasks.id, taskId))
+      .get();
+    if (!task || task.classId !== cls.id) {
+      return c.json({ error: "Task not found" }, 404);
+    }
+
+    const existing = db
+      .select({ id: classTaskVariants.id })
+      .from(classTaskVariants)
+      .where(
+        and(
+          eq(classTaskVariants.taskId, taskId),
+          eq(classTaskVariants.studentId, studentId),
+        ),
+      )
+      .get();
+    if (!existing) {
+      return c.json({ error: "Variant not found" }, 404);
+    }
+
+    if (
+      data.promptMd === undefined &&
+      data.rubric === undefined &&
+      data.rationale === undefined
+    ) {
+      return c.json({ error: "Nothing to update" }, 400);
+    }
+
+    const patch: Record<string, unknown> = {
+      generatedAt: new Date().toISOString(),
+      generatedById: user.id,
+    };
+    if (data.promptMd !== undefined) patch.promptMd = data.promptMd;
+    if (data.rubric !== undefined) patch.rubricJson = JSON.stringify(data.rubric);
+    if (data.rationale !== undefined) patch.rationale = data.rationale;
+
+    db.update(classTaskVariants)
+      .set(patch)
+      .where(eq(classTaskVariants.id, existing.id))
+      .run();
+    return c.json({ ok: true });
+  },
+);
+
+function safeJson(raw: string): unknown {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
 
 // POST /classes/:slug/tasks/:taskId/complete — student marks done.
 // Reading: idempotent on (taskId, userId); content optional. XP
@@ -874,6 +1276,51 @@ classesRouter.post(
       amount: task.xpReward ?? undefined,
     });
 
+    // Phase 21C — auto-grade homework variants. If the student has
+    // a personalized variant with a structured rubric, run the AI
+    // grader and write the result to gradeJson. Manual grades (via
+    // /grade/:userId) still take precedence — that endpoint
+    // overwrites gradeJson on its own. We skip auto-grading if the
+    // homework has already been manually graded (existing.gradeJson
+    // not null AND not aiGenerated).
+    if (task.kind === "homework" && data.content) {
+      const priorGrade = existing?.gradeJson
+        ? (safeJson(existing.gradeJson) as { aiGenerated?: boolean } | null)
+        : null;
+      const manualGradeStands =
+        priorGrade && priorGrade.aiGenerated !== true;
+      if (!manualGradeStands) {
+        const variant = db
+          .select()
+          .from(classTaskVariants)
+          .where(
+            and(
+              eq(classTaskVariants.taskId, taskId),
+              eq(classTaskVariants.studentId, user.id),
+            ),
+          )
+          .get();
+        if (variant) {
+          // Phase 22B — fire-and-forget. The student gets an
+          // immediate response; the AI-graded result lands on the
+          // submission row when grading finishes (or never, if the
+          // upstream times out — instructor falls back to manual).
+          // The helper logs + swallows internally; the .catch is
+          // defensive belt-and-suspenders to keep an unhandled
+          // promise rejection from crashing the process.
+          void autoGradeVariantSubmission({
+            taskId,
+            studentId: user.id,
+            content: data.content,
+            promptMd: variant.promptMd,
+            rubricJson: variant.rubricJson,
+          }).catch(() => {
+            // already logged inside the helper
+          });
+        }
+      }
+    }
+
     return c.json({
       ok: true,
       xpGranted: result.granted ? result.amount : 0,
@@ -881,6 +1328,85 @@ classesRouter.post(
     });
   },
 );
+
+// Phase 21C — auto-grade a variant submission against its rubric.
+// Stringifies the structured rubric as markdown so we can reuse the
+// existing essay grader. Writes result back to
+// classTaskCompletions.gradeJson with aiGenerated=true so a later
+// manual grade can recognize + override it.
+async function autoGradeVariantSubmission(opts: {
+  taskId: string;
+  studentId: string;
+  content: string;
+  promptMd: string;
+  rubricJson: string;
+}): Promise<void> {
+  const db = getDb();
+  let rubric: {
+    criteria: Array<{ id: string; description: string; weight?: number }>;
+    passingScore: number;
+  } | null = null;
+  try {
+    rubric = JSON.parse(opts.rubricJson);
+  } catch {
+    // bad rubric — skip auto-grade entirely.
+    return;
+  }
+  if (!rubric || !Array.isArray(rubric.criteria) || rubric.criteria.length === 0) {
+    return;
+  }
+  // Convert structured rubric to a markdown checklist the existing
+  // essay grader understands. maxScore = sum of weights (or count
+  // when weights absent) so the returned score is comparable across
+  // rubrics.
+  const totalWeight = rubric.criteria.reduce(
+    (s, c) => s + (c.weight ?? 1),
+    0,
+  );
+  const rubricMd = rubric.criteria
+    .map((c) => `- (${c.weight ?? 1} pts) ${c.description}`)
+    .join("\n");
+
+  try {
+    // Phase 22B — 15 s ceiling on the upstream call so a stuck
+    // provider doesn't pin the auto-grade helper forever. On
+    // abort, gradeEssay's catch swallows the error and falls back
+    // to its heuristic scorer; we still write a gradeJson so the
+    // instructor sees something rather than null forever.
+    const graded = await gradeEssay({
+      promptMd: opts.promptMd,
+      rubricMd,
+      maxScore: totalWeight,
+      essayResponse: opts.content,
+      signal: AbortSignal.timeout(15_000),
+    });
+    const pass =
+      graded.score / totalWeight >= rubric.passingScore;
+    const gradeJson = JSON.stringify({
+      score: graded.score,
+      maxScore: totalWeight,
+      pass,
+      feedback: graded.feedbackMd,
+      aiGenerated: true,
+      gradedAt: new Date().toISOString(),
+    });
+    db.update(classTaskCompletions)
+      .set({
+        gradeJson,
+        gradedAt: new Date().toISOString(),
+      })
+      .where(
+        and(
+          eq(classTaskCompletions.taskId, opts.taskId),
+          eq(classTaskCompletions.userId, opts.studentId),
+        ),
+      )
+      .run();
+  } catch {
+    // Auto-grade is best-effort. Failure leaves gradeJson null
+    // and the instructor can grade manually.
+  }
+}
 
 // POST /classes/:slug/tasks/:taskId/grade/:userId — instructor or
 // TA grades a homework submission. Pass triggers a bonus XP grant.
@@ -2292,5 +2818,757 @@ classesRouter.get(
         };
       }),
     });
+  },
+);
+
+// ---------- Phase 23A — class stream / announcements ----------
+
+const createAnnouncementSchema = z.object({
+  bodyMd: z.string().min(10).max(20_000),
+  pinned: z.boolean().optional().default(false),
+});
+
+const updateAnnouncementSchema = z.object({
+  bodyMd: z.string().min(10).max(20_000).optional(),
+  pinned: z.boolean().optional(),
+});
+
+// GET /classes/:slug/announcements — any enrollee. Pinned-first,
+// then newest. Capped at 50 because the stream isn't a paginated
+// surface in v1.
+classesRouter.get(
+  "/:slug/announcements",
+  requireAuth,
+  requireEnrolledInClass,
+  async (c) => {
+    const cls = c.get("classRow");
+    const db = getDb();
+    const rows = db
+      .select({
+        id: classAnnouncements.id,
+        authorId: classAnnouncements.authorId,
+        authorUsername: users.username,
+        authorDisplayName: users.displayName,
+        bodyMd: classAnnouncements.bodyMd,
+        pinned: classAnnouncements.pinned,
+        createdAt: classAnnouncements.createdAt,
+        updatedAt: classAnnouncements.updatedAt,
+      })
+      .from(classAnnouncements)
+      .innerJoin(users, eq(classAnnouncements.authorId, users.id))
+      .where(eq(classAnnouncements.classId, cls.id))
+      .orderBy(desc(classAnnouncements.pinned), desc(classAnnouncements.createdAt))
+      .limit(50)
+      .all();
+    return c.json({
+      announcements: rows.map((r) => ({
+        id: r.id,
+        authorId: r.authorId,
+        authorUsername: r.authorUsername,
+        authorDisplayName: r.authorDisplayName,
+        bodyMd: r.bodyMd,
+        pinned: !!r.pinned,
+        createdAt: r.createdAt,
+        updatedAt: r.updatedAt,
+      })),
+    });
+  },
+);
+
+// POST /classes/:slug/announcements — instructor or TA only.
+// Throttled per author so a runaway script can't flood the stream.
+classesRouter.post(
+  "/:slug/announcements",
+  requireAuth,
+  requireInstructorOrTa,
+  zValidator("json", createAnnouncementSchema),
+  async (c) => {
+    const cls = c.get("classRow");
+    const user = c.get("user")!;
+    const data = c.req.valid("json");
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`class-announce:${user.id}`, 5, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
+    const id = randomUUID();
+    const now = new Date().toISOString();
+    const db = getDb();
+    db.insert(classAnnouncements)
+      .values({
+        id,
+        classId: cls.id,
+        authorId: user.id,
+        bodyMd: data.bodyMd,
+        pinned: data.pinned ?? false,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .run();
+
+    // Phase 25A — fan out a notification to every enrollee except
+    // the author. Best-effort: notifyMany swallows errors so a
+    // notification failure can't break the post.
+    const enrollees = db
+      .select({ userId: classEnrollments.userId })
+      .from(classEnrollments)
+      .where(eq(classEnrollments.classId, cls.id))
+      .all()
+      .map((r) => r.userId)
+      .filter((uid) => uid !== user.id);
+    if (enrollees.length > 0) {
+      const preview =
+        data.bodyMd.length > 120
+          ? data.bodyMd.slice(0, 117).trimEnd() + "…"
+          : data.bodyMd;
+      void notifyMany(enrollees, {
+        actorId: user.id,
+        kind: "class_announcement",
+        subjectType: "class_announcement",
+        subjectId: id,
+        contextSlug: cls.slug,
+        preview: `${cls.title}: ${preview}`,
+      });
+    }
+
+    return c.json({ id }, 201);
+  },
+);
+
+// PUT /classes/:slug/announcements/:id — author or instructor.
+// TA-authored posts can be edited by the original author or by
+// the instructor; non-author/non-instructor returns 403.
+classesRouter.put(
+  "/:slug/announcements/:id",
+  requireAuth,
+  requireInstructorOrTa,
+  zValidator("json", updateAnnouncementSchema),
+  async (c) => {
+    const cls = c.get("classRow");
+    const user = c.get("user")!;
+    const id = c.req.param("id")!;
+    const data = c.req.valid("json");
+    if (data.bodyMd === undefined && data.pinned === undefined) {
+      return c.json({ error: "Nothing to update" }, 400);
+    }
+    const db = getDb();
+    const row = db
+      .select()
+      .from(classAnnouncements)
+      .where(eq(classAnnouncements.id, id))
+      .get();
+    if (!row || row.classId !== cls.id) {
+      return c.json({ error: "Announcement not found" }, 404);
+    }
+    if (row.authorId !== user.id && cls.instructorId !== user.id) {
+      return c.json({ error: "Author or instructor only" }, 403);
+    }
+    const patch: Record<string, unknown> = {
+      updatedAt: new Date().toISOString(),
+    };
+    if (data.bodyMd !== undefined) patch.bodyMd = data.bodyMd;
+    if (data.pinned !== undefined) patch.pinned = data.pinned;
+    db.update(classAnnouncements)
+      .set(patch)
+      .where(eq(classAnnouncements.id, id))
+      .run();
+    return c.json({ ok: true });
+  },
+);
+
+// DELETE /classes/:slug/announcements/:id — author or instructor.
+classesRouter.delete(
+  "/:slug/announcements/:id",
+  requireAuth,
+  requireInstructorOrTa,
+  async (c) => {
+    const cls = c.get("classRow");
+    const user = c.get("user")!;
+    const id = c.req.param("id")!;
+    const db = getDb();
+    const row = db
+      .select({
+        id: classAnnouncements.id,
+        classId: classAnnouncements.classId,
+        authorId: classAnnouncements.authorId,
+      })
+      .from(classAnnouncements)
+      .where(eq(classAnnouncements.id, id))
+      .get();
+    if (!row || row.classId !== cls.id) {
+      return c.json({ error: "Announcement not found" }, 404);
+    }
+    if (row.authorId !== user.id && cls.instructorId !== user.id) {
+      return c.json({ error: "Author or instructor only" }, 403);
+    }
+    db.delete(classAnnouncements)
+      .where(eq(classAnnouncements.id, id))
+      .run();
+    return c.json({ ok: true });
+  },
+);
+
+// ---------- Phase 23B — gradebook matrix ----------
+
+// GET /classes/:slug/gradebook — instructor or TA only. Returns
+// a students × tasks matrix the instructor can scan in one view.
+// Computes per-student + per-task summaries server-side so the UI
+// stays a thin renderer.
+classesRouter.get(
+  "/:slug/gradebook",
+  requireAuth,
+  requireInstructorOrTa,
+  async (c) => {
+    const cls = c.get("classRow");
+    const db = getDb();
+
+    const tasks = db
+      .select({
+        id: classTasks.id,
+        title: classTasks.title,
+        kind: classTasks.kind,
+        dueAt: classTasks.dueAt,
+        topic: classTasks.topic,
+      })
+      .from(classTasks)
+      .where(eq(classTasks.classId, cls.id))
+      .orderBy(asc(classTasks.dueAt), desc(classTasks.createdAt))
+      .all();
+
+    const studentsRows = db
+      .select({
+        userId: classEnrollments.userId,
+        username: users.username,
+        displayName: users.displayName,
+        role: classEnrollments.role,
+      })
+      .from(classEnrollments)
+      .innerJoin(users, eq(classEnrollments.userId, users.id))
+      .where(
+        and(
+          eq(classEnrollments.classId, cls.id),
+          eq(classEnrollments.role, "student"),
+        ),
+      )
+      .orderBy(asc(users.username))
+      .all();
+
+    if (tasks.length === 0 || studentsRows.length === 0) {
+      return c.json({
+        tasks: tasks.map((t) => ({
+          id: t.id,
+          title: t.title,
+          kind: t.kind,
+          dueAt: t.dueAt,
+          topic: t.topic,
+        })),
+        students: studentsRows.map((s) => ({
+          userId: s.userId,
+          username: s.username,
+          displayName: s.displayName,
+        })),
+        cells: [],
+      });
+    }
+
+    const taskIds = tasks.map((t) => t.id);
+    const completions = db
+      .select({
+        taskId: classTaskCompletions.taskId,
+        userId: classTaskCompletions.userId,
+        gradeJson: classTaskCompletions.gradeJson,
+        wasLate: classTaskCompletions.wasLate,
+        submittedAt: classTaskCompletions.submittedAt,
+        gradedAt: classTaskCompletions.gradedAt,
+      })
+      .from(classTaskCompletions)
+      .where(inArray(classTaskCompletions.taskId, taskIds))
+      .all();
+
+    interface Cell {
+      taskId: string;
+      userId: string;
+      status: "missing" | "submitted" | "passed" | "failed";
+      score: number | null;
+      maxScore: number | null;
+      wasLate: boolean;
+      submittedAt: string | null;
+      aiGenerated: boolean;
+    }
+    const cells: Cell[] = [];
+    const cellByPair = new Map<string, Cell>();
+    for (const comp of completions) {
+      let parsed: {
+        score?: number;
+        maxScore?: number;
+        pass?: boolean;
+        aiGenerated?: boolean;
+      } | null = null;
+      if (comp.gradeJson) {
+        try {
+          parsed = JSON.parse(comp.gradeJson);
+        } catch {
+          // ignore — treat as ungraded
+        }
+      }
+      let status: Cell["status"] = "submitted";
+      if (parsed && typeof parsed.pass === "boolean") {
+        status = parsed.pass ? "passed" : "failed";
+      }
+      const cell: Cell = {
+        taskId: comp.taskId,
+        userId: comp.userId,
+        status,
+        score: parsed?.score ?? null,
+        maxScore: parsed?.maxScore ?? null,
+        wasLate: !!comp.wasLate,
+        submittedAt: comp.submittedAt,
+        aiGenerated: parsed?.aiGenerated === true,
+      };
+      cells.push(cell);
+      cellByPair.set(`${cell.taskId}::${cell.userId}`, cell);
+    }
+    // Fill in missing cells so the client doesn't have to
+    // cross-reference taskIds × userIds itself.
+    for (const t of tasks) {
+      for (const s of studentsRows) {
+        const key = `${t.id}::${s.userId}`;
+        if (!cellByPair.has(key)) {
+          cells.push({
+            taskId: t.id,
+            userId: s.userId,
+            status: "missing",
+            score: null,
+            maxScore: null,
+            wasLate: false,
+            submittedAt: null,
+            aiGenerated: false,
+          });
+        }
+      }
+    }
+
+    return c.json({
+      tasks: tasks.map((t) => ({
+        id: t.id,
+        title: t.title,
+        kind: t.kind,
+        dueAt: t.dueAt,
+        topic: t.topic,
+      })),
+      students: studentsRows.map((s) => ({
+        userId: s.userId,
+        username: s.username,
+        displayName: s.displayName,
+      })),
+      cells,
+    });
+  },
+);
+
+// ---------- Phase 24A — per-task discussion threads ----------
+
+const createDiscussionSchema = z.object({
+  bodyMd: z.string().min(5).max(4000),
+});
+const updateDiscussionSchema = z.object({
+  bodyMd: z.string().min(5).max(4000),
+});
+
+// GET /classes/:slug/tasks/:taskId/discussions — any enrollee.
+// Returns last 100 posts newest-first with author display info.
+classesRouter.get(
+  "/:slug/tasks/:taskId/discussions",
+  requireAuth,
+  requireEnrolledInClass,
+  async (c) => {
+    const cls = c.get("classRow");
+    const taskId = c.req.param("taskId")!;
+    const db = getDb();
+    const task = db
+      .select({ classId: classTasks.classId })
+      .from(classTasks)
+      .where(eq(classTasks.id, taskId))
+      .get();
+    if (!task || task.classId !== cls.id) {
+      return c.json({ error: "Task not found" }, 404);
+    }
+    const rows = db
+      .select({
+        id: classTaskDiscussions.id,
+        userId: classTaskDiscussions.userId,
+        username: users.username,
+        displayName: users.displayName,
+        bodyMd: classTaskDiscussions.bodyMd,
+        createdAt: classTaskDiscussions.createdAt,
+        updatedAt: classTaskDiscussions.updatedAt,
+      })
+      .from(classTaskDiscussions)
+      .innerJoin(users, eq(classTaskDiscussions.userId, users.id))
+      .where(eq(classTaskDiscussions.taskId, taskId))
+      .orderBy(desc(classTaskDiscussions.createdAt))
+      .limit(100)
+      .all();
+    return c.json({ posts: rows });
+  },
+);
+
+// POST /classes/:slug/tasks/:taskId/discussions — any enrollee.
+// Rate-limited per author to keep a stuck client from flooding.
+classesRouter.post(
+  "/:slug/tasks/:taskId/discussions",
+  requireAuth,
+  requireEnrolledInClass,
+  zValidator("json", createDiscussionSchema),
+  async (c) => {
+    const cls = c.get("classRow");
+    const user = c.get("user")!;
+    const taskId = c.req.param("taskId")!;
+    const data = c.req.valid("json");
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`task-discuss:${user.id}`, 10, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
+    const db = getDb();
+    const task = db
+      .select({ classId: classTasks.classId })
+      .from(classTasks)
+      .where(eq(classTasks.id, taskId))
+      .get();
+    if (!task || task.classId !== cls.id) {
+      return c.json({ error: "Task not found" }, 404);
+    }
+    const id = randomUUID();
+    const now = new Date().toISOString();
+    db.insert(classTaskDiscussions)
+      .values({
+        id,
+        taskId,
+        userId: user.id,
+        bodyMd: data.bodyMd,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .run();
+
+    // Phase 25A — notify the instructor + anyone who has submitted
+    // on this task (they care if someone's asking questions about
+    // it). De-duplicate; exclude the poster. notifyMany handles
+    // empty-set gracefully.
+    const submitters = db
+      .select({ userId: classTaskCompletions.userId })
+      .from(classTaskCompletions)
+      .where(eq(classTaskCompletions.taskId, taskId))
+      .all()
+      .map((r) => r.userId);
+    const recipients = [...new Set([cls.instructorId, ...submitters])].filter(
+      (uid) => uid !== user.id,
+    );
+    if (recipients.length > 0) {
+      // Look up the task title once for a useful preview.
+      const taskRow = db
+        .select({ title: classTasks.title })
+        .from(classTasks)
+        .where(eq(classTasks.id, taskId))
+        .get();
+      const preview =
+        data.bodyMd.length > 120
+          ? data.bodyMd.slice(0, 117).trimEnd() + "…"
+          : data.bodyMd;
+      void notifyMany(recipients, {
+        actorId: user.id,
+        kind: "class_discussion_post",
+        subjectType: "class_task_discussion",
+        subjectId: id,
+        contextSlug: cls.slug,
+        preview: taskRow ? `${taskRow.title}: ${preview}` : preview,
+      });
+    }
+
+    return c.json({ id }, 201);
+  },
+);
+
+// PUT /classes/:slug/tasks/:taskId/discussions/:id — author only.
+classesRouter.put(
+  "/:slug/tasks/:taskId/discussions/:id",
+  requireAuth,
+  requireEnrolledInClass,
+  zValidator("json", updateDiscussionSchema),
+  async (c) => {
+    const cls = c.get("classRow");
+    const user = c.get("user")!;
+    const taskId = c.req.param("taskId")!;
+    const id = c.req.param("id")!;
+    const data = c.req.valid("json");
+    const db = getDb();
+    const row = db
+      .select()
+      .from(classTaskDiscussions)
+      .where(eq(classTaskDiscussions.id, id))
+      .get();
+    if (!row || row.taskId !== taskId) {
+      return c.json({ error: "Post not found" }, 404);
+    }
+    // Belt-and-suspenders: the row belongs to a task in this class.
+    const task = db
+      .select({ classId: classTasks.classId })
+      .from(classTasks)
+      .where(eq(classTasks.id, row.taskId))
+      .get();
+    if (!task || task.classId !== cls.id) {
+      return c.json({ error: "Post not found" }, 404);
+    }
+    if (row.userId !== user.id) {
+      return c.json({ error: "Author only" }, 403);
+    }
+    db.update(classTaskDiscussions)
+      .set({ bodyMd: data.bodyMd, updatedAt: new Date().toISOString() })
+      .where(eq(classTaskDiscussions.id, id))
+      .run();
+    return c.json({ ok: true });
+  },
+);
+
+// DELETE /classes/:slug/tasks/:taskId/discussions/:id — author OR
+// instructor (moderation escape hatch).
+classesRouter.delete(
+  "/:slug/tasks/:taskId/discussions/:id",
+  requireAuth,
+  requireEnrolledInClass,
+  async (c) => {
+    const cls = c.get("classRow");
+    const user = c.get("user")!;
+    const taskId = c.req.param("taskId")!;
+    const id = c.req.param("id")!;
+    const db = getDb();
+    const row = db
+      .select()
+      .from(classTaskDiscussions)
+      .where(eq(classTaskDiscussions.id, id))
+      .get();
+    if (!row || row.taskId !== taskId) {
+      return c.json({ error: "Post not found" }, 404);
+    }
+    const task = db
+      .select({ classId: classTasks.classId })
+      .from(classTasks)
+      .where(eq(classTasks.id, row.taskId))
+      .get();
+    if (!task || task.classId !== cls.id) {
+      return c.json({ error: "Post not found" }, 404);
+    }
+    const isAuthor = row.userId === user.id;
+    const isInstructor = cls.instructorId === user.id;
+    if (!isAuthor && !isInstructor) {
+      return c.json({ error: "Author or instructor only" }, 403);
+    }
+    db.delete(classTaskDiscussions)
+      .where(eq(classTaskDiscussions.id, id))
+      .run();
+    return c.json({ ok: true });
+  },
+);
+
+// ---------- Phase 24B — non-graded class materials ----------
+
+const createMaterialSchema = z.object({
+  title: z.string().min(1).max(200),
+  descriptionMd: z.string().max(5000).optional().default(""),
+  url: z.string().url().max(500).nullable().optional(),
+  kind: z.enum(["note", "link", "file"]).optional().default("note"),
+  sortOrder: z.number().int().min(-9999).max(9999).optional(),
+});
+
+const updateMaterialSchema = createMaterialSchema.partial();
+
+// GET /classes/:slug/materials — any enrollee.
+classesRouter.get(
+  "/:slug/materials",
+  requireAuth,
+  requireEnrolledInClass,
+  async (c) => {
+    const cls = c.get("classRow");
+    const rows = getDb()
+      .select()
+      .from(classMaterials)
+      .where(eq(classMaterials.classId, cls.id))
+      .orderBy(asc(classMaterials.sortOrder), asc(classMaterials.createdAt))
+      .all();
+    return c.json({
+      materials: rows.map((r) => ({
+        id: r.id,
+        title: r.title,
+        descriptionMd: r.descriptionMd,
+        url: r.url,
+        kind: r.kind as "note" | "link" | "file",
+        sortOrder: r.sortOrder,
+        createdAt: r.createdAt,
+        updatedAt: r.updatedAt,
+      })),
+    });
+  },
+);
+
+// POST /classes/:slug/materials — instructor or TA.
+classesRouter.post(
+  "/:slug/materials",
+  requireAuth,
+  requireInstructorOrTa,
+  zValidator("json", createMaterialSchema),
+  async (c) => {
+    const cls = c.get("classRow");
+    const user = c.get("user")!;
+    const data = c.req.valid("json");
+    const db = getDb();
+    // Default sortOrder = max+1 so new materials land at the end.
+    let sortOrder = data.sortOrder ?? 0;
+    if (data.sortOrder === undefined) {
+      const max = db
+        .select({ m: sql<number>`MAX(${classMaterials.sortOrder})` })
+        .from(classMaterials)
+        .where(eq(classMaterials.classId, cls.id))
+        .get();
+      sortOrder = Number(max?.m ?? 0) + 1;
+    }
+    const id = randomUUID();
+    const now = new Date().toISOString();
+    db.insert(classMaterials)
+      .values({
+        id,
+        classId: cls.id,
+        title: data.title.trim(),
+        descriptionMd: data.descriptionMd ?? "",
+        url: data.url ?? null,
+        kind: data.kind ?? "note",
+        sortOrder,
+        createdById: user.id,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .run();
+    return c.json({ id }, 201);
+  },
+);
+
+// PUT /classes/:slug/materials/:id — instructor or TA.
+classesRouter.put(
+  "/:slug/materials/:id",
+  requireAuth,
+  requireInstructorOrTa,
+  zValidator("json", updateMaterialSchema),
+  async (c) => {
+    const cls = c.get("classRow");
+    const id = c.req.param("id")!;
+    const data = c.req.valid("json");
+    const db = getDb();
+    const row = db
+      .select()
+      .from(classMaterials)
+      .where(eq(classMaterials.id, id))
+      .get();
+    if (!row || row.classId !== cls.id) {
+      return c.json({ error: "Material not found" }, 404);
+    }
+    const patch: Record<string, unknown> = {
+      updatedAt: new Date().toISOString(),
+    };
+    if (data.title !== undefined) patch.title = data.title.trim();
+    if (data.descriptionMd !== undefined) patch.descriptionMd = data.descriptionMd;
+    if (data.url !== undefined) patch.url = data.url;
+    if (data.kind !== undefined) patch.kind = data.kind;
+    if (data.sortOrder !== undefined) patch.sortOrder = data.sortOrder;
+    db.update(classMaterials).set(patch).where(eq(classMaterials.id, id)).run();
+    return c.json({ ok: true });
+  },
+);
+
+// DELETE /classes/:slug/materials/:id — instructor or TA.
+classesRouter.delete(
+  "/:slug/materials/:id",
+  requireAuth,
+  requireInstructorOrTa,
+  async (c) => {
+    const cls = c.get("classRow");
+    const id = c.req.param("id")!;
+    const db = getDb();
+    const row = db
+      .select({ classId: classMaterials.classId })
+      .from(classMaterials)
+      .where(eq(classMaterials.id, id))
+      .get();
+    if (!row || row.classId !== cls.id) {
+      return c.json({ error: "Material not found" }, 404);
+    }
+    db.delete(classMaterials).where(eq(classMaterials.id, id)).run();
+    return c.json({ ok: true });
+  },
+);
+
+// ---------- Phase 24D — clone task across classes ----------
+
+const cloneTaskSchema = z.object({
+  targetClassSlug: z.string().min(1).max(120),
+});
+
+classesRouter.post(
+  "/:slug/tasks/:taskId/clone",
+  requireAuth,
+  requireInstructor,
+  zValidator("json", cloneTaskSchema),
+  async (c) => {
+    const cls = c.get("classRow");
+    const user = c.get("user")!;
+    const taskId = c.req.param("taskId")!;
+    const { targetClassSlug } = c.req.valid("json");
+    const db = getDb();
+
+    const sourceTask = db
+      .select()
+      .from(classTasks)
+      .where(eq(classTasks.id, taskId))
+      .get();
+    if (!sourceTask || sourceTask.classId !== cls.id) {
+      return c.json({ error: "Task not found" }, 404);
+    }
+
+    const target = db
+      .select()
+      .from(classes)
+      .where(eq(classes.slug, targetClassSlug))
+      .get();
+    if (!target) {
+      return c.json({ error: "Target class not found" }, 404);
+    }
+    if (target.instructorId !== user.id) {
+      return c.json({ error: "You don't own the target class" }, 403);
+    }
+    if (target.status !== "active") {
+      return c.json({ error: "Target class is archived" }, 400);
+    }
+
+    // Copy the task body but reset dueAt — clone is typically used
+    // term-over-term where the schedule shifts. Variants are NOT
+    // copied; they're a per-class personalization that the
+    // instructor regenerates after enrollment lands in the target.
+    const newId = randomUUID();
+    db.insert(classTasks)
+      .values({
+        id: newId,
+        classId: target.id,
+        kind: sourceTask.kind,
+        title: sourceTask.title,
+        descriptionMd: sourceTask.descriptionMd,
+        url: sourceTask.url,
+        dueAt: null,
+        xpReward: sourceTask.xpReward,
+        topic: sourceTask.topic,
+        createdById: user.id,
+      })
+      .run();
+    return c.json({ taskId: newId, targetClassSlug }, 201);
   },
 );

@@ -118,7 +118,12 @@ const listSchema = z.object({
   limit: z
     .string()
     .optional()
-    .transform((v) => Math.min(50, Math.max(1, parseInt(v ?? "20", 10) || 20))),
+    // Phase 20B — cap bumped 50 → 500 (mirrors the Phase 18C
+    // review-queue fix). The persistent test DB accumulates grants
+    // across runs and freshly-seeded test fixtures can fall outside
+    // the lower window; the in-memory cost of a 500-row pull is
+    // trivial.
+    .transform((v) => Math.min(500, Math.max(1, parseInt(v ?? "20", 10) || 20))),
 });
 
 grantsRouter.get("/", zValidator("query", listSchema), async (c) => {

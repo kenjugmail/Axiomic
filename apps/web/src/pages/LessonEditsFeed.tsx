@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { confirm } from "../stores/confirm";
 import { Link, useSearchParams } from "react-router-dom";
 import { Flag, RotateCcw, Sparkles, FileEdit } from "lucide-react";
 import { api } from "../lib/api";
@@ -54,7 +55,12 @@ export function LessonEditsFeed() {
       toast.error("There's no earlier version to revert to.");
       return;
     }
-    if (!confirm(`Revert ${e.nodeTitle} from v${e.version} back to v${e.version - 1}?`)) {
+    if (
+      !(await confirm({
+        title: `Revert ${e.nodeTitle}?`,
+        body: `From v${e.version} back to v${e.version - 1}. A new version is created.`,
+      }))
+    ) {
       return;
     }
     setReverting(e.versionId);

@@ -8,6 +8,7 @@
 // Backed by the existing /me/pet/shop and /me/pet/skin-shop endpoints.
 
 import { useEffect, useMemo, useState } from "react";
+import { confirm } from "../stores/confirm";
 import { Link } from "react-router-dom";
 import { Lock, Check, Sparkles } from "lucide-react";
 import type {
@@ -47,30 +48,41 @@ export function ShopPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
 
-  const reload = async () => {
+  const reload = async (alive: () => boolean = () => true) => {
     try {
       const [shop, skins, mine] = await Promise.all([
         api.pet.shop(),
         api.pet.skinShop().catch(() => null),
         api.pet.me().catch(() => null),
       ]);
+      if (!alive()) return;
       setData(shop);
       setSkinShop(skins);
       setMe(mine);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed");
+      if (alive()) setError(e instanceof Error ? e.message : "Failed");
     }
   };
 
   useEffect(() => {
     if (!user) return;
-    void reload();
+    let alive = true;
+    void reload(() => alive);
+    return () => {
+      alive = false;
+    };
   }, [user]);
 
   const buy = async (item: ShopItem) => {
     if (item.owned || !item.affordable) return;
     const cost = item.effectiveCost;
-    if (!confirm(`Spend ${cost} XP on ${item.name}?`)) return;
+    if (
+      !(await confirm({
+        title: `Spend ${cost} XP on ${item.name}?`,
+        confirmLabel: "Buy",
+      }))
+    )
+      return;
     setBusy(item.slug);
     try {
       const r = await api.pet.buy({ cosmeticSlug: item.slug });
@@ -91,7 +103,13 @@ export function ShopPage() {
 
   const buySkin = async (item: SkinShopItem) => {
     if (item.owned || !item.affordable) return;
-    if (!confirm(`Spend ${item.xpCost} XP on the ${item.name} skin?`)) return;
+    if (
+      !(await confirm({
+        title: `Spend ${item.xpCost} XP on the ${item.name} skin?`,
+        confirmLabel: "Buy",
+      }))
+    )
+      return;
     setBusy(`skin:${item.slug}`);
     try {
       await api.pet.buySkin(item.slug);

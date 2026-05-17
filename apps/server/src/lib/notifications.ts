@@ -38,7 +38,49 @@ export type NotificationKind =
   // S90 — pet evolution.
   | "pet_leveled_up"
   // Phase L — pet skin grant.
-  | "skin_granted";
+  | "skin_granted"
+  // Phase 25A — class stream + per-task discussion notifications.
+  // Both always-on; per-user mute toggle deferred.
+  | "class_announcement"
+  | "class_discussion_post"
+  // Phase 27 — hackathon lifecycle events. All always-on; the
+  // judging-complete + prize-won events are direct and rare,
+  // so no per-user mute toggle in v1.
+  | "hackathon_registered"
+  | "hackathon_judging_complete"
+  | "hackathon_prize_won"
+  // Phase 28 — reproduction credential + research bounty events.
+  // Always-on; direct + rare.
+  | "reproduction_verified"
+  | "bounty_claimed"
+  | "bounty_accepted"
+  // Phase 29B — a new message in a collaborative review room.
+  // Always-on; direct ping to other room participants.
+  | "review_room_message"
+  // Phase 30B — a cohort study session was scheduled. Always-on;
+  // direct fan-out to cohort members.
+  | "cohort_session_scheduled"
+  // Phase 32A — a signed credential was revoked (e.g. a
+  // reproduction refuted after mint). Always-on; direct + rare.
+  | "credential_revoked"
+  // Phase 32D — a mastered concept / aging credential is due for
+  // a refresh or re-attestation. Muteable via the mastery toggle.
+  | "review_due"
+  // Phase 34A — a recruiter sent a verifiable role match offer /
+  // the candidate accepted. Always-on; direct + rare.
+  | "match_offer_received"
+  | "match_offer_accepted"
+  // Phase 34D — a learning commitment was kept / lapsed, or you
+  // were named a witness. Always-on; direct + rare.
+  | "commitment_kept"
+  | "commitment_lapsed"
+  | "commitment_witnessed"
+  // Phase 34B — an org attested one of your artifacts. Always-on.
+  | "org_attested"
+  // Phase 39 — a mission contribution was peer/expert-verified
+  // (signed credential minted). Always-on; direct + rare, mirrors
+  // reproduction_verified.
+  | "mission_contribution_verified";
 
 export type NotificationSubject =
   | "topic"
@@ -64,7 +106,32 @@ export type NotificationSubject =
   | "competition"
   | "pet"
   // Phase L — skin grant.
-  | "pet_skin";
+  | "pet_skin"
+  // Phase 25A — classroom feed surfaces. subjectId carries the
+  // announcement / discussion row id; contextSlug is the class slug.
+  | "class_announcement"
+  | "class_task_discussion"
+  // Phase 27 — hackathon entities. subjectId carries the
+  // hackathon / team / prize row id; contextSlug is the
+  // hackathon slug.
+  | "hackathon"
+  | "hackathon_team"
+  | "hackathon_prize"
+  // Phase 28 — reproduction credential + research bounty.
+  | "reproduction"
+  | "research_bounty"
+  // Phase 29B — collaborative review room. subjectId carries
+  // `${roomKind}:${roomId}`.
+  | "review_room"
+  // Phase 30B — cohort study session. subjectId = session id;
+  // contextSlug = cohort slug.
+  | "cohort_study_session"
+  // Phase 34A — recruiter match offer. subjectId = offer id.
+  | "match_offer"
+  // Phase 34D — learning commitment. subjectId = commitment id.
+  | "commitment"
+  // Phase 34B — org attestation. subjectId = attestation id.
+  | "org_attestation";
 
 const MAX_MENTIONS_PER_BODY = 10;
 const PREVIEW_MAX = 140;
@@ -146,6 +213,10 @@ function kindGate(
       return "notifyReplies";
     case "mastery_level_up":
       return "notifyMastery";
+    // Phase 32D — decay/re-attest nudges ride the same mute toggle
+    // as mastery level-ups (both are learning-progress signals).
+    case "review_due":
+      return "notifyMastery";
     case "news_edit_proposed":
     case "news_edit_approved":
     case "news_edit_rejected":
@@ -168,10 +239,30 @@ function kindGate(
     case "pet_hatched":
     case "pet_leveled_up":
     case "skin_granted":
+    case "class_announcement":
+    case "class_discussion_post":
+    case "hackathon_registered":
+    case "hackathon_judging_complete":
+    case "hackathon_prize_won":
+    case "reproduction_verified":
+    case "bounty_claimed":
+    case "bounty_accepted":
+    case "review_room_message":
+    case "cohort_session_scheduled":
+    case "credential_revoked":
+    case "match_offer_received":
+    case "match_offer_accepted":
+    case "commitment_kept":
+    case "commitment_lapsed":
+    case "commitment_witnessed":
+    case "org_attested":
+    case "mission_contribution_verified":
       // News flow + follow events + admin pipeline + funding
       // alerts + Sprint 80 lab operational signals + S88
-      // classroom/pet events + S90 pet evolution are direct +
-      // low-volume — always on.
+      // classroom/pet events + S90 pet evolution + Phase 25A
+      // classroom feed surfaces + Phase 27 hackathon lifecycle
+      // events are direct + low-volume — always on (per-user
+      // mute toggle deferred).
       return null;
   }
 }

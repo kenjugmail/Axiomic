@@ -522,6 +522,10 @@ export interface ExamQuestionPayload {
   // Essay-only. Null/0 for multiple-choice.
   rubricMd: string | null;
   maxEssayScore: number | null;
+  // Phase 16A — only present on a completed attempt's review payload.
+  // Server strips this during an in-progress attempt so the answer key
+  // doesn't leak. Always null for essay questions.
+  correctIndex?: number | null;
 }
 
 export interface ExamAttemptAnswer {
@@ -533,6 +537,10 @@ export interface ExamAttemptAnswer {
   essayFeedbackMd?: string | null;
   flagged: boolean;
   timeSpentMs: number;
+  // Phase 16A — multiple-choice correctness flag. Server sets this on
+  // submit. null while attempt is in progress or for essay rows where
+  // the rubric score is what matters.
+  isCorrect?: boolean | null;
 }
 
 export interface ExamAttemptState {
@@ -759,6 +767,13 @@ export interface MasteryNode {
   // pageIds. Capped at 3 per node server-side; clients show "Discuss"
   // chips inline.
   linkedTopics?: LinkedTopicLite[];
+  // Sprint 82 — non-lesson nodes (lab playbooks) carry no lessonData
+  // by design; their content is the linked cert/protocol/equipment.
+  // The server already sends these on the path payload.
+  nodeKind?: "lesson" | "protocol" | "cert" | "equipment-training";
+  protocolSlug?: string | null;
+  certSlug?: string | null;
+  equipmentSlug?: string | null;
 }
 
 export interface UserNodeProgress {
@@ -1563,6 +1578,10 @@ export interface MisconceptionSubmissionListItem {
   catalogId: string | null;
   createdAt: string;
   decidedAt: string | null;
+  // Phase 16C — count of currently-active diagnoses keyed by this
+  // misconception. 0 for unmerged submissions; >0 indicates the tutor
+  // and detector are using it in production today.
+  liveDiagnosisCount?: number;
 }
 
 export interface MisconceptionSubmissionListResponse {
@@ -2368,7 +2387,39 @@ export type LiveEvent =
       targetId: string;
       userIds: string[];
       usernames: string[];
+    }
+  // Phase 29B — collaborative review rooms.
+  | {
+      type: "room_message";
+      kind: LiveRoomKind;
+      roomId: string;
+      message: {
+        id: string;
+        authorId: string;
+        authorUsername: string;
+        bodyMd: string;
+        parentId: string | null;
+        createdAt: string;
+      };
+    }
+  | {
+      type: "room_presence";
+      kind: LiveRoomKind;
+      roomId: string;
+      userIds: string[];
+      usernames: string[];
     };
+
+// Phase 39 — kept in sync with the server's liveBus.ts RoomKind
+// union. Was stale (reproduction | capstone_submission only) while
+// cohort_study + bounty_collaboration had already shipped; this
+// adds those + the new mission_working_group.
+export type LiveRoomKind =
+  | "reproduction"
+  | "capstone_submission"
+  | "cohort_study"
+  | "bounty_collaboration"
+  | "mission_working_group";
 
 // --- Learning-path enrichments ---
 
@@ -2704,6 +2755,25 @@ export interface MisconceptionEvidence {
   snippet: string;
 }
 
+// Phase 16B — concrete next-step suggestions surfaced on the
+// /me/weak-concepts page. The UI renders pills only for the steps
+// where the relevant content exists, so we don't link learners to
+// dead ends.
+export interface MisconceptionNextSteps {
+  // Wiki page slug to re-read, when a page actually exists for this
+  // concept. Mirrors `conceptSlug` but is null when the slug doesn't
+  // resolve to a published wiki page yet.
+  wikiSlug: string | null;
+  // The mastery-path + node slugs to deep-link a quiz retake. Null
+  // when no node references this concept's page or none of the
+  // referencing nodes carry a quizData payload.
+  quizPath: { pathSlug: string; nodeSlug: string } | null;
+  // True when the user has at least one flashcard tagged with this
+  // concept's pageSlug. We don't expose a count to avoid privacy
+  // weirdness across cross-user comparison.
+  hasFlashcards: boolean;
+}
+
 export interface MisconceptionDiagnosis {
   id: string;
   conceptSlug: string;
@@ -2716,6 +2786,8 @@ export interface MisconceptionDiagnosis {
   status: MisconceptionStatus;
   firstSeenAt: string;
   lastSeenAt: string;
+  // Phase 16B — optional so existing callers stay compatible.
+  nextSteps?: MisconceptionNextSteps;
 }
 
 export interface WeakConceptsResponse {
@@ -3356,6 +3428,8 @@ export interface ClassTaskSummary {
   url: string | null;
   dueAt: string | null;
   xpReward: number;
+  // Phase 23C — optional topic label for Classwork-tab grouping.
+  topic?: string | null;
   createdAt: string;
   myCompleted: boolean;
 }
@@ -3466,6 +3540,10 @@ export interface UpdateClassRequest {
   discoverable?: boolean;
   linkedCohortId?: string | null;
   status?: ClassStatus;
+  // Phase 21 — class difficulty + topic scope feeding the AI
+  // variant generator.
+  level?: "intro" | "undergrad" | "grad" | null;
+  topicSlugs?: string[];
 }
 
 // S102 — public class directory entry.
@@ -3491,6 +3569,7 @@ export interface CreateClassTaskRequest {
   url?: string | null;
   dueAt?: string | null;
   xpReward?: number | null;
+  topic?: string | null;
 }
 
 export interface UpdateClassTaskRequest {
@@ -3499,6 +3578,7 @@ export interface UpdateClassTaskRequest {
   url?: string | null;
   dueAt?: string | null;
   xpReward?: number | null;
+  topic?: string | null;
 }
 
 export interface CompleteClassTaskRequest {

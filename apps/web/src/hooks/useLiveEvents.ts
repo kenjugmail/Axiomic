@@ -20,6 +20,7 @@ interface Subscription {
   proxy: Handler;
   articleSlugs: string[];
   draftChannels: DraftChannel[];
+  roomChannels: RoomChannel[];
 }
 
 let socket: WebSocket | null = null;
@@ -42,6 +43,19 @@ function sendSubscriptionFrames(ws: WebSocket, sub: Subscription): void {
           type: "subscribe_draft",
           kind: ch.kind,
           targetId: ch.targetId,
+        }),
+      );
+    } catch {
+      // ignore
+    }
+  }
+  for (const ch of sub.roomChannels) {
+    try {
+      ws.send(
+        JSON.stringify({
+          type: "subscribe_room",
+          kind: ch.kind,
+          roomId: ch.roomId,
         }),
       );
     } catch {
@@ -102,6 +116,19 @@ export interface DraftChannel {
   targetId: string;
 }
 
+// Phase 29B — collaborative review room channels.
+export type RoomKind =
+  | "reproduction"
+  | "capstone_submission"
+  | "cohort_study"
+  | "bounty_collaboration"
+  | "mission_working_group";
+
+export interface RoomChannel {
+  kind: RoomKind;
+  roomId: string;
+}
+
 export interface UseLiveEventsOptions {
   // Articles to subscribe to. Sent as `subscribe_article` frames once
   // the socket opens.
@@ -111,12 +138,17 @@ export interface UseLiveEventsOptions {
   // out `draft_update` / `draft_published` / `draft_presence` events
   // to all subscribers.
   draftChannels?: DraftChannel[];
+  // Phase 29B — review room channels. Each ({kind, roomId}) sends a
+  // `subscribe_room` frame; the server fans out `room_message` /
+  // `room_presence` events to all subscribers.
+  roomChannels?: RoomChannel[];
   onEvent: Handler;
 }
 
 export function useLiveEvents({
   articleSlugs = [],
   draftChannels = [],
+  roomChannels = [],
   onEvent,
 }: UseLiveEventsOptions): void {
   // Hold the latest handler in a ref so the effect-cleanup uses the
@@ -126,7 +158,12 @@ export function useLiveEvents({
 
   useEffect(() => {
     const proxy: Handler = (e) => handlerRef.current(e);
-    const sub: Subscription = { proxy, articleSlugs, draftChannels };
+    const sub: Subscription = {
+      proxy,
+      articleSlugs,
+      draftChannels,
+      roomChannels,
+    };
     subscriptions.add(sub);
 
     const ws = ensureSocket();
@@ -143,5 +180,9 @@ export function useLiveEvents({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [articleSlugs.join("|"), draftChannels.map((d) => `${d.kind}:${d.targetId}`).join("|")]);
+  }, [
+    articleSlugs.join("|"),
+    draftChannels.map((d) => `${d.kind}:${d.targetId}`).join("|"),
+    roomChannels.map((r) => `${r.kind}:${r.roomId}`).join("|"),
+  ]);
 }

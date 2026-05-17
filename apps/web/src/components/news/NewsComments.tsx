@@ -5,6 +5,7 @@ import type { NewsCommentNode } from "@axiomic/types";
 import { MarkdownRenderer } from "../MarkdownRenderer";
 import { RichComposer } from "../composer/RichComposer";
 import { useAuthStore } from "../../stores/auth";
+import { toast } from "../../stores/toast";
 import { relativeTime as timeAgo } from "../../lib/dates";
 
 interface Props {
@@ -57,7 +58,7 @@ export function NewsComments({ articleSlug, surface = "news" }: Props) {
       }
       refresh();
     } catch (e: any) {
-      alert(e?.message ?? "Could not post");
+      toast.error(e?.message ?? "Could not post");
     } finally {
       setSubmitting(false);
     }
@@ -72,7 +73,7 @@ export function NewsComments({ articleSlug, surface = "news" }: Props) {
       setEditDraft("");
       refresh();
     } catch (e: any) {
-      alert(e?.message ?? "Edit failed");
+      toast.error(e?.message ?? "Edit failed");
     } finally {
       setSubmitting(false);
     }

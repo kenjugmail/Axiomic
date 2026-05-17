@@ -79,6 +79,13 @@ export const users = sqliteTable("users", {
   // token tied to it. The verify-email-change route copies
   // pendingEmail → email when the link is clicked.
   pendingEmail: text("pending_email"),
+  // Phase 28A — gates the public credential wallet at
+  // /u/:username/credentials. Default true: the artifact pages it
+  // aggregates are already public, so the portfolio is too unless
+  // the user opts out.
+  credentialsPublic: integer("credentials_public", { mode: "boolean" })
+    .notNull()
+    .default(true),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
 }, (t) => ({
@@ -611,6 +618,14 @@ export const reproductions = sqliteTable(
     status: text("status").notNull(),
     notes: text("notes"),
     evidenceUrl: text("evidence_url"),
+    // Phase 28B — set once a reproduction crosses the peer-review
+    // confirmation threshold. Null = not yet credentialed. Gates
+    // the signed "Reproduction Verified" credential so it mints
+    // exactly once.
+    credentialMintedAt: text("credential_minted_at"),
+    // Phase 29A — the summed reviewer trust weight at the moment
+    // of mint (audit + reversibility; null until minted).
+    credentialMintWeight: real("credential_mint_weight"),
     createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   },
   (t) => ({
@@ -1395,6 +1410,33 @@ export const cohortMembers = sqliteTable("cohort_members", {
   pk: uniqueIndex("cohort_members_pk").on(t.cohortId, t.userId),
   userIdx: index("cohort_members_user_idx").on(t.userId, t.role),
 }));
+
+// Phase 30B — scheduled live study sessions for a cohort. The
+// session row id doubles as the liveBus room id (the
+// "roomId = entity id" pattern). Append-only chat reuses the
+// Phase 29B reviewRoomMessages model via RoomKind="cohort_study".
+export const cohortStudySessions = sqliteTable(
+  "cohort_study_sessions",
+  {
+    id: text("id").primaryKey(),
+    cohortId: text("cohort_id")
+      .notNull()
+      .references(() => cohorts.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    scheduledAt: text("scheduled_at").notNull(),
+    roomId: text("room_id").notNull(),
+    createdById: text("created_by_id")
+      .notNull()
+      .references(() => users.id),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    cohortIdx: index("cohort_study_sessions_cohort_idx").on(
+      t.cohortId,
+      t.scheduledAt,
+    ),
+  }),
+);
 
 // One-to-one mentor relationships outside of cohorts. A user offers
 // themselves as a mentor in their profile; another user can request
@@ -2377,6 +2419,16 @@ export const classes = sqliteTable("classes", {
   // accepting new enrollments + new tasks.
   status: text("status").notNull().default("active"),
   instructorId: text("instructor_id").notNull().references(() => users.id),
+  // Phase 21 — class difficulty calibration. 'intro' | 'undergrad' |
+  // 'grad' | null. Feeds the AI variant generator so a transformer
+  // class for ML PhDs gets very different prompts from one for first-
+  // year CS students.
+  level: text("level"),
+  // Phase 21 — JSON array of wiki/concept slugs the class covers.
+  // The weakness aggregator filters signal sources to this scope so
+  // an ML class doesn't pull in a student's organic chemistry
+  // mistakes. Empty array (default) = use all signals.
+  topicSlugsJson: text("topic_slugs_json").notNull().default("[]"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
 }, (t) => ({
@@ -2418,6 +2470,10 @@ export const classTasks = sqliteTable("class_tasks", {
   url: text("url"),
   dueAt: text("due_at"),
   xpReward: integer("xp_reward"),
+  // Phase 23C — optional grouping label for the Classwork tab
+  // ("Week 1: Linear Algebra"). Free-form so instructors can
+  // organize however the class needs. Null = "(no topic)" bucket.
+  topic: text("topic"),
   createdById: text("created_by_id").notNull().references(() => users.id),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
 }, (t) => ({
@@ -2437,15 +2493,92 @@ export const classTaskCompletions = sqliteTable("class_task_completions", {
   content: text("content"),
   // Late-flag computed at completion time vs task.dueAt.
   wasLate: integer("was_late", { mode: "boolean" }).notNull().default(false),
-  // Instructor-set grade. JSON: {score, feedback}. Null until
-  // graded. S86 keeps grading manual (no AI grader for class
-  // homework yet).
+  // Grade JSON: {score, feedback, perCriterion?, aiGenerated?}.
+  // Null until graded. Phase 21 added the auto-grader path for
+  // submissions of personalized variants; manual instructor grades
+  // still win on conflict.
   gradeJson: text("grade_json"),
   submittedAt: text("submitted_at").default(sql`(datetime('now'))`).notNull(),
   gradedAt: text("graded_at"),
 }, (t) => ({
   pk: uniqueIndex("class_task_completions_pk").on(t.taskId, t.userId),
   userIdx: index("class_task_completions_user_idx").on(t.userId, t.submittedAt),
+}));
+
+// Phase 21 — per-student personalized variant of a class task.
+// An instructor authors a base classTask; the AI generator produces
+// one variant per enrolled student, tuned to their weakness profile
+// and the class's level. Variants share the base task's learning
+// objective but emphasize concepts the student is weak on. The
+// existing classTaskCompletions row (keyed on taskId + userId) still
+// holds the student's submission; the variant only carries the
+// generated prompt + rubric.
+export const classTaskVariants = sqliteTable("class_task_variants", {
+  id: text("id").primaryKey(),
+  taskId: text("task_id").notNull()
+    .references(() => classTasks.id, { onDelete: "cascade" }),
+  studentId: text("student_id").notNull().references(() => users.id),
+  // The personalized prompt markdown shown to the student in place
+  // of the base task's descriptionMd.
+  promptMd: text("prompt_md").notNull(),
+  // Structured rubric the auto-grader reads. JSON:
+  // { criteria: [{ id, description, weight? }], passingScore }.
+  rubricJson: text("rubric_json").notNull(),
+  // Compact snapshot of the weakness signals that informed
+  // generation, so we can re-rank or audit later without re-querying.
+  weaknessSnapshotJson: text("weakness_snapshot_json").notNull(),
+  // Deterministic seed (hash of taskId + studentId + signal digest)
+  // so mock-provider tests stay reproducible.
+  generationSeed: text("generation_seed").notNull(),
+  // Free-form "why we wrote it this way" string returned by the
+  // generator; surfaced to the instructor in the variant preview.
+  rationale: text("rationale").notNull().default(""),
+  generatedAt: text("generated_at").default(sql`(datetime('now'))`).notNull(),
+  // The instructor who triggered the generation. Null for lazy
+  // first-view generation (new enrollee joining after the initial
+  // bulk run).
+  generatedById: text("generated_by_id").references(() => users.id),
+}, (t) => ({
+  pk: uniqueIndex("class_task_variants_pk").on(t.taskId, t.studentId),
+  studentIdx: index("class_task_variants_student_idx").on(t.studentId, t.generatedAt),
+}));
+
+// Phase 24A — per-task discussion thread. Flat (no parentId) so the
+// UI stays simple; matches the GC pattern where assignment comments
+// are a flat list. Any enrollee can post; author can edit own; author
+// or instructor can delete (moderation escape hatch).
+export const classTaskDiscussions = sqliteTable("class_task_discussions", {
+  id: text("id").primaryKey(),
+  taskId: text("task_id").notNull()
+    .references(() => classTasks.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id),
+  bodyMd: text("body_md").notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  taskIdx: index("class_task_discussions_task_idx").on(t.taskId, t.createdAt),
+}));
+
+// Phase 24B — non-graded class materials. Distinct from classTasks
+// so no submission / XP / variant affordances surface in the UI.
+// Instructor authors; any enrollee reads. sortOrder is set by
+// instructor's up/down controls (no drag library in v1).
+export const classMaterials = sqliteTable("class_materials", {
+  id: text("id").primaryKey(),
+  classId: text("class_id").notNull()
+    .references(() => classes.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  descriptionMd: text("description_md").notNull().default(""),
+  url: text("url"),
+  // 'note' | 'link' | 'file'. 'file' is a placeholder for future
+  // upload integration — for now it renders the same as 'link'.
+  kind: text("kind").notNull().default("note"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdById: text("created_by_id").notNull().references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  classIdx: index("class_materials_class_idx").on(t.classId, t.sortOrder, t.createdAt),
 }));
 
 // One row per (class, user, sessionDate). Instructor or TA records.
@@ -2463,6 +2596,33 @@ export const classAttendance = sqliteTable("class_attendance", {
 }, (t) => ({
   pk: uniqueIndex("class_attendance_pk").on(t.classId, t.userId, t.sessionDate),
   classDateIdx: index("class_attendance_class_date_idx").on(t.classId, t.sessionDate),
+}));
+
+// Phase 23A — class stream / announcements. Persistent
+// instructor-authored posts that show in chronological feed at
+// the top of the class page. Anyone enrolled reads; instructor
+// + TAs post / edit / delete. Pinned items sort first.
+//
+// Replaces the prior pattern of stuffing announcements into
+// classes.welcomeMessageMd (single string, no history).
+export const classAnnouncements = sqliteTable("class_announcements", {
+  id: text("id").primaryKey(),
+  classId: text("class_id").notNull()
+    .references(() => classes.id, { onDelete: "cascade" }),
+  authorId: text("author_id").notNull().references(() => users.id),
+  bodyMd: text("body_md").notNull(),
+  // Boolean stored as 0/1 (matches the rest of this schema).
+  pinned: integer("pinned", { mode: "boolean" }).notNull().default(false),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  // Stream feed reads: pinned-first, then newest. The composite
+  // index covers the typical sort.
+  feedIdx: index("class_announcements_feed_idx").on(
+    t.classId,
+    t.pinned,
+    t.createdAt,
+  ),
 }));
 
 // XP ledger. Append-only; the leaderboard query sums this per user
@@ -2839,3 +2999,881 @@ export const passwordResetTokens = sqliteTable("password_reset_tokens", {
 }, (t) => ({
   userIdx: index("password_reset_tokens_user_idx").on(t.userId),
 }));
+
+// ============================================================
+// Phase 27 — Hackathons + engineering competitions.
+//
+// Distinct from classCompetitions (which is hard-scoped to one
+// class). Hackathons are tenant-level entities that can be
+// public, scoped to a class, or scoped to a cohort. Hosts
+// define teams, submissions, judging mode, and prize tiers
+// that fan out XP + pet cosmetics/skins + badges to winning
+// teams via the existing grant infrastructure.
+// ============================================================
+
+export const hackathons = sqliteTable("hackathons", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  descriptionMd: text("description_md").notNull().default(""),
+  rulesMd: text("rules_md").notNull().default(""),
+  // Free-form so we can host "all fields" — recommended values
+  // surfaced in the UI datalist but anything's accepted.
+  fieldTag: text("field_tag").notNull().default("other"),
+  coverEmoji: text("cover_emoji").notNull().default("🏆"),
+  // 'public' | 'class' | 'cohort'. For 'class' hostClassId is
+  // required; for 'cohort' hostCohortId is required. Validated
+  // at the route layer, not via DB constraint.
+  hostMode: text("host_mode").notNull().default("public"),
+  hostClassId: text("host_class_id"),
+  hostCohortId: text("host_cohort_id"),
+  // Publicly listed in /hackathons/discover when true. Flips on
+  // publish; organizer can toggle.
+  discoverable: integer("discoverable", { mode: "boolean" }).notNull().default(false),
+  // 'draft' | 'registration' | 'active' | 'judging' | 'ended'.
+  // draft -> registration via /publish; registration -> active
+  // when startsAt is reached; active -> judging via /judge;
+  // judging -> ended when judging completes.
+  status: text("status").notNull().default("draft"),
+  // Soft cap; team-join refuses when at this size. Solo = 1.
+  maxTeamSize: integer("max_team_size").notNull().default(4),
+  // 'manual' | 'ai_rubric'. v1 supports both; peer-vote deferred.
+  judgingMode: text("judging_mode").notNull().default("manual"),
+  // Same shape as Phase 21B variant rubric:
+  // { criteria: [{id, description, weight?}], passingScore }.
+  // Null when judgingMode='manual'.
+  rubricJson: text("rubric_json"),
+  registrationOpensAt: text("registration_opens_at"),
+  registrationClosesAt: text("registration_closes_at"),
+  startsAt: text("starts_at"),
+  endsAt: text("ends_at"),
+  createdById: text("created_by_id").notNull().references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  // Directory: /hackathons/discover scans discoverable + status
+  // + soonest-starting first.
+  discoverIdx: index("hackathons_discover_idx").on(
+    t.discoverable,
+    t.status,
+    t.startsAt,
+  ),
+  // "My hosted hackathons" list.
+  organizerIdx: index("hackathons_organizer_idx").on(t.createdById, t.createdAt),
+}));
+
+export const hackathonTeams = sqliteTable("hackathon_teams", {
+  id: text("id").primaryKey(),
+  hackathonId: text("hackathon_id").notNull()
+    .references(() => hackathons.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  // The team captain submits on behalf of the team and is the
+  // sole edit gate. Promotes oldest member if captain leaves.
+  captainId: text("captain_id").notNull().references(() => users.id),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  hackathonIdx: index("hackathon_teams_hackathon_idx").on(t.hackathonId),
+}));
+
+// One row per (team, user). The denormalized hackathonId lets us
+// enforce one-team-per-user-per-hackathon at the DB level.
+export const hackathonTeamMembers = sqliteTable("hackathon_team_members", {
+  id: text("id").primaryKey(),
+  teamId: text("team_id").notNull()
+    .references(() => hackathonTeams.id, { onDelete: "cascade" }),
+  hackathonId: text("hackathon_id").notNull()
+    .references(() => hackathons.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id),
+  // 'captain' | 'member'. Captain stored on team.captainId too;
+  // mirror here for fast role lookups without a join.
+  role: text("role").notNull().default("member"),
+  joinedAt: text("joined_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  // One team per user per hackathon.
+  perHackathonUq: uniqueIndex("hackathon_team_members_user_uq")
+    .on(t.hackathonId, t.userId),
+  // Standard team-membership uniqueness.
+  perTeamUq: uniqueIndex("hackathon_team_members_team_uq")
+    .on(t.teamId, t.userId),
+}));
+
+export const hackathonSubmissions = sqliteTable("hackathon_submissions", {
+  id: text("id").primaryKey(),
+  hackathonId: text("hackathon_id").notNull()
+    .references(() => hackathons.id, { onDelete: "cascade" }),
+  teamId: text("team_id").notNull()
+    .references(() => hackathonTeams.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  writeup: text("writeup").notNull().default(""),
+  // JSON array of {kind: 'github'|'colab'|'demo'|'paper'|'other',
+  // url: string, label: string}.
+  artifactsJson: text("artifacts_json").notNull().default("[]"),
+  submittedAt: text("submitted_at").default(sql`(datetime('now'))`).notNull(),
+  // AI grader output (Phase 21B essayGrader shape) — populated
+  // by /judge when judgingMode='ai_rubric'. Null otherwise.
+  aiGradeJson: text("ai_grade_json"),
+  gradedAt: text("graded_at"),
+  // Organizer scratchpad — never shown to the team. Manual notes
+  // surface alongside aiGradeJson in the organizer view.
+  manualNotesMd: text("manual_notes_md").notNull().default(""),
+}, (t) => ({
+  // One submission per team (re-submit overwrites in place).
+  teamUq: uniqueIndex("hackathon_submissions_team_uq").on(t.teamId),
+}));
+
+export const hackathonPrizes = sqliteTable("hackathon_prizes", {
+  id: text("id").primaryKey(),
+  hackathonId: text("hackathon_id").notNull()
+    .references(() => hackathons.id, { onDelete: "cascade" }),
+  // 1 = winner, 2 = runner-up, 3 = third place, 0 = non-tier
+  // (e.g. "Best UX", "People's Choice"). Used for sort + label.
+  rank: integer("rank").notNull().default(0),
+  title: text("title").notNull(),
+  descriptionMd: text("description_md").notNull().default(""),
+  // Reward bundle. xpAmount goes through grantXp's idempotent
+  // grant; cosmetic/skin/badge slugs grant the matching reward
+  // when set. All optional — at least one is the practical
+  // requirement, but enforced only as good-vibe by the UI.
+  xpAmount: integer("xp_amount").notNull().default(0),
+  cosmeticSlug: text("cosmetic_slug"),
+  skinSlug: text("skin_slug"),
+  // Mints a userAchievements row (existing table). First-time
+  // only thanks to the unique index on (userId, slug).
+  badgeSlug: text("badge_slug"),
+  // Number of teams this prize can be awarded to (1 = single
+  // winner, >1 = ties allowed, e.g. multiple runners-up).
+  maxWinners: integer("max_winners").notNull().default(1),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  hackathonIdx: index("hackathon_prizes_hackathon_idx").on(t.hackathonId, t.rank),
+}));
+
+export const hackathonPrizeAwards = sqliteTable("hackathon_prize_awards", {
+  id: text("id").primaryKey(),
+  prizeId: text("prize_id").notNull()
+    .references(() => hackathonPrizes.id, { onDelete: "cascade" }),
+  teamId: text("team_id").notNull()
+    .references(() => hackathonTeams.id, { onDelete: "cascade" }),
+  awardedById: text("awarded_by_id").notNull().references(() => users.id),
+  awardedAt: text("awarded_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  // Idempotent award — same prize can't go to the same team twice.
+  prizeTeamUq: uniqueIndex("hackathon_prize_awards_uq").on(t.prizeId, t.teamId),
+}));
+
+// ============================================================
+// Phase 28 — the differentiation chain.
+//   28B: reproduction peer review → signed credential
+//   28C/D: research bounty marketplace → signed credential
+//   28E: longitudinal mastery snapshots → readiness model
+// (28A credential wallet is read-only aggregation; no tables.)
+// ============================================================
+
+// Phase 28B — peer review of a reproduction. Mirrors
+// capstonePeerReviews. Two 'confirmed' verdicts mint the
+// reproduction's signed credential (reproductions.credentialMintedAt).
+export const reproductionReviews = sqliteTable(
+  "reproduction_reviews",
+  {
+    id: text("id").primaryKey(),
+    reproductionId: text("reproduction_id")
+      .notNull()
+      .references(() => reproductions.id, { onDelete: "cascade" }),
+    reviewerId: text("reviewer_id").notNull().references(() => users.id),
+    // 'confirmed' | 'refuted' | 'inconclusive'
+    verdict: text("verdict").notNull(),
+    notesMd: text("notes_md").notNull().default(""),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    // One review per (reproduction, reviewer).
+    uq: uniqueIndex("reproduction_reviews_uq").on(
+      t.reproductionId,
+      t.reviewerId,
+    ),
+    reproIdx: index("reproduction_reviews_repro_idx").on(t.reproductionId),
+  }),
+);
+
+// Phase 29B — collaborative review rooms. A live (WebSocket-
+// backed) discussion thread attached to a reproduction or a
+// capstone submission so co-reviewers / mentor + reviewee can
+// hash it out together. Polymorphic (roomKind+roomId, no FK) —
+// mirrors reproductions.targetKind/targetId + the liveBus
+// draft:{kind}:{id} precedent. Append-only; single-level threads.
+export const reviewRoomMessages = sqliteTable(
+  "review_room_messages",
+  {
+    id: text("id").primaryKey(),
+    // 'reproduction' | 'capstone_submission'
+    roomKind: text("room_kind").notNull(),
+    roomId: text("room_id").notNull(),
+    authorId: text("author_id").notNull().references(() => users.id),
+    bodyMd: text("body_md").notNull().default(""),
+    // null = top-level; else the parent message id (one level).
+    parentId: text("parent_id"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    roomIdx: index("review_room_messages_room_idx").on(
+      t.roomKind,
+      t.roomId,
+      t.createdAt,
+    ),
+  }),
+);
+
+// Phase 28C — research bounty. A poster (researcher / institution)
+// publishes a unit of real work; learners claim + complete it for
+// XP + an optional badge + a signed "Bounty Completed" credential.
+export const researchBounties = sqliteTable(
+  "research_bounties",
+  {
+    id: text("id").primaryKey(),
+    slug: text("slug").notNull().unique(),
+    title: text("title").notNull(),
+    descriptionMd: text("description_md").notNull().default(""),
+    // 'reproduce' | 'extend' | 'analyze' | 'other'
+    kind: text("kind").notNull().default("other"),
+    // Optional linkage to the research artifact this bounty is about.
+    linkedPaperId: text("linked_paper_id"),
+    linkedArticleId: text("linked_article_id"),
+    rewardXp: integer("reward_xp").notNull().default(0),
+    rewardBadgeSlug: text("reward_badge_slug"),
+    // 'open' | 'in_review' | 'completed' | 'closed'
+    status: text("status").notNull().default("open"),
+    maxClaimants: integer("max_claimants").notNull().default(1),
+    deadlineAt: text("deadline_at"),
+    discoverable: integer("discoverable", { mode: "boolean" })
+      .notNull()
+      .default(true),
+    posterId: text("poster_id").notNull().references(() => users.id),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+    updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    discoverIdx: index("research_bounties_discover_idx").on(
+      t.discoverable,
+      t.status,
+      t.createdAt,
+    ),
+    posterIdx: index("research_bounties_poster_idx").on(
+      t.posterId,
+      t.createdAt,
+    ),
+  }),
+);
+
+export const bountyClaims = sqliteTable(
+  "bounty_claims",
+  {
+    id: text("id").primaryKey(),
+    bountyId: text("bounty_id")
+      .notNull()
+      .references(() => researchBounties.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull().references(() => users.id),
+    // 'claimed' | 'submitted' | 'accepted' | 'rejected'
+    status: text("status").notNull().default("claimed"),
+    claimedAt: text("claimed_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    // One claim per user per bounty.
+    uq: uniqueIndex("bounty_claims_uq").on(t.bountyId, t.userId),
+    bountyIdx: index("bounty_claims_bounty_idx").on(t.bountyId, t.status),
+  }),
+);
+
+export const bountySubmissions = sqliteTable(
+  "bounty_submissions",
+  {
+    id: text("id").primaryKey(),
+    claimId: text("claim_id")
+      .notNull()
+      .references(() => bountyClaims.id, { onDelete: "cascade" }),
+    writeup: text("writeup").notNull().default(""),
+    // JSON array of {kind, url, label} — same shape as Phase 27.
+    artifactsJson: text("artifacts_json").notNull().default("[]"),
+    // Advisory AI sanity pass (gradeEssay output). Never gates
+    // acceptance — the poster decides.
+    aiReviewJson: text("ai_review_json"),
+    submittedAt: text("submitted_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    // One submission per claim (re-submit overwrites in place).
+    claimUq: uniqueIndex("bounty_submissions_claim_uq").on(t.claimId),
+  }),
+);
+
+// Phase 28E — daily longitudinal snapshot of a user's mastery
+// posture. Upserted once per user per day when the Knowledge MRI
+// builds. Powers the readiness trajectory + dated study plan.
+export const masterySnapshots = sqliteTable(
+  "mastery_snapshots",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    // YYYY-MM-DD (UTC) — the dedup key alongside userId.
+    capturedOn: text("captured_on").notNull(),
+    masteredCount: integer("mastered_count").notNull().default(0),
+    inProgressCount: integer("in_progress_count").notNull().default(0),
+    untouchedCount: integer("untouched_count").notNull().default(0),
+    avgQuizScore: real("avg_quiz_score"),
+    weakConceptCount: integer("weak_concept_count").notNull().default(0),
+    capturedAt: text("captured_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uq: uniqueIndex("mastery_snapshots_uq").on(t.userId, t.capturedOn),
+    userIdx: index("mastery_snapshots_user_idx").on(t.userId, t.capturedOn),
+  }),
+);
+
+// Phase 30C — denormalized per-user skill index for the recruiter
+// search. Self-healing: refreshed best-effort whenever a user's
+// wallet is built (any view). credentialsPublic=false deletes the
+// user's rows so opting out removes discoverability. Nothing
+// authoritative reads it — it's a search accelerator only.
+export const userSkillIndex = sqliteTable(
+  "user_skill_index",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    skillSlug: text("skill_slug").notNull(),
+    skillTitle: text("skill_title").notNull(),
+    proofCount: integer("proof_count").notNull().default(0),
+    latestProofAt: text("latest_proof_at"),
+  },
+  (t) => ({
+    uq: uniqueIndex("user_skill_index_uq").on(t.userId, t.skillSlug),
+    skillIdx: index("user_skill_index_skill_idx").on(
+      t.skillSlug,
+      t.proofCount,
+    ),
+  }),
+);
+
+// Phase 30C — recruiter-saved candidate lists (talent pools).
+export const userTalentPools = sqliteTable(
+  "user_talent_pools",
+  {
+    id: text("id").primaryKey(),
+    ownerId: text("owner_id").notNull().references(() => users.id),
+    name: text("name").notNull(),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    ownerIdx: index("user_talent_pools_owner_idx").on(t.ownerId),
+  }),
+);
+
+export const talentPoolMembers = sqliteTable(
+  "talent_pool_members",
+  {
+    id: text("id").primaryKey(),
+    poolId: text("pool_id")
+      .notNull()
+      .references(() => userTalentPools.id, { onDelete: "cascade" }),
+    candidateUserId: text("candidate_user_id")
+      .notNull()
+      .references(() => users.id),
+    addedAt: text("added_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uq: uniqueIndex("talent_pool_members_uq").on(
+      t.poolId,
+      t.candidateUserId,
+    ),
+  }),
+);
+
+// Phase 32A — verifiable credential revocation registry. Signing
+// + /keys/verify are UNCHANGED; this is an additive issuer-asserted
+// layer (CRL/OCSP-style): the ed25519 signature still verifies
+// `valid:true`, but the issuer can mark the underlying claim
+// revoked (e.g. a reproduction refuted after its credential was
+// minted). One row per (kind, ref), toggled via `active` so an
+// over-turned refute can un-revoke. Nothing reads the signed bytes
+// — wallet/provenance/score/verify just consult this table.
+export const credentialRevocations = sqliteTable(
+  "credential_revocations",
+  {
+    id: text("id").primaryKey(),
+    // 'reproduction' | 'bounty' | 'composite_score' | 'capstone'
+    credentialKind: text("credential_kind").notNull(),
+    // The credential's natural ref: reproId / bountyId / userId / …
+    credentialRef: text("credential_ref").notNull(),
+    reason: text("reason").notNull().default(""),
+    // null = system (auto-revoke on refute weight); else the
+    // issuer/admin who pulled it.
+    revokedByUserId: text("revoked_by_user_id").references(() => users.id),
+    active: integer("active", { mode: "boolean" }).notNull().default(true),
+    revokedAt: text("revoked_at").default(sql`(datetime('now'))`).notNull(),
+    updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uq: uniqueIndex("credential_revocations_uq").on(
+      t.credentialKind,
+      t.credentialRef,
+    ),
+    activeIdx: index("credential_revocations_active_idx").on(
+      t.active,
+      t.revokedAt,
+    ),
+  }),
+);
+
+// Phase 32C — curated target-role catalog for the skill-gap
+// analyzer. A role names a set of skill slugs; the analyzer diffs
+// a user's signed-proof skills (userSkillIndex) + mastery against
+// it. Ad-hoc skill-slug arrays also work with ZERO rows here — the
+// catalog is a convenience, not a requirement.
+export const roleProfiles = sqliteTable(
+  "role_profiles",
+  {
+    id: text("id").primaryKey(),
+    slug: text("slug").notNull().unique(),
+    title: text("title").notNull(),
+    descriptionMd: text("description_md").notNull().default(""),
+    // JSON array of skill slugs the role requires.
+    requiredSkillSlugsJson: text("required_skill_slugs_json")
+      .notNull()
+      .default("[]"),
+    // 'curated' | 'user' — seeded roles vs. future user-defined.
+    source: text("source").notNull().default("curated"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    slugIdx: index("role_profiles_slug_idx").on(t.slug),
+  }),
+);
+
+// Phase 33B — Certificate-Transparency-style append-only log of
+// credential lifecycle events. Each row hash-chains to the prior
+// (leafHash = sha256(prevHash + canonicalJson(payload))), so any
+// silent rewrite of history breaks the chain and the signed tree
+// head. Two append points: reproduction mint + revoke/unrevoke.
+// Append-only — never UPDATE/DELETE a row.
+export const credentialLog = sqliteTable(
+  "credential_log",
+  {
+    id: text("id").primaryKey(),
+    // Dense, gap-free sequence assigned under a short transaction.
+    leafIndex: integer("leaf_index").notNull(),
+    // 'issued' | 'revoked' | 'unrevoked'
+    eventKind: text("event_kind").notNull(),
+    credentialKind: text("credential_kind").notNull(),
+    credentialRef: text("credential_ref").notNull(),
+    leafHash: text("leaf_hash").notNull(),
+    // Genesis row uses the empty string.
+    prevHash: text("prev_hash").notNull().default(""),
+    payloadJson: text("payload_json").notNull().default("{}"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    leafUq: uniqueIndex("credential_log_leaf_uq").on(t.leafIndex),
+    refIdx: index("credential_log_ref_idx").on(
+      t.credentialKind,
+      t.credentialRef,
+    ),
+  }),
+);
+
+// Phase 33B — periodically-signed tree head. The signature (via
+// signing.ts, the same ed25519 key as every credential) commits
+// to (treeSize, rootHash); a verifier checks the chain up to a
+// signed head and trusts nothing was backdated or silently pulled.
+export const transparencyTreeHeads = sqliteTable(
+  "transparency_tree_heads",
+  {
+    id: text("id").primaryKey(),
+    treeSize: integer("tree_size").notNull(),
+    rootHash: text("root_hash").notNull(),
+    signature: text("signature").notNull(),
+    signedAt: text("signed_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    sizeIdx: index("transparency_tree_heads_size_idx").on(t.treeSize),
+  }),
+);
+
+// Phase 33C — signed peer skill endorsement. weightAtEndorsement
+// is a snapshot of the endorser's OWN proven competency on this
+// skill (userSkillIndex) + reviewer trust at endorsement time —
+// so an endorser with no proof contributes ~0. This is a SEPARATE
+// web-of-trust band; it never mutates userSkillIndex.proofCount
+// (signed-credential proof stays the authoritative signal).
+export const skillEndorsements = sqliteTable(
+  "skill_endorsements",
+  {
+    id: text("id").primaryKey(),
+    endorserId: text("endorser_id").notNull().references(() => users.id),
+    endorseeId: text("endorsee_id").notNull().references(() => users.id),
+    skillSlug: text("skill_slug").notNull(),
+    skillTitle: text("skill_title").notNull().default(""),
+    weightAtEndorsement: real("weight_at_endorsement").notNull().default(0),
+    note: text("note").notNull().default(""),
+    signedJson: text("signed_json").notNull().default(""),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+    revokedAt: text("revoked_at"),
+  },
+  (t) => ({
+    uq: uniqueIndex("skill_endorsements_uq").on(
+      t.endorserId,
+      t.endorseeId,
+      t.skillSlug,
+    ),
+    endorseeIdx: index("skill_endorsements_endorsee_idx").on(
+      t.endorseeId,
+      t.skillSlug,
+    ),
+  }),
+);
+
+// Phase 33D — learner-controlled selective-disclosure share link.
+// The raw token is shown once to the owner and stored only as a
+// sha256 hash at rest (improves on the plaintext auth-token
+// convention — these links are shareable). scopeJson limits which
+// credentials a holder of the link can see, bypassing the
+// all-or-nothing credentialsPublic gate ONLY for that subset.
+export const credentialShareTokens = sqliteTable(
+  "credential_share_tokens",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    tokenHash: text("token_hash").notNull(),
+    // { mode: 'all' } | { mode:'kinds', kinds:[] } | { mode:'ids', ids:[] }
+    scopeJson: text("scope_json").notNull().default('{"mode":"all"}'),
+    label: text("label").notNull().default(""),
+    // null = never expires.
+    expiresAt: text("expires_at"),
+    revokedAt: text("revoked_at"),
+    accessCount: integer("access_count").notNull().default(0),
+    lastAccessedAt: text("last_accessed_at"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    tokenUq: uniqueIndex("credential_share_tokens_token_uq").on(t.tokenHash),
+    ownerIdx: index("credential_share_tokens_owner_idx").on(
+      t.userId,
+      t.createdAt,
+    ),
+  }),
+);
+
+// Phase 34A — consented recruiter↔candidate match handshake. A
+// recruiter sends a role-scoped, Ed25519-signed match offer with
+// a snapshot of the verifiable skill gap; the candidate accepts
+// (auto-minting a scoped credential share token) or declines.
+// Mirrors mentorRelationships' two-party request/respond shape.
+export const recruiterMatchOffers = sqliteTable(
+  "recruiter_match_offers",
+  {
+    id: text("id").primaryKey(),
+    recruiterId: text("recruiter_id").notNull().references(() => users.id),
+    candidateId: text("candidate_id").notNull().references(() => users.id),
+    roleSlug: text("role_slug").notNull(),
+    roleTitle: text("role_title").notNull().default(""),
+    // 'pending' | 'accepted' | 'declined' | 'withdrawn'
+    status: text("status").notNull().default("pending"),
+    messageMd: text("message_md").notNull().default(""),
+    // Snapshot of analyzeSkillGap at offer time.
+    skillGapJson: text("skill_gap_json").notNull().default("{}"),
+    // signCredential("match_offer", …) JSON.
+    signedOfferJson: text("signed_offer_json").notNull().default(""),
+    // Set on accept: the scoped credentialShareTokens row id.
+    shareTokenId: text("share_token_id"),
+    // The raw share URL, surfaced back to the recruiter once.
+    shareUrl: text("share_url"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+    respondedAt: text("responded_at"),
+  },
+  (t) => ({
+    // One live offer per (recruiter, candidate, role).
+    uq: uniqueIndex("recruiter_match_offers_uq").on(
+      t.recruiterId,
+      t.candidateId,
+      t.roleSlug,
+    ),
+    candidateIdx: index("recruiter_match_offers_candidate_idx").on(
+      t.candidateId,
+      t.status,
+    ),
+    recruiterIdx: index("recruiter_match_offers_recruiter_idx").on(
+      t.recruiterId,
+      t.createdAt,
+    ),
+  }),
+);
+
+// Phase 34B — organization / institution accounts. The signing
+// key stays per-instance; an org credential is the instance key
+// signing on behalf of a NAMED issuer in the manifest (no per-org
+// keypair). Membership/role mirrors cohortMembers + gateCohort.
+export const orgs = sqliteTable(
+  "orgs",
+  {
+    id: text("id").primaryKey(),
+    slug: text("slug").notNull().unique(),
+    name: text("name").notNull(),
+    descriptionMd: text("description_md").notNull().default(""),
+    website: text("website").notNull().default(""),
+    // 'unverified' | 'verified' — display-only trust badge.
+    verificationStatus: text("verification_status")
+      .notNull()
+      .default("unverified"),
+    creatorId: text("creator_id").notNull().references(() => users.id),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    slugIdx: index("orgs_slug_idx").on(t.slug),
+    creatorIdx: index("orgs_creator_idx").on(t.creatorId),
+  }),
+);
+
+export const orgMembers = sqliteTable(
+  "org_members",
+  {
+    id: text("id").primaryKey(),
+    orgId: text("org_id")
+      .notNull()
+      .references(() => orgs.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull().references(() => users.id),
+    // 'member' | 'admin' | 'verifier' (verifier/admin may attest).
+    role: text("role").notNull().default("member"),
+    joinedAt: text("joined_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uq: uniqueIndex("org_members_uq").on(t.orgId, t.userId),
+    orgIdx: index("org_members_org_idx").on(t.orgId),
+    userIdx: index("org_members_user_idx").on(t.userId),
+  }),
+);
+
+// Phase 34D — signed learning commitments. A learner commits to a
+// goal (capstone/track/exam/skills) by a deadline, optionally
+// witnessed by a mentor or cohort; completion mints a signed
+// "commitment_kept" credential + a transparency leaf.
+export const learningCommitments = sqliteTable(
+  "learning_commitments",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    // 'capstone' | 'track' | 'exam' | 'skills'
+    goalKind: text("goal_kind").notNull(),
+    goalSlug: text("goal_slug").notNull(),
+    goalTitle: text("goal_title").notNull().default(""),
+    deadlineAt: text("deadline_at").notNull(),
+    // 'active' | 'completed' | 'lapsed' | 'abandoned'
+    status: text("status").notNull().default("active"),
+    witnessUserId: text("witness_user_id").references(() => users.id),
+    cohortId: text("cohort_id"),
+    isPublic: integer("is_public", { mode: "boolean" })
+      .notNull()
+      .default(true),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+    completedAt: text("completed_at"),
+  },
+  (t) => ({
+    userIdx: index("learning_commitments_user_idx").on(
+      t.userId,
+      t.status,
+    ),
+    deadlineIdx: index("learning_commitments_deadline_idx").on(
+      t.status,
+      t.deadlineAt,
+    ),
+  }),
+);
+
+// Phase 34B — an org's signed attestation OF a member's artifact
+// (a reproduction / bounty / skill). The instance key signs on
+// behalf of the named org (issuer in the manifest); the event is
+// also written to the Phase 33B transparency log. Surfaces in the
+// member's wallet as an `org_attested` band and on the org's
+// public verify page. revokedAt nullable for withdrawal.
+export const orgAttestations = sqliteTable(
+  "org_attestations",
+  {
+    id: text("id").primaryKey(),
+    orgId: text("org_id")
+      .notNull()
+      .references(() => orgs.id, { onDelete: "cascade" }),
+    subjectUserId: text("subject_user_id")
+      .notNull()
+      .references(() => users.id),
+    attestedByUserId: text("attested_by_user_id")
+      .notNull()
+      .references(() => users.id),
+    // 'reproduction' | 'bounty' | 'skill'
+    attestKind: text("attest_kind").notNull(),
+    // The artifact ref (reproId / bountyId / skillSlug).
+    attestRef: text("attest_ref").notNull().default(""),
+    statement: text("statement").notNull().default(""),
+    signedJson: text("signed_json").notNull().default(""),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+    revokedAt: text("revoked_at"),
+  },
+  (t) => ({
+    subjectIdx: index("org_attestations_subject_idx").on(
+      t.subjectUserId,
+    ),
+    orgIdx: index("org_attestations_org_idx").on(t.orgId),
+  }),
+);
+
+// Phase 39 — "Goodness" Missions: open collaborative
+// problem-solving on big global problems. A Mission decomposes a
+// problem into sub-problems; members contribute analysis/data/
+// solutions (links+writeups); peer+expert review verifies a
+// contribution into a signed, transparency-logged credential
+// (reuses the reproduction rigor). Backing orgs lend expert
+// attestation. All additive; no existing-table changes.
+export const missions = sqliteTable(
+  "missions",
+  {
+    id: text("id").primaryKey(),
+    slug: text("slug").notNull().unique(),
+    title: text("title").notNull(),
+    problemMd: text("problem_md").notNull().default(""),
+    summaryMd: text("summary_md").notNull().default(""),
+    // Free-text theme, e.g. "climate" | "poverty" | "health".
+    theme: text("theme").notNull().default("other"),
+    topicTagsJson: text("topic_tags_json").notNull().default("[]"),
+    // 'open' | 'active' | 'completed' | 'archived'
+    status: text("status").notNull().default("open"),
+    creatorId: text("creator_id").notNull().references(() => users.id),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+    updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    slugIdx: index("missions_slug_idx").on(t.slug),
+    statusIdx: index("missions_status_idx").on(t.status, t.createdAt),
+  }),
+);
+
+// Open self-join membership (mirrors cohortMembers). Creator =
+// 'organizer'. No visibility gate — missions are public-read.
+export const missionMembers = sqliteTable(
+  "mission_members",
+  {
+    id: text("id").primaryKey(),
+    missionId: text("mission_id")
+      .notNull()
+      .references(() => missions.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull().references(() => users.id),
+    // 'member' | 'organizer'
+    role: text("role").notNull().default("member"),
+    joinedAt: text("joined_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    pk: uniqueIndex("mission_members_pk").on(t.missionId, t.userId),
+    userIdx: index("mission_members_user_idx").on(t.userId),
+  }),
+);
+
+export const missionSubproblems = sqliteTable(
+  "mission_subproblems",
+  {
+    id: text("id").primaryKey(),
+    missionId: text("mission_id")
+      .notNull()
+      .references(() => missions.id, { onDelete: "cascade" }),
+    slug: text("slug").notNull(),
+    title: text("title").notNull(),
+    descriptionMd: text("description_md").notNull().default(""),
+    // 'open' | 'in_progress' | 'solved'
+    status: text("status").notNull().default("open"),
+    order: integer("order").notNull().default(0),
+    createdById: text("created_by_id").notNull().references(() => users.id),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    missionIdx: index("mission_subproblems_mission_idx").on(
+      t.missionId,
+      t.order,
+    ),
+    slugUq: uniqueIndex("mission_subproblems_slug_uq").on(
+      t.missionId,
+      t.slug,
+    ),
+  }),
+);
+
+// A contribution; verified→signed credential (credentialMintedAt
+// set, credentialMintWeight snapshot — mirrors reproductions).
+export const missionContributions = sqliteTable(
+  "mission_contributions",
+  {
+    id: text("id").primaryKey(),
+    missionId: text("mission_id")
+      .notNull()
+      .references(() => missions.id, { onDelete: "cascade" }),
+    subproblemId: text("subproblem_id").references(
+      () => missionSubproblems.id,
+      { onDelete: "set null" },
+    ),
+    userId: text("user_id").notNull().references(() => users.id),
+    // 'analysis' | 'data' | 'solution' | 'synthesis'
+    kind: text("kind").notNull().default("analysis"),
+    bodyMd: text("body_md").notNull().default(""),
+    // [{kind,url,label}] — links+writeups only, no uploads.
+    artifactsJson: text("artifacts_json").notNull().default("[]"),
+    credentialMintedAt: text("credential_minted_at"),
+    credentialMintWeight: real("credential_mint_weight"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    missionIdx: index("mission_contributions_mission_idx").on(
+      t.missionId,
+      t.createdAt,
+    ),
+    userIdx: index("mission_contributions_user_idx").on(t.userId),
+  }),
+);
+
+// Exact reproductionReviews twin (verdict-weighted verification).
+export const missionContributionReviews = sqliteTable(
+  "mission_contribution_reviews",
+  {
+    id: text("id").primaryKey(),
+    contributionId: text("contribution_id")
+      .notNull()
+      .references(() => missionContributions.id, { onDelete: "cascade" }),
+    reviewerId: text("reviewer_id").notNull().references(() => users.id),
+    // 'confirmed' | 'refuted' | 'inconclusive'
+    verdict: text("verdict").notNull(),
+    notesMd: text("notes_md").notNull().default(""),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uq: uniqueIndex("mission_contribution_reviews_uq").on(
+      t.contributionId,
+      t.reviewerId,
+    ),
+    contribIdx: index("mission_contribution_reviews_contrib_idx").on(
+      t.contributionId,
+    ),
+  }),
+);
+
+// An org "backs" a mission; a backer's verifier/admin may attest
+// contributions (reuses orgs.attestForMember).
+export const missionOrgBackers = sqliteTable(
+  "mission_org_backers",
+  {
+    id: text("id").primaryKey(),
+    missionId: text("mission_id")
+      .notNull()
+      .references(() => missions.id, { onDelete: "cascade" }),
+    orgId: text("org_id")
+      .notNull()
+      .references(() => orgs.id, { onDelete: "cascade" }),
+    addedByUserId: text("added_by_user_id")
+      .notNull()
+      .references(() => users.id),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uq: uniqueIndex("mission_org_backers_uq").on(t.missionId, t.orgId),
+    missionIdx: index("mission_org_backers_mission_idx").on(t.missionId),
+  }),
+);

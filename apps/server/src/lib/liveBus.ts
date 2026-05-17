@@ -16,6 +16,11 @@ const articleBuckets = new Map<string, Set<WS>>();
 // 'lesson' | 'paper' | 'capstone' so all three editing surfaces share
 // one fan-out and a verifying helper can ignore the shape difference.
 const draftBuckets = new Map<string, Set<WS>>();
+// Phase 29B — collaborative review rooms keyed by
+// `${kind}:${roomId}`. kind is 'reproduction' |
+// 'capstone_submission'. Parallel to draftBuckets, never modifies
+// it, so the draft collaboration path is untouched.
+const roomBuckets = new Map<string, Set<WS>>();
 
 export function attachUser(ws: WS, userId: string): void {
   if (!ws.data) {
@@ -57,6 +62,30 @@ export function subscribeDraft(
   ws.data?.subscriptions.add(`draft:${key}`);
 }
 
+export type RoomKind =
+  | "reproduction"
+  | "capstone_submission"
+  | "cohort_study"
+  | "bounty_collaboration"
+  // Phase 39 — a mission's live working-group room. roomId is the
+  // missions.id; access is any missionMembers row OR the creator.
+  | "mission_working_group";
+
+export function subscribeRoom(
+  ws: WS,
+  kind: RoomKind,
+  roomId: string,
+): void {
+  const key = `${kind}:${roomId}`;
+  let bucket = roomBuckets.get(key);
+  if (!bucket) {
+    bucket = new Set();
+    roomBuckets.set(key, bucket);
+  }
+  bucket.add(ws);
+  ws.data?.subscriptions.add(`room:${key}`);
+}
+
 export function detach(ws: WS): void {
   const userId = ws.data?.userId;
   if (userId) {
@@ -81,11 +110,18 @@ export function detach(ws: WS): void {
         bucket.delete(ws);
         if (bucket.size === 0) draftBuckets.delete(key);
       }
+    } else if (sub.startsWith("room:")) {
+      const key = sub.slice("room:".length);
+      const bucket = roomBuckets.get(key);
+      if (bucket) {
+        bucket.delete(ws);
+        if (bucket.size === 0) roomBuckets.delete(key);
+      }
     }
   }
 
-  // Trigger presence broadcast on each draft channel the socket left
-  // so peers see the leaving user disappear from their chip row.
+  // Trigger presence broadcast on each draft/room channel the
+  // socket left so peers see the leaving user disappear.
   for (const sub of ws.data?.subscriptions ?? []) {
     if (sub.startsWith("draft:")) {
       const [kind, targetId] = sub.slice("draft:".length).split(":") as [
@@ -93,6 +129,12 @@ export function detach(ws: WS): void {
         string,
       ];
       broadcastDraftPresence(kind, targetId);
+    } else if (sub.startsWith("room:")) {
+      const [kind, roomId] = sub.slice("room:".length).split(":") as [
+        RoomKind,
+        string,
+      ];
+      broadcastRoomPresence(kind, roomId);
     }
   }
 }
@@ -178,6 +220,54 @@ export async function broadcastDraftPresence(
     type: "draft_presence",
     kind,
     targetId,
+    userIds: ids,
+    usernames: ids.map((id) => usernameMap.get(id) ?? "?"),
+  });
+}
+
+// Phase 29B — review-room fan-out, mirroring the draft channel
+// functions exactly (separate buckets, zero impact on drafts).
+export function publishToRoom(
+  kind: RoomKind,
+  roomId: string,
+  payload: unknown,
+): void {
+  const bucket = roomBuckets.get(`${kind}:${roomId}`);
+  if (!bucket) return;
+  const json = JSON.stringify(payload);
+  for (const ws of bucket) {
+    try {
+      ws.send(json);
+    } catch {
+      // ignore
+    }
+  }
+}
+
+export async function broadcastRoomPresence(
+  kind: RoomKind,
+  roomId: string,
+): Promise<void> {
+  const bucket = roomBuckets.get(`${kind}:${roomId}`);
+  if (!bucket) return;
+  const userIds = new Set<string>();
+  for (const ws of bucket) {
+    if (ws.data?.userId) userIds.add(ws.data.userId);
+  }
+  const ids = [...userIds];
+  let usernameMap = new Map<string, string>();
+  if (usernameResolver && ids.length > 0) {
+    try {
+      const resolved = await usernameResolver(ids);
+      usernameMap = resolved instanceof Map ? resolved : new Map();
+    } catch {
+      usernameMap = new Map();
+    }
+  }
+  publishToRoom(kind, roomId, {
+    type: "room_presence",
+    kind,
+    roomId,
     userIds: ids,
     usernames: ids.map((id) => usernameMap.get(id) ?? "?"),
   });

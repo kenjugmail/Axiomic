@@ -298,6 +298,36 @@ export class ApiError extends Error {
   }
 }
 
+// Phase 39 — public mission impact graph shape (mirrors the
+// server's buildMissionImpact return).
+export interface MissionImpact {
+  mission: {
+    slug: string;
+    title: string;
+    theme: string;
+    status: string;
+  };
+  verifiedContributions: Array<{
+    username: string;
+    kind: string;
+    contributionId: string;
+    confirmedWeight: number | null;
+    mintedAt: string;
+  }>;
+  orgAttestations: Array<{
+    orgSlug: string;
+    contributionId: string;
+    statement: string;
+    createdAt: string;
+  }>;
+  subproblems: {
+    total: number;
+    solved: number;
+    inProgress: number;
+    open: number;
+  };
+}
+
 export const api = {
   auth: {
     signup: (data: {
@@ -658,6 +688,40 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ value }),
       }),
+    // Phase 16C — admin queue + moderation actions.
+    // Phase 17A — cursor pagination so the page doesn't load the
+    // entire backlog into memory at once.
+    moderateQueue: (params?: { cursor?: string; limit?: number }) => {
+      const sp = new URLSearchParams();
+      if (params?.cursor) sp.set("cursor", params.cursor);
+      if (params?.limit) sp.set("limit", String(params.limit));
+      const qs = sp.toString();
+      return request<{
+        submissions: Array<{
+          id: string;
+          conceptSlug: string;
+          key: string;
+          label: string;
+          description: string;
+          status: string;
+          voteScore: number;
+          catalogId: string | null;
+          proposerUsername: string;
+          createdAt: string;
+          decidedAt: string | null;
+        }>;
+        hasMore: boolean;
+        nextCursor: string | null;
+      }>(`/misconceptions/moderate/queue${qs ? `?${qs}` : ""}`);
+    },
+    moderate: (id: string, action: "approve" | "reject") =>
+      request<{ status: string; catalogId: string | null }>(
+        `/misconceptions/${id}/moderate`,
+        {
+          method: "POST",
+          body: JSON.stringify({ action }),
+        },
+      ),
   },
   versions: {
     paperList: (slug: string) =>
@@ -1052,6 +1116,36 @@ export const api = {
         `/research/feed${qs ? `?${qs}` : ""}`,
       );
     },
+    // Phase 29D — fused research-frontier rail.
+    frontier: (limit?: number) => {
+      const sp = new URLSearchParams();
+      if (limit) sp.set("limit", String(limit));
+      const qs = sp.toString();
+      return request<{
+        personalized: boolean;
+        items: Array<{
+          kind:
+            | "paper"
+            | "external_paper"
+            | "bounty"
+            | "needs_reproduction"
+            | "grant"
+            | "mission_subproblem";
+          id: string;
+          title: string;
+          url: string;
+          score: number;
+          reason: string;
+          breakdown: {
+            relevance: number;
+            weakness: number;
+            urgency: number;
+            reproGap: number;
+            total: number;
+          };
+        }>;
+      }>(`/research/feed/frontier${qs ? `?${qs}` : ""}`);
+    },
     // Sprint 70 — cached tier-aware summary lookup. Returns
     // `{ cached: false }` when no summary exists yet (callers should
     // open a streaming connection to generate one).
@@ -1330,6 +1424,223 @@ export const api = {
       ),
     taskSubmissions: (slug: string, taskId: string) =>
       request<ClassTaskSubmissionsResponse>(`/classes/${slug}/tasks/${taskId}/submissions`),
+    // Phase 21 — AI-personalized assignment variants.
+    generateTaskVariants: (slug: string, taskId: string, regenerate = false) =>
+      request<{
+        generated: number;
+        skipped: number;
+        errors: Array<{ studentId: string; reason: string }>;
+      }>(`/classes/${slug}/tasks/${taskId}/variants`, {
+        method: "POST",
+        body: JSON.stringify({ regenerate }),
+      }),
+    listTaskVariants: (slug: string, taskId: string) =>
+      request<{
+        variants: Array<{
+          id: string;
+          studentId: string;
+          studentUsername: string;
+          studentDisplayName: string | null;
+          promptMd: string;
+          rubric: {
+            criteria: Array<{ id: string; description: string; weight?: number }>;
+            passingScore: number;
+          } | null;
+          rationale: string;
+          generatedAt: string;
+        }>;
+      }>(`/classes/${slug}/tasks/${taskId}/variants`),
+    myTaskVariant: (slug: string, taskId: string) =>
+      request<{
+        variant: {
+          id: string;
+          promptMd: string;
+          rubric: {
+            criteria: Array<{ id: string; description: string; weight?: number }>;
+            passingScore: number;
+          } | null;
+          generatedAt: string;
+        } | null;
+      }>(`/classes/${slug}/tasks/${taskId}/variant`),
+    // Phase 22C — instructor inline-edit. Lets the instructor
+    // hand-tune a generated variant instead of burning another AI
+    // call on Regenerate when the AI mostly got it right.
+    updateTaskVariant: (
+      slug: string,
+      taskId: string,
+      studentId: string,
+      data: {
+        promptMd?: string;
+        rubric?: {
+          criteria: Array<{ id: string; description: string; weight?: number }>;
+          passingScore: number;
+        };
+        rationale?: string;
+      },
+    ) =>
+      request<{ ok: true }>(
+        `/classes/${slug}/tasks/${taskId}/variants/${studentId}`,
+        {
+          method: "PUT",
+          body: JSON.stringify(data),
+        },
+      ),
+    // Phase 23A — class stream / announcements.
+    listAnnouncements: (slug: string) =>
+      request<{
+        announcements: Array<{
+          id: string;
+          authorId: string;
+          authorUsername: string;
+          authorDisplayName: string | null;
+          bodyMd: string;
+          pinned: boolean;
+          createdAt: string;
+          updatedAt: string;
+        }>;
+      }>(`/classes/${slug}/announcements`),
+    createAnnouncement: (
+      slug: string,
+      data: { bodyMd: string; pinned?: boolean },
+    ) =>
+      request<{ id: string }>(`/classes/${slug}/announcements`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    updateAnnouncement: (
+      slug: string,
+      id: string,
+      data: { bodyMd?: string; pinned?: boolean },
+    ) =>
+      request<OkResponse>(`/classes/${slug}/announcements/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    deleteAnnouncement: (slug: string, id: string) =>
+      request<OkResponse>(`/classes/${slug}/announcements/${id}`, {
+        method: "DELETE",
+      }),
+    // Phase 24A — per-task discussion threads.
+    listTaskDiscussions: (slug: string, taskId: string) =>
+      request<{
+        posts: Array<{
+          id: string;
+          userId: string;
+          username: string;
+          displayName: string | null;
+          bodyMd: string;
+          createdAt: string;
+          updatedAt: string;
+        }>;
+      }>(`/classes/${slug}/tasks/${taskId}/discussions`),
+    postTaskDiscussion: (slug: string, taskId: string, bodyMd: string) =>
+      request<{ id: string }>(
+        `/classes/${slug}/tasks/${taskId}/discussions`,
+        {
+          method: "POST",
+          body: JSON.stringify({ bodyMd }),
+        },
+      ),
+    updateTaskDiscussion: (
+      slug: string,
+      taskId: string,
+      id: string,
+      bodyMd: string,
+    ) =>
+      request<OkResponse>(
+        `/classes/${slug}/tasks/${taskId}/discussions/${id}`,
+        {
+          method: "PUT",
+          body: JSON.stringify({ bodyMd }),
+        },
+      ),
+    deleteTaskDiscussion: (slug: string, taskId: string, id: string) =>
+      request<OkResponse>(
+        `/classes/${slug}/tasks/${taskId}/discussions/${id}`,
+        { method: "DELETE" },
+      ),
+    // Phase 24B — non-graded class materials.
+    listMaterials: (slug: string) =>
+      request<{
+        materials: Array<{
+          id: string;
+          title: string;
+          descriptionMd: string;
+          url: string | null;
+          kind: "note" | "link" | "file";
+          sortOrder: number;
+          createdAt: string;
+          updatedAt: string;
+        }>;
+      }>(`/classes/${slug}/materials`),
+    createMaterial: (
+      slug: string,
+      data: {
+        title: string;
+        descriptionMd?: string;
+        url?: string | null;
+        kind?: "note" | "link" | "file";
+        sortOrder?: number;
+      },
+    ) =>
+      request<{ id: string }>(`/classes/${slug}/materials`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    updateMaterial: (
+      slug: string,
+      id: string,
+      data: {
+        title?: string;
+        descriptionMd?: string;
+        url?: string | null;
+        kind?: "note" | "link" | "file";
+        sortOrder?: number;
+      },
+    ) =>
+      request<OkResponse>(`/classes/${slug}/materials/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    deleteMaterial: (slug: string, id: string) =>
+      request<OkResponse>(`/classes/${slug}/materials/${id}`, {
+        method: "DELETE",
+      }),
+    // Phase 24D — clone a task into another instructor-owned class.
+    cloneTask: (slug: string, taskId: string, targetClassSlug: string) =>
+      request<{ taskId: string; targetClassSlug: string }>(
+        `/classes/${slug}/tasks/${taskId}/clone`,
+        {
+          method: "POST",
+          body: JSON.stringify({ targetClassSlug }),
+        },
+      ),
+    // Phase 23B — gradebook matrix.
+    gradebook: (slug: string) =>
+      request<{
+        tasks: Array<{
+          id: string;
+          title: string;
+          kind: string;
+          dueAt: string | null;
+          topic: string | null;
+        }>;
+        students: Array<{
+          userId: string;
+          username: string;
+          displayName: string | null;
+        }>;
+        cells: Array<{
+          taskId: string;
+          userId: string;
+          status: "missing" | "submitted" | "passed" | "failed";
+          score: number | null;
+          maxScore: number | null;
+          wasLate: boolean;
+          submittedAt: string | null;
+          aiGenerated: boolean;
+        }>;
+      }>(`/classes/${slug}/gradebook`),
     recordAttendance: (slug: string, data: RecordAttendanceRequest) =>
       request<{ ok: true; xpGrants: Array<{ userId: string; amount: number }> }>(
         `/classes/${slug}/attendance`,
@@ -1475,6 +1786,1019 @@ export const api = {
     skinShowcase: () =>
       request<PetSkinShowcaseResponse>("/pet-skins/catalog"),
   },
+  // Phase 27 — hackathons + engineering competitions.
+  hackathons: {
+    discover: () =>
+      request<{
+        hackathons: Array<{
+          id: string;
+          slug: string;
+          title: string;
+          coverEmoji: string;
+          fieldTag: string;
+          hostMode: string;
+          status: string;
+          startsAt: string | null;
+          endsAt: string | null;
+          maxTeamSize: number;
+        }>;
+      }>("/hackathons/discover"),
+    list: () =>
+      request<{
+        hosting: Array<{
+          id: string;
+          slug: string;
+          title: string;
+          coverEmoji: string;
+          fieldTag: string;
+          hostMode: string;
+          status: string;
+          startsAt: string | null;
+          endsAt: string | null;
+          maxTeamSize: number;
+        }>;
+        registered: Array<{
+          id: string;
+          slug: string;
+          title: string;
+          coverEmoji: string;
+          fieldTag: string;
+          hostMode: string;
+          status: string;
+          startsAt: string | null;
+          endsAt: string | null;
+          maxTeamSize: number;
+        }>;
+      }>("/hackathons"),
+    get: (slug: string) =>
+      request<{
+        hackathon: {
+          id: string;
+          slug: string;
+          title: string;
+          descriptionMd: string;
+          rulesMd: string;
+          fieldTag: string;
+          coverEmoji: string;
+          hostMode: "public" | "class" | "cohort";
+          hostContext:
+            | { kind: "class" | "cohort"; slug: string; title: string }
+            | null;
+          discoverable: boolean;
+          status: "draft" | "registration" | "active" | "judging" | "ended";
+          maxTeamSize: number;
+          judgingMode: "manual" | "ai_rubric";
+          rubric: {
+            criteria: Array<{
+              id: string;
+              description: string;
+              weight?: number;
+            }>;
+            passingScore: number;
+          } | null;
+          registrationOpensAt: string | null;
+          registrationClosesAt: string | null;
+          startsAt: string | null;
+          endsAt: string | null;
+          createdAt: string;
+          updatedAt: string;
+          isOrganizer: boolean;
+        };
+        prizes: Array<{
+          id: string;
+          rank: number;
+          title: string;
+          descriptionMd: string;
+          xpAmount: number;
+          cosmeticSlug: string | null;
+          skinSlug: string | null;
+          badgeSlug: string | null;
+          maxWinners: number;
+        }>;
+        teams: Array<{
+          id: string;
+          name: string;
+          captainId: string;
+          createdAt: string;
+          members: Array<{
+            userId: string;
+            username: string;
+            displayName: string | null;
+            role: string;
+          }>;
+        }>;
+        submissions: Array<{
+          id: string;
+          teamId: string;
+          title: string;
+          writeup: string;
+          artifacts: unknown[];
+          submittedAt: string;
+          aiGrade: unknown | null;
+          gradedAt: string | null;
+        }>;
+        awards: Array<{
+          id: string;
+          prizeId: string;
+          teamId: string;
+          awardedAt: string;
+        }>;
+        myTeamId: string | null;
+      }>(`/hackathons/${slug}`),
+    create: (data: {
+      slug: string;
+      title: string;
+      descriptionMd?: string;
+      rulesMd?: string;
+      fieldTag?: string;
+      coverEmoji?: string;
+      hostMode?: "public" | "class" | "cohort";
+      hostClassSlug?: string | null;
+      hostCohortSlug?: string | null;
+      maxTeamSize?: number;
+      judgingMode?: "manual" | "ai_rubric";
+      rubric?: {
+        criteria: Array<{ id: string; description: string; weight?: number }>;
+        passingScore: number;
+      } | null;
+      registrationOpensAt?: string | null;
+      registrationClosesAt?: string | null;
+      startsAt?: string | null;
+      endsAt?: string | null;
+    }) =>
+      request<{ id: string; slug: string }>("/hackathons", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    update: (
+      slug: string,
+      data: Partial<{
+        title: string;
+        descriptionMd: string;
+        rulesMd: string;
+        fieldTag: string;
+        coverEmoji: string;
+        maxTeamSize: number;
+        judgingMode: "manual" | "ai_rubric";
+        rubric: {
+          criteria: Array<{ id: string; description: string; weight?: number }>;
+          passingScore: number;
+        } | null;
+        registrationOpensAt: string | null;
+        registrationClosesAt: string | null;
+        startsAt: string | null;
+        endsAt: string | null;
+      }>,
+    ) =>
+      request<OkResponse>(`/hackathons/${slug}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    publish: (slug: string) =>
+      request<OkResponse>(`/hackathons/${slug}/publish`, { method: "POST" }),
+    delete: (slug: string) =>
+      request<OkResponse>(`/hackathons/${slug}`, { method: "DELETE" }),
+    createPrize: (
+      slug: string,
+      data: {
+        rank?: number;
+        title: string;
+        descriptionMd?: string;
+        xpAmount?: number;
+        cosmeticSlug?: string | null;
+        skinSlug?: string | null;
+        badgeSlug?: string | null;
+        maxWinners?: number;
+      },
+    ) =>
+      request<{ id: string }>(`/hackathons/${slug}/prizes`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    deletePrize: (slug: string, prizeId: string) =>
+      request<OkResponse>(`/hackathons/${slug}/prizes/${prizeId}`, {
+        method: "DELETE",
+      }),
+    createTeam: (slug: string, name: string) =>
+      request<{ teamId: string }>(`/hackathons/${slug}/teams`, {
+        method: "POST",
+        body: JSON.stringify({ name }),
+      }),
+    registerSolo: (slug: string) =>
+      request<{ teamId: string }>(`/hackathons/${slug}/register-solo`, {
+        method: "POST",
+      }),
+    joinTeam: (slug: string, teamId: string) =>
+      request<OkResponse>(`/hackathons/${slug}/teams/${teamId}/join`, {
+        method: "POST",
+      }),
+    leaveTeam: (slug: string, teamId: string) =>
+      request<OkResponse>(`/hackathons/${slug}/teams/${teamId}/leave`, {
+        method: "POST",
+      }),
+    submit: (
+      slug: string,
+      teamId: string,
+      data: {
+        title: string;
+        writeup?: string;
+        artifacts?: Array<{
+          kind: "github" | "colab" | "demo" | "paper" | "other";
+          url: string;
+          label: string;
+        }>;
+      },
+    ) =>
+      request<{ id: string }>(
+        `/hackathons/${slug}/teams/${teamId}/submission`,
+        { method: "POST", body: JSON.stringify(data) },
+      ),
+    judge: (slug: string) =>
+      request<{ graded: number; errors: number }>(
+        `/hackathons/${slug}/judge`,
+        { method: "POST" },
+      ),
+    awardPrize: (slug: string, prizeId: string, teamId: string) =>
+      request<OkResponse>(
+        `/hackathons/${slug}/prizes/${prizeId}/award`,
+        { method: "POST", body: JSON.stringify({ teamId }) },
+      ),
+  },
+  // Phase 28A — verifiable credential wallet.
+  credentials: {
+    forUser: (username: string) =>
+      request<{
+        user: { username: string; displayName: string | null };
+        credentials: Array<{
+          kind: string;
+          title: string;
+          earnedAt: string;
+          signed: boolean;
+          detailUrl: string;
+          verifyUrl: string | null;
+          skills: Array<{ slug: string; title: string }>;
+          // Phase 32A/32B — issuer revocation + derived freshness.
+          revoked?: boolean;
+          revocationReason?: string | null;
+          ageDays?: number | null;
+          freshness?: "fresh" | "aging" | "stale" | null;
+        }>;
+      }>(`/credentials/${username}`),
+    mine: () =>
+      request<{
+        credentialsPublic: boolean;
+        credentials: Array<{
+          kind: string;
+          title: string;
+          earnedAt: string;
+          signed: boolean;
+          detailUrl: string;
+          verifyUrl: string | null;
+          skills: Array<{ slug: string; title: string }>;
+          // Phase 32A/32B — issuer revocation + derived freshness.
+          revoked?: boolean;
+          revocationReason?: string | null;
+          ageDays?: number | null;
+          freshness?: "fresh" | "aging" | "stale" | null;
+        }>;
+      }>("/me/credentials"),
+    setVisibility: (isPublic: boolean) =>
+      request<OkResponse>("/me/credentials/visibility", {
+        method: "PUT",
+        body: JSON.stringify({ public: isPublic }),
+      }),
+    // Phase 29C — recruiter skills rollup.
+    skillsSummary: (username: string) =>
+      request<{
+        user: { username: string; displayName: string | null };
+        skills: Array<{
+          skill: string;
+          slug: string;
+          provenBy: Array<{
+            kind: string;
+            title: string;
+            earnedAt: string;
+          }>;
+        }>;
+      }>(`/credentials/${username}/skills-summary`),
+    // Phase 33C — peer skill-endorsement web-of-trust band.
+    endorsements: (username: string) =>
+      request<{
+        user: { username: string; displayName: string | null };
+        endorsements: Array<{
+          skillSlug: string;
+          skillTitle: string;
+          totalWeight: number;
+          endorsements: Array<{
+            endorserUsername: string;
+            endorserDisplayName: string | null;
+            weight: number;
+            note: string;
+            createdAt: string;
+          }>;
+        }>;
+      }>(`/credentials/${username}/endorsements`),
+    // Phase 31C — unified signed Axiomic Score. No username =
+    // the caller's own (auth); username = public (gated).
+    compositeScore: (username?: string) =>
+      request<{
+        user?: { username: string; displayName: string | null };
+        score: number;
+        breakdown: Record<string, any>;
+        issuedAt: string;
+        credential: {
+          manifest: Record<string, unknown>;
+          signature: string;
+          publicKey: string;
+          algorithm: string;
+          canonicalPayload: string;
+        };
+      }>(
+        username
+          ? `/credentials/${username}/composite-score`
+          : `/me/credentials/composite-score`,
+      ),
+  },
+  // Phase 31D — public, CORS-open integration surface.
+  publicApi: {
+    provenance: (targetKind: string, targetId: string) =>
+      request<{
+        target: { kind: string; id: string };
+        reproducedBy: Array<{
+          username: string;
+          confirmedWeight: number | null;
+          mintedAt: string;
+        }>;
+        bountyContributions: Array<{
+          username: string;
+          bountySlug: string;
+          bountyTitle: string;
+          acceptedAt: string;
+        }>;
+      }>(
+        `/public/research/${encodeURIComponent(targetKind)}/${encodeURIComponent(targetId)}/provenance`,
+      ),
+    // Phase 32A — public, externally-checkable revocation feed.
+    revocations: () =>
+      request<{
+        count: number;
+        revocations: Array<{
+          credentialKind: string;
+          credentialRef: string;
+          reason: string;
+          revokedAt: string;
+        }>;
+      }>("/public/revocations"),
+    // Phase 33B — credential transparency log anchor.
+    transparencyTreeHead: () =>
+      request<{
+        treeSize: number;
+        rootHash: string;
+        signed: boolean;
+        signature: string | null;
+        signedAt: string | null;
+        publicKey: string;
+      }>("/public/transparency/tree-head"),
+    // Phase 33D — consume a selective-disclosure share link.
+    share: (token: string) =>
+      request<{
+        user: { username: string; displayName: string | null };
+        scope: { mode: string; kinds?: string[] };
+        credentials: Array<{
+          kind: string;
+          title: string;
+          earnedAt: string;
+          revoked?: boolean;
+          freshness?: "fresh" | "aging" | "stale" | null;
+        }>;
+      }>(`/public/share/${encodeURIComponent(token)}`),
+    // Phase 34B — public org verify surface.
+    org: (slug: string) =>
+      request<{
+        org: {
+          slug: string;
+          name: string;
+          descriptionMd: string;
+          website: string;
+          verificationStatus: string;
+        };
+        members: Array<{
+          username: string;
+          displayName: string | null;
+          role: string;
+        }>;
+        attestations: Array<{
+          id: string;
+          attestKind: string;
+          attestRef: string;
+          statement: string;
+          createdAt: string;
+        }>;
+      }>(`/public/orgs/${encodeURIComponent(slug)}`),
+  },
+  // Phase 28B — reproduction peer review → signed credential.
+  reproductions: {
+    reviewQueue: () =>
+      request<{
+        reproductions: Array<{
+          id: string;
+          targetKind: string;
+          targetId: string;
+          status: string;
+          notes: string | null;
+          evidenceUrl: string | null;
+          createdAt: string;
+          reproducerName: string;
+        }>;
+      }>("/reproductions/review-queue"),
+    get: (id: string) =>
+      request<{
+        reproduction: {
+          id: string;
+          targetKind: string;
+          targetId: string;
+          status: string;
+          notes: string | null;
+          evidenceUrl: string | null;
+          credentialMintedAt: string | null;
+          credentialMintWeight: number | null;
+          createdAt: string;
+        };
+        reviews: Array<{
+          id: string;
+          verdict: string;
+          notesMd: string;
+          createdAt: string;
+          reviewerName: string;
+          weight: number;
+        }>;
+        confirmWeightThreshold: number;
+        currentConfirmedWeight: number;
+      }>(`/reproductions/${id}`),
+    review: (
+      id: string,
+      verdict: "confirmed" | "refuted" | "inconclusive",
+      notesMd: string,
+    ) =>
+      request<OkResponse>(`/reproductions/${id}/review`, {
+        method: "POST",
+        body: JSON.stringify({ verdict, notesMd }),
+      }),
+  },
+  // Phase 39 — "Goodness" missions: verified collaborative
+  // problem-solving. Inline response types, house style.
+  missions: {
+    list: () =>
+      request<{
+        missions: Array<{
+          slug: string;
+          title: string;
+          summaryMd: string;
+          theme: string;
+          topicTags: string[];
+          status: string;
+          createdAt: string;
+        }>;
+      }>("/missions"),
+    discover: () =>
+      request<{
+        missions: Array<{
+          slug: string;
+          title: string;
+          summaryMd: string;
+          theme: string;
+          topicTags: string[];
+          status: string;
+          memberCount: number;
+          createdAt: string;
+        }>;
+      }>("/missions/discover"),
+    create: (input: {
+      title: string;
+      problemMd?: string;
+      summaryMd?: string;
+      theme?: string;
+      topicTags?: string[];
+    }) =>
+      request<{ ok: true; id: string; slug: string }>("/missions", {
+        method: "POST",
+        body: JSON.stringify(input),
+      }),
+    get: (slug: string) =>
+      request<{
+        mission: {
+          id: string;
+          slug: string;
+          title: string;
+          problemMd: string;
+          summaryMd: string;
+          theme: string;
+          topicTags: string[];
+          status: string;
+          createdAt: string;
+        };
+        membership:
+          | { role: "member" | "organizer"; isCreator: boolean }
+          | null;
+        subproblems: Array<{
+          id: string;
+          slug: string;
+          title: string;
+          descriptionMd: string;
+          status: string;
+          order: number;
+          createdAt: string;
+        }>;
+        members: Array<{
+          username: string;
+          displayName: string | null;
+          role: string;
+          joinedAt: string;
+        }>;
+        backers: Array<{
+          slug: string;
+          name: string;
+          createdAt: string;
+        }>;
+        contributions: Array<{
+          id: string;
+          subproblemId: string | null;
+          username: string;
+          kind: string;
+          bodyMd: string;
+          artifacts: Array<{ kind: string; url: string; label: string }>;
+          credentialMintedAt: string | null;
+          credentialMintWeight: number | null;
+          confirmedWeight: number;
+          refutedWeight: number;
+          confirmWeightThreshold: number;
+          revoked: boolean;
+          revocationReason: string | null;
+          createdAt: string;
+        }>;
+        impact: MissionImpact | null;
+      }>(`/missions/${encodeURIComponent(slug)}`),
+    join: (slug: string) =>
+      request<{ ok: true; alreadyMember?: boolean }>(
+        `/missions/${encodeURIComponent(slug)}/join`,
+        { method: "POST" },
+      ),
+    addSubproblem: (
+      slug: string,
+      input: { title: string; descriptionMd?: string },
+    ) =>
+      request<{ ok: true; id: string; slug: string }>(
+        `/missions/${encodeURIComponent(slug)}/subproblems`,
+        { method: "POST", body: JSON.stringify(input) },
+      ),
+    addContribution: (
+      slug: string,
+      input: {
+        subproblemId?: string;
+        kind?: "analysis" | "data" | "solution" | "synthesis";
+        bodyMd: string;
+        artifacts?: Array<{ kind: string; url: string; label?: string }>;
+      },
+    ) =>
+      request<{ ok: true; id: string }>(
+        `/missions/${encodeURIComponent(slug)}/contributions`,
+        { method: "POST", body: JSON.stringify(input) },
+      ),
+    review: (
+      slug: string,
+      contributionId: string,
+      verdict: "confirmed" | "refuted" | "inconclusive",
+      notesMd?: string,
+    ) =>
+      request<OkResponse>(
+        `/missions/${encodeURIComponent(slug)}/contributions/${contributionId}/review`,
+        {
+          method: "POST",
+          body: JSON.stringify({ verdict, notesMd }),
+        },
+      ),
+    addBacker: (slug: string, orgSlug: string) =>
+      request<{ ok: true }>(
+        `/missions/${encodeURIComponent(slug)}/backers`,
+        { method: "POST", body: JSON.stringify({ orgSlug }) },
+      ),
+    attest: (
+      slug: string,
+      contributionId: string,
+      orgSlug: string,
+      statement?: string,
+    ) =>
+      request<{ ok: true; id: string }>(
+        `/missions/${encodeURIComponent(slug)}/contributions/${contributionId}/attest`,
+        {
+          method: "POST",
+          body: JSON.stringify({ orgSlug, statement }),
+        },
+      ),
+    publicImpact: (slug: string) =>
+      request<MissionImpact>(
+        `/public/missions/${encodeURIComponent(slug)}`,
+      ),
+  },
+  // Phase 29B — collaborative review rooms.
+  reviewRooms: {
+    messages: (
+      kind:
+        | "reproduction"
+        | "capstone_submission"
+        | "cohort_study"
+        | "bounty_collaboration"
+        | "mission_working_group",
+      roomId: string,
+    ) =>
+      request<{
+        messages: Array<{
+          id: string;
+          authorId: string;
+          authorUsername: string;
+          bodyMd: string;
+          parentId: string | null;
+          createdAt: string;
+        }>;
+      }>(`/review-rooms/${kind}/${roomId}/messages`),
+    postMessage: (
+      kind:
+        | "reproduction"
+        | "capstone_submission"
+        | "cohort_study"
+        | "bounty_collaboration"
+        | "mission_working_group",
+      roomId: string,
+      bodyMd: string,
+      parentId?: string,
+    ) =>
+      request<{
+        ok: true;
+        message: {
+          id: string;
+          authorId: string;
+          authorUsername: string;
+          bodyMd: string;
+          parentId: string | null;
+          createdAt: string;
+        };
+      }>(`/review-rooms/${kind}/${roomId}/messages`, {
+        method: "POST",
+        body: JSON.stringify({ bodyMd, parentId }),
+      }),
+  },
+  // Phase 28C/D — research bounty marketplace.
+  bounties: {
+    discover: () =>
+      request<{
+        bounties: Array<{
+          id: string;
+          slug: string;
+          title: string;
+          kind: string;
+          status: string;
+          rewardXp: number;
+          maxClaimants: number;
+          deadlineAt: string | null;
+          createdAt: string;
+        }>;
+      }>("/bounties/discover"),
+    list: () =>
+      request<{
+        posted: Array<{
+          id: string;
+          slug: string;
+          title: string;
+          kind: string;
+          status: string;
+          rewardXp: number;
+          maxClaimants: number;
+          deadlineAt: string | null;
+          createdAt: string;
+        }>;
+        claimed: Array<{
+          id: string;
+          slug: string;
+          title: string;
+          kind: string;
+          status: string;
+          rewardXp: number;
+          maxClaimants: number;
+          deadlineAt: string | null;
+          createdAt: string;
+        }>;
+      }>("/bounties"),
+    get: (slug: string) =>
+      request<{
+        bounty: {
+          id: string;
+          slug: string;
+          title: string;
+          descriptionMd: string;
+          kind: string;
+          rewardXp: number;
+          rewardBadgeSlug: string | null;
+          status: string;
+          maxClaimants: number;
+          deadlineAt: string | null;
+          createdAt: string;
+          isPoster: boolean;
+        };
+        claims: Array<{
+          id: string;
+          userId: string;
+          username: string;
+          displayName: string | null;
+          status: string;
+          claimedAt: string;
+        }>;
+        submissions: Array<{
+          id: string;
+          claimId: string;
+          writeup: string;
+          artifacts: unknown[];
+          submittedAt: string;
+          aiReview: unknown | null;
+        }>;
+        myClaim: {
+          id: string;
+          status: string;
+          claimedAt: string;
+        } | null;
+      }>(`/bounties/${slug}`),
+    create: (data: {
+      slug: string;
+      title: string;
+      descriptionMd?: string;
+      kind?: "reproduce" | "extend" | "analyze" | "other";
+      rewardXp?: number;
+      rewardBadgeSlug?: string | null;
+      maxClaimants?: number;
+      deadlineAt?: string | null;
+    }) =>
+      request<{ id: string; slug: string }>("/bounties", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    delete: (slug: string) =>
+      request<OkResponse>(`/bounties/${slug}`, { method: "DELETE" }),
+    claim: (slug: string) =>
+      request<OkResponse>(`/bounties/${slug}/claim`, { method: "POST" }),
+    submit: (
+      slug: string,
+      data: {
+        writeup?: string;
+        artifacts?: Array<{
+          kind: "github" | "colab" | "demo" | "paper" | "other";
+          url: string;
+          label: string;
+        }>;
+      },
+    ) =>
+      request<OkResponse>(`/bounties/${slug}/submit`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    accept: (slug: string, claimId: string) =>
+      request<OkResponse>(
+        `/bounties/${slug}/claims/${claimId}/accept`,
+        { method: "POST" },
+      ),
+    reject: (slug: string, claimId: string) =>
+      request<OkResponse>(
+        `/bounties/${slug}/claims/${claimId}/reject`,
+        { method: "POST" },
+      ),
+    // Phase 30D — collaboration matcher.
+    collaborators: (slug: string) =>
+      request<{
+        bountyId: string;
+        collaborators: Array<{
+          username: string;
+          displayName: string | null;
+          overlapScore: number;
+          sharedConcepts: Array<{ slug: string; title: string }>;
+          reason: string;
+        }>;
+      }>(`/bounties/${slug}/collaborators`),
+    matchCollaborator: (slug: string) =>
+      request<{
+        bountyId: string;
+        matches: Array<{
+          username: string;
+          displayName: string | null;
+          overlapScore: number;
+          sharedConcepts: Array<{ slug: string; title: string }>;
+          reason: string;
+        }>;
+      }>(`/bounties/${slug}/match-collaborator`),
+  },
+  // Phase 30B — cohort study groups.
+  cohorts: {
+    progress: (slug: string) =>
+      request<{
+        members: Array<{
+          username: string;
+          displayName: string | null;
+          mastered: number;
+          weakConcepts: number;
+          velocityPerDay: number;
+          capstonesCompleted: number;
+        }>;
+        milestonesCleared: number;
+      }>(`/cohorts/${slug}/progress`),
+    sessions: (slug: string) =>
+      request<{
+        sessions: Array<{
+          id: string;
+          title: string;
+          scheduledAt: string;
+          roomId: string;
+          createdByUsername: string;
+        }>;
+      }>(`/cohorts/${slug}/sessions`),
+    createSession: (
+      slug: string,
+      data: { title: string; scheduledAt: string },
+    ) =>
+      request<{ id: string; roomId: string }>(
+        `/cohorts/${slug}/sessions`,
+        { method: "POST", body: JSON.stringify(data) },
+      ),
+  },
+  // Phase 30C — recruiter dashboard.
+  recruiter: {
+    search: (skill: string, minProofs?: number) => {
+      const sp = new URLSearchParams({ skill });
+      if (minProofs) sp.set("minProofs", String(minProofs));
+      return request<{
+        skill: string;
+        candidates: Array<{
+          username: string;
+          displayName: string | null;
+          skillSlug: string;
+          skillTitle: string;
+          proofCount: number;
+          latestProofAt: string | null;
+        }>;
+      }>(`/recruiter/search?${sp.toString()}`);
+    },
+    skills: () =>
+      request<{
+        skills: Array<{
+          slug: string;
+          title: string;
+          candidates: number;
+        }>;
+      }>("/recruiter/skills"),
+    pools: () =>
+      request<{
+        pools: Array<{
+          id: string;
+          name: string;
+          createdAt: string;
+          count: number;
+        }>;
+      }>("/recruiter/pools"),
+    createPool: (name: string) =>
+      request<{ id: string; name: string }>("/recruiter/pools", {
+        method: "POST",
+        body: JSON.stringify({ name }),
+      }),
+    pool: (id: string) =>
+      request<{
+        pool: { id: string; name: string };
+        members: Array<{
+          candidateUserId: string;
+          username: string;
+          displayName: string | null;
+          addedAt: string;
+        }>;
+      }>(`/recruiter/pools/${id}`),
+    addToPool: (id: string, candidateUsername: string) =>
+      request<OkResponse>(`/recruiter/pools/${id}/members`, {
+        method: "POST",
+        body: JSON.stringify({ candidateUsername }),
+      }),
+    removeFromPool: (id: string, candidateUserId: string) =>
+      request<OkResponse>(
+        `/recruiter/pools/${id}/members/${candidateUserId}`,
+        { method: "DELETE" },
+      ),
+    // Phase 32C — curated target-role catalog + per-candidate gap.
+    roles: () =>
+      request<{
+        roles: Array<{
+          slug: string;
+          title: string;
+          descriptionMd: string;
+          requiredSkillSlugs: string[];
+        }>;
+      }>("/recruiter/roles"),
+    poolGap: (id: string, role: string) =>
+      request<{
+        pool: { id: string; name: string };
+        role: { slug: string; title: string };
+        candidates: Array<{
+          username: string;
+          displayName: string | null;
+          coverage: number;
+          proven: number;
+          weak: number;
+          missing: number;
+        }>;
+      }>(`/recruiter/pools/${id}/gap?role=${encodeURIComponent(role)}`),
+    // Phase 34A — consented match handshake (recruiter side).
+    sendOffer: (
+      candidateUsername: string,
+      roleSlug: string,
+      messageMd?: string,
+    ) =>
+      request<{ ok: true; id: string; coverage: number }>(
+        "/recruiter/offers",
+        {
+          method: "POST",
+          body: JSON.stringify({ candidateUsername, roleSlug, messageMd }),
+        },
+      ),
+    sentOffers: () =>
+      request<{
+        offers: Array<{
+          id: string;
+          candidateUsername: string;
+          roleSlug: string;
+          roleTitle: string;
+          status: string;
+          shareUrl: string | null;
+          createdAt: string;
+          respondedAt: string | null;
+        }>;
+      }>("/recruiter/offers"),
+    withdrawOffer: (id: string) =>
+      request<OkResponse>(`/recruiter/offers/${id}/withdraw`, {
+        method: "POST",
+      }),
+  },
+  // Phase 34B — organization / institution accounts.
+  orgs: {
+    create: (input: {
+      slug: string;
+      name: string;
+      descriptionMd?: string;
+      website?: string;
+    }) =>
+      request<{ ok: true; id: string }>("/orgs", {
+        method: "POST",
+        body: JSON.stringify(input),
+      }),
+    get: (slug: string) =>
+      request<{
+        org: {
+          slug: string;
+          name: string;
+          descriptionMd: string;
+          website: string;
+          verificationStatus: string;
+        };
+        role: string | null;
+        members: Array<{
+          username: string;
+          displayName: string | null;
+          role: string;
+          joinedAt: string;
+        }>;
+      }>(`/orgs/${encodeURIComponent(slug)}`),
+    addMember: (slug: string, username: string, role: string) =>
+      request<OkResponse>(`/orgs/${encodeURIComponent(slug)}/members`, {
+        method: "POST",
+        body: JSON.stringify({ username, role }),
+      }),
+    attest: (
+      slug: string,
+      username: string,
+      attestKind: "reproduction" | "bounty" | "skill",
+      attestRef?: string,
+      statement?: string,
+    ) =>
+      request<{ ok: true; id: string }>(
+        `/orgs/${encodeURIComponent(slug)}/attest`,
+        {
+          method: "POST",
+          body: JSON.stringify({ username, attestKind, attestRef, statement }),
+        },
+      ),
+    myAttestations: () =>
+      request<{
+        attestations: Array<{
+          id: string;
+          orgSlug: string;
+          orgName: string;
+          attestKind: string;
+          statement: string;
+          createdAt: string;
+        }>;
+      }>("/orgs/me/attestations"),
+  },
   tracks: {
     list: () =>
       request<{
@@ -1491,6 +2815,9 @@ export const api = {
           optionalCount: number;
           earnedBy: number;
           updatedAt: string;
+          // Phase 16D — 0 for signed-out callers. Lets the client
+          // group tracks without a per-track round-trip.
+          myCompletedRequired: number;
         }>;
       }>("/tracks"),
     get: (slug: string, tier?: "intro" | "undergrad" | "grad") => {
@@ -1675,6 +3002,23 @@ export const api = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       }),
+    // Phase 30A — auto-ranked mentor suggestions.
+    candidates: () =>
+      request<{
+        personalized: boolean;
+        candidates: Array<{
+          username: string;
+          displayName: string | null;
+          bio: string | null;
+          score: number;
+          rationale: string;
+          breakdown: {
+            topicMatch: number;
+            domainRep: number;
+            align: number;
+          };
+        }>;
+      }>("/mentors/candidates"),
   },
   me: {
     // S94 — student progress dashboard.
@@ -1684,12 +3028,247 @@ export const api = {
       request<{ upserts: number }>("/me/weak-concepts/refresh", { method: "POST" }),
     dismissWeakConcept: (id: string) =>
       request<OkResponse>(`/me/weak-concepts/${id}/dismiss`, { method: "POST" }),
+    // Phase 31A — prove a misconception is resolved.
+    proveWeakConcept: (id: string, answer: string) =>
+      request<{
+        resolved: boolean;
+        alreadyResolved: boolean;
+        score: number | null;
+        feedbackMd: string;
+        reason: string;
+      }>(`/me/weak-concepts/${id}/prove`, {
+        method: "POST",
+        body: JSON.stringify({ answer }),
+      }),
+    // Phase 31B / 32C — prerequisite-ordered path to a target
+    // credential or an explicit skill set (kind=skills).
+    goalPath: (
+      kind: "capstone" | "track" | "exam" | "skills",
+      slug: string,
+    ) => {
+      const sp = new URLSearchParams({ kind, slug });
+      return request<{
+        goal: { kind: string; slug: string; title: string | null };
+        steps: Array<{
+          nodeId: string;
+          slug: string;
+          title: string;
+          status: "in_progress" | "untouched";
+          reason: string;
+          estimatedDays: number | null;
+        }>;
+        blockedOn: Array<{ nodeId: string; slug: string; title: string }>;
+        estimatedReadyOn: string | null;
+        resolvable: boolean;
+      }>(`/me/goal-path?${sp.toString()}`);
+    },
+    // Phase 32C — signed-proof skill gap vs a role or skill list,
+    // plus a dependency-ordered path over the gap.
+    skillGap: (opts: { role?: string; skills?: string[] }) => {
+      const sp = new URLSearchParams();
+      if (opts.role) sp.set("role", opts.role);
+      if (opts.skills && opts.skills.length > 0)
+        sp.set("skills", opts.skills.join(","));
+      return request<{
+        role: { slug: string; title: string; descriptionMd: string } | null;
+        gap: {
+          target: string[];
+          proven: Array<{
+            slug: string;
+            title: string;
+            proofCount: number;
+            latestProofAt: string | null;
+          }>;
+          weak: Array<{
+            slug: string;
+            title: string;
+            quizScore: number | null;
+          }>;
+          missing: Array<{ slug: string; title: string }>;
+          coverage: number;
+        };
+        path: {
+          goal: { kind: string; slug: string; title: string | null };
+          steps: Array<{
+            nodeId: string;
+            slug: string;
+            title: string;
+            status: "in_progress" | "untouched";
+            reason: string;
+            estimatedDays: number | null;
+          }>;
+          blockedOn: Array<{
+            nodeId: string;
+            slug: string;
+            title: string;
+          }>;
+          estimatedReadyOn: string | null;
+          resolvable: boolean;
+        } | null;
+      }>(`/me/skill-gap?${sp.toString()}`);
+    },
+    // Phase 33C — endorse a peer for a skill (weight derived
+    // server-side from the caller's own proven competency).
+    endorse: (
+      username: string,
+      skillSlug: string,
+      skillTitle?: string,
+      note?: string,
+    ) =>
+      request<{ ok: true; id: string; weight: number }>(
+        "/me/endorsements",
+        {
+          method: "POST",
+          body: JSON.stringify({ username, skillSlug, skillTitle, note }),
+        },
+      ),
+    removeEndorsement: (id: string) =>
+      request<OkResponse>(`/me/endorsements/${id}`, { method: "DELETE" }),
+    // Phase 33D — selective-disclosure share links.
+    shareTokens: () =>
+      request<{
+        tokens: Array<{
+          id: string;
+          scope: { mode: string; kinds?: string[] };
+          label: string;
+          expiresAt: string | null;
+          revokedAt: string | null;
+          accessCount: number;
+          lastAccessedAt: string | null;
+          createdAt: string;
+        }>;
+      }>("/me/credentials/share-tokens"),
+    createShareToken: (opts: {
+      scope?: { mode: "all" | "kinds"; kinds?: string[] };
+      label?: string;
+      expiresInDays?: number;
+    }) =>
+      request<{
+        id: string;
+        token: string;
+        shareUrl: string;
+        scope: { mode: string; kinds?: string[] };
+        expiresAt: string | null;
+      }>("/me/credentials/share-tokens", {
+        method: "POST",
+        body: JSON.stringify(opts),
+      }),
+    deleteShareToken: (id: string) =>
+      request<OkResponse>(`/me/credentials/share-tokens/${id}`, {
+        method: "DELETE",
+      }),
+    // Phase 34A — candidate side of the match handshake.
+    offers: () =>
+      request<{
+        offers: Array<{
+          id: string;
+          recruiterUsername: string;
+          roleSlug: string;
+          roleTitle: string;
+          status: string;
+          messageMd: string;
+          skillGap: { coverage: number };
+          signedOffer: {
+            manifest: Record<string, unknown>;
+            signature: string;
+            publicKey: string;
+          } | null;
+          createdAt: string;
+          respondedAt: string | null;
+        }>;
+      }>("/me/offers"),
+    respondOffer: (id: string, accept: boolean) =>
+      request<{ ok: true; status: string; shareUrl?: string }>(
+        `/me/offers/${id}/respond`,
+        { method: "POST", body: JSON.stringify({ accept }) },
+      ),
+    // Phase 34C — the daily Review & Prove driver.
+    today: () =>
+      request<{
+        dueFlashcards: {
+          count: number;
+          sample: Array<{ id: string; front: string }>;
+        };
+        weakConcepts: Array<{
+          id: string;
+          conceptSlug: string;
+          label: string;
+          confidence: number;
+        }>;
+        decay: {
+          staleCredentials: Array<{
+            reproductionId: string;
+            ageDays: number | null;
+          }>;
+          resolvedToRefresh: Array<{
+            diagnosisId: string;
+            conceptSlug: string;
+            label: string;
+            ageDays: number | null;
+          }>;
+        };
+        activeCommitment: {
+          id: string;
+          goalTitle: string;
+          deadlineAt: string;
+        } | null;
+        goalPathNext: Array<{ slug: string; title: string }>;
+        reviewStreak: number;
+        streakInDanger: boolean;
+      }>("/me/today"),
+    // Phase 34D — signed learning commitments.
+    commitments: () =>
+      request<{
+        commitments: Array<{
+          id: string;
+          goalKind: string;
+          goalSlug: string;
+          goalTitle: string;
+          deadlineAt: string;
+          status: string;
+          createdAt: string;
+          completedAt: string | null;
+        }>;
+      }>("/me/commitments"),
+    createCommitment: (input: {
+      goalKind: "capstone" | "track" | "exam" | "skills";
+      goalSlug: string;
+      deadlineAt: string;
+      witnessUsername?: string;
+      isPublic?: boolean;
+    }) =>
+      request<{ ok: true; id: string }>("/me/commitments", {
+        method: "POST",
+        body: JSON.stringify(input),
+      }),
+    abandonCommitment: (id: string) =>
+      request<OkResponse>(`/me/commitments/${id}/abandon`, {
+        method: "POST",
+      }),
+    completeCommitment: (id: string) =>
+      request<{ ok: true; status: string; credential: unknown }>(
+        `/me/commitments/${id}/complete`,
+        { method: "POST" },
+      ),
     prereqStatus: (wikiSlugs: string[]) => {
       const sp = new URLSearchParams();
       sp.set("wikiSlugs", wikiSlugs.join(","));
       return request<PrereqXrayResponse>(`/me/prereq-status?${sp.toString()}`);
     },
     knowledgeMri: () => request<KnowledgeMri>("/me/knowledge-mri"),
+    // Phase 28E — readiness projection + dated study plan.
+    readiness: () =>
+      request<{
+        velocityPerDay: number;
+        snapshots: Array<{ capturedOn: string; mastered: number }>;
+        weakConcepts: number;
+        estimatedReadyOn: string | null;
+        plan: Array<{
+          conceptSlug: string;
+          conceptTitle: string | null;
+          targetDate: string;
+        }>;
+      }>("/me/readiness"),
     trackCompletions: () =>
       request<{
         completions: Array<{

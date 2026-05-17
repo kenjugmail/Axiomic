@@ -22,6 +22,26 @@ describe("Health & Readiness", () => {
     expect(typeof data.timestamp).toBe("string");
   });
 
+  // Phase 26A — every response should carry the baseline security
+  // headers. Lock that down so a future middleware reshuffle that
+  // accidentally drops one fails CI loudly.
+  test("baseline security headers ride every response", async () => {
+    const res = await req("/health");
+    expect(res.headers.get("X-Frame-Options")).toBe("DENY");
+    expect(res.headers.get("X-Content-Type-Options")).toBe("nosniff");
+    expect(res.headers.get("Referrer-Policy")).toBe(
+      "strict-origin-when-cross-origin",
+    );
+    expect(res.headers.get("Permissions-Policy")).toContain("geolocation=()");
+    // Phase 36 — strict CSP (default-src 'none' ⇒ no scripts;
+    // inline <style> allowed for the self-contained portfolio HTML).
+    const csp = res.headers.get("Content-Security-Policy") ?? "";
+    expect(csp).toContain("default-src 'none'");
+    expect(csp).toContain("frame-ancestors 'none'");
+    expect(csp).toContain("style-src 'self' 'unsafe-inline'");
+    expect(csp).not.toContain("script-src"); // falls back to default-src 'none'
+  });
+
   test("/ready reports db and ai status", async () => {
     const res = await req("/ready");
     expect(res.status).toBe(200);

@@ -13,6 +13,7 @@ import {
   flashcards,
   userAchievements,
 } from "@axiomic/db";
+import { clampInt } from "../lib/pagination";
 import type { Env } from "../env";
 
 export const activityRouter = new Hono<Env>();
@@ -23,7 +24,7 @@ export const activityRouter = new Hono<Env>();
 // timestamp.
 activityRouter.get("/users/:username", (c) => {
   const username = c.req.param("username");
-  const limit = Math.min(parseInt(c.req.query("limit") ?? "5", 10) || 5, 20);
+  const limit = clampInt(c.req.query("limit"), { def: 5, min: 1, max: 20 });
   const db = getDb();
 
   const user = db

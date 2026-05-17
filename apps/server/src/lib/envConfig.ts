@@ -26,6 +26,7 @@ const envSchema = z.object({
   // Auth
   DEV_AUTH_BYPASS: z.string().optional(),
   DEV_AUTH_BYPASS_USER: z.string().default("alice"),
+  DISABLE_JOB_RUNNER: z.string().optional(),
   SESSION_SECRET: z.string().optional(),
   BOOTSTRAP_ADMIN_USERNAME: z.string().optional(),
 
@@ -161,6 +162,16 @@ export const env: Env = new Proxy({} as Env, {
 export function assertProductionSecrets(): void {
   const e = loadEnv();
   if (e.NODE_ENV !== "production") return;
+  // DEV_AUTH_BYPASS short-circuits all authentication to a fixed
+  // user. It is never legitimate in production — a warning is not
+  // enough; refuse to boot entirely (same posture as the missing
+  // signing key).
+  if (e.DEV_AUTH_BYPASS === "1") {
+    throw new Error(
+      "Refusing to boot in production: DEV_AUTH_BYPASS=1 disables all " +
+        "authentication (every request runs as a fixed user). Unset it.",
+    );
+  }
   const missing: string[] = [];
   if (!e.SESSION_SECRET) missing.push("SESSION_SECRET");
   if (!e.AXIOMIC_SIGNING_PRIVATE_KEY_HEX) missing.push("AXIOMIC_SIGNING_PRIVATE_KEY_HEX");
@@ -181,10 +192,14 @@ export function warnOnInsecureConfig(): void {
   const e = loadEnv();
   if (e.NODE_ENV !== "production") return;
   const warnings: string[] = [];
-  if (e.DEV_AUTH_BYPASS === "1") {
+  // DEV_AUTH_BYPASS=1 is now fatal in production (see
+  // assertProductionSecrets); no warning needed here.
+  if (e.DISABLE_JOB_RUNNER === "1") {
     warnings.push(
-      "DEV_AUTH_BYPASS=1 in production is dangerous: every request runs as " +
-        `${e.DEV_AUTH_BYPASS_USER} regardless of session cookie. Disable.`,
+      "DISABLE_JOB_RUNNER=1 in production: background jobs are off — " +
+        "credential transparency tree heads won't be signed and " +
+        "email/notification dispatch is suspended. Unset unless this " +
+        "instance is intentionally web-only.",
     );
   }
   if (e.CORS_ORIGIN === "http://localhost:5173") {

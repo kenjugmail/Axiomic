@@ -131,6 +131,81 @@ describe("Sprint 43 — cohorts", () => {
     });
     expect(r2.status).toBe(409);
   });
+
+  // ----- Phase 17C — activity feed -----
+
+  test("activity endpoint 404s on unknown cohort", async () => {
+    const r = await req("/cohorts/totally-not-a-real-cohort-slug/activity");
+    expect(r.status).toBe(404);
+  });
+
+  // Phase 18A — invite-only cohorts gate the activity feed by
+  // membership. Open cohorts stay public.
+  test("invite-only activity feed rejects non-members + anonymous", async () => {
+    const owner = await signup("priv-own");
+    const slug = `cohort-priv-${testId}`;
+    const create = await req("/cohorts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(owner.cookie) },
+      body: JSON.stringify({
+        slug,
+        name: "Invite-only activity test",
+        visibility: "invite",
+      }),
+    });
+    expect(create.status).toBe(201);
+
+    // Anonymous caller → 401.
+    const anon = await req(`/cohorts/${slug}/activity`);
+    expect(anon.status).toBe(401);
+
+    // Signed-in but not a member → 403.
+    const stranger = await signup("priv-str");
+    const denied = await req(`/cohorts/${slug}/activity`, {
+      headers: cookieHeader(stranger.cookie),
+    });
+    expect(denied.status).toBe(403);
+
+    // Owner is the implicit organizer member → 200.
+    const allowed = await req(`/cohorts/${slug}/activity`, {
+      headers: cookieHeader(owner.cookie),
+    });
+    expect(allowed.status).toBe(200);
+  });
+
+  test("activity endpoint surfaces recent member joins", async () => {
+    const owner = await signup("ac1");
+    const slug = `cohort-ac1-${testId}`;
+    const create = await req("/cohorts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(owner.cookie) },
+      body: JSON.stringify({
+        slug,
+        name: "Activity feed test cohort",
+        description: "for testing the activity feed",
+        visibility: "open",
+      }),
+    });
+    expect(create.status).toBe(201);
+
+    const joiner = await signup("ac2");
+    const joinRes = await req(`/cohorts/${slug}/join`, {
+      method: "POST",
+      headers: cookieHeader(joiner.cookie),
+    });
+    expect([200, 201]).toContain(joinRes.status);
+
+    const activity = await req(`/cohorts/${slug}/activity`);
+    expect(activity.status).toBe(200);
+    const body = (await activity.json()) as {
+      events: Array<{ kind: string; actorUsername: string }>;
+    };
+    // Both creator and joiner produce "joined" rows when created within
+    // the 30-day window.
+    const joins = body.events.filter((e) => e.kind === "joined");
+    const usernames = new Set(joins.map((e) => e.actorUsername));
+    expect(usernames.has(joiner.username)).toBe(true);
+  });
 });
 
 describe("Sprint 43 — mentor relationships", () => {

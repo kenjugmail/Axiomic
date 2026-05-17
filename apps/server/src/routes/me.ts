@@ -7,7 +7,7 @@
 //   - GET /me/prereq-status          — Sprint 31 PrereqXray data
 
 import { Hono } from "hono";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, lte, or, sql } from "drizzle-orm";
 import {
   capstoneEnrollments,
   capstoneSubmissions,
@@ -19,22 +19,26 @@ import {
   contentProposals,
   cohortInvitations,
   emailVerificationTokens,
+  flashcards,
   forumPosts,
   getDb,
   masteryNodes,
+  masteryPaths,
   misconceptionCatalog,
   misconceptionDiagnoses,
   notifications,
   petCosmetics,
   petInventory,
   pets,
+  recruiterMatchOffers,
+  learningCommitments,
   sessions,
   users,
   userProgress,
   wikiPages,
   xpGrants,
 } from "@axiomic/db";
-import { randomBytes } from "crypto";
+import { randomBytes, randomUUID } from "crypto";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import {
@@ -47,8 +51,20 @@ import { env } from "../lib/envConfig";
 import { sendEmail } from "../lib/email";
 import { runDetectorForUser } from "../lib/misconceptionDetector";
 import { buildKnowledgeMri } from "../lib/knowledgeMri";
+import { recordMasterySnapshot, buildReadiness } from "../lib/readiness";
 import { currentStreak } from "../lib/achievements";
 import { totalXpForUser } from "../lib/xp";
+import { gradeEssay } from "../lib/essayGrader";
+import { resolveMisconceptionIfProven } from "../lib/tutorResolution";
+import { buildGoalPath } from "../lib/goalPlanner";
+import { analyzeSkillGap } from "../lib/skillGap";
+import { getRole } from "../lib/roles";
+import { createEndorsement, revokeEndorsement } from "../lib/endorsements";
+import { mintShareToken } from "./credentials";
+import { notify } from "../lib/notifications";
+import { signCredential } from "../lib/signing";
+import { appendCredentialEvent } from "../lib/transparency";
+import { collectDecaySignals } from "../jobs/resurfacingDecay";
 import type { Env } from "../env";
 
 export const meRouter = new Hono<Env>();
@@ -175,12 +191,70 @@ meRouter.get("/weak-concepts", requireAuth, async (c) => {
   const slugs = [...new Set(visible.map((r) => r.conceptSlug))];
   const wikis = slugs.length
     ? db
-        .select({ slug: wikiPages.slug, title: wikiPages.title })
+        .select({ id: wikiPages.id, slug: wikiPages.slug, title: wikiPages.title })
         .from(wikiPages)
         .where(inArray(wikiPages.slug, slugs))
         .all()
     : [];
   const titleBySlug = new Map(wikis.map((w) => [w.slug, w.title]));
+  const pageIdBySlug = new Map(wikis.map((w) => [w.slug, w.id]));
+
+  // Phase 16B — gather data needed for `nextSteps` hints. One bulk
+  // query per data source so we stay flat regardless of diagnosis
+  // count. Mastery nodes is a small table (≤ a few hundred rows),
+  // and the JSON-array pageIds parse happens once.
+  const cardSlugs = new Set(
+    db
+      .select({ pageSlug: flashcards.pageSlug })
+      .from(flashcards)
+      .where(
+        and(
+          eq(flashcards.userId, user.id),
+          inArray(flashcards.pageSlug, slugs),
+        ),
+      )
+      .all()
+      .map((r) => r.pageSlug),
+  );
+
+  const allNodes = db
+    .select({
+      slug: masteryNodes.slug,
+      pathId: masteryNodes.pathId,
+      pageIds: masteryNodes.pageIds,
+      quizData: masteryNodes.quizData,
+    })
+    .from(masteryNodes)
+    .all();
+  const pathSlugById = new Map(
+    db
+      .select({ id: masteryPaths.id, slug: masteryPaths.slug })
+      .from(masteryPaths)
+      .all()
+      .map((p) => [p.id, p.slug]),
+  );
+  // Build a pageId → { pathSlug, nodeSlug } index for nodes that
+  // actually carry a quiz. First match wins — most concepts only
+  // appear under one node anyway.
+  const quizNodeByPageId = new Map<string, { pathSlug: string; nodeSlug: string }>();
+  for (const n of allNodes) {
+    if (!n.quizData) continue;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(n.pageIds);
+    } catch {
+      continue;
+    }
+    if (!Array.isArray(parsed)) continue;
+    const pathSlug = pathSlugById.get(n.pathId);
+    if (!pathSlug) continue;
+    for (const pid of parsed) {
+      if (typeof pid !== "string") continue;
+      if (!quizNodeByPageId.has(pid)) {
+        quizNodeByPageId.set(pid, { pathSlug, nodeSlug: n.slug });
+      }
+    }
+  }
 
   return c.json({
     diagnoses: visible.map((r) => {
@@ -192,6 +266,9 @@ meRouter.get("/weak-concepts", requireAuth, async (c) => {
         // ignore
       }
       const cat = catalogByKey.get(r.misconceptionKey);
+      const wikiSlug = titleBySlug.has(r.conceptSlug) ? r.conceptSlug : null;
+      const pageId = pageIdBySlug.get(r.conceptSlug);
+      const quizPath = pageId ? quizNodeByPageId.get(pageId) ?? null : null;
       return {
         id: r.id,
         conceptSlug: r.conceptSlug,
@@ -204,6 +281,11 @@ meRouter.get("/weak-concepts", requireAuth, async (c) => {
         status: r.status,
         firstSeenAt: r.firstSeenAt,
         lastSeenAt: r.lastSeenAt,
+        nextSteps: {
+          wikiSlug,
+          quizPath,
+          hasFlashcards: cardSlugs.has(r.conceptSlug),
+        },
       };
     }),
   });
@@ -216,7 +298,506 @@ meRouter.get("/weak-concepts", requireAuth, async (c) => {
 meRouter.get("/knowledge-mri", requireAuth, async (c) => {
   const user = c.get("user")!;
   const mri = await buildKnowledgeMri(user.id);
+  // Phase 28E — capture a daily longitudinal snapshot at zero
+  // extra user cost. Idempotent per UTC day; best-effort so a
+  // snapshot failure can't break the MRI read.
+  try {
+    recordMasterySnapshot(user.id, mri);
+  } catch {
+    // swallow — diagnostics shouldn't 500 on a snapshot write
+  }
   return c.json(mri);
+});
+
+// Phase 28E — readiness projection + dated study plan derived
+// from accumulated mastery snapshots + active weakness diagnoses.
+meRouter.get("/readiness", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  return c.json(buildReadiness(user.id));
+});
+
+// Phase 31B / 32C — prerequisite-ordered path from the user's
+// current mastery state to a target credential (capstone/track/
+// exam) or an explicit skill set (kind=skills, slug=a,b,c).
+meRouter.get("/goal-path", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const kind = c.req.query("kind");
+  const slug = (c.req.query("slug") ?? "").trim();
+  if (
+    (kind !== "capstone" &&
+      kind !== "track" &&
+      kind !== "exam" &&
+      kind !== "skills") ||
+    !slug
+  ) {
+    return c.json(
+      { error: "kind (capstone|track|exam|skills) + slug required" },
+      400,
+    );
+  }
+  return c.json(buildGoalPath(user.id, { kind, slug }));
+});
+
+// Phase 32C — signed-proof skill-gap vs. a target role or an
+// ad-hoc skill list, plus a dependency-ordered path over the gap.
+meRouter.get("/skill-gap", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const roleSlug = (c.req.query("role") ?? "").trim();
+  const skillsParam = (c.req.query("skills") ?? "").trim();
+  let target: string[] = [];
+  let role: { slug: string; title: string; descriptionMd: string } | null =
+    null;
+  if (roleSlug) {
+    const r = getRole(roleSlug);
+    if (!r) return c.json({ error: "Unknown role" }, 404);
+    role = {
+      slug: r.slug,
+      title: r.title,
+      descriptionMd: r.descriptionMd,
+    };
+    target = r.requiredSkillSlugs;
+  } else if (skillsParam) {
+    target = skillsParam.split(",");
+  } else {
+    return c.json({ error: "role or skills query required" }, 400);
+  }
+  const gap = analyzeSkillGap(user.id, target);
+  // Actionable: order only the actual gap (weak ∪ missing).
+  const gapSlugs = [
+    ...gap.weak.map((w) => w.slug),
+    ...gap.missing.map((m) => m.slug),
+  ];
+  const path =
+    gapSlugs.length > 0
+      ? buildGoalPath(user.id, { kind: "skills", slug: gapSlugs.join(",") })
+      : null;
+  return c.json({ role, gap, path });
+});
+
+// Phase 33C — endorse a peer for a skill. The weight is derived
+// server-side from the caller's OWN proven competency — clients
+// can't inflate it. No self-endorsement; rate-limited.
+meRouter.post(
+  "/endorsements",
+  requireAuth,
+  zValidator(
+    "json",
+    z.object({
+      username: z.string().min(1),
+      skillSlug: z.string().min(1).max(120),
+      skillTitle: z.string().max(200).optional().default(""),
+      note: z.string().max(280).optional().default(""),
+    }),
+  ),
+  (c) => {
+    const me = c.get("user")!;
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`endorse:${me.id}`, 20, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
+    const { username, skillSlug, skillTitle, note } = c.req.valid("json");
+    const endorsee = getDb()
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.username, username))
+      .get();
+    if (!endorsee) return c.json({ error: "User not found" }, 404);
+    if (endorsee.id === me.id) {
+      return c.json({ error: "You can't endorse yourself." }, 400);
+    }
+    const r = createEndorsement(
+      me.id,
+      endorsee.id,
+      skillSlug.trim().toLowerCase(),
+      skillTitle || skillSlug,
+      note,
+    );
+    if (!r.ok) {
+      return c.json(
+        { error: "You've already endorsed this user for this skill." },
+        409,
+      );
+    }
+    return c.json(
+      { ok: true, id: r.value.id, weight: r.value.weight },
+      201,
+    );
+  },
+);
+
+meRouter.delete("/endorsements/:id", requireAuth, (c) => {
+  const me = c.get("user")!;
+  const ok = revokeEndorsement(c.req.param("id")!, me.id);
+  if (!ok) return c.json({ error: "Not found" }, 404);
+  return c.json({ ok: true });
+});
+
+// Phase 34A — candidate side of the recruiter match handshake.
+meRouter.get("/offers", requireAuth, (c) => {
+  const me = c.get("user")!;
+  const rows = getDb()
+    .select({
+      id: recruiterMatchOffers.id,
+      recruiterUsername: users.username,
+      roleSlug: recruiterMatchOffers.roleSlug,
+      roleTitle: recruiterMatchOffers.roleTitle,
+      status: recruiterMatchOffers.status,
+      messageMd: recruiterMatchOffers.messageMd,
+      skillGapJson: recruiterMatchOffers.skillGapJson,
+      signedOfferJson: recruiterMatchOffers.signedOfferJson,
+      createdAt: recruiterMatchOffers.createdAt,
+      respondedAt: recruiterMatchOffers.respondedAt,
+    })
+    .from(recruiterMatchOffers)
+    .innerJoin(users, eq(recruiterMatchOffers.recruiterId, users.id))
+    .where(eq(recruiterMatchOffers.candidateId, me.id))
+    .orderBy(desc(recruiterMatchOffers.createdAt))
+    .all()
+    .map((r) => ({
+      id: r.id,
+      recruiterUsername: r.recruiterUsername,
+      roleSlug: r.roleSlug,
+      roleTitle: r.roleTitle,
+      status: r.status,
+      messageMd: r.messageMd,
+      skillGap: JSON.parse(r.skillGapJson),
+      signedOffer: r.signedOfferJson ? JSON.parse(r.signedOfferJson) : null,
+      createdAt: r.createdAt,
+      respondedAt: r.respondedAt,
+    }));
+  return c.json({ offers: rows });
+});
+
+meRouter.post(
+  "/offers/:id/respond",
+  requireAuth,
+  zValidator("json", z.object({ accept: z.boolean() })),
+  (c) => {
+    const me = c.get("user")!;
+    const { accept } = c.req.valid("json");
+    const db = getDb();
+    const offer = db
+      .select()
+      .from(recruiterMatchOffers)
+      .where(eq(recruiterMatchOffers.id, c.req.param("id")!))
+      .get();
+    if (!offer || offer.candidateId !== me.id) {
+      return c.json({ error: "Offer not found" }, 404);
+    }
+    if (offer.status !== "pending") {
+      return c.json({ error: "Offer already resolved" }, 409);
+    }
+    const now = new Date().toISOString();
+    if (!accept) {
+      db.update(recruiterMatchOffers)
+        .set({ status: "declined", respondedAt: now })
+        .where(eq(recruiterMatchOffers.id, offer.id))
+        .run();
+      return c.json({ ok: true, status: "declined" });
+    }
+    // Accept → auto-mint a 30-day share link to the candidate's
+    // signed wallet, scoped 'all' (the candidate opted in; the
+    // wallet only ever contains signed credentials).
+    const tok = mintShareToken(
+      me.id,
+      { mode: "all" },
+      `Match: ${offer.roleTitle}`,
+      30,
+    );
+    db.update(recruiterMatchOffers)
+      .set({
+        status: "accepted",
+        respondedAt: now,
+        shareTokenId: tok.id,
+        shareUrl: tok.shareUrl,
+      })
+      .where(eq(recruiterMatchOffers.id, offer.id))
+      .run();
+    void notify({
+      recipientId: offer.recruiterId,
+      actorId: me.id,
+      kind: "match_offer_accepted",
+      subjectType: "match_offer",
+      subjectId: offer.id,
+      contextSlug: offer.roleSlug,
+      preview: `${me.username} accepted your match for ${offer.roleTitle} — a verified portfolio link is now available.`,
+    });
+    return c.json({
+      ok: true,
+      status: "accepted",
+      shareUrl: tok.shareUrl,
+    });
+  },
+);
+
+// Phase 34C — the daily "Review & Prove" driver. One fused,
+// ordered payload composed (no schema) from SRS-due flashcards,
+// active weak concepts, decay signals, the active commitment's
+// next goal-path steps, and the review streak.
+meRouter.get("/today", requireAuth, (c) => {
+  const me = c.get("user")!;
+  const db = getDb();
+  const nowIso = new Date().toISOString();
+
+  const dueCards = db
+    .select({ id: flashcards.id, front: flashcards.front })
+    .from(flashcards)
+    .where(
+      and(
+        eq(flashcards.userId, me.id),
+        or(isNull(flashcards.dueAt), lte(flashcards.dueAt, nowIso)),
+      ),
+    )
+    .limit(20)
+    .all();
+
+  const weak = db
+    .select({
+      id: misconceptionDiagnoses.id,
+      conceptSlug: misconceptionDiagnoses.conceptSlug,
+      label: misconceptionDiagnoses.label,
+      confidence: misconceptionDiagnoses.confidence,
+    })
+    .from(misconceptionDiagnoses)
+    .where(
+      and(
+        eq(misconceptionDiagnoses.userId, me.id),
+        eq(misconceptionDiagnoses.status, "active"),
+      ),
+    )
+    .orderBy(desc(misconceptionDiagnoses.confidence))
+    .limit(5)
+    .all();
+
+  const decay = collectDecaySignals(me.id);
+
+  const commitment = db
+    .select()
+    .from(learningCommitments)
+    .where(
+      and(
+        eq(learningCommitments.userId, me.id),
+        eq(learningCommitments.status, "active"),
+      ),
+    )
+    .orderBy(learningCommitments.deadlineAt)
+    .limit(1)
+    .get();
+  let goalNext: Array<{ slug: string; title: string }> = [];
+  let activeCommitment: {
+    id: string;
+    goalTitle: string;
+    deadlineAt: string;
+  } | null = null;
+  if (commitment) {
+    activeCommitment = {
+      id: commitment.id,
+      goalTitle: commitment.goalTitle,
+      deadlineAt: commitment.deadlineAt,
+    };
+    const gp = buildGoalPath(me.id, {
+      kind: commitment.goalKind as
+        | "capstone"
+        | "track"
+        | "exam"
+        | "skills",
+      slug: commitment.goalSlug,
+    });
+    goalNext = gp.steps
+      .slice(0, 3)
+      .map((s) => ({ slug: s.slug, title: s.title }));
+  }
+
+  const streak = currentStreak(db, me.id);
+  const today = nowIso.slice(0, 10);
+  const loggedToday =
+    db
+      .select({ id: xpGrants.id })
+      .from(xpGrants)
+      .where(
+        and(
+          eq(xpGrants.userId, me.id),
+          sql`substr(${xpGrants.awardedAt}, 1, 10) = ${today}`,
+        ),
+      )
+      .get() != null;
+
+  return c.json({
+    dueFlashcards: { count: dueCards.length, sample: dueCards.slice(0, 5) },
+    weakConcepts: weak,
+    decay,
+    activeCommitment,
+    goalPathNext: goalNext,
+    reviewStreak: streak,
+    streakInDanger: streak > 0 && !loggedToday,
+  });
+});
+
+// Phase 34D — signed learning commitments.
+meRouter.post(
+  "/commitments",
+  requireAuth,
+  zValidator(
+    "json",
+    z.object({
+      goalKind: z.enum(["capstone", "track", "exam", "skills"]),
+      goalSlug: z.string().min(1).max(400),
+      deadlineAt: z.string().min(10),
+      witnessUsername: z.string().optional(),
+      cohortId: z.string().optional(),
+      isPublic: z.boolean().optional().default(true),
+    }),
+  ),
+  (c) => {
+    const me = c.get("user")!;
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`commitment:${me.id}`, 10, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
+    const { goalKind, goalSlug, deadlineAt, witnessUsername, cohortId, isPublic } =
+      c.req.valid("json");
+    const when = Date.parse(deadlineAt);
+    if (Number.isNaN(when) || when < Date.now()) {
+      return c.json({ error: "deadlineAt must be a future date" }, 400);
+    }
+    const db = getDb();
+    const gp = buildGoalPath(me.id, { kind: goalKind, slug: goalSlug });
+    if (!gp.resolvable) {
+      return c.json({ error: "That goal can't be resolved." }, 404);
+    }
+    let witnessId: string | null = null;
+    if (witnessUsername) {
+      const w = db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.username, witnessUsername))
+        .get();
+      if (!w) return c.json({ error: "Witness not found" }, 404);
+      witnessId = w.id;
+    }
+    const id = randomUUID();
+    db.insert(learningCommitments)
+      .values({
+        id,
+        userId: me.id,
+        goalKind,
+        goalSlug,
+        goalTitle: gp.goal.title ?? goalSlug,
+        deadlineAt: new Date(when).toISOString(),
+        status: "active",
+        witnessUserId: witnessId,
+        cohortId: cohortId ?? null,
+        isPublic,
+      })
+      .run();
+    if (witnessId) {
+      void notify({
+        recipientId: witnessId,
+        actorId: me.id,
+        kind: "commitment_witnessed",
+        subjectType: "commitment",
+        subjectId: id,
+        contextSlug: null,
+        preview: `${me.username} asked you to witness their commitment: ${gp.goal.title ?? goalSlug}.`,
+      });
+    }
+    return c.json({ ok: true, id }, 201);
+  },
+);
+
+meRouter.get("/commitments", requireAuth, (c) => {
+  const me = c.get("user")!;
+  const rows = getDb()
+    .select()
+    .from(learningCommitments)
+    .where(eq(learningCommitments.userId, me.id))
+    .orderBy(desc(learningCommitments.createdAt))
+    .all();
+  return c.json({ commitments: rows });
+});
+
+meRouter.post("/commitments/:id/abandon", requireAuth, (c) => {
+  const me = c.get("user")!;
+  const r = getDb()
+    .update(learningCommitments)
+    .set({ status: "abandoned" })
+    .where(
+      and(
+        eq(learningCommitments.id, c.req.param("id")!),
+        eq(learningCommitments.userId, me.id),
+        eq(learningCommitments.status, "active"),
+      ),
+    )
+    .run();
+  if (((r as unknown as { changes?: number }).changes ?? 0) === 0) {
+    return c.json({ error: "Not found or not active" }, 404);
+  }
+  return c.json({ ok: true });
+});
+
+meRouter.post("/commitments/:id/complete", requireAuth, (c) => {
+  const me = c.get("user")!;
+  const db = getDb();
+  const cm = db
+    .select()
+    .from(learningCommitments)
+    .where(eq(learningCommitments.id, c.req.param("id")!))
+    .get();
+  if (!cm || cm.userId !== me.id) {
+    return c.json({ error: "Not found" }, 404);
+  }
+  if (cm.status !== "active") {
+    return c.json({ error: "Commitment is not active" }, 409);
+  }
+  // Verify the goal is actually met: no remaining goal-path steps.
+  const gp = buildGoalPath(me.id, {
+    kind: cm.goalKind as "capstone" | "track" | "exam" | "skills",
+    slug: cm.goalSlug,
+  });
+  // Must be a resolvable goal with zero remaining steps. An
+  // unresolvable goal (deleted/renamed slug) must NOT mint a
+  // signed credential just because buildGoalPath returns no steps.
+  if (!gp.resolvable || gp.steps.length > 0) {
+    return c.json(
+      { error: "Goal not yet met — steps remain.", remaining: gp.steps.length },
+      400,
+    );
+  }
+  const now = new Date().toISOString();
+  db.update(learningCommitments)
+    .set({ status: "completed", completedAt: now })
+    .where(eq(learningCommitments.id, cm.id))
+    .run();
+  const signed = signCredential("commitment_kept", {
+    userId: me.id,
+    username: me.username,
+    goalKind: cm.goalKind,
+    goalSlug: cm.goalSlug,
+    goalTitle: cm.goalTitle,
+    deadlineAt: cm.deadlineAt,
+    completedAt: now,
+  });
+  appendCredentialEvent("issued", "commitment", cm.id, {
+    userId: me.id,
+    goalSlug: cm.goalSlug,
+    completedAt: now,
+  });
+  if (cm.witnessUserId) {
+    void notify({
+      recipientId: cm.witnessUserId,
+      actorId: me.id,
+      kind: "commitment_kept",
+      subjectType: "commitment",
+      subjectId: cm.id,
+      contextSlug: null,
+      preview: `${me.username} kept their commitment: ${cm.goalTitle}.`,
+    });
+  }
+  return c.json({ ok: true, status: "completed", credential: signed });
 });
 
 meRouter.post("/weak-concepts/refresh", requireAuth, async (c) => {
@@ -245,6 +826,104 @@ meRouter.post("/weak-concepts/:id/dismiss", requireAuth, async (c) => {
     .run();
   return c.json({ ok: true });
 });
+
+// Phase 31A — prove a misconception is resolved. The user answers
+// a misconception-probing drill; we AI-grade it server-side and,
+// on a passing score, flip the diagnosis status→'resolved'
+// (closing the active→coached→resolved loop). Idempotent.
+meRouter.post(
+  "/weak-concepts/:id/prove",
+  requireAuth,
+  zValidator("json", z.object({ answer: z.string().min(1).max(4000) })),
+  async (c) => {
+    const user = c.get("user")!;
+    const id = c.req.param("id")!;
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`tutor-prove:${user.id}`, 10, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
+    const db = getDb();
+    const diag = db
+      .select()
+      .from(misconceptionDiagnoses)
+      .where(eq(misconceptionDiagnoses.id, id))
+      .get();
+    if (!diag || diag.userId !== user.id) {
+      return c.json({ error: "Diagnosis not found" }, 404);
+    }
+    if (diag.status === "resolved" || diag.status === "dismissed") {
+      return c.json({
+        resolved: false,
+        alreadyResolved: true,
+        score: null,
+        feedbackMd: `Already ${diag.status}.`,
+        reason: `already ${diag.status}`,
+      });
+    }
+    const { answer } = c.req.valid("json");
+    const cat = db
+      .select({
+        description: misconceptionCatalog.description,
+        probeQuestionsJson: misconceptionCatalog.probeQuestionsJson,
+        correctionPromptTemplate:
+          misconceptionCatalog.correctionPromptTemplate,
+      })
+      .from(misconceptionCatalog)
+      .where(eq(misconceptionCatalog.key, diag.misconceptionKey))
+      .get();
+    let probe = `Explain ${diag.conceptSlug} correctly, directly addressing this misconception: ${diag.label}`;
+    try {
+      const qs = JSON.parse(cat?.probeQuestionsJson ?? "[]");
+      if (Array.isArray(qs) && typeof qs[0] === "string" && qs[0]) {
+        probe = qs[0];
+      }
+    } catch {
+      // keep the fallback probe
+    }
+    const rubricMd = [
+      `The answer must demonstrate the learner no longer holds this misconception: "${diag.label}".`,
+      cat?.description ? `Context: ${cat.description}` : "",
+      cat?.correctionPromptTemplate
+        ? `A correct understanding looks like: ${cat.correctionPromptTemplate}`
+        : "",
+      "Score 100 only if the answer is correct AND explicitly avoids the misconception; score low if it repeats the misconception.",
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    let score = 0;
+    let feedbackMd = "";
+    try {
+      const g = await gradeEssay({
+        promptMd: probe,
+        rubricMd,
+        maxScore: 100,
+        essayResponse: answer,
+        signal: AbortSignal.timeout(20_000),
+      });
+      score = g.score;
+      feedbackMd = g.feedbackMd;
+    } catch {
+      return c.json(
+        { error: "Grading is busy — try again in a moment." },
+        503,
+      );
+    }
+    const r = resolveMisconceptionIfProven(user.id, id, {
+      kind: "essay",
+      score: score / 100,
+    });
+    return c.json({
+      resolved: r.resolved,
+      alreadyResolved: false,
+      score,
+      feedbackMd,
+      reason: r.reason,
+    });
+  },
+);
 
 // Sprint 31 — Prereq X-ray. Takes a comma-separated wikiSlugs query
 // and returns mastery status per slug. Mastered = user has positive

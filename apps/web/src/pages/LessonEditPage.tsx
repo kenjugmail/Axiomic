@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { confirm } from "../stores/confirm";
 import { Link, useParams } from "react-router-dom";
 import {
   ArrowDown,
@@ -510,7 +511,12 @@ export function LessonEditPage() {
 
   const restore = async (version: number) => {
     if (!nodeId) return;
-    if (!confirm(`Restore from v${version}? A new version will be created.`)) {
+    if (
+      !(await confirm({
+        title: `Restore from v${version}?`,
+        body: "A new version will be created.",
+      }))
+    ) {
       return;
     }
     try {

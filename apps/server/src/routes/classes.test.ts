@@ -2527,4 +2527,801 @@ describe("S93 instructor analytics dashboard", () => {
     expect(ghostRow?.daysSinceLastActivity).toBeNull();
     expect(ghostRow?.totalXp).toBe(0);
   });
+
+  // ----- Phase 21 — AI-personalized variants -----
+
+  test("variant generation roundtrip: instructor creates, student fetches own, peer denied", async () => {
+    const instructor = await signup("var-inst");
+    const studentA = await signup("var-stuA");
+    const studentB = await signup("var-stuB");
+    const slug = `cls-var-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+
+    // Set level + a topic the weakness aggregator can scope to. Even
+    // empty signals are fine — the generator's default-variant
+    // fallback gives us a deterministic prompt.
+    const upd = await req(`/classes/${slug}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        level: "undergrad",
+        topicSlugs: [`var-test-${testRun}`],
+      }),
+    });
+    expect(upd.status).toBe(200);
+
+    // Both students enroll.
+    for (const s of [studentA, studentB]) {
+      const enr = await req(`/classes/${slug}/enroll`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(s.cookie) },
+        body: JSON.stringify({ joinCode: created.joinCode }),
+      });
+      expect(enr.status).toBe(201);
+    }
+
+    // Instructor creates a homework task.
+    const taskRes = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        kind: "homework",
+        title: "Explain softmax temperature",
+        descriptionMd: "Write 200 words on how temperature changes softmax outputs.",
+      }),
+    });
+    expect(taskRes.status).toBe(201);
+    const { taskId } = (await taskRes.json()) as { taskId: string };
+
+    // Bulk generate. Mock provider's prose doesn't parse, so the
+    // generator falls back to default-variant — but rows still land.
+    const gen = await req(`/classes/${slug}/tasks/${taskId}/variants`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ regenerate: false }),
+    });
+    expect(gen.status).toBe(200);
+    const genBody = (await gen.json()) as { generated: number; skipped: number };
+    expect(genBody.generated).toBe(2);
+
+    // Re-running without regenerate skips both.
+    const gen2 = await req(`/classes/${slug}/tasks/${taskId}/variants`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ regenerate: false }),
+    });
+    const gen2Body = (await gen2.json()) as { generated: number; skipped: number };
+    expect(gen2Body.generated).toBe(0);
+    expect(gen2Body.skipped).toBe(2);
+
+    // Student A fetches their variant.
+    const myA = await req(`/classes/${slug}/tasks/${taskId}/variant`, {
+      headers: cookieHeader(studentA.cookie),
+    });
+    expect(myA.status).toBe(200);
+    const aBody = (await myA.json()) as {
+      variant: { id: string; promptMd: string } | null;
+    };
+    expect(aBody.variant).not.toBeNull();
+    expect(aBody.variant!.promptMd.length).toBeGreaterThan(10);
+
+    // Non-enrolled user can't fetch the variant. The middleware
+    // collapses non-enrollment to a 404 to avoid leaking class
+    // existence; both signal a denied read.
+    const outsider = await signup("var-outsider");
+    const denied = await req(`/classes/${slug}/tasks/${taskId}/variant`, {
+      headers: cookieHeader(outsider.cookie),
+    });
+    expect([403, 404]).toContain(denied.status);
+
+    // Instructor sees the roster of variants.
+    const list = await req(`/classes/${slug}/tasks/${taskId}/variants`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    expect(list.status).toBe(200);
+    const listBody = (await list.json()) as {
+      variants: Array<{ studentId: string }>;
+    };
+    expect(listBody.variants.length).toBe(2);
+  });
+
+  test("instructor inline-edit overwrites variant promptMd; non-instructor denied", async () => {
+    const instructor = await signup("edit-inst");
+    const student = await signup("edit-stu");
+    const slug = `cls-edit-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    const enr = await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    expect(enr.status).toBe(201);
+
+    const taskRes = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        kind: "homework",
+        title: "Edit-flow test task",
+        descriptionMd: "Original task body.",
+      }),
+    });
+    const { taskId } = (await taskRes.json()) as { taskId: string };
+
+    // Generate variants for the (one) enrolled student.
+    await req(`/classes/${slug}/tasks/${taskId}/variants`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({}),
+    });
+
+    const newPrompt = "Hand-edited prompt body for the student to focus on attention scaling. ".repeat(2);
+    // Instructor edits the variant in place.
+    const upd = await req(
+      `/classes/${slug}/tasks/${taskId}/variants/${student.userId}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+        body: JSON.stringify({ promptMd: newPrompt }),
+      },
+    );
+    expect(upd.status).toBe(200);
+
+    // Student fetches their variant — should see the new prompt.
+    const got = await req(`/classes/${slug}/tasks/${taskId}/variant`, {
+      headers: cookieHeader(student.cookie),
+    });
+    expect(got.status).toBe(200);
+    const gotBody = (await got.json()) as {
+      variant: { promptMd: string } | null;
+    };
+    expect(gotBody.variant?.promptMd).toBe(newPrompt);
+
+    // Student tries to edit their own variant — denied (instructor-only).
+    const denied = await req(
+      `/classes/${slug}/tasks/${taskId}/variants/${student.userId}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+        body: JSON.stringify({ promptMd: "Trying to overwrite my own variant" }),
+      },
+    );
+    expect([403, 404]).toContain(denied.status);
+
+    // PUT with no fields → 400.
+    const empty = await req(
+      `/classes/${slug}/tasks/${taskId}/variants/${student.userId}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+        body: JSON.stringify({}),
+      },
+    );
+    expect(empty.status).toBe(400);
+
+    // PUT to a missing studentId → 404.
+    const missing = await req(
+      `/classes/${slug}/tasks/${taskId}/variants/does-not-exist`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+        body: JSON.stringify({
+          promptMd: "Some hand-edited prompt body for a nonexistent student row.",
+        }),
+      },
+    );
+    expect(missing.status).toBe(404);
+  });
+
+  test("auto-grade fires for submissions on a variant-backed task", async () => {
+    const instructor = await signup("ag-inst");
+    const student = await signup("ag-stu");
+    const slug = `cls-ag-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    const enr = await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    expect(enr.status).toBe(201);
+
+    const taskRes = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        kind: "homework",
+        title: "Auto-grade test homework",
+        descriptionMd: "Submit something so the auto-grader runs.",
+      }),
+    });
+    const { taskId } = (await taskRes.json()) as { taskId: string };
+
+    // Generate the variant.
+    const gen = await req(`/classes/${slug}/tasks/${taskId}/variants`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({}),
+    });
+    expect(gen.status).toBe(200);
+
+    // Submit homework as the student. Phase 22B made auto-grade
+    // fire-and-forget, so /complete returns immediately. The grade
+    // lands asynchronously on the next tick — wait a beat before
+    // reading. Under the mock provider the AI returns instantly so
+    // a small wait is plenty.
+    const submit = await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({
+        content:
+          "Temperature controls how peaked the softmax is. High T flattens; low T sharpens. With T → 0 we approach argmax behavior.",
+      }),
+    });
+    expect(submit.status).toBe(200);
+    await new Promise((r) => setTimeout(r, 200));
+
+    // Instructor view shows the submission with an AI-generated grade.
+    const subs = await req(`/classes/${slug}/tasks/${taskId}/submissions`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    expect(subs.status).toBe(200);
+    const subsBody = (await subs.json()) as {
+      submissions: Array<{ grade: unknown }>;
+    };
+    expect(subsBody.submissions.length).toBe(1);
+    expect(subsBody.submissions[0]!.grade).not.toBeNull();
+  });
+
+  // ----- Phase 23A — class stream / announcements -----
+
+  test("instructor posts an announcement; enrolled student reads; non-author denied edit", async () => {
+    const instructor = await signup("ann-inst");
+    const student = await signup("ann-stu");
+    const slug = `cls-ann-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    const enr = await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    expect(enr.status).toBe(201);
+
+    const post = await req(`/classes/${slug}/announcements`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        bodyMd: "Welcome to the class. Read chapter 1 by Friday.",
+        pinned: true,
+      }),
+    });
+    expect(post.status).toBe(201);
+    const { id: announcementId } = (await post.json()) as { id: string };
+
+    // Student reads the stream + sees the post.
+    const list = await req(`/classes/${slug}/announcements`, {
+      headers: cookieHeader(student.cookie),
+    });
+    expect(list.status).toBe(200);
+    const listBody = (await list.json()) as {
+      announcements: Array<{ id: string; pinned: boolean; bodyMd: string }>;
+    };
+    const found = listBody.announcements.find((a) => a.id === announcementId);
+    expect(found).toBeDefined();
+    expect(found?.pinned).toBe(true);
+
+    // Student can't post.
+    const denied = await req(`/classes/${slug}/announcements`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ bodyMd: "I shouldn't be able to post this." }),
+    });
+    expect(denied.status).toBe(403);
+
+    // Student can't edit.
+    const editDenied = await req(
+      `/classes/${slug}/announcements/${announcementId}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+        body: JSON.stringify({ bodyMd: "Hijacked announcement body" }),
+      },
+    );
+    expect(editDenied.status).toBe(403);
+
+    // Instructor can edit + unpin.
+    const upd = await req(
+      `/classes/${slug}/announcements/${announcementId}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+        body: JSON.stringify({ pinned: false }),
+      },
+    );
+    expect(upd.status).toBe(200);
+
+    // Instructor deletes.
+    const del = await req(
+      `/classes/${slug}/announcements/${announcementId}`,
+      {
+        method: "DELETE",
+        headers: cookieHeader(instructor.cookie),
+      },
+    );
+    expect(del.status).toBe(200);
+  });
+
+  // ----- Phase 23B — gradebook matrix -----
+
+  test("instructor sees gradebook with cells for each student/task; student denied", async () => {
+    const instructor = await signup("gb-inst");
+    const student = await signup("gb-stu");
+    const slug = `cls-gb-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    const enr = await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    expect(enr.status).toBe(201);
+
+    // Two homework tasks.
+    const t1Res = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        kind: "homework",
+        title: "Gradebook task A",
+        descriptionMd: "...",
+      }),
+    });
+    const t2Res = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        kind: "homework",
+        title: "Gradebook task B",
+        descriptionMd: "...",
+      }),
+    });
+    const t1 = ((await t1Res.json()) as { taskId: string }).taskId;
+    const t2 = ((await t2Res.json()) as { taskId: string }).taskId;
+
+    // Student submits one of the two.
+    await req(`/classes/${slug}/tasks/${t1}/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ content: "My writeup body for task A." }),
+    });
+
+    const gb = await req(`/classes/${slug}/gradebook`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    expect(gb.status).toBe(200);
+    const body = (await gb.json()) as {
+      tasks: Array<{ id: string }>;
+      students: Array<{ userId: string }>;
+      cells: Array<{ taskId: string; userId: string; status: string }>;
+    };
+    expect(body.tasks.length).toBeGreaterThanOrEqual(2);
+    expect(body.students.find((s) => s.userId === student.userId)).toBeDefined();
+    // Server pre-fills missing cells, so every (task, student)
+    // pair from this run should be represented.
+    const cellA = body.cells.find(
+      (c) => c.taskId === t1 && c.userId === student.userId,
+    );
+    const cellB = body.cells.find(
+      (c) => c.taskId === t2 && c.userId === student.userId,
+    );
+    expect(cellA).toBeDefined();
+    expect(cellB).toBeDefined();
+    expect(cellB?.status).toBe("missing");
+
+    // Student is denied.
+    const denied = await req(`/classes/${slug}/gradebook`, {
+      headers: cookieHeader(student.cookie),
+    });
+    expect(denied.status).toBe(403);
+  });
+
+  // ----- Phase 23C — task topic round-trip -----
+
+  test("topic round-trips through create + update + class detail", async () => {
+    const instructor = await signup("tp-inst");
+    const slug = `cls-tp-${testRun}`;
+    await createClass(instructor.cookie, slug);
+
+    const created = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        kind: "reading",
+        title: "Topic-tagged reading",
+        descriptionMd: "Read chapter 3.",
+        topic: "Week 1: Linear Algebra",
+      }),
+    });
+    expect(created.status).toBe(201);
+    const { taskId } = (await created.json()) as { taskId: string };
+
+    const detail = await req(`/classes/${slug}`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    const detailBody = (await detail.json()) as {
+      tasks: Array<{ id: string; topic?: string | null }>;
+    };
+    const t = detailBody.tasks.find((x) => x.id === taskId);
+    expect(t?.topic).toBe("Week 1: Linear Algebra");
+
+    // Rename topic via PUT.
+    const upd = await req(`/classes/${slug}/tasks/${taskId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ topic: "Week 2: Calculus" }),
+    });
+    expect(upd.status).toBe(200);
+    const detail2 = await req(`/classes/${slug}`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    const detail2Body = (await detail2.json()) as {
+      tasks: Array<{ id: string; topic?: string | null }>;
+    };
+    expect(detail2Body.tasks.find((x) => x.id === taskId)?.topic).toBe(
+      "Week 2: Calculus",
+    );
+
+    // Clear topic by passing null.
+    const upd2 = await req(`/classes/${slug}/tasks/${taskId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ topic: null }),
+    });
+    expect(upd2.status).toBe(200);
+    const detail3 = await req(`/classes/${slug}`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    const detail3Body = (await detail3.json()) as {
+      tasks: Array<{ id: string; topic?: string | null }>;
+    };
+    expect(detail3Body.tasks.find((x) => x.id === taskId)?.topic).toBeNull();
+  });
+
+  // ----- Phase 24A — per-task discussion threads -----
+
+  test("discussion thread: enrollee posts, peers read, author edits, instructor moderates", async () => {
+    const instructor = await signup("disc-inst");
+    const studentA = await signup("disc-stuA");
+    const studentB = await signup("disc-stuB");
+    const slug = `cls-disc-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    for (const s of [studentA, studentB]) {
+      const enr = await req(`/classes/${slug}/enroll`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(s.cookie) },
+        body: JSON.stringify({ joinCode: created.joinCode }),
+      });
+      expect(enr.status).toBe(201);
+    }
+    const taskRes = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        kind: "homework",
+        title: "Discussion-target task",
+        descriptionMd: "Please ask clarifying questions in the thread.",
+      }),
+    });
+    const { taskId } = (await taskRes.json()) as { taskId: string };
+
+    // Student A posts.
+    const postA = await req(`/classes/${slug}/tasks/${taskId}/discussions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(studentA.cookie) },
+      body: JSON.stringify({ bodyMd: "What does part 3 mean exactly?" }),
+    });
+    expect(postA.status).toBe(201);
+    const { id: postAId } = (await postA.json()) as { id: string };
+
+    // Student B sees the thread.
+    const list = await req(`/classes/${slug}/tasks/${taskId}/discussions`, {
+      headers: cookieHeader(studentB.cookie),
+    });
+    expect(list.status).toBe(200);
+    const listBody = (await list.json()) as {
+      posts: Array<{ id: string; bodyMd: string }>;
+    };
+    expect(listBody.posts.find((p) => p.id === postAId)).toBeDefined();
+
+    // Student A edits their own post.
+    const editA = await req(
+      `/classes/${slug}/tasks/${taskId}/discussions/${postAId}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...cookieHeader(studentA.cookie) },
+        body: JSON.stringify({ bodyMd: "Edited: what does part 3 mean exactly?" }),
+      },
+    );
+    expect(editA.status).toBe(200);
+
+    // Student B can't edit student A's post.
+    const editDenied = await req(
+      `/classes/${slug}/tasks/${taskId}/discussions/${postAId}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...cookieHeader(studentB.cookie) },
+        body: JSON.stringify({ bodyMd: "Hijacked!" }),
+      },
+    );
+    expect(editDenied.status).toBe(403);
+
+    // Instructor can delete (moderation).
+    const del = await req(
+      `/classes/${slug}/tasks/${taskId}/discussions/${postAId}`,
+      {
+        method: "DELETE",
+        headers: cookieHeader(instructor.cookie),
+      },
+    );
+    expect(del.status).toBe(200);
+
+    // Outsider can't view the thread.
+    const outsider = await signup("disc-out");
+    const denied = await req(
+      `/classes/${slug}/tasks/${taskId}/discussions`,
+      { headers: cookieHeader(outsider.cookie) },
+    );
+    expect([403, 404]).toContain(denied.status);
+  });
+
+  // ----- Phase 24B — non-graded materials -----
+
+  test("materials CRUD: instructor writes, student reads, write denied for student", async () => {
+    const instructor = await signup("mat-inst");
+    const student = await signup("mat-stu");
+    const slug = `cls-mat-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+
+    const post = await req(`/classes/${slug}/materials`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        title: "Syllabus overview",
+        descriptionMd: "Read this before the first class.",
+        kind: "note",
+      }),
+    });
+    expect(post.status).toBe(201);
+    const { id } = (await post.json()) as { id: string };
+
+    // Student reads.
+    const list = await req(`/classes/${slug}/materials`, {
+      headers: cookieHeader(student.cookie),
+    });
+    expect(list.status).toBe(200);
+    const listBody = (await list.json()) as {
+      materials: Array<{ id: string; title: string }>;
+    };
+    expect(listBody.materials.find((m) => m.id === id)).toBeDefined();
+
+    // Student can't create.
+    const denied = await req(`/classes/${slug}/materials`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ title: "Hijack material" }),
+    });
+    expect(denied.status).toBe(403);
+
+    // Instructor updates.
+    const upd = await req(`/classes/${slug}/materials/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({ title: "Syllabus v2" }),
+    });
+    expect(upd.status).toBe(200);
+
+    // Instructor deletes.
+    const del = await req(`/classes/${slug}/materials/${id}`, {
+      method: "DELETE",
+      headers: cookieHeader(instructor.cookie),
+    });
+    expect(del.status).toBe(200);
+  });
+
+  // ----- Phase 24D — clone task across classes -----
+
+  test("clone task: round-trips title + topic; rejects when caller doesn't own target", async () => {
+    const instructor = await signup("clone-inst");
+    const slugA = `cls-clone-a-${testRun}`;
+    const slugB = `cls-clone-b-${testRun}`;
+    await createClass(instructor.cookie, slugA);
+    await createClass(instructor.cookie, slugB);
+
+    // Create a task with a topic in class A.
+    const taskRes = await req(`/classes/${slugA}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        kind: "homework",
+        title: "Clone-me task",
+        descriptionMd: "Reusable problem set",
+        topic: "Week 1: Foundations",
+        dueAt: "2026-12-31T23:59:00.000Z",
+      }),
+    });
+    const { taskId } = (await taskRes.json()) as { taskId: string };
+
+    // Clone into class B.
+    const clone = await req(
+      `/classes/${slugA}/tasks/${taskId}/clone`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+        body: JSON.stringify({ targetClassSlug: slugB }),
+      },
+    );
+    expect(clone.status).toBe(201);
+    const { taskId: newId } = (await clone.json()) as { taskId: string };
+
+    // Confirm B got the new task with same title + topic, but
+    // dueAt reset to null.
+    const detail = await req(`/classes/${slugB}`, {
+      headers: cookieHeader(instructor.cookie),
+    });
+    const detailBody = (await detail.json()) as {
+      tasks: Array<{
+        id: string;
+        title: string;
+        topic?: string | null;
+        dueAt: string | null;
+      }>;
+    };
+    const cloned = detailBody.tasks.find((t) => t.id === newId);
+    expect(cloned).toBeDefined();
+    expect(cloned?.title).toBe("Clone-me task");
+    expect(cloned?.topic).toBe("Week 1: Foundations");
+    expect(cloned?.dueAt).toBeNull();
+
+    // Stranger can't clone into A→B even if they enrolled in A.
+    const stranger = await signup("clone-str");
+    const denied = await req(
+      `/classes/${slugA}/tasks/${taskId}/clone`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(stranger.cookie) },
+        body: JSON.stringify({ targetClassSlug: slugB }),
+      },
+    );
+    // Could be 403 (instructor-only on source) or 404 (middleware
+    // doesn't even surface the class). Either signals denial.
+    expect([403, 404]).toContain(denied.status);
+  });
+
+  // ----- Phase 25A — notifications on announcements + discussions -----
+
+  test("announcement post fans out a notification to enrollees but not the author", async () => {
+    const { getDb, notifications } = await import("@axiomic/db");
+    const { eq, and } = await import("drizzle-orm");
+    const instructor = await signup("ann-not-inst");
+    const student = await signup("ann-not-stu");
+    const slug = `cls-ann-not-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    const enr = await req(`/classes/${slug}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(student.cookie) },
+      body: JSON.stringify({ joinCode: created.joinCode }),
+    });
+    expect(enr.status).toBe(201);
+
+    const post = await req(`/classes/${slug}/announcements`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        bodyMd: "Heads up — first quiz on Friday.",
+        pinned: false,
+      }),
+    });
+    expect(post.status).toBe(201);
+    const { id: announcementId } = (await post.json()) as { id: string };
+
+    // notifyMany is fire-and-forget; give it a beat to land. Mock
+    // provider returns instantly so this is a tiny wait.
+    await new Promise((r) => setTimeout(r, 100));
+
+    // Student got a notification keyed on the announcement.
+    const studentRows = getDb()
+      .select()
+      .from(notifications)
+      .where(
+        and(
+          eq(notifications.userId, student.userId),
+          eq(notifications.kind, "class_announcement"),
+          eq(notifications.subjectId, announcementId),
+        ),
+      )
+      .all();
+    expect(studentRows.length).toBe(1);
+
+    // Author did NOT get one.
+    const authorRows = getDb()
+      .select()
+      .from(notifications)
+      .where(
+        and(
+          eq(notifications.userId, instructor.userId),
+          eq(notifications.kind, "class_announcement"),
+          eq(notifications.subjectId, announcementId),
+        ),
+      )
+      .all();
+    expect(authorRows.length).toBe(0);
+  });
+
+  test("discussion post notifies the instructor + the task's submitter, not the poster", async () => {
+    const { getDb, notifications } = await import("@axiomic/db");
+    const { eq, and } = await import("drizzle-orm");
+    const instructor = await signup("disc-not-inst");
+    const submitter = await signup("disc-not-sub");
+    const poster = await signup("disc-not-post");
+    const slug = `cls-disc-not-${testRun}`;
+    const created = await createClass(instructor.cookie, slug);
+    for (const s of [submitter, poster]) {
+      const enr = await req(`/classes/${slug}/enroll`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...cookieHeader(s.cookie) },
+        body: JSON.stringify({ joinCode: created.joinCode }),
+      });
+      expect(enr.status).toBe(201);
+    }
+
+    // Create a homework task; submitter completes it; poster then
+    // asks a question in the discussion.
+    const taskRes = await req(`/classes/${slug}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(instructor.cookie) },
+      body: JSON.stringify({
+        kind: "homework",
+        title: "Discussion-notify task",
+        descriptionMd: "Submit a writeup so notifications can target you.",
+      }),
+    });
+    const { taskId } = (await taskRes.json()) as { taskId: string };
+
+    const sub = await req(`/classes/${slug}/tasks/${taskId}/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(submitter.cookie) },
+      body: JSON.stringify({ content: "Here is my submitted writeup body." }),
+    });
+    expect(sub.status).toBe(200);
+
+    const postRes = await req(`/classes/${slug}/tasks/${taskId}/discussions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...cookieHeader(poster.cookie) },
+      body: JSON.stringify({ bodyMd: "What does part 2 mean exactly?" }),
+    });
+    expect(postRes.status).toBe(201);
+    const { id: postId } = (await postRes.json()) as { id: string };
+    await new Promise((r) => setTimeout(r, 100));
+
+    const sawNotif = (userId: string) =>
+      getDb()
+        .select()
+        .from(notifications)
+        .where(
+          and(
+            eq(notifications.userId, userId),
+            eq(notifications.kind, "class_discussion_post"),
+            eq(notifications.subjectId, postId),
+          ),
+        )
+        .all().length;
+    // Instructor + submitter should both have a notification.
+    expect(sawNotif(instructor.userId)).toBe(1);
+    expect(sawNotif(submitter.userId)).toBe(1);
+    // The poster shouldn't notify themselves.
+    expect(sawNotif(poster.userId)).toBe(0);
+  });
 });

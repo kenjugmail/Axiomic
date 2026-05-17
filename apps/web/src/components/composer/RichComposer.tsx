@@ -4,6 +4,7 @@ import { api } from "../../lib/api";
 import { MarkdownRenderer } from "../MarkdownRenderer";
 import { MarkdownToolbar } from "./MarkdownToolbar";
 import { uploadFile, type UploadResult } from "../../lib/uploads";
+import { toast } from "../../stores/toast";
 
 interface Props {
   value: string;
@@ -157,7 +158,7 @@ export function RichComposer({
           const r = await uploadFile(f);
           insertUploadAtCaret(r);
         } catch (e: any) {
-          alert(e?.message ?? `Upload failed: ${f.name}`);
+          toast.error(e?.message ?? `Upload failed: ${f.name}`);
         }
       }
     } finally {

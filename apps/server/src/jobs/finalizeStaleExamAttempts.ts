@@ -46,6 +46,17 @@ export const finalizeStaleExamAttemptsJob: JobDefinition = {
 
     let finalized = 0;
     for (const attempt of stale) {
+      // The `stale` snapshot was taken once; grading below awaits
+      // (essay model call), a real yield point during which the
+      // student's own submit path can finalize this attempt. Skip
+      // if it was claimed since the snapshot so we don't redo
+      // grading or clobber their answer rows.
+      const fresh = db
+        .select({ completedAt: examAttempts.completedAt })
+        .from(examAttempts)
+        .where(eq(examAttempts.id, attempt.id))
+        .get();
+      if (!fresh || fresh.completedAt) continue;
       const exam = db
         .select()
         .from(exams)
@@ -152,6 +163,9 @@ export const finalizeStaleExamAttemptsJob: JobDefinition = {
         scoring,
       );
 
+      // Atomic claim: only finalize if STILL unclaimed. If the
+      // student's submit won the race during essay grading, this
+      // matches 0 rows and their score/answers stay authoritative.
       db.update(examAttempts)
         .set({
           completedAt: new Date().toISOString(),
@@ -160,7 +174,12 @@ export const finalizeStaleExamAttemptsJob: JobDefinition = {
           scorePercentile: result.percentileTotal,
           sectionScoresJson: JSON.stringify(result.sections),
         })
-        .where(eq(examAttempts.id, attempt.id))
+        .where(
+          and(
+            eq(examAttempts.id, attempt.id),
+            isNull(examAttempts.completedAt),
+          ),
+        )
         .run();
       finalized++;
     }

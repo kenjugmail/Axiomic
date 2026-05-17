@@ -573,12 +573,15 @@ capstonesRouter.get("/c/:artifactSlug", async (c) => {
 // review.
 capstonesRouter.get("/review-queue", async (c) => {
   const db = getDb();
-  // Cap at 200. The queue is a per-program admin tool used to surface
-  // under-reviewed artifacts; reviewers may want a wider lens across a
-  // backlog of completed capstones. The in-memory sort over 3× this
-  // candidate set is still trivial.
+  // Cap at 500 (Phase 18C — bumped from 200). The queue is a
+  // per-program admin tool used to surface under-reviewed artifacts;
+  // reviewers may want a wider lens across a backlog of completed
+  // capstones. The in-memory sort over 3× this candidate set
+  // (1,500 rows) is still trivial in SQLite. The bump also keeps
+  // freshly-created test fixtures findable against the persistent
+  // test DB which accumulates state across runs.
   const limit = Math.min(
-    200,
+    500,
     Math.max(1, parseInt(c.req.query("limit") ?? "20", 10) || 20),
   );
 

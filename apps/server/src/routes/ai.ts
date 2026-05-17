@@ -810,7 +810,7 @@ async function completion(system: string, userMessage: string): Promise<string> 
 
 // Best-effort JSON extraction from a model reply. Models sometimes
 // wrap the JSON in fences or prose; strip what we can and try again.
-function extractJson<T>(text: string): T | null {
+export function extractJson<T>(text: string): T | null {
   const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
   const candidates = [fenced ? fenced[1] : null, text];
   for (const cand of candidates) {

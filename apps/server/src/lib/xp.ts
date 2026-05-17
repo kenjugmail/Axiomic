@@ -44,6 +44,19 @@ export const XP_AMOUNTS = {
   // running the completion check doesn't double-pay. Large reward
   // because completing a track is a real milestone.
   "cohort-capstone-completed": 100,
+  // Phase 27 — hackathon prize grant. Default amount is the
+  // organizer's prize.xpAmount when set; falls back to this
+  // when the prize was created with xpAmount=0 (so a
+  // cosmetic-only prize still grants a small token of XP).
+  "hackathon-prize": 50,
+  // Phase 28D — research bounty completion. Falls back to this
+  // when the poster set rewardXp=0 (badge-only bounty). Larger
+  // than a hackathon token grant — bounties are real work.
+  "bounty-completed": 150,
+  // Phase 39 — a peer/expert-verified mission contribution. On par
+  // with a bounty: real, externally-checkable problem-solving work
+  // that minted a signed credential.
+  "mission-contribution": 150,
 } as const;
 
 // Sources with default amounts in XP_AMOUNTS.

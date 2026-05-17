@@ -171,6 +171,17 @@ describe("/me/weak-concepts (Sprint 29)", () => {
     expect(found).toBeDefined();
     expect(found.misconceptionKey).toBe("softmax-temperature-inverted");
     expect(found.evidence.length).toBeGreaterThan(0);
+    // Phase 16B — every diagnosis carries a nextSteps object. The
+    // wiki page was seeded above so wikiSlug should resolve.
+    expect(found.nextSteps).toBeDefined();
+    expect(found.nextSteps.wikiSlug).toBe("softmax");
+    expect(typeof found.nextSteps.hasFlashcards).toBe("boolean");
+    // quizPath is null unless a mastery node with quizData references
+    // the concept's wiki page id — out of scope for this minimal seed.
+    expect(
+      found.nextSteps.quizPath === null ||
+        typeof found.nextSteps.quizPath?.pathSlug === "string",
+    ).toBe(true);
   });
 
   test("dismiss flips status and hides from listing", async () => {

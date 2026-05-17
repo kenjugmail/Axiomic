@@ -24,6 +24,11 @@ interface VerifyResult {
   publicKey?: string;
   canonicalPayload?: string;
   error?: string;
+  format?: string;
+  // VC path only: false when the proof matched a self-asserted
+  // did:key the holder controls, NOT this issuer's key.
+  issuerTrusted?: boolean;
+  revoked?: boolean;
 }
 
 export function VerifyPage() {
@@ -263,6 +268,26 @@ export function VerifyPage() {
               </>
             )}
           </div>
+          {result.valid && result.issuerTrusted === false && (
+            <div className="mt-2 rounded-md border border-amber-500/50 bg-amber-500/15 px-3 py-2 text-xs text-amber-800 dark:text-amber-200 inline-flex items-start gap-2">
+              <AlertTriangle
+                className="w-4 h-4 mt-0.5 shrink-0"
+                strokeWidth={2}
+              />
+              <span>
+                <strong>Self-asserted key — not this issuer.</strong> The
+                proof matches a key embedded in the credential itself, not
+                Axiomic's issuer key. The bytes are internally consistent
+                but this is <em>not</em> an Axiomic-issued credential. Do
+                not trust it as proof.
+              </span>
+            </div>
+          )}
+          {result.valid && result.issuerTrusted === true && (
+            <div className="mt-2 text-[11px] text-emerald-700/80 dark:text-emerald-300/80">
+              Issued by this Axiomic instance's verified key.
+            </div>
+          )}
           {result.valid && manifest && (
             <div className="text-xs text-foreground/80 mt-2 space-y-1">
               <div>
@@ -339,6 +364,48 @@ export function VerifyPage() {
           <Link to="/capstones" className="text-primary hover:underline">
             <Network className="w-3 h-3 inline -mt-0.5" /> Capstones gallery
           </Link>
+        </p>
+      </section>
+
+      <section className="mt-8 rounded-lg border border-border bg-card p-4">
+        <h2 className="text-sm font-semibold mb-2">Embed &amp; integrate</h2>
+        <p className="text-xs text-muted-foreground mb-2">
+          Drop the chrome-free verifier into any site:
+        </p>
+        <pre className="text-[11px] bg-background border border-border rounded-md p-2 overflow-x-auto">
+          {`<iframe src="${typeof window !== "undefined" ? window.location.origin : ""}/embed/verify"
+        width="640" height="480" style="border:0"></iframe>`}
+        </pre>
+        <p className="text-xs text-muted-foreground mt-3">
+          Public, CORS-open, no-auth API:{" "}
+          <code className="text-[11px]">
+            /.well-known/axiomic-signing-pubkey
+          </code>
+          ,{" "}
+          <code className="text-[11px]">
+            /api/v1/public/users/:username/credentials
+          </code>
+          ,{" "}
+          <code className="text-[11px]">
+            /api/v1/public/research/:kind/:id/provenance
+          </code>
+          .
+        </p>
+        <p className="text-xs text-muted-foreground mt-3">
+          <strong>Standards &amp; transparency.</strong> Every
+          credential is also exportable as a{" "}
+          <strong>W3C Verifiable Credential 2.0 / Open Badges 3.0</strong>{" "}
+          (<code className="text-[11px]">?format=vc</code> on the
+          wallet endpoints) — this verifier accepts a pasted VC
+          envelope directly. The issuer DID document lives at{" "}
+          <code className="text-[11px]">/.well-known/did.json</code>{" "}
+          (did:web + did:key). Issuance &amp; revocation are written
+          to a tamper-evident, hash-chained transparency log with a
+          signed tree head:{" "}
+          <code className="text-[11px]">
+            /api/v1/public/transparency/tree-head
+          </code>
+          .
         </p>
       </section>
     </div>

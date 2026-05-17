@@ -9,6 +9,7 @@ import {
 import { Layout } from "./components/Layout";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { ToastContainer } from "./components/ui/ToastContainer";
+import { ConfirmContainer } from "./components/ui/ConfirmContainer";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { SignupPage } from "./pages/SignupPage";
@@ -246,6 +247,16 @@ const ClassPage = lazy(() =>
 const ClassEditPage = lazy(() =>
   import("./pages/ClassEditPage").then((m) => ({ default: m.ClassEditPage })),
 );
+const ClassGradebookPage = lazy(() =>
+  import("./pages/ClassGradebookPage").then((m) => ({
+    default: m.ClassGradebookPage,
+  })),
+);
+const ClassCalendarPage = lazy(() =>
+  import("./pages/ClassCalendarPage").then((m) => ({
+    default: m.ClassCalendarPage,
+  })),
+);
 const ClassTaskPage = lazy(() =>
   import("./pages/ClassTaskPage").then((m) => ({ default: m.ClassTaskPage })),
 );
@@ -329,10 +340,100 @@ const VerifyEmailChangePage = lazy(() =>
 const VerifyPage = lazy(() =>
   import("./pages/VerifyPage").then((m) => ({ default: m.VerifyPage })),
 );
+// Phase 31D — chrome-free embeddable verifier (no <Layout/>).
+const VerifyWidget = lazy(() =>
+  import("./components/VerifyWidget").then((m) => ({
+    default: m.VerifyWidget,
+  })),
+);
 // Sprint 38 — Misconception marketplace (community-curated catalog).
 const MisconceptionMarketplacePage = lazy(() =>
   import("./pages/MisconceptionMarketplacePage").then((m) => ({
     default: m.MisconceptionMarketplacePage,
+  })),
+);
+const MisconceptionsModerationPage = lazy(() =>
+  import("./pages/MisconceptionsModerationPage").then((m) => ({
+    default: m.MisconceptionsModerationPage,
+  })),
+);
+const CohortDetailPage = lazy(() =>
+  import("./pages/CohortDetailPage").then((m) => ({
+    default: m.CohortDetailPage,
+  })),
+);
+// Phase 27 — Hackathons + engineering competitions.
+const HackathonsListPage = lazy(() =>
+  import("./pages/HackathonsListPage").then((m) => ({
+    default: m.HackathonsListPage,
+  })),
+);
+const HackathonDetailPage = lazy(() =>
+  import("./pages/HackathonDetailPage").then((m) => ({
+    default: m.HackathonDetailPage,
+  })),
+);
+const HackathonNewPage = lazy(() =>
+  import("./pages/HackathonNewPage").then((m) => ({
+    default: m.HackathonNewPage,
+  })),
+);
+// Phase 28 — the differentiation chain: credential wallet,
+// reproduction review, research bounties.
+const CredentialWalletPage = lazy(() =>
+  import("./pages/CredentialWalletPage").then((m) => ({
+    default: m.CredentialWalletPage,
+  })),
+);
+const TodayPage = lazy(() =>
+  import("./pages/TodayPage").then((m) => ({ default: m.TodayPage })),
+);
+const OrgPage = lazy(() =>
+  import("./pages/OrgPage").then((m) => ({ default: m.OrgPage })),
+);
+const ReproductionReviewPage = lazy(() =>
+  import("./pages/ReproductionReviewPage").then((m) => ({
+    default: m.ReproductionReviewPage,
+  })),
+);
+const MissionsListPage = lazy(() =>
+  import("./pages/MissionsListPage").then((m) => ({
+    default: m.MissionsListPage,
+  })),
+);
+const MissionNewPage = lazy(() =>
+  import("./pages/MissionNewPage").then((m) => ({
+    default: m.MissionNewPage,
+  })),
+);
+const MissionDetailPage = lazy(() =>
+  import("./pages/MissionDetailPage").then((m) => ({
+    default: m.MissionDetailPage,
+  })),
+);
+const CredentialSkillsPage = lazy(() =>
+  import("./pages/CredentialSkillsPage").then((m) => ({
+    default: m.CredentialSkillsPage,
+  })),
+);
+const RecruiterSearchPage = lazy(() =>
+  import("./pages/RecruiterSearchPage").then((m) => ({
+    default: m.RecruiterSearchPage,
+  })),
+);
+const BountiesListPage = lazy(() =>
+  import("./pages/BountiesListPage").then((m) => ({
+    default: m.BountiesListPage,
+  })),
+);
+const BountyDetailPage = lazy(() =>
+  import("./pages/BountyDetailPage").then((m) => ({
+    default: m.BountyDetailPage,
+  })),
+);
+const BountyNewPage = lazy(() =>
+  import("./pages/BountyNewPage").then((m) => ({
+    default: m.BountyNewPage,
   })),
 );
 // Sprint 39 — Capstone peer review queue.
@@ -428,7 +529,11 @@ function AppRoutes() {
       {/* Sprint 64a — global toast notifications. Mounted once at the
           app root; any code can call `toast.success(...)` etc. */}
       <ToastContainer />
+      <ConfirmContainer />
       <Routes>
+        {/* Phase 31D — embeddable verifier, intentionally outside
+            <Layout/> so it renders chrome-free in an iframe. */}
+        <Route path="/embed/verify" element={<VerifyWidget />} />
         <Route element={<Layout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/for/:audienceId" element={<ForAudiencePage />} />
@@ -471,10 +576,45 @@ function AppRoutes() {
             element={<MisconceptionMarketplacePage />}
           />
           <Route
+            path="/misconceptions/moderate"
+            element={<MisconceptionsModerationPage />}
+          />
+          <Route
             path="/capstones/review-queue"
             element={<CapstoneReviewQueuePage />}
           />
           <Route path="/cohorts" element={<CohortsPage />} />
+          <Route path="/cohorts/:slug" element={<CohortDetailPage />} />
+          {/* Phase 27 — Hackathons. */}
+          <Route path="/hackathons" element={<HackathonsListPage />} />
+          <Route path="/hackathons/new" element={<HackathonNewPage />} />
+          <Route path="/hackathons/:slug" element={<HackathonDetailPage />} />
+          {/* Phase 28 — credentials · reproductions · bounties. */}
+          <Route path="/me/credentials" element={<CredentialWalletPage />} />
+          <Route path="/me/today" element={<TodayPage />} />
+          <Route path="/orgs/:slug" element={<OrgPage />} />
+          <Route
+            path="/u/:username/credentials"
+            element={<CredentialWalletPage />}
+          />
+          {/* Phase 29C — recruiter skills rollup. */}
+          <Route
+            path="/u/:username/skills"
+            element={<CredentialSkillsPage />}
+          />
+          {/* Phase 30C — recruiter search dashboard. */}
+          <Route path="/recruiter" element={<RecruiterSearchPage />} />
+          <Route
+            path="/reproductions/review"
+            element={<ReproductionReviewPage />}
+          />
+          {/* Phase 39 — "Goodness" missions. */}
+          <Route path="/missions" element={<MissionsListPage />} />
+          <Route path="/missions/new" element={<MissionNewPage />} />
+          <Route path="/missions/:slug" element={<MissionDetailPage />} />
+          <Route path="/bounties" element={<BountiesListPage />} />
+          <Route path="/bounties/new" element={<BountyNewPage />} />
+          <Route path="/bounties/:slug" element={<BountyDetailPage />} />
           <Route path="/forum/:domain" element={<ForumListPage />} />
           <Route path="/news" element={<NewsListPage />} />
           <Route path="/news/new" element={<NewsNewPage />} />
@@ -572,6 +712,14 @@ function AppRoutes() {
           <Route path="/classes" element={<ClassesListPage />} />
           <Route path="/classes/:slug" element={<ClassPage />} />
           <Route path="/classes/:slug/edit" element={<ClassEditPage />} />
+          <Route
+            path="/classes/:slug/gradebook"
+            element={<ClassGradebookPage />}
+          />
+          <Route
+            path="/classes/:slug/calendar"
+            element={<ClassCalendarPage />}
+          />
           <Route path="/classes/:slug/tasks/:taskId" element={<ClassTaskPage />} />
           <Route
             path="/classes/:slug/competitions/:competitionId"

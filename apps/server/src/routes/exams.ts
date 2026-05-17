@@ -22,7 +22,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { randomUUID } from "crypto";
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 import {
   examAttempts,
   examAttemptAnswers,
@@ -84,6 +84,9 @@ interface QuestionPayload {
   // Sprint 75 — essay-only fields. Null/0 for multiple_choice.
   rubricMd: string | null;
   maxEssayScore: number | null;
+  // Phase 16A — answer key. Caller decides whether to expose it (only
+  // completed attempts get correctIndex in the response).
+  correctIndex: number | null;
 }
 
 function loadQuestions(ids: string[]): Map<string, QuestionPayload> {
@@ -100,6 +103,7 @@ function loadQuestions(ids: string[]): Map<string, QuestionPayload> {
       rubricMd: examQuestions.rubricMd,
       maxEssayScore: examQuestions.maxEssayScore,
       topicTagsJson: examQuestions.topicTagsJson,
+      correctIndex: examQuestions.correctIndex,
     })
     .from(examQuestions)
     .all();
@@ -114,18 +118,21 @@ function loadQuestions(ids: string[]): Map<string, QuestionPayload> {
   const out = new Map<string, QuestionPayload>();
   for (const r of rows) {
     if (!wanted.has(r.id)) continue;
+    const qType = (r.type as "multiple_choice" | "essay") ?? "multiple_choice";
     out.set(r.id, {
       id: r.id,
       sectionId: r.sectionId,
       sectionSlug: slugById.get(r.sectionId) ?? "",
       ordinal: 0, // filled by the caller relative to manifest order
-      type: (r.type as "multiple_choice" | "essay") ?? "multiple_choice",
+      type: qType,
       difficulty: r.difficulty,
       promptMd: r.promptMd,
       options: safeJsonArray<{ label: string; text: string }>(r.optionsJson),
       topicTags: safeJsonArray<string>(r.topicTagsJson),
       rubricMd: r.rubricMd,
       maxEssayScore: r.maxEssayScore,
+      // Essay rows store 0 for correctIndex but it's meaningless there.
+      correctIndex: qType === "essay" ? null : r.correctIndex,
     });
   }
   return out;
@@ -329,6 +336,10 @@ examsRouter.get("/attempts/:id", requireAuth, async (c) => {
     .where(eq(examAttemptAnswers.attemptId, id))
     .all();
 
+  // Phase 16A — only expose the answer key after the attempt is
+  // completed, so the in-progress fetch can't be inspected to cheat.
+  const completed = attempt.completedAt != null;
+
   return c.json({
     id: attempt.id,
     mode: attempt.mode,
@@ -341,7 +352,12 @@ examsRouter.get("/attempts/:id", requireAuth, async (c) => {
       slug: s.slug,
       questions: s.questionIds.map((qid, ordinal) => {
         const q = questions.get(qid);
-        return q ? { ...q, ordinal } : null;
+        if (!q) return null;
+        return {
+          ...q,
+          ordinal,
+          correctIndex: completed ? q.correctIndex : null,
+        };
       }).filter((x) => x !== null),
     })),
     answers: answers.map((a) => ({
@@ -352,6 +368,7 @@ examsRouter.get("/attempts/:id", requireAuth, async (c) => {
       essayFeedbackMd: a.essayFeedbackMd,
       flagged: a.flagged === 1,
       timeSpentMs: a.timeSpentMs,
+      isCorrect: completed && a.isCorrect != null ? a.isCorrect === 1 : null,
     })),
   });
 });
@@ -566,6 +583,26 @@ examsRouter.post("/attempts/:id/submit", requireAuth, async (c) => {
   if (!id) return c.json({ error: "Missing id" }, 400);
   const db = getDb();
 
+  // Phase 19C — atomic claim. Two concurrent submits (spam-click,
+  // dual tabs, retry-on-flaky-network) used to both pass a stale
+  // `select then check completedAt` guard and both run the
+  // expensive essay grader. Replace with a conditional UPDATE that
+  // only succeeds while completedAt IS NULL; the loser sees 0
+  // changes and gets "Already submitted" without doing any work.
+  const claim = db
+    .update(examAttempts)
+    .set({ completedAt: new Date().toISOString() })
+    .where(
+      and(
+        eq(examAttempts.id, id),
+        eq(examAttempts.userId, me.id),
+        sql`${examAttempts.completedAt} IS NULL`,
+      ),
+    )
+    .run();
+  const claimedRows =
+    (claim as unknown as { changes?: number }).changes ?? 0;
+
   const attempt = db
     .select()
     .from(examAttempts)
@@ -573,7 +610,10 @@ examsRouter.post("/attempts/:id/submit", requireAuth, async (c) => {
     .get();
   if (!attempt) return c.json({ error: "Not found" }, 404);
   if (attempt.userId !== me.id) return c.json({ error: "Forbidden" }, 403);
-  if (attempt.completedAt) {
+  if (claimedRows === 0) {
+    // The atomic claim missed: either an earlier submit already
+    // landed (concurrent caller) or the attempt was never in a
+    // submittable state. Both surface as "Already submitted".
     return c.json({ error: "Already submitted" }, 400);
   }
 

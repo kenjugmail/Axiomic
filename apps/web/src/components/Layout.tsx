@@ -50,6 +50,8 @@ const MORE_NAV_PUBLIC_SECTIONS: NavSection[] = [
     heading: "Discover",
     links: [
       { to: "/misconceptions", label: "Misconception marketplace" },
+      { to: "/bounties", label: "Research bounties" },
+      { to: "/hackathons", label: "Hackathons" },
       // Single fallback so anonymous users find the pet ecosystem.
       { to: "/explore/pets", label: "Pet showcase" },
     ],
@@ -62,12 +64,16 @@ const MORE_NAV_USER_SECTION: NavSection = {
     // Phase 9 — pet / inventory moved into a dedicated Pet dropdown
     // and mobile-nav Pet section, so they're omitted here to avoid
     // duplication.
+    { to: "/me/today", label: "Today" },
     { to: "/feed", label: "Feed" },
     { to: "/flashcards", label: "Flashcards" },
     { to: "/review/mistakes", label: "Review mistakes" },
     { to: "/me/lab", label: "My lab" },
     { to: "/me/mri", label: "Knowledge MRI" },
     { to: "/me/weak-concepts", label: "Weak concepts" },
+    { to: "/me/credentials", label: "Credentials" },
+    { to: "/reproductions/review", label: "Reproduction review" },
+    { to: "/recruiter", label: "Recruiter search" },
     { to: "/me/mentors", label: "Mentors" },
   ],
 };

@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { sql } from "drizzle-orm";
-import { getDb } from "@axiomic/db";
+import { getDb, closeDb } from "@axiomic/db";
 import { getAIProvider } from "@axiomic/ai";
 import { auth } from "./routes/auth";
 import { wiki } from "./routes/wiki";
@@ -31,7 +31,7 @@ import { authorClaimsRouter } from "./routes/authorClaims";
 import { authorsRouter } from "./routes/authors";
 import { paperAuthorQuestionsRouter } from "./routes/paperAuthorQuestions";
 import { examsRouter } from "./routes/exams";
-import { registerJob, startJobRunner } from "./lib/jobs";
+import { registerJob, startJobRunner, stopJobRunner } from "./lib/jobs";
 import { ingestArxivJob } from "./jobs/ingestArxiv";
 import { ingestOpenAlexJob } from "./jobs/ingestOpenAlex";
 import { ingestPubmedJob } from "./jobs/ingestPubmed";
@@ -44,6 +44,18 @@ import { harvestSocialResearcherPostsJob } from "./jobs/harvestSocialResearcherP
 import { finalizeStaleExamAttemptsJob } from "./jobs/finalizeStaleExamAttempts";
 import { capstonesRouter } from "./routes/capstones";
 import { classesRouter } from "./routes/classes";
+import { hackathonsRouter } from "./routes/hackathons";
+import { bountiesRouter } from "./routes/bounties";
+import { reproductionsRouter } from "./routes/reproductions";
+import { missionsRouter } from "./routes/missions";
+import { reviewRoomsRouter } from "./routes/review-rooms";
+import { publicApiRouter } from "./routes/publicApi";
+import { recruiterRouter } from "./routes/recruiter";
+import { orgsRouter } from "./routes/orgs";
+import {
+  credentialsRouter,
+  meCredentialsRouter,
+} from "./routes/credentials";
 import { petRouter, petCatalogRouter, petPublicRouter, petSkinCatalogRouter } from "./routes/pet";
 import { misconceptionsRouter } from "./routes/misconceptions";
 import { kernelFilesRouter } from "./routes/kernelFiles";
@@ -72,6 +84,9 @@ import {
   protocolRunsMeRouter,
 } from "./routes/protocolRuns";
 import { notifyExpiringCertsJob } from "./jobs/notifyExpiringCerts";
+import { resurfacingDecayJob } from "./jobs/resurfacingDecay";
+import { signTreeHeadJob } from "./jobs/signTreeHead";
+import { lapseCommitmentsJob } from "./jobs/lapseCommitments";
 import { hardDeleteSoftDeletedUsersJob, cleanupOldLoginAttemptsJob } from "./lib/userCleanupJob";
 import { captureError } from "./lib/observability";
 import { bootstrapAdmin } from "./lib/bootstrapAdmin";
@@ -81,12 +96,14 @@ import { userFromCookieHeader } from "./middleware/auth";
 import {
   attachUser,
   broadcastDraftPresence,
+  broadcastRoomPresence,
   detach,
   setUsernameResolver,
   subscribeArticle,
   subscribeDraft,
+  subscribeRoom,
 } from "./lib/liveBus";
-import type { DraftKind } from "./lib/liveBus";
+import type { DraftKind, RoomKind } from "./lib/liveBus";
 import { users as usersTable } from "@axiomic/db";
 import { inArray } from "drizzle-orm";
 
@@ -107,6 +124,9 @@ import {
   verify,
   verifyWithPublicKey,
 } from "./lib/signing";
+import { getRevocation } from "./lib/revocation";
+import { ageDays, freshnessBand } from "./lib/freshness";
+import { didDocument, verifyVerifiableCredential } from "./lib/vc";
 import type { Env } from "./env";
 import { env, warnOnInsecureConfig, assertProductionSecrets } from "./lib/envConfig";
 import { setServerExecBackend } from "./lib/serverExec";
@@ -133,6 +153,46 @@ app.use(
     credentials: true,
   }),
 );
+
+// Phase 26A — baseline HTTP security headers on every response.
+// Phase 36 — CSP added: this server only ever emits JSON and ONE
+// fully self-contained HTML document (the signed-credential
+// portfolio at /credentials/:username/portfolio.html — inline
+// <style>, zero scripts, no external resources). The React SPA is
+// served by a separate static host, so its CSP belongs there
+// (out of scope here) and this header never reaches it. A strict
+// policy is therefore correct + a real escapeHtml backstop. HSTS
+// lives at the reverse-proxy layer so it survives upstream
+// redirects.
+app.use("*", async (c, next) => {
+  await next();
+  // Clickjacking defense. The app has no legitimate iframe-embed
+  // surface in v1.
+  c.header("X-Frame-Options", "DENY");
+  // Disable MIME sniffing so a JSON response can't be reinterpreted
+  // as something executable.
+  c.header("X-Content-Type-Options", "nosniff");
+  // Leak less to outbound links. Same-origin nav stays full
+  // referrer; cross-origin sends only the origin.
+  c.header("Referrer-Policy", "strict-origin-when-cross-origin");
+  // Explicitly deny browser features we don't use, so a future
+  // dependency that asks for them gets blocked at the platform.
+  c.header(
+    "Permissions-Policy",
+    "geolocation=(), microphone=(), camera=(), payment=(), usb=()",
+  );
+  // Strict CSP for the server's own surface. default-src 'none'
+  // ⇒ no scripts (script-src falls back to it) — a hard backstop
+  // for the portfolio HTML behind escapeHtml. style-src
+  // 'unsafe-inline' is required by that page's inline <style>;
+  // img/font allow self + data: only. Inert on JSON responses.
+  c.header(
+    "Content-Security-Policy",
+    "default-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; " +
+      "font-src 'self' data:; base-uri 'none'; form-action 'self'; " +
+      "frame-ancestors 'none'",
+  );
+});
 
 // Phase J — fail-fast on oversize request bodies. 10MB is generous for
 // uploads (multipart goes through here too) and a hard cap against a
@@ -170,6 +230,36 @@ app.post("/keys/verify", async (c) => {
   } catch {
     return c.json({ valid: false, error: "Invalid JSON body" }, 400);
   }
+  // Phase 33A — additive: a W3C VC / Open Badges 3.0 envelope
+  // (has @context + proof) verifies through the JCS path. The
+  // legacy {manifest,signature} path below is byte-for-byte
+  // unchanged.
+  if (body && body["@context"] && body.proof) {
+    const { valid, issuerKeyHex, issuerTrusted } =
+      verifyVerifiableCredential(body);
+    const cs = body.credentialStatus as
+      | { credentialKind?: string; credentialRef?: string }
+      | undefined;
+    const rev =
+      cs?.credentialKind && cs?.credentialRef
+        ? getRevocation(cs.credentialKind, cs.credentialRef)
+        : null;
+    const vf = typeof body.validFrom === "string" ? body.validFrom : null;
+    return c.json({
+      valid,
+      format: "vc",
+      publicKey: issuerKeyHex ?? publicKeyHex(),
+      // Additive: `valid` proves the bytes match the proof key;
+      // `issuerTrusted` proves that key is THIS issuer's, not a
+      // self-asserted did:key the holder forged. Consumers must
+      // require issuerTrusted, not valid alone.
+      issuerTrusted,
+      revoked: rev !== null,
+      revocationReason: rev?.reason ?? null,
+      ageDays: ageDays(vf),
+      freshness: freshnessBand(vf),
+    });
+  }
   const manifest = body?.manifest;
   const signature = body?.signature;
   const claimedPublicKey: string | undefined = body?.publicKey;
@@ -183,10 +273,43 @@ app.post("/keys/verify", async (c) => {
   const valid = claimedPublicKey
     ? verifyWithPublicKey(payload, signature, claimedPublicKey)
     : verify(payload, signature);
+
+  // Phase 32A/32B — additive trust metadata. The signature result
+  // (`valid`) is UNCHANGED; we additionally tell the verifier
+  // whether the issuer has since revoked the underlying claim
+  // (CRL/OCSP-style) and how old the credential is. A revoked
+  // credential still returns valid:true — the bytes are authentic,
+  // the claim is just withdrawn.
+  const kind = typeof manifest?.kind === "string" ? manifest.kind : null;
+  let ref: string | null = null;
+  let earnedAt: string | null = null;
+  if (kind === "reproduction") {
+    ref = typeof manifest.reproductionId === "string" ? manifest.reproductionId : null;
+    earnedAt = typeof manifest.mintedAt === "string" ? manifest.mintedAt : null;
+  } else if (kind === "bounty") {
+    ref = typeof manifest.bountyId === "string" ? manifest.bountyId : null;
+  } else if (kind === "composite_score") {
+    ref = typeof manifest.userId === "string" ? manifest.userId : null;
+    earnedAt = typeof manifest.issuedAt === "string" ? manifest.issuedAt : null;
+  } else if (kind === "mission_contribution") {
+    // Phase 39 — symmetric with the reproduction case: the
+    // signature stays valid; we additionally surface whether the
+    // issuer has since refute-revoked the underlying contribution.
+    ref =
+      typeof manifest.contributionId === "string"
+        ? manifest.contributionId
+        : null;
+    earnedAt = typeof manifest.issuedAt === "string" ? manifest.issuedAt : null;
+  }
+  const rev = kind && ref ? getRevocation(kind, ref) : null;
   return c.json({
     valid,
     publicKey: claimedPublicKey ?? publicKeyHex(),
     canonicalPayload: payload,
+    revoked: rev !== null,
+    revocationReason: rev?.reason ?? null,
+    ageDays: ageDays(earnedAt),
+    freshness: freshnessBand(earnedAt),
   });
 });
 
@@ -257,6 +380,18 @@ app.route("/external-papers", paperAuthorQuestionsRouter);
 app.route("/exams", examsRouter);
 app.route("/capstones", capstonesRouter);
 app.route("/classes", classesRouter);
+app.route("/hackathons", hackathonsRouter);
+app.route("/bounties", bountiesRouter);
+app.route("/reproductions", reproductionsRouter);
+app.route("/missions", missionsRouter);
+app.route("/review-rooms", reviewRoomsRouter);
+app.route("/recruiter", recruiterRouter);
+app.route("/orgs", orgsRouter);
+app.route("/credentials", credentialsRouter);
+// Mounted before /me so the more-specific subtree wins.
+app.route("/me/credentials", meCredentialsRouter);
+// Phase 31D — versioned, CORS-open public API namespace.
+app.route("/public", publicApiRouter);
 app.route("/me/pet", petRouter);
 app.route("/pet-cosmetics", petCatalogRouter);
 // Phase L — public skin catalog.
@@ -348,6 +483,12 @@ if (process.env.DISABLE_JOB_RUNNER !== "1") {
   // period + expire the login-attempts ring buffer.
   registerJob(hardDeleteSoftDeletedUsersJob);
   registerJob(cleanupOldLoginAttemptsJob);
+  // Phase 32D — proactive decay-aware resurfacing (daily).
+  registerJob(resurfacingDecayJob);
+  // Phase 33B — hourly signed credential-transparency tree head.
+  registerJob(signTreeHeadJob);
+  // Phase 34D — daily lapse sweep for learning commitments.
+  registerJob(lapseCommitmentsJob);
   startJobRunner();
 }
 
@@ -367,6 +508,43 @@ if (import.meta.main) {
   }
   assertProductionSecrets();
   warnOnInsecureConfig();
+
+  // Phase 36 — graceful shutdown. Stop the in-process job runner
+  // and flush/close the SQLite handle so a SIGTERM (deploy /
+  // container stop) doesn't strand an open WAL. Idempotent guard
+  // so double signals don't double-exit.
+  let shuttingDown = false;
+  const shutdown = (sig: string) => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.log(`Received ${sig}, shutting down…`);
+    try {
+      stopJobRunner();
+    } catch {}
+    try {
+      closeDb();
+    } catch {}
+    process.exit(0);
+  };
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
+
+  // Phase 36 — last-resort process safety nets. Route errors are
+  // already caught by app.onError; this covers fire-and-forget
+  // work (e.g. `void notify(...)`). An unhandled rejection is
+  // logged and the process continues; an uncaught exception is
+  // logged then the process exits non-zero (Node best practice —
+  // the orchestrator restarts a clean instance).
+  process.on("unhandledRejection", (reason) => {
+    captureError(
+      reason instanceof Error ? reason : new Error(String(reason)),
+      { kind: "process.unhandledRejection" },
+    );
+  });
+  process.on("uncaughtException", (err) => {
+    captureError(err, { kind: "process.uncaughtException" });
+    process.exit(1);
+  });
 }
 
 // Bun.serve passes (req, server) when a `websocket` handler is set.
@@ -383,6 +561,33 @@ export default {
       const data: WSData = { userId, subscriptions: new Set() };
       if (server.upgrade(req, { data })) return;
       return new Response("Upgrade failed", { status: 500 });
+    }
+    // Phase 31D — true app-root signing-key discovery. `app` is
+    // basePath("/api/v1") so this can't live on the Hono app;
+    // serve it here, before delegating.
+    if (url.pathname === "/.well-known/axiomic-signing-pubkey") {
+      return new Response(publicKeyHex(), {
+        status: 200,
+        headers: {
+          "content-type": "text/plain; charset=utf-8",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=3600",
+        },
+      });
+    }
+    // Phase 33A — did:web DID document. Resolves both did:web and
+    // (via the listed verificationMethod) the did:key form used in
+    // every exported Verifiable Credential. Additive — the raw-hex
+    // route above is unchanged.
+    if (url.pathname === "/.well-known/did.json") {
+      return new Response(JSON.stringify(didDocument(url.host)), {
+        status: 200,
+        headers: {
+          "content-type": "application/did+json",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=3600",
+        },
+      });
     }
     return app.fetch(req);
   },
@@ -408,6 +613,18 @@ export default {
         ) {
           subscribeDraft(ws, msg.kind as DraftKind, msg.targetId);
           broadcastDraftPresence(msg.kind as DraftKind, msg.targetId);
+        } else if (
+          msg &&
+          msg.type === "subscribe_room" &&
+          (msg.kind === "reproduction" ||
+            msg.kind === "capstone_submission" ||
+            msg.kind === "cohort_study" ||
+            msg.kind === "bounty_collaboration" ||
+            msg.kind === "mission_working_group") &&
+          typeof msg.roomId === "string"
+        ) {
+          subscribeRoom(ws, msg.kind as RoomKind, msg.roomId);
+          broadcastRoomPresence(msg.kind as RoomKind, msg.roomId);
         }
       } catch {
         // ignore malformed frames

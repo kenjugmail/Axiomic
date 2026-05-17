@@ -24,6 +24,7 @@ import {
   recordImpressions,
 } from "../lib/recommend";
 import type { RankedPaper } from "../lib/recommend";
+import { buildFrontier } from "../lib/frontier";
 import { getSessionUser } from "../middleware/auth";
 import type { Env } from "../env";
 
@@ -155,5 +156,30 @@ researchFeedRouter.get(
         from_follows: toPayload(fromFollows, authors),
       },
     });
+  },
+);
+
+// Phase 29D — the fused research-frontier rail. Separate endpoint
+// (not folded into /feed) so it's independently togglable and the
+// /feed payload stays small. Anonymous callers get a non-empty
+// recency/citation fallback via the underlying rankers.
+researchFeedRouter.get(
+  "/feed/frontier",
+  zValidator(
+    "query",
+    z.object({
+      limit: z
+        .string()
+        .optional()
+        .transform((v) =>
+          Math.min(40, Math.max(1, parseInt(v ?? "20", 10) || 20)),
+        ),
+    }),
+  ),
+  async (c) => {
+    const { limit } = c.req.valid("query");
+    const sessionUser = await getSessionUser(c);
+    const result = await buildFrontier(sessionUser?.id ?? null, limit);
+    return c.json(result);
   },
 );

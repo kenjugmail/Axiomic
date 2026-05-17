@@ -115,6 +115,7 @@ export function CapstoneTrackPage() {
                 </span>
               ))}
             </div>
+            <TrackProgressBar data={data} />
             {completed && (
               <div className="mt-4 flex items-center gap-2 rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm">
                 <Award className="w-4 h-4 text-emerald-600" />
@@ -247,6 +248,34 @@ export function CapstoneTrackPage() {
             );
           })}
         </ol>
+      </div>
+    </div>
+  );
+}
+
+// Phase 16D — header progress bar. Computes "X of N required
+// complete" inline from the already-fetched capstones list so no
+// extra round-trip is required.
+function TrackProgressBar({ data }: { data: TrackDetail }) {
+  const required = data.capstones.filter((c) => !c.optional);
+  const total = required.length;
+  if (total === 0) return null;
+  const done = required.filter((c) => c.status === "completed").length;
+  const pct = Math.round((done / total) * 100);
+  return (
+    <div className="mt-4" data-testid="track-progress-bar">
+      <div className="flex items-baseline justify-between text-[11px] text-muted-foreground">
+        <span>
+          {done} of {total} required complete
+        </span>
+        <span className="font-mono">{pct}%</span>
+      </div>
+      <div className="mt-1 h-2 rounded-full bg-muted overflow-hidden">
+        <div
+          data-testid="track-progress-fill"
+          className="h-full bg-primary transition-all"
+          style={{ width: `${pct}%` }}
+        />
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 // S86 — Class metadata + syllabus editor + join-code rotation.
 
 import { useEffect, useState } from "react";
+import { confirm } from "../stores/confirm";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { RefreshCw } from "lucide-react";
 import type { ClassDetailResponse, ClassStatus } from "@axiomic/types";
@@ -25,6 +26,11 @@ export function ClassEditPage() {
   const [linkedCohortId, setLinkedCohortId] = useState<string>("");
   const [myCohorts, setMyCohorts] = useState<Array<{ id: string; slug: string; name: string }>>([]);
   const [status, setStatus] = useState<ClassStatus>("active");
+  // Phase 21 — class difficulty + topic scope. Both optional; null
+  // level + empty topic list means "no scoping" (the variant
+  // generator falls back to base task body).
+  const [level, setLevel] = useState<"intro" | "undergrad" | "grad" | "">("");
+  const [topicSlugsText, setTopicSlugsText] = useState("");
   const [saving, setSaving] = useState(false);
   const [rotating, setRotating] = useState(false);
 
@@ -41,6 +47,15 @@ export function ClassEditPage() {
         setDiscoverable(!!r.class.discoverable);
         setLinkedCohortId(r.class.linkedCohortId ?? "");
         setStatus(r.class.status);
+        // Phase 21 — level + topic slugs. Server may return null
+        // for level and an empty JSON-array string for topicSlugs.
+        setLevel(((r.class as { level?: string | null }).level as
+          | "intro"
+          | "undergrad"
+          | "grad"
+          | undefined) ?? "");
+        const topics = (r.class as { topicSlugs?: string[] }).topicSlugs;
+        setTopicSlugsText(Array.isArray(topics) ? topics.join(", ") : "");
       })
       .catch((e) => setError(e?.message ?? "Failed to load class"));
   }, [slug]);
@@ -68,6 +83,10 @@ export function ClassEditPage() {
   const save = async () => {
     setSaving(true);
     try {
+      const topicSlugs = topicSlugsText
+        .split(/[,\s]+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
       await api.classes.update(slug, {
         title,
         term,
@@ -78,6 +97,9 @@ export function ClassEditPage() {
         // S106 — empty string means "no link"; server takes null.
         linkedCohortId: linkedCohortId ? linkedCohortId : null,
         status,
+        // Phase 21 — class difficulty + topic scope.
+        level: level || null,
+        topicSlugs,
       });
       toast.success("Saved");
     } catch (err) {
@@ -88,7 +110,14 @@ export function ClassEditPage() {
   };
 
   const rotate = async () => {
-    if (!confirm("Generate a new join code? The old one stops working immediately.")) return;
+    if (
+      !(await confirm({
+        title: "Generate a new join code?",
+        body: "The old one stops working immediately.",
+        destructive: true,
+      }))
+    )
+      return;
     setRotating(true);
     try {
       const r = await api.classes.rotateCode(slug);
@@ -168,6 +197,40 @@ export function ClassEditPage() {
               <option value="active">Active</option>
               <option value="archived">Archived</option>
             </select>
+          </Field>
+        </div>
+        {/* Phase 21 — class difficulty calibration + topic scope.
+            Feed the AI variant generator so an undergrad ML class
+            doesn't produce PhD-tier prompts, and the weakness
+            aggregator only pulls signals from in-scope concepts. */}
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Difficulty level (optional)">
+            <select
+              value={level}
+              onChange={(e) =>
+                setLevel(e.target.value as "" | "intro" | "undergrad" | "grad")
+              }
+              className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background"
+            >
+              <option value="">Not specified</option>
+              <option value="intro">Intro</option>
+              <option value="undergrad">Undergrad</option>
+              <option value="grad">Grad</option>
+            </select>
+            <span className="text-[10px] text-muted-foreground mt-1 block">
+              Used to calibrate AI-generated personalized assignment variants.
+            </span>
+          </Field>
+          <Field label="Topic slugs (comma-separated, optional)">
+            <input
+              value={topicSlugsText}
+              onChange={(e) => setTopicSlugsText(e.target.value)}
+              placeholder="softmax, attention, transformer"
+              className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background font-mono"
+            />
+            <span className="text-[10px] text-muted-foreground mt-1 block">
+              Concept slugs this class covers. Scopes the weakness-aggregator so off-topic signals don't pollute personalization.
+            </span>
           </Field>
         </div>
         {/* S106 — linked cohort picker. Only cohorts created by the

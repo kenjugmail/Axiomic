@@ -2,12 +2,54 @@ import { Context, Next } from "hono";
 import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import { getDb, sessions, users } from "@axiomic/db";
 import { eq, and, gt, sql } from "drizzle-orm";
-import { randomUUID } from "crypto";
+import { randomUUID, createHmac, timingSafeEqual } from "crypto";
 import type { Env } from "../env";
 import { env } from "../lib/envConfig";
 
 const SESSION_COOKIE = "axiomic_session";
 const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+// Phase 36 — bind the (previously dead) SESSION_SECRET to the
+// session cookie. The cookie carries `${id}.${HMAC(id)}` so a
+// leaked DB session id alone (logs, backups) can't be replayed
+// without the app secret. Prod requires SESSION_SECRET via
+// assertProductionSecrets; dev/test fall back to a fixed
+// deterministic key so local runs + the cookie-round-trip test
+// suite keep working unchanged.
+const SESSION_MAC_SECRET =
+  env.SESSION_SECRET && env.SESSION_SECRET.length > 0
+    ? env.SESSION_SECRET
+    : "axiomic-dev-session-secret-do-not-use-in-prod";
+
+function sessionMac(id: string): string {
+  return createHmac("sha256", SESSION_MAC_SECRET).update(id).digest("hex");
+}
+
+export function encodeSessionCookie(id: string): string {
+  return `${id}.${sessionMac(id)}`;
+}
+
+// Returns the raw session id only if the MAC verifies; null
+// otherwise (absent, malformed, or tampered).
+export function decodeSessionCookie(
+  raw: string | undefined | null,
+): string | null {
+  if (!raw) return null;
+  const dot = raw.lastIndexOf(".");
+  if (dot <= 0) return null;
+  const id = raw.slice(0, dot);
+  const mac = raw.slice(dot + 1);
+  const expected = sessionMac(id);
+  if (mac.length !== expected.length) return null;
+  try {
+    if (!timingSafeEqual(Buffer.from(mac), Buffer.from(expected))) {
+      return null;
+    }
+  } catch {
+    return null;
+  }
+  return id;
+}
 
 export async function createSession(c: Context, userId: string): Promise<string> {
   const db = getDb();
@@ -28,7 +70,7 @@ export async function createSession(c: Context, userId: string): Promise<string>
     ip,
   }).run();
 
-  setCookie(c, SESSION_COOKIE, sessionId, {
+  setCookie(c, SESSION_COOKIE, encodeSessionCookie(sessionId), {
     httpOnly: true,
     sameSite: "Lax",
     path: "/",
@@ -45,11 +87,11 @@ export async function createSession(c: Context, userId: string): Promise<string>
 // to other modules. Used by /auth/change-password to keep the
 // calling browser logged in while destroying every other session.
 export function currentSessionId(c: Context): string | undefined {
-  return getCookie(c, SESSION_COOKIE);
+  return decodeSessionCookie(getCookie(c, SESSION_COOKIE)) ?? undefined;
 }
 
 export async function destroySession(c: Context): Promise<void> {
-  const sessionId = getCookie(c, SESSION_COOKIE);
+  const sessionId = decodeSessionCookie(getCookie(c, SESSION_COOKIE));
   if (sessionId) {
     const db = getDb();
     db.delete(sessions).where(eq(sessions.id, sessionId)).run();
@@ -114,7 +156,7 @@ export function userFromCookieHeader(cookieHeader: string | null): string | null
       return i === -1 ? [p, ""] : [p.slice(0, i), decodeURIComponent(p.slice(i + 1))];
     }),
   );
-  const sessionId = cookies[SESSION_COOKIE];
+  const sessionId = decodeSessionCookie(cookies[SESSION_COOKIE]);
   if (!sessionId) return null;
   const now = new Date().toISOString();
   const db = getDb();
@@ -127,7 +169,7 @@ export function userFromCookieHeader(cookieHeader: string | null): string | null
 }
 
 export async function getSessionUser(c: Context) {
-  const sessionId = getCookie(c, SESSION_COOKIE);
+  const sessionId = decodeSessionCookie(getCookie(c, SESSION_COOKIE));
   const db = getDb();
 
   if (sessionId) {

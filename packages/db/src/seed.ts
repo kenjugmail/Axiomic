@@ -37,6 +37,24 @@ import {
   classEnrollments,
   classTasks,
   classTaskCompletions,
+  // Phase 41 — gated demo seed (SEED_DEMO=1): missions / orgs /
+  // bounties / hackathons / activity so every surface is testable.
+  missions,
+  missionMembers,
+  missionSubproblems,
+  missionContributions,
+  missionContributionReviews,
+  missionOrgBackers,
+  orgs,
+  orgMembers,
+  researchBounties,
+  bountyClaims,
+  hackathons,
+  hackathonPrizes,
+  hackathonTeams,
+  hackathonTeamMembers,
+  activityEvents,
+  xpGrants,
 } from "./index";
 import { and, eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -48,6 +66,43 @@ const db = getDb();
 // bcrypt is provided via Bun.password.hash; this seed-side import keeps the
 // dependency local to seeding so we don't pull bun-only APIs into the schema.
 const FORUM_SEED_PASSWORD_HASH = Bun.password.hashSync("axiomic-seed");
+
+// Phase 41 — comprehensive pre-beta demo content (Missions, Orgs,
+// Research Bounties, Hackathons, demo-user activity) is gated behind
+// SEED_DEMO=1 so a real public beta deploy can stay clean of fake
+// content. The existing always-on seeders (incl. seedDemoCohort /
+// DEMO2026) are unaffected. Also gates `demo-*` forum/track fixtures.
+const SEED_DEMO = process.env.SEED_DEMO === "1";
+
+// Verbatim duplicate of the private helper inside seedDemoCohort so
+// that function stays byte-unchanged. Idempotent on username; demo
+// password "demo"; pre-verified so the demo flows skip email gating.
+const DEMO_PASSWORD_HASH = Bun.password.hashSync("demo");
+function ensureDemoUser(
+  username: string,
+  displayName: string,
+  bio: string,
+): string {
+  const existing = db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.username, username))
+    .get();
+  if (existing) return existing.id;
+  const id = randomUUID();
+  db.insert(users)
+    .values({
+      id,
+      username,
+      email: `${username}@axiomic.local`,
+      passwordHash: DEMO_PASSWORD_HASH,
+      displayName,
+      bio,
+      emailVerifiedAt: new Date().toISOString(),
+    })
+    .run();
+  return id;
+}
 
 async function seed() {
   console.log("Seeding database...");
@@ -147,9 +202,23 @@ async function seed() {
   // Phase L — pet skin catalog. Idempotent on slug.
   seedPetSkins();
 
+  // Phase 41 — gated demo content (SEED_DEMO=1) so every user-facing
+  // surface is non-empty for beta testing. Orgs first (missions
+  // back-reference them as backers). The grants feed is an external
+  // aggregator — not seedable here; covered by the deploy checklist.
+  seedDemoOrgs();
+  seedDemoMissions();
+  seedDemoBounties();
+  seedDemoHackathons();
+
   // S108 — demo cohort + signed-capstone artifact for the pitch demo
   // path. Depends on capstones (clip-style-retriever) being seeded.
   await seedDemoCohort();
+
+  // Phase 41 — demo-user activity. After seedDemoCohort so the
+  // demo-student accounts exist; makes the leaderboard + heatmap
+  // render instead of being empty.
+  seedDemoActivity();
 
   console.log("Seeding complete.");
 }
@@ -1428,24 +1497,24 @@ interface MasteryNodeSpec {
 }
 
 function loadJsonForNode(folder: string, nodeSlug: string): string | null {
-  // Walk to repo root if cwd isn't packages/db.
-  const candidates = [
-    path.join(process.cwd(), `seed-content/${folder}`, `${nodeSlug}.json`),
-    path.join(process.cwd(), `../../seed-content/${folder}`, `${nodeSlug}.json`),
-    path.join(process.cwd(), `../../../seed-content/${folder}`, `${nodeSlug}.json`),
-  ];
-  for (const c of candidates) {
-    if (fs.existsSync(c)) {
-      try {
-        const parsed = JSON.parse(fs.readFileSync(c, "utf-8"));
-        return JSON.stringify(parsed);
-      } catch (e) {
-        console.error(`  Failed to parse ${folder} file ${c}:`, e);
-        return null;
-      }
-    }
+  // Resolve from this module's location (cwd-independent), matching
+  // every other seeder in this file — e.g. the wiki-pages loader's
+  // `path.join(import.meta.dir, "../../../seed-content/pages")`. The
+  // prior process.cwd() walk silently no-op'd under an unexpected cwd.
+  const file = path.join(
+    import.meta.dir,
+    "../../../seed-content",
+    folder,
+    `${nodeSlug}.json`,
+  );
+  if (!fs.existsSync(file)) return null;
+  try {
+    const parsed = JSON.parse(fs.readFileSync(file, "utf-8"));
+    return JSON.stringify(parsed);
+  } catch (e) {
+    console.error(`  Failed to parse ${folder} file ${file}:`, e);
+    return null;
   }
-  return null;
 }
 
 // Look up hand-authored quiz JSON for a node by slug, if present.
@@ -2081,7 +2150,10 @@ async function seedForum() {
     return;
   }
 
-  const files = fs.readdirSync(forumDir).filter((f) => f.endsWith(".md"));
+  // Phase 41 — `demo-*` topics only seed when SEED_DEMO=1.
+  const files = fs
+    .readdirSync(forumDir)
+    .filter((f) => f.endsWith(".md") && (SEED_DEMO || !f.startsWith("demo-")));
   let topicCount = 0;
   let postCount = 0;
   let voteCount = 0;
@@ -2434,7 +2506,12 @@ async function seedCapstoneTracks() {
     .get();
   if (!systemUser) return; // capstones loader didn't run; nothing to attach
 
-  const files = fs.readdirSync(dir).filter((f) => f.endsWith(".json"));
+  // Phase 41 — `demo-*` tracks only seed when SEED_DEMO=1.
+  const files = fs
+    .readdirSync(dir)
+    .filter(
+      (f) => f.endsWith(".json") && (SEED_DEMO || !f.startsWith("demo-")),
+    );
   let count = 0;
   for (const file of files) {
     let parsed: any;
@@ -2858,6 +2935,624 @@ async function seedDemoCohort() {
   }
 
   console.log("  Demo cohort seeded: 1 instructor + 6 students, joinCode " + CLASS_JOIN_CODE + ".");
+}
+
+// ============================================================
+// Phase 41 — gated pre-beta demo content (SEED_DEMO=1). Additive,
+// idempotent (stable slugs, select-before-insert). The always-on
+// seeders (incl. seedDemoCohort) are untouched.
+// ============================================================
+
+function ensureOrgMember(orgId: string, userId: string, role: string): void {
+  const existing = db
+    .select({ id: orgMembers.id })
+    .from(orgMembers)
+    .where(and(eq(orgMembers.orgId, orgId), eq(orgMembers.userId, userId)))
+    .get();
+  if (existing) return;
+  db.insert(orgMembers)
+    .values({ id: randomUUID(), orgId, userId, role })
+    .run();
+}
+
+function seedDemoOrgs(): void {
+  if (!SEED_DEMO) return;
+  const ORGS = [
+    {
+      slug: "climate-futures-institute",
+      name: "Climate Futures Institute",
+      descriptionMd:
+        "An independent institute funding open climate-resilience research and reproducible early-warning tooling for vulnerable regions.",
+      website: "https://example.org/climate-futures",
+      verificationStatus: "verified",
+      admin: ["org-climate-admin", "Dr. Lena Ortiz"],
+      verifier: ["org-climate-verifier", "Dr. Sam Whitfield"],
+    },
+    {
+      slug: "world-nutrition-alliance",
+      name: "World Nutrition Alliance",
+      descriptionMd:
+        "A coalition of public-health groups working on open dietary-data standards and micronutrient-deficiency mapping.",
+      website: "https://example.org/world-nutrition",
+      verificationStatus: "verified",
+      admin: ["org-nutrition-admin", "Dr. Amara Diallo"],
+      verifier: ["org-nutrition-verifier", "Dr. Ravi Menon"],
+    },
+    {
+      slug: "global-health-equity-lab",
+      name: "Global Health Equity Lab",
+      descriptionMd:
+        "University lab focused on supply-chain reliability and forecasting for essential medicines in under-served clinics.",
+      website: "https://example.org/health-equity",
+      verificationStatus: "unverified",
+      admin: ["org-health-admin", "Dr. Priya Nair"],
+      verifier: ["org-health-verifier", "Dr. Tom Becker"],
+    },
+  ];
+  for (const o of ORGS) {
+    const adminId = ensureDemoUser(
+      o.admin[0],
+      o.admin[1],
+      `${o.name} — administrator (demo account).`,
+    );
+    const verifierId = ensureDemoUser(
+      o.verifier[0],
+      o.verifier[1],
+      `${o.name} — verifier (demo account).`,
+    );
+    let orgId: string;
+    const existing = db
+      .select({ id: orgs.id })
+      .from(orgs)
+      .where(eq(orgs.slug, o.slug))
+      .get();
+    if (existing) {
+      orgId = existing.id;
+    } else {
+      orgId = randomUUID();
+      db.insert(orgs)
+        .values({
+          id: orgId,
+          slug: o.slug,
+          name: o.name,
+          descriptionMd: o.descriptionMd,
+          website: o.website,
+          verificationStatus: o.verificationStatus,
+          creatorId: adminId,
+        })
+        .run();
+    }
+    ensureOrgMember(orgId, adminId, "admin");
+    ensureOrgMember(orgId, verifierId, "verifier");
+  }
+  console.log("  [demo] Seeded 3 orgs (admin + verifier each).");
+}
+
+function ensureMissionMember(
+  missionId: string,
+  userId: string,
+  role: string,
+): void {
+  const existing = db
+    .select({ id: missionMembers.id })
+    .from(missionMembers)
+    .where(
+      and(
+        eq(missionMembers.missionId, missionId),
+        eq(missionMembers.userId, userId),
+      ),
+    )
+    .get();
+  if (existing) return;
+  db.insert(missionMembers)
+    .values({ id: randomUUID(), missionId, userId, role })
+    .run();
+}
+
+function seedDemoMissions(): void {
+  if (!SEED_DEMO) return;
+  const daysAgo = (n: number) =>
+    new Date(Date.now() - n * 86_400_000).toISOString();
+  const missionBySlug = (slug: string) =>
+    db.select({ id: missions.id }).from(missions).where(eq(missions.slug, slug)).get();
+
+  // verified == minted flag + the reviewers' confirms (populates the
+  // public impact graph + verified UI; the signed/transparency chain
+  // is exercised by the tester completing the live mint on a pending
+  // one). pending == one confirm below the 3.0 weight threshold.
+  const addContribution = (
+    missionId: string,
+    subproblemId: string | null,
+    userId: string,
+    kind: string,
+    bodyMd: string,
+    artifacts: Array<{ kind: string; url: string; label: string }>,
+    reviewerIds: string[],
+    minted: boolean,
+  ): void => {
+    const cid = randomUUID();
+    db.insert(missionContributions)
+      .values({
+        id: cid,
+        missionId,
+        subproblemId,
+        userId,
+        kind,
+        bodyMd,
+        artifactsJson: JSON.stringify(artifacts),
+        credentialMintedAt: minted ? daysAgo(1) : null,
+        credentialMintWeight: minted ? 3.0 : null,
+      })
+      .run();
+    for (const rid of reviewerIds) {
+      db.insert(missionContributionReviews)
+        .values({
+          id: randomUUID(),
+          contributionId: cid,
+          reviewerId: rid,
+          verdict: "confirmed",
+          notesMd:
+            "Reproduced the core result from the linked artifacts; method and data check out.",
+        })
+        .run();
+    }
+  };
+
+  const addSub = (
+    id: string,
+    missionId: string,
+    createdById: string,
+    slug: string,
+    title: string,
+    descriptionMd: string,
+    status: string,
+    order: number,
+  ): void => {
+    db.insert(missionSubproblems)
+      .values({
+        id,
+        missionId,
+        slug,
+        title,
+        descriptionMd,
+        status,
+        order,
+        createdById,
+      })
+      .run();
+  };
+
+  const backWith = (
+    missionId: string,
+    orgSlug: string,
+    addedByUserId: string,
+  ): void => {
+    const org = db
+      .select({ id: orgs.id })
+      .from(orgs)
+      .where(eq(orgs.slug, orgSlug))
+      .get();
+    if (!org) return;
+    db.insert(missionOrgBackers)
+      .values({ id: randomUUID(), missionId, orgId: org.id, addedByUserId })
+      .run();
+  };
+
+  // --- Mission 1: climate (backed; one verified, one pending) ---
+  if (!missionBySlug("coastal-flood-early-warning")) {
+    const lead = ensureDemoUser("mission-lead-climate", "Dr. Ada Reyes", "Coastal-resilience researcher (demo).");
+    const eli = ensureDemoUser("contrib-eli", "Eli Tanaka", "Hydrology + ML (demo).");
+    const mara = ensureDemoUser("contrib-mara", "Mara Costa", "Coastal data engineering (demo).");
+    const r1 = ensureDemoUser("reviewer-oceanog-1", "Dr. Jun Park", "Oceanography reviewer (demo).");
+    const r2 = ensureDemoUser("reviewer-oceanog-2", "Dr. Nadia Haddad", "Coastal-engineering reviewer (demo).");
+    const mId = randomUUID();
+    db.insert(missions)
+      .values({
+        id: mId,
+        slug: "coastal-flood-early-warning",
+        title: "Open coastal-flood early-warning for data-sparse deltas",
+        problemMd:
+          "Hundreds of millions live in low-lying deltas with little or no flood-warning infrastructure. Commercial nowcasts are closed and tuned for instrumented coastlines. **Goal:** an open, reproducible early-warning baseline that works where tide-gauge coverage is sparse.",
+        summaryMd:
+          "Open early-warning baseline for under-instrumented coastlines: gap-fill sparse tide gauges, a surge nowcast baseline, and a last-mile alert protocol.",
+        theme: "climate",
+        topicTagsJson: JSON.stringify(["climate", "forecasting", "open-data"]),
+        status: "active",
+        creatorId: lead,
+      })
+      .run();
+    ensureMissionMember(mId, lead, "organizer");
+    ensureMissionMember(mId, eli, "member");
+    ensureMissionMember(mId, mara, "member");
+    const sp1 = randomUUID();
+    const sp2 = randomUUID();
+    const sp3 = randomUUID();
+    addSub(sp1, mId, lead, "tide-gauge-gap-filling", "Gap-fill sparse tide-gauge series", "Impute missing tide-gauge readings well enough to drive a surge model where temporal coverage is under 30%.", "solved", 0);
+    addSub(sp2, mId, lead, "surge-nowcast-baseline", "A reproducible surge-nowcast baseline", "An open baseline turning weather + tide inputs into a 0–24h surge nowcast.", "in_progress", 1);
+    addSub(sp3, mId, lead, "community-alert-protocol", "Last-mile community alert protocol", "A low-bandwidth alert protocol (SMS / radio) from nowcast output to at-risk households.", "open", 2);
+    addContribution(
+      mId,
+      sp1,
+      eli,
+      "analysis",
+      "I compared Gaussian-process imputation against kriging and a seasonal-naive baseline on three deltas with 22–28% gauge coverage. A GP with a Matérn-3/2 kernel and a tidal-harmonic mean function cut RMSE 31% vs kriging at the 6h horizon. The held-out delta was never used for kernel selection. Method note and code are linked.",
+      [
+        { kind: "github", url: "https://github.com/axiomic-demo/tide-gp", label: "Method + code" },
+        { kind: "paper", url: "https://example.org/tide-gp-note.pdf", label: "Method note (PDF)" },
+      ],
+      [r1, r2],
+      true,
+    );
+    addContribution(
+      mId,
+      sp2,
+      mara,
+      "data",
+      "Harmonized 11 years of hourly tide + ERA5 wind/pressure for the three pilot deltas into a single tidy parquet, with a reproducible build script and a data dictionary — the input layer the nowcast baseline can train on.",
+      [{ kind: "dataset", url: "https://example.org/delta-surge-dataset", label: "Harmonized dataset" }],
+      [r1],
+      false,
+    );
+    backWith(mId, "climate-futures-institute", lead);
+  }
+
+  // --- Mission 2: hunger (backed; one verified, one pending) ---
+  if (!missionBySlug("micronutrient-gap-mapping")) {
+    const lead = ensureDemoUser("mission-lead-nutrition", "Dr. Omar Said", "Public-health nutrition (demo).");
+    const priya = ensureDemoUser("contrib-priya", "Priya Shah", "Survey methods (demo).");
+    const luis = ensureDemoUser("contrib-luis", "Luis Romero", "Geo-statistics (demo).");
+    const r1 = ensureDemoUser("reviewer-nutri-1", "Dr. Mei Lin", "Nutrition reviewer (demo).");
+    const r2 = ensureDemoUser("reviewer-nutri-2", "Dr. Kofi Mensah", "Epidemiology reviewer (demo).");
+    const mId = randomUUID();
+    db.insert(missions)
+      .values({
+        id: mId,
+        slug: "micronutrient-gap-mapping",
+        title: "Map household micronutrient gaps from open dietary-survey data",
+        problemMd:
+          "Micronutrient deficiency is invisible in calorie-based hunger metrics. Open dietary surveys exist but are fragmented across incompatible schemas. **Goal:** a harmonized pipeline turning open survey microdata into a household-level deficiency-risk map.",
+        summaryMd:
+          "Harmonize open dietary surveys → a household-level micronutrient-deficiency-risk map and a policy brief.",
+        theme: "hunger",
+        topicTagsJson: JSON.stringify(["hunger", "nutrition", "open-data"]),
+        status: "active",
+        creatorId: lead,
+      })
+      .run();
+    ensureMissionMember(mId, lead, "organizer");
+    ensureMissionMember(mId, priya, "member");
+    ensureMissionMember(mId, luis, "member");
+    const sp1 = randomUUID();
+    const sp2 = randomUUID();
+    const sp3 = randomUUID();
+    addSub(sp1, mId, lead, "survey-harmonization", "Harmonize incompatible dietary surveys", "Map 6 national survey schemas onto one open food-composition + intake schema.", "solved", 0);
+    addSub(sp2, mId, lead, "deficiency-risk-model", "Household deficiency-risk model", "From harmonized intake → per-household iron/zinc/vitamin-A deficiency-risk scores.", "in_progress", 1);
+    addSub(sp3, mId, lead, "policy-brief", "Decision-maker policy brief", "A short, sourced brief translating the risk map into fortification recommendations.", "open", 2);
+    addContribution(
+      mId,
+      sp1,
+      priya,
+      "solution",
+      "Built an open crosswalk mapping six national dietary-survey schemas onto a single intake schema keyed to a public food-composition table. Validated on overlapping respondents (n≈4,100): agreement on energy intake within ±6% and iron within ±9%. Crosswalk, validation notebook, and harmonized extract are linked.",
+      [
+        { kind: "github", url: "https://github.com/axiomic-demo/diet-crosswalk", label: "Crosswalk + validation" },
+        { kind: "dataset", url: "https://example.org/harmonized-intake", label: "Harmonized extract" },
+      ],
+      [r1, r2],
+      true,
+    );
+    addContribution(
+      mId,
+      sp2,
+      luis,
+      "analysis",
+      "First-pass deficiency-risk model: a calibrated logistic on harmonized intake + household covariates, AUROC 0.78 on a held-out country. Writeup discusses calibration drift across regions and what's needed before this is decision-grade.",
+      [{ kind: "github", url: "https://github.com/axiomic-demo/deficiency-risk", label: "Model + eval" }],
+      [r1],
+      false,
+    );
+    backWith(mId, "world-nutrition-alliance", lead);
+  }
+
+  // --- Mission 3: health (open, unbacked, pending only) ---
+  if (!missionBySlug("malaria-stockout-forecasting")) {
+    const lead = ensureDemoUser("mission-lead-health", "Dr. Sofia Almeida", "Health supply chains (demo).");
+    const tariq = ensureDemoUser("contrib-tariq", "Tariq Aziz", "Operations research (demo).");
+    const rev = ensureDemoUser("reviewer-health-1", "Dr. Gabriel Moreau", "Health-systems reviewer (demo).");
+    const mId = randomUUID();
+    db.insert(missions)
+      .values({
+        id: mId,
+        slug: "malaria-stockout-forecasting",
+        title: "Forecast antimalarial stock-outs in rural clinics",
+        problemMd:
+          "Rural clinics run out of antimalarials during demand spikes because ordering is reactive. **Goal:** an open short-horizon stock-out forecast clinics can act on with their existing data.",
+        summaryMd:
+          "An open short-horizon stock-out forecast for antimalarials in rural clinics.",
+        theme: "health",
+        topicTagsJson: JSON.stringify(["health", "supply-chain", "forecasting"]),
+        status: "open",
+        creatorId: lead,
+      })
+      .run();
+    ensureMissionMember(mId, lead, "organizer");
+    ensureMissionMember(mId, tariq, "member");
+    const sp1 = randomUUID();
+    const sp2 = randomUUID();
+    addSub(sp1, mId, lead, "consumption-signal", "A clean consumption signal from messy clinic logs", "Turn inconsistent paper-digitized dispensing logs into a usable weekly consumption series.", "open", 0);
+    addSub(sp2, mId, lead, "lead-time-model", "Model resupply lead-time variability", "Estimate the lead-time distribution so the forecast horizon matches reality.", "open", 1);
+    addContribution(
+      mId,
+      sp1,
+      tariq,
+      "analysis",
+      "Scoped the consumption-signal problem: characterized three failure modes in the digitized logs (duplicate batches, unit ambiguity, backfilled zeros) and proposed a reconciliation rule set with a small labeled validation set. Looking for a second reviewer before this drives a model.",
+      [{ kind: "writeup", url: "https://example.org/stockout-signal-scoping", label: "Scoping writeup" }],
+      [rev],
+      false,
+    );
+  }
+
+  console.log("  [demo] Seeded 3 missions (sub-problems, contributions, reviews; 2 org-backed).");
+}
+
+function seedDemoBounties(): void {
+  if (!SEED_DEMO) return;
+  const uid = (u: string) =>
+    db.select({ id: users.id }).from(users).where(eq(users.username, u)).get()
+      ?.id ?? ensureDemoUser(u, u, "Demo account.");
+  const inDays = (n: number) =>
+    new Date(Date.now() + n * 86_400_000).toISOString();
+  const BOUNTIES: Array<{
+    slug: string;
+    title: string;
+    descriptionMd: string;
+    kind: string;
+    rewardXp: number;
+    status: string;
+    maxClaimants: number;
+    deadlineAt: string;
+    poster: string;
+    claim: string | null;
+  }> = [
+    {
+      slug: "reproduce-coastal-nowcast",
+      title: "Reproduce the coastal surge-nowcast baseline",
+      descriptionMd:
+        "Independently reproduce the surge-nowcast baseline from the Coastal Flood Early Warning mission on a fourth delta and report RMSE vs the seasonal-naive baseline.",
+      kind: "reproduce",
+      rewardXp: 300,
+      status: "open",
+      maxClaimants: 2,
+      deadlineAt: inDays(30),
+      poster: "mission-lead-climate",
+      claim: null,
+    },
+    {
+      slug: "extend-micronutrient-map",
+      title: "Extend the micronutrient map to a new region",
+      descriptionMd:
+        "Apply the harmonization crosswalk to one additional national survey and contribute the validated extract back.",
+      kind: "extend",
+      rewardXp: 250,
+      status: "open",
+      maxClaimants: 1,
+      deadlineAt: inDays(45),
+      poster: "mission-lead-nutrition",
+      claim: null,
+    },
+    {
+      slug: "analyze-stockout-signal",
+      title: "Analyze a candidate stock-out leading indicator",
+      descriptionMd:
+        "Evaluate whether clinic visit volume leads antimalarial consumption, with a clean evaluation on the open scoping dataset.",
+      kind: "analyze",
+      rewardXp: 200,
+      status: "in_review",
+      maxClaimants: 1,
+      deadlineAt: inDays(10),
+      poster: "mission-lead-health",
+      claim: "contrib-tariq",
+    },
+  ];
+  for (const b of BOUNTIES) {
+    if (
+      db
+        .select({ id: researchBounties.id })
+        .from(researchBounties)
+        .where(eq(researchBounties.slug, b.slug))
+        .get()
+    ) {
+      continue;
+    }
+    const bid = randomUUID();
+    db.insert(researchBounties)
+      .values({
+        id: bid,
+        slug: b.slug,
+        title: b.title,
+        descriptionMd: b.descriptionMd,
+        kind: b.kind,
+        rewardXp: b.rewardXp,
+        status: b.status,
+        maxClaimants: b.maxClaimants,
+        deadlineAt: b.deadlineAt,
+        discoverable: true,
+        posterId: uid(b.poster),
+      })
+      .run();
+    if (b.claim) {
+      db.insert(bountyClaims)
+        .values({
+          id: randomUUID(),
+          bountyId: bid,
+          userId: uid(b.claim),
+          status: "submitted",
+        })
+        .run();
+    }
+  }
+  console.log("  [demo] Seeded 3 research bounties.");
+}
+
+function seedDemoHackathons(): void {
+  if (!SEED_DEMO) return;
+  const uid = (u: string) =>
+    db.select({ id: users.id }).from(users).where(eq(users.username, u)).get()
+      ?.id ?? ensureDemoUser(u, u, "Demo account.");
+  const inDays = (n: number) =>
+    new Date(Date.now() + n * 86_400_000).toISOString();
+
+  if (
+    !db
+      .select({ id: hackathons.id })
+      .from(hackathons)
+      .where(eq(hackathons.slug, "climate-ai-sprint-2026"))
+      .get()
+  ) {
+    const organizer = uid("mission-lead-climate");
+    const hId = randomUUID();
+    db.insert(hackathons)
+      .values({
+        id: hId,
+        slug: "climate-ai-sprint-2026",
+        title: "Climate AI Sprint 2026",
+        descriptionMd:
+          "A 48-hour sprint building open tooling for climate resilience — flood nowcasts, heat-risk maps, grid forecasting. All fields welcome.",
+        rulesMd:
+          "Teams of up to 4. Links + writeups only (no uploads). An open-source license is required to be prize-eligible.",
+        fieldTag: "climate",
+        coverEmoji: "🌊",
+        hostMode: "public",
+        discoverable: true,
+        status: "registration",
+        maxTeamSize: 4,
+        judgingMode: "manual",
+        registrationOpensAt: new Date().toISOString(),
+        startsAt: inDays(7),
+        endsAt: inDays(9),
+        createdById: organizer,
+      })
+      .run();
+    db.insert(hackathonPrizes)
+      .values({
+        id: randomUUID(),
+        hackathonId: hId,
+        rank: 1,
+        title: "Winner",
+        descriptionMd: "Best overall climate-resilience tool.",
+        xpAmount: 1000,
+        maxWinners: 1,
+      })
+      .run();
+    db.insert(hackathonPrizes)
+      .values({
+        id: randomUUID(),
+        hackathonId: hId,
+        rank: 2,
+        title: "Runner-up",
+        descriptionMd: "Second place.",
+        xpAmount: 500,
+        maxWinners: 1,
+      })
+      .run();
+    const captain = uid("contrib-eli");
+    const teamId = randomUUID();
+    db.insert(hackathonTeams)
+      .values({ id: teamId, hackathonId: hId, name: "Delta Forecasters", captainId: captain })
+      .run();
+    db.insert(hackathonTeamMembers)
+      .values({
+        id: randomUUID(),
+        teamId,
+        hackathonId: hId,
+        userId: captain,
+        role: "captain",
+      })
+      .run();
+  }
+
+  if (
+    !db
+      .select({ id: hackathons.id })
+      .from(hackathons)
+      .where(eq(hackathons.slug, "health-data-jam"))
+      .get()
+  ) {
+    db.insert(hackathons)
+      .values({
+        id: randomUUID(),
+        slug: "health-data-jam",
+        title: "Health Data Jam (draft)",
+        descriptionMd:
+          "An upcoming jam on essential-medicine supply reliability. Details being finalized.",
+        fieldTag: "health",
+        coverEmoji: "🩺",
+        hostMode: "public",
+        discoverable: false,
+        status: "draft",
+        maxTeamSize: 4,
+        judgingMode: "manual",
+        createdById: uid("mission-lead-health"),
+      })
+      .run();
+  }
+  console.log("  [demo] Seeded 2 hackathons (1 open w/ prizes + team, 1 draft).");
+}
+
+function seedDemoActivity(): void {
+  if (!SEED_DEMO) return;
+  const demoClass = db
+    .select({ id: classes.id })
+    .from(classes)
+    .where(eq(classes.slug, "intro-to-ml-demo"))
+    .get();
+  const kinds = ["lesson_completed", "quiz_passed", "flashcard_review"];
+  let seeded = 0;
+  for (let i = 1; i <= 6; i++) {
+    const u = db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.username, `demo-student-${i}`))
+      .get();
+    if (!u) continue;
+    // Idempotent: skip a student who already has any activity.
+    const has = db
+      .select({ id: activityEvents.id })
+      .from(activityEvents)
+      .where(eq(activityEvents.userId, u.id))
+      .get();
+    if (has) continue;
+    // Earlier students are "more active" so the leaderboard has a
+    // visible spread (student-1: 16 events … student-6: 6).
+    const events = 4 + (7 - i) * 2;
+    for (let e = 0; e < events; e++) {
+      const day = new Date(Date.now() - (e % 10) * 86_400_000)
+        .toISOString()
+        .slice(0, 10);
+      db.insert(activityEvents)
+        .values({
+          id: randomUUID(),
+          userId: u.id,
+          kind: kinds[e % kinds.length],
+          day,
+        })
+        .run();
+    }
+    db.insert(xpGrants)
+      .values({
+        id: randomUUID(),
+        userId: u.id,
+        classId: demoClass ? demoClass.id : null,
+        source: "demo-activity",
+        sourceRefId: `demo-activity-${i}`,
+        amount: 50 * (7 - i),
+      })
+      .onConflictDoNothing()
+      .run();
+    seeded++;
+  }
+  console.log(`  [demo] Seeded activity for ${seeded} demo student(s).`);
 }
 
 seed().catch(console.error);

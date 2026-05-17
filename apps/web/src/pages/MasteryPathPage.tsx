@@ -50,18 +50,26 @@ export function MasteryPathPage() {
     null,
   );
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [quizFor, setQuizFor] = useState<MasteryNode | null>(null);
   const [view, setView] = useState<"list" | "graph">("list");
   const [levelUpBanner, setLevelUpBanner] = useState<string | null>(null);
   const prevHighestRef = useRef<number>(-2); // sentinel: not initialized yet
   const user = useAuthStore((s) => s.user);
 
-  const loadPath = () => {
+  // `alive` lets the slug-change effect cancel a slow in-flight
+  // load so a previous path's response can't overwrite the current
+  // one. Manual callers (markComplete / quiz-passed refresh) use
+  // the default. A rejected request sets `error` (don't leave the
+  // page blank / mislabel a dead API as "Path not found").
+  const loadPath = (alive: () => boolean = () => true) => {
     if (!slug) return;
     setLoading(true);
+    setError(null);
     api.mastery
       .getPath(slug)
       .then((data) => {
+        if (!alive()) return;
         setPath(data.path);
         setNodes(data.nodes);
         setProgress(data.progress);
@@ -69,13 +77,23 @@ export function MasteryPathPage() {
         setLockState(data.lockState ?? {});
         setLastVisitedNodeSlug(data.lastVisitedNodeSlug ?? null);
       })
-      .finally(() => setLoading(false));
+      .catch((e) => {
+        if (alive())
+          setError(e?.message ?? "Couldn't load this path.");
+      })
+      .finally(() => {
+        if (alive()) setLoading(false);
+      });
   };
 
   useEffect(() => {
     prevHighestRef.current = -2;
     setLevelUpBanner(null);
-    loadPath();
+    let alive = true;
+    loadPath(() => alive);
+    return () => {
+      alive = false;
+    };
   }, [slug]);
 
   // Watch for a level transition each time progress changes. Compares the
@@ -144,11 +162,25 @@ export function MasteryPathPage() {
     );
   }
 
-  if (!path) {
+  if (error || !path) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">Path not found</h1>
-        <Link to="/paths" className="text-primary hover:underline">Browse mastery paths</Link>
+        <h1 className="text-2xl font-bold mb-2">Couldn't load this path</h1>
+        <p className="text-sm text-muted-foreground mb-5">
+          It may not exist, or the server may be unreachable. Check
+          that the dev server is running, then try again.
+        </p>
+        <div className="flex items-center justify-center gap-3">
+          <button
+            onClick={() => loadPath()}
+            className="px-3 py-1.5 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            Retry
+          </button>
+          <Link to="/paths" className="text-sm text-primary hover:underline">
+            Browse mastery paths
+          </Link>
+        </div>
       </div>
     );
   }
@@ -266,7 +298,11 @@ export function MasteryPathPage() {
             nodeMastery={nodeMastery}
             signedIn={!!user}
             onPick={(n) => {
-              if (n.hasLesson) navigate(`/paths/${slug}/lessons/${n.slug}`);
+              // Lab nodes (cert/protocol/equipment) carry no
+              // lessonData but LessonPage renders their Open-in-lab
+              // embed — route there instead of a (nonexistent) quiz.
+              if (n.hasLesson || (n.nodeKind && n.nodeKind !== "lesson"))
+                navigate(`/paths/${slug}/lessons/${n.slug}`);
               else setQuizFor(n);
             }}
           />
@@ -274,7 +310,12 @@ export function MasteryPathPage() {
       )}
 
       {/* Nodes by level */}
-      {view === "list" && <div className="space-y-8">
+      {view === "list" && (nodesByLevel.length === 0 ? (
+        <div className="max-w-2xl mx-auto py-12 text-center text-muted-foreground">
+          No nodes in this path yet.
+        </div>
+      ) : (
+      <div className="space-y-8">
         {nodesByLevel.map(({ level, label, nodes: levelNodes }) => (
           <div key={level}>
             <div className="flex items-center gap-2 mb-3">
@@ -373,26 +414,34 @@ export function MasteryPathPage() {
                         </div>
                       </div>
                     </div>
-                    {user && !completed && (
+                    {user && !completed && (() => {
+                      // Lab nodes have no lessonData and no quiz —
+                      // route them to the LessonPage lab embed
+                      // (Open-in-lab) instead of a dead quiz CTA.
+                      const isLab =
+                        !!node.nodeKind && node.nodeKind !== "lesson";
+                      return (
                       <div className="flex items-center gap-2 shrink-0">
-                        {node.hasLesson && (
+                        {(node.hasLesson || isLab) && (
                           <Link
                             to={`/paths/${slug}/lessons/${node.slug}`}
                             className="px-3 py-1 rounded-md text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                           >
-                            Start lesson
+                            {isLab ? "Open" : "Start lesson"}
                           </Link>
                         )}
-                        <button
-                          onClick={() => setQuizFor(node)}
-                          className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                            node.hasLesson
-                              ? "bg-secondary hover:bg-secondary/80"
-                              : "bg-primary text-primary-foreground hover:bg-primary/90"
-                          }`}
-                        >
-                          Take quiz
-                        </button>
+                        {!isLab && (
+                          <button
+                            onClick={() => setQuizFor(node)}
+                            className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                              node.hasLesson
+                                ? "bg-secondary hover:bg-secondary/80"
+                                : "bg-primary text-primary-foreground hover:bg-primary/90"
+                            }`}
+                          >
+                            Take quiz
+                          </button>
+                        )}
                         <button
                           onClick={() => handleComplete(node.id)}
                           className="px-3 py-1 rounded-md text-xs font-medium bg-secondary hover:bg-secondary/80 transition-colors"
@@ -400,14 +449,16 @@ export function MasteryPathPage() {
                           Mark complete
                         </button>
                       </div>
-                    )}
+                      );
+                    })()}
                   </div>
                 );
               })}
             </div>
           </div>
         ))}
-      </div>}
+      </div>
+      ))}
 
       {quizFor && (
         <QuizModal

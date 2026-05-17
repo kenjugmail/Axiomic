@@ -33,18 +33,44 @@ export function MentorDashboardPage() {
   const user = useAuthStore((s) => s.user);
   const [data, setData] = useState<MeRow | null>(null);
   const [error, setError] = useState("");
+  const [suggested, setSuggested] = useState<Awaited<
+    ReturnType<typeof api.mentors.candidates>
+  > | null>(null);
+  const [reqOpen, setReqOpen] = useState<string | null>(null);
+  const [scope, setScope] = useState("");
+  const [busy, setBusy] = useState(false);
 
   const load = () => {
     api.mentors
       .me()
       .then((r) => setData(r))
       .catch((e: any) => setError(e?.message ?? "Failed to load"));
+    api.mentors
+      .candidates()
+      .then((r) => setSuggested(r))
+      .catch(() => setSuggested({ personalized: false, candidates: [] }));
   };
 
   useEffect(() => {
     if (!user) return;
     load();
   }, [user]);
+
+  const sendRequest = async (username: string) => {
+    if (!scope.trim()) return;
+    setBusy(true);
+    try {
+      await api.mentors.request(username, scope.trim());
+      toast.success("Request sent");
+      setReqOpen(null);
+      setScope("");
+      load();
+    } catch (e: any) {
+      toast.error("Couldn't send", e?.message);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   if (!user) {
     return (
@@ -81,6 +107,82 @@ export function MentorDashboardPage() {
           on each side's profile.
         </p>
       </header>
+
+      {suggested && suggested.candidates.length > 0 && (
+        <section className="mb-8">
+          <h2 className="text-xs uppercase tracking-wider text-muted-foreground mb-3 inline-flex items-center gap-1.5">
+            <UserPlus className="w-3.5 h-3.5" strokeWidth={2} />
+            Suggested mentors
+          </h2>
+          <p className="text-sm text-muted-foreground mb-3 max-w-2xl">
+            Ranked by who proved strength exactly where you're working,
+            plus community reputation and a shared track.
+          </p>
+          <ul className="grid sm:grid-cols-2 gap-3">
+            {suggested.candidates.map((m) => (
+              <li
+                key={m.username}
+                className="rounded-lg border border-border bg-card p-4"
+                data-testid="mentor-candidate"
+              >
+                <div className="flex items-baseline justify-between gap-3 flex-wrap">
+                  <Link
+                    to={`/u/${m.username}/credentials`}
+                    className="font-display text-base font-semibold hover:text-primary"
+                  >
+                    {m.displayName ?? `@${m.username}`}
+                  </Link>
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    match {Math.round(m.score * 100)}%
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {m.rationale}
+                </p>
+                {reqOpen === m.username ? (
+                  <div className="mt-3 space-y-2">
+                    <textarea
+                      value={scope}
+                      onChange={(e) => setScope(e.target.value)}
+                      rows={2}
+                      placeholder="What do you want guidance on?"
+                      className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background"
+                    />
+                    <div className="flex justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setReqOpen(null)}
+                        className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => sendRequest(m.username)}
+                        disabled={busy || !scope.trim()}
+                        className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                      >
+                        {busy ? "Sending…" : "Send request"}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setReqOpen(m.username);
+                      setScope("");
+                    }}
+                    className="mt-3 text-xs px-3 py-1.5 rounded-md border border-primary/40 text-primary hover:bg-primary/10"
+                  >
+                    Request mentorship
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {error && (
         <div className="mb-6 rounded-md border border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300 px-4 py-2 text-sm">

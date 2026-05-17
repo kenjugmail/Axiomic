@@ -6,7 +6,16 @@
 
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Sparkles, X, RotateCw, Brain, ShieldCheck } from "lucide-react";
+import {
+  BookOpen,
+  Brain,
+  Layers,
+  RotateCw,
+  ShieldCheck,
+  Sparkles,
+  Target,
+  X,
+} from "lucide-react";
 import type { MisconceptionDiagnosis } from "@axiomic/types";
 import { api } from "../lib/api";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -17,6 +26,7 @@ export function WeakConceptsPage() {
   const { user } = useAuthStore();
   const [diagnoses, setDiagnoses] = useState<MisconceptionDiagnosis[] | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [proveId, setProveId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -34,7 +44,7 @@ export function WeakConceptsPage() {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user?.id]);
 
   const refresh = async () => {
     setRefreshing(true);
@@ -126,6 +136,7 @@ export function WeakConceptsPage() {
                       Evidence: {d.evidence.map((e) => e.snippet).join(" · ")}
                     </div>
                   )}
+                  <NextStepPills d={d} />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <Link
@@ -137,6 +148,16 @@ export function WeakConceptsPage() {
                   </Link>
                   <button
                     type="button"
+                    onClick={() =>
+                      setProveId(proveId === d.id ? null : d.id)
+                    }
+                    className="text-xs px-3 py-1.5 rounded-md border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10 inline-flex items-center gap-1.5"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    {proveId === d.id ? "Cancel" : "Prove it"}
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => dismiss(d.id)}
                     className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40 inline-flex items-center gap-1.5"
                   >
@@ -145,6 +166,17 @@ export function WeakConceptsPage() {
                   </button>
                 </div>
               </div>
+              {proveId === d.id && (
+                <ProveDrill
+                  id={d.id}
+                  onResolved={() => {
+                    setProveId(null);
+                    setDiagnoses((ds) =>
+                      ds ? ds.filter((x) => x.id !== d.id) : ds,
+                    );
+                  }}
+                />
+              )}
             </li>
           ))}
         </ul>
@@ -159,6 +191,138 @@ export function WeakConceptsPage() {
           Propose one →
         </Link>{" "}
         Once five learners agree, the AI tutor and detector start using it.
+      </div>
+    </div>
+  );
+}
+
+// Phase 16B — concrete remediation pills. Only renders a pill when
+// the underlying content exists, so the user never lands on a 404
+// or an empty SRS deck.
+function NextStepPills({ d }: { d: MisconceptionDiagnosis }) {
+  const ns = d.nextSteps;
+  if (!ns) return null;
+  const conceptName = d.conceptTitle ?? d.conceptSlug;
+  const pills: Array<{
+    to: string;
+    label: string;
+    icon: typeof BookOpen;
+    ariaLabel: string;
+  }> = [];
+  if (ns.wikiSlug) {
+    pills.push({
+      to: `/wiki/${ns.wikiSlug}`,
+      label: "Re-read wiki",
+      icon: BookOpen,
+      ariaLabel: `Re-read the wiki page for ${conceptName}`,
+    });
+  }
+  if (ns.quizPath) {
+    pills.push({
+      to: `/paths/${ns.quizPath.pathSlug}/${ns.quizPath.nodeSlug}?retake=1`,
+      label: "Retake quiz",
+      icon: Target,
+      ariaLabel: `Retake the quiz for ${conceptName}`,
+    });
+  }
+  if (ns.hasFlashcards) {
+    pills.push({
+      to: `/flashcards?page=${d.conceptSlug}`,
+      label: "Drill flashcards",
+      icon: Layers,
+      ariaLabel: `Drill flashcards for ${conceptName}`,
+    });
+  }
+  if (pills.length === 0) return null;
+  return (
+    <div
+      data-testid="next-step-pills"
+      className="mt-2.5 flex flex-wrap gap-1.5"
+    >
+      {pills.map((p) => {
+        const Icon = p.icon;
+        return (
+          <Link
+            key={p.label}
+            to={p.to}
+            aria-label={p.ariaLabel}
+            className="text-[11px] px-2.5 py-1 rounded-full border border-border text-muted-foreground hover:bg-accent/40 hover:text-foreground inline-flex items-center gap-1"
+          >
+            <Icon className="w-3 h-3" aria-hidden="true" />
+            {p.label}
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
+// Phase 31A — inline "prove it" drill. A passing AI grade flips
+// the diagnosis to resolved server-side; the card then clears.
+function ProveDrill({
+  id,
+  onResolved,
+}: {
+  id: string;
+  onResolved: () => void;
+}) {
+  const [answer, setAnswer] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [score, setScore] = useState<number | null>(null);
+
+  const submit = async () => {
+    if (!answer.trim()) return;
+    setBusy(true);
+    setFeedback(null);
+    try {
+      const r = await api.me.proveWeakConcept(id, answer.trim());
+      if (r.resolved) {
+        onResolved();
+        return;
+      }
+      setScore(r.score);
+      setFeedback(
+        r.feedbackMd ||
+          "Not quite — revise and try again, addressing the misconception directly.",
+      );
+    } catch (e: any) {
+      setFeedback(e?.message ?? "Couldn't grade — try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="mt-3 rounded-md border border-border bg-background p-3 space-y-2">
+      <p className="text-xs text-muted-foreground">
+        Explain the concept correctly — directly addressing the
+        misconception. A passing answer clears this weakness.
+      </p>
+      <textarea
+        value={answer}
+        onChange={(e) => setAnswer(e.target.value)}
+        rows={4}
+        placeholder="Your explanation…"
+        className="w-full text-sm px-3 py-2 rounded-md border border-border bg-background"
+      />
+      {feedback && (
+        <div className="text-xs rounded-md border border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-200 p-2 whitespace-pre-wrap">
+          {score != null && (
+            <span className="font-semibold">Scored {score}/100. </span>
+          )}
+          {feedback}
+        </div>
+      )}
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={submit}
+          disabled={busy || !answer.trim()}
+          className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+        >
+          {busy ? "Grading…" : "Submit proof"}
+        </button>
       </div>
     </div>
   );

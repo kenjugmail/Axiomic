@@ -214,6 +214,16 @@ commentsRouter.post("/:id/vote", requireAuth, zValidator("json", voteSchema), as
   const commentId = c.req.param("id");
   const { value } = c.req.valid("json");
   const user = c.get("user")!;
+  // Phase 26B — vote clicks are cheap but unauthenticated spam
+  // still trashes the leaderboard / hot-comment ranker. 60/min is
+  // generous for a browse-and-vote session; matches the
+  // misconception-vote pattern.
+  if (
+    env.NODE_ENV !== "test" &&
+    !checkRateLimit(`comment-vote:${user.id}`, 60, 60_000)
+  ) {
+    return c.json({ error: "Rate limited. Slow down." }, 429);
+  }
   const db = getDb();
 
   const existing = db
