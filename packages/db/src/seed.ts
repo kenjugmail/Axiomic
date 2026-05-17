@@ -1428,24 +1428,24 @@ interface MasteryNodeSpec {
 }
 
 function loadJsonForNode(folder: string, nodeSlug: string): string | null {
-  // Walk to repo root if cwd isn't packages/db.
-  const candidates = [
-    path.join(process.cwd(), `seed-content/${folder}`, `${nodeSlug}.json`),
-    path.join(process.cwd(), `../../seed-content/${folder}`, `${nodeSlug}.json`),
-    path.join(process.cwd(), `../../../seed-content/${folder}`, `${nodeSlug}.json`),
-  ];
-  for (const c of candidates) {
-    if (fs.existsSync(c)) {
-      try {
-        const parsed = JSON.parse(fs.readFileSync(c, "utf-8"));
-        return JSON.stringify(parsed);
-      } catch (e) {
-        console.error(`  Failed to parse ${folder} file ${c}:`, e);
-        return null;
-      }
-    }
+  // Resolve from this module's location (cwd-independent), matching
+  // every other seeder in this file — e.g. the wiki-pages loader's
+  // `path.join(import.meta.dir, "../../../seed-content/pages")`. The
+  // prior process.cwd() walk silently no-op'd under an unexpected cwd.
+  const file = path.join(
+    import.meta.dir,
+    "../../../seed-content",
+    folder,
+    `${nodeSlug}.json`,
+  );
+  if (!fs.existsSync(file)) return null;
+  try {
+    const parsed = JSON.parse(fs.readFileSync(file, "utf-8"));
+    return JSON.stringify(parsed);
+  } catch (e) {
+    console.error(`  Failed to parse ${folder} file ${file}:`, e);
+    return null;
   }
-  return null;
 }
 
 // Look up hand-authored quiz JSON for a node by slug, if present.

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { confirm } from "../stores/confirm";
+import { toast } from "../stores/toast";
 import { useParams, Link } from "react-router-dom";
 import { Layers, MessageSquare, Pencil } from "lucide-react";
 import {
@@ -268,7 +269,7 @@ export function WikiPage() {
                               setAllContent(data.allContent || {});
                               setVersions(data.versions || []);
                             } catch (err: any) {
-                              alert(err?.message ?? "Restore failed");
+                              toast.error(err?.message ?? "Restore failed");
                             }
                           }}
                           className="text-xs px-2 py-0.5 rounded border border-border hover:bg-accent/40"

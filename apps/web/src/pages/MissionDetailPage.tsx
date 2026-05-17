@@ -8,7 +8,7 @@
 // join is one click (open). Mirrors the ReproductionReviewPage room
 // embed + the bounty/cohort detail shape.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   Globe,
@@ -38,20 +38,30 @@ export function MissionDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [showRoom, setShowRoom] = useState(false);
 
-  const reload = () => {
+  // reload() is handed to child forms as `onDone`, so a slow refresh
+  // can resolve after this page unmounts or the slug changes. A ref —
+  // not a closure flag — is the alive predicate because those callers
+  // invoke onDone() with no args. Mirrors the MasteryPathPage /
+  // LessonPage cancelled-guard convention.
+  const aliveRef = useRef(true);
+
+  const reload = (alive: () => boolean = () => aliveRef.current) => {
     api.missions
       .get(slug)
       .then((d) => {
+        if (!alive()) return;
         setData(d);
         setImpact(d.impact);
       })
       .catch((e) => {
+        if (!alive()) return;
         setError(e instanceof ApiError ? e.message : "Failed to load");
       });
   };
 
   useEffect(() => {
     let cancelled = false;
+    aliveRef.current = true;
     api.missions
       .get(slug)
       .then((d) => {
@@ -76,6 +86,7 @@ export function MissionDetailPage() {
       });
     return () => {
       cancelled = true;
+      aliveRef.current = false;
     };
   }, [slug]);
 

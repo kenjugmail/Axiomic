@@ -280,4 +280,172 @@ describe("Goodness missions (Phase 39)", () => {
       ),
     ).toBe(false);
   });
+
+  test("org-backing + expert attest: non-admin 403, dup 409, non-backer-org attest 403, backing-org verifier attest surfaces in public impact", async () => {
+    const { getDb, missionContributions } = await import("@axiomic/db");
+    const { eq } = await import("drizzle-orm");
+
+    const creator = await signup("bcr");
+    const contributor = await signup("bct");
+    const cr1 = await signup("bc1");
+    const cr2 = await signup("bc2");
+    const orgAdmin = await signup("oad");
+    const orgVerifier = await signup("ovf");
+    const org2Admin = await signup("o2a");
+    const org2Verifier = await signup("o2v");
+
+    // Mission.
+    const created = await req("/missions", {
+      method: "POST",
+      headers: jsonHeaders(creator.cookie),
+      body: JSON.stringify({
+        title: `Backed mission ${testRun}`,
+        problemMd: "A problem an org will back.",
+        theme: "health",
+        topicTags: ["health"],
+      }),
+    });
+    expect(created.status).toBe(201);
+    const { slug } = (await created.json()) as { slug: string };
+
+    // Backing org (its creator = admin) + a verifier member.
+    const orgSlug = `g-org1-${testRun}`.slice(0, 40);
+    const mkOrg = await req("/orgs", {
+      method: "POST",
+      headers: jsonHeaders(orgAdmin.cookie),
+      body: JSON.stringify({ slug: orgSlug, name: "Backing Lab" }),
+    });
+    expect(mkOrg.status).toBe(201);
+    const addVerifier = await req(`/orgs/${orgSlug}/members`, {
+      method: "POST",
+      headers: jsonHeaders(orgAdmin.cookie),
+      body: JSON.stringify({
+        username: orgVerifier.username,
+        role: "verifier",
+      }),
+    });
+    expect(addVerifier.status).toBe(201);
+
+    // A non-admin of the org cannot back the mission (gateOrg admin gate).
+    const nonAdminBack = await req(`/missions/${slug}/backers`, {
+      method: "POST",
+      headers: jsonHeaders(contributor.cookie),
+      body: JSON.stringify({ orgSlug }),
+    });
+    expect(nonAdminBack.status).toBe(403);
+
+    // The org admin backs the mission.
+    const back = await req(`/missions/${slug}/backers`, {
+      method: "POST",
+      headers: jsonHeaders(orgAdmin.cookie),
+      body: JSON.stringify({ orgSlug }),
+    });
+    expect(back.status).toBe(201);
+
+    // Backing the same org twice ⇒ 409.
+    const dupBack = await req(`/missions/${slug}/backers`, {
+      method: "POST",
+      headers: jsonHeaders(orgAdmin.cookie),
+      body: JSON.stringify({ orgSlug }),
+    });
+    expect(dupBack.status).toBe(409);
+
+    // Contributor joins + posts; two trusted reviewers confirm ⇒ minted.
+    expect(
+      (
+        await req(`/missions/${slug}/join`, {
+          method: "POST",
+          headers: jsonHeaders(contributor.cookie),
+        })
+      ).status,
+    ).toBe(201);
+    const contrib = await req(`/missions/${slug}/contributions`, {
+      method: "POST",
+      headers: jsonHeaders(contributor.cookie),
+      body: JSON.stringify({
+        kind: "analysis",
+        bodyMd: "An analysis worth attesting.",
+        artifacts: [],
+      }),
+    });
+    expect(contrib.status).toBe(201);
+    const { id: contributionId } = (await contrib.json()) as { id: string };
+    for (const r of [cr1, cr2]) {
+      const rv = await req(
+        `/missions/${slug}/contributions/${contributionId}/review`,
+        {
+          method: "POST",
+          headers: jsonHeaders(r.cookie),
+          body: JSON.stringify({ verdict: "confirmed" }),
+        },
+      );
+      expect(rv.status).toBe(200);
+    }
+    const minted = getDb()
+      .select()
+      .from(missionContributions)
+      .where(eq(missionContributions.id, contributionId))
+      .get();
+    expect(minted?.credentialMintedAt).toBeTruthy();
+
+    // A verifier of a DIFFERENT org (not a backer of this mission)
+    // cannot attest ⇒ 403, even though the contribution is
+    // peer-verified and they hold the verifier role in their own org.
+    // This locks the dual gate (verifier role AND org-backs-mission).
+    const org2Slug = `g-org2-${testRun}`.slice(0, 40);
+    expect(
+      (
+        await req("/orgs", {
+          method: "POST",
+          headers: jsonHeaders(org2Admin.cookie),
+          body: JSON.stringify({ slug: org2Slug, name: "Other Lab" }),
+        })
+      ).status,
+    ).toBe(201);
+    expect(
+      (
+        await req(`/orgs/${org2Slug}/members`, {
+          method: "POST",
+          headers: jsonHeaders(org2Admin.cookie),
+          body: JSON.stringify({
+            username: org2Verifier.username,
+            role: "verifier",
+          }),
+        })
+      ).status,
+    ).toBe(201);
+    const nonBackerAttest = await req(
+      `/missions/${slug}/contributions/${contributionId}/attest`,
+      {
+        method: "POST",
+        headers: jsonHeaders(org2Verifier.cookie),
+        body: JSON.stringify({ orgSlug: org2Slug, statement: "" }),
+      },
+    );
+    expect(nonBackerAttest.status).toBe(403);
+
+    // The backing org's verifier attests ⇒ 201, and it surfaces in the
+    // public impact graph scoped to this contribution.
+    const attest = await req(
+      `/missions/${slug}/contributions/${contributionId}/attest`,
+      {
+        method: "POST",
+        headers: jsonHeaders(orgVerifier.cookie),
+        body: JSON.stringify({
+          orgSlug,
+          statement: "Reviewed and endorsed by our lab.",
+        }),
+      },
+    );
+    expect(attest.status).toBe(201);
+
+    const impact = (await (
+      await req(`/public/missions/${slug}`)
+    ).json()) as {
+      orgAttestations: Array<{ contributionId: string; orgSlug: string }>;
+    };
+    expect(
+      impact.orgAttestations.some((a) => a.contributionId === contributionId),
+    ).toBe(true);
+  });
 });

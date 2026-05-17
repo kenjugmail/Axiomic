@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { confirm } from "../../stores/confirm";
+import { toast } from "../../stores/toast";
 import {
   Code2,
   FlaskConical,
@@ -134,7 +135,7 @@ export function ArtifactsSection({
       await apiSurface.deleteArtifact(articleSlug, id);
       sync(artifacts.filter((a) => a.id !== id));
     } catch (e: any) {
-      alert(e?.message ?? "Delete failed");
+      toast.error(e?.message ?? "Delete failed");
     } finally {
       setBusy(false);
     }

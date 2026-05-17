@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { api } from "../lib/api";
 import type { NewsEditProposal } from "@axiomic/types";
 import { useAuthStore } from "../stores/auth";
+import { toast } from "../stores/toast";
 import { relativeTime as timeAgo } from "../lib/dates";
 
 // Compact word-level diff. Splits on whitespace and renders inserted
@@ -130,7 +131,7 @@ export function NewsProposalsPage() {
       }
       refresh();
     } catch (e: any) {
-      alert(e?.message ?? "Review failed");
+      toast.error(e?.message ?? "Review failed");
     } finally {
       setPendingId(null);
     }

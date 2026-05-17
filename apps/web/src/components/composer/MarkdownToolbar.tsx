@@ -17,6 +17,7 @@ import {
 import { VizPicker, type VizCatalogEntry } from "../lesson/VizPicker";
 import { uploadFile, type UploadResult } from "../../lib/uploads";
 import { api } from "../../lib/api";
+import { toast } from "../../stores/toast";
 
 interface Props {
   // The textarea / contenteditable to insert into. We keep this loose
@@ -165,7 +166,7 @@ export function MarkdownToolbar({
         t.setSelectionRange(cursor, cursor);
       });
     } catch (e: any) {
-      alert(e?.message ?? "Upload failed");
+      toast.error(e?.message ?? "Upload failed");
     } finally {
       setUploading(false);
     }
