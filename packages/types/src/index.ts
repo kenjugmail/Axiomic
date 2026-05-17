@@ -944,6 +944,70 @@ export interface CodeCompletionQuestion {
   explanation?: string;
 }
 
+export interface RubricCriterion {
+  id: string;
+  description: string;
+}
+
+// Phase 1 — AI-graded open response. The component calls
+// POST /ai/grade-free-response and writes a result envelope
+// {graded:true,correct,score,maxScore,feedbackMd} into the answer
+// string, so the synchronous grader just reads it (same pattern
+// as the `code` kind's {passed,total}). The server grader has a
+// deterministic heuristic fallback so the offline gate is
+// model-free.
+export interface FreeResponseQuestion {
+  id: string;
+  kind: "free_response";
+  question: string;
+  rubricCriteria: RubricCriterion[];
+  // Fraction of maxScore (0..1) to count as correct. Default 0.6.
+  passRatio?: number;
+  sampleAnswer?: string;
+  explanation?: string;
+}
+
+// Diagnose-the-failure scenario. Same AI-graded path as
+// free_response with a scenario preamble rendered above the box.
+export interface ScenarioQuestion {
+  id: string;
+  kind: "scenario";
+  question: string;
+  scenario: string; // markdown — the situation to diagnose
+  rubricCriteria: RubricCriterion[];
+  passRatio?: number;
+  sampleAnswer?: string;
+  explanation?: string;
+}
+
+// Guided derivation — authored step backbone + AI assist. The
+// learner produces each step; wrong → escalating hints → reveal.
+// math/choice steps grade locally; "text" steps grade via the
+// free-response AI endpoint. The component emits
+// {completed:true,correct} once every step is done-or-revealed.
+export type GuidedDerivationAccepts =
+  | { mode: "math"; acceptedAnswers: string[] }
+  | { mode: "choice"; options: string[]; correctIndex: number }
+  | { mode: "text"; rubricCriteria: RubricCriterion[] };
+
+export interface GuidedDerivationStep {
+  prompt: string;
+  motivation: string; // why this step is forced
+  accepts: GuidedDerivationAccepts;
+  hints: string[]; // progressive t1..tN
+  reveal: string; // worked step + why
+}
+
+export interface GuidedDerivationQuestion {
+  id: string;
+  kind: "guided_derivation";
+  question: string;
+  goal: string;
+  steps: GuidedDerivationStep[];
+  finalResult?: string;
+  explanation?: string;
+}
+
 export type QuizQuestion =
   | MultipleChoiceQuestion
   | SliderQuestion
@@ -952,7 +1016,18 @@ export type QuizQuestion =
   | PuzzleDragBuildQuestion
   | MathExpressionQuestion
   | SortableQuestion
-  | CodeCompletionQuestion;
+  | CodeCompletionQuestion
+  | FreeResponseQuestion
+  | ScenarioQuestion
+  | GuidedDerivationQuestion;
+
+export interface AiFreeResponseGrade {
+  score: number;
+  maxScore: number;
+  correct: boolean;
+  feedbackMd: string;
+  gradedBy: string;
+}
 
 // Coerce a raw question (which may lack `kind`) into a typed one. Used
 // by both server-side scoring and frontend rendering.

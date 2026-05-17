@@ -1233,6 +1233,9 @@ function QuestionSlideEditor({
           <option value="math_expression">math_expression</option>
           <option value="sortable">sortable</option>
           <option value="code_completion">code_completion</option>
+          <option value="free_response">free_response</option>
+          <option value="scenario">scenario</option>
+          <option value="guided_derivation">guided_derivation</option>
         </select>
       </div>
       <div>

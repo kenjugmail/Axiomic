@@ -103,6 +103,28 @@ function scoreLocally(question: QuizQuestion, answer: string | undefined): boole
         return false;
       }
     }
+    case "free_response":
+    case "scenario": {
+      if (answer === undefined) return false;
+      try {
+        const r = JSON.parse(answer) as { graded?: boolean; correct?: boolean };
+        return r.graded === true && r.correct === true;
+      } catch {
+        return false;
+      }
+    }
+    case "guided_derivation": {
+      if (answer === undefined) return false;
+      try {
+        const r = JSON.parse(answer) as {
+          completed?: boolean;
+          correct?: boolean;
+        };
+        return r.completed === true && r.correct === true;
+      } catch {
+        return false;
+      }
+    }
   }
 }
 

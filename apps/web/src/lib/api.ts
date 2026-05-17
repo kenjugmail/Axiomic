@@ -7,6 +7,7 @@ export type OnboardingGoal =
   | "ship_misconception";
 
 import type {
+  AiFreeResponseGrade,
   AuthResponse,
   Comment,
   CommentResponse,
@@ -863,6 +864,17 @@ export const api = {
       const qs = pageSlug ? `?pageSlug=${encodeURIComponent(pageSlug)}` : "";
       return request<CoachContext>(`/ai/coach/context${qs}`);
     },
+    gradeFreeResponse: (data: {
+      question: string;
+      rubric: string;
+      response: string;
+      maxScore: number;
+      passRatio: number;
+    }) =>
+      request<AiFreeResponseGrade>("/ai/grade-free-response", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
     coachSuggest: (pageSlug?: string) =>
       request<CoachSuggestionsResponse>("/ai/coach/suggest", {
         method: "POST",
