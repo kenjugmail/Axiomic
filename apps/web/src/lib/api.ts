@@ -298,6 +298,36 @@ export class ApiError extends Error {
   }
 }
 
+// Phase 39 — public mission impact graph shape (mirrors the
+// server's buildMissionImpact return).
+export interface MissionImpact {
+  mission: {
+    slug: string;
+    title: string;
+    theme: string;
+    status: string;
+  };
+  verifiedContributions: Array<{
+    username: string;
+    kind: string;
+    contributionId: string;
+    confirmedWeight: number | null;
+    mintedAt: string;
+  }>;
+  orgAttestations: Array<{
+    orgSlug: string;
+    contributionId: string;
+    statement: string;
+    createdAt: string;
+  }>;
+  subproblems: {
+    total: number;
+    solved: number;
+    inProgress: number;
+    open: number;
+  };
+}
+
 export const api = {
   auth: {
     signup: (data: {
@@ -1099,7 +1129,8 @@ export const api = {
             | "external_paper"
             | "bounty"
             | "needs_reproduction"
-            | "grant";
+            | "grant"
+            | "mission_subproblem";
           id: string;
           title: string;
           url: string;
@@ -2214,6 +2245,161 @@ export const api = {
         body: JSON.stringify({ verdict, notesMd }),
       }),
   },
+  // Phase 39 — "Goodness" missions: verified collaborative
+  // problem-solving. Inline response types, house style.
+  missions: {
+    list: () =>
+      request<{
+        missions: Array<{
+          slug: string;
+          title: string;
+          summaryMd: string;
+          theme: string;
+          topicTags: string[];
+          status: string;
+          createdAt: string;
+        }>;
+      }>("/missions"),
+    discover: () =>
+      request<{
+        missions: Array<{
+          slug: string;
+          title: string;
+          summaryMd: string;
+          theme: string;
+          topicTags: string[];
+          status: string;
+          memberCount: number;
+          createdAt: string;
+        }>;
+      }>("/missions/discover"),
+    create: (input: {
+      title: string;
+      problemMd?: string;
+      summaryMd?: string;
+      theme?: string;
+      topicTags?: string[];
+    }) =>
+      request<{ ok: true; id: string; slug: string }>("/missions", {
+        method: "POST",
+        body: JSON.stringify(input),
+      }),
+    get: (slug: string) =>
+      request<{
+        mission: {
+          id: string;
+          slug: string;
+          title: string;
+          problemMd: string;
+          summaryMd: string;
+          theme: string;
+          topicTags: string[];
+          status: string;
+          createdAt: string;
+        };
+        membership:
+          | { role: "member" | "organizer"; isCreator: boolean }
+          | null;
+        subproblems: Array<{
+          id: string;
+          slug: string;
+          title: string;
+          descriptionMd: string;
+          status: string;
+          order: number;
+          createdAt: string;
+        }>;
+        members: Array<{
+          username: string;
+          displayName: string | null;
+          role: string;
+          joinedAt: string;
+        }>;
+        backers: Array<{
+          slug: string;
+          name: string;
+          createdAt: string;
+        }>;
+        contributions: Array<{
+          id: string;
+          subproblemId: string | null;
+          username: string;
+          kind: string;
+          bodyMd: string;
+          artifacts: Array<{ kind: string; url: string; label: string }>;
+          credentialMintedAt: string | null;
+          credentialMintWeight: number | null;
+          confirmedWeight: number;
+          refutedWeight: number;
+          confirmWeightThreshold: number;
+          revoked: boolean;
+          revocationReason: string | null;
+          createdAt: string;
+        }>;
+        impact: MissionImpact | null;
+      }>(`/missions/${encodeURIComponent(slug)}`),
+    join: (slug: string) =>
+      request<{ ok: true; alreadyMember?: boolean }>(
+        `/missions/${encodeURIComponent(slug)}/join`,
+        { method: "POST" },
+      ),
+    addSubproblem: (
+      slug: string,
+      input: { title: string; descriptionMd?: string },
+    ) =>
+      request<{ ok: true; id: string; slug: string }>(
+        `/missions/${encodeURIComponent(slug)}/subproblems`,
+        { method: "POST", body: JSON.stringify(input) },
+      ),
+    addContribution: (
+      slug: string,
+      input: {
+        subproblemId?: string;
+        kind?: "analysis" | "data" | "solution" | "synthesis";
+        bodyMd: string;
+        artifacts?: Array<{ kind: string; url: string; label?: string }>;
+      },
+    ) =>
+      request<{ ok: true; id: string }>(
+        `/missions/${encodeURIComponent(slug)}/contributions`,
+        { method: "POST", body: JSON.stringify(input) },
+      ),
+    review: (
+      slug: string,
+      contributionId: string,
+      verdict: "confirmed" | "refuted" | "inconclusive",
+      notesMd?: string,
+    ) =>
+      request<OkResponse>(
+        `/missions/${encodeURIComponent(slug)}/contributions/${contributionId}/review`,
+        {
+          method: "POST",
+          body: JSON.stringify({ verdict, notesMd }),
+        },
+      ),
+    addBacker: (slug: string, orgSlug: string) =>
+      request<{ ok: true }>(
+        `/missions/${encodeURIComponent(slug)}/backers`,
+        { method: "POST", body: JSON.stringify({ orgSlug }) },
+      ),
+    attest: (
+      slug: string,
+      contributionId: string,
+      orgSlug: string,
+      statement?: string,
+    ) =>
+      request<{ ok: true; id: string }>(
+        `/missions/${encodeURIComponent(slug)}/contributions/${contributionId}/attest`,
+        {
+          method: "POST",
+          body: JSON.stringify({ orgSlug, statement }),
+        },
+      ),
+    publicImpact: (slug: string) =>
+      request<MissionImpact>(
+        `/public/missions/${encodeURIComponent(slug)}`,
+      ),
+  },
   // Phase 29B — collaborative review rooms.
   reviewRooms: {
     messages: (
@@ -2221,7 +2407,8 @@ export const api = {
         | "reproduction"
         | "capstone_submission"
         | "cohort_study"
-        | "bounty_collaboration",
+        | "bounty_collaboration"
+        | "mission_working_group",
       roomId: string,
     ) =>
       request<{
@@ -2239,7 +2426,8 @@ export const api = {
         | "reproduction"
         | "capstone_submission"
         | "cohort_study"
-        | "bounty_collaboration",
+        | "bounty_collaboration"
+        | "mission_working_group",
       roomId: string,
       bodyMd: string,
       parentId?: string,

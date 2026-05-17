@@ -121,7 +121,8 @@ export type RoomKind =
   | "reproduction"
   | "capstone_submission"
   | "cohort_study"
-  | "bounty_collaboration";
+  | "bounty_collaboration"
+  | "mission_working_group";
 
 export interface RoomChannel {
   kind: RoomKind;

@@ -108,20 +108,29 @@ export function createOrg(
   return { ok: true, id };
 }
 
-// Verifier/admin attests a member's artifact. Signs on behalf of
-// the named org + appends a transparency leaf.
-export function attestForMember(
+export type AttestKind =
+  | "reproduction"
+  | "bounty"
+  | "skill"
+  // Phase 39 — an org backing a mission attests an external
+  // contributor's verified contribution. Unlike the others, the
+  // contributor need NOT be an org member, so this kind is signed
+  // via attestContribution() (no membership precondition).
+  | "mission_contribution";
+
+// Shared internals: sign on behalf of the named org, persist the
+// attestation row, append a transparency leaf. Both attestForMember
+// (membership-gated) and attestContribution (external-subject) call
+// this so the signed bytes + log shape stay identical.
+function issueOrgAttestation(
   org: OrgRow,
   attestedById: string,
   subjectUserId: string,
-  attestKind: "reproduction" | "bounty" | "skill",
+  attestKind: AttestKind,
   attestRef: string,
   statement: string,
-): { ok: true; id: string; signed: SignedCredential } | { ok: false; error: string } {
+): { id: string; signed: SignedCredential } {
   const db = getDb();
-  if (memberRole(org.id, subjectUserId) === null) {
-    return { ok: false, error: "Subject is not a member of this org" };
-  }
   const issuedAt = new Date().toISOString();
   const id = randomUUID();
   const signed = signCredential("org_attestation", {
@@ -155,7 +164,57 @@ export function attestForMember(
     attestRef,
     issuedAt,
   });
-  return { ok: true, id, signed };
+  return { id, signed };
+}
+
+// Verifier/admin attests a member's artifact. Signs on behalf of
+// the named org + appends a transparency leaf. REQUIRES the subject
+// to be a member of the org (the org is vouching for its own
+// person).
+export function attestForMember(
+  org: OrgRow,
+  attestedById: string,
+  subjectUserId: string,
+  attestKind: AttestKind,
+  attestRef: string,
+  statement: string,
+): { ok: true; id: string; signed: SignedCredential } | { ok: false; error: string } {
+  if (memberRole(org.id, subjectUserId) === null) {
+    return { ok: false, error: "Subject is not a member of this org" };
+  }
+  const r = issueOrgAttestation(
+    org,
+    attestedById,
+    subjectUserId,
+    attestKind,
+    attestRef,
+    statement,
+  );
+  return { ok: true, id: r.id, signed: r.signed };
+}
+
+// Phase 39 — a backing org's verifier/admin attests an EXTERNAL
+// mission contributor's verified contribution. Same signed bytes +
+// transparency leaf as attestForMember, but WITHOUT the membership
+// precondition (mission contributors are not org members). The
+// caller (the missions route) enforces that the org actually backs
+// the mission and the actor holds verifier/admin via gateOrg.
+export function attestContribution(
+  org: OrgRow,
+  attestedById: string,
+  subjectUserId: string,
+  attestRef: string,
+  statement: string,
+): { ok: true; id: string; signed: SignedCredential } {
+  const r = issueOrgAttestation(
+    org,
+    attestedById,
+    subjectUserId,
+    "mission_contribution",
+    attestRef,
+    statement,
+  );
+  return { ok: true, id: r.id, signed: r.signed };
 }
 
 export interface OrgAttestationView {

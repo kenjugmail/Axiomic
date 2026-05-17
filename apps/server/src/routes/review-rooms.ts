@@ -21,6 +21,8 @@ import {
   cohortStudySessions,
   cohorts,
   getDb,
+  missionMembers,
+  missions,
   reproductions,
   researchBounties,
   reviewRoomMessages,
@@ -40,6 +42,7 @@ const ROOM_KINDS = [
   "capstone_submission",
   "cohort_study",
   "bounty_collaboration",
+  "mission_working_group",
 ] as const;
 
 const postSchema = z.object({
@@ -126,26 +129,49 @@ function canAccess(
       .get();
     return !!member;
   }
-  // bounty_collaboration — roomId is a researchBounties.id; any
-  // non-rejected claimant or the poster may co-work.
-  const bounty = db
-    .select({ posterId: researchBounties.posterId })
-    .from(researchBounties)
-    .where(eq(researchBounties.id, roomId))
+  if (kind === "bounty_collaboration") {
+    // roomId is a researchBounties.id; any non-rejected claimant or
+    // the poster may co-work.
+    const bounty = db
+      .select({ posterId: researchBounties.posterId })
+      .from(researchBounties)
+      .where(eq(researchBounties.id, roomId))
+      .get();
+    if (!bounty) return false;
+    if (bounty.posterId === userId) return true;
+    const claim = db
+      .select({ status: bountyClaims.status })
+      .from(bountyClaims)
+      .where(
+        and(
+          eq(bountyClaims.bountyId, roomId),
+          eq(bountyClaims.userId, userId),
+        ),
+      )
+      .get();
+    return !!claim && claim.status !== "rejected";
+  }
+  // mission_working_group — roomId is a missions.id; any member
+  // (missionMembers row) OR the creator may enter. Missions are
+  // open-to-join but the room is members-only.
+  const mission = db
+    .select({ creatorId: missions.creatorId })
+    .from(missions)
+    .where(eq(missions.id, roomId))
     .get();
-  if (!bounty) return false;
-  if (bounty.posterId === userId) return true;
-  const claim = db
-    .select({ status: bountyClaims.status })
-    .from(bountyClaims)
+  if (!mission) return false;
+  if (mission.creatorId === userId) return true;
+  const member = db
+    .select({ id: missionMembers.id })
+    .from(missionMembers)
     .where(
       and(
-        eq(bountyClaims.bountyId, roomId),
-        eq(bountyClaims.userId, userId),
+        eq(missionMembers.missionId, roomId),
+        eq(missionMembers.userId, userId),
       ),
     )
     .get();
-  return !!claim && claim.status !== "rejected";
+  return !!member;
 }
 
 // GET /review-rooms/:kind/:roomId/messages — full thread.

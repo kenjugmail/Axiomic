@@ -13,6 +13,9 @@ export type NavItem = { to: string; label: string };
 export const EXTRA_NAV_PILLARS: NavItem[] = [
   { to: "/forum", label: "Forum" },
   { to: "/news", label: "News" },
+  // Phase 39 — "Goodness" missions: verified collaborative
+  // problem-solving on real-world problems.
+  { to: "/missions", label: "Goodness" },
 ];
 
 // Routes that should highlight the "Pet" dropdown trigger as the

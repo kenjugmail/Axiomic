@@ -53,6 +53,10 @@ export const XP_AMOUNTS = {
   // when the poster set rewardXp=0 (badge-only bounty). Larger
   // than a hackathon token grant — bounties are real work.
   "bounty-completed": 150,
+  // Phase 39 — a peer/expert-verified mission contribution. On par
+  // with a bounty: real, externally-checkable problem-solving work
+  // that minted a signed credential.
+  "mission-contribution": 150,
 } as const;
 
 // Sources with default amounts in XP_AMOUNTS.

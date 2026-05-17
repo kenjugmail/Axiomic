@@ -76,7 +76,11 @@ export type NotificationKind =
   | "commitment_lapsed"
   | "commitment_witnessed"
   // Phase 34B — an org attested one of your artifacts. Always-on.
-  | "org_attested";
+  | "org_attested"
+  // Phase 39 — a mission contribution was peer/expert-verified
+  // (signed credential minted). Always-on; direct + rare, mirrors
+  // reproduction_verified.
+  | "mission_contribution_verified";
 
 export type NotificationSubject =
   | "topic"
@@ -252,6 +256,7 @@ function kindGate(
     case "commitment_lapsed":
     case "commitment_witnessed":
     case "org_attested":
+    case "mission_contribution_verified":
       // News flow + follow events + admin pipeline + funding
       // alerts + Sprint 80 lab operational signals + S88
       // classroom/pet events + S90 pet evolution + Phase 25A

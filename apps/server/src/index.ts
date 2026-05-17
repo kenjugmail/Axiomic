@@ -47,6 +47,7 @@ import { classesRouter } from "./routes/classes";
 import { hackathonsRouter } from "./routes/hackathons";
 import { bountiesRouter } from "./routes/bounties";
 import { reproductionsRouter } from "./routes/reproductions";
+import { missionsRouter } from "./routes/missions";
 import { reviewRoomsRouter } from "./routes/review-rooms";
 import { publicApiRouter } from "./routes/publicApi";
 import { recruiterRouter } from "./routes/recruiter";
@@ -290,6 +291,15 @@ app.post("/keys/verify", async (c) => {
   } else if (kind === "composite_score") {
     ref = typeof manifest.userId === "string" ? manifest.userId : null;
     earnedAt = typeof manifest.issuedAt === "string" ? manifest.issuedAt : null;
+  } else if (kind === "mission_contribution") {
+    // Phase 39 — symmetric with the reproduction case: the
+    // signature stays valid; we additionally surface whether the
+    // issuer has since refute-revoked the underlying contribution.
+    ref =
+      typeof manifest.contributionId === "string"
+        ? manifest.contributionId
+        : null;
+    earnedAt = typeof manifest.issuedAt === "string" ? manifest.issuedAt : null;
   }
   const rev = kind && ref ? getRevocation(kind, ref) : null;
   return c.json({
@@ -373,6 +383,7 @@ app.route("/classes", classesRouter);
 app.route("/hackathons", hackathonsRouter);
 app.route("/bounties", bountiesRouter);
 app.route("/reproductions", reproductionsRouter);
+app.route("/missions", missionsRouter);
 app.route("/review-rooms", reviewRoomsRouter);
 app.route("/recruiter", recruiterRouter);
 app.route("/orgs", orgsRouter);
@@ -608,7 +619,8 @@ export default {
           (msg.kind === "reproduction" ||
             msg.kind === "capstone_submission" ||
             msg.kind === "cohort_study" ||
-            msg.kind === "bounty_collaboration") &&
+            msg.kind === "bounty_collaboration" ||
+            msg.kind === "mission_working_group") &&
           typeof msg.roomId === "string"
         ) {
           subscribeRoom(ws, msg.kind as RoomKind, msg.roomId);

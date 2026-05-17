@@ -2410,7 +2410,16 @@ export type LiveEvent =
       usernames: string[];
     };
 
-export type LiveRoomKind = "reproduction" | "capstone_submission";
+// Phase 39 — kept in sync with the server's liveBus.ts RoomKind
+// union. Was stale (reproduction | capstone_submission only) while
+// cohort_study + bounty_collaboration had already shipped; this
+// adds those + the new mission_working_group.
+export type LiveRoomKind =
+  | "reproduction"
+  | "capstone_submission"
+  | "cohort_study"
+  | "bounty_collaboration"
+  | "mission_working_group";
 
 // --- Learning-path enrichments ---
 

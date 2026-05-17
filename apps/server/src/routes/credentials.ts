@@ -24,6 +24,8 @@ import {
   hackathonTeamMembers,
   hackathonTeams,
   hackathons,
+  missionContributions,
+  missions,
   reproductions,
   researchBounties,
   credentialShareTokens,
@@ -99,6 +101,7 @@ interface WalletItem {
     | "exam"
     | "reproduction"
     | "bounty"
+    | "mission_contribution"
     | "org_attestation";
   title: string;
   earnedAt: string;
@@ -377,6 +380,51 @@ export function buildWallet(
       skills: [],
       _revKind: "bounty",
       _revRef: b.bountyId,
+    });
+  }
+
+  // Phase 39 — peer/expert-verified mission contributions (mint
+  // sets credentialMintedAt). Signed on the fly, exactly like the
+  // reproduction band; refute-revoked items are annotated below.
+  const missionContribs = db
+    .select({
+      id: missionContributions.id,
+      missionSlug: missions.slug,
+      missionTitle: missions.title,
+      subproblemId: missionContributions.subproblemId,
+      kind: missionContributions.kind,
+      credentialMintedAt: missionContributions.credentialMintedAt,
+    })
+    .from(missionContributions)
+    .innerJoin(missions, eq(missionContributions.missionId, missions.id))
+    .where(
+      and(
+        eq(missionContributions.userId, userId),
+        isNotNull(missionContributions.credentialMintedAt),
+      ),
+    )
+    .all();
+  for (const m of missionContribs) {
+    if (!m.credentialMintedAt) continue;
+    items.push({
+      kind: "mission_contribution",
+      title: `Verified mission contribution: ${m.missionTitle}`,
+      earnedAt: m.credentialMintedAt,
+      signed: true,
+      detailUrl: `/missions/${m.missionSlug}`,
+      verifyUrl: null,
+      credential: signCredential("mission_contribution", {
+        missionSlug: m.missionSlug,
+        subproblemId: m.subproblemId,
+        contributionId: m.id,
+        userId,
+        username,
+        kind: m.kind,
+        issuedAt: m.credentialMintedAt,
+      }),
+      skills: [],
+      _revKind: "mission_contribution",
+      _revRef: m.id,
     });
   }
 

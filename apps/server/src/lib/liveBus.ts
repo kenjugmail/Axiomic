@@ -66,7 +66,10 @@ export type RoomKind =
   | "reproduction"
   | "capstone_submission"
   | "cohort_study"
-  | "bounty_collaboration";
+  | "bounty_collaboration"
+  // Phase 39 — a mission's live working-group room. roomId is the
+  // missions.id; access is any missionMembers row OR the creator.
+  | "mission_working_group";
 
 export function subscribeRoom(
   ws: WS,

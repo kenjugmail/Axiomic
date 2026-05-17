@@ -25,6 +25,8 @@ import {
   signAxiomicScore,
 } from "../lib/compositeScore";
 import { buildProvenance } from "../lib/provenance";
+import { buildMissionImpact } from "../lib/missionImpact";
+import { getMission } from "../lib/missions";
 import { listActiveRevocations } from "../lib/revocation";
 import {
   getTreeHead,
@@ -114,6 +116,18 @@ publicApiRouter.get(
     return c.json(buildProvenance(targetKind, targetId));
   },
 );
+
+// Phase 39 — public mission impact graph (no auth, scoped-open
+// CORS). Verified non-revoked contributions grouped by contributor,
+// backing-org attestations, solved-sub-problem rollup. Missions are
+// Open, so there is no privacy gate (parity with provenance).
+publicApiRouter.get("/missions/:slug", (c) => {
+  const mission = getMission(c.req.param("slug")!);
+  if (!mission) return c.json({ error: "Mission not found" }, 404);
+  const impact = buildMissionImpact(mission.id);
+  if (!impact) return c.json({ error: "Mission not found" }, 404);
+  return c.json(impact);
+});
 
 // Phase 32A — public, externally-checkable revocation feed. Any
 // third party that cached a signed credential offline can poll

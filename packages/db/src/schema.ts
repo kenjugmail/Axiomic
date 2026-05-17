@@ -3719,3 +3719,161 @@ export const orgAttestations = sqliteTable(
     orgIdx: index("org_attestations_org_idx").on(t.orgId),
   }),
 );
+
+// Phase 39 — "Goodness" Missions: open collaborative
+// problem-solving on big global problems. A Mission decomposes a
+// problem into sub-problems; members contribute analysis/data/
+// solutions (links+writeups); peer+expert review verifies a
+// contribution into a signed, transparency-logged credential
+// (reuses the reproduction rigor). Backing orgs lend expert
+// attestation. All additive; no existing-table changes.
+export const missions = sqliteTable(
+  "missions",
+  {
+    id: text("id").primaryKey(),
+    slug: text("slug").notNull().unique(),
+    title: text("title").notNull(),
+    problemMd: text("problem_md").notNull().default(""),
+    summaryMd: text("summary_md").notNull().default(""),
+    // Free-text theme, e.g. "climate" | "poverty" | "health".
+    theme: text("theme").notNull().default("other"),
+    topicTagsJson: text("topic_tags_json").notNull().default("[]"),
+    // 'open' | 'active' | 'completed' | 'archived'
+    status: text("status").notNull().default("open"),
+    creatorId: text("creator_id").notNull().references(() => users.id),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+    updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    slugIdx: index("missions_slug_idx").on(t.slug),
+    statusIdx: index("missions_status_idx").on(t.status, t.createdAt),
+  }),
+);
+
+// Open self-join membership (mirrors cohortMembers). Creator =
+// 'organizer'. No visibility gate — missions are public-read.
+export const missionMembers = sqliteTable(
+  "mission_members",
+  {
+    id: text("id").primaryKey(),
+    missionId: text("mission_id")
+      .notNull()
+      .references(() => missions.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull().references(() => users.id),
+    // 'member' | 'organizer'
+    role: text("role").notNull().default("member"),
+    joinedAt: text("joined_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    pk: uniqueIndex("mission_members_pk").on(t.missionId, t.userId),
+    userIdx: index("mission_members_user_idx").on(t.userId),
+  }),
+);
+
+export const missionSubproblems = sqliteTable(
+  "mission_subproblems",
+  {
+    id: text("id").primaryKey(),
+    missionId: text("mission_id")
+      .notNull()
+      .references(() => missions.id, { onDelete: "cascade" }),
+    slug: text("slug").notNull(),
+    title: text("title").notNull(),
+    descriptionMd: text("description_md").notNull().default(""),
+    // 'open' | 'in_progress' | 'solved'
+    status: text("status").notNull().default("open"),
+    order: integer("order").notNull().default(0),
+    createdById: text("created_by_id").notNull().references(() => users.id),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    missionIdx: index("mission_subproblems_mission_idx").on(
+      t.missionId,
+      t.order,
+    ),
+    slugUq: uniqueIndex("mission_subproblems_slug_uq").on(
+      t.missionId,
+      t.slug,
+    ),
+  }),
+);
+
+// A contribution; verified→signed credential (credentialMintedAt
+// set, credentialMintWeight snapshot — mirrors reproductions).
+export const missionContributions = sqliteTable(
+  "mission_contributions",
+  {
+    id: text("id").primaryKey(),
+    missionId: text("mission_id")
+      .notNull()
+      .references(() => missions.id, { onDelete: "cascade" }),
+    subproblemId: text("subproblem_id").references(
+      () => missionSubproblems.id,
+      { onDelete: "set null" },
+    ),
+    userId: text("user_id").notNull().references(() => users.id),
+    // 'analysis' | 'data' | 'solution' | 'synthesis'
+    kind: text("kind").notNull().default("analysis"),
+    bodyMd: text("body_md").notNull().default(""),
+    // [{kind,url,label}] — links+writeups only, no uploads.
+    artifactsJson: text("artifacts_json").notNull().default("[]"),
+    credentialMintedAt: text("credential_minted_at"),
+    credentialMintWeight: real("credential_mint_weight"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    missionIdx: index("mission_contributions_mission_idx").on(
+      t.missionId,
+      t.createdAt,
+    ),
+    userIdx: index("mission_contributions_user_idx").on(t.userId),
+  }),
+);
+
+// Exact reproductionReviews twin (verdict-weighted verification).
+export const missionContributionReviews = sqliteTable(
+  "mission_contribution_reviews",
+  {
+    id: text("id").primaryKey(),
+    contributionId: text("contribution_id")
+      .notNull()
+      .references(() => missionContributions.id, { onDelete: "cascade" }),
+    reviewerId: text("reviewer_id").notNull().references(() => users.id),
+    // 'confirmed' | 'refuted' | 'inconclusive'
+    verdict: text("verdict").notNull(),
+    notesMd: text("notes_md").notNull().default(""),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uq: uniqueIndex("mission_contribution_reviews_uq").on(
+      t.contributionId,
+      t.reviewerId,
+    ),
+    contribIdx: index("mission_contribution_reviews_contrib_idx").on(
+      t.contributionId,
+    ),
+  }),
+);
+
+// An org "backs" a mission; a backer's verifier/admin may attest
+// contributions (reuses orgs.attestForMember).
+export const missionOrgBackers = sqliteTable(
+  "mission_org_backers",
+  {
+    id: text("id").primaryKey(),
+    missionId: text("mission_id")
+      .notNull()
+      .references(() => missions.id, { onDelete: "cascade" }),
+    orgId: text("org_id")
+      .notNull()
+      .references(() => orgs.id, { onDelete: "cascade" }),
+    addedByUserId: text("added_by_user_id")
+      .notNull()
+      .references(() => users.id),
+    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  },
+  (t) => ({
+    uq: uniqueIndex("mission_org_backers_uq").on(t.missionId, t.orgId),
+    missionIdx: index("mission_org_backers_mission_idx").on(t.missionId),
+  }),
+);

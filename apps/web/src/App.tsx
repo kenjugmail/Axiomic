@@ -396,6 +396,21 @@ const ReproductionReviewPage = lazy(() =>
     default: m.ReproductionReviewPage,
   })),
 );
+const MissionsListPage = lazy(() =>
+  import("./pages/MissionsListPage").then((m) => ({
+    default: m.MissionsListPage,
+  })),
+);
+const MissionNewPage = lazy(() =>
+  import("./pages/MissionNewPage").then((m) => ({
+    default: m.MissionNewPage,
+  })),
+);
+const MissionDetailPage = lazy(() =>
+  import("./pages/MissionDetailPage").then((m) => ({
+    default: m.MissionDetailPage,
+  })),
+);
 const CredentialSkillsPage = lazy(() =>
   import("./pages/CredentialSkillsPage").then((m) => ({
     default: m.CredentialSkillsPage,
@@ -593,6 +608,10 @@ function AppRoutes() {
             path="/reproductions/review"
             element={<ReproductionReviewPage />}
           />
+          {/* Phase 39 — "Goodness" missions. */}
+          <Route path="/missions" element={<MissionsListPage />} />
+          <Route path="/missions/new" element={<MissionNewPage />} />
+          <Route path="/missions/:slug" element={<MissionDetailPage />} />
           <Route path="/bounties" element={<BountiesListPage />} />
           <Route path="/bounties/new" element={<BountyNewPage />} />
           <Route path="/bounties/:slug" element={<BountyDetailPage />} />

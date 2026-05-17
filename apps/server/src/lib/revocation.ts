@@ -29,7 +29,11 @@ export type CredentialKind =
   | "reproduction"
   | "bounty"
   | "composite_score"
-  | "capstone";
+  | "capstone"
+  // Phase 39 — a peer/expert-verified mission contribution. Reuses
+  // the same polymorphic revocation row as reproductions (refute
+  // past threshold ⇒ revoke; symmetric with the mint).
+  | "mission_contribution";
 
 export function revocationKey(kind: string, ref: string): string {
   return `${kind}:${ref}`;

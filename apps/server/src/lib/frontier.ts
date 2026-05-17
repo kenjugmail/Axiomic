@@ -13,6 +13,8 @@
 import { and, desc, eq, isNotNull, ne } from "drizzle-orm";
 import {
   getDb,
+  missionSubproblems,
+  missions,
   researchBounties,
   researchPapers,
   reproductions,
@@ -27,13 +29,19 @@ const W_RELEVANCE = 0.4;
 const W_WEAKNESS = 0.25;
 const W_URGENCY = 0.2;
 const W_REPRO_GAP = 0.15;
+// Phase 39 — an open mission sub-problem is collaborative,
+// high-impact, real-world work. Modest weight on its own (it has
+// no deadline/ranker) so it surfaces alongside, not over, papers.
+const W_MISSION = 0.15;
 
 export type FrontierKind =
   | "paper"
   | "external_paper"
   | "bounty"
   | "needs_reproduction"
-  | "grant";
+  | "grant"
+  // Phase 39 — an OPEN mission sub-problem worth contributing to.
+  | "mission_subproblem";
 
 export interface FrontierItem {
   kind: FrontierKind;
@@ -103,6 +111,7 @@ function buildReason(b: FrontierItem["breakdown"], kind: FrontierKind): string {
   if (b.relevance >= 0.4) parts.push("matches your interests");
   if (b.urgency >= 0.4) parts.push("deadline approaching");
   if (kind === "needs_reproduction") parts.push("needs an independent reproduction");
+  if (kind === "mission_subproblem") parts.push("open sub-problem on a Goodness mission");
   if (parts.length === 0) parts.push("surfacing on the research frontier");
   return parts.join(" · ");
 }
@@ -284,6 +293,58 @@ export async function buildFrontier(
         url: `/research/${p.slug}`,
         score: round(total),
         reason: buildReason(breakdown, "needs_reproduction"),
+        breakdown,
+      });
+    }
+  } catch {
+    // skip
+  }
+
+  // 4b. Open mission sub-problems — collaborative, high-impact
+  //     real-world work. No ranker/deadline; relevance proxied by
+  //     weak-concept affinity exactly like the bounty stream.
+  try {
+    const open = db
+      .select({
+        id: missionSubproblems.id,
+        title: missionSubproblems.title,
+        descriptionMd: missionSubproblems.descriptionMd,
+        missionSlug: missions.slug,
+        missionTitle: missions.title,
+        missionStatus: missions.status,
+      })
+      .from(missionSubproblems)
+      .innerJoin(missions, eq(missionSubproblems.missionId, missions.id))
+      .where(
+        and(
+          eq(missionSubproblems.status, "open"),
+          ne(missions.status, "archived"),
+        ),
+      )
+      .orderBy(desc(missionSubproblems.createdAt))
+      .limit(limit)
+      .all();
+    for (const s of open) {
+      const wk = weaknessAffinity(
+        tokenize(`${s.title} ${s.descriptionMd} ${s.missionTitle}`),
+        weakTokens,
+      );
+      const relevance = wk;
+      const total = W_RELEVANCE * relevance + W_MISSION * 1 + W_WEAKNESS * wk;
+      const breakdown = {
+        relevance: round(relevance),
+        weakness: round(wk),
+        urgency: 0,
+        reproGap: 0,
+        total: round(total),
+      };
+      items.push({
+        kind: "mission_subproblem",
+        id: s.id,
+        title: `${s.title} — ${s.missionTitle}`,
+        url: `/missions/${s.missionSlug}`,
+        score: round(total),
+        reason: buildReason(breakdown, "mission_subproblem"),
         breakdown,
       });
     }
