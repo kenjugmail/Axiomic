@@ -18,6 +18,7 @@ import {
   quizAttempts,
   petQuests,
   pets,
+  signedCredentials,
 } from "@axiomic/db";
 import { eq, and, desc, inArray, ne, asc, sql, isNull } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -30,6 +31,10 @@ import { invalidateSearchIndex } from "../lib/searchIndex";
 import { gradeQuestion } from "../lib/quizGrading";
 import { flashcardFromQuestion } from "../lib/flashcardFromQuestion";
 import { rankPapersForUser } from "../lib/recommend";
+import {
+  computeAxiomicScore,
+  signAxiomicScore,
+} from "../lib/compositeScore";
 import { forumTopicsForNode } from "../lib/crossLinks";
 import { publishToDraft } from "../lib/liveBus";
 import { createProposal, isApprovalGateEnabled } from "../lib/approvals";
@@ -609,6 +614,47 @@ mastery.get("/me/pet-quest", requireAuth, async (c) => {
       petName: pet.name,
       justCompleted: false,
     },
+  });
+});
+
+// Phase 6a — mint a persisted, verifiable Axiomic skill credential.
+// Reuses computeAxiomicScore + signAxiomicScore (ed25519 via the
+// shared signing module) and the Phase-0 signed_credentials table.
+// The signed manifest re-verifies offline through the unchanged
+// /api/v1/keys/verify — no new verify crypto here.
+mastery.post("/me/credential", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const db = getDb();
+  const score = await computeAxiomicScore(user.id, user.username);
+  const signed = signAxiomicScore(user.id, user.username, score);
+  const verifyId = randomUUID();
+  db.insert(signedCredentials)
+    .values({
+      id: randomUUID(),
+      userId: user.id,
+      kind: "composite_score",
+      payloadJson: JSON.stringify(signed.manifest),
+      signature: signed.signature,
+      verifyId,
+    })
+    .run();
+  return c.json({ verifyId, score: score.score, signed });
+});
+
+mastery.get("/credential/:verifyId", async (c) => {
+  const verifyId = c.req.param("verifyId")!;
+  const db = getDb();
+  const row = db
+    .select()
+    .from(signedCredentials)
+    .where(eq(signedCredentials.verifyId, verifyId))
+    .get();
+  if (!row) return c.json({ error: "Not found" }, 404);
+  return c.json({
+    kind: row.kind,
+    manifest: JSON.parse(row.payloadJson),
+    signature: row.signature,
+    issuedAt: row.issuedAt,
   });
 });
 

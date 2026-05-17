@@ -563,6 +563,11 @@ export const api = {
           justCompleted: boolean;
         } | null;
       }>(`/mastery/me/pet-quest`),
+    mintCredential: () =>
+      request<{ verifyId: string; score: number }>(
+        `/mastery/me/credential`,
+        { method: "POST" },
+      ),
     lessonAnalytics: (nodeId: string) =>
       request<{
         slideCount: number;

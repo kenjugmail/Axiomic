@@ -225,6 +225,11 @@ export function LessonPage() {
     petName: string;
     justCompleted: boolean;
   } | null>(null);
+  const [credential, setCredential] = useState<{
+    verifyId: string;
+    score: number;
+  } | null>(null);
+  const [mintingCred, setMintingCred] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
@@ -1268,6 +1273,39 @@ export function LessonPage() {
                       </>
                     )}
                   </p>
+                </div>
+              )}
+              {finalScore >= PASSING_SCORE && (
+                <div className="max-w-md mx-auto mb-6 text-left rounded-lg border border-border bg-card p-4">
+                  {credential ? (
+                    <p className="text-sm text-muted-foreground">
+                      Credential minted — Axiomic score{" "}
+                      <span className="font-semibold text-foreground">
+                        {credential.score}/1000
+                      </span>
+                      . Verifiable id{" "}
+                      <code className="text-xs">{credential.verifyId}</code>.
+                    </p>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={mintingCred}
+                      onClick={() => {
+                        setMintingCred(true);
+                        api.mastery
+                          .mintCredential()
+                          .then((r) => setCredential(r))
+                          .catch(() => {})
+                          .finally(() => setMintingCred(false));
+                      }}
+                      className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline disabled:opacity-50"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" strokeWidth={2} />
+                      {mintingCred
+                        ? "Minting…"
+                        : "Mint a verifiable skill credential"}
+                    </button>
+                  )}
                 </div>
               )}
               {node && (
