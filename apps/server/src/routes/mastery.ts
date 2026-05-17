@@ -26,6 +26,7 @@ import { recordActivityAndEvaluate } from "../lib/achievements";
 import { grantXp } from "../lib/xp";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import { gradeQuestion } from "../lib/quizGrading";
+import { flashcardFromQuestion } from "../lib/flashcardFromQuestion";
 import { forumTopicsForNode } from "../lib/crossLinks";
 import { publishToDraft } from "../lib/liveBus";
 import { createProposal, isApprovalGateEnabled } from "../lib/approvals";
@@ -1476,26 +1477,15 @@ mastery.post("/quiz/:nodeId", requireAuth, zValidator("json", quizSubmitSchema),
     if (nodeRow) {
       for (const q of questions as Array<any>) {
         if (!wrongIds.includes(q?.id)) continue;
-        const kind = q.kind ?? "multiple_choice";
-        if (kind !== "multiple_choice") continue;
-        if (
-          !Array.isArray(q.options) ||
-          typeof q.correctIndex !== "number"
-        )
-          continue;
-        const front = String(q.question ?? "").slice(0, 500);
-        const correctOption = String(q.options[q.correctIndex] ?? "");
-        const back = q.explanation
-          ? `${correctOption}\n\n${q.explanation}`.slice(0, 2000)
-          : correctOption.slice(0, 2000);
-        if (!front || !back) continue;
+        const card = flashcardFromQuestion(q);
+        if (!card || !card.front || !card.back) continue;
         const dup = db
           .select({ id: flashcards.id })
           .from(flashcards)
           .where(
             and(
               eq(flashcards.userId, user.id),
-              eq(flashcards.front, front),
+              eq(flashcards.front, card.front),
             ),
           )
           .get();
@@ -1505,8 +1495,8 @@ mastery.post("/quiz/:nodeId", requireAuth, zValidator("json", quizSubmitSchema),
             userId: user.id,
             pageSlug: nodeRow.slug,
             pageTitle: nodeRow.title,
-            front,
-            back,
+            front: card.front,
+            back: card.back,
           }).run();
         }
       }
