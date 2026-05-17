@@ -949,46 +949,6 @@ export const petQuests = sqliteTable(
   }),
 );
 
-// Phase 6 — synthesis "boss battle" gate config per (path, level).
-export const levelCheckpoints = sqliteTable(
-  "level_checkpoints",
-  {
-    id: text("id").primaryKey(),
-    pathId: text("path_id").notNull().references(() => masteryPaths.id),
-    level: text("level").notNull(),
-    questionRefsJson: text("question_refs_json").notNull().default("[]"),
-    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
-  },
-  (t) => ({
-    pathLevelUniq: uniqueIndex("level_checkpoints_path_level_uniq").on(
-      t.pathId,
-      t.level,
-    ),
-  }),
-);
-
-// Phase 6 — per-user boss-battle result; extends the ≥70 unlock
-// gate (must also have passed_at for the level).
-export const userCheckpointResults = sqliteTable(
-  "user_checkpoint_results",
-  {
-    id: text("id").primaryKey(),
-    userId: text("user_id").notNull().references(() => users.id),
-    pathId: text("path_id").notNull().references(() => masteryPaths.id),
-    level: text("level").notNull(),
-    score: real("score").notNull().default(0),
-    passedAt: text("passed_at"),
-    createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
-  },
-  (t) => ({
-    userPathLevelUniq: uniqueIndex("user_checkpoint_results_uniq").on(
-      t.userId,
-      t.pathId,
-      t.level,
-    ),
-  }),
-);
-
 // Phase 6 — persisted signed Axiomic credential (compositeScore
 // signAxiomicScore is currently ephemeral). verify_id is the
 // public lookup token.
@@ -1006,28 +966,6 @@ export const signedCredentials = sqliteTable(
   (t) => ({
     verifyUniq: uniqueIndex("signed_credentials_verify_uniq").on(t.verifyId),
     userIdx: index("signed_credentials_user_idx").on(t.userId, t.issuedAt),
-  }),
-);
-
-// Phase 6 — live co-solve study room presence (summary
-// persistence; live deltas ride liveBus).
-export const studyRoomParticipants = sqliteTable(
-  "study_room_participants",
-  {
-    id: text("id").primaryKey(),
-    sessionId: text("session_id")
-      .notNull()
-      .references(() => cohortStudySessions.id, { onDelete: "cascade" }),
-    userId: text("user_id").notNull().references(() => users.id),
-    slideIdx: integer("slide_idx").notNull().default(0),
-    joinedAt: text("joined_at").default(sql`(datetime('now'))`).notNull(),
-    lastSeenAt: text("last_seen_at").default(sql`(datetime('now'))`).notNull(),
-  },
-  (t) => ({
-    sessionUserUniq: uniqueIndex("study_room_participants_uniq").on(
-      t.sessionId,
-      t.userId,
-    ),
   }),
 );
 
