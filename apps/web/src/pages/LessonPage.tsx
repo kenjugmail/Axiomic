@@ -25,6 +25,7 @@ import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { TutorMount } from "../components/ai/TutorMount";
 import { dispatchAskTutor } from "../components/ai/askTutorAction";
 import { PetByUsername } from "../pet";
+import { AiGradedResponse } from "../components/quiz/AiGradedResponse";
 import { QuestionRenderer, isAnswered } from "../components/quiz/QuestionRenderer";
 import { LessonNotes } from "../components/mastery/LessonNotes";
 import { PreviewViz } from "../components/lesson/PreviewViz";
@@ -219,6 +220,11 @@ export function LessonPage() {
   >([]);
   const [reflection, setReflection] = useState("");
   const [reflectionSaved, setReflectionSaved] = useState(false);
+  const [petQuest, setPetQuest] = useState<{
+    conceptTitle: string;
+    petName: string;
+    justCompleted: boolean;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
@@ -488,6 +494,10 @@ export function LessonPage() {
       api.mastery
         .calibration()
         .then((r) => setCalibration(r.buckets))
+        .catch(() => {});
+      api.mastery
+        .petQuest()
+        .then((r) => setPetQuest(r.quest))
         .catch(() => {});
       setPhase("finished");
     } finally {
@@ -1045,11 +1055,41 @@ export function LessonPage() {
                 <h2 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight leading-snug mb-6">
                   {slide.question.prompt}
                 </h2>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Take a minute to answer in your own words (notes or out loud).
-                  This slide does not block progress — continue when you are
-                  ready.
-                </p>
+                {slide.question.rubricCriteria &&
+                slide.question.rubricCriteria.length > 0 ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 rounded-md border border-border bg-card p-3">
+                      {user?.username && (
+                        <PetByUsername
+                          username={user.username}
+                          size="xs"
+                        />
+                      )}
+                      <p className="text-sm text-muted-foreground">
+                        Explain it so your pet gets it. Teaching it back in
+                        plain words is one of the strongest ways to learn —
+                        this never blocks progress.
+                      </p>
+                    </div>
+                    <AiGradedResponse
+                      questionText={slide.question.prompt}
+                      rubricCriteria={slide.question.rubricCriteria}
+                      value={answers[slide.question.id]}
+                      onChange={(v) =>
+                        setAnswers((a) => ({
+                          ...a,
+                          [slide.question.id]: v,
+                        }))
+                      }
+                    />
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Take a minute to answer in your own words (notes or out
+                    loud). This slide does not block progress — continue when
+                    you are ready.
+                  </p>
+                )}
               </div>
             )}
 
@@ -1202,6 +1242,32 @@ export function LessonPage() {
                       ),
                     )}
                   </ul>
+                </div>
+              )}
+              {petQuest && (
+                <div className="max-w-md mx-auto mb-6 text-left rounded-lg border border-primary/30 bg-primary/5 p-4 flex items-center gap-3">
+                  {user?.username && (
+                    <PetByUsername username={user.username} size="xs" />
+                  )}
+                  <p className="text-sm text-muted-foreground">
+                    {petQuest.justCompleted ? (
+                      <>
+                        {petQuest.petName || "Your pet"} learned{" "}
+                        <span className="font-medium text-foreground">
+                          {petQuest.conceptTitle}
+                        </span>{" "}
+                        with you — quest complete!
+                      </>
+                    ) : (
+                      <>
+                        {petQuest.petName || "Your pet"} wants to learn{" "}
+                        <span className="font-medium text-foreground">
+                          {petQuest.conceptTitle}
+                        </span>
+                        . Clear its review card to finish the quest.
+                      </>
+                    )}
+                  </p>
                 </div>
               )}
               {node && (

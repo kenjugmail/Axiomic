@@ -555,6 +555,14 @@ export const api = {
           accuracy: number;
         }>;
       }>(`/mastery/me/calibration`),
+    petQuest: () =>
+      request<{
+        quest: {
+          conceptTitle: string;
+          petName: string;
+          justCompleted: boolean;
+        } | null;
+      }>(`/mastery/me/pet-quest`),
     lessonAnalytics: (nodeId: string) =>
       request<{
         slideCount: number;

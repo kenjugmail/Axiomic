@@ -16,8 +16,10 @@ import {
   quizMistakes,
   flashcards,
   quizAttempts,
+  petQuests,
+  pets,
 } from "@axiomic/db";
-import { eq, and, desc, inArray, ne, asc, sql } from "drizzle-orm";
+import { eq, and, desc, inArray, ne, asc, sql, isNull } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { notify } from "../lib/notifications";
@@ -516,6 +518,98 @@ mastery.get("/me/calibration", requireAuth, async (c) => {
     })
     .sort((a, b) => a.confidence - b.confidence);
   return c.json({ buckets });
+});
+
+// Phase 5b — mistake-driven pet quest. The pet "wants to learn"
+// the learner's most-missed concept; clearing its review (the
+// source quiz_mistake getting resolved) completes the quest.
+// Lazy reconcile on read (no coupling into the resolve write
+// paths); auto-generates the next quest from the top unresolved
+// mistake. Reuses the Phase-0 pet_quests table.
+mastery.get("/me/pet-quest", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const db = getDb();
+  const pet = db.select().from(pets).where(eq(pets.userId, user.id)).get();
+  if (!pet) return c.json({ quest: null });
+
+  const active = db
+    .select()
+    .from(petQuests)
+    .where(and(eq(petQuests.userId, user.id), eq(petQuests.status, "active")))
+    .get();
+
+  if (active) {
+    if (active.sourceQuizMistakeId) {
+      const m = db
+        .select()
+        .from(quizMistakes)
+        .where(eq(quizMistakes.id, active.sourceQuizMistakeId))
+        .get();
+      if (m && m.resolvedAt) {
+        db.update(petQuests)
+          .set({ status: "completed", completedAt: new Date().toISOString() })
+          .where(eq(petQuests.id, active.id))
+          .run();
+        const node = db
+          .select({ title: masteryNodes.title })
+          .from(masteryNodes)
+          .where(eq(masteryNodes.slug, active.conceptSlug))
+          .get();
+        return c.json({
+          quest: {
+            conceptTitle: node?.title ?? active.conceptSlug,
+            petName: pet.name,
+            justCompleted: true,
+          },
+        });
+      }
+    }
+    const node = db
+      .select({ title: masteryNodes.title })
+      .from(masteryNodes)
+      .where(eq(masteryNodes.slug, active.conceptSlug))
+      .get();
+    return c.json({
+      quest: {
+        conceptTitle: node?.title ?? active.conceptSlug,
+        petName: pet.name,
+        justCompleted: false,
+      },
+    });
+  }
+
+  const top = db
+    .select()
+    .from(quizMistakes)
+    .where(
+      and(eq(quizMistakes.userId, user.id), isNull(quizMistakes.resolvedAt)),
+    )
+    .orderBy(desc(quizMistakes.occurrences))
+    .get();
+  if (!top) return c.json({ quest: null });
+  const node = db
+    .select({ slug: masteryNodes.slug, title: masteryNodes.title })
+    .from(masteryNodes)
+    .where(eq(masteryNodes.id, top.nodeId))
+    .get();
+  if (!node) return c.json({ quest: null });
+  db.insert(petQuests)
+    .values({
+      id: randomUUID(),
+      userId: user.id,
+      petId: pet.id,
+      conceptSlug: node.slug,
+      sourceQuizMistakeId: top.id,
+      status: "active",
+    })
+    .run();
+  return c.json({
+    quest: {
+      conceptTitle: node.title,
+      petName: pet.name,
+      justCompleted: false,
+    },
+  });
 });
 
 // Per-user mastery summary across all paths.
