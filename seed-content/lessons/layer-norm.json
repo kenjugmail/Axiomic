@@ -185,6 +185,52 @@
       }
     },
     {
+      "kind": "question",
+      "question": {
+        "id": "ln_scen",
+        "kind": "scenario",
+        "question": "Diagnose the training instability.",
+        "scenario": "Moving LayerNorm from pre-norm (inside the residual branch) to post-norm (after the residual add), a deep model now diverges early unless you add careful LR warmup.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "post-norm normalizes x+F(x), so the identity/residual gradient path is renormalized every layer"
+          },
+          {
+            "id": "c2",
+            "description": "that degrades the clean gradient highway with depth → early divergence without warmup"
+          },
+          {
+            "id": "c3",
+            "description": "pre-norm normalizes only F's input, leaving the identity path intact → stable deep training (modern default)"
+          }
+        ],
+        "explanation": "Norm placement relative to the residual add decides whether the identity gradient path stays clean. Pre-norm keeps it clean; post-norm doesn't."
+      }
+    },
+    {
+      "kind": "question",
+      "hints": [
+        "Where is LN relative to the x + F(x) add?",
+        "Which placement leaves the identity path un-normalized?"
+      ],
+      "workedSolution": "Pre-norm normalizes only F's input, so the residual identity path carries gradient undiminished through many layers — deep training is stable without warmup. Post-norm normalizes the sum, eroding that path.",
+      "retryUntilCorrect": true,
+      "question": {
+        "id": "ln_mc",
+        "kind": "multiple_choice",
+        "question": "Why do modern deep transformers prefer pre-norm (LN inside the residual branch)?",
+        "options": [
+          "It preserves a clean identity gradient path, so very deep models train stably without heavy warmup",
+          "Post-norm has fewer parameters",
+          "Pre-norm removes the need for residuals",
+          "They are identical"
+        ],
+        "correctIndex": 0,
+        "explanation": "Pre-norm: out = x + F(LN(x)) — the x path is never renormalized, so its gradient stays ~1 through depth. Post-norm renormalizes x+F(x) each layer."
+      }
+    },
+    {
       "kind": "text",
       "title": "What to carry forward",
       "body": "- LN normalizes **per token across features** → batch/length independent, identical at train & inference.\n- Not batch norm — different axis, no eval-mode footgun.\n- **Pre-norm** placement is the modern default for trainable depth; **RMSNorm** is the common simplification.\n\n**Next:** [Residual connections](/wiki/residual-connections) — the other half of \"why deep transformers train\" — then the full [transformer block](/wiki/transformer-block)."

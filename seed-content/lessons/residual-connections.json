@@ -162,6 +162,52 @@
       }
     },
     {
+      "kind": "question",
+      "question": {
+        "id": "res_scen",
+        "kind": "scenario",
+        "question": "Diagnose the dead deep model.",
+        "scenario": "A 48-layer plain (no-residual) transformer's training loss barely moves; an identical 48-layer model WITH residuals trains fine. Same data and learning rate.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "no-residual: per-layer Jacobian factors (<1) multiply over 48 layers → gradient vanishes"
+          },
+          {
+            "id": "c2",
+            "description": "with residual: d(x+F)/dx = I + F'(x) keeps an undiminished gradient path"
+          },
+          {
+            "id": "c3",
+            "description": "so the residual model's depth-48 gradients survive and it learns"
+          }
+        ],
+        "explanation": "Depth alone isn't the problem — gradient propagation is. The residual identity term is what makes 48 layers trainable."
+      }
+    },
+    {
+      "kind": "question",
+      "hints": [
+        "Differentiate y = x + F(x).",
+        "Product of many numbers <1 over 48 layers → ?"
+      ],
+      "workedSolution": "A plain deep stack multiplies ~48 sub-unity Jacobian factors → vanishing gradient. The residual adds an I term to the Jacobian — a gradient path of magnitude ~1 at any depth.",
+      "retryUntilCorrect": true,
+      "question": {
+        "id": "res_mc",
+        "kind": "multiple_choice",
+        "question": "Why does adding residual connections rescue a very deep stack?",
+        "options": [
+          "∂y/∂x = I + F'(x): the identity term gives an undiminished gradient path through depth",
+          "It reduces parameter count",
+          "It adds positional information",
+          "It removes the nonlinearity"
+        ],
+        "correctIndex": 0,
+        "explanation": "Plain stacks multiply many <1 factors → 0. y=x+F(x) ⇒ ∂y/∂x = I + F'(x); the I is a gradient highway that doesn't vanish with depth."
+      }
+    },
+    {
       "kind": "text",
       "title": "What to carry forward",
       "body": "- $y=x+F(x)$ adds **+1** to the gradient → deep stacks train.\n- The **residual stream** is a shared bus every sublayer reads from and adds to.\n- Each layer learns a **delta**, not a full replacement (not a 'skip').\n- With [layer norm](/wiki/layer-normalization), this is *why* 50–100-layer transformers are possible.\n\n**Next:** assemble attention + FFN + residual + norm into the [transformer block](/wiki/transformer-block) — the unit stacked N times to make a real model."

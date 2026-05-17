@@ -218,6 +218,52 @@
       }
     },
     {
+      "kind": "question",
+      "question": {
+        "id": "tb_scen",
+        "kind": "scenario",
+        "question": "Diagnose the blow-up.",
+        "scenario": "You 'simplified' the block by dropping its LayerNorms (keeping residual + attention + FFN), then stacked it 24×. Activations explode/NaN after a few layers, even with LR tuning.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "residual additions accumulate activation magnitude every layer"
+          },
+          {
+            "id": "c2",
+            "description": "with no normalization the scale grows unbounded across 24 blocks → overflow/NaN"
+          },
+          {
+            "id": "c3",
+            "description": "fix: restore pre-norm LayerNorm inside each sublayer to bound per-token scale"
+          }
+        ],
+        "explanation": "Residual streams accumulate scale with depth; LayerNorm is what re-bounds it each layer. Remove LN and depth makes activations diverge."
+      }
+    },
+    {
+      "kind": "question",
+      "hints": [
+        "What do residual additions do to activation scale over depth?",
+        "Which component re-bounds per-token scale each layer?"
+      ],
+      "workedSolution": "Each residual add increases activation magnitude; over 24 layers, with no LN, the scale grows unbounded → overflow. Pre-norm LN inside each sublayer renormalizes per token every layer, restoring stability.",
+      "retryUntilCorrect": true,
+      "question": {
+        "id": "tb_mc",
+        "kind": "multiple_choice",
+        "question": "A residual+attention+FFN block with NO LayerNorm blows up when stacked 24×. Best fix?",
+        "options": [
+          "Add pre-norm LayerNorm inside each sublayer to keep per-token activation scale bounded across depth",
+          "Remove the residual connections",
+          "Lower the vocabulary size",
+          "Add more attention heads"
+        ],
+        "correctIndex": 0,
+        "explanation": "Residual adds compound magnitude every layer; LN renormalizes each token per layer so the deep stack stays numerically stable."
+      }
+    },
+    {
       "kind": "text",
       "title": "You can now read any transformer",
       "body": "A transformer = **embedding + position → N × (pre-norm attention block + pre-norm FFN block) → unembedding** (often weight-tied to the embedding). That's the entire architecture you just built from scratch.\n\nWhat's left is variant-level detail: [encoder-decoder](/wiki/encoder-decoder) structure, [causal masking](/wiki/masked-self-attention), [training objectives](/wiki/training-objectives), and modern tweaks (RoPE, GQA, SwiGLU) you've already met along the way.\n\nKey takeaways:\n- Block = LN→Attention→+residual, then LN→FFN→+residual\n- $N$ blocks compose $N$ rounds of token-mixing + feature-transform\n- Depth ≠ width — depth buys composition\n- Every modern LLM is this same block, scaled to a different $N$"
