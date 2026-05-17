@@ -1,6 +1,6 @@
 {
   "meta": {
-    "timeMinutes": 45,
+    "timeMinutes": 60,
     "difficulty": "core",
     "objectives": [
       "Read an attention heatmap and explain what each row/column means",
@@ -17,31 +17,41 @@
     {
       "kind": "section",
       "title": "Part 1 — Why attention exists",
-      "body": "Before attention, sequence models had a structural problem. Spend a minute on *why* — it makes the mechanism obvious."
+      "body": "The whole transformer is scaffolding around one operation. Before the mechanism, understand the *problem* it was invented to solve — then every design choice becomes inevitable rather than arbitrary."
     },
     {
       "kind": "text",
-      "title": "The problem with recurrence",
-      "body": "An RNN reads a sequence one token at a time, carrying a hidden state forward. Two consequences hurt:\n\n1. **No parallelism in time.** Token *t* can't be computed until *t−1* is done. A 1000-token sequence is 1000 sequential steps — GPUs sit idle.\n2. **Long-range information decays.** To connect token 1 to token 500, the signal must survive 499 noisy state updates. Gradients vanish; the model forgets.\n\nConvolutions parallelize but only see a fixed local window — reaching far still needs many stacked layers.\n\n> **The ask:** a layer where *every token can see every other token directly, in one parallel operation, weighted by relevance.* That layer is attention."
+      "title": "The sequential bottleneck of recurrence",
+      "body": "For a decade, sequence models were **recurrent**. An RNN/LSTM consumes tokens one at a time, folding each into a fixed-size hidden state $h_t = f(h_{t-1}, x_t)$. Two structural problems follow directly from that recurrence relation, and both are fatal at scale.\n\n**1. No parallelism along the sequence.** $h_t$ literally cannot be computed until $h_{t-1}$ exists. Training on a length-$n$ sequence is $n$ *serial* steps. GPUs are throughput machines with tens of thousands of ALUs; a serial dependency chain leaves them ~idle. Doubling sequence length doubles wall-clock time with no way to spend more hardware to fix it.\n\n**2. Long-range signal decay.** To let token 1 influence token 500, information must survive 499 successive nonlinear updates. Backpropagating that far multiplies ~499 Jacobians; unless their norms sit in a razor-thin band the gradient vanishes (→0) or explodes (→∞). LSTMs' gating mitigates but does not remove this — empirically, dependencies beyond a few hundred tokens are weak.\n\n> **Context:** Bahdanau et al. (2014) bolted an *attention* add-on onto an RNN translator so the decoder could look back at any encoder state. It worked so well that Vaswani et al. (2017), *\"Attention Is All You Need,\"* deleted the RNN entirely and kept only attention."
     },
     {
       "kind": "text",
-      "title": "Where attention sits",
-      "body": "In a transformer block, attention is the **only** component that moves information *between* token positions. Everything else — the FFN, LayerNorm — operates on each token independently. So attention is *the* mechanism by which a transformer relates words to each other. Master it and the rest is plumbing."
+      "title": "Convolutions don't fix it either",
+      "body": "A natural reaction: replace recurrence with 1-D **convolutions** (WaveNet, ByteNet). Convolutions *are* parallel across positions — good. But a convolution kernel of width $k$ only mixes information within a window of size $k$. To connect tokens $n$ apart you must stack $\\mathcal{O}(n/k)$ layers (or use dilation, $\\mathcal{O}(\\log n)$). The path length between two positions still grows with distance, so the long-range learning problem is reduced but not eliminated, and depth balloons.\n\n> **The requirement, stated precisely:** a layer that (a) is fully parallel across positions, and (b) connects *any two positions in a single step* (constant path length), so gradient between distant tokens doesn't have to survive many hops. Attention is the minimal construction satisfying both."
+    },
+    {
+      "kind": "text",
+      "title": "Where attention sits in the transformer",
+      "body": "Orient yourself before the mechanism. A transformer block is exactly two sublayers: **attention**, then a **position-wise feed-forward network (FFN)**, each wrapped in LayerNorm + a residual connection. Of these, **attention is the only operation that moves information *between* token positions.** The FFN transforms each token independently; LayerNorm and residuals are stabilizers. So when people say \"the model figured out that *it* refers to *the trophy*,\" the mechanism that did it is attention. Everything else in this path (FFN, norm, residual, positional encoding) exists to make a deep stack of attention layers trainable. Master attention and ~80% of the architecture is conceptual bookkeeping."
     },
     {
       "kind": "section",
-      "title": "Part 2 — Build the intuition"
+      "title": "Part 2 — Build the intuition before the math"
     },
     {
       "kind": "text",
-      "title": "Attention is a soft dictionary lookup",
-      "body": "Think of a Python dict: you give a **key**, it returns the matching **value**. Attention is the *soft, differentiable* version:\n\n- Each token emits a **query** (\"what am I looking for?\"), a **key** (\"what do I offer?\"), and a **value** (\"what I'll hand over if you pick me\").\n- Instead of an exact key match, you score the query against *every* key, softmax the scores into weights, and return the **weighted average of all values**.\n\nA hard dict returns one value; attention returns a blend, mostly from the best-matching keys. That softness is what makes it learnable by gradient descent."
+      "title": "Attention is a soft, learnable dictionary lookup",
+      "body": "The cleanest mental model. A Python `dict` lookup: you present a **key**, get back its **value**, exact match only. Attention is the *soft, differentiable, content-addressed* generalization:\n\n- Every token emits three vectors: a **query** $q$ (\"what am I looking for?\"), a **key** $k$ (\"what do I contain?\"), and a **value** $v$ (\"what I'll contribute if selected\").\n- Instead of an exact key match, you score the query against **every** key, convert the scores to weights that sum to 1, and return the **weighted average of all values**.\n\nA hard dict returns one value and has zero gradient (you can't differentiate \"which key matched\"). The softmax-weighted average is smooth: nudging a query slightly nudges the output slightly, so gradient descent can *learn* what each token should look for. \"Soft\" is not an approximation of the real thing — softness is the entire point, because it is what makes retrieval trainable."
+    },
+    {
+      "kind": "text",
+      "title": "A concrete intuition: resolving a pronoun",
+      "body": "Sentence: *\"The trophy didn't fit in the suitcase because **it** was too big.\"* What does *it* refer to? Humans use world knowledge (big things don't fit in small things). A transformer must compute this. At the layer that resolves *it*, the **query** from *it* encodes \"I am a pronoun seeking a concrete antecedent.\" The **keys** of *trophy* and *suitcase* encode \"I am a candidate noun.\" The query·key score is higher for *trophy* (the configuration the model learned makes the sentence coherent), so *it*'s output vector becomes mostly *trophy*'s **value** — the pronoun is now contextually bound to the trophy. No rule was written; the Q/K/V projections that produce this were learned by gradient descent over billions of sentences. This single example previews everything: scores, softmax weighting, value mixing."
     },
     {
       "kind": "text",
       "title": "Reading an attention heatmap",
-      "body": "Each **row** is a query token; each **column** a key token; brightness is the attention weight. Look at the row for `are`: almost all weight sits on `cats` — the verb learned subject–verb agreement across several tokens. Nobody coded that rule; it emerged from training. Drag the controls and watch which tokens attend where.",
+      "body": "This visualization is an $n\\times n$ matrix: each **row** is one query token, each **column** one key token, brightness = attention weight (rows sum to 1). Look at the row for `are`: nearly all its weight sits on `cats` — the verb learned subject–verb agreement across intervening words. That pattern is *emergent*: nobody coded \"verbs attend to their subject.\" It fell out of next-token prediction. Drag the controls: notice rows are distributions (one bright cell or a spread), and that different inputs induce different patterns. Spending real time reading these is the single best way to build attention intuition.",
       "viz": "attention-heatmap-explorer",
       "vizProps": {
         "presetIndex": 0
@@ -49,17 +59,17 @@
     },
     {
       "kind": "section",
-      "title": "Part 3 — Formalize it"
+      "title": "Part 3 — Formalize it, step by step"
     },
     {
       "kind": "text",
-      "title": "Three projections: Q, K, V",
-      "body": "From each token embedding $x_i$ we make three vectors by learned linear maps:\n\n$$Q=XW^Q,\\quad K=XW^K,\\quad V=XW^V$$\n\n$W^Q,W^K\\in\\mathbb{R}^{d\\times d_k}$ and $W^V\\in\\mathbb{R}^{d\\times d_v}$. Q and K live in the same $d_k$-space so their dot product is meaningful; V carries the content that actually gets passed along. These three matrices are *all* the parameters attention has."
+      "title": "The three projections Q, K, V",
+      "body": "Let $X\\in\\mathbb{R}^{n\\times d}$ be the stack of $n$ token embeddings (row $i$ = token $i$). Attention introduces exactly three learned weight matrices and applies them once:\n\n$$Q = XW^Q,\\qquad K = XW^K,\\qquad V = XW^V$$\n\nwith $W^Q,W^K\\in\\mathbb{R}^{d\\times d_k}$ and $W^V\\in\\mathbb{R}^{d\\times d_v}$. So $Q,K\\in\\mathbb{R}^{n\\times d_k}$ and $V\\in\\mathbb{R}^{n\\times d_v}$. Three facts to internalize:\n\n1. $W^Q,W^K,W^V$ are the *only* parameters in attention — there is nothing else to learn here.\n2. Q and K must share dimension $d_k$ because we will take dot products between them; V's dimension $d_v$ is independent (often $d_v=d_k$).\n3. The *same* three matrices are applied to every token (weight sharing across positions) — that's what makes it parallel and parameter-efficient."
     },
     {
       "kind": "text",
       "title": "Scores → weights → output",
-      "body": "The score from query $i$ to key $j$ is $Q_i\\cdot K_j$ — large when they point the same way. Stack all pairs into $QK^{T}$ (an $n\\times n$ matrix), scale, softmax each row into a distribution, and use it to average the values. You're about to derive every piece of this yourself."
+      "body": "Given Q, K, V, the computation is three steps:\n\n1. **Scores:** $S = QK^{T}\\in\\mathbb{R}^{n\\times n}$. Entry $S_{ij}=Q_i\\cdot K_j$ is the raw affinity of query $i$ for key $j$ — large and positive when the two vectors point the same way.\n2. **Weights:** scale by $1/\\sqrt{d_k}$ (justified shortly) and apply **row-wise softmax**, so each row becomes a probability distribution over the $n$ keys.\n3. **Output:** multiply by $V$: row $i$ of the result is $\\sum_j A_{ij} V_j$ — a convex combination of *all* value vectors, weighted by relevance.\n\nPut together: $;\\text{Attention}(Q,K,V)=\\text{softmax}\\!\\big(QK^{T}/\\sqrt{d_k}\\big)V.$ You will now reconstruct each design decision yourself rather than memorize this."
     },
     {
       "kind": "question",
@@ -153,17 +163,22 @@
     },
     {
       "kind": "section",
-      "title": "Part 4 — A worked example, with shapes"
+      "title": "Part 4 — A fully worked example, with shapes"
     },
     {
       "kind": "text",
       "title": "Walk the shapes end to end",
-      "body": "Take $n=3$ tokens, $d_k=4$. $X$ is $3\\times d$. Then:\n\n- $Q,K,V$ are each $3\\times 4$.\n- $QK^{T}$ is $3\\times 3$ — row $i$ holds token $i$'s similarity to all 3 keys.\n- Divide by $\\sqrt{4}=2$, softmax each row → a $3\\times 3$ weight matrix, rows sum to 1.\n- Multiply by $V$ ($3\\times 4$) → a $3\\times 4$ output: each token is now a relevance-weighted blend of all values.\n\nThree matmuls and a softmax. No loops, fully parallel — exactly what recurrence couldn't give us."
+      "body": "Concrete numbers beat symbols. Take $n=3$ tokens, model dim $d=8$, and $d_k=d_v=4$.\n\n- $X$ is $3\\times 8$. $W^Q,W^K,W^V$ are $8\\times 4$.\n- $Q=XW^Q,;K=XW^K,;V=XW^V$ are each $3\\times 4$.\n- $S=QK^{T}$ is $3\\times 3$. Row 2 = $[\\,Q_2\\!\\cdot\\!K_1,;Q_2\\!\\cdot\\!K_2,;Q_2\\!\\cdot\\!K_3\\,]$ — token 2's affinity to each key.\n- Divide by $\\sqrt{4}=2$; softmax each row → $A$, $3\\times 3$, every row sums to 1.\n- $AV$ is $(3\\times 3)(3\\times 4)=3\\times 4$: each token replaced by a relevance-weighted blend of the 3 value vectors.\n\nThe output is $3\\times 4$ — same number of tokens, possibly new feature dim. Crucially there is **no loop over positions**: all three tokens are processed by the same matmuls simultaneously. That is the parallelism recurrence could not give us."
     },
     {
       "kind": "text",
-      "title": "Why divide by √dₖ",
-      "body": "With $d_k$ unit-variance entries, $Q_i\\cdot K_j$ has variance $\\approx d_k$, so std $\\approx\\sqrt{d_k}$. For $d_k=64$ that's std $\\approx 8$ — scores land far apart, softmax saturates into a near one-hot, and its gradient goes to ~0. Dividing by $\\sqrt{d_k}$ renormalizes scores to unit variance and keeps softmax responsive. A one-character constant that decides whether the layer trains at all. See it happen:"
+      "title": "Numeric mini-example of one softmax row",
+      "body": "Suppose for query token 2 the scaled scores are $[2.0,;1.0,;0.0]$. Softmax: exponentiate $\\to[e^{2},e^{1},e^{0}]=[7.39,2.72,1.00]$, sum $=11.11$, normalize $\\to[0.665,;0.245,;0.090]$. So token 2's output $=0.665\\,V_1+0.245\\,V_2+0.090\\,V_3$ — dominated by $V_1$ but not exclusively. Note how a score *gap* of 1.0 became a probability *ratio* of $e^{1}\\!\\approx\\!2.7\\times$: softmax turns additive score differences into multiplicative weight ratios. That property is why raw score scale matters so much — which is the next point."
+    },
+    {
+      "kind": "text",
+      "title": "Why divide by √dₖ — the variance argument",
+      "body": "Model $Q_i,K_j$ as vectors of $d_k$ independent entries with mean 0, variance 1. Then $Q_i\\!\\cdot\\!K_j=\\sum_{m=1}^{d_k} Q_{im}K_{jm}$ is a sum of $d_k$ independent mean-0, variance-1 terms, so $\\operatorname{Var}(Q_i\\!\\cdot\\!K_j)\\approx d_k$ and its standard deviation is $\\approx\\sqrt{d_k}$. For $d_k=64$ that's a std of **8** — scores routinely land at $\\pm 16$. Softmax of widely separated logits is almost one-hot, and the gradient of a saturated softmax is ~0 *everywhere*, so the attention layer stops learning. Dividing scores by $\\sqrt{d_k}$ rescales them back to unit variance, keeping softmax in its responsive (non-saturated) regime. It is a one-symbol constant with binary consequences for whether the model trains at all. You will watch this happen live in the sandbox."
     },
     {
       "kind": "question",
@@ -199,13 +214,18 @@
       }
     },
     {
+      "kind": "text",
+      "title": "What the sandbox showed (and why it matters in practice)",
+      "body": "Unscaled, score std grows like $\\sqrt{d_k}$, softmax collapses to one-hot, gradients die — the loss flatlines from step 1. Flip scaling on and std snaps back to ~1 at any $d_k$. This is not a toy concern: it is *the* reason the $1/\\sqrt{d_k}$ factor is in the formula and in every implementation. A surprising amount of \"my transformer won't train\" reduces to a missing or wrong scale factor (or, in decoders, a missing causal mask — next)."
+    },
+    {
       "kind": "section",
-      "title": "Part 5 — Pitfalls & misconceptions"
+      "title": "Part 5 — Edge cases, pitfalls & the failures you'll hit"
     },
     {
       "kind": "text",
-      "title": "The failure you'll actually hit",
-      "body": "The single most common attention bug in practice is forgetting (or mis-scaling) the $\\sqrt{d_k}$ divisor, or — in decoders — forgetting the causal mask. Both produce *plausible-looking* code that trains badly. Diagnose this one:"
+      "title": "The two attention bugs you will actually write",
+      "body": "In practice almost every broken attention layer is one of two bugs, both of which *look* fine and *compile* fine:\n\n1. **Missing/incorrect $\\sqrt{d_k}$ scaling** → saturated softmax → flat loss (just analyzed).\n2. **Missing causal mask** in a decoder → during teacher-forced training each position can attend to *future* tokens (including the answer it must predict), so training loss looks great but generation is garbage, because at inference there is no future to peek at. Fix: add $-\\infty$ to all scores $S_{ij}$ with $j>i$ *before* softmax, so future weights become exactly 0.\n\nBoth are silent: no exception, just a model that mysteriously won't learn or won't generate. Recognizing the symptom *is* the skill. Diagnose one:"
     },
     {
       "kind": "question",
@@ -232,6 +252,11 @@
       }
     },
     {
+      "kind": "text",
+      "title": "Other boundary conditions worth knowing",
+      "body": "- **Padding masks:** batched sequences are padded to equal length; attention to pad positions must be masked ($-\\infty$) or the model attends to garbage.\n- **Numerical stability:** softmax is implemented with the max-subtraction trick (see the softmax lesson) so $e^{\\text{large}}$ doesn't overflow — relevant because attention logits can still be moderately large.\n- **Quadratic cost:** $S=QK^{T}$ is $n\\times n$. Memory and compute are $\\mathcal{O}(n^2)$ in sequence length — the central scaling pain that FlashAttention and sparse/linear attention exist to address (covered in self-attention).\n- **Rank/coverage:** a single softmax row can only express one weighting; representing several relations at once needs *multiple heads* (next lessons)."
+    },
+    {
       "kind": "question",
       "hints": [
         "Q is [n, d_k], K is [n, d_k].",
@@ -255,8 +280,8 @@
     },
     {
       "kind": "text",
-      "title": "Heads specialize",
-      "body": "A trained model grows heads with distinct jobs. Here a pronoun attends back to its antecedent — a *coreference* head. Other heads do locality, syntax, or patterns we still don't fully understand (the field of mechanistic interpretability is built on the fact that these patterns are real and reproducible).",
+      "title": "Heads specialize — a preview of interpretability",
+      "body": "Once trained, attention heads acquire recognizable, reproducible jobs: positional heads (attend to the previous token), syntactic heads (verb→subject), coreference heads (pronoun→antecedent), and the celebrated **induction heads** (\"…A B … A → predict B\") that underlie in-context learning. This visualization shows a coreference-like pattern. The reproducibility of these circuits is the empirical foundation of *mechanistic interpretability* — reverse-engineering trained networks. You're seeing the raw phenomenon that whole research agenda is built on.",
       "viz": "attention-heatmap-explorer",
       "vizProps": {
         "presetIndex": 2
@@ -264,7 +289,7 @@
     },
     {
       "kind": "section",
-      "title": "Part 6 — Connections & what's next"
+      "title": "Part 6 — Connections, teach-back & what's next"
     },
     {
       "kind": "explain_back",
@@ -290,8 +315,8 @@
     },
     {
       "kind": "text",
-      "title": "What's next",
-      "body": "You can derive attention, explain $\\sqrt{d_k}$, and diagnose its classic failure. The follow-ups make it a transformer:\n\n- **[Self-attention](/wiki/self-attention)** — Q,K,V from the *same* sequence.\n- **[Multi-head attention](/wiki/multi-head-attention)** — many subspaces in parallel.\n- **[Causal masking](/wiki/masked-self-attention)** — mask the future for generation.\n\nEverything important in a transformer happens in attention; the rest is plumbing around it."
+      "title": "Where this goes — the rest of the path",
+      "body": "You can now derive scaled dot-product attention from first principles, explain the $\\sqrt{d_k}$ factor via the variance argument, and diagnose its two classic failure modes. The remaining lessons compose this primitive into a transformer:\n\n- **Self-attention** — Q, K, V from the *same* sequence; $\\mathcal{O}(1)$ path length vs. $\\mathcal{O}(n^2)$ cost; causal masking in depth.\n- **Multi-head attention** — $h$ attentions in parallel subspaces so one layer expresses many relations at once; GQA for serving.\n- **Positional encoding** — restoring order to a permutation-equivariant operation.\n- **FFN, LayerNorm, residuals, the block** — the scaffolding that lets you stack attention 100 layers deep.\n\nEverything important happens in attention; the rest is what makes a deep stack of it trainable."
     }
   ]
 }
