@@ -421,7 +421,13 @@ export const api = {
     getPath: (slug: string) =>
       request<MasteryPathResponse>(`/mastery/paths/${slug}`),
     markComplete: (nodeId: string) =>
-      request<OkResponse>(`/mastery/progress/${nodeId}/complete`, { method: "POST" }),
+      request<{
+        ok: true;
+        newAchievements: string[];
+        petHatched?: { species: string; name: string };
+        xpAwarded: number;
+        petLeveledUp?: { newLevel: number };
+      }>(`/mastery/progress/${nodeId}/complete`, { method: "POST" }),
     getQuiz: (nodeId: string) =>
       request<QuizQuestionsResponse>(`/mastery/quiz/${nodeId}`),
     submitQuiz: (nodeId: string, answers: Record<string, string>) =>
@@ -514,6 +520,20 @@ export const api = {
       request<{ ok: true }>(`/mastery/nodes/${nodeId}/slide-event`, {
         method: "POST",
         body: JSON.stringify({ slideIdx, kind }),
+      }),
+    recordAttempt: (
+      nodeId: string,
+      data: {
+        questionId: string;
+        slideIdx?: number;
+        correct: boolean;
+        confidence?: number;
+        answerJson?: string;
+      },
+    ) =>
+      request<{ ok: true }>(`/mastery/nodes/${nodeId}/attempt`, {
+        method: "POST",
+        body: JSON.stringify(data),
       }),
     lessonAnalytics: (nodeId: string) =>
       request<{

@@ -15,6 +15,7 @@ import {
   lessonNotes,
   quizMistakes,
   flashcards,
+  quizAttempts,
 } from "@axiomic/db";
 import { eq, and, desc, inArray, ne, asc, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -321,6 +322,8 @@ mastery.post("/progress/:nodeId/complete", requireAuth, async (c) => {
   // log or claim duplicate progress against streaks.
   let newAchievements: string[] = [];
   let petHatched: { species: string; name: string } | undefined;
+  let xpAwarded = 0;
+  let petLeveledUp: { newLevel: number } | undefined;
   if (!wasAlreadyCompleted) {
     newAchievements = recordActivityAndEvaluate(user.id, "node_completed");
     // S86 — XP grant for completing a mastery node. classId=null
@@ -333,10 +336,68 @@ mastery.post("/progress/:nodeId/complete", requireAuth, async (c) => {
       sourceRefId: nodeId,
     });
     if (xp.petHatched) petHatched = xp.petHatched;
+    xpAwarded = xp.amount ?? 0;
+    petLeveledUp = xp.petLeveledUp;
   }
 
-  return c.json({ ok: true, newAchievements, petHatched });
+  return c.json({
+    ok: true,
+    newAchievements,
+    petHatched,
+    xpAwarded,
+    petLeveledUp,
+  });
 });
+
+// Phase 1b — append-only attempt history (confidence + retry
+// analytics). One row per recorded attempt; attemptNo is the
+// 1-based ordinal for this (user, question). user_progress.quiz_
+// score still overwrites; this table is the durable history that
+// Phase 4 calibration reads.
+const attemptSchema = z.object({
+  questionId: z.string().min(1).max(80),
+  slideIdx: z.number().int().min(0).max(199).optional(),
+  correct: z.boolean(),
+  confidence: z.number().int().min(0).max(3).optional(),
+  answerJson: z.string().max(20000).optional(),
+});
+
+mastery.post(
+  "/nodes/:nodeId/attempt",
+  requireAuth,
+  zValidator("json", attemptSchema),
+  async (c) => {
+    const nodeId = c.req.param("nodeId")!;
+    const user = c.get("user")!;
+    const { questionId, slideIdx, correct, confidence, answerJson } =
+      c.req.valid("json");
+    const db = getDb();
+    const prior = db
+      .select({ count: sql<number>`count(*)`.as("count") })
+      .from(quizAttempts)
+      .where(
+        and(
+          eq(quizAttempts.userId, user.id),
+          eq(quizAttempts.questionId, questionId),
+        ),
+      )
+      .get();
+    db.insert(quizAttempts)
+      .values({
+        id: randomUUID(),
+        userId: user.id,
+        nodeId,
+        questionId,
+        slideIdx: slideIdx ?? null,
+        attemptNo: (prior?.count ?? 0) + 1,
+        correct,
+        confidence: confidence ?? null,
+        answerJson: answerJson ?? null,
+      })
+      .run();
+    return c.json({ ok: true });
+  },
+);
 
 // Per-user mastery summary across all paths.
 mastery.get("/users/:username/summary", (c) => {

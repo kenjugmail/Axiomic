@@ -191,6 +191,13 @@ export function LessonPage() {
   const [solutionShown, setSolutionShown] = useState<Record<string, boolean>>(
     {},
   );
+  const [confidence, setConfidence] = useState<Record<string, number>>({});
+  const recordedAttempts = useRef<Set<string>>(new Set());
+  const [completeResult, setCompleteResult] = useState<{
+    xpAwarded: number;
+    petLeveledUp?: { newLevel: number };
+    newAchievements: string[];
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
@@ -359,6 +366,25 @@ export function LessonPage() {
     return true;
   })();
 
+  function recordAttemptOnce(
+    qid: string,
+    slideIdx: number,
+    correct: boolean,
+    conf?: number,
+  ) {
+    if (!node || recordedAttempts.current.has(qid)) return;
+    recordedAttempts.current.add(qid);
+    api.mastery
+      .recordAttempt(node.id, {
+        questionId: qid,
+        slideIdx,
+        correct,
+        confidence: conf,
+        answerJson: answers[qid],
+      })
+      .catch(() => {});
+  }
+
   function handleNext() {
     if (!canAdvance) return;
     // For question slides, mark them revealed and report the answer
@@ -380,6 +406,14 @@ export function LessonPage() {
       if (slide.retryUntilCorrect && !correct) {
         return;
       }
+      // Committing this question — persist one attempt row (with
+      // confidence iff the learner tapped it during the dwell).
+      recordAttemptOnce(
+        slide.question.id,
+        idx,
+        correct,
+        confidence[slide.question.id],
+      );
     }
     if (isLast) {
       handleFinish();
@@ -404,7 +438,12 @@ export function LessonPage() {
       const score = total > 0 ? correct / total : 1;
       if (score >= PASSING_SCORE) {
         try {
-          await api.mastery.markComplete(node.id);
+          const r = await api.mastery.markComplete(node.id);
+          setCompleteResult({
+            xpAwarded: r.xpAwarded,
+            petLeveledUp: r.petLeveledUp,
+            newAchievements: r.newAchievements,
+          });
         } catch {
           // ignore — auto-mark is best-effort
         }
@@ -839,6 +878,43 @@ export function LessonPage() {
                     )}
                   </div>
                 )}
+                {revealed[slide.question.id] && (
+                  <div className="mt-3 flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-muted-foreground">
+                      How sure were you?
+                    </span>
+                    {[
+                      { v: 0, label: "Guessed" },
+                      { v: 1, label: "Unsure" },
+                      { v: 2, label: "Confident" },
+                    ].map((opt) => {
+                      const qid = slide.question.id;
+                      const sel = confidence[qid] === opt.v;
+                      return (
+                        <button
+                          key={opt.v}
+                          type="button"
+                          onClick={() => {
+                            setConfidence((cf) => ({ ...cf, [qid]: opt.v }));
+                            recordAttemptOnce(
+                              qid,
+                              idx,
+                              scoreLocally(slide.question, answers[qid]),
+                              opt.v,
+                            );
+                          }}
+                          className={`text-xs px-2 py-1 rounded-md border ${
+                            sel
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
               <p className="text-xs text-muted-foreground mt-3">
                 {slide.retryUntilCorrect
@@ -904,6 +980,33 @@ export function LessonPage() {
                   This node is now marked complete.
                 </p>
               )}
+              {completeResult &&
+                (completeResult.xpAwarded > 0 ||
+                  completeResult.petLeveledUp ||
+                  completeResult.newAchievements.length > 0) && (
+                  <div className="flex items-center justify-center gap-2 flex-wrap mb-6">
+                    {completeResult.xpAwarded > 0 && (
+                      <span className="inline-flex items-center gap-1 text-sm px-3 py-1 rounded-full bg-accent-emerald/15 text-accent-emerald font-medium">
+                        +{completeResult.xpAwarded} XP
+                      </span>
+                    )}
+                    {completeResult.petLeveledUp && (
+                      <span className="inline-flex items-center gap-1 text-sm px-3 py-1 rounded-full bg-primary/15 text-primary font-medium">
+                        Pet reached level{" "}
+                        {completeResult.petLeveledUp.newLevel}
+                      </span>
+                    )}
+                    {completeResult.newAchievements.map((a) => (
+                      <span
+                        key={a}
+                        className="inline-flex items-center gap-1 text-sm px-3 py-1 rounded-full bg-accent-amber/15 text-accent-amber font-medium"
+                      >
+                        <Trophy className="w-3.5 h-3.5" strokeWidth={2} />
+                        {a.replace(/_/g, " ")}
+                      </span>
+                    ))}
+                  </div>
+                )}
               <div className="flex items-center justify-center gap-3 flex-wrap">
                 {recommendedNext && recommendedNext.slug !== nodeSlug && (
                   <button
