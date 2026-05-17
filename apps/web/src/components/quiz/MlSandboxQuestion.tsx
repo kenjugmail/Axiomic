@@ -68,7 +68,26 @@ export function MlSandboxQuestion({ question, value, onChange, review }: Props) 
         .map((p) => `${p.name} = ${Number(params[p.name] ?? p.default)}`)
         .join("\n");
       const code = `${assigns}\n${question.harnessCode}\nimport json as _json\n_json.dumps(metrics)`;
-      const out = (await py.runPythonAsync(code)) as string;
+      // Pyodide is single-threaded so a true infinite loop can't be
+      // force-aborted in-thread, but a wall-clock timeout covers the
+      // realistic slow-harness case and guarantees the UI never hangs
+      // waiting forever. On timeout we fall through to the catch and
+      // emit NO graded envelope.
+      const TIMEOUT_MS = 6000;
+      const out = (await Promise.race([
+        py.runPythonAsync(code),
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () =>
+              reject(
+                new Error(
+                  "Harness took too long (>6s). Keep loops/epochs small.",
+                ),
+              ),
+            TIMEOUT_MS,
+          ),
+        ),
+      ])) as string;
       const m = JSON.parse(out) as Record<string, number>;
       const tv = m[question.target.metric];
       const correct =
