@@ -478,6 +478,46 @@ mastery.get("/nodes/:nodeId/frontier", async (c) => {
   }
 });
 
+// Phase 4 — confidence calibration. Aggregates the Phase-1b
+// quiz_attempts confidence vs. correctness so the learner can see
+// where they're over/under-confident ("confidently wrong" is the
+// signal the misconception detector also keys on). Pure read.
+mastery.get("/me/calibration", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const db = getDb();
+  const rows = db
+    .select({
+      confidence: quizAttempts.confidence,
+      n: sql<number>`count(*)`.as("n"),
+      correct: sql<number>`sum(case when ${quizAttempts.correct} then 1 else 0 end)`.as(
+        "correct",
+      ),
+    })
+    .from(quizAttempts)
+    .where(eq(quizAttempts.userId, user.id))
+    .groupBy(quizAttempts.confidence)
+    .all();
+  const LABELS: Record<number, string> = {
+    0: "Guessed",
+    1: "Unsure",
+    2: "Confident",
+    3: "Certain",
+  };
+  const buckets = rows
+    .filter((r) => r.confidence != null)
+    .map((r) => {
+      const n = Number(r.n);
+      return {
+        confidence: r.confidence as number,
+        label: LABELS[r.confidence as number] ?? String(r.confidence),
+        n,
+        accuracy: n > 0 ? Number(r.correct) / n : 0,
+      };
+    })
+    .sort((a, b) => a.confidence - b.confidence);
+  return c.json({ buckets });
+});
+
 // Per-user mastery summary across all paths.
 mastery.get("/users/:username/summary", (c) => {
   const username = c.req.param("username");

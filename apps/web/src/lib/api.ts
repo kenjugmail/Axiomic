@@ -546,6 +546,15 @@ export const api = {
           htmlUrl: string | null;
         }>;
       }>(`/mastery/nodes/${nodeId}/frontier`),
+    calibration: () =>
+      request<{
+        buckets: Array<{
+          confidence: number;
+          label: string;
+          n: number;
+          accuracy: number;
+        }>;
+      }>(`/mastery/me/calibration`),
     lessonAnalytics: (nodeId: string) =>
       request<{
         slideCount: number;

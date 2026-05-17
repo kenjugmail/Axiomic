@@ -210,6 +210,13 @@ export function LessonPage() {
       htmlUrl: string | null;
     }>
   >([]);
+  const [forecast, setForecast] = useState<{
+    estimatedReadyOn: string | null;
+    plan: Array<{ conceptTitle: string | null; targetDate: string }>;
+  } | null>(null);
+  const [calibration, setCalibration] = useState<
+    Array<{ confidence: number; label: string; n: number; accuracy: number }>
+  >([]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
@@ -463,6 +470,22 @@ export function LessonPage() {
       api.mastery
         .frontier(node.id)
         .then((r) => setFrontier(r.papers))
+        .catch(() => {});
+      api.me
+        .readiness()
+        .then((r) =>
+          setForecast({
+            estimatedReadyOn: r.estimatedReadyOn,
+            plan: r.plan.map((p) => ({
+              conceptTitle: p.conceptTitle,
+              targetDate: p.targetDate,
+            })),
+          }),
+        )
+        .catch(() => {});
+      api.mastery
+        .calibration()
+        .then((r) => setCalibration(r.buckets))
         .catch(() => {});
       setPhase("finished");
     } finally {
@@ -1092,6 +1115,54 @@ export function LessonPage() {
                     ))}
                   </div>
                 )}
+              {(() => {
+                const conf = [...calibration]
+                  .sort((a, b) => b.confidence - a.confidence)
+                  .find((b) => b.n > 0);
+                const next = forecast?.plan?.[0];
+                const show =
+                  !!forecast?.estimatedReadyOn || !!next || !!conf;
+                if (!show) return null;
+                return (
+                  <div className="max-w-md mx-auto mb-6 text-left rounded-lg border border-border bg-card p-4 space-y-1.5">
+                    <div className="text-[11px] uppercase tracking-wider text-primary inline-flex items-center gap-1.5">
+                      <Sparkles className="w-3 h-3" strokeWidth={2} />
+                      Your trajectory
+                    </div>
+                    {forecast?.estimatedReadyOn ? (
+                      <p className="text-sm text-muted-foreground">
+                        On track — projected ready{" "}
+                        <span className="font-medium text-foreground">
+                          {new Date(
+                            forecast.estimatedReadyOn,
+                          ).toLocaleDateString()}
+                        </span>
+                        .
+                      </p>
+                    ) : next ? (
+                      <p className="text-sm text-muted-foreground">
+                        Next focus:{" "}
+                        <span className="font-medium text-foreground">
+                          {next.conceptTitle ?? "a weak concept"}
+                        </span>
+                        .
+                      </p>
+                    ) : null}
+                    {conf && (
+                      <p className="text-sm text-muted-foreground">
+                        {conf.label} answers:{" "}
+                        <span className="font-medium text-foreground">
+                          {Math.round(conf.accuracy * 100)}% correct
+                        </span>{" "}
+                        ({conf.n}).
+                        {conf.confidence >= 2 && conf.accuracy < 0.6
+                          ? " You may be over-confident — slow down on these."
+                          : ""}
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
               {frontier.length > 0 && (
                 <div className="max-w-md mx-auto mb-6 text-left rounded-lg border border-border bg-card p-4">
                   <div className="text-[11px] uppercase tracking-wider text-primary mb-2 inline-flex items-center gap-1.5">
