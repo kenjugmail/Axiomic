@@ -980,21 +980,18 @@ function ReflectSlideEditor({
           placeholder="Explain in your own words why…"
         />
       </div>
-      {rubric.length > 0 && (
-        <div>
-          <label className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">
-            Rubric criteria (reference)
-          </label>
-          <ul className="text-xs text-muted-foreground list-disc pl-5 space-y-0.5">
-            {rubric.map((c) => (
-              <li key={c.id}>{c.description}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <RubricEditor
+        rubric={rubric}
+        onChange={(r) =>
+          onChange({
+            ...slide,
+            question: { ...slide.question, rubricCriteria: r },
+          })
+        }
+      />
       <p className="text-xs text-muted-foreground">
-        A reflective prompt — the learner answers in their own words. It
-        does not block progress and is not scored.
+        Reflective prompt — never blocks progress. Add rubric criteria
+        to turn it into the AI-graded "explain it to your pet" teach-back.
       </p>
     </div>
   );
@@ -1289,6 +1286,21 @@ function QuestionSlideEditor({
           q={q}
           onChange={(next) => onChange({ ...slide, question: next })}
         />
+      ) : q.kind === "free_response" || q.kind === "scenario" ? (
+        <FreeResponseEditor
+          q={q}
+          onChange={(next) => onChange({ ...slide, question: next })}
+        />
+      ) : q.kind === "guided_derivation" ? (
+        <GuidedDerivationEditor
+          q={q}
+          onChange={(next) => onChange({ ...slide, question: next })}
+        />
+      ) : q.kind === "ml_sandbox" ? (
+        <MlSandboxEditor
+          q={q}
+          onChange={(next) => onChange({ ...slide, question: next })}
+        />
       ) : (
         <RawJsonEditor
           q={q}
@@ -1576,9 +1588,479 @@ function RawJsonEditor({
       />
       {err && <p className="text-xs text-destructive mt-1">{err}</p>}
       <p className="text-xs text-muted-foreground mt-1">
-        Reach for this when authoring slider, drag-classify, code, or other
-        non-MC kinds. Refer to existing seeded lessons for examples.
+        Reach for this when authoring drag-classify, math-expression,
+        sortable, or code-completion kinds. Refer to existing seeded
+        lessons for examples.
       </p>
+    </div>
+  );
+}
+
+function RubricEditor({
+  rubric,
+  onChange,
+}: {
+  rubric: Array<{ id: string; description: string }>;
+  onChange: (r: Array<{ id: string; description: string }>) => void;
+}) {
+  return (
+    <div>
+      <label className="block text-xs font-medium text-muted-foreground mb-1">
+        Rubric criteria (what a good answer must show)
+      </label>
+      <div className="space-y-2">
+        {rubric.map((c, i) => (
+          <div key={i} className="flex gap-2">
+            <input
+              value={c.id}
+              placeholder="id"
+              onChange={(e) => {
+                const n = [...rubric];
+                n[i] = { ...n[i], id: e.target.value };
+                onChange(n);
+              }}
+              className="w-28 px-2 py-1 rounded-md border border-input bg-background text-xs font-mono"
+            />
+            <input
+              value={c.description}
+              placeholder="criterion"
+              onChange={(e) => {
+                const n = [...rubric];
+                n[i] = { ...n[i], description: e.target.value };
+                onChange(n);
+              }}
+              className="flex-1 px-2 py-1 rounded-md border border-input bg-background text-xs"
+            />
+            <button
+              type="button"
+              onClick={() => onChange(rubric.filter((_, j) => j !== i))}
+              className="text-xs text-destructive px-2"
+              aria-label={`Remove criterion ${i + 1}`}
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={() =>
+          onChange([
+            ...rubric,
+            { id: `c${rubric.length + 1}`, description: "" },
+          ])
+        }
+        className="mt-2 text-xs text-primary hover:underline"
+      >
+        + Add criterion
+      </button>
+    </div>
+  );
+}
+
+function FreeResponseEditor({
+  q,
+  onChange,
+}: {
+  q: any;
+  onChange: (next: any) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      {q.kind === "scenario" && (
+        <div>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">
+            Scenario (markdown — the situation to diagnose)
+          </label>
+          <textarea
+            value={q.scenario ?? ""}
+            onChange={(e) => onChange({ ...q, scenario: e.target.value })}
+            rows={4}
+            className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm"
+          />
+        </div>
+      )}
+      <RubricEditor
+        rubric={q.rubricCriteria ?? []}
+        onChange={(r) => onChange({ ...q, rubricCriteria: r })}
+      />
+      <div className="flex gap-3">
+        <div>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">
+            Pass ratio (0–1, default 0.6)
+          </label>
+          <input
+            type="number"
+            min={0}
+            max={1}
+            step={0.05}
+            value={q.passRatio ?? 0.6}
+            onChange={(e) =>
+              onChange({ ...q, passRatio: parseFloat(e.target.value) })
+            }
+            className="w-28 px-2 py-1 rounded-md border border-input bg-background text-sm"
+          />
+        </div>
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-muted-foreground mb-1">
+          Sample answer (optional)
+        </label>
+        <textarea
+          value={q.sampleAnswer ?? ""}
+          onChange={(e) =>
+            onChange({ ...q, sampleAnswer: e.target.value || undefined })
+          }
+          rows={2}
+          className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm"
+        />
+      </div>
+    </div>
+  );
+}
+
+function GuidedDerivationEditor({
+  q,
+  onChange,
+}: {
+  q: any;
+  onChange: (next: any) => void;
+}) {
+  const steps: any[] = q.steps ?? [];
+  const setStep = (i: number, patch: any) => {
+    const n = [...steps];
+    n[i] = { ...n[i], ...patch };
+    onChange({ ...q, steps: n });
+  };
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="block text-xs font-medium text-muted-foreground mb-1">
+          Goal (markdown)
+        </label>
+        <textarea
+          value={q.goal ?? ""}
+          onChange={(e) => onChange({ ...q, goal: e.target.value })}
+          rows={2}
+          className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm"
+        />
+      </div>
+      {steps.map((st, i) => {
+        const acc = st.accepts ?? { mode: "text", rubricCriteria: [] };
+        return (
+          <div key={i} className="rounded-md border border-border p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                Step {i + 1}
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  onChange({
+                    ...q,
+                    steps: steps.filter((_, j) => j !== i),
+                  })
+                }
+                className="text-xs text-destructive"
+              >
+                Remove
+              </button>
+            </div>
+            <textarea
+              value={st.prompt ?? ""}
+              placeholder="prompt"
+              onChange={(e) => setStep(i, { prompt: e.target.value })}
+              rows={2}
+              className="w-full px-2 py-1 rounded-md border border-input bg-background text-xs"
+            />
+            <textarea
+              value={st.motivation ?? ""}
+              placeholder="why this step is forced"
+              onChange={(e) => setStep(i, { motivation: e.target.value })}
+              rows={2}
+              className="w-full px-2 py-1 rounded-md border border-input bg-background text-xs"
+            />
+            <select
+              value={acc.mode}
+              onChange={(e) => {
+                const m = e.target.value;
+                const base =
+                  m === "math"
+                    ? { mode: "math", acceptedAnswers: [] }
+                    : m === "choice"
+                      ? { mode: "choice", options: [], correctIndex: 0 }
+                      : { mode: "text", rubricCriteria: [] };
+                setStep(i, { accepts: base });
+              }}
+              className="px-2 py-1 rounded-md border border-input bg-background text-xs"
+            >
+              <option value="math">math</option>
+              <option value="choice">choice</option>
+              <option value="text">text</option>
+            </select>
+            {acc.mode === "math" && (
+              <input
+                value={(acc.acceptedAnswers ?? []).join(" | ")}
+                placeholder="accepted answers, pipe-separated"
+                onChange={(e) =>
+                  setStep(i, {
+                    accepts: {
+                      mode: "math",
+                      acceptedAnswers: e.target.value
+                        .split("|")
+                        .map((s) => s.trim())
+                        .filter(Boolean),
+                    },
+                  })
+                }
+                className="w-full px-2 py-1 rounded-md border border-input bg-background text-xs font-mono"
+              />
+            )}
+            {acc.mode === "choice" && (
+              <div className="space-y-1">
+                <input
+                  value={(acc.options ?? []).join(" | ")}
+                  placeholder="options, pipe-separated"
+                  onChange={(e) =>
+                    setStep(i, {
+                      accepts: {
+                        ...acc,
+                        mode: "choice",
+                        options: e.target.value
+                          .split("|")
+                          .map((s) => s.trim())
+                          .filter(Boolean),
+                      },
+                    })
+                  }
+                  className="w-full px-2 py-1 rounded-md border border-input bg-background text-xs"
+                />
+                <input
+                  type="number"
+                  min={0}
+                  value={acc.correctIndex ?? 0}
+                  aria-label="correct option index"
+                  onChange={(e) =>
+                    setStep(i, {
+                      accepts: {
+                        ...acc,
+                        mode: "choice",
+                        correctIndex: parseInt(e.target.value, 10) || 0,
+                      },
+                    })
+                  }
+                  className="w-24 px-2 py-1 rounded-md border border-input bg-background text-xs"
+                />
+              </div>
+            )}
+            {acc.mode === "text" && (
+              <RubricEditor
+                rubric={acc.rubricCriteria ?? []}
+                onChange={(r) =>
+                  setStep(i, {
+                    accepts: { mode: "text", rubricCriteria: r },
+                  })
+                }
+              />
+            )}
+            <textarea
+              value={(st.hints ?? []).join("\n")}
+              placeholder="hints, one per line"
+              onChange={(e) =>
+                setStep(i, {
+                  hints: e.target.value
+                    .split("\n")
+                    .filter((s) => s.trim().length > 0),
+                })
+              }
+              rows={2}
+              className="w-full px-2 py-1 rounded-md border border-input bg-background text-xs"
+            />
+            <textarea
+              value={st.reveal ?? ""}
+              placeholder="worked reveal"
+              onChange={(e) => setStep(i, { reveal: e.target.value })}
+              rows={2}
+              className="w-full px-2 py-1 rounded-md border border-input bg-background text-xs"
+            />
+          </div>
+        );
+      })}
+      <button
+        type="button"
+        onClick={() =>
+          onChange({
+            ...q,
+            steps: [
+              ...steps,
+              {
+                prompt: "",
+                motivation: "",
+                accepts: { mode: "text", rubricCriteria: [] },
+                hints: [],
+                reveal: "",
+              },
+            ],
+          })
+        }
+        className="text-xs text-primary hover:underline"
+      >
+        + Add step
+      </button>
+      <div>
+        <label className="block text-xs font-medium text-muted-foreground mb-1">
+          Final result (markdown, optional)
+        </label>
+        <textarea
+          value={q.finalResult ?? ""}
+          onChange={(e) =>
+            onChange({ ...q, finalResult: e.target.value || undefined })
+          }
+          rows={2}
+          className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm"
+        />
+      </div>
+    </div>
+  );
+}
+
+function MlSandboxEditor({
+  q,
+  onChange,
+}: {
+  q: any;
+  onChange: (next: any) => void;
+}) {
+  const params: any[] = q.params ?? [];
+  const target = q.target ?? { metric: "", op: "lte", value: 0 };
+  const setParam = (i: number, patch: any) => {
+    const n = [...params];
+    n[i] = { ...n[i], ...patch };
+    onChange({ ...q, params: n });
+  };
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="block text-xs font-medium text-muted-foreground mb-1">
+          Params (slider → injected as a Python global)
+        </label>
+        <div className="space-y-2">
+          {params.map((p, i) => (
+            <div key={i} className="flex flex-wrap gap-1 items-center">
+              <input
+                value={p.name ?? ""}
+                placeholder="name"
+                onChange={(e) => setParam(i, { name: e.target.value })}
+                className="w-24 px-2 py-1 rounded-md border border-input bg-background text-xs font-mono"
+              />
+              <input
+                value={p.label ?? ""}
+                placeholder="label"
+                onChange={(e) => setParam(i, { label: e.target.value })}
+                className="w-32 px-2 py-1 rounded-md border border-input bg-background text-xs"
+              />
+              {(["min", "max", "step", "default"] as const).map((k) => (
+                <input
+                  key={k}
+                  type="number"
+                  value={p[k] ?? 0}
+                  aria-label={`${p.name || "param"} ${k}`}
+                  placeholder={k}
+                  onChange={(e) =>
+                    setParam(i, { [k]: parseFloat(e.target.value) })
+                  }
+                  className="w-16 px-1 py-1 rounded-md border border-input bg-background text-xs"
+                />
+              ))}
+              <button
+                type="button"
+                onClick={() =>
+                  onChange({
+                    ...q,
+                    params: params.filter((_, j) => j !== i),
+                  })
+                }
+                className="text-xs text-destructive px-1"
+                aria-label={`Remove param ${i + 1}`}
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={() =>
+            onChange({
+              ...q,
+              params: [
+                ...params,
+                { name: "", label: "", min: 0, max: 1, step: 1, default: 0 },
+              ],
+            })
+          }
+          className="mt-1 text-xs text-primary hover:underline"
+        >
+          + Add param
+        </button>
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-muted-foreground mb-1">
+          Harness (Python; numpy as np; set a `metrics` dict; keep
+          loops/epochs small — 6s cap)
+        </label>
+        <textarea
+          value={q.harnessCode ?? ""}
+          onChange={(e) => onChange({ ...q, harnessCode: e.target.value })}
+          rows={6}
+          className="w-full px-3 py-2 rounded-md border border-input bg-background text-xs font-mono"
+        />
+      </div>
+      <div className="flex gap-2 items-end">
+        <div>
+          <label className="block text-xs text-muted-foreground mb-1">
+            target metric
+          </label>
+          <input
+            value={target.metric}
+            onChange={(e) =>
+              onChange({ ...q, target: { ...target, metric: e.target.value } })
+            }
+            className="px-2 py-1 rounded-md border border-input bg-background text-xs font-mono"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-muted-foreground mb-1">op</label>
+          <select
+            value={target.op}
+            onChange={(e) =>
+              onChange({ ...q, target: { ...target, op: e.target.value } })
+            }
+            className="px-2 py-1 rounded-md border border-input bg-background text-xs"
+          >
+            <option value="lt">lt</option>
+            <option value="lte">lte</option>
+            <option value="gt">gt</option>
+            <option value="gte">gte</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs text-muted-foreground mb-1">
+            value
+          </label>
+          <input
+            type="number"
+            value={target.value}
+            onChange={(e) =>
+              onChange({
+                ...q,
+                target: { ...target, value: parseFloat(e.target.value) },
+              })
+            }
+            className="w-24 px-2 py-1 rounded-md border border-input bg-background text-xs"
+          />
+        </div>
+      </div>
     </div>
   );
 }
