@@ -199,6 +199,16 @@ export function LessonPage() {
     petLeveledUp?: { newLevel: number };
     newAchievements: string[];
   } | null>(null);
+  const [frontier, setFrontier] = useState<
+    Array<{
+      kind: string;
+      slug: string;
+      title: string;
+      snippet: string;
+      reason: string;
+      htmlUrl: string | null;
+    }>
+  >([]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
@@ -449,6 +459,10 @@ export function LessonPage() {
           // ignore — auto-mark is best-effort
         }
       }
+      api.mastery
+        .frontier(node.id)
+        .then((r) => setFrontier(r.papers))
+        .catch(() => {});
       setPhase("finished");
     } finally {
       setSubmitting(false);
@@ -1077,6 +1091,45 @@ export function LessonPage() {
                     ))}
                   </div>
                 )}
+              {frontier.length > 0 && (
+                <div className="max-w-md mx-auto mb-6 text-left rounded-lg border border-border bg-card p-4">
+                  <div className="text-[11px] uppercase tracking-wider text-primary mb-2 inline-flex items-center gap-1.5">
+                    <Sparkles className="w-3 h-3" strokeWidth={2} />
+                    Explore the frontier
+                  </div>
+                  <ul className="space-y-2">
+                    {frontier.map((p) =>
+                      p.kind === "external_paper" ? (
+                        <li key={p.slug}>
+                          <a
+                            href={p.htmlUrl ?? "#"}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-sm font-medium text-primary hover:underline"
+                          >
+                            {p.title}
+                          </a>
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {p.reason || p.snippet}
+                          </p>
+                        </li>
+                      ) : (
+                        <li key={p.slug}>
+                          <Link
+                            to={`/research/${p.slug}`}
+                            className="text-sm font-medium text-primary hover:underline"
+                          >
+                            {p.title}
+                          </Link>
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {p.reason || p.snippet}
+                          </p>
+                        </li>
+                      ),
+                    )}
+                  </ul>
+                </div>
+              )}
               <div className="flex items-center justify-center gap-3 flex-wrap">
                 {recommendedNext && recommendedNext.slug !== nodeSlug && (
                   <button

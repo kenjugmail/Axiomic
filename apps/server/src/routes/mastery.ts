@@ -27,6 +27,7 @@ import { grantXp } from "../lib/xp";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import { gradeQuestion } from "../lib/quizGrading";
 import { flashcardFromQuestion } from "../lib/flashcardFromQuestion";
+import { rankPapersForUser } from "../lib/recommend";
 import { forumTopicsForNode } from "../lib/crossLinks";
 import { publishToDraft } from "../lib/liveBus";
 import { createProposal, isApprovalGateEnabled } from "../lib/approvals";
@@ -445,6 +446,37 @@ mastery.post(
     return c.json({ ok: true });
   },
 );
+
+// Phase 2d — "explore the frontier" card. Reuses the persona/
+// interest-aware for-you ranker (rankPapersForUser, which has an
+// anonymous citation+recency fallback built in) so the lesson can
+// connect a concept to real current research. Best-effort: any
+// failure (no embeddings/provider in this env) returns an empty
+// list and the card simply doesn't render — never breaks a lesson.
+// nodeId stays in the path for future concept-biasing without an
+// API change.
+mastery.get("/nodes/:nodeId/frontier", async (c) => {
+  const user = await getSessionUser(c);
+  try {
+    const ranked = await rankPapersForUser(user?.id ?? null, {
+      limit: 3,
+      excludeOwnPapers: true,
+    });
+    const papers = ranked.slice(0, 3).map((r) => ({
+      kind: r.paper.kind,
+      slug: r.paper.slug,
+      title: r.paper.title,
+      snippet: r.paper.snippet,
+      reason: r.reason,
+      htmlUrl:
+        r.paper.kind === "external_paper" ? r.paper.htmlUrl : null,
+    }));
+    return c.json({ papers });
+  } catch (err) {
+    console.error("frontier card ranking failed", err);
+    return c.json({ papers: [] });
+  }
+});
 
 // Per-user mastery summary across all paths.
 mastery.get("/users/:username/summary", (c) => {

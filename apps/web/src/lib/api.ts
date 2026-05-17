@@ -535,6 +535,17 @@ export const api = {
         method: "POST",
         body: JSON.stringify(data),
       }),
+    frontier: (nodeId: string) =>
+      request<{
+        papers: Array<{
+          kind: string;
+          slug: string;
+          title: string;
+          snippet: string;
+          reason: string;
+          htmlUrl: string | null;
+        }>;
+      }>(`/mastery/nodes/${nodeId}/frontier`),
     lessonAnalytics: (nodeId: string) =>
       request<{
         slideCount: number;
