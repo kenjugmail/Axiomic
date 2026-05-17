@@ -1,6 +1,6 @@
 {
   "meta": {
-    "timeMinutes": 35,
+    "timeMinutes": 45,
     "difficulty": "core",
     "objectives": [
       "Derive and apply the quadratic formula; pick the right quadratic form",
@@ -15,17 +15,17 @@
     {
       "kind": "section",
       "title": "Part 1 — Nonlinear, but still rule-based",
-      "body": "Advanced Math (~35% of the Math section) extends algebra to quadratics, polynomials, exponents/radicals, functions, and logs. More forms, same discipline."
+      "body": "Advanced Math (~35% of the Math section) extends algebra to quadratics, polynomials, exponents/radicals, functions, and logs. More forms — same 'choose the form that exposes what's asked' discipline."
     },
     {
       "kind": "text",
       "title": "What it tests",
-      "body": "- **Quadratics:** solve by factoring, the quadratic formula, or completing the square; read vertex/roots from the right form.\n- **Polynomials & functions:** evaluate, transform, interpret $f(x)$.\n- **Exponents & radicals:** the laws, and rewriting roots as fractional powers.\n- **Logarithms/exponential models:** growth/decay.\n\nThe key skill is choosing the *form* that exposes what's asked."
+      "body": "- **Quadratics:** solve by factoring, the quadratic formula, or completing the square; read roots/vertex/intercept from the right form.\n- **Polynomials & functions:** evaluate, transform, interpret $f(x)$ and composition.\n- **Exponents & radicals:** the laws, and rewriting roots as fractional powers.\n- **Exponential/log models:** growth and decay.\n\nThe master skill is selecting the algebraic *form* that makes the asked feature obvious instead of grinding."
     },
     {
       "kind": "text",
-      "title": "The three forms of a quadratic",
-      "body": "> Standard $ax^2+bx+c$ → c is the y-intercept. Factored $a(x-r_1)(x-r_2)$ → roots are obvious. Vertex $a(x-h)^2+k$ → the vertex/extremum is obvious.\n\nThe SAT question tells you which feature it wants (roots, vertex, intercept); your move is to get the quadratic into the matching form rather than grinding."
+      "title": "The three forms of a quadratic (and what each reveals)",
+      "body": "> Standard $ax^2+bx+c$ → $c$ is the y-intercept. Factored $a(x-r_1)(x-r_2)$ → roots $r_1,r_2$ are immediate. Vertex $a(x-h)^2+k$ → vertex/extremum $(h,k)$ is immediate.\n\nThe question tells you which feature it wants (roots, vertex, intercept, max/min). Your move is to convert to the matching form — completing the square for vertex, factoring for roots — not to brute-force. Recognizing 'which form do they want' is the whole strategy."
     },
     {
       "kind": "section",
@@ -34,12 +34,12 @@
     {
       "kind": "text",
       "title": "Factor before you reach for the formula",
-      "body": "Most SAT quadratics factor over nice integers. Try factoring first (fast, error-resistant). Use the quadratic formula only when factoring clearly fails — and even then, simplify the discriminant carefully."
+      "body": "Most SAT quadratics factor over small integers by design. Try factoring first (fast, low error). Use the quadratic formula only when factoring clearly fails, and then simplify the discriminant carefully. Memorize the integer-root patterns; they recur."
     },
     {
       "kind": "text",
       "title": "Exponent/radical fluency",
-      "body": "$\\sqrt[n]{x}=x^{1/n}$, $x^ax^b=x^{a+b}$, $(x^a)^b=x^{ab}$, $x^{-a}=1/x^a$. Rewriting radicals as fractional exponents turns scary-looking SAT expressions into one-line simplifications."
+      "body": "Internalize: $\\sqrt[n]{x}=x^{1/n}$, $x^a x^b=x^{a+b}$, $(x^a)^b=x^{ab}$, $x^{-a}=1/x^a$, $x^0=1$. Rewriting radicals as fractional exponents turns intimidating SAT expressions into one-line simplifications — most 'hard' radical items are easy once converted."
     },
     {
       "kind": "section",
@@ -134,12 +134,12 @@
     },
     {
       "kind": "section",
-      "title": "Part 4 — A worked example, end to end"
+      "title": "Part 4 — Worked examples, end to end"
     },
     {
       "kind": "text",
-      "title": "Solve by the best method",
-      "body": "Solve $x^2-5x+6=0$. Factoring is fastest: find two numbers multiplying to 6, summing to −5 → −2 and −3. So $(x-2)(x-3)=0$."
+      "title": "Worked example 1 — solve by the best method",
+      "body": "Solve $x^2-5x+6=0$. Factoring is fastest: two numbers multiplying to $+6$ and summing to $-5$ → $-2$ and $-3$. So $(x-2)(x-3)=0$ → $x=2$ or $x=3$. The quadratic formula would also work but is slower and more error-prone here — *always test factoring first on SAT quadratics*."
     },
     {
       "kind": "question",
@@ -172,8 +172,18 @@
       }
     },
     {
+      "kind": "text",
+      "title": "Worked example 2 — pick the form for the question",
+      "body": "\"What is the minimum value of $y=x^2-6x+11$?\" Don't graph-guess — complete the square to **vertex form**: $x^2-6x+11=(x-3)^2+2$. Vertex $(3,2)$, so the minimum is $\\,2\\,$ at $x=3$. The question asked for an extremum → convert to the form that *shows* the extremum. Form selection replaced computation."
+    },
+    {
       "kind": "section",
-      "title": "Part 5 — Trap answers & pitfalls"
+      "title": "Part 5 — Trap taxonomy & pitfalls"
+    },
+    {
+      "kind": "text",
+      "title": "The advanced-math trap families",
+      "body": "1. **Extraneous roots** — squaring/clearing denominators can add solutions that fail the original equation (must check).\n2. **Lost solutions** — dividing both sides by a variable can delete a valid root (factor instead of divide).\n3. **Exponent mishandling** — adding exponents that should multiply, or fumbling negatives/fractions.\n4. **Wrong form** — grinding standard form when the question wanted vertex/roots.\n\nThe credited answer almost always rewards the right *form* + a back-check."
     },
     {
       "kind": "question",
@@ -283,7 +293,7 @@
     {
       "kind": "text",
       "title": "How it scores & what's next",
-      "body": "Advanced Math rewards picking the right form and never trusting an un-checked root. Next: **Problem-Solving & Data Analysis** — ratios, percentages, statistics, and reading real data."
+      "body": "Advanced Math rewards form selection and never trusting an unchecked root. Next: **Problem-Solving & Data Analysis** — ratios, percentages, statistics, and reading real data, where the points are lost to misreads, not math."
     }
   ]
 }
