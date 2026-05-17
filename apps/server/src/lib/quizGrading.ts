@@ -117,6 +117,28 @@ export function gradeQuestion(q: any, answer: string | undefined): boolean {
       }
       return true;
     }
+    case "free_response":
+    case "scenario":
+    case "ml_sandbox": {
+      if (answer === undefined) return false;
+      try {
+        const r = JSON.parse(answer);
+        return !!r && typeof r === "object" && r.graded === true && r.correct === true;
+      } catch {
+        return false;
+      }
+    }
+    case "guided_derivation": {
+      if (answer === undefined) return false;
+      try {
+        const r = JSON.parse(answer);
+        return (
+          !!r && typeof r === "object" && r.completed === true && r.correct === true
+        );
+      } catch {
+        return false;
+      }
+    }
     default:
       return false;
   }

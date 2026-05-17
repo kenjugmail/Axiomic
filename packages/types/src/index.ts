@@ -944,6 +944,94 @@ export interface CodeCompletionQuestion {
   explanation?: string;
 }
 
+export interface RubricCriterion {
+  id: string;
+  description: string;
+}
+
+// Phase 1 — AI-graded open response. The component calls
+// POST /ai/grade-free-response and writes a result envelope
+// {graded:true,correct,score,maxScore,feedbackMd} into the answer
+// string, so the synchronous grader just reads it (same pattern
+// as the `code` kind's {passed,total}). The server grader has a
+// deterministic heuristic fallback so the offline gate is
+// model-free.
+export interface FreeResponseQuestion {
+  id: string;
+  kind: "free_response";
+  question: string;
+  rubricCriteria: RubricCriterion[];
+  // Fraction of maxScore (0..1) to count as correct. Default 0.6.
+  passRatio?: number;
+  sampleAnswer?: string;
+  explanation?: string;
+}
+
+// Diagnose-the-failure scenario. Same AI-graded path as
+// free_response with a scenario preamble rendered above the box.
+export interface ScenarioQuestion {
+  id: string;
+  kind: "scenario";
+  question: string;
+  scenario: string; // markdown — the situation to diagnose
+  rubricCriteria: RubricCriterion[];
+  passRatio?: number;
+  sampleAnswer?: string;
+  explanation?: string;
+}
+
+// Guided derivation — authored step backbone + AI assist. The
+// learner produces each step; wrong → escalating hints → reveal.
+// math/choice steps grade locally; "text" steps grade via the
+// free-response AI endpoint. The component emits
+// {completed:true,correct} once every step is done-or-revealed.
+export type GuidedDerivationAccepts =
+  | { mode: "math"; acceptedAnswers: string[] }
+  | { mode: "choice"; options: string[]; correctIndex: number }
+  | { mode: "text"; rubricCriteria: RubricCriterion[] };
+
+export interface GuidedDerivationStep {
+  prompt: string;
+  motivation: string; // why this step is forced
+  accepts: GuidedDerivationAccepts;
+  hints: string[]; // progressive t1..tN
+  reveal: string; // worked step + why
+}
+
+export interface GuidedDerivationQuestion {
+  id: string;
+  kind: "guided_derivation";
+  question: string;
+  goal: string;
+  steps: GuidedDerivationStep[];
+  finalResult?: string;
+  explanation?: string;
+}
+
+// Phase 3 — interactive ML sandbox. Sliders feed params into a
+// Python harness (Pyodide, numpy available) that must set a
+// `metrics` dict; pass when metrics[target.metric] satisfies the
+// op. The component emits the same {graded,correct} envelope as
+// free_response so the synchronous graders need no special case.
+export interface MlSandboxParam {
+  name: string; // python global the slider binds to
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  default: number;
+}
+
+export interface MlSandboxQuestion {
+  id: string;
+  kind: "ml_sandbox";
+  question: string;
+  params: MlSandboxParam[];
+  harnessCode: string;
+  target: { metric: string; op: "lt" | "lte" | "gt" | "gte"; value: number };
+  explanation?: string;
+}
+
 export type QuizQuestion =
   | MultipleChoiceQuestion
   | SliderQuestion
@@ -952,7 +1040,19 @@ export type QuizQuestion =
   | PuzzleDragBuildQuestion
   | MathExpressionQuestion
   | SortableQuestion
-  | CodeCompletionQuestion;
+  | CodeCompletionQuestion
+  | FreeResponseQuestion
+  | ScenarioQuestion
+  | GuidedDerivationQuestion
+  | MlSandboxQuestion;
+
+export interface AiFreeResponseGrade {
+  score: number;
+  maxScore: number;
+  correct: boolean;
+  feedbackMd: string;
+  gradedBy: string;
+}
 
 // Coerce a raw question (which may lack `kind`) into a typed one. Used
 // by both server-side scoring and frontend rendering.
@@ -1101,12 +1201,58 @@ export interface LessonTextSlide {
 export interface LessonQuestionSlide {
   kind: "question";
   question: QuizQuestion;
+  // Phase 1b — opt-in pedagogy wrappers (slide-level, so they apply
+  // to any question kind without bloating each one). All optional;
+  // absent ⇒ exactly today's non-blocking behaviour.
+  hints?: string[]; // progressive tiers, revealed one at a time
+  workedSolution?: string; // markdown, revealed on demand
+  retryUntilCorrect?: boolean; // block advance until correct
 }
 
-export type LessonSlide = LessonTextSlide | LessonQuestionSlide;
+// Phase 44 — a chapter/part divider for "more structured" lessons.
+// Full-width header (large title + optional markdown intro);
+// participates in slide nav like any slide.
+export interface LessonSectionSlide {
+  kind: "section";
+  title: string;
+  body?: string;            // optional markdown intro
+}
+
+// A non-blocking reflective prompt ("explain it back in your own
+// words"). Used by 46 seeded lessons. Carries optional rubric
+// criteria (data already present in seed content). It never blocks
+// progress and is not scored — Phase 5's `teach_back` is the
+// AI-graded variant; the two coexist.
+export interface LessonReflectPrompt {
+  id: string;
+  kind: "explain_back";
+  prompt: string;
+  rubricCriteria?: { id: string; description: string }[];
+}
+
+export interface LessonReflectSlide {
+  kind: "explain_back";
+  question: LessonReflectPrompt;
+}
+
+export type LessonSlide =
+  | LessonTextSlide
+  | LessonQuestionSlide
+  | LessonSectionSlide
+  | LessonReflectSlide;
+
+// Phase 1b — optional lesson-level metadata shown as an intro card
+// on the first slide. All fields optional; absent ⇒ no intro card.
+export interface LessonMeta {
+  timeMinutes?: number;
+  difficulty?: "intro" | "core" | "advanced";
+  objectives?: string[];
+  prereqs?: string[];
+}
 
 export interface Lesson {
   slides: LessonSlide[];
+  meta?: LessonMeta;
 }
 
 export interface LessonResponse {

@@ -1,22 +1,36 @@
 {
   "slides": [
     {
+      "kind": "section",
+      "title": "Part 1 — Meaning as geometry",
+      "body": "Tokens are arbitrary integers — token 12 has no relationship to token 13. Embeddings fix that by giving every token a *location in space*, arranged so that **distance encodes meaning**. This space is the substrate every later layer manipulates."
+    },
+    {
       "kind": "text",
-      "title": "Words as vectors",
-      "body": "An **embedding** is a list of numbers — a vector — that represents a word. Instead of treating tokens as arbitrary integers (token 12 has nothing to do with token 13), we place each one at a specific point in a high-dimensional space.\n\nThe magic property: **words with similar meanings end up near each other**.\n\nThink of a giant room where every word in English has a location. `dog` and `cat` are near each other because they're both pets. `king` and `queen` are near each other because they're both royalty. `Paris` and `France` are near each other because of geography. This room is the embedding space; each word's location is its embedding vector.\n\nA typical transformer embedding has 768 to 4,096 dimensions — far more than 3, but the geometric intuition still holds.",
+      "title": "Words become vectors",
+      "body": "An **embedding** is a learned vector for each token. Picture a room where every word has a position: `dog` sits near `cat` (both pets), `king` near `queen` (royalty), `Paris` near `France` (geography).\n\nExplore the space on the right — notice that semantically related words cluster. A real transformer embedding has 768–4096 dimensions, but the geometric intuition (near = related) holds in any dimension.\n\nThe model is never *told* that dog and cat are similar. That structure **emerges** from training.",
       "viz": "embedding-explorer"
     },
     {
       "kind": "text",
-      "title": "Similarity is direction, not magnitude",
-      "body": "When we ask *\"how similar are these two words?\"*, we usually mean **cosine similarity** — the angle between their embedding vectors. Two vectors pointing in the same direction are maximally similar (cosine = 1); perpendicular vectors are unrelated (cosine = 0); opposite vectors are anti-related (cosine = -1).\n\nMagnitude is mostly ignored in semantic-similarity contexts. A common embedding has length ~1 anyway, after L2 normalization.\n\nWhy does this work? Because the model is trained on the **distributional hypothesis**: words that appear in similar contexts get pushed toward similar directions. `king` and `queen` co-occur with similar surrounding words (royal, throne, crown), so the training objective drives their vectors close together."
+      "title": "Similarity is direction (cosine), not length",
+      "body": "\"How related are two words?\" usually means **cosine similarity** — the cosine of the angle between their vectors:\n\n$$\\cos(\\theta) = \\frac{u \\cdot v}{\\lVert u\\rVert\\,\\lVert v\\rVert}$$\n\n- Same direction → cosine ≈ 1 (very related).\n- Perpendicular → 0 (unrelated).\n- Opposite → -1 (anti-related).\n\nMagnitude is largely ignored for semantics (vectors are often L2-normalized). What matters is *which way* a vector points. This is the exact quantity attention will compute between queries and keys — so this geometry is not optional background, it is the mechanism."
+    },
+    {
+      "kind": "text",
+      "title": "Why this geometry appears: distributional training",
+      "body": "Embeddings are **learned**, not designed. In a transformer the embedding layer is one matrix $E$ of shape $[\\text{vocab},\\, d_{model}]$; token id 42 simply fetches row 42. Gradients from next-token prediction flow back into $E$ and nudge rows.\n\nThe **distributional hypothesis**: words in similar contexts get similar vectors. `king` and `queen` co-occur with *royal, throne, crown*, so training pulls their rows together. Trained on hundreds of billions of tokens, the famous analogy structure $\\text{king} - \\text{man} + \\text{woman} \\approx \\text{queen}$ (Mikolov et al., 2013) emerges as a side effect."
+    },
+    {
+      "kind": "section",
+      "title": "Part 2 — Check your understanding"
     },
     {
       "kind": "question",
       "question": {
-        "id": "lesson_q1",
+        "id": "emb_q1",
         "kind": "multiple_choice",
-        "question": "Which pair of words would you expect to have the *highest* cosine similarity in a well-trained embedding space?",
+        "question": "Which pair would you expect to have the HIGHEST cosine similarity in a well-trained embedding space?",
         "options": [
           "doctor and nurse",
           "doctor and lamppost",
@@ -24,18 +38,64 @@
           "doctor and the"
         ],
         "correctIndex": 0,
-        "explanation": "doctor and nurse co-occur in many similar contexts (hospitals, medicine, patients), so their embeddings are pulled toward similar directions during training. The other pairs share little contextual structure."
+        "explanation": "doctor and nurse share contexts (hospital, patient, medicine), so training drives their vectors into similar directions. The other pairs share little contextual structure, so their angles stay large (low cosine)."
       }
     },
     {
-      "kind": "text",
-      "title": "Where embeddings come from",
-      "body": "Embeddings aren't designed by hand — they're **learned**, alongside the rest of the model.\n\nIn a transformer, the embedding layer is just a giant matrix `E` of shape `[vocab_size, d_model]`. Token id 42 fetches row 42 of this matrix as its starting vector. During training, gradients flow back into `E` and adjust those rows so that the model's predictions get better.\n\nFor a model trained on next-token prediction over hundreds of billions of tokens, the embeddings end up encoding remarkably structured semantic knowledge. The famous `king − man + woman ≈ queen` pattern (Mikolov et al. 2013) emerges from this kind of training.\n\nModern transformers also **tie** the input embedding matrix to the output projection — the same matrix that turned tokens into vectors at the start is used (transposed) to turn vectors back into token probabilities at the end."
+      "kind": "question",
+      "question": {
+        "id": "emb_q2",
+        "kind": "multiple_choice",
+        "question": "Two embedding vectors point the same direction but one is 10× longer. Their cosine similarity is:",
+        "options": [
+          "≈ 1 — cosine divides out magnitude, so only direction matters",
+          "≈ 10 — longer vectors are more similar",
+          "≈ 0.1 — the length ratio reduces similarity",
+          "Undefined for vectors of different length"
+        ],
+        "correctIndex": 0,
+        "explanation": "Cosine normalizes by both magnitudes (‖u‖‖v‖), so a pure scaling cancels out: same direction ⇒ cosine ≈ 1 regardless of length. This is exactly why semantic similarity is an angle, not a distance."
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 3 — Embeddings inside the transformer",
+      "body": "Embeddings are the *start*, not the destination. Everything downstream is a transformation of this vector field."
     },
     {
       "kind": "text",
-      "title": "How attention uses embeddings",
-      "body": "Embeddings aren't the destination — they're the **starting point**. Every transformer layer reads the embedding of each token, computes a new representation that mixes information across tokens via [attention](/wiki/attention), and writes the result back.\n\nThe key insight to carry forward: attention computes **dot products between embedding-derived vectors** (queries and keys). High dot product means \"these two tokens are aligned in the relevant subspace,\" which is exactly the geometric relationship we just discussed.\n\nSo every concept on this path — positional encoding, attention, multi-head, the transformer block — is operating on this vector geometry. The embedding space is the substrate of meaning that the rest of the network manipulates."
+      "title": "Tied weights and the output head",
+      "body": "Many transformers **tie** the input embedding matrix to the output projection: the same $E$ that turned tokens into vectors is reused (transposed) at the end to turn the final vector back into vocabulary logits. This shares parameters and tends to improve quality.\n\nSo the embedding matrix is doing double duty — encoding meaning on the way in *and* scoring tokens on the way out. A subtle consequence: improving how a token is represented also improves how confidently it can be predicted."
+    },
+    {
+      "kind": "text",
+      "title": "Contextual vs static",
+      "body": "The embedding-table vector is **static** — `bank` gets one vector whether it's a river bank or a money bank. The transformer's job is to make representations **contextual**: each attention layer mixes in information from surrounding tokens so that, by the upper layers, `bank` in *\"river bank\"* and *\"savings bank\"* have moved to different places.\n\nThat's the bridge to the rest of the path: the static embedding is the raw material; attention is the machine that contextualizes it."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "emb_q3",
+        "kind": "multiple_choice",
+        "question": "In a transformer, where does the meaning of the WORD 'bank' get disambiguated between 'river bank' and 'savings bank'?",
+        "options": [
+          "In the attention layers, which mix in surrounding-token information to make the representation contextual",
+          "In the embedding table — it stores both senses",
+          "In the tokenizer, which splits the two senses",
+          "It is never disambiguated; the model guesses"
+        ],
+        "correctIndex": 0,
+        "explanation": "The embedding table is static (one vector per token id). Disambiguation happens because attention layers blend in context (river vs savings), moving the token's representation toward the right sense as it flows up the stack."
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Recap"
+    },
+    {
+      "kind": "text",
+      "title": "What to carry forward",
+      "body": "- An **embedding** places each token in a learned vector space where **direction encodes meaning** (cosine similarity).\n- The structure is **learned** from context (distributional hypothesis), not designed.\n- The embedding matrix is often **tied** to the output head.\n- Table embeddings are **static**; attention makes them **contextual**.\n\n**Next:** [Positional encoding](/wiki/positional-encoding) — injecting word *order* into these vectors — then [attention](/wiki/attention), which computes the dot-product geometry you just learned."
     }
   ]
 }

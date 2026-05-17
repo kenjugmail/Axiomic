@@ -1,61 +1,193 @@
 {
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "core",
+    "objectives": [
+      "Explain what LayerNorm normalizes and why",
+      "Contrast pre-norm vs post-norm placement"
+    ],
+    "prereqs": []
+  },
   "slides": [
     {
+      "kind": "section",
+      "title": "Part 1 — Keeping a deep stack stable",
+      "body": "Stack 50 layers without normalization and activations drift by orders of magnitude; the loss plateaus and nothing trains. Layer normalization is one of the two tricks (the other is residuals) that make deep transformers possible at all."
+    },
+    {
       "kind": "text",
-      "title": "The problem layer norm solves",
-      "body": "Train a deep network without normalization and watch the activations drift. Layer 5's outputs are 100× larger than layer 1's; layer 20's are 100× smaller. Gradient flow gets weird, the loss plateaus, and you can't train at any reasonable learning rate.\n\n**Layer normalization** keeps activations on a stable scale. For each token's vector at each layer, it:\n1. Computes the **mean** and **standard deviation** across the feature dimension.\n2. Subtracts the mean, divides by the std (so the result has mean 0, std 1).\n3. Applies learned **scale** and **shift** parameters (`γ` and `β`) to recover whatever scale the model wants.\n\n$$\\text{LN}(x) = \\gamma \\cdot \\frac{x - \\mu}{\\sigma + \\epsilon} + \\beta$$\n\nThe key property: layer norm operates **per token, across features**. This is different from batch norm — and the difference matters a lot in practice."
+      "title": "What layer norm does",
+      "body": "For each token's vector, **per token, across the feature dimension**:\n\n1. Compute mean $\\mu$ and std $\\sigma$ over the $d_{model}$ features.\n2. Normalize: subtract $\\mu$, divide by $\\sigma$.\n3. Apply learned scale $\\gamma$ and shift $\\beta$:\n\n$$\\text{LN}(x)=\\gamma\\cdot\\frac{x-\\mu}{\\sigma+\\epsilon}+\\beta$$\n\nThe activation panel on the right shows what unnormalized vs normalized activations look like across a layer — the normalized ones stay on a stable scale instead of drifting. The defining property: LN is computed **per token**, independent of batch and sequence length.",
+      "viz": "layer-activations"
     },
     {
       "kind": "text",
       "title": "Layer norm vs batch norm",
-      "body": "It's easy to confuse the two. Both normalize. They normalize over **different axes**:\n\n- **Batch norm** normalizes each *feature* across the *batch*. Mean and std are computed for feature `f` across all examples in the minibatch.\n- **Layer norm** normalizes each *example* across its *features*. Mean and std are computed per token, across all `d_model` features.\n\nThis matters for two reasons:\n\n**Inference behavior.** Batch norm has different stats at training (per-batch) and inference (running averages). Get the mode wrong and your predictions are corrupted. Layer norm is identical at training and inference — there's no batch dependence.\n\n**Sequence length variation.** Transformers process sequences of variable length. Batch norm gets confused when sequences are padded or batches mix lengths. Layer norm doesn't care."
+      "body": "Both normalize, over **different axes**:\n\n- **Batch norm:** per *feature*, across the *batch*.\n- **Layer norm:** per *example/token*, across its *features*.\n\nWhy it matters for transformers:\n\n- **Inference parity.** Batch norm uses per-batch stats at train time and running averages at inference — forget to switch and predictions silently corrupt. Layer norm is identical in both.\n- **Variable length.** Transformers process variable-length, padded sequences; batch norm's batch stats get confused, layer norm doesn't care."
     },
     {
       "kind": "question",
       "question": {
         "id": "ln_q1",
         "kind": "multiple_choice",
-        "question": "A model uses batch norm at training. At inference, batch_size = 1. What goes wrong?",
+        "question": "For an input of shape [batch, seq_len, d_model], which axis does layer norm reduce over?",
         "options": [
-          "Nothing — batch norm works the same way at any batch size",
-          "With batch_size = 1, the per-batch statistics become extremely noisy unless the layer is in 'eval mode' using running averages from training; forgetting to switch modes silently corrupts predictions",
-          "The model becomes faster",
-          "The activations explode regardless of mode"
+          "d_model — per-token, per-example",
+          "batch",
+          "seq_len",
+          "all three"
         ],
-        "correctIndex": 1,
-        "explanation": "Batch norm uses two different stats sources: per-batch (training) and running averages (inference). At batch_size = 1, per-batch stats are useless — the 'mean' is just the input itself. PyTorch's `model.eval()` toggles to running averages; forgetting it is one of the most common deployment bugs. Layer norm avoids this entirely."
+        "correctIndex": 0,
+        "explanation": "For each (batch, seq position), LN computes mean/std across the d_model feature axis. That batch- and length-independence is exactly why it behaves identically at training and inference — the whole reason it replaced batch norm in transformers."
       }
-    },
-    {
-      "kind": "text",
-      "title": "Pre-norm vs post-norm",
-      "body": "Where you put layer norm relative to the residual connection matters more than people initially realized.\n\n**Post-norm** (original transformer):\n\n```\noutput = LayerNorm(x + Attention(x))\n```\n\n**Pre-norm** (modern, GPT-2 onward):\n\n```\noutput = x + Attention(LayerNorm(x))\n```\n\nThe difference: in post-norm, the residual stream is normalized at every layer, so the pure 'identity' path through the network gets disrupted. In pre-norm, the residual stream is untouched by LN — only the inputs to attention/FFN are normalized.\n\n**Pre-norm trains more stably** especially at deep depths. GPT-3+ all use pre-norm. The tradeoff: post-norm sometimes wins on the final loss when it does train. For most modern recipes, pre-norm is the safe choice; deeper models really need it."
-    },
-    {
-      "kind": "text",
-      "title": "RMSNorm — the simpler variant",
-      "body": "Layer norm has two parts: subtract the mean, divide by the std. **RMSNorm** drops the mean subtraction:\n\n$$\\text{RMSNorm}(x) = \\gamma \\cdot \\frac{x}{\\sqrt{\\frac{1}{d}\\sum x_i^2}}$$\n\nIt only normalizes the magnitude (the root-mean-square), not the centering. Empirically, the mean-subtraction part of layer norm doesn't seem to do much for transformers — RMSNorm matches or beats LayerNorm at modest compute savings.\n\nLLaMA, Mistral, and most other modern open models use RMSNorm. If you see `RMSNorm` in a model card, it's just LN minus the mean-centering term."
     },
     {
       "kind": "question",
       "question": {
         "id": "ln_q2",
         "kind": "multiple_choice",
-        "question": "Which axis does layer norm compute its mean and std over, for an input of shape `[batch, seq_len, d_model]`?",
+        "question": "A model trained with batch norm is served at batch_size = 1 in training mode. What breaks?",
         "options": [
-          "Across the batch dimension",
-          "Across the seq_len dimension",
-          "Across the d_model dimension (i.e., per-token, per-example)",
-          "Across all three dimensions"
+          "Per-batch stats become meaningless (the 'mean' is the single input); only running-average eval mode is correct — forgetting to switch silently corrupts outputs",
+          "Nothing — batch norm is batch-size independent",
+          "It just runs faster",
+          "Activations always explode regardless of mode"
         ],
-        "correctIndex": 2,
-        "explanation": "Layer norm operates per token: for each `(batch, seq_len)` position, the mean and std are computed across the `d_model` feature axis. This is what makes it independent of batch size and sequence length, which is the whole point — it works the same at training and inference."
+        "correctIndex": 0,
+        "explanation": "Batch norm has two stat sources: per-batch (train) and running averages (eval). At batch_size = 1 the per-batch 'statistics' are degenerate. `model.eval()` switches to running averages; forgetting it is a classic deployment bug. Layer norm sidesteps it entirely."
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 2 — Placement and the modern variant"
+    },
+    {
+      "kind": "text",
+      "title": "Pre-norm vs post-norm",
+      "body": "Where LN sits relative to the residual add matters at depth:\n\n**Post-norm** (original): `out = LN(x + Sublayer(x))`\n\n**Pre-norm** (GPT-2 onward): `out = x + Sublayer(LN(x))`\n\nIn pre-norm the residual stream itself is never normalized — the clean identity path is preserved, so very deep stacks train stably. Post-norm normalizes the stream every layer, which destabilizes deep models. Every modern large model uses **pre-norm**; post-norm is mostly historical (it can edge out the final loss when it *does* train, but pre-norm is the safe default)."
+    },
+    {
+      "kind": "text",
+      "title": "RMSNorm",
+      "body": "**RMSNorm** drops the mean-subtraction, normalizing only the magnitude:\n\n$$\\text{RMSNorm}(x)=\\gamma\\cdot\\frac{x}{\\sqrt{\\tfrac{1}{d}\\sum_i x_i^2}}$$\n\nEmpirically the mean-centering term contributes little for transformers, so RMSNorm matches or beats LayerNorm at slightly less compute. LLaMA, Mistral, and most modern open models use it. If a model card says `RMSNorm`, read it as \"LayerNorm minus the recentering.\""
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ln_q3",
+        "kind": "multiple_choice",
+        "question": "Why did large models migrate from post-norm to pre-norm?",
+        "options": [
+          "Pre-norm leaves the residual stream un-normalized, preserving the identity path so very deep stacks train stably",
+          "Pre-norm uses fewer parameters",
+          "Post-norm cannot represent the same functions",
+          "Pre-norm removes the need for residual connections"
+        ],
+        "correctIndex": 0,
+        "explanation": "Pre-norm normalizes only the *input* to each sublayer; the residual stream flows through unnormalized, keeping a clean gradient highway across depth. Post-norm renormalizes the stream every layer, which causes instability as depth grows — fatal for 50–100 layer models."
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Recap"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ln_derive",
+        "kind": "guided_derivation",
+        "question": "Derive LayerNorm",
+        "goal": "From: stabilize each token's activations independent of the batch.",
+        "steps": [
+          {
+            "prompt": "Normalize over which axis?",
+            "motivation": "Per-token over the feature axis makes it batch-size independent — works the same at batch 1 or 1024.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "The feature dimension, per token",
+                "The batch dimension",
+                "The whole tensor at once",
+                "The time axis only"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "It must not depend on other examples in the batch."
+            ],
+            "reveal": "LayerNorm normalizes each token vector over its feature dimension."
+          },
+          {
+            "prompt": "Write LayerNorm(x) (use mean μ, var σ², ε, scale γ, shift β).",
+            "motivation": "Standardize then re-introduce learnable scale/shift so the layer can still represent any mean/variance it needs.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "gamma*(x-mu)/sqrt(sigma^2+eps)+beta",
+                "\\gamma\\frac{x-\\mu}{\\sqrt{\\sigma^2+\\epsilon}}+\\beta",
+                "(x-mu)/sqrt(var+eps)*gamma+beta"
+              ]
+            },
+            "hints": [
+              "Standardize first, then affine with γ, β."
+            ],
+            "reveal": "LN(x) = γ·(x−μ)/√(σ²+ε) + β."
+          }
+        ],
+        "finalResult": "$$\\text{LN}(x)=\\gamma\\,\\frac{x-\\mu}{\\sqrt{\\sigma^2+\\epsilon}}+\\beta$$"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ln_scale",
+        "kind": "ml_sandbox",
+        "question": "Blow the input scale up to 100× — LayerNorm output std should stay ≈ 1 (target ≤ 1.5).",
+        "params": [
+          {
+            "name": "scale",
+            "label": "input scale",
+            "min": 0.1,
+            "max": 100,
+            "step": 0.1,
+            "default": 1
+          }
+        ],
+        "harnessCode": "import numpy as np\nnp.random.seed(0)\nx=np.random.randn(64,256)*float(scale)\nmu=x.mean(1,keepdims=True); var=x.var(1,keepdims=True)\ny=(x-mu)/np.sqrt(var+1e-5)\nmetrics={'out_std':float(y.std())}",
+        "target": {
+          "metric": "out_std",
+          "op": "lte",
+          "value": 1.5
+        },
+        "explanation": "Whatever the input scale, LN renormalizes each token to ~unit variance — that scale-invariance is the whole point."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "ln_teach",
+        "kind": "explain_back",
+        "prompt": "Explain LayerNorm to your pet: what it normalizes, why per-token, and what γ/β are for.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "normalizes each token over its feature dimension"
+          },
+          {
+            "id": "c2",
+            "description": "is independent of batch size (unlike BatchNorm)"
+          },
+          {
+            "id": "c3",
+            "description": "γ and β are learnable scale/shift restoring expressivity"
+          }
+        ]
       }
     },
     {
       "kind": "text",
-      "title": "What's next",
-      "body": "Layer norm is the stabilizer. Combined with [[residual-connections]], it's what makes deep transformer stacks (50, 100+ layers) trainable at all.\n\nMental model:\n- **Residual connections** preserve the gradient signal across depth\n- **Layer norm** keeps activation magnitudes from drifting\n- **Pre-norm placement** keeps the residual stream's identity-path intact\n\nNext: the [[transformer-block]] — putting attention + FFN + norm + residual together into the unit that gets stacked N times to make a real model."
+      "title": "What to carry forward",
+      "body": "- LN normalizes **per token across features** → batch/length independent, identical at train & inference.\n- Not batch norm — different axis, no eval-mode footgun.\n- **Pre-norm** placement is the modern default for trainable depth; **RMSNorm** is the common simplification.\n\n**Next:** [Residual connections](/wiki/residual-connections) — the other half of \"why deep transformers train\" — then the full [transformer block](/wiki/transformer-block)."
     }
   ]
 }

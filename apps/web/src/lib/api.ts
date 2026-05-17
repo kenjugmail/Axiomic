@@ -7,6 +7,7 @@ export type OnboardingGoal =
   | "ship_misconception";
 
 import type {
+  AiFreeResponseGrade,
   AuthResponse,
   Comment,
   CommentResponse,
@@ -420,7 +421,13 @@ export const api = {
     getPath: (slug: string) =>
       request<MasteryPathResponse>(`/mastery/paths/${slug}`),
     markComplete: (nodeId: string) =>
-      request<OkResponse>(`/mastery/progress/${nodeId}/complete`, { method: "POST" }),
+      request<{
+        ok: true;
+        newAchievements: string[];
+        petHatched?: { species: string; name: string };
+        xpAwarded: number;
+        petLeveledUp?: { newLevel: number };
+      }>(`/mastery/progress/${nodeId}/complete`, { method: "POST" }),
     getQuiz: (nodeId: string) =>
       request<QuizQuestionsResponse>(`/mastery/quiz/${nodeId}`),
     submitQuiz: (nodeId: string, answers: Record<string, string>) =>
@@ -514,6 +521,53 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ slideIdx, kind }),
       }),
+    recordAttempt: (
+      nodeId: string,
+      data: {
+        questionId: string;
+        slideIdx?: number;
+        correct: boolean;
+        confidence?: number;
+        answerJson?: string;
+      },
+    ) =>
+      request<{ ok: true }>(`/mastery/nodes/${nodeId}/attempt`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    frontier: (nodeId: string) =>
+      request<{
+        papers: Array<{
+          kind: string;
+          slug: string;
+          title: string;
+          snippet: string;
+          reason: string;
+          htmlUrl: string | null;
+        }>;
+      }>(`/mastery/nodes/${nodeId}/frontier`),
+    calibration: () =>
+      request<{
+        buckets: Array<{
+          confidence: number;
+          label: string;
+          n: number;
+          accuracy: number;
+        }>;
+      }>(`/mastery/me/calibration`),
+    petQuest: () =>
+      request<{
+        quest: {
+          conceptTitle: string;
+          petName: string;
+          justCompleted: boolean;
+        } | null;
+      }>(`/mastery/me/pet-quest`),
+    mintCredential: () =>
+      request<{ verifyId: string; score: number }>(
+        `/mastery/me/credential`,
+        { method: "POST" },
+      ),
     lessonAnalytics: (nodeId: string) =>
       request<{
         slideCount: number;
@@ -863,6 +917,17 @@ export const api = {
       const qs = pageSlug ? `?pageSlug=${encodeURIComponent(pageSlug)}` : "";
       return request<CoachContext>(`/ai/coach/context${qs}`);
     },
+    gradeFreeResponse: (data: {
+      question: string;
+      rubric: string;
+      response: string;
+      maxScore: number;
+      passRatio: number;
+    }) =>
+      request<AiFreeResponseGrade>("/ai/grade-free-response", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
     coachSuggest: (pageSlug?: string) =>
       request<CoachSuggestionsResponse>("/ai/coach/suggest", {
         method: "POST",

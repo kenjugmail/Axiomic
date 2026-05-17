@@ -15,8 +15,12 @@ import {
   lessonNotes,
   quizMistakes,
   flashcards,
+  quizAttempts,
+  petQuests,
+  pets,
+  signedCredentials,
 } from "@axiomic/db";
-import { eq, and, desc, inArray, ne, asc, sql } from "drizzle-orm";
+import { eq, and, desc, inArray, ne, asc, sql, isNull } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { requireAuth, getSessionUser } from "../middleware/auth";
 import { notify } from "../lib/notifications";
@@ -25,6 +29,12 @@ import { recordActivityAndEvaluate } from "../lib/achievements";
 import { grantXp } from "../lib/xp";
 import { invalidateSearchIndex } from "../lib/searchIndex";
 import { gradeQuestion } from "../lib/quizGrading";
+import { flashcardFromQuestion } from "../lib/flashcardFromQuestion";
+import { rankPapersForUser } from "../lib/recommend";
+import {
+  computeAxiomicScore,
+  signAxiomicScore,
+} from "../lib/compositeScore";
 import { forumTopicsForNode } from "../lib/crossLinks";
 import { publishToDraft } from "../lib/liveBus";
 import { createProposal, isApprovalGateEnabled } from "../lib/approvals";
@@ -321,6 +331,8 @@ mastery.post("/progress/:nodeId/complete", requireAuth, async (c) => {
   // log or claim duplicate progress against streaks.
   let newAchievements: string[] = [];
   let petHatched: { species: string; name: string } | undefined;
+  let xpAwarded = 0;
+  let petLeveledUp: { newLevel: number } | undefined;
   if (!wasAlreadyCompleted) {
     newAchievements = recordActivityAndEvaluate(user.id, "node_completed");
     // S86 — XP grant for completing a mastery node. classId=null
@@ -333,9 +345,317 @@ mastery.post("/progress/:nodeId/complete", requireAuth, async (c) => {
       sourceRefId: nodeId,
     });
     if (xp.petHatched) petHatched = xp.petHatched;
+    xpAwarded = xp.amount ?? 0;
+    petLeveledUp = xp.petLeveledUp;
   }
 
-  return c.json({ ok: true, newAchievements, petHatched });
+  return c.json({
+    ok: true,
+    newAchievements,
+    petHatched,
+    xpAwarded,
+    petLeveledUp,
+  });
+});
+
+// Phase 1b — append-only attempt history (confidence + retry
+// analytics). One row per recorded attempt; attemptNo is the
+// 1-based ordinal for this (user, question). user_progress.quiz_
+// score still overwrites; this table is the durable history that
+// Phase 4 calibration reads.
+const attemptSchema = z.object({
+  questionId: z.string().min(1).max(80),
+  slideIdx: z.number().int().min(0).max(199).optional(),
+  correct: z.boolean(),
+  confidence: z.number().int().min(0).max(3).optional(),
+  answerJson: z.string().max(20000).optional(),
+});
+
+mastery.post(
+  "/nodes/:nodeId/attempt",
+  requireAuth,
+  zValidator("json", attemptSchema),
+  async (c) => {
+    const nodeId = c.req.param("nodeId")!;
+    const user = c.get("user")!;
+    const { questionId, slideIdx, correct, confidence, answerJson } =
+      c.req.valid("json");
+    const db = getDb();
+    const prior = db
+      .select({ count: sql<number>`count(*)`.as("count") })
+      .from(quizAttempts)
+      .where(
+        and(
+          eq(quizAttempts.userId, user.id),
+          eq(quizAttempts.questionId, questionId),
+        ),
+      )
+      .get();
+    db.insert(quizAttempts)
+      .values({
+        id: randomUUID(),
+        userId: user.id,
+        nodeId,
+        questionId,
+        slideIdx: slideIdx ?? null,
+        attemptNo: (prior?.count ?? 0) + 1,
+        correct,
+        confidence: confidence ?? null,
+        answerJson: answerJson ?? null,
+      })
+      .run();
+
+    // Phase 2c — wire the embedded-lesson miss into the same
+    // misconception pipeline the standalone /quiz uses: upsert the
+    // mistakes log (so the detector, Knowledge MRI and coach context
+    // see it) and, on a miss, kick the detector. Best-effort.
+    const nowIso = new Date().toISOString();
+    const existingMistake = db
+      .select()
+      .from(quizMistakes)
+      .where(
+        and(
+          eq(quizMistakes.userId, user.id),
+          eq(quizMistakes.nodeId, nodeId),
+          eq(quizMistakes.questionId, questionId),
+        ),
+      )
+      .get();
+    if (!correct) {
+      if (existingMistake) {
+        db.update(quizMistakes)
+          .set({
+            occurrences: existingMistake.occurrences + 1,
+            lastWrongAt: nowIso,
+            resolvedAt: null,
+          })
+          .where(eq(quizMistakes.id, existingMistake.id))
+          .run();
+      } else {
+        db.insert(quizMistakes)
+          .values({
+            id: randomUUID(),
+            userId: user.id,
+            nodeId,
+            questionId,
+            occurrences: 1,
+            lastWrongAt: nowIso,
+          })
+          .run();
+      }
+      fireDetectorForUserAsync(user.id);
+    } else if (existingMistake && !existingMistake.resolvedAt) {
+      db.update(quizMistakes)
+        .set({ resolvedAt: nowIso })
+        .where(eq(quizMistakes.id, existingMistake.id))
+        .run();
+    }
+    return c.json({ ok: true });
+  },
+);
+
+// Phase 2d — "explore the frontier" card. Reuses the persona/
+// interest-aware for-you ranker (rankPapersForUser, which has an
+// anonymous citation+recency fallback built in) so the lesson can
+// connect a concept to real current research. Best-effort: any
+// failure (no embeddings/provider in this env) returns an empty
+// list and the card simply doesn't render — never breaks a lesson.
+// nodeId stays in the path for future concept-biasing without an
+// API change.
+mastery.get("/nodes/:nodeId/frontier", async (c) => {
+  const user = await getSessionUser(c);
+  try {
+    const ranked = await rankPapersForUser(user?.id ?? null, {
+      limit: 3,
+      excludeOwnPapers: true,
+    });
+    const papers = ranked.slice(0, 3).map((r) => ({
+      kind: r.paper.kind,
+      slug: r.paper.slug,
+      title: r.paper.title,
+      snippet: r.paper.snippet,
+      reason: r.reason,
+      htmlUrl:
+        r.paper.kind === "external_paper" ? r.paper.htmlUrl : null,
+    }));
+    return c.json({ papers });
+  } catch (err) {
+    console.error("frontier card ranking failed", err);
+    return c.json({ papers: [] });
+  }
+});
+
+// Phase 4 — confidence calibration. Aggregates the Phase-1b
+// quiz_attempts confidence vs. correctness so the learner can see
+// where they're over/under-confident ("confidently wrong" is the
+// signal the misconception detector also keys on). Pure read.
+mastery.get("/me/calibration", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const db = getDb();
+  const rows = db
+    .select({
+      confidence: quizAttempts.confidence,
+      n: sql<number>`count(*)`.as("n"),
+      correct: sql<number>`sum(case when ${quizAttempts.correct} then 1 else 0 end)`.as(
+        "correct",
+      ),
+    })
+    .from(quizAttempts)
+    .where(eq(quizAttempts.userId, user.id))
+    .groupBy(quizAttempts.confidence)
+    .all();
+  const LABELS: Record<number, string> = {
+    0: "Guessed",
+    1: "Unsure",
+    2: "Confident",
+    3: "Certain",
+  };
+  const buckets = rows
+    .filter((r) => r.confidence != null)
+    .map((r) => {
+      const n = Number(r.n);
+      return {
+        confidence: r.confidence as number,
+        label: LABELS[r.confidence as number] ?? String(r.confidence),
+        n,
+        accuracy: n > 0 ? Number(r.correct) / n : 0,
+      };
+    })
+    .sort((a, b) => a.confidence - b.confidence);
+  return c.json({ buckets });
+});
+
+// Phase 5b — mistake-driven pet quest. The pet "wants to learn"
+// the learner's most-missed concept; clearing its review (the
+// source quiz_mistake getting resolved) completes the quest.
+// Lazy reconcile on read (no coupling into the resolve write
+// paths); auto-generates the next quest from the top unresolved
+// mistake. Reuses the Phase-0 pet_quests table.
+mastery.get("/me/pet-quest", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const db = getDb();
+  const pet = db.select().from(pets).where(eq(pets.userId, user.id)).get();
+  if (!pet) return c.json({ quest: null });
+
+  const active = db
+    .select()
+    .from(petQuests)
+    .where(and(eq(petQuests.userId, user.id), eq(petQuests.status, "active")))
+    .get();
+
+  if (active) {
+    if (active.sourceQuizMistakeId) {
+      const m = db
+        .select()
+        .from(quizMistakes)
+        .where(eq(quizMistakes.id, active.sourceQuizMistakeId))
+        .get();
+      if (m && m.resolvedAt) {
+        db.update(petQuests)
+          .set({ status: "completed", completedAt: new Date().toISOString() })
+          .where(eq(petQuests.id, active.id))
+          .run();
+        const node = db
+          .select({ title: masteryNodes.title })
+          .from(masteryNodes)
+          .where(eq(masteryNodes.slug, active.conceptSlug))
+          .get();
+        return c.json({
+          quest: {
+            conceptTitle: node?.title ?? active.conceptSlug,
+            petName: pet.name,
+            justCompleted: true,
+          },
+        });
+      }
+    }
+    const node = db
+      .select({ title: masteryNodes.title })
+      .from(masteryNodes)
+      .where(eq(masteryNodes.slug, active.conceptSlug))
+      .get();
+    return c.json({
+      quest: {
+        conceptTitle: node?.title ?? active.conceptSlug,
+        petName: pet.name,
+        justCompleted: false,
+      },
+    });
+  }
+
+  const top = db
+    .select()
+    .from(quizMistakes)
+    .where(
+      and(eq(quizMistakes.userId, user.id), isNull(quizMistakes.resolvedAt)),
+    )
+    .orderBy(desc(quizMistakes.occurrences))
+    .get();
+  if (!top) return c.json({ quest: null });
+  const node = db
+    .select({ slug: masteryNodes.slug, title: masteryNodes.title })
+    .from(masteryNodes)
+    .where(eq(masteryNodes.id, top.nodeId))
+    .get();
+  if (!node) return c.json({ quest: null });
+  db.insert(petQuests)
+    .values({
+      id: randomUUID(),
+      userId: user.id,
+      petId: pet.id,
+      conceptSlug: node.slug,
+      sourceQuizMistakeId: top.id,
+      status: "active",
+    })
+    .run();
+  return c.json({
+    quest: {
+      conceptTitle: node.title,
+      petName: pet.name,
+      justCompleted: false,
+    },
+  });
+});
+
+// Phase 6a — mint a persisted, verifiable Axiomic skill credential.
+// Reuses computeAxiomicScore + signAxiomicScore (ed25519 via the
+// shared signing module) and the Phase-0 signed_credentials table.
+// The signed manifest re-verifies offline through the unchanged
+// /api/v1/keys/verify — no new verify crypto here.
+mastery.post("/me/credential", requireAuth, async (c) => {
+  const user = c.get("user")!;
+  const db = getDb();
+  const score = await computeAxiomicScore(user.id, user.username);
+  const signed = signAxiomicScore(user.id, user.username, score);
+  const verifyId = randomUUID();
+  db.insert(signedCredentials)
+    .values({
+      id: randomUUID(),
+      userId: user.id,
+      kind: "composite_score",
+      payloadJson: JSON.stringify(signed.manifest),
+      signature: signed.signature,
+      verifyId,
+    })
+    .run();
+  return c.json({ verifyId, score: score.score, signed });
+});
+
+mastery.get("/credential/:verifyId", async (c) => {
+  const verifyId = c.req.param("verifyId")!;
+  const db = getDb();
+  const row = db
+    .select()
+    .from(signedCredentials)
+    .where(eq(signedCredentials.verifyId, verifyId))
+    .get();
+  if (!row) return c.json({ error: "Not found" }, 404);
+  return c.json({
+    kind: row.kind,
+    manifest: JSON.parse(row.payloadJson),
+    signature: row.signature,
+    issuedAt: row.issuedAt,
+  });
 });
 
 // Per-user mastery summary across all paths.
@@ -642,12 +962,38 @@ const slideSchema = z.union([
         question: z.string().min(1).max(500),
       })
       .passthrough(),
+    hints: z.array(z.string().max(2000)).max(6).optional(),
+    workedSolution: z.string().max(20000).optional(),
+    retryUntilCorrect: z.boolean().optional(),
+  }),
+  z.object({
+    kind: z.literal("section"),
+    title: z.string().min(1).max(200),
+    body: z.string().max(20000).optional(),
+  }),
+  z.object({
+    kind: z.literal("explain_back"),
+    question: z
+      .object({
+        id: z.string().min(1).max(80),
+        kind: z.literal("explain_back"),
+        prompt: z.string().min(1).max(2000),
+      })
+      .passthrough(),
   }),
 ]);
 
 const lessonBodySchema = z.object({
-  slides: z.array(slideSchema).min(1).max(50),
+  slides: z.array(slideSchema).min(1).max(120),
   editMessage: z.string().max(200).optional(),
+  meta: z
+    .object({
+      timeMinutes: z.number().int().min(1).max(600).optional(),
+      difficulty: z.enum(["intro", "core", "advanced"]).optional(),
+      objectives: z.array(z.string().max(300)).max(12).optional(),
+      prereqs: z.array(z.string().max(120)).max(12).optional(),
+    })
+    .optional(),
 });
 
 // PUT /mastery/nodes/:nodeId/lesson — author or replace. With ?draft=1
@@ -662,7 +1008,7 @@ mastery.put(
     const user = c.get("user")!;
     const nodeId = c.req.param("nodeId")!;
     const draftMode = c.req.query("draft") === "1";
-    const { slides, editMessage } = c.req.valid("json");
+    const { slides, editMessage, meta } = c.req.valid("json");
     const db = getDb();
 
     const node = db
@@ -691,7 +1037,10 @@ mastery.put(
       }
     }
 
-    const lessonData = JSON.stringify({ slides });
+    const lessonData = JSON.stringify({
+      slides,
+      ...(meta ? { meta } : {}),
+    });
     const now = new Date().toISOString();
 
     if (draftMode) {
@@ -1131,7 +1480,7 @@ mastery.post(
 // for authors.
 
 const slideEventSchema = z.object({
-  slideIdx: z.number().int().min(0).max(99),
+  slideIdx: z.number().int().min(0).max(199),
   kind: z.enum(["viewed", "answered_correct", "answered_wrong"]),
 });
 
@@ -1386,26 +1735,15 @@ mastery.post("/quiz/:nodeId", requireAuth, zValidator("json", quizSubmitSchema),
     if (nodeRow) {
       for (const q of questions as Array<any>) {
         if (!wrongIds.includes(q?.id)) continue;
-        const kind = q.kind ?? "multiple_choice";
-        if (kind !== "multiple_choice") continue;
-        if (
-          !Array.isArray(q.options) ||
-          typeof q.correctIndex !== "number"
-        )
-          continue;
-        const front = String(q.question ?? "").slice(0, 500);
-        const correctOption = String(q.options[q.correctIndex] ?? "");
-        const back = q.explanation
-          ? `${correctOption}\n\n${q.explanation}`.slice(0, 2000)
-          : correctOption.slice(0, 2000);
-        if (!front || !back) continue;
+        const card = flashcardFromQuestion(q);
+        if (!card || !card.front || !card.back) continue;
         const dup = db
           .select({ id: flashcards.id })
           .from(flashcards)
           .where(
             and(
               eq(flashcards.userId, user.id),
-              eq(flashcards.front, front),
+              eq(flashcards.front, card.front),
             ),
           )
           .get();
@@ -1415,8 +1753,8 @@ mastery.post("/quiz/:nodeId", requireAuth, zValidator("json", quizSubmitSchema),
             userId: user.id,
             pageSlug: nodeRow.slug,
             pageTitle: nodeRow.title,
-            front,
-            back,
+            front: card.front,
+            back: card.back,
           }).run();
         }
       }

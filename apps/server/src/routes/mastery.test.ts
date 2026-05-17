@@ -619,6 +619,46 @@ describe("Mastery: lesson authoring (wiki-style open)", () => {
     });
     expect(res.status).toBe(404);
   });
+
+  // Phase 44 — `section` slide kind (structured lessons) round-trips.
+  test("PUT accepts a section slide and it round-trips", async () => {
+    const res = await req(`/mastery/nodes/${nodeId}/lesson`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...cookieHeader(editor.cookie),
+      },
+      body: JSON.stringify({
+        slides: [
+          {
+            kind: "section",
+            title: "Part 1 — Intuition",
+            body: "Why this matters.",
+          },
+          { kind: "text", title: "Setup", body: "Body." },
+          {
+            kind: "question",
+            question: {
+              id: "qs1",
+              kind: "multiple_choice",
+              question: "Pick A",
+              options: ["A", "B"],
+              correctIndex: 0,
+              explanation: "A is correct because it is first.",
+            },
+          },
+        ],
+        editMessage: "section round-trip",
+      }),
+    });
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as any;
+    expect(data.lesson.slides.length).toBe(3);
+    expect(data.lesson.slides[0]).toMatchObject({
+      kind: "section",
+      title: "Part 1 — Intuition",
+    });
+  });
 });
 
 describe("Mastery: lesson analytics", () => {

@@ -23,7 +23,9 @@ import type {
 import { assertQuestionKind } from "@axiomic/types";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { TutorMount } from "../components/ai/TutorMount";
+import { dispatchAskTutor } from "../components/ai/askTutorAction";
 import { PetByUsername } from "../pet";
+import { AiGradedResponse } from "../components/quiz/AiGradedResponse";
 import { QuestionRenderer, isAnswered } from "../components/quiz/QuestionRenderer";
 import { LessonNotes } from "../components/mastery/LessonNotes";
 import { PreviewViz } from "../components/lesson/PreviewViz";
@@ -120,6 +122,29 @@ function scoreLocally(question: QuizQuestion, answer: string | undefined): boole
         return false;
       }
     }
+    case "free_response":
+    case "scenario":
+    case "ml_sandbox": {
+      if (answer === undefined) return false;
+      try {
+        const r = JSON.parse(answer) as { graded?: boolean; correct?: boolean };
+        return r.graded === true && r.correct === true;
+      } catch {
+        return false;
+      }
+    }
+    case "guided_derivation": {
+      if (answer === undefined) return false;
+      try {
+        const r = JSON.parse(answer) as {
+          completed?: boolean;
+          correct?: boolean;
+        };
+        return r.completed === true && r.correct === true;
+      } catch {
+        return false;
+      }
+    }
   }
 }
 
@@ -128,17 +153,13 @@ function scoreLocally(question: QuizQuestion, answer: string | undefined): boole
 
 function slideShortTitle(s: LessonSlide, i: number): string {
   if (s.kind === "text") return s.title || `Slide ${i + 1}`;
-  const raw = s as unknown as {
-    kind: string;
-    question?: { question?: string; prompt?: string };
-  };
-  if (raw.kind === "explain_back") {
-    const p = raw.question?.prompt;
-    if (typeof p === "string" && p.length)
-      return p.length > 60 ? p.slice(0, 60) + "…" : p;
+  if (s.kind === "section") return s.title || `Section ${i + 1}`;
+  if (s.kind === "explain_back") {
+    const p = s.question.prompt;
+    if (p && p.length) return p.length > 60 ? p.slice(0, 60) + "…" : p;
     return `Slide ${i + 1}`;
   }
-  const q = raw.question?.question;
+  const q = s.question.question;
   if (typeof q !== "string" || !q.length) return `Slide ${i + 1}`;
   return q.length > 60 ? q.slice(0, 60) + "…" : q;
 }
@@ -169,6 +190,46 @@ export function LessonPage() {
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
+  const [hintTier, setHintTier] = useState<Record<string, number>>({});
+  const [solutionShown, setSolutionShown] = useState<Record<string, boolean>>(
+    {},
+  );
+  const [confidence, setConfidence] = useState<Record<string, number>>({});
+  const recordedAttempts = useRef<Set<string>>(new Set());
+  const [completeResult, setCompleteResult] = useState<{
+    xpAwarded: number;
+    petLeveledUp?: { newLevel: number };
+    newAchievements: string[];
+  } | null>(null);
+  const [frontier, setFrontier] = useState<
+    Array<{
+      kind: string;
+      slug: string;
+      title: string;
+      snippet: string;
+      reason: string;
+      htmlUrl: string | null;
+    }>
+  >([]);
+  const [forecast, setForecast] = useState<{
+    estimatedReadyOn: string | null;
+    plan: Array<{ conceptTitle: string | null; targetDate: string }>;
+  } | null>(null);
+  const [calibration, setCalibration] = useState<
+    Array<{ confidence: number; label: string; n: number; accuracy: number }>
+  >([]);
+  const [reflection, setReflection] = useState("");
+  const [reflectionSaved, setReflectionSaved] = useState(false);
+  const [petQuest, setPetQuest] = useState<{
+    conceptTitle: string;
+    petName: string;
+    justCompleted: boolean;
+  } | null>(null);
+  const [credential, setCredential] = useState<{
+    verifyId: string;
+    score: number;
+  } | null>(null);
+  const [mintingCred, setMintingCred] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
@@ -337,6 +398,25 @@ export function LessonPage() {
     return true;
   })();
 
+  function recordAttemptOnce(
+    qid: string,
+    slideIdx: number,
+    correct: boolean,
+    conf?: number,
+  ) {
+    if (!node || recordedAttempts.current.has(qid)) return;
+    recordedAttempts.current.add(qid);
+    api.mastery
+      .recordAttempt(node.id, {
+        questionId: qid,
+        slideIdx,
+        correct,
+        confidence: conf,
+        answerJson: answers[qid],
+      })
+      .catch(() => {});
+  }
+
   function handleNext() {
     if (!canAdvance) return;
     // For question slides, mark them revealed and report the answer
@@ -353,6 +433,19 @@ export function LessonPage() {
           )
           .catch(() => {});
       }
+      // Opt-in: block advance until correct. Feedback/hints/worked
+      // solution are now visible so the learner can fix and retry.
+      if (slide.retryUntilCorrect && !correct) {
+        return;
+      }
+      // Committing this question — persist one attempt row (with
+      // confidence iff the learner tapped it during the dwell).
+      recordAttemptOnce(
+        slide.question.id,
+        idx,
+        correct,
+        confidence[slide.question.id],
+      );
     }
     if (isLast) {
       handleFinish();
@@ -377,11 +470,40 @@ export function LessonPage() {
       const score = total > 0 ? correct / total : 1;
       if (score >= PASSING_SCORE) {
         try {
-          await api.mastery.markComplete(node.id);
+          const r = await api.mastery.markComplete(node.id);
+          setCompleteResult({
+            xpAwarded: r.xpAwarded,
+            petLeveledUp: r.petLeveledUp,
+            newAchievements: r.newAchievements,
+          });
         } catch {
           // ignore — auto-mark is best-effort
         }
       }
+      api.mastery
+        .frontier(node.id)
+        .then((r) => setFrontier(r.papers))
+        .catch(() => {});
+      api.me
+        .readiness()
+        .then((r) =>
+          setForecast({
+            estimatedReadyOn: r.estimatedReadyOn,
+            plan: r.plan.map((p) => ({
+              conceptTitle: p.conceptTitle,
+              targetDate: p.targetDate,
+            })),
+          }),
+        )
+        .catch(() => {});
+      api.mastery
+        .calibration()
+        .then((r) => setCalibration(r.buckets))
+        .catch(() => {});
+      api.mastery
+        .petQuest()
+        .then((r) => setPetQuest(r.quest))
+        .catch(() => {});
       setPhase("finished");
     } finally {
       setSubmitting(false);
@@ -425,7 +547,8 @@ export function LessonPage() {
                 setIdx(i);
                 onPick?.();
               }}
-              className={`w-full text-left flex items-start gap-2 px-3 py-2 rounded-md text-xs transition-colors duration-fast ${
+              aria-current={active ? "step" : undefined}
+              className={`w-full text-left flex items-start gap-2 px-3 py-2 rounded-md text-xs transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                 active
                   ? "bg-primary/10 text-foreground"
                   : "text-muted-foreground hover:text-foreground hover:bg-accent/40"
@@ -656,6 +779,48 @@ export function LessonPage() {
             </div>
           )}
 
+          {phase === "playing" &&
+            idx === 0 &&
+            lesson?.meta &&
+            (lesson.meta.timeMinutes ||
+              lesson.meta.difficulty ||
+              (lesson.meta.objectives &&
+                lesson.meta.objectives.length > 0) ||
+              (lesson.meta.prereqs && lesson.meta.prereqs.length > 0)) && (
+              <div className="max-w-3xl mx-auto mb-6 rounded-lg border border-border bg-card p-5 animate-fade-in">
+                <div className="flex items-center gap-2 flex-wrap mb-3">
+                  {lesson.meta.difficulty && (
+                    <span className="text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                      {lesson.meta.difficulty}
+                    </span>
+                  )}
+                  {lesson.meta.timeMinutes && (
+                    <span className="text-xs text-muted-foreground">
+                      ~{lesson.meta.timeMinutes} min
+                    </span>
+                  )}
+                </div>
+                {lesson.meta.objectives &&
+                  lesson.meta.objectives.length > 0 && (
+                    <div className="mb-3">
+                      <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1">
+                        You'll learn
+                      </div>
+                      <ul className="list-disc pl-5 text-sm space-y-0.5">
+                        {lesson.meta.objectives.map((o, i) => (
+                          <li key={i}>{o}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                {lesson.meta.prereqs && lesson.meta.prereqs.length > 0 && (
+                  <div className="text-xs text-muted-foreground">
+                    Prerequisites: {lesson.meta.prereqs.join(" · ")}
+                  </div>
+                )}
+              </div>
+            )}
+
           {phase === "playing" && slide && slide.kind === "text" && (
             <article className="max-w-3xl mx-auto animate-fade-in">
               <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2 inline-flex items-center gap-1.5">
@@ -691,6 +856,23 @@ export function LessonPage() {
             </article>
           )}
 
+          {phase === "playing" && slide && slide.kind === "section" && (
+            <section className="max-w-3xl mx-auto animate-fade-in py-10">
+              <div className="text-[11px] uppercase tracking-wider text-primary mb-3 inline-flex items-center gap-1.5">
+                <BookOpen className="w-3 h-3" strokeWidth={2} />
+                Section · slide {idx + 1} of {slides.length}
+              </div>
+              <h2 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight leading-tight pb-5 mb-5 border-b border-border">
+                {slide.title}
+              </h2>
+              {slide.body && (
+                <div className="font-serif text-lg leading-relaxed text-muted-foreground max-w-prose [&_p]:mb-4">
+                  <MarkdownRenderer content={slide.body} />
+                </div>
+              )}
+            </section>
+          )}
+
           {phase === "playing" && slide && slide.kind === "question" && (
             <div className="max-w-2xl mx-auto animate-fade-in">
               <div className="text-[11px] uppercase tracking-wider text-primary mb-2 inline-flex items-center gap-1.5">
@@ -708,44 +890,211 @@ export function LessonPage() {
                     setAnswers((a) => ({ ...a, [slide.question.id]: v }))
                   }
                 />
+                {slide.hints && slide.hints.length > 0 && (
+                  <div className="mt-4 space-y-1">
+                    {slide.hints
+                      .slice(0, hintTier[slide.question.id] ?? 0)
+                      .map((h, hi) => (
+                        <p
+                          key={hi}
+                          className="text-sm text-accent-amber/90 flex gap-1.5"
+                        >
+                          <span aria-hidden>💡</span>
+                          <span>{h}</span>
+                        </p>
+                      ))}
+                    {(hintTier[slide.question.id] ?? 0) <
+                      slide.hints.length && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setHintTier((t) => ({
+                            ...t,
+                            [slide.question.id]:
+                              (t[slide.question.id] ?? 0) + 1,
+                          }))
+                        }
+                        className="text-xs text-primary hover:underline"
+                      >
+                        {(hintTier[slide.question.id] ?? 0) === 0
+                          ? "Show a hint"
+                          : "Show another hint"}
+                      </button>
+                    )}
+                  </div>
+                )}
                 {revealed[slide.question.id] && (
                   <div
                     className={`mt-4 rounded-md border p-3 text-sm ${
                       isCorrect(slide.question)
-                        ? "border-accent-emerald/40 bg-accent-emerald/10 text-accent-emerald"
-                        : "border-accent-amber/40 bg-accent-amber/10 text-accent-amber"
+                        ? "border-accent-emerald/40 bg-accent-emerald/10"
+                        : "border-accent-amber/40 bg-accent-amber/10"
                     }`}
                   >
-                    {isCorrect(slide.question)
-                      ? "Correct."
-                      : "Not quite — review the explanation, then continue."}
+                    <div
+                      className={
+                        isCorrect(slide.question)
+                          ? "font-medium text-accent-emerald"
+                          : "font-medium text-accent-amber"
+                      }
+                    >
+                      {isCorrect(slide.question)
+                        ? "Correct."
+                        : "Not quite — review the explanation, then continue."}
+                    </div>
+                    {slide.question.explanation && (
+                      <div className="mt-2 text-foreground/90 [&_p]:mb-2 [&_p:last-child]:mb-0">
+                        <MarkdownRenderer
+                          content={slide.question.explanation}
+                        />
+                      </div>
+                    )}
+                    {!isCorrect(slide.question) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const raw = answers[slide.question.id] ?? "";
+                          let ans = raw;
+                          try {
+                            const env = JSON.parse(raw);
+                            if (
+                              env &&
+                              typeof env === "object" &&
+                              typeof env.text === "string"
+                            )
+                              ans = env.text;
+                          } catch {
+                            /* raw answer */
+                          }
+                          dispatchAskTutor({
+                            quote: `I answered this lesson question incorrectly and want to find my misconception.\n\nQuestion: ${slide.question.question}\n\nMy answer: ${ans || "(blank)"}\n\nDon't just give the answer — help me see where my reasoning went wrong.`,
+                          });
+                        }}
+                        className="mt-3 inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" strokeWidth={2} />
+                        Work through this with the tutor
+                      </button>
+                    )}
+                  </div>
+                )}
+                {revealed[slide.question.id] && slide.workedSolution && (
+                  <div className="mt-3">
+                    {solutionShown[slide.question.id] ? (
+                      <div className="rounded-md border border-border bg-muted/40 p-3 text-sm [&_p]:mb-2 [&_p:last-child]:mb-0">
+                        <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1">
+                          Worked solution
+                        </div>
+                        <MarkdownRenderer content={slide.workedSolution} />
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSolutionShown((s) => ({
+                            ...s,
+                            [slide.question.id]: true,
+                          }))
+                        }
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Show worked solution
+                      </button>
+                    )}
+                  </div>
+                )}
+                {revealed[slide.question.id] && (
+                  <div className="mt-3 flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-muted-foreground">
+                      How sure were you?
+                    </span>
+                    {[
+                      { v: 0, label: "Guessed" },
+                      { v: 1, label: "Unsure" },
+                      { v: 2, label: "Confident" },
+                    ].map((opt) => {
+                      const qid = slide.question.id;
+                      const sel = confidence[qid] === opt.v;
+                      return (
+                        <button
+                          key={opt.v}
+                          type="button"
+                          onClick={() => {
+                            setConfidence((cf) => ({ ...cf, [qid]: opt.v }));
+                            recordAttemptOnce(
+                              qid,
+                              idx,
+                              scoreLocally(slide.question, answers[qid]),
+                              opt.v,
+                            );
+                          }}
+                          className={`text-xs px-2 py-1 rounded-md border ${
+                            sel
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
               <p className="text-xs text-muted-foreground mt-3">
-                Answer to advance. Use ← → to navigate.
+                {slide.retryUntilCorrect
+                  ? "Answer correctly to continue. Use ← → to navigate."
+                  : "Answer to advance. Use ← → to navigate."}
               </p>
             </div>
           )}
 
           {phase === "playing" &&
             slide &&
-            (slide as unknown as { kind: string }).kind === "explain_back" &&
-            (slide as unknown as { question?: { prompt?: string } }).question
-              ?.prompt && (
+            slide.kind === "explain_back" && (
               <div className="max-w-2xl mx-auto animate-fade-in">
                 <div className="text-[11px] uppercase tracking-wider text-primary mb-2 inline-flex items-center gap-1.5">
                   <NotebookPen className="w-3 h-3" strokeWidth={2} />
                   Explain back · slide {idx + 1} of {slides.length}
                 </div>
                 <h2 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight leading-snug mb-6">
-                  {(slide as unknown as { question: { prompt: string } }).question.prompt}
+                  {slide.question.prompt}
                 </h2>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Take a minute to answer in your own words (notes or out loud).
-                  This slide does not block progress — continue when you are
-                  ready.
-                </p>
+                {slide.question.rubricCriteria &&
+                slide.question.rubricCriteria.length > 0 ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 rounded-md border border-border bg-card p-3">
+                      {user?.username && (
+                        <PetByUsername
+                          username={user.username}
+                          size="xs"
+                        />
+                      )}
+                      <p className="text-sm text-muted-foreground">
+                        Explain it so your pet gets it. Teaching it back in
+                        plain words is one of the strongest ways to learn —
+                        this never blocks progress.
+                      </p>
+                    </div>
+                    <AiGradedResponse
+                      questionText={slide.question.prompt}
+                      rubricCriteria={slide.question.rubricCriteria}
+                      value={answers[slide.question.id]}
+                      onChange={(v) =>
+                        setAnswers((a) => ({
+                          ...a,
+                          [slide.question.id]: v,
+                        }))
+                      }
+                    />
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Take a minute to answer in your own words (notes or out
+                    loud). This slide does not block progress — continue when
+                    you are ready.
+                  </p>
+                )}
               </div>
             )}
 
@@ -785,6 +1134,222 @@ export function LessonPage() {
                 <p className="text-base text-muted-foreground mb-6">
                   This node is now marked complete.
                 </p>
+              )}
+              {completeResult &&
+                (completeResult.xpAwarded > 0 ||
+                  completeResult.petLeveledUp ||
+                  completeResult.newAchievements.length > 0) && (
+                  <div className="flex items-center justify-center gap-2 flex-wrap mb-6">
+                    {completeResult.xpAwarded > 0 && (
+                      <span className="inline-flex items-center gap-1 text-sm px-3 py-1 rounded-full bg-accent-emerald/15 text-accent-emerald font-medium">
+                        +{completeResult.xpAwarded} XP
+                      </span>
+                    )}
+                    {completeResult.petLeveledUp && (
+                      <span className="inline-flex items-center gap-1 text-sm px-3 py-1 rounded-full bg-primary/15 text-primary font-medium">
+                        Pet reached level{" "}
+                        {completeResult.petLeveledUp.newLevel}
+                      </span>
+                    )}
+                    {completeResult.newAchievements.map((a) => (
+                      <span
+                        key={a}
+                        className="inline-flex items-center gap-1 text-sm px-3 py-1 rounded-full bg-accent-amber/15 text-accent-amber font-medium"
+                      >
+                        <Trophy className="w-3.5 h-3.5" strokeWidth={2} />
+                        {a.replace(/_/g, " ")}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              {(() => {
+                const conf = [...calibration]
+                  .sort((a, b) => b.confidence - a.confidence)
+                  .find((b) => b.n > 0);
+                const next = forecast?.plan?.[0];
+                const show =
+                  !!forecast?.estimatedReadyOn || !!next || !!conf;
+                if (!show) return null;
+                return (
+                  <div className="max-w-md mx-auto mb-6 text-left rounded-lg border border-border bg-card p-4 space-y-1.5">
+                    <div className="text-[11px] uppercase tracking-wider text-primary inline-flex items-center gap-1.5">
+                      <Sparkles className="w-3 h-3" strokeWidth={2} />
+                      Your trajectory
+                    </div>
+                    {forecast?.estimatedReadyOn ? (
+                      <p className="text-sm text-muted-foreground">
+                        On track — projected ready{" "}
+                        <span className="font-medium text-foreground">
+                          {new Date(
+                            forecast.estimatedReadyOn,
+                          ).toLocaleDateString()}
+                        </span>
+                        .
+                      </p>
+                    ) : next ? (
+                      <p className="text-sm text-muted-foreground">
+                        Next focus:{" "}
+                        <span className="font-medium text-foreground">
+                          {next.conceptTitle ?? "a weak concept"}
+                        </span>
+                        .
+                      </p>
+                    ) : null}
+                    {conf && (
+                      <p className="text-sm text-muted-foreground">
+                        {conf.label} answers:{" "}
+                        <span className="font-medium text-foreground">
+                          {Math.round(conf.accuracy * 100)}% correct
+                        </span>{" "}
+                        ({conf.n}).
+                        {conf.confidence >= 2 && conf.accuracy < 0.6
+                          ? " You may be over-confident — slow down on these."
+                          : ""}
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
+              {frontier.length > 0 && (
+                <div className="max-w-md mx-auto mb-6 text-left rounded-lg border border-border bg-card p-4">
+                  <div className="text-[11px] uppercase tracking-wider text-primary mb-2 inline-flex items-center gap-1.5">
+                    <Sparkles className="w-3 h-3" strokeWidth={2} />
+                    Explore the frontier
+                  </div>
+                  <ul className="space-y-2">
+                    {frontier.map((p) =>
+                      p.kind === "external_paper" ? (
+                        <li key={p.slug}>
+                          <a
+                            href={p.htmlUrl ?? "#"}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-sm font-medium text-primary hover:underline"
+                          >
+                            {p.title}
+                          </a>
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {p.reason || p.snippet}
+                          </p>
+                        </li>
+                      ) : (
+                        <li key={p.slug}>
+                          <Link
+                            to={`/research/${p.slug}`}
+                            className="text-sm font-medium text-primary hover:underline"
+                          >
+                            {p.title}
+                          </Link>
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {p.reason || p.snippet}
+                          </p>
+                        </li>
+                      ),
+                    )}
+                  </ul>
+                </div>
+              )}
+              {petQuest && (
+                <div className="max-w-md mx-auto mb-6 text-left rounded-lg border border-primary/30 bg-primary/5 p-4 flex items-center gap-3">
+                  {user?.username && (
+                    <PetByUsername username={user.username} size="xs" />
+                  )}
+                  <p className="text-sm text-muted-foreground">
+                    {petQuest.justCompleted ? (
+                      <>
+                        {petQuest.petName || "Your pet"} learned{" "}
+                        <span className="font-medium text-foreground">
+                          {petQuest.conceptTitle}
+                        </span>{" "}
+                        with you — quest complete!
+                      </>
+                    ) : (
+                      <>
+                        {petQuest.petName || "Your pet"} wants to learn{" "}
+                        <span className="font-medium text-foreground">
+                          {petQuest.conceptTitle}
+                        </span>
+                        . Clear its review card to finish the quest.
+                      </>
+                    )}
+                  </p>
+                </div>
+              )}
+              {finalScore >= PASSING_SCORE && (
+                <div className="max-w-md mx-auto mb-6 text-left rounded-lg border border-border bg-card p-4">
+                  {credential ? (
+                    <p className="text-sm text-muted-foreground">
+                      Credential minted — Axiomic score{" "}
+                      <span className="font-semibold text-foreground">
+                        {credential.score}/1000
+                      </span>
+                      . Verifiable id{" "}
+                      <code className="text-xs">{credential.verifyId}</code>.
+                    </p>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={mintingCred}
+                      onClick={() => {
+                        setMintingCred(true);
+                        api.mastery
+                          .mintCredential()
+                          .then((r) => setCredential(r))
+                          .catch(() => {})
+                          .finally(() => setMintingCred(false));
+                      }}
+                      className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline disabled:opacity-50"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" strokeWidth={2} />
+                      {mintingCred
+                        ? "Minting…"
+                        : "Mint a verifiable skill credential"}
+                    </button>
+                  )}
+                </div>
+              )}
+              {node && (
+                <div className="max-w-md mx-auto mb-6 text-left rounded-lg border border-border bg-card p-4">
+                  <div className="text-[11px] uppercase tracking-wider text-primary mb-2">
+                    What's still fuzzy?
+                  </div>
+                  {reflectionSaved ? (
+                    <p className="text-sm text-muted-foreground">
+                      Saved to your spaced-review deck — it'll resurface in
+                      Today.
+                    </p>
+                  ) : (
+                    <>
+                      <textarea
+                        value={reflection}
+                        onChange={(e) => setReflection(e.target.value)}
+                        rows={2}
+                        placeholder="One thing you want to revisit…"
+                        className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                      <button
+                        type="button"
+                        disabled={!reflection.trim()}
+                        onClick={() => {
+                          const text = reflection.trim();
+                          if (!text || !node) return;
+                          setReflectionSaved(true);
+                          api.flashcards
+                            .save({
+                              pageSlug: node.slug,
+                              pageTitle: node.title,
+                              front: `Revisit (${node.title}): what was fuzzy?`,
+                              back: text,
+                            })
+                            .catch(() => setReflectionSaved(false));
+                        }}
+                        className="mt-2 inline-flex items-center px-3 py-1.5 text-sm rounded-md bg-primary text-primary-foreground font-medium disabled:opacity-50"
+                      >
+                        Save to review
+                      </button>
+                    </>
+                  )}
+                </div>
               )}
               <div className="flex items-center justify-center gap-3 flex-wrap">
                 {recommendedNext && recommendedNext.slug !== nodeSlug && (

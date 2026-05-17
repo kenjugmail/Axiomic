@@ -1696,4 +1696,48 @@ Be specific. Reward concrete examples + correct mechanism. Penalise vague restat
   },
 );
 
+// Phase 1 — AI grader for lesson free_response / scenario kinds
+// and guided_derivation text steps. Reuses the provider-agnostic
+// essayGrader (rubric + deterministic heuristic fallback), so the
+// offline test gate never depends on a live model. The client
+// writes the returned grade into the answer envelope; the
+// synchronous lesson grader just reads {graded,correct}.
+const gradeFreeResponseSchema = z.object({
+  question: z.string().min(1).max(8000),
+  rubric: z.string().min(1).max(8000),
+  response: z.string().max(20000),
+  maxScore: z.number().int().min(1).max(20).default(5),
+  passRatio: z.number().min(0).max(1).default(0.6),
+});
+
+ai.post(
+  "/grade-free-response",
+  requireAuth,
+  zValidator("json", gradeFreeResponseSchema),
+  async (c) => {
+    const user = c.get("user")!;
+    const { question, rubric, response, maxScore, passRatio } =
+      c.req.valid("json");
+    if (!checkRateLimit(`grade-free-response:${user.id}`, 30, 60_000)) {
+      return c.json({ error: "Rate limited. Try again in a minute." }, 429);
+    }
+    const { gradeEssay } = await import("../lib/essayGrader");
+    const result = await gradeEssay({
+      promptMd: question,
+      rubricMd: rubric,
+      maxScore,
+      essayResponse: response,
+      signal: AbortSignal.timeout(20_000),
+    });
+    const correct = result.score >= Math.ceil(maxScore * passRatio);
+    return c.json({
+      score: result.score,
+      maxScore,
+      correct,
+      feedbackMd: result.feedbackMd,
+      gradedBy: result.gradedBy,
+    });
+  },
+);
+
 export { ai as aiRouter };
