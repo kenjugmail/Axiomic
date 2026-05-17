@@ -148,6 +148,12 @@ orgsRouter.post(
   ),
   (c) => {
     const me = c.get("user")!;
+    if (
+      env.NODE_ENV !== "test" &&
+      !checkRateLimit(`org-attest:${me.id}`, 20, 60_000)
+    ) {
+      return c.json({ error: "Rate limited. Slow down." }, 429);
+    }
     const g = gateOrg(c.req.param("slug")!, me.id, "verifier");
     if (!g.ok) return c.json({ error: g.error }, g.status);
     const { username, attestKind, attestRef, statement } =

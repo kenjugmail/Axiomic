@@ -8,7 +8,7 @@
 // Layout.tsx imports + renders these alongside NAV_PILLARS in both
 // the desktop nav strip and the mobile drawer.
 
-export type NavItem = { to: string; label: string };
+export type NavItem = { to: string; label: string; match?: string };
 
 export const EXTRA_NAV_PILLARS: NavItem[] = [
   { to: "/forum", label: "Forum" },
