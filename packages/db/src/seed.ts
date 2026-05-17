@@ -1494,6 +1494,10 @@ interface MasteryNodeSpec {
   pages: string[];
   prereqs: string[];
   description?: string;
+  // When set, the node deep-links to non-lesson content instead of
+  // slides (mirrors the Sprint-82 lab pattern). "exam" → /exams/:examSlug.
+  nodeKind?: "lesson" | "exam";
+  examSlug?: string;
 }
 
 function loadJsonForNode(folder: string, nodeSlug: string): string | null {
@@ -1601,6 +1605,8 @@ function seedMasteryPath(spec: {
       prerequisiteNodeIds: JSON.stringify(prereqIds),
       quizData: loadQuizData(node.slug),
       lessonData: loadLessonData(node.slug),
+      nodeKind: node.nodeKind ?? "lesson",
+      examSlug: node.examSlug ?? null,
     }).run();
   }
 

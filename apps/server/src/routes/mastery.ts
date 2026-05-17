@@ -831,6 +831,7 @@ mastery.get("/lesson/:nodeId", async (c) => {
       protocolSlug: masteryNodes.protocolSlug,
       certSlug: masteryNodes.certSlug,
       equipmentSlug: masteryNodes.equipmentSlug,
+      examSlug: masteryNodes.examSlug,
     })
     .from(masteryNodes)
     .where(eq(masteryNodes.id, nodeId))
@@ -850,6 +851,7 @@ mastery.get("/lesson/:nodeId", async (c) => {
       protocolSlug: node.protocolSlug,
       certSlug: node.certSlug,
       equipmentSlug: node.equipmentSlug,
+      examSlug: node.examSlug,
     });
   }
 
@@ -910,6 +912,7 @@ mastery.get("/lesson/:nodeId", async (c) => {
       protocolSlug: null,
       certSlug: null,
       equipmentSlug: null,
+      examSlug: null,
     });
   try {
     return c.json({
@@ -920,6 +923,7 @@ mastery.get("/lesson/:nodeId", async (c) => {
       protocolSlug: null,
       certSlug: null,
       equipmentSlug: null,
+      examSlug: null,
     });
   } catch {
     return c.json({
@@ -930,6 +934,7 @@ mastery.get("/lesson/:nodeId", async (c) => {
       protocolSlug: null,
       certSlug: null,
       equipmentSlug: null,
+      examSlug: null,
     });
   }
 });

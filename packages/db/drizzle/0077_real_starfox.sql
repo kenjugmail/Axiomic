@@ -1,0 +1,1 @@
+ALTER TABLE `mastery_nodes` ADD `exam_slug` text;

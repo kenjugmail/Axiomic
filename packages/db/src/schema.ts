@@ -209,6 +209,9 @@ export const masteryNodes = sqliteTable("mastery_nodes", {
   protocolSlug: text("protocol_slug"),
   certSlug: text("cert_slug"),
   equipmentSlug: text("equipment_slug"),
+  // nodeKind 'exam' deep-links the node to the standalone exam
+  // module (/exams/:examSlug) instead of rendering slides.
+  examSlug: text("exam_slug"),
   createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
 });
 
