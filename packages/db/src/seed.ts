@@ -1915,6 +1915,47 @@ function seedMasteryPaths() {
       { slug: "alignment-game-theory", title: "Alignment as Game Theory", level: "expert", order: 9, pages: ["principal-agent"], prereqs: ["mechanism-design", "multi-agent-rl"], description: "Mesa-optimization, principal-agent problems, why incentive structures determine outcomes more than capabilities. The frontier connection." },
     ],
   });
+
+  seedExamPrepPaths();
+}
+
+// One mastery path per exam (user choice). Slug = the exam's own
+// declared pathSlug (e.g. sat → "sat-prep"); the single terminal
+// node is nodeKind:"exam" so the player deep-links to the existing
+// /exams/:examSlug runner. Idempotent via seedMasteryPath.
+function seedExamPrepPaths() {
+  const dir = path.join(import.meta.dir, "../../../seed-content/exams");
+  if (!fs.existsSync(dir)) return;
+  for (const file of fs.readdirSync(dir).filter((f) => f.endsWith(".json"))) {
+    let exam: any;
+    try {
+      exam = JSON.parse(fs.readFileSync(path.join(dir, file), "utf-8"));
+    } catch {
+      continue;
+    }
+    if (!exam?.slug || !exam?.pathSlug) continue;
+    const short = exam.shortName || exam.title || exam.slug;
+    seedMasteryPath({
+      slug: exam.pathSlug,
+      title: `${short} Prep`,
+      description:
+        exam.description ||
+        `Prepare for the ${short} and take the full timed exam.`,
+      nodes: [
+        {
+          slug: `${exam.pathSlug}-exam`,
+          title: `${short} — full timed exam`,
+          level: "practitioner",
+          order: 1,
+          pages: [],
+          prereqs: [],
+          description: `Sit the complete ${short} under timed conditions; your score and attempt history are saved.`,
+          nodeKind: "exam",
+          examSlug: exam.slug,
+        },
+      ],
+    });
+  }
 }
 
 // --- Forum seeding -------------------------------------------------------
