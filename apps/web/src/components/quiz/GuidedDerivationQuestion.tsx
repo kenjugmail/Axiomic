@@ -185,6 +185,7 @@ export function GuidedDerivationQuestion({
                       value={draft}
                       onChange={(e) => setDraft(e.target.value)}
                       placeholder="Enter the next step…"
+                      aria-label={`Step ${state.idx + 1} answer`}
                       className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   ) : (
@@ -193,6 +194,7 @@ export function GuidedDerivationQuestion({
                       onChange={(e) => setDraft(e.target.value)}
                       rows={3}
                       placeholder="Explain this step…"
+                      aria-label={`Step ${state.idx + 1} explanation`}
                       className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   )}

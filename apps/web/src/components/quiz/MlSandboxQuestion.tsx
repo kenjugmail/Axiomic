@@ -124,6 +124,7 @@ export function MlSandboxQuestion({ question, value, onChange, review }: Props) 
             </div>
             <input
               type="range"
+              aria-label={`${p.label} (${p.min}–${p.max})`}
               min={p.min}
               max={p.max}
               step={p.step}
