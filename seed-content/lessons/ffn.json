@@ -1,6 +1,6 @@
 {
   "meta": {
-    "timeMinutes": 20,
+    "timeMinutes": 35,
     "difficulty": "core",
     "objectives": [
       "Explain the per-token MLP and its expand/contract shape",
@@ -13,18 +13,24 @@
   "slides": [
     {
       "kind": "section",
-      "title": "Part 1 — Where the parameters actually live",
-      "body": "Attention gets the headlines, but the feed-forward network (FFN) holds most of a transformer layer's parameters and most of its FLOPs. A useful mantra: **attention mixes tokens; the FFN mixes features.**"
+      "title": "Part 1 — Why the FFN exists",
+      "body": "Attention moves information between tokens. Something else has to *transform* it. That's the FFN — and it's most of the parameters."
     },
     {
       "kind": "text",
-      "title": "The parameter budget",
-      "body": "For $d_{model}=4096$ with the standard 4× expansion:\n\n- $W_1$: $[4096, 16384]$ ≈ 67M params\n- $W_2$: $[16384, 4096]$ ≈ 67M params\n\nvs attention's four $[4096,4096]$ projections ≈ 67M total. So the **FFN is ~2/3 of the per-layer parameters**, and where most learned *knowledge* (facts, patterns) is stored. Attention decides *what to look at*; the FFN decides *what to compute* with it."
+      "title": "Where the parameters actually live",
+      "body": "A transformer block is attention + FFN. Profiling a typical block: the FFN is **~2/3 of the parameters and FLOPs**. Attention is comparatively cheap; the bulk of a model's capacity (and memory) is the stack of position-wise FFNs. \"Scaling the model\" largely means scaling these."
     },
     {
       "kind": "text",
       "title": "What the FFN computes",
-      "body": "A 2-layer MLP applied **independently to every token position**:\n\n$$\\text{FFN}(x)=W_2\\,\\phi(W_1 x + b_1) + b_2$$\n\n1. **Up-project** $x$ to a wider hidden dim (≈ 4×).\n2. Apply a **nonlinearity** $\\phi$ (ReLU → GELU → SwiGLU).\n3. **Down-project** back to $d_{model}$.\n\nCrucially: **no cross-token interaction.** Position 5 is processed without ever seeing position 4 or 6. All token mixing happens in attention; the FFN is the per-token transform that gives the network its nonlinear expressive power."
+      "body": "Per token, independently: $\\text{FFN}(x)=W_2\\,\\sigma(W_1x+b_1)+b_2$. $W_1$ expands $d_{model}\\to d_{ff}$ (typically $4\\times$), a nonlinearity $\\sigma$ fires, $W_2$ contracts back to $d_{model}$. It is a tiny 2-layer MLP applied identically at every position — *no* mixing across tokens (that's attention's job)."
+    },
+    {
+      "kind": "text",
+      "title": "Why expand then contract",
+      "body": "The wide hidden layer + nonlinearity is where per-token *capacity* lives: it lets the model compute rich nonlinear features of each token's representation, then project back to the residual width so blocks compose. Attention without an FFN is almost entirely linear mixing — it can route information but barely transform it.",
+      "viz": "activation-function-gallery"
     },
     {
       "kind": "question",
@@ -44,49 +50,7 @@
     },
     {
       "kind": "section",
-      "title": "Part 2 — The activation function"
-    },
-    {
-      "kind": "text",
-      "title": "ReLU → GELU → SwiGLU",
-      "body": "Explore the activation gallery on the right.\n\n- **ReLU** $\\max(0,x)$ — simple, fast, but dead neurons (zero gradient for negative input).\n- **GELU** $x\\,\\Phi(x)$ — smooth, slightly negative for slightly-negative $x$; better gradient flow; beat ReLU for LMs (BERT, GPT-2).\n- **SwiGLU** — a *gated* unit: split the up-projection, gate one half by Swish, multiply by the other: $(\\text{Swish}(xW)\\odot xV)W_2$. The gate lets the FFN selectively activate features; consistently best at fixed compute (LLaMA, modern Mistral). LLaMA uses ~2.7× expansion *because* the gate adds an extra projection.",
-      "viz": "activation-function-gallery"
-    },
-    {
-      "kind": "question",
-      "question": {
-        "id": "ffn_q2",
-        "kind": "multiple_choice",
-        "question": "Ablate ALL FFN layers, keep only attention. What happens?",
-        "options": [
-          "Token mixing still works, but per-token transforms collapse toward linear combinations of values — capacity drops sharply",
-          "Nothing — slightly less accurate",
-          "Attention automatically replaces the FFN",
-          "Training refuses to start"
-        ],
-        "correctIndex": 0,
-        "explanation": "Attention is essentially a (softmax-weighted) linear average of values. Without the FFN's nonlinearity the per-token function is mostly linear, so the model loses most of its ability to compute non-trivial features even though tokens can still exchange information."
-      }
-    },
-    {
-      "kind": "question",
-      "question": {
-        "id": "ffn_q3",
-        "kind": "multiple_choice",
-        "question": "Why is the FFN hidden dimension typically ~4× d_model?",
-        "options": [
-          "Empirically the sweet spot — enough room for rich nonlinear features without spending parameters that don't help",
-          "It must equal the number of attention heads",
-          "4× makes the matrices square",
-          "It is required for residual connections to work"
-        ],
-        "correctIndex": 0,
-        "explanation": "The up-projection lifts each token into a higher-dim space where useful features become separable; the activation selects them; the down-projection collapses back. ~4× is the empirical balance — smaller underfits the needed nonlinearity, larger wastes parameters. (MoE breaks this: huge per-expert FFNs, but only a few experts active per token.)"
-      }
-    },
-    {
-      "kind": "section",
-      "title": "Recap"
+      "title": "Part 2 — Formalize it"
     },
     {
       "kind": "question",
@@ -160,26 +124,50 @@
       }
     },
     {
-      "kind": "explain_back",
+      "kind": "section",
+      "title": "Part 3 — The activation function"
+    },
+    {
+      "kind": "text",
+      "title": "ReLU → GELU → SwiGLU",
+      "body": "ReLU ($\\max(0,x)$) is simple but hard-zeros half its inputs. **GELU** (a smooth, probabilistic gate) became the transformer default. **SwiGLU** (a gated linear unit, used in Llama/PaLM) adds a multiplicative gate and reliably improves quality per parameter — modern FFNs use it with $d_{ff}\\approx\\tfrac{8}{3}d_{model}$ to keep the parameter count matched.",
+      "viz": "activation-function-gallery"
+    },
+    {
+      "kind": "question",
       "question": {
-        "id": "ffn_teach",
-        "kind": "explain_back",
-        "prompt": "Explain the FFN to your pet: what shape it is, why the widening, and why it is per-token.",
-        "rubricCriteria": [
-          {
-            "id": "c1",
-            "description": "a small MLP applied independently to every token (position-wise)"
-          },
-          {
-            "id": "c2",
-            "description": "expand→nonlinearity→contract adds capacity"
-          },
-          {
-            "id": "c3",
-            "description": "holds the majority of the block's parameters"
-          }
-        ]
+        "id": "ffn_q2",
+        "kind": "multiple_choice",
+        "question": "Ablate ALL FFN layers, keep only attention. What happens?",
+        "options": [
+          "Token mixing still works, but per-token transforms collapse toward linear combinations of values — capacity drops sharply",
+          "Nothing — slightly less accurate",
+          "Attention automatically replaces the FFN",
+          "Training refuses to start"
+        ],
+        "correctIndex": 0,
+        "explanation": "Attention is essentially a (softmax-weighted) linear average of values. Without the FFN's nonlinearity the per-token function is mostly linear, so the model loses most of its ability to compute non-trivial features even though tokens can still exchange information."
       }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ffn_q3",
+        "kind": "multiple_choice",
+        "question": "Why is the FFN hidden dimension typically ~4× d_model?",
+        "options": [
+          "Empirically the sweet spot — enough room for rich nonlinear features without spending parameters that don't help",
+          "It must equal the number of attention heads",
+          "4× makes the matrices square",
+          "It is required for residual connections to work"
+        ],
+        "correctIndex": 0,
+        "explanation": "The up-projection lifts each token into a higher-dim space where useful features become separable; the activation selects them; the down-projection collapses back. ~4× is the empirical balance — smaller underfits the needed nonlinearity, larger wastes parameters. (MoE breaks this: huge per-expert FFNs, but only a few experts active per token.)"
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 4 — Pitfalls & misconceptions"
     },
     {
       "kind": "question",
@@ -228,9 +216,35 @@
       }
     },
     {
+      "kind": "section",
+      "title": "Part 5 — Connections & what's next"
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "ffn_teach",
+        "kind": "explain_back",
+        "prompt": "Explain the FFN to your pet: what shape it is, why the widening, and why it is per-token.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "a small MLP applied independently to every token (position-wise)"
+          },
+          {
+            "id": "c2",
+            "description": "expand→nonlinearity→contract adds capacity"
+          },
+          {
+            "id": "c3",
+            "description": "holds the majority of the block's parameters"
+          }
+        ]
+      }
+    },
+    {
       "kind": "text",
       "title": "What to carry forward",
-      "body": "- FFN = up-project → nonlinearity → down-project, **per token** (no cross-token mixing).\n- It holds **~2/3** of a layer's parameters and most stored knowledge.\n- **~4× expansion** is the empirical sweet spot; **SwiGLU** is the modern default activation.\n- Remove it and the model loses its per-token nonlinear power.\n\n**Next:** [Residual connections](/wiki/residual-connections) and [layer normalization](/wiki/layer-normalization) — the glue that makes stacking these blocks trainable — then the full [transformer block](/wiki/transformer-block)."
+      "body": "The FFN is the per-token nonlinear transform and most of the model's parameters; attention mixes, the FFN thinks. Next, the two stabilizers that make deep stacks trainable — **[LayerNorm](/paths/ml-engineer/lessons/layer-norm)** and **[residuals](/paths/ml-engineer/lessons/residual-connections)**."
     }
   ]
 }
