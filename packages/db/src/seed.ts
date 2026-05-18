@@ -1494,6 +1494,10 @@ interface MasteryNodeSpec {
   pages: string[];
   prereqs: string[];
   description?: string;
+  // When set, the node deep-links to non-lesson content instead of
+  // slides (mirrors the Sprint-82 lab pattern). "exam" → /exams/:examSlug.
+  nodeKind?: "lesson" | "exam";
+  examSlug?: string;
 }
 
 function loadJsonForNode(folder: string, nodeSlug: string): string | null {
@@ -1601,6 +1605,8 @@ function seedMasteryPath(spec: {
       prerequisiteNodeIds: JSON.stringify(prereqIds),
       quizData: loadQuizData(node.slug),
       lessonData: loadLessonData(node.slug),
+      nodeKind: node.nodeKind ?? "lesson",
+      examSlug: node.examSlug ?? null,
     }).run();
   }
 
@@ -1909,6 +1915,67 @@ function seedMasteryPaths() {
       { slug: "alignment-game-theory", title: "Alignment as Game Theory", level: "expert", order: 9, pages: ["principal-agent"], prereqs: ["mechanism-design", "multi-agent-rl"], description: "Mesa-optimization, principal-agent problems, why incentive structures determine outcomes more than capabilities. The frontier connection." },
     ],
   });
+
+  seedExamPrepPaths();
+}
+
+// One mastery path per exam (user choice). Slug = the exam's own
+// declared pathSlug (e.g. sat → "sat-prep"); the single terminal
+// node is nodeKind:"exam" so the player deep-links to the existing
+// /exams/:examSlug runner. Idempotent via seedMasteryPath.
+// SAT prep gets a full lesson path (8 College Board domains) +
+// the timed exam as a prereq-gated capstone. Lesson content is
+// authored in seed-content/lessons/<slug>.json and auto-attached
+// by slug via loadLessonData; nodes whose file is absent seed
+// with null lessonData (valid). Other exams stay single-node.
+const SAT_LESSON_NODES: MasteryNodeSpec[] = [
+  { slug: "sat-rw-information-ideas", title: "Reading: Information & Ideas", level: "apprentice", order: 1, pages: [], prereqs: [], description: "Central ideas, command of evidence (textual + quantitative), and inferences." },
+  { slug: "sat-rw-craft-structure", title: "Reading: Craft & Structure", level: "apprentice", order: 2, pages: [], prereqs: ["sat-rw-information-ideas"], description: "Words in context, vocabulary, purpose, tone, text structure, cross-text connections." },
+  { slug: "sat-rw-expression-of-ideas", title: "Writing: Expression of Ideas", level: "practitioner", order: 3, pages: [], prereqs: ["sat-rw-craft-structure"], description: "Rhetorical synthesis, transitions, and concision." },
+  { slug: "sat-rw-standard-english", title: "Writing: Standard English Conventions", level: "practitioner", order: 4, pages: [], prereqs: ["sat-rw-expression-of-ideas"], description: "Grammar, verb tense, agreement, pronouns, modifiers, punctuation, parallelism." },
+  { slug: "sat-math-algebra", title: "Math: Algebra", level: "apprentice", order: 5, pages: [], prereqs: [], description: "Linear equations & inequalities, systems, linear functions, graphs." },
+  { slug: "sat-math-advanced", title: "Math: Advanced Math", level: "practitioner", order: 6, pages: [], prereqs: ["sat-math-algebra"], description: "Quadratics, polynomials, exponents & radicals, functions, logarithms." },
+  { slug: "sat-math-problem-solving-data", title: "Math: Problem-Solving & Data Analysis", level: "practitioner", order: 7, pages: [], prereqs: ["sat-math-algebra"], description: "Ratios, rates, proportions, percentages, statistics, probability, data interpretation." },
+  { slug: "sat-math-geometry-trig", title: "Math: Geometry & Trigonometry", level: "practitioner", order: 8, pages: [], prereqs: ["sat-math-advanced"], description: "Lines, angles, triangles, circles, area & volume, right-triangle trig." },
+];
+
+function seedExamPrepPaths() {
+  const dir = path.join(import.meta.dir, "../../../seed-content/exams");
+  if (!fs.existsSync(dir)) return;
+  for (const file of fs.readdirSync(dir).filter((f) => f.endsWith(".json"))) {
+    let exam: any;
+    try {
+      exam = JSON.parse(fs.readFileSync(path.join(dir, file), "utf-8"));
+    } catch {
+      continue;
+    }
+    if (!exam?.slug || !exam?.pathSlug) continue;
+    const short = exam.shortName || exam.title || exam.slug;
+    const lessonNodes =
+      exam.pathSlug === "sat-prep" ? SAT_LESSON_NODES : [];
+    const examNode: MasteryNodeSpec = {
+      slug: `${exam.pathSlug}-exam`,
+      title:
+        lessonNodes.length > 0
+          ? `${short} — full timed exam (capstone)`
+          : `${short} — full timed exam`,
+      level: "practitioner",
+      order: lessonNodes.length + 1,
+      pages: [],
+      prereqs: lessonNodes.map((n) => n.slug),
+      description: `Sit the complete ${short} under timed conditions; your score and attempt history are saved.`,
+      nodeKind: "exam",
+      examSlug: exam.slug,
+    };
+    seedMasteryPath({
+      slug: exam.pathSlug,
+      title: `${short} Prep`,
+      description:
+        exam.description ||
+        `Prepare for the ${short} and take the full timed exam.`,
+      nodes: [...lessonNodes, examNode],
+    });
+  }
 }
 
 // --- Forum seeding -------------------------------------------------------

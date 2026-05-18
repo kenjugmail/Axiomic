@@ -1,6 +1,6 @@
 {
   "meta": {
-    "timeMinutes": 20,
+    "timeMinutes": 40,
     "difficulty": "core",
     "objectives": [
       "Explain what LayerNorm normalizes and why",
@@ -11,19 +11,25 @@
   "slides": [
     {
       "kind": "section",
-      "title": "Part 1 — Keeping a deep stack stable",
-      "body": "Stack 50 layers without normalization and activations drift by orders of magnitude; the loss plateaus and nothing trains. Layer normalization is one of the two tricks (the other is residuals) that make deep transformers possible at all."
+      "title": "Part 1 — Why normalization exists",
+      "body": "Stack two dozen blocks naively and activations drift until training diverges. Normalization is the unglamorous fix that makes depth possible at all."
     },
     {
       "kind": "text",
-      "title": "What layer norm does",
-      "body": "For each token's vector, **per token, across the feature dimension**:\n\n1. Compute mean $\\mu$ and std $\\sigma$ over the $d_{model}$ features.\n2. Normalize: subtract $\\mu$, divide by $\\sigma$.\n3. Apply learned scale $\\gamma$ and shift $\\beta$:\n\n$$\\text{LN}(x)=\\gamma\\cdot\\frac{x-\\mu}{\\sigma+\\epsilon}+\\beta$$\n\nThe activation panel on the right shows what unnormalized vs normalized activations look like across a layer — the normalized ones stay on a stable scale instead of drifting. The defining property: LN is computed **per token**, independent of batch and sequence length.",
+      "title": "The problem: activation drift compounds with depth",
+      "body": "Each sublayer adds its output into the residual stream. Without re-standardization, the activation scale performs a random walk that *compounds* across layers: by layer 20 some features sit at $10^3$, others at $10^{-3}$. Saturating nonlinearities (and softmax inside attention) then operate in flat regions where gradients vanish; the loss becomes hypersensitive to initialization and learning rate. We need to re-fix the scale **at every layer**, cheaply, without destroying the information."
+    },
+    {
+      "kind": "text",
+      "title": "What LayerNorm does",
+      "body": "For each token vector $x\\in\\mathbb{R}^{d}$ *independently*, compute the mean $\\mu$ and variance $\\sigma^2$ **across that token's $d$ features**, then $\\text{LN}(x)=\\gamma\\odot\\dfrac{x-\\mu}{\\sqrt{\\sigma^2+\\epsilon}}+\\beta$. The normalize step pins the distribution (mean 0, var 1) so scale can't drift; the learned per-feature $\\gamma,\\beta$ let the layer re-express *whatever* scale/shift it actually needs, so normalization costs no representational power. $\\epsilon$ (e.g. $10^{-5}$) prevents divide-by-zero for low-variance tokens.",
       "viz": "layer-activations"
     },
     {
       "kind": "text",
-      "title": "Layer norm vs batch norm",
-      "body": "Both normalize, over **different axes**:\n\n- **Batch norm:** per *feature*, across the *batch*.\n- **Layer norm:** per *example/token*, across its *features*.\n\nWhy it matters for transformers:\n\n- **Inference parity.** Batch norm uses per-batch stats at train time and running averages at inference — forget to switch and predictions silently corrupt. Layer norm is identical in both.\n- **Variable length.** Transformers process variable-length, padded sequences; batch norm's batch stats get confused, layer norm doesn't care."
+      "title": "LayerNorm vs BatchNorm — the decisive difference",
+      "body": "BatchNorm normalizes each *feature across the batch*, so its statistics depend on batch size and on the *other examples* in the batch. For sequences that's fatal: variable lengths, tiny inference batches (batch=1 in generation), and train/inference statistic mismatch all break it. LayerNorm normalizes **per token across features** — completely independent of batch size and of other examples; identical behavior at batch 1 or 4096, train or serve. That independence — not a marginal accuracy delta — is *why* transformers use LayerNorm.",
+      "viz": "layer-activations"
     },
     {
       "kind": "question",
@@ -59,37 +65,7 @@
     },
     {
       "kind": "section",
-      "title": "Part 2 — Placement and the modern variant"
-    },
-    {
-      "kind": "text",
-      "title": "Pre-norm vs post-norm",
-      "body": "Where LN sits relative to the residual add matters at depth:\n\n**Post-norm** (original): `out = LN(x + Sublayer(x))`\n\n**Pre-norm** (GPT-2 onward): `out = x + Sublayer(LN(x))`\n\nIn pre-norm the residual stream itself is never normalized — the clean identity path is preserved, so very deep stacks train stably. Post-norm normalizes the stream every layer, which destabilizes deep models. Every modern large model uses **pre-norm**; post-norm is mostly historical (it can edge out the final loss when it *does* train, but pre-norm is the safe default)."
-    },
-    {
-      "kind": "text",
-      "title": "RMSNorm",
-      "body": "**RMSNorm** drops the mean-subtraction, normalizing only the magnitude:\n\n$$\\text{RMSNorm}(x)=\\gamma\\cdot\\frac{x}{\\sqrt{\\tfrac{1}{d}\\sum_i x_i^2}}$$\n\nEmpirically the mean-centering term contributes little for transformers, so RMSNorm matches or beats LayerNorm at slightly less compute. LLaMA, Mistral, and most modern open models use it. If a model card says `RMSNorm`, read it as \"LayerNorm minus the recentering.\""
-    },
-    {
-      "kind": "question",
-      "question": {
-        "id": "ln_q3",
-        "kind": "multiple_choice",
-        "question": "Why did large models migrate from post-norm to pre-norm?",
-        "options": [
-          "Pre-norm leaves the residual stream un-normalized, preserving the identity path so very deep stacks train stably",
-          "Pre-norm uses fewer parameters",
-          "Post-norm cannot represent the same functions",
-          "Pre-norm removes the need for residual connections"
-        ],
-        "correctIndex": 0,
-        "explanation": "Pre-norm normalizes only the *input* to each sublayer; the residual stream flows through unnormalized, keeping a clean gradient highway across depth. Post-norm renormalizes the stream every layer, which causes instability as depth grows — fatal for 50–100 layer models."
-      }
-    },
-    {
-      "kind": "section",
-      "title": "Recap"
+      "title": "Part 2 — Formalize it"
     },
     {
       "kind": "question",
@@ -163,6 +139,90 @@
       }
     },
     {
+      "kind": "section",
+      "title": "Part 3 — Placement & the modern variant"
+    },
+    {
+      "kind": "text",
+      "title": "Pre-norm vs post-norm (why the field switched)",
+      "body": "Original transformers placed LN *after* the residual add — **post-norm**: $\\text{LN}(x+\\text{Sublayer}(x))$. It needs careful LR warmup and is unstable past ~12 layers, because the residual identity path is itself renormalized every layer, eroding the clean gradient highway. **Pre-norm** — $x+\\text{Sublayer}(\\text{LN}(x))$ — normalizes only the sublayer's *input*, leaving the $x$ identity path untouched, so gradient flows through arbitrarily deep stacks without warmup. Essentially all modern deep transformers are pre-norm. This single placement choice is what makes GPT-3-depth (96 layers) trainable and ties directly to the residual lesson next."
+    },
+    {
+      "kind": "text",
+      "title": "RMSNorm — the current default",
+      "body": "Most recent LLMs (Llama, etc.) use **RMSNorm**: drop the mean-centering and the $\\beta$ shift, normalize only by the root-mean-square: $\\text{RMSNorm}(x)=\\gamma\\odot x/\\sqrt{\\overline{x^2}+\\epsilon}$. Fewer ops, fewer parameters, no measured quality loss — empirically the re-centering LayerNorm does is not load-bearing, only the re-scaling is. A clean example of simplifying once you understand which part of a mechanism actually matters."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ln_q3",
+        "kind": "multiple_choice",
+        "question": "Why did large models migrate from post-norm to pre-norm?",
+        "options": [
+          "Pre-norm leaves the residual stream un-normalized, preserving the identity path so very deep stacks train stably",
+          "Pre-norm uses fewer parameters",
+          "Post-norm cannot represent the same functions",
+          "Pre-norm removes the need for residual connections"
+        ],
+        "correctIndex": 0,
+        "explanation": "Pre-norm normalizes only the *input* to each sublayer; the residual stream flows through unnormalized, keeping a clean gradient highway across depth. Post-norm renormalizes the stream every layer, which causes instability as depth grows — fatal for 50–100 layer models."
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 4 — Pitfalls & misconceptions"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ln_scen",
+        "kind": "scenario",
+        "question": "Diagnose the training instability.",
+        "scenario": "Moving LayerNorm from pre-norm (inside the residual branch) to post-norm (after the residual add), a deep model now diverges early unless you add careful LR warmup.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "post-norm normalizes x+F(x), so the identity/residual gradient path is renormalized every layer"
+          },
+          {
+            "id": "c2",
+            "description": "that degrades the clean gradient highway with depth → early divergence without warmup"
+          },
+          {
+            "id": "c3",
+            "description": "pre-norm normalizes only F's input, leaving the identity path intact → stable deep training (modern default)"
+          }
+        ],
+        "explanation": "Norm placement relative to the residual add decides whether the identity gradient path stays clean. Pre-norm keeps it clean; post-norm doesn't."
+      }
+    },
+    {
+      "kind": "question",
+      "hints": [
+        "Where is LN relative to the x + F(x) add?",
+        "Which placement leaves the identity path un-normalized?"
+      ],
+      "workedSolution": "Pre-norm normalizes only F's input, so the residual identity path carries gradient undiminished through many layers — deep training is stable without warmup. Post-norm normalizes the sum, eroding that path.",
+      "retryUntilCorrect": true,
+      "question": {
+        "id": "ln_mc",
+        "kind": "multiple_choice",
+        "question": "Why do modern deep transformers prefer pre-norm (LN inside the residual branch)?",
+        "options": [
+          "It preserves a clean identity gradient path, so very deep models train stably without heavy warmup",
+          "Post-norm has fewer parameters",
+          "Pre-norm removes the need for residuals",
+          "They are identical"
+        ],
+        "correctIndex": 0,
+        "explanation": "Pre-norm: out = x + F(LN(x)) — the x path is never renormalized, so its gradient stays ~1 through depth. Post-norm renormalizes x+F(x) each layer."
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 5 — Connections, teach-back & what's next"
+    },
+    {
       "kind": "explain_back",
       "question": {
         "id": "ln_teach",
@@ -187,7 +247,7 @@
     {
       "kind": "text",
       "title": "What to carry forward",
-      "body": "- LN normalizes **per token across features** → batch/length independent, identical at train & inference.\n- Not batch norm — different axis, no eval-mode footgun.\n- **Pre-norm** placement is the modern default for trainable depth; **RMSNorm** is the common simplification.\n\n**Next:** [Residual connections](/wiki/residual-connections) — the other half of \"why deep transformers train\" — then the full [transformer block](/wiki/transformer-block)."
+      "body": "LayerNorm = per-token, batch-independent re-standardization with learned $\\gamma,\\beta$; pre-norm placement and the RMSNorm simplification are the modern defaults that make deep stacks stable. Its inseparable partner is the **residual connection** — next."
     }
   ]
 }

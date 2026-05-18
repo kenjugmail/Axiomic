@@ -1,6 +1,6 @@
 {
   "meta": {
-    "timeMinutes": 20,
+    "timeMinutes": 45,
     "difficulty": "intro",
     "objectives": [
       "Explain what a token is and why models see ids not text",
@@ -11,28 +11,49 @@
   "slides": [
     {
       "kind": "section",
-      "title": "Part 1 — Why text has to become numbers",
-      "body": "A neural network is a pile of matrix multiplications. It cannot multiply the word **cat**. Before any model can learn anything about language, text has to be turned into numbers — and *how* you do that quietly decides what the model can and cannot represent."
+      "title": "Part 1 — Why text must become numbers",
+      "body": "A neural network is a pipeline of differentiable tensor operations. It has no notion of a letter. The very first design decision in any language model — how to turn a string into numbers — quietly determines cost, capability, and a surprising number of famous failures."
     },
     {
       "kind": "text",
-      "title": "The model never sees letters",
-      "body": "Type a sentence into the playground on the right and watch it shatter into colored chunks. Each chunk is a **token**, and each token is really just an integer — an index into a fixed vocabulary.\n\nThe model receives a list of integers like `[464, 2415, 7]`. It has no idea those came from the word \"transformer\". All linguistic structure — grammar, meaning, the fact that \"cats\" is the plural of \"cat\" — has to be *re-learned* from how those integers co-occur.\n\nThis is the first design decision in every language model, and everything downstream inherits it.",
+      "title": "The model only ever sees vectors",
+      "body": "The fixed pipeline, end to end:\n\n`raw text  →  tokens  →  integer ids  →  embedding vectors  →  the model`\n\nA **tokenizer** is a deterministic function `str → int[]`: it segments the string into *tokens* and maps each to an integer id in a fixed **vocabulary** $V$ (e.g. $|V|=50{,}000$). An **embedding table** $E\\in\\mathbb{R}^{|V|\\times d}$ — a learned matrix — turns each id into a dense vector via a row lookup $E[\\text{id}]$. From the transformer's perspective the input is *only* that matrix of vectors; it never sees characters again. Two artifacts ship with every model: the tokenizer (vocab + merge rules) and $E$. Swap the tokenizer and every id — and all of $E$ — is invalidated."
+    },
+    {
+      "kind": "text",
+      "title": "Why not the obvious options",
+      "body": "Two naive tokenizations, each fatally lopsided:\n\n**Character-level.** Vocabulary is tiny (~100 symbols) and nothing is ever out-of-vocab. But sequences are *long*: \"transformer\" → 11 tokens. Since self-attention is $\\mathcal{O}(n^2)$ in sequence length $n$, long sequences are quadratically expensive, and the model must relearn spelling from scratch before it can learn meaning.\n\n**Word-level.** Sequences are short and semantically clean, but the vocabulary is unbounded — every name, typo, compound, and inflection is a distinct word. You must cap it, and every word outside the cap collapses to a single `<unk>` token: information *destroyed* before learning begins. Morphology (\"run/runs/running\") is lost — each is an unrelated id.\n\n**Subword** tokenization (BPE — next lesson) is the engineered compromise: frequent words stay whole, rare words decompose into reusable pieces, and nothing is ever `<unk>`. Understanding *why* the extremes fail is what makes BPE's design feel inevitable."
+    },
+    {
+      "kind": "text",
+      "title": "The sequence-length tax — quantified",
+      "body": "Every token costs compute and one slot of the finite context window, and attention cost scales **quadratically**. Concretely: tokenizer A encodes a document in 1,000 tokens; tokenizer B (worse fit) in 1,300. The attention term scales like $n^2$, so B costs $(1300/1000)^2\\approx 1.7\\times$ as much *for the same text*, and exhausts a fixed context budget ~30% sooner. Tokenization is therefore a **latency, cost, and context-length decision**, not mere preprocessing — which is exactly why frontier labs invest heavily in tokenizer quality.",
       "viz": "tokenizer-playground"
     },
     {
       "kind": "text",
-      "title": "Three ways to split text",
-      "body": "There is a spectrum of choices for *what counts as a token*:\n\n- **Characters.** Vocabulary ≈ 100 symbols. Tiny vocab, but sequences become very long and the model spends capacity re-discovering that `c-a-t` is a unit.\n- **Words.** Short sequences, but the vocabulary explodes (every typo and proper noun) and you can never represent a word you didn't see in training — the **out-of-vocabulary** problem.\n- **Subwords.** The modern answer: common words stay whole (`the`, `cat`), rare words split into reusable pieces (`token` + `ization`). Bounded vocab *and* nothing is ever truly unknown.\n\nEvery production LLM uses subwords. We will see exactly how they are built in the BPE lesson."
-    },
-    {
-      "kind": "text",
-      "title": "Counting the cost: the sequence-length tax",
-      "body": "Tokenization is not just correctness — it is *cost*. Transformer compute scales with the **number of tokens**, and attention scales with the *square* of it.\n\nTake a 1,000-character paragraph. A character tokenizer emits ~1,000 tokens. A subword tokenizer emits ~250. Attention cost is roughly $O(n^2)$, so the ratio is:\n\n$$\\frac{1000^2}{250^2} = \\frac{10^6}{6.25\\times10^4} = 16\\times$$\n\nThe character model does **16× more attention work** for the same paragraph. Tokenization choices show up directly in your GPU bill."
+      "title": "Ids are labels, not magnitudes",
+      "body": "Token id 5,000 is not \"twice\" id 2,500 and not \"near\" id 5,001 — ids are arbitrary labels assigned by vocabulary construction order. Feeding the integer directly would inject a meaningless ordinal signal. That's the entire reason for the embedding table: each id indexes a *learned* vector, and similar tokens acquire similar vectors **because training moved them there**, not because their ids are close. The embedding is where \"king − man + woman ≈ queen\"-style structure can even exist; raw ids could never encode it."
     },
     {
       "kind": "section",
-      "title": "Part 2 — Check your understanding"
+      "title": "Part 2 — Worked examples & the subtleties that bite"
+    },
+    {
+      "kind": "text",
+      "title": "Worked example: encode a sentence",
+      "body": "Take \"unhappiness\" under a subword vocab that learned the pieces `un`, `happy`, `ness` but not the whole word. Encoding: `un` `happy` `ness` → e.g. ids `[412, 9981, 530]` → three embedding rows $E[412],E[9981],E[530]$ → a $3\\times d$ matrix. A word-level tokenizer that never saw \"unhappiness\" would emit `[<unk>]` — one row, all morphology gone. Subword keeps the model able to relate \"unhappiness\" to \"happy\" and \"happiness\" through shared pieces. This is the concrete payoff of the compromise."
+    },
+    {
+      "kind": "text",
+      "title": "Whitespace, case, and the leading space",
+      "body": "Modern tokenizers attach the leading space to the *following* token, so `\" cat\"` and `\"cat\"` are **different ids**. Case usually matters too (`Cat` ≠ `cat`) unless the tokenizer lowercases. Consequence: a stray leading/trailing space in a prompt changes the token sequence and therefore the model's behavior — the source of countless \"why did the same prompt act differently?\" mysteries. Pros inspect the actual token ids when debugging prompt sensitivity rather than trusting the visible text."
+    },
+    {
+      "kind": "text",
+      "title": "Numbers and code tokenize badly — and why",
+      "body": "BPE merges are learned from a mostly-prose corpus, so digit strings and code punctuation are *rare pairs* and stay fragmented: `12345` might split `123|45`, and code like `arr[i]+=1` shatters into many tiny tokens. Two real consequences: (1) early LLMs were poor at arithmetic substantially because a number had no stable representation across contexts; (2) code models adopt code-aware tokenizers. The lesson: a model's apparent reasoning failure is sometimes a *tokenization* failure upstream of any reasoning.",
+      "viz": "tokenizer-playground"
     },
     {
       "kind": "question",
@@ -67,21 +88,6 @@
       }
     },
     {
-      "kind": "section",
-      "title": "Part 3 — The subtleties that bite",
-      "body": "Tokenization looks trivial until it silently breaks something. Three classic traps."
-    },
-    {
-      "kind": "text",
-      "title": "Whitespace, case, and the leading space",
-      "body": "Most modern tokenizers attach the **leading space to the word**. So `\"cat\"` at the start of a string and `\" cat\"` mid-sentence are *different tokens*. This is why a model can behave differently depending on spacing, and why prompt formatting matters more than people expect.\n\nCasing is similar: `Apple`, `apple`, and `APPLE` may be three different tokens. The model has to *learn* they are related — it is not given for free.\n\nTry it in the playground: type `cat`, then ` cat` with a leading space, and watch the token id change."
-    },
-    {
-      "kind": "text",
-      "title": "Numbers and code tokenize badly",
-      "body": "Digit strings are a notorious weak spot. `1234` might be one token while `1235` splits as `12` + `35`. The model is handed no consistent place-value structure, which is a real source of arithmetic errors in LLMs.\n\nCode has the opposite problem — indentation, brackets, and rare identifiers fragment into many tokens, inflating sequence length. Tokenizers tuned for code (more whitespace and symbol merges) measurably improve coding models. The tokenizer is part of the model's inductive bias, not a neutral preprocessing step."
-    },
-    {
       "kind": "question",
       "question": {
         "id": "tok_q3",
@@ -106,7 +112,12 @@
     },
     {
       "kind": "section",
-      "title": "Recap"
+      "title": "Part 3 — Formalize the pipeline"
+    },
+    {
+      "kind": "text",
+      "title": "Tokenization and embedding, precisely",
+      "body": "Formally: tokenization is a function $\\tau:\\Sigma^{*}\\to V^{*}$ from strings over an alphabet to sequences over the vocabulary; embedding is $\\varepsilon:V\\to\\mathbb{R}^{d}$ realized as a lookup into the trainable matrix $E$. The model is $f(\\varepsilon(\\tau(\\text{text})))$. $\\tau$ is fixed (not learned) and *invertible enough* to detokenize; $\\varepsilon$ (the matrix $E$) **is** learned jointly with the rest of the network by backprop, exactly like any other weight. Reconstruct this pipeline and its invariants:"
     },
     {
       "kind": "question",
@@ -164,6 +175,65 @@
       }
     },
     {
+      "kind": "section",
+      "title": "Part 4 — Edge cases & the classic failure"
+    },
+    {
+      "kind": "text",
+      "title": "When a model looks broken but the tokenizer is the culprit",
+      "body": "Symptom family: a model that is fine on ordinary English suddenly degrades on emoji, rare Unicode, a new language, or a new domain — *with weights unchanged*. Mechanism: out-of-distribution characters have no learned merges, so they shatter into many byte-level fallback tokens; the input becomes a long, low-signal sequence the model never trained on. The fix is at the tokenizer (broader/byte-level coverage, or domain-matched vocab), not the weights. Recognizing \"this is a tokenization problem, not a model problem\" is a senior-level diagnostic skill. Practice it:"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "tok_scen",
+        "kind": "scenario",
+        "question": "Diagnose the tokenization failure.",
+        "scenario": "A model trained on English text suddenly performs terribly on user input full of emoji and rare Unicode symbols. The tokenizer and vocabulary are unchanged.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "rare/unseen characters fragment into many subword or byte fallback tokens"
+          },
+          {
+            "id": "c2",
+            "description": "the sequence balloons / meaning is diluted across many tokens"
+          },
+          {
+            "id": "c3",
+            "description": "fix: broaden tokenizer coverage (e.g. byte-level BPE) or retrain the vocab"
+          }
+        ],
+        "explanation": "Out-of-distribution characters have no merged tokens, so they shatter into many tiny tokens — long, low-signal sequences the model never trained on."
+      }
+    },
+    {
+      "kind": "question",
+      "hints": [
+        "What corpus was the BPE vocab trained on?",
+        "Rare/unseen substrings have no merged token."
+      ],
+      "workedSolution": "BPE's merges come from frequent pairs in training text (mostly prose). Code symbols are rare there, so they remain unmerged subwords — more tokens for the same word count.",
+      "retryUntilCorrect": true,
+      "question": {
+        "id": "tok_mc",
+        "kind": "multiple_choice",
+        "question": "A 10-word English sentence becomes ~12 tokens, but a 10-word code snippet becomes ~40. Why?",
+        "options": [
+          "Code has many rare substrings the BPE vocab never merged, so it fragments into more subword tokens",
+          "The model is simply larger for code",
+          "Code uses more characters per word, nothing else",
+          "Tokenization is random"
+        ],
+        "correctIndex": 0,
+        "explanation": "BPE merges frequent pairs from its (mostly prose) training corpus; code identifiers/punctuation are comparatively rare, so they stay split into many short tokens."
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 5 — Connections, teach-back & what's next"
+    },
+    {
       "kind": "explain_back",
       "question": {
         "id": "tok_teach",
@@ -188,7 +258,7 @@
     {
       "kind": "text",
       "title": "What to carry forward",
-      "body": "- The model only ever sees **integers**; every bit of meaning is learned from how those integers co-occur.\n- **Subword** tokenization is the modern standard: bounded vocabulary, no true out-of-vocabulary words.\n- Token count is a **cost** lever — attention is $O(n^2)$ in tokens.\n- Spacing, casing, numbers, and code all tokenize in non-obvious ways that change model behavior.\n\n**Next:** [Word embeddings](/wiki/embeddings) — how each token id becomes a learned vector the network can compute with — then [BPE tokenization](/wiki/bpe-tokenization), the exact algorithm that builds a subword vocabulary."
+      "body": "Tokens are the atoms every later concept manipulates: attention mixes token vectors, the FFN transforms them, the LM head predicts the next *token*. You now know why the representation is subword and why the choice has quadratic cost consequences. Next: **BPE** — the exact greedy algorithm that *constructs* the vocabulary you just relied on, plus the precise vocab-size ↔ sequence-length tradeoff in numbers."
     }
   ]
 }

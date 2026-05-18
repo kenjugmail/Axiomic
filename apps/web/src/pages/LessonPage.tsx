@@ -42,7 +42,7 @@ type Phase =
   | "error";
 
 interface LabEmbed {
-  kind: "protocol" | "cert" | "equipment-training";
+  kind: "protocol" | "cert" | "equipment-training" | "exam";
   slug: string;
 }
 
@@ -286,7 +286,11 @@ export function LessonPage() {
           // rendering slides.
           if (lr.nodeKind && lr.nodeKind !== "lesson") {
             const slug =
-              lr.protocolSlug ?? lr.certSlug ?? lr.equipmentSlug ?? "";
+              lr.protocolSlug ??
+              lr.certSlug ??
+              lr.equipmentSlug ??
+              lr.examSlug ??
+              "";
             setLabEmbed({
               kind: lr.nodeKind as LabEmbed["kind"],
               slug,
@@ -732,14 +736,18 @@ export function LessonPage() {
                   ? "Hands-on protocol"
                   : labEmbed.kind === "cert"
                     ? "Safety certification"
-                    : "Equipment training"}
+                    : labEmbed.kind === "exam"
+                      ? "Practice exam"
+                      : "Equipment training"}
               </h2>
               <p className="text-sm text-muted-foreground mb-6">
                 {labEmbed.kind === "protocol"
                   ? "This step is a real lab procedure. Run it at the bench, log your observations, and request a sign-off when done — completion bubbles back here."
                   : labEmbed.kind === "cert"
                     ? "Pass the safety quiz to mark this step complete. Your certification is saved to your lab profile."
-                    : "Equipment manual + training. Reading the manual + passing the equipment cert marks this step complete."}
+                    : labEmbed.kind === "exam"
+                      ? "This step is a full timed exam. Work through every section; your score and attempt history are saved to your exam profile."
+                      : "Equipment manual + training. Reading the manual + passing the equipment cert marks this step complete."}
               </p>
               <div className="flex items-center justify-center gap-2">
                 <Link
@@ -748,7 +756,9 @@ export function LessonPage() {
                       ? `/lab/protocols/${labEmbed.slug}`
                       : labEmbed.kind === "cert"
                         ? `/lab/safety-certs/${labEmbed.slug}`
-                        : `/lab/equipment/${labEmbed.slug}`
+                        : labEmbed.kind === "exam"
+                          ? `/exams/${labEmbed.slug}`
+                          : `/lab/equipment/${labEmbed.slug}`
                   }
                   className="inline-flex items-center px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
                 >

@@ -1,0 +1,301 @@
+{
+  "meta": {
+    "timeMinutes": 45,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish percent-of vs percent-change; compose changes multiplicatively",
+      "Carry and cancel units as an error check",
+      "Know how mean vs median respond to outliers"
+    ],
+    "prereqs": [
+      "sat-math-advanced"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "section",
+      "title": "Part 1 — Math that looks like real life",
+      "body": "Problem-Solving & Data Analysis (~15% of Math) is ratios, rates, units, percentages, statistics, and reading graphs/tables. The math is easy; the SAT scores its points on *misreads*, so this domain rewards care more than cleverness."
+    },
+    {
+      "kind": "text",
+      "title": "What it tests",
+      "body": "- **Ratios, proportions, rates** and **unit conversion** (the most common setup).\n- **Percentages**: percent *of*, percent *change*, successive changes, percent error.\n- **Statistics**: mean, median, range, standard-deviation *concept* (spread), outliers.\n- **Probability** from two-way tables.\n- **Data interpretation**: pull exact values and trends off scatterplots, bar/line graphs, and tables.\n\nLow difficulty, high precision: the test wins on axis misreads and the percent-of/percent-change confusion below."
+    },
+    {
+      "kind": "text",
+      "title": "The distinction that's tested most",
+      "body": "> **percent OF ≠ percent CHANGE, and successive changes do NOT add.**\n\n- \"20% of 80\" $=0.20\\times 80=16$.\n- \"increased by 20%\" $=80\\times 1.20=96$.\n- \"+10% then −10%\" is $\\times1.10\\times0.90=0.99$ → a **1% net loss**, not 0%.\n\nEach change is a *multiplicative factor* $(1\\pm p/100)$; the net effect is the **product** of factors, never the sum of percents. More SAT data points are lost to this one confusion than to any computation. Convert every change to a factor on sight."
+    },
+    {
+      "kind": "section",
+      "title": "Part 2 — Strategy a top scorer uses"
+    },
+    {
+      "kind": "text",
+      "title": "Carry units like algebra (a free error-checker)",
+      "body": "Write units on every quantity and cancel them like variables: $\\dfrac{60\\ \\text{mi}}{1\\ \\text{hr}}\\times\\dfrac{1\\ \\text{hr}}{60\\ \\text{min}}=1\\ \\text{mi/min}$. If the units don't cancel to what the question asks for, your setup is wrong — *before* you compute. Dimensional analysis turns 'rate' word problems into mechanical unit-cancellation and catches setup errors the answer choices are designed to reward."
+    },
+    {
+      "kind": "text",
+      "title": "Mean vs median — know which one moves",
+      "body": "Statistics questions here are conceptual, not computational. The fact tested repeatedly: adding a large **outlier** swings the **mean** substantially but barely moves the **median** (a positional statistic). So \"which best represents a typical value when there's an extreme value?\" → **median**. Memorize how each statistic *responds to a change*, not just how to compute it."
+    },
+    {
+      "kind": "section",
+      "title": "Part 3 — Method: percent-change, step by step"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "psd_gd",
+        "kind": "guided_derivation",
+        "question": "Set up and solve a percent-change problem",
+        "goal": "A \\$50 item is marked up 20%, then that price is discounted 25%. Find the final price.",
+        "steps": [
+          {
+            "prompt": "A 20% markup multiplies the price by what factor?",
+            "motivation": "\"Increase by p%\" means multiply by (1 + p/100); it is NOT adding then working separately.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "1.20",
+                "0.20",
+                "1.02",
+                "0.80"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Increase by 20% → ×(1 + 0.20)."
+            ],
+            "reveal": "×1.20. New price = 50 × 1.20 = \\$60."
+          },
+          {
+            "prompt": "A 25% discount multiplies by what factor?",
+            "motivation": "\"Decrease by p%\" means multiply by (1 − p/100).",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "0.75",
+                "0.25",
+                "1.25",
+                "0.25 off the original"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Decrease by 25% → ×(1 − 0.25)."
+            ],
+            "reveal": "×0.75."
+          },
+          {
+            "prompt": "Apply the discount to the marked-up price. Final price = 60 × 0.75 = ?",
+            "motivation": "Successive percent changes MULTIPLY in sequence; they don't add.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "45",
+                "$45",
+                "45.00"
+              ]
+            },
+            "hints": [
+              "60 × 0.75."
+            ],
+            "reveal": "\\$45."
+          },
+          {
+            "prompt": "Net change is −20% + ... actually compute it: is the net change −5% as 'up 20, down 25' suggests? Explain.",
+            "motivation": "Overall factor 1.20×0.75 = 0.90 → a 10% net decrease, not −5%; successive percents don't add.",
+            "accepts": {
+              "mode": "text",
+              "rubricCriteria": [
+                {
+                  "id": "c1",
+                  "description": "overall factor is 1.20 × 0.75 = 0.90"
+                },
+                {
+                  "id": "c2",
+                  "description": "that is a 10% net decrease, NOT (20−25)=−5%"
+                },
+                {
+                  "id": "c3",
+                  "description": "successive percent changes multiply, they do not add"
+                }
+              ]
+            },
+            "hints": [
+              "Multiply the two factors; compare to 1."
+            ],
+            "reveal": "1.20 × 0.75 = 0.90 → 10% net *decrease*. Adding the percents (−5%) is the classic trap."
+          }
+        ],
+        "finalResult": "Final price \\$45 (overall ×0.90, a 10% decrease)"
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 4 — Worked examples, end to end"
+    },
+    {
+      "kind": "text",
+      "title": "Worked example 1 — a rate item with units",
+      "body": "\"A printer prints 18 pages in 24 seconds. At that rate, how many pages in 2 minutes?\" First **convert units**: 2 min = 120 s (the trap is leaving it as 2). Rate $=\\dfrac{18\\ \\text{pg}}{24\\ \\text{s}}=0.75\\ \\text{pg/s}$. Pages $=0.75\\ \\text{pg/s}\\times 120\\ \\text{s}=90$ — units cancel to pages, confirming the setup."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "psd_me",
+        "kind": "math_expression",
+        "question": "0.75 pages/sec × 120 s = ____ pages.",
+        "acceptedAnswers": [
+          "90",
+          "90 pages"
+        ],
+        "explanation": "Convert minutes→seconds first (units!), then multiply rate × time. 0.75 × 120 = 90."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "psd_p1",
+        "kind": "multiple_choice",
+        "question": "Adding one very large outlier to a data set will most affect the:",
+        "options": [
+          "Mean",
+          "Median",
+          "Mode",
+          "Minimum"
+        ],
+        "correctIndex": 0,
+        "explanation": "The mean uses every value so it's pulled by outliers; the median (middle position) barely moves. This is the SAT's favorite statistics concept."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Worked example 2 — reverse percent",
+      "body": "\"A shirt costs \\$40 *after* a 20% discount. Original price?\" The trap: add 20% of 40 → \\$48 (wrong). Correct model: \\$40 is $(100-20)\\%=80\\%$ of the original, so original $\\times 0.80 = 40 \\Rightarrow$ original $= 40/0.80 = \\$50$. 'After a discount' means the final equals the original times the *retained* fraction — set up the equation, don't add back a percent of the wrong base."
+    },
+    {
+      "kind": "section",
+      "title": "Part 5 — Trap taxonomy & pitfalls"
+    },
+    {
+      "kind": "text",
+      "title": "The PSD trap families",
+      "body": "1. **Percent add** — adding successive percentages instead of multiplying factors (the dominant trap).\n2. **Wrong base** — taking the percent of the new value when it should be the original (reverse-percent).\n3. **Unit skip** — not converting min↔s, %↔decimal, etc.\n4. **Outlier intuition** — thinking the median moves like the mean (or vice versa).\n\nFactors-not-sums, identify-the-base, carry-units, know-which-statistic-moves: those four habits answer almost the whole domain."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "psd_scen",
+        "kind": "scenario",
+        "question": "Diagnose the mistake.",
+        "scenario": "Asked for the net effect of a 30% increase followed by a 30% decrease, a student answers '0% — they cancel.' Wrong.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "successive percent changes multiply, not add"
+          },
+          {
+            "id": "c2",
+            "description": "1.30 × 0.70 = 0.91 → a 9% net DECREASE"
+          },
+          {
+            "id": "c3",
+            "description": "the '+30 then −30 = 0' reasoning is the credited trap"
+          }
+        ],
+        "explanation": "Percent changes compose multiplicatively. 1.3 × 0.7 = 0.91, a 9% loss — not zero. Always convert each change to a factor and multiply."
+      }
+    },
+    {
+      "kind": "question",
+      "hints": [
+        "\\$40 is (100−20)% = 80% of the original.",
+        "Divide by 0.80; don't add 20% of 40."
+      ],
+      "workedSolution": "Discounted price = original × (1 − 0.20). So original = 40 / 0.80 = \\$50. The \\$48 trap comes from incorrectly adding 20% of the *discounted* price.",
+      "retryUntilCorrect": true,
+      "question": {
+        "id": "psd_mc",
+        "kind": "multiple_choice",
+        "question": "A shirt costs \\$40 after a 20% discount. What was the original price?",
+        "options": [
+          "\\$50",
+          "\\$48",
+          "\\$32",
+          "\\$60"
+        ],
+        "correctIndex": 0,
+        "explanation": "40 is 80% of the original: original × 0.80 = 40 → original = 40/0.80 = \\$50. (Adding 20% of 40 gives \\$48 — the trap.)"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "psd_me2",
+        "kind": "math_expression",
+        "question": "What is 15% of 240? Enter the number.",
+        "acceptedAnswers": [
+          "36"
+        ],
+        "explanation": "15% = 0.15; 0.15 × 240 = 36. 'Percent of' = multiply by the decimal."
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 6 — Tie it together"
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "psd_eb",
+        "kind": "explain_back",
+        "prompt": "Teach back: why can't you add successive percentage changes, and what do you do instead?",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "each change is a multiplicative factor (1±p/100)"
+          },
+          {
+            "id": "c2",
+            "description": "the net effect is the PRODUCT of the factors"
+          },
+          {
+            "id": "c3",
+            "description": "adding the percentages ignores that the second % is taken of a changed base"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "psd_fr",
+        "kind": "free_response",
+        "question": "Explain, with an example, why median can be a better 'typical value' than mean.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "mean is pulled by outliers/skew; median resists them"
+          },
+          {
+            "id": "c2",
+            "description": "gives a concrete example with an outlier"
+          },
+          {
+            "id": "c3",
+            "description": "concludes when each is the better summary"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "text",
+      "title": "How it scores & what's next",
+      "body": "Problem-Solving & Data Analysis is ~15% of Math and is lost to misreads, not math — factors over sums, the right base, carried units, and statistic behavior are the entire game. Final domain: **Geometry & Trigonometry**."
+    }
+  ]
+}

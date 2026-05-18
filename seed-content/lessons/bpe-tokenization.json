@@ -1,6 +1,6 @@
 {
   "meta": {
-    "timeMinutes": 25,
+    "timeMinutes": 50,
     "difficulty": "core",
     "objectives": [
       "Run the byte-pair-encoding merge loop by hand",
@@ -13,19 +13,23 @@
   "slides": [
     {
       "kind": "section",
-      "title": "Part 1 — The algorithm that builds the vocabulary",
-      "body": "Tokens-basics told you *why* subwords win. This lesson is the *how*: Byte-Pair Encoding, the greedy merge algorithm behind GPT, LLaMA, and most modern LLM tokenizers — and the production surprises it causes."
+      "title": "Part 1 — Why BPE exists",
+      "body": "You proved the char-vs-word dilemma in the last lesson. Byte-Pair Encoding is the algorithm that resolves it — and it is almost startlingly simple for how load-bearing it is in every modern LLM."
     },
     {
       "kind": "text",
-      "title": "Three options, one winner",
-      "body": "- **Word-level:** vocab explodes; unseen words become `<UNK>`.\n- **Character-level:** tiny vocab, but sequences 4–5× longer — compute wasted predicting whitespace.\n- **Subword (BPE):** fixed-size vocabulary of frequent character sequences. Common words = one token; rare words decompose into seen pieces. No `<UNK>`, bounded vocab.\n\nType into the playground and watch a sentence become subword pieces. BPE (or close cousins WordPiece / Unigram / byte-level tiktoken) is what essentially every production LLM uses.",
-      "viz": "tokenizer-playground"
+      "title": "The compromise, made concrete",
+      "body": "BPE starts from the smallest *safe* units — bytes or characters, so **nothing is ever out-of-vocabulary** — and repeatedly performs one move: find the **most frequent adjacent pair** of current tokens across the corpus and **merge** it into a single new token, until the vocabulary reaches a target size. Outcomes by construction: high-frequency words coalesce into single tokens (cheap, semantic); rare words remain a few subword pieces (no `<unk>`, morphology preserved); never-seen input still encodes as bytes. **One** hyperparameter — target vocab size — slides between \"few long tokens, big embedding table\" and \"many short tokens, long sequences.\""
     },
     {
       "kind": "text",
       "title": "The merge-pair training loop",
-      "body": "BPE training is greedy and short:\n\n1. **Start** with a vocabulary of all single characters (or bytes).\n2. **Count** every adjacent symbol pair in the corpus.\n3. **Merge** the most frequent pair into a new token; add it to the vocab.\n4. **Repeat** for $N$ merges (typically 30k–100k).\n\n```\nMerge 1:  t + h  → th\nMerge 2:  i + n  → in\nMerge 3:  th + e → the\n...thousands more...\n```\n\nFrequent whole words emerge as single tokens; rare words remain decomposable. At inference the *same* learned merges are applied greedily (longest match first). The merge list **is** the tokenizer."
+      "body": "```\nvocab ← all bytes/characters\nmerges ← []\nwhile |vocab| < target:\n    pairs ← count every adjacent token pair over the corpus\n    best  ← argmax(pairs)            # most frequent adjacent pair\n    vocab.add(concat(best))\n    merges.append(best)              # ORDER matters\n    rewrite corpus applying that one merge\n```\n\nThe **ordered list of merges *is* the tokenizer.** Training is just \"learn the merge list.\" Encoding new text re-applies the merges in the same order until none apply. There is no neural network and no gradient inside the tokenizer — it is pure corpus statistics, which is why it's fast, deterministic, and reproducible."
+    },
+    {
+      "kind": "text",
+      "title": "Worked merge, fully by hand",
+      "body": "Corpus (word:count): `low:5  lower:2  newest:6  widest:3`. Represent each as chars + end-marker. Count adjacent pairs across all words weighted by count: the pair `e s` occurs in `newest`(6) and `widest`(3) → 9, `s t` similarly → 9, `l o` → 7, … Merge the top pair, say `e s`→`es`. Recount: now `es t` appears 9 times → merge → `est`. Continue: `est` becomes a single token shared by `newest` and `widest`; `low` stays cheap because `l o`,`lo w` were frequent. After $k$ merges you have a vocab of size (initial + $k$) and a fixed merge order. Notice the algorithm *discovered* the morpheme-like unit `est` purely from frequency — no linguistics input."
     },
     {
       "kind": "question",
@@ -72,12 +76,17 @@
     },
     {
       "kind": "section",
-      "title": "Part 2 — The surprises that bite in production"
+      "title": "Part 2 — The vocab-size tradeoff, in numbers"
     },
     {
       "kind": "text",
-      "title": "Leading spaces and bad number splits",
-      "body": "**Leading spaces are part of the token.** `\" the\"` and `\"the\"` are usually *different* tokens. Prompts that start mid-word, or trailing whitespace, cause off-by-one weirdness because the model rarely saw the unspaced variant.\n\n**Numbers split inconsistently.** `\"3.14159\"` might be `[\"3\", \".\", \"14\", \"159\"]` — digits get no stable identity, a real cause of LLM arithmetic errors.\n\nRule of thumb: if a model fails at *character-level* tasks (counting letters, reversing strings, rhyming), suspect the tokenizer first. Verify in the playground — type ` the` vs `the`.",
+      "title": "Bigger vocab ⇄ shorter sequences (quantified)",
+      "body": "More merges → longer average tokens → **fewer tokens per document** (shorter sequences) but a **larger** embedding matrix $E\\in\\mathbb{R}^{|V|\\times d}$ and output projection. Concretely, going from 8k→50k vocab on English text typically cuts token count per document by a large fraction; since attention is $\\mathcal{O}(n^2)$, a 25% shorter sequence is ~$0.75^2\\approx 0.56\\times$ the attention compute — a *bigger* win than the extra embedding rows cost. Push vocab too far and you get rare, under-trained token embeddings (each seen too seldom to learn well). Empirically English LLMs settle around 30k–100k; multilingual models go larger to cover many scripts."
+    },
+    {
+      "kind": "text",
+      "title": "Leading spaces & number splits — now mechanistically explained",
+      "body": "Earlier you observed byte-level BPE attaching leading spaces and fragmenting numbers/code. Now the *cause* is precise: merges are chosen by adjacency frequency in a prose-dominated corpus. Space-then-word pairs are extremely frequent, so the space gets merged onto the word — giving the `\" cat\"`≠`\"cat\"` behavior. Digit pairs and code-symbol pairs are comparatively rare, so few merges form there and they stay shattered. The surface quirks are downstream of one line: *merge the most frequent pair*.",
       "viz": "tokenizer-playground"
     },
     {
@@ -98,13 +107,12 @@
     },
     {
       "kind": "section",
-      "title": "Part 3 — Variants you'll meet",
-      "body": "BPE is the workhorse, but the model card may say something slightly different."
+      "title": "Part 3 — Variants you'll meet in real systems"
     },
     {
       "kind": "text",
-      "title": "WordPiece, Unigram, byte-level",
-      "body": "- **WordPiece** (BERT): merges by likelihood gain, not raw frequency.\n- **Unigram** (T5, SentencePiece default): start from a *large* vocab and prune to maximize corpus likelihood.\n- **Byte-level BPE / tiktoken** (GPT-2/3/4): operate on UTF-8 *bytes*, so *any* byte sequence is tokenizable — emoji, non-UTF-8, arbitrary binary — with zero `<UNK>` ever.\n\nIn practice you almost never train a tokenizer; you inherit one from a base model and then debug what it does to your inputs. The tokenizer is part of the model's contract."
+      "title": "WordPiece, Unigram, byte-level BPE",
+      "body": "- **WordPiece** (BERT): same greedy spirit, but the merge criterion is *likelihood gain* of the corpus under a unigram LM, not raw pair frequency.\n- **Unigram LM** (SentencePiece, T5): the inverse direction — start from a large candidate vocab and *prune* the tokens whose removal least hurts corpus likelihood; tokenization becomes probabilistic (multiple segmentations scored).\n- **Byte-level BPE** (GPT-2 onward): run BPE over raw *bytes* rather than Unicode characters, so the 256 byte values are the base alphabet and *every possible string on Earth* is encodable with zero `<unk>` — the modern default for general LLMs.\n\nDifferent objective functions, identical goal: a fixed-size vocab trading sequence length against coverage."
     },
     {
       "kind": "question",
@@ -132,7 +140,12 @@
     },
     {
       "kind": "section",
-      "title": "Recap"
+      "title": "Part 4 — Formalize the algorithm"
+    },
+    {
+      "kind": "text",
+      "title": "BPE as an optimization, stated",
+      "body": "BPE is a greedy approximation to: *choose a vocabulary of size $|V|$ minimizing the expected number of tokens per corpus document.* Exact minimization is combinatorial; BPE's greedy \"merge the most frequent pair\" is the tractable heuristic, and it works remarkably well in practice. Reconstruct the loop and its stopping condition from these requirements:"
     },
     {
       "kind": "question",
@@ -190,6 +203,65 @@
       }
     },
     {
+      "kind": "section",
+      "title": "Part 5 — Edge cases & a counter-intuitive production bug"
+    },
+    {
+      "kind": "text",
+      "title": "Smaller vocab can make inference *slower*",
+      "body": "A natural \"optimization\" — shrink the vocab to reduce the embedding table and save memory — can *increase* latency. Mechanism: fewer merges → longer token sequences → quadratically more attention compute, which dominates the modest embedding-table savings. This is the kind of second-order effect that separates someone who memorized \"BPE merges pairs\" from someone who understands the cost model. Work through it:"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "bpe_scen",
+        "kind": "scenario",
+        "question": "Diagnose the latency regression.",
+        "scenario": "To save memory you shrink the BPE vocabulary from 50k to 8k. Inference latency goes UP, not down.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "a smaller vocab means fewer merges → longer token sequences"
+          },
+          {
+            "id": "c2",
+            "description": "transformer compute scales with sequence length (attention is ~O(n^2))"
+          },
+          {
+            "id": "c3",
+            "description": "the longer sequences outweigh the smaller embedding table → net slower"
+          }
+        ],
+        "explanation": "Vocab size trades embedding-table size against sequence length. Too small a vocab lengthens every sequence, and attention cost grows with length."
+      }
+    },
+    {
+      "kind": "question",
+      "hints": [
+        "Bigger vocab = more/longer merged tokens.",
+        "How does token count per sentence change?"
+      ],
+      "workedSolution": "A larger vocab has more merges, so text encodes into fewer, longer tokens (shorter sequences) — paid for with a larger embedding and output projection.",
+      "retryUntilCorrect": true,
+      "question": {
+        "id": "bpe_mc",
+        "kind": "multiple_choice",
+        "question": "Increasing BPE vocabulary size primarily trades…",
+        "options": [
+          "a larger embedding table for shorter token sequences",
+          "accuracy for nothing",
+          "speed for randomness",
+          "grammar for memory"
+        ],
+        "correctIndex": 0,
+        "explanation": "More merges → longer tokens → fewer tokens per text (shorter sequences) at the cost of a bigger embedding/output matrix."
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 6 — Connections, teach-back & what's next"
+    },
+    {
       "kind": "explain_back",
       "question": {
         "id": "bpe_teach",
@@ -214,7 +286,7 @@
     {
       "kind": "text",
       "title": "What to carry forward",
-      "body": "- BPE = start from characters → repeatedly merge the most frequent adjacent pair → fixed-size subword vocab.\n- No `<UNK>`; rare words decompose into seen pieces.\n- **Leading spaces, numbers, and code** tokenize in non-obvious ways that change behavior and cost (~0.75 words/token in English).\n- Variants: WordPiece, Unigram, byte-level — same goal, different merge criterion.\n\n**Next:** [Embeddings](/wiki/embeddings) — turning these token ids into the learned vectors attention operates on."
+      "body": "You can run BPE by hand, explain every production quirk from the single merge rule, and reason quantitatively about the vocab↔length↔cost triangle. The pipeline is now complete through *input representation*. Next the model finally computes: **softmax** — the universal head turning scores into a probability distribution and the core of attention weights — then attention itself."
     }
   ]
 }

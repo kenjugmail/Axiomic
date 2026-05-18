@@ -118,7 +118,6 @@ export function GuidedDerivationQuestion({
     }
   }
 
-  const step = question.steps[state.idx];
   const cur = state.steps[state.idx];
   const locked = !!review || state.completed;
 

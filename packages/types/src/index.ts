@@ -770,10 +770,11 @@ export interface MasteryNode {
   // Sprint 82 — non-lesson nodes (lab playbooks) carry no lessonData
   // by design; their content is the linked cert/protocol/equipment.
   // The server already sends these on the path payload.
-  nodeKind?: "lesson" | "protocol" | "cert" | "equipment-training";
+  nodeKind?: "lesson" | "protocol" | "cert" | "equipment-training" | "exam";
   protocolSlug?: string | null;
   certSlug?: string | null;
   equipmentSlug?: string | null;
+  examSlug?: string | null;
 }
 
 export interface UserNodeProgress {
@@ -1271,10 +1272,11 @@ export interface LessonResponse {
   // Sprint 82 — when nodeKind != 'lesson', the LessonPage renders a
   // lab-surface embed pointing at the matching protocol/cert/
   // equipment record. The lesson body is null in that case.
-  nodeKind?: "lesson" | "protocol" | "cert" | "equipment-training";
+  nodeKind?: "lesson" | "protocol" | "cert" | "equipment-training" | "exam";
   protocolSlug?: string | null;
   certSlug?: string | null;
   equipmentSlug?: string | null;
+  examSlug?: string | null;
 }
 
 export interface QuizSubmitResponse {
@@ -3503,10 +3505,11 @@ export interface AssignLabWorkRequest {
 export interface MasteryNodeKindFields {
   // Sprint 82 — surfaced on MasteryNode/MasteryPath responses so the
   // LessonPage can pick the right renderer.
-  nodeKind?: "lesson" | "protocol" | "cert" | "equipment-training";
+  nodeKind?: "lesson" | "protocol" | "cert" | "equipment-training" | "exam";
   protocolSlug?: string | null;
   certSlug?: string | null;
   equipmentSlug?: string | null;
+  examSlug?: string | null;
 }
 
 // =============================================================

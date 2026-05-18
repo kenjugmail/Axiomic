@@ -1,6 +1,6 @@
 {
   "meta": {
-    "timeMinutes": 20,
+    "timeMinutes": 45,
     "difficulty": "intro",
     "objectives": [
       "Derive softmax and explain the temperature knob",
@@ -11,108 +11,33 @@
   "slides": [
     {
       "kind": "section",
-      "title": "Part 1 — From scores to a decision",
-      "body": "Every time a neural network *chooses* — the next word, the predicted class, which token to attend to — softmax is the function doing the choosing. Master this one function and three later topics (attention, the output head, temperature sampling) become almost free."
+      "title": "Part 1 — Why softmax exists",
+      "body": "Nearly every decision a deep net makes ends in a softmax: the classifier head, the language-model head, and the attention weights themselves. It earns one deep, careful pass."
     },
     {
       "kind": "text",
-      "title": "The problem softmax solves",
-      "body": "A network's final layer outputs **logits** — raw real numbers with no constraints, e.g. `[2.5, 2.0, 1.5, 0.8, 0.3]`. They can be negative; they don't sum to anything in particular. To *act* on them as a choice, we need a **probability distribution**: all values ≥ 0, summing to exactly 1.\n\nSoftmax is the standard map from logits to a distribution:\n\n$$\\sigma(z)_i = \\frac{e^{z_i}}{\\sum_j e^{z_j}}$$\n\nThe exponential guarantees positivity (even for negative logits); dividing by the sum guarantees normalization. The bars on the right show softmax applied to a fixed logit set — the tallest logit gets the most probability, but not *all* of it.",
-      "viz": "softmax-temperature-preview",
-      "vizProps": {
-        "value": 1
-      }
+      "title": "The job: a vector of scores → a probability distribution",
+      "body": "A network's penultimate output is a vector of unbounded real **logits** $z=[z_1,\\dots,z_K]$ — one per class, or per vocabulary token. To train with cross-entropy and to *sample*, you need a genuine probability distribution: every entry $\\ge 0$, all summing to 1, and differentiable so gradients flow. Softmax is the canonical map\n$$\\text{softmax}(z)_i=\\frac{e^{z_i}}{\\sum_{j=1}^{K} e^{z_j}}.$$\nIt is the final operation of essentially every transformer (the LM head over ~50k tokens) and, row-wise, the operation that converts attention scores into attention weights. So you will meet it at least three more times on this path."
     },
     {
       "kind": "text",
-      "title": "Why not just normalize?",
-      "body": "A tempting shortcut: divide each logit by the sum. Two reasons it fails:\n\n1. **Sign.** Logits can be negative; probabilities cannot. `z / Σz` can produce negative or undefined values. $e^{z}$ is always positive.\n2. **Contrast.** The exponential is monotonic *and* convex — it stretches gaps. A logit lead of `0.5` becomes a much larger probability lead than linear normalization would give. That controllable contrast is exactly what we exploit next with temperature.\n\nSoftmax is also differentiable everywhere, with a clean Jacobian — essential for training by backpropagation."
+      "title": "Why not the naive normalizations",
+      "body": "Several obvious alternatives fail concrete requirements:\n\n- $z_i/\\sum_j z_j$: logits can be **negative** (negative \"probabilities\"), the denominator can be 0, and it's only linearly sensitive to gaps.\n- $\\max(0,z_i)/\\sum\\max(0,z_j)$ (ReLU-normalize): kills all information in negative logits and has zero gradient there.\n- $|z_i|/\\sum|z_j|$: non-monotonic — increasing a logit can *decrease* its probability.\n\nWe want three properties at once: outputs always positive, **monotonic** in each $z_i$, and score *gaps* mapped to probability *ratios* (a confident margin should dominate). Exponentiation uniquely delivers all three: $e^{z}>0$ always, strictly increasing, and $e^{z_i}/e^{z_j}=e^{z_i-z_j}$ depends only on the gap. That is *why* it's exp, not an arbitrary choice."
+    },
+    {
+      "kind": "text",
+      "title": "Soft argmax — and the temperature knob",
+      "body": "Softmax is a smooth, differentiable stand-in for $\\arg\\max$. With a **temperature** $T$, use $\\text{softmax}(z/T)$:\n\n- $T\\to 0^{+}$: the largest logit's weight $\\to 1$ — hard argmax (greedy decoding).\n- $T=1$: the standard distribution.\n- $T\\to\\infty$: every weight $\\to 1/K$ — the uniform distribution (maximum entropy).\n\nThis single scalar is exactly the exploration↔exploitation dial in text generation: low $T$ = safe/repetitive, high $T$ = diverse/risky. Watch it move continuously between one-hot and uniform.",
+      "viz": "softmax-temperature-preview"
     },
     {
       "kind": "section",
-      "title": "Part 2 — Temperature: one knob, total control"
+      "title": "Part 2 — Formalize it"
     },
     {
       "kind": "text",
-      "title": "Dividing by T before the exponential",
-      "body": "Insert a single scalar **temperature** $T$ before softmax:\n\n$$\\sigma(z/T)_i = \\frac{e^{z_i/T}}{\\sum_j e^{z_j/T}}$$\n\n- **$T < 1$ (cold):** logits are amplified, the gap widens, the distribution becomes **peaked** — the model gets *confident*.\n- **$T = 1$:** plain softmax.\n- **$T > 1$ (hot):** logits shrink toward each other, the distribution **flattens** toward uniform — the model gets *exploratory*.\n\nThe viz now shows a **cold** distribution ($T = 0.5$). Compare its sharpness to the $T = 1$ slide above.",
-      "viz": "softmax-temperature-preview",
-      "vizProps": {
-        "value": 0.5
-      }
-    },
-    {
-      "kind": "text",
-      "title": "The hot regime",
-      "body": "Now the **hot** regime ($T = 2$). The same logits, but the bars are far more even — the model is much less sure, and sampling from this distribution produces more varied (and riskier) tokens.\n\nThis is *the* generation knob. Greedy decoding is the $T \\to 0$ limit (argmax). Creative writing settings push $T$ up. Nothing about the network changes — only this one division.",
-      "viz": "softmax-temperature-preview",
-      "vizProps": {
-        "value": 2
-      }
-    },
-    {
-      "kind": "question",
-      "question": {
-        "id": "sm_q1",
-        "kind": "slider",
-        "question": "Drag the temperature T until the softmax distribution is approximately uniform across all five logits.",
-        "viz": "softmax-temperature",
-        "min": 0.1,
-        "max": 10,
-        "step": 0.1,
-        "default": 1,
-        "target": {
-          "min": 4,
-          "max": 10
-        },
-        "explanation": "As T grows, every z_i / T → 0, so e^(z_i/T) → 1 for all i, and softmax → 1/N uniformly. Large T erases the information in the logits — useful for exploration, fatal for accuracy."
-      }
-    },
-    {
-      "kind": "question",
-      "question": {
-        "id": "sm_q2",
-        "kind": "multiple_choice",
-        "question": "You want greedy generation (always emit the single highest-probability token). Which temperature regime matches that behavior?",
-        "options": [
-          "T → 0 — softmax sharpens to one-hot on the largest logit (argmax)",
-          "T → ∞ — softmax flattens so the top token dominates",
-          "T = 1 — the default already is argmax",
-          "A negative T"
-        ],
-        "correctIndex": 0,
-        "explanation": "As T → 0⁺, the largest logit's exponential dominates all others infinitely, so softmax → a one-hot vector on the argmax. Greedy decoding is literally the zero-temperature limit of sampling."
-      }
-    },
-    {
-      "kind": "section",
-      "title": "Part 3 — Numerical reality + where it reappears",
-      "body": "Two things every practitioner must know: softmax is computed in a numerically stable way, and it is the same function in three very different places."
-    },
-    {
-      "kind": "text",
-      "title": "The max-subtraction trick",
-      "body": "Naively, $e^{z_i}$ overflows for large logits (e.g. $e^{1000}$ is `inf`). Every real implementation subtracts the max first:\n\n$$\\sigma(z)_i = \\frac{e^{z_i - \\max_j z_j}}{\\sum_k e^{z_k - \\max_j z_j}}$$\n\nThis is **mathematically identical** (the constant $e^{-\\max}$ cancels top and bottom) but numerically safe — the largest exponent is now $e^0 = 1$. If you ever implement softmax from scratch and see `NaN`s, this is almost always why."
-    },
-    {
-      "kind": "question",
-      "question": {
-        "id": "sm_q3",
-        "kind": "multiple_choice",
-        "question": "Subtracting max(z) from every logit before exponentiating changes the output probabilities how?",
-        "options": [
-          "Not at all — it is exactly equal, just numerically stable",
-          "It sharpens the distribution",
-          "It flattens the distribution",
-          "It only matters when logits are negative"
-        ],
-        "correctIndex": 0,
-        "explanation": "Multiplying numerator and denominator by the same constant e^(−max) leaves the ratio unchanged: softmax is shift-invariant in its input. The trick is purely about avoiding overflow — the distribution is identical."
-      }
-    },
-    {
-      "kind": "section",
-      "title": "Recap"
+      "title": "Properties that matter, with proofs in one line each",
+      "body": "1. **Shift invariance:** $\\text{softmax}(z+c\\mathbf{1})=\\text{softmax}(z)$ because $e^{z_i+c}/\\sum e^{z_j+c}=e^{c}e^{z_i}/(e^{c}\\sum e^{z_j})$ — the $e^{c}$ cancels. (This is the key to numerical stability, Part 4.)\n2. **Monotonic & smooth:** $\\partial p_i/\\partial z_i = p_i(1-p_i)>0$; the full Jacobian is $\\partial p_i/\\partial z_j = p_i(\\delta_{ij}-p_j)$ — everywhere differentiable.\n3. **Cross-entropy synergy:** with target $y$ (one-hot) and loss $-\\sum y_i\\log p_i$, the gradient w.r.t. logits collapses to the famously clean $p-y$. This elegance is *because* of softmax's exponential form — a major reason it, and not some other normalizer, is the universal head.\n\nNow reconstruct softmax from its requirements:"
     },
     {
       "kind": "question",
@@ -161,6 +86,15 @@
       }
     },
     {
+      "kind": "section",
+      "title": "Part 3 — Worked example & temperature"
+    },
+    {
+      "kind": "text",
+      "title": "By hand: z = [2.0, 1.0, 0.1]",
+      "body": "Exponentiate: $e^{2.0}=7.389,;e^{1.0}=2.718,;e^{0.1}=1.105$; sum $=11.212$. Divide: $p=[0.659,\\,0.242,\\,0.099]$. Read it: the top logit takes ~66% — confident, *not* certain; a gap of 1.0 in logits became a $7.389/2.718\\approx2.7\\times$ ratio in probability (the exp-of-gap property in action). Now temperature: with $T=0.5$ the logits become $[4,2,0.2]$ → distribution sharpens toward $[0.84,0.11,0.05]$. With $T=2$, $[1,0.5,0.05]$ → flattens toward $[0.44,0.27,0.29]$. Same logits, different *confidence* — exactly what a sampler controls."
+    },
+    {
       "kind": "question",
       "question": {
         "id": "sm_temp",
@@ -184,6 +118,121 @@
         },
         "explanation": "High T flattens softmax → high entropy (uncertain); low T sharpens it toward one-hot. Temperature is the confidence knob."
       }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sm_q1",
+        "kind": "slider",
+        "question": "Drag the temperature T until the softmax distribution is approximately uniform across all five logits.",
+        "viz": "softmax-temperature",
+        "min": 0.1,
+        "max": 10,
+        "step": 0.1,
+        "default": 1,
+        "target": {
+          "min": 4,
+          "max": 10
+        },
+        "explanation": "As T grows, every z_i / T → 0, so e^(z_i/T) → 1 for all i, and softmax → 1/N uniformly. Large T erases the information in the logits — useful for exploration, fatal for accuracy."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sm_q2",
+        "kind": "multiple_choice",
+        "question": "You want greedy generation (always emit the single highest-probability token). Which temperature regime matches that behavior?",
+        "options": [
+          "T → 0 — softmax sharpens to one-hot on the largest logit (argmax)",
+          "T → ∞ — softmax flattens so the top token dominates",
+          "T = 1 — the default already is argmax",
+          "A negative T"
+        ],
+        "correctIndex": 0,
+        "explanation": "As T → 0⁺, the largest logit's exponential dominates all others infinitely, so softmax → a one-hot vector on the argmax. Greedy decoding is literally the zero-temperature limit of sampling."
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 4 — Numerical reality (the pitfall that bites)"
+    },
+    {
+      "kind": "text",
+      "title": "exp() overflows — and the max-subtraction fix",
+      "body": "In float32, $e^{89}\\approx 4.5\\times10^{38}$ is near the overflow limit and $e^{1000}=\\infty$. Real logits late in training routinely exceed this, so the *naive* formula returns `inf/inf = NaN`, which then poisons every downstream gradient — a silent, training-killing bug. The fix is **free** by shift invariance: subtract $\\max(z)$ from every logit first. The distribution is provably *identical* (property 1), but now every exponent is $\\le 0$, so each $e^{\\cdot}\\in(0,1]$ — no overflow possible. Every production softmax (PyTorch, JAX, every attention kernel) does exactly this. It is the canonical \"mathematically irrelevant, numerically essential\" transformation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sm_scen",
+        "kind": "scenario",
+        "question": "Diagnose the NaN.",
+        "scenario": "Mid-training, logits grow very large and the loss becomes NaN. The softmax is implicated.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "exp() of large logits overflows to inf"
+          },
+          {
+            "id": "c2",
+            "description": "inf/inf in the normalizer yields NaN, which propagates through backprop"
+          },
+          {
+            "id": "c3",
+            "description": "fix: subtract max(logits) before exp (log-sum-exp / numerically-stable softmax)"
+          }
+        ],
+        "explanation": "Naive exp(z) overflows for large z. The standard fix subtracts max(z) first — mathematically identical, numerically safe."
+      }
+    },
+    {
+      "kind": "question",
+      "hints": [
+        "softmax is shift-invariant: softmax(z) = softmax(z−c).",
+        "Pick c so the largest exponent is 0."
+      ],
+      "workedSolution": "Subtracting max(z) exploits softmax's shift-invariance: the distribution is unchanged but every exp argument is ≤ 0, so no overflow.",
+      "retryUntilCorrect": true,
+      "question": {
+        "id": "sm_mc",
+        "kind": "multiple_choice",
+        "question": "Why subtract max(z) before exp in a softmax implementation?",
+        "options": [
+          "Numerical stability — prevents exp overflow; the output is mathematically identical",
+          "It sharpens the distribution",
+          "It speeds up training only",
+          "The gradient doesn't exist otherwise"
+        ],
+        "correctIndex": 0,
+        "explanation": "softmax(z) = softmax(z - c) for any constant c; choosing c = max(z) keeps exponents ≤ 0, avoiding overflow with zero change to the result."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sm_q3",
+        "kind": "multiple_choice",
+        "question": "Subtracting max(z) from every logit before exponentiating changes the output probabilities how?",
+        "options": [
+          "Not at all — it is exactly equal, just numerically stable",
+          "It sharpens the distribution",
+          "It flattens the distribution",
+          "It only matters when logits are negative"
+        ],
+        "correctIndex": 0,
+        "explanation": "Multiplying numerator and denominator by the same constant e^(−max) leaves the ratio unchanged: softmax is shift-invariant in its input. The trick is purely about avoiding overflow — the distribution is identical."
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 5 — Connections, teach-back & what's next"
+    },
+    {
+      "kind": "text",
+      "title": "Where softmax reappears on this path",
+      "body": "Three places, all soon: (1) **attention weights** — softmax over the key axis converts $QK^{T}/\\sqrt{d_k}$ scores into the convex weights you saw derived in attention-intro; the $\\sqrt{d_k}$ scaling exists precisely to keep *this* softmax unsaturated. (2) The **LM head** — a softmax over the entire vocabulary produces next-token probabilities; temperature there is your sampler's `temperature` knob. (3) **Cross-entropy training** — softmax + CE is the loss whose gradient is the clean $p-y$. It also connects to the optimization landscape you'll navigate.",
+      "viz": "gradient-descent-2d"
     },
     {
       "kind": "explain_back",
@@ -210,7 +259,7 @@
     {
       "kind": "text",
       "title": "What to carry forward",
-      "body": "- Softmax turns unconstrained **logits** into a **probability distribution** via $e^{z_i}/\\sum e^{z_j}$.\n- **Temperature** is a single division that interpolates from argmax ($T\\to0$) to uniform ($T\\to\\infty$).\n- It is **shift-invariant**; real code subtracts the max for numerical stability.\n\nYou will meet it again as: **[attention](/wiki/attention) weights** (softmax over query·key scores), the **output head** (softmax over vocabulary logits), and **classification**. Same function, three jobs.\n\n**Next:** [Attention](/wiki/attention) — where softmax decides how much each token listens to every other."
+      "body": "Softmax = exp-then-normalize: the unique smooth, monotonic, gap-to-ratio map to the probability simplex, with a temperature dial and a mandatory max-subtraction for stability. You'll immediately reuse it as the heart of attention weights. Next: **self-attention**."
     }
   ]
 }

@@ -1,0 +1,298 @@
+{
+  "meta": {
+    "timeMinutes": 45,
+    "difficulty": "core",
+    "objectives": [
+      "Never trust figure scale; solve from given relationships",
+      "Use similar triangles and the special-right-triangle ratios",
+      "Apply SOH-CAH-TOA and the sine/cosine cofunction identity"
+    ],
+    "prereqs": [
+      "sat-math-advanced"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "section",
+      "title": "Part 1 — The most formula-driven domain",
+      "body": "Geometry & Trigonometry (~15% of Math) rewards a compact, memorized relationship set and one iron rule: never trust how a figure *looks*."
+    },
+    {
+      "kind": "text",
+      "title": "What it tests",
+      "body": "- **Lines & angles:** vertical, supplementary/complementary, parallel-line angle pairs.\n- **Triangles:** angle-sum 180°, similarity, Pythagorean theorem, the special right triangles (45-45-90, 30-60-90), the common Pythagorean triples (3-4-5, 5-12-13).\n- **Circles:** area, circumference, arc length, sector area, central vs inscribed angles.\n- **Area & volume** of standard solids.\n- **Right-triangle trig:** SOH-CAH-TOA; the sine/cosine cofunction identity; basic radian sense.\n\nMost items are a one- or two-step application of a known relationship — *if* you don't get baited by the picture."
+    },
+    {
+      "kind": "text",
+      "title": "The rule that prevents the biggest trap",
+      "body": "> **Figures are NOT drawn to scale unless explicitly stated.** Never measure, eyeball, or assume from appearance — solve only from given/derivable relationships.\n\nThe SAT deliberately distorts figures so the visually 'obvious' answer is a wrong choice. Trust marked values, given equalities, and theorems; treat the drawing as a *topology sketch*, not a measurement. This single discipline prevents the most common geometry error."
+    },
+    {
+      "kind": "section",
+      "title": "Part 2 — Strategy a top scorer uses"
+    },
+    {
+      "kind": "text",
+      "title": "Similar triangles are everywhere",
+      "body": "Equal angles ⇒ **similar** triangles ⇒ **proportional** sides. A large share of SAT geometry is \"spot the similar triangles, write the side proportion.\" Triggers: shared angles, parallel lines cutting a triangle, an altitude to the hypotenuse. The instant you see equal angles, set up $\\dfrac{a}{a'}=\\dfrac{b}{b'}$ — the rest is algebra."
+    },
+    {
+      "kind": "text",
+      "title": "SOH-CAH-TOA and the cofunction identity",
+      "body": "$\\sin\\theta=\\dfrac{opp}{hyp},\\ \\cos\\theta=\\dfrac{adj}{hyp},\\ \\tan\\theta=\\dfrac{opp}{adj}$. SAT favorite: the **cofunction identity** $\\sin\\theta=\\cos(90^\\circ-\\theta)$ — complementary angles swap sine and cosine. Recognizing it converts an apparently hard trig item (\"if $\\sin x=0.6$, find $\\cos(90^\\circ-x)$\") into one line ($=0.6$)."
+    },
+    {
+      "kind": "section",
+      "title": "Part 3 — Method: special right triangle, derived"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "geo_gd",
+        "kind": "guided_derivation",
+        "question": "Derive the 45-45-90 side ratio",
+        "goal": "Show that an isosceles right triangle has sides in ratio $1:1:\\sqrt{2}$.",
+        "steps": [
+          {
+            "prompt": "A 45-45-90 triangle has two equal legs. Call each leg length 1. The two acute angles are equal — why must the two legs be equal?",
+            "motivation": "Equal base angles ⇒ isosceles ⇒ the sides opposite them (the legs) are equal.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Equal angles are opposite equal sides (isosceles)",
+                "Right triangles always have equal legs",
+                "The hypotenuse forces it",
+                "Random"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "What does 'equal base angles' imply about opposite sides?"
+            ],
+            "reveal": "Equal angles ⇒ equal opposite sides ⇒ the legs are equal (length 1 each)."
+          },
+          {
+            "prompt": "Apply the Pythagorean theorem with legs 1 and 1. The hypotenuse h satisfies h² = ?",
+            "motivation": "a² + b² = c² with a = b = 1.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2",
+                "1+1",
+                "1^2+1^2"
+              ]
+            },
+            "hints": [
+              "1² + 1²."
+            ],
+            "reveal": "h² = 1² + 1² = 2."
+          },
+          {
+            "prompt": "Solve for h.",
+            "motivation": "Take the positive square root (a length).",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "sqrt(2)",
+                "\\sqrt{2}",
+                "2^(1/2)",
+                "root2"
+              ]
+            },
+            "hints": [
+              "h = √(h²)."
+            ],
+            "reveal": "h = √2. So the sides are 1 : 1 : √2."
+          },
+          {
+            "prompt": "Why can you reuse this ratio for ANY 45-45-90 triangle, not just legs of length 1?",
+            "motivation": "All 45-45-90 triangles are similar, so corresponding sides are proportional — the ratio is scale-invariant.",
+            "accepts": {
+              "mode": "text",
+              "rubricCriteria": [
+                {
+                  "id": "c1",
+                  "description": "all 45-45-90 triangles are similar (same angles)"
+                },
+                {
+                  "id": "c2",
+                  "description": "similar triangles have proportional sides, so the ratio 1:1:√2 scales to any size"
+                }
+              ]
+            },
+            "hints": [
+              "What do equal angles guarantee about two triangles?"
+            ],
+            "reveal": "Same angles ⇒ all 45-45-90 triangles are similar ⇒ sides always in 1:1:√2, any scale."
+          }
+        ],
+        "finalResult": "Legs : hypotenuse = $1:1:\\sqrt{2}$"
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 4 — Worked examples, end to end"
+    },
+    {
+      "kind": "text",
+      "title": "Worked example 1 — Pythagorean / triples",
+      "body": "A right triangle has legs 6 and 8; find the hypotenuse. $c^2=6^2+8^2=36+64=100\\Rightarrow c=10$. Faster: recognize 6-8-10 as the 3-4-5 triple scaled by 2 — memorizing 3-4-5 and 5-12-13 lets you skip the arithmetic entirely on many items."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "geo_me",
+        "kind": "math_expression",
+        "question": "c² = 100, so c = ____.",
+        "acceptedAnswers": [
+          "10",
+          "c=10"
+        ],
+        "explanation": "√100 = 10 (the 6-8-10 triangle is just a scaled 3-4-5 — memorizing 3-4-5 and 5-12-13 saves time)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "geo_p1",
+        "kind": "multiple_choice",
+        "question": "On the SAT, if a figure 'looks' isosceles but no equal sides/angles are marked, you should:",
+        "options": [
+          "Not assume it — use only given/derivable information",
+          "Measure it with your answer sheet",
+          "Assume it to save time",
+          "Pick the answer that matches the picture"
+        ],
+        "correctIndex": 0,
+        "explanation": "Figures aren't to scale unless stated. Visual assumptions are the intended trap; rely on marked information and theorems."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Worked example 2 — special right triangle",
+      "body": "\"A 30-60-90 triangle has short leg 5; find the hypotenuse.\" 30-60-90 sides are in ratio $1:\\sqrt3:2$ (short leg : long leg : hypotenuse). Short leg corresponds to '1', so scale factor = 5; hypotenuse $=2\\times5=10$. The trap choice $5\\sqrt3$ is the *long* leg — the test offers the other side as bait. Know which ratio slot is which."
+    },
+    {
+      "kind": "section",
+      "title": "Part 5 — Trap taxonomy & pitfalls"
+    },
+    {
+      "kind": "text",
+      "title": "The geometry trap families",
+      "body": "1. **Eyeball-the-figure** — assuming a length/angle/right-angle that isn't marked (figures not to scale).\n2. **Radius vs diameter** — using $d$ where $r$ belongs; in $A=\\pi r^2$ that's a **4×** error, and the wrong value is offered.\n3. **Wrong ratio slot** — in 30-60-90, returning the long leg ($\\sqrt3$) when the hypotenuse (2) was asked.\n4. **Unit/area-vs-perimeter** mix-ups.\n\nMarked-info-only, extract-the-radius-first, label-the-ratio-slots: that defeats the bait."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "geo_scen",
+        "kind": "scenario",
+        "question": "Diagnose the mistake.",
+        "scenario": "A student computes a circle's area with the diameter instead of the radius, getting an answer 4× too big — and it matches one of the choices.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "A = πr², and r = d/2 — using d for r squares the error (factor 4)"
+          },
+          {
+            "id": "c2",
+            "description": "the SAT seeds the 'used diameter' value as a distractor"
+          },
+          {
+            "id": "c3",
+            "description": "fix: extract the radius first, label it, then substitute"
+          }
+        ],
+        "explanation": "Circle formulas use the *radius*. Plugging the diameter into πr² scales the area by 4 — and that wrong value is deliberately offered as a choice."
+      }
+    },
+    {
+      "kind": "question",
+      "hints": [
+        "Recall the 30-60-90 ratio 1 : √3 : 2.",
+        "Hypotenuse corresponds to the '2'."
+      ],
+      "workedSolution": "30-60-90 ⇒ sides 1:√3:2 with the short leg as '1'. Short leg 5 ⇒ scale ×5 ⇒ hypotenuse = 2×5 = 10. 5√3 is the *long leg* (the seeded trap).",
+      "retryUntilCorrect": true,
+      "question": {
+        "id": "geo_mc",
+        "kind": "multiple_choice",
+        "question": "In a 30-60-90 triangle the short leg is 5. The hypotenuse is:",
+        "options": [
+          "10",
+          "5√3",
+          "5√2",
+          "15"
+        ],
+        "correctIndex": 0,
+        "explanation": "30-60-90 sides are in ratio 1 : √3 : 2 (short leg : long leg : hypotenuse). Hypotenuse = 2 × short leg = 10."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "geo_me2",
+        "kind": "math_expression",
+        "question": "A circle has radius 3. Its area is ____ (use π, e.g. 9pi).",
+        "acceptedAnswers": [
+          "9pi",
+          "9π",
+          "9*pi"
+        ],
+        "explanation": "A = πr² = π(3)² = 9π. Use the radius, never the diameter."
+      }
+    },
+    {
+      "kind": "section",
+      "title": "Part 6 — Tie it together"
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "geo_eb",
+        "kind": "explain_back",
+        "prompt": "Teach back: why is 'the figure is not to scale' the single most important sentence on SAT geometry?",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "the SAT distorts figures so the visually obvious answer is wrong"
+          },
+          {
+            "id": "c2",
+            "description": "solutions must use marked values + theorems, never measurement"
+          },
+          {
+            "id": "c3",
+            "description": "eyeballing is the intended, seeded trap"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "geo_fr",
+        "kind": "free_response",
+        "question": "Give the two special-right-triangle ratios and one situation where each saves time.",
+        "rubricCriteria": [
+          {
+            "id": "c1",
+            "description": "45-45-90 → 1:1:√2"
+          },
+          {
+            "id": "c2",
+            "description": "30-60-90 → 1:√3:2"
+          },
+          {
+            "id": "c3",
+            "description": "ties each to a quick example/use"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "text",
+      "title": "How it scores & what's next",
+      "body": "That completes all 8 SAT domains at model depth. You've trained the verbal *and* math skills with strategy, derivations, multiple worked examples, and trap taxonomies. The SAT-prep path's **capstone** is the full timed exam — sit it under real conditions to convert these skills into a score."
+    }
+  ]
+}
