@@ -305,4 +305,161 @@ describe("/exams (Sprint 73)", () => {
       expect(Array.isArray(body.warnings)).toBe(true);
     },
   );
+
+  // ----- Digital-SAT-parity Phase 3 — advance-section state machine -----
+
+  test(
+    "POST /advance-section drops into a break, then advances after break",
+    async () => {
+      if (!satExists) return;
+
+      const testId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      const username = `as_${testId}`.slice(0, 30);
+      const signup = await app.fetch(
+        new Request("http://localhost/api/v1/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username,
+            email: `${username}@example.com`,
+            password: "testpass123",
+          }),
+        }),
+      );
+      const cookie = (signup.headers.get("set-cookie") ?? "").split(";")[0]!;
+
+      // Start a full mock — this exam has two sections, so an
+      // advance from section 0 should drop into a 10-min break.
+      const start = await app.fetch(
+        new Request("http://localhost/api/v1/exams/sat/attempts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", cookie },
+          body: JSON.stringify({ mode: "full_mock" }),
+        }),
+      );
+      if (start.status !== 200 && start.status !== 201) return;
+      const startBody = (await start.json()) as {
+        id: string;
+        sectionDeadlines: Array<{ slug: string }>;
+      };
+      const attemptId = startBody.id;
+      expect(startBody.sectionDeadlines.length).toBeGreaterThanOrEqual(2);
+
+      // 1. Advance from section 0 → break.
+      const adv1 = await app.fetch(
+        new Request(
+          `http://localhost/api/v1/exams/attempts/${attemptId}/advance-section`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json", cookie },
+            body: JSON.stringify({ currentSectionIdx: 0 }),
+          },
+        ),
+      );
+      expect(adv1.status).toBe(200);
+      const adv1Body = (await adv1.json()) as {
+        currentSectionIdx: number;
+        breakUntilAt: string;
+      };
+      expect(adv1Body.currentSectionIdx).toBe(0);
+      expect(typeof adv1Body.breakUntilAt).toBe("string");
+
+      // 2. Trying to advance again while the break is in progress is rejected.
+      const adv2 = await app.fetch(
+        new Request(
+          `http://localhost/api/v1/exams/attempts/${attemptId}/advance-section`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json", cookie },
+            body: JSON.stringify({ currentSectionIdx: 0 }),
+          },
+        ),
+      );
+      expect(adv2.status).toBe(425);
+
+      // 3. Force the break to be already-elapsed and advance again.
+      getDb()
+        .update(examAttempts)
+        .set({ breakUntilAt: new Date(Date.now() - 1000).toISOString() })
+        .where(eq(examAttempts.id, attemptId))
+        .run();
+      const adv3 = await app.fetch(
+        new Request(
+          `http://localhost/api/v1/exams/attempts/${attemptId}/advance-section`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json", cookie },
+            body: JSON.stringify({ currentSectionIdx: 0 }),
+          },
+        ),
+      );
+      expect(adv3.status).toBe(200);
+      const adv3Body = (await adv3.json()) as {
+        currentSectionIdx: number;
+        breakUntilAt: string | null;
+      };
+      expect(adv3Body.currentSectionIdx).toBe(1);
+      expect(adv3Body.breakUntilAt).toBeNull();
+
+      // 4. Section-index mismatch returns 409.
+      const adv4 = await app.fetch(
+        new Request(
+          `http://localhost/api/v1/exams/attempts/${attemptId}/advance-section`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json", cookie },
+            body: JSON.stringify({ currentSectionIdx: 0 }),
+          },
+        ),
+      );
+      expect(adv4.status).toBe(409);
+    },
+  );
+
+  test(
+    "advance-section on the last section reports done",
+    async () => {
+      if (!satExists) return;
+
+      const testId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      const username = `as2_${testId}`.slice(0, 30);
+      const signup = await app.fetch(
+        new Request("http://localhost/api/v1/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username,
+            email: `${username}@example.com`,
+            password: "testpass123",
+          }),
+        }),
+      );
+      const cookie = (signup.headers.get("set-cookie") ?? "").split(";")[0]!;
+
+      // Single-section attempt — only one deadline, so advancing
+      // from idx 0 should report done=true (no break).
+      const start = await app.fetch(
+        new Request("http://localhost/api/v1/exams/sat/attempts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", cookie },
+          body: JSON.stringify({ mode: "section", sectionSlug: "math" }),
+        }),
+      );
+      if (start.status !== 200 && start.status !== 201) return;
+      const startBody = (await start.json()) as { id: string };
+      const adv = await app.fetch(
+        new Request(
+          `http://localhost/api/v1/exams/attempts/${startBody.id}/advance-section`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json", cookie },
+            body: JSON.stringify({ currentSectionIdx: 0 }),
+          },
+        ),
+      );
+      expect(adv.status).toBe(200);
+      const advBody = (await adv.json()) as { done?: boolean };
+      expect(advBody.done).toBe(true);
+    },
+  );
 });

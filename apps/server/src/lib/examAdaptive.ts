@@ -76,7 +76,7 @@ export function pickNextAdaptiveQuestion(ctx: PickContext): PickResult {
       .select({ id: examQuestions.id })
       .from(examQuestions)
       .where(
-        sql`${examQuestions.sectionId} = ${ctx.sectionId} AND ${examQuestions.difficulty} = ${tryDiff}`,
+        sql`${examQuestions.sectionId} = ${ctx.sectionId} AND ${examQuestions.difficulty} = ${tryDiff} AND ${examQuestions.type} != 'essay'`,
       )
       .all();
     for (const c of candidates) {
@@ -104,7 +104,7 @@ export function buildDiagnosticManifest(
       .select({ id: examQuestions.id })
       .from(examQuestions)
       .where(
-        sql`${examQuestions.sectionId} = ${sectionId} AND ${examQuestions.difficulty} = ${d}`,
+        sql`${examQuestions.sectionId} = ${sectionId} AND ${examQuestions.difficulty} = ${d} AND ${examQuestions.type} != 'essay'`,
       )
       .orderBy(sql`RANDOM()`)
       .limit(perBand)
