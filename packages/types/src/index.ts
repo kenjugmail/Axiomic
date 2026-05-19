@@ -506,31 +506,88 @@ export interface ExamDetail extends ExamSummary {
   scoring: ExamScoringConfig;
 }
 
-export interface ExamQuestionPayload {
+// Digital-SAT-parity: question payload is a discriminated union so
+// the runner exhausts the render branch via a `never` default.
+// All variants share the common base; per-variant fields are
+// guaranteed non-null on the matching `type`.
+export type ExamQuestionType =
+  | "multiple_choice"
+  | "essay"
+  | "grid_in"
+  | "multi_select";
+
+interface ExamQuestionBase {
   id: string;
   sectionId: string;
   sectionSlug: string;
   ordinal: number;
-  // Sprint 75 — discriminator. 'multiple_choice' rendering shows
-  // options buttons; 'essay' shows a textarea + the rubricMd in a
-  // collapsible panel.
-  type: "multiple_choice" | "essay";
   difficulty: number;
   promptMd: string;
-  // Optional shared reading passage shown alongside the prompt
-  // (R&W sections reference "the passage"). Null when the question
-  // is self-contained.
   passageMd: string | null;
-  options: Array<{ label: string; text: string }>;
   topicTags: string[];
-  // Essay-only. Null/0 for multiple-choice.
-  rubricMd: string | null;
-  maxEssayScore: number | null;
-  // Phase 16A — only present on a completed attempt's review payload.
-  // Server strips this during an in-progress attempt so the answer key
-  // doesn't leak. Always null for essay questions.
-  correctIndex?: number | null;
+  // Optional figure rendered above the prompt (any variant).
+  imageUrl: string | null;
+  // Forward-compat: opaque per-question metadata (e.g., calculator
+  // pre-seed expressions). The runner only reads known keys.
+  meta: Record<string, unknown> | null;
 }
+
+export interface ExamMultipleChoiceQuestion extends ExamQuestionBase {
+  type: "multiple_choice";
+  options: Array<{ label: string; text: string }>;
+  // Phase 16A — only present on a completed attempt's review payload.
+  correctIndex?: number | null;
+  rubricMd: null;
+  maxEssayScore: null;
+  acceptedAnswers: null;
+  tolerance: null;
+  correctIndexes: null;
+}
+
+export interface ExamEssayQuestion extends ExamQuestionBase {
+  type: "essay";
+  options: [];
+  rubricMd: string;
+  maxEssayScore: number;
+  correctIndex?: null;
+  acceptedAnswers: null;
+  tolerance: null;
+  correctIndexes: null;
+}
+
+export interface ExamGridInQuestion extends ExamQuestionBase {
+  type: "grid_in";
+  options: [];
+  // Only present on a completed attempt's review payload; stripped
+  // mid-attempt so the answer key doesn't leak.
+  acceptedAnswers?: string[] | null;
+  tolerance: number | null;
+  rubricMd: null;
+  maxEssayScore: null;
+  correctIndex?: null;
+  correctIndexes: null;
+}
+
+export interface ExamMultiSelectQuestion extends ExamQuestionBase {
+  type: "multi_select";
+  options: Array<{ label: string; text: string }>;
+  // Number of correct options (revealed mid-attempt so the UI can
+  // gate further picks once the learner has chosen this many).
+  // The actual indexes only appear on a completed review payload.
+  correctCount: number;
+  correctIndexes?: number[] | null;
+  rubricMd: null;
+  maxEssayScore: null;
+  correctIndex?: null;
+  acceptedAnswers: null;
+  tolerance: null;
+}
+
+export type ExamQuestionPayload =
+  | ExamMultipleChoiceQuestion
+  | ExamEssayQuestion
+  | ExamGridInQuestion
+  | ExamMultiSelectQuestion;
 
 export interface ExamAttemptAnswer {
   questionId: string;
@@ -539,12 +596,35 @@ export interface ExamAttemptAnswer {
   essayResponse?: string | null;
   essayScore?: number | null;
   essayFeedbackMd?: string | null;
+  // Digital-SAT-parity additions.
+  gridInResponse?: string | null;
+  selectedIndexes?: number[] | null;
   flagged: boolean;
   timeSpentMs: number;
   // Phase 16A — multiple-choice correctness flag. Server sets this on
   // submit. null while attempt is in progress or for essay rows where
   // the rubric score is what matters.
   isCorrect?: boolean | null;
+}
+
+// Digital-SAT-parity: per-section deadlines computed at start time.
+// `startsAt` rebases when the previous section's break ends.
+export interface SectionDeadline {
+  slug: string;
+  startsAt: string;
+  endsAt: string;
+  durationMinutes: number;
+}
+
+// Pre-start customizer payload sent to startAttempt and echoed back
+// in the attempt state (so the runner knows whether the calculator
+// is allowed, etc.).
+export interface ExamAttemptCustomizer {
+  sections: Array<{ slug: string; questionCount: number }>;
+  timeMultiplier: 1 | 1.5 | 2;
+  difficultyFilter: number[] | null;
+  shuffle: boolean;
+  calculatorAllowed: boolean;
 }
 
 export interface ExamAttemptState {
@@ -560,6 +640,19 @@ export interface ExamAttemptState {
     questions: ExamQuestionPayload[];
   }>;
   answers: ExamAttemptAnswer[];
+  // Digital-SAT-parity additions. When sectionDeadlines is empty the
+  // runner falls back to the legacy single-clock model driven by
+  // expiresAt alone.
+  sectionDeadlines: SectionDeadline[];
+  currentSectionIdx: number;
+  breakUntilAt: string | null;
+  calculatorAllowed: boolean;
+  // Desmos getState() blob — restored when the panel mounts.
+  calculatorState: Record<string, unknown> | null;
+  customizer: ExamAttemptCustomizer | null;
+  // Soft warnings raised when the customizer asked for more
+  // questions than the pool could provide.
+  warnings: string[];
 }
 
 export interface ExamSectionResult {

@@ -227,4 +227,82 @@ describe("/exams (Sprint 73)", () => {
       expect(statuses[1]).toBe(400);
     },
   );
+
+  // ----- Digital-SAT-parity Phase 2 — legacy attempt back-compat -----
+
+  test(
+    "GET /attempts/:id synthesizes section deadlines for legacy attempts",
+    async () => {
+      if (!satExists) return;
+
+      const testId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      const username = `lg_${testId}`.slice(0, 30);
+      const signup = await app.fetch(
+        new Request("http://localhost/api/v1/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username,
+            email: `${username}@example.com`,
+            password: "testpass123",
+          }),
+        }),
+      );
+      expect([200, 201]).toContain(signup.status);
+      const cookie = (signup.headers.get("set-cookie") ?? "").split(";")[0]!;
+
+      const start = await app.fetch(
+        new Request("http://localhost/api/v1/exams/sat/attempts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", cookie },
+          body: JSON.stringify({ mode: "section", sectionSlug: "math" }),
+        }),
+      );
+      if (start.status !== 200 && start.status !== 201) return;
+      const startBody = (await start.json()) as { id?: string; attemptId?: string };
+      const attemptId = startBody.attemptId ?? startBody.id;
+      if (!attemptId) return;
+
+      // Simulate a legacy attempt by NULLing the new columns
+      // (Phase 3 will populate them at start time; in Phase 2 the
+      // start path hasn't been extended yet so this NULL state is
+      // also today's behavior).
+      getDb()
+        .update(examAttempts)
+        .set({
+          sectionDeadlinesJson: null,
+          currentSectionIdx: null,
+          breakUntilAt: null,
+          calculatorStateJson: null,
+          customizerJson: null,
+        })
+        .where(eq(examAttempts.id, attemptId))
+        .run();
+
+      const res = await app.fetch(
+        new Request(`http://localhost/api/v1/exams/attempts/${attemptId}`, {
+          headers: { cookie },
+        }),
+      );
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as {
+        sectionDeadlines: Array<{ slug: string; endsAt: string }>;
+        currentSectionIdx: number;
+        breakUntilAt: string | null;
+        calculatorAllowed: boolean;
+        calculatorState: unknown;
+        customizer: unknown;
+        warnings: unknown;
+      };
+      // Synthesized single deadline derived from expiresAt.
+      expect(body.sectionDeadlines.length).toBe(1);
+      expect(body.sectionDeadlines[0]!.endsAt).toBeTruthy();
+      expect(body.currentSectionIdx).toBe(0);
+      expect(body.breakUntilAt).toBeNull();
+      expect(body.calculatorAllowed).toBe(false);
+      expect(body.calculatorState).toBeNull();
+      expect(body.customizer).toBeNull();
+      expect(Array.isArray(body.warnings)).toBe(true);
+    },
+  );
 });

@@ -27,9 +27,7 @@ import { api } from "../lib/api";
 import { Skeleton } from "../components/ui";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 
-interface FlatQuestion extends ExamQuestionPayload {
-  globalIndex: number;
-}
+type FlatQuestion = ExamQuestionPayload & { globalIndex: number };
 
 function flattenSections(state: ExamAttemptState): FlatQuestion[] {
   const out: FlatQuestion[] = [];

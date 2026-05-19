@@ -71,23 +71,31 @@ interface AttemptManifest {
   sections: ManifestSection[];
 }
 
+// Server-side question shape. Caller decides whether to expose
+// per-variant answer-key fields (only completed attempts get them).
+// The wire type lives in @axiomic/types as ExamQuestionPayload (a
+// discriminated union); this internal type is the eager projection
+// before we strip answer fields for in-flight attempts.
 interface QuestionPayload {
   id: string;
   sectionId: string;
   sectionSlug: string;
   ordinal: number;
-  type: "multiple_choice" | "essay";
+  type: "multiple_choice" | "essay" | "grid_in" | "multi_select";
   difficulty: number;
   promptMd: string;
   passageMd: string | null;
   options: Array<{ label: string; text: string }>;
   topicTags: string[];
-  // Sprint 75 — essay-only fields. Null/0 for multiple_choice.
   rubricMd: string | null;
   maxEssayScore: number | null;
-  // Phase 16A — answer key. Caller decides whether to expose it (only
-  // completed attempts get correctIndex in the response).
   correctIndex: number | null;
+  // Digital-SAT-parity additions.
+  acceptedAnswers: string[] | null;
+  tolerance: number | null;
+  correctIndexes: number[] | null;
+  imageUrl: string | null;
+  meta: Record<string, unknown> | null;
 }
 
 function loadQuestions(ids: string[]): Map<string, QuestionPayload> {
@@ -106,6 +114,11 @@ function loadQuestions(ids: string[]): Map<string, QuestionPayload> {
       maxEssayScore: examQuestions.maxEssayScore,
       topicTagsJson: examQuestions.topicTagsJson,
       correctIndex: examQuestions.correctIndex,
+      acceptedAnswersJson: examQuestions.acceptedAnswersJson,
+      tolerance: examQuestions.tolerance,
+      correctIndexesJson: examQuestions.correctIndexesJson,
+      imageUrl: examQuestions.imageUrl,
+      metaJson: examQuestions.metaJson,
     })
     .from(examQuestions)
     .all();
@@ -118,9 +131,17 @@ function loadQuestions(ids: string[]): Map<string, QuestionPayload> {
   const slugById = new Map(sectionRows.map((r) => [r.id, r.slug]));
 
   const out = new Map<string, QuestionPayload>();
+  const VALID_TYPES = new Set([
+    "multiple_choice",
+    "essay",
+    "grid_in",
+    "multi_select",
+  ]);
   for (const r of rows) {
     if (!wanted.has(r.id)) continue;
-    const qType = (r.type as "multiple_choice" | "essay") ?? "multiple_choice";
+    const qType = (
+      VALID_TYPES.has(r.type) ? r.type : "multiple_choice"
+    ) as QuestionPayload["type"];
     out.set(r.id, {
       id: r.id,
       sectionId: r.sectionId,
@@ -136,6 +157,19 @@ function loadQuestions(ids: string[]): Map<string, QuestionPayload> {
       maxEssayScore: r.maxEssayScore,
       // Essay rows store 0 for correctIndex but it's meaningless there.
       correctIndex: qType === "essay" ? null : r.correctIndex,
+      acceptedAnswers:
+        qType === "grid_in"
+          ? safeJsonArray<string>(r.acceptedAnswersJson)
+          : null,
+      tolerance: qType === "grid_in" ? r.tolerance : null,
+      correctIndexes:
+        qType === "multi_select"
+          ? safeJsonArray<number>(r.correctIndexesJson)
+          : null,
+      imageUrl: r.imageUrl ?? null,
+      meta: r.metaJson
+        ? safeJsonObject<Record<string, unknown> | null>(r.metaJson, null)
+        : null,
     });
   }
   return out;
@@ -343,6 +377,52 @@ examsRouter.get("/attempts/:id", requireAuth, async (c) => {
   // completed, so the in-progress fetch can't be inspected to cheat.
   const completed = attempt.completedAt != null;
 
+  // Digital-SAT-parity: per-section deadlines + customizer state.
+  // Legacy attempts (sectionDeadlinesJson IS NULL) synthesize a
+  // single virtual deadline from expiresAt so the wire shape is
+  // uniform and the runner can drive both paths from one code
+  // branch.
+  const storedDeadlines = safeJsonArray<{
+    slug: string;
+    startsAt: string;
+    endsAt: string;
+    durationMinutes: number;
+  }>(attempt.sectionDeadlinesJson);
+  let sectionDeadlines = storedDeadlines;
+  if (sectionDeadlines.length === 0 && attempt.expiresAt) {
+    // Single virtual deadline covering the whole attempt.
+    sectionDeadlines = [
+      {
+        slug: manifest.sections[0]?.slug ?? "",
+        startsAt: attempt.startedAt,
+        endsAt: attempt.expiresAt,
+        durationMinutes: Math.max(
+          0,
+          Math.round(
+            (Date.parse(attempt.expiresAt) - Date.parse(attempt.startedAt)) /
+              60000,
+          ),
+        ),
+      },
+    ];
+  }
+  const customizer = attempt.customizerJson
+    ? safeJsonObject<Record<string, unknown> | null>(
+        attempt.customizerJson,
+        null,
+      )
+    : null;
+  const calculatorAllowed =
+    customizer && typeof customizer === "object"
+      ? Boolean((customizer as { calculatorAllowed?: unknown }).calculatorAllowed)
+      : false;
+  const calculatorState = attempt.calculatorStateJson
+    ? safeJsonObject<Record<string, unknown> | null>(
+        attempt.calculatorStateJson,
+        null,
+      )
+    : null;
+
   return c.json({
     id: attempt.id,
     mode: attempt.mode,
@@ -353,15 +433,25 @@ examsRouter.get("/attempts/:id", requireAuth, async (c) => {
     scoreScaled: attempt.scoreScaled,
     sections: manifest.sections.map((s) => ({
       slug: s.slug,
-      questions: s.questionIds.map((qid, ordinal) => {
-        const q = questions.get(qid);
-        if (!q) return null;
-        return {
-          ...q,
-          ordinal,
-          correctIndex: completed ? q.correctIndex : null,
-        };
-      }).filter((x) => x !== null),
+      questions: s.questionIds
+        .map((qid, ordinal) => {
+          const q = questions.get(qid);
+          if (!q) return null;
+          // Strip per-variant answer keys mid-attempt. For
+          // multi_select we expose the count (not the indexes) so
+          // the runner can gate further picks once the learner has
+          // chosen that many.
+          const correctCount = q.correctIndexes?.length ?? 0;
+          return {
+            ...q,
+            ordinal,
+            correctIndex: completed ? q.correctIndex : null,
+            acceptedAnswers: completed ? q.acceptedAnswers : null,
+            correctIndexes: completed ? q.correctIndexes : null,
+            correctCount: q.type === "multi_select" ? correctCount : undefined,
+          };
+        })
+        .filter((x) => x !== null),
     })),
     answers: answers.map((a) => ({
       questionId: a.questionId,
@@ -369,10 +459,21 @@ examsRouter.get("/attempts/:id", requireAuth, async (c) => {
       essayResponse: a.essayResponse,
       essayScore: a.essayScore,
       essayFeedbackMd: a.essayFeedbackMd,
+      gridInResponse: a.gridInResponse,
+      selectedIndexes: a.selectedIndexesJson
+        ? safeJsonArray<number>(a.selectedIndexesJson)
+        : null,
       flagged: a.flagged === 1,
       timeSpentMs: a.timeSpentMs,
       isCorrect: completed && a.isCorrect != null ? a.isCorrect === 1 : null,
     })),
+    sectionDeadlines,
+    currentSectionIdx: attempt.currentSectionIdx ?? 0,
+    breakUntilAt: attempt.breakUntilAt,
+    calculatorAllowed,
+    calculatorState,
+    customizer,
+    warnings: [] as string[],
   });
 });
 
