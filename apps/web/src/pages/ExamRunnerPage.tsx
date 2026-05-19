@@ -26,17 +26,26 @@ import type {
 import { api } from "../lib/api";
 import { Skeleton } from "../components/ui";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
+import { BreakScreen } from "../components/exam/BreakScreen";
+import { GridInQuestion } from "../components/exam/GridInQuestion";
+import { MultiSelectQuestion } from "../components/exam/MultiSelectQuestion";
+import { QuestionImage } from "../components/exam/QuestionImage";
 
 type FlatQuestion = ExamQuestionPayload & { globalIndex: number };
 
-function flattenSections(state: ExamAttemptState): FlatQuestion[] {
-  const out: FlatQuestion[] = [];
-  for (const sec of state.sections) {
-    for (const q of sec.questions) {
-      out.push({ ...q, globalIndex: out.length });
-    }
-  }
-  return out;
+// Active-section question list. Real Digital SAT navigation is
+// strictly within-section — moving across sections happens only
+// via the break-then-advance flow. For legacy single-section
+// attempts (sectionDeadlines.length === 1) this returns the same
+// shape as the previous flatten-all-sections behavior since the
+// manifest has one section.
+function questionsForSection(
+  state: ExamAttemptState,
+  idx: number,
+): FlatQuestion[] {
+  const sec = state.sections[idx];
+  if (!sec) return [];
+  return sec.questions.map((q, i) => ({ ...q, globalIndex: i }));
 }
 
 function formatTimer(ms: number): string {
@@ -59,18 +68,22 @@ export function ExamRunnerPage() {
   const [now, setNow] = useState(() => Date.now());
 
   // Local mirror of answers — keyed by questionId. We update both
-  // optimistically and reconcile from server fetches. Sprint 75:
-  // tracks essay free-text alongside selectedIndex.
+  // optimistically and reconcile from server fetches. Tracks every
+  // variant's response (only the relevant field is non-null per
+  // row).
   const [localAnswers, setLocalAnswers] = useState<
     Map<
       string,
       {
         selectedIndex: number | null;
         essayResponse: string | null;
+        gridInResponse: string | null;
+        selectedIndexes: number[] | null;
         flagged: boolean;
       }
     >
   >(new Map());
+  const [advancing, setAdvancing] = useState(false);
 
   // Time-on-question tracking. The current question's "entered at"
   // tick — we delta against this when the user moves forward to add
@@ -78,9 +91,17 @@ export function ExamRunnerPage() {
   const lastEnterRef = useRef<number>(Date.now());
 
   const flat = useMemo<FlatQuestion[]>(
-    () => (state ? flattenSections(state) : []),
+    () =>
+      state ? questionsForSection(state, state.currentSectionIdx ?? 0) : [],
     [state],
   );
+
+  // Reset the in-section question pointer when the section advances
+  // (server bumped state.currentSectionIdx after a break).
+  useEffect(() => {
+    setCurrentIndex(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state?.currentSectionIdx]);
 
   const loadState = useCallback(
     async (alive: () => boolean = () => true) => {
@@ -94,6 +115,8 @@ export function ExamRunnerPage() {
           {
             selectedIndex: number | null;
             essayResponse: string | null;
+            gridInResponse: string | null;
+            selectedIndexes: number[] | null;
             flagged: boolean;
           }
         >();
@@ -101,6 +124,8 @@ export function ExamRunnerPage() {
           next.set(a.questionId, {
             selectedIndex: a.selectedIndex,
             essayResponse: a.essayResponse ?? null,
+            gridInResponse: a.gridInResponse ?? null,
+            selectedIndexes: a.selectedIndexes ?? null,
             flagged: a.flagged,
           });
         }
@@ -127,28 +152,79 @@ export function ExamRunnerPage() {
     return () => clearInterval(id);
   }, []);
 
-  // Time-warning toasts at 5m and 1m before the global expiry.
-  const warnedRef = useRef<{ five: boolean; one: boolean }>({
+  // Per-section warning toasts at 5m and 1m before the current
+  // section's clock hits zero. Reset on every section change so the
+  // learner sees both warnings again in the next section.
+  const warnedRef = useRef<{ five: boolean; one: boolean; sectionIdx: number }>({
     five: false,
     one: false,
+    sectionIdx: 0,
   });
   // The auto-submit is async; without this guard, every 1s tick after
-  // expiry would re-fire `doSubmit` until the first request resolves —
-  // generating a flurry of failed-submit toasts on top of the
-  // successful one.
+  // expiry would re-fire `doSubmit`/`advance-section` until the first
+  // request resolves — generating a flurry of duplicate calls.
   const autoSubmittedRef = useRef(false);
+
+  // Section-advance helper. Either: drops into a break and reloads
+  // state; or, when the last section ends, finalizes via submit.
+  const advanceSection = useCallback(async () => {
+    if (!attemptId || !state) return;
+    setAdvancing(true);
+    try {
+      const r = await api.exams.advanceSection(
+        attemptId,
+        state.currentSectionIdx ?? 0,
+      );
+      if (r.done) {
+        await doSubmit("Final section ended — submitting.");
+      } else {
+        await loadState();
+        autoSubmittedRef.current = false;
+        warnedRef.current = { five: false, one: false, sectionIdx: 0 };
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to advance section");
+    } finally {
+      setAdvancing(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [attemptId, state?.currentSectionIdx]);
+
   useEffect(() => {
-    if (!state?.expiresAt) return;
-    const remaining = Date.parse(state.expiresAt) - now;
-    if (
-      remaining <= 0 &&
-      !state.completedAt &&
-      !result &&
-      !submitting &&
-      !autoSubmittedRef.current
-    ) {
+    if (!state) return;
+    if (state.completedAt) return;
+    if (result || submitting) return;
+    // During a break the section clock isn't ticking — handled below.
+    if (state.breakUntilAt && Date.parse(state.breakUntilAt) > now) return;
+    // Reset warning state when the section index moves.
+    if (warnedRef.current.sectionIdx !== state.currentSectionIdx) {
+      warnedRef.current = {
+        five: false,
+        one: false,
+        sectionIdx: state.currentSectionIdx,
+      };
+    }
+    const deadlines = state.sectionDeadlines ?? [];
+    const dl =
+      deadlines[state.currentSectionIdx ?? 0] ??
+      (state.expiresAt
+        ? { endsAt: state.expiresAt }
+        : null);
+    if (!dl) return;
+    const remaining = Date.parse(dl.endsAt) - now;
+    if (remaining <= 0 && !autoSubmittedRef.current) {
       autoSubmittedRef.current = true;
-      doSubmit("Time's up — auto-submitting.");
+      // Last section in the manifest? auto-submit; otherwise drop
+      // into the break + advance state machine.
+      const isLast =
+        deadlines.length === 0 ||
+        (state.currentSectionIdx ?? 0) >= deadlines.length - 1;
+      if (isLast) {
+        doSubmit("Time's up — auto-submitting.");
+      } else {
+        setToast("Section time's up — taking a break.");
+        advanceSection();
+      }
       return;
     }
     if (
@@ -157,7 +233,7 @@ export function ExamRunnerPage() {
       remaining > 4 * 60_000
     ) {
       warnedRef.current.five = true;
-      setToast("5 minutes remaining");
+      setToast("5 minutes remaining in this section");
     }
     if (
       !warnedRef.current.one &&
@@ -165,10 +241,10 @@ export function ExamRunnerPage() {
       remaining > 0
     ) {
       warnedRef.current.one = true;
-      setToast("1 minute remaining");
+      setToast("1 minute remaining in this section");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [now, state?.expiresAt]);
+  }, [now, state]);
 
   // Auto-clear toast after 4s.
   useEffect(() => {
@@ -183,6 +259,8 @@ export function ExamRunnerPage() {
       patch: {
         selectedIndex?: number | null;
         essayResponse?: string | null;
+        gridInResponse?: string | null;
+        selectedIndexes?: number[] | null;
         flagged?: boolean;
       },
     ) => {
@@ -198,6 +276,14 @@ export function ExamRunnerPage() {
           patch.essayResponse !== undefined
             ? patch.essayResponse
             : (existing?.essayResponse ?? null),
+        gridInResponse:
+          patch.gridInResponse !== undefined
+            ? patch.gridInResponse
+            : (existing?.gridInResponse ?? null),
+        selectedIndexes:
+          patch.selectedIndexes !== undefined
+            ? patch.selectedIndexes
+            : (existing?.selectedIndexes ?? null),
         flagged:
           patch.flagged !== undefined
             ? patch.flagged
@@ -213,6 +299,8 @@ export function ExamRunnerPage() {
           questionId: string;
           selectedIndex?: number | null;
           essayResponse?: string | null;
+          gridInResponse?: string | null;
+          selectedIndexes?: number[] | null;
           flagged: boolean;
           timeSpentMs: number;
         } = {
@@ -220,13 +308,19 @@ export function ExamRunnerPage() {
           flagged: merged.flagged,
           timeSpentMs: Math.min(elapsed, 30 * 60_000),
         };
-        // Only forward the field that was actually patched so the
-        // server doesn't clobber the other.
+        // Only forward the fields that were actually patched so the
+        // server doesn't clobber siblings.
         if (patch.selectedIndex !== undefined) {
           body.selectedIndex = merged.selectedIndex;
         }
         if (patch.essayResponse !== undefined) {
           body.essayResponse = merged.essayResponse;
+        }
+        if (patch.gridInResponse !== undefined) {
+          body.gridInResponse = merged.gridInResponse;
+        }
+        if (patch.selectedIndexes !== undefined) {
+          body.selectedIndexes = merged.selectedIndexes;
         }
         await api.exams.recordAnswer(attemptId, body);
       } catch (e) {
@@ -352,13 +446,41 @@ export function ExamRunnerPage() {
     );
   }
 
+  // Break screen takes the entire viewport when active.
+  if (
+    state.breakUntilAt &&
+    !state.completedAt &&
+    Date.parse(state.breakUntilAt) > now - 1000
+  ) {
+    const nextIdx = (state.currentSectionIdx ?? 0) + 1;
+    const nextSlug =
+      state.sectionDeadlines?.[nextIdx]?.slug ??
+      state.sections[nextIdx]?.slug ??
+      null;
+    return (
+      <BreakScreen
+        breakUntilAt={state.breakUntilAt}
+        nextSectionTitle={nextSlug}
+        onAdvance={advanceSection}
+        advancing={advancing}
+      />
+    );
+  }
+
   const q = flat[currentIndex];
-  const sectionTitle = state.sections.find((s) =>
-    s.questions.some((qq) => qq.id === q?.id),
-  )?.slug;
-  const remainingMs = state.expiresAt
-    ? Math.max(0, Date.parse(state.expiresAt) - now)
+  const activeSectionIdx = state.currentSectionIdx ?? 0;
+  const sectionTitle =
+    state.sections[activeSectionIdx]?.slug ?? state.sectionSlug ?? "";
+  const currentDeadline =
+    state.sectionDeadlines?.[activeSectionIdx] ??
+    (state.expiresAt
+      ? { endsAt: state.expiresAt }
+      : null);
+  const remainingMs = currentDeadline
+    ? Math.max(0, Date.parse(currentDeadline.endsAt) - now)
     : 0;
+  const isLastSection =
+    (state.sectionDeadlines?.length ?? 1) - 1 <= activeSectionIdx;
   const answer = q ? localAnswers.get(q.id) : undefined;
 
   return (
@@ -403,10 +525,27 @@ export function ExamRunnerPage() {
             {flat.map((qq, i) => {
               const a = localAnswers.get(qq.id);
               const isCurrent = i === currentIndex;
-              const isAnswered =
-                qq.type === "essay"
-                  ? Boolean(a?.essayResponse && a.essayResponse.trim().length > 0)
-                  : a?.selectedIndex != null;
+              const isAnswered = (() => {
+                if (!a) return false;
+                switch (qq.type) {
+                  case "essay":
+                    return Boolean(a.essayResponse && a.essayResponse.trim().length > 0);
+                  case "grid_in":
+                    return Boolean(a.gridInResponse && a.gridInResponse.trim().length > 0);
+                  case "multi_select":
+                    return (
+                      Array.isArray(a.selectedIndexes) &&
+                      a.selectedIndexes.length === qq.correctCount
+                    );
+                  case "multiple_choice":
+                    return a.selectedIndex != null;
+                  default: {
+                    const _exhaustive: never = qq;
+                    void _exhaustive;
+                    return false;
+                  }
+                }
+              })();
               const isFlagged = a?.flagged;
               return (
                 <button
@@ -461,59 +600,99 @@ export function ExamRunnerPage() {
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
                 Question {currentIndex + 1} of {flat.length}
               </div>
+              {q.imageUrl && <QuestionImage src={q.imageUrl} />}
               <div className="prose prose-sm max-w-none dark:prose-invert mb-4">
                 <MarkdownRenderer content={q.promptMd} />
               </div>
-              {q.type === "essay" ? (
-                <div className="space-y-3">
-                  {q.rubricMd && (
-                    <details className="rounded-lg border border-border bg-card/50 px-3 py-2 text-xs">
-                      <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-                        Rubric (max score: {q.maxEssayScore ?? 6})
-                      </summary>
-                      <div className="mt-2 whitespace-pre-wrap text-foreground">
-                        {q.rubricMd}
-                      </div>
-                    </details>
-                  )}
-                  <textarea
-                    value={answer?.essayResponse ?? ""}
-                    onChange={(e) =>
-                      persistAnswer(q, { essayResponse: e.target.value })
-                    }
-                    placeholder="Compose your response here. Plain text or Markdown."
-                    rows={18}
-                    className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm font-mono leading-relaxed resize-y"
-                  />
-                  <div className="text-[10px] text-muted-foreground">
-                    {(answer?.essayResponse ?? "").trim().split(/\s+/).filter(Boolean).length}{" "}
-                    words · scored on submit
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {q.options.map((opt, i) => {
-                    const selected = answer?.selectedIndex === i;
+              {(() => {
+                switch (q.type) {
+                  case "essay":
                     return (
-                      <button
-                        key={opt.label}
-                        type="button"
-                        onClick={() => persistAnswer(q, { selectedIndex: i })}
-                        className={`w-full text-left rounded-lg border p-3 transition-colors ${
-                          selected
-                            ? "border-primary bg-primary/10"
-                            : "border-border bg-card hover:border-primary/40"
-                        }`}
-                      >
-                        <span className="font-mono text-xs font-semibold mr-3 text-muted-foreground">
-                          {opt.label}
-                        </span>
-                        <span className="text-sm whitespace-pre-wrap">{opt.text}</span>
-                      </button>
+                      <div className="space-y-3">
+                        {q.rubricMd && (
+                          <details className="rounded-lg border border-border bg-card/50 px-3 py-2 text-xs">
+                            <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                              Rubric (max score: {q.maxEssayScore ?? 6})
+                            </summary>
+                            <div className="mt-2 whitespace-pre-wrap text-foreground">
+                              {q.rubricMd}
+                            </div>
+                          </details>
+                        )}
+                        <textarea
+                          value={answer?.essayResponse ?? ""}
+                          onChange={(e) =>
+                            persistAnswer(q, { essayResponse: e.target.value })
+                          }
+                          placeholder="Compose your response here. Plain text or Markdown."
+                          rows={18}
+                          className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm font-mono leading-relaxed resize-y"
+                        />
+                        <div className="text-[10px] text-muted-foreground">
+                          {(answer?.essayResponse ?? "")
+                            .trim()
+                            .split(/\s+/)
+                            .filter(Boolean).length}{" "}
+                          words · scored on submit
+                        </div>
+                      </div>
                     );
-                  })}
-                </div>
-              )}
+                  case "grid_in":
+                    return (
+                      <GridInQuestion
+                        value={answer?.gridInResponse ?? ""}
+                        onChange={(v) =>
+                          persistAnswer(q, { gridInResponse: v })
+                        }
+                      />
+                    );
+                  case "multi_select":
+                    return (
+                      <MultiSelectQuestion
+                        options={q.options}
+                        selectedIndexes={answer?.selectedIndexes ?? []}
+                        correctCount={q.correctCount}
+                        onChange={(next) =>
+                          persistAnswer(q, { selectedIndexes: next })
+                        }
+                      />
+                    );
+                  case "multiple_choice":
+                    return (
+                      <div className="space-y-2">
+                        {q.options.map((opt, i) => {
+                          const selected = answer?.selectedIndex === i;
+                          return (
+                            <button
+                              key={opt.label}
+                              type="button"
+                              onClick={() =>
+                                persistAnswer(q, { selectedIndex: i })
+                              }
+                              className={`w-full text-left rounded-lg border p-3 transition-colors ${
+                                selected
+                                  ? "border-primary bg-primary/10"
+                                  : "border-border bg-card hover:border-primary/40"
+                              }`}
+                            >
+                              <span className="font-mono text-xs font-semibold mr-3 text-muted-foreground">
+                                {opt.label}
+                              </span>
+                              <span className="text-sm whitespace-pre-wrap">
+                                {opt.text}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    );
+                  default: {
+                    const _exhaustive: never = q;
+                    void _exhaustive;
+                    return null;
+                  }
+                }
+              })()}
               <div className="mt-4 flex items-center justify-between gap-3">
                 <button
                   type="button"
@@ -557,7 +736,28 @@ export function ExamRunnerPage() {
       </div>
 
       <div className="border-t border-border bg-card/50 px-4 py-3 sticky bottom-0">
-        <div className="max-w-6xl mx-auto flex items-center justify-end">
+        <div className="max-w-6xl mx-auto flex items-center justify-end gap-2">
+          {!isLastSection && (
+            <button
+              type="button"
+              onClick={async () => {
+                if (
+                  await confirm({
+                    title: "End this section early?",
+                    body: "You'll move to the break and won't be able to return.",
+                    confirmLabel: "End section",
+                  })
+                ) {
+                  advanceSection();
+                }
+              }}
+              disabled={advancing || submitting}
+              className="text-sm px-4 py-2 rounded-md border border-border hover:bg-accent/40 disabled:opacity-50 inline-flex items-center gap-1.5"
+              data-testid="end-section"
+            >
+              {advancing ? "Ending…" : "End section"}
+            </button>
+          )}
           <button
             type="button"
             onClick={async () => {
@@ -703,7 +903,8 @@ function ReviewQuestionCard({
         <MarkdownRenderer content={q.promptMd} />
       </div>
 
-      {!isEssay && (
+      {q.imageUrl && <QuestionImage src={q.imageUrl} />}
+      {q.type === "multiple_choice" && (
         <ul className="mt-3 space-y-1.5">
           {q.options.map((opt, idx) => {
             const userPicked = answer?.selectedIndex === idx;
@@ -729,6 +930,65 @@ function ReviewQuestionCard({
                   </span>
                 )}
                 {userPicked && !isAnswer && (
+                  <span className="text-[10px] uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                    Your pick
+                  </span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {q.type === "grid_in" && (
+        <div className="mt-3 text-sm space-y-1.5">
+          <div className="rounded-md border border-border px-3 py-1.5">
+            <span className="text-xs text-muted-foreground mr-2">
+              Your answer:
+            </span>
+            <span className="font-mono">
+              {answer?.gridInResponse?.trim() || "—"}
+            </span>
+          </div>
+          {q.acceptedAnswers && q.acceptedAnswers.length > 0 && (
+            <div className="rounded-md border border-emerald-500/40 bg-emerald-500/5 px-3 py-1.5">
+              <span className="text-xs uppercase tracking-wider text-emerald-700 dark:text-emerald-300 mr-2">
+                Accepted
+              </span>
+              <span className="font-mono text-xs">
+                {q.acceptedAnswers.join(" · ")}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {q.type === "multi_select" && (
+        <ul className="mt-3 space-y-1.5">
+          {q.options.map((opt, idx) => {
+            const picked = answer?.selectedIndexes?.includes(idx) ?? false;
+            const isAnswer = q.correctIndexes?.includes(idx) ?? false;
+            return (
+              <li
+                key={idx}
+                className={`text-sm rounded-md border px-3 py-1.5 flex items-center gap-2 ${
+                  isAnswer
+                    ? "border-emerald-500/40 bg-emerald-500/5"
+                    : picked
+                      ? "border-rose-500/40 bg-rose-500/5"
+                      : "border-border"
+                }`}
+              >
+                <span className="font-mono text-xs text-muted-foreground w-5">
+                  {opt.label}
+                </span>
+                <span className="flex-1">{opt.text}</span>
+                {isAnswer && (
+                  <span className="text-[10px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                    Answer
+                  </span>
+                )}
+                {picked && !isAnswer && (
                   <span className="text-[10px] uppercase tracking-wider text-rose-600 dark:text-rose-400">
                     Your pick
                   </span>
