@@ -584,12 +584,28 @@ function seedExams() {
         .run();
 
       const questions: any[] = Array.isArray(sec.questions) ? sec.questions : [];
+      const ALLOWED_TYPES = new Set([
+        "multiple_choice",
+        "essay",
+        "grid_in",
+        "multi_select",
+      ]);
       for (let i = 0; i < questions.length; i++) {
         const q = questions[i];
         if (!q?.promptMd) continue;
-        const type = q.type === "essay" ? "essay" : "multiple_choice";
+        const type: string = ALLOWED_TYPES.has(q.type) ? q.type : "multiple_choice";
         if (type === "essay") {
           if (typeof q.rubricMd !== "string" || q.rubricMd.length === 0)
+            continue;
+        } else if (type === "grid_in") {
+          if (!Array.isArray(q.acceptedAnswers) || q.acceptedAnswers.length === 0)
+            continue;
+        } else if (type === "multi_select") {
+          if (
+            !Array.isArray(q.options) ||
+            !Array.isArray(q.correctIndexes) ||
+            q.correctIndexes.length < 1
+          )
             continue;
         } else {
           if (!Array.isArray(q?.options) || typeof q.correctIndex !== "number")
@@ -610,6 +626,25 @@ function seedExams() {
             rubricMd: type === "essay" ? String(q.rubricMd) : null,
             maxEssayScore:
               type === "essay" ? Number(q.maxEssayScore) || 6 : null,
+            acceptedAnswersJson:
+              type === "grid_in"
+                ? JSON.stringify(q.acceptedAnswers.map((s: unknown) => String(s)))
+                : null,
+            tolerance:
+              type === "grid_in" && typeof q.tolerance === "number"
+                ? q.tolerance
+                : null,
+            correctIndexesJson:
+              type === "multi_select"
+                ? JSON.stringify(
+                    (q.correctIndexes as number[]).map((n) => Number(n)),
+                  )
+                : null,
+            imageUrl: typeof q.imageUrl === "string" ? q.imageUrl : null,
+            metaJson:
+              q.meta && typeof q.meta === "object"
+                ? JSON.stringify(q.meta)
+                : null,
             explanationMd: q.explanationMd ?? "",
             topicTagsJson: JSON.stringify(
               Array.isArray(q.topicTags) ? q.topicTags : [],

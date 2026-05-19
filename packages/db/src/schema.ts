@@ -1894,6 +1894,16 @@ export const examQuestions = sqliteTable(
     // (which is implicitly 1). GRE Analytical Writing prompts
     // typically use 6.
     maxEssayScore: integer("max_essay_score"),
+    // Digital-SAT-parity additions: grid_in (Student-Produced
+    // Response) accepted answer forms + optional numeric
+    // tolerance; multi_select correct-answer set; optional
+    // figure URL for any question; forward-compat metaJson
+    // (e.g., calculator pre-seed expressions).
+    acceptedAnswersJson: text("accepted_answers_json"),
+    tolerance: real("tolerance"),
+    correctIndexesJson: text("correct_indexes_json"),
+    imageUrl: text("image_url"),
+    metaJson: text("meta_json"),
     topicTagsJson: text("topic_tags_json").notNull().default("[]"),
     createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
   },
@@ -1935,6 +1945,25 @@ export const examAttempts = sqliteTable(
     // Picked-question manifest at start time:
     //   { sections: [{ slug, questionIds: string[] }] }
     answersJson: text("answers_json").notNull().default("{}"),
+    // Digital-SAT-parity additions. When non-null, the runner uses
+    // per-section deadlines (real digital SAT model) instead of
+    // the legacy single global `expiresAt`. Legacy rows where
+    // sectionDeadlinesJson IS NULL continue to use expiresAt.
+    //   sectionDeadlinesJson: Array<{
+    //     slug, startsAt, endsAt, durationMinutes
+    //   }>
+    sectionDeadlinesJson: text("section_deadlines_json"),
+    currentSectionIdx: integer("current_section_idx"),
+    // Non-null exactly while the attempt is in the between-sections
+    // break; the runner renders BreakScreen and the client advances
+    // once now >= breakUntilAt by POSTing /advance-section.
+    breakUntilAt: text("break_until_at"),
+    // Desmos calculator state blob (getState() result) — debounced
+    // saves from the runner so a refresh restores the panel.
+    calculatorStateJson: text("calculator_state_json"),
+    // The pre-start customizer payload, kept for audit + score-
+    // report labelling.
+    customizerJson: text("customizer_json"),
   },
   (t) => ({
     userIdx: index("exam_attempts_user_idx").on(t.userId, t.startedAt),
@@ -1964,6 +1993,11 @@ export const examAttemptAnswers = sqliteTable(
     essayResponse: text("essay_response"),
     essayScore: integer("essay_score"),
     essayFeedbackMd: text("essay_feedback_md"),
+    // Digital-SAT-parity additions: free-text numeric answer for
+    // grid_in (Student-Produced Response), and the set of picked
+    // option indexes for multi_select.
+    gridInResponse: text("grid_in_response"),
+    selectedIndexesJson: text("selected_indexes_json"),
     timeSpentMs: integer("time_spent_ms").notNull().default(0),
     // The question grid sidebar's "mark for review" toggle.
     flagged: integer("flagged").notNull().default(0),
