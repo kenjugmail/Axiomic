@@ -17,7 +17,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { confirm } from "../stores/confirm";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Check, ChevronLeft, ChevronRight, Flag, Send, X } from "lucide-react";
+import {
+  Calculator,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Flag,
+  Send,
+  X,
+} from "lucide-react";
 import type {
   ExamAttemptState,
   ExamQuestionPayload,
@@ -27,9 +35,18 @@ import { api } from "../lib/api";
 import { Skeleton } from "../components/ui";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { BreakScreen } from "../components/exam/BreakScreen";
+import { DesmosCalculator } from "../components/exam/DesmosCalculator";
 import { GridInQuestion } from "../components/exam/GridInQuestion";
 import { MultiSelectQuestion } from "../components/exam/MultiSelectQuestion";
 import { QuestionImage } from "../components/exam/QuestionImage";
+
+// Sections where the on-screen calculator is available. Real
+// Digital SAT: math only. This is per-exam content config in
+// principle; for now we hard-code the rule (R&W -> hidden).
+function sectionAllowsCalculator(sectionSlug: string | undefined): boolean {
+  if (!sectionSlug) return false;
+  return /math/i.test(sectionSlug);
+}
 
 type FlatQuestion = ExamQuestionPayload & { globalIndex: number };
 
@@ -84,6 +101,7 @@ export function ExamRunnerPage() {
     >
   >(new Map());
   const [advancing, setAdvancing] = useState(false);
+  const [calcOpen, setCalcOpen] = useState(false);
 
   // Time-on-question tracking. The current question's "entered at"
   // tick — we delta against this when the user moves forward to add
@@ -510,8 +528,27 @@ export function ExamRunnerPage() {
             {sectionTitle}
           </span>
         </div>
-        <div className="font-mono text-sm">
-          {state.expiresAt ? formatTimer(remainingMs) : "—"}
+        <div className="flex items-center gap-3">
+          {state.calculatorAllowed &&
+            sectionAllowsCalculator(sectionTitle) && (
+              <button
+                type="button"
+                onClick={() => setCalcOpen((v) => !v)}
+                aria-pressed={calcOpen}
+                className={`text-xs px-2.5 py-1 rounded-md border inline-flex items-center gap-1.5 ${
+                  calcOpen
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:text-foreground"
+                }`}
+                data-testid="calc-toggle"
+              >
+                <Calculator className="w-3.5 h-3.5" />
+                Calculator
+              </button>
+            )}
+          <div className="font-mono text-sm">
+            {currentDeadline ? formatTimer(remainingMs) : "—"}
+          </div>
         </div>
       </div>
 
@@ -784,6 +821,27 @@ export function ExamRunnerPage() {
         <div className="fixed bottom-20 left-1/2 -translate-x-1/2 rounded-md border border-amber-500/40 bg-amber-500/10 text-amber-500 text-sm px-4 py-2 shadow z-20">
           {toast}
         </div>
+      )}
+
+      {state.calculatorAllowed && sectionAllowsCalculator(sectionTitle) && (
+        <DesmosCalculator
+          open={calcOpen}
+          onClose={() => setCalcOpen(false)}
+          initialState={state.calculatorState}
+          preseedExpressions={
+            q?.meta && typeof q.meta === "object"
+              ? // Per-question preseed lives in meta.calculatorPreseed
+                // = { expressions: [{ latex }] }. Shape is opaque to
+                // the runner — we just forward it.
+                ((q.meta as { calculatorPreseed?: { expressions?: Array<{ latex: string }> } })
+                  .calculatorPreseed?.expressions ?? null)
+              : null
+          }
+          onStateChange={(s) => {
+            if (!attemptId) return;
+            api.exams.saveCalculatorState(attemptId, s).catch(() => {});
+          }}
+        />
       )}
     </div>
   );
