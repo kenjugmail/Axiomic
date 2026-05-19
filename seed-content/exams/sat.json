@@ -503,16 +503,12 @@
       "questions": [
         {
           "difficulty": 1,
+          "type": "grid_in",
           "promptMd": "If $3x + 5 = 20$, what is the value of $x$?",
-          "options": [
-            { "label": "A", "text": "3" },
-            { "label": "B", "text": "5" },
-            { "label": "C", "text": "15" },
-            { "label": "D", "text": "60" }
-          ],
-          "correctIndex": 1,
-          "explanationMd": "Subtract 5 from both sides ($3x = 15$), then divide by 3 ($x = 5$).",
-          "topicTags": ["algebra", "linear-equations"]
+          "acceptedAnswers": ["5"],
+          "tolerance": 0,
+          "explanationMd": "$3x = 15$ gives $x = 5$. Grid-in accepts the integer directly.",
+          "topicTags": ["grid-in","algebra","linear-equations"]
         },
         {
           "difficulty": 2,
@@ -529,42 +525,30 @@
         },
         {
           "difficulty": 2,
+          "type": "grid_in",
           "promptMd": "If $f(x) = x^2 - 6x + 9$, what is $f(4)$?",
-          "options": [
-            { "label": "A", "text": "1" },
-            { "label": "B", "text": "5" },
-            { "label": "C", "text": "9" },
-            { "label": "D", "text": "16" }
-          ],
-          "correctIndex": 0,
-          "explanationMd": "$f(4) = 16 - 24 + 9 = 1$.",
-          "topicTags": ["algebra", "functions"]
+          "acceptedAnswers": ["1"],
+          "tolerance": 0,
+          "explanationMd": "$f(4) = 16 - 24 + 9 = 1$. Notice $f(x) = (x-3)^2$ so $f(4) = 1$.",
+          "topicTags": ["grid-in","advanced-math","functions"]
         },
         {
           "difficulty": 3,
+          "type": "grid_in",
           "promptMd": "A class has 24 students. The ratio of girls to boys is 5:3. How many girls are in the class?",
-          "options": [
-            { "label": "A", "text": "9" },
-            { "label": "B", "text": "12" },
-            { "label": "C", "text": "15" },
-            { "label": "D", "text": "16" }
-          ],
-          "correctIndex": 2,
-          "explanationMd": "5+3=8 parts total; 24 / 8 = 3 students per part; 5 × 3 = 15 girls.",
-          "topicTags": ["problem-solving", "ratios"]
+          "acceptedAnswers": ["15"],
+          "tolerance": 0,
+          "explanationMd": "Total parts = 5 + 3 = 8. Girls = (5/8)(24) = 15.",
+          "topicTags": ["grid-in","problem-solving","ratios"]
         },
         {
           "difficulty": 3,
+          "type": "grid_in",
           "promptMd": "The mean of five numbers is 12. If a sixth number is added and the mean becomes 14, what is the sixth number?",
-          "options": [
-            { "label": "A", "text": "16" },
-            { "label": "B", "text": "20" },
-            { "label": "C", "text": "24" },
-            { "label": "D", "text": "26" }
-          ],
-          "correctIndex": 2,
-          "explanationMd": "Original sum = 5 × 12 = 60. New sum = 6 × 14 = 84. Sixth number = 84 - 60 = 24.",
-          "topicTags": ["data-analysis", "statistics"]
+          "acceptedAnswers": ["24"],
+          "tolerance": 0,
+          "explanationMd": "Sum of five = 60. New sum = 84. Sixth number = 84 - 60 = 24.",
+          "topicTags": ["grid-in","problem-solving","statistics"]
         },
         {
           "difficulty": 4,
@@ -582,6 +566,7 @@
         {
           "difficulty": 5,
           "promptMd": "In a circle of radius 10, a chord has length 12. What is the distance from the chord to the center?",
+          "imageUrl": "/exam-assets/sat-circle-chord.svg",
           "options": [
             { "label": "A", "text": "4" },
             { "label": "B", "text": "6" },
@@ -594,59 +579,44 @@
         },
         {
           "difficulty": 1,
+          "type": "grid_in",
           "promptMd": "What is 20% of 150?",
-          "options": [
-            { "label": "A", "text": "20" },
-            { "label": "B", "text": "30" },
-            { "label": "C", "text": "60" },
-            { "label": "D", "text": "75" }
-          ],
-          "correctIndex": 1,
-          "explanationMd": "20% × 150 = 0.20 × 150 = 30.",
-          "topicTags": ["problem-solving", "percentages"]
+          "acceptedAnswers": ["30"],
+          "tolerance": 0,
+          "explanationMd": "$0.20 \\times 150 = 30$.",
+          "topicTags": ["grid-in","problem-solving","percentages"]
         },
         {
           "difficulty": 1,
+          "type": "grid_in",
           "promptMd": "If $4x = 28$, what is $x$?",
-          "options": [
-            { "label": "A", "text": "4" },
-            { "label": "B", "text": "6" },
-            { "label": "C", "text": "7" },
-            { "label": "D", "text": "8" }
-          ],
-          "correctIndex": 2,
-          "explanationMd": "Divide both sides by 4: $x = 28/4 = 7$.",
-          "topicTags": ["algebra", "linear-equations"]
+          "acceptedAnswers": ["7"],
+          "tolerance": 0,
+          "explanationMd": "$x = 28/4 = 7$.",
+          "topicTags": ["grid-in","algebra"]
         },
         {
           "difficulty": 1,
+          "type": "grid_in",
           "promptMd": "The slope of the line through $(2, 3)$ and $(6, 11)$ is:",
-          "options": [
-            { "label": "A", "text": "1" },
-            { "label": "B", "text": "2" },
-            { "label": "C", "text": "4" },
-            { "label": "D", "text": "8" }
-          ],
-          "correctIndex": 1,
-          "explanationMd": "Slope = (11 − 3)/(6 − 2) = 8/4 = 2.",
-          "topicTags": ["algebra", "linear-equations"]
+          "acceptedAnswers": ["2"],
+          "tolerance": 0,
+          "explanationMd": "$(11-3)/(6-2) = 8/4 = 2$.",
+          "topicTags": ["grid-in","algebra","lines"]
         },
         {
           "difficulty": 1,
+          "type": "grid_in",
           "promptMd": "If $x + 7 = 12$, what is $3x$?",
-          "options": [
-            { "label": "A", "text": "5" },
-            { "label": "B", "text": "9" },
-            { "label": "C", "text": "12" },
-            { "label": "D", "text": "15" }
-          ],
-          "correctIndex": 3,
+          "acceptedAnswers": ["15"],
+          "tolerance": 0,
           "explanationMd": "$x = 5$, so $3x = 15$.",
-          "topicTags": ["algebra", "linear-equations"]
+          "topicTags": ["grid-in","algebra"]
         },
         {
           "difficulty": 1,
           "promptMd": "A rectangle has length 8 and width 5. What is its area?",
+          "imageUrl": "/exam-assets/sat-rect.svg",
           "options": [
             { "label": "A", "text": "13" },
             { "label": "B", "text": "26" },
@@ -659,29 +629,21 @@
         },
         {
           "difficulty": 1,
+          "type": "grid_in",
           "promptMd": "What is $2^5$?",
-          "options": [
-            { "label": "A", "text": "10" },
-            { "label": "B", "text": "16" },
-            { "label": "C", "text": "25" },
-            { "label": "D", "text": "32" }
-          ],
-          "correctIndex": 3,
-          "explanationMd": "$2^5 = 2 × 2 × 2 × 2 × 2 = 32$.",
-          "topicTags": ["advanced-math", "exponents"]
+          "acceptedAnswers": ["32"],
+          "tolerance": 0,
+          "explanationMd": "$2 \\cdot 2 \\cdot 2 \\cdot 2 \\cdot 2 = 32$.",
+          "topicTags": ["grid-in","advanced-math","exponents"]
         },
         {
           "difficulty": 2,
+          "type": "grid_in",
           "promptMd": "If $2x + 3y = 12$ and $y = 2$, what is $x$?",
-          "options": [
-            { "label": "A", "text": "1" },
-            { "label": "B", "text": "3" },
-            { "label": "C", "text": "5" },
-            { "label": "D", "text": "6" }
-          ],
-          "correctIndex": 1,
-          "explanationMd": "Substitute $y=2$: $2x + 6 = 12$, so $2x = 6$, $x = 3$.",
-          "topicTags": ["algebra", "systems-of-equations"]
+          "acceptedAnswers": ["3"],
+          "tolerance": 0,
+          "explanationMd": "$2x + 6 = 12 \\Rightarrow 2x = 6 \\Rightarrow x = 3$.",
+          "topicTags": ["grid-in","algebra","systems"]
         },
         {
           "difficulty": 2,
@@ -725,6 +687,7 @@
         {
           "difficulty": 2,
           "promptMd": "A right triangle has legs 5 and 12. The hypotenuse is:",
+          "imageUrl": "/exam-assets/sat-right-triangle.svg",
           "options": [
             { "label": "A", "text": "13" },
             { "label": "B", "text": "15" },
@@ -788,17 +751,13 @@
           "topicTags": ["algebra", "systems-of-equations"]
         },
         {
-          "difficulty": 3,
+          "difficulty": 4,
+          "type": "grid_in",
           "promptMd": "Population grows by 5% per year. If today's population is 1000, what is it in 2 years (rounded)?",
-          "options": [
-            { "label": "A", "text": "1050" },
-            { "label": "B", "text": "1100" },
-            { "label": "C", "text": "1103" },
-            { "label": "D", "text": "1200" }
-          ],
-          "correctIndex": 2,
-          "explanationMd": "$1000 × 1.05^2 = 1000 × 1.1025 = 1102.5 \\approx 1103$.",
-          "topicTags": ["advanced-math", "exponents"]
+          "acceptedAnswers": ["1103","1102","1102.5"],
+          "tolerance": 1,
+          "explanationMd": "$1000 \\cdot 1.05^2 = 1102.5$, which rounds to $1103$. Tolerance covers either rounding direction.",
+          "topicTags": ["grid-in","advanced-math","exponential-growth"]
         },
         {
           "difficulty": 3,
@@ -942,6 +901,21 @@
           "correctIndex": 2,
           "explanationMd": "By Vieta's, sum = $-b/a = -(-8)/2 = 4$.",
           "topicTags": ["advanced-math", "quadratics"]
+        }
+      
+        ,{
+          "difficulty": 3,
+          "type": "multi_select",
+          "promptMd": "Which TWO of the following expressions are equivalent to $x^2 - 9$?",
+          "options": [
+            { "label": "A", "text": "$(x - 3)(x + 3)$" },
+            { "label": "B", "text": "$(x - 3)^2$" },
+            { "label": "C", "text": "$x^2 + (-9)$" },
+            { "label": "D", "text": "$x(x - 9)$" }
+          ],
+          "correctIndexes": [0, 2],
+          "explanationMd": "$(x-3)(x+3) = x^2 - 9$ by difference of squares, and $x^2 + (-9) = x^2 - 9$ by definition.",
+          "topicTags": ["multi-select", "advanced-math", "polynomial-identities"]
         }
       ]
     }
