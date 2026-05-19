@@ -395,7 +395,7 @@ export function ExamRunnerPage() {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col md:flex-row max-w-6xl w-full mx-auto px-4 py-6 gap-6">
+      <div className="flex-1 flex flex-col md:flex-row max-w-7xl w-full mx-auto px-4 py-6 gap-6">
         {/* Question grid sidebar */}
         <aside className="md:w-44 flex-shrink-0 order-2 md:order-1">
           <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
@@ -442,12 +442,29 @@ export function ExamRunnerPage() {
               No questions in this attempt.
             </p>
           ) : (
-            <>
+            <div
+              className={
+                q.passageMd
+                  ? "grid grid-cols-1 lg:grid-cols-2 gap-6"
+                  : ""
+              }
+            >
+              {q.passageMd && (
+                <aside className="lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto rounded-lg border border-border bg-card/50 p-4">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
+                    Passage
+                  </div>
+                  <div className="prose prose-sm max-w-none dark:prose-invert [&_p]:mb-3">
+                    <MarkdownRenderer content={q.passageMd} />
+                  </div>
+                </aside>
+              )}
+              <div>
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
                 Question {currentIndex + 1} of {flat.length}
               </div>
-              <div className="prose prose-sm max-w-none dark:prose-invert mb-4 whitespace-pre-wrap">
-                {q.promptMd}
+              <div className="prose prose-sm max-w-none dark:prose-invert mb-4">
+                <MarkdownRenderer content={q.promptMd} />
               </div>
               {q.type === "essay" ? (
                 <div className="space-y-3">
@@ -535,7 +552,8 @@ export function ExamRunnerPage() {
                   </button>
                 </div>
               </div>
-            </>
+              </div>
+            </div>
           )}
         </main>
       </div>
@@ -673,6 +691,16 @@ function ReviewQuestionCard({
           </span>
         )}
       </div>
+      {q.passageMd && (
+        <details className="mt-2 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs">
+          <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+            Show passage
+          </summary>
+          <div className="mt-2 prose prose-sm dark:prose-invert max-w-none [&_p]:mb-2">
+            <MarkdownRenderer content={q.passageMd} />
+          </div>
+        </details>
+      )}
       <div className="mt-2 prose prose-sm dark:prose-invert max-w-none">
         <MarkdownRenderer content={q.promptMd} />
       </div>

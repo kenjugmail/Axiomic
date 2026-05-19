@@ -603,6 +603,7 @@ function seedExams() {
             type,
             difficulty: Number(q.difficulty) || 3,
             promptMd: String(q.promptMd),
+            passageMd: typeof q.passageMd === "string" ? q.passageMd : null,
             optionsJson: JSON.stringify(q.options ?? []),
             correctIndex:
               typeof q.correctIndex === "number" ? q.correctIndex : 0,

@@ -517,6 +517,10 @@ export interface ExamQuestionPayload {
   type: "multiple_choice" | "essay";
   difficulty: number;
   promptMd: string;
+  // Optional shared reading passage shown alongside the prompt
+  // (R&W sections reference "the passage"). Null when the question
+  // is self-contained.
+  passageMd: string | null;
   options: Array<{ label: string; text: string }>;
   topicTags: string[];
   // Essay-only. Null/0 for multiple-choice.

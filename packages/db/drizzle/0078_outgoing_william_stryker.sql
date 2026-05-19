@@ -1,0 +1,1 @@
+ALTER TABLE `exam_questions` ADD `passage_md` text;

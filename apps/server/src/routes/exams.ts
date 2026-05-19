@@ -79,6 +79,7 @@ interface QuestionPayload {
   type: "multiple_choice" | "essay";
   difficulty: number;
   promptMd: string;
+  passageMd: string | null;
   options: Array<{ label: string; text: string }>;
   topicTags: string[];
   // Sprint 75 — essay-only fields. Null/0 for multiple_choice.
@@ -99,6 +100,7 @@ function loadQuestions(ids: string[]): Map<string, QuestionPayload> {
       type: examQuestions.type,
       difficulty: examQuestions.difficulty,
       promptMd: examQuestions.promptMd,
+      passageMd: examQuestions.passageMd,
       optionsJson: examQuestions.optionsJson,
       rubricMd: examQuestions.rubricMd,
       maxEssayScore: examQuestions.maxEssayScore,
@@ -127,6 +129,7 @@ function loadQuestions(ids: string[]): Map<string, QuestionPayload> {
       type: qType,
       difficulty: r.difficulty,
       promptMd: r.promptMd,
+      passageMd: r.passageMd ?? null,
       options: safeJsonArray<{ label: string; text: string }>(r.optionsJson),
       topicTags: safeJsonArray<string>(r.topicTagsJson),
       rubricMd: r.rubricMd,

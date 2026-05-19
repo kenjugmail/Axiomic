@@ -1876,6 +1876,11 @@ export const examQuestions = sqliteTable(
     // 1..5; the adaptive runner picks against this.
     difficulty: integer("difficulty").notNull().default(3),
     promptMd: text("prompt_md").notNull(),
+    // Optional shared reading passage shown alongside the prompt
+    // (SAT R&W needs this — the prompt references "the passage"
+    // but without it the question is meaningless). Null when the
+    // question stands alone.
+    passageMd: text("passage_md"),
     // JSON array of {label, text} options. Empty for essay questions.
     optionsJson: text("options_json").notNull(),
     // 0-based index into optionsJson. For essay questions this stays
