@@ -3,11 +3,16 @@
 
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Clock, GraduationCap, Play, Sparkles, ListChecks } from "lucide-react";
-import type { ExamDetail, ExamHistoryEntry } from "@axiomic/types";
+import { Clock, GraduationCap, Play, Settings2, Sparkles, ListChecks } from "lucide-react";
+import type {
+  ExamAttemptCustomizer,
+  ExamDetail,
+  ExamHistoryEntry,
+} from "@axiomic/types";
 import { api } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
 import { Skeleton } from "../components/ui";
+import { CustomizerModal } from "../components/exam/CustomizerModal";
 
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
@@ -24,6 +29,12 @@ export function ExamPage() {
   const [history, setHistory] = useState<ExamHistoryEntry[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
+  const [customizerOpen, setCustomizerOpen] = useState(false);
+  // When the user picks "Section only" we open the customizer pre-seeded
+  // with that single section. null = full-mock pre-seed (all sections).
+  const [customizerSeed, setCustomizerSeed] = useState<
+    Array<{ slug: string; questionCount: number }> | undefined
+  >(undefined);
 
   useEffect(() => {
     if (!slug) return;
@@ -57,6 +68,7 @@ export function ExamPage() {
   const start = async (
     mode: "full_mock" | "section" | "adaptive",
     sectionSlug?: string,
+    customizer?: ExamAttemptCustomizer,
   ) => {
     if (!slug || !user) {
       navigate("/login");
@@ -65,7 +77,11 @@ export function ExamPage() {
     setStarting(true);
     setError(null);
     try {
-      const r = await api.exams.startAttempt(slug, { mode, sectionSlug });
+      const r = await api.exams.startAttempt(slug, {
+        mode,
+        sectionSlug,
+        customizer,
+      });
       navigate(`/exams/${slug}/run/${r.id}`);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to start attempt");
@@ -73,6 +89,21 @@ export function ExamPage() {
       setStarting(false);
     }
   };
+
+  function openCustomizer(
+    seed?: Array<{ slug: string; questionCount: number }>,
+  ) {
+    setCustomizerSeed(seed);
+    setCustomizerOpen(true);
+  }
+
+  async function handleCustomizerStart(customizer: ExamAttemptCustomizer) {
+    setCustomizerOpen(false);
+    // Always launch as full_mock when the customizer is in play —
+    // the customizer is the single source of truth for sections,
+    // even when it's pre-seeded with one section.
+    await start("full_mock", undefined, customizer);
+  }
 
   if (error) {
     return (
@@ -137,7 +168,11 @@ export function ExamPage() {
               {user && (
                 <button
                   type="button"
-                  onClick={() => start("section", s.slug)}
+                  onClick={() =>
+                    openCustomizer([
+                      { slug: s.slug, questionCount: s.questionCount },
+                    ])
+                  }
                   disabled={starting}
                   className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent/40 disabled:opacity-50 inline-flex items-center gap-1.5"
                 >
@@ -155,12 +190,22 @@ export function ExamPage() {
           <>
             <button
               type="button"
-              onClick={() => start("full_mock")}
+              onClick={() => openCustomizer()}
               disabled={starting}
               className="text-sm px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 inline-flex items-center gap-1.5 font-medium"
+              data-testid="exam-configure-start"
+            >
+              <Settings2 className="w-4 h-4" />
+              Configure & start
+            </button>
+            <button
+              type="button"
+              onClick={() => start("full_mock")}
+              disabled={starting}
+              className="text-sm px-4 py-2 rounded-md border border-border hover:bg-accent/40 disabled:opacity-50 inline-flex items-center gap-1.5"
             >
               <Play className="w-4 h-4" />
-              Start full mock
+              Quick full mock
             </button>
             <button
               type="button"
@@ -187,6 +232,15 @@ export function ExamPage() {
         credentials. Signed proof artifacts are published on capstone and track
         completion pages.
       </div>
+
+      <CustomizerModal
+        open={customizerOpen}
+        exam={exam}
+        initialSections={customizerSeed}
+        onClose={() => setCustomizerOpen(false)}
+        onStart={handleCustomizerStart}
+        starting={starting}
+      />
 
       {user && completedAttempts.length > 0 && (
         <section className="mt-10">
