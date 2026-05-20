@@ -61,6 +61,77 @@
       "kind": "text",
       "title": "What's next",
       "body": "Uncertainty quantification is the technical side of honest ML. Next: the social side — fairness and bias.\n\nNext: [[bias-and-fairness]] — demographic parity, equalized odds.\n\nKey takeaways:\n- Calibration: predicted probabilities should match empirical frequencies\n- Modern neural nets are systematically overconfident; temperature scaling is the cheap fix\n- Conformal prediction: distribution-free intervals/sets with finite-sample coverage. The new default\n- Bayesian deep learning (ensembles, MC dropout, VI) gives parameter uncertainty\n- For most production: temperature scaling + conformal is enough. Reserve Bayesian for high-stakes"
+    },
+    {
+      "kind": "text",
+      "title": "Conformal prediction, the 1-paragraph version",
+      "body": "You have a model that outputs a single point prediction $\\hat y$ for each input. You want to wrap it in a calibrated 90% prediction interval — without re-training, without distributional assumptions, just from a held-out calibration set.\n\n**Recipe**: on the calibration set, compute the residuals $r_i = |y_i - \\hat y_i|$. Take the 90th percentile, call it $q$. Then for any new input, return the interval $[\\hat y - q, \\hat y + q]$.\n\n**Guarantee**: the resulting interval covers the true $y$ with probability *at least* 90%, *for any* underlying distribution — as long as the calibration data and the test data are exchangeable.\n\nThat's it. Distribution-free, model-agnostic, exact finite-sample. The same trick generalizes to classification (sets), regression (intervals), and conditional coverage. It's the most popular post-hoc UQ technique of the last five years."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_uq_calib",
+        "kind": "multiple_choice",
+        "question": "A binary classifier outputs probabilities. On data where it predicts 0.7, the actual positive rate is 0.4. The classifier is:",
+        "options": [
+          "Calibrated.",
+          "Overconfident — its predicted probabilities are too high.",
+          "Underconfident — its predicted probabilities are too low.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Calibrated means 'predicted probability = empirical frequency'. Here the model says 0.7 but reality is 0.4 — it's overconfident in the positive class. Common in deep nets trained with cross-entropy; fixable with temperature scaling."
+      },
+      "hints": [
+        "Compare what the model claims (0.7) with what reality delivers (0.4).",
+        "Direction matters: claim > reality means…"
+      ],
+      "workedSolution": "Calibration check: at a predicted probability of 0.7, the empirical positive rate should be ~0.7. Here it's 0.4 — the model claims more confidence than reality supports. That's overconfidence. Standard fix: temperature scaling on a held-out set, which divides logits by a learned $T > 1$.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_uq_temp",
+        "kind": "math_expression",
+        "question": "Logits [2.0, 1.0, 0.0]. Apply temperature T = 2 (divide logits by T), then softmax. What is the probability of the top class? (3 decimals)",
+        "acceptedAnswers": [
+          "0.506",
+          ".506",
+          "0.5064"
+        ],
+        "hint": "Divide all logits by T=2: [1.0, 0.5, 0.0]. Softmax: exp / sum."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_uq_aleatoric",
+        "kind": "scenario",
+        "question": "Source of uncertainty",
+        "prompt": "A weather model predicts 'temperature 70°F ± 5°F at noon'. The ±5 could be (a) genuine atmospheric variability or (b) the model not having seen enough data. Why does the source matter for what you'd do about it?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_uq",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why conformal prediction gives a distribution-free coverage guarantee even though we never assumed normality or any other parametric form.",
+        "rubric": "Mentions exchangeability of the calibration and test points; the quantile of residuals on the calibration set is an exchangeable rank statistic of the test residual."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish aleatoric from epistemic uncertainty.",
+      "Apply conformal prediction to get a distribution-free coverage guarantee.",
+      "Recognize a miscalibrated probabilistic prediction."
+    ],
+    "prereqs": [
+      "bayesian-inference"
+    ]
+  }
 }

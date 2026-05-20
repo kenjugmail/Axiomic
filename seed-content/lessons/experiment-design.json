@@ -61,6 +61,76 @@
       "kind": "text",
       "title": "What's next",
       "body": "Experiment design is the planning discipline. Next: A/B testing — applying experiment design to live production traffic.\n\nNext: [[ab-testing]] — online experiments, sequential testing, peeking at scale.\n\nKey takeaways:\n- Power analysis: effect size + α + power → required sample size\n- Randomization: protects against confounders by ensuring expected balance\n- Blocking / stratification: reduces variance in known sources of heterogeneity\n- Common pitfalls: peeking, HARKing, p-hacking, selection bias, underpowered designs, cluster correlation\n- Pre-register, plan sample size, stratify by relevant variables — the basics that catch most issues"
+    },
+    {
+      "kind": "text",
+      "title": "Power analysis, rule of thumb",
+      "body": "For detecting a difference of means with two-sample $t$-test at $\\alpha = 0.05$ and 80% power, the required sample size per arm is roughly\n\n$$n \\approx 16 \\cdot \\left(\\frac{\\sigma}{\\delta}\\right)^2$$\n\nwhere $\\sigma$ is the within-group standard deviation and $\\delta$ is the minimum effect size you care about detecting (the *minimum detectable effect*, MDE).\n\nConcrete: you want to detect a 5% lift on a metric with baseline mean 100 and SD 50. Then $\\delta = 5$, $\\sigma = 50$, so $n \\approx 16 \\cdot 100 = 1600$ per arm. Run an experiment smaller than that and you'll often fail to detect a real 5% effect — burning the budget on underpowered runs.\n\nRule of thumb: power analysis BEFORE the experiment. Computing power post-hoc to justify a null result is statistically meaningless."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_exp_n",
+        "kind": "math_expression",
+        "question": "$\\sigma = 20$, $\\delta = 4$, $\\alpha = 0.05$, 80% power. Estimate $n$ per arm using $n \\approx 16(\\sigma/\\delta)^2$.",
+        "acceptedAnswers": [
+          "400",
+          "400.0"
+        ],
+        "hint": "Plug into the rule of thumb."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_exp_block",
+        "kind": "multiple_choice",
+        "question": "You're testing two website variants. Visitor traffic varies wildly by hour of day. To get a clean comparison you should:",
+        "options": [
+          "Randomize across all hours and rely on the law of large numbers.",
+          "Block on hour of day so each hour gets both variants in equal proportions.",
+          "Run variant A on weekdays and variant B on weekends.",
+          "Cluster all of variant B's traffic into the lowest-traffic hours."
+        ],
+        "correctIndex": 1,
+        "explanation": "Blocking eliminates a known source of variation by ensuring each block contains both treatments. Variance within an hour is much smaller than variance across hours, so you get a tighter effect-size estimate for free. Pure randomization works asymptotically but pays for it in sample size."
+      },
+      "hints": [
+        "A known nuisance variable can be removed by ensuring it's balanced across treatments.",
+        "Compare 'pay for the noise in sample size' vs 'engineer the noise out via design'."
+      ],
+      "workedSolution": "Blocking on a known nuisance factor (here: hour of day) is the textbook design. Each block contains both treatments in roughly equal proportions, so when you difference within a block you cancel the block's noise. Splitting weekday/weekend confounds time-of-week with treatment. Clustering treatment into specific hours guarantees a confound.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_exp_confound",
+        "kind": "scenario",
+        "question": "Detect the confound",
+        "prompt": "A team finds that visitors who use feature X have 40% higher retention than those who don't. They conclude X causes retention. What's the textbook flaw in this reasoning, and what experiment design would actually answer the causal question?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_exp",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why randomization is the most powerful experimental design tool ever invented.",
+        "rubric": "Mentions that random assignment makes the treatment statistically independent of all confounders (observed and unobserved) — so observed differences can be attributed to treatment alone."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Compute the sample size needed to detect an effect with given power.",
+      "Distinguish randomization from blocking / stratification.",
+      "Recognize the three classic confounder failure modes."
+    ],
+    "prereqs": [
+      "hypothesis-testing"
+    ]
+  }
 }

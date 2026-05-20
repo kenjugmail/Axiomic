@@ -61,6 +61,77 @@
       "kind": "text",
       "title": "What's next",
       "body": "Causal inference basics close out the experimental-design portion of the path. Next: handling uncertainty in your predictions.\n\nNext: [[uncertainty-quantification]] — calibration, conformal prediction.\n\nKey takeaways:\n- Counterfactuals are unobservable; the fundamental problem of causal inference\n- Randomization makes treated + control groups exchangeable in expectation; ATE = simple difference\n- Without randomization: DiD, IV, RD, propensity scoring, synthetic control. Each has strong assumptions\n- ML evaluation often needs causal thinking: A/B tests, off-policy eval, counterfactual fairness\n- Observational data + unmeasured confounders → causal claims are weak"
+    },
+    {
+      "kind": "text",
+      "title": "The fundamental problem of causal inference",
+      "body": "For each unit $i$ we can imagine two potential outcomes: $Y_i(1)$ if treated and $Y_i(0)$ if not. The **individual causal effect** is $Y_i(1) - Y_i(0)$.\n\nThe fundamental problem: we only ever observe ONE of these — the one corresponding to the treatment $i$ actually received. The other is forever a counterfactual.\n\nWe can still estimate the **average treatment effect** $\\tau = E[Y(1)] - E[Y(0)]$ if treatment is independent of the potential outcomes. Randomization ensures that. Without it we need to either (a) measure all confounders + adjust, (b) find a natural experiment that mimics randomization, or (c) use an instrumental variable that affects treatment without affecting the outcome directly.\n\nObservational studies can rule out *some* causal stories but never prove one without strong assumptions. That's the headline of the causal-inference literature."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_caus_ci",
+        "kind": "multiple_choice",
+        "question": "An RCT can identify causal effects WITHOUT assuming away unobserved confounders because:",
+        "options": [
+          "Randomization makes treatment statistically independent of all confounders, observed and unobserved.",
+          "Larger samples cancel out confounding.",
+          "Randomization makes confounders irrelevant.",
+          "Causal effects are smaller in RCTs."
+        ],
+        "correctIndex": 0,
+        "explanation": "The magic of randomization: by flipping a coin to assign treatment, we guarantee treatment is independent of every pre-treatment variable, including ones we don't know about. That's why RCT estimates require no 'controlling' to be unbiased for the ATE."
+      },
+      "hints": [
+        "Why do we say RCTs are the gold standard?",
+        "What property of treatment-assignment does randomization actually create?"
+      ],
+      "workedSolution": "Randomization creates statistical independence between treatment and all pre-treatment variables (whether you measured them or not). That breaks every backdoor path from treatment to outcome, so the difference in observed outcomes between arms is an unbiased estimate of the average treatment effect — no controlling required.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_caus_obs",
+        "kind": "scenario",
+        "question": "When you can't randomize",
+        "prompt": "Your company can't randomize who gets the new pricing model — early-access customers self-select. You have rich pre-treatment data. Name two complementary strategies you'd use, and what each one's biggest weakness is."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_caus_ate",
+        "kind": "math_expression",
+        "question": "In an RCT with 1000 treated (mean outcome 12.4) and 1000 controls (mean outcome 10.0), the ATE estimate is:",
+        "acceptedAnswers": [
+          "2.4",
+          "2.40",
+          "12.4-10.0"
+        ],
+        "hint": "ATE = mean(Y|T=1) − mean(Y|T=0)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_caus",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why 'controlling for X' in a regression is NOT the same as randomizing.",
+        "rubric": "Mentions that controlling only handles observed confounders and assumes correct functional form; randomization handles unobserved confounders too."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "State the fundamental problem of causal inference.",
+      "Distinguish RCT, natural experiment, and observational study by what they can identify.",
+      "Recognize when 'control for confounders' is and isn't enough."
+    ],
+    "prereqs": [
+      "experiment-design"
+    ]
+  }
 }

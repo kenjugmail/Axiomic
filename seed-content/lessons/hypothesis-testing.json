@@ -61,6 +61,78 @@
       "kind": "text",
       "title": "What's next",
       "body": "Hypothesis testing is the decision framework. Next: Bayesian inference — an alternative paradigm that's increasingly relevant for ML.\n\nNext: [[bayesian-inference]] — priors, posteriors, MCMC.\n\nKey takeaways:\n- p-values: P(data | H₀); do NOT equal P(H₀ | data)\n- Type I (α): false positives. Type II (β): false negatives. Power = 1 - β\n- Multiple testing corrections (Bonferroni, BH) are required when running many tests\n- McNemar's, paired t-test for comparing models on the same test set\n- Bootstrap-based methods are robust defaults"
+    },
+    {
+      "kind": "text",
+      "title": "p-value, defined precisely",
+      "body": "$p = P(T \\geq T_{\\text{obs}}\\,|\\, H_0)$.\n\nIn words: the probability of seeing a test statistic at least as extreme as the one you observed, *assuming the null is true*. That's it.\n\nThings the p-value is NOT:\n- The probability the null is true (a Bayesian quantity that requires a prior).\n- The probability the result was 'caused by chance'.\n- A measure of effect size.\n- A monotone function of evidence (a $p$ of 0.04 is not '2× as much evidence' as $p$ of 0.08).\n\nThe p-value answers ONE question: 'how surprising is this data under H₀?'"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hyp_multi",
+        "kind": "multiple_choice",
+        "question": "You run 20 independent hypothesis tests, each at significance level $\\alpha = 0.05$. The probability of at least one false positive *under all true nulls* is approximately:",
+        "options": [
+          "5%",
+          "19%",
+          "36%",
+          "64%"
+        ],
+        "correctIndex": 3,
+        "explanation": "If all 20 nulls are true, the chance of zero false positives is $0.95^{20} \\approx 0.358$. So the chance of at least one is $1 - 0.358 \\approx 0.642 \\approx 64\\%$. This is exactly why multiple-testing corrections (Bonferroni, BH) exist."
+      },
+      "hints": [
+        "Compute $0.95^{20}$ first — that's the probability of zero false positives.",
+        "Subtract from 1 to get 'at least one false positive'."
+      ],
+      "workedSolution": "Probability of zero false positives under 20 independent true nulls: $0.95^{20} \\approx 0.358$. Probability of at least one: $1 - 0.358 \\approx 0.642 = 64.2\\%$. Hence Bonferroni ($\\alpha/m$), Benjamini-Hochberg, or family-wise corrections in any study running more than a handful of tests.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_hyp_bonf",
+        "kind": "math_expression",
+        "question": "20 tests, family-wise $\\alpha = 0.05$. What is the per-test Bonferroni threshold (3 decimal places)?",
+        "acceptedAnswers": [
+          "0.003",
+          ".003",
+          "0.0025",
+          "1/400"
+        ],
+        "hint": "Bonferroni: α / m."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_hyp_peek",
+        "kind": "scenario",
+        "question": "Stopping early",
+        "prompt": "An analyst runs an experiment for 10,000 visitors per arm, planning to stop when $p < 0.05$. They check after every 100 visitors. Why does this inflate the false-positive rate way above 5%, and what's the fix?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_hyp",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences the difference between 'failing to reject the null' and 'accepting the null'.",
+        "rubric": "Mentions that hypothesis testing is asymmetric — failing to reject is consistent with the null but also with small effects + low power; accepting H₀ would require a different framework (equivalence testing)."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "State the four parts of a hypothesis test (H₀, H₁, statistic, decision rule).",
+      "Apply a multiple-testing correction to a real scenario.",
+      "Recognize the most common p-value misinterpretations."
+    ],
+    "prereqs": [
+      "frequentist-foundations"
+    ]
+  }
 }

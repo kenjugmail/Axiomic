@@ -61,6 +61,63 @@
       "kind": "text",
       "title": "End of the applied-stats path",
       "body": "From frequentist foundations through fairness, you've covered the full applied-statistics toolkit for production ML evaluation.\n\nThe path covered:\n- Frequentist foundations (sampling distributions, MLE, bootstrap)\n- Hypothesis testing (p-values, multiple testing)\n- Bayesian inference (priors, MCMC, VI)\n- Experiment design (power analysis, randomization, blocking)\n- A/B testing (sequential testing, HTEs, OEC)\n- Causal inference (counterfactuals, RCTs, observational methods)\n- Uncertainty quantification (calibration, conformal prediction)\n- Bias and fairness (impossibility theorem, mitigation)\n\nFor a team building production ML: invest in this toolkit alongside your modeling skills. Most ML failures in production aren't from bad models; they're from bad evaluation. Applied statistics is what makes evaluation honest.\n\nKey takeaways across the path:\n- ML evaluation is a statistics problem; treat it as one\n- Confidence intervals, multiple testing correction, power analysis are non-negotiable\n- A/B testing requires sequential testing protections; never naively peek\n- Causal claims require RCTs or strong assumptions; observational ML can mislead\n- Calibration + uncertainty estimates are needed for high-stakes decisions\n- Per-group evaluation is the minimum fairness audit\n- The discipline of rigorous evaluation is what separates ML papers that replicate from those that don't"
+    },
+    {
+      "kind": "text",
+      "title": "Three fairness criteria, and why you can't have all three",
+      "body": "**Demographic parity** ($\\hat Y \\perp A$): positive prediction rate is equal across groups $A$. ('We approve loans at the same rate.')\n\n**Equal opportunity** ($\\hat Y \\perp A \\mid Y = 1$): true-positive rate is equal across groups. ('Qualified applicants are approved at the same rate regardless of group.')\n\n**Equalized odds** ($\\hat Y \\perp A \\mid Y$): true-positive AND false-positive rates are equal across groups. ('Both qualified and unqualified are treated the same across groups.')\n\n**Chouldechova / Kleinberg impossibility (2017)**: when the *base rates* differ between groups (Y has different prevalence by group), you cannot simultaneously achieve calibration + equal false-positive rate + equal false-negative rate. Something must give.\n\nThat impossibility is the heart of every consequential fairness debate: COMPAS (recidivism), bank lending, hiring screens. Each project must pick which criterion to enforce — and that's a values question, not a statistical one."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fair_basenote",
+        "kind": "multiple_choice",
+        "question": "A hiring model trained on past data shows equal precision across groups but unequal selection rates. A stakeholder objects to the unequal selection rates. The two facts together imply:",
+        "options": [
+          "The model is broken; precision and selection rate cannot both be correct.",
+          "Different groups have different positive-class base rates in the training data — and you're hitting the fairness impossibility result.",
+          "The model is using sensitive attributes directly.",
+          "The labels are wrong."
+        ],
+        "correctIndex": 1,
+        "explanation": "Equal precision + unequal selection rate is exactly what you get when the predicted-positive base rate differs by group. Without intervention, no model can give you equal precision AND equal selection rate AND calibration when base rates differ — that's the impossibility theorem. You're being asked to pick which fairness criterion to enforce."
+      },
+      "hints": [
+        "This is the classic COMPAS/lending pattern.",
+        "Which fairness criteria are mutually achievable when base rates differ?"
+      ],
+      "workedSolution": "If group base rates differ, equal precision + equal calibration are incompatible with equal selection rate. The pattern in the question (equal precision, unequal selection rate) is the natural outcome when no fairness criterion is enforced and the data has different group base rates. You can move toward demographic parity but you'll trade off precision — the impossibility result makes this concrete.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fair_mitigate",
+        "kind": "scenario",
+        "question": "Choose a mitigation",
+        "prompt": "Your loan-approval model has 85% accuracy overall but a 15-point gap in approval rate between two demographic groups. The legal team requires demographic parity. Discuss two specific algorithmic interventions (pre-, in-, or post-processing) and what each costs you in overall accuracy."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fair",
+        "kind": "explain_back",
+        "prompt": "Explain in three sentences why fairness in ML is a values question, not just a statistical question.",
+        "rubric": "Mentions that the choice of fairness criterion encodes a value judgment (equal opportunity? equal selection?); statistics can only tell you what's *achievable* given data and model class; the impossibility result forces a choice that no math can make for you."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish demographic parity, equal opportunity, and equalized odds.",
+      "Articulate the impossibility result tying these together.",
+      "Recognize the operational difference between bias mitigation strategies."
+    ],
+    "prereqs": [
+      "uncertainty-quantification"
+    ]
+  }
 }

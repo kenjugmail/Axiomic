@@ -61,6 +61,78 @@
       "kind": "text",
       "title": "What's next",
       "body": "Bayesian inference is the alternative paradigm. Next: experimental design — how to plan studies that actually answer your question.\n\nNext: [[experiment-design]] — power analysis, randomization, blocking.\n\nKey takeaways:\n- Bayesian: posterior `p(θ | data)` = prior × likelihood / evidence\n- Conjugate priors give closed-form posteriors; non-conjugate needs MCMC or VI\n- MCMC: sample from posterior. NUTS (in Stan / PyMC) is the modern standard\n- VI: approximate posterior via parametric family. Faster; can underestimate variance\n- Bayesian wins for: small data, hierarchical structure, sequential learning, decision-under-uncertainty"
+    },
+    {
+      "kind": "text",
+      "title": "Beta-Binomial, the cleanest example",
+      "body": "Prior: $p \\sim \\text{Beta}(\\alpha, \\beta)$ — represents your belief about the bias of a coin before any data.\n\nLikelihood: observe $k$ heads in $n$ flips, $k \\sim \\text{Binomial}(n, p)$.\n\nPosterior: $p \\,|\\, k, n \\sim \\text{Beta}(\\alpha + k, \\beta + n - k)$. **Conjugate**: the posterior is in the same family as the prior.\n\nStart with $\\text{Beta}(1,1)$ (uniform); observe 7 heads in 10 flips. Posterior: $\\text{Beta}(8, 4)$, with mean $8/12 \\approx 0.667$.\n\nNotice how the prior 'counts as data': a $\\text{Beta}(2,2)$ prior would shift the posterior to $\\text{Beta}(9, 5)$, mean $\\approx 0.643$. Strong priors require more data to overcome."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bayes_ci",
+        "kind": "multiple_choice",
+        "question": "A 95% Bayesian credible interval $[0.2, 0.6]$ for parameter $\\theta$ means:",
+        "options": [
+          "Given the data, there is a 95% probability that $\\theta$ lies in [0.2, 0.6], under your prior.",
+          "If you repeat the experiment many times, 95% of intervals will contain $\\theta$.",
+          "$\\theta$ is exactly 0.4.",
+          "95% of the data lies between 0.2 and 0.6."
+        ],
+        "correctIndex": 0,
+        "explanation": "A credible interval IS a probability statement about the parameter — exactly the statement frequentist CIs cannot make. It depends on the prior and is the Bayesian counterpart to the frequentist CI's repeated-sampling interpretation."
+      },
+      "hints": [
+        "Compare to the frequentist CI 'gotcha' from the stats-foundations lesson — credible intervals fix that gap.",
+        "Bayesian framework allows probability statements about parameters because parameters have distributions."
+      ],
+      "workedSolution": "A credible interval is a probability statement about the parameter $\\theta$, conditional on the observed data and the prior: $P(\\theta \\in [0.2, 0.6] \\,|\\, \\text{data}, \\text{prior}) = 0.95$. That's the intuitive reading people *want* a CI to have, and it's what Bayesian inference actually provides.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_bayes_post",
+        "kind": "math_expression",
+        "question": "Prior $\\text{Beta}(1,1)$, observe 30 heads in 50 flips. The posterior mean is $(\\alpha+k)/(\\alpha+\\beta+n)$. Compute it.",
+        "acceptedAnswers": [
+          "31/52",
+          "0.596",
+          "0.5962",
+          ".596"
+        ],
+        "hint": "Posterior is Beta(1+30, 1+20)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_bayes_prior",
+        "kind": "scenario",
+        "question": "How strong is your prior?",
+        "prompt": "You're estimating the click-through rate of a new ad variant. You have 50 clicks in 1000 impressions. A skeptical PM says 'CTR for our product is historically 4±0.5%, that's basically certain.' How would you encode this prior, and how much would it shift your posterior mean?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_bayes",
+        "kind": "explain_back",
+        "prompt": "Explain in three sentences when you'd reach for Bayesian inference over frequentist, and when the reverse.",
+        "rubric": "Mentions Bayesian wins when (i) priors are informative + defensible, (ii) you need probability statements about parameters; frequentist wins when (i) no defensible prior, (ii) regulatory environment expects classical procedures, (iii) computation must be cheap."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "core",
+    "objectives": [
+      "Apply Bayes' rule to update a prior with a small dataset.",
+      "Distinguish a credible interval from a confidence interval.",
+      "Recognize when conjugacy makes inference closed-form."
+    ],
+    "prereqs": [
+      "frequentist-foundations"
+    ]
+  }
 }
