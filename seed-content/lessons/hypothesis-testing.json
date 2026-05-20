@@ -7,6 +7,53 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: the genome-wide association study trap",
+      "body": "GWAS analyzes ~1M SNPs (genetic variants) for association with a disease. At $\\alpha = 0.05$ per test, expected false positives if no real associations: $0.05 \\times 10^6 = 50{,}000$. Without correction, every GWAS would report fake hits.\n\nGenomic standard: Bonferroni at $\\alpha = 5 \\times 10^{-8}$ (i.e., $0.05 / 10^6$). Stringent — only the strongest signals survive. Modern alternatives like FDR control (Benjamini-Hochberg) are more powerful but Bonferroni's conservatism is preferred in genomics where false discoveries are expensive (lots of replication studies)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_hyp_bonferroni",
+        "kind": "guided_derivation",
+        "question": "Derive Bonferroni correction via union bound",
+        "goal": "Show that to control family-wise error rate at level $\\alpha$ across $m$ independent tests, per-test threshold is $\\alpha/m$.",
+        "steps": [
+          {
+            "prompt": "Let $E_i$ be the event 'test $i$ produces a false positive'. Family-wise error: $P(\\bigcup_i E_i)$. Bound using the union bound.",
+            "motivation": "Union bound is the most general inequality.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "sum P(E_i)",
+                "Σ_i P(E_i)"
+              ]
+            },
+            "hints": [
+              "$P(\\bigcup E_i) \\leq \\sum P(E_i)$ — Boole's inequality."
+            ],
+            "reveal": "$P(\\text{any false positive}) \\leq \\sum_i P(E_i)$."
+          },
+          {
+            "prompt": "If each test uses threshold $\\alpha_*$ then $P(E_i) = \\alpha_*$. We want $P(\\text{any false positive}) \\leq \\alpha$. Solve for $\\alpha_*$.",
+            "motivation": "Allocate the budget evenly.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "alpha/m",
+                "α/m"
+              ]
+            },
+            "hints": [
+              "$m \\alpha_* \\leq \\alpha$ gives $\\alpha_* = \\alpha/m$."
+            ],
+            "reveal": "$\\alpha_* = \\alpha/m$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\alpha_*^{\\text{Bonferroni}} = \\alpha/m}$$\n\nThe Bonferroni correction is the most conservative valid choice. More powerful corrections (BH for FDR, hierarchical testing) exist when independence is reasonable AND you can tolerate FDR > 0 control instead of FWER control. For high-stakes settings (clinical trials, genomics) Bonferroni is still preferred for its simplicity + conservatism."
+      }
+    },
+    {
+      "kind": "text",
       "title": "p-values and what they mean",
       "body": "A **p-value** is the probability, *under the null hypothesis*, of observing data at least as extreme as what you saw.\n\nFormally: `p = P(T ≥ T_observed | H₀ true)`.\n\n**What a p-value is NOT**:\n- ❌ The probability that H₀ is true.\n- ❌ The probability that the result is due to chance.\n- ❌ A measure of effect size.\n- ❌ Evidence that H₁ is true.\n- ❌ Reproducibility — a small p-value doesn't mean a study replicates.\n\n**What a p-value IS**:\n- A measure of how surprising the data is, *assuming* H₀ is true.\n- A frequentist quantity about hypothetical repeated experiments.\n- A decision threshold for rejecting H₀ at level α.\n\nThe most-misinterpreted statistic in science. The American Statistical Association issued a 2016 statement specifically to reduce p-value abuse.\n\n**Practical**: a small p-value is evidence against H₀. It doesn't tell you about the size of the effect or the probability that H₁ is true. Always pair p-values with effect sizes + confidence intervals."
     },

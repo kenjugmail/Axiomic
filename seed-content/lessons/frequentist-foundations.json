@@ -7,6 +7,39 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: estimating click-through rate",
+      "body": "You serve an ad to 5000 users and 250 click. CTR estimate $\\hat p = 250/5000 = 5\\%$. The standard error of $\\hat p$ is $\\sqrt{\\hat p(1-\\hat p)/n} = \\sqrt{0.05 \\cdot 0.95 / 5000} \\approx 0.003 = 0.3\\%$.\n\n95% CI: $5\\% \\pm 1.96 \\cdot 0.3\\% \\approx [4.4\\%, 5.6\\%]$. If a competing variant claims CTR $= 4.5\\%$ (within this CI), the difference is statistically indistinguishable from random sampling noise.\n\nFor A/B testing, the rule-of-thumb minimum sample size scales as $1/p$ for small $p$ — detecting small CTRs precisely takes a lot of impressions. Most ad networks pre-size experiments using power analysis before launch."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_freq_se",
+        "kind": "guided_derivation",
+        "question": "Derive the standard error of the sample mean",
+        "goal": "Given i.i.d. $X_i$ with mean $\\mu$ + variance $\\sigma^2$, show $\\text{Var}(\\bar X_n) = \\sigma^2/n$.",
+        "steps": [
+          {
+            "prompt": "Define $\\bar X_n = (1/n)\\sum_{i=1}^n X_i$. Compute $\\text{Var}(\\bar X_n)$ using $\\text{Var}(\\sum X_i) = \\sum \\text{Var}(X_i)$ (because independence). Pull out the constant $1/n$.",
+            "motivation": "Linearity of variance under independence.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(1/n^2) sum sigma^2 = sigma^2/n",
+                "n σ² / n² = σ²/n"
+              ]
+            },
+            "hints": [
+              "$\\text{Var}(cX) = c^2 \\text{Var}(X)$.",
+              "Sum of $n$ variances each equal to $\\sigma^2$: $n\\sigma^2$. Divide by $n^2$."
+            ],
+            "reveal": "$\\text{Var}(\\bar X_n) = (1/n^2) \\cdot n\\sigma^2 = \\sigma^2/n$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Var}(\\bar X_n) = \\sigma^2/n,\\quad \\text{SE}(\\bar X_n) = \\sigma/\\sqrt n}$$\n\nThe $1/\\sqrt n$ scaling is the workhorse of frequentist inference: to halve your error bars, you need 4× the data; to 10× the precision, 100× the data. The diminishing-returns curve of more data."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Maximum likelihood estimation (MLE)",
       "body": "**MLE**: given a parameterized statistical model `p(x | θ)` and observed data `x_1, ..., x_n`, find the `θ` that maximizes the likelihood:\n\n$$\\hat{\\theta}_{MLE} = \\arg\\max_\\theta \\prod_i p(x_i | \\theta) = \\arg\\max_\\theta \\sum_i \\log p(x_i | \\theta)$$\n\nThe second form (log-likelihood) is what you actually optimize — sum is more numerically stable than product.\n\n**Why MLE is everywhere in ML**:\n- **Cross-entropy loss** is the negative log-likelihood for classification under a categorical model.\n- **MSE** is the negative log-likelihood for regression under a Gaussian-noise model.\n- **Logistic regression** maximizes log-likelihood under Bernoulli observations.\n- **Language model training**: maximize log-likelihood of the next token given context.\n\nML's loss functions are MLE in disguise. Understanding the statistical framing helps you read papers + design new objectives.\n\n**Properties**:\n- **Consistent**: as `n → ∞`, `Ŝ_MLE → θ_true` (under regularity conditions).\n- **Asymptotically normal**: `√n (Ŝ_MLE - θ) → N(0, I^{-1}(θ))` where `I` is the Fisher information.\n- **Asymptotically efficient**: achieves the Cramer-Rao lower bound on variance.\n\nThese are theoretical guarantees about large-sample behavior. Small-sample performance can deviate; MLE on tiny datasets is biased + high-variance."
     },

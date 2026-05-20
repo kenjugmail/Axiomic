@@ -7,6 +7,57 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: PPO clip threshold tuning",
+      "body": "$\\epsilon = 0.1$: very conservative. Policy moves slowly per update; training is stable but slow. Default in many implementations of PPO for sensitive tasks.\n\n$\\epsilon = 0.2$: the OpenAI baselines + RLHF default. Faster learning, occasional instability.\n\n$\\epsilon = 0.3$: aggressive. Often diverges on simpler tasks; sometimes wins on hard ones by making bigger steps.\n\nThe right $\\epsilon$ depends on policy entropy, batch size, learning rate. RLHF for LLMs typically uses $\\epsilon = 0.2$ with $\\beta$ KL coefficient tuned alongside; the joint hyperparameter sweep is one of the harder parts of RLHF training."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ppo_ratio",
+        "kind": "guided_derivation",
+        "question": "Derive the importance-sampling ratio that PPO clips",
+        "goal": "Starting from the policy-gradient objective, show $r_t(\\theta) = \\pi_\\theta(a_t|s_t)/\\pi_{\\theta_{\\text{old}}}(a_t|s_t)$.",
+        "steps": [
+          {
+            "prompt": "Off-policy gradient: data was collected under $\\pi_{\\text{old}}$, but we want to update $\\pi_\\theta$. Importance sampling: $\\mathbb{E}_{\\pi_\\theta}[f] = \\mathbb{E}_{\\pi_{\\text{old}}}[(\\pi_\\theta/\\pi_{\\text{old}}) f]$. Apply to the policy gradient.",
+            "motivation": "Standard importance-sampling correction.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "E_{old}[(pi_theta/pi_old) A]",
+                "E_old[(π_θ/π_old) · A]"
+              ]
+            },
+            "hints": [
+              "Multiply by the ratio of new to old policy probabilities."
+            ],
+            "reveal": "$\\nabla J \\approx \\mathbb{E}_{\\pi_{\\text{old}}}[(\\pi_\\theta(a|s)/\\pi_{\\text{old}}(a|s)) \\cdot A(s,a)]$."
+          },
+          {
+            "prompt": "Define $r_t(\\theta) = \\pi_\\theta(a_t|s_t)/\\pi_{\\text{old}}(a_t|s_t)$. PPO's surrogate objective is $\\mathbb{E}_t[\\min(r_t A_t, \\text{clip}(r_t, 1-\\epsilon, 1+\\epsilon) A_t)]$. What does the clip prevent?",
+            "motivation": "Trust region in disguise.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Policy moves outside $[1-\\epsilon, 1+\\epsilon]$ multiplied by the advantage — preventing the gradient from rewarding aggressive moves outside the trust region.",
+                "Negative advantages.",
+                "Sampling at all.",
+                "Backprop through the old policy."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "The clip applies when $r_t$ leaves $[1-\\epsilon, 1+\\epsilon]$.",
+              "The $\\min$ keeps the gradient zero when extrapolating further would help."
+            ],
+            "reveal": "PPO's clip creates a 'no-gradient zone' when $r_t \\notin [1-\\epsilon, 1+\\epsilon]$ AND moving further would increase the objective — a soft trust region without explicit constraint optimization."
+          }
+        ],
+        "finalResult": "$$\\boxed{L^{\\text{CLIP}}(\\theta) = \\mathbb{E}_t[\\min(r_t A_t, \\text{clip}(r_t, 1-\\epsilon, 1+\\epsilon) A_t)]}$$\n\nThe importance-sampling ratio $r_t$ comes from off-policy correction; the clip creates the trust-region behavior; together they give PPO's stability with much simpler engineering than TRPO's constrained optimization."
+      }
+    },
+    {
+      "kind": "text",
       "title": "TRPO: the principled answer",
       "body": "**Trust Region Policy Optimization** maximizes a surrogate objective subject to a KL constraint:\n\n```\nmaximize_θ  L(θ) = E[(π_θ(a|s) / π_old(a|s)) · A(s,a)]\nsubject to: E[KL(π_old || π_θ)] ≤ δ\n```\n\nIn words: maximize the importance-weighted advantage, but keep the new policy within a `KL ≤ δ` ball of the old.\n\nThe importance ratio `r(θ) = π_θ(a|s) / π_old(a|s)` is what makes this **off-policy in a controlled way**: we're using data collected under `π_old` but evaluating gradients under `π_θ`.\n\nTRPO solves this constrained optimization via:\n\n1. **Conjugate gradient** to compute the natural gradient direction (Fisher matrix-vector products).\n2. **Line search** to find the largest step size that satisfies the KL constraint.\n\nMathematically beautiful; engineering complex. The conjugate gradient + line search makes implementation finicky. Most implementations have at least one bug that someone catches three years later.\n\n**TRPO** has provable monotonic improvement guarantees (under exact computation). In practice, it's been mostly superseded by PPO."
     },

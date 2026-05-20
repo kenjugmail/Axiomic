@@ -7,6 +7,54 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: detecting a 1% lift",
+      "body": "Baseline conversion: 5%. You want to detect a 1% absolute lift (5% → 6%) with 80% power, $\\alpha = 0.05$.\n\nFrom $n \\approx 16 \\sigma^2 / \\delta^2$ with $\\sigma^2 = p(1-p) = 0.05 \\cdot 0.95 = 0.0475$, $\\delta = 0.01$:\n\n$n \\approx 16 \\cdot 0.0475 / 0.0001 \\approx 7600$ per arm. Two arms: 15,200 total. At 1000 visitors/day, you need ~2 weeks.\n\nBigger absolute effects (10% → 15%) take ~100× less data because $\\delta$ appears squared. Small effects are expensive; the sample size scales as the inverse square of the effect size."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_exp_n",
+        "kind": "guided_derivation",
+        "question": "Derive the sample-size rule of thumb",
+        "goal": "Show $n \\approx 16 \\sigma^2 / \\delta^2$ for two-sample t-test, $\\alpha = 0.05$, 80% power.",
+        "steps": [
+          {
+            "prompt": "Standard error of difference between two sample means (equal $n$, equal $\\sigma^2$): $\\text{SE}(\\bar X_1 - \\bar X_2) = ?$",
+            "motivation": "Variance of difference = sum of variances.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "sigma sqrt(2/n)",
+                "σ√(2/n)"
+              ]
+            },
+            "hints": [
+              "$\\text{Var}(\\bar X_1 - \\bar X_2) = \\sigma^2/n + \\sigma^2/n = 2\\sigma^2/n$."
+            ],
+            "reveal": "$\\text{SE} = \\sigma\\sqrt{2/n}$."
+          },
+          {
+            "prompt": "For $\\alpha = 0.05$ (two-sided) + 80% power, the rule of thumb is the effect must equal $(z_{1-\\alpha/2} + z_{0.8}) \\cdot \\text{SE} \\approx (1.96 + 0.84) \\cdot \\text{SE} \\approx 2.8\\,\\text{SE}$. Equivalently, the effect divided by the SE must equal ~2.8. Compute $n$.",
+            "motivation": "Set $\\delta / \\text{SE} \\geq 2.8$.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "n = 2*2.8^2 sigma^2/delta^2",
+                "n ≈ 16 σ²/δ²"
+              ]
+            },
+            "hints": [
+              "$\\delta / (\\sigma\\sqrt{2/n}) = 2.8 \\Rightarrow \\sqrt n = 2.8\\sigma\\sqrt 2/\\delta$.",
+              "Square: $n = 7.84 \\cdot 2 \\cdot \\sigma^2/\\delta^2 \\approx 16 \\sigma^2/\\delta^2$."
+            ],
+            "reveal": "$n \\approx 16 \\sigma^2 / \\delta^2$."
+          }
+        ],
+        "finalResult": "$$\\boxed{n \\approx 16 \\sigma^2 / \\delta^2}$$\n\nPer arm, for 80% power at $\\alpha = 0.05$ on a two-sample comparison. Halving the minimum detectable effect requires 4× the sample size. Doubling power (say, 80% → 95%) requires ~1.5× the sample size. Most experiments are undersized — running a power analysis BEFORE launch is non-negotiable."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Power analysis",
       "body": "**Statistical power**: the probability of correctly rejecting H₀ when H₁ is true. `Power = 1 - β` where β is the Type II error rate.\n\nFour quantities are linked:\n- **α** (Type I rate, typically 0.05).\n- **Power** (typically 0.80 — meaning 80% chance to detect a real effect).\n- **Effect size** (the magnitude of difference you care about detecting).\n- **Sample size** (n).\n\nSpecify three; the fourth is determined.\n\n**Formula** (for a two-sample t-test with equal groups, normal data):\n\n$$n \\approx \\frac{2 (z_{\\alpha/2} + z_\\beta)^2 \\sigma^2}{\\delta^2}$$\n\nwhere `δ` is the effect size (mean difference) and `σ²` is the within-group variance.\n\n**Example**: detecting a 1% accuracy improvement with α=0.05, power=0.80, on a binary classification task. With p₁ = 0.85, p₂ = 0.86: n ≈ ~28K per group. Big number!\n\nMost ML evaluations don't run power analysis. Result: 'we tried it on a 1000-example test set and didn't see significant improvement' is usually 'the test was severely underpowered to detect the realistic-sized effect'.\n\n**Effect size** is the most-overlooked input. People worry about α and β; rarely think about 'what's the smallest effect we'd care about?'. Without this, power analysis is impossible."
     },

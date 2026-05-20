@@ -7,6 +7,54 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: catastrophic variance of REINFORCE",
+      "body": "Imagine training a policy on a task where each episode returns either $+100$ or $-100$ with equal probability, regardless of the policy. The policy-gradient estimator is $\\nabla \\log \\pi(a) \\cdot G$ where $G = \\pm 100$. Massive variance — gradient flips sign episode to episode.\n\nSubtract a baseline $b = 0$ (the mean return). Now the estimator is the same, no improvement.\n\nSubtract a baseline that's a function of *state*, e.g., the value $V(s)$ that approximates expected return: residual $G - V(s)$ might be small. Now estimator variance drops dramatically.\n\nThis is why every modern policy-gradient method is *actor-critic* (subtracts a learned value baseline). REINFORCE alone is rarely used past textbook examples — variance reduction via baselines is essential."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_pg_reinforce",
+        "kind": "guided_derivation",
+        "question": "Derive the REINFORCE policy-gradient estimator",
+        "goal": "Show $\\nabla_\\theta J(\\theta) = \\mathbb{E}_\\pi[\\nabla_\\theta \\log \\pi(a|s) \\cdot G_t]$.",
+        "steps": [
+          {
+            "prompt": "Objective: $J(\\theta) = \\mathbb{E}_{\\tau \\sim \\pi_\\theta}[R(\\tau)]$. Write the gradient as an expectation. (Hint: $\\nabla \\mathbb{E}_\\pi[f] = \\mathbb{E}_\\pi[\\nabla \\log \\pi \\cdot f]$ — the log-derivative trick.)",
+            "motivation": "Score function estimator.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "E_pi[grad log pi(tau) R(tau)]",
+                "E[∇log π(τ) · R(τ)]"
+              ]
+            },
+            "hints": [
+              "The log-derivative trick: $\\nabla p = p \\nabla \\log p$.",
+              "Apply to $\\nabla \\int p(\\tau) R(\\tau) d\\tau$."
+            ],
+            "reveal": "$\\nabla J = \\mathbb{E}_\\pi[\\nabla \\log \\pi(\\tau) \\cdot R(\\tau)]$."
+          },
+          {
+            "prompt": "Decompose $\\nabla \\log \\pi(\\tau) = \\sum_t \\nabla \\log \\pi(a_t | s_t)$ (since the trajectory's log-probability factorizes over time steps).",
+            "motivation": "Markov structure: each action's policy is independent.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "sum_t grad log pi(a_t|s_t)",
+                "Σ_t ∇ log π(a_t | s_t)"
+              ]
+            },
+            "hints": [
+              "$\\pi(\\tau) = \\prod_t \\pi(a_t | s_t) \\cdot $ env dynamics; log + product → sum."
+            ],
+            "reveal": "$\\nabla \\log \\pi(\\tau) = \\sum_t \\nabla \\log \\pi(a_t | s_t)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\nabla_\\theta J = \\mathbb{E}_\\pi\\left[\\sum_t \\nabla_\\theta \\log \\pi(a_t|s_t)\\,G_t\\right]}$$\n\nThe REINFORCE estimator. Each time step contributes 'how much the log-probability changes when I tweak $\\theta$' times 'how good the resulting return was'. Variance is high because $G$ has high variance; baseline subtraction $G - V(s)$ keeps the estimator unbiased while shrinking variance."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The policy gradient theorem",
       "body": "How do you compute `∇_θ J(θ)` when `J` is an expectation over trajectories whose distribution depends on `θ`?\n\n**Policy gradient theorem** (Sutton 1999):\n\n$$\\nabla_\\theta J(\\theta) = \\mathbb{E}_{\\tau \\sim \\pi_\\theta}\\left[\\sum_t \\nabla_\\theta \\log \\pi_\\theta(a_t | s_t) \\cdot G_t\\right]$$\n\nIn words: the gradient is the expected sum, over time steps, of `∇log π · G_t`. `G_t` is the return-to-go from step `t`.\n\n**Why this works** (a cute derivation):\n\n```\n∇ E_τ[R(τ)] = ∇ ∫ p_θ(τ) R(τ) dτ\n            = ∫ ∇ p_θ(τ) R(τ) dτ\n            = ∫ p_θ(τ) ∇ log p_θ(τ) R(τ) dτ        (log-derivative trick)\n            = E_τ[∇ log p_θ(τ) R(τ)]\n```\n\nAnd `log p_θ(τ) = log p(s_0) + Σ log π_θ(a_t|s_t) + Σ log P(s_{t+1}|s_t,a_t)`. Only the policy term depends on `θ`, so its gradient survives.\n\n**Practical version (REINFORCE)**: sample trajectories `τ` from `π_θ`. Compute the empirical estimator:\n\n```\n∇J ≈ (1/N) Σ_τ Σ_t ∇log π_θ(a_t|s_t) · G_t\n```\n\nUpdate `θ ← θ + α · ∇J`. That's it. The algorithm is one page of code."
     },

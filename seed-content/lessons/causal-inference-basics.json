@@ -7,6 +7,54 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: smoking + lung cancer (Doll-Hill 1950s)",
+      "body": "The classic mid-century causal-inference story. Observational data showed strong correlation between smoking + lung cancer. R.A. Fisher (the *frequentist* statistics legend) argued the correlation might be confounded by genetics — some people might be genetically predisposed to both smoke AND get lung cancer.\n\nDecades of work — randomized trials (impossible directly, but quasi-experiments via twin studies, dose-response, etc.) — converged on the causal interpretation. Modern view: smoking does cause lung cancer; Fisher was being a useful skeptic.\n\nLessons: (1) observational data alone can't distinguish causation from confounding; (2) careful triangulation across study designs (RCTs, natural experiments, mechanism studies) builds the causal case; (3) even brilliant statisticians can be wrong when ideology meets data."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_caus_ate",
+        "kind": "guided_derivation",
+        "question": "Show that randomization gives unbiased ATE estimates",
+        "goal": "Define ATE = $\\mathbb{E}[Y(1)] - \\mathbb{E}[Y(0)]$. Show that under randomization, $\\mathbb{E}[Y | T=1] - \\mathbb{E}[Y | T=0] = $ ATE.",
+        "steps": [
+          {
+            "prompt": "Randomization: $T$ is statistically independent of potential outcomes $(Y(0), Y(1))$. So $\\mathbb{E}[Y(1) | T=1] = ?$",
+            "motivation": "Independence: conditioning on $T$ doesn't change the distribution of $(Y(0), Y(1))$.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "E[Y(1)]",
+                "𝔼[Y(1)]"
+              ]
+            },
+            "hints": [
+              "If $T \\perp (Y(0), Y(1))$, then $\\mathbb{E}[Y(1) | T = 1] = \\mathbb{E}[Y(1)]$."
+            ],
+            "reveal": "$\\mathbb{E}[Y(1) | T = 1] = \\mathbb{E}[Y(1)]$."
+          },
+          {
+            "prompt": "Observed: $Y = Y(1)$ if $T = 1$; $Y = Y(0)$ if $T = 0$. So $\\mathbb{E}[Y | T = 1] = \\mathbb{E}[Y(1) | T = 1]$. Combine.",
+            "motivation": "Map observed to potential.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "E[Y(1)] - E[Y(0)] = ATE",
+                "ATE"
+              ]
+            },
+            "hints": [
+              "By the previous step, $\\mathbb{E}[Y | T=1] = \\mathbb{E}[Y(1)]$ + by symmetry $\\mathbb{E}[Y | T=0] = \\mathbb{E}[Y(0)]$.",
+              "Difference = ATE."
+            ],
+            "reveal": "$\\mathbb{E}[Y | T=1] - \\mathbb{E}[Y | T=0] = \\mathbb{E}[Y(1)] - \\mathbb{E}[Y(0)] = $ ATE."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Randomization} \\Rightarrow \\mathbb{E}[Y | T=1] - \\mathbb{E}[Y | T=0] = \\text{ATE}}$$\n\nThe magic of randomization: it makes the naive observational comparison equal to the causal effect, with no further assumptions. In observational studies the naive comparison can be biased in either direction by confounders; you need either (a) randomize, (b) measure + adjust for all confounders, or (c) use instrumental variables or natural experiments."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Counterfactuals and the fundamental problem",
       "body": "**Counterfactual**: 'what would have happened if we'd done X instead of Y?'\n\nFor each user, you'd want to know:\n- `Y(treated)`: what they'd do if treated.\n- `Y(control)`: what they'd do if not treated.\n\nThe **individual treatment effect**: `Y(treated) - Y(control)`.\n\n**Fundamental problem of causal inference**: each user is either treated or not. We never observe both `Y(treated)` and `Y(control)` for the same user. Counterfactuals are unobserved.\n\nCausal inference's job: estimate things we can't directly observe.\n\n**The savior — randomization**: with random assignment, the *average* counterfactual outcomes are the same in both groups (in expectation). So:\n\n```\nATE = E[Y(treated)] - E[Y(control)] ≈ mean(Y in treated) - mean(Y in control)\n```\n\nThis is why RCTs work: random assignment makes the two groups exchangeable — same in expectation on all confounders, observed and unobserved.\n\nWithout randomization (observational data), the two groups can differ on confounders; the simple difference of means is not the causal effect."
     },

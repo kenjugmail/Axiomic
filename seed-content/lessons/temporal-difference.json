@@ -7,6 +7,54 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: TD(0) on a 5-state walk",
+      "body": "5 states $s_1$ through $s_5$, with $s_5$ terminal giving reward $+1$. All other rewards 0. Random-walk policy: 50/50 left/right.\n\nMC estimate of $V(s_3)$: roll out full episodes, average returns. Each rollout's return is $\\gamma^k$ where $k$ is steps to $s_5$ — variance is high.\n\nTD(0): $V(s_3) \\leftarrow V(s_3) + \\alpha[r + \\gamma V(s_4) - V(s_3)]$. After many updates, $V$ converges to the true values (which decay roughly geometrically from $s_5$ back to $s_1$).\n\nTD is biased (uses bootstrapped value estimates) but much lower variance. MC is unbiased but high variance. The tradeoff defines the bias-variance frontier in value learning."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_td_update",
+        "kind": "guided_derivation",
+        "question": "Derive the TD(0) update as a Bellman-residual gradient step",
+        "goal": "Show TD(0) update is gradient descent on $\\tfrac12 \\mathbb{E}[(r + \\gamma V(s') - V(s))^2]$ — almost.",
+        "steps": [
+          {
+            "prompt": "Treat $V(s)$ as a parameter. Compute $\\partial / \\partial V(s)$ of $\\tfrac12 (r + \\gamma V(s') - V(s))^2$, treating $V(s')$ as a fixed target (no gradient).",
+            "motivation": "Semi-gradient: TD doesn't backpropagate through the target.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-(r + gamma V(s') - V(s))",
+                "V(s) - (r + γ V(s'))"
+              ]
+            },
+            "hints": [
+              "Outer derivative: $2 \\cdot (\\text{residual})$, then $\\cdot$ inner derivative $-1$ (only the $-V(s)$ term involves the parameter).",
+              "The $1/2$ cancels the 2."
+            ],
+            "reveal": "$\\partial L / \\partial V(s) = -(r + \\gamma V(s') - V(s))$."
+          },
+          {
+            "prompt": "Gradient-descent update: $V(s) \\leftarrow V(s) - \\alpha \\cdot \\partial L / \\partial V(s)$. Substitute.",
+            "motivation": "Standard SGD step.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "V(s) + alpha (r + gamma V(s') - V(s))",
+                "V(s) + α(r + γV(s') - V(s))"
+              ]
+            },
+            "hints": [
+              "Negative of a negative is positive."
+            ],
+            "reveal": "$V(s) \\leftarrow V(s) + \\alpha (r + \\gamma V(s') - V(s))$."
+          }
+        ],
+        "finalResult": "$$\\boxed{V(s) \\leftarrow V(s) + \\alpha (r + \\gamma V(s') - V(s))}$$\n\nThe TD(0) update. Called *semi-gradient* because we don't differentiate through $V(s')$ — treating it as a stable target. True-gradient TD methods (residual gradient, etc.) backpropagate but have weaker convergence guarantees. Semi-gradient TD is what every modern RL algorithm uses."
+      }
+    },
+    {
+      "kind": "text",
       "title": "TD vs Monte Carlo",
       "body": "There are two ways to estimate `V^π(s)` from samples:\n\n**Monte Carlo (MC)**: roll out an entire episode from `s`. Compute the actual return `G_t = r_t + γ r_{t+1} + ... + γ^T r_T`. Update:\n\n`V(s) ← V(s) + α · [G_t - V(s)]`\n\nMC is unbiased: `E[G_t | s_t = s] = V^π(s)` exactly. But:\n- High variance (the full return depends on every random draw in the episode).\n- Requires episodes to terminate.\n- Slow updates: only one update per episode for each visited state.\n\n**Temporal difference (TD)**: bootstrap from your own current estimate `V(s')`:\n\n`V(s) ← V(s) + α · [r + γ V(s') - V(s)]`\n\nTD is biased (uses the current, possibly-wrong, `V(s')` as a substitute for the true `V^π(s')`). But:\n- Lower variance (only depends on one transition's randomness).\n- Updates after every step — works in non-terminating environments.\n- Generally converges faster in practice.\n\nThe **bias-variance trade-off** here is fundamental. TD is the modern default; MC is conceptually clean but practically less efficient.\n\n**TD(λ)** interpolates: combine many-step returns weighted by `λ^k`. λ=0 is pure TD; λ=1 is MC; intermediate is a useful middle ground (the foundation of GAE in policy-gradient methods)."
     },

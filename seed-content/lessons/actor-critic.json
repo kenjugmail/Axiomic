@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: A3C → A2C → IMPALA",
+      "body": "Mnih et al. 2016 introduced A3C — asynchronous advantage actor-critic. Multiple worker actors collect rollouts; gradients are sent to a central parameter server asynchronously.\n\nA2C (synchronous) turned out to be similarly effective with cleaner gradients: workers wait for a full batch, then a single synchronous update. Simpler infra, similar performance.\n\nIMPALA (Espeholt et al. 2018) replaced async gradients with a *distributed* actor-learner architecture: actors send trajectories (not gradients) to a central learner, which uses V-trace (an off-policy correction) to handle the lag between actor and learner policies.\n\nA2C is the cleanest version for understanding; IMPALA + variants dominate large-scale modern training. PPO is the policy-gradient algorithm of choice when stability + sample efficiency matter; IMPALA when throughput dominates."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ac_baseline",
+        "kind": "guided_derivation",
+        "question": "Derive that subtracting a state-dependent baseline doesn't bias the gradient",
+        "goal": "Show $\\mathbb{E}_a[\\nabla \\log \\pi(a|s) \\cdot b(s)] = 0$ for any baseline $b(s)$.",
+        "steps": [
+          {
+            "prompt": "$\\mathbb{E}_a[\\nabla \\log \\pi(a|s) \\cdot b(s)] = b(s) \\cdot \\mathbb{E}_a[\\nabla \\log \\pi(a|s)]$. (Pull constant $b(s)$ out.) Now what is $\\mathbb{E}_a[\\nabla \\log \\pi(a|s)]$?",
+            "motivation": "Log-derivative trick in reverse.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$\\sum_a \\pi(a|s) \\cdot \\nabla \\log \\pi(a|s) = \\sum_a \\nabla \\pi(a|s) = \\nabla \\sum_a \\pi(a|s) = \\nabla 1 = 0$.",
+                "$\\nabla \\pi(a^*|s)$ — non-zero.",
+                "$1$.",
+                "$\\log \\pi$."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "$\\pi \\nabla \\log \\pi = \\nabla \\pi$. Sum over $a$: $\\sum \\nabla \\pi(a|s) = \\nabla(\\sum \\pi(a|s)) = \\nabla 1 = 0$."
+            ],
+            "reveal": "$\\sum_a \\pi(a|s) \\nabla \\log \\pi(a|s) = \\nabla \\sum_a \\pi(a|s) = \\nabla 1 = 0$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\mathbb{E}_a[\\nabla \\log \\pi(a|s) \\cdot b(s)] = 0}$$\n\nSubtracting a state-dependent baseline doesn't bias the gradient. So $\\nabla J = \\mathbb{E}[\\nabla \\log \\pi \\cdot (G - b(s))]$ is also unbiased — and choosing $b(s) = V(s)$ minimizes variance. This justifies the advantage actor-critic objective: $A(s,a) = Q(s,a) - V(s)$ is the variance-minimizing baseline."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The actor-critic update",
       "body": "Per step (or per mini-batch of trajectories):\n\n**1. Collect data.** Run the actor for `N` steps. Observe transitions `(s_t, a_t, r_t, s_{t+1})`.\n\n**2. Compute advantages.** Use GAE with the critic's value estimates:\n\n```\nδ_t = r_t + γ · V_φ(s_{t+1}) - V_φ(s_t)\nA_t = Σ_l (γλ)^l · δ_{t+l}\n```\n\n**3. Update the actor (policy gradient with advantage)**:\n\n```\nL_actor = -E_t[log π_θ(a_t | s_t) · A_t]\n```\n\nMinimize this (negative because we want gradient ascent on `J`).\n\n**4. Update the critic (regression toward the bootstrapped target)**:\n\n```\nL_critic = E_t[(V_φ(s_t) - target_t)²]\nwhere target_t = A_t + V_φ(s_t)  # or any return-style target\n```\n\nA standard implementation uses a single network with two heads — one outputs `π_θ(a|s)`, the other outputs `V_φ(s)` — sharing most of the body. This is parameter-efficient and lets the shared layers learn representations useful for both objectives.\n\nIn pseudocode:\n\n```python\ntotal_loss = actor_loss + value_coef * critic_loss - entropy_coef * entropy\ntotal_loss.backward()\noptimizer.step()\n```\n\nThe `entropy_coef` term encourages exploration by penalizing policies that get too peaked. `value_coef` (usually 0.5) balances the two losses; PPO defaults to 0.5."
     },

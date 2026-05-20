@@ -7,6 +7,54 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: A/B testing the Bayesian way",
+      "body": "Two variants of a button. Variant A: 50 clicks / 1000 impressions. Variant B: 60 clicks / 1000.\n\n**Frequentist**: compute $p$-value from a two-proportion z-test. Get $p \\approx 0.27$ — not significant at 0.05.\n\n**Bayesian**: with Beta(1,1) priors, posteriors are Beta(51, 951) for A and Beta(61, 941) for B. Sample from both and compute $P(\\theta_B > \\theta_A) \\approx 84\\%$. Posterior expected lift: $\\approx 1\\%$.\n\nThe Bayesian framing answers 'how likely is B better' directly. The frequentist framing answers 'how unlikely is this difference under the null'. Both have their place; modern A/B platforms increasingly report both."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bayes_betabin",
+        "kind": "guided_derivation",
+        "question": "Derive Beta-Binomial conjugacy",
+        "goal": "Prior $p \\sim \\text{Beta}(\\alpha, \\beta)$, observe $k$ successes in $n$ trials. Derive posterior.",
+        "steps": [
+          {
+            "prompt": "Beta prior: $p(p) \\propto p^{\\alpha-1}(1-p)^{\\beta-1}$. Binomial likelihood: $p(k|p) \\propto p^k(1-p)^{n-k}$. Multiply to get $p(p|k) \\propto$ what?",
+            "motivation": "Bayes + multiply by likelihood.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "p^(alpha+k-1) (1-p)^(beta+n-k-1)",
+                "p^{α+k-1}(1-p)^{β+n-k-1}"
+              ]
+            },
+            "hints": [
+              "Combine exponents: $p^{\\alpha-1} \\cdot p^k = p^{\\alpha+k-1}$; similarly for $(1-p)$."
+            ],
+            "reveal": "$p(p|k) \\propto p^{\\alpha+k-1}(1-p)^{\\beta+n-k-1}$."
+          },
+          {
+            "prompt": "Recognize this as Beta with which parameters?",
+            "motivation": "Match the exponents to the Beta kernel.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Beta(alpha+k, beta+n-k)",
+                "Beta(α+k, β+n-k)"
+              ]
+            },
+            "hints": [
+              "Beta$(\\alpha', \\beta')$ has kernel $p^{\\alpha'-1}(1-p)^{\\beta'-1}$.",
+              "Match exponents."
+            ],
+            "reveal": "$\\text{Beta}(\\alpha+k, \\beta+n-k)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{p \\,|\\, k \\sim \\text{Beta}(\\alpha + k, \\beta + n - k)}$$\n\nThe Beta family is closed under Bernoulli observations — posterior stays Beta. This is *conjugacy*: prior + likelihood from conjugate families produces a posterior in the same family as the prior. Closed-form Bayesian updating with no MCMC needed. Other conjugate pairs: Gaussian-Gaussian, Gamma-Poisson, Dirichlet-Multinomial."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Priors, likelihoods, posteriors",
       "body": "**Prior `p(θ)`**: your belief about θ *before* seeing data. Encodes domain knowledge.\n\n**Likelihood `p(data | θ)`**: how data is generated given θ. The same likelihood frequentists use for MLE.\n\n**Posterior `p(θ | data)`**: belief after data, via Bayes' rule.\n\n**Conjugate priors**: when prior and likelihood combine to give a posterior in the same family. Simple closed-form math. Examples:\n- Beta prior + Bernoulli likelihood → Beta posterior. (For estimating a probability.)\n- Gaussian prior + Gaussian likelihood → Gaussian posterior. (For estimating a mean with known variance.)\n- Gamma prior + Poisson likelihood → Gamma posterior. (For estimating a rate.)\n\nNon-conjugate cases: most modern Bayesian inference. Need numerical methods (MCMC, variational inference).\n\n**Improper priors**: priors that don't integrate to 1 (e.g., uniform over the real line). Often used for 'objective' Bayesian inference. The posterior is still proper if the likelihood is well-behaved.\n\n**Subjective vs objective priors**: subjective priors encode actual prior beliefs. Objective priors (Jeffreys, reference) try to be 'minimally informative'. For most ML applications, weakly-informative priors (broad enough to not bias the posterior much; tight enough to regularize small data) are the right default."
     },

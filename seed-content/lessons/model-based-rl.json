@@ -7,6 +7,53 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Dreamer's secret",
+      "body": "Hafner et al.'s Dreamer-V3 (2023): a model-based RL agent that learns a world model in latent space, trains a policy purely in imagination, and achieves SOTA on many Atari + DM-Control + Crafter tasks.\n\nKey design: the policy is trained on *short rollouts* (15 imagination steps) from a starting state, with a *learned value function* providing the tail value. So compounding error is bounded — the world model is only used for $H = 15$ steps, after which the value net takes over.\n\nThis pattern (short imagination + value bootstrap) is the modern model-based RL recipe. It bounds compounding error while still benefiting from imagination's sample efficiency. Variants: MuZero (implicit world model, search-based planning), TD-MPC (model-predictive control with a transformer)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mbrl_compound",
+        "kind": "guided_derivation",
+        "question": "Derive a bound on compounding model error",
+        "goal": "If single-step model error has variance $\\sigma^2$, derive how variance grows with horizon $H$.",
+        "steps": [
+          {
+            "prompt": "Single-step error: $\\epsilon_1 \\sim \\mathcal{N}(0, \\sigma^2)$. At step 2, the input is the model's predicted $\\hat s_1$, off by $\\epsilon_1$. The model adds new error $\\epsilon_2 \\sim \\mathcal{N}(0, \\sigma^2)$ on top. Assuming linear-ish dynamics with Lipschitz constant $L$ (gradient bound), what's the variance at step 2?",
+            "motivation": "Errors propagate + accumulate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "L^2 sigma^2 + sigma^2",
+                "σ²(1 + L²)"
+              ]
+            },
+            "hints": [
+              "Variance at step 2 = $L^2 \\cdot \\text{Var}(\\epsilon_1) + \\text{Var}(\\epsilon_2)$."
+            ],
+            "reveal": "$\\text{Var}_2 = L^2 \\sigma^2 + \\sigma^2 = \\sigma^2(1 + L^2)$."
+          },
+          {
+            "prompt": "Continuing the recurrence: $\\text{Var}_H = \\sigma^2 \\sum_{k=0}^{H-1} L^{2k}$. For Lipschitz $L > 1$, this grows geometrically. For Lipschitz $L < 1$, it converges to a bounded value. What's the bound on variance for $L < 1$, $H \\to \\infty$?",
+            "motivation": "Geometric series.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "sigma^2 / (1 - L^2)",
+                "σ²/(1 - L²)"
+              ]
+            },
+            "hints": [
+              "$\\sum_{k=0}^\\infty L^{2k} = 1/(1-L^2)$ for $L < 1$."
+            ],
+            "reveal": "For $L < 1$: $\\text{Var}_\\infty = \\sigma^2/(1 - L^2)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Var}_H = \\sigma^2 \\sum_{k=0}^{H-1} L^{2k}}$$\n\nFor stable dynamics ($L < 1$), variance is bounded. For unstable ($L > 1$), variance explodes geometrically — exactly why long-horizon model-based RL goes off the rails on chaotic systems. Dreamer-V3's trick: cap $H$ at 15 + use a value function for the tail."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The MBRL recipe",
       "body": "Most model-based methods follow a similar template:\n\n```\nrepeat:\n    1. Collect data by running current policy in the real environment.\n    2. Update model: train f(s, a) → s' (and r̂(s, a) → r) on collected transitions.\n    3. Generate synthetic data: roll out f for K steps starting from observed states.\n    4. Update policy/value using BOTH real and synthetic data.\n```\n\nVariants differ in step 3 (how to use the model) and step 4 (which RL algorithm consumes the synthetic data).\n\n**Dyna-style** (Sutton 1991): use the model to generate extra `(s, a, r, s')` transitions; train a model-free Q-learner on the augmented buffer. Simple; effective on tabular problems.\n\n**Model-Predictive Control (MPC)**: at each step, sample many action sequences via the model, evaluate their predicted return, execute the first action of the best sequence. Re-plan every step. Standard for robotics.\n\n**End-to-end planning networks**: combine model + policy + value into one differentiable graph (Dreamer, MuZero). The model is used to compute gradient through future steps.\n\nThe state of the art (Dreamer V3, MuZero) achieves competitive performance on Atari with 5-10× fewer environment samples than PPO/DQN. The cost: more sophisticated machinery, more hyperparameters, more failure modes when the model is wrong."
     },

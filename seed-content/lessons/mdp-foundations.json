@@ -7,6 +7,53 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: discounted vs undiscounted return",
+      "body": "Consider a robot that gets reward $+1$ every step, forever. Sum of undiscounted returns: $\\infty$. With discount $\\gamma = 0.99$: $G = \\sum_{t=0}^\\infty 0.99^t = 1/(1-0.99) = 100$. The effective planning horizon is $\\sim 1/(1-\\gamma) = 100$ steps — past that, future rewards contribute negligibly. Tuning $\\gamma$ tunes how far the agent looks: $\\gamma = 0.99$ → 100-step horizon, $\\gamma = 0.999$ → 1000-step horizon. Most Atari RL uses $\\gamma \\in [0.97, 0.99]$; longer-horizon tasks (RTS, robot navigation) push toward $0.999$."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mdp_return",
+        "kind": "guided_derivation",
+        "question": "Derive the geometric-series formula for discounted return",
+        "goal": "Show that for constant reward $r$ at every step, $G = r/(1-\\gamma)$.",
+        "steps": [
+          {
+            "prompt": "Write $G = \\sum_{t=0}^\\infty \\gamma^t r$. Factor out $r$.",
+            "motivation": "Common factor.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "r * sum gamma^t",
+                "r Σ γ^t"
+              ]
+            },
+            "hints": [
+              "$r$ doesn't depend on $t$."
+            ],
+            "reveal": "$G = r \\sum_{t=0}^\\infty \\gamma^t$."
+          },
+          {
+            "prompt": "Use the geometric-series identity $\\sum_{t=0}^\\infty \\gamma^t = ?$ for $|\\gamma| < 1$.",
+            "motivation": "Standard closed form.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1/(1-gamma)",
+                "1/(1-γ)"
+              ]
+            },
+            "hints": [
+              "$\\sum \\gamma^t = 1 + \\gamma + \\gamma^2 + \\cdots = 1/(1-\\gamma)$."
+            ],
+            "reveal": "$\\sum_{t=0}^\\infty \\gamma^t = 1/(1-\\gamma)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{G = r/(1-\\gamma)}$$\n\nThe 'effective horizon' is approximately $1/(1-\\gamma)$ steps. $\\gamma = 0.99 \\Rightarrow $ ~100 steps. $\\gamma = 0$: only the immediate reward matters. $\\gamma \\to 1$: arbitrarily long horizon — but the math breaks down at $\\gamma = 1$ for non-episodic tasks."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The Markov property",
       "body": "The 'Markov' in MDP means: the next state depends only on the current state and action, not on the full history.\n\nFormally: `P(s_{t+1} | s_t, a_t, s_{t-1}, a_{t-1}, ...) = P(s_{t+1} | s_t, a_t)`.\n\nThis is a strong assumption. It's also a *modeling choice*: if your raw observations don't satisfy the Markov property, you can often **enrich the state** until they do.\n\nExamples:\n\n- A robot's instantaneous joint angles aren't Markov (you need velocity to predict the next state). Solution: include velocity in the state.\n- A poker hand's current cards aren't Markov (you need the betting history). Solution: include the action history.\n- A natural-language conversation's most recent message isn't Markov (the assistant needs context). Solution: include the conversation transcript in the state.\n\nWhen you can't enrich enough, you get a **POMDP** (Partially Observable MDP) — a separate, harder framework where the agent observes only a noisy projection of the true state. Most modern RL pretends the problem is fully Markov by stuffing enough history into the observation; sometimes it works, sometimes you need POMDP-aware methods."
     },

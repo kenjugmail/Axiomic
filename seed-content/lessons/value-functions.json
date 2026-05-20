@@ -7,6 +7,54 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: gridworld value iteration",
+      "body": "A 4×4 gridworld with one goal cell (reward $+10$ on entry) and uniform $-1$ step cost. Run value iteration to convergence.\n\nResult: cells far from goal have $V \\approx -d$ (number of steps to goal) — the negative path cost. Adjacent cells $V \\approx +9$ ($+10$ on entry minus the step cost). The greedy policy reads $V$ + transitions to recover the shortest path.\n\nThis tiny example contains the entire structure of value-based RL: gradients of $V$ point toward the goal; the policy follows them. Scale up the grid + add stochastic transitions + use a neural net for $V$ and you have DQN."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_vf_bellman",
+        "kind": "guided_derivation",
+        "question": "Derive the Bellman equation for $V^\\pi$",
+        "goal": "Show $V^\\pi(s) = \\mathbb{E}_{a \\sim \\pi, s' \\sim P}[R(s,a,s') + \\gamma V^\\pi(s')]$.",
+        "steps": [
+          {
+            "prompt": "$V^\\pi(s)$ is the expected return starting at state $s$. Break the return into the first reward + the rest.",
+            "motivation": "Split $G_t = r_t + \\gamma r_{t+1} + \\cdots$.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "E[r_t + gamma G_{t+1}]",
+                "E[r_t + γ G_{t+1} | s_t = s]"
+              ]
+            },
+            "hints": [
+              "$G_t = r_t + \\gamma G_{t+1}$ by definition."
+            ],
+            "reveal": "$V^\\pi(s) = \\mathbb{E}[r_t + \\gamma G_{t+1} \\mid s_t = s]$."
+          },
+          {
+            "prompt": "Identify $\\mathbb{E}[G_{t+1} \\mid s_{t+1}] = V^\\pi(s_{t+1})$. Substitute.",
+            "motivation": "Definition of value function.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "E[r_t + gamma V^pi(s_{t+1})]",
+                "E[r + γ V^π(s')]"
+              ]
+            },
+            "hints": [
+              "By definition $V^\\pi(s') = \\mathbb{E}[G_{t+1} \\mid s_{t+1} = s']$.",
+              "Apply law of iterated expectation."
+            ],
+            "reveal": "$V^\\pi(s) = \\mathbb{E}_{a, s'}[r + \\gamma V^\\pi(s')]$."
+          }
+        ],
+        "finalResult": "$$\\boxed{V^\\pi(s) = \\mathbb{E}_{a \\sim \\pi, s' \\sim P}[R(s,a,s') + \\gamma V^\\pi(s')]}$$\n\nRecursive consistency: $V$ at the current state = expected immediate reward + discounted $V$ at the next state. This recursion is the basis of value iteration, policy evaluation, and TD learning."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The Bellman equation",
       "body": "Value functions satisfy a **recursive consistency**: the value of a state equals the immediate reward plus the discounted value of where you end up next.\n\nFor a fixed policy `π`:\n\n$$V^\\pi(s) = \\sum_a \\pi(a|s) \\sum_{s'} P(s'|s,a) \\left[R(s,a,s') + \\gamma V^\\pi(s')\\right]$$\n\nIn words: average over the actions the policy would take, average over the resulting next states, and the value of `s` is the immediate reward plus `γ` times the value of `s'`.\n\nFor `Q^π`:\n\n$$Q^\\pi(s,a) = \\sum_{s'} P(s'|s,a) \\left[R(s,a,s') + \\gamma \\sum_{a'} \\pi(a'|s') Q^\\pi(s',a')\\right]$$\n\nThe **Bellman optimality equation** for `V*`:\n\n$$V^*(s) = \\max_a \\sum_{s'} P(s'|s,a) \\left[R(s,a,s') + \\gamma V^*(s')\\right]$$\n\n(Same as `V^π` but with `max_a` instead of expected over `π`.)\n\n**Why these matter**: every value-based RL algorithm — policy iteration, value iteration, Q-learning, DQN — is solving (or approximating) one of these Bellman equations. The Bellman equation is the recursive structure that makes RL tractable."
     },

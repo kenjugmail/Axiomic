@@ -7,6 +7,55 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: sequential testing in practice",
+      "body": "Optimizely and Statsig built their platforms around sequential testing because traditional fixed-n tests were getting silently misused. Customer behavior:\n\n1. Launch test, eyeball dashboard.\n2. If $p < 0.05$, declare winner (early stop).\n3. If $p > 0.05$, 'keep collecting data'.\n4. Decide based on whichever side stays significant.\n\nThis is peeking + selective stopping. The true Type I error rate explodes. The fix is sequential testing — confidence sequences or always-valid p-values that hold at every moment in time, including under arbitrary stopping rules.\n\nModern A/B platforms make sequential the default; the user can peek freely without inflating false positives. Behind the scenes the math is more sophisticated (mSPRT, exponential supermartingales) but the user experience is 'check anytime, decide on real evidence'."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ab_peek",
+        "kind": "guided_derivation",
+        "question": "Derive Type I error inflation from peeking",
+        "goal": "Show that $k$ independent peeks at $\\alpha$-level threshold gives $P(\\text{stop early under null}) \\leq 1 - (1-\\alpha)^k \\approx k\\alpha$ for small $\\alpha$.",
+        "steps": [
+          {
+            "prompt": "Each peek: $P(\\text{spurious significance at this peek under } H_0) = \\alpha$. Assuming peeks are independent (a simplification), what's the probability that ALL $k$ peeks fail to declare significance?",
+            "motivation": "Independent failures multiply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(1-alpha)^k",
+                "(1-α)^k"
+              ]
+            },
+            "hints": [
+              "Each peek independently 'misses' significance with probability $1 - \\alpha$.",
+              "All $k$ independent: $(1-\\alpha)^k$."
+            ],
+            "reveal": "$P(\\text{all $k$ peeks fail to declare}) = (1-\\alpha)^k$."
+          },
+          {
+            "prompt": "Probability of declaring significance at SOME peek = $1 - (1 - \\alpha)^k$. For small $\\alpha$, expand by Taylor.",
+            "motivation": "Linearize: $(1 - \\alpha)^k \\approx 1 - k\\alpha$.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "k * alpha",
+                "kα"
+              ]
+            },
+            "hints": [
+              "$(1-x)^k \\approx 1 - kx$ for small $x$.",
+              "Subtract from 1."
+            ],
+            "reveal": "$1 - (1-\\alpha)^k \\approx k\\alpha$."
+          }
+        ],
+        "finalResult": "$$\\boxed{P(\\text{at least one spurious significance over $k$ peeks}) \\approx k\\alpha}$$\n\n10 peeks at $\\alpha = 0.05$ inflates false-positive rate to ~40%. 50 peeks → effectively certain. The peek-inflation problem is why naive A/B testing with daily checks is statistically bankrupt without correction. Mitigations: Bonferroni over peeks (conservative); always-valid sequential testing (modern best practice); pre-registered group-sequential designs."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The naive A/B test",
       "body": "Standard recipe:\n\n1. **Pre-register** hypothesis + sample size + analysis plan.\n2. **Randomize** users to treatment vs control via stable hash.\n3. **Run** for the planned duration.\n4. **Analyze**: compare metric means via t-test or proportion test.\n5. **Decide**: ship if significant + practically meaningful; don't ship otherwise.\n\nFor a CTR metric with baseline 5% and minimum detectable effect of 1% absolute (i.e., detect 5% → 6%):\n- α = 0.05, power = 0.80.\n- n per group ≈ 11,000 users (using standard formulas).\n- Run until both groups have 11K assigned + observed for the conversion window.\n\nThis is fine for small organizations + simple metrics. Production-grade A/B at scale has additional complications.\n\n**Why naive isn't enough**:\n- Data arrives sequentially; teams want to peek.\n- Many metrics matter (CTR, retention, revenue, error rate); naive test on the primary inflates errors on secondaries.\n- Effects often heterogeneous (works for new users, not retained; works in some countries, not others).\n- Long-term effects don't show up in week-1 windows."
     },
