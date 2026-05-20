@@ -98,6 +98,11 @@ const LazyReactorComparator = lazy(() =>
     (m) => ({ default: m.ReactorComparator }),
   ),
 );
+const LazyPointKinetics = lazy(() =>
+  import("../../../../../packages/viz/src/components/PointKinetics").then(
+    (m) => ({ default: m.PointKinetics }),
+  ),
+);
 const LazyDoublePendulum = lazy(() =>
   import("../../../../../packages/viz/src/components/DoublePendulum").then(
     (m) => ({ default: m.DoublePendulum }),
@@ -208,6 +213,8 @@ function VizByName({
       return <LazySIRModel {...(props as object)} />;
     case "reactor-comparator":
       return <LazyReactorComparator {...(props as object)} />;
+    case "point-kinetics":
+      return <LazyPointKinetics {...(props as object)} />;
     default:
       return null;
   }

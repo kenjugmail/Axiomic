@@ -1,0 +1,173 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Write the six-factor formula + interpret each factor.",
+      "Apply the diffusion equation to simple geometries.",
+      "Distinguish four critical-state regimes."
+    ],
+    "prereqs": [
+      "fission-fundamentals"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "k-effective + the six-factor formula",
+      "body": "**k-effective** (k_eff) = ratio of neutrons in one generation to the previous. Three regimes:\n• k < 1: subcritical (chain dies out)\n• k = 1: critical (steady state)\n• k > 1: supercritical (chain grows)\n\nFor an infinite reactor (no leakage): **k_∞ = η · f · p · ε** (four-factor formula).\nWith leakage in finite reactor: **k_eff = k_∞ · P_NL** where P_NL is non-leakage probability.\n\nSix-factor: k_eff = η · f · p · ε · P_NL,fast · P_NL,thermal.\n\nMeanings:\n• **η** (reproduction): neutrons emitted per thermal neutron absorbed in fuel. η = ν · σ_f / σ_a. For U-235: ~2.07. For Pu-239: ~2.11.\n• **f** (thermal utilization): fraction of thermal neutron absorption that occurs in fuel (vs moderator, structure, coolant). Typical PWR: ~0.7.\n• **p** (resonance escape): probability that a fast neutron slows down through U-238 resonances without being captured. ~0.75-0.80.\n• **ε** (fast fission factor): bonus fission from fast neutrons in U-238 before they thermalize. ~1.03.\n• **P_NL**: depends on reactor size + reflector. Large core: P_NL ≈ 0.95.\n\nFor a typical PWR: 2.07 × 0.7 × 0.78 × 1.03 × 0.95 ≈ 1.10 — needs poison (boron, control rods) to bring k_eff to 1.0. As fuel depletes + fission products build up, k_∞ drops; operators withdraw poison to maintain criticality."
+    },
+    {
+      "kind": "text",
+      "title": "Neutron diffusion equation",
+      "body": "For a homogeneous medium, neutron flux φ (n cm⁻² s⁻¹) satisfies the **diffusion equation**:\n\n  D ∇²φ − Σ_a φ + S = 0  (steady state)\n\nwhere D = diffusion coefficient (~1 cm for water), Σ_a = macroscopic absorption cross-section, S = source.\n\nFor a critical reactor S = ν Σ_f φ (each fission produces ν new neutrons). Substituting:\n  D ∇²φ + (ν Σ_f − Σ_a) φ = 0\n  ∇²φ + B² φ = 0\n\nwhere **B² = (ν Σ_f − Σ_a)/D** is the **material buckling**.\n\nFor a bare cylindrical core of radius R + height H:\n  ∇²φ = (1/r)d(r dφ/dr)/dr + d²φ/dz²\n\nSeparation of variables gives Bessel + cosine solutions:\n  φ(r,z) = φ_0 J_0(2.405 r/R̃) cos(πz/H̃)\n\nwith **geometric buckling** B_g² = (2.405/R̃)² + (π/H̃)². For criticality: material buckling = geometric buckling (B_m² = B_g²).\n\n**Critical size**: solve for the smallest dimensions that satisfy the criticality condition. Reflected reactors have effective dimensions R̃ = R + 2δ (extrapolation distance) — reflector pushes critical radius smaller.\n\nModern reactor design uses **multi-group diffusion** (separating energy groups) + **transport codes** (MCNP, OpenMC for Monte Carlo; ATTILA, PARTISN for deterministic). 3D-coupled neutronics + thermal-hydraulics (CASMO, SIMULATE, MPACT, BISON) for full core analysis."
+    },
+    {
+      "kind": "text",
+      "title": "Reactivity, control, + feedback",
+      "body": "**Reactivity**: ρ = (k_eff − 1) / k_eff. Units:\n• **pcm**: per-cent-mille = 10⁻⁵ (most common)\n• **$**: ρ/β where β is delayed neutron fraction\n• Negative ρ = subcritical; positive = supercritical.\n\n**Reactivity sources**:\n• **Control rods**: insert into core; absorb neutrons; reduce f → reduce k. Worth: ~5-20 $ for a bank.\n• **Soluble boron** (PWRs): boric acid in coolant; absorbs neutrons. Gradually reduced as fuel depletes.\n• **Burnable poisons** (Gd in fuel, Er): high initial absorption that depletes with fuel → balances reactivity.\n• **Fuel composition**: as U-235 + Pu-239 deplete + fission products accumulate, k_∞ drops.\n• **Temperature**: Doppler broadening (fuel T ↑ → U-238 resonance absorption ↑ → k ↓; **negative coefficient**, ~−3 pcm/°C). Moderator T (water): density ↓ → moderation ↓ → k ↓ (mostly negative in PWRs; positive in some void-coefficient designs like the RBMK Chernobyl reactor).\n• **Xenon poisoning**: Xe-135 has σ_a = 2.6×10⁶ barns — massive thermal absorber. Builds up after shutdown from I-135 → Xe-135 chain (peak ~12 hr post-shutdown). Can prevent restart for 24-48 hr — 'xenon precluded' state.\n\n**Reactor period** T = ln(2) × t_double = (β − ρ)/(λ ρ) (for ρ > 0, ρ < β). Long period = safe. Short period = approaching prompt critical.\n\n**Prompt critical** = when ρ ≥ β (= 1$): delayed neutrons no longer control kinetics; chain reaction races on Λ ~ 10⁻⁴ s timescale. Power doubles in milliseconds. Chernobyl 1986: reactivity excursion crossed 1$ → power surge → steam explosion. Modern designs make this impossible by inherent reactivity limits."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_neutron_1",
+        "kind": "guided_derivation",
+        "question": "Compute k_∞ for an LWR fuel + estimate control-rod worth",
+        "goal": "PWR with η = 2.07, f = 0.71, p = 0.79, ε = 1.04. Compute k_∞, then calculate how much reduction in f (e.g., by control rod insertion) brings k_∞ down to 1.0.",
+        "steps": [
+          {
+            "prompt": "Compute k_∞.",
+            "motivation": "Multiply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1.21",
+                "1.207",
+                "1.20"
+              ]
+            },
+            "hints": [
+              "2.07 × 0.71 × 0.79 × 1.04."
+            ],
+            "reveal": "k_∞ = 2.07 × 0.71 × 0.79 × 1.04 = 1.207."
+          },
+          {
+            "prompt": "Excess reactivity ρ = (k_∞ − 1) / k_∞?",
+            "motivation": "Reactivity definition.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~17.2%",
+                "0.172",
+                "17200 pcm"
+              ]
+            },
+            "hints": [
+              "(1.207-1)/1.207."
+            ],
+            "reveal": "ρ = 0.207/1.207 ≈ 17.2% ≈ 17,200 pcm. Must be controlled by poison + rods + leakage."
+          },
+          {
+            "prompt": "If we reduce f from 0.71 to 0.59 (control rod insertion), what's k_∞?",
+            "motivation": "Same product, different f.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1.0",
+                "k_∞ ≈ 1.0"
+              ]
+            },
+            "hints": [
+              "k_∞ = 2.07 × 0.59 × 0.79 × 1.04 = 1.003."
+            ],
+            "reveal": "k_∞ = 2.07 × 0.59 × 0.79 × 1.04 ≈ 1.00. So reducing f by ~17% brings reactor critical."
+          },
+          {
+            "prompt": "Δf = 0.12. What's the reactivity worth of this rod insertion?",
+            "motivation": "Compute as a fraction.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~17000 pcm",
+                "17%",
+                "$26"
+              ]
+            },
+            "hints": [
+              "Worth ~ Δk/k ≈ Δf/f ≈ 0.12/0.71."
+            ],
+            "reveal": "ρ_worth ≈ 17% ≈ 17,000 pcm ≈ 26$. A large rod bank. Real PWRs have multiple banks worth different amounts; total worth designed for shutdown margin + safety + cold-shutdown capability."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_neutron_1",
+        "kind": "multiple_choice",
+        "question": "Why is xenon-135 a special concern for reactor operators despite being just one isotope?",
+        "options": [
+          "Xe-135 doesn't matter.",
+          "Xe-135 has σ_a = 2.6×10⁶ barns — the largest thermal-neutron cross-section of any nuclide. Even small amounts (parts per trillion of fuel) absorb significant neutrons. Builds up from I-135 decay after shutdown; peaks ~12 hr later; can preclude restart for 24-48 hr. Equilibrium during operation costs ~3% reactivity. Mismanagement contributed to Chernobyl 1986 — operators in xenon-dip tried to maintain power with excessive control rod withdrawal, leading to positive-void-coefficient runaway.",
+          "It is radioactive.",
+          "Xe-135 is fissile."
+        ],
+        "correctIndex": 1,
+        "explanation": "Xe-135 cross-section (2.6×10⁶ barns) is ~5000× larger than U-235 fission. Even tiny amounts dominate neutron absorption.\n\n**Production chain**: fission → Te-135 → I-135 (t₁/₂ = 6.7 hr) → Xe-135 (t₁/₂ = 9.2 hr).\n\n**During operation**: Xe-135 produced by fission + I-135 decay; destroyed by neutron absorption + decay. Steady-state equilibrium loses ~3% reactivity.\n\n**After shutdown**: production from I-135 decay continues; destruction by absorption stops. Xe-135 inventory peaks 10-12 hr post-shutdown — 'xenon peak' — adding ~10-30% negative reactivity. Restart impossible until xenon decays (24-48 hr) or via reactor reactivity reserve.\n\n**Xenon oscillations**: in large cores, xenon distribution can become unstable, with oscillating high/low concentrations across the core. Modern operations + control monitor this.\n\n**Chernobyl 1986**: experiment paused mid-operation; xenon built up; operators withdrew control rods to compensate; reactor in marginally-stable + reactivity-vulnerable state. Coolant flow disturbance + positive void coefficient → power surge → prompt critical → steam explosion + graphite fire. Soviet RBMK design had unique vulnerabilities (positive void at low power, graphite tip on control rods causing initial reactivity insertion).\n\nXenon management is part of every operator's training — limit rates of power change, observe xenon peak, plan shutdowns + restarts around xenon dynamics."
+      },
+      "hints": [
+        "What's Xe-135's neutron cross-section?",
+        "What happens after shutdown?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Xe-135 σ_a = 2.6×10⁶ barns — largest of any nuclide. Production: I-135 decay (after fission). Destruction: neutron absorption + decay. Equilibrium during operation costs ~3% reactivity. Post-shutdown: production continues, destruction stops → peak 10-12 hr later, +10-30% negative reactivity. Can preclude restart 24-48 hr. Chernobyl 1986: xenon mismanagement + RBMK positive void → runaway."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_neutron_2",
+        "kind": "multiple_choice",
+        "question": "Why do LWRs use water as a moderator + light-water reactors dominate globally?",
+        "options": [
+          "Water is abundant.",
+          "Water moderates fast neutrons to thermal in ~25 collisions (vs ~2000 for U), enabling small core size; provides excellent heat transfer; readily available + cheap; well-characterized chemistry. Trade-off: water absorbs neutrons (Σ_a ~ 0.022 cm⁻¹), so LWRs need enriched fuel (3-5% U-235) vs natural-uranium reactors (CANDU heavy-water). LWRs dominate because of operating economics + military heritage (US Navy submarine fleet drove development).",
+          "All other materials are too expensive.",
+          "It's required by international treaty."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Moderator comparison**: H₂O, D₂O (heavy water), graphite, beryllium are the practical choices. Key metrics:\n\n• **Moderating ratio** ξ Σ_s / Σ_a — slowing-down power per absorption:\n  - H₂O: ~58 (good slowing, modest absorption)\n  - D₂O: ~9000 (excellent slowing, very low absorption)\n  - Graphite: ~190\n  - Beryllium: ~150\n\n• **Slowing-down length** (slows fast → thermal in <Δr²>^(1/2) cm):\n  - H₂O: ~6 cm\n  - D₂O: ~11 cm\n  - Graphite: ~19 cm\n\nWater absorbs more neutrons but slows much faster + is much denser. So LWRs are compact (~3 m core dia) but need enriched fuel. CANDU (heavy water) can use natural U but needs larger core (~7 m). RBMK + Magnox: graphite-moderated, large cores, natural U.\n\n**Economic + historical drivers**:\n1. Westinghouse + GE developed PWR + BWR for US Navy submarines (Rickover 1950s) — small, high-power-density, water-cooled.\n2. Civilian LWR designs (Shippingport 1957, Yankee Rowe 1961) followed.\n3. Enrichment infrastructure became cheap (gaseous diffusion, then centrifuge).\n4. Reliability + operational experience accumulated.\n5. By 1970s-80s, LWR dominated global commercial market.\n\n**~80% of current commercial reactors are LWRs (PWR + BWR)**. CANDU: ~10%. Graphite-moderated: ~5% (remaining UK Magnox + Russia RBMK). Fast reactors: a few demonstration units.\n\nLWR's economic + operational maturity is hard to dislodge. SMR designs (NuScale, BWRX-300) are largely LWR variants. Some Gen IV designs (Molten Salt, sodium-cooled, gas-cooled) target niches but won't displace LWRs at scale soon."
+      },
+      "hints": [
+        "What's special about water as moderator?",
+        "Trade-off vs heavy water?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Water moderates fast neutrons in ~25 collisions (vs ~2000 for U), provides excellent heat transfer, cheap, well-characterized. Trade-off: absorbs neutrons so needs 3-5% enriched fuel. Heavy water absorbs less so CANDU uses natural U (cheaper fuel) but larger core. LWR dominance: Navy heritage (Rickover), enrichment infrastructure scaled, operational experience. ~80% of commercial reactors LWR globally. SMRs largely LWR variants."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_neutron_1",
+        "kind": "math_expression",
+        "question": "A reactor has k_eff = 1.005. Reactivity in pcm?",
+        "acceptedAnswers": [
+          "497",
+          "498",
+          "~500 pcm",
+          "(1.005-1)/1.005"
+        ],
+        "hint": "ρ = (k-1)/k = 0.005/1.005 ≈ 4.975×10⁻³ ≈ 497 pcm."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_neutron_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why the 'four-factor formula' is both pedagogically useful + practically limited.",
+        "rubric": "Mentions: k_∞ = η·f·p·ε decomposes neutron balance into intuitive physical mechanisms. Each factor maps to a design choice: η to fuel; f to fuel-moderator ratio; p to fuel lump size + moderator spacing; ε to fast spectrum contribution. Useful for back-of-envelope design + operator intuition. Limits: assumes infinite homogeneous medium; ignores leakage (finite-size effect); spatial + energy variations of flux not captured; depletion + isotopic build-up not directly handled; non-uniform fuel loading + control patterns ignored. Real design uses multi-group diffusion + transport codes (MCNP, OpenMC, CASMO+SIMULATE, MPACT) that solve full Boltzmann transport. Four-factor remains a conceptual scaffold + sanity check on advanced calculations."
+      }
+    }
+  ]
+}

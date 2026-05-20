@@ -1,0 +1,178 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Solve point-kinetics for step reactivity inputs.",
+      "Explain delayed neutrons + their role in control.",
+      "Reason about prompt-critical hazards + design safeguards."
+    ],
+    "prereqs": [
+      "neutron-transport-and-criticality"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Point kinetics: how reactors respond to reactivity changes",
+      "body": "**Point kinetics equations** (1-group precursor model):\n\n  dn/dt = (ρ − β)/Λ · n + λ C\n  dC/dt = β/Λ · n − λ C\n\nwhere:\n• n = neutron density\n• C = precursor concentration\n• ρ = reactivity\n• β = delayed neutron fraction (U-235: 0.0065; Pu-239: 0.0021; mixed: ~0.005)\n• Λ = neutron generation time (~10⁻⁴ s for thermal LWR; 10⁻⁷ s for fast reactor)\n• λ = effective precursor decay constant (~0.08 1/s for 1-group average; in reality 6 groups span 0.01 to 3 1/s)\n\nFor ρ ≪ β (typical operating margin), the asymptotic period T:\n\n  T = (β − ρ)/(λ ρ)\n\n• ρ = 100 pcm (0.001 = 0.15$): T = (0.0065 − 0.001)/(0.08 × 0.001) ≈ 70 s. Power doubles in ~50 s.\n• ρ = 500 pcm (0.77$): T = 4 s.\n• ρ = 1$ (= β): T → 0. **Prompt critical**.\n\nThis is why operators talk about 'pulling rods slowly' — large positive reactivity insertions can rapidly destabilize control.",
+      "viz": "point-kinetics",
+      "vizProps": {
+        "rhoDollars": 0.3,
+        "duration": 60
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Delayed neutrons + the 1$ threshold",
+      "body": "Of ν ≈ 2.43 neutrons per U-235 fission, ~99.35% are **prompt** (emitted within ~10⁻¹⁴ s of fission). The remaining ~0.65% are **delayed** — emitted from precursor isotope (Br-87, I-137, etc.) after their β-decay (timescales 0.1 to 100 s).\n\nMathematically: total ν = ν_prompt + β ν_delayed. β ≡ delayed fraction (~0.0065 for U-235 thermal fission).\n\n**Why delayed neutrons are crucial for reactor control**:\n\n• Without delayed neutrons, the neutron lifetime would be ~Λ = 10⁻⁴ s. A small positive reactivity insertion (say 100 pcm) would double power in milliseconds — far too fast for any operator or control system to manage. Reactor would be uncontrollable.\n• With delayed neutrons, **effective lifetime** = Λ + β/λ ≈ 0.08 s. Same 100 pcm doubles in ~70 s — comfortable timescale.\n\nWhen ρ < β = 1$: **delayed neutrons rate-limit growth**. Sub-prompt-critical reactor; controllable.\nWhen ρ ≥ β = 1$: **prompt critical** — delayed neutrons irrelevant; chain reaction runs on prompt Λ. Power explosion in milliseconds. This is the **upper safety bound** for control.\n\nAll modern reactor designs ensure that no single failure can introduce more than ~0.7$ of positive reactivity. Multiple, redundant, diverse mechanisms prevent prompt critical excursion. Chernobyl is the only commercial example where this barrier failed — and it required combination of design flaws + operator error + experimental conditions."
+    },
+    {
+      "kind": "text",
+      "title": "Control architecture + safety systems",
+      "body": "**Reactivity control mechanisms** (in decreasing speed):\n\n1. **Inherent feedback** (~ms): Doppler broadening of U-238 resonances (fuel T ↑ → resonance absorption ↑ → k ↓). Negative coefficient: ~−3 pcm/°C. Self-acting on any temperature transient.\n2. **Moderator coefficient** (~10s ms - s): water density change (T ↑ → ρ_water ↓ → moderation ↓ → k ↓ in PWR, but +k in some void-positive designs like RBMK).\n3. **Control rods** (~s): mechanical insertion. Scram = full insertion in 1-4 s.\n4. **Soluble boron** (~min): PWR primary coolant boron concentration adjusted slowly. ~80 ppm/% reactivity.\n5. **Burnable poisons** (~months): Gd, Er fixed in fuel; deplete with fuel.\n6. **Operator action** (~min): power level setpoint changes.\n\n**Defense in depth** (IAEA, NRC standard):\n1. Robust design (Gen III+ inherent safety)\n2. Detection + alarm\n3. Control systems\n4. Automatic protection (RPS — Reactor Protection System)\n5. Emergency core cooling (ECCS)\n6. Containment\n7. Emergency response + evacuation\n\n**Safety-related systems** (1E classification): diverse + redundant. Typical PWR has 3-4 independent ECCS trains, 2 redundant power supplies + 1 diesel backup, multiple physical barriers (cladding, primary system, containment, secondary containment).\n\n**Post-Fukushima lessons** (FLEX in US, EU stress tests): added passive cooling capability for ≥72 hr without AC; portable equipment staged; multiple alternative water sources. Gen IV designs aim for indefinite passive safety.\n\n**Future**: ML-augmented operator decision support, anomaly detection from fleet operating data, digital twins for predictive maintenance. Conventional control remains the foundation; ML supplements rather than replaces."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_kinetics_1",
+        "kind": "guided_derivation",
+        "question": "Compute the reactor period for a 200 pcm step",
+        "goal": "After a 200 pcm reactivity insertion in a U-235-fueled LWR (β = 0.0065, λ = 0.08 1/s), compute the asymptotic reactor period + the time to double power.",
+        "steps": [
+          {
+            "prompt": "Reactivity in dollars?",
+            "motivation": "ρ/β.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.31",
+                "0.308$"
+              ]
+            },
+            "hints": [
+              "0.002 / 0.0065 = 0.308."
+            ],
+            "reveal": "ρ = 200 pcm = 0.002 = 0.31$. Comfortably below prompt critical."
+          },
+          {
+            "prompt": "Asymptotic period T?",
+            "motivation": "Apply T = (β-ρ)/(λρ).",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "28 s",
+                "~28 s",
+                "27.5 s"
+              ]
+            },
+            "hints": [
+              "(0.0065 - 0.002) / (0.08 × 0.002) = 0.0045 / 0.00016."
+            ],
+            "reveal": "T = (0.0045)/(0.00016) = 28 s."
+          },
+          {
+            "prompt": "Time to double power (t = T × ln 2)?",
+            "motivation": "Standard scaling.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~19 s",
+                "19.5 s",
+                "0.693 × 28"
+              ]
+            },
+            "hints": [
+              "0.693 × 28."
+            ],
+            "reveal": "t_double = 19.4 s. Operators have plenty of time to respond + reduce reactivity."
+          },
+          {
+            "prompt": "If reactivity were +700 pcm instead (1.08$ — just over prompt critical), what happens?",
+            "motivation": "Show qualitative shift.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "prompt critical, ms timescale",
+                "race",
+                "Λ timescale"
+              ]
+            },
+            "hints": [
+              "Reactor responds on Λ ≈ 10⁻⁴ s."
+            ],
+            "reveal": "Crossing 1$, response timescale collapses from seconds to milliseconds (Λ ≈ 10⁻⁴ s, doubling in ~10⁻⁴ × ln 2 ≈ 10⁻⁴ s if ρ ≫ β). Catastrophic if not immediately scrammed. This is why 1$ is the absolute upper bound for any single-mechanism reactivity insertion in modern design."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_kinetics_1",
+        "kind": "multiple_choice",
+        "question": "Why do delayed neutrons (only 0.65% of total) dominate reactor control timescales?",
+        "options": [
+          "They are emitted with more energy.",
+          "Delayed neutrons stretch the effective neutron lifetime from prompt Λ ~ 10⁻⁴ s to delayed-weighted ~0.08 s (a 1000× increase). Without them, any reactor would respond to reactivity changes in milliseconds — uncontrollable. With them, control timescales become seconds-minutes — humanly + mechanically manageable. The 1$ prompt-critical threshold (ρ = β) defines the boundary where this safety margin vanishes.",
+          "They have higher fission probability.",
+          "They have no role in reactor control."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Without delayed neutrons** (prompt-only chain):\n  dn/dt = (k-1)/Λ × n → doubling time τ_2 = Λ × ln 2 / (k-1).\n  For Λ = 10⁻⁴ s + k = 1.001: τ_2 = 7×10⁻² s = 70 ms.\n  For k = 1.01: τ_2 = 7 ms. Operator + mechanical reaction times (~1 s) too slow.\n\n**With delayed neutrons**:\n  Effective lifetime = β / λ ≈ 0.0065 / 0.08 ≈ 0.08 s = 80 ms.\n  Doubling time stretched ~1000× compared to prompt-only for the same ρ.\n  Comfortable control timescales.\n\n**1$ threshold**: when ρ = β, prompt neutrons alone are sufficient to sustain chain growth. Delayed neutrons stop mattering. Reactor escapes the slow timescale.\n\n**Beck operations** keep ρ ≪ β (typically ρ < 0.1β during transients). Any plausible reactivity insertion mechanism — control-rod ejection, steam-line break, refueling error — must be designed to stay below ~0.7$ even in worst-case combined with other failures.\n\n**Chernobyl**: combination of design (positive void coefficient at low power), graphite-tipped control rods that initially *increase* reactivity on insertion, and operator decisions (forbidden experiment at unstable operating point) caused +4-5$ excess. Once past 1$, power surge in ~50 ms blew the reactor apart.\n\nModern LWRs cannot have positive void coefficient + cannot have positive control-rod insertion + cannot have failure modes that insert more than ~0.5$ even combined. This is the lesson cemented after Chernobyl + made universal in modern design."
+      },
+      "hints": [
+        "What's the prompt-only neutron lifetime?",
+        "What stretch comes from delayed neutrons?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Without delayed neutrons: τ_2 = Λ ln 2 / (k-1) ~ ms-s for typical ρ. With delayed: effective lifetime β/λ ~80 ms → doubling timescale ~seconds. 1$ threshold = where delayed-neutron control fails. Chernobyl: +4-5$ excess crossed 1$ → 50 ms surge. Modern LWRs cannot have positive void, positive rod insertion, or combined failures exceeding ~0.5$."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_kinetics_2",
+        "kind": "multiple_choice",
+        "question": "What was the unique design flaw in the RBMK (Chernobyl) reactor's control rods that made them dangerous?",
+        "options": [
+          "They were made of dangerous materials.",
+          "RBMK control rods had a graphite 'displacer' on the tip. When fully withdrawn, water (a neutron absorber) filled the lower channel; when the rod was inserted, the graphite tip displaced water at the bottom of the channel FIRST, causing a temporary INCREASE in reactivity at the bottom before the absorbing material entered. In Chernobyl's already-marginally-stable condition, this initial positive reactivity kick crossed the prompt-critical threshold + caused the runaway. Modern designs strictly forbid any reactivity-increasing motion of safety rods.",
+          "The rods were too long.",
+          "RBMK rods worked perfectly."
+        ],
+        "correctIndex": 1,
+        "explanation": "**RBMK design**: Soviet graphite-moderated, water-cooled, channel-type reactor. ~1000 MW thermal output. 4 units at Chernobyl, 11 originally built (4 still operating in Russia, modified).\n\n**Control rod design flaw**: each rod had a long graphite 'displacer' tail (~4.5 m) attached below the boron-carbide absorber. Purpose: when rod fully withdrawn, the graphite displaced moderator water in the lower channel, reducing thermal-neutron capture there + increasing axial flux uniformity.\n\n**Insertion sequence**: As the rod started moving down, the graphite displacer entered the bottom of the channel first — *before* the boron absorber. Water in the channel below was pushed out + replaced by graphite (better moderator). Local reactivity at the bottom *increased* before the absorber arrived.\n\n**Chernobyl 1986 sequence**:\n1. Experiment to test turbine coastdown power during simulated loss of grid.\n2. Reactor stabilized at very low power (~200 MW thermal) — outside normal operating range; xenon poisoning high; control margin reduced (too few rods inserted).\n3. Coolant pumps reduced → coolant boiling increased → positive void coefficient increased reactivity.\n4. Operator pressed AZ-5 emergency scram button to halt the experiment.\n5. AZ-5 attempted to insert all control rods — graphite displacers entered channels first.\n6. Local reactivity spiked at bottom of core; combined with positive void + low operational margin → prompt-critical → power surge from 200 MW to ~30,000 MW thermal in <50 ms.\n7. Fuel disintegration → steam explosion → graphite fire → radioactive plume.\n\n**Lessons**:\n• Never have rod design that *increases* reactivity during any phase of insertion.\n• Forbid operations outside well-characterized + analyzed envelope.\n• Eliminate positive void coefficient.\n• Multiple operator over-rides forbidden.\n\nPost-Chernobyl: surviving RBMK units were retrofitted (more rods, control system changes, training overhauls). The IAEA + WANO formalized industry-wide safety culture. Reactor design standards (NRC + IAEA) explicitly prohibit RBMK-style flaws."
+      },
+      "hints": [
+        "What did the rod tip contain?",
+        "What does graphite do vs water?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "RBMK rods had graphite displacer below boron absorber. When inserting, graphite (better moderator) replaced water (absorber) at bottom of channel BEFORE absorber arrived → temporary +reactivity at bottom. Combined with positive void coefficient + low-power experiment + xenon poisoning + low rod margin → prompt critical surge. Lesson: rods must NEVER increase reactivity during insertion. Modern designs prohibit."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_kinetics_1",
+        "kind": "math_expression",
+        "question": "Reactor period T = 100 s. By how much (in % of n₀) has neutron density grown after 200 s?",
+        "acceptedAnswers": [
+          "~640%",
+          "640%",
+          "7.39",
+          "e^2 = 7.39"
+        ],
+        "hint": "n(t) = n₀ e^(t/T) = n₀ e^2 ≈ 7.39 n₀ → 639% increase."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_kinetics_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain to a non-technical reader why delayed neutrons — only 0.65% of fission output — are the difference between a controllable reactor + a bomb.",
+        "rubric": "Mentions: each fission emits prompt neutrons (~99%) instantly + delayed neutrons (~1%) emitted seconds-minutes later from radioactive fission products. Without delayed: reactor responds to reactivity changes in milliseconds (Λ ~ 10⁻⁴ s) — uncontrollable. With delayed: effective neutron lifetime stretched ~1000× to ~80 ms; reactor responds in seconds-minutes — controllable. Reactor operators stay safely below the 1$ threshold (ρ < β) where delayed-neutron control still works. Above 1$ ('prompt critical'), system races on prompt timescale — Chernobyl scenario. Modern reactor design ensures no single mechanism (rod ejection, void, etc.) can push reactivity past ~0.7$. Reactor weapons by contrast: highly enriched fuel + super-prompt-critical configuration + assembly time < Λ. Concludes: delayed neutrons are nature's gift to safe nuclear power; understanding + respecting the 1$ boundary is the deepest safety principle in reactor design."
+      }
+    }
+  ]
+}

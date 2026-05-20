@@ -1,0 +1,188 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Trace the open + closed fuel cycle.",
+      "Compare reprocessing strategies.",
+      "Reason about long-term waste disposal."
+    ],
+    "prereqs": [
+      "fission-fundamentals"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The nuclear fuel cycle: open vs closed",
+      "body": "**Open (once-through) fuel cycle** — current US + most countries:\n\n1. **Mining**: open-pit or underground; in-situ leaching. Top producers: Kazakhstan (45%), Canada (15%), Australia (12%), Namibia, Niger.\n2. **Milling**: U₃O₈ (yellowcake) ~85% pure U.\n3. **Conversion**: yellowcake → UF₆ gas.\n4. **Enrichment**: separation of U-235 from U-238 via centrifuge (modern) or gaseous diffusion (legacy). Output: low-enriched UF₆ (3-5% U-235) + depleted UF₆ tails (0.2-0.3%).\n5. **Fuel fabrication**: UF₆ → UO₂ → pellets → fuel rods → assemblies.\n6. **Reactor**: 18-24 months residence; ~50 GWd/t burnup.\n7. **Spent fuel pool**: 5-10 yr cooling in water on-site.\n8. **Dry cask storage**: on-site after pool cooling; ~50 yr design life. Most US spent fuel here now (~85,000 tonnes accumulated).\n9. **Geological repository**: planned long-term disposal — none operating commercially yet for high-level waste.\n\n**Closed (reprocessing) fuel cycle** — France, Russia, Japan (Rokkasho), formerly UK:\n\nAfter step 7 (pool cooling): chemical reprocessing extracts U + Pu, fabricates MOX (mixed oxide fuel: ~7% Pu + 93% U), re-uses in reactors. Reduces high-level waste volume + recovers ~25% more energy. France runs ~70% MOX in ~20 of its reactors.\n\n**Trade-offs**:\n- Closed cycle: better fuel utilization; less waste volume; but proliferation risk (separated Pu); higher cost ($5000-10000/kg fuel vs $2000-3000 open); requires specialized facilities.\n- Open cycle: cheaper; simpler; but accumulates spent fuel; loses Pu energy."
+    },
+    {
+      "kind": "text",
+      "title": "Enrichment + separation work",
+      "body": "**Enrichment** is the energy-intensive step. SI unit: **Separative Work Unit (SWU)** — measure of enrichment effort.\n\nFor 1 kg of 3.5% U-235 product from 0.72% natural with 0.2% tails:\n- Feed: 5.45 kg natural U\n- Tails: 4.45 kg at 0.2%\n- Work: ~4.5 SWU/kg product\n\nGlobal enrichment capacity: ~64 million SWU/yr (2024). Russia: ~40% market share. China + Western Europe + US: rest. Costs: ~$50-80/SWU.\n\n**Centrifuge technology**: gas of UF₆ spun at ~70,000 rpm; isotope separation via tiny mass difference (U-235 vs U-238 = 0.86% mass difference). Many cascaded centrifuges → ~5-6 SWU per kg of U separated. Modern Western cascade: ~10× more efficient than 1950s gaseous diffusion.\n\n**Weapons-grade**: ~90% U-235. Requires ~200-300 SWU per kg (~50× more work than 3.5% LEU). High-enriched uranium (HEU) is the canonical proliferation concern.\n\n**HALEU** (High-Assay LEU, 5-20%): for advanced reactors (some SMRs, MSR, fast reactors). Russia currently dominates supply; US + EU developing domestic enrichment (Centrus, Urenco) for SMR fleet.\n\n**Laser enrichment** (e.g., GE-Hitachi SILEX): potentially more efficient + smaller-footprint. Licensed in US (Paducah enrichment site Nov 2023, but commercial scaling slow).\n\n**Other separation methods**:\n- Gaseous diffusion (legacy, energy-intensive, decommissioned)\n- Aerodynamic (South Africa nozzle, decommissioned)\n- Calutron (Manhattan Project; uneconomic at scale)\n- Plasma separation (research)\n- Chemical exchange (heavy water D₂O production)"
+    },
+    {
+      "kind": "text",
+      "title": "Geological disposal + the long-term challenge",
+      "body": "Spent fuel after ~50 yr cooling still contains:\n• ~96% U (mostly U-238 + 1-2% U-235)\n• ~1-2% Pu + Np + Am (transuranic actinides) — long-lived\n• ~3-4% fission products (Cs-137, Sr-90, I-129, Tc-99, etc.)\n\nRadioactivity drops ~10⁵× in first 100 yr (short-lived fission products decay). After 1000 yr, fission products mostly decayed. Remaining hazard from actinides (Pu-239 t½ = 24000 yr; Np-237 t½ = 2.1 million yr).\n\n**Total hazard** (radiotoxicity-weighted) decays to natural-uranium-ore equivalent after ~250,000 yr (open cycle) or ~10,000 yr (closed cycle with actinide partition + transmutation).\n\n**Geological repository requirements**:\n• Stable geology for 100,000+ yr (no earthquakes, no glaciation through host rock).\n• Low groundwater flow (to limit transport of radionuclides).\n• Engineered barriers (copper canister, bentonite buffer, host rock).\n• Multi-barrier defense in depth.\n\n**Operating + active repositories** (2024):\n• **Olkiluoto, Finland (Onkalo)**: first operational deep geological repository (DGR) for spent fuel, expected first emplacement 2025. ~400 m depth in granite. Copper canister + bentonite + crystalline rock.\n• **Forsmark, Sweden**: license granted 2022; construction starting; analogous to Finnish design.\n• **France (Cigéo, Bure)**: in advanced authorization phase. Argilite clay host.\n• **Switzerland (Bois de Boën / Nördlich Lägern)**: opalinus clay; construction ~2050.\n• **Belgium (Dessel)**: clay; in early development.\n• **US (Yucca Mountain)**: licensed but politically blocked; alternative siting under consideration.\n• **WIPP, New Mexico**: operational since 1999 for transuranic waste only (defense-program); deep salt repository.\n\n**Public + political challenges**:\n- 'Not in my backyard' (NIMBY): no community wants to host\n- Trust + transparency: requires long-term institutional commitment\n- Indigenous + heritage land considerations\n- Cost: $10-50B per repository; financed via spent-fuel surcharges on electricity\n\n**Alternatives + future**:\n- Actinide partition + transmutation (P&T): chemically separate long-lived actinides + transmute in fast reactors → reduces waste timescale to ~1000 yr. Active research at JAEA (Japan), ANL, INL (US), CEA (France).\n- Deep borehole disposal (5+ km drilling): emerging concept; isolated from biosphere via huge depth + sediment.\n- Spent-fuel reuse in advanced reactors (e.g., TerraPower TWR concept).\n\nGeological disposal works (physics + geology) but is hard (politics + economics + time). Finnish achievement gives playbook for others."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fuel_1",
+        "kind": "guided_derivation",
+        "question": "Track Pu-239 from U-238 in an LWR + closed fuel cycle",
+        "goal": "U-238 (0.72% U-235 in natural U; ~95.5% U-238 in 3.5% LEU after enrichment) captures neutrons in reactor + becomes Pu-239 via β decay. Trace the chemistry + economic value.",
+        "steps": [
+          {
+            "prompt": "Chemical chain: U-238 + n → ? → ? → Pu-239?",
+            "motivation": "Two β decays.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "U-238 → U-239 → Np-239 → Pu-239",
+                "via β decays"
+              ]
+            },
+            "hints": [
+              "U-238 + n → U-239 (β⁻ → Np-239 t½=23 min); Np-239 (β⁻ → Pu-239 t½=2.4 d)."
+            ],
+            "reveal": "U-238 + n → U-239 (t½=23 min, β⁻) → Np-239 (t½=2.4 d, β⁻) → Pu-239 (t½=24,000 yr, α). All three steps fast enough that within ~3 d, captured U-238 becomes Pu-239."
+          },
+          {
+            "prompt": "Pu-239 in spent fuel: ~1 wt% of original heavy metal. For a 1000 MWe reactor with ~20 t spent fuel/yr, how much Pu?",
+            "motivation": "Calculate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~200 kg/yr",
+                "0.2 t/yr",
+                "200"
+              ]
+            },
+            "hints": [
+              "1% × 20 t = 200 kg."
+            ],
+            "reveal": "~200 kg Pu/yr per 1000 MWe reactor (open cycle, not reprocessed). World accumulation: ~70,000 t spent fuel × 1% Pu ≈ 700 tonnes Pu in spent fuel globally."
+          },
+          {
+            "prompt": "If recovered as MOX (~7% Pu in fuel), how much MOX can be made?",
+            "motivation": "Mass dilution.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~2900 kg MOX/yr",
+                "2.9 t/yr",
+                "200/0.07"
+              ]
+            },
+            "hints": [
+              "200 / 0.07 = 2857 kg."
+            ],
+            "reveal": "~2900 kg MOX fuel/yr (mass dilution with U). MOX fuel can substitute for fresh enriched fuel in MOX-licensed reactors. France runs ~20 reactors on MOX."
+          },
+          {
+            "prompt": "Energy recovered from MOX vs original fresh LEU?",
+            "motivation": "Comparison.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~50% more energy",
+                "comparable",
+                "extra ~10-15%"
+              ]
+            },
+            "hints": [
+              "Recovered U + Pu can substitute ~25-30% of fresh fuel."
+            ],
+            "reveal": "Reprocessing + MOX recovers ~25-30% additional energy from spent fuel — modest improvement. The biggest win would be Pu (fast spectrum) breeders: ~50-100× more energy per kg natural U. But breeder economics haven't worked yet at commercial scale (sodium-cooled fast reactor costs higher than LWR; uranium remains abundant)."
+          },
+          {
+            "prompt": "Proliferation considerations of separated Pu?",
+            "motivation": "Discuss.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "weapons-grade risk",
+                "safeguards",
+                "IAEA monitoring"
+              ]
+            },
+            "hints": [
+              "Pu-239 is fissile + makes weapons feasible."
+            ],
+            "reveal": "Separated Pu (reprocessed but not yet in MOX fuel) is the primary proliferation concern. ~7 kg of weapons-grade Pu (>93% Pu-239) sufficient for a primitive weapon. Reactor-grade Pu (60-70% Pu-239, rest Pu-240, 241, 242 + Am-241) is harder + less reliable for weapons but technically usable. Hence IAEA safeguards on reprocessing facilities + Pu inventory tracking. NPT-signatory states with reprocessing (UK shut down 2018, France, Russia, Japan, India) accept IAEA inspection. Non-NPT or non-cooperative states cause proliferation concerns (e.g., North Korea)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fuel_1",
+        "kind": "multiple_choice",
+        "question": "Why has the US not built a geological repository despite spending billions on Yucca Mountain?",
+        "options": [
+          "Yucca Mountain doesn't exist.",
+          "Technical + political stalemate. Technically: NRC + DOE characterized Yucca extensively; license application submitted 2008; final design phase. Politically: Nevada delegation (Senate majority leader Reid) blocked funding from 2009-onwards; Obama administration suspended program; license application withdrawn 2010. Successor administrations have not committed to either restart or alternative siting. Result: ~85,000 tonnes spent fuel + defense HLW stored on-site at reactor sites + DOE facilities. Multiple states (TX, NM) recently proposed alternatives (Holtec interim storage) — also legally contested.",
+          "Yucca Mountain failed safety tests.",
+          "All US spent fuel is in space."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Yucca Mountain history**:\n\n- 1982: Nuclear Waste Policy Act — DOE responsibility, ratepayers fund via Nuclear Waste Fund.\n- 1987: Yucca Mountain (Nevada, Nye County) chosen by Congress.\n- 1990s-2000s: $14B+ characterization. Geological + hydrological studies + engineered barriers + transportation network planning.\n- 2002: Bush administration formally designated YM as repository.\n- 2008: DOE submitted license application to NRC.\n- 2010: Obama administration withdrew license application + suspended program (Nevada delegation political pressure).\n- 2011: Blue Ribbon Commission recommended *consent-based* siting (Nevada had not consented).\n- 2017: Trump administration proposed reviving; not funded.\n- 2020s: stalemate. Some technical experts argue Yucca is sound; others want alternatives.\n\n**Consequence**:\n- ~85,000 t spent fuel in dry casks + pools at ~75 reactor sites.\n- DOE liable for breach of contract (originally promised to take fuel from 1998); paying $5-10B in damages to utilities.\n- Spent fuel inventory growing ~2000 t/yr.\n- Interim storage facilities (Holtec NM, ISP/Waste Control Specialists TX) licensed but legally challenged.\n\n**Alternatives being explored**:\n- Consent-based siting (DOE process started 2022 after Biden administration).\n- Interim consolidated storage (decades) + later geological disposal.\n- Defense waste + civilian waste in same facility (legally complex).\n- Deep borehole disposal (5+ km drilling).\n\n**International contrast**:\n- Finland: site selected 1983, construction 2004, operation 2025 (~40 yr cycle).\n- Sweden: license 2022, construction underway.\n- France: Cigéo authorization 2030, operation ~2035-2040.\n\nDifference: Finland + Sweden used **consent-based siting** + sustained political support across decades. The US Yucca process violated consent (Nevada didn't agree); has been politically contested ever since.\n\n**Cost of delay**: $5-10B/decade in damages + ongoing storage costs + missed reprocessing optionality.\n\n**Lesson**: technical solvability ≠ political deliverability. Long-term radioactive waste disposal requires multi-decade institutional commitment + community consent."
+      },
+      "hints": [
+        "What happened to Yucca politically?",
+        "Where is spent fuel now?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Yucca Mountain technically characterized + license app submitted 2008. Politically blocked by Nevada delegation; license app withdrawn 2010; never operational. Result: ~85K t spent fuel at reactor sites + DOE liability ($5-10B in damages, growing). Alternative: consent-based siting process (re-started 2022). International contrast: Finland/Sweden used consent-based siting + sustained political will → operating 2025. US lesson: technical solvability ≠ political deliverability."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fuel_2",
+        "kind": "multiple_choice",
+        "question": "Why has fast-reactor + reprocessing-based closed fuel cycle not displaced once-through LWR despite ~50× theoretical fuel-utilization advantage?",
+        "options": [
+          "Closed cycle doesn't work.",
+          "Economics: uranium has been abundant + cheap (<$50/lb U₃O₈), reprocessing costs ~5-10× more per kg fuel than fresh LEU; fast reactor capital cost ~2× LWR; combined economics unfavorable at low U price. Proliferation: separated Pu inventory + reprocessing facilities are sensitive — Western non-proliferation policy historically resisted. France + Russia + Japan continued; UK + US gave up. Modern revival: countries seeking fuel-cycle independence + waste reduction (China, India, Russia) actively pursuing; commercial competitive 2030-2050 horizon depending on U price + carbon constraints.",
+          "Closed cycle is universally adopted.",
+          "Reprocessing is illegal."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Closed fuel cycle economics + politics history**:\n\n- 1950s-60s: closed cycle assumed inevitable. Fast breeders projected to dominate.\n- 1970s: US Carter administration banned commercial reprocessing (1977) over proliferation concerns. Spent fuel pile-up began.\n- 1980s-90s: France (La Hague), UK (Sellafield), Russia (Mayak) operated. Uranium remained cheap.\n- 2000s: UK Sellafield reprocessing accidents → closed 2018. France continues. Russia ramping. Japan Rokkasho delayed repeatedly.\n- 2010s-now: Renewed interest from China + India (fuel-cycle independence) + Russia (BN-800 operational); some Western interest (TerraPower Natrium, MOX) for waste reduction + advanced reactor fuel.\n\n**Economics gap**:\n- Once-through LEU: ~$2000-3000/kg fuel, $1000-2000 in fuel cost per MWh generated.\n- MOX (closed cycle): ~$10,000-20,000/kg fuel, $3000-5000 per MWh.\n- Difference partly subsidies (reprocessing in France benefits from sunk costs); partly intrinsic.\n\n**Why uranium stays cheap**: discovered reserves are huge; new exploration adds reserves faster than depletion. Estimated U reserves at $130/kg: ~7.6 million tonnes — ~140 years of current LWR consumption. At $260/kg: ~16 million tonnes (~290 years). Beyond conventional: phosphate rock + seawater (~4.5 billion t but expensive). Uranium is *not* the bottleneck for nuclear scale-up.\n\n**Proliferation concern**: separated Pu inventory ~ 250 tonnes globally (France 110t + UK 140t + Japan 8t + Russia 60t). Pu is fissile; 6-8 kg sufficient for primitive weapon. IAEA safeguards + national security oversight required. Some weapons-state Pu (e.g., post-Cold-War US + Russia surplus) is being diluted + burned in MOX reactors specifically to reduce stockpiles.\n\n**Closed cycle would matter if**:\n- U price spikes due to ramped LWR fleet + China + India growth (possible 2030-2050)\n- Carbon pricing makes once-through LWR less competitive\n- Waste-disposal politics force reprocessing to reduce volume\n- Advanced reactors (fast spectrum) deploy at scale + need recycled fuel\n\n**Long-term**: closed cycle + actinide partition + transmutation is the only physics-based path to 'sustainable' nuclear with minimized long-lived waste. Whether economics align with this physics over 21st century is the open question."
+      },
+      "hints": [
+        "What's been the U price history?",
+        "What's the proliferation concern?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Closed cycle economics: U cheap (<$50/lb), reprocessing 5-10× more than fresh LEU, fast reactor capital ~2× LWR. Proliferation: separated Pu sensitive; US banned commercial reprocessing 1977; France/Russia/Japan continued. Renewed interest: China + India (fuel independence), TerraPower Natrium (waste). Closed cycle competitive if U spikes (LWR fleet growth) or carbon pricing tightens or waste politics force volume reduction. Long-term sustainable nuclear physics requires closed cycle + actinide P&T."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fuel_1",
+        "kind": "math_expression",
+        "question": "Spent fuel has 3 wt% fission products + 1 wt% transuranic + 96 wt% U. If a 1000 MWe reactor produces 20 tonnes spent fuel/yr, how much fission product (in kg) accumulates per year?",
+        "acceptedAnswers": [
+          "600 kg",
+          "0.6 t",
+          "600"
+        ],
+        "hint": "20000 × 0.03."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fuel_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain to a curious citizen why nuclear waste disposal is technically solvable but politically + temporally challenging.",
+        "rubric": "Mentions: technically — deep geological repositories in stable formations (granite, clay, salt) provide multi-barrier defense (engineered canister + bentonite + host rock). Time scales (100K+ yr) match natural geological stability. Finland, Sweden, France, Switzerland have technical paths + repositories planned or operating. Politically — long timescales beyond political cycles; no community wants to host (NIMBY); requires consent-based siting + transparent institutional commitment across decades; trust-building with Indigenous + heritage communities. Temporally — institutional permanence required (records, markers, monitoring) for thousands of years; intergenerational equity questions. Economic — $10-50B per repository; financing via ratepayer surcharges; uncertainty about future fuel-cycle decisions. Best practices: Finnish + Swedish consent-based siting works; US Yucca-style imposition does not. Future technologies (actinide P&T, deep borehole) may reduce timescale + simplify problem. Concludes: solvable problem requiring institutional discipline + community engagement, not technological breakthrough."
+      }
+    }
+  ]
+}

@@ -23,6 +23,7 @@ const MohrsCircle = lazy(() => import("../../../../packages/viz/src/components/M
 const HRDiagram = lazy(() => import("../../../../packages/viz/src/components/HRDiagram").then(m => ({ default: m.HRDiagram })));
 const SIRModel = lazy(() => import("../../../../packages/viz/src/components/SIRModel").then(m => ({ default: m.SIRModel })));
 const ReactorComparator = lazy(() => import("../../../../packages/viz/src/components/ReactorComparator").then(m => ({ default: m.ReactorComparator })));
+const PointKinetics = lazy(() => import("../../../../packages/viz/src/components/PointKinetics").then(m => ({ default: m.PointKinetics })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -50,6 +51,7 @@ export const VIZ_NAMES = [
   "hr-diagram",
   "sir-model",
   "reactor-comparator",
+  "point-kinetics",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -75,6 +77,7 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "hr-diagram": HRDiagram,
   "sir-model": SIRModel,
   "reactor-comparator": ReactorComparator,
+  "point-kinetics": PointKinetics,
 };
 
 interface VizEmbedProps {

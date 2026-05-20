@@ -1952,6 +1952,29 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P31 — Nuclear Engineer path. From fission fundamentals through
+  // neutron transport + criticality, reactor kinetics + control with
+  // the new interactive PointKinetics viz, thermal-hydraulics +
+  // DNB, reactor types (PWR/BWR/CANDU/SMR/Gen IV/MSR), fuel cycle +
+  // waste, radiation safety + accident lessons (TMI/Chernobyl/
+  // Fukushima), and fusion + future nuclear.
+  seedMasteryPath({
+    slug: "nuclear-engineer",
+    title: "Nuclear Engineer",
+    description:
+      "From fission fundamentals + binding energy through neutron transport + criticality + the four-factor formula, point kinetics + delayed neutrons + the 1$ prompt-critical threshold with an interactive viz, thermal-hydraulics + DNB + LOCA, reactor types (LWR/CANDU/SFR/MSR/SMR/Gen IV), fuel cycle + reprocessing + geological disposal, radiation safety + ALARA + TMI/Chernobyl/Fukushima lessons, and fusion + advanced fission for the future grid. The nuclear-engineering stack end-to-end.",
+    nodes: [
+      { slug: "fission-fundamentals", title: "Fission Fundamentals", level: "apprentice", order: 1, pages: ["binding-energy", "chain-reaction", "decay-heat"], prereqs: [], description: "Binding-energy curve, U-235 fission + 200 MeV/reaction, fissile vs fertile, decay-heat curve + why Fukushima cores melted." },
+      { slug: "neutron-transport-and-criticality", title: "Neutron Transport + Criticality", level: "practitioner", order: 2, pages: ["four-factor", "diffusion-equation", "reactivity-control"], prereqs: ["fission-fundamentals"], description: "k_∞ + four-factor formula, neutron diffusion + buckling, control rods + boron + xenon poisoning." },
+      { slug: "reactor-kinetics-and-control", title: "Reactor Kinetics + Control", level: "specialist", order: 3, pages: ["point-kinetics", "delayed-neutrons", "control-architecture"], prereqs: ["neutron-transport-and-criticality"], description: "Point-kinetics ODEs + interactive viz, delayed-neutron role + 1$ threshold, defense in depth + Chernobyl rod design lesson." },
+      { slug: "thermal-hydraulics", title: "Thermal Hydraulics", level: "specialist", order: 4, pages: ["heat-removal", "dnb-chf", "loca-fukushima"], prereqs: ["fission-fundamentals", "neutron-transport-and-criticality"], description: "Fuel-pin heat conduction + cladding T, boiling regimes + DNBR > 1.3, LOCA sequences + TMI + Fukushima common-mode failure." },
+      { slug: "reactor-types-and-designs", title: "Reactor Types + Designs", level: "specialist", order: 5, pages: ["lwr-pwr-bwr", "candu-fast-msr", "smr-gen-iv"], prereqs: ["thermal-hydraulics"], description: "PWR/BWR dominance, CANDU + fast reactors + MSR, Gen III+ (AP1000, EPR) + Gen IV + SMRs (BWRX-300, Natrium)." },
+      { slug: "fuel-cycle-and-waste", title: "Fuel Cycle + Waste", level: "expert", order: 6, pages: ["enrichment-fabrication", "reprocessing-mox", "geological-repository"], prereqs: ["fission-fundamentals"], description: "Open vs closed fuel cycle, enrichment + SWU, MOX + reprocessing economics, Finnish/Swedish repositories + Yucca politics." },
+      { slug: "radiation-safety-and-accidents", title: "Radiation Safety + Accidents", level: "expert", order: 7, pages: ["dose-units", "alara", "accident-case-studies"], prereqs: ["fission-fundamentals"], description: "α/β/γ/n + Sv units + ALARA, dose limits + 3 R's, TMI/Chernobyl/Fukushima accident sequences + LNT controversy." },
+      { slug: "fusion-and-future-nuclear", title: "Fusion + Future Nuclear", level: "expert", order: 8, pages: ["d-t-fusion", "iter-nif", "fusion-timeline"], prereqs: ["fission-fundamentals", "thermal-hydraulics"], description: "D-T reaction + Lawson criterion, magnetic (ITER, SPARC) vs inertial (NIF 2022 breakeven), commercial fusion 2050-2070 horizon." },
+    ],
+  });
+
   // P30 — Chemical Engineer path. Mass + energy balances through
   // fluid mechanics, heat transfer, reactor design with the new
   // interactive CSTR-vs-PFR viz, distillation + separations, process

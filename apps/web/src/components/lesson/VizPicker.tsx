@@ -166,6 +166,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "⚗️",
     tags: ["chemical-engineering", "reactor", "kinetics", "process", "engineering"],
   },
+  {
+    name: "point-kinetics",
+    label: "Reactor point kinetics",
+    description: "Drag reactivity (in $); watch neutron population evolve. Cross 1$ for prompt critical.",
+    thumb: "☢️",
+    tags: ["nuclear", "reactor", "kinetics", "physics", "engineering"],
+  },
 ];
 
 interface Props {

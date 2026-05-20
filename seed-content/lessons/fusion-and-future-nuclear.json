@@ -1,0 +1,174 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish magnetic + inertial confinement fusion.",
+      "Reason about Lawson criterion + breakeven.",
+      "Connect fusion + advanced fission to future grids."
+    ],
+    "prereqs": [
+      "fission-fundamentals",
+      "thermal-hydraulics"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Fusion: the other side of the binding-energy curve",
+      "body": "Fusion releases energy by combining light nuclei toward Fe-56. The most practical reaction:\n\n  **D + T → ⁴He (3.5 MeV) + n (14.1 MeV) + 17.6 MeV**\n\n• Deuterium: 0.015% of natural hydrogen. Abundant (oceans contain ~10¹⁴ tonnes).\n• Tritium: not naturally abundant. Made by neutron capture on Li-6: n + ⁶Li → ³H + ⁴He.\n• Lithium: abundant in seawater + crustal rock.\n\nFusion power density (per unit mass of fuel): ~3-4× higher than fission per unit mass; per unit volume in a reactor, similar order.\n\n**Advantages vs fission**:\n• No long-lived high-level waste (only short-lived activation of structural materials).\n• No proliferation pathway (no fissile material).\n• Inherent passive safety (cannot 'runaway' — needs continuous external heating).\n• Abundant fuel.\n• Lower carbon footprint.\n\n**Challenges**:\n• Plasma at 100M+ degrees C — hotter than the Sun's core.\n• Confinement: gravity (stars), magnetic (tokamak), inertial (laser fusion).\n• **Lawson criterion**: nτT > critical value (where n = density, τ = confinement time, T = temperature). For D-T at ~150 keV: n·τ > 10²⁰ s/m³.\n\nDecades of research; multi-billion-dollar machines (JET, ITER, NIF, etc.). 2022: NIF achieved 'scientific breakeven' (3.15 MJ output vs 2.05 MJ laser input — ignoring electricity inefficiency upstream)."
+    },
+    {
+      "kind": "text",
+      "title": "Magnetic confinement fusion: tokamaks + stellarators",
+      "body": "**Tokamak** (toroidal chamber): plasma confined in a torus by helical magnetic field. Toroidal field from external coils + poloidal field from a plasma current induced by transformer. ~150 million °C, ~10²⁰ m⁻³ density, ~1 s confinement.\n\nKey experiments:\n• **JET (Joint European Torus, UK)**: 1983-2023. Largest tokamak; record fusion power (16 MW in 1997; 59 MJ total in 2021). Decommissioning.\n• **JT-60SA (Japan)**: 2023 first plasma; bridge to ITER.\n• **EAST (China)**: long-duration plasma demos.\n• **KSTAR (Korea)**: long-duration high-confinement.\n• **DIII-D, NSTX (US)**: research.\n• **SPARC (US, Commonwealth Fusion Systems)**: HTS magnet pioneer, planned 2025-26.\n• **ITER (France, international)**: 35-country project; 500 MW fusion target; first plasma ~2034 (delayed); D-T operation ~2039. €20+B cost. Goal: demonstrate net energy Q = 10 (500 MW fusion vs 50 MW heating input).\n• **STEP (UK)**: stellarator + tokamak; commercial design.\n• **Commonwealth Fusion (SPARC + ARC)**: HTS magnet-enabled compact tokamak; 2025-2030 demonstration.\n• **Tokamak Energy (UK)**: spherical tokamak.\n\n**Stellarator** alternative geometry: helical-coil twist replaces plasma current. Stable (no disruption risk), but harder to design.\n• **W7-X (Germany)**: largest operating stellarator; record 60-min plasma 2023.\n• **HSX (US)**: research.\n\n**Plasma physics challenges**:\n- **Disruptions**: tokamak plasma can suddenly collapse (a quenched plasma current spike). Mitigated by injected gas, killer pellets, ML-based prediction.\n- **Plasma-facing materials**: must survive 14 MeV neutrons + plasma heat. Tungsten + advanced steels (RAFM, ODS); 50+ year lifetime hard.\n- **Tritium breeding**: Li blankets generate T from neutron capture. Tritium self-sufficiency needed (no global T supply for commercial fleet).\n- **Heating + current drive**: ICRH, NBI, ECH — combination of methods to maintain plasma.\n- **Divertor**: removes He 'ash' + heat exhaust. Concentrated heat flux (~10 MW/m²) on divertor target; major engineering challenge."
+    },
+    {
+      "kind": "text",
+      "title": "Inertial confinement fusion + Q-physics",
+      "body": "**Inertial confinement fusion (ICF)**: tiny D-T pellet (~1 mm) compressed by laser/X-ray drive; fuel ignites + burns before plasma flies apart (~ns timescale).\n\n• **NIF (Lawrence Livermore)**: 192 laser beams, 2.05 MJ on target.\n• **2022 milestone**: 3.15 MJ fusion energy from 2.05 MJ laser input — first 'scientific breakeven' (target Q > 1). Sparked global excitement.\n• **Engineering breakeven (Q_total > 1)**: laser plug-to-target efficiency ~1% — facility consumed ~300 MJ from grid to deliver 2 MJ on target. So total Q > 1 requires ~150× more progress.\n• **Commercial breakeven**: factor 50-100 more output, sustained, with target rep rate 10+ Hz, target fabrication at ~$0.10 per pellet. Still very far away.\n\n**Other ICF approaches**:\n- **Z-pinch** (Sandia Z-machine): magnetic compression by pulsed current.\n- **Direct-drive**: laser hits pellet directly (LLE Omega).\n- **Indirect-drive**: laser hits hohlraum to produce X-rays which drive pellet (NIF).\n- **Magnetized target fusion** (General Fusion): liquid metal compression of magnetized plasma.\n- **Fast ignition** (research): separate compression + ignition phases.\n\n**Other private fusion companies (2024)**:\n- **Helion**: Field-Reversed Configuration (FRC); D-He³ fuel; aiming D-He³ commercial 2028.\n- **TAE Technologies**: FRC + advanced beam-driven; aiming p-B11 (no neutrons) eventually.\n- **Zap Energy**: sheared-flow Z-pinch.\n- **Marvel Fusion**: lasers + nanostructured targets.\n- **Pacific Fusion, Realta, Avalanche, others**\n\n**Status (2024)**:\n- Scientific breakeven demonstrated in ICF (NIF 2022); engineering net energy still far.\n- Magnetic confinement: ITER will be the deciding experiment for next-gen design choices.\n- Commercial timeline: optimistic 2035-2045; realistic 2050-2070.\n- Private investment surge ($6B+ to fusion startups by 2024) accelerating but skeptics remain.\n\n**Why fusion is hard**: the physics is well-understood; the engineering is brutal. Materials, tritium breeding, plasma control, economics, supply chain — each a generation of engineering work. Comparable in difficulty to commercial aviation circa 1920 — fundamentals were known, decades of refinement needed."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fusion_1",
+        "kind": "guided_derivation",
+        "question": "Compute the energy density of D-T fusion + compare to fission",
+        "goal": "D-T fusion: 17.6 MeV per reaction. Reactants: 1 D nucleus + 1 T nucleus (atomic masses ~2 + ~3 amu). Compare to U-235 fission (200 MeV per reaction, ~235 amu).",
+        "steps": [
+          {
+            "prompt": "Energy per amu for D-T fusion?",
+            "motivation": "17.6 MeV / (D + T mass).",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~3.5 MeV/amu",
+                "3.52 MeV/amu",
+                "17.6/5"
+              ]
+            },
+            "hints": [
+              "17.6 / (2+3) = 3.52."
+            ],
+            "reveal": "Fusion energy density: 17.6 MeV / 5 amu = 3.52 MeV/amu. ~3.4× higher than fission's 200/235 ≈ 0.85 MeV/amu per nucleon mass."
+          },
+          {
+            "prompt": "Energy per kg of D-T fuel?",
+            "motivation": "Convert.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~3.4e14 J/kg",
+                "94 GWh/kg",
+                "94000 MWh/kg thermal"
+              ]
+            },
+            "hints": [
+              "3.5 MeV/amu × 6×10²³ amu/g × 1000 g/kg = 2.1×10²⁷ MeV/kg = 3.36×10¹⁴ J/kg. Same as 94 GWh/kg."
+            ],
+            "reveal": "~3.4×10¹⁴ J/kg ≈ 94 GWh/kg thermal. About 4× more than U-235 fission (82 TJ/kg thermal = 23 GWh/kg)."
+          },
+          {
+            "prompt": "Per kg of fuel, how does fusion compare to oil (44 MJ/kg)?",
+            "motivation": "Ratio.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~8 million",
+                "7.7e6",
+                "3.4e14 / 4.4e7"
+              ]
+            },
+            "hints": [
+              "3.4×10¹⁴ / 4.4×10⁷ = 7.7×10⁶."
+            ],
+            "reveal": "Fusion is ~8 million times more energy-dense per kg than oil. If commercial fusion is realized, fuel scarcity is essentially eliminated — D and Li are abundant in seawater + crust."
+          },
+          {
+            "prompt": "Why isn't fusion already powering the grid then?",
+            "motivation": "Engineering challenges.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "plasma containment + Lawson criterion + materials + tritium breeding + economics",
+                "containment difficult",
+                "engineering"
+              ]
+            },
+            "hints": [
+              "What's hard?"
+            ],
+            "reveal": "Multiple compounding challenges: (1) plasma at 150M °C — hotter than the Sun; (2) Lawson criterion nτT > 10²⁰ keV·s/m³ — combination hard to simultaneously achieve; (3) materials must survive 14 MeV neutron bombardment for years; (4) tritium breeding self-sufficient; (5) divertor handling 10+ MW/m² heat flux; (6) economics — capex ~$10-30B per gigawatt-class plant, electricity cost competitive with cheap solar+wind+storage; (7) supply chain for HTS magnets, plasma-facing components, tritium handling. Each is a 20-30 yr engineering challenge. ITER will answer some; commercial fusion 2035-2070 horizon depending on optimism."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fusion_1",
+        "kind": "multiple_choice",
+        "question": "Why did the NIF 2022 'scientific breakeven' announcement not mean commercial fusion is imminent?",
+        "options": [
+          "The announcement was fake.",
+          "NIF achieved Q_scientific = output_fusion / energy_into_target ≈ 1.5 (3.15 MJ fusion vs 2.05 MJ laser energy on target). But the lasers themselves are ~1% efficient — facility drew ~300 MJ from the grid to deliver 2 MJ. So Q_engineering ≈ 0.01. Plus: NIF fires once every ~few hours (not 10 Hz for commercial), uses expensive cryogenic D-T pellets, doesn't breed tritium, doesn't extract heat as electricity. Real engineering breakeven would need 100-1000× current laser efficiency × repetition rate × target fabrication economics × tritium-breeding + thermal-to-electric conversion. Demonstrates physics, not engineering economics.",
+          "NIF doesn't actually do fusion.",
+          "Inertial confinement has been commercial since 1990."
+        ],
+        "correctIndex": 1,
+        "explanation": "**NIF 2022 milestone**: 192 laser beams delivered 2.05 MJ of energy to a D-T pellet; fusion reactions produced 3.15 MJ. Q_scientific = 3.15/2.05 ≈ 1.54.\n\nThis was the first demonstration ever of *target* gain (more energy out than into the target itself). Major physics achievement; National Academy of Engineering Lawrence Award; major fusion-energy-research milestone.\n\n**Why not commercial**:\n\n1. **Laser efficiency** ~1%: NIF lasers are flashlamp-pumped Nd:glass amplifiers. Wall-plug electricity → laser energy on target conversion is poor. ~300 MJ drawn from grid for 2 MJ on target. → Q_engineering = 3.15/300 ≈ 0.01. Modern diode-pumped lasers can achieve ~10-20% efficiency — would improve by ~10-20×. Still not 100× needed.\n\n2. **Repetition rate**: NIF fires at most once every ~few hours (laser cooling, target setup). Commercial fusion needs ~10 Hz (10 shots/second). Need to develop new laser architectures + target injection systems.\n\n3. **Target cost**: NIF targets cost ~$millions each (cryogenic D-T pellets in special holohraums, hand-fabricated). Commercial would need ~$0.10/target with mass production.\n\n4. **Tritium**: NIF uses ~µg of T per shot. Commercial plant needs ~50 kg/yr T. T must be bred from Li in blanket — not demonstrated at scale.\n\n5. **Heat extraction + electricity**: NIF dumps heat into water; commercial plant needs to extract + convert to electricity (steam cycle ~33%, or higher with Brayton). Add ~50-70% loss.\n\n6. **Containment + materials**: 14-MeV neutron flux damages structural materials. Replacing first-wall on a power-plant schedule (yrs-decades) is required.\n\n7. **Economics**: even if all of (1)-(6) solved, capital cost ($10-30B/GW) + cost of electricity ($/MWh) must compete with cheap solar+wind+storage ($25-40/MWh) — very hard.\n\n**ICF vs MCF for commercial**:\n- MCF (tokamaks) more mature for continuous power generation; ITER will be the deciding experiment.\n- ICF (NIF + private) may find niches (compact, modular, military spinoffs).\n- Hybrid + advanced concepts (magnetized target, fast ignition) also pursued.\n\n**Realistic timeline**:\n- Demonstration plant: 2035-2045\n- First commercial reactor: 2050-2070\n- Significant grid penetration: 2070-2100\n\n**Optimists**: SPARC, ITER, Helion, NIF could compress this timeline. Commonwealth Fusion targets 2030s demo.\n\n**Skeptics**: Decades of unmet promises; engineering challenges underestimated. Solar+wind+storage already meeting decarbonization needs.\n\nFusion is real, important, + happening — but commercial timescale remains genuinely decades away. NIF 2022 was a physics milestone, not an engineering one."
+      },
+      "hints": [
+        "What about laser efficiency?",
+        "Repetition rate + tritium?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "NIF Q_scientific = 1.54 (3.15 MJ fusion / 2.05 MJ to target). BUT: laser efficiency ~1%, so 300 MJ from grid for 2 MJ to target → Q_engineering ≈ 0.01. Commercial needs: laser efficiency 20-30%, rep rate 10 Hz (vs once per few hours), target cost $0.10 vs $millions, tritium breeding in Li blanket, heat-to-electricity conversion, materials surviving 14-MeV neutrons, capital cost competitive with solar+storage. Realistic commercial fusion: 2050-2070."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fusion_2",
+        "kind": "multiple_choice",
+        "question": "How does fusion compare to advanced fission (Gen IV) for decarbonization timing?",
+        "options": [
+          "Fusion will arrive first.",
+          "Advanced fission (Gen IV, including SMRs + sodium-fast reactors + MSRs) has multiple demonstrators operating (BN-800 Russia, HTR-PM China, TMSR-LF1 China) + commercial deployment 2025-2035 horizon. Fusion has scientific breakeven (NIF 2022) but no commercial demo + commercial timeline 2050-2070. For decarbonization by 2050 (Paris Agreement targets), advanced fission is the realistic nuclear contribution; fusion's role is later 21st century. Both important; deployment timing differs by ~20-40 years.",
+          "Fission is obsolete; only fusion matters.",
+          "Neither will exist."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Fusion vs advanced fission timing comparison**:\n\n**Advanced fission (Gen IV + SMR)**:\n- BN-800 Russia: operational since 2016 (sodium-cooled fast reactor).\n- HTR-PM China: operational since 2023 (gas-cooled HTGR).\n- TMSR-LF1 China: first criticality 2023 (molten salt thorium).\n- BWRX-300 (Canada, US): construction starting 2024-25 (commercial).\n- NuScale: licensed 2020 (US); CFPP canceled 2023 over cost; other projects ongoing.\n- TerraPower Natrium: Wyoming construction 2024-2030.\n- X-energy: TRISO HTGR commercial 2028-2030.\n- Rolls-Royce SMR: UK construction late 2020s.\n- Multiple Gen IV demos operating; commercial deployment in 2025-2035 horizon.\n\n**Fusion**:\n- NIF 2022: scientific breakeven (Q_sci > 1) — physics milestone.\n- ITER: first plasma 2034 (delayed); full D-T operation 2039. Goal Q = 10 demonstration.\n- SPARC (CFS): aiming Q > 2 by 2026-27 (HTS magnet-enabled compact).\n- DEMO (post-ITER): 2050s commercial demo plant.\n- First commercial fusion plant: 2050-2070 realistic.\n\n**For 2050 decarbonization target**:\n- Advanced fission can contribute meaningfully (10-30% of new low-carbon generation by 2050).\n- Fusion's role: very small or zero by 2050; meaningful contribution 2070+.\n- Solar + wind + storage will dominate the bulk of 2050 grid in most regions.\n- Existing LWR fleet: ~5-10% of global generation through 2060+ (life extensions).\n\n**Why both are needed**:\n- Fission: meets near-term decarbonization (2020-2050).\n- Fusion: meets long-term sustainable energy supply (2050-2100+).\n- Different physics, different infrastructure, different timelines.\n- Fusion's promise (no proliferation, no high-level waste, abundant fuel) is real but the realization is 20-40 yr later than fission.\n\n**Common talking-point error**: 'Fusion is just 20 years away' has been said for 50+ years. It's *also* probably true now — but 'just' means 20-50 years, not by 2030.\n\n**Investment outlook (2024)**:\n- Fusion: $6B+ in private companies (Commonwealth, Helion, TAE, etc.) + ~$2B/yr public (ITER, NIF, etc.)\n- Advanced fission + SMR: $20B+ committed in IRA, EU, UK, Korea, Japan, China + commercial orders.\n- Renewables: $1.7T/yr (2023 IEA).\n\nDecarbonization will use all of them. The question isn't fission vs fusion vs renewables — it's how to deploy each at the right time at the right scale."
+      },
+      "hints": [
+        "When does each commercially deploy?",
+        "What's the timing for 2050 target?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Advanced fission (Gen IV + SMR): demos operating (BN-800, HTR-PM, TMSR-LF1); commercial 2025-2035 horizon (BWRX, Natrium, X-energy). Fusion: NIF scientific breakeven 2022 (physics); ITER 2039 D-T (research); commercial 2050-2070. For 2050 decarbonization: fission meaningful contribution, fusion likely zero. Solar+wind+storage dominate bulk. Both nuclear technologies needed but at different timescales — fission for 2020-2050, fusion for 2050-2100+. Common error: 'fusion 20 yr away for 50 yr' — also true now, but 'just' means 20-50 yr, not 2030."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fusion_1",
+        "kind": "math_expression",
+        "question": "D-T fusion releases 17.6 MeV per reaction. How many reactions per second are needed to produce 1 GW thermal power?",
+        "acceptedAnswers": [
+          "3.55e20",
+          "3.5 × 10²⁰",
+          "1e9/(17.6*1.6e-13)"
+        ],
+        "hint": "P = N × E_per_reaction. N = P/E = 10⁹ W / (17.6 MeV × 1.6×10⁻¹³ J/MeV) = 10⁹ / 2.82×10⁻¹² = 3.55×10²⁰ /s."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fusion_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain to a sustainability policymaker the realistic role of fusion in the 21st-century energy transition.",
+        "rubric": "Mentions: fusion's promise — abundant fuel (D + Li), no long-lived waste, no proliferation, inherently safe (passive), high energy density. But commercial timeline 2050-2070+ realistic; ITER full D-T 2039; first commercial plant 2050s at earliest. Decarbonization to meet 2050 net-zero targets must rely on: solar + wind + storage (dominant new generation), existing LWR fleet (life extensions), advanced fission (Gen IV, SMRs) for new dispatchable baseload, demand-side measures + efficiency. Fusion's role: late 21st century. Investment now (~$8-10B/yr public + private) is appropriate — pays off long-term + has spinoff benefits (materials science, plasma physics, HTS magnets used elsewhere). Concludes: fusion ≠ silver bullet for 2050; it's the next-generation energy supply for 2050-2100+. Both fission + fusion needed; both have specific roles + timelines. Pretending fusion is imminent misallocates urgency."
+      }
+    }
+  ]
+}

@@ -21,6 +21,7 @@ export { MohrsCircle } from "./components/MohrsCircle";
 export { HRDiagram } from "./components/HRDiagram";
 export { SIRModel } from "./components/SIRModel";
 export { ReactorComparator } from "./components/ReactorComparator";
+export { PointKinetics } from "./components/PointKinetics";
 export { SoftmaxTemperatureSlider } from "./quiz/SoftmaxTemperatureSlider";
 export { AttentionHeatmapExplorer } from "./quiz/AttentionHeatmapExplorer";
 export { GradientDescent2D } from "./quiz/GradientDescent2D";
