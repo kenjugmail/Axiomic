@@ -7,6 +7,52 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: double descent in modern ML",
+      "body": "Classical bias-variance: as model capacity grows past the interpolation threshold, generalization should worsen monotonically. Modern empirics: it does worsen until interpolation, but then *improves again* with more capacity ('double descent'). Belkin et al. 2019, Nakkiran et al. 2020. The interpretation: over-parameterized models in the over-fit regime are implicitly regularized by SGD (smaller-norm solutions); the second descent comes from this regularization landing on a smoother model. The classical decomposition still applies — but the regime modern ML operates in is past the classical analysis range."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sm_biasvar",
+        "kind": "guided_derivation",
+        "question": "Derive the bias-variance decomposition",
+        "goal": "Show $\\mathbb{E}[(\\hat f - f)^2] = \\text{Bias}^2 + \\text{Var}$.",
+        "steps": [
+          {
+            "prompt": "Add and subtract $\\mathbb{E}[\\hat f]$ inside the squared difference. What does this give?",
+            "motivation": "Add-subtract trick.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(hat f - E[hat f])^2 + 2(hat f - E[hat f])(E[hat f] - f) + (E[hat f] - f)^2"
+              ]
+            },
+            "hints": [
+              "$(\\hat f - f) = (\\hat f - \\mathbb{E}[\\hat f]) + (\\mathbb{E}[\\hat f] - f)$.",
+              "Square."
+            ],
+            "reveal": "$(\\hat f - f)^2 = (\\hat f - \\mathbb{E}[\\hat f])^2 + 2(\\hat f - \\mathbb{E}[\\hat f])(\\mathbb{E}[\\hat f] - f) + (\\mathbb{E}[\\hat f] - f)^2$."
+          },
+          {
+            "prompt": "Take expectation over $\\hat f$. The cross-term vanishes because $\\mathbb{E}[\\hat f - \\mathbb{E}[\\hat f]] = 0$. What's the decomposition?",
+            "motivation": "Linearity + zero-mean cross term.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Var(hat f) + Bias(hat f)^2"
+              ]
+            },
+            "hints": [
+              "First term: $\\text{Var}(\\hat f)$. Third term: $\\text{Bias}(\\hat f)^2$."
+            ],
+            "reveal": "$\\mathbb{E}[(\\hat f - f)^2] = \\text{Var}(\\hat f) + \\text{Bias}(\\hat f)^2$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\mathbb{E}[(\\hat f - f)^2] = \\text{Bias}^2 + \\text{Var}}$$ Plus irreducible noise when target is itself stochastic. The bias-variance tradeoff: capacity increases variance + decreases bias. Modern ML operates past this curve in the interpolation regime; double descent."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Maximum likelihood estimation",
       "body": "Given data `D = {x_1, x_2, ...}` and a parametric model `p(x | θ)`, **MLE** finds the parameters that make the data most probable:\n\n$$\\hat{\\theta}_{MLE} = \\arg\\max_\\theta \\prod_i p(x_i | \\theta) = \\arg\\max_\\theta \\sum_i \\log p(x_i | \\theta)$$\n\nThe log is just for numerical stability — the product of many probabilities underflows; the sum of log-probabilities doesn't.\n\nMLE is what training a neural net does. The cross-entropy loss is `-log p(y | x; θ)` summed over training examples. Gradient descent on this loss = MLE.\n\nProperties:\n- **Consistent**: as data → ∞, MLE → true parameters (under regularity conditions).\n- **Asymptotically efficient**: lowest possible variance among consistent estimators.\n- **NOT unbiased in general**: MLE for variance underestimates by a known factor.\n- **Sensitive to model misspecification**: if the parametric family doesn't include the truth, MLE finds the closest member of the family — which might be far from truth."
     },
@@ -61,6 +107,77 @@
       "kind": "text",
       "title": "What's next",
       "body": "Statistics is the discipline of being honest with data. ML papers without confidence intervals, calibration, and base-rate awareness are doing it wrong.\n\nKey takeaways:\n- MLE is what training does. Cross-entropy minimization = MLE.\n- A 0.5-1% difference in accuracy on a benchmark is often statistically indistinguishable from noise. Confidence intervals matter.\n- Calibration ≠ accuracy. A model can be one without the other.\n- Base rates flip the answer. P(disease | positive) ≠ P(positive | disease) in general.\n\nNext: [[transformer-deep-dive]] — the integrated read of the transformer architecture, with these tools."
+    },
+    {
+      "kind": "text",
+      "title": "Bias-variance, the diagnostic",
+      "body": "Generalization error decomposes into three parts:\n\n$$\\text{Expected error} = \\text{Bias}^2 + \\text{Variance} + \\text{Irreducible noise}.$$\n\n- **Bias**: how far the best fit in your model class is from the truth. High-bias = underfit.\n- **Variance**: how much the fit changes with the training data. High-variance = overfit.\n- **Irreducible noise**: lower bound — can't beat the Bayes error.\n\nTypical curve: simple model → high bias, low variance, high error. Complex model → low bias, high variance, high error. Sweet spot in between.\n\nDeep learning broke this story for over-parameterized networks: increasing capacity past the interpolation threshold often *decreases* generalization error again ('double descent'). The textbook bias-variance frame applies only up to the interpolation threshold; beyond it, the implicit regularization of SGD takes over and bigger is often better.\n\nPractical use: bias-variance still diagnoses underfit vs overfit. Underfit = your training error is high. Overfit = train low, val high. Both: gap is small, but error is high — the irreducible-noise floor."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_smm_cv",
+        "kind": "multiple_choice",
+        "question": "5-fold cross-validation on a time-series dataset is:",
+        "options": [
+          "The standard approach.",
+          "Wrong — it leaks future information into training.",
+          "Wrong — it under-uses the data.",
+          "Equivalent to a single 80/20 split."
+        ],
+        "correctIndex": 1,
+        "explanation": "Standard k-fold CV randomly partitions data — fine for IID data, but for time series it puts future points in the training set, giving a too-optimistic estimate. For time series, use 'forward chaining' or 'expanding window' CV where training windows are always before validation windows."
+      },
+      "hints": [
+        "What's the assumption behind random k-fold splits?",
+        "Time series violates IID by definition."
+      ],
+      "workedSolution": "Random k-fold CV assumes IID data. Time series isn't IID — there's temporal dependence and the goal is usually to predict *future* outcomes. Standard k-fold can put future-time samples in the training fold, giving a too-optimistic eval. Use forward-chaining CV: train on $[0, t]$, eval on $(t, t+\\Delta]$, advance $t$, repeat.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_smm_eval",
+        "kind": "scenario",
+        "question": "Choosing an estimator",
+        "prompt": "You're estimating the click-through rate for a new product feature based on 50 clicks in 500 impressions. A teammate proposes a naive estimate of 50/500 = 10%. Why might a Bayesian estimator (with a sensible prior) give a better answer for decision-making?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_smm_mle",
+        "kind": "math_expression",
+        "question": "MLE for the mean of a Gaussian (with known variance) is just the sample mean. For data $[3, 5, 7, 9]$, $\\hat\\mu_{\\text{MLE}} = ?$",
+        "acceptedAnswers": [
+          "6",
+          "6.0",
+          "24/4"
+        ],
+        "hint": "Just average."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_smm",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why MLE is the most-used estimator in deep learning despite its known asymptotic bias.",
+        "rubric": "Mentions that MLE is asymptotically efficient under regularity conditions, is convenient (matches the log-likelihood loss most models use), and the bias correction is usually negligible at modern dataset sizes."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Choose between MLE and Bayesian estimation for an ML problem.",
+      "Recognize the bias-variance tradeoff in a model class.",
+      "Apply cross-validation correctly."
+    ],
+    "prereqs": [
+      "math-foundations"
+    ]
+  }
 }

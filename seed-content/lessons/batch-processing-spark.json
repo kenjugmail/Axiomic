@@ -1,0 +1,112 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish narrow from wide transformations.",
+      "Recognize when Spark is the right tool vs SQL warehouse.",
+      "Reason about shuffles + their cost."
+    ],
+    "prereqs": [
+      "etl-fundamentals"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Narrow vs wide transformations",
+      "body": "Spark (and any data-parallel system) processes data in partitions across many workers. Operations classify as:\n\n**Narrow** (no shuffle): each output partition depends on one input partition. `map`, `filter`, `select`. Local — embarrassingly parallel. Per-row cost only.\n\n**Wide** (shuffle): each output partition depends on multiple input partitions. `groupBy`, `join`, `distinct`. Requires all-to-all data movement across the network. Per-row cost + network cost + serialization.\n\nThe planner builds a DAG, identifies shuffle boundaries, and breaks execution into *stages* — each stage is a run of narrow operations followed by a shuffle. A 5-stage job involves 4 shuffles.\n\n**Why shuffles are expensive**: serialize each row, write to disk on the sending side, transfer over network, deserialize on the receiving side. At terabyte scale, the shuffle phase dominates runtime. Spark's whole performance story is 'minimize shuffles'."
+    },
+    {
+      "kind": "text",
+      "title": "Worked example: Spark's adaptive query execution",
+      "body": "Spark 3.0+ AQE dynamically adjusts plans at runtime. Detects skewed partitions during shuffle + splits them. Detects small partitions + coalesces them. The result: hand-tuning Spark's `spark.sql.shuffle.partitions` is less necessary; AQE adapts. Production teams still tune for very large workloads, but routine ETL benefits from AQE out-of-the-box."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sp_shufflesize",
+        "kind": "guided_derivation",
+        "question": "Estimate shuffle data volume",
+        "goal": "10 TB input, groupBy with selectivity 10% (output is 10% of input). Shuffle data volume?",
+        "steps": [
+          {
+            "prompt": "All input rows must be shuffled (each row hashed to a partition). Shuffle = full input volume = 10 TB. Output post-aggregation: 1 TB. Storage for shuffle on disk: 10 TB.",
+            "motivation": "Shuffle moves all input data.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "10 TB"
+              ]
+            },
+            "hints": [
+              "Shuffle = ALL data, not just output."
+            ],
+            "reveal": "10 TB shuffle (= input volume). Output is 1 TB but the network/disk traffic during shuffle is 10 TB."
+          }
+        ],
+        "finalResult": "Shuffle is the bottleneck. Optimizations: pre-aggregate via `reduceByKey` (reduces shuffle volume to ~output volume), broadcast joins (avoid shuffling small side), partition pruning (read less). Knowing shuffle volume tells you whether to fight the network or the compute."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "When to reach for Spark",
+      "body": "**Use Spark when**:\n- Data is too big for a single machine (>~500GB raw).\n- You need to chain many transformations, not just aggregate-from-warehouse.\n- The workload is ML (Spark MLlib) or graph (GraphX) or stream-batch unification (Structured Streaming).\n- You're feeding a warehouse from raw files in object storage.\n\n**Use the SQL warehouse (Snowflake/BigQuery/Redshift) when**:\n- Data already lives in the warehouse.\n- The transformation is expressible as SQL.\n- Per-query cost matters; you don't want to spin up a Spark cluster.\n- Analytics queries are the primary workload.\n\nThe industry default has shifted toward warehouse-first (ELT with dbt + SQL) — most teams don't NEED Spark and end up paying its operational cost (cluster management, library juggling, code-not-SQL transformations) without proportional value. Spark's surviving niches: ML pipelines, very large pre-warehouse processing, and Databricks' Delta-Lake-centric architectures."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sp_shuffle",
+        "kind": "multiple_choice",
+        "question": "Spark's `groupBy(...).count()` on a 1TB dataset has runtime dominated by:",
+        "options": [
+          "The aggregation arithmetic.",
+          "The shuffle: moving rows between workers so all rows with the same group key end up on the same partition.",
+          "Disk I/O at the start.",
+          "Network I/O at the end."
+        ],
+        "correctIndex": 1,
+        "explanation": "GroupBy requires all rows with the same key to be co-located. Spark accomplishes this with a *shuffle*: each row is repartitioned (by hash of the key) so it lands on the correct downstream partition. Network + disk I/O during shuffle dominates runtime. Pre-aggregating with combiner-style reduce (counting on each partition first, then summing per-key) can dramatically reduce the shuffle volume."
+      },
+      "hints": [
+        "The aggregation arithmetic is cheap; what's expensive about repartitioning by key?",
+        "Why does Spark have to move data across the cluster for groupBy?"
+      ],
+      "workedSolution": "Shuffle dominates. GroupBy by key requires all rows for the same key to be on the same worker, which requires repartitioning by hash(key). Each row is serialized, written to disk on the sender, sent over the network, deserialized on the receiver. At terabyte scale, this network + serialization cost is most of the wall-clock time. Optimization: use `reduceByKey` or `groupByKey + aggregateByKey` patterns that partial-aggregate on each partition before shuffling — much less data crosses the network.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sp_partitions",
+        "kind": "math_expression",
+        "question": "200GB of data, target partition size 128MB. Approximately how many partitions should you start with?",
+        "acceptedAnswers": [
+          "1600",
+          "200000/128",
+          "1562",
+          "~1600 partitions"
+        ],
+        "hint": "Total data / partition size."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sp_skew",
+        "kind": "scenario",
+        "question": "Data skew",
+        "prompt": "A Spark groupBy on user_id finishes 99% of tasks in 2 minutes, but one task runs for 90 minutes. What's the textbook diagnosis, and what's the standard mitigation?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sp",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why the rise of cheap, fast cloud data warehouses (Snowflake, BigQuery) has marginalized Spark for ELT.",
+        "rubric": "Mentions that warehouses now provide elastic parallel compute over columnar storage, accessed via SQL; Spark's added value over SQL is non-trivial code, library, and cluster management — costs warehouse-native ELT avoids."
+      }
+    }
+  ]
+}

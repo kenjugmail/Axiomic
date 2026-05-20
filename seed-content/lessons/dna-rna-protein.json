@@ -7,6 +7,38 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: the wobble position",
+      "body": "Codon table is degenerate — most amino acids have multiple codons. The third position (the 'wobble') is particularly flexible. Selection favors mutations at the wobble that preserve the amino acid (silent mutations). Result: codon usage frequencies (which synonymous codon is preferred) correlate with tRNA abundance + expression level. Codon optimization is a routine step in heterologous gene expression (e.g., putting a human gene in E. coli)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_drp_codon",
+        "kind": "guided_derivation",
+        "question": "Derive codon count",
+        "goal": "How many triplet codons are there with 4 bases?",
+        "steps": [
+          {
+            "prompt": "Each position has 4 choices, 3 positions. Total combinations?",
+            "motivation": "Counting.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "64",
+                "4^3"
+              ]
+            },
+            "hints": [
+              "$4 \\times 4 \\times 4$."
+            ],
+            "reveal": "$4^3 = 64$."
+          }
+        ],
+        "finalResult": "$$\\boxed{4^3 = 64 \\text{ codons}}$$ Maps to 20 amino acids + 3 stops via the degenerate genetic code. The redundancy is what makes it robust to point mutations; the wobble position is where most synonymous variation lives."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The central dogma",
       "body": "**DNA → RNA → Protein**. The three molecular sequences carrying biological information.\n\n**DNA**: a string over the alphabet `{A, T, G, C}` (4 nucleotides). The genome stores all heritable instructions. Human genome: ~3 billion characters, organized into 23 pairs of chromosomes.\n\n**RNA**: similar to DNA but with `{A, U, G, C}` (uracil replaces thymine). Single-stranded; serves as a working copy of DNA. Messenger RNA (mRNA) carries instructions from DNA to the ribosome for protein synthesis.\n\n**Protein**: a string over `{A, R, N, D, C, E, Q, G, H, I, L, K, M, F, P, S, T, W, Y, V}` (20 amino acids). The functional molecules of life — enzymes, structural elements, signaling molecules.\n\n**The translation rule**: every 3 DNA bases (a 'codon') maps to one amino acid. The genetic code is universal (with minor exceptions). 4³ = 64 codons code for 20 amino acids + a stop signal — many codons map to the same amino acid (degeneracy).\n\n**Computational implication**: a 1500-base mRNA codes for a 500-amino-acid protein. Sequence relationships across DNA, RNA, and protein space are well-defined; you can convert between them deterministically. Tasks: predict mRNA → protein structure, infer DNA function from sequence, classify sequences by organism."
     },
@@ -35,6 +67,75 @@
       "kind": "text",
       "title": "Where the path goes",
       "body": "From here, the comp-bio path covers:\n\n- **Sequence alignment**: how related sequences are compared. The classical bioinformatics that ML built on.\n- **Phylogenetics**: inferring evolutionary trees from sequence.\n- **Protein structure**: from amino acids to 3D structure. The folding problem.\n- **AlphaFold**: how attention solved protein structure prediction.\n- **Protein language models**: ESM and friends. Transformer LMs for proteins.\n- **Single-cell RNA-seq**: how ML handles the 'high-dim, sparse, noisy' regime.\n- **Molecular dynamics**: simulating biomolecules atom-by-atom.\n- **Bio-ML evaluation**: benchmarks, contamination, leakage in bio-ML.\n\nThe through-line: biology's ML problems share substrate (sequences, structure, evolution) but each task adapts the substrate differently. A protein language model's tokenizer is char-level; a phylogenetics method uses pairwise distances; AlphaFold combines a transformer with a structural decoder. One field; many specialized recipes.\n\nKey takeaways:\n- DNA / RNA / protein are sequences; the central dogma maps between them deterministically\n- Per-character tokenization is the protein-LM standard\n- Long-context biology is an active research area (genomes are millions of bases)\n- Each comp-bio task has its own structural priors that adapt generic ML methods\n- The next lesson is sequence alignment — classical bioinformatics that ML methods are now superseding"
+    },
+    {
+      "kind": "text",
+      "title": "Central dogma + the 20-letter alphabet",
+      "body": "**Central dogma**: DNA → RNA → protein. DNA stores; RNA transports; protein folds and acts.\n\n**Codon table**: triplets of DNA bases (codons) map to amino acids. 4 bases (A, T, C, G) × 3 positions = 64 possible codons, mapping to 20 amino acids + 3 stop codons. Codon degeneracy: most amino acids have multiple codons (e.g., leucine = 6 codons). The redundancy makes the code robust to point mutations on the third position.\n\n**The 20-letter alphabet**: each protein is a sequence over {A, R, N, D, C, Q, E, G, H, I, L, K, M, F, P, S, T, W, Y, V} — one letter per amino acid. A 300-residue protein is a 300-character string. This is what protein language models (ESM, ProGen) treat as input — exactly like text, but with a smaller alphabet.\n\nML-wise: every method developed for sequences works on proteins (transformers, contrastive learning, retrieval). The biological-specificity comes from the fact that the 'language' encodes 3D structure + biochemistry, not human-readable meaning."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_drp_codon",
+        "kind": "multiple_choice",
+        "question": "How many codons code for 20 amino acids + stop?",
+        "options": [
+          "20",
+          "60",
+          "64",
+          "256"
+        ],
+        "correctIndex": 2,
+        "explanation": "4 bases × 3 positions = $4^3 = 64$ possible codons. They map to 20 amino acids (with redundancy — most have multiple codons) + 3 stop codons. Codon degeneracy in the third position is what makes the genetic code robust to many point mutations."
+      },
+      "hints": [
+        "Each codon is 3 bases; each base has 4 possible values.",
+        "Total = $4^3$."
+      ],
+      "workedSolution": "Each codon is a triplet over 4 bases (A/T/C/G), so $4^3 = 64$ codons. 61 code for amino acids (with multiple codons mapping to the same amino acid — degeneracy), 3 are stop codons. This is the standard genetic code; mitochondria and a few odd organisms use minor variants.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_drp_seq",
+        "kind": "math_expression",
+        "question": "A protein has 250 amino acids. How long (in bases) is the mRNA coding region (excluding stop codon)?",
+        "acceptedAnswers": [
+          "750",
+          "250*3",
+          "750 bases"
+        ],
+        "hint": "Each amino acid is coded by 3 bases."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_drp_mutation",
+        "kind": "scenario",
+        "question": "Silent vs missense mutations",
+        "prompt": "A point mutation changes a codon from GCC to GCA. Both code for alanine. Why is this 'silent' — and why are such mutations more common than missense mutations under selection?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_drp",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why a protein language model (ESM) can be trained on protein sequences using the same masked-language-modeling objective as BERT was for text.",
+        "rubric": "Mentions that protein sequences are strings over a 20-letter alphabet; MLM predicts masked tokens from context, leveraging co-evolutionary signal between residues that contact in 3D."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "intro",
+    "objectives": [
+      "State the central dogma in one sentence.",
+      "Translate a DNA codon to an amino acid.",
+      "Recognize the 20-letter alphabet of proteins."
+    ],
+    "prereqs": []
+  }
 }

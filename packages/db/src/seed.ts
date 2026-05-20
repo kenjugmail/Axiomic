@@ -584,12 +584,28 @@ function seedExams() {
         .run();
 
       const questions: any[] = Array.isArray(sec.questions) ? sec.questions : [];
+      const ALLOWED_TYPES = new Set([
+        "multiple_choice",
+        "essay",
+        "grid_in",
+        "multi_select",
+      ]);
       for (let i = 0; i < questions.length; i++) {
         const q = questions[i];
         if (!q?.promptMd) continue;
-        const type = q.type === "essay" ? "essay" : "multiple_choice";
+        const type: string = ALLOWED_TYPES.has(q.type) ? q.type : "multiple_choice";
         if (type === "essay") {
           if (typeof q.rubricMd !== "string" || q.rubricMd.length === 0)
+            continue;
+        } else if (type === "grid_in") {
+          if (!Array.isArray(q.acceptedAnswers) || q.acceptedAnswers.length === 0)
+            continue;
+        } else if (type === "multi_select") {
+          if (
+            !Array.isArray(q.options) ||
+            !Array.isArray(q.correctIndexes) ||
+            q.correctIndexes.length < 1
+          )
             continue;
         } else {
           if (!Array.isArray(q?.options) || typeof q.correctIndex !== "number")
@@ -603,12 +619,32 @@ function seedExams() {
             type,
             difficulty: Number(q.difficulty) || 3,
             promptMd: String(q.promptMd),
+            passageMd: typeof q.passageMd === "string" ? q.passageMd : null,
             optionsJson: JSON.stringify(q.options ?? []),
             correctIndex:
               typeof q.correctIndex === "number" ? q.correctIndex : 0,
             rubricMd: type === "essay" ? String(q.rubricMd) : null,
             maxEssayScore:
               type === "essay" ? Number(q.maxEssayScore) || 6 : null,
+            acceptedAnswersJson:
+              type === "grid_in"
+                ? JSON.stringify(q.acceptedAnswers.map((s: unknown) => String(s)))
+                : null,
+            tolerance:
+              type === "grid_in" && typeof q.tolerance === "number"
+                ? q.tolerance
+                : null,
+            correctIndexesJson:
+              type === "multi_select"
+                ? JSON.stringify(
+                    (q.correctIndexes as number[]).map((n) => Number(n)),
+                  )
+                : null,
+            imageUrl: typeof q.imageUrl === "string" ? q.imageUrl : null,
+            metaJson:
+              q.meta && typeof q.meta === "object"
+                ? JSON.stringify(q.meta)
+                : null,
             explanationMd: q.explanationMd ?? "",
             topicTagsJson: JSON.stringify(
               Array.isArray(q.topicTags) ? q.topicTags : [],
@@ -1913,6 +1949,110 @@ function seedMasteryPaths() {
       { slug: "auction-theory", title: "Auction Theory", level: "specialist", order: 7, pages: ["auction-theory", "vcg-auction"], prereqs: ["mechanism-design"], description: "First-price, second-price, VCG. The most-deployed application of mechanism design." },
       { slug: "multi-agent-rl", title: "Multi-Agent Reinforcement Learning", level: "expert", order: 8, pages: ["multi-agent-rl", "self-play"], prereqs: ["nash-equilibrium"], description: "Self-play, opponent modeling, population-based training. Bridge to the reinforcement-learner path." },
       { slug: "alignment-game-theory", title: "Alignment as Game Theory", level: "expert", order: 9, pages: ["principal-agent"], prereqs: ["mechanism-design", "multi-agent-rl"], description: "Mesa-optimization, principal-agent problems, why incentive structures determine outcomes more than capabilities. The frontier connection." },
+    ],
+  });
+
+  // P5 — Networking path. The network-stack foundation:
+  // IP/TCP/UDP, HTTP/REST, TLS, DNS, CDNs, load balancers,
+  // QUIC/HTTP3, network failure modes. Sits beneath every
+  // distributed system.
+  seedMasteryPath({
+    slug: "networking",
+    title: "Networking",
+    description:
+      "From IP+TCP through HTTP/REST, TLS 1.3, DNS, CDNs, load balancing, QUIC + HTTP/3, and network failure modes. The network-stack foundation under every distributed system.",
+    nodes: [
+      { slug: "ip-and-tcp", title: "IP + TCP", level: "apprentice", order: 1, pages: ["ip-tcp", "bandwidth-delay-product"], prereqs: [], description: "Layer responsibilities, three-way handshake, congestion control, BDP." },
+      { slug: "http-and-rest", title: "HTTP & REST", level: "apprentice", order: 2, pages: ["http", "rest-conventions"], prereqs: ["ip-and-tcp"], description: "Methods, status codes, caching headers, idempotency in API design." },
+      { slug: "tls-handshake", title: "TLS 1.3", level: "practitioner", order: 3, pages: ["tls13", "0-rtt"], prereqs: ["ip-and-tcp"], description: "TLS 1.3 handshake, cipher suites, 0-RTT, post-quantum migration." },
+      { slug: "dns", title: "DNS", level: "apprentice", order: 4, pages: ["dns", "ttl-propagation"], prereqs: [], description: "Resolution path, record types, TTL + propagation, DNSSEC, amplification attacks." },
+      { slug: "cdns-and-caching", title: "CDNs & Edge Caching", level: "practitioner", order: 5, pages: ["cdn", "cache-headers"], prereqs: ["http-and-rest", "dns"], description: "Topology, push vs pull, versioned URLs vs purge, hit-ratio math." },
+      { slug: "load-balancing", title: "Load Balancing", level: "practitioner", order: 6, pages: ["load-balancing", "consistent-hashing"], prereqs: ["ip-and-tcp"], description: "L4 vs L7, algorithms, health checks, service-mesh patterns." },
+      { slug: "quic-and-http3", title: "QUIC & HTTP/3", level: "specialist", order: 7, pages: ["quic", "http3"], prereqs: ["tls-handshake"], description: "UDP-based transport, 0-RTT setup, connection migration, no head-of-line blocking." },
+      { slug: "network-failure-modes", title: "Network Failure Modes", level: "expert", order: 8, pages: ["timeouts", "circuit-breaker", "retry-backoff-jitter"], prereqs: ["ip-and-tcp", "load-balancing"], description: "Common failures, timeout discipline, retry + backoff + jitter, circuit breakers, deadline propagation." },
+    ],
+  });
+
+  // P4 — Database Internals path. Sits beneath data-engineer +
+  // distributed-systems. The 'how does the database actually work'
+  // foundation: storage engines, indexes, transactions, concurrency,
+  // optimization, recovery, distribution.
+  seedMasteryPath({
+    slug: "database-internals",
+    title: "Database Internals",
+    description:
+      "Storage engines, B-trees + LSM-trees, ACID transactions, MVCC, query optimization, WAL + crash recovery, and distributed-storage architectures. The 'how does the database actually work' foundation.",
+    nodes: [
+      { slug: "storage-engines", title: "Storage Engines: B-tree vs LSM", level: "apprentice", order: 1, pages: ["storage-engines", "b-tree-vs-lsm"], prereqs: [], description: "Two dominant engine families + the read/write/space amplification trade-offs." },
+      { slug: "b-tree-indexes", title: "B+ Tree Indexes", level: "practitioner", order: 2, pages: ["b-plus-tree", "covering-index"], prereqs: ["storage-engines"], description: "Fan-out, height, leaf-linking, index-only scans, covering indexes." },
+      { slug: "lsm-trees", title: "LSM Trees in Detail", level: "practitioner", order: 3, pages: ["lsm-tree", "bloom-filter", "compaction"], prereqs: ["storage-engines"], description: "Memtable → SSTable → compaction. Leveled vs tiered. Bloom filters." },
+      { slug: "transactions-acid", title: "ACID Transactions", level: "practitioner", order: 4, pages: ["acid", "isolation-levels", "ssi"], prereqs: ["storage-engines"], description: "ACID, isolation levels + their anomalies, Serializable Snapshot Isolation (SSI)." },
+      { slug: "mvcc", title: "Multi-Version Concurrency Control", level: "practitioner", order: 5, pages: ["mvcc", "vacuum"], prereqs: ["transactions-acid"], description: "Readers don't block writers; the cost is VACUUM + bloat management." },
+      { slug: "query-optimizer", title: "Query Optimizer", level: "specialist", order: 6, pages: ["query-optimizer", "join-order", "cardinality-estimation"], prereqs: ["b-tree-indexes"], description: "Cost-based optimization, join order, cardinality estimation, reading EXPLAIN plans." },
+      { slug: "wal-recovery", title: "WAL + Crash Recovery", level: "specialist", order: 7, pages: ["wal", "aries-recovery", "checkpoint"], prereqs: ["transactions-acid"], description: "Write-ahead log invariant, ARIES recovery, checkpoint tuning, point-in-time recovery." },
+      { slug: "distributed-storage", title: "Distributed Storage", level: "expert", order: 8, pages: ["shared-nothing", "consensus-replication", "data-placement"], prereqs: ["mvcc", "wal-recovery"], description: "Shared-nothing vs shared-disk, consensus + replication, partitioning, real distributed DBs." },
+    ],
+  });
+
+  // P3 — Distributed Systems path. The foundation under any
+  // multi-node service — ML training infra, data pipelines,
+  // production serving. Sits beneath data-engineer + systems-engineer.
+  seedMasteryPath({
+    slug: "distributed-systems",
+    title: "Distributed Systems",
+    description:
+      "From CAP through consensus, replication, partitioning, distributed transactions, eventual consistency, failure modes, and observability. The foundation under every multi-node service — ML training infra, data pipelines, production serving.",
+    nodes: [
+      { slug: "cap-theorem", title: "CAP & PACELC", level: "apprentice", order: 1, pages: ["cap-theorem", "pacelc"], prereqs: [], description: "C vs A during partition, the practical PACELC refinement, picking the right posture per subsystem." },
+      { slug: "consensus-raft", title: "Consensus & Raft", level: "practitioner", order: 2, pages: ["raft", "consensus"], prereqs: ["cap-theorem"], description: "Raft's leader election + log replication, quorum arithmetic, when 5 nodes beats 7." },
+      { slug: "replication-strategies", title: "Replication Strategies", level: "practitioner", order: 3, pages: ["replication"], prereqs: ["consensus-raft"], description: "Sync vs async vs semi-sync; single-leader vs multi-leader vs leaderless; latency-vs-durability." },
+      { slug: "partitioning-sharding", title: "Partitioning & Sharding", level: "practitioner", order: 4, pages: ["partitioning", "consistent-hashing"], prereqs: ["replication-strategies"], description: "Range vs hash, consistent hashing, hot partitions + how to spot + fix them." },
+      { slug: "distributed-transactions", title: "Distributed Transactions", level: "specialist", order: 5, pages: ["two-phase-commit", "saga-pattern", "idempotency-keys"], prereqs: ["consensus-raft"], description: "2PC's blocking problem, sagas + compensating actions, idempotency keys as the modern reliability discipline." },
+      { slug: "eventual-consistency-crdts", title: "Eventual Consistency & CRDTs", level: "specialist", order: 6, pages: ["eventual-consistency", "crdt"], prereqs: ["replication-strategies"], description: "The consistency spectrum, CRDTs for conflict-free convergence, where they shine (collaborative editing) and where they don't." },
+      { slug: "failure-modes", title: "Failure Modes", level: "expert", order: 7, pages: ["failure-modes", "circuit-breaker"], prereqs: ["consensus-raft"], description: "Fail-stop vs Byzantine vs gray failures, retry storms, circuit breakers, cascading failure mitigation." },
+      { slug: "distributed-tracing", title: "Distributed Tracing & Observability", level: "expert", order: 8, pages: ["distributed-tracing", "opentelemetry"], prereqs: ["failure-modes"], description: "Traces / metrics / logs, OpenTelemetry, propagation, sampling. The discipline that makes cross-service debugging tractable." },
+    ],
+  });
+
+  // P2 — Data Engineer path. The data-plumbing discipline every
+  // ML / analytics team eventually needs: modeling, ETL/ELT, batch +
+  // streaming, warehousing, orchestration, quality, ML feature
+  // pipelines.
+  seedMasteryPath({
+    slug: "data-engineer",
+    title: "Data Engineer",
+    description:
+      "From data modeling through ETL/ELT, batch + streaming, warehousing, orchestration, data quality, and ML feature pipelines. The plumbing discipline every data-using team eventually needs.",
+    nodes: [
+      { slug: "data-modeling", title: "Data Modeling", level: "apprentice", order: 1, pages: ["data-modeling", "star-schema"], prereqs: [], description: "OLTP vs OLAP, 3NF, star schema. The structural choices that decide whether your queries scale." },
+      { slug: "etl-fundamentals", title: "ETL & ELT Fundamentals", level: "apprentice", order: 2, pages: ["etl-elt", "idempotency"], prereqs: ["data-modeling"], description: "Extract / Load / Transform, idempotency, late data. The modern data stack's ground rules." },
+      { slug: "batch-processing-spark", title: "Batch Processing & Spark", level: "practitioner", order: 3, pages: ["spark", "shuffles"], prereqs: ["etl-fundamentals"], description: "Narrow vs wide transformations, shuffles, when warehouse-SQL beats Spark." },
+      { slug: "streaming-kafka", title: "Streaming & Kafka", level: "practitioner", order: 4, pages: ["kafka", "stream-processing"], prereqs: ["etl-fundamentals"], description: "Log-based architecture, at-least-once vs exactly-once, when streaming beats batch." },
+      { slug: "data-warehousing", title: "Data Warehousing", level: "practitioner", order: 5, pages: ["warehouse", "columnar-storage", "lakehouse"], prereqs: ["data-modeling"], description: "Columnar storage, warehouse vs lake vs lakehouse, cloud-warehouse cost reasoning." },
+      { slug: "orchestration-airflow", title: "Orchestration with Airflow", level: "practitioner", order: 6, pages: ["airflow", "dags"], prereqs: ["etl-fundamentals"], description: "DAGs, operators, sensors, the common anti-patterns. The orchestrator everyone uses." },
+      { slug: "data-quality-testing", title: "Data Quality & Testing", level: "specialist", order: 7, pages: ["data-quality", "data-contracts"], prereqs: ["etl-fundamentals"], description: "Schema tests, anomaly tests, contract tests. Catching silent corruption before it costs you." },
+      { slug: "ml-feature-pipelines", title: "ML Feature Pipelines", level: "expert", order: 8, pages: ["feature-store", "train-serve-skew"], prereqs: ["batch-processing-spark", "data-quality-testing"], description: "Online vs offline serving, train/serve skew, feature stores. Where data engineering meets ML in production." },
+    ],
+  });
+
+  // P1 — Security Engineer path. The defensive-engineering half of
+  // every shipping system: threat modeling, crypto, web security,
+  // identity, plus the security-on-ML frontier (adversarial ML,
+  // privacy-preserving ML, IR).
+  seedMasteryPath({
+    slug: "security-engineer",
+    title: "Security Engineer",
+    description:
+      "From threat modeling through crypto, web security, identity, adversarial ML, privacy-preserving ML, and incident response. The defensive-engineering half of every shipping system.",
+    nodes: [
+      { slug: "threat-modeling", title: "Threat Modeling", level: "apprentice", order: 1, pages: ["threat-modeling"], prereqs: [], description: "STRIDE, trust boundaries, attack surface. Articulating assumptions before they're broken." },
+      { slug: "symmetric-crypto", title: "Symmetric Cryptography", level: "apprentice", order: 2, pages: ["symmetric-crypto", "aead"], prereqs: ["threat-modeling"], description: "AES, ChaCha20, AEAD discipline, nonce hygiene. The fast half of every secure protocol." },
+      { slug: "asymmetric-crypto", title: "Asymmetric Cryptography", level: "apprentice", order: 3, pages: ["asymmetric-crypto", "diffie-hellman"], prereqs: ["symmetric-crypto"], description: "RSA, ECC, Diffie-Hellman, post-quantum. Key distribution + signatures + the migration ahead." },
+      { slug: "web-security", title: "Web Security", level: "practitioner", order: 4, pages: ["web-security", "owasp-top-10"], prereqs: ["threat-modeling"], description: "OWASP Top 10, XSS vs CSRF, Content-Security-Policy, secure-by-default frameworks." },
+      { slug: "authentication-auth", title: "Authentication & Authorization", level: "practitioner", order: 5, pages: ["oidc", "oauth-2", "webauthn"], prereqs: ["asymmetric-crypto"], description: "OIDC + OAuth 2, MFA, WebAuthn, JWT, the principle of least privilege." },
+      { slug: "adversarial-ml", title: "Adversarial ML", level: "specialist", order: 6, pages: ["adversarial-examples", "prompt-injection"], prereqs: ["threat-modeling"], description: "Evasion, poisoning, extraction. Adversarial examples + prompt injection + the empirical defense practice." },
+      { slug: "privacy-preserving-ml", title: "Privacy-Preserving ML", level: "specialist", order: 7, pages: ["differential-privacy", "federated-learning"], prereqs: ["adversarial-ml"], description: "Differential privacy, DP-SGD, federated learning, secure aggregation. The formal-guarantee half of privacy engineering." },
+      { slug: "security-incident-response", title: "Security Incident Response", level: "expert", order: 8, pages: ["incident-response", "blameless-postmortems"], prereqs: ["threat-modeling"], description: "Detection → containment → eradication → recovery → blameless review. The discipline that turns inevitable incidents into long-term improvements." },
     ],
   });
 

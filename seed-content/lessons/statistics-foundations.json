@@ -7,6 +7,74 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: confidence interval vs credible interval",
+      "body": "Toss a coin 100 times, see 60 heads. Estimate the bias.\n\n**Frequentist (Wald CI)**: $\\hat p = 0.6$; standard error $\\sqrt{\\hat p(1-\\hat p)/n} = \\sqrt{0.24/100} = 0.049$. 95% CI: $0.6 \\pm 1.96 \\cdot 0.049 \\approx [0.504, 0.696]$. Interpretation: under repeated sampling, this construction covers the true $p$ 95% of the time.\n\n**Bayesian (Beta-Binomial)** with uniform prior $\\text{Beta}(1,1)$: posterior is $\\text{Beta}(61, 41)$, mean $= 61/102 \\approx 0.598$. 95% credible interval $\\approx [0.504, 0.690]$. Interpretation: given the data, the probability $p$ lies in this interval is 95%.\n\nThe intervals are numerically similar but conceptually different. The Bayesian interpretation is the one most people *want* from a confidence interval — the frequentist one is more subtle."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_stats_mlegauss",
+        "kind": "guided_derivation",
+        "question": "Derive the MLE for a Gaussian mean",
+        "goal": "Given i.i.d. samples $x_1, \\dots, x_n \\sim \\mathcal{N}(\\mu, \\sigma^2)$ with known $\\sigma$, find $\\hat\\mu_{\\text{MLE}}$.",
+        "steps": [
+          {
+            "prompt": "Write the log-likelihood $\\ell(\\mu) = \\sum_i \\log p(x_i \\mid \\mu)$ using the Gaussian density. Up to a constant in $\\mu$, what's the form?",
+            "motivation": "Maximizing the log-likelihood is equivalent to maximizing the likelihood, and the log makes the product a sum.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$-\\frac{1}{2\\sigma^2}\\sum_i (x_i - \\mu)^2 + C$",
+                "$\\sum_i (x_i - \\mu) + C$",
+                "$\\prod_i (x_i - \\mu)$",
+                "$\\sum_i x_i^2 + C$"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Gaussian PDF: $p(x) \\propto \\exp(-(x-\\mu)^2/(2\\sigma^2))$.",
+              "Take the log; treat $\\mu$-free constants as $C$."
+            ],
+            "reveal": "$\\ell(\\mu) = -\\frac{1}{2\\sigma^2}\\sum_i (x_i - \\mu)^2 + C$ where $C$ doesn't depend on $\\mu$."
+          },
+          {
+            "prompt": "Take $\\partial \\ell / \\partial \\mu$ and set to zero. What equation does $\\hat\\mu$ satisfy?",
+            "motivation": "Critical point of a concave log-likelihood is the maximum.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "sum_i (x_i - mu) = 0",
+                "Σ_i (x_i - μ) = 0"
+              ]
+            },
+            "hints": [
+              "$\\partial/\\partial\\mu \\sum (x_i - \\mu)^2 = -2\\sum (x_i - \\mu)$."
+            ],
+            "reveal": "$\\sum_i (x_i - \\hat\\mu) = 0$."
+          },
+          {
+            "prompt": "Solve for $\\hat\\mu$ in terms of $x_i$ and $n$.",
+            "motivation": "Algebra: distribute the sum.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(1/n) sum x_i",
+                "sum(x_i)/n",
+                "(sum x_i)/n",
+                "mean(x)"
+              ]
+            },
+            "hints": [
+              "$\\sum x_i - n\\hat\\mu = 0$."
+            ],
+            "reveal": "$\\hat\\mu_{\\text{MLE}} = \\frac{1}{n}\\sum_i x_i$ — the sample mean."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\hat\\mu_{\\text{MLE}} = \\bar x = \\frac{1}{n}\\sum_i x_i}$$\n\nThe Gaussian's MLE for the mean is just the empirical mean. This is the basis for why 'compute the average' is so often the right starting point — it's the maximum-likelihood estimator for the most natural noise model."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Estimation",
       "body": "You have a sample `x_1, x_2, ..., x_n` from some distribution. You want to estimate properties of that distribution.\n\nSample mean: $\\bar{x} = \\frac{1}{n} \\sum_i x_i$ — your best guess for the population mean.\n\nSample variance: $s^2 = \\frac{1}{n-1} \\sum_i (x_i - \\bar{x})^2$. The `n-1` (not `n`) is Bessel's correction — using the sample mean instead of the true mean introduces a small bias that this correction removes.\n\n**Standard error** of the mean: $SE = s/\\sqrt{n}$. As n grows, the SE shrinks; you trust the estimate more.\n\n**Bias-variance tradeoff** in estimators: an estimator can be **unbiased** (correct on average) but high-variance (very noisy on any single sample), or **biased** (consistently off) but low-variance. The ideal is both unbiased and low-variance, but in practice you sometimes trade them off."
     },
@@ -61,6 +129,78 @@
       "kind": "text",
       "title": "What's next",
       "body": "Statistics is the bridge between probability theory and ML practice. The math foundations here connect to:\n\n- [[loss-functions]]: cross-entropy as MLE\n- [[gradient-descent]]: optimization on the log-likelihood surface\n- [[statistics-for-ml]]: applied statistics for evaluating models\n\nKey takeaways:\n- Sample statistics estimate population parameters; standard errors quantify uncertainty\n- MLE is the asymptotically efficient default for parameter estimation\n- p-values measure rarity under the null, NOT the probability of the alternative\n- Bayes' rule converts P(D|H) to P(H|D) — they're rarely equal"
+    },
+    {
+      "kind": "text",
+      "title": "The MLE for a coin's bias",
+      "body": "You flip a coin 10 times and get 7 heads. The likelihood of observing $k=7$ heads out of $n=10$ flips, as a function of the bias $p$, is\n\n$$L(p) = \\binom{10}{7}p^7(1-p)^3.$$\n\nTo maximize, take the log and set the derivative to zero. The closed form (after a short calculation) is\n\n$$\\hat p_{\\text{MLE}} = \\frac{k}{n} = \\frac{7}{10} = 0.7.$$\n\nThe MLE for a Bernoulli is just the empirical fraction. That fact — that the maximum-likelihood estimator equals the natural sample statistic — is what makes MLE such a useful starting point in practice."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_stats_mle",
+        "kind": "math_expression",
+        "question": "You flip a coin 20 times and get 12 heads. What is the MLE of the bias $p$ (as a decimal)?",
+        "acceptedAnswers": [
+          "0.6",
+          "12/20",
+          "3/5",
+          ".6"
+        ],
+        "hint": "MLE for a Bernoulli is the empirical proportion: heads / total."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_stats_ci",
+        "kind": "multiple_choice",
+        "question": "A 95% confidence interval for the mean comes out as $[2.1, 3.4]$. Which statement is *correct*?",
+        "options": [
+          "There's a 95% probability the true mean is between 2.1 and 3.4.",
+          "If we repeated this sampling procedure many times, 95% of constructed intervals would cover the true mean.",
+          "95% of the data lies between 2.1 and 3.4.",
+          "The true mean has a 95% chance of being a random number in that range."
+        ],
+        "correctIndex": 1,
+        "explanation": "In the frequentist framework the true mean is fixed; randomness lives in the interval, not the parameter. So a 95% CI is about coverage frequency under repeated sampling — the standard textbook gotcha."
+      },
+      "hints": [
+        "In the frequentist worldview, the parameter is fixed — only the data (and the interval derived from it) is random.",
+        "Cross out any reading that puts a probability on the parameter itself."
+      ],
+      "workedSolution": "A confidence interval is a random object (it depends on the sample). The repeated-sampling interpretation in option B is the only correct frequentist reading. The other three either flip probability onto the parameter or confuse a CI with a prediction interval.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_stats_pvalue",
+        "kind": "scenario",
+        "question": "Misreading a p-value",
+        "prompt": "An analyst reports $p = 0.03$ on a model-vs-baseline comparison and concludes 'there's a 3% probability the null hypothesis is true.' Why is that wrong, and what's the correct one-sentence interpretation?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_stats",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why MLE is so natural that it tends to coincide with familiar sample statistics (sample mean, sample proportion, sample variance with the MLE-flavored denominator).",
+        "rubric": "Mentions that maximizing the likelihood for canonical exponential-family models reduces to matching moments / proportions to the data."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "intro",
+    "objectives": [
+      "Compute a maximum-likelihood estimator on a small example.",
+      "Read a confidence interval correctly — and recognize the common misreading.",
+      "Run a basic two-sample hypothesis test and interpret the p-value."
+    ],
+    "prereqs": [
+      "probability-foundations"
+    ]
+  }
 }

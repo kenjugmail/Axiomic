@@ -7,6 +7,55 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: orbital mechanics + energy conservation",
+      "body": "A satellite orbits Earth in a circular orbit at radius $r$. Total energy:\n\n$$E = \\frac{1}{2}m v^2 - \\frac{GMm}{r}.$$\n\nFor a circular orbit, gravity provides the centripetal force: $GMm/r^2 = mv^2/r$, so $v^2 = GM/r$.\n\nSubstitute: $E = \\frac{1}{2}m(GM/r) - GMm/r = -\\frac{1}{2}GMm/r$.\n\nThe orbital energy is half the (negative) gravitational potential — a famous result. To escape Earth ($E = 0$), you need $v_{\\text{esc}} = \\sqrt{2GM/r}$ — exactly $\\sqrt 2$ times the circular orbital velocity. That ratio is why escape velocity from low orbit ($\\sim 11.2$ km/s) is much closer to orbital velocity ($\\sim 7.9$ km/s) than people expect."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mech_kineq",
+        "kind": "guided_derivation",
+        "question": "Derive $v_f^2 = v_i^2 + 2as$ from $v = dx/dt$",
+        "goal": "Start with constant acceleration $a$ and derive the kinematic equation linking final velocity, initial velocity, and displacement.",
+        "steps": [
+          {
+            "prompt": "Constant acceleration: $a = dv/dt$. Use the chain rule to rewrite as $a = (dv/dx)(dx/dt) = v\\,dv/dx$. Then integrate $a\\,dx = v\\,dv$ from $x = 0$ to $s$ on the left, and $v = v_i$ to $v_f$ on the right. What do you get?",
+            "motivation": "The chain-rule trick converts time-derivatives to position-derivatives.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "a s = (v_f^2 - v_i^2)/2",
+                "as = (v_f^2 - v_i^2)/2"
+              ]
+            },
+            "hints": [
+              "Left side: $\\int_0^s a\\,dx = a s$ (since $a$ is constant).",
+              "Right side: $\\int_{v_i}^{v_f} v\\,dv = (v_f^2 - v_i^2)/2$."
+            ],
+            "reveal": "$a s = (v_f^2 - v_i^2)/2$."
+          },
+          {
+            "prompt": "Solve for $v_f^2$.",
+            "motivation": "Algebra.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "v_i^2 + 2 a s",
+                "v_i^2 + 2as",
+                "2as + v_i^2"
+              ]
+            },
+            "hints": [
+              "Multiply both sides by 2, then add $v_i^2$."
+            ],
+            "reveal": "$v_f^2 = v_i^2 + 2as$."
+          }
+        ],
+        "finalResult": "$$\\boxed{v_f^2 = v_i^2 + 2as}$$\n\nOne of the three constant-acceleration kinematic equations. Notice we never solved for $v(t)$ explicitly — by working in position, the answer comes out cleanly. The chain-rule trick $a = v\\,dv/dx$ is a frequent shortcut whenever an equation of motion is written in terms of $x$ rather than $t$."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Newton's laws",
       "body": "Newton's three laws are the spine of classical mechanics:\n\n**1. Inertia.** A body at rest stays at rest; a body in motion continues at constant velocity, unless acted on by a force.\n\n**2. F = ma.** The acceleration of a body is proportional to the net force, inversely proportional to its mass. In modern notation:\n\n$$\\vec{F} = m\\frac{d^2\\vec{x}}{dt^2}$$\n\n**3. Action-reaction.** For every force, an equal and opposite force on the other body.\n\nFrom these three, you can derive the entire mechanics of point particles. Things get more elaborate (rigid bodies, fluids, fields) but the foundation is `F = ma`."
     },
@@ -40,6 +89,76 @@
       "kind": "text",
       "title": "What's next",
       "body": "Mechanics foundations gives you the vocabulary: positions, velocities, forces, energy, conservation. The next physics lessons build on this:\n\n- [[oscillations]] — simple harmonic motion, damped + driven oscillators, resonance\n- [[phase-space]] — visualizing dynamics in (x, p) space, fixed points, stability\n- [[lagrangian-mechanics]] — generalizing Newton via least action\n- [[chaos-and-sensitivity]] — when deterministic systems become unpredictable\n- [[statistical-mechanics]] — moving from one particle to many (the microscale → macroscale link)\n- [[entropy-and-information]] — connecting Boltzmann's H to Shannon's H\n\nKey takeaways:\n- Newton's three laws are the foundation: F = ma is the workhorse\n- Conservation laws (momentum, energy, angular momentum) come from symmetries\n- Energy as kinetic + potential, with the Lagrangian L = T - U as the unifying object\n- Mechanics intuitions transfer to ML training: loss as potential, optimization as motion"
+    },
+    {
+      "kind": "text",
+      "title": "Conservation is your shortcut",
+      "body": "A 2 kg block slides down a frictionless ramp from height 5 m. What's its speed at the bottom?\n\nThe Newton-force-diagram approach: decompose gravity along the ramp, integrate $a = g \\sin\\theta$ over the path length. Works, but tedious.\n\nConservation of energy: $mgh = \\tfrac12 m v^2 \\Rightarrow v = \\sqrt{2gh} = \\sqrt{2 \\cdot 9.8 \\cdot 5} \\approx 9.9$ m/s. Two lines.\n\nWhenever a problem says 'frictionless' or 'collision' or 'pendulum reaches what height', reach for conservation first. Newton's $F = ma$ is the foundation, but its integrated forms (energy and momentum conservation) are the practical workhorses."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mech_v",
+        "kind": "math_expression",
+        "question": "Block of mass $m = 4$ kg slides from height $h = 1.25$ m (frictionless). Use $g = 10$ m/s² and conservation of energy to find the speed at the bottom (m/s).",
+        "acceptedAnswers": [
+          "5",
+          "5.0",
+          "sqrt(25)",
+          "5 m/s"
+        ],
+        "hint": "$v = \\sqrt{2gh}$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mech_collision",
+        "kind": "multiple_choice",
+        "question": "Two carts on a frictionless track. Cart A (mass 2 kg) moves at 3 m/s into stationary cart B (mass 1 kg) and they stick together. What's the final velocity of the combined pair?",
+        "options": [
+          "1.0 m/s",
+          "2.0 m/s",
+          "3.0 m/s",
+          "Cannot tell without more info"
+        ],
+        "correctIndex": 1,
+        "explanation": "Conservation of momentum: $(2)(3) + (1)(0) = (3)(v_f)$, so $v_f = 2$ m/s. Note kinetic energy is NOT conserved (this is an inelastic collision) — momentum is."
+      },
+      "hints": [
+        "In any collision, momentum is conserved.",
+        "Sticky collision = perfectly inelastic. KE is lost; momentum isn't."
+      ],
+      "workedSolution": "Apply $p_{\\text{before}} = p_{\\text{after}}$: $m_A v_A = (m_A + m_B) v_f$, so $v_f = (2)(3) / 3 = 2$ m/s. Kinetic energy before is $9$ J; after is $6$ J — $3$ J went to deformation/heat in the sticking. Don't apply energy conservation across inelastic collisions.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mech_collision",
+        "kind": "scenario",
+        "question": "Why energy conservation fails",
+        "prompt": "A teammate uses energy conservation to predict the speed of two colliding clay balls that stick. Their answer is off by 30%. What did they assume that they shouldn't have?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mech",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why momentum is conserved in any collision but kinetic energy isn't.",
+        "rubric": "Mentions that momentum conservation follows from Newton's third law (forces in collision are internal and cancel pairwise); KE can be lost to heat, sound, deformation — all microscopic degrees of freedom not tracked in the macroscopic momentum balance."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Apply Newton's three laws to a force diagram.",
+      "Compute kinetic and potential energy for a simple system.",
+      "Use conservation of momentum + energy to short-circuit a calculation."
+    ],
+    "prereqs": []
+  }
 }

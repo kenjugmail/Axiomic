@@ -7,6 +7,54 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: A/B testing the Bayesian way",
+      "body": "Two variants of a button. Variant A: 50 clicks / 1000 impressions. Variant B: 60 clicks / 1000.\n\n**Frequentist**: compute $p$-value from a two-proportion z-test. Get $p \\approx 0.27$ — not significant at 0.05.\n\n**Bayesian**: with Beta(1,1) priors, posteriors are Beta(51, 951) for A and Beta(61, 941) for B. Sample from both and compute $P(\\theta_B > \\theta_A) \\approx 84\\%$. Posterior expected lift: $\\approx 1\\%$.\n\nThe Bayesian framing answers 'how likely is B better' directly. The frequentist framing answers 'how unlikely is this difference under the null'. Both have their place; modern A/B platforms increasingly report both."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bayes_betabin",
+        "kind": "guided_derivation",
+        "question": "Derive Beta-Binomial conjugacy",
+        "goal": "Prior $p \\sim \\text{Beta}(\\alpha, \\beta)$, observe $k$ successes in $n$ trials. Derive posterior.",
+        "steps": [
+          {
+            "prompt": "Beta prior: $p(p) \\propto p^{\\alpha-1}(1-p)^{\\beta-1}$. Binomial likelihood: $p(k|p) \\propto p^k(1-p)^{n-k}$. Multiply to get $p(p|k) \\propto$ what?",
+            "motivation": "Bayes + multiply by likelihood.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "p^(alpha+k-1) (1-p)^(beta+n-k-1)",
+                "p^{α+k-1}(1-p)^{β+n-k-1}"
+              ]
+            },
+            "hints": [
+              "Combine exponents: $p^{\\alpha-1} \\cdot p^k = p^{\\alpha+k-1}$; similarly for $(1-p)$."
+            ],
+            "reveal": "$p(p|k) \\propto p^{\\alpha+k-1}(1-p)^{\\beta+n-k-1}$."
+          },
+          {
+            "prompt": "Recognize this as Beta with which parameters?",
+            "motivation": "Match the exponents to the Beta kernel.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Beta(alpha+k, beta+n-k)",
+                "Beta(α+k, β+n-k)"
+              ]
+            },
+            "hints": [
+              "Beta$(\\alpha', \\beta')$ has kernel $p^{\\alpha'-1}(1-p)^{\\beta'-1}$.",
+              "Match exponents."
+            ],
+            "reveal": "$\\text{Beta}(\\alpha+k, \\beta+n-k)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{p \\,|\\, k \\sim \\text{Beta}(\\alpha + k, \\beta + n - k)}$$\n\nThe Beta family is closed under Bernoulli observations — posterior stays Beta. This is *conjugacy*: prior + likelihood from conjugate families produces a posterior in the same family as the prior. Closed-form Bayesian updating with no MCMC needed. Other conjugate pairs: Gaussian-Gaussian, Gamma-Poisson, Dirichlet-Multinomial."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Priors, likelihoods, posteriors",
       "body": "**Prior `p(θ)`**: your belief about θ *before* seeing data. Encodes domain knowledge.\n\n**Likelihood `p(data | θ)`**: how data is generated given θ. The same likelihood frequentists use for MLE.\n\n**Posterior `p(θ | data)`**: belief after data, via Bayes' rule.\n\n**Conjugate priors**: when prior and likelihood combine to give a posterior in the same family. Simple closed-form math. Examples:\n- Beta prior + Bernoulli likelihood → Beta posterior. (For estimating a probability.)\n- Gaussian prior + Gaussian likelihood → Gaussian posterior. (For estimating a mean with known variance.)\n- Gamma prior + Poisson likelihood → Gamma posterior. (For estimating a rate.)\n\nNon-conjugate cases: most modern Bayesian inference. Need numerical methods (MCMC, variational inference).\n\n**Improper priors**: priors that don't integrate to 1 (e.g., uniform over the real line). Often used for 'objective' Bayesian inference. The posterior is still proper if the likelihood is well-behaved.\n\n**Subjective vs objective priors**: subjective priors encode actual prior beliefs. Objective priors (Jeffreys, reference) try to be 'minimally informative'. For most ML applications, weakly-informative priors (broad enough to not bias the posterior much; tight enough to regularize small data) are the right default."
     },
@@ -61,6 +109,78 @@
       "kind": "text",
       "title": "What's next",
       "body": "Bayesian inference is the alternative paradigm. Next: experimental design — how to plan studies that actually answer your question.\n\nNext: [[experiment-design]] — power analysis, randomization, blocking.\n\nKey takeaways:\n- Bayesian: posterior `p(θ | data)` = prior × likelihood / evidence\n- Conjugate priors give closed-form posteriors; non-conjugate needs MCMC or VI\n- MCMC: sample from posterior. NUTS (in Stan / PyMC) is the modern standard\n- VI: approximate posterior via parametric family. Faster; can underestimate variance\n- Bayesian wins for: small data, hierarchical structure, sequential learning, decision-under-uncertainty"
+    },
+    {
+      "kind": "text",
+      "title": "Beta-Binomial, the cleanest example",
+      "body": "Prior: $p \\sim \\text{Beta}(\\alpha, \\beta)$ — represents your belief about the bias of a coin before any data.\n\nLikelihood: observe $k$ heads in $n$ flips, $k \\sim \\text{Binomial}(n, p)$.\n\nPosterior: $p \\,|\\, k, n \\sim \\text{Beta}(\\alpha + k, \\beta + n - k)$. **Conjugate**: the posterior is in the same family as the prior.\n\nStart with $\\text{Beta}(1,1)$ (uniform); observe 7 heads in 10 flips. Posterior: $\\text{Beta}(8, 4)$, with mean $8/12 \\approx 0.667$.\n\nNotice how the prior 'counts as data': a $\\text{Beta}(2,2)$ prior would shift the posterior to $\\text{Beta}(9, 5)$, mean $\\approx 0.643$. Strong priors require more data to overcome."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bayes_ci",
+        "kind": "multiple_choice",
+        "question": "A 95% Bayesian credible interval $[0.2, 0.6]$ for parameter $\\theta$ means:",
+        "options": [
+          "Given the data, there is a 95% probability that $\\theta$ lies in [0.2, 0.6], under your prior.",
+          "If you repeat the experiment many times, 95% of intervals will contain $\\theta$.",
+          "$\\theta$ is exactly 0.4.",
+          "95% of the data lies between 0.2 and 0.6."
+        ],
+        "correctIndex": 0,
+        "explanation": "A credible interval IS a probability statement about the parameter — exactly the statement frequentist CIs cannot make. It depends on the prior and is the Bayesian counterpart to the frequentist CI's repeated-sampling interpretation."
+      },
+      "hints": [
+        "Compare to the frequentist CI 'gotcha' from the stats-foundations lesson — credible intervals fix that gap.",
+        "Bayesian framework allows probability statements about parameters because parameters have distributions."
+      ],
+      "workedSolution": "A credible interval is a probability statement about the parameter $\\theta$, conditional on the observed data and the prior: $P(\\theta \\in [0.2, 0.6] \\,|\\, \\text{data}, \\text{prior}) = 0.95$. That's the intuitive reading people *want* a CI to have, and it's what Bayesian inference actually provides.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_bayes_post",
+        "kind": "math_expression",
+        "question": "Prior $\\text{Beta}(1,1)$, observe 30 heads in 50 flips. The posterior mean is $(\\alpha+k)/(\\alpha+\\beta+n)$. Compute it.",
+        "acceptedAnswers": [
+          "31/52",
+          "0.596",
+          "0.5962",
+          ".596"
+        ],
+        "hint": "Posterior is Beta(1+30, 1+20)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_bayes_prior",
+        "kind": "scenario",
+        "question": "How strong is your prior?",
+        "prompt": "You're estimating the click-through rate of a new ad variant. You have 50 clicks in 1000 impressions. A skeptical PM says 'CTR for our product is historically 4±0.5%, that's basically certain.' How would you encode this prior, and how much would it shift your posterior mean?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_bayes",
+        "kind": "explain_back",
+        "prompt": "Explain in three sentences when you'd reach for Bayesian inference over frequentist, and when the reverse.",
+        "rubric": "Mentions Bayesian wins when (i) priors are informative + defensible, (ii) you need probability statements about parameters; frequentist wins when (i) no defensible prior, (ii) regulatory environment expects classical procedures, (iii) computation must be cheap."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "core",
+    "objectives": [
+      "Apply Bayes' rule to update a prior with a small dataset.",
+      "Distinguish a credible interval from a confidence interval.",
+      "Recognize when conjugacy makes inference closed-form."
+    ],
+    "prereqs": [
+      "frequentist-foundations"
+    ]
+  }
 }

@@ -1,0 +1,128 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Distinguish IP from TCP responsibilities.",
+      "Explain TCP reliable delivery via ACK + retransmit.",
+      "Recognize congestion control's role in network stability."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The IP+TCP layer cake",
+      "body": "The internet's layered architecture:\n\n- **IP (Internet Protocol)**: addressing + routing. Best-effort delivery — packets may be lost, reordered, duplicated, or arrive in any order. No connection state. Stateless routers forward based on destination IP + routing tables.\n- **TCP (Transmission Control Protocol)**: reliable, ordered byte streams on top of IP. Connection state: sequence numbers, ACKs, retransmits, congestion control. Builds reliability from unreliable parts.\n\nWhy this layering: IP keeps routers simple (stateless, fast). TCP runs at the endpoints, where state can be maintained. The internet's scale (billions of devices) is feasible because the middle is stateless."
+    },
+    {
+      "kind": "text",
+      "title": "TCP's three-way handshake",
+      "body": "Opening a TCP connection:\n1. Client → server: SYN (proposed sequence number).\n2. Server → client: SYN-ACK (server's seq number + ack of client's seq).\n3. Client → server: ACK.\n\nNow both sides have synchronized sequence numbers; data can flow reliably.\n\n**Cost**: 1 round-trip-time (RTT) before any data is sent. For a transcontinental connection (~100ms RTT), that's 100ms of pure setup before the first byte. This is why HTTP/2 multiplexes many requests over one TCP connection — amortize the handshake. HTTP/3 + QUIC goes further (0-RTT setup with resumed connections)."
+    },
+    {
+      "kind": "text",
+      "title": "Congestion control + the bandwidth-delay product",
+      "body": "TCP detects + responds to congestion via packet loss. Classic AIMD (Additive Increase, Multiplicative Decrease):\n- No loss → increase window by 1 segment per RTT (linear).\n- Loss → halve the window (multiplicative).\n\nModern algorithms (CUBIC, BBR) are smarter — BBR estimates available bandwidth + delay separately. But the core dynamic is the same: tradition + recovery.\n\n**Bandwidth-delay product (BDP)**: pipe capacity = bandwidth × RTT. For a 100 Mbps link with 100ms RTT: BDP = 1.25 MB. To keep the pipe full, TCP must have ~1.25 MB of unACKed data in flight (the 'window'). On high-BDP links, default OS window sizes are often too small; tuning matters."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_tcp_window",
+        "kind": "guided_derivation",
+        "question": "Derive bandwidth-delay product",
+        "goal": "Bandwidth $B$ (bytes/s), RTT $T$ (seconds). To fully utilize the link, how much data should TCP have in flight?",
+        "steps": [
+          {
+            "prompt": "If we send data continuously at rate $B$ and it takes $T$ seconds for ACKs to come back, how much data is 'in the pipe' at any moment?",
+            "motivation": "Just multiply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "B * T",
+                "BT"
+              ]
+            },
+            "hints": [
+              "Pipe capacity = rate × time."
+            ],
+            "reveal": "$B \\cdot T$ bytes in flight."
+          },
+          {
+            "prompt": "If TCP window is smaller than $BT$, what happens to throughput?",
+            "motivation": "Limited by window.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Throughput < $B$: sender stalls waiting for ACKs.",
+                "Same as $B$ regardless.",
+                "Throughput > $B$.",
+                "Unrelated."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Sender can't send more than window bytes without ACK."
+            ],
+            "reveal": "Throughput is bottlenecked by window: $\\text{window}/T$. To achieve full $B$, need window $\\geq BT$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Window}_{\\text{min}} = B \\cdot T}$$ For 1 Gbps + 100ms RTT: BDP = 12.5 MB. Default Linux TCP window: ~6 MB. So a single TCP connection can't saturate a high-BDP link without tuning. The fix: tune `net.core.wmem_max` + `tcp_window_scaling`, or use multiple parallel streams."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_tcp_handshake",
+        "kind": "multiple_choice",
+        "question": "TCP three-way handshake requires:",
+        "options": [
+          "0 RTT before first byte.",
+          "1 RTT before first byte.",
+          "3 RTT before first byte.",
+          "Unbounded RTT."
+        ],
+        "correctIndex": 1,
+        "explanation": "SYN, SYN-ACK, ACK — three messages, but client can send data with the final ACK (so 1 RTT before any data). TCP Fast Open + HTTP/3's QUIC reduce this to 0-RTT for resumed connections via cached server credentials."
+      },
+      "hints": [
+        "Count messages vs RTTs: SYN → SYN-ACK is 1 RTT (out + back); next ACK is part of next message.",
+        "Data can flow with the final ACK message."
+      ],
+      "workedSolution": "Three messages, one RTT total. Client SYN goes out (1/2 RTT); server SYN-ACK arrives (1/2 RTT back); client sends ACK + first data byte. TCP Fast Open + QUIC's 0-RTT shortcut this when client has cached server credentials.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_tcp_bdp",
+        "kind": "math_expression",
+        "question": "100 Mbps link + 50ms RTT. BDP (MB)?",
+        "acceptedAnswers": [
+          "0.625",
+          "0.63",
+          "0.6 MB"
+        ],
+        "hint": "100/8 MBps × 0.05 s."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_tcp_slow",
+        "kind": "scenario",
+        "question": "Slow file transfer",
+        "prompt": "A user copies a 10GB file from coast to coast over a 1Gbps link. They expect ~80 seconds (10GB / 1Gbps × ~0.7 efficiency). Actual: 300 seconds. Walk through the most likely cause + fix."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_tcp",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why TCP's reliability is layered ON TOP of IP rather than built INTO IP.",
+        "rubric": "Mentions that IP keeps routers stateless + fast; reliability requires state (which packets were sent + ACKed); putting state at endpoints scales; routers stay simple."
+      }
+    }
+  ]
+}

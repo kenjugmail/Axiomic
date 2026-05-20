@@ -7,6 +7,59 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: why focal loss",
+      "body": "On extremely imbalanced classification (99% negative, 1% positive), naive cross-entropy is dominated by the easy negatives. The model learns to predict 'negative' confidently and barely updates on the hard positives.\n\n**Focal loss** (Lin et al. 2017, RetinaNet) adds a modulating factor:\n\n$$\\text{FL}(p_t) = -(1 - p_t)^\\gamma \\log p_t$$\n\nwhere $p_t$ is the model's predicted probability for the true class and $\\gamma \\geq 0$. Easy examples ($p_t \\approx 1$) have $(1-p_t)^\\gamma \\to 0$ — their gradient is down-weighted. Hard examples ($p_t \\approx 0$) keep gradient near 1.\n\nThe result: the loss focuses on the hard cases. RetinaNet and most modern object detectors use it.\n\nMoral: cross-entropy is the default, but its weighting can be wrong for extreme imbalance. Focal loss is the canonical fix."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_loss_softmax_grad",
+        "kind": "guided_derivation",
+        "question": "Derive the softmax-cross-entropy logit gradient",
+        "goal": "Show that for cross-entropy on a softmax output with true label $y$ (one-hot), $\\partial L / \\partial z_i = \\hat p_i - y_i$.",
+        "steps": [
+          {
+            "prompt": "Softmax: $\\hat p_i = e^{z_i} / \\sum_j e^{z_j}$. Cross-entropy: $L = -\\sum_k y_k \\log \\hat p_k$. Substitute and simplify, treating $\\log$ of softmax.",
+            "motivation": "$\\log \\hat p_k = z_k - \\log Z$ where $Z = \\sum_j e^{z_j}$.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-sum_k y_k (z_k - log Z)",
+                "log Z - sum y_k z_k",
+                "log Z - z_y"
+              ]
+            },
+            "hints": [
+              "Use $\\log(a/b) = \\log a - \\log b$.",
+              "With one-hot $y$, only one term survives in the sum."
+            ],
+            "reveal": "$L = \\log Z - z_y$ where $y$ is the index of the true class. ($Z = \\sum_j e^{z_j}$.)"
+          },
+          {
+            "prompt": "Differentiate $L = \\log Z - z_y$ with respect to $z_i$. What are the two cases (i = y vs i ≠ y)?",
+            "motivation": "$\\partial(\\log Z)/\\partial z_i = e^{z_i}/Z = \\hat p_i$. The second term is $z_y$, which contributes $-1$ if $i = y$ else $0$.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$\\partial L/\\partial z_i = \\hat p_i - \\mathbb{1}[i = y]$",
+                "$\\partial L/\\partial z_i = \\hat p_i$",
+                "$\\partial L/\\partial z_i = -\\hat p_i$",
+                "$\\partial L/\\partial z_i = 1 - \\hat p_i$"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "$\\partial(\\log Z)/\\partial z_i = \\hat p_i$ for every $i$.",
+              "$\\partial(-z_y)/\\partial z_i$ is $-1$ if $i = y$, else $0$."
+            ],
+            "reveal": "$\\partial L / \\partial z_i = \\hat p_i - \\mathbb{1}[i = y] = \\hat p_i - y_i$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\frac{\\partial L}{\\partial z_i} = \\hat p_i - y_i}$$\n\nThe gradient is the prediction minus the one-hot label. Independent of confidence! That's why softmax+cross-entropy trains stably even when the model is initially very wrong; misclassified confident predictions still produce gradient ≈ 1, unlike MSE on softmax (gradient → 0 when confident)."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Cross-entropy",
       "body": "For a classification problem with C classes, the model outputs a probability distribution `q = (q_1, ..., q_C)`. The true label is one-hot: `p` has a 1 at the correct class, 0 elsewhere.\n\n**Cross-entropy** is:\n\n$$H(p, q) = -\\sum_c p_c \\log q_c$$\n\nWith one-hot p, this simplifies to:\n\n$$H(p, q) = -\\log q_{\\text{correct class}}$$\n\nThis is the **negative log-likelihood** of the correct class under the model's predicted distribution. Minimizing cross-entropy = MLE. (See [[info-theory-basics]] for the cross-entropy decomposition.)\n\n**Critical**: cross-entropy is **asymmetric**. `H(p, q) ≠ H(q, p)`. The first arg is the truth (gets weighted); the second is the prediction (gets logged).\n\nFor language modeling: same exact framework, with `p` being the one-hot true next token and `q` being the model's predicted distribution over the vocabulary."
     },
@@ -61,6 +114,79 @@
       "kind": "text",
       "title": "What's next",
       "body": "Loss functions are the bridge between math and learning. The choice of loss determines what the model can learn.\n\nKey takeaways:\n- Cross-entropy for classification (and language modeling) — equivalent to MLE\n- MSE for regression — gradient saturates with sigmoid/softmax, so wrong for classification\n- Cross-entropy is asymmetric: forward vs reverse KL produce different solutions\n- Specialized losses (triplet, contrastive, focal, Huber) for specific use cases\n\nNext: [[gradient-descent]] — using gradients to actually minimize the loss."
+    },
+    {
+      "kind": "text",
+      "title": "Why we use cross-entropy on classification, not MSE",
+      "body": "If you classify with a softmax output and use MSE between the predicted vector and a one-hot target, the gradient *vanishes* when the model is confidently wrong. The MSE derivative scales with $(\\hat y - y)$, but the softmax derivative scales with $\\hat y(1-\\hat y)$ — which is tiny when $\\hat y$ is near 0 or 1.\n\nCross-entropy fixes this. Its gradient w.r.t. the logits is simply $\\hat y - y$ — proportional to the prediction error, independent of confidence. That's why a misclassified, confident wrong answer still produces a *strong* gradient signal under cross-entropy and a weak one under MSE.\n\nThis isn't an esoteric detail: it's the reason classification networks train at all."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_loss_choice",
+        "kind": "multiple_choice",
+        "question": "You're training a model that outputs the probability a comment is toxic. Which loss is the natural choice?",
+        "options": [
+          "Mean squared error between the probability and 0/1.",
+          "Binary cross-entropy.",
+          "Mean absolute error.",
+          "Hinge loss."
+        ],
+        "correctIndex": 1,
+        "explanation": "Binary cross-entropy is the maximum-likelihood loss for a Bernoulli output: $-y\\log\\hat p - (1-y)\\log(1-\\hat p)$. It matches the model's probabilistic interpretation and gives strong gradients on confident wrong predictions."
+      },
+      "hints": [
+        "The output is a probability ∈ (0,1); what's the matching MLE loss?",
+        "Hinge is for margin-based classification (SVMs); does that fit a probabilistic output?"
+      ],
+      "workedSolution": "For a probabilistic output we want the maximum-likelihood loss. For Bernoulli, that's $-y\\log\\hat p - (1-y)\\log(1-\\hat p)$, i.e., binary cross-entropy. MSE under-penalizes confident wrong predictions (small gradient when $\\hat p \\to 0$ or $1$); hinge is for non-probabilistic margin classifiers.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_loss_imbalance",
+        "kind": "scenario",
+        "question": "Imbalance + the wrong loss",
+        "prompt": "A team trains a tumor-detection classifier with cross-entropy on data that's 99% benign. Training loss drops fast, accuracy hits 99%, but recall on tumors is ~0%. Diagnose the failure mode and propose one minimal change to the loss."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_loss_ce_one",
+        "kind": "math_expression",
+        "question": "For a single example with true label $y=1$ and predicted probability $\\hat p = 0.2$, what is the binary cross-entropy loss? (3 decimals)",
+        "acceptedAnswers": [
+          "1.609",
+          "ln(5)",
+          "-log(0.2)",
+          "1.61"
+        ],
+        "hint": "BCE for $y=1$ is $-\\log\\hat p$; use natural log unless the problem says otherwise."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_loss",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why the gradient under cross-entropy is 'just' $\\hat y - y$ at the logits, and why that fact matters in practice.",
+        "rubric": "Mentions the algebraic cancellation between softmax and log, and that the clean error signal is what enables training of deep classifiers."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Choose between MSE and cross-entropy for a given target type.",
+      "Recognize the gradient flow each loss induces.",
+      "Identify when a 'natural-looking' loss is actually a bad idea."
+    ],
+    "prereqs": [
+      "info-theory-basics",
+      "statistics-foundations"
+    ]
+  }
 }

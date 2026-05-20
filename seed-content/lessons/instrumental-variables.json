@@ -7,6 +7,52 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Angrist-Krueger 'quarter-of-birth' IV",
+      "body": "Angrist and Krueger (1991) used quarter-of-birth as an IV for years-of-schooling on earnings. The (clever) argument: state compulsory-schooling laws meant people born in different quarters left school at different ages, providing exogenous variation in schooling. Result: ~6-9% return per year of school. Later critiques challenged the exclusion restriction (maybe quarter-of-birth affects earnings via other channels like seasonal-job exposure). The example shows both the appeal + the fragility of IV: a clever instrument with a defensible exclusion gets you a causal estimate from observational data."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_iv_wald",
+        "kind": "guided_derivation",
+        "question": "Derive the Wald IV estimator",
+        "goal": "Under IV assumptions, derive $\\hat\\beta_{\\text{IV}} = \\text{Cov}(Y, Z) / \\text{Cov}(T, Z)$.",
+        "steps": [
+          {
+            "prompt": "Structural model: $Y = \\beta T + U$ where $U$ contains unobserved confounders. By exclusion: $\\text{Cov}(Z, U) = 0$. Take Cov with $Z$ on both sides.",
+            "motivation": "Use exclusion to eliminate confounders.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Cov(Y, Z) = beta Cov(T, Z)",
+                "Cov(Y,Z) = β Cov(T,Z)"
+              ]
+            },
+            "hints": [
+              "$\\text{Cov}(Y, Z) = \\text{Cov}(\\beta T + U, Z) = \\beta \\text{Cov}(T, Z) + \\text{Cov}(U, Z) = \\beta \\text{Cov}(T, Z) + 0$."
+            ],
+            "reveal": "$\\text{Cov}(Y, Z) = \\beta \\cdot \\text{Cov}(T, Z)$."
+          },
+          {
+            "prompt": "Solve for $\\beta$ (assuming $\\text{Cov}(T, Z) \\neq 0$, the relevance condition).",
+            "motivation": "Algebra.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Cov(Y,Z)/Cov(T,Z)"
+              ]
+            },
+            "hints": [
+              "Divide."
+            ],
+            "reveal": "$\\beta = \\text{Cov}(Y, Z) / \\text{Cov}(T, Z)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\hat\\beta_{\\text{IV}} = \\widehat{\\text{Cov}}(Y, Z) / \\widehat{\\text{Cov}}(T, Z)}$$ The Wald estimator. Generalizes to 2SLS for multiple instruments + covariates. The critical assumption is exclusion ($\\text{Cov}(Z, U) = 0$), untestable from data — defend it structurally."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Two-stage least squares (2SLS)",
       "body": "The classical IV estimator. Two regressions:\n\n**Stage 1**: regress `T` on `Z` (and any covariates). Get predicted `T̂`.\n\n**Stage 2**: regress `Y` on `T̂` (and the covariates). The coefficient on `T̂` is the IV estimate.\n\n**Why it works**: `T̂` is the part of `T` driven by `Z` — and by exogeneity, this part is uncorrelated with the unobserved confounder. So regressing `Y` on `T̂` estimates the causal effect free from the confounding bias.\n\n**Standard errors** need adjustment to reflect that `T̂` is a generated regressor; the `ivregress` command in Stata, `IV2SLS` in statsmodels (Python), `ivreg` in R all do this correctly.\n\n**Diagnostics**:\n\n- **First-stage F-statistic**: tests instrument relevance. F < 10 → weak instrument; estimates may be biased even toward OLS.\n- **Sargan / Hansen J-test**: tests overidentification (when you have more instruments than endogenous variables). Doesn't test exogeneity directly but provides a sanity check."
     },
@@ -64,12 +110,93 @@
         "kind": "explain_back",
         "prompt": "Pick a real-world setting (or hypothetical) where you'd want to use an instrumental variable. Describe: (1) the treatment, (2) the outcome, (3) the suspected unobserved confounder, (4) the proposed instrument, and (5) why exogeneity is plausible. Be specific.",
         "rubricCriteria": [
-          { "id": "concrete-setup", "description": "Names a specific T, Y, suspected confounder, and proposed Z" },
-          { "id": "relevance", "description": "Explains why Z affects T (relevance)" },
-          { "id": "exogeneity-defense", "description": "Defends why Z plausibly doesn't affect Y directly (exclusion restriction)" }
+          {
+            "id": "concrete-setup",
+            "description": "Names a specific T, Y, suspected confounder, and proposed Z"
+          },
+          {
+            "id": "relevance",
+            "description": "Explains why Z affects T (relevance)"
+          },
+          {
+            "id": "exogeneity-defense",
+            "description": "Defends why Z plausibly doesn't affect Y directly (exclusion restriction)"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "The three IV assumptions",
+      "body": "An instrument $Z$ for treatment $T$ on outcome $Y$ must satisfy:\n\n1. **Relevance**: $Z$ actually moves $T$. Testable via correlation; quantifiable by the first-stage F-statistic. Below F ≈ 10 is the 'weak instrument' zone where IV estimates have severe bias and wrong-coverage CIs.\n2. **Exclusion**: $Z$ affects $Y$ only through $T$. Untestable from data alone — a structural assumption. The whole IV story collapses if violated.\n3. **Monotonicity** (for LATE interpretation): assignment of $Z$ doesn't push anyone to LESS treatment. Without it, the estimand is a weighted combination of compliers and 'defiers' that may not have a clean interpretation.\n\n2SLS: regress $T$ on $Z$ in stage 1, take fitted $\\hat T$, regress $Y$ on $\\hat T$ in stage 2. The coefficient on $\\hat T$ is the LATE — the Local Average Treatment Effect on the population of 'compliers' (units whose treatment is moved by the instrument).\n\nLATE ≠ ATE in general. The instrument identifies the effect on the subpopulation it can move; that may or may not be the population you care about for policy."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_iv_exclusion",
+        "kind": "multiple_choice",
+        "question": "An IV's exclusion restriction is:",
+        "options": [
+          "Testable from the data.",
+          "An untestable structural assumption: the instrument affects the outcome only through the treatment.",
+          "The same as IV relevance.",
+          "Required only when the instrument is binary."
+        ],
+        "correctIndex": 1,
+        "explanation": "Exclusion is the load-bearing assumption of IV and cannot be tested with data — it must be defended structurally. Famous violations destroy famous IV studies (the quarter-of-birth IV for compulsory schooling, the institutional-cohort IV for various medical questions). The strongest IV studies pair the design with a credible exclusion argument from outside the data."
+      },
+      "hints": [
+        "What does 'exclusion' literally restrict?",
+        "One assumption can be checked from data; the other can't."
+      ],
+      "workedSolution": "Exclusion: Z affects Y only through T. This says all causal flow from Z to Y must pass through T — no direct effect, no other-pathway effect. It cannot be tested from data: any apparent test conflates with the IV estimate itself. Must be defended structurally (institutional knowledge, theory).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_iv_weak",
+        "kind": "scenario",
+        "question": "A weak instrument",
+        "prompt": "You're using rainfall as an IV for crop yield (treatment) on a labor-market outcome. The first-stage F-stat is 3.2. Why is this a concern, and what would you do about it?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_iv_late",
+        "kind": "math_expression",
+        "question": "Wald estimator: $\\hat{\\beta}_{\\text{IV}} = \\text{Cov}(Y, Z) / \\text{Cov}(T, Z)$. If Cov(Y, Z) = 0.6 and Cov(T, Z) = 0.3, the IV estimate is:",
+        "acceptedAnswers": [
+          "2",
+          "2.0",
+          "0.6/0.3"
+        ],
+        "hint": "Just divide."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_iv",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why a strong IV study is rarer than a strong observational study, even though IV is supposed to be more rigorous.",
+        "rubric": "Mentions that finding a variable that satisfies relevance, exclusion, and monotonicity simultaneously is empirically hard; most published IVs are challenged on exclusion grounds."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "advanced",
+    "objectives": [
+      "State the three IV assumptions: relevance, exclusion, monotonicity.",
+      "Apply 2SLS to estimate LATE.",
+      "Recognize when an instrument is weak."
+    ],
+    "prereqs": [
+      "do-calculus",
+      "rcts-and-quasi-experiments"
+    ]
+  }
 }

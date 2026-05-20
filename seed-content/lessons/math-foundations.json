@@ -7,6 +7,52 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: why dot products dominate ML",
+      "body": "Almost every ML similarity computation reduces to a dot product. Word embeddings: cosine similarity = normalized dot product. Attention: QK^T is a matrix of dot products. Recommendation engines: user-item dot products. The reason: dot product is cheap ($O(d)$), captures direction-alignment, and is the natural inner product in Euclidean space. The whole ML stack is fast linear algebra optimized for batch dot products on hardware (Tensor Cores compute them in single instructions)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mf_dot",
+        "kind": "guided_derivation",
+        "question": "Derive cosine similarity from dot product + norms",
+        "goal": "Show $\\cos\\theta = \\mathbf{a} \\cdot \\mathbf{b} / (\\|\\mathbf{a}\\| \\|\\mathbf{b}\\|)$ from the law of cosines.",
+        "steps": [
+          {
+            "prompt": "Law of cosines: $\\|\\mathbf{a} - \\mathbf{b}\\|^2 = \\|\\mathbf{a}\\|^2 + \\|\\mathbf{b}\\|^2 - 2\\|\\mathbf{a}\\|\\|\\mathbf{b}\\|\\cos\\theta$. Also: $\\|\\mathbf{a} - \\mathbf{b}\\|^2 = (\\mathbf{a} - \\mathbf{b}) \\cdot (\\mathbf{a} - \\mathbf{b}) = ?$",
+            "motivation": "Expand the dot product.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "a.a - 2a.b + b.b",
+                "||a||^2 + ||b||^2 - 2 a.b"
+              ]
+            },
+            "hints": [
+              "Distribute the dot product."
+            ],
+            "reveal": "$\\|\\mathbf{a} - \\mathbf{b}\\|^2 = \\|\\mathbf{a}\\|^2 - 2\\mathbf{a}\\cdot\\mathbf{b} + \\|\\mathbf{b}\\|^2$."
+          },
+          {
+            "prompt": "Equate both expressions for $\\|\\mathbf{a} - \\mathbf{b}\\|^2$ and solve for $\\cos\\theta$.",
+            "motivation": "Cancel + solve.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "a.b / (||a|| ||b||)"
+              ]
+            },
+            "hints": [
+              "$\\|\\mathbf{a}\\|^2 + \\|\\mathbf{b}\\|^2 - 2\\mathbf{a}\\cdot\\mathbf{b} = \\|\\mathbf{a}\\|^2 + \\|\\mathbf{b}\\|^2 - 2\\|\\mathbf{a}\\|\\|\\mathbf{b}\\|\\cos\\theta$. Cancel $\\|a\\|^2 + \\|b\\|^2$ and isolate $\\cos\\theta$."
+            ],
+            "reveal": "$\\cos\\theta = \\mathbf{a}\\cdot\\mathbf{b}/(\\|\\mathbf{a}\\|\\|\\mathbf{b}\\|)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\cos\\theta = \\frac{\\mathbf{a} \\cdot \\mathbf{b}}{\\|\\mathbf{a}\\| \\|\\mathbf{b}\\|}}$$ The dot product and the geometric angle are the same object up to magnitude scaling. ML's love of dot products is the love of fast angle/similarity measurement."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Linear algebra essentials",
       "body": "The four operations you'll see constantly:\n\n**Matrix-vector product** `Wx`. Linear combination of W's columns weighted by x.\n\n**Matrix-matrix product** `AB`. Each entry `(AB)[i,j] = Σ_k A[i,k] · B[k,j]`. Order matters: `AB ≠ BA` in general.\n\n**Dot product** `x · y = Σ x_i y_i`. Measures how 'aligned' two vectors are. Equals `|x| |y| cos(θ)`. The dot product *is* what attention computes when comparing queries to keys.\n\n**Norm** `||x||`. The most common is L2: `||x||_2 = √(Σ x_i²)`. L1 is `Σ |x_i|`. Norms quantify 'size' of a vector.\n\nTwo decompositions worth knowing by name:\n\n- **Eigendecomposition** `A = QΛQ^(-1)`. Eigenvectors and eigenvalues. The eigenbasis is where A looks like a scaling.\n- **Singular Value Decomposition (SVD)** `A = UΣV^T`. Generalizes eigendecomposition to non-square matrices. Underlies LoRA, PCA, and many dimension-reduction methods.\n\nIf you can compute matrix shapes by hand and know what 'rank' means, you can read most ML papers. See [[linear-algebra-foundations]]."
     },
@@ -61,6 +107,61 @@
       "kind": "text",
       "title": "What's next",
       "body": "These five areas are the math substrate for ML research. The rest of the AI Researcher path builds on them:\n\n- [[info-theory-basics]] — entropy, KL, mutual information at applied depth\n- [[statistics-for-ml]] — estimation, hypothesis testing, calibration\n- [[transformer-deep-dive]] — the architecture, with these tools\n- [[training-dynamics]] — what loss curves and gradient norms mean\n\nKey takeaways:\n- Linear algebra: dot products, matrix shapes, eigendecomposition / SVD\n- Calculus: chain rule, gradients, gradient descent\n- Probability: Bayes, expectation, common distributions\n- Statistics: MLE, hypothesis testing\n- Information theory: entropy, KL, cross-entropy\n\nIf any of these feels rusty, the foundations pages have full lessons. If they all feel familiar, you're ready for the rest of the path."
+    },
+    {
+      "kind": "text",
+      "title": "The math three-pack",
+      "body": "ML papers lean on three mathematical foundations. Get fluent in these and 90% of the math in modern papers is comprehensible:\n\n1. **Linear algebra**: vectors, matrices, eigendecompositions, singular value decompositions, projections, norms. Used in: attention, embeddings, PCA, optimization analyses. Cost to fluency: ~40 hours.\n\n2. **Calculus / vector calculus**: derivatives, gradients, Jacobians, chain rule, Lagrange multipliers. Used in: every gradient-based optimization, EM, variational inference. Cost: ~30 hours.\n\n3. **Probability**: random variables, expectation, variance, distributions, Bayes, KL divergence. Used in: every loss function, generative models, RL, Bayesian methods. Cost: ~40 hours.\n\nAdd statistics + information theory + measure theory as needed for specific papers. But the three-pack is the minimum required entry — if any one is missing, papers in that area will read as 'opaque notation' rather than 'familiar machinery'."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mf_priority",
+        "kind": "multiple_choice",
+        "question": "An ML researcher new to the field asks: which math to learn first if they want to understand attention papers? Best order:",
+        "options": [
+          "Linear algebra → calculus → probability.",
+          "Probability → linear algebra → calculus.",
+          "Calculus → linear algebra → probability.",
+          "Order doesn't matter."
+        ],
+        "correctIndex": 0,
+        "explanation": "For attention specifically, linear algebra carries the heaviest weight (matrix decompositions, dot products, softmax). Calculus is needed second (for understanding the backward pass). Probability comes last for attention (the softmax-as-distribution interpretation) but first for many other ML topics. The 'right' order depends on the target area, but LA-first is the safe default for transformer-era ML."
+      },
+      "hints": [
+        "Attention is built from dot products + softmax + linear projections.",
+        "Which math area do those primarily belong to?"
+      ],
+      "workedSolution": "Attention computations are dominated by linear-algebra operations (Q@K^T, softmax over a vector, projected outputs). LA fluency lets you read the attention equation. Calculus is needed only when you derive backprop through it. Probability provides interpretation but isn't load-bearing for understanding the forward pass. Hence LA-first is the right priority for attention-era ML.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mf_reading",
+        "kind": "scenario",
+        "question": "Reading a paper",
+        "prompt": "You're reading a paper that introduces a new attention variant. The math section uses Jacobians, KL divergences, and an SVD of the attention matrix. Which of the three foundations would be your gap if you can follow the SVD but not the KL or Jacobians?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mf",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why information theory and statistics aren't in the 'first three' but show up immediately afterward.",
+        "rubric": "Mentions that the first three are prerequisites for understanding the formulations; info theory + statistics are needed to derive losses and conduct rigorous evaluation but build on the three-pack."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Identify which math you need first for ML papers (linear algebra, calculus, probability).",
+      "Recognize where each shows up in a typical paper.",
+      "Build a study order for self-learners."
+    ],
+    "prereqs": []
+  }
 }

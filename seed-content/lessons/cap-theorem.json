@@ -1,0 +1,117 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "State CAP precisely and recognize the partition-tolerance assumption.",
+      "Distinguish CP from AP in a real system choice.",
+      "Recognize that 'AP' is a deployment-time choice, not a property of the database alone."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "CAP, stated precisely",
+      "body": "**CAP theorem** (Brewer 1999, proved by Gilbert-Lynch 2002): a distributed system cannot simultaneously provide all three of:\n\n- **C** (Consistency): every read sees the most recent write (linearizability).\n- **A** (Availability): every request gets a non-error response.\n- **P** (Partition tolerance): the system keeps working when network partitions split nodes.\n\n**Key insight**: P isn't optional in real distributed systems. Networks DO partition (cables get cut, switches fail, instances become unreachable). So the practical choice is C-vs-A *given* P.\n\n- **CP systems** (e.g., classic relational replication, ZooKeeper, etcd, MongoDB with majority writes): during partition, refuse some requests to preserve linearizability.\n- **AP systems** (Cassandra, Dynamo, Riak): during partition, accept requests on both sides; reconcile after.\n\nCAP is often misquoted as 'pick any two'. The accurate read: 'in the presence of partition, pick C or A; outside partition, you can have both'. This is the foundational theorem for every distributed-data design decision."
+    },
+    {
+      "kind": "text",
+      "title": "Worked example: Spanner's PACELC",
+      "body": "Google Spanner is PC/EC: chooses Consistency in both partition + normal operation. The cost is latency (uses TrueTime + waits for replication quorum). Cassandra is PA/EL: chooses Availability in partition + Latency in normal operation. Tradeoff: Spanner's queries are slower but always linearizable; Cassandra's are fast but may show stale reads. Picking the right posture per data type — bank balance: Spanner-like; comment counts: Cassandra-like."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cap_pacelc",
+        "kind": "guided_derivation",
+        "question": "Trace a real PACELC decision",
+        "goal": "Banking transaction system. Choose CP or AP during partition + EC or EL in normal mode.",
+        "steps": [
+          {
+            "prompt": "Banking requires linearizable balance updates. CAP choice during partition: CP (refuse some writes) or AP (accept on both sides + reconcile)?",
+            "motivation": "Bank cannot tolerate double-spend.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "CP — must prefer consistency; refusing transactions is better than accepting conflicting ones.",
+                "AP — must stay available.",
+                "Either.",
+                "Doesn't matter."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "What's the cost of double-spend?"
+            ],
+            "reveal": "CP. Reconciliation after-the-fact for money is operationally unacceptable."
+          },
+          {
+            "prompt": "Normal-mode (no partition): EC (more latency) or EL (eventual consistency, lower latency)?",
+            "motivation": "For balance updates: EC.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "EC — accept higher latency for linearizability during normal operation.",
+                "EL.",
+                "Either.",
+                "Skip the choice."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Same logic as during partition."
+            ],
+            "reveal": "EC. Banking is full PACELC = PC/EC: like Spanner."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Banking: PC/EC (Spanner-like)}}$$ Different subsystems get different postures. Reads of stale account history? Maybe AP/EL. Writes touching money? CP/EC. The skill is matching posture to the cost of inconsistency."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "PACELC, the practical refinement",
+      "body": "**PACELC** (Daniel Abadi 2010): refines CAP to cover the *normal* (non-partition) case.\n\nIn the presence of partition (P): trade Availability for Consistency or vice versa (CAP's classic story).\n\nElse (E, no partition): trade Latency for Consistency.\n\nMost real systems have a partition story AND a normal-operation latency-vs-consistency story. A 'CP/EC' system (e.g., classic Postgres with synchronous replication) prefers consistency in both regimes; a 'CP/EL' system (e.g., Spanner) prefers latency outside partition + consistency inside.\n\nCAP alone is too coarse for the choices you'll actually make. PACELC + understanding your specific consistency model (linearizable / sequential / causal / eventual) is the practical vocabulary."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cap_choice",
+        "kind": "multiple_choice",
+        "question": "A bank's transaction-recording system needs to ensure that no two parallel requests can double-debit an account. The right CAP posture for this part of the system is:",
+        "options": [
+          "AP — always respond, even during partitions.",
+          "CP — refuse to process the transaction if consistency cannot be guaranteed, even at the cost of availability during a partition.",
+          "Neither, CAP doesn't apply to banking.",
+          "Both, by careful choice of replication algorithm."
+        ],
+        "correctIndex": 1,
+        "explanation": "Banking transactions need linearizable consistency on account balance updates. During a partition, the system must refuse one side's writes (or both sides), rather than accept conflicting writes that would have to be reconciled later via 'sorry, we double-spent' messages. CP is the right posture for the part of the system that touches money; AP is fine for catalog browsing or session metadata."
+      },
+      "hints": [
+        "What's the cost of returning a 'success' to two conflicting transactions?",
+        "Banking can refuse some transactions; it can't accept conflicting transactions and reconcile later."
+      ],
+      "workedSolution": "Linearizability is non-negotiable for account-balance updates. The system must serialize concurrent transactions; during a partition, one side has to refuse rather than accept potentially-conflicting transactions. The cost is reduced availability during partition (some users see errors); the alternative — accepting both and 'reconciling' later — produces double-spend in a regime where regulatory + customer trust is at stake. CP is the right choice.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_cap_session",
+        "kind": "scenario",
+        "question": "Mixed posture",
+        "prompt": "An e-commerce site has cart, browsing, checkout, and payment. Walk through which CAP posture each subsystem needs, and why having different postures for different parts of the same product is normal."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cap",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why 'CAP theorem says you pick 2 of 3' is misleading and what the accurate statement is.",
+        "rubric": "Mentions that P (partition tolerance) is forced by reality — networks partition; the actual choice is C vs A during a partition, with no requirement that the same choice apply at all times or across all parts of the system."
+      }
+    }
+  ]
+}

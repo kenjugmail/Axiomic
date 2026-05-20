@@ -7,6 +7,51 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: why sqrt(d_k) and not other scalings",
+      "body": "Variants tried: no scaling, divide by $d_k$ (too aggressive), divide by $\\sqrt{d_k}$ (Vaswani's choice). Without scaling, large $d_k$ → very large dot products → softmax saturates → gradients vanish. Divide by $\\sqrt{d_k}$ keeps variance roughly 1 (assuming Q + K entries are zero-mean unit-variance), giving softmax a useful gradient range. Empirically critical: without it, training at $d_k = 128$ is unstable; with it, fine."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_tdd_scaledsmgrad",
+        "kind": "guided_derivation",
+        "question": "Derive why $\\sqrt{d_k}$ scaling is needed",
+        "goal": "Q + K have entries i.i.d. zero-mean unit-variance. Show that $\\text{Var}(Q \\cdot K) = d_k$, motivating division by $\\sqrt{d_k}$.",
+        "steps": [
+          {
+            "prompt": "$Q \\cdot K = \\sum_{i=1}^{d_k} Q_i K_i$. Compute $\\text{Var}(Q_i K_i)$ assuming $Q_i, K_i$ independent zero-mean unit-variance.",
+            "motivation": "Variance of independent products.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1"
+              ]
+            },
+            "hints": [
+              "$\\text{Var}(Q_i K_i) = \\mathbb{E}[Q_i^2 K_i^2] - (\\mathbb{E}[Q_i K_i])^2 = 1 \\cdot 1 - 0 = 1$."
+            ],
+            "reveal": "$\\text{Var}(Q_i K_i) = 1$."
+          },
+          {
+            "prompt": "Sum of $d_k$ such terms (independent across $i$): $\\text{Var}(Q \\cdot K) = ?$",
+            "motivation": "Variance adds under independence.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "d_k"
+              ]
+            },
+            "hints": [
+              "Sum of $d_k$ unit variances."
+            ],
+            "reveal": "$\\text{Var}(Q \\cdot K) = d_k$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Var}(Q \\cdot K) = d_k \\Rightarrow \\text{Std}(Q \\cdot K/\\sqrt{d_k}) = 1}$$ Dividing by $\\sqrt{d_k}$ rescales the dot product to unit variance, preventing softmax saturation. Without it, deep transformers at $d_k = 64+$ train unstably."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The residual stream as communication bus",
       "body": "At every position `t`, the model carries a vector `x_t ∈ R^{d_model}`. This vector is the **residual stream** — every attention sublayer reads from it and writes back; every FFN sublayer reads from it and writes back; the final unembedding reads from it.\n\n```\nresidual_stream[t]  = embed(token_t) + position_t  (shape: d_model)\nfor each block i:\n    residual_stream[t] += attention_i(LayerNorm(residual_stream))[t]\n    residual_stream[t] += ffn_i(LayerNorm(residual_stream[t]))\nlogits[t] = unembed(LayerNorm(residual_stream[t]))\n```\n\nThe residual stream is a high-bandwidth, position-indexed shared bus. Layers communicate by adding to it. Mech-interp researchers talk about layers 'writing to' and 'reading from' specific *subspaces* of the stream — the model partitions `d_model` dimensions among different functional roles.\n\nThe induction-head circuit (Olsson et al.) is exactly a 'one layer writes the previous-token info into a subspace; the next layer reads that subspace' pattern. This kind of circuit is only sensible because the stream persists across layers."
     },
@@ -61,6 +106,77 @@
       "kind": "text",
       "title": "What's next",
       "body": "You now have an integrated picture of the transformer: residual stream as bus, parameter accounting, stability tricks, architecture-reading recipe.\n\nThe rest of the AI Researcher path uses this foundation:\n\n- [[training-dynamics]]: what the loss curve and gradient norms tell you\n- [[evaluation-rigor]]: how to evaluate models without fooling yourself\n- [[interpretability]]: reverse-engineering what the residual stream actually carries\n- [[alignment-frontier]]: RLHF + DPO + Constitutional AI\n\nKey takeaways:\n- Residual stream = shared bus across layers; circuits live in subspaces of it\n- 12d² params per block; 2:1 split between FFN and attention\n- Pre-norm + RMSNorm + RoPE + GQA + SwiGLU is the modern recipe\n- Architecture reading checklist: norm placement, attention variant, activation, init"
+    },
+    {
+      "kind": "text",
+      "title": "FlashAttention, in one paragraph",
+      "body": "Standard attention: $\\text{softmax}(QK^T/\\sqrt{d_k})V$. The intermediate $QK^T$ is an $N \\times N$ matrix — for $N = 8192$ context length, that's $\\sim 2.6 \\cdot 10^8$ FP16 floats, $\\sim 520$ MB. Computing then re-reading it dominates the attention computation on long contexts (memory-bandwidth-bound).\n\n**FlashAttention** (Dao et al. 2022): never materializes the full $QK^T$. Tiles the computation, keeps tiles in SRAM, never writes them to HBM. Mathematically identical output, but real-world 2-4× speedup on long contexts.\n\n**Grouped-Query Attention** (GQA): instead of one K, V per query head, share K and V across groups of query heads. Reduces KV cache size at inference and matches multi-head attention quality on most benchmarks. Used in Llama 2 70B, Llama 3, Mistral.\n\n**ALiBi / RoPE / NoPE**: alternative position encodings. RoPE applies a rotation per token to Q, K based on position — gives the model relative-position information without additive positional embeddings. ALiBi just biases attention scores by token distance — cleaner extrapolation to longer-than-trained contexts. NoPE skips positional encoding entirely and surprisingly works for some architectures.\n\nThe 'attention' you implement is rarely textbook scaled-dot-product anymore. Modern transformer variants are stacks of these optimizations."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_tdd_flash",
+        "kind": "multiple_choice",
+        "question": "FlashAttention's speedup primarily comes from:",
+        "options": [
+          "A new mathematical formula.",
+          "Avoiding the $N^2$-sized intermediate matrix by tiling the computation in SRAM.",
+          "Skipping the softmax step.",
+          "Using lower precision."
+        ],
+        "correctIndex": 1,
+        "explanation": "FlashAttention computes the same output as standard attention but never materializes the $N \\times N$ score matrix in HBM. By keeping tiles in fast on-chip SRAM and accumulating the softmax incrementally, it avoids the HBM read-write bottleneck that dominates long-context attention. The math is identical; the trick is in the memory hierarchy."
+      },
+      "hints": [
+        "What was the bottleneck in standard attention on long contexts?",
+        "FlashAttention's win is in the memory hierarchy, not the math."
+      ],
+      "workedSolution": "Standard attention reads/writes the $N \\times N$ score matrix from HBM — memory-bandwidth-bound on long contexts. FlashAttention tiles the computation so each tile of scores lives only in SRAM (much faster, much smaller). The accumulated softmax + matmul still produce the same output. The 2-4× speedup is entirely from skipping HBM traffic; FP precision, math, and attention semantics are unchanged.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_tdd_kvcache",
+        "kind": "scenario",
+        "question": "KV cache memory",
+        "prompt": "A 70B model with multi-head attention has a huge KV cache that limits batch size at inference. A teammate switches the architecture to grouped-query attention. Walk through why this reduces KV cache memory without hurting quality much."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_tdd_scale",
+        "kind": "math_expression",
+        "question": "Why $\\sqrt{d_k}$ scaling: scores $QK^T$ have variance proportional to $d_k$. Dividing by $\\sqrt{d_k}$ normalizes to variance 1. For $d_k = 64$, the scaling factor is:",
+        "acceptedAnswers": [
+          "8",
+          "sqrt(64)",
+          "√64"
+        ],
+        "hint": "Just $\\sqrt{d_k}$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_tdd",
+        "kind": "explain_back",
+        "prompt": "Explain in three sentences why every transformer-era ML researcher needs to read the FlashAttention paper.",
+        "rubric": "Mentions that it's the first systems-level optimization most ML researchers encounter; understanding it bridges the attention math with how compute actually happens on a GPU; the design pattern (tile + fuse + avoid materializing) reappears throughout modern ML systems."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 35,
+    "difficulty": "advanced",
+    "objectives": [
+      "Connect attention's matrix algebra to the geometric reading.",
+      "Reason about why scaled dot-product (not unscaled) is the standard.",
+      "Recognize the structural innovations in modern variants (FlashAttention, GQA, ALiBi)."
+    ],
+    "prereqs": [
+      "math-foundations"
+    ]
+  }
 }

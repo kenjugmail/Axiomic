@@ -7,6 +7,59 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: real ultimatum-game data",
+      "body": "Hundreds of behavioral experiments since the 1980s. Across cultures, the empirical result: offerers typically split $50/50$ (or $60/40$); offers below $30/70$ are usually rejected. Far from the SPE prediction of $99/1$. The deviation tells us about preferences (fairness norms, spite, social signaling) — not about a flaw in the math. SPE remains correct for the stated game; humans aren't playing the stated game."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_seq_ultimatum",
+        "kind": "guided_derivation",
+        "question": "Derive the SPE of the ultimatum game",
+        "goal": "P1 proposes a split of $100 to P2; P2 accepts (both get the proposed shares) or rejects (both get 0).",
+        "steps": [
+          {
+            "prompt": "Work backwards. At P2's decision node, given P1 offered $x \\geq 0$ to P2: P2's choice between accepting ($x$) and rejecting (0). Best response?",
+            "motivation": "Backward induction starts at the leaves.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Accept any positive offer.",
+                "Accept any offer $\\geq 30$.",
+                "Always reject.",
+                "Accept iff x > 50."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "P2 strictly prefers $x > 0$ to 0; indifferent at $x = 0$."
+            ],
+            "reveal": "P2 accepts any $x > 0$."
+          },
+          {
+            "prompt": "P1 anticipates this. P1's payoff is $100 - x$ if accepted, 0 if rejected. P1 wants to minimize $x$ subject to P2 accepting. Best offer?",
+            "motivation": "Tie-break: offer the smallest positive amount.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$x = 50$.",
+                "$x = 0$.",
+                "$x = 1$ (or smallest positive unit).",
+                "$x = 99$."
+              ],
+              "correctIndex": 2
+            },
+            "hints": [
+              "P1 offers the minimum amount P2 will accept."
+            ],
+            "reveal": "$x = \\epsilon$ (smallest positive unit, e.g., $0.01). P1 keeps $\\$99.99$, P2 accepts."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Ultimatum SPE: } P1 \\text{ offers } \\$0.01, \\text{ P2 accepts}}$$ The SPE prediction. Empirically humans split closer to 50/50 — modeling fairness preferences in the utility function (Fehr-Schmidt) recovers more realistic predictions."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Backward induction",
       "body": "For finite games of **perfect information** (every player sees every prior move), the standard solution is **backward induction**:\n\n1. Start at terminal subgames.\n2. At each, the player to move chooses the action maximizing their payoff.\n3. Roll the value back up; replace the subgame with its equilibrium value.\n4. Continue to the root.\n\nThe path of choices found is the **subgame-perfect equilibrium** ([[subgame-perfect]]) — a [[nash-equilibrium]] that's also a Nash in every subgame.\n\nThis is what AlphaZero's MCTS approximates: each node's value is computed by recursive search through descendant states, then the policy at each node selects the highest-value action."
     },
@@ -38,12 +91,93 @@
         "kind": "explain_back",
         "prompt": "What's an 'incredible threat,' and how does subgame-perfect equilibrium rule it out? Use a real or invented example to ground your answer.",
         "rubricCriteria": [
-          { "id": "incredible-threat", "description": "Defines an incredible threat — a threatened action that wouldn't actually be carried out if the moment came" },
-          { "id": "spe-fix", "description": "Explains how SPE requires optimal behavior at every node, including off-equilibrium-path subgames" },
-          { "id": "example", "description": "Provides a concrete example (entry deterrence, cold war, etc.)" }
+          {
+            "id": "incredible-threat",
+            "description": "Defines an incredible threat — a threatened action that wouldn't actually be carried out if the moment came"
+          },
+          {
+            "id": "spe-fix",
+            "description": "Explains how SPE requires optimal behavior at every node, including off-equilibrium-path subgames"
+          },
+          {
+            "id": "example",
+            "description": "Provides a concrete example (entry deterrence, cold war, etc.)"
+          }
         ],
         "passingScore": 0.5
       }
+    },
+    {
+      "kind": "text",
+      "title": "Backward induction + subgame perfection",
+      "body": "Sequential game: player 1 moves, then player 2 sees the move and responds, then payoffs realize.\n\n**Backward induction**: start from the leaves (final payoffs), figure out what each player would do at their last decision, fold those into expected payoffs for the previous decision, and so on back to the root.\n\nExample: ultimatum game. P1 proposes a split of $100; P2 either accepts or rejects (both get 0). Backward induction: at the accept/reject node, P2's best response is to accept anything > 0. So P1 should offer $99 and keep $99. The NE: ($99, accept anything).\n\nBut humans don't play this NE — P2 routinely rejects 'unfair' offers (<$30), and P1 anticipates this and offers ~50-50. The 'fair-split' behavior is sustained by social preferences, reputation, and repeated play — none of which the one-shot game models.\n\n**Subgame-perfect equilibrium** (SPE): the equilibrium concept where backward induction works at every subgame. Rules out Nash equilibria that involve **non-credible threats** — promises a rational player wouldn't actually carry out when called on. SPE is the standard refinement for sequential games."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_seq_credible",
+        "kind": "multiple_choice",
+        "question": "A worker threatens 'I'll quit if you don't give me a raise'. The boss knows the worker has no other job lined up and would suffer significantly from quitting. This threat is:",
+        "options": [
+          "Subgame-perfect — the worker can carry it out if needed.",
+          "Not subgame-perfect (non-credible) — at the actual quit/stay node, the worker would prefer to stay even without the raise.",
+          "An ultimatum-game variant where the worker has all the power.",
+          "A cooperative game.\n"
+        ],
+        "correctIndex": 1,
+        "explanation": "Non-credible threat: at the actual node where the worker has to decide, staying (no raise) is better than quitting (worse). The boss, applying backward induction, knows this and ignores the threat. SPE refinement explicitly rules out equilibria sustained by non-credible threats."
+      },
+      "hints": [
+        "Walk the game tree: if the boss refuses, what does the worker actually do at the next node?",
+        "SPE requires every threat to be one the threatener would actually carry out."
+      ],
+      "workedSolution": "Non-credible threat — the worker's stated action (quit) is not their best response at the quit/stay node. SPE eliminates such equilibria; the boss, by backward induction, anticipates the worker will stay and so refuses the raise. The story is the classic case for why threats need 'commitment devices' to be credible.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_seq_chain",
+        "kind": "scenario",
+        "question": "Chain-store paradox",
+        "prompt": "An incumbent firm faces entry threats from N small competitors entering one at a time. The incumbent claims it will fight each entrant. Backward induction says they shouldn't — explain why, and what kind of mechanism could make the threat credible."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_seq_ultimatum",
+        "kind": "math_expression",
+        "question": "In a one-shot ultimatum game over $100, subgame-perfect equilibrium has P1 offer how much to P2? (Enter the smallest amount in dollars.)",
+        "acceptedAnswers": [
+          "0.01",
+          "1c",
+          "0.01 USD",
+          "$0.01"
+        ],
+        "hint": "Backward induction: P2 accepts any positive offer."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_seq",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why repeated play can sustain cooperation that one-shot NE cannot.",
+        "rubric": "Mentions that in repeated games, players can condition future actions on past behavior; threats of future punishment make today's cooperation incentive-compatible (folk theorem)."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Apply backward induction to a small game tree.",
+      "Distinguish subgame-perfect equilibrium from Nash equilibrium.",
+      "Recognize non-credible threats."
+    ],
+    "prereqs": [
+      "nash-equilibrium"
+    ]
+  }
 }

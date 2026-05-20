@@ -7,6 +7,57 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: PPO clip threshold tuning",
+      "body": "$\\epsilon = 0.1$: very conservative. Policy moves slowly per update; training is stable but slow. Default in many implementations of PPO for sensitive tasks.\n\n$\\epsilon = 0.2$: the OpenAI baselines + RLHF default. Faster learning, occasional instability.\n\n$\\epsilon = 0.3$: aggressive. Often diverges on simpler tasks; sometimes wins on hard ones by making bigger steps.\n\nThe right $\\epsilon$ depends on policy entropy, batch size, learning rate. RLHF for LLMs typically uses $\\epsilon = 0.2$ with $\\beta$ KL coefficient tuned alongside; the joint hyperparameter sweep is one of the harder parts of RLHF training."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ppo_ratio",
+        "kind": "guided_derivation",
+        "question": "Derive the importance-sampling ratio that PPO clips",
+        "goal": "Starting from the policy-gradient objective, show $r_t(\\theta) = \\pi_\\theta(a_t|s_t)/\\pi_{\\theta_{\\text{old}}}(a_t|s_t)$.",
+        "steps": [
+          {
+            "prompt": "Off-policy gradient: data was collected under $\\pi_{\\text{old}}$, but we want to update $\\pi_\\theta$. Importance sampling: $\\mathbb{E}_{\\pi_\\theta}[f] = \\mathbb{E}_{\\pi_{\\text{old}}}[(\\pi_\\theta/\\pi_{\\text{old}}) f]$. Apply to the policy gradient.",
+            "motivation": "Standard importance-sampling correction.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "E_{old}[(pi_theta/pi_old) A]",
+                "E_old[(π_θ/π_old) · A]"
+              ]
+            },
+            "hints": [
+              "Multiply by the ratio of new to old policy probabilities."
+            ],
+            "reveal": "$\\nabla J \\approx \\mathbb{E}_{\\pi_{\\text{old}}}[(\\pi_\\theta(a|s)/\\pi_{\\text{old}}(a|s)) \\cdot A(s,a)]$."
+          },
+          {
+            "prompt": "Define $r_t(\\theta) = \\pi_\\theta(a_t|s_t)/\\pi_{\\text{old}}(a_t|s_t)$. PPO's surrogate objective is $\\mathbb{E}_t[\\min(r_t A_t, \\text{clip}(r_t, 1-\\epsilon, 1+\\epsilon) A_t)]$. What does the clip prevent?",
+            "motivation": "Trust region in disguise.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Policy moves outside $[1-\\epsilon, 1+\\epsilon]$ multiplied by the advantage — preventing the gradient from rewarding aggressive moves outside the trust region.",
+                "Negative advantages.",
+                "Sampling at all.",
+                "Backprop through the old policy."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "The clip applies when $r_t$ leaves $[1-\\epsilon, 1+\\epsilon]$.",
+              "The $\\min$ keeps the gradient zero when extrapolating further would help."
+            ],
+            "reveal": "PPO's clip creates a 'no-gradient zone' when $r_t \\notin [1-\\epsilon, 1+\\epsilon]$ AND moving further would increase the objective — a soft trust region without explicit constraint optimization."
+          }
+        ],
+        "finalResult": "$$\\boxed{L^{\\text{CLIP}}(\\theta) = \\mathbb{E}_t[\\min(r_t A_t, \\text{clip}(r_t, 1-\\epsilon, 1+\\epsilon) A_t)]}$$\n\nThe importance-sampling ratio $r_t$ comes from off-policy correction; the clip creates the trust-region behavior; together they give PPO's stability with much simpler engineering than TRPO's constrained optimization."
+      }
+    },
+    {
+      "kind": "text",
       "title": "TRPO: the principled answer",
       "body": "**Trust Region Policy Optimization** maximizes a surrogate objective subject to a KL constraint:\n\n```\nmaximize_θ  L(θ) = E[(π_θ(a|s) / π_old(a|s)) · A(s,a)]\nsubject to: E[KL(π_old || π_θ)] ≤ δ\n```\n\nIn words: maximize the importance-weighted advantage, but keep the new policy within a `KL ≤ δ` ball of the old.\n\nThe importance ratio `r(θ) = π_θ(a|s) / π_old(a|s)` is what makes this **off-policy in a controlled way**: we're using data collected under `π_old` but evaluating gradients under `π_θ`.\n\nTRPO solves this constrained optimization via:\n\n1. **Conjugate gradient** to compute the natural gradient direction (Fisher matrix-vector products).\n2. **Line search** to find the largest step size that satisfies the KL constraint.\n\nMathematically beautiful; engineering complex. The conjugate gradient + line search makes implementation finicky. Most implementations have at least one bug that someone catches three years later.\n\n**TRPO** has provable monotonic improvement guarantees (under exact computation). In practice, it's been mostly superseded by PPO."
     },
@@ -61,6 +112,77 @@
       "kind": "text",
       "title": "What's next",
       "body": "PPO is the workhorse algorithm. The remaining lessons in this path cover exploration, model-based RL, and finally RLHF — applying PPO to language model alignment.\n\nNext: [[exploration-exploitation]] — why pure exploitation gets stuck and how to break out of it.\n\nKey takeaways:\n- TRPO: principled trust region via KL constraint; elegant but complex\n- PPO: clipped surrogate `min(r·A, clip(r)·A)`. Simpler, matches TRPO empirically\n- ε=0.2 is the standard clip range; γ=0.99, λ=0.95 for GAE\n- Update for 4-10 epochs per data batch — clip prevents data going stale\n- Implementation details matter: advantage normalization, orthogonal init, action squashing\n- PPO is the most-deployed RL algorithm of the 2020s; RLHF is PPO with a learned reward"
+    },
+    {
+      "kind": "text",
+      "title": "PPO's clipped objective, in one screen",
+      "body": "Plain policy gradient updates can be too aggressive: one bad gradient step destroys the policy and recovery is hard.\n\n**TRPO** (Schulman 2015) constrains the KL divergence between new and old policies at each update. Mathematically clean (uses natural gradient + conjugate gradient + line search) but engineering-heavy.\n\n**PPO** (Schulman 2017) is the simpler clipped version:\n$$L^{\\text{CLIP}}(\\theta) = \\mathbb E_t \\bigl[\\min(r_t(\\theta) A_t,\\, \\text{clip}(r_t(\\theta), 1-\\epsilon, 1+\\epsilon) A_t)\\bigr]$$\nwhere $r_t(\\theta) = \\pi_\\theta(a_t|s_t) / \\pi_{\\theta_{\\text{old}}}(a_t|s_t)$ is the importance-sampling ratio.\n\nWhen $r_t \\cdot A_t$ exceeds the clipped version's value, gradient flow stops — preventing the policy from moving too far from the old one in a single update. Empirically PPO matches or beats TRPO with a fraction of the engineering. It's the default policy-gradient algorithm in modern RL libraries and the foundation of RLHF (which is essentially PPO with a learned reward model)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ppo_clip",
+        "kind": "multiple_choice",
+        "question": "PPO's clipping mechanism prevents:",
+        "options": [
+          "The advantage from going negative.",
+          "Importance-sampling ratios outside $[1-\\epsilon, 1+\\epsilon]$ from contributing gradient when $r_t A_t$ is on the 'too-far' side.",
+          "All policy updates.",
+          "Critic updates."
+        ],
+        "correctIndex": 1,
+        "explanation": "Clipping stops the gradient when the policy ratio leaves the trust region AND moving further would increase the objective. So policy updates that try to make a high-advantage action more probable but already passed $1+\\epsilon$ get zero gradient. This creates a soft trust region that doesn't require explicit constraint solving like TRPO."
+      },
+      "hints": [
+        "Read the formula: $\\min(r A, \\text{clip}(r) A)$.",
+        "The clip's effect depends on the SIGN of the advantage."
+      ],
+      "workedSolution": "Clipping creates a 'no-gradient zone' when the policy ratio leaves the trust region AND moving further would benefit the objective. Concretely: if $A > 0$ and $r > 1+\\epsilon$, the clipped term is constant and there's no gradient to increase $r$ further. Symmetric story for $A < 0$. Result: a soft trust region without explicit constraint optimization.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ppo_klspike",
+        "kind": "scenario",
+        "question": "KL divergence spikes",
+        "prompt": "During PPO training, you see the policy KL divergence between old and new spike to 0.5 in a single update. Why is this a warning sign, and what hyperparameter would you tune?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ppo_ratio",
+        "kind": "math_expression",
+        "question": "Old policy: $\\pi_{old}(a|s) = 0.4$. New policy: $\\pi_{new}(a|s) = 0.6$. Importance-sampling ratio $r = ?$",
+        "acceptedAnswers": [
+          "1.5",
+          "3/2",
+          "1.50"
+        ],
+        "hint": "r = new / old."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ppo",
+        "kind": "explain_back",
+        "prompt": "Explain in three sentences why RLHF used PPO and not something simpler like vanilla policy gradient.",
+        "rubric": "Mentions that RLHF requires stable training against a learned reward model; PPO's trust region prevents the policy from going off the rails when the reward model is misspecified or out-of-distribution; the clipped objective also handles importance sampling for mini-batched updates."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "advanced",
+    "objectives": [
+      "State the trust-region principle of TRPO.",
+      "Explain PPO's clipped surrogate objective.",
+      "Reason about why large updates destabilize policy learning."
+    ],
+    "prereqs": [
+      "actor-critic"
+    ]
+  }
 }

@@ -22,7 +22,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { randomUUID } from "crypto";
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import {
   examAttempts,
   examAttemptAnswers,
@@ -37,6 +37,7 @@ import {
 } from "../lib/examAdaptive";
 import { scoreExam, type ExamScoringConfig } from "../lib/examScoring";
 import { gradeEssay } from "../lib/essayGrader";
+import { gradeGridIn, gradeMultiSelect } from "../lib/examGrading";
 import { requireAuth } from "../middleware/auth";
 import type { Env } from "../env";
 
@@ -71,22 +72,31 @@ interface AttemptManifest {
   sections: ManifestSection[];
 }
 
+// Server-side question shape. Caller decides whether to expose
+// per-variant answer-key fields (only completed attempts get them).
+// The wire type lives in @axiomic/types as ExamQuestionPayload (a
+// discriminated union); this internal type is the eager projection
+// before we strip answer fields for in-flight attempts.
 interface QuestionPayload {
   id: string;
   sectionId: string;
   sectionSlug: string;
   ordinal: number;
-  type: "multiple_choice" | "essay";
+  type: "multiple_choice" | "essay" | "grid_in" | "multi_select";
   difficulty: number;
   promptMd: string;
+  passageMd: string | null;
   options: Array<{ label: string; text: string }>;
   topicTags: string[];
-  // Sprint 75 — essay-only fields. Null/0 for multiple_choice.
   rubricMd: string | null;
   maxEssayScore: number | null;
-  // Phase 16A — answer key. Caller decides whether to expose it (only
-  // completed attempts get correctIndex in the response).
   correctIndex: number | null;
+  // Digital-SAT-parity additions.
+  acceptedAnswers: string[] | null;
+  tolerance: number | null;
+  correctIndexes: number[] | null;
+  imageUrl: string | null;
+  meta: Record<string, unknown> | null;
 }
 
 function loadQuestions(ids: string[]): Map<string, QuestionPayload> {
@@ -99,11 +109,17 @@ function loadQuestions(ids: string[]): Map<string, QuestionPayload> {
       type: examQuestions.type,
       difficulty: examQuestions.difficulty,
       promptMd: examQuestions.promptMd,
+      passageMd: examQuestions.passageMd,
       optionsJson: examQuestions.optionsJson,
       rubricMd: examQuestions.rubricMd,
       maxEssayScore: examQuestions.maxEssayScore,
       topicTagsJson: examQuestions.topicTagsJson,
       correctIndex: examQuestions.correctIndex,
+      acceptedAnswersJson: examQuestions.acceptedAnswersJson,
+      tolerance: examQuestions.tolerance,
+      correctIndexesJson: examQuestions.correctIndexesJson,
+      imageUrl: examQuestions.imageUrl,
+      metaJson: examQuestions.metaJson,
     })
     .from(examQuestions)
     .all();
@@ -116,9 +132,17 @@ function loadQuestions(ids: string[]): Map<string, QuestionPayload> {
   const slugById = new Map(sectionRows.map((r) => [r.id, r.slug]));
 
   const out = new Map<string, QuestionPayload>();
+  const VALID_TYPES = new Set([
+    "multiple_choice",
+    "essay",
+    "grid_in",
+    "multi_select",
+  ]);
   for (const r of rows) {
     if (!wanted.has(r.id)) continue;
-    const qType = (r.type as "multiple_choice" | "essay") ?? "multiple_choice";
+    const qType = (
+      VALID_TYPES.has(r.type) ? r.type : "multiple_choice"
+    ) as QuestionPayload["type"];
     out.set(r.id, {
       id: r.id,
       sectionId: r.sectionId,
@@ -127,12 +151,26 @@ function loadQuestions(ids: string[]): Map<string, QuestionPayload> {
       type: qType,
       difficulty: r.difficulty,
       promptMd: r.promptMd,
+      passageMd: r.passageMd ?? null,
       options: safeJsonArray<{ label: string; text: string }>(r.optionsJson),
       topicTags: safeJsonArray<string>(r.topicTagsJson),
       rubricMd: r.rubricMd,
       maxEssayScore: r.maxEssayScore,
       // Essay rows store 0 for correctIndex but it's meaningless there.
       correctIndex: qType === "essay" ? null : r.correctIndex,
+      acceptedAnswers:
+        qType === "grid_in"
+          ? safeJsonArray<string>(r.acceptedAnswersJson)
+          : null,
+      tolerance: qType === "grid_in" ? r.tolerance : null,
+      correctIndexes:
+        qType === "multi_select"
+          ? safeJsonArray<number>(r.correctIndexesJson)
+          : null,
+      imageUrl: r.imageUrl ?? null,
+      meta: r.metaJson
+        ? safeJsonObject<Record<string, unknown> | null>(r.metaJson, null)
+        : null,
     });
   }
   return out;
@@ -190,29 +228,66 @@ examsRouter.get("/:slug", async (c) => {
 
 // ---------- start attempt --------------------------------------------
 
+// Digital-SAT-parity: optional customizer block. Reasonable defaults
+// preserve today's behavior when omitted (1x timing, all difficulty
+// bands, shuffle on, calculator allowed).
+const customizerSchema = z
+  .object({
+    sections: z
+      .array(
+        z.object({
+          slug: z.string().min(1),
+          questionCount: z.number().int().min(1).max(200),
+        }),
+      )
+      .min(1),
+    timeMultiplier: z
+      .union([z.literal(1), z.literal(1.5), z.literal(2)])
+      .default(1),
+    difficultyFilter: z
+      .array(z.number().int().min(1).max(5))
+      .nullable()
+      .default(null),
+    shuffle: z.boolean().default(true),
+    calculatorAllowed: z.boolean().default(true),
+  })
+  .strict();
+
 const startSchema = z.object({
   mode: z.enum(["full_mock", "section", "adaptive"]),
   sectionSlug: z.string().optional(),
+  customizer: customizerSchema.optional(),
 });
 
-function pickRandomQuestionsForSection(
+interface PickOpts {
+  difficultyFilter: number[] | null;
+  shuffle: boolean;
+}
+
+function pickQuestionsForSection(
   sectionId: string,
   count: number,
-): string[] {
+  opts: PickOpts,
+): { ids: string[]; shortBy: number } {
   const db = getDb();
+  const conds = [eq(examQuestions.sectionId, sectionId)];
+  if (opts.difficultyFilter && opts.difficultyFilter.length > 0) {
+    conds.push(inArray(examQuestions.difficulty, opts.difficultyFilter));
+  }
   const rows = db
     .select({ id: examQuestions.id })
     .from(examQuestions)
-    .where(eq(examQuestions.sectionId, sectionId))
+    .where(conds.length === 1 ? conds[0] : and(...conds))
     .all();
-  // Fisher-Yates shuffle then take `count` so the runner sees a
-  // fresh order each attempt.
   const ids = rows.map((r) => r.id);
-  for (let i = ids.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [ids[i], ids[j]] = [ids[j], ids[i]];
+  if (opts.shuffle) {
+    for (let i = ids.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [ids[i], ids[j]] = [ids[j], ids[i]];
+    }
   }
-  return ids.slice(0, Math.min(count, ids.length));
+  const picked = ids.slice(0, Math.min(count, ids.length));
+  return { ids: picked, shortBy: Math.max(0, count - ids.length) };
 }
 
 examsRouter.post(
@@ -223,7 +298,7 @@ examsRouter.post(
     const me = c.get("user")!;
     const slug = c.req.param("slug");
     if (!slug) return c.json({ error: "Missing slug" }, 400);
-    const { mode, sectionSlug } = c.req.valid("json");
+    const { mode, sectionSlug, customizer } = c.req.valid("json");
     const db = getDb();
 
     const exam = db.select().from(exams).where(eq(exams.slug, slug)).get();
@@ -239,14 +314,55 @@ examsRouter.post(
       return c.json({ error: "Exam has no sections" }, 400);
     }
 
+    const pickOpts: PickOpts = {
+      difficultyFilter: customizer?.difficultyFilter ?? null,
+      shuffle: customizer?.shuffle ?? true,
+    };
+    const warnings: string[] = [];
+
     let manifest: AttemptManifest;
-    let totalDurationMinutes = exam.totalDurationMinutes;
+    // Per-section selection — sections + counts after intersecting
+    // any customizer override with the exam's own section list.
+    let pickedSections: Array<{
+      slug: string;
+      durationMinutes: number;
+      questionIds: string[];
+    }>;
 
     if (mode === "full_mock") {
+      // The customizer can override per-section count + restrict to
+      // a subset of sections; default to every section at its
+      // configured questionCount.
+      const wanted = customizer
+        ? customizer.sections
+        : sections.map((s) => ({ slug: s.slug, questionCount: s.questionCount }));
+      pickedSections = [];
+      for (const w of wanted) {
+        const section = sections.find((s) => s.slug === w.slug);
+        if (!section) continue;
+        const { ids, shortBy } = pickQuestionsForSection(
+          section.id,
+          w.questionCount,
+          pickOpts,
+        );
+        if (shortBy > 0) {
+          warnings.push(
+            `Only ${ids.length} of ${w.questionCount} questions matched the filter in "${section.title}".`,
+          );
+        }
+        pickedSections.push({
+          slug: section.slug,
+          durationMinutes: section.durationMinutes,
+          questionIds: ids,
+        });
+      }
+      if (pickedSections.length === 0) {
+        return c.json({ error: "Customizer matched no sections" }, 400);
+      }
       manifest = {
-        sections: sections.map((s) => ({
+        sections: pickedSections.map((s) => ({
           slug: s.slug,
-          questionIds: pickRandomQuestionsForSection(s.id, s.questionCount),
+          questionIds: s.questionIds,
         })),
       };
     } else if (mode === "section") {
@@ -254,40 +370,80 @@ examsRouter.post(
         return c.json({ error: "sectionSlug required for section mode" }, 400);
       }
       const section = sections.find((s) => s.slug === sectionSlug);
-      if (!section)
-        return c.json({ error: "Section not found" }, 404);
+      if (!section) return c.json({ error: "Section not found" }, 404);
+      // Customizer wins when provided; otherwise the section's full
+      // questionCount.
+      const requested =
+        customizer?.sections.find((cs) => cs.slug === sectionSlug)
+          ?.questionCount ?? section.questionCount;
+      const { ids, shortBy } = pickQuestionsForSection(
+        section.id,
+        requested,
+        pickOpts,
+      );
+      if (shortBy > 0) {
+        warnings.push(
+          `Only ${ids.length} of ${requested} questions matched the filter in "${section.title}".`,
+        );
+      }
+      pickedSections = [
+        {
+          slug: section.slug,
+          durationMinutes: section.durationMinutes,
+          questionIds: ids,
+        },
+      ];
       manifest = {
-        sections: [
-          {
-            slug: section.slug,
-            questionIds: pickRandomQuestionsForSection(
-              section.id,
-              section.questionCount,
-            ),
-          },
-        ],
+        sections: [{ slug: section.slug, questionIds: ids }],
       };
-      totalDurationMinutes = section.durationMinutes;
     } else {
       // adaptive — start with a 20-question diagnostic across all
       // sections. The runner tops up via PUT next-question hits.
+      // Adaptive is untimed: we don't compute deadlines.
       manifest = {
         sections: sections.map((s) => ({
           slug: s.slug,
           questionIds: buildDiagnosticManifest(s.id, 20),
         })),
       };
-      // Adaptive is untimed by default — no expiry written.
-      totalDurationMinutes = 0;
+      pickedSections = [];
     }
 
     const id = randomUUID();
     const startedAt = new Date();
+    const startedAtMs = startedAt.getTime();
+    const BREAK_MINUTES = 10;
+    const timeMultiplier = customizer?.timeMultiplier ?? 1;
+
+    // Per-section deadlines run consecutively with a 10-min break
+    // between consecutive sections. Empty for adaptive (no clock).
+    const sectionDeadlines: Array<{
+      slug: string;
+      startsAt: string;
+      endsAt: string;
+      durationMinutes: number;
+    }> = [];
+    let cursorMs = startedAtMs;
+    for (let i = 0; i < pickedSections.length; i++) {
+      const ps = pickedSections[i]!;
+      const dur = Math.max(1, Math.round(ps.durationMinutes * timeMultiplier));
+      const startMs = cursorMs;
+      const endMs = startMs + dur * 60_000;
+      sectionDeadlines.push({
+        slug: ps.slug,
+        startsAt: new Date(startMs).toISOString(),
+        endsAt: new Date(endMs).toISOString(),
+        durationMinutes: dur,
+      });
+      cursorMs = endMs + BREAK_MINUTES * 60_000;
+    }
+
+    // Legacy `expiresAt` stays the last section's endsAt (extra
+    // BREAK_MINUTES added one too many times — strip the trailing
+    // break). Cron/auto-submit logic continues to read this field.
     const expiresAt =
-      totalDurationMinutes > 0
-        ? new Date(
-            startedAt.getTime() + totalDurationMinutes * 60_000,
-          ).toISOString()
+      sectionDeadlines.length > 0
+        ? sectionDeadlines[sectionDeadlines.length - 1]!.endsAt
         : null;
 
     db.insert(examAttempts)
@@ -300,10 +456,23 @@ examsRouter.post(
         startedAt: startedAt.toISOString(),
         expiresAt,
         answersJson: JSON.stringify(manifest),
+        sectionDeadlinesJson:
+          sectionDeadlines.length > 0
+            ? JSON.stringify(sectionDeadlines)
+            : null,
+        currentSectionIdx: sectionDeadlines.length > 0 ? 0 : null,
+        customizerJson: customizer ? JSON.stringify(customizer) : null,
       })
       .run();
 
-    return c.json({ id, mode, expiresAt, manifest });
+    return c.json({
+      id,
+      mode,
+      expiresAt,
+      manifest,
+      sectionDeadlines,
+      warnings,
+    });
   },
 );
 
@@ -340,6 +509,52 @@ examsRouter.get("/attempts/:id", requireAuth, async (c) => {
   // completed, so the in-progress fetch can't be inspected to cheat.
   const completed = attempt.completedAt != null;
 
+  // Digital-SAT-parity: per-section deadlines + customizer state.
+  // Legacy attempts (sectionDeadlinesJson IS NULL) synthesize a
+  // single virtual deadline from expiresAt so the wire shape is
+  // uniform and the runner can drive both paths from one code
+  // branch.
+  const storedDeadlines = safeJsonArray<{
+    slug: string;
+    startsAt: string;
+    endsAt: string;
+    durationMinutes: number;
+  }>(attempt.sectionDeadlinesJson);
+  let sectionDeadlines = storedDeadlines;
+  if (sectionDeadlines.length === 0 && attempt.expiresAt) {
+    // Single virtual deadline covering the whole attempt.
+    sectionDeadlines = [
+      {
+        slug: manifest.sections[0]?.slug ?? "",
+        startsAt: attempt.startedAt,
+        endsAt: attempt.expiresAt,
+        durationMinutes: Math.max(
+          0,
+          Math.round(
+            (Date.parse(attempt.expiresAt) - Date.parse(attempt.startedAt)) /
+              60000,
+          ),
+        ),
+      },
+    ];
+  }
+  const customizer = attempt.customizerJson
+    ? safeJsonObject<Record<string, unknown> | null>(
+        attempt.customizerJson,
+        null,
+      )
+    : null;
+  const calculatorAllowed =
+    customizer && typeof customizer === "object"
+      ? Boolean((customizer as { calculatorAllowed?: unknown }).calculatorAllowed)
+      : false;
+  const calculatorState = attempt.calculatorStateJson
+    ? safeJsonObject<Record<string, unknown> | null>(
+        attempt.calculatorStateJson,
+        null,
+      )
+    : null;
+
   return c.json({
     id: attempt.id,
     mode: attempt.mode,
@@ -350,15 +565,25 @@ examsRouter.get("/attempts/:id", requireAuth, async (c) => {
     scoreScaled: attempt.scoreScaled,
     sections: manifest.sections.map((s) => ({
       slug: s.slug,
-      questions: s.questionIds.map((qid, ordinal) => {
-        const q = questions.get(qid);
-        if (!q) return null;
-        return {
-          ...q,
-          ordinal,
-          correctIndex: completed ? q.correctIndex : null,
-        };
-      }).filter((x) => x !== null),
+      questions: s.questionIds
+        .map((qid, ordinal) => {
+          const q = questions.get(qid);
+          if (!q) return null;
+          // Strip per-variant answer keys mid-attempt. For
+          // multi_select we expose the count (not the indexes) so
+          // the runner can gate further picks once the learner has
+          // chosen that many.
+          const correctCount = q.correctIndexes?.length ?? 0;
+          return {
+            ...q,
+            ordinal,
+            correctIndex: completed ? q.correctIndex : null,
+            acceptedAnswers: completed ? q.acceptedAnswers : null,
+            correctIndexes: completed ? q.correctIndexes : null,
+            correctCount: q.type === "multi_select" ? correctCount : undefined,
+          };
+        })
+        .filter((x) => x !== null),
     })),
     answers: answers.map((a) => ({
       questionId: a.questionId,
@@ -366,10 +591,21 @@ examsRouter.get("/attempts/:id", requireAuth, async (c) => {
       essayResponse: a.essayResponse,
       essayScore: a.essayScore,
       essayFeedbackMd: a.essayFeedbackMd,
+      gridInResponse: a.gridInResponse,
+      selectedIndexes: a.selectedIndexesJson
+        ? safeJsonArray<number>(a.selectedIndexesJson)
+        : null,
       flagged: a.flagged === 1,
       timeSpentMs: a.timeSpentMs,
       isCorrect: completed && a.isCorrect != null ? a.isCorrect === 1 : null,
     })),
+    sectionDeadlines,
+    currentSectionIdx: attempt.currentSectionIdx ?? 0,
+    breakUntilAt: attempt.breakUntilAt,
+    calculatorAllowed,
+    calculatorState,
+    customizer,
+    warnings: [] as string[],
   });
 });
 
@@ -382,6 +618,14 @@ const answerSchema = z.object({
   // ~50KB which is roughly 8000 words; that's more than any GRE
   // AW prompt would expect.
   essayResponse: z.string().max(50_000).nullable().optional(),
+  // Digital-SAT-parity: grid-in free-text numeric answer (small,
+  // e.g. "3/4" / "0.75") and multi-select chosen option indexes.
+  gridInResponse: z.string().max(200).nullable().optional(),
+  selectedIndexes: z
+    .array(z.number().int().min(0).max(20))
+    .max(20)
+    .nullable()
+    .optional(),
   timeSpentMs: z.number().int().min(0).max(3600_000).optional(),
   flagged: z.boolean().optional(),
 });
@@ -394,8 +638,15 @@ examsRouter.put(
     const me = c.get("user")!;
     const id = c.req.param("id");
     if (!id) return c.json({ error: "Missing id" }, 400);
-    const { questionId, selectedIndex, essayResponse, timeSpentMs, flagged } =
-      c.req.valid("json");
+    const {
+      questionId,
+      selectedIndex,
+      essayResponse,
+      gridInResponse,
+      selectedIndexes,
+      timeSpentMs,
+      flagged,
+    } = c.req.valid("json");
     const db = getDb();
 
     const attempt = db
@@ -448,6 +699,14 @@ examsRouter.put(
       if (essayResponse !== undefined) {
         update.essayResponse = essayResponse ?? null;
       }
+      if (gridInResponse !== undefined) {
+        update.gridInResponse = gridInResponse ?? null;
+      }
+      if (selectedIndexes !== undefined) {
+        update.selectedIndexesJson = selectedIndexes
+          ? JSON.stringify(selectedIndexes)
+          : null;
+      }
       // Only touch the flagged column when the patch supplied it —
       // otherwise patching `selectedIndex` on a flagged question would
       // silently clear the flag.
@@ -466,11 +725,173 @@ examsRouter.put(
           questionId,
           selectedIndex: selectedIndex ?? null,
           essayResponse: essayResponse ?? null,
+          gridInResponse: gridInResponse ?? null,
+          selectedIndexesJson: selectedIndexes
+            ? JSON.stringify(selectedIndexes)
+            : null,
           timeSpentMs: timeSpentMs ?? 0,
           flagged: flagged ? 1 : 0,
         })
         .run();
     }
+    return c.json({ ok: true });
+  },
+);
+
+// ---------- advance section / break state machine -------------------
+//
+// Idempotent on currentSectionIdx — the client sends the index it
+// observed and the server 409s on mismatch. When advanced from a
+// section to a break, the server sets break_until_at = now + 10min
+// and leaves current_section_idx unchanged. When advanced from a
+// break to the next section, the server clears break_until_at,
+// bumps current_section_idx, rebases the next section's startsAt
+// to now (so the per-section clock counts from break-end, not from
+// the originally-precomputed value).
+
+const advanceSchema = z.object({
+  currentSectionIdx: z.number().int().min(0).max(20),
+});
+
+const BREAK_MINUTES = 10;
+
+examsRouter.post(
+  "/attempts/:id/advance-section",
+  requireAuth,
+  zValidator("json", advanceSchema),
+  async (c) => {
+    const me = c.get("user")!;
+    const id = c.req.param("id");
+    if (!id) return c.json({ error: "Missing id" }, 400);
+    const { currentSectionIdx: clientIdx } = c.req.valid("json");
+    const db = getDb();
+
+    const attempt = db
+      .select()
+      .from(examAttempts)
+      .where(eq(examAttempts.id, id))
+      .get();
+    if (!attempt) return c.json({ error: "Not found" }, 404);
+    if (attempt.userId !== me.id) return c.json({ error: "Forbidden" }, 403);
+    if (attempt.completedAt)
+      return c.json({ error: "Attempt already submitted" }, 400);
+
+    const deadlines = safeJsonArray<{
+      slug: string;
+      startsAt: string;
+      endsAt: string;
+      durationMinutes: number;
+    }>(attempt.sectionDeadlinesJson);
+    if (deadlines.length === 0) {
+      return c.json({ error: "Attempt has no section deadlines" }, 400);
+    }
+
+    const serverIdx = attempt.currentSectionIdx ?? 0;
+    if (clientIdx !== serverIdx) {
+      return c.json(
+        { error: "Section index mismatch", currentSectionIdx: serverIdx },
+        409,
+      );
+    }
+
+    const inBreak = Boolean(attempt.breakUntilAt);
+    const now = Date.now();
+
+    if (inBreak) {
+      // Coming out of a break — only allowed once now >= breakUntilAt.
+      const breakEnd = Date.parse(attempt.breakUntilAt!);
+      if (Number.isFinite(breakEnd) && breakEnd > now) {
+        return c.json(
+          { error: "Break still in progress", breakUntilAt: attempt.breakUntilAt },
+          425,
+        );
+      }
+      const nextIdx = serverIdx + 1;
+      if (nextIdx >= deadlines.length) {
+        // Shouldn't normally happen — a break only follows a non-last
+        // section. Guard anyway.
+        return c.json({ error: "No more sections" }, 400);
+      }
+      const nextDur = deadlines[nextIdx]!.durationMinutes;
+      const startsAt = new Date(now).toISOString();
+      const endsAt = new Date(now + nextDur * 60_000).toISOString();
+      deadlines[nextIdx] = {
+        slug: deadlines[nextIdx]!.slug,
+        startsAt,
+        endsAt,
+        durationMinutes: nextDur,
+      };
+      db.update(examAttempts)
+        .set({
+          sectionDeadlinesJson: JSON.stringify(deadlines),
+          currentSectionIdx: nextIdx,
+          breakUntilAt: null,
+        })
+        .where(eq(examAttempts.id, id))
+        .run();
+      return c.json({
+        ok: true,
+        currentSectionIdx: nextIdx,
+        breakUntilAt: null,
+        sectionDeadlines: deadlines,
+      });
+    }
+
+    // Not in a break — advance from a finished section. If there's
+    // a next section, drop into a break; otherwise the caller should
+    // submit (we just signal `done`).
+    const nextIdx = serverIdx + 1;
+    if (nextIdx >= deadlines.length) {
+      return c.json({ ok: true, done: true });
+    }
+    const breakUntilAt = new Date(now + BREAK_MINUTES * 60_000).toISOString();
+    db.update(examAttempts)
+      .set({ breakUntilAt })
+      .where(eq(examAttempts.id, id))
+      .run();
+    return c.json({
+      ok: true,
+      currentSectionIdx: serverIdx,
+      breakUntilAt,
+      sectionDeadlines: deadlines,
+    });
+  },
+);
+
+// ---------- calculator state save -----------------------------------
+//
+// Debounced ~5s saves from the runner so a refresh restores the
+// Desmos panel state. Body is the opaque getState() blob.
+
+const calcStateSchema = z.object({
+  state: z.record(z.string(), z.unknown()).nullable(),
+});
+
+examsRouter.put(
+  "/attempts/:id/calculator-state",
+  requireAuth,
+  zValidator("json", calcStateSchema),
+  async (c) => {
+    const me = c.get("user")!;
+    const id = c.req.param("id");
+    if (!id) return c.json({ error: "Missing id" }, 400);
+    const { state } = c.req.valid("json");
+    const db = getDb();
+
+    const attempt = db
+      .select({ userId: examAttempts.userId, completedAt: examAttempts.completedAt })
+      .from(examAttempts)
+      .where(eq(examAttempts.id, id))
+      .get();
+    if (!attempt) return c.json({ error: "Not found" }, 404);
+    if (attempt.userId !== me.id) return c.json({ error: "Forbidden" }, 403);
+    if (attempt.completedAt)
+      return c.json({ error: "Attempt already submitted" }, 400);
+
+    db.update(examAttempts)
+      .set({ calculatorStateJson: state ? JSON.stringify(state) : null })
+      .where(eq(examAttempts.id, id))
+      .run();
     return c.json({ ok: true });
   },
 );
@@ -630,7 +1051,9 @@ examsRouter.post("/attempts/:id/submit", requireAuth, async (c) => {
   const allIds = manifest.sections.flatMap((s) => s.questionIds);
 
   // Resolve question metadata for grading. Essay questions use
-  // rubricMd + maxEssayScore; multiple-choice uses correctIndex.
+  // rubricMd + maxEssayScore; multiple-choice uses correctIndex;
+  // grid_in uses acceptedAnswers + tolerance; multi_select uses
+  // correctIndexes.
   const qrows = db
     .select({
       id: examQuestions.id,
@@ -640,6 +1063,9 @@ examsRouter.post("/attempts/:id/submit", requireAuth, async (c) => {
       promptMd: examQuestions.promptMd,
       rubricMd: examQuestions.rubricMd,
       maxEssayScore: examQuestions.maxEssayScore,
+      acceptedAnswersJson: examQuestions.acceptedAnswersJson,
+      tolerance: examQuestions.tolerance,
+      correctIndexesJson: examQuestions.correctIndexesJson,
     })
     .from(examQuestions)
     .all();
@@ -650,6 +1076,9 @@ examsRouter.post("/attempts/:id/submit", requireAuth, async (c) => {
     promptMd: string;
     rubricMd: string | null;
     maxEssayScore: number | null;
+    acceptedAnswers: string[] | null;
+    tolerance: number | null;
+    correctIndexes: number[] | null;
   }
   const metaById = new Map<string, QuestionMeta>();
   const wanted = new Set(allIds);
@@ -662,6 +1091,13 @@ examsRouter.post("/attempts/:id/submit", requireAuth, async (c) => {
         promptMd: r.promptMd,
         rubricMd: r.rubricMd,
         maxEssayScore: r.maxEssayScore,
+        acceptedAnswers: r.acceptedAnswersJson
+          ? safeJsonArray<string>(r.acceptedAnswersJson)
+          : null,
+        tolerance: r.tolerance,
+        correctIndexes: r.correctIndexesJson
+          ? safeJsonArray<number>(r.correctIndexesJson)
+          : null,
       });
   }
 
@@ -712,6 +1148,37 @@ examsRouter.post("/attempts/:id/submit", requireAuth, async (c) => {
         .where(eq(examAttemptAnswers.id, ans.id))
         .run();
       if (slug) rawBySection.set(slug, (rawBySection.get(slug) ?? 0) + grade.score);
+    } else if (meta.type === "grid_in") {
+      const { isCorrect } = gradeGridIn(
+        ans.gridInResponse,
+        meta.acceptedAnswers,
+        meta.tolerance,
+      );
+      db.update(examAttemptAnswers)
+        .set({ isCorrect: isCorrect ? 1 : 0 })
+        .where(eq(examAttemptAnswers.id, ans.id))
+        .run();
+      if (isCorrect) {
+        mcCorrectCount++;
+        if (slug) {
+          rawBySection.set(slug, (rawBySection.get(slug) ?? 0) + 1);
+        }
+      }
+    } else if (meta.type === "multi_select") {
+      const selected = ans.selectedIndexesJson
+        ? safeJsonArray<number>(ans.selectedIndexesJson)
+        : null;
+      const { isCorrect } = gradeMultiSelect(selected, meta.correctIndexes);
+      db.update(examAttemptAnswers)
+        .set({ isCorrect: isCorrect ? 1 : 0 })
+        .where(eq(examAttemptAnswers.id, ans.id))
+        .run();
+      if (isCorrect) {
+        mcCorrectCount++;
+        if (slug) {
+          rawBySection.set(slug, (rawBySection.get(slug) ?? 0) + 1);
+        }
+      }
     } else {
       const isCorrect =
         ans.selectedIndex !== null && ans.selectedIndex === meta.correctIndex;

@@ -7,6 +7,73 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: language model cross-entropy",
+      "body": "A language model predicts the next token from a 32k-vocabulary. On a test corpus, its average cross-entropy is 2.5 nats per token.\n\nConvert to **perplexity**: $\\text{PPL} = e^{H} = e^{2.5} \\approx 12.2$.\n\nIntuition: the model behaves as if it's effectively guessing uniformly among ~12 tokens at each step. A uniform 32k-token model would have $\\text{PPL} = 32{,}000$ (max possible); a perfect model would have $\\text{PPL} = 1$. Modern frontier LLMs achieve $\\text{PPL} \\approx 5{-}10$ on broad-domain text.\n\nWhen you read 'GPT-X has perplexity 8 on Wikipedia', it means: at each token position, the model is effectively narrowing the next-token guess to ~8 plausible candidates, weighted by its probabilities."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_info_xent_nll",
+        "kind": "guided_derivation",
+        "question": "Derive: minimizing cross-entropy = maximizing log-likelihood",
+        "goal": "Show $\\arg\\min_q H(p, q) = \\arg\\max_q \\mathbb{E}_p[\\log q(x)]$, where $H(p, q) = -\\sum_x p(x) \\log q(x)$.",
+        "steps": [
+          {
+            "prompt": "Cross-entropy: $H(p, q) = -\\sum_x p(x) \\log q(x)$. Rewrite as an expectation under $p$.",
+            "motivation": "Sum-times-probability is the discrete expectation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-E_p[log q(x)]",
+                "- E_p[log q]",
+                "-\\mathbb{E}_{p}[\\log q(x)]"
+              ]
+            },
+            "hints": [
+              "$\\sum_x p(x) f(x) = \\mathbb{E}_p[f(x)]$."
+            ],
+            "reveal": "$H(p, q) = -\\mathbb{E}_p[\\log q(x)]$."
+          },
+          {
+            "prompt": "In ML practice, we don't have the true distribution $p$ — we have $n$ i.i.d. samples from it. What's the empirical estimate of $H(p, q)$?",
+            "motivation": "Monte Carlo: average $-\\log q$ over the observed samples.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-(1/n) sum_i log q(x_i)",
+                "- (1/n) Σ log q(x_i)",
+                "negative average log q"
+              ]
+            },
+            "hints": [
+              "Replace the expectation with an average over samples."
+            ],
+            "reveal": "$\\hat H = -(1/n) \\sum_i \\log q(x_i)$ — the *negative log-likelihood* (NLL) per sample."
+          },
+          {
+            "prompt": "Minimizing $\\hat H$ over $q$ is therefore equivalent to maximizing what?",
+            "motivation": "The relationship is a sign flip + constant.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$\\sum_i \\log q(x_i)$ — i.e., the log-likelihood.",
+                "$\\sum_i q(x_i)$.",
+                "$\\prod_i \\log q(x_i)$.",
+                "Something else."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Flip the sign + multiply by $n$."
+            ],
+            "reveal": "$\\arg\\min_q \\hat H = \\arg\\max_q \\sum_i \\log q(x_i)$ — i.e., MLE of $q$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\arg\\min_q H(p, q) = \\arg\\max_q \\mathbb{E}_p[\\log q(x)]}$$\n\nThis equivalence is the bridge between information theory (cross-entropy loss) and statistics (maximum likelihood). Every probabilistic ML loss is a cross-entropy or a log-likelihood; they're the same object up to sign + sampling."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Entropy",
       "body": "**Entropy** of a distribution P:\n\n$$H(P) = -\\sum_x p(x) \\log p(x)$$\n\nWith log base 2, this is bits. Intuitively: the average number of yes/no questions you'd need to ask to determine X.\n\n- Uniform over 4 outcomes: H = 2 bits. (Two binary questions narrow it down.)\n- Uniform over 8 outcomes: H = 3 bits.\n- Concentrated on one outcome (P[a] = 1): H = 0. No questions needed.\n- Bernoulli with p = 0.5: H = 1 bit. (One coin flip.)\n- Bernoulli with p = 0.99: H ≈ 0.08 bits. (Almost no information; you can guess correctly almost always.)\n\nIn ML: a perfectly-confident model has zero entropy in its predictions; a maximally-uncertain model has max entropy. **Entropy of the model's output** is a useful diagnostic — too high means the model isn't decisive; too low can mean overfitting."
     },
@@ -61,6 +128,78 @@
       "kind": "text",
       "title": "What's next",
       "body": "Information theory shows up everywhere in ML — sometimes explicitly (KL regularization, mutual information bounds), sometimes implicitly (cross-entropy loss, label smoothing).\n\nKey takeaways:\n- Entropy: average bits to describe. H = 0 means certain; H = log(K) means uniform over K outcomes.\n- KL divergence: 'distance' between distributions. Asymmetric. Forward vs reverse KL trade off mode-covering vs mode-seeking.\n- Cross-entropy = entropy + KL. Minimizing cross-entropy = MLE for classification / language modeling.\n- Mutual information: how much one variable reduces uncertainty about another. Symmetric. Zero iff independent.\n\nNext: [[statistics-for-ml]] — applied estimation theory. The next layer up from probability."
+    },
+    {
+      "kind": "text",
+      "title": "Entropy of a biased coin",
+      "body": "Shannon entropy is $H(p) = -\\sum_x p(x)\\log_2 p(x)$ bits. For a coin with bias $p = 0.9$:\n\n$$H = -(0.9\\log_2 0.9 + 0.1\\log_2 0.1) \\approx -(0.9\\cdot{-0.152} + 0.1\\cdot{-3.32}) \\approx 0.469\\text{ bits}.$$\n\nCompare to a fair coin: $H = 1$ bit. The biased coin is more predictable, so each flip carries less information.\n\nThis is the same quantity the cross-entropy loss minimizes per-token in a language model: the model's job is to predict the next token; lower entropy of its predictions (when correctly aligned with the data) means it's making sharper, less wasted predictions."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_info_kl",
+        "kind": "multiple_choice",
+        "question": "$D_{\\mathrm{KL}}(p\\,\\|\\,q)$ is best read as:",
+        "options": [
+          "The squared distance between distributions $p$ and $q$.",
+          "The extra average bits needed to code samples from $p$ using a code optimized for $q$.",
+          "A symmetric distance you can swap arguments on without changing the value.",
+          "A probability in $[0,1]$."
+        ],
+        "correctIndex": 1,
+        "explanation": "KL is asymmetric, non-negative, zero iff $p=q$. The 'extra bits' reading is the textbook information-theoretic interpretation and explains why it's the right loss when *p* is the data distribution and *q* is the model."
+      },
+      "hints": [
+        "Check whether KL is symmetric by inspecting the formula $\\sum p(x)\\log(p(x)/q(x))$.",
+        "Recall that ML loss functions are usually unbounded — they aren't probabilities."
+      ],
+      "workedSolution": "KL is unbounded ($\\to\\infty$ when $q$ assigns zero to an event $p$ doesn't), non-negative, and NOT symmetric (B vs A makes $D_{\\mathrm{KL}}(q\\,\\|\\,p)$ a different number). The 'extra bits' framing gives both the units and the asymmetry: coding cost depends on which distribution your code targets.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_info_entropy_uniform",
+        "kind": "math_expression",
+        "question": "What is the Shannon entropy (in bits) of the uniform distribution over 8 outcomes?",
+        "acceptedAnswers": [
+          "3",
+          "3.0",
+          "log_2(8)",
+          "3 bits"
+        ],
+        "hint": "Use $H = \\log_2 N$ for the uniform over $N$ outcomes."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_info_ce",
+        "kind": "scenario",
+        "question": "Cross-entropy in production",
+        "prompt": "An NLP model's training cross-entropy is decreasing, but you notice the per-token entropy of its outputs is also dropping fast. Is that a good sign, a warning sign, or both — and why?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_info",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why minimizing cross-entropy is equivalent to maximizing the log-likelihood of the data under your model.",
+        "rubric": "Mentions that cross-entropy = expected negative log-likelihood under the empirical distribution, so minimizing one maximizes the other."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Compute Shannon entropy by hand for a small distribution.",
+      "Read KL divergence as 'extra bits if you used q instead of p'.",
+      "Recognize cross-entropy as the natural loss when fitting a probabilistic model."
+    ],
+    "prereqs": [
+      "probability-foundations"
+    ]
+  }
 }

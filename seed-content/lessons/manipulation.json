@@ -7,6 +7,52 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: redundancy resolution on 7-DOF arms",
+      "body": "A 7-DOF arm has a 1-DOF *nullspace* — the set of joint velocities that produce no end-effector motion. Use this for secondary objectives: avoid joint limits, dodge obstacles, minimize kinetic energy. Standard pattern: primary task via pseudo-inverse, secondary task projected into the nullspace. Production arms (Franka, KUKA LBR, Kinova Gen3) use this in their default IK. Lets the arm 'reach around' obstacles while still placing the gripper exactly."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_man_jpinv",
+        "kind": "guided_derivation",
+        "question": "Derive Jacobian-pseudoinverse IK",
+        "goal": "Given Jacobian $J$, end-effector velocity $\\dot p$, find joint velocity $\\dot\\theta$.",
+        "steps": [
+          {
+            "prompt": "$\\dot p = J\\dot\\theta$. For square $J$: invert. For non-square (typical robotic arm): use pseudoinverse $J^+$. Definition?",
+            "motivation": "Moore-Penrose pseudoinverse.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "J^T (J J^T)^{-1}"
+              ]
+            },
+            "hints": [
+              "For wide $J$: $J^+ = J^T(JJ^T)^{-1}$.",
+              "Solves the underdetermined least-squares problem."
+            ],
+            "reveal": "$J^+ = J^T(JJ^T)^{-1}$ for full-row-rank $J$."
+          },
+          {
+            "prompt": "Joint velocity: $\\dot\\theta = ?$",
+            "motivation": "Apply pseudoinverse.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "J^+ dot p"
+              ]
+            },
+            "hints": [
+              "Multiply both sides by $J^+$."
+            ],
+            "reveal": "$\\dot\\theta = J^+ \\dot p$ — the minimum-norm joint velocity producing $\\dot p$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\dot\\theta = J^+ \\dot p}$$ Minimum-norm IK. Damped least-squares variant: $J^+ = J^T(JJ^T + \\lambda I)^{-1}$ for numerical stability near singularities. Production IK stacks: pseudoinverse + nullspace secondary tasks + damping = the standard recipe."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Forward kinematics (FK)",
       "body": "**Forward kinematics**: given joint angles `q = [q_1, q_2, ..., q_n]`, compute the end-effector pose `T(q)`.\n\nUse a kinematic chain: each joint contributes a transformation; chain them via matrix multiplication.\n\n`T(q) = T_1(q_1) · T_2(q_2) · ... · T_n(q_n)`\n\nEach `T_i` is a 4×4 homogeneous transformation matrix.\n\n**Denavit-Hartenberg parameters**: a standardized way to assign coordinate frames to each link, simplifying the math. Every kinematics textbook has the conventions.\n\n**FK is fast + unique**: given `q`, the end-effector pose is uniquely determined.\n\n**Tooling**: `pinocchio` (C++/Python), KDL, MoveIt all implement FK. URDF (Unified Robot Description Format) is the standard way to specify the robot's geometry."
     },
@@ -69,12 +115,78 @@
         "kind": "explain_back",
         "prompt": "Pick a manipulation task (pick-and-place, insertion, in-hand rotation, tool use). Walk through what makes it hard from the robotics perspective. Address: kinematics, dynamics, sensing, modeling.",
         "rubricCriteria": [
-          { "id": "specific-task", "description": "Names a specific manipulation task" },
-          { "id": "challenges", "description": "Identifies 2-3 specific challenges (contact uncertainty, occlusion, dynamics, kinematic redundancy)" },
-          { "id": "modern-approach", "description": "Names how modern systems address it (vision-based grasp learning, force feedback, sim-to-real)" }
+          {
+            "id": "specific-task",
+            "description": "Names a specific manipulation task"
+          },
+          {
+            "id": "challenges",
+            "description": "Identifies 2-3 specific challenges (contact uncertainty, occlusion, dynamics, kinematic redundancy)"
+          },
+          {
+            "id": "modern-approach",
+            "description": "Names how modern systems address it (vision-based grasp learning, force feedback, sim-to-real)"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "Why IK is harder than FK",
+      "body": "**Forward kinematics (FK)**: given joint angles $\\theta$, compute end-effector pose $T = f(\\theta)$. Always solvable; just composition of joint transformations.\n\n**Inverse kinematics (IK)**: given desired end-effector pose $T$, find joint angles $\\theta = f^{-1}(T)$. Hard for several reasons:\n\n1. **Multiple solutions**: a 6-DOF arm typically has up to 16 distinct IK solutions for a generic pose. Which one to use? Depends on joint-limit feasibility, current configuration (smallest motion from where we are), singularities to avoid.\n2. **Redundancy**: a 7-DOF arm has a 1-DOF nullspace — infinitely many IK solutions. Free dimension can be used for secondary tasks (avoid obstacles, stay away from joint limits).\n3. **Singularities**: configurations where the Jacobian loses rank. The arm is mechanically valid but the local linearization is degenerate — moving the end-effector in one direction requires infinite joint velocities. Standard robot configurations (e.g., elbow fully extended) are singular.\n\n**Solving IK**: closed-form for simple geometries (Pieper's solution for 6-DOF with three concurrent axes); numerical (Jacobian-pseudoinverse, damped least-squares) for the general case; learned (DNN-based IK) for problems with constraints that defy closed form.\n\n**Force control**: instead of commanding joint angles, command end-effector forces. Used for assembly tasks (insertion, polishing) where contact dynamics matter. Hybrid position/force control (Khatib): position-control in some directions, force-control in others — the standard for sensitive assembly."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_man_ik",
+        "kind": "multiple_choice",
+        "question": "A 6-DOF robot arm at a near-singular configuration:",
+        "options": [
+          "Has fewer IK solutions than usual.",
+          "Has high joint velocities required to move the end-effector — small motions become numerically unstable.",
+          "Cannot be controlled.",
+          "Has more IK solutions than usual."
+        ],
+        "correctIndex": 1,
+        "explanation": "Near a singularity, the Jacobian becomes ill-conditioned. Small end-effector motions require large joint velocities; the system is hard to control reliably. Standard mitigation: damped least-squares IK (Levenberg-Marquardt-style damping) handles near-singular Jacobian gracefully but at the cost of less-direct tracking near the singularity. Path planners avoid singularities entirely."
+      },
+      "hints": [
+        "What's special about the Jacobian at a singularity?",
+        "If small Cartesian motions require huge joint motions, what does that imply for control?"
+      ],
+      "workedSolution": "Near a singularity the Jacobian $J(\\theta)$ has a small singular value. $\\theta' = J^+(\\theta) v$ for end-effector velocity $v$ — small singular values of $J$ become large in $J^+$, so $\\theta'$ explodes for finite $v$. In practice the arm's motion becomes jerky / unstable, and the control system can saturate joint velocities. Damped least-squares IK regularizes by adding $\\lambda I$ to $J^T J$, sacrificing tracking accuracy for stability.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_man_force",
+        "kind": "scenario",
+        "question": "When to use force control",
+        "prompt": "You're programming a robot to insert a peg into a hole. Position control (move to programmed coordinates) keeps jamming the peg. Why is this a force-control problem, and what's the standard solution?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_man",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why learning-based IK (a neural network mapping pose to joint angles) is appealing despite closed-form / numerical solutions existing.",
+        "rubric": "Mentions that learning can incorporate task-specific preferences (avoid certain configurations, satisfy redundancy in a learned way) and handle complex constraints that defy closed form."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish forward from inverse kinematics.",
+      "Recognize the IK redundancy problem.",
+      "Explain force/torque control vs position control."
+    ],
+    "prereqs": [
+      "motion-planning"
+    ]
+  }
 }

@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: spectrum auctions",
+      "body": "Government spectrum auctions (FCC) use VCG-style mechanisms for combinatorial allocation. Bidders value packages of spectrum licenses; the auction allocates to maximize total declared value + each winner pays their externality. VCG produced billions in revenue + efficient allocations through the 2000s. Limitations (revenue can be low, vulnerable to bidder collusion) have led some auctions to alternative formats (clock auctions). Still: the cleanest application of the revelation principle in real-world policy."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_md_vcg",
+        "kind": "guided_derivation",
+        "question": "Show VCG is truthful — single-item case (Vickrey)",
+        "goal": "Show in a single-item second-price auction, bidding your true value is a dominant strategy.",
+        "steps": [
+          {
+            "prompt": "Your value: $v$. Highest competing bid: $b_*$. Outcome depends on your bid $b$ + price you pay if you win = $b_*$. Three cases: $b = v$, $b > v$, $b < v$. In each, when do you win + what surplus do you get?",
+            "motivation": "Compare outcomes across bidding strategies.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$b = v$: win iff $v > b_*$, gain $v - b_*$; $b > v$: same win condition for typical cases, but if $v < b_* < b$, you win and pay $b_* > v$ — loss.; $b < v$: lose some times you would have won at $b = v$ — missed surplus.",
+                "All bids are equivalent.",
+                "$b > v$ always strictly better.",
+                "$b < v$ always strictly better."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Compare each strategy to truth-telling case-by-case."
+            ],
+            "reveal": "Bidding above $v$ risks winning at a price > $v$ (loss). Bidding below $v$ loses opportunities to win at a profit. Truth-telling weakly dominates."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Vickrey: bid } b = v \\text{ is a dominant strategy}}$$ Generalized in VCG: each bidder pays the externality their participation imposes. The mechanism elicits true values regardless of others' bids — strategy-proofness in a single dominant strategy."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The setup",
       "body": "**Players**: $n$ agents, each with a private **type** $t_i$ (a valuation, cost, capability — known to themselves, not to others).\n\n**Designer**: specifies a mechanism $(g, p)$:\n- $g(\\hat{t})$: an **allocation rule** — who gets what.\n- $p(\\hat{t})$: a **payment rule** — who pays what.\n\n**Players** report types $\\hat{t}_i$. They don't have to report truthfully — they'll report whatever maximizes their payoff.\n\n**Designer** commits to executing $g(\\hat{t})$ + $p(\\hat{t})$ given the reports.\n\nThe mechanism is **truthful** (incentive-compatible) iff truth-telling is a dominant strategy for every player. If so, the designer can trust the reports."
     },
@@ -64,12 +99,78 @@
         "kind": "explain_back",
         "prompt": "Why might 'truthful + efficient + individually rational' (i.e., VCG) NOT be sufficient for a real-world auction? Name at least two limitations.",
         "rubricCriteria": [
-          { "id": "revenue", "description": "Mentions that VCG isn't revenue-optimal — Myerson's mechanism does better" },
-          { "id": "collusion", "description": "Mentions that VCG is vulnerable to collusion (bidder coalitions)" },
-          { "id": "computational", "description": "Mentions computational complexity for combinatorial auctions, OR mentions a third real-world limitation (collusion via coalitions, robustness to misspecified prior, complexity of explaining VCG to bidders)" }
+          {
+            "id": "revenue",
+            "description": "Mentions that VCG isn't revenue-optimal — Myerson's mechanism does better"
+          },
+          {
+            "id": "collusion",
+            "description": "Mentions that VCG is vulnerable to collusion (bidder coalitions)"
+          },
+          {
+            "id": "computational",
+            "description": "Mentions computational complexity for combinatorial auctions, OR mentions a third real-world limitation (collusion via coalitions, robustness to misspecified prior, complexity of explaining VCG to bidders)"
+          }
         ],
         "passingScore": 0.5
       }
+    },
+    {
+      "kind": "text",
+      "title": "Revelation principle, in one paragraph",
+      "body": "Suppose you have *any* mechanism that elicits useful information from agents with private types — say, a complex auction with strategic bidding.\n\nThe **revelation principle** (Myerson, Maskin): there's a direct mechanism with the same equilibrium outcomes where every agent's dominant strategy is to honestly report their type.\n\nConsequence: when designing mechanisms, we can restrict attention to direct, truthful mechanisms WITHOUT loss of generality. The complexity of strategic behavior is absorbed into the mechanism's payment/allocation rule.\n\nIt's the most important meta-theorem in mechanism design: it reduces an infinite-dimensional search (over arbitrary mechanisms × agent strategies) to a finite-dimensional one (over direct truthful mechanisms).\n\nVCG (Vickrey-Clarke-Groves): the canonical truthful mechanism for public-good provision and combinatorial auctions. Each agent pays the externality they impose on others. Strategy-proof, allocatively efficient (chooses the value-maximizing outcome). Limitations: budget-imbalanced, vulnerable to collusion, computational complexity in combinatorial domains. Still the standard reference point for any 'truthful mechanism' design."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_md_vcg",
+        "kind": "multiple_choice",
+        "question": "VCG payments are computed as:",
+        "options": [
+          "Each agent's reported value.",
+          "The minimum bid needed to win.",
+          "The externality each agent imposes on the others — the difference in others' total welfare with and without that agent.",
+          "Random reserve-price multiples."
+        ],
+        "correctIndex": 2,
+        "explanation": "VCG payments = externalities. Agent $i$ pays the difference $\\max_x \\sum_{j \\neq i} v_j(x_{-i}) - \\sum_{j \\neq i} v_j(x)$ where $x_{-i}$ is the optimal choice without $i$ and $x$ is the chosen outcome. This pricing rule makes truthful reporting a dominant strategy and the mechanism allocatively efficient. Second-price auction is the single-item special case."
+      },
+      "hints": [
+        "VCG is built so the agent's incentive matches the social welfare impact of their decision.",
+        "The payment must align with each agent's contribution to the externality."
+      ],
+      "workedSolution": "VCG: agent $i$ pays the externality their participation imposes — the welfare loss to other agents from including agent $i$ in the optimization vs excluding them. Aligns individual incentive with social-welfare maximization, making truthful reporting dominant. Second-price auction is the single-item special case.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_md_kidney",
+        "kind": "scenario",
+        "question": "Mechanism design in the wild",
+        "prompt": "Kidney exchange (Roth et al., Nobel 2012): patients with incompatible donors are matched in trades. Why is the truthful mechanism non-trivial here, and what role does the revelation principle play?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_md",
+        "kind": "explain_back",
+        "prompt": "Explain in three sentences why mechanism design is 'reverse game theory'.",
+        "rubric": "Mentions that mechanism design starts with the desired outcome (welfare-maximizing allocation) and engineers payoffs so equilibria deliver it; standard game theory takes rules as given and predicts equilibria; mechanism designers wear the rule-writer's hat."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "State the revelation principle.",
+      "Distinguish dominant-strategy from Bayesian incentive compatibility.",
+      "Recognize the VCG mechanism."
+    ],
+    "prereqs": [
+      "bayesian-games"
+    ]
+  }
 }

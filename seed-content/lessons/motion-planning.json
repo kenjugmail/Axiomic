@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: RRT-Connect's bidirectional speedup",
+      "body": "Vanilla RRT grows a tree from start toward goal. Often slow because the random samples drift uniformly through space. RRT-Connect grows TWO trees: one from start, one from goal. Each iteration, alternate which tree extends; aim each extension toward the most recent sample of the other tree. Convergence: when the two trees connect, you have a complete path. Practical speedup: 10-100× over basic RRT on typical motion-planning problems. The default in most production motion planners (MoveIt, OMPL)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mp_rrtcomplete",
+        "kind": "guided_derivation",
+        "question": "Sketch RRT probabilistic completeness",
+        "goal": "If a valid path exists, RRT finds one with probability → 1 as samples → ∞.",
+        "steps": [
+          {
+            "prompt": "Probabilistic completeness needs: every region of free CSpace has positive probability of being sampled (uniform sampling), the path between any two nearby points is collision-free (smoothness), and tree extension lengths are bounded but nontrivial. Why is this enough?",
+            "motivation": "Coverage + local connectivity.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Uniform sampling visits a δ-ball around every point on the solution path infinitely often → eventually the tree contains a path-cover.",
+                "Random samples are guaranteed to find the solution in finite time.",
+                "RRT always finds the optimal solution.",
+                "Trees grow exponentially."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Probabilistic completeness ≠ optimality."
+            ],
+            "reveal": "Uniform sampling eventually places a sample in a δ-tube around the solution path. Bounded-extension steps connect nearby tree nodes. Together: the tree's reach covers the path. Hence probability → 1."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{RRT: probabilistic completeness, not optimality}}$$ Vanilla RRT finds *some* path almost surely; the path may be ugly. RRT* (asymptotic optimality) iteratively rewires the tree to converge on optimal paths. Trade-off: RRT* requires more samples but gives optimality."
+      }
+    },
+    {
+      "kind": "text",
       "title": "A* search",
       "body": "Discretize the space into a grid. Each cell is a node. Edges connect adjacent cells.\n\nA* searches for the shortest path from start to goal:\n\n- `g(n)`: actual cost from start to node `n`.\n- `h(n)`: heuristic estimate of cost from `n` to goal.\n- `f(n) = g(n) + h(n)`: total estimated cost via `n`.\n\nExpand nodes in order of `f(n)`. Optimal if `h` is admissible (never overestimates).\n\n**For navigation**: 2D grid; `h` = Euclidean distance. Works well.\n\n**For high-dimensional configuration spaces**: A* is intractable (curse of dimensionality). 7-DOF arm: even 10 cells per dim = 10^7 cells. Memory + time blow up.\n\n**D* + variants**: dynamic A* re-uses computation when the world changes. Used in legacy autonomous-vehicle planners.\n\nA* is used heavily in 2D / 3D navigation; less so in high-DOF manipulation."
     },
@@ -64,12 +99,93 @@
         "kind": "explain_back",
         "prompt": "Pick a concrete robot example (manipulator, drone, autonomous vehicle, mobile robot). Walk through what motion planner you'd choose and why. Address: dimensionality, dynamic vs static obstacles, real-time constraints.",
         "rubricCriteria": [
-          { "id": "specific-example", "description": "Names a specific robot type with concrete planning needs" },
-          { "id": "method-rationale", "description": "Justifies the planner choice (RRT-family, A*, MPC, hybrid) based on the system's properties" },
-          { "id": "tradeoffs", "description": "Names trade-offs (computational cost, optimality, real-time)" }
+          {
+            "id": "specific-example",
+            "description": "Names a specific robot type with concrete planning needs"
+          },
+          {
+            "id": "method-rationale",
+            "description": "Justifies the planner choice (RRT-family, A*, MPC, hybrid) based on the system's properties"
+          },
+          {
+            "id": "tradeoffs",
+            "description": "Names trade-offs (computational cost, optimality, real-time)"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "RRT vs A*: when to use which",
+      "body": "**Search-based planning** (A*, D*, $A^*$ on grid): expand outward from start until you reach goal. Optimal (with admissible heuristic), discrete. Scales as $O(b^d)$ in branching factor and depth.\n\n**Sampling-based planning** (RRT, RRT*, PRM): build a tree by sampling random configurations, extending toward each sample from the closest tree node. Probabilistically complete. Scales as $O(n \\log n)$ in samples — handles high-dim configuration spaces (think 7-DOF arm) that grid-search can't touch.\n\n**Trajectory optimization** (CHOMP, TrajOpt): treat the path as a continuous function (B-spline of waypoints, say), optimize a cost function balancing path length + smoothness + clearance, subject to constraints. Returns smooth, optimal trajectories — but needs a good initial guess (often from sampling planning).\n\nMatchup:\n- 2D/3D grid world: A*.\n- 7-DOF arm motion: RRT-Connect (a fast bidirectional RRT) → trajectory optimization to smooth.\n- Self-driving car: search-based for path topology + trajectory optimization for the actual trajectory.\n- Fully-known model + small state: optimal control directly.\n\nThe ML angle: trajectory optimization is a continuous-control RL problem in disguise. Differentiable physics (e.g., Mujoco MJX, Brax) lets gradient-based optimizers compete with sampling. Learned dynamics models (world models) + planning at test time are how DeepMind's MuZero-style methods work; the boundary between 'planning' and 'RL' is increasingly blurred."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mp_rrt",
+        "kind": "multiple_choice",
+        "question": "RRT's advantage over $A^*$ for 7-DOF arm motion planning:",
+        "options": [
+          "RRT is always faster.",
+          "RRT explores the high-dimensional configuration space via random sampling — avoiding the exponential blow-up of grid-based search.",
+          "RRT is optimal; $A^*$ isn't.",
+          "RRT requires a known goal.\n"
+        ],
+        "correctIndex": 1,
+        "explanation": "RRT's $O(n \\log n)$ in samples (n) handles the high-dim CSpace; grid-based $A^*$ would need $O(b^d) = O((\\text{grid size})^7)$ which is computationally prohibitive at any useful grid resolution. RRT trades optimality for tractability; RRT* (an asymptotic-optimal variant) recovers optimality in the limit. Optimal control + trajectory optimization can smooth RRT's output post-hoc."
+      },
+      "hints": [
+        "What's the dimensionality of the configuration space, and how does each algorithm scale with it?",
+        "$A^*$'s grid blows up exponentially in dim; RRT samples and doesn't have that issue."
+      ],
+      "workedSolution": "$A^*$ over an explicit grid has exponential complexity in configuration-space dimension. For a 7-DOF arm, even a coarse grid is unaffordable. RRT samples random configurations and extends toward them; complexity scales with samples (not grid cells), making high-dim planning tractable. The trade-off is optimality — RRT finds *a* path, not necessarily the shortest one. RRT* fixes this asymptotically.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mp_narrowpassage",
+        "kind": "scenario",
+        "question": "Narrow passages",
+        "prompt": "Standard RRT struggles in 'narrow passage' planning problems (e.g., threading an arm through a small opening). Why is sampling hostile to narrow passages, and what variant (Bridge-test, RRT-Connect) addresses it?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mp_grid",
+        "kind": "math_expression",
+        "question": "A 7-DOF arm with each joint discretized to 10 positions. Number of grid cells: $10^d$. For d = 7, that's:",
+        "acceptedAnswers": [
+          "10000000",
+          "10^7",
+          "10 million",
+          "10000000 cells"
+        ],
+        "hint": "Just compute $10^7$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mp",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why trajectory optimization is usually run on top of a planner's output, not from scratch.",
+        "rubric": "Mentions that trajectory optimization is local — converges to the nearest minimum from its initial seed; without a planner's globally-feasible seed, local optimization can get stuck in infeasible regions or local minima."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish sampling-based from search-based motion planning.",
+      "Explain why RRT scales to high-dim configuration spaces.",
+      "Recognize the trajectory-optimization alternative."
+    ],
+    "prereqs": [
+      "state-space-control"
+    ]
+  }
 }

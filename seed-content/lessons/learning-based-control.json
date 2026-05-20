@@ -7,6 +7,55 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: end-to-end self-driving",
+      "body": "Wayve (2023) trained a self-driving system end-to-end via behavior cloning + RL fine-tuning. The challenge: BC on expert demos leaves the policy 'unfamiliar' with off-distribution states (e.g., when the car drifts slightly off the centerline). DAgger fixes this by querying the expert on states the policy actually visits — building a dataset of recoveries. Wayve's stack: pretrained perception + DAgger-style data collection + RL for closed-loop refinement. Demonstrates that imitation learning + DAgger is competitive with classical SLAM + planning stacks for some autonomous-driving scenarios."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_lbc_dagger",
+        "kind": "guided_derivation",
+        "question": "Show BC has $O(T^2)$ state distribution shift",
+        "goal": "Behavior cloning trained on expert states; deployed: errors compound.",
+        "steps": [
+          {
+            "prompt": "Expert state distribution $d^*$; BC policy $\\hat\\pi$ trained on $d^*$ but visits $d^{\\hat\\pi}$. If per-step error $\\epsilon$, what's the cumulative regret over $T$ steps?",
+            "motivation": "Compounding error theorem (Ross-Bagnell).",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "O(epsilon T^2)"
+              ]
+            },
+            "hints": [
+              "Each error increases drift; future actions are out-of-distribution and produce more errors."
+            ],
+            "reveal": "Cumulative regret $O(\\epsilon T^2)$. Quadratic in horizon."
+          },
+          {
+            "prompt": "DAgger queries the expert at policy-visited states + retrains, reducing regret to $O(\\epsilon T)$. Why?",
+            "motivation": "Training distribution matches deployment.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "DAgger trains $\\hat\\pi$ on $d^{\\hat\\pi}$ itself — eliminating distribution shift, so per-step errors no longer compound.",
+                "DAgger is faster than BC.",
+                "DAgger uses less data.",
+                "DAgger is equivalent."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Iterative: train, deploy, query expert on visited states, retrain."
+            ],
+            "reveal": "DAgger aligns the training distribution with the deployment distribution. Per-step errors stay $O(\\epsilon)$ over $T$ steps → linear regret."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{BC: } O(\\epsilon T^2)\\quad\\text{DAgger: } O(\\epsilon T)}$$ Quadratic-vs-linear blowup in horizon. DAgger pays for it with extra expert queries; cheaper than RL exploration but requires expert availability."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Imitation learning + behavior cloning",
       "body": "**Behavior cloning (BC)**: collect expert demonstrations `{(state_t, action_t)}`. Train a model to predict `action_t` from `state_t`. Supervised learning.\n\n**Strengths**:\n\n- Sample-efficient: hundreds-to-thousands of demos suffice for many tasks.\n- No reward function needed.\n- Stable training (just supervised learning).\n\n**Limits**:\n\n- **Distribution shift**: at deployment, the policy makes errors → encounters states not seen during training → errors compound.\n- **Compounding errors**: each step's error puts the next step further out-of-distribution.\n\n**Fixes**:\n\n- **DAgger** (Ross-Gordon-Bagnell 2011): iteratively collect demos in states the current policy reaches; retrain. Reduces distribution shift.\n- **Action chunking** (ACT): predict a sequence of actions instead of one; less compounding.\n- **Diffusion policies** (next slide): generate full trajectories; smoother + more robust.\n\n**Modern BC**: most production policies (pre-foundation-model era) used BC + DAgger. Tesla Autopilot's earlier versions, Boston Dynamics' Stretch, Amazon Sparrow.\n\n**Data scale**: BC scales with demo data. RT-1 (2022) used 130k demos; RT-2 (2023) used the same + internet data. π-0 (2024) used 10k+ hours of teleoperation."
     },
@@ -69,12 +118,78 @@
         "kind": "explain_back",
         "prompt": "Pick one: imitation learning, model-based RL, or transformer policies. Walk through what makes the approach attractive AND what its current limits are for production deployment.",
         "rubricCriteria": [
-          { "id": "method-overview", "description": "Cleanly describes how the method works" },
-          { "id": "strengths", "description": "Names 1-2 specific strengths" },
-          { "id": "limits", "description": "Names 1-2 specific deployment limits" }
+          {
+            "id": "method-overview",
+            "description": "Cleanly describes how the method works"
+          },
+          {
+            "id": "strengths",
+            "description": "Names 1-2 specific strengths"
+          },
+          {
+            "id": "limits",
+            "description": "Names 1-2 specific deployment limits"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "BC vs RL vs diffusion policies",
+      "body": "**Behavior cloning (BC)**: train a policy via supervised learning on demonstrations. Simple, sample-efficient, no exploration needed. Fails when the policy enters states the demonstrations didn't visit (covariate shift).\n\n**Reinforcement learning (RL)**: train by interacting with the environment, optimizing a reward. Robust to covariate shift; but sample-hungry and reward-hacking-prone.\n\n**Diffusion policies** (Chi et al. 2023): generative model the policy as 'next action sequence given state and history'. Trained on demonstrations with diffusion-style noising/denoising. Handles multimodal action distributions (where multiple valid actions exist — e.g., grasping a cup from different angles) that unimodal BC fails on.\n\n**Transformer policies** (RT-2, OpenVLA, $\\pi_0$): treat robot control as sequence prediction, just like language. Big transformer trained on action+image+language tokens. Benefits from web-scale pretraining (vision-language model warm-start) and unifies multiple tasks under one architecture.\n\n**Trade-offs**:\n- BC needs lots of demos but trains fast.\n- RL needs lots of env interaction but recovers from mistakes.\n- Diffusion policies handle multimodality at the cost of inference complexity.\n- Transformer policies are big and slow to train but transfer broadly.\n\nThe field is in flux. 2024-2025 saw transformer policies (especially $\\pi_0$ + variants) dominate VLA (vision-language-action) benchmarks. RT-X dataset (millions of robot trajectories across 22 institutions) made foundation-model-style training feasible. The next big wave is likely cross-embodiment policies — one model, many robots."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_lbc_dp",
+        "kind": "multiple_choice",
+        "question": "Diffusion policies are useful when:",
+        "options": [
+          "Demonstrations are sparse.",
+          "Action distributions are multimodal — multiple valid actions in the same state (e.g., grasping from any of several angles).",
+          "Cameras are noisy.",
+          "Reward signals are dense."
+        ],
+        "correctIndex": 1,
+        "explanation": "Diffusion policies' main advantage: they can represent multimodal distributions naturally. BC with MSE loss collapses to the mean of multimodal demonstrations (which is often a bad action — the average of 'left grasp' and 'right grasp' is 'no grasp'). Diffusion policies generate from the actual conditional distribution, picking one of the valid modes per inference."
+      },
+      "hints": [
+        "What's the failure mode of unimodal BC on diverse demonstrations?",
+        "Where would 'predicting the average' produce a bad action?"
+      ],
+      "workedSolution": "If demonstrations show multiple valid actions at the same state (grasping from left, from right, from above), unimodal regression (BC with MSE) returns the average — which is often the worst answer. Diffusion policies model the full action distribution via denoising; they can sample any of the modes. Useful any time demonstrations are diverse in approach but consistent in outcome.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_lbc_data",
+        "kind": "scenario",
+        "question": "Robot data scarcity",
+        "prompt": "You have 100 high-quality demonstrations of a manipulation task. A teammate proposes training a 1B-parameter transformer policy on it. Why is this likely to fail, and what alternative architecture is better-suited?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_lbc",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why imitation learning + RL fine-tuning is a common recipe for production robot policies.",
+        "rubric": "Mentions that imitation gives a good starting policy from demos (avoiding bad initial exploration); RL fine-tuning then refines policy beyond demo quality by optimizing for the task reward."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish behavior cloning from RL.",
+      "Recognize diffusion policies + transformer policies as recent advances.",
+      "Articulate the data-efficiency tradeoff in robot learning."
+    ],
+    "prereqs": [
+      "sim-to-real"
+    ]
+  }
 }

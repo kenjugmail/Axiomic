@@ -7,6 +7,52 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: GPS + IMU fusion",
+      "body": "Phones, drones, autonomous cars all fuse GPS (~5 m accuracy, 1 Hz) with IMU (mm-scale accuracy short-term, drifts at 1°/s). Kalman filter weighs them: GPS gets ~all the weight at low frequencies (anchors absolute position); IMU gets weight at high frequencies (fast updates between GPS samples). Result: meter-scale absolute accuracy at 100+ Hz update rate. The exact gain values are computed by the Kalman covariance update — automatically optimal weighting given the noise characteristics."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_est_kgain",
+        "kind": "guided_derivation",
+        "question": "Derive Kalman gain as variance-weighted average",
+        "goal": "1-D system. Prediction $\\hat x$ with variance $P$, measurement $z$ with variance $R$. What's the optimal weighting?",
+        "steps": [
+          {
+            "prompt": "Posterior estimate $\\hat x' = w_1 \\hat x + w_2 z$. Posterior variance is minimized when $w_1 + w_2 = 1$ and the variances combine inversely. Solve for the gain $K = w_2$.",
+            "motivation": "Variance-weighted average.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "P / (P + R)"
+              ]
+            },
+            "hints": [
+              "Inverse-variance weighting: weight on a quantity is its precision (= 1/variance)."
+            ],
+            "reveal": "$K = P / (P + R)$."
+          },
+          {
+            "prompt": "Posterior variance $P' = ?$",
+            "motivation": "Reduce variance after observation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(1-K) P",
+                "P R / (P + R)"
+              ]
+            },
+            "hints": [
+              "$P' = (1 - K)P$ — gain reduces uncertainty in proportion to the trust given to the measurement."
+            ],
+            "reveal": "$P' = (1 - K) P = PR/(P+R)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{K = P/(P+R),\\quad P' = (1-K)P}$$ Kalman gain is the optimal inverse-variance weighting. Large $P$ (prediction uncertain) → big $K$ (trust measurement). Small $P$ → small $K$ (trust prediction). Generalized to multivariate via matrix Schur complements."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Kalman filter — the recursive Bayesian update",
       "body": "Given:\n\n- Linear dynamics: `x_{k+1} = F x_k + B u_k + w_k`, `w_k ∼ N(0, Q)`.\n- Linear measurement: `z_k = H x_k + v_k`, `v_k ∼ N(0, R)`.\n\nThe Kalman filter maintains a Gaussian estimate of state `(x̂_k, P_k)`:\n\n**Predict**:\n- `x̂_{k+1|k} = F x̂_{k|k} + B u_k`\n- `P_{k+1|k} = F P_{k|k} F^T + Q`\n\n**Update** (when measurement `z_{k+1}` arrives):\n- Kalman gain: `K = P_{k+1|k} H^T (H P_{k+1|k} H^T + R)^{-1}`\n- `x̂_{k+1|k+1} = x̂_{k+1|k} + K (z_{k+1} - H x̂_{k+1|k})`\n- `P_{k+1|k+1} = (I - KH) P_{k+1|k}`\n\nThe gain `K` is the optimal weighting: trust the measurement more when measurement noise is small or prior uncertainty is large.\n\nThis is exactly Bayesian inference for the linear-Gaussian case, computed recursively (no need to keep history)."
     },
@@ -64,12 +110,92 @@
         "kind": "explain_back",
         "prompt": "Explain in your own words how a Kalman filter combines a noisy measurement with a noisy prediction. Use the Kalman gain to walk through the intuition.",
         "rubricCriteria": [
-          { "id": "weighting-mechanism", "description": "Names that K weights the measurement vs prediction by their relative noise" },
-          { "id": "gaussian-update", "description": "Connects to Bayesian inference (prior × likelihood ∝ posterior, all Gaussians)" },
-          { "id": "limit-cases", "description": "Mentions a limit case (R → ∞ → ignore measurement; R → 0 → trust measurement entirely)" }
+          {
+            "id": "weighting-mechanism",
+            "description": "Names that K weights the measurement vs prediction by their relative noise"
+          },
+          {
+            "id": "gaussian-update",
+            "description": "Connects to Bayesian inference (prior × likelihood ∝ posterior, all Gaussians)"
+          },
+          {
+            "id": "limit-cases",
+            "description": "Mentions a limit case (R → ∞ → ignore measurement; R → 0 → trust measurement entirely)"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "Kalman filter, predict + update",
+      "body": "**Predict step**: given current belief $(\\hat x, P)$ and input $u$:\n- $\\hat x^- = A\\hat x + Bu$ (state propagated forward)\n- $P^- = A P A^T + Q$ (covariance propagated, $Q$ is process noise)\n\n**Update step**: given measurement $z$:\n- $K = P^- C^T (C P^- C^T + R)^{-1}$ (Kalman gain)\n- $\\hat x = \\hat x^- + K(z - C\\hat x^-)$ (correct prediction with measurement residual)\n- $P = (I - KC) P^-$ (covariance reduced by measurement)\n\nIntuition: predict shifts the belief forward (uncertainty grows); update weighs the measurement against prediction by their relative confidence (uncertainty shrinks).\n\n**Optimal for linear Gaussian systems**. For nonlinear systems, options:\n- **Extended Kalman Filter (EKF)**: linearize the dynamics around current estimate. Fast; can diverge if nonlinearity is severe or covariance is large.\n- **Unscented Kalman Filter (UKF)**: deterministically sample sigma-points through the nonlinearity. More robust than EKF; same cost order.\n- **Particle filter**: sample-based; handles arbitrary nonlinearity + non-Gaussian distributions. Heavy compute but handles multimodal beliefs.\n\nReal-world choice: EKF for low-dimensional smooth nonlinearities (most robotic IMU/GPS fusion); particle filter for low-dimensional non-Gaussian (some SLAM, simultaneous localization on a multimodal map); UKF when EKF diverges and you want a drop-in replacement.\n\nDeep learning has produced hybrid methods (e.g., DeepKF, learned observation models) but the Kalman framework remains the backbone of most robotic state estimation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_est_kalman",
+        "kind": "multiple_choice",
+        "question": "Kalman gain $K$ in the update step:",
+        "options": [
+          "Is a constant matrix tuned by hand.",
+          "Trades off the prediction's uncertainty against the measurement's uncertainty.",
+          "Always equals identity.",
+          "Determines the time-step size.\n"
+        ],
+        "correctIndex": 1,
+        "explanation": "Kalman gain weights how much the new measurement should pull the estimate vs. trusting the prediction. Large $K$ when measurement is more certain than prediction; small $K$ when prediction is more certain. This is the optimal trade-off in the least-squares sense for linear Gaussian systems."
+      },
+      "hints": [
+        "The gain is computed dynamically from the prediction and measurement covariances.",
+        "What does it MEAN to weight 'this measurement' vs 'my prediction'?"
+      ],
+      "workedSolution": "Kalman gain $K = P^- C^T (CP^- C^T + R)^{-1}$ is the optimal least-squares weighting between prediction (with covariance $P^-$) and measurement (with noise covariance $R$). Large $P^-$ relative to $R$ → big $K$ → trust the measurement. Small $P^-$ → small $K$ → trust the prediction. The gain is computed dynamically from the running covariance.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_est_diverge",
+        "kind": "scenario",
+        "question": "EKF diverges",
+        "prompt": "Your robot's EKF is running for hours and then suddenly the covariance blows up to inf and the state estimate becomes nonsensical. What's the most likely cause, and what's the standard mitigation?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_est_gain",
+        "kind": "math_expression",
+        "question": "If prediction variance is $P^- = 4$ and measurement variance is $R = 1$ (1D), the Kalman gain $K = P^- / (P^- + R)$. Compute.",
+        "acceptedAnswers": [
+          "0.8",
+          "4/5",
+          ".8"
+        ],
+        "hint": "Just divide."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_est",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why particle filters are more robust than Kalman filters but rarely the first choice.",
+        "rubric": "Mentions that particle filters represent belief by samples (handling arbitrary non-Gaussian shapes) but cost scales with sample count to maintain accuracy; for the common case of smooth nonlinearity + roughly-Gaussian belief, EKF/UKF is much cheaper."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Sketch the Kalman filter's predict + update cycle.",
+      "Distinguish Kalman, EKF, particle filter by assumptions.",
+      "Recognize when each is appropriate."
+    ],
+    "prereqs": [
+      "state-space-control"
+    ]
+  }
 }

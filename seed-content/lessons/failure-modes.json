@@ -1,0 +1,101 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish fail-stop from Byzantine failures.",
+      "Recognize gray failures and noisy neighbors.",
+      "Apply circuit breakers correctly."
+    ],
+    "prereqs": [
+      "consensus-raft"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The taxonomy of failures",
+      "body": "Distributed systems fail in more ways than 'down vs up':\n\n**Fail-stop**: node crashes cleanly and stays down. The easiest mode to handle — detectable via health checks, recoverable via replica promotion. Most distributed-systems theory assumes this.\n\n**Byzantine**: node behaves arbitrarily — may send conflicting messages to different observers, lie about its state, or produce corrupt data. Encountered in adversarial environments (blockchains, untrusted networks). BFT protocols (PBFT, modern Tendermint, HotStuff) tolerate up to $f < N/3$ Byzantine nodes; Raft assumes fail-stop only.\n\n**Gray failures**: node is partially-functioning — slow, intermittently failing, returning correct-looking but wrong data. The hardest case. Health checks pass; the node looks fine; but actual users see degraded service.\n\n**Noisy neighbors**: in multi-tenant systems (containers, VMs sharing a host), one tenant's resource use degrades another's. Cassandra's GC pause, a colocated container hogging CPU, etc.\n\n**Cascading failures**: one service's slowdown propagates back through clients that keep retrying, overwhelming downstream services, etc. The 2008+ 'thundering herd' / 'retry storm' pattern.\n\nMost production outages are *combinations*: a gray failure that triggers a retry storm that exhausts a thread pool that fail-stops a downstream service. Defense in depth: timeouts at every boundary, circuit breakers, bulkheads, backpressure."
+    },
+    {
+      "kind": "text",
+      "title": "Worked example: Cloudflare 2019 outage",
+      "body": "July 2019: a Cloudflare regex deployed to production. The regex caused CPU spikes on every edge server processing customer requests. Spikes → request timeouts → client retries → more load → more spikes. The cascade affected ~80% of Cloudflare's network for ~30 minutes before rollback. Post-mortem: missing test in deployment pipeline + insufficient circuit-breaker on regex execution time. Modern Cloudflare has both."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fm_cascade",
+        "kind": "guided_derivation",
+        "question": "Derive cascading-failure amplification",
+        "goal": "Base load $R$. Per failed request: client retries $n$ times. Failure rate at base load: $p$. Find equilibrium load.",
+        "steps": [
+          {
+            "prompt": "Each failed request contributes $n$ retries. Effective rate: $R \\cdot (1 + n p)$. If this new rate causes higher failure rate $p'$, system enters runaway. Stability condition?",
+            "motivation": "Fixed-point analysis.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Stable if at the equilibrium rate, the load is below the capacity for which failure stays at $p$. Otherwise: runaway.",
+                "Always stable.",
+                "Always unstable.",
+                "Linear in $n$."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Positive feedback: if load increases failure increases load → cascade."
+            ],
+            "reveal": "Equilibrium load $R^* = R(1 + n p(R^*))$. Stable if the curve $R \\to R(1+np(R))$ has fixed point in the linear regime; unstable if non-trivial fixed point in saturated regime → cascade."
+          }
+        ],
+        "finalResult": "Retry storms = positive feedback loops. Mitigations: circuit breakers (stop sending if downstream failing), exponential backoff (spread retries), retry budgets (cap total retries). All disrupt the feedback before it cascades."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Circuit breakers, the basic resilience pattern",
+      "body": "**Circuit breaker**: wraps a downstream call. States:\n\n- **Closed** (normal): requests pass through. Track recent error rates.\n- **Open** (tripped): too many errors recently; fail fast without calling downstream. Avoids the retry storm.\n- **Half-open** (testing): after a cooldown, allow one trial request. If it succeeds, return to closed. If it fails, stay open.\n\nThe pattern protects you from a downstream that's failing — you stop hammering it, give it a chance to recover, and your service stays responsive (with degraded functionality) rather than queueing up on a dead dependency.\n\nReal-world implementations: Hystrix (Netflix, archived but influential), Resilience4j (JVM), Polly (.NET), envoy proxy's outlier detection. Many service-mesh setups (Istio, Linkerd) provide circuit breaking at the proxy layer without application code changes.\n\nThe complementary patterns: **retries with exponential backoff + jitter** (prevent retry storms), **bulkheads** (isolate failures to one resource pool), **timeouts at every boundary** (most cascading failures involve missing timeouts).\n\nAnd: chaos engineering. Pre-emptively inject failures in production. Netflix's Chaos Monkey kills VMs randomly; the discipline forces every service to be resilient to fail-stop. The result is much fewer surprise outages.\n"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fm_gray",
+        "kind": "multiple_choice",
+        "question": "Gray failures are the hardest distributed-system failure mode to handle because:",
+        "options": [
+          "They're more common than other failures.",
+          "The failed node still passes health checks and looks up, so automated failover doesn't trigger — but actual user requests fail or run slowly.",
+          "They only occur in cloud environments.",
+          "They violate consensus protocols."
+        ],
+        "correctIndex": 1,
+        "explanation": "Gray failures are detection failures, not fault-handling failures. Health checks pass; metrics look mostly normal; but specific operations (slow GC, network glitches, partial disk failure) degrade user-facing behavior. Failover machinery (which triggers on hard signals) doesn't activate. Mitigations: probe with realistic synthetic requests (not just /health), monitor request-level p99 not just averages, build degraded-mode behavior that detects via client-side signals."
+      },
+      "hints": [
+        "Why is partial failure worse than total failure?",
+        "A node that's silently degraded — what's the operational difference vs a node that's clearly down?"
+      ],
+      "workedSolution": "Gray failures hide from the standard signals (health checks pass, error rate is low). Yet specific user requests time out, return stale data, or take 10× normal latency. Automated failover doesn't trigger because the node 'looks fine'. Mitigations: synthetic transactions (probe with real user-shaped requests, not just '/health 200 OK'), per-shard p99 latency monitoring (catches partial degradation an aggregate would hide), and client-side circuit breakers (a fast client noticing the slow path can route around it before centralized monitoring catches up).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fm_cascade",
+        "kind": "scenario",
+        "question": "Cascading failure",
+        "prompt": "A spike of traffic hits service A. Service A's calls to service B start taking longer. A's clients retry. B becomes overwhelmed. C, which depends on B, starts timing out. By the time you notice, four services are degraded and the user-facing error rate is at 50%. Walk through what circuit-breaker + bulkhead + timeout discipline would have caught this, and at which boundary."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fm",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why production-grade distributed systems engineering depends as much on operational discipline (chaos testing, runbooks, on-call) as on algorithmic correctness.",
+        "rubric": "Mentions that even theoretically-correct systems hit unexpected failure modes in production; chaos engineering surfaces them in controlled settings; runbooks + on-call expertise turn 'novel failure' into 'familiar failure' over time."
+      }
+    }
+  ]
+}

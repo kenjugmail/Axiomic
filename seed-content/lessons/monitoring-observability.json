@@ -7,6 +7,38 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: head-of-line blocking in a request queue",
+      "body": "Server processes requests serially. Most requests take 10ms; one request occasionally takes 5s. Mean response time: still under 100ms (long tail averages out). p99: ~5s (the slow request happens ~1% of the time). p99 vs mean diverge dramatically when there's heavy-tail latency. Modern monitoring tracks p50/p90/p99/p99.9 not just averages — because the long tail is where users actually experience the system."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mon_p99",
+        "kind": "guided_derivation",
+        "question": "Derive sample-size requirement for p99 estimation",
+        "goal": "How many samples do you need to reliably estimate the 99th percentile?",
+        "steps": [
+          {
+            "prompt": "To estimate p99, you need at least a few samples in the top 1% tail. Rule of thumb: need ~100/(1 - 0.99) = 10,000 samples for stable p99 estimation. More precise: variance of order statistic decreases like $1/n$. For 95% CI on p99 with relative error < 10%, need ~$1/(0.01 \\cdot 0.1^2) \\approx ?$",
+            "motivation": "Order-statistic variance scaling.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "10000",
+                "1e4"
+              ]
+            },
+            "hints": [
+              "Tail order statistics have variance $\\sim p(1-p)/(n f(q)^2)$; rough estimate."
+            ],
+            "reveal": "$\\sim 10^4$ samples needed for reasonably stable p99. p99.9 needs $\\sim 10^5$. p99.99 needs $\\sim 10^6$."
+          }
+        ],
+        "finalResult": "Sample-size rule: $\\sim 10^k / (1 - q)$ samples to estimate $q$-th percentile reliably. p99 needs $\\sim 10^4$, p99.9 needs $\\sim 10^5$. Monitoring systems aggregate over time + use approximate quantile sketches (t-digest, HDR-histogram) to track tail latency without storing every sample."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The four monitoring layers",
       "body": "**Layer 1 — Service health.** Standard SRE: uptime, error rate, p50/p95/p99 latency, throughput, GPU utilization. Use the same observability stack as the rest of the org (Prometheus + Grafana, Datadog, Honeycomb). Sufficient for 'is the service up?' Insufficient for 'is the service correct?'\n\n**Layer 2 — Input distribution drift.** Compare today's inputs to last month's. Statistical distance metrics (PSI, KL, JS divergence) over engineered features (input length, language detection, topic distribution from a small classifier, embedding distance from training data centroids). Alerts fire when divergence exceeds a threshold.\n\n**Layer 3 — Output distribution drift.** Same shape, different signal. Compare today's outputs to last month's. Refusal rate, average output length, sentiment skew, hallucination-detector scores. Useful for catching upstream changes (a new prompt template, a model swap) that ripple into output behavior.\n\n**Layer 4 — Online evaluation.** Run a small percentage of production traffic through an eval harness. For LLMs: LLM-as-judge against a reference model, factuality checks, instruction-following tests. For classifiers: shadow predictions vs ground-truth labels (when labels become available later — e.g. did the user click the recommended item?). This is the most direct quality signal but also the hardest to implement well.\n\nGood production stacks have all four. Most teams ship with layer 1 only and add layers 2-4 reactively after a quality regression bites them."
     },
@@ -61,6 +93,63 @@
       "kind": "text",
       "title": "What's next",
       "body": "Monitoring catches issues; the next lesson covers what to do when monitoring fires.\n\nNext: [[production-failure-modes]] — OOM, NaN gradients, silent corruption, rollback playbooks.\n\nKey takeaways:\n- Service health (layer 1) doesn't catch silent quality regressions; ML systems need layers 2-4\n- Input drift via PSI on length/language/topic; alert at PSI > 0.25\n- Output drift via refusal rate, mean length, terminal tokens\n- Online eval on 1-5% of traffic gives the most direct quality signal\n- SLOs + error budgets turn 'fast enough' into a quantifiable contract\n- Mature stacks compose all four layers; most teams ship with only layer 1"
+    },
+    {
+      "kind": "text",
+      "title": "What 'shipped' actually means",
+      "body": "Three distinct drifts can degrade a deployed model — and they call for different responses:\n\n- **Data drift** ($P(X)$ changes): the feature distribution moves. Detectable from inputs alone. Example: search query volume shifts to a new product category.\n- **Label drift** ($P(Y)$ changes): the marginal of labels shifts. Detectable from labelled feedback or downstream metrics. Example: fraud rate doubles overnight.\n- **Concept drift** ($P(Y|X)$ changes): the relationship between features and labels changes. The most insidious. Example: COVID changed which symptoms predicted serious illness.\n\nAn SLO is a contract: 'p95 latency ≤ 200ms over 30 days.' The **error budget** is what's left after subtracting the SLO from 100% — burn it on releases and learning, but don't burn it all in one week. Drift detection feeds the SLO; without monitoring you find out about drift via support tickets."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mon_drift",
+        "kind": "multiple_choice",
+        "question": "Your deployed classifier has stable input feature distributions, but accuracy on a held-out evaluation slice has dropped from 91% to 76% over six months. Which kind of drift is this most consistent with?",
+        "options": [
+          "Data drift.",
+          "Label drift.",
+          "Concept drift.",
+          "No drift — it's just variance."
+        ],
+        "correctIndex": 2,
+        "explanation": "If inputs $X$ haven't moved but the model's accuracy has, the relationship $P(Y|X)$ has shifted: same features, different outcomes. That's concept drift. Pure data drift would show in the feature monitor first; pure label drift would change calibration but rarely accuracy on a fixed evaluation set."
+      },
+      "hints": [
+        "Which drift is invisible if you only monitor the input feature distributions?",
+        "Match each drift to the metric that catches it first."
+      ],
+      "workedSolution": "Stable $P(X)$ rules out data drift; sustained accuracy collapse beyond noise rules out 'just variance'. That leaves a change in $P(Y|X)$ — concept drift. Diagnose by re-evaluating recent labels and looking for systematic errors on a once-easy slice.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mon_silent",
+        "kind": "scenario",
+        "question": "A silent regression",
+        "prompt": "After a model rollout, business metrics are roughly unchanged for two weeks. Then the on-call gets paged for a downstream revenue dip. Which monitoring signals would have caught this earlier — and what's the gap between 'metric stable' and 'model healthy'?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mon",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences what an error budget is and why it's an operational tool, not just a metric.",
+        "rubric": "Mentions that the error budget is the allowed-failure portion of the SLO over a window; teams trade releases / risk against the remaining budget."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish data drift, label drift, and concept drift.",
+      "Define an SLO and reason about an error budget.",
+      "Recognize the metrics that catch silent failures."
+    ],
+    "prereqs": [
+      "inference-serving"
+    ]
+  }
 }

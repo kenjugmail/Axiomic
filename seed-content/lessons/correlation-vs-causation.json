@@ -7,6 +7,58 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Berkeley admissions 1973",
+      "body": "The 1973 UC Berkeley grad admissions data: men admitted 44%, women 35% — looked like sex discrimination. Bickel et al. broke it down by department: most departments actually admitted *women* at higher rates. The apparent bias came from women applying to more competitive departments. Simpson's paradox in a famous setting; the right unit of analysis was per-department, not overall."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cv_simpson",
+        "kind": "guided_derivation",
+        "question": "Construct a Simpson's-paradox 2x2x2",
+        "goal": "Show two subgroups where treatment A wins in each, but B wins in aggregate.",
+        "steps": [
+          {
+            "prompt": "Subgroup 1: A treats 10 with 9 successes (90%); B treats 100 with 80 successes (80%). Subgroup 2: A treats 100 with 50 successes (50%); B treats 10 with 4 successes (40%). Within each subgroup, who wins?",
+            "motivation": "Check that A beats B in each stratum.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "A wins both subgroups.",
+                "B wins both.",
+                "A and B tie.",
+                "Mixed."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Subgroup 1: 90% vs 80%. Subgroup 2: 50% vs 40%."
+            ],
+            "reveal": "A wins both subgroups: 90% > 80% in Subgroup 1; 50% > 40% in Subgroup 2."
+          },
+          {
+            "prompt": "Aggregate: A gets 9 + 50 = 59 successes out of 10 + 100 = 110 (54%); B gets 80 + 4 = 84 successes out of 100 + 10 = 110 (76%). Who wins overall?",
+            "motivation": "Compute the aggregate rates.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "A wins overall.",
+                "B wins overall.",
+                "Tie."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "59/110 = 54%; 84/110 = 76%."
+            ],
+            "reveal": "B wins aggregate (76% vs 54%) — even though A won every subgroup. The 'paradox' is mix shifts: A's caseload was biased toward the hard subgroup (subgroup 2)."
+          }
+        ],
+        "finalResult": "Simpson's paradox: aggregate vs stratified statistics can disagree when treatment assignment is correlated with the confounding variable. Cure: stratify on the confounder, or randomize."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The three sources of association",
       "body": "When two variables `X` and `Y` are statistically associated, exactly one of three things is true (or some combination):\n\n1. **`X` causes `Y`.** Real causal relationship.\n2. **`Y` causes `X`.** Reverse causation.\n3. **A common cause `Z` causes both.** Confounding.\n\nObservational data alone cannot distinguish these three. They all produce the same correlation pattern.\n\nClassic example: ice cream sales and drownings are correlated. Does ice cream cause drownings? No — both are caused by hot weather. The confound is the season."
     },
@@ -64,12 +116,89 @@
         "kind": "explain_back",
         "prompt": "In your own words, describe a situation in your own work (or a hypothetical you'd find plausible) where treating an ML prediction as causal would lead to a wrong decision. Walk through what's confounded.",
         "rubricCriteria": [
-          { "id": "concrete-example", "description": "Names a specific decision where the prediction would be acted on" },
-          { "id": "names-confound", "description": "Identifies the confounder explicitly + how it inflates/deflates the apparent association" },
-          { "id": "consequence", "description": "Explains why the wrong decision matters in practice" }
+          {
+            "id": "concrete-example",
+            "description": "Names a specific decision where the prediction would be acted on"
+          },
+          {
+            "id": "names-confound",
+            "description": "Identifies the confounder explicitly + how it inflates/deflates the apparent association"
+          },
+          {
+            "id": "consequence",
+            "description": "Explains why the wrong decision matters in practice"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "Simpson's paradox, the smallest example",
+      "body": "Two treatments for a disease, tested on a population split by severity:\n\n| | Mild patients | Severe patients | Overall |\n|---|---|---|---|\n| Treatment A | 81/87 = 93% | 192/263 = 73% | 78% |\n| Treatment B | 234/270 = 87% | 55/80 = 69% | 83% |\n\nWithin mild patients: A beats B (93% vs 87%).\nWithin severe patients: A beats B (73% vs 69%).\nOverall: B beats A (83% vs 78%).\n\nReason: B was given to a population skewed toward mild cases (where everyone does well); A was given to a population skewed toward severe cases. The aggregate hides the per-subgroup effect.\n\nThis is the textbook reason 'control for confounders' is non-negotiable. If you didn't randomize and you don't control, the aggregate number is meaningless."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cv_simpson",
+        "kind": "multiple_choice",
+        "question": "Simpson's paradox can be resolved by:",
+        "options": [
+          "Collecting more data.",
+          "Stratifying on the confounder and averaging within strata, weighted appropriately.",
+          "Using a more sophisticated regression model.",
+          "Ignoring the within-subgroup numbers as outliers."
+        ],
+        "correctIndex": 1,
+        "explanation": "The paradox is structural — caused by a confounder that differs in distribution between treatment groups. Stratification (computing within-subgroup effects and combining them) eliminates the confound. Larger samples just make the paradox more reliable, not less. Regression captures it iff it explicitly includes the confounder."
+      },
+      "hints": [
+        "The paradox comes from confounded subgroup distributions, not from sample size.",
+        "Which technique computes effects WITHIN levels of the confounder?"
+      ],
+      "workedSolution": "Simpson's is a structural problem from confounding, not a sampling issue. Stratifying on the confounder removes the confound: compute the effect within each stratum, then aggregate weighted by stratum sizes (or by some causally-defensible scheme). More data alone reinforces the paradox; only modeling-the-confounder fixes it.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_cv_simpson",
+        "kind": "math_expression",
+        "question": "Treatment A: 8/10 mild (80%) + 2/40 severe (5%) = 10/50 overall = 20%. Treatment B: 1/40 mild (2.5%) + 9/10 severe (90%) = 10/50 overall = 20%. In both subgroups, which treatment wins (enter 'A' or 'B')?",
+        "acceptedAnswers": [
+          "A",
+          "a"
+        ],
+        "hint": "Compare 80% vs 2.5% in mild, and 5% vs 90% in severe."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_cv_kidney",
+        "kind": "scenario",
+        "question": "A real-world version",
+        "prompt": "The classic kidney-stone study: Treatment A vs Treatment B. Aggregate success rates favor B (83% vs 78%). When stratified by stone size, A wins for both small AND large stones. What does this imply about how patients were assigned to treatments?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cv",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why 'correlation does not imply causation' is not just a slogan but a precise statistical fact.",
+        "rubric": "Mentions that correlation has three sources (direct causation, common cause / confounder, selection effects) and the data alone can't distinguish them; identifying causation requires either randomization or structural assumptions."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Distinguish the three sources of correlation: causation, confounding, selection.",
+      "Compute Simpson's paradox on a small example.",
+      "Recognize spurious correlations in real data."
+    ],
+    "prereqs": []
+  }
 }

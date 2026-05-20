@@ -1,0 +1,111 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Sketch Kafka's log-based architecture.",
+      "Distinguish at-least-once from exactly-once delivery.",
+      "Recognize when stream processing beats batch."
+    ],
+    "prereqs": [
+      "etl-fundamentals"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Kafka, the durable distributed log",
+      "body": "**Kafka topic**: an append-only log, partitioned across brokers. Producers write to a topic; consumers read from it. Each message has an offset (position in its partition). Once written, messages are immutable — Kafka is a log, not a queue.\n\n**Why this design wins**:\n- **Durability**: each message replicated to N brokers (typically 3). Survives broker failure.\n- **Replayability**: consumers track their own offset; restart from any point in the log. The same message can be consumed by many independent consumer groups.\n- **Throughput**: append-only writes + sequential disk reads are fast; Kafka routinely sustains millions of messages/sec per broker.\n- **Decoupling**: producers and consumers are independent. Add a new consumer without coordinating with producers.\n\nReplaces the older 'message queue' (RabbitMQ, ActiveMQ) for high-throughput, multi-consumer use cases. The log-as-source-of-truth pattern (event-sourcing, CQRS, materialized views) is built on Kafka semantics."
+    },
+    {
+      "kind": "text",
+      "title": "Worked example: Kafka lag monitoring at scale",
+      "body": "Production Kafka: monitor consumer lag (offset gap between latest message + consumer's processed offset) per consumer group + partition. Sustained lag growth = consumer can't keep up. Burrow (LinkedIn) is the standard lag-monitoring tool. Auto-scaling consumers on lag growth = standard pattern. Spikes are normal; sustained growth is action item."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_kf_lag",
+        "kind": "guided_derivation",
+        "question": "Derive consumer-lag accumulation rate",
+        "goal": "Producer rate $P$ msg/s. Consumer rate $C$ msg/s. If $C < P$, lag grows at rate?",
+        "steps": [
+          {
+            "prompt": "Per second: $P$ new messages arrive; consumer processes $C$. Net new lag: $P - C$.",
+            "motivation": "Difference of rates.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "P - C"
+              ]
+            },
+            "hints": [
+              "Just subtract."
+            ],
+            "reveal": "Lag grows at $P - C$ msg/s. If $C \\geq P$: lag flat (steady state) or shrinking."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Lag growth rate} = P - C}$$ Sustained $C < P$ → unbounded lag → eventually consumer is 'behind' by hours. Mitigations: scale consumer count, optimize consumer code, partition more aggressively (more consumers parallel). Alerting on lag growth catches the issue before it's a customer-facing problem."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "At-least-once vs exactly-once",
+      "body": "**At-least-once**: every message is delivered at least once; duplicates are possible (e.g., consumer crashed after processing but before committing offset). This is the default and the cheap option.\n\n**At-most-once**: every message is delivered at most once; some may be lost. Cheap but rarely what you want.\n\n**Exactly-once**: every message is delivered exactly once. Hard. Requires transactional coordination between Kafka, the consumer, and the downstream system (warehouse, DB).\n\nKafka 0.11+ supports exactly-once for messages flowing between Kafka topics (within Kafka). For end-to-end exactly-once (Kafka → DB), you need the consumer + downstream to participate in a transaction.\n\nIn practice: most production pipelines build idempotent consumers on top of at-least-once delivery (treat 'at-least-once' + 'consumer logic that handles duplicates' = effectively exactly-once). This is much cheaper than running Kafka's exactly-once mode and is the standard pattern."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_kf_offset",
+        "kind": "multiple_choice",
+        "question": "Consumer offsets in Kafka are:",
+        "options": [
+          "Stored on the broker, managed by Kafka.",
+          "Tracked by each consumer group; allows different consumers to read at different positions in the same log.",
+          "Per-message timestamps.",
+          "Random unique IDs."
+        ],
+        "correctIndex": 1,
+        "explanation": "Consumer offset = the position in a partition the consumer has read up to. Each consumer group tracks its own offsets, stored on a special internal Kafka topic. Two consumer groups can read the same partition at completely different offsets — that's what makes Kafka multi-consumer. The producer doesn't know or care about consumer offsets."
+      },
+      "hints": [
+        "What does 'offset' mean in the context of an append-only log?",
+        "Multiple consumer groups can read the same partition — what does that imply about offset ownership?"
+      ],
+      "workedSolution": "Each consumer group maintains its own offsets per partition — the position up to which the group has acknowledged consumption. Offsets are stored in a special internal Kafka topic (__consumer_offsets). Two consumer groups consuming the same partition can be at completely different positions in the log — that's how Kafka enables multi-consumer fan-out without producers caring about it.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_kf_when",
+        "kind": "scenario",
+        "question": "Stream or batch?",
+        "prompt": "Your team is choosing between a Kafka-based streaming pipeline and a batch dbt pipeline for the same fraud-detection use case. Walk through the decision: when does the latency win of streaming actually matter, and when is batch simpler + sufficient?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_kf_throughput",
+        "kind": "math_expression",
+        "question": "Kafka topic with 12 partitions, each broker can sustain 100MB/s/partition. Max sustained throughput (MB/s)?",
+        "acceptedAnswers": [
+          "1200",
+          "12*100",
+          "1200 MB/s"
+        ],
+        "hint": "Per-partition × partitions."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_kf",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why most production teams use at-least-once + idempotent consumers, even though exactly-once is available.",
+        "rubric": "Mentions that at-least-once + idempotency on the consumer side is cheaper to operate than transactional exactly-once across heterogeneous systems; idempotent consumers are testable + composable + handle the failure modes (consumer restart, broker failover) gracefully."
+      }
+    }
+  ]
+}

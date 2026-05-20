@@ -7,6 +7,73 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: black-body radiation",
+      "body": "Planck's quantization (1900) + Bose-Einstein statistics + the partition function recipe gives the Planck distribution:\n\n$$u(\\omega) = \\frac{\\hbar\\omega^3}{\\pi^2 c^3} \\cdot \\frac{1}{e^{\\hbar\\omega/(k_B T)} - 1}.$$\n\nIntegrate over frequencies and you get the Stefan-Boltzmann law $L = \\sigma T^4$. The sun's surface temperature determines its color (peak frequency from Wien's displacement law) AND its total luminosity (via $T^4$).\n\nEverything from CMB cosmology to thermal cameras to LED efficiency derives ultimately from the Boltzmann distribution applied to the right energy spectrum. Statistical mechanics is the bridge from microscopic energy levels to macroscopic thermodynamics."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sm_boltzmann",
+        "kind": "guided_derivation",
+        "question": "Derive the Boltzmann distribution from maximum entropy",
+        "goal": "Maximize the Shannon entropy $S = -k_B \\sum_i p_i \\ln p_i$ subject to: $\\sum_i p_i = 1$ (normalization) and $\\sum_i p_i E_i = \\langle E\\rangle$ (fixed average energy).",
+        "steps": [
+          {
+            "prompt": "Set up the Lagrangian: $\\mathcal{L} = S - \\alpha(\\sum_i p_i - 1) - \\beta(\\sum_i p_i E_i - \\langle E\\rangle)$. Take $\\partial \\mathcal{L}/\\partial p_i$ and set to zero. What's the equation in $p_i$?",
+            "motivation": "Constrained optimization → Lagrange multipliers.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-k_B (ln p_i + 1) - alpha - beta E_i = 0",
+                "-(ln p_i + 1) - α - β E_i = 0"
+              ]
+            },
+            "hints": [
+              "$\\partial S/\\partial p_i = -k_B(\\ln p_i + 1)$ (treating $k_B$ as part of $S$).",
+              "Set $-k_B(\\ln p_i + 1) = \\alpha + \\beta E_i$."
+            ],
+            "reveal": "$-k_B (\\ln p_i + 1) - \\alpha - \\beta E_i = 0$ (or absorbing $k_B$: $\\ln p_i = -\\text{const} - \\beta E_i / k_B$)."
+          },
+          {
+            "prompt": "Solve for $p_i$.",
+            "motivation": "Exponentiate.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$p_i = \\exp(-\\beta E_i)/Z$ where $Z$ normalizes.",
+                "$p_i = E_i / \\sum E_j$.",
+                "$p_i = 1/N$ for $N$ states.",
+                "$p_i = \\beta E_i$."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Take $\\exp$ of both sides; absorb constants into a partition function $Z$."
+            ],
+            "reveal": "$p_i = \\exp(-\\beta E_i) / Z$ where $Z = \\sum_j \\exp(-\\beta E_j)$."
+          },
+          {
+            "prompt": "Identify $\\beta$ physically. (Hint: it has units of inverse energy and corresponds to inverse temperature in the relevant scale.)",
+            "motivation": "Match dimensions + thermodynamic interpretation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1/(k_B T)",
+                "1/k_B T",
+                "(k_B T)^(-1)"
+              ]
+            },
+            "hints": [
+              "Compare with thermodynamic ideal-gas expressions."
+            ],
+            "reveal": "$\\beta = 1/(k_B T)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{p_i = \\frac{e^{-E_i/k_B T}}{Z}}$$\n\nThe Boltzmann distribution. The maximum-entropy posture given a known average energy. Every equilibrium statistical mechanics derivation starts here. The $1/k_B T$ in the exponent is so universal that physicists abbreviate it $\\beta$ universally."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The Boltzmann distribution",
       "body": "Consider a system with a fixed number of particles, in contact with a heat bath at temperature `T`. The system can occupy various microstates `s`, each with energy `E_s`. **What's the probability of finding it in state `s`?**\n\nAnswer: the **Boltzmann distribution**:\n\n$$p(s) = \\frac{1}{Z} e^{-E_s / k_B T}$$\n\nWhere `k_B` is the Boltzmann constant and `Z` is the **partition function**:\n\n$$Z = \\sum_s e^{-E_s / k_B T}$$\n\n`Z` normalizes the distribution. Not just a normalizer though — almost every thermodynamic quantity is a derivative of `log Z`:\n\n- Average energy: `⟨E⟩ = -∂(log Z)/∂β` where `β = 1/(k_B T)`\n- Free energy: `F = -k_B T log Z`\n- Entropy: `S = -k_B Σ p(s) log p(s)` (the Gibbs entropy formula)\n- Heat capacity, susceptibilities, etc., from second derivatives\n\nThe Boltzmann distribution is *the* answer to 'system in contact with a heat bath.' Everything in equilibrium thermodynamics flows from this one equation. It's why you only need one number — temperature — to summarize a thermodynamic state at equilibrium: temperature picks the distribution."
     },
@@ -61,6 +128,77 @@
       "kind": "text",
       "title": "What's next",
       "body": "Statistical mechanics gives us a bridge from microscopic dynamics to macroscopic thermodynamic behavior — and along the way produces the same exponential-family / max-entropy distributions ML uses for classification and generative modeling.\n\nKey takeaways:\n- Statistical mechanics tracks distributions over microstates rather than tracking individual particles\n- Boltzmann distribution: `p(s) = exp(-E_s/k_BT)/Z` is the equilibrium distribution at temperature T\n- Partition function Z is the central object — derivatives give all thermodynamics\n- Entropy = log of multiplicity; the second law is a counting argument about huge N\n- Free energy F = -k_BT log Z is what systems minimize at fixed temperature\n- Softmax in ML and Boltzmann in physics are the same distribution, with different names\n\nNext: [[entropy-and-information]] — completing the bridge by showing that Boltzmann's thermodynamic entropy and Shannon's information entropy are the same quantity."
+    },
+    {
+      "kind": "text",
+      "title": "Entropy is counting",
+      "body": "Boltzmann: $S = k_B \\ln W$, where $W$ is the number of microstates compatible with a macrostate.\n\nFlip 4 coins. Macrostate: '2 heads, 2 tails'. Microstates: HHTT, HTHT, HTTH, THHT, THTH, TTHH — six of them. So $S(2,2) = k_B \\ln 6$.\n\nMacrostate '4 heads': 1 microstate. $S = 0$. Macrostate '3 heads, 1 tails': 4 microstates. $S = k_B \\ln 4$.\n\nThe second law (entropy increases): in a closed system, you spend most of your time in macrostates that have many microstates (because there are vastly more of them in any reasonable problem). Mix a drop of ink in water: ordered macrostate has tiny $W$; mixed macrostate has astronomically more. The system spends ~all its time in the mixed macrostate not because of any active 'dispersal force' but because the mixed-state count vastly outnumbers the unmixed.\n\nEvery entropy formula in physics (Gibbs, Shannon, von Neumann) is a refinement of this counting principle."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sm_entropy",
+        "kind": "math_expression",
+        "question": "A macrostate corresponds to $W = 10^{10}$ microstates. Compute $S/k_B = \\ln W$ to 1 decimal.",
+        "acceptedAnswers": [
+          "23.0",
+          "23",
+          "10 ln(10)"
+        ],
+        "hint": "$\\ln 10^{10} = 10 \\ln 10 \\approx 10 \\cdot 2.303$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sm_partfn",
+        "kind": "multiple_choice",
+        "question": "The Boltzmann distribution says state $i$ with energy $E_i$ has probability $p_i = e^{-\\beta E_i}/Z$ where $Z = \\sum_j e^{-\\beta E_j}$ is the partition function. At low temperature ($\\beta = 1/k_BT \\to \\infty$):",
+        "options": [
+          "All states are equally likely",
+          "Only the ground state has measurable probability",
+          "The partition function diverges",
+          "Energy is conserved"
+        ],
+        "correctIndex": 1,
+        "explanation": "As $T \\to 0$, $\\beta \\to \\infty$, and $e^{-\\beta E_i}$ falls off exponentially with $E_i$. The ratio $e^{-\\beta E_1}/e^{-\\beta E_0}$ for first-excited vs ground state goes to zero. Population concentrates entirely in the ground state — the zero-temperature limit."
+      },
+      "hints": [
+        "At $\\beta = \\infty$, $e^{-\\beta E}$ is sharpest for the smallest $E$.",
+        "All other states' probabilities go to zero relative to the ground state."
+      ],
+      "workedSolution": "At $\\beta \\to \\infty$, the ratio $p_{\\text{excited}}/p_{\\text{ground}} = e^{-\\beta \\Delta E} \\to 0$ for any energy gap $\\Delta E > 0$. The system localizes entirely in the ground state — this is the operational definition of 'absolute zero temperature'. Quantum many-body physics uses this limit constantly.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sm_arrow",
+        "kind": "scenario",
+        "question": "The arrow of time",
+        "prompt": "Why does entropy increase even though Newton's laws are time-reversible? Reflect on the role of macrostate vs microstate counting in three sentences."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sm",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why mixing ink into water is irreversible in practice but not in principle.",
+        "rubric": "Mentions that the microstate dynamics are reversible (any microstate trajectory could in principle run backward) but the mixed macrostate has so many more microstates that the system overwhelmingly samples mixed configurations."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Compute the partition function for a small system.",
+      "Connect entropy to log of microstate count (Boltzmann).",
+      "Recognize the equipartition theorem."
+    ],
+    "prereqs": [
+      "mechanics-foundations"
+    ]
+  }
 }

@@ -7,6 +7,54 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: gridworld value iteration",
+      "body": "A 4×4 gridworld with one goal cell (reward $+10$ on entry) and uniform $-1$ step cost. Run value iteration to convergence.\n\nResult: cells far from goal have $V \\approx -d$ (number of steps to goal) — the negative path cost. Adjacent cells $V \\approx +9$ ($+10$ on entry minus the step cost). The greedy policy reads $V$ + transitions to recover the shortest path.\n\nThis tiny example contains the entire structure of value-based RL: gradients of $V$ point toward the goal; the policy follows them. Scale up the grid + add stochastic transitions + use a neural net for $V$ and you have DQN."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_vf_bellman",
+        "kind": "guided_derivation",
+        "question": "Derive the Bellman equation for $V^\\pi$",
+        "goal": "Show $V^\\pi(s) = \\mathbb{E}_{a \\sim \\pi, s' \\sim P}[R(s,a,s') + \\gamma V^\\pi(s')]$.",
+        "steps": [
+          {
+            "prompt": "$V^\\pi(s)$ is the expected return starting at state $s$. Break the return into the first reward + the rest.",
+            "motivation": "Split $G_t = r_t + \\gamma r_{t+1} + \\cdots$.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "E[r_t + gamma G_{t+1}]",
+                "E[r_t + γ G_{t+1} | s_t = s]"
+              ]
+            },
+            "hints": [
+              "$G_t = r_t + \\gamma G_{t+1}$ by definition."
+            ],
+            "reveal": "$V^\\pi(s) = \\mathbb{E}[r_t + \\gamma G_{t+1} \\mid s_t = s]$."
+          },
+          {
+            "prompt": "Identify $\\mathbb{E}[G_{t+1} \\mid s_{t+1}] = V^\\pi(s_{t+1})$. Substitute.",
+            "motivation": "Definition of value function.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "E[r_t + gamma V^pi(s_{t+1})]",
+                "E[r + γ V^π(s')]"
+              ]
+            },
+            "hints": [
+              "By definition $V^\\pi(s') = \\mathbb{E}[G_{t+1} \\mid s_{t+1} = s']$.",
+              "Apply law of iterated expectation."
+            ],
+            "reveal": "$V^\\pi(s) = \\mathbb{E}_{a, s'}[r + \\gamma V^\\pi(s')]$."
+          }
+        ],
+        "finalResult": "$$\\boxed{V^\\pi(s) = \\mathbb{E}_{a \\sim \\pi, s' \\sim P}[R(s,a,s') + \\gamma V^\\pi(s')]}$$\n\nRecursive consistency: $V$ at the current state = expected immediate reward + discounted $V$ at the next state. This recursion is the basis of value iteration, policy evaluation, and TD learning."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The Bellman equation",
       "body": "Value functions satisfy a **recursive consistency**: the value of a state equals the immediate reward plus the discounted value of where you end up next.\n\nFor a fixed policy `π`:\n\n$$V^\\pi(s) = \\sum_a \\pi(a|s) \\sum_{s'} P(s'|s,a) \\left[R(s,a,s') + \\gamma V^\\pi(s')\\right]$$\n\nIn words: average over the actions the policy would take, average over the resulting next states, and the value of `s` is the immediate reward plus `γ` times the value of `s'`.\n\nFor `Q^π`:\n\n$$Q^\\pi(s,a) = \\sum_{s'} P(s'|s,a) \\left[R(s,a,s') + \\gamma \\sum_{a'} \\pi(a'|s') Q^\\pi(s',a')\\right]$$\n\nThe **Bellman optimality equation** for `V*`:\n\n$$V^*(s) = \\max_a \\sum_{s'} P(s'|s,a) \\left[R(s,a,s') + \\gamma V^*(s')\\right]$$\n\n(Same as `V^π` but with `max_a` instead of expected over `π`.)\n\n**Why these matter**: every value-based RL algorithm — policy iteration, value iteration, Q-learning, DQN — is solving (or approximating) one of these Bellman equations. The Bellman equation is the recursive structure that makes RL tractable."
     },
@@ -61,6 +109,77 @@
       "kind": "text",
       "title": "What's next",
       "body": "Value functions + the Bellman equation are the engine. The next two lessons cover how to *solve* the Bellman equation — first when you know the model (dynamic programming), then when you don't (temporal difference).\n\nNext: [[dynamic-programming-rl]] — value iteration and policy iteration on small MDPs.\n\nKey takeaways:\n- `V^π(s)` and `Q^π(s,a)`: expected return from `s` (or `s,a`) under `π`\n- Bellman equation: value satisfies a recursive consistency over one step + the value of where you end up\n- Bellman optimality equation: replace the policy average with `max_a` for `V*`\n- Bellman operator is a γ-contraction → iterative algorithms converge\n- TD-error = Bellman residual; reducing it is what training does"
+    },
+    {
+      "kind": "text",
+      "title": "Bellman equation, two perspectives",
+      "body": "**For values**: $V^\\pi(s) = \\sum_a \\pi(a | s) \\sum_{s'} P(s' | s, a) [R(s, a, s') + \\gamma V^\\pi(s')]$.\n\n**For Q-values**: $Q^\\pi(s, a) = \\sum_{s'} P(s' | s, a) [R(s, a, s') + \\gamma \\sum_{a'} \\pi(a' | s') Q^\\pi(s', a')]$.\n\nThe Bellman equation says: the value of a state (or state-action) equals the immediate reward plus discounted value of the next state. **Recursive consistency**: long-term values are built from one-step lookaheads.\n\n**Bellman optimality**: $V^*(s) = \\max_a \\sum_{s'} P(s' | s, a)[R + \\gamma V^*(s')]$. Replace the policy's expectation over actions with a $\\max$, and you get the equation that defines the optimal value function. Value iteration solves this by iterating the Bellman backup; policy iteration alternates evaluation + improvement.\n\nWhy Q-values matter for control: with $V$ alone, to choose an action you need to know the transition model. With $Q$, the greedy action is just $\\arg\\max_a Q(s, a)$ — no model needed. That's why model-free RL is built on Q-functions, not V-functions."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_vf_bellman",
+        "kind": "multiple_choice",
+        "question": "Bellman equation: $V^\\pi(s) = \\mathbb{E}_\\pi[r_t + \\gamma V^\\pi(s_{t+1}) | s_t = s]$. The key idea this expresses is:",
+        "options": [
+          "The expected return is determined entirely by the next reward.",
+          "The value of a state is the immediate reward plus the discounted value of the next state, in expectation.",
+          "Future rewards don't matter.",
+          "The agent should always pick the highest-reward action."
+        ],
+        "correctIndex": 1,
+        "explanation": "Bellman is a recursive consistency condition on the value function. The value of being in a state equals the immediate expected reward plus the discounted expected value of where you'll be next. This recursion is what every value-based RL algorithm exploits — temporal-difference learning uses one-step Bellman backup as its update signal."
+      },
+      "hints": [
+        "The right-hand side has both an immediate reward and a future-value term.",
+        "Recursive: V(s) defined in terms of V(s')."
+      ],
+      "workedSolution": "Bellman is the recursive consistency: V(state) = immediate reward + discounted V(next state). Every value-based RL algorithm (TD, Q-learning, DQN) updates by minimizing the Bellman residual — the difference between the current value estimate and its one-step bootstrap. Reading the equation this way clarifies why discounting matters and why value functions can be learned from sampled transitions.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_vf_geom",
+        "kind": "math_expression",
+        "question": "An MDP where every state has $\\gamma = 0.9$ and the next-state value is always $1$, immediate reward 0. Solve $V = 0 + 0.9 \\cdot 1 = ?$",
+        "acceptedAnswers": [
+          "0.9",
+          ".9",
+          "9/10"
+        ],
+        "hint": "Plug in."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_vf_qvsv",
+        "kind": "scenario",
+        "question": "Q vs V — when each wins",
+        "prompt": "You have a learned $V(s)$ but no model of $P(s'|s,a)$. A teammate proposes using $V$ to derive a greedy policy. Why is this impossible without a model, and how does $Q$ solve the problem?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_vf",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why value functions are central to RL even when modern methods (PPO, REINFORCE) parameterize the policy directly.",
+        "rubric": "Mentions that value functions serve as baselines that reduce policy-gradient variance, even when the policy is learned directly; actor-critic methods exploit both."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Distinguish $V^\\pi(s)$ from $Q^\\pi(s,a)$.",
+      "Write the Bellman equation for V.",
+      "Compute V for a small deterministic MDP."
+    ],
+    "prereqs": [
+      "mdp-foundations"
+    ]
+  }
 }

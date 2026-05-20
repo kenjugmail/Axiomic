@@ -1,0 +1,101 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish ACID properties.",
+      "Recognize isolation levels + their anomalies.",
+      "Reason about serializable vs read-committed trade-offs."
+    ],
+    "prereqs": [
+      "storage-engines"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "ACID in 90 seconds",
+      "body": "The four ACID properties:\n- **Atomicity**: all-or-nothing. Either all of a transaction's writes apply, or none.\n- **Consistency**: the DB transitions between valid states (constraint integrity).\n- **Isolation**: concurrent transactions appear to execute serially (in some order).\n- **Durability**: committed transactions survive crashes.\n\nA, C, D are mostly machinery (WAL + crash recovery + constraint enforcement). The interesting one is **I** — isolation has a spectrum, not a boolean."
+    },
+    {
+      "kind": "text",
+      "title": "Isolation levels + anomalies",
+      "body": "ANSI SQL defines four isolation levels by which anomalies they allow:\n\n| Level | Dirty Read | Non-Repeatable Read | Phantom Read |\n|---|---|---|---|\n| Read Uncommitted | ✓ | ✓ | ✓ |\n| Read Committed | ✗ | ✓ | ✓ |\n| Repeatable Read | ✗ | ✗ | ✓ |\n| Serializable | ✗ | ✗ | ✗ |\n\n- **Dirty read**: reading uncommitted changes from another transaction.\n- **Non-repeatable read**: reading a row twice and getting different values (another tx modified between reads).\n- **Phantom read**: a range query returns different rows on re-execution (another tx inserted matching rows).\n\nPostgres default: Read Committed. MySQL InnoDB default: Repeatable Read. Serializable is the strictest but slowest."
+    },
+    {
+      "kind": "text",
+      "title": "SSI: serializable without the locks",
+      "body": "Classical serializable isolation = strict 2-phase locking. Very slow at scale (lots of lock contention).\n\n**Serializable Snapshot Isolation (SSI)** (Cahill et al. 2009): each transaction reads from a consistent snapshot at start. On commit, check whether read/write conflicts with concurrent transactions form a cycle. If yes, abort one. If no, commit.\n\nProduction implementations: Postgres 9.1+ (default-off; opt-in via `SET TRANSACTION ISOLATION LEVEL SERIALIZABLE`), CockroachDB, Spanner. Performance is much better than locking-based serializable — closer to snapshot isolation. The trade-off: occasional abort + retry.\n\nFor any system where business logic depends on cross-row invariants (banking, inventory), SSI is the cleanest option."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_acid_2pl",
+        "kind": "guided_derivation",
+        "question": "Derive 2-Phase Locking's serializability guarantee",
+        "goal": "Show that strict 2-PL produces a serializable schedule.",
+        "steps": [
+          {
+            "prompt": "Strict 2-PL: transactions acquire all locks before any release, and hold all locks until commit/abort. Suppose two transactions $T_1, T_2$ conflict on a data item. Argue that the resulting execution is equivalent to serial execution.",
+            "motivation": "Conflict-equivalence theorem.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "If $T_1$ acquires the lock first, $T_2$ must wait until $T_1$ commits. So $T_1$'s effects on the item are entirely before $T_2$'s — equivalent to serial $T_1 \\to T_2$.",
+                "Concurrent execution is impossible.",
+                "Both abort.",
+                "Random order."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Strict 2-PL: locks held until commit. So conflicting accesses can't interleave."
+            ],
+            "reveal": "Strict 2-PL ensures that for any pair of conflicting transactions, one's locks are fully released before the other's are acquired. Hence the schedule is equivalent to serial."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Strict 2-PL} \\Rightarrow \\text{serializable}}$$ But: high lock contention at scale. Modern DBs prefer SSI (Postgres SSI, CockroachDB) which provides serializability with optimistic concurrency control — fewer locks, occasional aborts."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_acid_iso",
+        "kind": "multiple_choice",
+        "question": "Postgres default isolation level is Read Committed. Application reads `balance` from account A, then later writes `balance + 100`. Two concurrent transactions do this. What anomaly is possible?",
+        "options": [
+          "Dirty read.",
+          "Lost update (one transaction's update overwrites the other's without seeing it).",
+          "Phantom read.",
+          "Serialization failure."
+        ],
+        "correctIndex": 1,
+        "explanation": "Both transactions read the original balance (e.g., $100), then each writes their respective +100. The final balance is $200 instead of $200 — one update was lost. Read Committed doesn't prevent this. Fix: use `SELECT ... FOR UPDATE` (row-level lock), or repeatable-read/serializable isolation, or `UPDATE accounts SET balance = balance + 100 ...` (atomic increment)."
+      },
+      "hints": [
+        "Trace the two transactions interleaved: T1 read, T2 read, T1 write, T2 write.",
+        "Read Committed doesn't lock rows on reads."
+      ],
+      "workedSolution": "Lost update: T1 reads 100, T2 reads 100, T1 writes 200, T2 writes 200. Net change is +100, not +200. Read Committed allows this; Serializable + SSI prevents it via conflict-detection abort. The pragmatic fix: `UPDATE accounts SET balance = balance + 100 WHERE id = ?` (atomic on the database side, no read-modify-write loop).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_acid_ssi",
+        "kind": "scenario",
+        "question": "Detecting an SSI abort in production",
+        "prompt": "Your Postgres app uses SERIALIZABLE isolation. Occasionally a write transaction fails with `ERROR: could not serialize access due to read/write dependencies`. Walk through what's happening + how the application should handle it."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_acid",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why the application code should retry on serialization-failure errors when using SSI.",
+        "rubric": "Mentions that SSI uses optimistic concurrency: conflicts cause aborts; the application is expected to retry the transaction (often with the same logic since the conflict was rare); failing to retry is a bug."
+      }
+    }
+  ]
+}

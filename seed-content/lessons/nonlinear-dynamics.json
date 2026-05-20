@@ -7,6 +7,59 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: the ferromagnet phase transition",
+      "body": "Iron above its Curie temperature (1043 K): magnetization $M = 0$ on average. Below: spontaneous magnetization, either $+M^*$ or $-M^*$.\n\nMean-field theory gives an effective dynamics $\\dot M = (T_c - T) M - M^3$ (after appropriate scaling). Same form as the pitchfork normal form $\\dot x = rx - x^3$ with $r = T_c - T$.\n\n- $T > T_c$: $r < 0$. Single stable fixed point at $M = 0$ (paramagnetic phase).\n- $T < T_c$: $r > 0$. $M = 0$ is unstable; two stable fixed points at $\\pm\\sqrt{T_c - T}$ (ferromagnetic phase, broken symmetry).\n\nThe Curie temperature is precisely the pitchfork bifurcation point. Magnetization grows as $\\sqrt{T_c - T}$ near the transition — the famous mean-field critical exponent of $1/2$. Every undergraduate statistical mechanics course derives this; few mention it's literally the pitchfork normal form."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_nl_pitchfork",
+        "kind": "guided_derivation",
+        "question": "Classify fixed points of the supercritical pitchfork",
+        "goal": "For $\\dot x = rx - x^3$, find all fixed points and classify their stability for $r > 0$.",
+        "steps": [
+          {
+            "prompt": "Fixed points: solve $rx - x^3 = 0$. Factor.",
+            "motivation": "Algebra.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "x = 0, x = ±sqrt(r)",
+                "0, ±√r",
+                "0, -sqrt(r), +sqrt(r)"
+              ]
+            },
+            "hints": [
+              "$x(r - x^2) = 0 \\Rightarrow x = 0$ or $x^2 = r$.",
+              "For $r > 0$, the second case gives $\\pm\\sqrt r$."
+            ],
+            "reveal": "$x^* \\in \\{0, +\\sqrt r, -\\sqrt r\\}$."
+          },
+          {
+            "prompt": "Compute $f'(x) = r - 3x^2$. Evaluate at each fixed point. Which are stable ($f' < 0$)?",
+            "motivation": "Apply the linear-stability test.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$x = \\pm\\sqrt r$ stable; $x = 0$ unstable.",
+                "$x = 0$ stable; $\\pm\\sqrt r$ unstable.",
+                "All three stable.",
+                "All three unstable."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "$f'(0) = r > 0$ → unstable.",
+              "$f'(\\pm\\sqrt r) = r - 3r = -2r < 0$ → stable."
+            ],
+            "reveal": "$x = 0$ has $f' = r > 0$ — unstable. $x = \\pm\\sqrt r$ has $f' = -2r < 0$ — stable."
+          }
+        ],
+        "finalResult": "Supercritical pitchfork: for $r > 0$, the origin loses stability and two new stable equilibria appear at $\\pm\\sqrt r$ — symmetry breaking. Trajectories starting near 0 flow to one of the two new fixed points; which one depends on which side of zero they start. This is the mathematical signature of *spontaneous symmetry breaking* — the same machinery powers phase transitions in physics, neuronal decision dynamics, and cooperative behavior in game theory."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Bifurcations",
       "body": "A **bifurcation** is a qualitative change in the system's behavior as a parameter `μ` passes a critical value. The fixed points (steady states) appear, disappear, or change stability.\n\n**Saddle-node bifurcation**. `ẋ = μ - x²`. For `μ > 0`, two fixed points (stable and unstable). At `μ = 0`, they merge. For `μ < 0`, no fixed points — the system has nowhere to settle.\n\n**Pitchfork bifurcation**. `ẋ = μx - x³`. For `μ < 0`, one stable fixed point at `x = 0`. At `μ = 0`, it becomes unstable, and two new stable points appear at `±√μ`. The system 'breaks symmetry' — it has to choose one.\n\n**Hopf bifurcation**. A fixed point loses stability and a stable limit cycle is born. The system goes from settling to a steady state to oscillating. This is how a quiet circuit can suddenly start generating waves as you turn up the gain.\n\nBifurcations are everywhere: phase transitions in physics (boiling, magnetism), neuron firing onset, ecosystem collapse, training-loss instability spikes when you push the learning rate too high. The math is identical even when the physics looks unrelated."
     },
@@ -61,6 +114,78 @@
       "kind": "text",
       "title": "What's next",
       "body": "Nonlinear dynamics is where physics — and ML, and biology, and economics — gets interesting. The same handful of phenomena (bifurcations, limit cycles, chaos) recur across vastly different domains because they're consequences of nonlinearity itself, not specific equations.\n\nKey takeaways:\n- Nonlinearity breaks superposition; linear-mode decomposition is no longer enough\n- Bifurcations: qualitative behavior changes at parameter thresholds\n- Limit cycles: stable oscillations with system-determined amplitude\n- Chaos: deterministic dynamics with positive Lyapunov exponent → bounded prediction horizon\n- Strange attractors: fractal, never-repeating, never-escaping orbits\n- Same patterns reappear in ML — training instabilities, GAN mode collapse, RNN explosion are all nonlinear-dynamics phenomena\n\nNext: [[statistical-mechanics]] — what happens when you have so many particles that you stop tracking individuals and start tracking distributions."
+    },
+    {
+      "kind": "text",
+      "title": "Bifurcations: the moment behavior changes",
+      "body": "Take $\\dot x = r + x^2$. At $r > 0$: no fixed points. At $r = 0$: one (degenerate). At $r < 0$: two fixed points, one stable, one unstable. The transition at $r = 0$ is a **saddle-node bifurcation** — fixed points appearing/disappearing in pairs.\n\nPitchfork: $\\dot x = rx - x^3$. At $r < 0$: one stable point at $x = 0$. At $r > 0$: $x = 0$ becomes unstable, and two new stable points appear at $\\pm\\sqrt{r}$. This is **symmetry breaking** — the ferromagnet's behavior near Curie temperature, in three lines of algebra.\n\nHopf: a stable fixed point becomes unstable and a stable limit cycle (a closed orbit in phase space) is born. The transition from steady-state to periodic oscillation; the model behind every relaxation oscillator and many biological clocks.\n\nFeigenbaum's path to chaos: a Hopf gives you a limit cycle. As a control parameter increases, the limit cycle period-doubles. Period 2 → 4 → 8 → 16 → ..., with the doubling intervals shrinking geometrically (Feigenbaum's constant $\\delta \\approx 4.669$). Past the accumulation point: chaos."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_nl_pitch",
+        "kind": "multiple_choice",
+        "question": "Normal-form $\\dot x = rx - x^3$ has a pitchfork bifurcation at $r = 0$. For $r > 0$, the stable equilibria are at:",
+        "options": [
+          "$x = 0$ only",
+          "$x = \\pm\\sqrt{r}$",
+          "$x = \\pm r$",
+          "No stable equilibria"
+        ],
+        "correctIndex": 1,
+        "explanation": "Fixed points: $x(r - x^2) = 0$, so $x = 0$ or $x^2 = r$. For $r > 0$: $x = 0$ has $f'(0) = r > 0$ → unstable. $x = \\pm\\sqrt{r}$ have $f'(\\pm\\sqrt r) = r - 3r = -2r < 0$ → stable. The supercritical pitchfork — bistable behavior with the previously-stable origin becoming unstable."
+      },
+      "hints": [
+        "Set $\\dot x = 0$ and solve for $x$ in terms of $r$.",
+        "Check stability via the sign of $f'(x^*)$."
+      ],
+      "workedSolution": "Fixed points satisfy $rx - x^3 = 0$, so $x(r - x^2) = 0$. For $r > 0$: $x = 0$ and $x = \\pm\\sqrt r$. Stability via $f'(x) = r - 3x^2$: $f'(0) = r > 0$ (unstable); $f'(\\pm\\sqrt r) = -2r < 0$ (stable). The supercritical pitchfork — bistability for $r > 0$.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_nl_hopf",
+        "kind": "scenario",
+        "question": "Limit cycle in biology",
+        "prompt": "A predator-prey system shows steady populations at low resource rates but spontaneous oscillations as resources increase. Which bifurcation is this most likely, and what's the production lesson for ecological monitoring?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_nl_feigen",
+        "kind": "math_expression",
+        "question": "Feigenbaum's constant $\\delta \\approx 4.669$ describes how period-doubling intervals shrink. If the first interval (period 2→4) is $\\Delta_1 = 1.0$, what's $\\Delta_2$ (period 4→8) approximately?",
+        "acceptedAnswers": [
+          "0.214",
+          "0.21",
+          "1/4.669",
+          "0.2142"
+        ],
+        "hint": "$\\Delta_{n+1} = \\Delta_n / \\delta$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_nl",
+        "kind": "explain_back",
+        "prompt": "Explain in three sentences why bifurcations are not 'edge cases' but the actual transitions that matter in real-world systems.",
+        "rubric": "Mentions that real systems often live near bifurcations (lasers turning on, ecosystems collapsing, traffic jams forming); knowing the normal form tells you the universal behavior near the transition independent of microscopic details."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish saddle-node, pitchfork, Hopf bifurcations by their normal forms.",
+      "Recognize a limit cycle.",
+      "Trace a pathway from order to chaos via successive bifurcations."
+    ],
+    "prereqs": [
+      "chaos-and-sensitivity"
+    ]
+  }
 }

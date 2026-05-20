@@ -7,10 +7,78 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: spam filtering",
+      "body": "Naive Bayes (the classical spam filter): treat each word as conditionally independent given spam/ham labels.\n\n$P(\\text{spam} \\mid \\text{words}) \\propto P(\\text{spam}) \\cdot \\prod_i P(w_i \\mid \\text{spam}).$\n\nTrain by counting word frequencies in spam vs ham emails. Classify a new email by comparing the unnormalized posteriors and picking the larger.\n\nNaive Bayes is the simplest application of Bayes' rule that works on real data — it underlies the spam filters of the 2000s and is still surprisingly competitive on bag-of-words text classification."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_prob_bayes",
+        "kind": "guided_derivation",
+        "question": "Derive Bayes' rule",
+        "goal": "From the definition of conditional probability, derive $P(A \\mid B) = P(B \\mid A) P(A) / P(B)$.",
+        "steps": [
+          {
+            "prompt": "Start from the definition $P(A \\mid B) = P(A \\cap B) / P(B)$. Multiply both sides by $P(B)$.",
+            "motivation": "Get an unconditional product equal to a joint.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "P(A and B)",
+                "P(A∩B)",
+                "P(A ∩ B)",
+                "P(A and B) = P(A|B)P(B)"
+              ]
+            },
+            "hints": [
+              "No algebra needed; just multiply through."
+            ],
+            "reveal": "$P(A \\cap B) = P(A \\mid B) \\cdot P(B)$."
+          },
+          {
+            "prompt": "By symmetry, $P(A \\cap B) = P(B \\cap A) = ?$ (in terms of $P(B \\mid A)$)",
+            "motivation": "Conditional probability is asymmetric, but joint probability is symmetric — and both can be expanded the same way.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "P(B|A)P(A)",
+                "P(B|A) P(A)",
+                "P(B|A)*P(A)"
+              ]
+            },
+            "hints": [
+              "Apply the definition the other way: $P(B \\mid A) = P(A \\cap B) / P(A)$."
+            ],
+            "reveal": "$P(A \\cap B) = P(B \\mid A) \\cdot P(A)$."
+          },
+          {
+            "prompt": "Set the two expressions equal and solve for $P(A \\mid B)$.",
+            "motivation": "Bayes' rule emerges as the algebraic re-arrangement.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "P(B|A)P(A)/P(B)",
+                "P(B|A) P(A) / P(B)",
+                "P(A) P(B|A) / P(B)"
+              ]
+            },
+            "hints": [
+              "$P(A \\mid B) \\cdot P(B) = P(B \\mid A) \\cdot P(A)$, then divide by $P(B)$."
+            ],
+            "reveal": "$P(A \\mid B) = P(B \\mid A) P(A) / P(B)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{P(A \\mid B) = \\frac{P(B \\mid A) P(A)}{P(B)}}$$\n\nThe denominator $P(B)$ is often computed via the law of total probability: $P(B) = \\sum_A P(B \\mid A) P(A)$. This is the whole game of Bayesian inference: combine prior $P(A)$ with likelihood $P(B \\mid A)$ to get the posterior $P(A \\mid B)$."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Softmax produces distributions",
       "body": "The standard recipe for turning unconstrained model outputs (logits) into a distribution is **softmax**:\n\n$$p_i = \\frac{e^{z_i / T}}{\\sum_j e^{z_j / T}}$$\n\nThe temperature $T$ controls sharpness:\n\n- $T \\to 0$: distribution collapses to a one-hot at the largest logit\n- $T = 1$: standard softmax\n- $T \\to \\infty$: distribution flattens toward uniform $1/N$\n\nThe slider above lets you sweep $T$ and watch the bars rearrange. Notice that the *ranking* of the bars never changes — only how concentrated the mass is on the top option.",
       "viz": "softmax-temperature",
-      "vizProps": { "value": 1 }
+      "vizProps": {
+        "value": 1
+      }
     },
     {
       "kind": "question",
@@ -48,6 +116,75 @@
         "correctIndex": 0,
         "explanation": "P(disease | +) = (0.99 × 0.005) / (0.99 × 0.005 + 0.05 × 0.995) ≈ 0.09. The base rate dominates because true positives are rare in absolute terms. This is the classic lesson of Bayes — *priors matter*."
       }
+    },
+    {
+      "kind": "text",
+      "title": "Bayes' rule, worked",
+      "body": "A medical test for a disease with $1\\%$ prevalence has $99\\%$ sensitivity (true-positive rate) and $95\\%$ specificity (true-negative rate, so $5\\%$ false-positive rate). You test positive. What's $P(\\text{disease}\\,|\\,\\text{positive})$?\n\n$$P(D\\,|\\,+) = \\frac{P(+\\,|\\,D)\\,P(D)}{P(+)} = \\frac{0.99 \\cdot 0.01}{0.99 \\cdot 0.01 + 0.05 \\cdot 0.99} = \\frac{0.0099}{0.0594} \\approx 16.7\\%.$$\n\nDespite the impressive-sounding test, a positive result still leaves you with only a ~1-in-6 chance of having the disease. That's base-rate neglect in action — and it shows up in every ML evaluation that ignores class imbalance."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_prob_bayes",
+        "kind": "multiple_choice",
+        "question": "If you double the prior $P(D)$ from $1\\%$ to $2\\%$ (same sensitivity/specificity), what happens to $P(D\\,|\\,+)$ relative to the $16.7\\%$ above?",
+        "options": [
+          "It exactly doubles.",
+          "It roughly doubles (a little less than exactly).",
+          "It stays the same — Bayes' rule normalises it out.",
+          "It halves."
+        ],
+        "correctIndex": 1,
+        "explanation": "Roughly doubles. With small base rates, the numerator scales with $P(D)$ but the denominator's $P(+)$ shifts only slightly, so the posterior nearly doubles — to ~28.8%."
+      },
+      "hints": [
+        "Write out Bayes' rule and substitute $P(D)=0.02$, $P(\\neg D)=0.98$.",
+        "Compare the new fraction to the original to see whether the ratio is exactly two or close to two."
+      ],
+      "workedSolution": "Compute: $P(D\\,|\\,+) = (0.99 \\cdot 0.02)/(0.99 \\cdot 0.02 + 0.05 \\cdot 0.98) = 0.0198/0.0688 \\approx 0.288 = 28.8\\%$. The ratio $0.288/0.167 \\approx 1.72$ — close to but not exactly two, because the denominator also grew slightly.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_prob_expect",
+        "kind": "math_expression",
+        "question": "A fair six-sided die is rolled. What is $E[X]$?",
+        "acceptedAnswers": [
+          "3.5",
+          "7/2",
+          "21/6"
+        ],
+        "hint": "Sum each face times its probability $1/6$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_prob_indep",
+        "kind": "scenario",
+        "question": "Independence vs conditional independence",
+        "prompt": "A model assumes feature A and feature B are independent given the label Y, but treats them as dependent unconditionally. Give one realistic example (any domain) where that's the right assumption, and one where it would be wrong."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_prob",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why a high-sensitivity, high-specificity test can still produce a low $P(\\text{disease}\\,|\\,+)$ on a rare disease.",
+        "rubric": "Mentions the base rate and that the false-positive volume can swamp true positives when prevalence is small."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "intro",
+    "objectives": [
+      "Compute expectations and variances from a small distribution.",
+      "Apply Bayes' rule to update a belief from evidence.",
+      "Distinguish independence from conditional independence."
+    ],
+    "prereqs": []
+  }
 }

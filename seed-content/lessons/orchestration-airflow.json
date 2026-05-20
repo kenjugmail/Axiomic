@@ -1,0 +1,98 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Sketch Airflow's DAG-of-tasks model.",
+      "Distinguish operators, sensors, and DAGs.",
+      "Recognize common Airflow anti-patterns."
+    ],
+    "prereqs": [
+      "etl-fundamentals"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Airflow, the orchestrator everyone uses (despite the complaints)",
+      "body": "**Airflow** (Airbnb 2014, now Apache): a workflow scheduler. You define **DAGs** of tasks in Python; Airflow runs them on schedule, handles dependencies, retries failures.\n\n**DAG**: a Python file defining a set of tasks + their dependencies. `task_a >> task_b >> task_c` says run a, then b, then c. The DAG is the unit of scheduling.\n\n**Task**: an instance of an **Operator**. Operators are 'do X' building blocks: BashOperator, PythonOperator, SparkSubmitOperator, BigQueryOperator, etc. Each task runs in a worker process (Celery, Kubernetes, Local).\n\n**Sensor**: a special Operator that polls until a condition is true. 'Wait for the file to land in S3'; 'Wait for upstream pipeline to complete'. Sensors block the task slot until satisfied — expensive at scale; use 'reschedule mode' to release the slot between polls.\n\n**The ergonomics**: writing a DAG is straightforward; debugging one in production is painful. Most teams build internal frameworks on top of Airflow (TaskFlow API, custom operators, conventions) to make the DAG code less verbose.\n\n**Alternatives**: Prefect (more Pythonic), Dagster (data-asset-oriented), Argo (Kubernetes-native). Airflow is still dominant for legacy + maturity reasons; Dagster gains ground for ML/data pipelines."
+    },
+    {
+      "kind": "text",
+      "title": "Worked example: parameterizing for backfills",
+      "body": "Production DAG: process daily user-events. Use Airflow's `data_interval_start` macro to parameterize the SQL: `SELECT * FROM events WHERE event_date BETWEEN '{{ ds }}' AND '{{ next_ds }}'`. Each DAG run processes a specific date. Backfill 30 days: `airflow dags backfill -s 2024-04-01 -e 2024-04-30 my_dag`. Each day runs as a separate DAG instance, parallelizable. The data-interval pattern is the right design for date-partitioned data."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_af_dagtime",
+        "kind": "guided_derivation",
+        "question": "Derive DAG execution time for parallel + sequential tasks",
+        "goal": "DAG with 3 stages: extract (parallel 10 tasks, 5 min each), transform (sequential, 10 min), load (parallel 5 tasks, 3 min each). Total time?",
+        "steps": [
+          {
+            "prompt": "Parallel stages bound by max task time. Stage 1: 5 min. Stage 2: 10 min. Stage 3: 3 min. Total sequential through stages?",
+            "motivation": "Sum of stage times.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "18 min",
+                "5+10+3"
+              ]
+            },
+            "hints": [
+              "DAG completion = sum of critical-path stages."
+            ],
+            "reveal": "5 + 10 + 3 = 18 minutes (assuming abundant parallelism within each stage)."
+          }
+        ],
+        "finalResult": "DAG critical path = longest dependency chain. Add more parallelism within a stage → reduces that stage's time. Add more stages → linear extension. Airflow's value: orchestrating this dependency graph reliably across distributed workers."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Common anti-patterns + fixes",
+      "body": "**Anti-pattern 1**: doing work in the DAG file. Code at module level (like calling an API) runs on every parse — and Airflow parses DAG files frequently. Move work into task functions.\n\n**Anti-pattern 2**: too-wide tasks. A single task that processes a whole day's data is hard to retry partially. Better: parameterize the task by partition (date, hour), launch one task per partition. Now failures retry granularly.\n\n**Anti-pattern 3**: heavy sensors. A sensor that polls every minute holds a task slot. Use `reschedule` mode (release the slot between polls) or **deferrable operators** (Airflow 2.2+, async sensors that don't hold a slot).\n\n**Anti-pattern 4**: implicit dependencies. Two tasks that share state via a database table without an explicit dependency edge. The DAG runs out of order on a partial failure. Make dependencies explicit.\n\n**Anti-pattern 5**: re-deriving everything on each run. Use Airflow's data-interval semantics: a DAG run is *for* a specific interval; the task processes only data in that interval. Idempotent + reproducible. Backfills become straightforward."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_af_dag",
+        "kind": "multiple_choice",
+        "question": "A task in your Airflow DAG fails 70% of the time due to a flaky upstream API. The right way to handle this:",
+        "options": [
+          "Mark the task as `do_not_retry`.",
+          "Configure task-level retries with exponential backoff (e.g., `retries=5, retry_delay=...`); set a deadline so it eventually gives up.",
+          "Run it manually each time.",
+          "Disable the DAG."
+        ],
+        "correctIndex": 1,
+        "explanation": "Flaky upstreams are a fact of life. Configure retries with exponential backoff at the task level. Airflow's `retries` + `retry_delay` + `retry_exponential_backoff` handle this cleanly. Pair with `execution_timeout` so a permanently-broken upstream doesn't infinitely retry. Failure escalation (alerts after N retries) belongs to the on-call story; flakiness within the retry budget is invisible."
+      },
+      "hints": [
+        "What's the standard pattern for handling transient failures?",
+        "Retries are a per-task setting, not a global one."
+      ],
+      "workedSolution": "Configure task-level retries with exponential backoff: `retries=5`, `retry_delay=timedelta(minutes=1)`, `retry_exponential_backoff=True`. This handles flaky upstreams gracefully — most attempts succeed on retry 2-3. Add `execution_timeout` to bound the worst case (permanently-broken upstream doesn't infinitely retry). Don't disable retries — that turns every flake into a manual recovery.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_af_partition",
+        "kind": "scenario",
+        "question": "Designing for backfills",
+        "prompt": "Your nightly DAG processes events with `processing_date` = today. On Monday you discover a bug in Friday's run and need to reprocess Friday. Walk through how the right Airflow design makes this a one-line operation rather than a manual recovery."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_af",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why DAG-based orchestrators (Airflow, Dagster, Prefect) have displaced cron + bash scripts for production data pipelines.",
+        "rubric": "Mentions that cron has no notion of dependencies, retries, backfills, or lineage; DAG-based orchestrators provide all four out of the box and offer central visibility (UI, alerting) that ad-hoc scripts can't match."
+      }
+    }
+  ]
+}

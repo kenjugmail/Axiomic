@@ -7,6 +7,51 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: how Verlet handles energy conservation",
+      "body": "Standard ODE integrators (RK4, Euler) gradually drift energy in long simulations — they're not *symplectic*. The Verlet family (and leapfrog, velocity Verlet) preserve a 'shadow Hamiltonian' close to the true one, keeping energy bounded indefinitely. Trade-off: only second-order accurate vs RK4's fourth-order. For MD, where simulation lengths are huge + energy conservation matters, the symplectic property wins."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_md_verlet",
+        "kind": "guided_derivation",
+        "question": "Derive the Verlet integrator",
+        "goal": "From $\\ddot x = F(x)/m$, derive the position-only update $x(t + h) = 2x(t) - x(t - h) + h^2 F(x(t))/m$.",
+        "steps": [
+          {
+            "prompt": "Taylor expand $x(t \\pm h) = x(t) \\pm h \\dot x(t) + (h^2/2) \\ddot x(t) + (h^3/6) \\dddot x(t) + \\dots$. Add the two expansions.",
+            "motivation": "Cancel the odd-order terms.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "x(t+h) + x(t-h) = 2x(t) + h^2 ddot x(t) + O(h^4)"
+              ]
+            },
+            "hints": [
+              "Sum cancels $\\dot x, \\dddot x$ (odd derivatives)."
+            ],
+            "reveal": "$x(t+h) + x(t-h) = 2x(t) + h^2 \\ddot x(t) + O(h^4)$."
+          },
+          {
+            "prompt": "Use Newton: $\\ddot x = F/m$. Solve for $x(t + h)$.",
+            "motivation": "Substitute + isolate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2 x(t) - x(t-h) + h^2 F(x(t))/m"
+              ]
+            },
+            "hints": [
+              "Subtract $x(t-h)$ from both sides."
+            ],
+            "reveal": "$x(t + h) = 2x(t) - x(t - h) + h^2 F(x(t))/m$."
+          }
+        ],
+        "finalResult": "$$\\boxed{x(t+h) = 2 x(t) - x(t-h) + h^2 F(x(t))/m}$$ The Verlet integrator. Second-order accurate, symplectic, no explicit velocity needed (though leapfrog + velocity-Verlet variants carry velocity). The MD workhorse for ~50 years."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The classical MD recipe",
       "body": "**Step 1: Force field**. A potential energy function `U(positions)`:\n\n```\nU = bond stretching + angle bending + dihedral torsions + van der Waals + electrostatics + bonds\n```\n\nEach term has parameters (force constants, equilibrium distances, etc.) fitted to experimental data. Standard force fields: AMBER, CHARMM, OPLS, GROMOS.\n\nThe forces on each atom: `F = -∇U`.\n\n**Step 2: Integration**. Numerically integrate Newton's equations:\n\n```\np_{t+Δt} = p_t + F · Δt           (momentum update)\nx_{t+Δt} = x_t + p_{t+Δt}/m · Δt  (position update)\n```\n\nUsing velocity Verlet or similar (numerical stability matters; energy conservation matters). Timestep `Δt`: 1-2 femtoseconds (10^-15 s) for biomolecular MD.\n\n**Step 3: Thermostat + barostat**. Couple to a heat bath / pressure bath to maintain target temperature + pressure. Langevin dynamics, Nosé-Hoover, etc.\n\n**Step 4: Run for many steps**. To simulate 100 ns of biology: 50 million 2-fs steps. Each step requires computing forces over all atom pairs — `O(N²)` naively. Tricks (cutoffs, Ewald summation for electrostatics, neighbor lists) reduce to `O(N log N)` or better. Still expensive: 100 ns of a 100k-atom system takes ~hours-to-days on a GPU."
     },
@@ -35,6 +80,77 @@
       "kind": "text",
       "title": "What's next",
       "body": "MD is the atomic-resolution end of bio-ML. The final lesson covers how to evaluate bio-ML methods rigorously — the field's evaluation pitfalls.\n\nNext: [[bio-ml-evaluation]] — CASP, contamination, leakage.\n\nKey takeaways:\n- MD: atomic positions evolved via Newton's equations + force-field forces\n- Standard recipe: force field + integrator + thermostat; nanoseconds typical, expensive\n- ML potentials (NequIP, MACE) replace classical force fields with neural networks; faster + accurate\n- Coarse-graining + generative sampling are the other ML directions\n- MD is complementary to AlphaFold: AlphaFold gives static structure; MD gives dynamics"
+    },
+    {
+      "kind": "text",
+      "title": "MD, in one paragraph",
+      "body": "**Molecular dynamics**: simulate the time-evolution of atoms by integrating Newton's equations. At each time step (typically 1-2 femtoseconds), compute forces on each atom from a **force field** (a parameterized potential approximating QM-level interactions), update velocities + positions, repeat.\n\n**Force fields**: AMBER, CHARMM, OPLS — sets of bonded + non-bonded interaction parameters fit to small-molecule QM calculations and experimental data. Approximate enough to capture biophysics; not exact like full QM.\n\n**Timescale problem**: many biologically-relevant events (protein folding, ligand binding, conformational changes) happen on microsecond-to-millisecond timescales. Each MD step is ~1 femtosecond. So you need $10^{9}$ to $10^{12}$ steps. Even with massive parallelism on Anton-3 supercomputers, milliseconds of dynamics take weeks of wall-clock time.\n\n**ML acceleration**: train neural-network potentials (NequIP, MACE) that are nearly as accurate as DFT but much faster, on tens of thousands of atoms. Long-timescale sampling methods (metadynamics, weighted ensemble) explore rare events without simulating every step. Both directions are active research; the timescale gap is closing but not closed."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_md_timestep",
+        "kind": "multiple_choice",
+        "question": "MD typically uses 1-2 femtosecond time steps because:",
+        "options": [
+          "The simulation diverges for larger steps.",
+          "The fastest vibrational period in molecules is ~10 fs (X-H bond stretching); the time step must be much shorter to integrate stably.",
+          "Computers can't handle nanoseconds.",
+          "Larger steps cause energy non-conservation."
+        ],
+        "correctIndex": 1,
+        "explanation": "The shortest vibrational period in biomolecules is the X-H bond stretching, ~10 fs. By the Nyquist-like criterion for stable Verlet-type integrators, you need a time step ~$10\\times$ shorter than the fastest period. Hence 1-2 fs. SHAKE/RATTLE constraints fix bond lengths so you can use 2-4 fs; longer is unstable."
+      },
+      "hints": [
+        "What is the natural timescale of the fastest motions in the system?",
+        "Numerical integration of oscillatory motion needs a step much shorter than the period."
+      ],
+      "workedSolution": "The fastest motion is X-H bond vibration with period ~10 fs. Stable integration of an oscillator requires step size $\\ll$ period (the Verlet integrator typically needs ~$10\\times$ shorter for stability). Hence 1-2 fs. SHAKE/RATTLE constraints freeze fast modes so you can use 2-4 fs; beyond that, simulations become unstable.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_md_drug",
+        "kind": "scenario",
+        "question": "Drug discovery + MD",
+        "prompt": "A team wants to predict how strongly a drug candidate binds to a target protein. They run 100ns of MD per candidate × 1000 candidates. Why is this not enough simulation time for many candidates, and what hybrid ML+MD approaches address it?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_md_count",
+        "kind": "math_expression",
+        "question": "1 millisecond = $10^{12}$ femtoseconds. With 2 fs/step, how many steps? Express as $\\sim 10^k$.",
+        "acceptedAnswers": [
+          "5*10^11",
+          "5e11",
+          "500000000000"
+        ],
+        "hint": "Just divide."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_md",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why neural network potentials are reshaping MD even though force fields have been around for 50 years.",
+        "rubric": "Mentions that classical force fields have fixed functional forms with limited accuracy; NN potentials trained on DFT can achieve near-DFT accuracy at force-field cost; this lets MD explore chemical reactions and large systems classical FF can't handle."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish MD from quantum simulation.",
+      "Recognize the force-field assumption.",
+      "Reason about why long timescales are hard."
+    ],
+    "prereqs": [
+      "protein-structure"
+    ]
+  }
 }

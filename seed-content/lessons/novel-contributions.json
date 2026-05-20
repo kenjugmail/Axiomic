@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: AlphaFold's culture of pre-registration",
+      "body": "DeepMind's AlphaFold team famously submits predictions to CASP (Critical Assessment of Structure Prediction) — a blind benchmark where target structures are unknown. AlphaFold's improvements have been validated against unseen targets, making the gains credible in a way that in-sample evaluation can't. The discipline of submitting to CASP is essentially pre-registration for protein structure prediction: 'here's what we predict, before seeing the answer'."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_nc_prereg",
+        "kind": "guided_derivation",
+        "question": "Show pre-registration's value via the multiple-comparisons argument",
+        "goal": "If you run 20 analyses and report the best, your Type I error is ~$20 \\times 0.05$. Pre-registration fixes this.",
+        "steps": [
+          {
+            "prompt": "Pre-registration commits to a specific analysis BEFORE seeing data. How does this affect the effective number of comparisons $k$ in the multiple-comparisons inflation?",
+            "motivation": "Pre-reg fixes the comparison count to 1.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$k = 1$: only the pre-registered analysis counts; Type I error is the nominal $\\alpha$.",
+                "$k$ is reduced but not to 1.",
+                "$k$ is unchanged.",
+                "Pre-registration is just paperwork."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "With pre-registration, only the planned tests count; post-hoc analyses must be labeled exploratory."
+            ],
+            "reveal": "Pre-registration commits the analysis to a single comparison. Effective $k = 1$. Type I error is the nominal $\\alpha$, not the inflated $k\\alpha$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Pre-registration: } k_{\\text{effective}} = 1 \\Rightarrow \\text{Type I error} = \\alpha}$$ The strongest single methodological commitment for trustworthy results. Used in pharma RCTs (FDA requires pre-reg via clinicaltrials.gov), ML benchmarks (papers must commit to splits), and increasingly in ML+systems research."
+      }
+    },
+    {
+      "kind": "text",
       "title": "What's NOT a contribution (alone)",
       "body": "Things that often don't clear the bar by themselves:\n\n**+0.5% on a benchmark.** Without confidence intervals showing the gap is real, this is a metric tweak, not a contribution. Reviewers in 2024+ are increasingly aware of this.\n\n**A new architecture variant.** 'We replaced LayerNorm with RMSNorm' is interesting; it's not a paper unless you have a deeper story (why this works, how it generalizes, what problems it solves).\n\n**Application of existing methods to a new domain.** 'We trained BERT on legal text' isn't a contribution unless the application reveals something about the method or the domain that wasn't known.\n\n**A larger version of an existing model.** Scaling existing recipes 10× isn't a research contribution unless you measure something new about the scale (which scaling-laws papers do).\n\n**A clever prompt that improves benchmark performance.** Useful, but not a paper unless the prompt reveals a structural property of the model or task.\n\nNone of these are *bad work*. Many are useful engineering or applied research. They just don't clear the 'novel research contribution' bar by themselves."
     },
@@ -61,6 +96,63 @@
       "kind": "text",
       "title": "What's next",
       "body": "This lesson is the last in the AI Researcher path. From [[math-foundations]] through novel contributions, you've covered the conceptual stack of ML research.\n\nThe practical takeaway: **research is craft work**. The tools (math, ML, reading, scoping) are learnable. The taste — for which questions are worth asking, which results are worth chasing, which contributions are real — develops over years of practice. The capstone projects on Axiomic ([[mech-interp-induction-heads]] in particular) are designed to give you that practice in a structured way.\n\nKey takeaways:\n- Most novel contributions fall into: empirical (with rigor), methodological, or theoretical\n- '+0.5% on a benchmark' is not a contribution by itself\n- Failure-mode papers are underrated; they're often the most valuable\n- Scope by sketching the figure first; design for differential predictions\n- Publish honestly; acknowledge limitations; release code; engage the discussion\n- Most papers are forgotten — optimize for sustained presence, not any single submission"
+    },
+    {
+      "kind": "text",
+      "title": "From question to publishable result, in 10 steps",
+      "body": "1. **Pose a question** that you don't already know the answer to. If you can guess the answer in 5 seconds, it's not a research question.\n\n2. **State the question as a falsifiable hypothesis**. 'Does X help?' is a survey; 'X helps under conditions Y' is a hypothesis.\n\n3. **Find the smallest experiment that could falsify it**. Resist the urge to start big.\n\n4. **Pre-register the analysis**. Write down what success looks like *before* running anything.\n\n5. **Run the experiment, end-to-end**. Even a rough first pass — get a complete result, even if ugly.\n\n6. **Diagnose unexpected results**. Often the most interesting outcome is 'X doesn't help, but here's why', leading to a sharper hypothesis.\n\n7. **Replicate**. Same experiment, different seed. If results change qualitatively, you don't have a result yet — you have noise.\n\n8. **Extend to multiple conditions**. Generalize: does X help on more datasets, model sizes, modalities? Ablate the conditions of Y.\n\n9. **Write the headline first**. The first sentence of your paper should state the central claim, the conditions under which it holds, and the strongest piece of evidence. If you can't write this sentence, the work isn't done.\n\n10. **Adversarial review**. Send to two skeptical colleagues. Re-read your introduction as if you were trying to refute it. Most worthy results survive this; many initial impressions don't."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_nc_pre",
+        "kind": "multiple_choice",
+        "question": "Pre-registering an analysis means:",
+        "options": [
+          "Documenting the experimental method publicly before reading other papers.",
+          "Writing down the analysis plan and success criteria before running the experiment, so that p-hacking is impossible.",
+          "Submitting the paper before completing experiments.",
+          "Pre-printing on arXiv before peer review."
+        ],
+        "correctIndex": 1,
+        "explanation": "Pre-registration is the methodological discipline of writing down what counts as a positive vs negative result *before* you see the data. Standard practice in clinical trials; gaining ground in ML where the temptation to retrofit hypotheses to results is huge. Eliminates the kind of post-hoc storytelling that makes papers look stronger than they are."
+      },
+      "hints": [
+        "What does pre-registration discipline you not to do?",
+        "The point is to bind your future self to a falsification criterion.\n"
+      ],
+      "workedSolution": "Pre-registration locks in the analysis plan + success criteria before you see data. After data are collected, the only honest analyses are the pre-registered ones; everything else is exploratory and must be labeled as such. Eliminates post-hoc selection of metrics, subgroups, comparisons. Becoming standard in ML, partly via tools like wandb's experiment-design templates.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_nc_falsify",
+        "kind": "scenario",
+        "question": "A falsifiable result",
+        "prompt": "Your hypothesis: 'A self-attention variant with relative-position bias generalizes better to longer contexts than a fixed-position variant.' Walk through a minimal experiment that could falsify this in three steps."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_nc",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why 'write the headline first' is more practical than it sounds.",
+        "rubric": "Mentions that if you can't summarize your central claim in one sentence, the work isn't ready — and writing it forces clarification of what the central claim actually is, often revealing missing evidence."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish a question that can be answered from one that can't.",
+      "Plan a small experiment with a clear falsification criterion.",
+      "Write up a result so the central claim is unmissable."
+    ],
+    "prereqs": [
+      "research-frontiers"
+    ]
+  }
 }

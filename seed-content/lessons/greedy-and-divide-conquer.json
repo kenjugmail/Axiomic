@@ -7,6 +7,52 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: schoolbook vs Karatsuba in cryptography",
+      "body": "RSA-2048 uses 2048-bit integer multiplications. Schoolbook: $O(n^2) = $ ~$2048^2 \\approx 4 \\times 10^6$ digit-multiplies. Karatsuba: $O(n^{\\log_2 3}) \\approx 2048^{1.585} \\approx $ ~$200{,}000$ digit-multiplies. ~20× speedup at this size. For even larger numbers (RSA-4096, ECC-based ZK proofs), FFT-based multiplication ($O(n \\log n)$) wins. Cryptographic libraries (GMP, OpenSSL) crossover between algorithms based on operand size."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dc_karatsuba",
+        "kind": "guided_derivation",
+        "question": "Derive Karatsuba's $O(n^{\\log_2 3})$ runtime",
+        "goal": "Karatsuba multiplies two $n$-digit numbers using 3 multiplications + some additions of $n/2$-digit numbers. Find $T(n)$.",
+        "steps": [
+          {
+            "prompt": "Write the recurrence.",
+            "motivation": "3 sub-multiplications + linear work.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "T(n) = 3T(n/2) + O(n)"
+              ]
+            },
+            "hints": [
+              "3 calls of half-size + linear overhead."
+            ],
+            "reveal": "$T(n) = 3T(n/2) + O(n)$."
+          },
+          {
+            "prompt": "Apply master theorem. $a = 3, b = 2, d = 1$. $\\log_b a = ?$",
+            "motivation": "Master theorem.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "log_2 3",
+                "log_2(3)"
+              ]
+            },
+            "hints": [
+              "$\\log_2 3 \\approx 1.585$."
+            ],
+            "reveal": "$\\log_2 3 \\approx 1.585 > d = 1$, so Case 3: $T(n) = \\Theta(n^{\\log_2 3})$."
+          }
+        ],
+        "finalResult": "$$\\boxed{T(n) = \\Theta(n^{\\log_2 3}) \\approx O(n^{1.585})}$$ Karatsuba beats $O(n^2)$ schoolbook on large enough $n$. The 'large enough' crossover is around 30-50 digits in practice; below that, schoolbook is faster (smaller constants)."
+      }
+    },
+    {
+      "kind": "text",
       "title": "When greedy works: matroids + exchange",
       "body": "Greedy is **provably optimal** on **matroids**. A matroid is a structure $(E, \\mathcal{I})$ where $E$ is a ground set and $\\mathcal{I}$ is a collection of \"independent\" subsets satisfying:\n\n1. $\\emptyset \\in \\mathcal{I}$.\n2. If $A \\in \\mathcal{I}$ and $B \\subseteq A$, then $B \\in \\mathcal{I}$ (downward closed).\n3. **Exchange axiom**: if $A, B \\in \\mathcal{I}$ and $|A| < |B|$, then there exists $x \\in B \\setminus A$ with $A \\cup \\{x\\} \\in \\mathcal{I}$.\n\nWhen the problem's solution space is a matroid, greedy by weight is provably optimal. This justifies:\n\n- **Minimum spanning tree** (graphic matroid): Kruskal's, Prim's.\n- **Optimal scheduling for jobs with deadlines**.\n- **Optimal selection in vector-matroid problems**.\n\n**The exchange argument** is greedy's other proof technique. Assume greedy is suboptimal; the optimal solution must disagree at some first step. Show you can swap greedy's choice into the optimal without harm. Contradiction → greedy was optimal. This proves correctness for:\n\n- **Activity selection** (pick earliest-ending event).\n- **Huffman coding** (greedy bottom-up tree construction).\n- **Fractional knapsack** (sort by value/weight, take greedily).\n- **Dijkstra's** (greedy on tentative distance — see [[shortest-path]]).\n\n**When greedy provably fails** ([[greedy-always-works]] misconception):\n\n- **0/1 knapsack**: items are indivisible; greedy by value/weight ratio gives suboptimal answers. Use DP.\n- **Set cover**: greedy gives a $\\ln n$-approximation; provably no greedy can do better.\n- **TSP**: nearest-neighbor heuristic can be arbitrarily far from optimal.\n\n**Default**: if you can't prove greedy works (matroid or exchange argument), assume it doesn't. Use DP or approximation algorithms."
     },
@@ -43,12 +89,93 @@
         "kind": "explain_back",
         "prompt": "Strassen's matrix multiplication is $\\Theta(n^{2.807})$, beating naive $\\Theta(n^3)$. Yet most production linear-algebra libraries (BLAS, NumPy, PyTorch) DON'T use Strassen for normal matrix multiplication. Explain three concrete reasons.",
         "rubricCriteria": [
-          { "id": "constants", "description": "Names that Strassen has very large constants (more additions per multiply, more memory allocation, deeper recursion); naive matrix multiply has $O(n^3)$ but extremely small constants on modern CPUs/GPUs" },
-          { "id": "cache-and-simd", "description": "Names that naive matrix multiply has highly regular access patterns that map perfectly onto vectorized SIMD/tensor-core hardware; Strassen's recursive structure breaks the regularity" },
-          { "id": "numerical-stability", "description": "Names numerical stability — Strassen's mixed additions and subtractions can amplify floating-point errors; production libraries care about output precision" }
+          {
+            "id": "constants",
+            "description": "Names that Strassen has very large constants (more additions per multiply, more memory allocation, deeper recursion); naive matrix multiply has $O(n^3)$ but extremely small constants on modern CPUs/GPUs"
+          },
+          {
+            "id": "cache-and-simd",
+            "description": "Names that naive matrix multiply has highly regular access patterns that map perfectly onto vectorized SIMD/tensor-core hardware; Strassen's recursive structure breaks the regularity"
+          },
+          {
+            "id": "numerical-stability",
+            "description": "Names numerical stability — Strassen's mixed additions and subtractions can amplify floating-point errors; production libraries care about output precision"
+          }
         ],
         "passingScore": 0.5
       }
+    },
+    {
+      "kind": "text",
+      "title": "When greedy is provably correct",
+      "body": "Greedy algorithms make the locally-best choice and commit. Sometimes they're optimal; sometimes they're catastrophically wrong.\n\n**Activity selection** (interval scheduling): given a set of intervals, pick the maximum subset of mutually-non-overlapping ones. Greedy by *earliest end time* is optimal. **Exchange-argument proof**: any optimal solution can be modified to start with the earliest-ending interval without losing intervals.\n\n**Coin change** (US coins): greedy by largest denomination is optimal. With *arbitrary* denominations (e.g., {1, 3, 4}, target 6), greedy fails: greedy gives 4+1+1 = 3 coins; optimal is 3+3 = 2 coins. DP is required for general denominations.\n\nThe practical lesson: greedy is incredibly fast when it works. Always check whether your problem admits a matroid / exchange-argument proof. If it doesn't, reach for DP."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_greedy_cc",
+        "kind": "multiple_choice",
+        "question": "You're computing the minimum number of coins to make 12 cents using denominations {1, 5, 10, 11}. Greedy-by-largest gives:",
+        "options": [
+          "11+1 = 2 coins.",
+          "10+1+1 = 3 coins. Greedy is optimal here.",
+          "10+1+1 = 3 coins, but greedy is NOT optimal — 6+6 would be optimal except 6 isn't a denomination... wait, the optimum is 11+1 = 2 coins, which greedy did NOT pick first.",
+          "12 ones = 12 coins."
+        ],
+        "correctIndex": 2,
+        "explanation": "Greedy-by-largest picks 10 first, then 1+1: total 3 coins. The optimum is 11+1 = 2 coins. Greedy's commitment to 10 (the largest ≤ 12) blocked the better answer. With {1,5,10,11}, denomination 11 is the 'odd' one that breaks the greedy assumption."
+      },
+      "hints": [
+        "Walk greedy: 12 - 10 = 2, then 2 - 1 - 1 = 0. Total: 10 + 1 + 1 = 3 coins.",
+        "Look for a 2-coin combination summing to 12 in {1,5,10,11}."
+      ],
+      "workedSolution": "Greedy: 12 → pick 10 (largest ≤ 12) → 2 left → pick 1 → 1 left → pick 1 → 0. 3 coins total. Optimum: 11 + 1 = 12 in 2 coins. The greedy choice of 10 blocked the optimal use of 11. For arbitrary denominations greedy isn't optimal; you need DP.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_dc_master",
+        "kind": "math_expression",
+        "question": "Karatsuba's recurrence: $T(n) = 3T(n/2) + O(n)$. Master theorem gives $T(n) = O(n^{\\log_2 3})$. To the nearest hundredth, what is $\\log_2 3$?",
+        "acceptedAnswers": [
+          "1.58",
+          "1.59",
+          "1.585",
+          "log_2(3)"
+        ],
+        "hint": "$\\log_2 3 = \\ln 3 / \\ln 2 \\approx 1.585$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_greedy_proof",
+        "kind": "scenario",
+        "question": "Will greedy work here?",
+        "prompt": "You're scheduling $n$ jobs each with a deadline and a duration, minimizing total late-job count. A teammate proposes greedy-by-earliest-deadline. How would you check whether that's optimal before coding it up?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_greedy",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences the structure of an exchange argument for proving a greedy algorithm optimal.",
+        "rubric": "Mentions: assume any optimal solution exists; show you can swap one of its choices for the greedy choice without making the solution worse; iterate until you reach the greedy solution."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Identify when a greedy choice is provably optimal (exchange argument).",
+      "Recognize the divide-conquer pattern in real algorithms.",
+      "Distinguish the problem classes that need DP vs. that succumb to greedy."
+    ],
+    "prereqs": [
+      "dynamic-programming"
+    ]
+  }
 }

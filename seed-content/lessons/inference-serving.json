@@ -7,6 +7,54 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: vLLM's PagedAttention memory savings",
+      "body": "Traditional attention serving: pre-allocate KV cache for max context length per request. With max context 4096 + batch 64 + 70B model: ~5 GB allocated but most requests don't reach max length, so 30-60% memory is wasted. vLLM's PagedAttention: KV cache lives in pages (like virtual memory). Allocate pages on-demand as the response grows. Result: ~2-3× more concurrent requests on the same GPU memory. Adopted by virtually every modern LLM serving stack (TGI, TensorRT-LLM, etc.)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_serv_kvsize",
+        "kind": "guided_derivation",
+        "question": "Derive the KV cache size",
+        "goal": "Model: $L$ layers, $H$ heads, head dim $d$. Context length $T$. KV cache size in bytes (FP16)?",
+        "steps": [
+          {
+            "prompt": "Per layer: K is shape $(H, T, d)$, V is shape $(H, T, d)$. Total per layer: $2 H T d$ values. Across layers: $\\times L$. FP16: $\\times 2$ bytes. What's the formula?",
+            "motivation": "Counting.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "4 L H T d"
+              ]
+            },
+            "hints": [
+              "$2$ (K+V) × $L$ × $H$ × $T$ × $d$ × 2 (FP16 bytes)."
+            ],
+            "reveal": "$\\text{KV cache} = 4 L H T d$ bytes."
+          },
+          {
+            "prompt": "For 70B model: $L = 80, H = 64, d = 128, T = 4096$. Compute (round to nearest GB).",
+            "motivation": "Concrete.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "10",
+                "11",
+                "10 GB",
+                "10.7"
+              ]
+            },
+            "hints": [
+              "$4 \\cdot 80 \\cdot 64 \\cdot 4096 \\cdot 128 = ?$"
+            ],
+            "reveal": "$4 \\cdot 80 \\cdot 64 \\cdot 4096 \\cdot 128 \\approx 1.07 \\times 10^{10}$ bytes $\\approx 10.7$ GB per sequence. With batch 32: 343 GB — needs sharding."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{KV cache} = 4 L H T d \\text{ bytes (FP16)}}$$ The dominant memory cost at long contexts. GQA (Grouped Query Attention) reduces $H$ effectively to $H_\\text{kv}$ groups (usually 8); MQA collapses further to $H_\\text{kv} = 1$. PagedAttention reduces *wasted* allocation."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Static batching is the wrong primitive",
       "body": "Vanilla framework serving: collect K requests, batch them, run forward, return results. Two problems:\n\n**Heterogeneous lengths.** Request A wants 50 output tokens; request B wants 500. Static batching either (a) waits for the slowest request before starting the next batch, wasting compute on completed sequences, or (b) ends every request at the shortest length, throwing away usable output.\n\n**Long tail.** Some requests (RAG with long context, code completion with reasoning) take 10× longer than median. Static batching at K=8 with one long-tail request waits 10× as long for the entire batch.\n\n**Continuous batching** (Yu et al. 2022, popularized by vLLM): treat the running batch as a fluid pool. As soon as a sequence in the batch finishes (hits EOS or max length), free its slot and admit a new request. Per-step throughput stays high; latency for individual requests stays low.\n\nThe practical impact: 2-5× throughput on heterogeneous workloads vs static batching. Most modern serving frameworks default to it. If your team is rolling its own inference path, this is the first optimization to add."
     },
@@ -61,6 +109,77 @@
       "kind": "text",
       "title": "What's next",
       "body": "Inference serving is half the production story. The other half is monitoring — making sure the serving stack stays healthy + the model stays accurate as data drifts.\n\nNext: [[monitoring-observability]] — drift, online evaluation, latency SLOs.\n\nKey takeaways:\n- Inference is memory-bandwidth-bound; throughput optimizations target memory traffic, not compute\n- Continuous batching: pool requests, free slots as they finish; 2-5× throughput on heterogeneous workloads\n- PagedAttention: KV cache as virtual memory; 4-5× more concurrent requests at the same hardware\n- Speculative decoding: draft model proposes, big model verifies; 2-3× throughput at zero quality cost\n- Real serving stacks compose all three with TP, quantization, and a monitoring layer"
+    },
+    {
+      "kind": "text",
+      "title": "Why LLM serving is its own beast",
+      "body": "Two phases per request:\n\n- **Prefill**: process the entire prompt in one big GEMM. Compute-bound; fast per token because every token in the prompt is computed in parallel.\n- **Decode**: generate one token at a time, each requiring a small matmul against the KV cache. Memory-bound; the bottleneck is HBM bandwidth.\n\nPer-step throughput is dominated by decode for any non-trivial generation length. The traditional ML-systems answer — batch many requests together — runs into a problem: requests arrive with different prompt lengths and want different generation lengths, so a fixed batch matrix is mostly padding.\n\n**Continuous batching** schedules at the token level, mixing requests of different ages in the same forward pass. **PagedAttention** (vLLM) treats the KV cache like virtual memory, with per-request page tables — eliminating the contiguity requirement that made batching wasteful."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_serv_padding",
+        "kind": "multiple_choice",
+        "question": "Your serving system uses static batching with batch size 32. Profile shows GPU utilization at ~28%. Most requests are short (~50 tokens) but a few are very long (~2k tokens). What's the cleanest fix?",
+        "options": [
+          "Increase the batch size to 64.",
+          "Switch to continuous batching at the token level (e.g., vLLM-style scheduling).",
+          "Shrink the model.",
+          "Drop the longest requests."
+        ],
+        "correctIndex": 1,
+        "explanation": "Static batching pads every request to the longest in the batch — so 32 50-token requests waste compute padding to ~2k tokens. Continuous batching gives every token its own slot and joins requests at the token boundary, eliminating the padding waste. The other options paper over the symptom."
+      },
+      "hints": [
+        "What's being wasted in the static-batch case?",
+        "Which optimization specifically addresses heterogeneous-length requests?"
+      ],
+      "workedSolution": "The wasted compute is padding: a static batch must pad every request to the longest length in the batch, so most slots run empty multiply-accumulates. Continuous batching schedules at the token level so each forward step processes one token per active request — no padding, no idle slots, and new requests can join mid-flight.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_serv_kv",
+        "kind": "math_expression",
+        "question": "A 70B-parameter model has $d_{\\text{model}}=8192$, $n_{\\text{heads}}=64$, $n_{\\text{layers}}=80$, head dim 128. The KV cache stores 2 (K and V) × layers × heads × head_dim × tokens, FP16 (2 bytes). For a 4096-token context, the KV cache size is about how many GB? Round to the nearest GB.",
+        "acceptedAnswers": [
+          "10",
+          "11",
+          "10.7"
+        ],
+        "hint": "$2 \\cdot 80 \\cdot 64 \\cdot 128 \\cdot 4096 \\cdot 2$ bytes — work it out."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_serv_p99",
+        "kind": "scenario",
+        "question": "p99 latency spike",
+        "prompt": "Your model server's p50 latency is fine (~120ms) but p99 spikes to 4s. Median tokens generated is 50, but a long tail of requests generate 4k+. Which serving optimization most directly addresses the p99 problem without hurting p50?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_serv",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why prefill and decode benefit from different optimizations even though they're the same model.",
+        "rubric": "Mentions that prefill is compute-bound (parallel over prompt tokens) and decode is memory-bound (sequential, KV cache reads dominate); each phase needs different batching / kernel choices."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Explain why naive batching fails at LLM serving and how PagedAttention helps.",
+      "Reason about prefill-vs-decode tradeoffs.",
+      "Recognize when continuous batching is the only realistic option."
+    ],
+    "prereqs": [
+      "model-parallelism"
+    ]
+  }
 }

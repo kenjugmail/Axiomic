@@ -7,6 +7,55 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: sequential testing in practice",
+      "body": "Optimizely and Statsig built their platforms around sequential testing because traditional fixed-n tests were getting silently misused. Customer behavior:\n\n1. Launch test, eyeball dashboard.\n2. If $p < 0.05$, declare winner (early stop).\n3. If $p > 0.05$, 'keep collecting data'.\n4. Decide based on whichever side stays significant.\n\nThis is peeking + selective stopping. The true Type I error rate explodes. The fix is sequential testing — confidence sequences or always-valid p-values that hold at every moment in time, including under arbitrary stopping rules.\n\nModern A/B platforms make sequential the default; the user can peek freely without inflating false positives. Behind the scenes the math is more sophisticated (mSPRT, exponential supermartingales) but the user experience is 'check anytime, decide on real evidence'."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ab_peek",
+        "kind": "guided_derivation",
+        "question": "Derive Type I error inflation from peeking",
+        "goal": "Show that $k$ independent peeks at $\\alpha$-level threshold gives $P(\\text{stop early under null}) \\leq 1 - (1-\\alpha)^k \\approx k\\alpha$ for small $\\alpha$.",
+        "steps": [
+          {
+            "prompt": "Each peek: $P(\\text{spurious significance at this peek under } H_0) = \\alpha$. Assuming peeks are independent (a simplification), what's the probability that ALL $k$ peeks fail to declare significance?",
+            "motivation": "Independent failures multiply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(1-alpha)^k",
+                "(1-α)^k"
+              ]
+            },
+            "hints": [
+              "Each peek independently 'misses' significance with probability $1 - \\alpha$.",
+              "All $k$ independent: $(1-\\alpha)^k$."
+            ],
+            "reveal": "$P(\\text{all $k$ peeks fail to declare}) = (1-\\alpha)^k$."
+          },
+          {
+            "prompt": "Probability of declaring significance at SOME peek = $1 - (1 - \\alpha)^k$. For small $\\alpha$, expand by Taylor.",
+            "motivation": "Linearize: $(1 - \\alpha)^k \\approx 1 - k\\alpha$.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "k * alpha",
+                "kα"
+              ]
+            },
+            "hints": [
+              "$(1-x)^k \\approx 1 - kx$ for small $x$.",
+              "Subtract from 1."
+            ],
+            "reveal": "$1 - (1-\\alpha)^k \\approx k\\alpha$."
+          }
+        ],
+        "finalResult": "$$\\boxed{P(\\text{at least one spurious significance over $k$ peeks}) \\approx k\\alpha}$$\n\n10 peeks at $\\alpha = 0.05$ inflates false-positive rate to ~40%. 50 peeks → effectively certain. The peek-inflation problem is why naive A/B testing with daily checks is statistically bankrupt without correction. Mitigations: Bonferroni over peeks (conservative); always-valid sequential testing (modern best practice); pre-registered group-sequential designs."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The naive A/B test",
       "body": "Standard recipe:\n\n1. **Pre-register** hypothesis + sample size + analysis plan.\n2. **Randomize** users to treatment vs control via stable hash.\n3. **Run** for the planned duration.\n4. **Analyze**: compare metric means via t-test or proportion test.\n5. **Decide**: ship if significant + practically meaningful; don't ship otherwise.\n\nFor a CTR metric with baseline 5% and minimum detectable effect of 1% absolute (i.e., detect 5% → 6%):\n- α = 0.05, power = 0.80.\n- n per group ≈ 11,000 users (using standard formulas).\n- Run until both groups have 11K assigned + observed for the conversion window.\n\nThis is fine for small organizations + simple metrics. Production-grade A/B at scale has additional complications.\n\n**Why naive isn't enough**:\n- Data arrives sequentially; teams want to peek.\n- Many metrics matter (CTR, retention, revenue, error rate); naive test on the primary inflates errors on secondaries.\n- Effects often heterogeneous (works for new users, not retained; works in some countries, not others).\n- Long-term effects don't show up in week-1 windows."
     },
@@ -61,6 +110,78 @@
       "kind": "text",
       "title": "What's next",
       "body": "A/B testing is the production form of experiment design. Next: causal inference — formalizing the gap between correlation and cause.\n\nNext: [[causal-inference-basics]] — counterfactuals, RCTs.\n\nKey takeaways:\n- A/B basics: random assignment, pre-registered sample size + metric, no peeking\n- Sequential testing (group sequential, mSPRT, confidence sequences) enables safe peeking\n- Heterogeneous treatment effects: ATE can hide important per-subgroup variation. Analyze subgroups\n- OEC + guardrails: weighted combination of metrics + constraints. Define before the test\n- Production A/B at scale needs sequential testing, HTE analysis, and OEC discipline"
+    },
+    {
+      "kind": "text",
+      "title": "The peeking problem, made precise",
+      "body": "An A/B test designed for $n = 10{,}000$ visitors/arm has nominal $\\alpha = 5\\%$. Your dashboard shows results every 100 visitors. You're tempted to 'just stop early if you see significance'.\n\nIf you peek 100 times and stop when $p < 0.05$, your true Type I error is NOT 5% — it's closer to 25–30%, because each peek is an independent chance to be unlucky. The dashboard turned a 5% test into a 30% test, silently.\n\nFixes, in order of effort: (1) Bonferroni on planned peek count; (2) **always-valid sequential testing** — e.g., mSPRT or confidence sequences — which gives valid bounds at every moment in time; (3) classical group-sequential design (O'Brien-Fleming etc.) for pre-planned interim analyses.\n\nModern A/B platforms (Statsig, Optimizely, etc.) ship sequential-testing as the default; doing it by hand requires care."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ab_simpson",
+        "kind": "multiple_choice",
+        "question": "An A/B test shows variant B has higher overall conversion than A. Broken down by user segment (free / paid), variant A wins in *each segment*. This is most likely:",
+        "options": [
+          "Simpson's paradox — the segment mix differs between the two arms.",
+          "A statistical error; recompute.",
+          "Variance — try again with more users.",
+          "The metric is broken."
+        ],
+        "correctIndex": 0,
+        "explanation": "Classic Simpson's paradox: a confounding variable (segment) has different distributions in the two arms, and the aggregate flips the within-segment story. Diagnose by checking segment proportions; fix by either segmenting the analysis or by stratified randomization that locks the mix."
+      },
+      "hints": [
+        "The aggregate result and the per-segment results contradict each other.",
+        "Which statistical phenomenon is famous for exactly this contradiction?"
+      ],
+      "workedSolution": "Simpson's paradox. The arms have different mixes of free vs paid users; if paid users have higher conversion overall AND variant A has a smaller paid share, aggregating misleads. The fix is to either segment the analysis (reporting per-segment effects) or pre-stratify randomization so segment mix is identical across arms.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ab_inflation",
+        "kind": "math_expression",
+        "question": "If you peek 10 times at $\\alpha = 0.05$ and stop when significant, the rough probability of at least one false positive under independent peeks is $1 - (1-0.05)^{10}$. Compute to 2 decimals.",
+        "acceptedAnswers": [
+          "0.40",
+          ".40",
+          "0.401",
+          "0.4012"
+        ],
+        "hint": "Compute $0.95^{10}$ and subtract from 1."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ab_novelty",
+        "kind": "scenario",
+        "question": "A novelty effect",
+        "prompt": "Variant B's conversion rate is 10% higher in week 1 and 2% higher in week 4. What's the most likely cause, and what's the production lesson?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ab",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why 'always-valid sequential testing' lets you check results continuously without inflating the false-positive rate.",
+        "rubric": "Mentions that sequential procedures use a stopping rule whose error bound holds for every stopping time, achieved via martingale / mixture-likelihood-ratio bounds."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Run a one-sample-size A/B test and avoid the classic stopping problems.",
+      "Distinguish always-valid sequential tests from naïve fixed-n tests.",
+      "Recognize Simpson's paradox in A/B-test analyses."
+    ],
+    "prereqs": [
+      "experiment-design"
+    ]
+  }
 }

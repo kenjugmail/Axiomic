@@ -7,6 +7,37 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: cuckoo hashing",
+      "body": "Cuckoo hashing achieves *worst-case* O(1) lookup (not just amortized) by using two hash functions and at most two possible buckets per key. On insert collision, evict the existing key and re-hash it to its other bucket; if that's also full, recurse. Used in some high-performance networking + storage systems (Memcached's bin-distribution variant). Trade-off: insertion can have probabilistic failures, requiring full rebuild at higher load factors than chaining."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_hash_load",
+        "kind": "guided_derivation",
+        "question": "Derive expected chain length under uniform hashing",
+        "goal": "For a hash table with $n$ keys and $m$ buckets, expected chain length at any bucket is $n/m$.",
+        "steps": [
+          {
+            "prompt": "Define indicator $X_i = 1$ if key $i$ hashes to bucket $b$, else 0. Under uniform hashing, $P(X_i = 1) = 1/m$. Chain length at bucket $b$ is $\\sum_i X_i$. Compute the expectation by linearity.",
+            "motivation": "Linearity + uniform hashing.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "n/m"
+              ]
+            },
+            "hints": [
+              "$\\mathbb{E}[\\sum X_i] = n \\cdot 1/m$."
+            ],
+            "reveal": "$\\mathbb{E}[\\text{chain length}] = n/m = \\alpha$ (the load factor)."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\mathbb{E}[\\text{chain length}] = n/m = \\alpha}$$ Lookup cost under chaining is $O(1 + \\alpha)$. Most production hash tables target $\\alpha < 0.7$ to keep lookups close to constant."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Hash tables: how O(1) lookup works",
       "body": "A **hash table** ([[hash-table]]) maps keys to values via a *hash function* + an array of buckets.\n\n```\nbucket_index = hash(key) % num_buckets\n```\n\nIdeal: each key lands in a unique bucket. Lookup is $O(1)$ — compute the hash, jump to the bucket, return the value.\n\nReality: two keys can hash to the same bucket. This is a **collision** ([[hash-collisions]]). Two strategies:\n\n- **Chaining**: each bucket holds a linked list of entries. Insert prepends; lookup scans. Average $O(1 + \\alpha)$ where $\\alpha = n/b$ is the load factor.\n- **Open addressing**: on collision, probe to the next bucket (linear, quadratic, or double-hashing). Faster cache behavior but degrades worse near full.\n\n**Load factor** $\\alpha$ is the master variable. Most implementations resize (doubling buckets) when $\\alpha > 0.75$, keeping expected chain length $\\leq 1$."
     },
@@ -43,12 +74,92 @@
         "kind": "explain_back",
         "prompt": "Why does the Python `dict` use a randomized seed for hashing strings, even though it slows down every dict operation by a few nanoseconds? Frame your answer in terms of the trade-off it's making.",
         "rubricCriteria": [
-          { "id": "attack-vector", "description": "Identifies hash flooding as the threat model: adversarial input crafted to cause collisions" },
-          { "id": "real-world-impact", "description": "Connects to a real-world impact: web servers / parsers receiving untrusted dict keys can be DoS'd if hash is predictable" },
-          { "id": "tradeoff", "description": "Names the trade-off: a few ns per op slowdown is acceptable to avoid worst-case $O(n)$ degradation under attack; the alternative (predictable hash) is a worse worst case" }
+          {
+            "id": "attack-vector",
+            "description": "Identifies hash flooding as the threat model: adversarial input crafted to cause collisions"
+          },
+          {
+            "id": "real-world-impact",
+            "description": "Connects to a real-world impact: web servers / parsers receiving untrusted dict keys can be DoS'd if hash is predictable"
+          },
+          {
+            "id": "tradeoff",
+            "description": "Names the trade-off: a few ns per op slowdown is acceptable to avoid worst-case $O(n)$ degradation under attack; the alternative (predictable hash) is a worse worst case"
+          }
         ],
         "passingScore": 0.5
       }
+    },
+    {
+      "kind": "text",
+      "title": "Why O(1) is conditional",
+      "body": "A hash table promises $O(1)$ average lookup. The worst case is $O(n)$ when every key collides into the same bucket — turning a hash table into a linked list.\n\nThree things keep average-case $O(1)$ achievable:\n\n1. **Good hash function** — uniform distribution over the bucket array. Bad hash $\\to$ pathological inputs.\n2. **Bounded load factor** — when filled > some threshold (~0.7 for open addressing), resize and rehash. Resizing is $O(n)$ but amortizes to $O(1)$ per insert.\n3. **Adversary resistance** — if attackers can choose keys, they can force collisions. Modern hashes use a random seed per process to mitigate.\n\nMissing any of these and your 'hash table' silently degrades to linear-time lookup at scale."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hash_resize",
+        "kind": "multiple_choice",
+        "question": "A hash table with load factor 0.7 contains 700 keys and the bucket array has 1000 slots. You insert until load factor would exceed 0.75; the implementation doubles the bucket array size each resize. After the next resize, how many slots does the array have?",
+        "options": [
+          "1000",
+          "1500",
+          "2000",
+          "2049"
+        ],
+        "correctIndex": 2,
+        "explanation": "Doubling on resize: 1000 → 2000. After resize the new load factor is 750/2000 = 0.375, leaving plenty of headroom before the next resize. The growth pattern keeps amortized cost O(1) per insert."
+      },
+      "hints": [
+        "Standard practice is to double the size on resize.",
+        "Add one element, hit the threshold, double the array."
+      ],
+      "workedSolution": "Doubling resize: $1000 \\to 2000$ slots. Load factor immediately drops to $\\sim 0.375$. Doubling (rather than +N growth) is what makes the amortized cost of N inserts $O(N)$ instead of $O(N^2)$, via the standard amortized-analysis trick.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_hash_birthday",
+        "kind": "math_expression",
+        "question": "How many uniformly-random 32-bit hashes do you need before collision probability exceeds 50%? Use the birthday approximation $n \\approx \\sqrt{2 \\cdot 2^{32} \\cdot \\ln 2}$. Round to nearest 1000.",
+        "acceptedAnswers": [
+          "77000",
+          "77163",
+          "77000 hashes"
+        ],
+        "hint": "Birthday paradox: $n \\approx \\sqrt{2N \\ln 2}$ for $N = 2^{32}$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_hash_attack",
+        "kind": "scenario",
+        "question": "Algorithmic complexity attack",
+        "prompt": "A web service uses a hash map keyed on URL path strings. An adversary submits 10,000 requests whose paths all hash to the same bucket. What happens, and what's the fix?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_hash",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why a hash table's *amortized* insert cost is $O(1)$ even though individual inserts that trigger a resize cost $O(n)$.",
+        "rubric": "Mentions doubling growth, so per element the total resize work over its lifetime sums to O(n), giving O(1) amortized."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "intro",
+    "objectives": [
+      "Explain the average-case O(1) and worst-case O(n) of hash-table operations.",
+      "Compute load factor and reason about resize policy.",
+      "Recognize when a hash collision attack is realistic."
+    ],
+    "prereqs": [
+      "asymptotic-analysis"
+    ]
+  }
 }

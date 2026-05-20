@@ -7,6 +7,51 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: when 2-approximation is enough",
+      "body": "Vertex cover is NP-hard. The simple matching-based 2-approximation (described below) runs in linear time and gives a solution within 2× of optimal. For most real-world applications (network monitoring, fault detection), this guarantee + simplicity makes it the working algorithm. Tighter approximation algorithms exist (e.g., $2 - O(1/\\sqrt{\\log n})$ via SDP) but the marginal improvement isn't worth the algorithmic complexity for most uses."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_apx_vc2",
+        "kind": "guided_derivation",
+        "question": "Derive the matching-based 2-approximation for vertex cover",
+        "goal": "Greedy: find a maximal matching $M$; return the set $V(M)$ of endpoints. Show $|V(M)| \\leq 2 \\cdot |\\text{OPT}|$.",
+        "steps": [
+          {
+            "prompt": "Maximal matching $M$: no two edges in $M$ share an endpoint, AND no edge of the graph is disjoint from $M$. Every edge of the graph is *covered* by an endpoint in $V(M)$. So $V(M)$ is a vertex cover. Now bound $|V(M)|$.",
+            "motivation": "$|V(M)| = 2|M|$ since each matched edge contributes 2 endpoints.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2 |M|"
+              ]
+            },
+            "hints": [
+              "A matching of size $|M|$ has $2|M|$ endpoints."
+            ],
+            "reveal": "$|V(M)| = 2|M|$."
+          },
+          {
+            "prompt": "Any vertex cover must cover every edge of $M$. Since matching edges are disjoint, each edge of $M$ requires a *separate* vertex. So $|\\text{OPT}| \\geq |M|$. Combine.",
+            "motivation": "Lower bound on OPT via matching size.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "|V(M)| <= 2 |OPT|"
+              ]
+            },
+            "hints": [
+              "$|V(M)| = 2|M| \\leq 2|\\text{OPT}|$."
+            ],
+            "reveal": "$|V(M)| = 2|M| \\leq 2|\\text{OPT}|$ — a 2-approximation."
+          }
+        ],
+        "finalResult": "$$\\boxed{|V(M)| \\leq 2 \\cdot |\\text{OPT}|}$$ The matching-based 2-approximation. Linear time. The best known approximation factor for vertex cover (assuming UGC) is 2, so this simple algorithm is optimal up to lower-order terms."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Approximation algorithms + ratios",
       "body": "An algorithm is an **$\\alpha$-approximation** for a minimization problem if for every input it returns a solution of cost $\\leq \\alpha \\cdot \\text{OPT}$.\n\nApproximation algorithms come in classes by how good the ratio is:\n\n- **Constant-factor**: ratio $\\alpha$ is some specific number. Vertex cover: 2-approximation (greedy on edges). Metric TSP: 1.5-approximation (Christofides 1976). MAX-CUT: 0.878-approximation (Goemans-Williamson via SDP).\n\n- **Logarithmic**: ratio is $O(\\log n)$. Set cover: greedy gives $\\ln n$-approximation, and **provably no polynomial algorithm does better** unless P = NP.\n\n- **PTAS** (Polynomial-Time Approximation Scheme): for any $\\epsilon > 0$, get a $(1 + \\epsilon)$-approximation in polynomial time (where the polynomial may depend exponentially on $1/\\epsilon$). Knapsack: PTAS via DP rounding.\n\n- **FPTAS** (Fully Polynomial-Time): runtime polynomial in both $n$ and $1/\\epsilon$. Knapsack: FPTAS exists.\n\n- **Inapproximable**: no constant ratio possible (unless P = NP). General TSP without metric assumption: cannot be approximated within ANY constant ratio. (Without the triangle inequality, the problem is too unconstrained.)\n\n**Where approximations come from**:\n- **Greedy with analysis**: vertex cover, set cover.\n- **LP rounding**: solve the linear-programming relaxation, round the fractional solution.\n- **Primal-dual**: construct primal + dual solutions simultaneously.\n- **Semidefinite programming (SDP)**: relax to SDP, sample from the solution. Goemans-Williamson MAX-CUT is the classical example.\n- **Local search**: iteratively improve; analyze the local-optimum guarantee."
     },
@@ -43,12 +88,92 @@
         "kind": "explain_back",
         "prompt": "Your colleague calls Bloom filters \"a heuristic\" because they can return wrong answers. Push back. Frame your response in terms of the difference between a heuristic and a randomized algorithm with a probabilistic bound.",
         "rubricCriteria": [
-          { "id": "bound-not-heuristic", "description": "Names that Bloom filters have a **provable error bound** — given $n$ inserts, $m$ bits, $k$ hash functions, false-positive rate is $(1 - e^{-kn/m})^k$. This is a formal mathematical guarantee, not an empirical observation" },
-          { "id": "one-sided-error", "description": "Names the **one-sided** error structure: no false negatives, only false positives. Errors are predictable + controllable, unlike a heuristic's unbounded error" },
-          { "id": "heuristic-comparison", "description": "Contrasts with a true heuristic (genetic algorithm, local-search, neural network training) — those have no formal correctness or quality bound; they may work, may not. Bloom filters always work within their stated error rate" }
+          {
+            "id": "bound-not-heuristic",
+            "description": "Names that Bloom filters have a **provable error bound** — given $n$ inserts, $m$ bits, $k$ hash functions, false-positive rate is $(1 - e^{-kn/m})^k$. This is a formal mathematical guarantee, not an empirical observation"
+          },
+          {
+            "id": "one-sided-error",
+            "description": "Names the **one-sided** error structure: no false negatives, only false positives. Errors are predictable + controllable, unlike a heuristic's unbounded error"
+          },
+          {
+            "id": "heuristic-comparison",
+            "description": "Contrasts with a true heuristic (genetic algorithm, local-search, neural network training) — those have no formal correctness or quality bound; they may work, may not. Bloom filters always work within their stated error rate"
+          }
         ],
         "passingScore": 0.5
       }
+    },
+    {
+      "kind": "text",
+      "title": "Approximation ratios, made concrete",
+      "body": "An algorithm achieves an **approximation ratio** $\\alpha$ for a minimization problem if it outputs a solution whose value is at most $\\alpha \\cdot \\text{OPT}$ on every input.\n\n**Vertex cover**: $\\alpha = 2$ via maximal-matching. Polynomial time. Optimal is NP-hard.\n\n**Metric TSP**: $\\alpha = 1.5$ via Christofides-Serdyukov. Polynomial. Tight bound for symmetric TSP; the 2010s' $\\alpha = 1.5 - \\epsilon$ result is one of the decade's big algorithms advances.\n\n**Max-3SAT**: $\\alpha = 7/8$ (you can satisfy at least 87.5% of clauses in any 3-SAT instance, in polynomial time). PCP theorem shows this is the best possible unless P = NP.\n\n**PTAS** (polynomial-time approximation scheme): for any $\\epsilon > 0$, an algorithm achieving $\\alpha = 1 + \\epsilon$ in polynomial time (with running time potentially exponential in $1/\\epsilon$).\n\n**FPTAS** (fully polynomial): polynomial in BOTH input size and $1/\\epsilon$. Knapsack has an FPTAS; TSP doesn't unless P = NP."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_apx_lasv",
+        "kind": "multiple_choice",
+        "question": "A Las Vegas randomized algorithm is one that:",
+        "options": [
+          "May fail with some probability, but the answer is always correct when it doesn't fail.",
+          "Always succeeds and returns a correct answer, but the *running time* is a random variable.",
+          "Returns a correct answer with high probability but never proves correctness.",
+          "Has only a polynomial-time bound on average."
+        ],
+        "correctIndex": 1,
+        "explanation": "Las Vegas algorithms always return the correct answer; only the runtime is random. Monte Carlo is the dual — bounded runtime but possibly wrong answer. Randomized quicksort with random pivots is Las Vegas (always correct, expected $O(n \\log n)$); Miller-Rabin primality is Monte Carlo (fast, occasionally wrong)."
+      },
+      "hints": [
+        "Distinguish 'always-right but sometimes-slow' from 'always-fast but sometimes-wrong'.",
+        "Quicksort with random pivots is the canonical example of one of these."
+      ],
+      "workedSolution": "Las Vegas: always correct, runtime is random (expected fast). Monte Carlo: bounded runtime, occasionally wrong. Randomized quicksort = Las Vegas; Miller-Rabin primality = Monte Carlo. Both classes use randomness to circumvent adversarial worst cases, but they spend it differently.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_apx_vc",
+        "kind": "math_expression",
+        "question": "Vertex cover via maximal matching has approximation ratio 2: the output is at most $2 \\cdot \\text{OPT}$. If $\\text{OPT} = 50$, the algorithm's output is at most how many vertices?",
+        "acceptedAnswers": [
+          "100",
+          "100 vertices",
+          "2*50"
+        ],
+        "hint": "Just apply the ratio."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_apx_runtime",
+        "kind": "scenario",
+        "question": "Exact vs approximate",
+        "prompt": "You need a solution to TSP on 500 cities, online, within 1 second per query. The exact-OPT solver would take hours. Walk through your decision: which approximation algorithm and what guarantee can you give the product team?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_apx",
+        "kind": "explain_back",
+        "prompt": "Explain in three sentences why randomization helps even when the input is deterministic.",
+        "rubric": "Mentions that random choices remove the adversary's ability to construct worst-case inputs; expectation arguments give guarantees that hold over the randomness even when the input is fixed."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish a constant-factor approximation from a PTAS / FPTAS.",
+      "Distinguish Las Vegas from Monte Carlo randomized algorithms.",
+      "Recognize when an approximation algorithm beats an exact one in practice."
+    ],
+    "prereqs": [
+      "np-complete"
+    ]
+  }
 }

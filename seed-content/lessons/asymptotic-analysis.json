@@ -7,6 +7,52 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: comparing merge sort and quicksort empirically",
+      "body": "Both $O(n\\log n)$ in big-O. But on real input: quicksort with random pivots usually beats merge sort by 30-60% wall-clock time because quicksort does in-place partition (better cache behavior) while merge sort allocates a scratch buffer of size $n$. The big-O hides this. Production sort algorithms (std::sort, Java Collections.sort) typically use introsort: quicksort + median-of-three pivot + falls back to heapsort if recursion depth exceeds $2\\log n$, giving worst-case $O(n\\log n)$ with the constants of quicksort."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_asy_master",
+        "kind": "guided_derivation",
+        "question": "Apply the master theorem",
+        "goal": "Solve $T(n) = 2T(n/2) + n$ via the master theorem.",
+        "steps": [
+          {
+            "prompt": "Master theorem: $T(n) = aT(n/b) + n^d$. Compare $\\log_b a$ with $d$. Here: $a = 2, b = 2, d = 1$. What's $\\log_b a$?",
+            "motivation": "Setup.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1"
+              ]
+            },
+            "hints": [
+              "$\\log_2 2 = 1$."
+            ],
+            "reveal": "$\\log_b a = \\log_2 2 = 1$."
+          },
+          {
+            "prompt": "$\\log_b a = d = 1$ — the 'middle case' (Case 2). What's $T(n)$?",
+            "motivation": "Case 2 gives $\\Theta(n^d \\log n)$.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "n log n",
+                "Theta(n log n)"
+              ]
+            },
+            "hints": [
+              "When $\\log_b a = d$: $T(n) = \\Theta(n^d \\log n)$."
+            ],
+            "reveal": "$T(n) = \\Theta(n \\log n)$ — same as merge sort."
+          }
+        ],
+        "finalResult": "$$\\boxed{T(n) = 2T(n/2) + n \\Rightarrow T(n) = \\Theta(n \\log n)}$$ The master theorem solves the bulk of divide-and-conquer recurrences. Cases: $\\log_b a < d$ → $\\Theta(n^d)$. $\\log_b a = d$ → $\\Theta(n^d \\log n)$. $\\log_b a > d$ → $\\Theta(n^{\\log_b a})$."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Common growth orders",
       "body": "From fastest-growing-slowly (best) to fastest-growing-quickly (worst):\n\n| Class | Name | Example |\n|-------|------|---------|\n| $O(1)$ | Constant | Hash-table lookup |\n| $O(\\log n)$ | Logarithmic | Binary search |\n| $O(n)$ | Linear | Single-pass scan |\n| $O(n \\log n)$ | Linearithmic | Mergesort, heapsort |\n| $O(n^2)$ | Quadratic | Selection sort |\n| $O(n^3)$ | Cubic | Standard matrix multiplication |\n| $O(2^n)$ | Exponential | Brute-force subset enumeration |\n| $O(n!)$ | Factorial | Brute-force traveling salesman |\n\n**Rule of thumb for input size $n$**:\n- $n \\leq 10^6$: $O(n^2)$ is borderline.\n- $n \\leq 10^8$: $O(n)$ or $O(n \\log n)$ only.\n- $n \\leq 10^{18}$: $O(\\log n)$ or $O(1)$ only.\n- $n \\geq 50$ for $O(2^n)$: intractable."
     },
@@ -43,12 +89,91 @@
         "kind": "explain_back",
         "prompt": "Why might an $O(n^2)$ algorithm beat an $O(n \\log n)$ algorithm in practice for moderate input sizes? Use specific examples (cache, constants, etc.) to ground your answer.",
         "rubricCriteria": [
-          { "id": "constants", "description": "Identifies that Big-O hides constants — an $O(n^2)$ with small constant can beat an $O(n \\log n)$ with large constant for moderate n" },
-          { "id": "cache-locality", "description": "Mentions cache-friendliness — sequential access patterns (insertion sort) often beat tree-based access (mergesort) at small scale" },
-          { "id": "concrete-example", "description": "Provides a concrete example: insertion sort beats mergesort for n < ~20-50; many real sort implementations switch to insertion sort for small partitions" }
+          {
+            "id": "constants",
+            "description": "Identifies that Big-O hides constants — an $O(n^2)$ with small constant can beat an $O(n \\log n)$ with large constant for moderate n"
+          },
+          {
+            "id": "cache-locality",
+            "description": "Mentions cache-friendliness — sequential access patterns (insertion sort) often beat tree-based access (mergesort) at small scale"
+          },
+          {
+            "id": "concrete-example",
+            "description": "Provides a concrete example: insertion sort beats mergesort for n < ~20-50; many real sort implementations switch to insertion sort for small partitions"
+          }
         ],
         "passingScore": 0.5
       }
+    },
+    {
+      "kind": "text",
+      "title": "Hidden constants matter, sometimes",
+      "body": "Two algorithms are both $O(n \\log n)$. Which is faster on $n = 10^9$ inputs?\n\n- Algorithm A: 10 ns per comparison, no cache misses (heap-sort over a tight array).\n- Algorithm B: 200 ns per comparison, cache-thrashing pointer chase (mergesort over a linked list).\n\nBoth are asymptotically equivalent; in practice A finishes in ~30 sec and B in ~10 min. The big-O class is a *coarse* upper bound — necessary but not sufficient for performance work.\n\nThe other direction: $O(n^2)$ algorithm with tiny constants beats $O(n \\log n)$ algorithm with huge constants up to some crossover $n^*$. Quicksort recursively switches to insertion sort below $n \\approx 16$ for exactly this reason.\n\nMoral: report big-O, but measure constants when performance matters."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_asy_loops",
+        "kind": "multiple_choice",
+        "question": "What is the time complexity of this nest?\n\n```\nfor i = 1 to n:\n  for j = 1 to n:\n    for k = 1 to j:\n      do constant work\n```",
+        "options": [
+          "O(n)",
+          "O(n²)",
+          "O(n²·log n)",
+          "O(n³)"
+        ],
+        "correctIndex": 3,
+        "explanation": "Outer $n$ × inner $n$ × innermost up-to-$n$ (averaging $n/2$ but constants drop) = $O(n^3)$. The $k$-loop's variable upper bound just contributes a constant factor on top of the $n^2 \\cdot n$ structure."
+      },
+      "hints": [
+        "The $k$-loop runs up to $j$, but in big-O we sum over all $j$ to get $O(n^2)$ for the inner two.",
+        "Multiply the outer $n$ by that."
+      ],
+      "workedSolution": "Innermost work per $(i,j)$ pair: $j$ iterations. Sum over $j = 1..n$: $\\sum_{j=1}^n j = n(n+1)/2 = \\Theta(n^2)$ per outer $i$. Times $n$ outer iterations: $\\Theta(n^3)$.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_asy_master",
+        "kind": "math_expression",
+        "question": "Master theorem: $T(n) = 2T(n/2) + n$. What is $T(n)$ in big-Θ? (Answer like 'n log n'.)",
+        "acceptedAnswers": [
+          "n log n",
+          "n*log(n)",
+          "Theta(n log n)",
+          "O(n log n)"
+        ],
+        "hint": "Master theorem case 2: $a = b^d$ with $d = 1$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_asy_const",
+        "kind": "scenario",
+        "question": "Big-O lies",
+        "prompt": "A teammate claims their new $O(n \\log n)$ sort will replace your $O(n^2)$ insertion sort, with a 50× speedup. You profile and find the new sort is *slower* on your typical input. What's the most likely explanation?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_asy",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why we usually quote upper bounds (big-O) instead of exact running-time formulas in algorithm analysis.",
+        "rubric": "Mentions abstraction over implementation details + machine constants, and that big-O captures scaling behavior which is what matters for choosing an algorithm."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "intro",
+    "objectives": [
+      "Compute big-O of a small loop nest.",
+      "Distinguish O, Θ, Ω and when each applies.",
+      "Recognize the constants that matter despite asymptotic equality."
+    ],
+    "prereqs": []
+  }
 }

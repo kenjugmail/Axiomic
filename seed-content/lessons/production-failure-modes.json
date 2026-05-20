@@ -7,6 +7,52 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: AWS DynamoDB September 2015 outage",
+      "body": "5-hour outage triggered by a metadata-table query that timed out, then retried, then retried more aggressively. Each retry added load to the failing component, cascading into total unavailability. The post-mortem: lack of exponential backoff + jitter. Modern AWS SDK defaults: exponential backoff (250ms × 2^attempt) + jitter (random 50% multiplier). Every distributed-systems guide cites this exact incident as the canonical retry-storm example."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_prod_retry",
+        "kind": "guided_derivation",
+        "question": "Derive the retry-storm amplification",
+        "goal": "Service receives baseline rate $R$. On error: each client retries 3× with no backoff. If 10% of requests fail, the effective rate the server sees is ?",
+        "steps": [
+          {
+            "prompt": "Without retries: rate $R$. With 3 retries on 10% of requests: each failed request becomes (1 + retries) = 4 requests. Compute the amplified rate.",
+            "motivation": "Multiplier per failure.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1.3 R",
+                "1.30 R"
+              ]
+            },
+            "hints": [
+              "$R \\cdot (0.9 \\cdot 1 + 0.1 \\cdot 4) = R \\cdot 1.3$."
+            ],
+            "reveal": "Effective rate $= R \\cdot 1.3$. 30% extra load — adding more if 30% now fail (since the higher load broke more things)."
+          },
+          {
+            "prompt": "If overload causes 30% failure with same 3-retry policy, what's the next-step amplification?",
+            "motivation": "Vicious cycle.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "R * 1.9"
+              ]
+            },
+            "hints": [
+              "$R \\cdot (0.7 \\cdot 1 + 0.3 \\cdot 4) = R \\cdot 1.9$."
+            ],
+            "reveal": "$R \\cdot 1.9$. Doubled load → more failures → more retries → cascading collapse."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Retry storm amplification: rate} \\to R(1 + (n-1) p_{\\text{fail}})}$$ Without backoff, retries create positive feedback: failure → more retries → more load → more failure. Cures: exponential backoff + jitter (spread retries over time), circuit breakers (stop retrying after threshold), retry budgets (cap total retry rate)."
+      }
+    },
+    {
+      "kind": "text",
       "title": "OOM under load",
       "body": "**Failure shape**: a request with unusual context length (e.g., 32K tokens when most are 2K) lands; KV cache plus activations exceed available HBM; CUDA OOMs; the worker dies. If the request was the only thing in flight, just that user sees an error. If 30 other requests were sharing the worker, all 30 see errors. With process-per-GPU serving, the worker restart can take 30s during which no requests are served.\n\n**Prevention**:\n- Set a hard max context limit at the request router, lower than the model's theoretical max (e.g., 16K for an 8K-trained model with RoPE extrapolation; 100K for a 200K-trained model).\n- Estimate per-request memory cost as a function of input length + max_new_tokens. Reject requests that would exceed remaining KV cache budget.\n- Use PagedAttention so KV cache utilization is high but bounded.\n- Reserve a memory headroom (e.g., 5% of HBM) as a safety margin; the OOMs that happen are usually the ones that exceeded the margin you forgot you needed.\n\n**Mitigation**:\n- Out-of-memory exception handler in the worker: cancel the offending request, free its slot, return a clean error to the caller, *do not crash the worker*.\n- Liveness check on the worker so the orchestrator restarts it if it does crash, with bounded restart rate.\n- Alert on OOM rate; treat as a class-1 quality issue, not a class-3 latency blip."
     },
@@ -61,6 +107,64 @@
       "kind": "text",
       "title": "What's next",
       "body": "Production failure modes are the closing lesson of the systems-engineer path. After this you've covered the full lifecycle: training infrastructure, serving infrastructure, monitoring, and the playbooks for when reality hits.\n\nKey takeaways:\n- OOM under load: per-request memory budget at the router, OOM handler in the worker, never crash the whole process\n- NaN in training: gradient clipping + logit clamp + per-layer norm logs + checkpoint rollback\n- Silent corruption is the worst class; mitigate with input/output diffs, smoke evals, checkpoint hashing, schema validation\n- Rollback playbooks: pre-decided triggers, known-good target, single-command procedure, rehearsed in staging\n- Roll back first, fix later — the discipline that limits time-to-recovery\n\nThis was the last lesson in the systems-engineer path. From [[gpu-architecture]] through production failure modes, you've covered the full infrastructure stack of modern ML."
+    },
+    {
+      "kind": "text",
+      "title": "The failure-mode cheat sheet",
+      "body": "**OOM in training** — usually batch size × sequence length × activation memory. Lower batch, use grad checkpointing, switch to FSDP.\n\n**NaN loss** — typically FP16 overflow on a single bad activation. Lower learning rate, add gradient clipping, switch to BF16, check for `inf` in data.\n\n**Silent corruption** — gradients clipped to zero by a too-tight clip threshold; data loader dropping examples silently; tokenizer changed between train and inference. Catch with per-step gradient-norm monitoring + tokenizer hash logging.\n\n**Latency regression at deploy** — usually a model-size or quantization change; sometimes a serving framework upgrade. Canary release + automatic rollback on p99 SLO breach.\n\n**Hallucination spike post-finetune** — overfitting to a small instruction set; rolled-out base-model change. KL-regularize against base, watch held-out perplexity, prefer SFT-then-DPO over big single-step changes.\n\nThe playbook discipline matters more than the specific incident: write rollback steps **before** the incident, not during."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_prod_clip",
+        "kind": "multiple_choice",
+        "question": "A trainer logs gradient L2 norm = 1.0 every step for hours. Initially this looked stable; now you suspect a bug. What's the most likely cause?",
+        "options": [
+          "Gradient clipping with threshold 1.0 is being hit on every step — the *real* gradient is much larger and the clip is doing all the work.",
+          "The loss is constant.",
+          "Gradients are physically incapable of exceeding 1.0.",
+          "The optimizer has converged."
+        ],
+        "correctIndex": 0,
+        "explanation": "Hitting the clip threshold every single step is a textbook silent failure: gradients are being capped to a constant magnitude, so the optimizer is moving in the *direction* of the gradient but ignoring its scale. Loss often still decreases (the direction is still right) but training is slower than it should be and you've lost the diagnostic signal of varying gradient norms."
+      },
+      "hints": [
+        "What is the expected variability of the gradient norm during real training?",
+        "What is the relationship between the logged norm and the gradient clipping threshold?"
+      ],
+      "workedSolution": "Real training gradient norms vary substantially step-to-step — log-magnitudes typically span an order of magnitude in the first epoch. If the logged norm is *exactly* the clip value every step, the clip is binding on every step: the underlying gradient is being capped to a constant magnitude, and you've lost the signal that the gradient norm is supposed to give you. Raise the clip threshold or remove it for a few steps to see the real norm.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_prod_canary",
+        "kind": "scenario",
+        "question": "Canary rollback",
+        "prompt": "You're rolling out a new model to 5% canary traffic. The model's offline eval looked great but canary p99 latency has doubled and accuracy on a fresh online slice is unchanged. Walk through your rollback decision in three sentences."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_prod",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why 'write the rollback playbook before the incident' is the highest-leverage piece of MLOps hygiene.",
+        "rubric": "Mentions that the cognitive load during an incident is too high to design recovery on the fly, and that pre-written playbooks dramatically shorten time-to-rollback."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Diagnose common training- and serving-time failure modes from their symptoms.",
+      "Write a rollback playbook that doesn't require the model team awake at 3am.",
+      "Reason about which failures need feature flags vs. canary releases vs. full rollback."
+    ],
+    "prereqs": [
+      "monitoring-observability",
+      "mlops-experiment-tracking"
+    ]
+  }
 }

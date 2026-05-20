@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: phylogenetic placement of SARS-CoV-2",
+      "body": "Early 2020 phylogenetic analysis placed SARS-CoV-2 within the bat coronavirus clade, with the closest known relative being RaTG13 (~96% identity). The branch lengths suggested the most-recent-common-ancestor between SARS-CoV-2 and RaTG13 lived ~40-70 years ago — so the immediate source was likely a different coronavirus, not RaTG13 directly. Phylogenetic methods rapidly become real-time tools during outbreaks: variant tracking, transmission inference, vaccine evaluation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_phy_upgma",
+        "kind": "guided_derivation",
+        "question": "Derive UPGMA distance update",
+        "goal": "UPGMA merges the two closest clusters. After merging clusters A and B (with sizes $|A|$, $|B|$), new distance to any other cluster C is?",
+        "steps": [
+          {
+            "prompt": "UPGMA uses weighted average: $d(AB, C) = (|A| d(A,C) + |B| d(B,C)) / (|A| + |B|)$. Why weighted by cluster size?",
+            "motivation": "Ensures the merged distance is the average distance from C to all original points in A+B.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Preserves the property that $d(AB, C)$ is the average pairwise distance from C's members to AB's members.",
+                "Just convention.",
+                "Speeds up computation.",
+                "Avoids overflow."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "$d(A,C)$ is already the average over $|A|$ points; multiplying by $|A|$ reconstructs the sum."
+            ],
+            "reveal": "Weighted average gives $d(AB, C)$ as the mean of all pairwise distances between $A \\cup B$ and $C$ — exactly what 'group-average linkage' means."
+          }
+        ],
+        "finalResult": "$$\\boxed{d(AB, C) = \\frac{|A| d(A,C) + |B| d(B,C)}{|A| + |B|}}$$ UPGMA assumes a molecular clock (constant rate of evolution). Faster but less accurate than maximum-likelihood + Bayesian methods, which are now standard for serious phylogenetics."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Distance-based methods",
       "body": "**Step 1: compute pairwise distances** between all sequences. For DNA: percent identity, or some correction (Jukes-Cantor, Kimura) to handle multiple substitutions at the same site over evolutionary time. For protein: similar but with BLOSUM-derived distances.\n\n**Step 2: build a tree** from the distance matrix.\n\n**Neighbor-Joining (NJ)**: greedy algorithm. Start with a star tree; iteratively pick the pair of taxa minimizing a Q-criterion; merge them as siblings; repeat. Fast (`O(N³)`); usually accurate for moderate-size trees.\n\n**UPGMA**: assumes a constant molecular clock. Cluster sequences by minimum distance hierarchically. Simpler than NJ but the molecular-clock assumption is often violated.\n\n**For most practical bioinformatics**: Neighbor-Joining is the default. Tools like MEGA, FastTree, RAxML implement it (and more sophisticated methods).\n\n**Limitation**: distance-based methods compress sequence data into a single distance per pair, losing information about which sites are conserved vs variable. Character-based methods (next slide) preserve more signal."
     },
@@ -40,6 +75,63 @@
       "kind": "text",
       "title": "What's next",
       "body": "Phylogenetics gives us evolutionary relationships. The next lesson moves from sequence to structure: how proteins fold from amino-acid strings into 3D shapes.\n\nNext: [[protein-structure]] — primary, secondary, tertiary structure; the folding problem.\n\nKey takeaways:\n- Phylogenetic trees infer evolutionary relationships from sequence data\n- Distance-based methods (NJ, UPGMA): fast; sometimes inaccurate\n- ML phylogenetics: more accurate; computationally expensive\n- Bayesian: quantifies tree uncertainty; slower\n- Substitution models (Jukes-Cantor → GTR) get progressively more flexible\n- Modern bio-ML uses phylogenetic concepts (co-evolution, tree-aware embeddings) but the inference methods are still classical"
+    },
+    {
+      "kind": "text",
+      "title": "Distance methods vs maximum likelihood",
+      "body": "**Distance methods** (UPGMA, neighbor-joining): compute pairwise sequence distances, build a tree that fits them as closely as possible. Fast — $O(n^2)$ to $O(n^3)$ on $n$ sequences. Assumes the distance is approximately tree-additive, which holds for closely-related sequences but breaks down for distant ones.\n\n**Maximum likelihood** (RAxML, IQ-TREE): for a given tree topology + branch lengths, compute the likelihood of observed sequences under a substitution model (JC69, HKY85, GTR, etc.). Search over tree topologies + branch lengths to maximize likelihood. Slower (exponential in tree size in the worst case), but statistically principled.\n\n**Bayesian phylogenetics** (MrBayes, BEAST): MCMC over tree space + parameters. Provides posterior probabilities of clades, calibrated by molecular-clock priors. Most accurate but slowest.\n\nWhen ML practitioners hear 'phylogenetic tree' they should think: this is just a maximum-likelihood inference over a discrete space (tree topologies) with continuous-parameter (branch lengths) sub-problems. The substitution models (Jukes-Cantor, GTR) are the conditional probability tables of a hidden-state HMM-style model. Phylogenetics has been doing Bayesian inference at scale since the 1990s — a generation before ML re-discovered it."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_phy_clock",
+        "kind": "multiple_choice",
+        "question": "The molecular clock assumes:",
+        "options": [
+          "Mutations accumulate at a constant rate per site per unit time across lineages.",
+          "All species evolve at the same rate.",
+          "Recent mutations are more reliable than old ones.",
+          "Trees are always binary."
+        ],
+        "correctIndex": 0,
+        "explanation": "Molecular-clock hypothesis: the substitution rate is approximately constant per site per unit time across all lineages. If true, sequence distance is proportional to divergence time, so trees can be calibrated to time. In practice rate varies across lineages (the 'relaxed clock'); modern tools fit rate-variation models explicitly."
+      },
+      "hints": [
+        "What does 'clock' suggest about the rate of mutation?",
+        "The strict version is per-site, per-time-unit, constant — across lineages."
+      ],
+      "workedSolution": "Strict molecular clock: mutation rate is constant per site per time across lineages. Implication: branch length (in expected substitutions) is proportional to time. Real data shows lineage-specific rate variation (the 'relaxed clock' models). Modern phylogenetic inference allows rate variation either explicitly (relaxed-clock models) or by partitioning the tree into clades with separate rates.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_phy_horizon",
+        "kind": "scenario",
+        "question": "Horizontal gene transfer",
+        "prompt": "Bacterial phylogenetics is famously messy because of horizontal gene transfer (HGT). Why does HGT break the tree assumption, and what alternative graph structure represents bacterial evolution better?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_phy",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why maximum likelihood phylogenetic trees are slower to compute than neighbor-joining but more reliable.",
+        "rubric": "Mentions that ML uses an explicit substitution model and considers all topologies; NJ uses pairwise distances and a greedy joining algorithm; ML's accuracy advantage comes at the cost of an exponential search space."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish distance-based from maximum-likelihood phylogenetic methods.",
+      "Recognize the molecular-clock assumption and its limitations.",
+      "Read a tree topology."
+    ],
+    "prereqs": [
+      "sequence-alignment"
+    ]
+  }
 }

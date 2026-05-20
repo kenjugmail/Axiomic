@@ -7,6 +7,59 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Deutsch's original problem",
+      "body": "Deutsch (1985): given a black-box function $f: \\{0, 1\\} \\to \\{0, 1\\}$ promised to be either constant ($f(0) = f(1)$) or balanced ($f(0) \\neq f(1)$). Classically: must query $f$ twice. Deutsch's quantum algorithm: query *once* via superposition. The toy example of quantum-speedup-via-interference. Deutsch-Jozsa generalizes to $n$-bit functions, exponential separation. Importance: first proof that quantum computers can exponentially outperform classical for some tasks — even if the problems were artificial."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_qa_dj",
+        "kind": "guided_derivation",
+        "question": "Sketch the Deutsch algorithm",
+        "goal": "1 query distinguishes constant from balanced.",
+        "steps": [
+          {
+            "prompt": "Prepare $|0\\rangle|1\\rangle$, apply H to both qubits → $(|0\\rangle + |1\\rangle)/\\sqrt 2 \\otimes (|0\\rangle - |1\\rangle)/\\sqrt 2$. Apply oracle $U_f: |x\\rangle|y\\rangle \\to |x\\rangle|y \\oplus f(x)\\rangle$. Trace through.",
+            "motivation": "Phase kickback.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Result is $(-1)^{f(0)}|0\\rangle + (-1)^{f(1)}|1\\rangle$ in the first qubit (times some unimportant second-qubit factor).",
+                "Same as input.",
+                "Maximally mixed.",
+                "Random."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "$U_f$ kicks the phase of $|x\\rangle$ by $(-1)^{f(x)}$ when the second qubit is in $(|0\\rangle - |1\\rangle)/\\sqrt 2$."
+            ],
+            "reveal": "Phase kickback: first qubit ends in $((-1)^{f(0)}|0\\rangle + (-1)^{f(1)}|1\\rangle)/\\sqrt 2$."
+          },
+          {
+            "prompt": "Apply H to first qubit + measure. What outcome distinguishes constant from balanced?",
+            "motivation": "H maps $\\pm|0\\rangle \\pm |1\\rangle$ to $\\pm|0\\rangle$ or $\\pm|1\\rangle$.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$|0\\rangle$ → constant; $|1\\rangle$ → balanced.",
+                "$|1\\rangle$ → constant.",
+                "Always $|0\\rangle$.",
+                "Random outcome."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Constant: both phases equal → state proportional to $|0\\rangle + |1\\rangle$ → H gives $|0\\rangle$. Balanced: opposite phases → state proportional to $|0\\rangle - |1\\rangle$ → H gives $|1\\rangle$."
+            ],
+            "reveal": "Measure $|0\\rangle$ → constant. Measure $|1\\rangle$ → balanced. One query."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Deutsch: 1 quantum query vs 2 classical}}$$ Tiny example, but the structure (superposition input → phase kickback → interference → measurement) is the template for Deutsch-Jozsa, Shor, Grover. Quantum speedups come from cleverly arranged interference, not from 'trying all possibilities in parallel'."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Deutsch-Jozsa algorithm",
       "body": "The simplest demonstration of quantum advantage.\n\n**Problem**: given a function `f: {0, 1}^n → {0, 1}`, promised to be either CONSTANT (f(x) is always 0 or always 1) or BALANCED (f(x) = 0 for exactly half the inputs). Decide which.\n\n**Classical**: in the worst case, you need 2^{n-1} + 1 queries to be certain.\n\n**Quantum**: 1 query.\n\n**Procedure**:\n1. Initialize n qubits to |0⟩^n; one ancilla to |1⟩.\n2. Apply Hadamard to all qubits.\n3. Apply oracle `O_f`: |x⟩|y⟩ → |x⟩|y ⊕ f(x)⟩.\n4. Apply Hadamard to first n qubits.\n5. Measure the first n qubits. If all 0, f is constant; otherwise balanced.\n\n**Why it works**: the oracle imprints `f` on the phase of the superposition. The final Hadamards perform a Fourier-like transform. Constructive interference at |0...0⟩ for constant f; destructive for balanced.\n\n**Limit**: an artificial problem; not practically useful. But it cleanly demonstrates the quantum-advantage mechanism: superposition + interference."
     },
@@ -69,12 +122,78 @@
         "kind": "explain_back",
         "prompt": "Explain in your own words how a quantum algorithm achieves speedup. Use Deutsch-Jozsa or QFT as a concrete example. Address: superposition, interference, measurement.",
         "rubricCriteria": [
-          { "id": "superposition-mechanism", "description": "Names that superposition lets one query process many inputs" },
-          { "id": "interference-mechanism", "description": "Articulates that interference amplifies desired outcomes" },
-          { "id": "measurement-constraint", "description": "Acknowledges measurement collapses the state, so algorithms must arrange amplitudes carefully" }
+          {
+            "id": "superposition-mechanism",
+            "description": "Names that superposition lets one query process many inputs"
+          },
+          {
+            "id": "interference-mechanism",
+            "description": "Articulates that interference amplifies desired outcomes"
+          },
+          {
+            "id": "measurement-constraint",
+            "description": "Acknowledges measurement collapses the state, so algorithms must arrange amplitudes carefully"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "Phase estimation, the workhorse subroutine",
+      "body": "**Phase estimation**: given a unitary $U$ with eigenvector $|\\psi\\rangle$ such that $U|\\psi\\rangle = e^{2\\pi i \\phi}|\\psi\\rangle$, estimate the phase $\\phi$.\n\nRecipe:\n1. Prepare $n$ ancilla qubits in $|+\\rangle^{\\otimes n}$ + the eigenvector $|\\psi\\rangle$ in a second register.\n2. Apply controlled-$U^{2^k}$ for $k = 0, 1, \\ldots, n-1$ using each ancilla as control.\n3. Apply inverse QFT to the ancilla.\n4. Measure ancilla. The bits read off form a binary approximation of $\\phi$ to $n$-bit precision.\n\nThis is the heart of:\n- **Shor's algorithm** (factoring): the phase to estimate encodes the period of a modular-exponentiation function.\n- **HHL algorithm** (linear-system solving): the phase is an eigenvalue of the matrix to invert.\n- **VQE / quantum chemistry**: ground-state energy = eigenvalue of the Hamiltonian.\n\nQFT (Quantum Fourier Transform) is the quantum analog of the discrete Fourier transform but achievable in $O(n^2)$ gates on $n$ qubits, vs $O(n 2^n)$ for classical FFT. The exponential speedup is in the quantum-state side — you operate on $2^n$ amplitudes simultaneously. But you can't read out all $2^n$ amplitudes; the QFT's value is in algorithms (like phase estimation) where you measure a small number of bits encoded by interference."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_qa_qft",
+        "kind": "multiple_choice",
+        "question": "QFT on $n$ qubits has gate complexity:",
+        "options": [
+          "$O(n)$",
+          "$O(n^2)$",
+          "$O(2^n)$",
+          "$O(n 2^n)$"
+        ],
+        "correctIndex": 1,
+        "explanation": "Quantum Fourier Transform: $O(n^2)$ two-qubit gates on $n$ qubits, applied to a state that lives in $2^n$-dimensional Hilbert space. The 'exponential' part of the speedup is in the dimension of the operation — you transform a $2^n$-dim state with $n^2$ gates. Classical FFT requires $O(n 2^n)$ operations to do the same."
+      },
+      "hints": [
+        "The QFT operates on an $n$-qubit state but uses gates that act on 1 or 2 qubits at a time.",
+        "Total gate count = number of stages × gates per stage."
+      ],
+      "workedSolution": "QFT on $n$ qubits: $n$ stages of Hadamard + a sequence of controlled-phase gates. Total: $O(n^2)$ two-qubit gates. Operates on a $2^n$-dimensional state. Classical FFT requires $O(n 2^n)$ ops on a $2^n$-vector. The exponential speedup is in the operation's effective size.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_qa_oracle",
+        "kind": "scenario",
+        "question": "Oracle access",
+        "prompt": "Many quantum algorithms assume 'oracle access' to a function $f$ — a quantum gate computing $|x\\rangle|0\\rangle \\to |x\\rangle|f(x)\\rangle$. Why does this assumption matter for practical algorithm impact, and what's the gap between theoretical speedup and end-to-end speedup including oracle implementation?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_qa",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why quantum speedups for general optimization problems remain unproven despite specific exponential speedups (Shor) and quadratic speedups (Grover).",
+        "rubric": "Mentions that the best-known algorithms for NP-complete problems and general optimization give modest speedups at most; the structure that Shor exploits (period-finding in modular arithmetic) doesn't generalize broadly."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Sketch the Deutsch-Jozsa algorithm.",
+      "Recognize phase estimation as a fundamental subroutine.",
+      "Articulate the QFT's role."
+    ],
+    "prereqs": [
+      "entanglement"
+    ]
+  }
 }

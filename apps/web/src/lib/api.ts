@@ -1236,16 +1236,57 @@ export const api = {
       request<{ exam: ExamDetail }>(`/exams/${encodeURIComponent(slug)}`),
     startAttempt: (
       slug: string,
-      body: { mode: "full_mock" | "section" | "adaptive"; sectionSlug?: string },
+      body: {
+        mode: "full_mock" | "section" | "adaptive";
+        sectionSlug?: string;
+        customizer?: import("@axiomic/types").ExamAttemptCustomizer;
+      },
     ) =>
       request<{
         id: string;
         mode: string;
         expiresAt: string | null;
+        sectionDeadlines?: Array<{
+          slug: string;
+          startsAt: string;
+          endsAt: string;
+          durationMinutes: number;
+        }>;
+        warnings?: string[];
       }>(`/exams/${encodeURIComponent(slug)}/attempts`, {
         method: "POST",
         body: JSON.stringify(body),
       }),
+    advanceSection: (id: string, currentSectionIdx: number) =>
+      request<{
+        ok: boolean;
+        currentSectionIdx?: number;
+        breakUntilAt?: string | null;
+        done?: boolean;
+        sectionDeadlines?: Array<{
+          slug: string;
+          startsAt: string;
+          endsAt: string;
+          durationMinutes: number;
+        }>;
+      }>(
+        `/exams/attempts/${encodeURIComponent(id)}/advance-section`,
+        {
+          method: "POST",
+          body: JSON.stringify({ currentSectionIdx }),
+        },
+      ),
+    saveCalculatorState: (
+      id: string,
+      state: Record<string, unknown> | null,
+    ) =>
+      request<{ ok: boolean }>(
+        `/exams/attempts/${encodeURIComponent(id)}/calculator-state`,
+        {
+          method: "PUT",
+          body: JSON.stringify({ state }),
+        },
+      ),
     getAttempt: (id: string) =>
       request<ExamAttemptState>(
         `/exams/attempts/${encodeURIComponent(id)}`,
@@ -1259,6 +1300,9 @@ export const api = {
         // selectedIndex depending on question type; the server
         // updates only the field provided.
         essayResponse?: string | null;
+        // Digital-SAT-parity: grid-in numeric answer + multi-select picks.
+        gridInResponse?: string | null;
+        selectedIndexes?: number[] | null;
         timeSpentMs?: number;
         flagged?: boolean;
       },

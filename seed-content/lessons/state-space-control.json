@@ -7,6 +7,37 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: SpaceX rocket landing",
+      "body": "SpaceX's Falcon 9 first-stage landing uses MPC (Model Predictive Control) at the high level + LQR-style feedback at the low level. The booster needs to track a precomputed trajectory while rejecting wind disturbance + sensor noise. State: position, velocity, orientation, angular velocity (12-dim). LQR computes the optimal feedback gain given the linearized dynamics around the planned trajectory. Recomputed every few seconds as the booster descends + dynamics change."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ss_lqr",
+        "kind": "guided_derivation",
+        "question": "Derive LQR's Riccati equation",
+        "goal": "For continuous-time LQR with $\\dot x = Ax + Bu$, $J = \\int (x^T Q x + u^T R u) dt$, optimal feedback $u = -Kx$, derive Riccati.",
+        "steps": [
+          {
+            "prompt": "Optimal feedback gain has form $K = R^{-1} B^T P$ where $P$ is symmetric positive-definite. $P$ satisfies the algebraic Riccati equation. Set up: $0 = ?$",
+            "motivation": "ARE.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "A^T P + P A - P B R^{-1} B^T P + Q"
+              ]
+            },
+            "hints": [
+              "The standard ARE form."
+            ],
+            "reveal": "$A^T P + PA - PBR^{-1}B^TP + Q = 0$."
+          }
+        ],
+        "finalResult": "$$\\boxed{A^T P + PA - PBR^{-1}B^TP + Q = 0,\\quad K = R^{-1}B^T P}$$ ARE is solved numerically (Schur decomposition); MATLAB / Python's control libraries do it as a one-liner. LQR is the workhorse of optimal control for linear systems."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Choosing state variables",
       "body": "The state vector must contain enough information to predict future behavior given inputs. For a pendulum: angle + angular velocity. For a quadrotor: position (3) + velocity (3) + orientation (3) + angular velocity (3) = 12 states.\n\nThe choice isn't unique. Different state representations of the same system give different (`A, B, C, D`) matrices but equivalent dynamics.\n\n**Minimal state**: smallest dimension that still captures all relevant dynamics. The pendulum needs 2 states; adding more is redundant.\n\n**Physical meaning**: states often correspond to physical quantities (position, velocity, temperature). Sometimes you use abstract states (modal decompositions) for analysis.\n\n**Observability**: can you reconstruct the state from sensor measurements? If not, the system is partially observable and you need state estimation (next lesson)."
     },
@@ -64,12 +95,92 @@
         "kind": "explain_back",
         "prompt": "Explain why a robot arm with N joints typically needs 2N state variables. Use the relationship between Newton's laws and state-space representation.",
         "rubricCriteria": [
-          { "id": "newton-second-order", "description": "Names that Newton's laws are second-order (F = ma) and state-space requires first-order ODEs" },
-          { "id": "two-states-per-dof", "description": "Concludes that each DOF needs position + velocity" },
-          { "id": "concrete-example", "description": "Applies to the arm or another concrete case" }
+          {
+            "id": "newton-second-order",
+            "description": "Names that Newton's laws are second-order (F = ma) and state-space requires first-order ODEs"
+          },
+          {
+            "id": "two-states-per-dof",
+            "description": "Concludes that each DOF needs position + velocity"
+          },
+          {
+            "id": "concrete-example",
+            "description": "Applies to the arm or another concrete case"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "LQR, the optimal-control workhorse",
+      "body": "State-space linear system: $\\dot x = Ax + Bu$, $y = Cx$.\n\n**LQR (Linear Quadratic Regulator)**: choose $u = -Kx$ to minimize $J = \\int_0^\\infty (x^T Q x + u^T R u) \\, dt$, where $Q$ penalizes state deviation and $R$ penalizes control effort.\n\nSolution: $K = R^{-1} B^T P$, where $P$ solves the **algebraic Riccati equation** $A^T P + PA - PBR^{-1}B^T P + Q = 0$.\n\nWhy this matters: LQR gives you an *optimal* state-feedback controller in closed form (no iterative tuning) for a wide class of linear systems. The Q/R matrices encode the engineer's preferences (how much state error costs vs. how much control effort costs); the math then produces the best gain $K$.\n\nThe direct extension to nonlinear systems: iLQR / DDP (Differential Dynamic Programming), where you linearize around a trajectory and apply LQR iteratively. Used heavily in robotics for trajectory optimization.\n\nNonlinear control more broadly: feedback linearization (cancel out the nonlinearity), sliding-mode control (force the state onto a 'sliding surface'), model-predictive control (re-optimize a finite-horizon plan every step). MPC has become the dominant non-PID controller in industrial systems."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ss_ctrl",
+        "kind": "multiple_choice",
+        "question": "A linear state-space system is 'controllable' iff:",
+        "options": [
+          "The state matrix $A$ is invertible.",
+          "The controllability matrix $[B \\, AB \\, A^2B \\, \\ldots]$ has full row rank.",
+          "All eigenvalues of $A$ are stable.",
+          "The system has more inputs than states."
+        ],
+        "correctIndex": 1,
+        "explanation": "Kalman's controllability criterion: the system is controllable iff the controllability matrix $\\mathcal{C} = [B, AB, A^2B, \\ldots, A^{n-1}B]$ has full row rank. Geometrically: the span of the column vectors of $\\mathcal{C}$ covers the entire state space, so any state is reachable with some input sequence. Observability has the dual criterion with $C, CA, \\ldots$."
+      },
+      "hints": [
+        "The criterion is about whether *any* state is reachable from any other via the input.",
+        "Look at the structure $B, AB, A^2B, \\ldots$ — what does it mean for those to span the state space?"
+      ],
+      "workedSolution": "Kalman's PBH-rank-style criterion: stack $[B, AB, A^2B, \\ldots, A^{n-1}B]$ as a single matrix $\\mathcal{C}$. If $\\text{rank}(\\mathcal{C}) = n$ (the state dimension), the system is controllable. If not, the uncontrollable modes are the eigenvectors orthogonal to $\\text{range}(\\mathcal{C})$ — they can't be moved by any input.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ss_lqr",
+        "kind": "math_expression",
+        "question": "$Q = I$ (identity), $R = 0.1 I$. Heavier penalty on what?",
+        "acceptedAnswers": [
+          "state",
+          "state error",
+          "x"
+        ],
+        "hint": "Compare relative magnitudes."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ss_uncontroll",
+        "kind": "scenario",
+        "question": "An uncontrollable mode",
+        "prompt": "Your wheeled robot model has a state vector including the chassis temperature, but no input affects temperature. The system is technically uncontrollable. Why is this still a useful model, and what does the controller do about the uncontrollable mode?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ss",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why LQR is the 'first thing to try' for a linear MIMO system.",
+        "rubric": "Mentions that LQR gives an optimal feedback gain in closed form with no iterative tuning, handles MIMO directly (unlike PID), and the Q/R weighting encodes design preferences in a natural way."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Write a state-space model from physical dynamics.",
+      "Distinguish controllability and observability.",
+      "Recognize when LQR is the right tool."
+    ],
+    "prereqs": [
+      "control-foundations"
+    ]
+  }
 }

@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Weights & Biases at OpenAI scale",
+      "body": "Modern ML org runs 10K-100K experiments/month per team. W&B + MLflow + Sacred all store: hyperparameters, metrics over time, code version, dataset hash, environment fingerprint. The discipline: every experiment auto-logs via a few lines of init code; manual logging is forbidden because human consistency fails. The payoff: a year later, anyone can find the exact run that produced the deployed model, with all the inputs needed to reproduce it."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mlops_repro",
+        "kind": "guided_derivation",
+        "question": "Apply the 5-element reproducibility checklist",
+        "goal": "Given a 'reproduction failed' incident, identify which element was missing.",
+        "steps": [
+          {
+            "prompt": "Engineer A reports 87% accuracy. Engineer B reproduces with code, data, hyperparams matching — gets 84%. What's the most likely missing element?",
+            "motivation": "Standard diagnosis.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random seeds (not pinned).",
+                "Hardware difference.",
+                "Python version.",
+                "OS difference."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Code matches, data matches, hyperparams match — what's the next variable that affects outputs?"
+            ],
+            "reveal": "Random seeds. Without explicit seeding, init randomness + data shuffling differ between runs. Pinning seeds is usually the 'aha' fix."
+          }
+        ],
+        "finalResult": "The 5-element checklist: code version + data version + hyperparams + random seeds + hardware fingerprint. Missing any one and reproduction is uncertain."
+      }
+    },
+    {
+      "kind": "text",
       "title": "What to log",
       "body": "A good run record contains five categories:\n\n**1. Configuration.** Every hyperparameter you can vary: model architecture (layers, hidden, heads), optimizer (LR, betas, weight decay, schedule), training (batch size, gradient accumulation, max steps), data (dataset version, mix proportions, augmentations). Keep this in YAML/JSON checked into the repo and load it via Hydra / OmegaConf / dataclasses.\n\n**2. Metrics over time.** Train loss + val loss + eval scores at every checkpoint interval. Plus system metrics: GPU utilization, memory, throughput (tokens/sec), step time. Log every step (or every N steps) so you can plot loss curves and catch divergence early.\n\n**3. Provenance.** Git commit hash (was the code clean? `is_dirty()`?). Data version (dataset name + checksum or `dvc` hash). Hardware (GPU type, world size). Library versions (PyTorch, CUDA, NCCL). Random seeds.\n\n**4. Artifacts.** Checkpoints (every N steps + final), tokenizer / vocab files, eval predictions, sample outputs. These get *uploaded* to a backing store (S3, GCS, local) — keeping them per-run is essential for later comparison.\n\n**5. Notes.** A free-text 'why this run' field. Future-you will thank present-you. The most underrated metadata."
     },
@@ -61,6 +96,61 @@
       "kind": "text",
       "title": "What's next",
       "body": "Tracking is the hygiene layer. Everything in production ML inherits from it: monitoring, A/B testing, model evaluation, regulatory audits.\n\nNext: [[inference-serving]] — turning your tracked, reproduced, validated checkpoint into a production service.\n\nKey takeaways:\n- Log config + metrics + provenance + artifacts + notes for every run\n- Pin versions (code, data, hardware, libraries) and log seeds\n- 1% improvements need multiple seeds to claim — n=1 lies\n- Random search is a strong baseline; Bayesian sweeps pay off for expensive runs\n- The historical record is the team's institutional memory; underrated until you don't have it"
+    },
+    {
+      "kind": "text",
+      "title": "The five things every run should log",
+      "body": "If a colleague has to redo your experiment six months from now, these five identifiers determine whether they can. Forget any one and the run is forever a black box:\n\n1. **Git commit hash** of the training code (or a content-hashed bundle of the env if you don't use git).\n2. **Data version** — checksum or dataset URI + version tag. 'Files in this folder right now' is not a version.\n3. **Hyperparameters** as a single JSON object, not a list of CLI flags.\n4. **Random seeds** (numpy, torch, CUDA — all of them).\n5. **Hardware fingerprint** — GPU model, driver, CUDA version, possibly cuDNN.\n\nMLflow, Weights & Biases, Sacred, ClearML — pick one. The discipline matters; the tool less so."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mlops_repro",
+        "kind": "multiple_choice",
+        "question": "A teammate can't reproduce your reported 87.3% accuracy. They've matched code (same commit), data version, and hyperparams. What's the most common remaining cause?",
+        "options": [
+          "Different random seeds (or unset seeds).",
+          "Different GPU model.",
+          "Different OS.",
+          "Different Python version."
+        ],
+        "correctIndex": 0,
+        "explanation": "Unset random seeds account for the vast majority of unreproducibility-after-matching-code-and-data. Without explicit seeds, init randomness + data shuffling diverge between runs. Hardware diffs cause smaller wobbles (CUDA op nondeterminism) but rarely the headline difference."
+      },
+      "hints": [
+        "Eliminate the candidates that are usually controlled by Conda/Docker images.",
+        "Which knob is most often forgotten when the experiment notebook is hastily cleaned up?"
+      ],
+      "workedSolution": "Unset/different random seeds are the #1 cause of 'I got slightly different numbers' once code + data + hyperparams are pinned. Hardware differences add a 0.1-0.3% wobble at most (CUDA non-determinism on certain ops); OS and Python version differences are rare unless you pinned the environment loosely.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mlops_metric_drift",
+        "kind": "scenario",
+        "question": "An older 'best' model",
+        "prompt": "Last quarter's run logged 92.1% accuracy. Today you re-run the same config with the same data + commit and get 89.4%. The lab tracks runs in MLflow. Walk through the *first three things* you would check to explain the gap."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mlops",
+        "kind": "explain_back",
+        "prompt": "Explain why 'I always save my notebook' is not a reproducibility strategy.",
+        "rubric": "Mentions that notebooks lack the structure (env + data version + seeds) needed to re-run the experiment cleanly, and notebook state is hidden in cell execution order."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "core",
+    "objectives": [
+      "Articulate the discipline behind reproducible experiments.",
+      "Distinguish 'run identifiers' you need to log vs. ones you only need to compute.",
+      "Recognize the symptoms of an unreproducible experiment."
+    ],
+    "prereqs": []
+  }
 }

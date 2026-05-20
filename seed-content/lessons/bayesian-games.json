@@ -7,6 +7,51 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Google's switch from GSP to first-price",
+      "body": "Google Ads ran a generalized-second-price auction (GSP, Vickrey-like) for ~15 years. In 2019 Google switched to first-price for transparency: advertisers can see exactly what they pay. By revenue equivalence (under uniform values + risk-neutrality + symmetry), expected revenue should be similar — and empirically it is. The switch was about predictability for advertisers, not revenue."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bg_first",
+        "kind": "guided_derivation",
+        "question": "Derive the symmetric first-price-auction equilibrium bid",
+        "goal": "$n$ bidders, valuations $v \\sim U[0, 1]$ i.i.d. Symmetric equilibrium $b(v) = ((n-1)/n) v$.",
+        "steps": [
+          {
+            "prompt": "Bidder with valuation $v$ bids $b$. Probability of winning (all others bid less): if others use strategy $b(\\cdot)$, then bidder $i$ wins when all others' valuations $v_j$ satisfy $b(v_j) < b$, i.e., $v_j < b^{-1}(b)$. With $b(v) = \\beta v$ (guess a linear form), $b^{-1}(b) = b/\\beta$. Prob = $(b/\\beta)^{n-1}$. Expected payoff?",
+            "motivation": "Set up expected utility maximization.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(v - b)(b/beta)^(n-1)"
+              ]
+            },
+            "hints": [
+              "Win prob × surplus when winning."
+            ],
+            "reveal": "$\\mathbb{E}[\\text{payoff}] = (v - b) \\cdot (b/\\beta)^{n-1}$."
+          },
+          {
+            "prompt": "Take derivative with respect to $b$ and set to 0. Solve for $b$ in terms of $v$ (assuming $\\beta v = b$ at equilibrium).",
+            "motivation": "First-order condition + symmetry.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "b = ((n-1)/n) v"
+              ]
+            },
+            "hints": [
+              "$\\partial/\\partial b: -(b/\\beta)^{n-1} + (v - b) (n-1)(b/\\beta)^{n-2}/\\beta = 0$. Simplify, use $\\beta v = b$."
+            ],
+            "reveal": "$b(v) = ((n-1)/n) v$."
+          }
+        ],
+        "finalResult": "$$\\boxed{b(v) = ((n-1)/n) v}$$ Bidder shading below true valuation. More bidders → less shading ($n=2: 50\\%$ of value; $n=10: 90\\%$). Expected revenue matches second-price auction's by revenue equivalence."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Harsanyi's transformation",
       "body": "Harsanyi (1967) showed any incomplete-information game can be reformulated as a complete-information game over an enlarged state space (**types**):\n\n1. Nature draws a type profile $(t_1, ..., t_n)$ from a common-prior distribution.\n2. Each player observes their own type.\n3. Players choose actions; payoffs depend on actions + types.\n\nThe **Bayesian Nash equilibrium**: a strategy $\\sigma_i(t_i)$ for each player and type, such that each type's action maximizes expected payoff given other players' strategies + the conditional distribution of others' types.\n\nThis transformation is what makes Bayesian games tractable — it converts incomplete-information into a complete-information game with random type-draws by Nature."
     },
@@ -38,12 +83,93 @@
         "kind": "explain_back",
         "prompt": "Adverse selection is a Bayesian-game phenomenon. Explain it using the used-car market (Akerlof's lemons): why does private information about car quality cause high-quality sellers to exit the market?",
         "rubricCriteria": [
-          { "id": "private-info", "description": "Identifies that sellers know quality, buyers don't — incomplete information" },
-          { "id": "pricing-equilibrium", "description": "Buyers price based on average quality; high-quality sellers won't accept that price; only low-quality sellers stay" },
-          { "id": "intervention", "description": "Mentions a mechanism-design intervention (warranty, certification) that addresses this" }
+          {
+            "id": "private-info",
+            "description": "Identifies that sellers know quality, buyers don't — incomplete information"
+          },
+          {
+            "id": "pricing-equilibrium",
+            "description": "Buyers price based on average quality; high-quality sellers won't accept that price; only low-quality sellers stay"
+          },
+          {
+            "id": "intervention",
+            "description": "Mentions a mechanism-design intervention (warranty, certification) that addresses this"
+          }
         ],
         "passingScore": 0.5
       }
+    },
+    {
+      "kind": "text",
+      "title": "Auctions are the cleanest Bayesian game",
+      "body": "Each bidder has a private 'type' — their valuation of the item — drawn from a known distribution. They submit bids without seeing others' types.\n\n**First-price sealed-bid**: highest bidder wins, pays their own bid. Each bidder's strategy is a bid function $b(v)$ mapping valuation to bid. In equilibrium with uniform $v \\sim U[0, 1]$ valuations and $n$ bidders, $b(v) = \\frac{n-1}{n}v$ — you bid below your valuation by an amount that vanishes as $n$ grows.\n\n**Second-price sealed-bid (Vickrey)**: highest bidder wins, pays the second-highest bid. Dominant strategy: bid your true valuation $b(v) = v$. The mechanism is **strategy-proof** — no incentive to lie regardless of others' types.\n\nVickrey's brilliance: the auctioneer extracts honest valuations without needing to know the distribution of types. Modern web ad auctions (Google's Generalized Second Price, until ~2019) descend from this. Now they've gone back to first-price for transparency reasons — but the type-space + Bayesian-NE math is the same.\n\nIncomplete information (types are private) ≠ imperfect information (some past moves are unobserved). Bayesian games handle the first; sequential games with imperfect info handle the second."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bg_vickrey",
+        "kind": "multiple_choice",
+        "question": "Vickrey second-price auction's strategy-proofness means:",
+        "options": [
+          "No bidder can profit by misrepresenting their valuation.",
+          "All bidders pay their own bid.",
+          "Only the winner has incentive to lie.",
+          "Only used in first-price settings."
+        ],
+        "correctIndex": 0,
+        "explanation": "Strategy-proof = truthful bidding is a dominant strategy. In Vickrey, regardless of others' bids, bidding your true value v is weakly better than any other bid. Bidding > v risks paying > v if you win; bidding < v risks losing a profitable item. Bid = v is the dominant strategy. The mechanism elicits honest valuations without needing to model others' types — the cleanest result in mechanism design."
+      },
+      "hints": [
+        "Compute the payoff to a bidder under (truth + win), (lie up + win), (lie down + lose).",
+        "Show that any deviation from truth is weakly worse regardless of others' bids."
+      ],
+      "workedSolution": "Suppose your valuation is v. (i) Bid v: if highest bid below v wins, you pay below v → gain. (ii) Bid b > v: same outcomes as truth except a slice of cases where you now win at price between v and b → loss. (iii) Bid b < v: same outcomes as truth except cases where you now lose at price < v → forgone gain. Truth weakly dominates → dominant strategy.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_bg_winner",
+        "kind": "scenario",
+        "question": "Winner's curse",
+        "prompt": "In a common-value auction (e.g., bidding for oil-rig rights where the true value is the same for all bidders but each has noisy estimates), the winner tends to be the bidder who most over-estimated. What's the strategic implication for how to bid?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_bg_first",
+        "kind": "math_expression",
+        "question": "Uniform valuations $v \\sim U[0,1]$, n = 4 bidders, symmetric first-price auction. Equilibrium bid $b(v) = ((n-1)/n) v$. For $v = 0.8$, $b(v) = ?$",
+        "acceptedAnswers": [
+          "0.6",
+          "0.60",
+          "3/5",
+          "0.6 USD"
+        ],
+        "hint": "b = (3/4) × 0.8."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_bg",
+        "kind": "explain_back",
+        "prompt": "Explain in three sentences why mechanism design is sometimes called 'reverse game theory'.",
+        "rubric": "Mentions that mechanism design starts with the desired outcome and engineers the payoff structure so equilibria realize it; standard game theory takes the rules as given and predicts equilibria."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "State the type-space formulation of a Bayesian game.",
+      "Compute Bayesian Nash equilibrium in a small example.",
+      "Recognize the difference between incomplete and imperfect information."
+    ],
+    "prereqs": [
+      "nash-equilibrium"
+    ]
+  }
 }

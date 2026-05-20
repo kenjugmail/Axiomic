@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: AlphaGo + self-play",
+      "body": "AlphaGo (2016) trained primarily by self-play: the policy network played itself, the resulting trajectories trained the value network + a new policy. Iterate. This is essentially fictitious play in a giant search space. The convergence guarantee (for fictitious play in zero-sum games) provides theoretical backing; the engineering (MCTS + neural-net function approximation) made it practical on Go's $10^{170}$ state space."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_marl_fp",
+        "kind": "guided_derivation",
+        "question": "Sketch fictitious-play convergence",
+        "goal": "Each player best-responds to the empirical history of the opponent's plays. In zero-sum games, the average strategies converge to a Nash equilibrium.",
+        "steps": [
+          {
+            "prompt": "Fictitious play in 2-player zero-sum: at iteration $t$, each player computes the empirical distribution of opponent's past plays + plays best response. What's the formal convergence claim?",
+            "motivation": "Robinson 1951.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Average strategies $\\bar\\sigma_t \\to$ NE.",
+                "Pure strategies converge to NE.",
+                "Algorithm always diverges.",
+                "No convergence in zero-sum games."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Note: 'average strategies' (time-averaged history), not 'current strategy'."
+            ],
+            "reveal": "$\\bar\\sigma_t = (1/t) \\sum_{\\tau \\leq t} \\sigma_\\tau$ converges to a Nash equilibrium of the underlying zero-sum game."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Fictitious play: } \\bar\\sigma_t \\to \\text{NE in 2-player zero-sum}}$$ Convergence is in the time-averaged strategy, not the current. PSRO (Policy Space Response Oracles) is the modern generalization: maintain a population, best-respond to a meta-mixture, add to the population."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Three regimes",
       "body": "**Cooperative**: all agents share a single team reward. Centralized training + decentralized execution (CTDE) is the dominant paradigm. MAPPO, QMIX, COMA are workhorses.\n\n**Competitive zero-sum**: classical [[zero-sum]] dynamics. **Self-play** ([[self-play]]) provably converges to Nash equilibrium in time-average for two-player zero-sum + no-regret learning. AlphaZero, AlphaStar, OpenAI Five are landmarks.\n\n**General-sum (mixed)**: hardest. No convergence theorems; the analytic structure is unfriendly. Modern toolkit: PSRO (Policy Space Response Oracles), opponent modeling, league play. Engineering-heavy."
     },
@@ -64,12 +99,78 @@
         "kind": "explain_back",
         "prompt": "Why is MARL convergence to Nash equilibrium NOT guaranteed in general-sum games, even when each agent is running PPO with self-play? Use rock-paper-scissors as an example to ground your answer.",
         "rubricCriteria": [
-          { "id": "non-stationarity", "description": "Identifies non-stationarity — the environment changes as opponents learn" },
-          { "id": "cycling", "description": "Uses RPS or analogous example to illustrate cycling" },
-          { "id": "theoretical-gap", "description": "Mentions that convergence theorems exist for two-player zero-sum (with no-regret learning) but not for general-sum, OR that convergence is time-averaged not pointwise" }
+          {
+            "id": "non-stationarity",
+            "description": "Identifies non-stationarity — the environment changes as opponents learn"
+          },
+          {
+            "id": "cycling",
+            "description": "Uses RPS or analogous example to illustrate cycling"
+          },
+          {
+            "id": "theoretical-gap",
+            "description": "Mentions that convergence theorems exist for two-player zero-sum (with no-regret learning) but not for general-sum, OR that convergence is time-averaged not pointwise"
+          }
         ],
         "passingScore": 0.5
       }
+    },
+    {
+      "kind": "text",
+      "title": "Why self-play is hard, in one paragraph",
+      "body": "Standard RL: agent learns against a fixed environment. Convergence guarantees rest on stationarity — the same state-action transitions hold across training.\n\nMulti-agent: every agent is updating simultaneously, so the 'environment' (from agent A's perspective, B's policy) is non-stationary. A's policy gradient at step $t$ points in a useful direction; at step $t + 100$ when B has changed, the same gradient is misleading.\n\n**Self-play** (chess, Go, poker): one agent plays itself, both players' policies evolve together. The stationary point is a Nash equilibrium of the underlying game. AlphaGo and AlphaZero used self-play + MCTS; the result was superhuman play in domains with no human supervision required.\n\n**Population-based training** (AlphaStar, OpenAI Five): instead of one current policy, maintain a *population* of past + current policies. Each agent trains against a mixture of opponents from the population. This combats the cycle-of-strategies problem (A beats B beats C beats A) by ensuring exposure to a diverse set of opponents.\n\n**Fictitious self-play** (Heinrich-Silver, 2016): each player best-responds to the average historical policy of the opponent. Converges to NE in zero-sum games. The conceptual ancestor of PSRO (Policy Space Response Oracles), a workhorse of modern multi-agent RL."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_marl_nonstat",
+        "kind": "multiple_choice",
+        "question": "The non-stationarity in multi-agent RL refers to:",
+        "options": [
+          "The reward function changing randomly.",
+          "The opponent's policy evolving during training, breaking the assumption that the environment is fixed.",
+          "Stochastic transitions in the underlying MDP.",
+          "The discount factor varying over time."
+        ],
+        "correctIndex": 1,
+        "explanation": "Multi-agent non-stationarity: from agent A's POV, the transition dynamics depend on B's policy, which is changing. This breaks the standard MDP convergence proofs. Mitigations: opponent modeling, population-based training, off-policy correction. The whole field of modern MARL is largely about taming this non-stationarity."
+      },
+      "hints": [
+        "Recall: in single-agent RL, the environment includes the transition function. In multi-agent, what's part of A's effective environment?",
+        "If both agents update simultaneously, what happens to the assumptions behind standard RL convergence?"
+      ],
+      "workedSolution": "From agent A's perspective, the effective transition function depends on B's current policy. When B updates, the transition function changes. A's value estimates / policy gradient become moving targets. Standard RL convergence assumes stationarity; multi-agent learning has to handle this drift via opponent modeling, off-policy correction, or population-based training.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_marl_alphastar",
+        "kind": "scenario",
+        "question": "Why AlphaStar uses a league",
+        "prompt": "AlphaStar (StarCraft II) used a population (the 'league') of past agents as training opponents rather than just self-play. What strategic-cycle problem does this solve, and why does naive self-play fail on rock-paper-scissors-like games?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_marl",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why competitive self-play has a stronger convergence guarantee than cooperative multi-agent RL.",
+        "rubric": "Mentions that zero-sum self-play converges to NE under suitable algorithms (fictitious play, replicator dynamics); cooperative MARL has no analogous result — coordinated equilibria can be exponentially many and learning can converge to suboptimal ones."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish self-play from independent learning.",
+      "Recognize the non-stationarity problem in multi-agent learning.",
+      "Explain why population-based training stabilizes self-play."
+    ],
+    "prereqs": [
+      "nash-equilibrium"
+    ]
+  }
 }

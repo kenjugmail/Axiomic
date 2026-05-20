@@ -1,0 +1,112 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish sync, async, and semi-sync replication.",
+      "Recognize the latency-vs-durability tradeoff.",
+      "Apply the standard 'commit on majority' pattern."
+    ],
+    "prereqs": [
+      "consensus-raft"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Sync vs async vs semi-sync",
+      "body": "**Synchronous replication**: the leader doesn't acknowledge a write to the client until $W$ followers have it. Guarantees: no data loss if $\\leq f$ nodes fail. Cost: client-perceived write latency includes the slowest replica's round-trip.\n\n**Asynchronous replication**: the leader acknowledges the write immediately, replicates in the background. Fast for the client; if the leader fails before replication catches up, that data is lost. The standard Postgres / MySQL default for many years.\n\n**Semi-synchronous**: acknowledge after at least one (or a configurable count) replica has the write. A middle ground. MySQL Group Replication and most modern primary-replica setups use this.\n\n**Modern default**: consensus-based replication (Raft, MultiPaxos) commits on majority, which is effectively synchronous to a quorum. CockroachDB, TiDB, Spanner all work this way. Async-only replication has fallen out of favor for any data where loss is unacceptable.\n\nLatency arithmetic: cross-region async replication ~100-200ms; cross-region sync-to-quorum ~150-300ms. For globally-distributed strongly-consistent systems, this latency is the dominant cost of consistency."
+    },
+    {
+      "kind": "text",
+      "title": "Worked example: Postgres async replication's data-loss window",
+      "body": "Standard Postgres setup: 1 primary + 2 async replicas. Replication lag ~10ms in healthy state. If primary's disk fails and replicas don't have the most-recent commits: data-loss window = the unreplicated commits, typically <100ms of writes. For high-stakes systems (banking, ledgers), enable synchronous_commit + at least one synchronous replica. Cost: ~2× write latency. Trade is worth it for the right workloads."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_rep_async",
+        "kind": "guided_derivation",
+        "question": "Derive async-replication data-loss window",
+        "goal": "Primary acks at $T_0$; replication lag $L$ seconds; primary fails at $T$. Data loss = ?",
+        "steps": [
+          {
+            "prompt": "All commits in window $[T - L, T]$ are at risk: acked by primary but not necessarily replicated. Write rate $R$ commits/sec. Data loss?",
+            "motivation": "Lag × rate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "L R",
+                "L · R"
+              ]
+            },
+            "hints": [
+              "Window size × rate."
+            ],
+            "reveal": "Loss $\\leq L \\cdot R$ commits. Mitigations: shrink $L$ (sync replicas, fast network); pay write latency to wait for replica acks."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Async data loss} \\leq L \\cdot R \\text{ commits}}$$ Async replication's failure mode = the unreplicated window. Trade latency (sync) for durability. Consensus-based replication (Raft) eliminates this window: every commit is on majority before ack."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Read replicas vs writeable replicas",
+      "body": "**Single-leader writable + read replicas**: writes go only to the leader; replicas are read-only. Reads from replicas can be stale (asynchronously replicated). Useful for read-heavy workloads where stale-by-seconds is OK.\n\n**Multi-leader (active-active)**: writes accepted at multiple replicas; conflicts resolved via vector clocks, CRDTs, or last-write-wins. Useful for low-latency global writes; complicated by conflict resolution.\n\n**Leaderless** (Dynamo-style): every node accepts writes; consistency tunable via $R + W > N$. Cassandra, Riak. Simpler operationally; weak consistency by default.\n\nMost production systems use single-leader + read replicas. It's simpler to reason about; conflict-free; the leader is a bottleneck only when write volume exceeds what one node can sustain. Multi-leader / leaderless become attractive when global write latency dominates."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_rep_async",
+        "kind": "multiple_choice",
+        "question": "An async-replicated MySQL primary-replica setup, with one writeable primary + three read replicas. The primary suddenly dies. What's the operational risk?",
+        "options": [
+          "No risk — the replicas can promote one of themselves.",
+          "Data loss: any writes that the primary acknowledged but hadn't yet shipped to a replica are lost when the primary's storage is unrecoverable.",
+          "Read traffic stops permanently.",
+          "The replicas automatically converge.\n"
+        ],
+        "correctIndex": 1,
+        "explanation": "Async replication: the primary acknowledges to the client before replicating. The window between ack-to-client and 'replica has it' is the data-loss window. If the primary dies in that window, those writes are gone — they exist neither in the client's record nor on any replica. Mitigation: semi-sync replication ('ack only after at least one replica confirms') or consensus-based replication."
+      },
+      "hints": [
+        "What's the failure mode of asynchronous-only replication?",
+        "If the primary acknowledges before replication finishes and then dies, where are those writes?\n"
+      ],
+      "workedSolution": "Asynchronous replication's failure mode: writes acknowledged to clients but not yet shipped to replicas are lost if the primary's storage is unrecoverable. The window is small but real (typically milliseconds to seconds). Mitigations: semi-sync (require at least one replica ACK before client ACK), or move to consensus-based replication (Raft commits on majority — no data loss with $\\leq f$ failures).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_rep_strategy",
+        "kind": "scenario",
+        "question": "Choosing a replication strategy",
+        "prompt": "You're designing a multi-region web app. Most users in Europe; secondary user base in Asia. Walk through whether you'd use single-leader (with leader in Europe), multi-leader (Europe + Asia), or leaderless replication — and what each chooses to trade off."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_rep_quorum",
+        "kind": "math_expression",
+        "question": "5-node cluster, $W = 3$, $R = 3$. Is $W + R > N$? Enter 'yes' or 'no'.",
+        "acceptedAnswers": [
+          "yes",
+          "Yes",
+          "Y"
+        ],
+        "hint": "Just $3 + 3 > 5$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_rep",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why most production distributed databases use single-leader replication despite multi-leader's lower latency.",
+        "rubric": "Mentions that single-leader avoids write conflicts entirely; multi-leader's conflict resolution complexity exceeds the latency benefit for most workloads; the rare cases where multi-leader pays off are global, low-tolerance-for-cross-region-latency systems."
+      }
+    }
+  ]
+}

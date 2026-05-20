@@ -7,6 +7,54 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: smoking + lung cancer (Doll-Hill 1950s)",
+      "body": "The classic mid-century causal-inference story. Observational data showed strong correlation between smoking + lung cancer. R.A. Fisher (the *frequentist* statistics legend) argued the correlation might be confounded by genetics — some people might be genetically predisposed to both smoke AND get lung cancer.\n\nDecades of work — randomized trials (impossible directly, but quasi-experiments via twin studies, dose-response, etc.) — converged on the causal interpretation. Modern view: smoking does cause lung cancer; Fisher was being a useful skeptic.\n\nLessons: (1) observational data alone can't distinguish causation from confounding; (2) careful triangulation across study designs (RCTs, natural experiments, mechanism studies) builds the causal case; (3) even brilliant statisticians can be wrong when ideology meets data."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_caus_ate",
+        "kind": "guided_derivation",
+        "question": "Show that randomization gives unbiased ATE estimates",
+        "goal": "Define ATE = $\\mathbb{E}[Y(1)] - \\mathbb{E}[Y(0)]$. Show that under randomization, $\\mathbb{E}[Y | T=1] - \\mathbb{E}[Y | T=0] = $ ATE.",
+        "steps": [
+          {
+            "prompt": "Randomization: $T$ is statistically independent of potential outcomes $(Y(0), Y(1))$. So $\\mathbb{E}[Y(1) | T=1] = ?$",
+            "motivation": "Independence: conditioning on $T$ doesn't change the distribution of $(Y(0), Y(1))$.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "E[Y(1)]",
+                "𝔼[Y(1)]"
+              ]
+            },
+            "hints": [
+              "If $T \\perp (Y(0), Y(1))$, then $\\mathbb{E}[Y(1) | T = 1] = \\mathbb{E}[Y(1)]$."
+            ],
+            "reveal": "$\\mathbb{E}[Y(1) | T = 1] = \\mathbb{E}[Y(1)]$."
+          },
+          {
+            "prompt": "Observed: $Y = Y(1)$ if $T = 1$; $Y = Y(0)$ if $T = 0$. So $\\mathbb{E}[Y | T = 1] = \\mathbb{E}[Y(1) | T = 1]$. Combine.",
+            "motivation": "Map observed to potential.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "E[Y(1)] - E[Y(0)] = ATE",
+                "ATE"
+              ]
+            },
+            "hints": [
+              "By the previous step, $\\mathbb{E}[Y | T=1] = \\mathbb{E}[Y(1)]$ + by symmetry $\\mathbb{E}[Y | T=0] = \\mathbb{E}[Y(0)]$.",
+              "Difference = ATE."
+            ],
+            "reveal": "$\\mathbb{E}[Y | T=1] - \\mathbb{E}[Y | T=0] = \\mathbb{E}[Y(1)] - \\mathbb{E}[Y(0)] = $ ATE."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Randomization} \\Rightarrow \\mathbb{E}[Y | T=1] - \\mathbb{E}[Y | T=0] = \\text{ATE}}$$\n\nThe magic of randomization: it makes the naive observational comparison equal to the causal effect, with no further assumptions. In observational studies the naive comparison can be biased in either direction by confounders; you need either (a) randomize, (b) measure + adjust for all confounders, or (c) use instrumental variables or natural experiments."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Counterfactuals and the fundamental problem",
       "body": "**Counterfactual**: 'what would have happened if we'd done X instead of Y?'\n\nFor each user, you'd want to know:\n- `Y(treated)`: what they'd do if treated.\n- `Y(control)`: what they'd do if not treated.\n\nThe **individual treatment effect**: `Y(treated) - Y(control)`.\n\n**Fundamental problem of causal inference**: each user is either treated or not. We never observe both `Y(treated)` and `Y(control)` for the same user. Counterfactuals are unobserved.\n\nCausal inference's job: estimate things we can't directly observe.\n\n**The savior — randomization**: with random assignment, the *average* counterfactual outcomes are the same in both groups (in expectation). So:\n\n```\nATE = E[Y(treated)] - E[Y(control)] ≈ mean(Y in treated) - mean(Y in control)\n```\n\nThis is why RCTs work: random assignment makes the two groups exchangeable — same in expectation on all confounders, observed and unobserved.\n\nWithout randomization (observational data), the two groups can differ on confounders; the simple difference of means is not the causal effect."
     },
@@ -61,6 +109,77 @@
       "kind": "text",
       "title": "What's next",
       "body": "Causal inference basics close out the experimental-design portion of the path. Next: handling uncertainty in your predictions.\n\nNext: [[uncertainty-quantification]] — calibration, conformal prediction.\n\nKey takeaways:\n- Counterfactuals are unobservable; the fundamental problem of causal inference\n- Randomization makes treated + control groups exchangeable in expectation; ATE = simple difference\n- Without randomization: DiD, IV, RD, propensity scoring, synthetic control. Each has strong assumptions\n- ML evaluation often needs causal thinking: A/B tests, off-policy eval, counterfactual fairness\n- Observational data + unmeasured confounders → causal claims are weak"
+    },
+    {
+      "kind": "text",
+      "title": "The fundamental problem of causal inference",
+      "body": "For each unit $i$ we can imagine two potential outcomes: $Y_i(1)$ if treated and $Y_i(0)$ if not. The **individual causal effect** is $Y_i(1) - Y_i(0)$.\n\nThe fundamental problem: we only ever observe ONE of these — the one corresponding to the treatment $i$ actually received. The other is forever a counterfactual.\n\nWe can still estimate the **average treatment effect** $\\tau = E[Y(1)] - E[Y(0)]$ if treatment is independent of the potential outcomes. Randomization ensures that. Without it we need to either (a) measure all confounders + adjust, (b) find a natural experiment that mimics randomization, or (c) use an instrumental variable that affects treatment without affecting the outcome directly.\n\nObservational studies can rule out *some* causal stories but never prove one without strong assumptions. That's the headline of the causal-inference literature."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_caus_ci",
+        "kind": "multiple_choice",
+        "question": "An RCT can identify causal effects WITHOUT assuming away unobserved confounders because:",
+        "options": [
+          "Randomization makes treatment statistically independent of all confounders, observed and unobserved.",
+          "Larger samples cancel out confounding.",
+          "Randomization makes confounders irrelevant.",
+          "Causal effects are smaller in RCTs."
+        ],
+        "correctIndex": 0,
+        "explanation": "The magic of randomization: by flipping a coin to assign treatment, we guarantee treatment is independent of every pre-treatment variable, including ones we don't know about. That's why RCT estimates require no 'controlling' to be unbiased for the ATE."
+      },
+      "hints": [
+        "Why do we say RCTs are the gold standard?",
+        "What property of treatment-assignment does randomization actually create?"
+      ],
+      "workedSolution": "Randomization creates statistical independence between treatment and all pre-treatment variables (whether you measured them or not). That breaks every backdoor path from treatment to outcome, so the difference in observed outcomes between arms is an unbiased estimate of the average treatment effect — no controlling required.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_caus_obs",
+        "kind": "scenario",
+        "question": "When you can't randomize",
+        "prompt": "Your company can't randomize who gets the new pricing model — early-access customers self-select. You have rich pre-treatment data. Name two complementary strategies you'd use, and what each one's biggest weakness is."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_caus_ate",
+        "kind": "math_expression",
+        "question": "In an RCT with 1000 treated (mean outcome 12.4) and 1000 controls (mean outcome 10.0), the ATE estimate is:",
+        "acceptedAnswers": [
+          "2.4",
+          "2.40",
+          "12.4-10.0"
+        ],
+        "hint": "ATE = mean(Y|T=1) − mean(Y|T=0)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_caus",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why 'controlling for X' in a regression is NOT the same as randomizing.",
+        "rubric": "Mentions that controlling only handles observed confounders and assumes correct functional form; randomization handles unobserved confounders too."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "State the fundamental problem of causal inference.",
+      "Distinguish RCT, natural experiment, and observational study by what they can identify.",
+      "Recognize when 'control for confounders' is and isn't enough."
+    ],
+    "prereqs": [
+      "experiment-design"
+    ]
+  }
 }

@@ -1,0 +1,101 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "intro",
+    "objectives": [
+      "Recognize HTTP methods + status codes.",
+      "Distinguish idempotent from safe methods.",
+      "Reason about caching headers."
+    ],
+    "prereqs": [
+      "ip-and-tcp"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "HTTP methods, safe + idempotent",
+      "body": "HTTP methods + their properties:\n- **GET**: read. Safe (no side effects) + idempotent. Cacheable.\n- **HEAD**: like GET but no body. Same properties.\n- **POST**: create / general action. NOT safe, NOT idempotent.\n- **PUT**: replace. Not safe but idempotent (replacing twice = same state).\n- **DELETE**: remove. Not safe but idempotent.\n- **PATCH**: partial update. Not safe + not necessarily idempotent.\n\n**Why properties matter**:\n- Safe methods can be retried freely on network errors.\n- Idempotent methods can be retried without duplication risk.\n- Caches can store safe responses indefinitely.\n\nREST APIs follow these conventions; deviating breaks client retry logic + cache behavior."
+    },
+    {
+      "kind": "text",
+      "title": "Status codes, the four classes",
+      "body": "- **2xx (success)**: 200 OK, 201 Created, 204 No Content.\n- **3xx (redirection)**: 301 Moved Permanently, 302 Found, 304 Not Modified.\n- **4xx (client error)**: 400 Bad Request, 401 Unauthorized (needs auth), 403 Forbidden (auth'd but not allowed), 404 Not Found, 429 Too Many Requests.\n- **5xx (server error)**: 500 Internal Server Error, 502 Bad Gateway, 503 Service Unavailable, 504 Gateway Timeout.\n\n**Production conventions**:\n- Use 4xx for client mistakes (won't retry will help), 5xx for server problems (might retry).\n- 429 should set `Retry-After`. Production clients respect this.\n- 503 + Retry-After is the canonical 'try again later' code.\n- Avoid 500 for known-recoverable conditions; map them to specific 4xx."
+    },
+    {
+      "kind": "text",
+      "title": "Caching headers, the essentials",
+      "body": "**Cache-Control** is the modern primary caching directive:\n- `Cache-Control: max-age=3600`: cache for 1 hour.\n- `Cache-Control: no-store`: don't cache at all (sensitive data).\n- `Cache-Control: public, max-age=86400`: cache shared across users for a day (CDN).\n- `Cache-Control: immutable`: never re-validate (asset with versioned URL).\n\n**ETag**: opaque cache validator. Client sends `If-None-Match: <etag>`. If unchanged, server responds 304 Not Modified (no body, just headers). Saves bandwidth on re-fetches.\n\n**Last-Modified**: older but still used.\n\nProduction CDN setup: assets get long max-age + versioned URLs (cache-busting on change); dynamic responses get short max-age or ETag-based validation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_http_cache",
+        "kind": "guided_derivation",
+        "question": "Derive when a stale-while-revalidate cache helps",
+        "goal": "Origin RTT $T$ ms. Cache has fresh response < $A$ seconds old. Client requests at rate $R$/sec.",
+        "steps": [
+          {
+            "prompt": "Without stale-while-revalidate: when cache is just-stale, client waits for re-fetch ($T$ ms latency). With stale-while-revalidate: client gets stale response immediately + cache refreshes in background. Latency impact?",
+            "motivation": "User-perceived latency.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Eliminates the $T$ ms wait for the first request that finds stale cache; subsequent requests see fresh cache.",
+                "Increases latency.",
+                "No effect.",
+                "Doubles latency."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "First-request latency = $T$ vs 0."
+            ],
+            "reveal": "Stale-while-revalidate trades freshness for latency: serves stale immediately + refreshes in background. Subsequent requests see fresh data; the 'expensive' re-fetch is hidden from the user."
+          }
+        ],
+        "finalResult": "Stale-while-revalidate is the modern caching pattern. CDN-level cache headers like `Cache-Control: max-age=10, stale-while-revalidate=86400`. Lets you have ~10s freshness + nearly-zero user-perceived latency on cache misses."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_http_retry",
+        "kind": "multiple_choice",
+        "question": "Your client receives a 504 Gateway Timeout. Most appropriate response:",
+        "options": [
+          "Retry immediately.",
+          "Retry with exponential backoff + jitter (after a base delay).",
+          "Don't retry — the request failed.",
+          "Retry with the same exact request body 100 times in 1 second."
+        ],
+        "correctIndex": 1,
+        "explanation": "504 is a transient server-side problem (gateway timeout). Idempotent requests can be safely retried. Exponential backoff + jitter prevents retry storms when many clients are affected by the same issue. Immediate retry is worse — concentrates load."
+      },
+      "hints": [
+        "504 is transient; retry is okay.",
+        "But how should you space the retries?"
+      ],
+      "workedSolution": "504 = transient server-side. Retry is appropriate, but with exponential backoff (e.g., 500ms, 1s, 2s, 4s) + jitter (random 0-50% multiplier) to spread retries from many clients hitting the same outage. Immediate retry without backoff makes problems worse via retry storms.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_http_idempotent",
+        "kind": "scenario",
+        "question": "Stripe-style API design",
+        "prompt": "You're designing a payment-API endpoint. Walk through which HTTP method + idempotency strategy you'd use to ensure double-clicks don't double-charge."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_http",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why REST API designers care about HTTP method semantics (safe / idempotent), not just method names.",
+        "rubric": "Mentions that proxies, caches, retries, and CDNs all act based on method semantics; using POST for a GET-like operation breaks caching; using GET for a POST-like operation breaks safety against repeat retries."
+      }
+    }
+  ]
+}

@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: the 'introduction sandwich'",
+      "body": "Most ML papers follow a standard intro structure: paragraph 1 (context: what's the area), paragraph 2 (gap: what's missing), paragraph 3 (contribution: what we did), paragraph 4 (results bullet list). Skim hack: read the last two paragraphs first. Skip the historical framing; jump to 'what's new + what's the headline result'. This reduces 30-min paper reading to 10-min skim, dramatically increasing the ratio of papers absorbed per week."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_rf_skim",
+        "kind": "guided_derivation",
+        "question": "Decompose a paper's load-bearing claim",
+        "goal": "Most ML papers have a single quantitative claim. Identify the pattern.",
+        "steps": [
+          {
+            "prompt": "What's the typical 'load-bearing' element of an ML paper?",
+            "motivation": "Pattern recognition.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "A specific number or curve on a specific benchmark/setting.",
+                "The mathematical derivation.",
+                "The author affiliation.",
+                "The bibliography."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "The thing that makes the paper compelling vs forgettable."
+            ],
+            "reveal": "A specific number on a specific benchmark (e.g., 'we achieve 87% on ImageNet') OR a specific curve ('scaling law fits y = a x^b'). Everything else is context."
+          }
+        ],
+        "finalResult": "Load-bearing claim = the specific quantitative result. Read papers by finding this first; everything else is context for it."
+      }
+    },
+    {
+      "kind": "text",
       "title": "What to read in what order",
       "body": "Don't read papers top to bottom. Read in this order:\n\n**1. Title + abstract**: 30 seconds. Get the headline claim.\n**2. Figures + tables**: 2 minutes. The empirical work lives here. If the figures don't show what the abstract claims, the paper is overclaim.\n**3. Conclusions**: 1 minute. What do the authors think they showed?\n**4. Methodology section**: 5-10 minutes if the figures look credible. How did they get the numbers?\n**5. Related work**: skip on first read; come back if you want context.\n**6. Body text**: only if the paper is worth deeper investment.\n\nSpending 15 minutes on a paper this way tells you whether it's worth a full read. Most aren't.\n\nAggressive: many papers have one main result and one main figure. The figure is the result. If you can't extract the result from the figure in 60 seconds, the figure is poorly designed (or the result isn't actually clear)."
     },
@@ -61,6 +96,65 @@
       "kind": "text",
       "title": "What's next",
       "body": "Reading frontier research is a skill that compounds. Doing it well over years is what separates 'someone who's read a lot of papers' from 'someone who has a working mental model of ML research.'\n\nKey takeaways:\n- Read in figure-first order, not paper-front-to-back\n- Watch for rhetorical red flags (SOTA without CI, 'simple and effective,' 'closed-source models can't be evaluated')\n- Reproducibility expectations are now table stakes; demand released code + multiple seeds\n- Survival predictors: mechanism, small-scale reproducibility, compositionality, honest limitations\n\nNext: [[novel-contributions]] — what makes a research contribution actually novel, and how to scope your own work."
+    },
+    {
+      "kind": "text",
+      "title": "Reading three papers a week",
+      "body": "A sustainable cadence for a research-track learner: three papers per week, in three different posture levels.\n\n**Skim** (10 papers/week, 5 min each): abstract + figures + key result table. Just 'what does this paper claim, and is it relevant to my interests?'.\n\n**Read** (3 papers/week, 30-60 min each): introduction + method + experiments. Form opinions on the central claim, the methodology, and the strongest/weakest experiments. Take notes.\n\n**Re-implement** (1 paper/month): pick one paper from your read pile per month and re-implement the core algorithm in 200 lines of code. This is the level of engagement that creates genuine intuition.\n\n**For papers in your specific subfield**, increase the read cadence — but for the broader field around it, just skim. The frontier moves fastest when you have a strong, opinionated take on a handful of subfield papers + adequate context on the broader landscape.\n\n**Read with hostility**: assume the central claim is wrong; look for the weakest link. The strongest papers survive hostile reading; the most cited papers often don't (or pass with substantial caveats)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_rf_skim",
+        "kind": "multiple_choice",
+        "question": "When skimming an ML paper in 5 minutes, the most informative section to look at second (after the abstract) is:",
+        "options": [
+          "The introduction's last paragraph.",
+          "The first figure or main results table.",
+          "The related work.",
+          "The author's affiliation."
+        ],
+        "correctIndex": 1,
+        "explanation": "Figure 1 + Table 1 often carry the central claim: 'method X beats baselines by Y on benchmarks Z'. If you can't reconstruct the claim from the abstract + main figure/table, the paper either has poor presentation or no central claim. Related work and intro are useful for deeper context but the figure-+-table combo is the highest information-density per second."
+      },
+      "hints": [
+        "Where do papers communicate their central result most compactly?",
+        "Often the figure is what gets shared on Twitter — that's a signal."
+      ],
+      "workedSolution": "ML papers' load-bearing claim is usually one figure or table. 'Our model on benchmark X' table; ablation plot; scaling-laws curve. The visual+caption combo communicates more than the abstract per second of reading. Develop the habit of finding it within 30 seconds of opening a paper.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_rf_hostile",
+        "kind": "scenario",
+        "question": "Hostile reading",
+        "prompt": "You're reading a paper claiming a new attention variant gives 2× efficiency. You're skeptical. What's your three-question checklist before believing the headline?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_rf",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why the 'read three papers a week' discipline matters more than the specific cadence.",
+        "rubric": "Mentions that the regular tempo builds vocabulary and pattern recognition over time; sporadic intense reading produces narrower coverage and less robust intuitions."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Develop a sustainable paper-reading habit.",
+      "Identify the central claim of a paper in under 10 minutes.",
+      "Distinguish strong from weak experimental setups."
+    ],
+    "prereqs": [
+      "interpretability",
+      "alignment-frontier",
+      "emergent-capabilities"
+    ]
+  }
 }

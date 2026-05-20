@@ -1,0 +1,102 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Identify common network failures.",
+      "Reason about timeouts vs retries vs backoff.",
+      "Apply circuit-breaker pattern."
+    ],
+    "prereqs": [
+      "ip-and-tcp",
+      "load-balancing"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The 5 most common network failure modes",
+      "body": "1. **Timeout**: no response within deadline. Caused by network congestion, dropped packets, slow downstream, etc.\n2. **Connection refused**: server reset the connection. Usually means the server isn't listening, or fail-over hasn't completed.\n3. **DNS resolution failure**: name → IP lookup failed. Could be transient (cache flapping) or permanent (record removed).\n4. **TLS handshake failure**: cert expired, hostname mismatch, version mismatch. Often a config bug.\n5. **Partial response**: connection established but stream cuts off. Often middlebox idle-timeout or server crash mid-response.\n\nProduction systems must handle each of these gracefully. Library defaults are often inappropriate for the use case (e.g., infinite timeouts, no retries, unbounded retry budget). Configure them explicitly."
+    },
+    {
+      "kind": "text",
+      "title": "Timeouts: the most-broken default",
+      "body": "Most network libraries default to NO timeout or VERY LONG timeout (~30s or longer). In production, this is wrong: a downstream that's hung 'forever' should free up the calling thread/connection in seconds, not minutes.\n\nGood timeout discipline:\n- **Connect timeout**: ~1-5s. Should be fast; longer means network is broken.\n- **Read timeout**: based on expected response time + safety margin. ~10-30s for an API call.\n- **Total timeout**: end-to-end budget. ~30s for a user-facing request.\n\nEvery network call should have all three explicitly set. The default of 'inf' is the source of countless production hangs — one slow downstream propagates a single user's hang through every dependent service.\n\nProduction tools: deadline propagation (gRPC, Envoy) — the deadline travels with the request through services, ensuring no service waits past the original budget."
+    },
+    {
+      "kind": "text",
+      "title": "Retries + backoff + jitter",
+      "body": "Standard retry pattern (for transient errors): exponential backoff + jitter. Each retry waits a longer base time + random jitter.\n\nExample: base delay 100ms, max 3 retries. Delays: 100ms × 2⁰, 100ms × 2¹, 100ms × 2² = 100, 200, 400ms. Plus jitter 0-100ms.\n\n**Why jitter**: without it, all clients retry at exactly the same time → synchronized retry storms hit the recovering service. Jitter spreads retries.\n\n**Don't retry**:\n- 4xx errors (client mistakes): retries don't help.\n- POST without idempotency key: might cause duplicate side effects.\n- Already-deadline-exceeded requests.\n\n**Do retry**:\n- Connection failures.\n- 5xx errors (transient server issues).\n- Network timeouts (with idempotent operations)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_nf_circuit",
+        "kind": "guided_derivation",
+        "question": "Derive when circuit breakers help",
+        "goal": "Failure rate $p$, retry count $r$, timeout $T$. When does opening the circuit save time?",
+        "steps": [
+          {
+            "prompt": "Without circuit: each call costs $T \\cdot r$ in the failure case (timeout × retries). With $p$ failure rate, expected cost is $T \\cdot r \\cdot p + T_{\\text{normal}} \\cdot (1-p)$. Open circuit immediately returns fast-fail. Saves how much?",
+            "motivation": "Compare expected costs.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Saves $T \\cdot r$ per failed call by short-circuiting before timeout + retries.",
+                "Saves nothing.",
+                "Doubles cost.",
+                "Random benefit."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Circuit-open returns immediately instead of waiting for timeout."
+            ],
+            "reveal": "Saves $T \\cdot r$ per failed call. When $p$ is high, this dominates; when $p$ is low, the savings are small but the circuit closes back quickly."
+          }
+        ],
+        "finalResult": "Circuit breakers: detect persistent failures + stop trying. Open immediately on threshold breach. After a cooldown, half-open (try one request); succeed → close; fail → stay open. Pattern: Netflix Hystrix, Resilience4j, Envoy outlier detection."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_nf_retry",
+        "kind": "multiple_choice",
+        "question": "Your service makes an API call that occasionally returns 503. The current code retries 10 times with no backoff. What's the most likely problem?",
+        "options": [
+          "Not enough retries.",
+          "Retry storms: many clients all retry simultaneously, overwhelming the recovering service.",
+          "Network is slow.",
+          "Service is fine."
+        ],
+        "correctIndex": 1,
+        "explanation": "Aggressive retries without backoff create positive-feedback loops. Service blips → many clients retry immediately → load spikes back to service → service can't recover. Standard pattern: exponential backoff + jitter (random delay) + retry budget (cap on total retries per time window)."
+      },
+      "hints": [
+        "What happens when 1000 clients each retry 10 times immediately on a failure?",
+        "Service that just recovered is hit with 10× normal load.\n"
+      ],
+      "workedSolution": "10 retries without spacing = 10× the load on the recovering service. Multiple clients doing this simultaneously creates a thundering herd. Fix: exponential backoff (50ms, 100ms, 200ms, 400ms, ...) + jitter (random 0-50% multiplier) + max retry budget (e.g., 3 retries max). Modern HTTP clients have this built in (Stripe SDK, AWS SDK).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_nf_cascade",
+        "kind": "scenario",
+        "question": "Cascading failure post-mortem",
+        "prompt": "Service A calls B calls C. C has a bug causing it to time out. Within 30 seconds of the bug deploying, A, B, and C are all down. Walk through the cascade + what circuit-breaker + timeout discipline would have prevented this."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_nf",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why circuit breakers + retries with jitter + per-call deadlines are the universal patterns in production service-to-service communication.",
+        "rubric": "Mentions that without them, transient failures cascade across services via retry storms + thread-pool exhaustion; circuit breakers cap retry overhead per dependency; jitter prevents synchronized storms; deadlines propagate downward, bounding total wait."
+      }
+    }
+  ]
+}

@@ -7,6 +7,53 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: VI iteration count",
+      "body": "$\\gamma = 0.9$, initial error $\\|V_0 - V^*\\|_\\infty = 100$. After $k$ iterations, error $\\leq 0.9^k \\cdot 100$. To get error below $0.01$: $0.9^k < 10^{-4}$, so $k > 4/\\log_{10}(1/0.9) \\approx 88$. Each iteration is one Bellman backup ($O(|S|^2 |A|)$ work), so total compute is bounded. For small MDPs (gridworlds, taxi domain), VI is trivial; for large MDPs it's prohibitive — hence the move to function approximation (DQN)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dprl_contraction",
+        "kind": "guided_derivation",
+        "question": "Derive the contraction of the Bellman operator",
+        "goal": "Show $\\|T V_1 - T V_2\\|_\\infty \\leq \\gamma \\|V_1 - V_2\\|_\\infty$ for the Bellman optimality operator $T V(s) = \\max_a [R + \\gamma P V](s)$.",
+        "steps": [
+          {
+            "prompt": "Write $|TV_1(s) - TV_2(s)| = |\\max_a Q_1(s,a) - \\max_a Q_2(s,a)|$ where $Q_i(s,a) = R + \\gamma \\sum P V_i$. Use the inequality $|\\max f - \\max g| \\leq \\max |f - g|$ (which holds for any two functions of the same argument).",
+            "motivation": "Bound the difference of maxes.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "max_a |Q_1 - Q_2|",
+                "max_a |Q_1(s,a) - Q_2(s,a)|"
+              ]
+            },
+            "hints": [
+              "$|\\max f - \\max g| \\leq \\max |f - g|$ — a standard inequality."
+            ],
+            "reveal": "$|TV_1(s) - TV_2(s)| \\leq \\max_a |Q_1(s,a) - Q_2(s,a)|$."
+          },
+          {
+            "prompt": "Now compute $|Q_1(s,a) - Q_2(s,a)| = |R + \\gamma \\sum_{s'} P V_1(s') - R - \\gamma \\sum_{s'} P V_2(s')|$. Bound by sup-norm.",
+            "motivation": "Cancel $R$, factor $\\gamma$, bound by the worst-case difference.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "gamma ||V_1 - V_2||_inf",
+                "γ · sup_s |V_1(s) - V_2(s)|"
+              ]
+            },
+            "hints": [
+              "$|\\sum_{s'} p(s') (V_1(s') - V_2(s'))| \\leq \\max_{s'} |V_1(s') - V_2(s')|$."
+            ],
+            "reveal": "$|Q_1 - Q_2| \\leq \\gamma \\|V_1 - V_2\\|_\\infty$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\|T V_1 - T V_2\\|_\\infty \\leq \\gamma \\|V_1 - V_2\\|_\\infty}$$\n\nBy Banach's fixed-point theorem, iterating $T$ from any initial $V_0$ converges to the unique fixed point $V^*$ at rate $\\gamma$ per step. Smaller $\\gamma$: faster convergence, but shorter effective planning horizon."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Value iteration",
       "body": "Initialize `V_0(s) = 0` for all states. Then iterate:\n\n$$V_{k+1}(s) = \\max_a \\sum_{s'} P(s'|s,a) \\left[R(s,a,s') + \\gamma V_k(s')\\right]$$\n\nThis is just **applying the optimal Bellman operator `T*`** repeatedly. Each iteration brings `V_k` a factor `γ` closer to `V*` (in sup-norm).\n\n**Convergence rate**: to reach an `ε`-accurate `V*`, you need roughly `log(1/ε) / log(1/γ)` iterations. With `γ = 0.99`, this is ~459 iterations for `ε = 0.01`. With `γ = 0.9`, only ~44 iterations.\n\n**Extracting the policy**: once `V*` is known, the optimal policy is greedy:\n\n$$\\pi^*(s) = \\arg\\max_a \\sum_{s'} P(s'|s,a) \\left[R + \\gamma V^*(s')\\right]$$\n\n**Cost per iteration**: `O(|S|² · |A|)` for the full update (sum over `s'`). Tractable for small MDPs (gridworlds, toy domains); breaks down past a few thousand states. Modern variants use samples + approximation to scale.\n\nValue iteration is the algorithm you should be able to implement in 20 lines. Every modern value-based RL method is a sampled, approximated, parameterized version of it."
     },
@@ -61,6 +108,78 @@
       "kind": "text",
       "title": "What's next",
       "body": "DP solves MDPs when you know the model. In the real world, you don't. The next lesson covers how to learn value functions from samples.\n\nNext: [[temporal-difference]] — Q-learning, SARSA, and how sample-based Bellman updates work.\n\nKey takeaways:\n- Value iteration: iterate the optimal Bellman operator until convergence\n- Policy iteration: alternate evaluation and improvement; fewer outer iterations\n- Both rely on the γ-contraction; both have provable convergence in tabular MDPs\n- DP scales to small MDPs (~thousands of states); past that, use function approximation + sampling\n- Modern deep RL = function approximation + sampled Bellman updates"
+    },
+    {
+      "kind": "text",
+      "title": "Value iteration vs policy iteration",
+      "body": "**Value iteration** (VI): iteratively apply the Bellman optimality operator:\n$V_{k+1}(s) = \\max_a \\sum_{s'} P(s'|s,a)[R + \\gamma V_k(s')]$. Converges to $V^*$ at a contraction rate of $\\gamma$.\n\n**Policy iteration** (PI): alternate two steps. (1) Evaluation: solve $V^\\pi$ exactly for current $\\pi$. (2) Improvement: $\\pi'(s) = \\arg\\max_a Q^\\pi(s, a)$. Converges in finite steps for finite MDPs — typically faster than VI in practice.\n\nVI has the advantage of simplicity (one update rule); PI has the advantage of fewer outer iterations (each one does more work).\n\n**When DP fails**: state space too large to enumerate. Tabular methods are out when |S| > ~$10^7$. Then you need function approximation (Q-learning with neural networks = DQN) — but the convergence guarantees of pure DP are lost. Most modern RL is approximate dynamic programming, with the contraction structure giving heuristic guidance even when guarantees are gone."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_dprl_contract",
+        "kind": "multiple_choice",
+        "question": "Value iteration converges to $V^*$ because the Bellman operator is:",
+        "options": [
+          "Linear in V.",
+          "A $\\gamma$-contraction in the sup-norm.",
+          "Stochastic.",
+          "Symmetric."
+        ],
+        "correctIndex": 1,
+        "explanation": "The Bellman optimality operator $T^*(V) = \\max_a [R + \\gamma P V]$ is a $\\gamma$-contraction in the sup-norm: $\\|T^* V_1 - T^* V_2\\|_\\infty \\leq \\gamma \\|V_1 - V_2\\|_\\infty$. By Banach fixed-point, iterating it from any initial $V_0$ converges to the unique fixed point $V^*$ at rate $\\gamma$."
+      },
+      "hints": [
+        "Contraction mappings have unique fixed points by Banach.",
+        "The $\\gamma$ in the Bellman update appears as the contraction modulus."
+      ],
+      "workedSolution": "The Bellman operator is a $\\gamma$-contraction in sup-norm — the discount factor literally is the contraction modulus. Banach's fixed-point theorem then gives existence + uniqueness of $V^*$ and exponential convergence of the iteration at rate $\\gamma$ per step. Smaller $\\gamma$ → faster convergence but shorter effective planning horizon.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_dprl_steps",
+        "kind": "math_expression",
+        "question": "VI with $\\gamma = 0.9$ needs how many iterations to reduce the sup-norm error by a factor of $10^{-3}$? Use $\\gamma^k \\leq 10^{-3}$. Solve for $k$ (round up).",
+        "acceptedAnswers": [
+          "66",
+          "65.5",
+          "66.0",
+          "67"
+        ],
+        "hint": "$k \\geq \\log(10^{-3})/\\log 0.9$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_dprl_giantmdp",
+        "kind": "scenario",
+        "question": "When tabular VI fails",
+        "prompt": "A maze game has $10^9$ states. A teammate proposes running value iteration. Why is this infeasible, and what's the principled next step that retains the DP structure?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_dprl",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why policy iteration usually converges in fewer iterations than value iteration, even though each PI iteration is more expensive.",
+        "rubric": "Mentions PI's evaluation step solves for V exactly while VI does one Bellman backup; PI makes 'bigger steps' but pays for each one."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish value iteration from policy iteration.",
+      "Implement value iteration on a small MDP.",
+      "Recognize when DP-style methods are infeasible."
+    ],
+    "prereqs": [
+      "value-functions"
+    ]
+  }
 }

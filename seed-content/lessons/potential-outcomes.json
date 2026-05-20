@@ -7,6 +7,53 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: SUTVA violations in vaccination trials",
+      "body": "Vaccine RCT in 2020: vaccinated cohort had ~95% efficacy. But the *unvaccinated* members of treated households also benefited — because they were less likely to catch the disease from a vaccinated household member. This is *spillover*: the treatment of one unit affects the outcomes of others, violating SUTVA's 'no interference' assumption. Modern vaccine trials handle this with cluster-randomization (entire households or cities)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_po_consistency",
+        "kind": "guided_derivation",
+        "question": "Derive the consistency assumption",
+        "goal": "Show that under SUTVA, observed $Y_i = Y_i(T_i)$ — the observed outcome equals the potential outcome under the assigned treatment.",
+        "steps": [
+          {
+            "prompt": "Potential outcomes: $Y_i(0)$ and $Y_i(1)$ — what unit $i$ would experience under each treatment. Observed: $Y_i$. Under SUTVA, $Y_i$ depends only on $T_i$, not on others. So $Y_i = ?$ when $T_i = 1$.",
+            "motivation": "SUTVA: no interference.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Y_i(1)",
+                "Y(1)"
+              ]
+            },
+            "hints": [
+              "Direct substitution."
+            ],
+            "reveal": "$Y_i = Y_i(1)$ when $T_i = 1$."
+          },
+          {
+            "prompt": "Combining the two cases: $Y_i = T_i \\cdot Y_i(1) + (1-T_i) \\cdot Y_i(0) = ?$",
+            "motivation": "Equivalent way to write the conditional.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Y_i(T_i)",
+                "Y_i(T)"
+              ]
+            },
+            "hints": [
+              "Notation: parameterize by $T_i$ as the argument."
+            ],
+            "reveal": "$Y_i = Y_i(T_i)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{Y_i = Y_i(T_i) \\quad \\text{(consistency under SUTVA)}}$$ The fundamental problem: only one potential outcome is ever observed per unit. Causal inference is fundamentally about reconstructing the unobserved counterfactuals from population-level structure."
+      }
+    },
+    {
+      "kind": "text",
       "title": "ATE, ATT, ATC",
       "body": "Since we can't observe individual treatment effects, we work with averages.\n\n**Average Treatment Effect (ATE)**: `E[Y(1) - Y(0)]` over the entire population. \"If we treated everyone, what would the average effect be?\"\n\n**Average Treatment Effect on the Treated (ATT)**: `E[Y(1) - Y(0) | T = 1]` — the effect among those who actually got treated. Useful when treatment isn't randomly assigned.\n\n**Average Treatment Effect on the Controls (ATC)**: `E[Y(1) - Y(0) | T = 0]` — the effect that would have occurred among those who didn't get treated, if they had.\n\nThese are different quantities. They coincide under randomization (the treated and controls are exchangeable). They diverge when treatment assignment depends on features that also affect outcomes."
     },
@@ -64,12 +111,92 @@
         "kind": "explain_back",
         "prompt": "Explain in your own words why we estimate AVERAGE treatment effects (ATE) instead of individual treatment effects, and what the 'fundamental problem of causal inference' means.",
         "rubricCriteria": [
-          { "id": "missing-data-framing", "description": "Frames it as a missing-data problem (observe one of two potential outcomes per unit)" },
-          { "id": "average-rationale", "description": "Explains why averages are estimable but individual effects aren't" },
-          { "id": "consequence", "description": "Names a consequence — e.g., that causal inference always rests on assumptions about unobserved counterfactuals" }
+          {
+            "id": "missing-data-framing",
+            "description": "Frames it as a missing-data problem (observe one of two potential outcomes per unit)"
+          },
+          {
+            "id": "average-rationale",
+            "description": "Explains why averages are estimable but individual effects aren't"
+          },
+          {
+            "id": "consequence",
+            "description": "Names a consequence — e.g., that causal inference always rests on assumptions about unobserved counterfactuals"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "ATE vs ATT vs ATC, made concrete",
+      "body": "Three populations to estimate effects on:\n\n- **ATE** (Average Treatment Effect): $E[Y(1) - Y(0)]$ over the whole population. The effect *if everyone were treated*.\n- **ATT** (Average Treatment effect on the Treated): $E[Y(1) - Y(0) | T = 1]$. The effect *on those who actually got treated*.\n- **ATC** (Average Treatment effect on the Controls): $E[Y(1) - Y(0) | T = 0]$.\n\nDifferent quantities answer different policy questions:\n- ATE → 'should we make this a universal policy?'\n- ATT → 'is what we already did worth it?'\n- ATC → 'should we extend the policy to those who haven't received it?'\n\nIn an RCT, treatment is independent of potential outcomes, so all three are equal (modulo sampling variation). In observational studies, they typically differ, sometimes drastically — the treated population is often self-selected to be the population most likely to benefit, making ATT > ATE.\n\n**SUTVA** (Stable Unit Treatment Value Assumption): unit $i$'s outcome depends only on $i$'s treatment, not on others'. Violated when there's spillover (vaccination, network effects). Most causal frameworks assume SUTVA implicitly."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_po_sutva",
+        "kind": "multiple_choice",
+        "question": "A vaccine RCT shows the vaccine has 90% efficacy. The vaccinated cohort also benefits because unvaccinated members of the same household are less likely to catch the disease from a vaccinated household member. This is most directly a violation of:",
+        "options": [
+          "SUTVA — unit outcomes depend on others' treatments.",
+          "The fundamental problem of causal inference.",
+          "Randomization.",
+          "The exclusion restriction."
+        ],
+        "correctIndex": 0,
+        "explanation": "SUTVA assumes each unit's outcome depends only on its own treatment. Spillover effects (transmission, network effects) break SUTVA. Vaccine trials handle this with cluster-level randomization or by explicitly modeling the spillover; ignoring it makes the ATE estimate biased."
+      },
+      "hints": [
+        "Spillover = unit i's outcome depends on whether unit j was treated.",
+        "Which assumption rules out cross-unit interference?"
+      ],
+      "workedSolution": "SUTVA says $Y_i$ depends only on $T_i$, not on $T_j$ for $j \\neq i$. Spillover violates this directly. Mitigation: cluster-randomize (vaccinate by household, not by individual) and estimate cluster-level effects.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_po_estimand",
+        "kind": "scenario",
+        "question": "Estimand choice",
+        "prompt": "Your team is deciding whether to roll out a new onboarding flow to all new users. You have data from a previous voluntary rollout where 30% opted in. Which estimand (ATE, ATT, ATC) does the leadership question 'should we make it default for everyone?' map to, and which do you have data to estimate well?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_po_ate",
+        "kind": "math_expression",
+        "question": "RCT: 100 treated patients have mean outcome 12.4; 100 controls have mean 10.0. ATE estimate is:",
+        "acceptedAnswers": [
+          "2.4",
+          "2.40",
+          "12.4-10.0"
+        ],
+        "hint": "ATE = mean(Y|T=1) − mean(Y|T=0) in an RCT."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_po",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences the fundamental problem of causal inference and one technique that side-steps it.",
+        "rubric": "Mentions that for each unit only one of Y(1) and Y(0) is ever observed; randomization (or strong observational assumptions) lets you estimate the AVERAGE difference even without observing both per unit."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Define $Y_i(1)$ and $Y_i(0)$ and the fundamental problem of causal inference.",
+      "Compute ATE, ATT, ATC and distinguish them.",
+      "Explain why SUTVA matters."
+    ],
+    "prereqs": [
+      "correlation-vs-causation"
+    ]
+  }
 }

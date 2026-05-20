@@ -7,6 +7,54 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: catastrophic variance of REINFORCE",
+      "body": "Imagine training a policy on a task where each episode returns either $+100$ or $-100$ with equal probability, regardless of the policy. The policy-gradient estimator is $\\nabla \\log \\pi(a) \\cdot G$ where $G = \\pm 100$. Massive variance — gradient flips sign episode to episode.\n\nSubtract a baseline $b = 0$ (the mean return). Now the estimator is the same, no improvement.\n\nSubtract a baseline that's a function of *state*, e.g., the value $V(s)$ that approximates expected return: residual $G - V(s)$ might be small. Now estimator variance drops dramatically.\n\nThis is why every modern policy-gradient method is *actor-critic* (subtracts a learned value baseline). REINFORCE alone is rarely used past textbook examples — variance reduction via baselines is essential."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_pg_reinforce",
+        "kind": "guided_derivation",
+        "question": "Derive the REINFORCE policy-gradient estimator",
+        "goal": "Show $\\nabla_\\theta J(\\theta) = \\mathbb{E}_\\pi[\\nabla_\\theta \\log \\pi(a|s) \\cdot G_t]$.",
+        "steps": [
+          {
+            "prompt": "Objective: $J(\\theta) = \\mathbb{E}_{\\tau \\sim \\pi_\\theta}[R(\\tau)]$. Write the gradient as an expectation. (Hint: $\\nabla \\mathbb{E}_\\pi[f] = \\mathbb{E}_\\pi[\\nabla \\log \\pi \\cdot f]$ — the log-derivative trick.)",
+            "motivation": "Score function estimator.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "E_pi[grad log pi(tau) R(tau)]",
+                "E[∇log π(τ) · R(τ)]"
+              ]
+            },
+            "hints": [
+              "The log-derivative trick: $\\nabla p = p \\nabla \\log p$.",
+              "Apply to $\\nabla \\int p(\\tau) R(\\tau) d\\tau$."
+            ],
+            "reveal": "$\\nabla J = \\mathbb{E}_\\pi[\\nabla \\log \\pi(\\tau) \\cdot R(\\tau)]$."
+          },
+          {
+            "prompt": "Decompose $\\nabla \\log \\pi(\\tau) = \\sum_t \\nabla \\log \\pi(a_t | s_t)$ (since the trajectory's log-probability factorizes over time steps).",
+            "motivation": "Markov structure: each action's policy is independent.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "sum_t grad log pi(a_t|s_t)",
+                "Σ_t ∇ log π(a_t | s_t)"
+              ]
+            },
+            "hints": [
+              "$\\pi(\\tau) = \\prod_t \\pi(a_t | s_t) \\cdot $ env dynamics; log + product → sum."
+            ],
+            "reveal": "$\\nabla \\log \\pi(\\tau) = \\sum_t \\nabla \\log \\pi(a_t | s_t)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\nabla_\\theta J = \\mathbb{E}_\\pi\\left[\\sum_t \\nabla_\\theta \\log \\pi(a_t|s_t)\\,G_t\\right]}$$\n\nThe REINFORCE estimator. Each time step contributes 'how much the log-probability changes when I tweak $\\theta$' times 'how good the resulting return was'. Variance is high because $G$ has high variance; baseline subtraction $G - V(s)$ keeps the estimator unbiased while shrinking variance."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The policy gradient theorem",
       "body": "How do you compute `∇_θ J(θ)` when `J` is an expectation over trajectories whose distribution depends on `θ`?\n\n**Policy gradient theorem** (Sutton 1999):\n\n$$\\nabla_\\theta J(\\theta) = \\mathbb{E}_{\\tau \\sim \\pi_\\theta}\\left[\\sum_t \\nabla_\\theta \\log \\pi_\\theta(a_t | s_t) \\cdot G_t\\right]$$\n\nIn words: the gradient is the expected sum, over time steps, of `∇log π · G_t`. `G_t` is the return-to-go from step `t`.\n\n**Why this works** (a cute derivation):\n\n```\n∇ E_τ[R(τ)] = ∇ ∫ p_θ(τ) R(τ) dτ\n            = ∫ ∇ p_θ(τ) R(τ) dτ\n            = ∫ p_θ(τ) ∇ log p_θ(τ) R(τ) dτ        (log-derivative trick)\n            = E_τ[∇ log p_θ(τ) R(τ)]\n```\n\nAnd `log p_θ(τ) = log p(s_0) + Σ log π_θ(a_t|s_t) + Σ log P(s_{t+1}|s_t,a_t)`. Only the policy term depends on `θ`, so its gradient survives.\n\n**Practical version (REINFORCE)**: sample trajectories `τ` from `π_θ`. Compute the empirical estimator:\n\n```\n∇J ≈ (1/N) Σ_τ Σ_t ∇log π_θ(a_t|s_t) · G_t\n```\n\nUpdate `θ ← θ + α · ∇J`. That's it. The algorithm is one page of code."
     },
@@ -61,6 +109,77 @@
       "kind": "text",
       "title": "What's next",
       "body": "Policy gradients are the engine of modern RL. The next two lessons cover the actor-critic + PPO recipe that's the workhorse for everything from CartPole to RLHF.\n\nNext: [[actor-critic]] — combining policy gradients with a learned value baseline.\n\nKey takeaways:\n- Policy gradient theorem: `∇J = E[∇log π · G]`. Log-derivative trick avoids differentiating through dynamics\n- REINFORCE: simplest policy gradient. Sample trajectories, multiply log-probs by returns, ascent\n- High variance is the dominant problem; baselines + GAE address it\n- GAE: λ-weighted TD residuals. λ=0.95 is the standard recipe\n- Advantage A(s,a) = Q(s,a) - V(s); unbiased, lower-variance signal for policy updates\n- Modern RL (PPO, RLHF) is policy gradient + GAE + clipped surrogate objective"
+    },
+    {
+      "kind": "text",
+      "title": "Why baselines exist",
+      "body": "REINFORCE: $\\nabla J = \\mathbb{E}_\\pi[\\sum_t \\nabla \\log \\pi(a_t | s_t) \\cdot G_t]$ where $G_t = \\sum_{k \\geq t} \\gamma^{k-t} r_k$ is the return-from-$t$.\n\nProblem: $G_t$ has enormous variance (it's a sum of stochastic rewards along a long trajectory). Plug it directly into the gradient and your training is dominated by lucky/unlucky rollouts.\n\n**Baseline subtraction**: replace $G_t$ with $G_t - b(s_t)$ where $b$ is any function of state. The gradient estimator is still unbiased (because $\\mathbb{E}_a[\\nabla \\log \\pi(a) \\cdot b(s)] = 0$), but the variance can be much smaller if $b(s) \\approx V(s)$ — the return relative to baseline tells you whether *this* action was better or worse than the average action from this state.\n\n**Advantage**: $A^\\pi(s, a) = Q^\\pi(s, a) - V^\\pi(s)$. The natural baseline.\n\n**GAE** (Generalized Advantage Estimation): smooths between high-bias TD($n$) returns and low-bias Monte Carlo returns via a $\\lambda$ parameter. The default advantage estimator in PPO."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_pg_baseline",
+        "kind": "multiple_choice",
+        "question": "Subtracting a baseline $b(s)$ from $G_t$ in the policy-gradient estimator is:",
+        "options": [
+          "A variance-reduction technique that keeps the estimator unbiased.",
+          "A bias correction that changes the gradient direction.",
+          "Only valid for the optimal value function.",
+          "Equivalent to using a smaller learning rate."
+        ],
+        "correctIndex": 0,
+        "explanation": "Baseline subtraction is the textbook variance-reduction trick. The expected gradient doesn't change (because $\\mathbb{E}_a[\\nabla \\log \\pi(a) b(s)] = 0$ when $b$ depends only on $s$), but the variance can be much smaller if $b(s)$ tracks the average return. Using $b(s) = V^\\pi(s)$ gives the textbook actor-critic advantage estimator."
+      },
+      "hints": [
+        "Conditional expectation argument: $\\mathbb{E}_a[\\nabla \\log \\pi(a) \\cdot b(s)] = b(s)\\,\\mathbb{E}_a[\\nabla \\log \\pi(a)] = b(s) \\cdot 0$.",
+        "Removing a constant (in $a$) from each term in an expectation doesn't change the expectation."
+      ],
+      "workedSolution": "The estimator $\\nabla \\log \\pi(a) \\cdot (G - b(s))$ has the same expectation as $\\nabla \\log \\pi(a) \\cdot G$ because $\\mathbb{E}_a[\\nabla \\log \\pi(a)] = 0$ (the log-derivative trick). So baselines don't bias the gradient — they just give better-conditioned samples. The optimal variance-reducing baseline is $V^\\pi(s)$ (when $G$ is the return from $s$), motivating actor-critic methods.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_pg_var",
+        "kind": "scenario",
+        "question": "Variance debugging",
+        "prompt": "You train with REINFORCE; loss decreases on average but oscillates wildly. A teammate suggests adding more samples per update. You suggest baseline subtraction. Walk through why the latter is the more principled fix."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_pg_logd",
+        "kind": "math_expression",
+        "question": "$\\pi(a|s)$ is softmax over 4 actions with logits $z = [2.0, 1.0, 0.0, -1.0]$. The probability of action 0 is $e^{2}/Z$ where $Z$ is the softmax denominator. To 3 decimals, $\\pi(0|s) = $?",
+        "acceptedAnswers": [
+          "0.643",
+          ".643",
+          "0.6439"
+        ],
+        "hint": "Compute exp(2)/sum(exp(z))."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_pg",
+        "kind": "explain_back",
+        "prompt": "Explain in three sentences why policy gradients can handle continuous action spaces that Q-learning can't.",
+        "rubric": "Mentions Q-learning needs $\\max_a Q(s,a)$ which is intractable for continuous $a$; policy gradients sample directly from $\\pi(a|s)$ and never need the max."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Derive the REINFORCE policy-gradient estimator.",
+      "Explain why a baseline reduces variance.",
+      "Recognize GAE."
+    ],
+    "prereqs": [
+      "value-functions"
+    ]
+  }
 }

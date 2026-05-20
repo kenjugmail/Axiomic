@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: discovering IOI circuits in GPT-2",
+      "body": "Wang et al. 2022 used activation patching to identify the GPT-2 Small circuit for indirect-object identification ('Mary and John went to the store. Then ___'). Method: run with prompt A ('Mary and John...' → John); run with prompt B ('Bob and John...' → John); patch activations from B into A at each (head, position); observe how the prediction changes. Result: 26 attention heads cooperate to identify the IOI, including 'name-mover' heads, 'duplicate-token' heads, and 'backup' heads. The actual algorithm GPT-2 implements is now understood at the head level — a milestone in mechanistic interp."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_interp_actpatch",
+        "kind": "guided_derivation",
+        "question": "Sketch activation-patching causal evidence",
+        "goal": "Why does swapping activations between two related inputs reveal what activation 'does'?",
+        "steps": [
+          {
+            "prompt": "Run model on input A → output $y_A$. Run on input B → output $y_B$. Now: run on A, but at layer $\\ell$, position $p$, replace the activation with the one from running on B. Output $y_{A \\leftarrow B[\\ell, p]}$. If $y_{A \\leftarrow B[\\ell, p]}$ is closer to $y_B$ than $y_A$ was, what does this tell you?",
+            "motivation": "Counterfactual intervention reveals which activations carry which signal.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "The activation at $(\\ell, p)$ causally encodes information that flows from input to output.",
+                "Inputs A and B are the same.",
+                "The model is broken.",
+                "The intervention is meaningless."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "This is a causal-inference-style experiment: control everything except the one variable."
+            ],
+            "reveal": "If patching the activation at $(\\ell, p)$ from B-context into A-context flips the prediction toward B's output, that activation causally carries the signal that distinguishes A from B."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Activation patching: causal intervention on internal states}}$$ The mechanistic-interp workhorse. Lets you identify exactly which heads, layers, positions are responsible for specific output behavior. The cleanest available evidence for 'this neuron / head does X'."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Methodology — finding a circuit",
       "body": "If you want to find a clean circuit (like induction heads), the recipe roughly is:\n\n**1. Identify a behavior** — something the model does reliably on a specific kind of input. Examples: copying tokens, completing repeated patterns, named-entity disambiguation.\n\n**2. Build an evaluation set** — a few hundred inputs where you know what the right behavior is.\n\n**3. Logit attribution** — for each input, decompose the final logits into contributions from each layer / head. Layers that contribute most to the correct answer are candidates for being 'where the work happens.'\n\n**4. Activation patching (causal mediation)** — replace the activations of one component (head, layer) at a time with its activations from a different input, and measure how much that breaks the behavior. The components whose patching most degrades the behavior are the load-bearing parts.\n\n**5. Verify with ablation** — zero out (or noise out) the candidate components and confirm the behavior disappears. If ablating part X kills the behavior, X is causally responsible.\n\nThe induction-heads paper followed this exact pattern. Steps 3-4 are the workhorses; step 5 is the proof.\n\nTools: TransformerLens (the standard library) implements all of this. Neel Nanda's tutorials walk through the methodology with running code."
     },
@@ -61,6 +96,63 @@
       "kind": "text",
       "title": "What's next",
       "body": "Mech-interp is a slow methodology with a strong long-term value proposition. If you're going into ML research and care about capability claims that survive distribution shift, this is the area to invest in.\n\nResources to go deeper:\n- TransformerLens documentation + Neel Nanda's tutorials\n- Anthropic's transformer-circuits.pub publications\n- ARENA's curriculum (intensive program for mech-interp researchers)\n- The Mechanistic Interpretability discord and Twitter community\n\nKey takeaways:\n- Methodology: identify behavior → logit attribution → activation patching → ablation\n- Sparse autoencoders are the workhorse for finding interpretable features\n- Mech-interp claims are causal and survive distribution shift, unlike behavioral metrics\n- The field is real but slow; frontier-scale full interpretation is far\n\nNext: [[alignment-frontier]] — RLHF, DPO, Constitutional AI, and the harder safety questions."
+    },
+    {
+      "kind": "text",
+      "title": "Mechanistic vs. post-hoc, in one paragraph",
+      "body": "**Post-hoc interpretability**: take a trained model, run it on inputs, derive a summary explanation. SHAP, LIME, attention-weight visualization, integrated gradients. These methods produce 'this feature mattered' explanations that are useful for debugging individual predictions.\n\n**Mechanistic interpretability** (Anthropic, Olah et al.): reverse-engineer the *circuits* inside the model. Identify specific attention heads, MLP neurons, or weight matrices that implement specific algorithms. Goal: understanding so deep you could in principle re-implement the model's algorithm by hand.\n\nFamous mechanistic results:\n- **Induction heads** (Olsson et al. 2022): two attention heads that compose to copy patterns. Implements in-context learning — the substrate of one-shot prompting.\n- **Indirect Object Identification circuit** (Wang et al. 2022): in GPT-2 small, a specific subset of attention heads implements 'Find the IOI'.\n- **Modular addition circuit** (Nanda et al. 2023): a tiny network learns to do mod-N addition via discrete Fourier transforms in the embedding space. The exact algorithm extracted.\n\nThe field's current limit: full-model mechanistic interp scales linearly with model size and decade for ImageNet, decades for GPT-3-scale. Anthropic's recent work focuses on sparse autoencoders + dictionary learning to extract 'features' more scalably; results are promising but not yet showing the full algorithm of a frontier model."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_interp_induction",
+        "kind": "multiple_choice",
+        "question": "Induction heads, the simplest building block of in-context learning, work by:",
+        "options": [
+          "Detecting that a token has appeared before and copying the token that followed it last time.",
+          "Computing arithmetic on token positions.",
+          "Memorizing the training corpus.",
+          "Implementing softmax in a single head."
+        ],
+        "correctIndex": 0,
+        "explanation": "Induction heads are a two-head composition: one head ('previous-token head') puts the previous-token's information into each position; the second head attends from the current token back to positions where THAT previous-token's information matches, then copies the token that came next. The result: when the model sees 'A B ... A', it predicts 'B' — copying the in-context pattern. This is the operational substrate of few-shot prompting."
+      },
+      "hints": [
+        "The hint is in the name: induction = induce from a pattern in context.",
+        "One head writes a previous-token signal; the second matches against it."
+      ],
+      "workedSolution": "Two-head circuit: (1) previous-token head writes 'whatever came before me' into each position's residual stream; (2) induction head attends from the current token to positions where the previous-token information matches the current token, then copies the next-token information. So when sequences contain a repeat-of-pattern, induction heads predict the continuation seen earlier — a primitive form of in-context learning.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_interp_limit",
+        "kind": "scenario",
+        "question": "Honest limits",
+        "prompt": "A teammate proposes using attention-weight visualization to 'explain' a language model's predictions. What's wrong with treating attention as explanation, and what tools would mechanistic interp use instead?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_interp",
+        "kind": "explain_back",
+        "prompt": "Explain in three sentences why mechanistic interpretability is important for alignment, beyond intellectual interest.",
+        "rubric": "Mentions that mechanistic understanding would let us verify whether models have aligned vs deceptive internal motivations, audit for dangerous capabilities, and recover trust in deployed systems beyond behavioral testing — none of which is reliably achievable with post-hoc methods alone."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish mechanistic interpretability from post-hoc attribution.",
+      "Recognize the role of induction heads.",
+      "Reason about the limits of current interpretability."
+    ],
+    "prereqs": [
+      "transformer-deep-dive"
+    ]
+  }
 }

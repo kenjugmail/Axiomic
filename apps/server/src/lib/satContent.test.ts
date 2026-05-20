@@ -84,33 +84,59 @@ describe("SAT seed content (Sprint 74)", () => {
     }
   });
 
-  test("every SAT question has well-formed options + valid correctIndex", () => {
-    // Sprint 75 widened the schema with essay-type questions for
-    // GRE; SAT remains all multiple_choice, so this query joins to
-    // SAT sections only.
+  test("every SAT question has a well-formed variant payload", () => {
+    // Digital-SAT-parity (Phase 7) widened the SAT to include
+    // grid_in and multi_select alongside multiple_choice. Each
+    // variant has its own answer-key shape, validated below.
     const sectionIds = sections.map((s) => s.id);
     if (sectionIds.length === 0) return;
     const qs = db
       .select({
         id: examQuestions.id,
         sectionId: examQuestions.sectionId,
+        type: examQuestions.type,
         optionsJson: examQuestions.optionsJson,
         correctIndex: examQuestions.correctIndex,
+        acceptedAnswersJson: examQuestions.acceptedAnswersJson,
+        correctIndexesJson: examQuestions.correctIndexesJson,
       })
       .from(examQuestions)
       .all()
       .filter((q) => sectionIds.includes(q.sectionId));
     expect(qs.length).toBeGreaterThan(0);
     for (const q of qs) {
-      const opts = JSON.parse(q.optionsJson);
-      expect(Array.isArray(opts)).toBe(true);
-      expect(opts.length).toBeGreaterThanOrEqual(2);
-      expect(opts.length).toBeLessThanOrEqual(6);
-      expect(q.correctIndex).toBeGreaterThanOrEqual(0);
-      expect(q.correctIndex).toBeLessThan(opts.length);
-      for (const o of opts) {
-        expect(typeof o.label).toBe("string");
-        expect(typeof o.text).toBe("string");
+      if (q.type === "multiple_choice") {
+        const opts = JSON.parse(q.optionsJson);
+        expect(Array.isArray(opts)).toBe(true);
+        expect(opts.length).toBeGreaterThanOrEqual(2);
+        expect(opts.length).toBeLessThanOrEqual(6);
+        expect(q.correctIndex).toBeGreaterThanOrEqual(0);
+        expect(q.correctIndex).toBeLessThan(opts.length);
+        for (const o of opts) {
+          expect(typeof o.label).toBe("string");
+          expect(typeof o.text).toBe("string");
+        }
+      } else if (q.type === "grid_in") {
+        expect(q.acceptedAnswersJson).toBeTruthy();
+        const accepted = JSON.parse(q.acceptedAnswersJson!);
+        expect(Array.isArray(accepted)).toBe(true);
+        expect(accepted.length).toBeGreaterThanOrEqual(1);
+        for (const a of accepted) expect(typeof a).toBe("string");
+      } else if (q.type === "multi_select") {
+        const opts = JSON.parse(q.optionsJson);
+        expect(Array.isArray(opts)).toBe(true);
+        expect(opts.length).toBeGreaterThanOrEqual(2);
+        expect(q.correctIndexesJson).toBeTruthy();
+        const correctIxs = JSON.parse(q.correctIndexesJson!);
+        expect(Array.isArray(correctIxs)).toBe(true);
+        expect(correctIxs.length).toBeGreaterThanOrEqual(1);
+        for (const ix of correctIxs) {
+          expect(typeof ix).toBe("number");
+          expect(ix).toBeGreaterThanOrEqual(0);
+          expect(ix).toBeLessThan(opts.length);
+        }
+      } else {
+        throw new Error(`Unexpected SAT question type: ${q.type}`);
       }
     }
   });

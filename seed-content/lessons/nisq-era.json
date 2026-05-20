@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: zero-noise extrapolation in practice",
+      "body": "ZNE applied to a small VQE for $H_2$ molecule ground-state energy. Run the circuit at noise scales $\\lambda = 1, 1.5, 2, 3$ (by stretching gate times or inserting gate-pairs that compose to identity). Fit a linear or exponential extrapolation; evaluate at $\\lambda = 0$. Result: extrapolated energy much closer to chemistry-accurate (within ~1 mHa). Effective on shallow circuits; doesn't scale to deep ones — variance grows with $\\lambda$, error bars eat the signal."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_nisq_zne",
+        "kind": "guided_derivation",
+        "question": "Sketch zero-noise extrapolation",
+        "goal": "Run noisy circuit at scaled noise levels; extrapolate to zero noise.",
+        "steps": [
+          {
+            "prompt": "Measure observable $\\langle O \\rangle$ at noise scales $\\lambda_1 < \\lambda_2 < \\dots$. Fit a model $\\langle O \\rangle(\\lambda)$ + extrapolate to $\\lambda = 0$. What's the assumption?",
+            "motivation": "Smooth dependence of expectation on noise.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$\\langle O \\rangle(\\lambda)$ is smooth + has a well-defined $\\lambda \\to 0$ limit (which is the noiseless expectation).",
+                "$\\langle O \\rangle$ is constant.",
+                "Noise is uniform.",
+                "Circuit is identity."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Need a model that extrapolates from observed to unmeasured."
+            ],
+            "reveal": "Smoothness + extrapolation. Linear or Richardson extrapolation; only good for moderately-noisy circuits — deeper circuits → larger variance → noisier extrapolation."
+          }
+        ],
+        "finalResult": "ZNE = error mitigation, not correction. Cheap (classical post-processing) but doesn't scale to deep circuits. The NISQ-era stopgap before fault-tolerant QEC."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Decoherence + noise sources",
       "body": "**Decoherence**: qubits lose quantum coherence by coupling to the environment. Two characteristic times:\n\n- **T₁ (relaxation time)**: time for |1⟩ to decay to |0⟩. Energy loss to environment. Typical superconducting: ~100 μs.\n- **T₂ (dephasing time)**: time for relative phase information to decay. Often shorter than T₁. Typical superconducting: ~50-200 μs.\n\nGates need to complete well within T₂. Modern superconducting gates take ~10-100 ns; ~1000 gates per coherence time.\n\n**Other noise sources**:\n\n- **Single-qubit gate errors**: ~10^-3 to 10^-4. Limited by control precision.\n- **Two-qubit gate errors**: ~10^-2 to 10^-3. Limited by coupling control.\n- **Measurement errors**: ~10^-2.\n- **Crosstalk**: gates on one qubit affect neighbors.\n- **Leakage**: qubits transition to non-computational states (above |1⟩ for transmons).\n\nTotal error budget: ~few-thousand gates before noise dominates the result. Algorithms must work within this budget."
     },
@@ -69,12 +104,78 @@
         "kind": "explain_back",
         "prompt": "Why is the NISQ era a transitional period rather than a permanent state of quantum computing? What needs to change for quantum computing to deliver broad practical advantage?",
         "rubricCriteria": [
-          { "id": "nisq-limits", "description": "Names NISQ limitations (noise, no QEC, shallow circuits)" },
-          { "id": "fault-tolerance-path", "description": "Articulates need for fault-tolerance + QEC scaling" },
-          { "id": "timeline", "description": "Acknowledges multi-year (5-15 year) timeline to FT-QC" }
+          {
+            "id": "nisq-limits",
+            "description": "Names NISQ limitations (noise, no QEC, shallow circuits)"
+          },
+          {
+            "id": "fault-tolerance-path",
+            "description": "Articulates need for fault-tolerance + QEC scaling"
+          },
+          {
+            "id": "timeline",
+            "description": "Acknowledges multi-year (5-15 year) timeline to FT-QC"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "NISQ + the advantage debate",
+      "body": "**NISQ** (Noisy Intermediate-Scale Quantum, Preskill 2018): the era of 50-1000 physical qubits with error rates around 0.1-1% per gate. Insufficient for fault-tolerant quantum computing (which needs ~$10^6$ qubits), too noisy for long circuits (~100 gates before noise overwhelms signal).\n\n**Error mitigation** vs **error correction**:\n- *Correction*: encode logical qubits redundantly + actively detect/correct errors. Provably scalable but expensive.\n- *Mitigation*: run noisy circuits + post-process classical outputs to extrapolate to zero-noise limit. Cheap but doesn't scale to deep circuits.\n\nMitigation techniques: zero-noise extrapolation (run at multiple noise levels, extrapolate to 0), probabilistic error cancellation (sample classically to invert noise), Clifford data regression, virtual distillation. Practical for ~$10^3$ gate depths; breaks beyond.\n\n**The advantage gap**: classical supercomputers + improved algorithms have repeatedly closed the 'quantum advantage' claims of NISQ devices. Google's 2019 supremacy claim was later argued to be classically tractable. China's Jiuzhang photonic experiments are gravitationally hard to simulate but lack algorithmic application. A practical, application-relevant quantum advantage that classical methods can't match remains elusive.\n\nWhere NISQ might shine first: quantum chemistry (small molecules), quantum simulation of physics systems (lattice models), specific optimization heuristics (QAOA, VQE). 2025 is still early; the field is empirically exploring."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_nisq_em",
+        "kind": "multiple_choice",
+        "question": "Error mitigation techniques (zero-noise extrapolation, probabilistic error cancellation) are:",
+        "options": [
+          "A substitute for error correction at all scales.",
+          "Practical for shallow circuits in the NISQ era but don't scale to arbitrarily-deep computations.",
+          "Only theoretical.",
+          "Worse than no mitigation."
+        ],
+        "correctIndex": 1,
+        "explanation": "Error mitigation extrapolates / inverts noise classically using multiple noisy circuit runs. Cost grows quickly with circuit depth (often exponentially in noise level). Practical for ~$10^3$-gate depths on NISQ hardware. Beyond that, the variance / cost blows up and error correction (with its qubit overhead) becomes the only path forward."
+      },
+      "hints": [
+        "Compare the cost structure: how does each scale with depth?",
+        "Mitigation = classical post-processing on noisy outputs; correction = active redundancy in the quantum state."
+      ],
+      "workedSolution": "Error mitigation: classical post-processing of noisy outputs to extrapolate / invert noise. Cost grows fast with depth (each layer of noise compounds the variance you need to overcome). Works for shallow NISQ circuits. Error correction: active redundancy that scales arbitrarily (below threshold). NISQ uses mitigation because it can't afford correction overhead; fault-tolerant uses correction because mitigation breaks at scale.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_nisq_chem",
+        "kind": "scenario",
+        "question": "Quantum chemistry on NISQ",
+        "prompt": "A team uses a 50-qubit NISQ machine to compute the ground-state energy of a small molecule (H₂O), getting agreement with classical DFT to ~10⁻⁴ Hartree. Why doesn't this prove practical quantum advantage, and what's the operational gap between 'agreement' and 'beats classical methods'?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_nisq",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why the 'quantum advantage' debate keeps shifting.",
+        "rubric": "Mentions that early demonstrations gave specific computations only quantum could do; classical simulators + algorithms then caught up via clever methods (tensor networks, GPUs); each quantum advantage claim must be defended against improving classical baselines, raising the bar over time."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "advanced",
+    "objectives": [
+      "State what NISQ stands for and what era we're in.",
+      "Distinguish error mitigation from error correction.",
+      "Recognize the practical advantage gap."
+    ],
+    "prereqs": [
+      "quantum-error-correction"
+    ]
+  }
 }

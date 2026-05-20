@@ -1,0 +1,128 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "core",
+    "objectives": [
+      "Understand CDN topology + edge caching.",
+      "Distinguish push vs pull CDN.",
+      "Reason about cache-invalidation patterns."
+    ],
+    "prereqs": [
+      "http-and-rest",
+      "dns"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "CDN topology + edge caching",
+      "body": "A CDN (Content Delivery Network) is a globally-distributed set of servers ('edges') that cache content close to users. When a user requests `example.com/asset.png`:\n\n1. DNS routes them to the closest CDN edge (via anycast or geo-DNS).\n2. Edge checks cache: hit → serve from edge (10-30ms). Miss → fetch from origin (50-300ms) + cache + serve.\n\nMajor CDNs (Cloudflare, Fastly, CloudFront) have 100-300+ edge locations globally. Edges in Tokyo, Sydney, Sao Paulo, etc. mean a user anywhere is within ~30ms of an edge.\n\nThe combination of edge caching + far less origin traffic = the primary CDN value proposition. Static assets are cached for 1+ year (with versioned URLs). Dynamic content with shorter TTLs benefits less but still wins via TLS termination + DDoS protection at the edge."
+    },
+    {
+      "kind": "text",
+      "title": "Push vs pull CDN",
+      "body": "**Pull CDN** (default): edges fetch from origin on cache miss. First user in each region pays the slow fetch; rest benefit. Simple ops; works for any HTTP-accessible content. Cloudflare's default, Fastly's default.\n\n**Push CDN**: you proactively push assets to edges before users request them. Better first-byte latency; more complex ops (you manage the push). Used for video streaming (chunks pre-distributed), large software updates.\n\nProduction reality: most sites use pull. Push only when first-request latency is mission-critical OR origin can't handle the spike of first-fetches across regions."
+    },
+    {
+      "kind": "text",
+      "title": "Cache-invalidation patterns",
+      "body": "Three cache-invalidation approaches:\n\n1. **TTL-based**: set a max-age + let it expire naturally. Simple; old content briefly stale.\n2. **Versioned URLs**: `assets/v123/app.js` — change v123 when content changes. Caches infinitely; invalidation = deploy new URL. Used by all modern JS bundlers (Webpack hashes filenames).\n3. **Purge**: explicitly tell CDN 'forget this URL' via API. CDN propagates the purge to all edges (~seconds globally for Cloudflare/Fastly). Used for emergency content updates.\n\nProduction default: versioned URLs for static assets (immutable + cacheable indefinitely) + TTL-based for HTML/dynamic content + explicit purge for the rare emergency."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cdn_hitratio",
+        "kind": "guided_derivation",
+        "question": "Derive cache-hit-ratio impact",
+        "goal": "Origin RTT $T_o$, edge RTT $T_e$. Cache hit ratio $H$. Average latency?",
+        "steps": [
+          {
+            "prompt": "Average latency = $H \\cdot T_e + (1 - H) \\cdot T_o$. For $T_o = 200$ms, $T_e = 30$ms, $H = 0.95$, compute.",
+            "motivation": "Weighted average.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "38.5 ms",
+                "38.5"
+              ]
+            },
+            "hints": [
+              "$0.95 \\cdot 30 + 0.05 \\cdot 200 = 28.5 + 10 = 38.5$."
+            ],
+            "reveal": "Average latency = 38.5ms. Even though most requests are fast edge hits, the 5% origin requests dominate the average if origin is much slower."
+          },
+          {
+            "prompt": "Raise $H$ to 99%: $0.99 \\cdot 30 + 0.01 \\cdot 200 = ?$",
+            "motivation": "Higher cache hit ratio.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "31.7 ms",
+                "31.7"
+              ]
+            },
+            "hints": [
+              "$29.7 + 2 = 31.7$."
+            ],
+            "reveal": "Average drops to 31.7ms. The remaining latency comes mostly from edge serving. Pushing hit ratio higher = smaller marginal gains but always nice."
+          }
+        ],
+        "finalResult": "Cache hit ratio is the leverage point. Raising H from 95% to 99% drops average latency by ~20%. Caching more (longer TTL, better URLs) > making origin faster."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cdn_purge",
+        "kind": "multiple_choice",
+        "question": "You discover a security issue in `app.v123.js` and need to immediately replace it. Best strategy:",
+        "options": [
+          "Deploy a new version `app.v124.js` + update HTML to reference it.",
+          "Issue a CDN purge on `app.v123.js`.",
+          "Wait for TTL to expire.",
+          "Restart all servers."
+        ],
+        "correctIndex": 0,
+        "explanation": "Versioned URL approach: rename to v124 (immutable, never the same URL again) + update HTML to reference it. Users get the new HTML, which references v124. Old v123 is naturally never requested again. No purge needed; no stale cache risk."
+      },
+      "hints": [
+        "What does versioned-URL deployment provide that purging doesn't?",
+        "Immutable URLs = no cache invalidation needed."
+      ],
+      "workedSolution": "Versioned URLs are cache-friendly by design: each version is a different URL. New version = new URL = no cache invalidation needed (the old URL is just abandoned). Purge is for the rare case where you can't change the URL (e.g., dynamic page HTML).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_cdn_hit",
+        "kind": "math_expression",
+        "question": "Edge 20ms, origin 250ms, hit ratio 90%. Avg latency (ms)?",
+        "acceptedAnswers": [
+          "43",
+          "43.0",
+          "43 ms"
+        ],
+        "hint": "$0.9 \\cdot 20 + 0.1 \\cdot 250$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_cdn_thunder",
+        "kind": "scenario",
+        "question": "Origin overload under thundering herd",
+        "prompt": "A viral article on your site causes 100K concurrent users to hit the same edge location with the same URL. The edge has it cached + serves them fine. But you notice origin load spiked anyway. Walk through what likely happened + how to prevent it."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cdn",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why CDNs are valuable for HTTPS sites even beyond caching.",
+        "rubric": "Mentions that CDNs terminate TLS at the edge (~30ms from user); they handle DDoS at scale; they provide WAF (web app firewall); the combined value goes beyond just cached static assets."
+      }
+    }
+  ]
+}

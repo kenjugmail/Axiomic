@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: empirical revenue equivalence test",
+      "body": "Engelbrecht-Wiggans (1988) + many follow-up empirical studies compared first-price + second-price auction revenues in field data. Result: revenues are *approximately* equal across formats, consistent with revenue equivalence under the standard assumptions (private values, risk-neutral bidders, symmetric distribution). Deviations: risk-averse bidders push toward first-price (more revenue); common-value settings push toward English/Japanese (winner's curse mitigation)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_auc_reveq",
+        "kind": "guided_derivation",
+        "question": "Sketch revenue equivalence proof",
+        "goal": "Argument: under IPV + risk neutrality + symmetric, revenue depends only on the rule for who wins + the expected payment by the lowest type.",
+        "steps": [
+          {
+            "prompt": "Myerson's revenue-equivalence theorem rests on what observation? Each bidder $i$ with valuation $v_i$ wins with probability $p_i(v_i)$ + pays expected $m_i(v_i)$. Bayesian incentive compatibility forces a specific form on $m_i$.",
+            "motivation": "Envelope theorem fixes payment up to a constant.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Two mechanisms with the same allocation rule + same payments at the lowest type have the same revenue.",
+                "Always the highest bidder wins.",
+                "Auctions are symmetric.",
+                "Bidders are risk-neutral by assumption."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "The envelope theorem fixes the payment function $m_i$ up to a constant determined by $m_i(\\text{lowest type})$."
+            ],
+            "reveal": "Two mechanisms with the same allocation rule + same lowest-type payments produce identical expected revenue."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Revenue equivalence: same allocation + same lowest-type payment} \\Rightarrow \\text{same revenue}}$$ All four classical auctions allocate to the highest valuation + give zero expected surplus to the lowest type → same revenue. Risk-aversion + common values break the symmetry; that's where mechanisms differ."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Why second-price is special",
       "body": "**The Vickrey auction is truthful**: bidding your true valuation is a *dominant strategy*. No analysis of opponents needed.\n\n**Why**: regardless of what others do:\n- Bidding higher than your valuation: you might win when you wouldn't have, and pay more than the item's worth to you.\n- Bidding lower than your valuation: you might lose when you'd profit.\n- Bidding your true valuation: you win exactly when the second-highest bid is below your valuation, and pay that second-highest bid.\n\nThis is the simplest case of [[vcg-auction]] — Vickrey-Clarke-Groves. VCG generalizes truthfulness to multi-item, multi-attribute auctions.\n\n**English ↔ Vickrey**: in an English auction with private values, dropping out exactly when the price reaches your valuation is optimal. The winning price = second-highest valuation. Same outcome as Vickrey.\n\n**Dutch ↔ first-price**: identical strategically. Bidder accepts at the price they'd have bid in a sealed-bid first-price auction."
     },
@@ -38,12 +73,92 @@
         "kind": "explain_back",
         "prompt": "Why does Myerson's optimal auction add a *reserve price* > 0, even when it sometimes refuses to sell? How does this trade off efficiency vs revenue?",
         "rubricCriteria": [
-          { "id": "reserve-mechanism", "description": "Identifies that a reserve price refuses to sell when the highest bid is below the reserve, foregoing some efficient sales" },
-          { "id": "revenue-gain", "description": "Explains that withholding sometimes raises expected revenue (from buyers willing to bid higher than the reserve), even though some sales are lost" },
-          { "id": "tradeoff", "description": "Explicitly names the tradeoff — Myerson optimal sacrifices efficiency for revenue" }
+          {
+            "id": "reserve-mechanism",
+            "description": "Identifies that a reserve price refuses to sell when the highest bid is below the reserve, foregoing some efficient sales"
+          },
+          {
+            "id": "revenue-gain",
+            "description": "Explains that withholding sometimes raises expected revenue (from buyers willing to bid higher than the reserve), even though some sales are lost"
+          },
+          {
+            "id": "tradeoff",
+            "description": "Explicitly names the tradeoff — Myerson optimal sacrifices efficiency for revenue"
+          }
         ],
         "passingScore": 0.5
       }
+    },
+    {
+      "kind": "text",
+      "title": "Revenue equivalence, the surprising theorem",
+      "body": "Myerson (1981): under standard assumptions (independent private values, risk-neutral bidders, symmetric bidders), ALL four classical auction formats yield the same expected revenue to the seller:\n\n- First-price sealed-bid\n- Second-price sealed-bid (Vickrey)\n- English (ascending open-cry)\n- Dutch (descending open-cry)\n\nThe formats differ in *who bears the strategic complexity* (Vickrey is truthful, first-price requires bid shading). But on average, the seller's revenue is the same.\n\nWhy this isn't intuitive: in second-price, the winner pays the second-highest bid (which is below their valuation). In first-price, the winner pays their own bid (which they've shaded below their valuation). The math turns out to be identical in expectation.\n\nViolations of the assumptions move you to different formats. Risk-averse bidders → first-price beats second-price. Common values (winner's curse) → English beats sealed-bid. Budget constraints → discriminatory formats can beat uniform-price.\n\nReal-world ad auctions have moved from second-price (Vickrey-derived GSP) to first-price as bidders demanded transparency about what they're paying for. The revenue-equivalence math says this shouldn't matter for ad-platform revenue (it doesn't, much) — but transparency is its own goal."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_auc_winner_curse",
+        "kind": "multiple_choice",
+        "question": "The winner's curse occurs in:",
+        "options": [
+          "Independent-private-values auctions where the highest bidder has the highest value.",
+          "Common-value auctions where all bidders have the same true value but different noisy estimates of it.",
+          "Vickrey auctions only.",
+          "Repeated auctions with reputation effects."
+        ],
+        "correctIndex": 1,
+        "explanation": "Winner's curse: in a common-value auction (true value is the same for everyone but each bidder has a noisy estimate), the winner is the bidder who most over-estimated the value. They systematically overpay. The cure: shade your bid downward to account for the conditional expected over-estimation, given that you'll only win when you've over-estimated."
+      },
+      "hints": [
+        "Winner's curse depends on the structure of valuations across bidders, not the auction format alone.",
+        "Independent values vs common values is the key distinction."
+      ],
+      "workedSolution": "Winner's curse arises in common-value auctions: the bidders all want the same item with the same true value, but estimate it with noise. Bidding your point-estimate means you only win when you've over-estimated — guaranteeing post-hoc regret. The cure is to bid the conditional expected value given you'd win (a downward shading), or to participate in formats like English that aggregate information across bids.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_auc_first",
+        "kind": "math_expression",
+        "question": "Symmetric first-price auction, n = 5 bidders, $v \\sim U[0, 1]$. Equilibrium bid $b(v) = ((n-1)/n)\\,v$. For $v = 1.0$, $b(v) = ?$",
+        "acceptedAnswers": [
+          "0.8",
+          "4/5",
+          ".8"
+        ],
+        "hint": "b = (4/5) × 1."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_auc_ad",
+        "kind": "scenario",
+        "question": "Online ad auctions",
+        "prompt": "Google switched its ad auction from second-price (GSP) to first-price in ~2019. Bidders were concerned about transparency. By revenue equivalence, this shouldn't have changed ad revenue much — has it, in practice, and why might or might not it?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_auc",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why an ascending English auction often produces less winner's curse than a sealed-bid first-price auction.",
+        "rubric": "Mentions that the English format aggregates information across bidders as they drop out, giving the remaining bidders a stronger signal about the consensus value; sealed-bid leaves each bidder with only their own estimate."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Compare first-price, second-price, English, and Dutch auctions.",
+      "Apply the revenue-equivalence theorem.",
+      "Recognize the winner's curse and bidder regret."
+    ],
+    "prereqs": [
+      "mechanism-design"
+    ]
+  }
 }

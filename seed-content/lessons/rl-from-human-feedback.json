@@ -7,6 +7,54 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: DPO vs PPO-RLHF",
+      "body": "Direct Preference Optimization (Rafailov et al. 2023) bypasses the explicit reward model + PPO step entirely. The DPO loss is derived to directly optimize policy log-probabilities to match the preference data:\n\n$$L_{\\text{DPO}} = -\\log \\sigma\\left(\\beta \\log \\frac{\\pi_\\theta(y_w | x)}{\\pi_{\\text{ref}}(y_w | x)} - \\beta \\log \\frac{\\pi_\\theta(y_l | x)}{\\pi_{\\text{ref}}(y_l | x)}\\right).$$\n\nNo RL loop. No explicit reward model. Same effective optimization. The math (which we won't fully derive here) shows DPO's objective is equivalent to PPO + KL-penalty against the SFT policy.\n\nDPO has displaced PPO-RLHF in many production pipelines (2023-2024) because it's much simpler to implement + tune. PPO-RLHF still wins on harder cases (long-horizon credit assignment, when reward shaping helps)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_rlhf_bt",
+        "kind": "guided_derivation",
+        "question": "Derive the Bradley-Terry preference model",
+        "goal": "Given a reward function $r$ on responses, show $P(y_1 \\succ y_2) = \\sigma(r(y_1) - r(y_2))$.",
+        "steps": [
+          {
+            "prompt": "Postulate: probability of preferring $y_1$ over $y_2$ is proportional to $e^{r(y_1)}$ vs $e^{r(y_2)}$. Write $P(y_1 \\succ y_2)$ as a softmax over $\\{y_1, y_2\\}$.",
+            "motivation": "Softmax over two items.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "e^r(y1) / (e^r(y1) + e^r(y2))",
+                "exp(r1)/(exp(r1)+exp(r2))"
+              ]
+            },
+            "hints": [
+              "Softmax: probability proportional to exp(reward); normalize over the choices."
+            ],
+            "reveal": "$P(y_1 \\succ y_2) = \\frac{e^{r(y_1)}}{e^{r(y_1)} + e^{r(y_2)}}$."
+          },
+          {
+            "prompt": "Divide numerator + denominator by $e^{r(y_2)}$. What's the resulting form?",
+            "motivation": "Recover the sigmoid.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "e^(r1-r2) / (e^(r1-r2) + 1)",
+                "sigma(r1 - r2)"
+              ]
+            },
+            "hints": [
+              "$e^a / (e^a + 1) = \\sigma(a)$ where $\\sigma$ is the sigmoid.",
+              "Reduce: $\\sigma(r(y_1) - r(y_2))$."
+            ],
+            "reveal": "$P(y_1 \\succ y_2) = \\sigma(r(y_1) - r(y_2))$."
+          }
+        ],
+        "finalResult": "$$\\boxed{P(y_1 \\succ y_2) = \\sigma(r(y_1) - r(y_2))}$$\n\nThe Bradley-Terry model. Training the reward model in RLHF: maximize $\\sum_i \\log \\sigma(r(y_i^+) - r(y_i^-))$ over preference pairs $(y_i^+, y_i^-)$. Direct logistic-regression on the reward differences. Once you have the reward model, PPO (or DPO) optimizes the policy."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Stage 1: Supervised Fine-Tuning (SFT)",
       "body": "Start with a pretrained base LM. SFT fine-tunes it on a curated dataset of high-quality `(prompt, response)` pairs.\n\n**Where the data comes from**: paid annotators write demonstrations (Anthropic's Constitutional AI), instruction datasets like Alpaca / FLAN / OpenAssistant, or careful curation of public conversation data.\n\n**The training objective**: standard next-token prediction on the response tokens, conditional on the prompt.\n\n```\nL_SFT = -E[log p_θ(response | prompt)]\n```\n\n**Why SFT is necessary even with later RL**: the base LM is trained to imitate web text. It doesn't naturally answer questions in a 'helpful assistant' style. SFT teaches the format. PPO + reward model would struggle to find this style from scratch.\n\nTypical SFT recipe: 1-3 epochs over 10K-100K curated examples, learning rate ~1e-5, full fine-tuning (no LoRA) or LoRA depending on compute budget. The result is a model that looks like a helpful assistant — but isn't yet optimized to be one.\n\n**SFT alone gets you 80% of the way there.** If you compare a well-SFTed Llama with the same model after RLHF, the differences are subtle but consistent: the RLHF version refuses better, follows complex instructions better, hallucinates less. Worth doing; not where the magic lives."
     },
@@ -61,6 +109,63 @@
       "kind": "text",
       "title": "The end of the path",
       "body": "RLHF closes the loop: from MDP foundations through value functions, TD learning, policy gradients, actor-critic, PPO, exploration, model-based RL — and finally back to applying PPO at scale to the most-deployed RL system in the world (LLMs).\n\nThe RL toolkit you've built:\n\n- **Value-based**: Q-learning, DQN. Sample-efficient on discrete actions.\n- **Policy-based**: REINFORCE, PPO. Scales to continuous and high-dimensional actions.\n- **Actor-critic**: A2C, PPO, SAC. The modern default — best of both.\n- **Model-based**: Dreamer, MuZero. Sample-efficient when real samples are expensive.\n- **Exploration**: ε-greedy, entropy, RND, intrinsic motivation. The practical wall.\n- **RLHF**: PPO + learned reward model + KL constraint. The frontier alignment recipe.\n\nThis is the last lesson in the reinforcement-learner path. From [[mdp-foundations]] through RLHF, you've covered the full conceptual stack of modern RL.\n\nKey takeaways:\n- RLHF: SFT + reward model + PPO with KL penalty\n- SFT teaches format; RM captures preferences; PPO optimizes\n- KL penalty is the core alignment lever; adaptive β is standard\n- Reward hacking is the dominant failure mode; ensembles + DPO are mitigations\n- DPO sidesteps the RM/PPO complexity for many open-model releases"
+    },
+    {
+      "kind": "text",
+      "title": "RLHF, the three steps",
+      "body": "**Step 1: SFT (Supervised Fine-Tuning)**. Take a pretrained LM. Fine-tune on a small dataset of human-written 'good' responses to instructions. This makes the model 'instruct-followy' but doesn't yet reflect preferences over outputs.\n\n**Step 2: Reward model training**. Collect human preference comparisons (A is better than B). Train a reward model $r_\\phi$ to predict the preference. Bradley-Terry: $P(A \\succ B) = \\sigma(r_\\phi(A) - r_\\phi(B))$.\n\n**Step 3: RL optimization**. Optimize the SFT policy against $r_\\phi$ with PPO + KL penalty against the SFT policy: \n$$J(\\theta) = \\mathbb E_{x \\sim \\pi_\\theta}[r_\\phi(x)] - \\beta \\cdot \\mathrm{KL}(\\pi_\\theta \\,\\|\\, \\pi_{\\text{SFT}}).$$\n\nThe KL term is the load-bearing safety mechanism: stops the policy from drifting too far from sane behavior, which would happen if it tried to maximize the misspecified reward model freely.\n\n**Why preference, not explicit reward**: humans are better at relative judgments ('A is better than B') than at absolute scoring ('A is a 7.4 out of 10'). The reward model translates abundant pairwise preference data into a continuous reward signal RL can use.\n\n**Why RL, not supervised**: supervised learning on positive examples only teaches what good outputs look like; preferences also tell you what's worse. RL against the reward model exploits both signals — pushing probability mass toward better outputs, away from worse ones."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_rlhf_kl",
+        "kind": "multiple_choice",
+        "question": "The KL penalty in RLHF $\\beta \\cdot \\mathrm{KL}(\\pi_\\theta \\| \\pi_{\\text{SFT}})$ exists to:",
+        "options": [
+          "Reduce the policy's entropy.",
+          "Constrain the RL'd policy from drifting too far from the SFT baseline, mitigating reward-model overoptimization.",
+          "Make training faster.",
+          "Encode human preferences directly."
+        ],
+        "correctIndex": 1,
+        "explanation": "The KL penalty keeps the optimized policy close to the SFT (instruction-tuned) baseline. Without it, PPO would maximize the reward model freely and find pathological completions that score high on the proxy but humans dislike. The KL is the textbook Goodhart-mitigation: penalize moving away from the trusted distribution."
+      },
+      "hints": [
+        "RLHF's failure mode is the reward model going off-distribution.",
+        "Which loss term keeps the policy from going where the reward model is unreliable?"
+      ],
+      "workedSolution": "The KL penalty against $\\pi_{\\text{SFT}}$ keeps the policy in a region where the reward model has been trained on representative outputs. Without it, PPO's optimization finds completions that score high on the reward model but are out-of-distribution and often pathological — exactly Goodhart's law. Tuning $\\beta$ trades off reward-model exploitation vs. behavioral drift.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_rlhf_hack",
+        "kind": "scenario",
+        "question": "Reward hacking in RLHF",
+        "prompt": "After RLHF training, the model's outputs are scoring 95th percentile on the reward model but humans rate them as worse than the SFT baseline. Diagnose the failure mode and suggest one mitigation."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_rlhf",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why DPO is sometimes preferred over PPO-RLHF.",
+        "rubric": "Mentions DPO (Direct Preference Optimization) sidesteps the explicit reward model and PPO instability by deriving a closed-form objective directly from preference pairs; simpler implementation, often comparable quality."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "State the three-step RLHF pipeline.",
+      "Explain why preference learning replaces explicit reward.",
+      "Recognize alignment failure modes (reward hacking, mode collapse)."
+    ],
+    "prereqs": [
+      "ppo-trpo"
+    ]
+  }
 }

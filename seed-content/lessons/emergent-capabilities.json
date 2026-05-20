@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: arithmetic accuracy emergence",
+      "body": "Wei et al. 2022 plotted exact-match accuracy on 3-digit addition vs model size. Tiny models: ~0%. Models above ~$10^{10}$ params: jumps to non-trivial. Looked like emergence. Schaeffer et al. 2023 plotted *token-level log-probability of the correct answer*. The curve was smooth. The 'emergence' was an artifact of measuring exact-match (which only counts as success when every digit is right) on a smoothly-improving underlying probability. Same model, smoother metric, smooth curve — no phase transition."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_em_mirage",
+        "kind": "guided_derivation",
+        "question": "Show how exact-match metric creates apparent emergence",
+        "goal": "If per-token correct-probability grows smoothly as $p(N) = \\min(1, c N^\\alpha)$ and answer has $k$ tokens, what does exact-match accuracy look like?",
+        "steps": [
+          {
+            "prompt": "Exact match = all $k$ tokens correct (assuming independence). Probability = $p(N)^k$. What does this curve look like vs $N$?",
+            "motivation": "Power of a power.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Smooth in $N$ but very low until $p(N)$ is close to 1; then rapid rise. Looks like a phase transition even though $p(N)$ is smooth.",
+                "Linear in $N$.",
+                "Constant.",
+                "Decreasing."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "$p(N)^k$ for large $k$ stays near 0 until $p(N)$ is close to 1; then sharply rises."
+            ],
+            "reveal": "Exact match $= p(N)^k$. For large $k$, this stays near 0 even as $p(N)$ grows substantially. Once $p(N) \\to 1$, the exact-match jumps rapidly — looking like emergence even when the underlying probability is smooth."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Exact-match accuracy } = p(N)^k \\Rightarrow \\text{apparent phase transition}}$$ Many 'emergent abilities' are this artifact. Smoother metrics (log-prob, per-token NLL) reveal smooth improvement. The debate matters because policy + safety planning should be grounded in actual capability curves, not metric mirages."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Schaeffer et al. — 'mirage' critique",
       "body": "Schaeffer, Miranda, and Koyejo (NeurIPS 2023, 'Are Emergent Abilities of Large Language Models a Mirage?') made a careful argument: many emergent transitions in published benchmarks are **artifacts of nonlinear metrics**, not the underlying capability.\n\nThe argument:\n\n- Per-token cross-entropy improves smoothly with scale.\n- Multi-step task accuracy = (per-token correctness)^(N steps). For N=4 and per-token accuracy of 0.7, task accuracy is 0.24; per-token 0.9 → task 0.66. Sharp transition from 'bad' to 'good' at the task level despite smooth improvement underneath.\n- If you measure with a metric that *isn't* sharply nonlinear (e.g., per-step partial credit), the curve looks smooth.\n\nImplication: the headline 'X capability emerged at scale Y' may be a measurement artifact. The underlying capability was building gradually; the chosen metric just happened to reach its visibility threshold at Y.\n\nThis doesn't mean 'emergence isn't real.' It means **what we mean by emergence depends on the metric**, and many high-profile emergent claims need re-examination."
     },
@@ -56,6 +91,64 @@
       "kind": "text",
       "title": "What's next",
       "body": "Emergent capabilities is one of the more contested topics in current ML research. The 'mirage' literature has substantially revised the original strong claims; the underlying reality is that capabilities improve smoothly but their practical visibility can change sharply.\n\nKey takeaways:\n- The original 'emergent capabilities' claim was that capabilities appear unpredictably at scale\n- Schaeffer et al. argue many emergent transitions are metric artifacts; underlying capability improves smoothly\n- ICL, CoT, instruction-following, self-correction all show sharp practical transitions\n- For forecasting: smooth underlying capability + sharp deployment thresholds is the right mental model\n\nNext: [[research-frontiers]] — how to read frontier ML papers critically."
+    },
+    {
+      "kind": "text",
+      "title": "The emergence debate",
+      "body": "**Original claim** (Wei et al. 2022, 'Emergent Abilities'): some capabilities (3-digit arithmetic, MMLU sub-tasks) show *phase transitions* with scale — near-zero accuracy at small scale, sharp jumps to non-trivial accuracy past some critical model size. This challenged the smooth-scaling assumption.\n\n**Counter-claim** (Schaeffer et al. 2023, 'Are Emergent Abilities a Mirage?'): the apparent emergence is mostly an artifact of non-smooth metrics (exact-match accuracy). Using smooth metrics (token-level log-likelihood), the underlying skill grows smoothly. The phase-transition is in how we measure, not in the model.\n\n**Synthesis**: both are partially right. Some capabilities (in-context learning, certain reasoning behaviors) do show qualitatively-novel behavior past scale thresholds — these aren't artifacts. Others (the specific number 'capability passes 50% accuracy') are heavily metric-dependent and disappear with smoother metrics.\n\nWhat survives the critique:\n- In-context learning is genuinely a phase change. Below ~10^9 params, models barely use few-shot examples; above, they exploit them strongly.\n- Chain-of-thought helps only above a critical scale (~50B-ish).\n- Tool use, code execution, agent behaviors — these have qualitative phase changes.\n\nThe practical lesson: don't bet predictions on the assumption that today's capabilities curve will continue smoothly. Specific behaviors can appear (or disappear) at scale boundaries; better to test at multiple scales and watch the curves."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_em_metric",
+        "kind": "multiple_choice",
+        "question": "Schaeffer et al.'s critique of 'emergent abilities' argues that:",
+        "options": [
+          "No abilities are emergent.",
+          "Many apparent phase transitions are artifacts of using non-smooth metrics (e.g., exact-match accuracy); using smoother metrics shows continuous improvement.",
+          "Models can't generalize beyond training data.",
+          "Only mathematical tasks show emergence."
+        ],
+        "correctIndex": 1,
+        "explanation": "Schaeffer's argument: if you measure with discrete metrics (binary correctness), a smoothly-improving log-probability mass eventually crosses a threshold and the metric jumps from 0 to non-zero. The 'emergence' is the threshold crossing, not a qualitative model change. Using log-loss or distribution-distance metrics, the same models show smooth improvement. This sharpens but doesn't invalidate the emergence framing — some capabilities (in-context learning) genuinely show qualitative phase changes."
+      },
+      "hints": [
+        "Look at exact-match accuracy vs token-level log-probability for the same task.",
+        "What does a 'metric mirage' look like in scaling curves?"
+      ],
+      "workedSolution": "If a model's per-token log-probability for the correct answer is improving smoothly with scale, but you measure with exact-match accuracy, the metric stays near 0 until the per-token probability crosses ~0.5 across all answer tokens. Then it jumps to non-zero — looking like emergence. Smoother metrics (token NLL, dataset-level perplexity) show the actual smooth improvement. Some emergence (in-context learning) survives this critique; some doesn't.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_em_predict",
+        "kind": "scenario",
+        "question": "Predicting capability",
+        "prompt": "A research director needs to forecast whether a 100B model will solve a task. The 1B model gets 0%, the 7B gets 3%, the 30B gets 8%. Walk through how you'd improve the forecast beyond linear extrapolation, given what we know about emergence."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_em",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why the emergence debate matters for AI safety policy.",
+        "rubric": "Mentions that policy that assumes smooth capability curves can be blindsided by genuine phase changes; conversely, alarm at apparent emergence may be triggered by metric artifacts; resolving which capabilities truly emerge non-smoothly is operationally important for capability forecasting."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish emergence from smooth scaling.",
+      "Critique the 'emergence is real' claim methodologically.",
+      "Recognize when in-context learning hits a phase change."
+    ],
+    "prereqs": [
+      "transformer-deep-dive",
+      "training-dynamics"
+    ]
+  }
 }

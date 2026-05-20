@@ -7,6 +7,54 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: TD(0) on a 5-state walk",
+      "body": "5 states $s_1$ through $s_5$, with $s_5$ terminal giving reward $+1$. All other rewards 0. Random-walk policy: 50/50 left/right.\n\nMC estimate of $V(s_3)$: roll out full episodes, average returns. Each rollout's return is $\\gamma^k$ where $k$ is steps to $s_5$ — variance is high.\n\nTD(0): $V(s_3) \\leftarrow V(s_3) + \\alpha[r + \\gamma V(s_4) - V(s_3)]$. After many updates, $V$ converges to the true values (which decay roughly geometrically from $s_5$ back to $s_1$).\n\nTD is biased (uses bootstrapped value estimates) but much lower variance. MC is unbiased but high variance. The tradeoff defines the bias-variance frontier in value learning."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_td_update",
+        "kind": "guided_derivation",
+        "question": "Derive the TD(0) update as a Bellman-residual gradient step",
+        "goal": "Show TD(0) update is gradient descent on $\\tfrac12 \\mathbb{E}[(r + \\gamma V(s') - V(s))^2]$ — almost.",
+        "steps": [
+          {
+            "prompt": "Treat $V(s)$ as a parameter. Compute $\\partial / \\partial V(s)$ of $\\tfrac12 (r + \\gamma V(s') - V(s))^2$, treating $V(s')$ as a fixed target (no gradient).",
+            "motivation": "Semi-gradient: TD doesn't backpropagate through the target.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-(r + gamma V(s') - V(s))",
+                "V(s) - (r + γ V(s'))"
+              ]
+            },
+            "hints": [
+              "Outer derivative: $2 \\cdot (\\text{residual})$, then $\\cdot$ inner derivative $-1$ (only the $-V(s)$ term involves the parameter).",
+              "The $1/2$ cancels the 2."
+            ],
+            "reveal": "$\\partial L / \\partial V(s) = -(r + \\gamma V(s') - V(s))$."
+          },
+          {
+            "prompt": "Gradient-descent update: $V(s) \\leftarrow V(s) - \\alpha \\cdot \\partial L / \\partial V(s)$. Substitute.",
+            "motivation": "Standard SGD step.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "V(s) + alpha (r + gamma V(s') - V(s))",
+                "V(s) + α(r + γV(s') - V(s))"
+              ]
+            },
+            "hints": [
+              "Negative of a negative is positive."
+            ],
+            "reveal": "$V(s) \\leftarrow V(s) + \\alpha (r + \\gamma V(s') - V(s))$."
+          }
+        ],
+        "finalResult": "$$\\boxed{V(s) \\leftarrow V(s) + \\alpha (r + \\gamma V(s') - V(s))}$$\n\nThe TD(0) update. Called *semi-gradient* because we don't differentiate through $V(s')$ — treating it as a stable target. True-gradient TD methods (residual gradient, etc.) backpropagate but have weaker convergence guarantees. Semi-gradient TD is what every modern RL algorithm uses."
+      }
+    },
+    {
+      "kind": "text",
       "title": "TD vs Monte Carlo",
       "body": "There are two ways to estimate `V^π(s)` from samples:\n\n**Monte Carlo (MC)**: roll out an entire episode from `s`. Compute the actual return `G_t = r_t + γ r_{t+1} + ... + γ^T r_T`. Update:\n\n`V(s) ← V(s) + α · [G_t - V(s)]`\n\nMC is unbiased: `E[G_t | s_t = s] = V^π(s)` exactly. But:\n- High variance (the full return depends on every random draw in the episode).\n- Requires episodes to terminate.\n- Slow updates: only one update per episode for each visited state.\n\n**Temporal difference (TD)**: bootstrap from your own current estimate `V(s')`:\n\n`V(s) ← V(s) + α · [r + γ V(s') - V(s)]`\n\nTD is biased (uses the current, possibly-wrong, `V(s')` as a substitute for the true `V^π(s')`). But:\n- Lower variance (only depends on one transition's randomness).\n- Updates after every step — works in non-terminating environments.\n- Generally converges faster in practice.\n\nThe **bias-variance trade-off** here is fundamental. TD is the modern default; MC is conceptually clean but practically less efficient.\n\n**TD(λ)** interpolates: combine many-step returns weighted by `λ^k`. λ=0 is pure TD; λ=1 is MC; intermediate is a useful middle ground (the foundation of GAE in policy-gradient methods)."
     },
@@ -61,6 +109,77 @@
       "kind": "text",
       "title": "What's next",
       "body": "TD methods are one half of the RL toolkit (the value-based half). The other half is policy gradients — directly parameterizing and optimizing the policy.\n\nNext: [[policy-gradients]] — REINFORCE, the policy gradient theorem, GAE.\n\nKey takeaways:\n- TD(0): single-sample Bellman update. `V(s) ← V(s) + α · [r + γ V(s') - V(s)]`\n- TD vs MC: TD is biased lower variance; MC is unbiased higher variance; TD(λ) interpolates\n- Q-learning: off-policy, bootstrap off `max_a Q(s', a')`\n- SARSA: on-policy, bootstrap off the action actually taken\n- DQN: Q-learning + neural net + experience replay + target network → human-level Atari\n- The 'deadly triad' (FA + bootstrapping + off-policy) is mitigated, not eliminated"
+    },
+    {
+      "kind": "text",
+      "title": "TD: bootstrap + sample",
+      "body": "**Monte Carlo (MC)** estimate of $V(s)$: roll out an entire episode, average the observed returns from $s$. Unbiased; high variance.\n\n**Dynamic programming (DP)** estimate: sweep all states, use the model to compute Bellman backup. Low variance; requires the model.\n\n**Temporal difference (TD)**: combine. After one transition $(s, a, r, s')$, update:\n$V(s) \\leftarrow V(s) + \\alpha [r + \\gamma V(s') - V(s)]$.\n\nThe **TD error** $r + \\gamma V(s') - V(s)$ is the bootstrap signal — it uses the next state's current value estimate as a proxy for the rest of the future. Biased (because V(s') isn't the true value yet) but much lower variance than MC (because we're averaging single steps, not full episodes).\n\n**SARSA** (on-policy): TD with the next action sampled from current policy. $Q(s,a) \\leftarrow Q + \\alpha[r + \\gamma Q(s', a') - Q]$, where $a' \\sim \\pi(\\cdot|s')$.\n\n**Q-learning** (off-policy): TD with the next action's $Q$-value computed by max. $Q(s,a) \\leftarrow Q + \\alpha[r + \\gamma \\max_{a'} Q(s', a') - Q]$. Updates $Q^*$ regardless of which policy generated the data — that's what 'off-policy' buys.\n\nDQN is Q-learning with a neural-network function approximator + experience replay + target networks. It powered the famous Atari results in 2015."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_td_qvs",
+        "kind": "multiple_choice",
+        "question": "Q-learning is 'off-policy' because:",
+        "options": [
+          "It updates toward the greedy action's value regardless of the action actually taken.",
+          "It doesn't use a policy at all.",
+          "It only works for deterministic policies.",
+          "It samples from the optimal policy."
+        ],
+        "correctIndex": 0,
+        "explanation": "Off-policy: the target uses $\\max_{a'} Q(s', a')$ — the *greedy* action — even if the learner's behavior policy took a different action. So Q-learning estimates the optimal Q-function from data generated by any (sufficiently-exploring) policy. SARSA, by contrast, uses the next action actually selected — on-policy."
+      },
+      "hints": [
+        "Compare what Q-learning's target uses vs what SARSA's target uses.",
+        "Off-policy means: target policy ≠ behavior policy."
+      ],
+      "workedSolution": "Q-learning's target is $r + \\gamma \\max_{a'} Q(s', a')$ — the greedy next-action's value, regardless of what the agent actually did next. SARSA's target is $r + \\gamma Q(s', a')$ where $a'$ was actually selected — on-policy. The distinction matters: Q-learning can re-use old data; SARSA can't (without correction).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_td_cliff",
+        "kind": "scenario",
+        "question": "Cliff-walking",
+        "prompt": "A classic gridworld where the optimal path runs along the edge of a cliff. SARSA learns a safer (longer) path; Q-learning learns the optimal (shorter, riskier) path. Walk through why each algorithm produces a different policy in one or two sentences."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_td_update",
+        "kind": "math_expression",
+        "question": "TD update with $\\alpha = 0.1$, current $V(s) = 5$, observed reward 2, next state value $V(s') = 6$, $\\gamma = 1$. Compute new $V(s)$.",
+        "acceptedAnswers": [
+          "5.3",
+          "5+0.1*(2+6-5)",
+          "5.30"
+        ],
+        "hint": "$\\alpha \\cdot (r + \\gamma V(s') - V(s))$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_td",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences the bias-variance tradeoff between MC and TD methods.",
+        "rubric": "Mentions MC is unbiased but high-variance (uses full episode returns); TD is biased (bootstraps from current value estimates) but lower-variance (uses one-step samples)."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "State the TD(0) update and explain why it's 'between' Monte Carlo and DP.",
+      "Distinguish SARSA (on-policy) from Q-learning (off-policy).",
+      "Recognize TD's bias-variance tradeoff vs Monte Carlo."
+    ],
+    "prereqs": [
+      "value-functions"
+    ]
+  }
 }

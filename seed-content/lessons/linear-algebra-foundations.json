@@ -7,6 +7,58 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: a 2×2 rotation",
+      "body": "The matrix $R(\\theta) = \\begin{pmatrix}\\cos\\theta & -\\sin\\theta \\\\ \\sin\\theta & \\cos\\theta\\end{pmatrix}$ rotates 2-D vectors by angle $\\theta$.\n\nApply to $\\mathbf{v} = \\binom{1}{0}$ with $\\theta = 90°$: $R(90°)\\mathbf{v} = \\binom{\\cos 90°}{\\sin 90°} = \\binom{0}{1}$. The x-axis unit vector rotates to the y-axis unit vector — visible from the matrix by reading the first column.\n\nThis 'read the matrix as where it sends the standard basis' trick generalizes: column $j$ of any matrix is the image of basis vector $\\mathbf{e}_j$. Once you internalize this, you can read off what a matrix does geometrically just by looking at its columns."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_la_matvec",
+        "kind": "guided_derivation",
+        "question": "Derive matrix-vector product as column combination",
+        "goal": "Reconstruct $A\\mathbf{x} = \\sum_j x_j \\mathbf{a}_j$ where $\\mathbf{a}_j$ is column $j$ of $A$.",
+        "steps": [
+          {
+            "prompt": "Linear transformation $T$ must be linear: $T(\\mathbf{x} + \\mathbf{y}) = T(\\mathbf{x}) + T(\\mathbf{y})$ and $T(c\\mathbf{x}) = c\\,T(\\mathbf{x})$. So $T$ is determined entirely by its action on which set of vectors?",
+            "motivation": "Linearity lets any input vector be decomposed and transformed component-by-component.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "The standard basis vectors $\\mathbf{e}_1, \\dots, \\mathbf{e}_n$.",
+                "The zero vector only.",
+                "All non-zero vectors.",
+                "Just one specific vector."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Any vector $\\mathbf{x} = \\sum_j x_j \\mathbf{e}_j$.",
+              "Linearity preserves this decomposition under $T$."
+            ],
+            "reveal": "$T$ is determined by $T(\\mathbf{e}_1), \\dots, T(\\mathbf{e}_n)$ — the images of the standard basis."
+          },
+          {
+            "prompt": "Define column $j$ of $A$ as $\\mathbf{a}_j = T(\\mathbf{e}_j)$. Then $T(\\mathbf{x}) = T(\\sum_j x_j \\mathbf{e}_j) = ?$",
+            "motivation": "Distribute $T$ across the sum + the scalars using linearity.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "sum_j x_j a_j",
+                "Σ_j x_j a_j",
+                "x_1 a_1 + x_2 a_2 + ... + x_n a_n"
+              ]
+            },
+            "hints": [
+              "Apply $T(c\\mathbf{x}) = c\\,T(\\mathbf{x})$ inside the sum."
+            ],
+            "reveal": "$T(\\mathbf{x}) = \\sum_j x_j\\,T(\\mathbf{e}_j) = \\sum_j x_j \\mathbf{a}_j$."
+          }
+        ],
+        "finalResult": "$$A\\mathbf{x} = \\sum_{j} x_j\\,\\mathbf{a}_j$$\n\nThat is: $A\\mathbf{x}$ is the linear combination of $A$'s columns weighted by entries of $\\mathbf{x}$. Every other view of matrix multiplication (row-vector form, dot-products, etc.) is equivalent to this."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Direction, not magnitude",
       "body": "Two vectors can be very different in length but point the same way. **Cosine similarity** measures direction alone:\n\n$$\\cos\\theta = \\frac{\\mathbf{a} \\cdot \\mathbf{b}}{\\lVert\\mathbf{a}\\rVert\\,\\lVert\\mathbf{b}\\rVert}$$\n\n- 1 = same direction\n- 0 = perpendicular\n- −1 = opposite\n\nML uses cosine for embeddings because the magnitude of a learned vector is mostly noise — what's meaningful is *which way it points*. The embedding playground above lets you eyeball this geometry on real word vectors.",
       "viz": "embedding-explorer"
@@ -31,6 +83,74 @@
       "kind": "text",
       "title": "Matrix multiplication as a transformation",
       "body": "A matrix is a *linear transformation*. Multiplying $M\\mathbf{x}$ takes the vector $\\mathbf{x}$ and rotates / stretches / shears it according to what $M$ encodes.\n\nIn a transformer's attention, the query, key, and value matrices are each one of these transformations. The model *learns* what direction in embedding space deserves to be called a query, a key, or a value.\n\nThe dot product inside attention is then the question: *how aligned is this query with this key?* — directly the cosine-similarity intuition you just learned, projected through the learned $Q$ and $K$ matrices.\n\nIf you can hold *vectors are arrows* and *matrices are linear transformations of those arrows* in your head, you have most of the linear algebra ML actually uses."
+    },
+    {
+      "kind": "text",
+      "title": "A concrete dot product",
+      "body": "Compute $\\mathbf{a}\\cdot\\mathbf{b}$ for $\\mathbf{a}=(3,\\,0,\\,4)$ and $\\mathbf{b}=(1,\\,2,\\,2)$.\n\nElementwise multiply, then sum: $3{\\cdot}1 + 0{\\cdot}2 + 4{\\cdot}2 = 3 + 0 + 8 = 11$.\n\nThe magnitudes are $\\lVert\\mathbf{a}\\rVert=\\sqrt{9+0+16}=5$ and $\\lVert\\mathbf{b}\\rVert=\\sqrt{1+4+4}=3$, so the cosine similarity is $\\cos\\theta = 11/(5\\cdot 3) = 11/15 \\approx 0.733$.\n\nThat's the entire similarity calculation that runs inside every embedding search engine, per query–document pair."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_la_dot",
+        "kind": "math_expression",
+        "question": "Compute $\\mathbf{a}\\cdot\\mathbf{b}$ for $\\mathbf{a}=(2,\\,-1,\\,3)$ and $\\mathbf{b}=(4,\\,5,\\,1)$.",
+        "acceptedAnswers": [
+          "6",
+          "+6"
+        ],
+        "hint": "Multiply componentwise then sum: 2·4 + (−1)·5 + 3·1."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_la_orthogonal",
+        "kind": "multiple_choice",
+        "question": "Two vectors $\\mathbf{u}$ and $\\mathbf{v}$ have $\\mathbf{u}\\cdot\\mathbf{v}=0$. What does that imply about the angle between them?",
+        "options": [
+          "They point in the same direction.",
+          "They are perpendicular (orthogonal).",
+          "Their magnitudes are equal.",
+          "One of them must be the zero vector."
+        ],
+        "correctIndex": 1,
+        "explanation": "$\\cos\\theta = 0$ ⇔ $\\theta = 90°$. Zero dot product is exactly the geometric notion of perpendicularity."
+      },
+      "hints": [
+        "The dot-product formula is $\\mathbf{u}\\cdot\\mathbf{v}=\\lVert\\mathbf{u}\\rVert\\lVert\\mathbf{v}\\rVert\\cos\\theta$.",
+        "For nonzero vectors the magnitudes are positive — so the cosine must be doing the work."
+      ],
+      "workedSolution": "Set the formula $\\lVert\\mathbf{u}\\rVert\\lVert\\mathbf{v}\\rVert\\cos\\theta = 0$. With both vectors nonzero, $\\cos\\theta$ must be zero, which means $\\theta=90°$. That's exactly the definition of perpendicular.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_la_norm",
+        "kind": "scenario",
+        "question": "Choosing the wrong similarity",
+        "prompt": "A teammate is building a semantic-search index and proposes ranking results by Euclidean distance between embeddings. They argue 'small distance = similar'. Why might this go wrong for ML embeddings, and what would you suggest instead? Give one sentence on each."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_la",
+        "kind": "explain_back",
+        "prompt": "In two sentences, explain what 'matrix as a linear transformation' means, using one concrete example.",
+        "rubric": "Mentions (a) a matrix maps vectors to vectors linearly (preserves scaling + addition) and (b) gives a concrete instance (rotation / scaling / shear / projection / Q/K matrix in attention)."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Read a vector as direction-plus-magnitude and compute a dot product by hand.",
+      "Compute cosine similarity and explain why ML embedding searches use it.",
+      "See matrix multiplication as a linear transformation of vectors."
+    ],
+    "prereqs": []
+  }
 }

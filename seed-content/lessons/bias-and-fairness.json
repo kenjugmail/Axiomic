@@ -7,6 +7,56 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: the COMPAS controversy",
+      "body": "ProPublica's 2016 investigation of COMPAS (a recidivism-risk algorithm) found that Black defendants were *more likely* to be falsely classified as high-risk and *less likely* to be falsely classified as low-risk compared to white defendants. Northpointe (the vendor) responded that COMPAS was *calibrated* — for any given score, the actual recidivism rate was the same across races.\n\nBoth sides were right, just measuring different fairness criteria. The math showed they couldn't simultaneously satisfy both:\n- Equal calibration (predicted = actual) per race,\n- Equal false-positive AND false-negative rates per race.\n\nWhen base rates differ across groups, you can pick which fairness criterion to enforce, but you can't have both. That's the empirical content of the impossibility theorem — and it set off the modern fairness-ML field."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fair_impossible",
+        "kind": "guided_derivation",
+        "question": "Sketch the Chouldechova-Kleinberg impossibility argument",
+        "goal": "Show that for two groups with different base rates of positives, you cannot achieve all of: equal calibration, equal FPR, equal FNR.",
+        "steps": [
+          {
+            "prompt": "Suppose calibration holds: $P(Y = 1 | \\hat Y = s, A = a) = s$ for all groups $a$ and scores $s$. Recall TPR + FNR = 1 within each group. Express FNR in terms of $P(\\hat Y \\leq t | Y = 1, A = a)$.",
+            "motivation": "Definitional.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "P(Y-hat below threshold | Y = 1, A = a)"
+              ]
+            },
+            "hints": [
+              "FNR = false negative rate, conditional on Y = 1."
+            ],
+            "reveal": "$\\text{FNR}_a = P(\\hat Y \\leq t | Y = 1, A = a)$."
+          },
+          {
+            "prompt": "Now apply Bayes to relate this to calibration. Under calibration + equal FPR + equal FNR, derive that the two groups must have equal base rates $P(Y = 1 | A = a)$. Contradiction with different base rates.",
+            "motivation": "The math forces base rates to align if all three criteria hold.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "All three constraints force $P(Y=1|A=a)$ to be the same across groups; contradiction with different base rates.",
+                "Equal FPR alone suffices.",
+                "Calibration alone suffices.",
+                "There's no contradiction."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Algebra produces a system that's overdetermined when base rates differ.",
+              "The full proof requires careful manipulation; the upshot: can't have all three."
+            ],
+            "reveal": "Calibration + equal FPR + equal FNR together force equal base rates. So with different base rates, you must sacrifice at least one criterion."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Calibration} + \\text{Equal FPR} + \\text{Equal FNR} \\Rightarrow \\text{Equal base rates}}$$\n\nWith different base rates across groups, you cannot simultaneously achieve all three fairness criteria. This is a structural fact, not an artifact of any specific model. Practical implication: the engineer has to choose which fairness criterion to enforce — and that's a values choice, not a math one."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Fairness definitions — incompatible by design",
       "body": "Multiple fairness criteria; **most are mutually exclusive** (Chouldechova 2017, Kleinberg 2017). A system can satisfy at most one or two simultaneously when base rates differ across groups.\n\n**Demographic parity (DP)**: prediction rate equal across groups. `P(Ŷ = 1 | A = 0) = P(Ŷ = 1 | A = 1)`. Same approval rate regardless of protected attribute. Used in fair lending compliance.\n\n**Equalized odds (EOd)**: error rates equal across groups. `P(Ŷ = 1 | Y = 1, A = a)` and `P(Ŷ = 1 | Y = 0, A = a)` independent of `a`. Same true-positive and false-positive rates per group.\n\n**Equal opportunity**: weaker than equalized odds. Just true-positive rate equal: `P(Ŷ = 1 | Y = 1, A = a)` independent of `a`. Most useful when the harm is missed-positives (medical screening, loan approvals).\n\n**Calibration by group**: `P(Y = 1 | Ŝ = s, A = a)` independent of `a`. Predicted probabilities mean the same thing in each group.\n\n**Counterfactual fairness**: 'would the model have made the same prediction if the protected attribute had been different, holding other things equal?' Counterfactual question; needs causal model.\n\n**The impossibility theorem**: when base rates differ across groups, calibration + equalized odds can't both hold simultaneously (except in degenerate cases). You have to pick.\n\n**Practical implication**: there's no universally 'fair' model. Fairness is a choice; pick the criterion that matches the deployment context."
     },
@@ -61,6 +111,63 @@
       "kind": "text",
       "title": "End of the applied-stats path",
       "body": "From frequentist foundations through fairness, you've covered the full applied-statistics toolkit for production ML evaluation.\n\nThe path covered:\n- Frequentist foundations (sampling distributions, MLE, bootstrap)\n- Hypothesis testing (p-values, multiple testing)\n- Bayesian inference (priors, MCMC, VI)\n- Experiment design (power analysis, randomization, blocking)\n- A/B testing (sequential testing, HTEs, OEC)\n- Causal inference (counterfactuals, RCTs, observational methods)\n- Uncertainty quantification (calibration, conformal prediction)\n- Bias and fairness (impossibility theorem, mitigation)\n\nFor a team building production ML: invest in this toolkit alongside your modeling skills. Most ML failures in production aren't from bad models; they're from bad evaluation. Applied statistics is what makes evaluation honest.\n\nKey takeaways across the path:\n- ML evaluation is a statistics problem; treat it as one\n- Confidence intervals, multiple testing correction, power analysis are non-negotiable\n- A/B testing requires sequential testing protections; never naively peek\n- Causal claims require RCTs or strong assumptions; observational ML can mislead\n- Calibration + uncertainty estimates are needed for high-stakes decisions\n- Per-group evaluation is the minimum fairness audit\n- The discipline of rigorous evaluation is what separates ML papers that replicate from those that don't"
+    },
+    {
+      "kind": "text",
+      "title": "Three fairness criteria, and why you can't have all three",
+      "body": "**Demographic parity** ($\\hat Y \\perp A$): positive prediction rate is equal across groups $A$. ('We approve loans at the same rate.')\n\n**Equal opportunity** ($\\hat Y \\perp A \\mid Y = 1$): true-positive rate is equal across groups. ('Qualified applicants are approved at the same rate regardless of group.')\n\n**Equalized odds** ($\\hat Y \\perp A \\mid Y$): true-positive AND false-positive rates are equal across groups. ('Both qualified and unqualified are treated the same across groups.')\n\n**Chouldechova / Kleinberg impossibility (2017)**: when the *base rates* differ between groups (Y has different prevalence by group), you cannot simultaneously achieve calibration + equal false-positive rate + equal false-negative rate. Something must give.\n\nThat impossibility is the heart of every consequential fairness debate: COMPAS (recidivism), bank lending, hiring screens. Each project must pick which criterion to enforce — and that's a values question, not a statistical one."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fair_basenote",
+        "kind": "multiple_choice",
+        "question": "A hiring model trained on past data shows equal precision across groups but unequal selection rates. A stakeholder objects to the unequal selection rates. The two facts together imply:",
+        "options": [
+          "The model is broken; precision and selection rate cannot both be correct.",
+          "Different groups have different positive-class base rates in the training data — and you're hitting the fairness impossibility result.",
+          "The model is using sensitive attributes directly.",
+          "The labels are wrong."
+        ],
+        "correctIndex": 1,
+        "explanation": "Equal precision + unequal selection rate is exactly what you get when the predicted-positive base rate differs by group. Without intervention, no model can give you equal precision AND equal selection rate AND calibration when base rates differ — that's the impossibility theorem. You're being asked to pick which fairness criterion to enforce."
+      },
+      "hints": [
+        "This is the classic COMPAS/lending pattern.",
+        "Which fairness criteria are mutually achievable when base rates differ?"
+      ],
+      "workedSolution": "If group base rates differ, equal precision + equal calibration are incompatible with equal selection rate. The pattern in the question (equal precision, unequal selection rate) is the natural outcome when no fairness criterion is enforced and the data has different group base rates. You can move toward demographic parity but you'll trade off precision — the impossibility result makes this concrete.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fair_mitigate",
+        "kind": "scenario",
+        "question": "Choose a mitigation",
+        "prompt": "Your loan-approval model has 85% accuracy overall but a 15-point gap in approval rate between two demographic groups. The legal team requires demographic parity. Discuss two specific algorithmic interventions (pre-, in-, or post-processing) and what each costs you in overall accuracy."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fair",
+        "kind": "explain_back",
+        "prompt": "Explain in three sentences why fairness in ML is a values question, not just a statistical question.",
+        "rubric": "Mentions that the choice of fairness criterion encodes a value judgment (equal opportunity? equal selection?); statistics can only tell you what's *achievable* given data and model class; the impossibility result forces a choice that no math can make for you."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish demographic parity, equal opportunity, and equalized odds.",
+      "Articulate the impossibility result tying these together.",
+      "Recognize the operational difference between bias mitigation strategies."
+    ],
+    "prereqs": [
+      "uncertainty-quantification"
+    ]
+  }
 }

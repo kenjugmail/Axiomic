@@ -1,0 +1,127 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Describe the LSM write path (memtable → SSTable).",
+      "Recognize compaction strategies (leveled vs tiered).",
+      "Apply bloom filters to read amplification."
+    ],
+    "prereqs": [
+      "storage-engines"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "LSM write path, in one paragraph",
+      "body": "Write path:\n1. **WAL** (write-ahead log): durably append to a log on disk. Survives crashes.\n2. **Memtable**: in-memory sorted structure (skiplist or balanced tree). Writes go here first.\n3. **Flush**: when memtable fills (typically ~64MB), it's flushed to an **SSTable** (Sorted String Table) — immutable, sorted file on disk.\n4. **Compaction**: background process merges multiple SSTables into one, removing overwritten/deleted entries.\n\nReads must check the memtable + every SSTable that might contain the key. **Bloom filters** on each SSTable filter out negatives quickly (probabilistic 'definitely not in this file' check).\n\nThe whole stack converts random writes into sequential ones — sequential SSDs are 10× faster than random."
+    },
+    {
+      "kind": "text",
+      "title": "Compaction strategies + write amp tradeoffs",
+      "body": "**Tiered compaction**: when you have $T$ same-size SSTables, merge them into one $T \\times$ larger SSTable. Few compactions but big bursts; lower write amplification (each datum compacted $L$ times); higher space amplification (multiple copies of overlapping data exist before compaction).\n\n**Leveled compaction**: divide SSTables into levels. Level $L_i$ is $T \\times$ larger than $L_{i-1}$. Compaction merges from $L_i$ into $L_{i+1}$ continuously. Higher write amplification (each datum may be compacted $L \\cdot T$ times); lower space amplification (overlap eliminated faster).\n\nRocksDB defaults to leveled. Cassandra defaults to size-tiered. The choice depends on whether write throughput or space efficiency matters more."
+    },
+    {
+      "kind": "text",
+      "title": "Read amplification + bloom filters",
+      "body": "Naive LSM read: check memtable, then every SSTable level by level. Worst case: $O(L \\cdot $ key search$)$ per read.\n\n**Bloom filter**: per-SSTable probabilistic structure that returns 'definitely not present' or 'maybe present'. False-positive rate $\\sim 1\\%$ at ~10 bits per key. Modern LSM stacks use this aggressively — most read queries skip most SSTables via bloom check.\n\nCombined with caching of the top levels (memtable + L0 + L1 are usually in memory), production LSM reads are competitive with B-tree reads. The famous claim 'LSM is bad for reads' is only true for cold caches + no bloom — real configurations don't hit that case."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_lsm_bloom",
+        "kind": "guided_derivation",
+        "question": "Derive bloom filter false-positive rate",
+        "goal": "Bloom filter with $m$ bits + $k$ hash functions. Insert $n$ items. Derive the false-positive probability.",
+        "steps": [
+          {
+            "prompt": "After $n$ insertions, each bit has been flipped to 1 with probability $1 - (1 - 1/m)^{kn} \\approx 1 - e^{-kn/m}$ (since $(1 - 1/m)^m \\to 1/e$). What's the false-positive rate of a query (k hashes lookup the same bit positions)?",
+            "motivation": "Probability all $k$ bits are 1.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(1 - e^{-kn/m})^k",
+                "p^k"
+              ]
+            },
+            "hints": [
+              "FP = chance that all $k$ random bits look set."
+            ],
+            "reveal": "$\\text{FP} \\approx (1 - e^{-kn/m})^k$."
+          },
+          {
+            "prompt": "For optimal $k$ (which minimizes FP for given $m, n$), what's $k$ in terms of $m, n$?",
+            "motivation": "Differentiate w.r.t. $k$ and set to zero.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(m/n) ln 2",
+                "0.693 m/n"
+              ]
+            },
+            "hints": [
+              "$k^* = (m/n) \\ln 2 \\approx 0.693 m/n$."
+            ],
+            "reveal": "$k^* = (m/n) \\ln 2$. At this $k$, FP $\\approx (0.6185)^{m/n}$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{FP} \\approx (1 - e^{-kn/m})^k, \\text{ optimal at } k^* = (m/n) \\ln 2}$$ For 10 bits per key ($m/n = 10$), optimal $k \\approx 7$ hashes, FP $\\approx 1\\%$. Real LSM bloom filters use these defaults. RocksDB allows tuning bits-per-key per workload."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_lsm_bloom",
+        "kind": "multiple_choice",
+        "question": "An LSM table has 100 SSTables. A read query for a non-existent key. Without bloom filters, how many SSTables must be checked?",
+        "options": [
+          "1 — the memtable is enough.",
+          "100 — all of them, since any could contain the key.",
+          "10 — only the top-level SSTables.",
+          "0 — non-existent keys are detected without I/O."
+        ],
+        "correctIndex": 1,
+        "explanation": "Without bloom filters, every SSTable that *could* contain the key must be checked (= all 100, in the worst case where they have overlapping key ranges). Each check is at least 1 I/O. Bloom filters reduce this dramatically: each level's bloom rules out most SSTables with high probability. This is why LSM reads are only fast WITH bloom filters."
+      },
+      "hints": [
+        "The key isn't there. How does the LSM know without checking?",
+        "Without bloom: must read each SSTable's index + leaf. With bloom: probabilistic skip."
+      ],
+      "workedSolution": "Without bloom: must check every SSTable that could overlap. With bloom: ~1% false-positive rate per check means ~1 unnecessary check per 100 SSTables. Combined with the natural sparsity of SSTable key ranges + level structure, real LSM reads typically do 1-2 SSTable lookups + a memtable check.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_lsm_bits",
+        "kind": "math_expression",
+        "question": "Bloom filter: 10 bits/key, optimal $k$. Approximate false-positive rate (3 decimals)?",
+        "acceptedAnswers": [
+          "0.01",
+          "0.0095",
+          "~0.01"
+        ],
+        "hint": "$(0.6185)^{10} \\approx 0.0095$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_lsm_compact",
+        "kind": "scenario",
+        "question": "Compaction stalls",
+        "prompt": "Your RocksDB-backed key-value store is suffering periodic write latency spikes (p99 jumps to 500ms). The team suspects compaction. Walk through how you'd diagnose + what compaction-strategy parameter to tune."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_lsm",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why LSM-tree databases are dominant in cloud-scale write-heavy workloads despite being 'theoretically inferior' to B-trees on point queries.",
+        "rubric": "Mentions that sequential disk I/O is dramatically faster than random; LSM converts random writes to sequential via the memtable + sorted runs; bloom filters keep read amplification low; the throughput win on writes dominates the modest read overhead for write-heavy workloads."
+      }
+    }
+  ]
+}

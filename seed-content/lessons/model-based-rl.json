@@ -7,6 +7,53 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Dreamer's secret",
+      "body": "Hafner et al.'s Dreamer-V3 (2023): a model-based RL agent that learns a world model in latent space, trains a policy purely in imagination, and achieves SOTA on many Atari + DM-Control + Crafter tasks.\n\nKey design: the policy is trained on *short rollouts* (15 imagination steps) from a starting state, with a *learned value function* providing the tail value. So compounding error is bounded — the world model is only used for $H = 15$ steps, after which the value net takes over.\n\nThis pattern (short imagination + value bootstrap) is the modern model-based RL recipe. It bounds compounding error while still benefiting from imagination's sample efficiency. Variants: MuZero (implicit world model, search-based planning), TD-MPC (model-predictive control with a transformer)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mbrl_compound",
+        "kind": "guided_derivation",
+        "question": "Derive a bound on compounding model error",
+        "goal": "If single-step model error has variance $\\sigma^2$, derive how variance grows with horizon $H$.",
+        "steps": [
+          {
+            "prompt": "Single-step error: $\\epsilon_1 \\sim \\mathcal{N}(0, \\sigma^2)$. At step 2, the input is the model's predicted $\\hat s_1$, off by $\\epsilon_1$. The model adds new error $\\epsilon_2 \\sim \\mathcal{N}(0, \\sigma^2)$ on top. Assuming linear-ish dynamics with Lipschitz constant $L$ (gradient bound), what's the variance at step 2?",
+            "motivation": "Errors propagate + accumulate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "L^2 sigma^2 + sigma^2",
+                "σ²(1 + L²)"
+              ]
+            },
+            "hints": [
+              "Variance at step 2 = $L^2 \\cdot \\text{Var}(\\epsilon_1) + \\text{Var}(\\epsilon_2)$."
+            ],
+            "reveal": "$\\text{Var}_2 = L^2 \\sigma^2 + \\sigma^2 = \\sigma^2(1 + L^2)$."
+          },
+          {
+            "prompt": "Continuing the recurrence: $\\text{Var}_H = \\sigma^2 \\sum_{k=0}^{H-1} L^{2k}$. For Lipschitz $L > 1$, this grows geometrically. For Lipschitz $L < 1$, it converges to a bounded value. What's the bound on variance for $L < 1$, $H \\to \\infty$?",
+            "motivation": "Geometric series.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "sigma^2 / (1 - L^2)",
+                "σ²/(1 - L²)"
+              ]
+            },
+            "hints": [
+              "$\\sum_{k=0}^\\infty L^{2k} = 1/(1-L^2)$ for $L < 1$."
+            ],
+            "reveal": "For $L < 1$: $\\text{Var}_\\infty = \\sigma^2/(1 - L^2)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Var}_H = \\sigma^2 \\sum_{k=0}^{H-1} L^{2k}}$$\n\nFor stable dynamics ($L < 1$), variance is bounded. For unstable ($L > 1$), variance explodes geometrically — exactly why long-horizon model-based RL goes off the rails on chaotic systems. Dreamer-V3's trick: cap $H$ at 15 + use a value function for the tail."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The MBRL recipe",
       "body": "Most model-based methods follow a similar template:\n\n```\nrepeat:\n    1. Collect data by running current policy in the real environment.\n    2. Update model: train f(s, a) → s' (and r̂(s, a) → r) on collected transitions.\n    3. Generate synthetic data: roll out f for K steps starting from observed states.\n    4. Update policy/value using BOTH real and synthetic data.\n```\n\nVariants differ in step 3 (how to use the model) and step 4 (which RL algorithm consumes the synthetic data).\n\n**Dyna-style** (Sutton 1991): use the model to generate extra `(s, a, r, s')` transitions; train a model-free Q-learner on the augmented buffer. Simple; effective on tabular problems.\n\n**Model-Predictive Control (MPC)**: at each step, sample many action sequences via the model, evaluate their predicted return, execute the first action of the best sequence. Re-plan every step. Standard for robotics.\n\n**End-to-end planning networks**: combine model + policy + value into one differentiable graph (Dreamer, MuZero). The model is used to compute gradient through future steps.\n\nThe state of the art (Dreamer V3, MuZero) achieves competitive performance on Atari with 5-10× fewer environment samples than PPO/DQN. The cost: more sophisticated machinery, more hyperparameters, more failure modes when the model is wrong."
     },
@@ -61,6 +108,63 @@
       "kind": "text",
       "title": "What's next",
       "body": "Model-based RL is the sample-efficiency frontier. The final lesson in this path bridges back to LLMs: RLHF, where the 'environment' is human preferences.\n\nNext: [[rl-from-human-feedback]] — applying PPO to language models with a learned reward.\n\nKey takeaways:\n- MBRL: learn dynamics model, plan with it. 10-100× sample-efficient on real-world tasks\n- Dyna: use model to augment model-free buffer\n- MPC: re-plan every step with short horizon\n- Dreamer: VAE-style world model + actor-critic on imagined rollouts\n- MuZero: train model for policy/value targets, plan via MCTS\n- Failure mode: model bias. Mitigate with ensembles, pessimism, short horizons\n- Use model-free for cheap-sample environments; MBRL when real-world samples matter"
+    },
+    {
+      "kind": "text",
+      "title": "World models, in one paragraph",
+      "body": "**Model-based RL** learns a model $\\hat P(s'|s,a), \\hat R(s,a,s')$ from experience, then plans within the model.\n\nAdvantages:\n- **Sample-efficient**: planning in imagination is free. Real env steps are expensive (robot, simulator, on-policy data).\n- **Transferable**: a learned dynamics model often generalizes across tasks on the same environment.\n\nDisadvantages:\n- **Model bias**: planning against a slightly-wrong model amplifies errors (compounding model error). Long-horizon plans go off the rails.\n- **Implementation complexity**: you need to learn dynamics, train a policy on it, deal with the policy exploiting model errors.\n\n**Dreamer** (Hafner 2019+): learns a world model in pixel space, trains a policy entirely in imagination. Achieves SOTA on many benchmarks.\n\n**MuZero** (Schrittwieser 2019): learns an *implicit* world model — only the dynamics relevant for value prediction. Beats AlphaZero on Atari + Go without ground-truth game rules.\n\nThe sample-efficiency gap is large. Atari with PPO needs ~$10^8$ env steps; Dreamer needs ~$10^6$. For robotics, where each env step costs minutes, this is the difference between feasible and infeasible."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mbrl_compound",
+        "kind": "multiple_choice",
+        "question": "Compounding model error is:",
+        "options": [
+          "The error in the learned model grows linearly with planning horizon.",
+          "Each one-step prediction error compounds with subsequent steps, leading to exponentially-diverging predicted trajectories.",
+          "Only a problem in stochastic environments.",
+          "Solved entirely by larger neural networks."
+        ],
+        "correctIndex": 1,
+        "explanation": "Compounding error: at each predicted step, you add a small error; the next step starts from that already-wrong state and adds more error. Trajectories diverge faster than linear. This is why model-based RL with long horizons typically uses short rollouts + value bootstrap, rather than pure long imaginary rollouts. Larger networks reduce per-step error but don't eliminate the compounding."
+      },
+      "hints": [
+        "What happens when you chain N noisy one-step predictions?",
+        "Single-step error is small; multi-step error?"
+      ],
+      "workedSolution": "Each predicted step is from a slightly-wrong state, so the next prediction is from a state your model has never properly seen. Errors don't just add — they amplify, often exponentially in horizon. Mitigations: short-horizon rollouts + value-network bootstrap to estimate tail value, ensemble world models for uncertainty estimates, model-predictive control with periodic replanning.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mbrl_robotics",
+        "kind": "scenario",
+        "question": "When model-based wins big",
+        "prompt": "You're learning a manipulation policy on a real robot. Each env step takes 10 seconds. A teammate proposes vanilla PPO. Walk through why a model-based approach is the practical choice, and what tradeoffs you accept."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mbrl",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why MuZero's implicit world model can be more useful than an explicit pixel-perfect predictor.",
+        "rubric": "Mentions that MuZero learns a model in a representation space relevant for value/policy prediction; explicit pixel prediction wastes capacity on visual details irrelevant for decision-making."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish model-based from model-free RL.",
+      "Articulate the sample-efficiency advantage of model-based methods.",
+      "Recognize world-model failure modes."
+    ],
+    "prereqs": [
+      "ppo-trpo"
+    ]
+  }
 }

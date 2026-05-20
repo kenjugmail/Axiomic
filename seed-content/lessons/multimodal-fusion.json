@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Flamingo's gated cross-attention",
+      "body": "Flamingo (DeepMind 2022) added cross-attention layers between a frozen LLM (Chinchilla) and a frozen vision encoder. Critical detail: each cross-attention layer is *gated* — multiplied by tanh($\\alpha$) where $\\alpha$ is a learned scalar initialized to 0. So at init: the cross-attention contributes nothing; the LLM acts as before. As $\\alpha$ trains up, vision information starts flowing. This gating turned out to be load-bearing for stable training with frozen pretrained components."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mf_xattn",
+        "kind": "guided_derivation",
+        "question": "Show cross-attention as querying text from image tokens",
+        "goal": "Cross-attention: $\\text{softmax}(Q_{\\text{txt}} K_{\\text{img}}^T / \\sqrt{d_k}) V_{\\text{img}}$. Explain.",
+        "steps": [
+          {
+            "prompt": "Query Q comes from the text token; Key K + Value V come from image tokens. Output is what?",
+            "motivation": "Output is a weighted combination of image values, weighted by text-image similarity.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Each text token gets a 'image summary' tailored to what it's about — based on which image tokens it attends to most.",
+                "Image tokens are summed.",
+                "Random combination.",
+                "Just text tokens."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Standard attention semantics applied across modalities."
+            ],
+            "reveal": "Each text token attends to image tokens; the output is a text-token-specific image representation. Cross-modal information flow happens per-token."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Cross-attn}(Q_\\text{txt}, K_\\text{img}, V_\\text{img}) = \\text{per-text-token image summary}}$$ The fusion operation underlying every modern VLM. Variants differ in where the cross-attention sits (interleaved with self-attn vs separate blocks) and whether it's gated (Flamingo) or unconditional (LLaVA)."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Late fusion — CLIP",
       "body": "**Late fusion**: separate encoders for each modality; combine only at the very end (typically via dot product in a shared embedding space).\n\nCLIP is the canonical example:\n```\nimage → image_encoder → image_emb (d-dim)\ntext → text_encoder → text_emb (d-dim)\nsimilarity = image_emb · text_emb\n```\n\nThe two encoders never see each other's intermediate features. Each learns a representation; they're aligned only at the embedding level via the contrastive loss.\n\n**Pros**:\n- **Modular**: encoders can be replaced independently.\n- **Indexable**: image embeddings can be precomputed; retrieval at scale is fast (just dot products against text embeddings).\n- **Cheap inference**: each encoder runs once; the comparison is a single multiply.\n\n**Cons**:\n- **No fine-grained alignment**: can't say which part of the image matches which part of the text. The interaction is purely at the global representation level.\n- **Limited reasoning**: 'how many cats are in this image?' is awkward — late fusion captures global semantics, not compositional structure.\n\nBest for: retrieval, zero-shot classification, similarity-based tasks."
     },
@@ -62,6 +97,63 @@
       "kind": "text",
       "title": "What's next",
       "body": "Fusion is the architectural decision. The final lesson covers evaluation — how do you measure whether a multimodal model is any good?\n\nNext: [[multimodal-evaluation]] — VQA benchmarks, hallucination, eval methodology.\n\nKey takeaways:\n- Late fusion (CLIP): independent encoders + similarity. Best for retrieval\n- Early fusion (LLaVA): unified transformer over both modalities. Best for reasoning\n- Cross-attention (Flamingo): image features kept separate; dedicated cross-attention layers. Best for long-context\n- Match architecture to task; don't reach for the most powerful pattern when a simpler one fits\n- Production typically uses hybrid pipelines: CLIP retrieval + VLM reasoning"
+    },
+    {
+      "kind": "text",
+      "title": "Three fusion architectures",
+      "body": "**Early fusion**: concatenate raw inputs / low-level features. Forces the network to learn cross-modal interactions from scratch. Used in older multimodal work; rarely competitive today.\n\n**Late fusion**: separately encode each modality, combine at the final embedding (often by concatenation or averaging). Simple, but loses fine-grained cross-modal interactions. CLIP is essentially late fusion at the contrastive-similarity step.\n\n**Attention-based fusion** (cross-attention): each modality has its own encoder; cross-attention layers let each modality's tokens attend to the other's. Allows fine-grained interaction: 'this image patch is the subject mentioned in word 3'. Dominant in modern VLMs (LLaVA, BLIP-2, Flamingo).\n\nFlamingo's pattern: frozen LLM + frozen vision encoder + small learned cross-attention 'Perceiver' modules. Add minimal parameters; the LLM consumes both text and image tokens; the LLM learns to do visual reasoning via cross-attention to image tokens.\n\nGrounding (the model can point to *which* image region the answer refers to) is generally weaker in late-fusion than in attention-fusion architectures, because the latter has the bandwidth to express region-token correspondences. SAM + LLaVA-style assemblies achieve explicit grounding by stacking specialized models."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mf_cross",
+        "kind": "multiple_choice",
+        "question": "Cross-attention between modalities is more powerful than concatenation because:",
+        "options": [
+          "It's faster.",
+          "It allows fine-grained token-to-token interactions between modalities, not just global combinations.",
+          "It eliminates the need for an image encoder.",
+          "It works without text."
+        ],
+        "correctIndex": 1,
+        "explanation": "Cross-attention lets each text token attend to specific image tokens (and vice versa). The result: 'this word is grounded to this image region', which concatenation can't express. Concatenation just stacks the modalities' final representations together; the model loses access to per-token interactions."
+      },
+      "hints": [
+        "Compare bandwidth: concatenation = one fused vector; cross-attention = N×M token interactions.",
+        "Granularity of cross-modal interaction is the key axis."
+      ],
+      "workedSolution": "Cross-attention provides a token-by-token interaction matrix: text token $i$ can attend to image token $j$, allowing the model to ground specific words to specific regions. Concatenation just stacks the modalities' final pooled representations together — the model can mix them globally but can't make per-token references. Most modern multimodal grounding capabilities come from this cross-attention bandwidth.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mf_groundedness",
+        "kind": "scenario",
+        "question": "Spatial grounding",
+        "prompt": "A VQA model is asked 'which person is wearing a red hat?'. It answers 'the person on the left' correctly, but it can't point to the bounding box. Why is this a fusion-architecture limitation, and what modification would add grounding?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mf",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why late fusion is the simplest but weakest fusion approach for VQA, while end-to-end attention fusion is the most expressive but harder to train.",
+        "rubric": "Mentions that late fusion combines independently-encoded representations and so loses fine-grained correspondences; attention fusion provides token-by-token correspondences but needs much more co-trained data."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish early, late, and attention-based fusion.",
+      "Explain how cross-attention enables modality fusion.",
+      "Recognize alignment vs grounding."
+    ],
+    "prereqs": [
+      "clip-and-vlms"
+    ]
+  }
 }

@@ -7,6 +7,56 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Llama 3 + the Chinchilla retreat",
+      "body": "Llama 3 (2024) was trained on ~15T tokens for the 70B model — about 200 tokens per parameter, vs Chinchilla's 20. Empirically: still improving with more data, contradicting the strict Chinchilla optimum. The shift: 'training compute optimal' isn't the same as 'inference compute optimal'. If you'll serve the model billions of times, spending more on training (over-training relative to Chinchilla) is worth it because inference cost dominates over the model's lifetime. Llama 3, GPT-4, Claude all train past Chinchilla's tokens/param ratio."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_td_chinchilla",
+        "kind": "guided_derivation",
+        "question": "Derive the Chinchilla optimum",
+        "goal": "Given fixed compute $C \\propto N D$ (params × tokens), find $N, D$ that minimize loss $L(N, D) \\propto N^{-\\alpha} + D^{-\\beta}$.",
+        "steps": [
+          {
+            "prompt": "Lagrangian: $\\mathcal{L} = N^{-\\alpha} + D^{-\\beta} + \\lambda (ND - C)$. Set $\\partial / \\partial N = 0$ and $\\partial / \\partial D = 0$. What's the relationship between $N$ and $D$?",
+            "motivation": "First-order conditions.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "alpha N^{-(alpha+1)} = lambda D, beta D^{-(beta+1)} = lambda N",
+                "alpha/N^(alpha+1) = lambda D"
+              ]
+            },
+            "hints": [
+              "Two FOCs; divide them to eliminate $\\lambda$."
+            ],
+            "reveal": "$\\alpha N^{-(\\alpha+1)}/D = \\beta D^{-(\\beta+1)}/N$, i.e., $\\alpha N^{-\\alpha}/D^2 = $ similar."
+          },
+          {
+            "prompt": "Empirical Chinchilla fit: $\\alpha \\approx 0.34, \\beta \\approx 0.28$. Solving (long algebra omitted), optimal $D/N \\approx 20$. What does this mean operationally?",
+            "motivation": "Translate to engineering guidance.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "For each parameter, train on ~20 tokens.",
+                "For each token, train on 20 parameters.",
+                "Token count and parameter count don't matter.",
+                "Token count is fixed."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "$D/N = 20$: tokens per parameter."
+            ],
+            "reveal": "Compute-optimal: ~20 tokens per parameter. 70B model → 1.4T tokens."
+          }
+        ],
+        "finalResult": "$$\\boxed{D^* / N^* \\approx 20 \\text{ tokens/param (Chinchilla)}}$$ The compute-optimal ratio. Modern training (Llama 3, GPT-4) over-trains past this when inference cost dominates lifetime compute."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The healthy loss curve",
       "body": "Healthy training loss is **noisy but trending downward on a moving average**. The noise is intrinsic to SGD — each minibatch's gradient is a noisy estimate of the true gradient, so per-step loss bounces around the trend.\n\nWhat to expect at different scales:\n\n- **Early training** (first ~1% of steps): loss drops fast. The model goes from random initialization to anything-better-than-random in a small fraction of total compute.\n- **Mid-training** (10-50%): slow, steady decline. Power-law-shaped on a log-log plot of loss vs steps.\n- **Late training** (50%+): the curve flattens. Diminishing returns. Most of the final-loss improvement is squeezed from this phase.\n\n**A spike upward** mid-training is normal if it self-corrects within a few hundred steps. A sustained upward trend means something broke — usually a learning rate that's too high or a data issue.\n\n**A plateau early** (loss drops then stalls) usually means the LR is too low for the current model state. This can self-resolve as the LR schedule decays, or it can stall the run permanently if the LR is genuinely too low."
     },
@@ -61,6 +111,63 @@
       "kind": "text",
       "title": "What's next",
       "body": "Reading training dynamics is what separates 'fired up the training script' from 'ran a training experiment.' Once you can read the curves, you can debug runs and run real ablations.\n\nKey takeaways:\n- Healthy loss is noisy but trends down on a moving average\n- Overfitting is a *gap* between train and val, not low train loss\n- Track gradient norm per step + per layer; clip at norm 1.0\n- NaN losses are usually gradient overflow; LR + clipping mitigations\n- Loss plateaus aren't always 'finished training' — could be a bug or capacity issue\n\nNext: [[evaluation-rigor]] — how to evaluate trained models without fooling yourself."
+    },
+    {
+      "kind": "text",
+      "title": "Chinchilla, in one paragraph",
+      "body": "Hoffmann et al. (2022, 'Training Compute-Optimal Large Language Models') ran a sweep over model sizes and dataset sizes, training each to convergence. Result: previous large LMs (GPT-3, Gopher, etc.) were *under-trained* — given their parameter count, they should have been trained on more data.\n\n**Chinchilla's law**: optimal $D \\approx 20 N$ tokens per parameter. A 70B-param model trained on 1.4T tokens would beat the same 70B trained on 300B tokens (which is roughly GPT-3's regime). Equivalently, for fixed compute, the Pareto-optimal point allocates roughly equally to model size and data size.\n\nThe scaling-laws picture has refined since:\n- **Llama 3** trained 70B for ~15T tokens — over-training by Chinchilla's ratio (~200 tokens/param). Empirically: still improves, suggests Chinchilla's law was a local-optimum result on its dataset.\n- **Inference-time compute** (test-time scaling, o1, R1): in 2024-2025 attention shifted to letting the model 'think longer' at inference, which can substitute for some training compute.\n\nFor pre-2024 LLMs, Chinchilla is the right rule of thumb. For 2025+, the picture is more nuanced — the field is actively re-litigating which scaling laws hold and where they break."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_td_lawful",
+        "kind": "multiple_choice",
+        "question": "Hoffmann/Chinchilla scaling laws predict that for fixed compute, the compute-optimal allocation is:",
+        "options": [
+          "All compute on the largest possible model.",
+          "Allocate compute roughly equally between model parameters and training tokens.",
+          "All compute on the longest possible training run.",
+          "Allocate compute to inference, not training."
+        ],
+        "correctIndex": 1,
+        "explanation": "Chinchilla: compute = $N \\cdot D$ (param × tokens), and the optimal allocation roughly balances them. Specifically: optimal $D \\approx 20 N$. Previous Pareto-frontier was undertrained; bigger model with less data lost to smaller model with more data. (2024-2025 results have shifted parts of this picture but Chinchilla remains the textbook starting point.)"
+      },
+      "hints": [
+        "Compute = N × D; what allocation minimizes loss for fixed total?",
+        "The headline number is 'about 20 tokens per param'."
+      ],
+      "workedSolution": "Chinchilla's empirical sweep showed loss as a function of N and D has a saddle structure: for fixed compute $C \\sim ND$, the optimal $D / N$ is roughly 20. So a 70B model wants ~1.4T tokens. Past papers' large models were typically over-sized + under-trained relative to this; Chinchilla itself (smaller than Gopher but trained longer) outperformed Gopher on standard benchmarks.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_td_loss",
+        "kind": "scenario",
+        "question": "Diagnose a loss curve",
+        "prompt": "You're training a 7B model. Training loss is decreasing smoothly but validation loss has plateaued for 50k steps. Walk through the most likely causes (overfitting, data exhaustion, learning rate) and what you'd check first."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_td",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why the inference-time-compute scaling laws (o1-style) might be a fundamentally different regime than train-time scaling laws.",
+        "rubric": "Mentions that train-time scaling reduces loss across all data, while inference-time scaling spends compute on individual hard examples; the tradeoff structure is different."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "advanced",
+    "objectives": [
+      "Read a loss curve and diagnose three common failure modes.",
+      "Apply Chinchilla / Hoffmann scaling intuition.",
+      "Recognize the 'compute-optimal' regime."
+    ],
+    "prereqs": [
+      "optimization-fundamentals"
+    ]
+  }
 }

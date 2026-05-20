@@ -7,6 +7,38 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: edge detection via Sobel filter",
+      "body": "The 3×3 Sobel-x kernel $[[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]]$ approximates the horizontal derivative of an image. Convolve with an image → strong responses at vertical edges. Combine with Sobel-y (transpose) and take magnitude → all edges. This is a *hand-designed* convolutional feature. Modern CNNs learn similar filters in the first layer (visualizations consistently show edge-detector-like kernels emerge), confirming that the convolutional inductive bias matches natural-image statistics."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_img_conv",
+        "kind": "guided_derivation",
+        "question": "Derive the output size of a 2D convolution",
+        "goal": "Input $H \\times W$, kernel $k \\times k$, stride $s$, padding $p$. Output spatial dim?",
+        "steps": [
+          {
+            "prompt": "Number of kernel positions along $H$ axis: starting at position 0, ending at $H + 2p - k$. With stride $s$: positions $0, s, 2s, \\dots$. How many positions fit?",
+            "motivation": "Count.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(H + 2p - k)/s + 1",
+                "floor((H+2p-k)/s) + 1"
+              ]
+            },
+            "hints": [
+              "$\\lfloor (H + 2p - k)/s \\rfloor + 1$."
+            ],
+            "reveal": "$H_{\\text{out}} = \\lfloor (H + 2p - k)/s \\rfloor + 1$."
+          }
+        ],
+        "finalResult": "$$\\boxed{H_{\\text{out}} = \\lfloor (H + 2p - k)/s \\rfloor + 1}$$ The most-quoted formula in computer vision. Common cases: stride 1 + padding $(k-1)/2$ → same dim. Stride 2 → half the spatial dim. Modern ResNet-like blocks pattern: same-conv → stride-2 conv → repeat."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Convolutions: the local-receptive-field operation",
       "body": "A **convolution** slides a small filter (typically 3×3 or 5×5) across the image, computing a dot product between the filter weights and the local pixel patch at each location.\n\n```\nFor each output position (i, j):\n    output[i, j] = Σ_{di, dj} filter[di, dj] · input[i+di, j+dj]\n```\n\n(Plus a bias and possibly a stride or dilation.) For multi-channel: the filter has shape `(C_in, kH, kW)`; you produce `C_out` output channels by stacking `C_out` filters.\n\n**Why convolutions for images**:\n\n1. **Translation equivariance**: a feature in the top-left of the image is recognized the same as a feature in the bottom-right. Same filter applied everywhere.\n2. **Parameter efficiency**: a 3×3 filter has 9 parameters per channel vs 224×224=50k parameters per channel for a fully-connected layer.\n3. **Local structure**: nearby pixels are correlated; a small filter captures that locality.\n\nStacking convolutions builds a hierarchy: early layers detect edges, mid layers detect textures, later layers detect parts/objects. This is the core inductive bias of CNNs.\n\nMatmul-equivalent reformulation: convolutions can be expressed as matmul via `im2col`. This is what makes them GPU-friendly — they're matmul under the hood."
     },
@@ -40,6 +72,74 @@
       "kind": "text",
       "title": "What's next",
       "body": "Image foundations are the substrate. Next lesson: vision transformers — the modern non-text-LLM architecture.\n\nNext: [[vision-transformers]] — patch embeddings, ViT architecture, why it works.\n\nKey takeaways:\n- Images are tensors `(C, H, W)` per item, `(B, C, H, W)` for a batch\n- Convolutions exploit translation equivariance + locality; weight sharing is the parameter win\n- Standard CNN block: conv → norm → activation → maybe-pool, repeat with residuals\n- CNNs dominated 2015-2020; ViTs took over at scale\n- The trade-off: CNN inductive bias is a regularizer at small scale, a constraint at large scale"
+    },
+    {
+      "kind": "text",
+      "title": "Convolution output dimensions",
+      "body": "For a 2D convolution with input dimension $H_{in}$, kernel $k$, stride $s$, padding $p$, dilation $d$:\n\n$$H_{out} = \\left\\lfloor \\frac{H_{in} + 2p - d(k-1) - 1}{s} \\right\\rfloor + 1.$$\n\nMost common case: $d = 1$, $s = 1$, $p = (k-1)/2$ (same-padding). Result: $H_{out} = H_{in}$ for odd $k$. That's what 'same convolution' means.\n\nDownsampling: $s = 2$ halves the spatial dimension. ResNet stages alternate between same-stride and stride-2 convs to build a pyramid of feature maps.\n\nWhy stride 2 instead of pool-then-conv? Computationally the same; stride 2 fits the convolution as the downsampling operation, simpler. Modern architectures (ResNet, ConvNeXt) mostly use strided convs."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_img_out",
+        "kind": "multiple_choice",
+        "question": "Input 32×32, kernel 3, stride 2, padding 1, dilation 1. Output spatial dimension is:",
+        "options": [
+          "32",
+          "17",
+          "16",
+          "15"
+        ],
+        "correctIndex": 2,
+        "explanation": "$(32 + 2 - 2 - 1)/2 + 1 = 31/2 + 1 = 15 + 1 = 16$. Stride 2 with the standard 3×3 kernel + padding 1 halves the spatial dimension. This is the standard downsampling pattern."
+      },
+      "hints": [
+        "Use $H_{out} = \\lfloor (H_{in} + 2p - d(k-1) - 1)/s \\rfloor + 1$.",
+        "Plug in: $H_{in}=32, p=1, d=1, k=3, s=2$."
+      ],
+      "workedSolution": "$(32 + 2 - 2 - 1)/2 + 1 = 31/2 + 1 = 15.5 + 1$. Floor: $15 + 1 = 16$. So a stride-2 conv with the standard padding halves spatial dim from 32 to 16. The pattern '/2 per stage' built ResNet's pyramid.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_img_conv",
+        "kind": "math_expression",
+        "question": "Input 64, kernel 5, stride 1, padding 2, dilation 1. Output:",
+        "acceptedAnswers": [
+          "64",
+          "64.0"
+        ],
+        "hint": "Same-padding: $p = (k-1)/2$ exactly."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_img_channels",
+        "kind": "scenario",
+        "question": "Channel ordering bug",
+        "prompt": "A teammate's PyTorch model expects (N, C, H, W); a teammate's TensorFlow model expects (N, H, W, C). They share a dataset loader; results look weird. What's the bug and how do you spot it?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_img",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why convolutional networks are translation-equivariant but not rotation-equivariant by default.",
+        "rubric": "Mentions that the convolution operation slides the same kernel across spatial dimensions (translation equivariance) but doesn't rotate the kernel; specialized architectures (group equivariant CNNs, capsule nets) add rotation equivariance explicitly."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Read image tensor shapes (C, H, W) vs (H, W, C).",
+      "Compute output dimensions of a convolution.",
+      "Distinguish stride, padding, dilation."
+    ],
+    "prereqs": []
+  }
 }

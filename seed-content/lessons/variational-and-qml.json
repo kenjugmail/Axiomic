@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: parameter-shift gradients in VQE",
+      "body": "VQE optimizes a parameterized circuit by computing gradients via the parameter-shift rule: $\\partial \\langle H \\rangle / \\partial \\theta_i = \\frac{1}{2}[\\langle H \\rangle_{\\theta_i + \\pi/2} - \\langle H \\rangle_{\\theta_i - \\pi/2}]$. Exact gradient with two circuit evaluations per parameter — no finite-difference noise amplification. Used in essentially every VQE / QAOA / QML training loop. Limitation: per-parameter cost scales linearly; for large parameter counts, this is expensive."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_vqml_pshift",
+        "kind": "guided_derivation",
+        "question": "Derive the parameter-shift rule for $R(\\theta) = e^{-i\\theta G/2}$ with $G^2 = I$",
+        "goal": "Show $\\partial \\langle H \\rangle / \\partial \\theta = (1/2)[\\langle H \\rangle_{\\theta + \\pi/2} - \\langle H \\rangle_{\\theta - \\pi/2}]$.",
+        "steps": [
+          {
+            "prompt": "$R(\\theta) = \\cos(\\theta/2) I - i\\sin(\\theta/2) G$ (using $G^2 = I$). The expectation $\\langle H(\\theta) \\rangle$ is a sum of $\\cos(\\theta), \\sin(\\theta)$ terms. Its derivative w.r.t. $\\theta$ is a sum of $-\\sin, \\cos$ — i.e., still a sinusoid. Why does $(1/2)[\\langle H \\rangle_{\\theta+\\pi/2} - \\langle H \\rangle_{\\theta - \\pi/2}]$ give the exact derivative?",
+            "motivation": "Trig identity.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$\\sin(\\theta + \\pi/2) - \\sin(\\theta - \\pi/2) = 2\\cos\\theta$; same for cosine in the right ratio. Two-point sampled difference exactly equals the derivative for sinusoidal functions.",
+                "Numerical finite difference.",
+                "Approximation only.",
+                "Random."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Use angle-addition formulas."
+            ],
+            "reveal": "$\\sin(\\theta + \\pi/2) - \\sin(\\theta - \\pi/2) = 2\\cos\\theta$ — exact derivative of $\\sin$. Similarly for $\\cos$. The shift rule gives exact gradient with NO approximation, in just 2 circuit evaluations."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\partial_\\theta \\langle H \\rangle = (1/2)[\\langle H \\rangle_{\\theta+\\pi/2} - \\langle H \\rangle_{\\theta-\\pi/2}]}$$ The parameter-shift rule. Exact, not finite-difference. Applies to any gate of the form $e^{-i\\theta G/2}$ where $G^2 = I$ (Pauli rotations). Generalized parameter-shift handles more complex gates."
+      }
+    },
+    {
+      "kind": "text",
       "title": "VQE — Variational Quantum Eigensolver",
       "body": "**VQE** (Peruzzo et al. 2014): find ground-state energy of a Hamiltonian `H`.\n\n**Procedure**:\n1. Choose ansatz `U(θ)` (hardware-efficient or chemistry-inspired).\n2. Prepare `|ψ(θ)⟩ = U(θ)|0⟩^n`.\n3. Measure `⟨ψ(θ)|H|ψ(θ)⟩` (decompose `H` into Pauli strings; measure each).\n4. Update `θ` to minimize the energy.\n5. Repeat.\n\n**Use case**: quantum chemistry. Find ground-state energies of molecules.\n\n**Demonstrated molecules**: H₂, LiH, BeH₂, H₄, H₆ — small (4-12 qubits).\n\n**Larger molecules**: bottlenecks in:\n- Number of measurements (scales with Pauli string count).\n- Optimization landscape (barren plateaus — gradients vanish exponentially in qubit count).\n- Ansatz expressivity vs trainability tradeoff.\n\n**Practical advantage today**: not yet established. Classical methods (DMRG, CCSD(T), DMFT) still dominate for chemistry. VQE may break through for mid-sized molecules with better hardware + algorithms.\n\n**Active research areas**: better ansätze (UCCSD, hardware-efficient, ADAPT-VQE), error mitigation, classical shadows for measurement."
     },
@@ -69,12 +104,78 @@
         "kind": "explain_back",
         "prompt": "Pick a specific application area (quantum chemistry, optimization, machine learning, cryptanalysis). For that area, articulate: what quantum advantage might look like, current status, and timeline to practical impact.",
         "rubricCriteria": [
-          { "id": "specific-area", "description": "Names a specific application + appropriate quantum approach (VQE for chemistry, etc.)" },
-          { "id": "current-status", "description": "Honestly assesses 2026 capability for that area" },
-          { "id": "timeline-realistic", "description": "Gives a realistic timeline (5-15 years for most practical cases)" }
+          {
+            "id": "specific-area",
+            "description": "Names a specific application + appropriate quantum approach (VQE for chemistry, etc.)"
+          },
+          {
+            "id": "current-status",
+            "description": "Honestly assesses 2026 capability for that area"
+          },
+          {
+            "id": "timeline-realistic",
+            "description": "Gives a realistic timeline (5-15 years for most practical cases)"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "VQE + QAOA + the QML reality check",
+      "body": "**VQE (Variational Quantum Eigensolver)**: a hybrid quantum-classical algorithm to find the ground state of a Hamiltonian. Quantum circuit parameterized by classical parameters $\\theta$; measure the expected energy $\\langle\\psi(\\theta) | H | \\psi(\\theta)\\rangle$; classical optimizer (gradient descent, SPSA) updates $\\theta$ to minimize. Useful for quantum chemistry of small molecules; main NISQ candidate for early advantage.\n\n**QAOA (Quantum Approximate Optimization Algorithm)**: similar pattern for combinatorial optimization. Parameterized circuit encoding 'cost' + 'mixer' Hamiltonians; optimize classical parameters to maximize expected cost-Hamiltonian value, hopefully encoding good solutions. Theoretically gives approximate solutions for MaxCut + similar; empirically the advantage over classical heuristics on real problems remains uncertain.\n\n**QML (Quantum Machine Learning)**: train parameterized quantum circuits ('quantum neural networks') for classification, regression, generative modeling. As of 2025:\n- **Strong theoretical results**: a few problems (e.g., specific learning tasks on quantum-encoded data) have provable quantum advantage.\n- **Practical results**: no convincing demonstration that QML beats classical ML on real-world classical datasets.\n- **Quantum kernels**: use quantum circuits to compute kernel functions for SVMs. Generates novel kernels that classical methods don't easily reproduce; whether this gives practical advantage is debated.\n- **Barren plateaus**: random parameterized circuits often have exponentially-vanishing gradients (gradient becomes flat in $\\theta$ space). Open problem to design ansätze that avoid barren plateaus while remaining expressive.\n\nThe honest read: QML is a fascinating research area with open theoretical questions. Practical advantage on classical data is not yet demonstrated. Watch the space; don't bet the farm."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_vqml_barren",
+        "kind": "multiple_choice",
+        "question": "Barren plateaus in QML refer to:",
+        "options": [
+          "Quantum hardware regions with high gate fidelity.",
+          "Random parameterized quantum circuits where gradients vanish exponentially with the number of qubits, making training intractable.",
+          "A specific quantum algorithm.",
+          "A common training set."
+        ],
+        "correctIndex": 1,
+        "explanation": "Barren plateaus: McClean et al. 2018 result. Random initial parameterizations of variational circuits often have gradients that decay exponentially with system size; classical optimization becomes intractable. Mitigations: structured ansätze (problem-specific), layerwise training, identity-block initialization. Avoiding barren plateaus while remaining expressive is a central open problem in QML."
+      },
+      "hints": [
+        "The 'plateau' refers to gradients.",
+        "Random circuits + many qubits → gradients become how big?"
+      ],
+      "workedSolution": "Barren plateau: with a wide / deep random parameterized quantum circuit, the gradient of the cost function w.r.t. each parameter has variance shrinking exponentially with circuit depth and qubit count. Classical gradient-based optimization becomes intractable — you can't tell which direction to move. Mitigations include problem-specific ansatz design, identity-initialization, and layerwise training; avoiding barren plateaus while maintaining expressivity is a central open problem.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_vqml_advantage",
+        "kind": "scenario",
+        "question": "QML for tabular data",
+        "prompt": "A teammate proposes using a quantum neural network on a tabular ML problem where logistic regression gets 85% accuracy. Why is this unlikely to demonstrate any practical advantage, and what classes of problems are more promising for genuine QML wins?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_vqml",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why hybrid quantum-classical algorithms (VQE, QAOA) are the realistic 'first useful quantum applications' rather than pure quantum algorithms.",
+        "rubric": "Mentions that NISQ hardware can't run long pure-quantum circuits without error correction; hybrid algorithms keep quantum subroutines shallow + push optimization to classical; this matches the noise profile of current hardware and is where 'practical' early demonstrations are likely to land."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "State VQE / QAOA at a high level.",
+      "Recognize quantum machine learning as a research direction with current limitations.",
+      "Distinguish what's possible vs hype."
+    ],
+    "prereqs": [
+      "nisq-era"
+    ]
+  }
 }

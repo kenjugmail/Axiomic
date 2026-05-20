@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: post-quantum cryptography migration",
+      "body": "NSA started internally discussing PQ migration as early as 2015. NIST PQC standardization concluded 2024 with Kyber (lattice KEM) + Dilithium (lattice signatures) as primary picks. Web TLS gradually rolling out hybrid X25519+ML-KEM. Estimates: full PQ migration of internet PKI ~10-15 years. Quantum threat: ~20+ years before fault-tolerant Shor becomes practical for RSA-2048. But: 'harvest-now-decrypt-later' attack means high-confidentiality data should already be migrating."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_shor_qft",
+        "kind": "guided_derivation",
+        "question": "Sketch period finding via QFT",
+        "goal": "Goal: find period $r$ of $f(x) = a^x \\mod N$. Quantum approach uses QFT.",
+        "steps": [
+          {
+            "prompt": "Prepare uniform superposition over $|x\\rangle$ for $x \\in [0, Q)$ where $Q \\gg N$. Apply oracle $|x\\rangle|0\\rangle \\to |x\\rangle|f(x)\\rangle$. Measure second register: get some $f$-value $y_0$; first register collapses to uniform superposition over $\\{x : f(x) = y_0\\} = \\{x_0, x_0 + r, x_0 + 2r, \\dots\\}$. Now apply QFT. What does the output look like?",
+            "motivation": "QFT of an arithmetic progression peaks at multiples of $Q/r$.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Output is concentrated at frequencies $k Q/r$ for integer $k$. Measure → estimate $k Q/r$ → recover $r$ via continued fractions.",
+                "Uniform random output.",
+                "Same superposition.",
+                "Always $|0\\rangle$."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "QFT of a periodic signal peaks at the harmonics."
+            ],
+            "reveal": "QFT output concentrates at $k Q/r$. Measure → $\\hat k$; classical continued-fraction algorithm extracts $r$ from $\\hat k/Q$."
+          }
+        ],
+        "finalResult": "Shor's period-finding is the quantum subroutine that does the work; classical wrapping converts the period into RSA's prime factors. Without QFT, period-finding is exponentially hard classically. With QFT, polynomial. Hence the speedup."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Reduction to period finding",
       "body": "Factoring an integer `N` reduces to finding the period of `f(x) = a^x mod N` for random `a` coprime to `N`.\n\n**Why period finding helps**:\n- The period `r` (smallest `r > 0` with `a^r ≡ 1 mod N`) divides `φ(N)` (Euler's totient).\n- If `r` is even and `a^{r/2} ≢ -1 mod N`, then `gcd(a^{r/2} - 1, N)` and `gcd(a^{r/2} + 1, N)` are non-trivial factors of `N`.\n- For random `a`, this works with probability ≥ 1/2.\n\n**Classical period finding**: requires ~`√N` modular exponentiations. Inefficient for large `N`.\n\n**Quantum period finding** (the Shor's core): `O(n³)` operations using QFT. The exponential speedup is here.\n\nThe reduction is purely classical number theory — well-established before Shor. The quantum innovation is fast period finding."
     },
@@ -69,12 +104,78 @@
         "kind": "explain_back",
         "prompt": "Why should organizations migrate to post-quantum cryptography NOW, even though cryptographically-relevant quantum computers don't exist? Address: harvest-now-decrypt-later threats, migration timelines, NIST PQC standards.",
         "rubricCriteria": [
-          { "id": "harvest-now-threat", "description": "Names the harvest-now-decrypt-later threat model" },
-          { "id": "migration-timeline", "description": "Notes that PQC migration takes years; must start before Q-Day" },
-          { "id": "nist-pqc", "description": "References NIST standardization or PQC families" }
+          {
+            "id": "harvest-now-threat",
+            "description": "Names the harvest-now-decrypt-later threat model"
+          },
+          {
+            "id": "migration-timeline",
+            "description": "Notes that PQC migration takes years; must start before Q-Day"
+          },
+          {
+            "id": "nist-pqc",
+            "description": "References NIST standardization or PQC families"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "Shor's algorithm, in one paragraph",
+      "body": "**Factoring problem**: given $N = pq$ with $p, q$ unknown primes, find $p$ and $q$. Best classical algorithm (general number field sieve): super-polynomial, $\\exp(O((\\log N)^{1/3}))$. RSA security relies on this being hard.\n\n**Shor (1994)**: polynomial-time quantum algorithm. $O((\\log N)^3)$ ish. Key idea:\n\n1. **Classical reduction**: factoring $N$ reduces to finding the *period* $r$ of the function $f(x) = a^x \\mod N$ for some random $a$. Once you know the period, $\\gcd(a^{r/2} - 1, N)$ and $\\gcd(a^{r/2} + 1, N)$ give you the factors (with reasonable probability).\n\n2. **Quantum period-finding**: use phase estimation on the unitary $U_a |x\\rangle = |ax \\mod N\\rangle$. The phases of $U_a$'s eigenvectors encode the period $r$. Phase estimation + QFT extracts $r$ in polynomial time.\n\n**Consequence**: a sufficiently-large fault-tolerant quantum computer breaks RSA. Estimates: ~4000 logical qubits to factor RSA-2048, requiring ~20M physical qubits with current error rates. Not soon — but not 'never' either.\n\n**Post-quantum cryptography**: cryptosystems whose security doesn't reduce to factoring or discrete log. Lattice-based (Kyber, Dilithium), hash-based (SPHINCS+), code-based (Classic McEliece). NIST standardized lattice + hash-based options in 2024. Web TLS is gradually rolling them out; full migration is expected to take 5-10 years."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_shor_pqc",
+        "kind": "multiple_choice",
+        "question": "Post-quantum cryptography aims to replace:",
+        "options": [
+          "All classical cryptography.",
+          "Cryptosystems whose security depends on factoring or discrete log (RSA, DH, ECC).",
+          "Symmetric ciphers like AES.",
+          "Hash functions.\n"
+        ],
+        "correctIndex": 1,
+        "explanation": "Post-quantum crypto specifically targets asymmetric schemes vulnerable to Shor's algorithm: RSA, Diffie-Hellman, elliptic curve. Symmetric primitives (AES, SHA) are vulnerable only to Grover, which gives a square-root speedup — easily countered by doubling key length. NIST's 2024 standards (Kyber, Dilithium, SPHINCS+) cover the asymmetric replacements."
+      },
+      "hints": [
+        "Which crypto primitives are broken by Shor specifically?",
+        "Symmetric ciphers are 'square-root vulnerable' to Grover but that's easily handled.\n"
+      ],
+      "workedSolution": "Shor breaks asymmetric crypto whose security reduces to factoring (RSA) or discrete log (Diffie-Hellman, ECC). Symmetric (AES) is only square-root vulnerable to Grover — doubling key length restores security. Hash functions similarly. Post-quantum crypto provides ASYMMETRIC schemes (key exchange, signatures) whose security reduces to lattice problems or other problems Shor doesn't solve.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_shor_hnow",
+        "kind": "scenario",
+        "question": "Harvest now, decrypt later",
+        "prompt": "A nation-state attacker might be collecting encrypted internet traffic today, intending to decrypt it once large-scale quantum computers arrive in 10-20 years. Why does this 'harvest now, decrypt later' threat motivate post-quantum migration BEFORE quantum computers exist, and what's the urgency for cryptographic agility?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_shor",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why Shor's algorithm's quantum advantage doesn't generalize to most NP-complete problems.",
+        "rubric": "Mentions that Shor exploits algebraic structure (period-finding via QFT); NP-complete problems generally lack analogous structure; Grover's quadratic speedup applies, but exponential speedups for NP-hard problems remain hypothetical."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Sketch Shor's algorithm at a high level.",
+      "Explain why it threatens RSA.",
+      "Recognize post-quantum cryptography as the response."
+    ],
+    "prereqs": [
+      "quantum-algorithms"
+    ]
+  }
 }

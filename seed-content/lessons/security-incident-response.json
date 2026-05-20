@@ -1,0 +1,98 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Sketch the incident-response lifecycle (detection → containment → eradication → recovery → lessons).",
+      "Distinguish a vulnerability from an incident.",
+      "Apply blameless postmortems."
+    ],
+    "prereqs": [
+      "threat-modeling"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Detection → containment → eradication → recovery → review",
+      "body": "**Detection**: the security team learns something happened. Detection sources: monitoring alerts, customer reports, threat intel, third-party notification. The mean time to detection (MTTD) is one of the two key metrics; the industry median is ~200 days for non-major breaches.\n\n**Containment**: stop the bleeding. Cut off attacker access (revoke creds, disable compromised accounts, isolate hosts), preserve evidence, communicate to stakeholders. Containment is often where teams panic and erase logs — the rule is: contain WITHOUT destroying evidence. Make snapshots before remediating.\n\n**Eradication**: remove the attacker's footholds. Patch the underlying vulnerability, rotate all potentially-exposed credentials, rebuild compromised systems from known-good images. Don't trust anything the attacker could have touched.\n\n**Recovery**: restore service. Bring rebuilt systems back online, verify expected behavior, monitor for re-compromise.\n\n**Review**: blameless postmortem. Document the timeline, identify root causes (plural — there are always multiple), publish lessons learned. The PR side of incident response is also part of this stage; communicating responsibly to customers is a leadership skill.\n\nMost orgs do steps 1-4 reasonably; step 5 is where the long-term improvement happens. Without blameless review, the same mistake recurs in three years."
+    },
+    {
+      "kind": "text",
+      "title": "Worked example: the SolarWinds blast radius",
+      "body": "December 2020: SolarWinds Orion (network monitoring software) compromised via supply-chain attack. Malicious update pushed to ~18,000 organizations including DoD, Treasury, multiple Fortune 500. The blast radius was massive because Orion had broad network privileges on every customer network. Lessons: minimize privileges of network monitoring tools, verify supply-chain integrity (signed binaries, SBOMs), assume breach + monitor for lateral movement. The post-mortem reshaped supply-chain security practices industry-wide."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ir_blast",
+        "kind": "guided_derivation",
+        "question": "Derive blast-radius arithmetic",
+        "goal": "Compromised credential has access to $n$ resources. Each resource accessed has read/write to $k$ further resources on average. Compute total reachable resources within 2 hops.",
+        "steps": [
+          {
+            "prompt": "Hop 0: 1 compromised credential. Hop 1: $n$ resources. Hop 2: from each of $n$, access $k$ more — but overlap likely. Conservative upper bound?",
+            "motivation": "Branching factor.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "n + n k",
+                "n(1 + k)"
+              ]
+            },
+            "hints": [
+              "First-hop + second-hop counts."
+            ],
+            "reveal": "$\\leq n + nk = n(1 + k)$ reachable in 2 hops, assuming no overlap."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{2-hop blast} \\leq n(1 + k)}$$ Why least-privilege matters: shrinking $n$ + $k$ shrinks the reachable set quadratically. Production discipline: principle of least privilege, regular access audits, time-limited access tokens."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Blameless postmortems, mechanically",
+      "body": "A blameless postmortem is a document + meeting structured to learn from an incident WITHOUT scapegoating. Key elements:\n\n1. **Timeline**: minute-by-minute reconstruction of detection, response actions, customer impact. Pull from logs, chat transcripts, paging system.\n2. **Root-cause analysis**: WHY did this happen? Not 'human error' but 'the deployment system allowed an admin to override the safety gate'. Each 'why' surfaces a structural cause.\n3. **What went well**: the responders made good calls; the alerting caught it; the runbook worked. Celebrate this, even though the incident itself was bad.\n4. **What went poorly**: identify gaps without blame. 'The alert fired at 3am and the on-call didn't notice for 90 minutes because pages were misrouted' — that's a paging-system gap, not a 'the on-call wasn't paying attention' gap.\n5. **Action items**: with owners and deadlines. Engineering changes, process changes, monitoring additions. Track them in the same place you track features — not a forgotten doc.\n\nWhy 'blameless'? Because in any non-trivial system, human errors compound system gaps. Punishing the human prevents future reports of similar mistakes — making the system more brittle. Treating the human as a sensor surfaces the system gaps that produced the mistake; fixing those reduces future incidents."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ir_vuln",
+        "kind": "multiple_choice",
+        "question": "A teammate reports 'we have a SQL injection vulnerability'. The customer hasn't been affected. The team is about to invoke the incident-response process. The right call:",
+        "options": [
+          "Yes, treat it as an incident.",
+          "No, treat it as a vulnerability — patch via the normal release process, no incident-response activation.",
+          "Depends on the severity.",
+          "Only invoke if it's already been exploited."
+        ],
+        "correctIndex": 1,
+        "explanation": "Vulnerability ≠ incident. A *vulnerability* is a flaw that COULD lead to an incident; an *incident* is when something bad has actually happened (or been exploited). Most vulnerabilities are handled by the routine patch process, with SLA-driven urgency. Incident response (with cross-team coordination, customer communication, evidence preservation) is for cases where the security property has been violated. Conflating them dilutes incident response when it matters."
+      },
+      "hints": [
+        "Has the security property been violated yet?",
+        "Vulnerability = could be exploited; incident = has been or is being."
+      ],
+      "workedSolution": "A vulnerability is a potential attack vector. An incident is a security event that has occurred (or is in progress). SQL injection that hasn't been exploited yet is a vulnerability — patch it via the normal high-priority release. If you find it has been exploited (logs show suspicious queries, customer data was accessed), it becomes an incident and IR is invoked. Some orgs use the same workflow but the threshold matters: invoking IR for every patchable vulnerability burns out the team.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ir_response",
+        "kind": "scenario",
+        "question": "A live incident",
+        "prompt": "Your monitoring detects unusual outbound traffic from a production server at 2am. Walk through the first three actions you'd take in the first 30 minutes — and which mistakes you'd actively avoid."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ir",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why a blameless postmortem produces better future outcomes than blame-based reviews.",
+        "rubric": "Mentions that blameless reviews encourage reporting and root-cause analysis; blame-based reviews encourage cover-up and surface fixes; the long-run reliability improvements come from the structural fixes only visible without blame."
+      }
+    }
+  ]
+}

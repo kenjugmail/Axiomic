@@ -7,6 +7,52 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: SHAP feature importance",
+      "body": "SHAP values applied to a credit-scoring ML model on a single applicant. Total predicted score: 720. Baseline: 600. Total deviation: +120. SHAP decomposes: income contributes +60, credit history +40, debt-to-income +20. The contributions sum to the prediction deviation by Shapley efficiency. Used in regulated industries (lending, insurance) for model explanations because the axioms are exactly what 'fair attribution' means."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_coop_shap2",
+        "kind": "guided_derivation",
+        "question": "Compute Shapley value for 2 players",
+        "goal": "$v(\\{A\\}) = 4, v(\\{B\\}) = 6, v(\\{A,B\\}) = 12$. Find $\\phi_A, \\phi_B$.",
+        "steps": [
+          {
+            "prompt": "Shapley value: average marginal contribution over orderings. Two orderings: A-then-B, B-then-A. A's marginal in ordering A-B: $v(\\{A\\}) = 4$. A's marginal in ordering B-A: $v(\\{A,B\\}) - v(\\{B\\}) = 12 - 6 = 6$. Average?",
+            "motivation": "Average over 2 orderings.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "5"
+              ]
+            },
+            "hints": [
+              "$\\phi_A = (4 + 6) / 2$."
+            ],
+            "reveal": "$\\phi_A = (4 + 6)/2 = 5$."
+          },
+          {
+            "prompt": "Similarly, $\\phi_B = ?$ (Check efficiency: should sum to $v(\\{A,B\\}) = 12$.)",
+            "motivation": "Symmetric computation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "7"
+              ]
+            },
+            "hints": [
+              "B in ordering A-B: $12 - 4 = 8$. B in B-A: $6$. Avg: $(8+6)/2 = 7$.",
+              "Check: $5 + 7 = 12$ ✓"
+            ],
+            "reveal": "$\\phi_B = (8 + 6)/2 = 7$. Sum = 12 = $v(\\{A,B\\})$ ✓."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\phi_A = 5, \\phi_B = 7,\\quad \\phi_A + \\phi_B = v(\\{A,B\\})}$$ Shapley value satisfies efficiency (sums to grand coalition's value), symmetry, additivity, and the null-player property — uniquely."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Shapley value",
       "body": "For a cooperative game with players $N$ and characteristic function $v$ (mapping subsets of $N$ to real values), player $i$'s Shapley value is the average **marginal contribution** of $i$ across all permutations of player ordering:\n\n$$\\phi_i(v) = \\sum_{S \\subseteq N \\setminus \\{i\\}} \\frac{|S|! (|N| - |S| - 1)!}{|N|!} [v(S \\cup \\{i\\}) - v(S)]$$\n\nThe combinatorial weight is the probability that, in a random permutation, $i$ joins exactly after the players in $S$.\n\n**Example (3 players)**: company with founders. $v(\\emptyset) = 0$. $v(\\{A\\}) = 6$. $v(\\{B\\}) = 4$. $v(\\{C\\}) = 2$. $v(\\{A,B\\}) = 12$. $v(\\{A,C\\}) = 8$. $v(\\{B,C\\}) = 6$. $v(\\{A,B,C\\}) = 18$.\n\nThe Shapley values turn out to be: $\\phi_A = 8$, $\\phi_B = 6$, $\\phi_C = 4$. Sum to 18 (efficient)."
     },
@@ -38,12 +84,92 @@
         "kind": "explain_back",
         "prompt": "Three engineers form a startup. Each has different skills + outside-option salaries. How might the Shapley value (fair) and the core (stable) disagree on equity allocation?",
         "rubricCriteria": [
-          { "id": "shapley", "description": "Explains how Shapley computes each engineer's average marginal contribution across all subsets" },
-          { "id": "core", "description": "Explains how core requires that no subset of engineers can do better by leaving (reflecting outside options)" },
-          { "id": "disagreement", "description": "Identifies a scenario where Shapley assigns equity to a low-marginal contributor (e.g., one engineer adds little marginal value but the founders 'should' all share equally — Shapley says less, core says more)" }
+          {
+            "id": "shapley",
+            "description": "Explains how Shapley computes each engineer's average marginal contribution across all subsets"
+          },
+          {
+            "id": "core",
+            "description": "Explains how core requires that no subset of engineers can do better by leaving (reflecting outside options)"
+          },
+          {
+            "id": "disagreement",
+            "description": "Identifies a scenario where Shapley assigns equity to a low-marginal contributor (e.g., one engineer adds little marginal value but the founders 'should' all share equally — Shapley says less, core says more)"
+          }
         ],
         "passingScore": 0.5
       }
+    },
+    {
+      "kind": "text",
+      "title": "Shapley value, the unique fair allocation",
+      "body": "Three friends share a Lyft from the airport. Cost is $24. Alone: A would pay $12, B $18, C $24. Together: $24. How much should each pay?\n\n**Shapley value**: average marginal contribution over all orderings.\n\nA's value: in {A}, A's contribution is $12. In {A, B}, A's contribution is $24 - $18 = $6 if added after B. Average over all 3! = 6 orderings.\n\nResult: A pays ~$4, B pays ~$6, C pays ~$14. Equal? No. Proportional to alone-cost? No. The Shapley value is the unique allocation satisfying four axioms: efficiency, symmetry, additivity, dummy player.\n\nMachine-learning use: Shapley values for feature importance (SHAP). Treat features as 'coalitions' that produce a prediction; each feature's Shapley value is its fair share of the prediction credit. SHAP has become the dominant model-interpretation tool — because the Shapley axioms are exactly what 'fair attribution' should mean.\n\nLimitation: exact Shapley computation is exponential in the number of players. Real ML uses sampling-based approximations.\n\n**Core**: allocations where no subset of players can improve by defecting. Can be empty (every allocation can be challenged) — that's a 'paradox of fair division' result."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_coop_shap",
+        "kind": "multiple_choice",
+        "question": "Shapley values satisfy 'efficiency': the sum of player values equals the total coalition value. Why does this matter?",
+        "options": [
+          "It's a regularization term in the algorithm.",
+          "It guarantees no value is lost or double-counted in the allocation.",
+          "It implies the game is zero-sum.",
+          "It's a heuristic, not always satisfied."
+        ],
+        "correctIndex": 1,
+        "explanation": "Efficiency: $\\sum_i \\phi_i(v) = v(N)$ — total Shapley value equals the grand coalition's total value. In SHAP feature attribution, this is what makes the per-feature attributions add up to the prediction's deviation from baseline — no value created or destroyed in the explanation."
+      },
+      "hints": [
+        "What conservation law does 'efficiency' express?",
+        "In SHAP for ML, why is it important that the per-feature attributions sum to the prediction?"
+      ],
+      "workedSolution": "Efficiency is the conservation law: the total amount distributed equals the total value created. For SHAP, this guarantees per-feature attributions sum to (prediction - baseline); for cost-sharing problems, it guarantees the bill is fully paid. Without efficiency, the allocation can 'leak' value.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_coop_emptycore",
+        "kind": "scenario",
+        "question": "Empty core",
+        "prompt": "Three farmers can pool resources to build a road. {A}, {B}, {C} alone get nothing. {A,B} get $6, {A,C} get $6, {B,C} get $6, {A,B,C} get $9. Is there a stable allocation (in the core)? Walk through why this game has an empty core."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_coop_shap2",
+        "kind": "math_expression",
+        "question": "Two-player game with $v(\\{A\\}) = 4$, $v(\\{B\\}) = 6$, $v(\\{A,B\\}) = 12$. Shapley value of player A is $\\phi_A = \\tfrac12 v(\\{A\\}) + \\tfrac12 (v(\\{A,B\\}) - v(\\{B\\})) = \\tfrac12 (4) + \\tfrac12 (12 - 6)$. Compute.",
+        "acceptedAnswers": [
+          "5",
+          "5.0",
+          "1/2 (4) + 1/2 (6)"
+        ],
+        "hint": "Just compute the two halves."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_coop",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why SHAP feature importance has dominated post-hoc ML interpretation despite being computationally expensive.",
+        "rubric": "Mentions that the Shapley axioms (efficiency, symmetry, etc.) are exactly what users mean by 'fair attribution'; other methods don't satisfy all four simultaneously, leading to attributions users distrust."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "State the Shapley-value axioms and what they imply.",
+      "Compute a Shapley value on a 3-player coalition.",
+      "Recognize the core and when it's empty."
+    ],
+    "prereqs": [
+      "nash-equilibrium"
+    ]
+  }
 }

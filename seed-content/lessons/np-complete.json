@@ -7,6 +7,42 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: SAT solvers in industry",
+      "body": "Modern SAT solvers (Z3, MiniSAT, Glucose) routinely solve 'real-world' SAT instances with millions of variables — even though SAT is NP-complete in the worst case. The trick: industrial SAT instances have structure (clauses cluster, polarity correlates, conflict-driven learning works). Industrial SAT is the workhorse of compiler verification, circuit equivalence checking, planning, scheduling. Theoretical NP-hardness is real; practical SAT is often tractable."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_np_3sat",
+        "kind": "guided_derivation",
+        "question": "Sketch the SAT → 3-SAT reduction",
+        "goal": "Any SAT clause with > 3 literals reduces to a chain of 3-literal clauses introducing fresh variables.",
+        "steps": [
+          {
+            "prompt": "Clause $(x_1 \\lor x_2 \\lor x_3 \\lor x_4 \\lor x_5)$. Introduce fresh variable $y_1$. Replace by two clauses. What's the construction?",
+            "motivation": "Chain via fresh vars.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$(x_1 \\lor x_2 \\lor y_1) \\land (\\lnot y_1 \\lor x_3 \\lor x_4 \\lor x_5)$ — but second clause still has 4 literals, recurse.",
+                "Drop $x_5$.",
+                "Just $(x_1 \\lor x_2 \\lor x_3)$.",
+                "Random subset."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Replace one $k$-clause with two clauses linked by a fresh variable.",
+              "Apply recursively until all clauses have $\\leq 3$ literals."
+            ],
+            "reveal": "Standard reduction: replace each $k$-clause ($k > 3$) with two clauses linked by a fresh variable; recurse on the second. Final number of 3-clauses is $O(k)$ per original clause."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{SAT} \\leq_p \\text{3-SAT}}$$ The reduction is polynomial-time + preserves satisfiability. Combined with Cook's theorem that SAT is NP-complete, this shows 3-SAT is NP-complete. Variants (1-in-3-SAT, Monotone-3-SAT, NAE-3-SAT) are also NP-complete via similar reductions."
+      }
+    },
+    {
+      "kind": "text",
       "title": "NP-completeness",
       "body": "A problem is **NP-complete** if:\n1. It's in NP.\n2. Every problem in NP reduces to it in polynomial time ([[reductions]]).\n\nNP-complete problems are the **hardest in NP** — if any has a polynomial algorithm, then all of NP is in P.\n\nFirst NP-complete problem: **SAT** (Boolean satisfiability). Cook-Levin theorem (1971). Karp (1972) showed 21 other natural problems are also NP-complete via reductions from SAT.\n\nFamous NP-complete problems:\n- **3-SAT**: SAT restricted to 3-literal clauses.\n- **Vertex cover**: smallest set of vertices touching every edge.\n- **Hamiltonian cycle**: cycle visiting every vertex once.\n- **Traveling salesman (decision)**: tour of cost $\\leq k$?\n- **Knapsack (decision)**: subset summing to $\\geq v$ within weight $\\leq W$?\n- **3-coloring**: can graph be 3-colored?\n- **Subset sum**: any subset sums to $T$?\n\nIf you find a polynomial algorithm for ANY of these, you've proven $P = NP$ and earned $1M."
     },
@@ -43,12 +79,78 @@
         "kind": "explain_back",
         "prompt": "Modern SAT solvers routinely solve million-variable SAT instances despite SAT being NP-complete. What's the resolution to this apparent paradox?",
         "rubricCriteria": [
-          { "id": "worst-vs-typical", "description": "Distinguishes worst-case complexity (exponential) from typical-case (often much easier)" },
-          { "id": "structure-exploitation", "description": "Mentions that real-world SAT instances have structure (clause locality, low treewidth, hidden variables) that solvers exploit" },
-          { "id": "cdcl-mention", "description": "Names the specific algorithmic family (CDCL — Conflict-Driven Clause Learning) or notes that modern SAT solvers are not naive backtracking" }
+          {
+            "id": "worst-vs-typical",
+            "description": "Distinguishes worst-case complexity (exponential) from typical-case (often much easier)"
+          },
+          {
+            "id": "structure-exploitation",
+            "description": "Mentions that real-world SAT instances have structure (clause locality, low treewidth, hidden variables) that solvers exploit"
+          },
+          {
+            "id": "cdcl-mention",
+            "description": "Names the specific algorithmic family (CDCL — Conflict-Driven Clause Learning) or notes that modern SAT solvers are not naive backtracking"
+          }
         ],
         "passingScore": 0.5
       }
+    },
+    {
+      "kind": "text",
+      "title": "P, NP, and the gap nobody can close",
+      "body": "**P**: decision problems solvable in polynomial time. ('Is this graph connected?' — yes/no in $O(V+E)$.)\n\n**NP**: decision problems whose 'yes' answers are *verifiable* in polynomial time given a certificate. ('Is there a Hamiltonian cycle?' — given a cycle, you can verify it traverses every vertex once in $O(V)$.)\n\n**P ⊆ NP** trivially (a polynomial solver is its own verifier). **Whether P = NP is the famous open question** — most computer scientists believe P ≠ NP but nobody has proved it.\n\n**NP-complete**: the 'hardest' problems in NP. Every NP problem reduces to any NP-complete problem in polynomial time, so a polynomial algorithm for one NP-complete problem solves all of NP. Famous NP-completes: SAT, 3-COLORING, TSP-decision, KNAPSACK-decision, SUBSET-SUM, CLIQUE.\n\nIf you're stuck on a problem and someone says 'this is NP-complete', they're saying: don't expect a polynomial exact solution. Reach for approximation, heuristics, or constraint-restricted polynomial cases."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_np_reduce",
+        "kind": "multiple_choice",
+        "question": "You're given that 3-SAT is NP-complete. You reduce your problem to 3-SAT in polynomial time. What does this prove?",
+        "options": [
+          "Your problem is NP-complete.",
+          "Your problem is in NP.",
+          "Your problem is at most as hard as 3-SAT (it's in NP if your reduction is the right direction).",
+          "Your problem is unsolvable."
+        ],
+        "correctIndex": 2,
+        "explanation": "Reducing FROM your problem TO 3-SAT shows your problem is no harder than 3-SAT. To prove NP-completeness you need the OPPOSITE direction: reduce a known NP-complete problem TO your problem, showing your problem is at least as hard. Direction matters in reductions."
+      },
+      "hints": [
+        "Which direction of the reduction proves which inequality of hardness?",
+        "'My problem reduces to a known hard problem' vs 'a known hard problem reduces to mine'."
+      ],
+      "workedSolution": "A polynomial reduction from $A$ to $B$ shows $A$ is no harder than $B$. So reducing YOUR problem to 3-SAT shows your problem is no harder than 3-SAT (i.e., it's in NP if 3-SAT is). To prove NP-completeness you'd reduce 3-SAT (or any known NP-complete problem) TO your problem — showing yours is at least as hard.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_np_disguise",
+        "kind": "scenario",
+        "question": "NP-complete in disguise",
+        "prompt": "You're asked to assign one of three colors to each room in a floor plan such that no two adjacent rooms share a color. A teammate says 'how hard could that be — let's just try all colorings'. Why might that explode, and what's the textbook label for this problem?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_np",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why P vs NP isn't just a theoretical question.",
+        "rubric": "Mentions that P=NP would make cryptography (RSA, etc.) collapse since RSA security relies on factoring being outside P; would also collapse many planning, optimization, and verification gaps in practice."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "advanced",
+    "objectives": [
+      "State the P vs NP question precisely.",
+      "Distinguish polynomial-time reductions from Turing reductions.",
+      "Recognize NP-complete problems in disguise."
+    ],
+    "prereqs": [
+      "dynamic-programming"
+    ]
+  }
 }

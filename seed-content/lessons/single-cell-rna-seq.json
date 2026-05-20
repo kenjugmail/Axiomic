@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: a typical 10x Genomics scRNA-seq run",
+      "body": "10x Genomics droplet-based scRNA-seq, the standard platform: ~10,000 cells per experiment, ~20,000 genes detected per cell. Library: a single experiment captures ~$5 \\times 10^7$ unique molecular identifiers (UMIs); average ~2000-5000 UMIs per cell. Result: a sparse 10K × 20K matrix with ~95% zeros. The sparsity is a combination of biological (most genes aren't expressed in any given cell) + technical (capture rate ~30-40% of transcripts) — disentangling them is the entire scRNA-seq analysis stack."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sc_dropout",
+        "kind": "guided_derivation",
+        "question": "Sketch why scRNA-seq is so sparse",
+        "goal": "What fraction of zero counts is biological vs technical?",
+        "steps": [
+          {
+            "prompt": "Each gene-cell entry is 0 either because the gene wasn't expressed (true zero) OR because expression existed but the transcript wasn't captured (dropout). Estimate?",
+            "motivation": "Mixture model.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Both are large: roughly 80-90% of zeros are biological, 10-20% technical (capture efficiency limits).",
+                "All technical.",
+                "All biological.",
+                "Zeros aren't real."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Capture rate ~30-40%, so most genes that ARE expressed get captured. The big zero fraction is mostly 'genes that aren't expressed in this cell'."
+            ],
+            "reveal": "Most zeros (~80-90%) reflect true biological non-expression. Capture efficiency limits add another ~10-20% as 'dropout' (gene was expressed but not detected). Imputation methods (MAGIC, scVI) try to separate them."
+          }
+        ],
+        "finalResult": "Sparsity is mostly biology (cells express ~10% of genes), with technical dropout adding ~10-20%. Treating all zeros as 'missing' fails; modeling dropout explicitly (zero-inflated negative binomial, scVI's hierarchical model) gives better downstream results."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The standard pipeline",
       "body": "**1. Quality control + normalization.**\n\n- Filter out low-quality cells (few genes detected, high mitochondrial gene fraction → dying cells).\n- Normalize counts: divide by total counts per cell, log-transform. Compensates for variable sequencing depth.\n\n**2. Feature selection.**\n\n- Identify highly variable genes (HVGs) — genes with high variance relative to mean. Typically 2000-5000 HVGs out of ~20K total.\n- Reduces noise; speeds downstream analysis.\n\n**3. Dimensionality reduction.**\n\n- **PCA** (50-100 components): captures most variance.\n- **UMAP** or **t-SNE** (2D for visualization): non-linear; preserves local + global structure.\n\n**4. Clustering.**\n\n- **Leiden / Louvain** algorithms on a k-nearest-neighbor graph in PCA space.\n- Output: cells partitioned into clusters; each cluster is (hopefully) a cell type or state.\n\n**5. Cell-type annotation.**\n\n- Identify marker genes per cluster (genes uniquely expressed in this cluster).\n- Match to known cell-type signatures (CellTypist, manual curation).\n- Output: cluster X = T cells; cluster Y = neurons; etc.\n\nTools: **Scanpy** (Python) and **Seurat** (R) implement this pipeline. Standard in every scRNA-seq paper."
     },
@@ -41,6 +76,63 @@
       "kind": "text",
       "title": "What's next",
       "body": "scRNA-seq is one major scale of bio-ML data. Next: a different scale entirely — atomic-resolution simulation.\n\nNext: [[molecular-dynamics]] — force fields, Langevin sampling, simulating biomolecules at the atomic level.\n\nKey takeaways:\n- scRNA-seq: cell × gene matrix; sparse + noisy\n- Standard pipeline: QC → normalize → HVG → PCA → UMAP → Leiden → annotate\n- scVI: VAE with biology-aware likelihood + batch correction\n- Foundation models for cells (Geneformer, scGPT) are emerging\n- Spatial + multi-omics extensions for richer biological context\n- Perturbation prediction is the causal-inference frontier"
+    },
+    {
+      "kind": "text",
+      "title": "scRNA-seq, in one paragraph",
+      "body": "**Bulk RNA-seq**: average gene expression across all cells in a sample. Loses cell-to-cell heterogeneity.\n\n**scRNA-seq**: measure gene expression per individual cell. Output: a cells × genes matrix, ~10,000-100,000 cells × ~20,000 genes. Each entry: how many transcripts of that gene were captured in that cell. Sparse and noisy — most entries are 0.\n\n**Standard pipeline**:\n1. Normalize (account for total counts per cell, depth).\n2. Filter highly-variable genes (~2000).\n3. PCA to ~50 components.\n4. Build a k-NN graph in PCA space.\n5. Louvain/Leiden clustering on the graph → cluster labels.\n6. UMAP/t-SNE embedding for visualization (always 2D).\n7. Annotate clusters with marker genes → cell types.\n\nThis is the standard recipe; every published scRNA-seq paper does some variant. The result: a tissue's cell-type atlas + their gene-expression signatures.\n\n**ML perspective**: scRNA-seq is a high-dimensional clustering problem with lots of structure. Cell types are clusters; cell states (cycling, differentiating) are continuous trajectories through expression space. Variational autoencoders (scVI), graph neural networks, and contrastive methods are all actively applied to this problem."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sc_umap",
+        "kind": "multiple_choice",
+        "question": "UMAP for scRNA-seq visualization is:",
+        "options": [
+          "A linear dimensionality reduction.",
+          "A nonlinear method that preserves local neighborhoods better than global geometry.",
+          "A clustering algorithm.",
+          "Exactly equivalent to PCA."
+        ],
+        "correctIndex": 1,
+        "explanation": "UMAP (and t-SNE) preserves local structure: nearby points in the original high-dim space stay nearby in the 2D embedding. Global distances are distorted. Useful for visualizing cluster separability but unreliable for inferring continuous gradients or branch lengths. The standard mantra: 'don't read too much into UMAP geometry'."
+      },
+      "hints": [
+        "UMAP's optimization objective preserves k-NN graph structure.",
+        "Local structure is captured; global distances aren't reliably preserved.\n"
+      ],
+      "workedSolution": "UMAP optimizes a nonlinear embedding that preserves local k-NN structure — nearby points in high-dim stay nearby in 2D. Global distances aren't preserved; clusters' apparent separation, branch geometry, and global layout are unreliable. Useful for visualization + identifying cluster boundaries but not for quantitative claims about distances in the embedding.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sc_batch",
+        "kind": "scenario",
+        "question": "Batch effects",
+        "prompt": "Your scRNA-seq experiment shows clusters that strongly correlate with batch (sequencing run) rather than biology. Why does this happen, and what mitigations are standard practice?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sc",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why scRNA-seq's sparse, noisy counts make naïve Euclidean distance unreliable.",
+        "rubric": "Mentions that ~90%+ entries are zero (dropout), counts follow negative-binomial distributions not Gaussians, and per-cell capture rates vary; standard preprocessing (normalization, log-transform, variance stabilization) is necessary before any geometric reasoning."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Explain what scRNA-seq measures.",
+      "Recognize UMAP / t-SNE as nonlinear-dimensionality-reduction tools.",
+      "Distinguish technical from biological variation."
+    ],
+    "prereqs": [
+      "dna-rna-protein"
+    ]
+  }
 }

@@ -7,6 +7,69 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: data compression via entropy coding",
+      "body": "The English alphabet has 26 letters; uniform would give $\\log_2 26 \\approx 4.7$ bits/char. But real English has entropy ~1 bit/char (Shannon's estimate, 1948).\n\nThe gap: redundancy. Letter frequencies are highly non-uniform; common bigrams (\"th\", \"he\") are very common; some letter combinations (\"qz\") never occur.\n\n**Huffman coding** + **arithmetic coding** assign variable-length codewords matching frequency — high-frequency letters get short codes. They achieve compression rates very close to the Shannon entropy bound: ~4-5× compression on raw English text, which is the asymptotic best any compressor can do without modeling deeper structure.\n\nGzip, zstd, bzip2 all use entropy coding as their final stage, after extracting longer-range structure with dictionary methods (LZ77, BWT). The Shannon entropy is the theoretical limit; modern compressors get within a few percent of it on natural text."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ei_xentkl",
+        "kind": "guided_derivation",
+        "question": "Derive: $H(p, q) = H(p) + D_{\\mathrm{KL}}(p \\| q)$",
+        "goal": "Show that cross-entropy decomposes as entropy plus KL divergence.",
+        "steps": [
+          {
+            "prompt": "Start with the cross-entropy definition: $H(p, q) = -\\sum_x p(x) \\log q(x)$. Multiply and divide by $p(x)$ inside the log to insert $p$.",
+            "motivation": "Algebraic trick to bring entropy + KL out separately.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-sum p(x) log (p(x) q(x)/p(x))",
+                "-Σ p log[p · q/p]"
+              ]
+            },
+            "hints": [
+              "$\\log q = \\log(p \\cdot q / p) = \\log p + \\log(q/p)$."
+            ],
+            "reveal": "$\\log q(x) = \\log p(x) + \\log[q(x)/p(x)]$."
+          },
+          {
+            "prompt": "Substitute and split the sum into two pieces. What are they?",
+            "motivation": "Linearity of expectation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-sum p log p - sum p log(q/p)",
+                "H(p) - sum p log(q/p)"
+              ]
+            },
+            "hints": [
+              "First piece = $-\\sum p \\log p = H(p)$.",
+              "Second piece = $-\\sum p \\log(q/p) = +\\sum p \\log(p/q)$."
+            ],
+            "reveal": "$H(p, q) = -\\sum p \\log p - \\sum p \\log(q/p) = H(p) + \\sum p \\log(p/q)$."
+          },
+          {
+            "prompt": "Recognize the second term as KL divergence: $D_{\\mathrm{KL}}(p \\| q) = ?$",
+            "motivation": "Definition of KL.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "sum p log(p/q)",
+                "Σ p(x) log[p(x)/q(x)]"
+              ]
+            },
+            "hints": [
+              "KL divergence is $\\sum_x p(x) \\log[p(x)/q(x)]$."
+            ],
+            "reveal": "$D_{\\mathrm{KL}}(p \\| q) = \\sum_x p(x) \\log[p(x)/q(x)]$."
+          }
+        ],
+        "finalResult": "$$\\boxed{H(p, q) = H(p) + D_{\\mathrm{KL}}(p \\| q)}$$\n\nWhen training a model $q$ on data $p$, the entropy $H(p)$ is a constant (it depends only on the data). So minimizing cross-entropy = minimizing KL divergence between data and model. They differ by an irreducible-noise constant — the entropy of the data distribution itself."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Shannon's setup",
       "body": "You have a source emitting symbols from an alphabet, with probabilities `p_1, p_2, ..., p_n`. How many bits, on average, do you need to encode each symbol losslessly?\n\nShannon proved the answer is the **entropy**:\n\n$$H = -\\sum_i p_i \\log_2 p_i$$\n\n(Measured in bits; with natural log, in nats.)\n\nIntuition:\n- A perfectly predictable source (one symbol with probability 1) has `H = 0` — no information per symbol.\n- A uniform source over `n` symbols has `H = log_2 n` — maximum information; you need `log_2 n` bits.\n- A skewed source has `H < log_2 n` — you can compress because some symbols are more common.\n\nKey properties:\n- `H ≥ 0`, with equality iff the distribution is concentrated on one outcome.\n- `H ≤ log n`, with equality iff uniform — entropy is maximized at uniform.\n- `H` is additive for independent sources: `H(X, Y) = H(X) + H(Y)` if `X ⊥ Y`.\n- For dependent sources: `H(X, Y) = H(X) + H(Y|X)` (chain rule).\n\nShannon's source coding theorem makes the bound operational: any lossless code uses at least `H` bits per symbol on average, and there exist codes that approach `H + ε` for any `ε > 0`. Entropy is the fundamental compression limit."
     },
@@ -61,6 +124,77 @@
       "kind": "text",
       "title": "What's next",
       "body": "Boltzmann and Shannon meet in the same formula because they describe the same thing: how distributed a probability distribution is. Once you see the bridge, much of ML stops being arbitrary and starts feeling like applied statistical mechanics.\n\nKey takeaways:\n- Shannon entropy and Gibbs/Boltzmann entropy are the same quantity in different units\n- The Boltzmann distribution is the maximum-entropy distribution given an energy constraint\n- Cross-entropy loss = maximum-likelihood estimation = Shannon source-coding bound\n- KL divergence quantifies the cost of using the wrong distribution; appears in RLHF, VAEs, diffusion\n- Landauer's principle makes information physical: erasing a bit costs `k_B T ln 2` of heat\n- Information geometry (Fisher metric) gives natural gradients in ML; same as susceptibilities in physics\n\nThis is the last lesson in the physicist path. From [[mechanics-foundations]] through entropy ↔ information, you've covered the conceptual stack that connects classical mechanics to statistical inference and modern ML.\n\nKey throughline: physics and ML share substrate (probability distributions, optimization, conservation laws under symmetry, energy minimization). Physics intuition transfers."
+    },
+    {
+      "kind": "text",
+      "title": "The two H's are the same H",
+      "body": "**Boltzmann**: $S = k_B \\ln W$, where $W$ is the count of microstates compatible with the macrostate. Equivalently, if the macrostate is uniform over $W$ microstates, then for each microstate $p = 1/W$, and $S = k_B \\sum_i p_i \\ln(1/p_i)$. That's Shannon's $H$, in units of $k_B \\cdot$ nats.\n\n**Shannon (1948)**: $H = -\\sum p_i \\log_2 p_i$ in bits. Average minimum-message-length to encode an outcome drawn from $\\{p_i\\}$.\n\nThe units differ ($k_B \\cdot$ nats vs bits) but the formulas are the same expression. Both measure 'uncertainty' or 'information needed to distinguish microstates'. Landauer's bound formalizes the bridge: erasing one bit of information dissipates at least $k_B T \\ln 2$ of heat.\n\nThis isn't an analogy. The thermodynamic entropy of a gas IS the information content of its phase-space distribution. The 19th-century physicists and the 20th-century information theorists were measuring the same thing."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ei_landauer",
+        "kind": "multiple_choice",
+        "question": "Landauer's principle states that erasing one bit of information requires dissipating at least $k_B T \\ln 2$ of heat. At room temperature ($T = 300$ K), this is about how much energy per bit?",
+        "options": [
+          "$\\sim 3 \\times 10^{-21}$ J",
+          "$\\sim 10^{-19}$ J",
+          "1 J",
+          "$10^{-3}$ J"
+        ],
+        "correctIndex": 0,
+        "explanation": "$k_B = 1.38 \\times 10^{-23}$ J/K, so $k_B T \\ln 2 = 1.38 \\times 10^{-23} \\cdot 300 \\cdot 0.693 \\approx 2.87 \\times 10^{-21}$ J. About a 3-zJ floor per bit erase. Modern transistors are still 10⁴ to 10⁵ times above this — Landauer is the asymptotic floor, not yet a practical constraint, but the bridge from thermodynamics to information is exact."
+      },
+      "hints": [
+        "Plug in $k_B = 1.38 \\times 10^{-23}$ J/K, $T = 300$ K, $\\ln 2 = 0.693$.",
+        "Multiply the three together."
+      ],
+      "workedSolution": "$k_B T \\ln 2 = 1.38\\!\\times\\!10^{-23} \\cdot 300 \\cdot 0.693 \\approx 2.87\\!\\times\\!10^{-21}$ J. Modern CMOS dissipates ~$10^{-17}$ J/bit, so we're $\\sim 10^4 \\times$ above Landauer's floor — there's room. Reversible computing dreams of approaching the bound.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ei_entropy",
+        "kind": "math_expression",
+        "question": "Compute Shannon entropy of the distribution $\\{1/4, 1/4, 1/4, 1/4\\}$ in bits.",
+        "acceptedAnswers": [
+          "2",
+          "2.0",
+          "log_2 4"
+        ],
+        "hint": "Uniform over 4 outcomes → $\\log_2 4$ bits."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ei_maxwell",
+        "kind": "scenario",
+        "question": "Maxwell's demon",
+        "prompt": "A demon sorts fast and slow molecules between two chambers, lowering apparent entropy. How does treating the demon's *information* as part of the physical entropy budget restore the second law?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ei",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why someone who studies machine-learning losses (cross-entropy, KL divergence) and someone who studies refrigeration ($S$, $T$, free energy) are doing the same math.",
+        "rubric": "Mentions that both are measuring information / uncertainty in a probability distribution; ML uses bits to bound coding cost, physics uses $k_B \\cdot$ nats to bound work extraction."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Relate Boltzmann's $S = k_B \\ln W$ to Shannon's $H = -\\sum p \\log p$.",
+      "Compute the Shannon entropy of a small distribution.",
+      "Recognize that 'thermodynamic entropy' and 'information entropy' are the same quantity in different units."
+    ],
+    "prereqs": [
+      "statistical-mechanics"
+    ]
+  }
 }

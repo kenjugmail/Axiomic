@@ -7,6 +7,51 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: LCS for diff utilities",
+      "body": "Unix `diff`, Git's diff algorithm, and the patience-diff algorithm all rest on LCS (longest common subsequence) under the hood. The output of `diff a b` is essentially 'find the longest common subsequence; everything not in it is a delete (from a) or an insert (to b)'. LCS gives the minimum-edit alignment. Variations (Myers' algorithm) refine the constants but the DP structure is the same."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dp_lcs",
+        "kind": "guided_derivation",
+        "question": "Derive the LCS recurrence",
+        "goal": "Define $\\text{LCS}(i, j)$ = length of LCS of $A[1..i]$ and $B[1..j]$. Derive recurrence.",
+        "steps": [
+          {
+            "prompt": "Base: $\\text{LCS}(0, j) = \\text{LCS}(i, 0) = 0$. Recursive case: consider $A[i]$ vs $B[j]$. If $A[i] = B[j]$, what's the recurrence?",
+            "motivation": "Matching characters extend the LCS.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "LCS(i-1, j-1) + 1"
+              ]
+            },
+            "hints": [
+              "Use the LCS of the prefixes + 1 for the match."
+            ],
+            "reveal": "$\\text{LCS}(i, j) = \\text{LCS}(i-1, j-1) + 1$ when $A[i] = B[j]$."
+          },
+          {
+            "prompt": "If $A[i] \\neq B[j]$, we must drop one of them. What's the recurrence?",
+            "motivation": "Try both options + take the max.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "max(LCS(i-1, j), LCS(i, j-1))"
+              ]
+            },
+            "hints": [
+              "Either drop $A[i]$ or drop $B[j]$; take the better of the two."
+            ],
+            "reveal": "$\\text{LCS}(i, j) = \\max(\\text{LCS}(i-1, j), \\text{LCS}(i, j-1))$ when $A[i] \\neq B[j]$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{LCS}(i, j) = \\begin{cases} \\text{LCS}(i-1, j-1) + 1 & \\text{if } A[i] = B[j] \\\\ \\max(\\text{LCS}(i-1, j), \\text{LCS}(i, j-1)) & \\text{else} \\end{cases}}$$ Runtime $O(mn)$, memory $O(mn)$. Hirschberg's algorithm gives $O(\\min(m, n))$ memory at the same time complexity — used in production diff tools."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The two implementation styles",
       "body": "**Top-down (memoization)**: natural recursive code with a cache. Solve subproblems on demand; store results.\n\n```python\n@lru_cache(maxsize=None)\ndef fib(n):\n    if n < 2: return n\n    return fib(n-1) + fib(n-2)\n```\n\n**Bottom-up (tabulation)**: build the answer table iteratively, in dependency order.\n\n```python\ndef fib(n):\n    if n < 2: return n\n    table = [0] * (n+1)\n    table[1] = 1\n    for i in range(2, n+1):\n        table[i] = table[i-1] + table[i-2]\n    return table[n]\n```\n\nSame asymptotic complexity ($O(n)$). Different ergonomics — see [[memoization-vs-tabulation]]."
     },
@@ -43,12 +88,92 @@
         "kind": "explain_back",
         "prompt": "When would you choose tabulation over memoization, and vice versa? Use a concrete example to ground your answer.",
         "rubricCriteria": [
-          { "id": "tabulation-pros", "description": "Identifies tabulation pros: iterative (no stack overflow), constant-factor faster, easier to space-optimize" },
-          { "id": "memoization-pros", "description": "Identifies memoization pros: natural recursive code, only computes needed subproblems" },
-          { "id": "concrete-example", "description": "Provides a concrete example — e.g., Fibonacci tabulation can space-optimize to O(1); recursion-depth-limited problems benefit from tabulation" }
+          {
+            "id": "tabulation-pros",
+            "description": "Identifies tabulation pros: iterative (no stack overflow), constant-factor faster, easier to space-optimize"
+          },
+          {
+            "id": "memoization-pros",
+            "description": "Identifies memoization pros: natural recursive code, only computes needed subproblems"
+          },
+          {
+            "id": "concrete-example",
+            "description": "Provides a concrete example — e.g., Fibonacci tabulation can space-optimize to O(1); recursion-depth-limited problems benefit from tabulation"
+          }
         ],
         "passingScore": 0.5
       }
+    },
+    {
+      "kind": "text",
+      "title": "The two-question DP test",
+      "body": "Before reaching for DP on a new problem, check:\n\n1. **Optimal substructure**: does the optimal solution to the problem decompose into optimal solutions to smaller subproblems?\n2. **Overlapping subproblems**: do those subproblems get solved many times in a naive recursive approach?\n\nBoth must be yes for DP to be the right tool.\n\nExample (knapsack): the best value packable into capacity $c$ with items $1..n$ is the max of (skip item $n$, value at $c$ with items $1..n-1$) and (take item $n$, value at $c - w_n$ with items $1..n-1$). Optimal substructure: ✓. Overlapping: ✓ (the same $(c', n')$ state recurs across recursion branches). DP wins.\n\nCounter-example (sorting a list): optimal substructure exists, but no overlap — each subproblem is unique. DP would just be slower mergesort.\n\nWhen people say 'DP is hard', they usually mean 'the right state vector is hard to pick'. Once you find the state, the recurrence is straightforward."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_dp_when",
+        "kind": "multiple_choice",
+        "question": "Which of these does NOT benefit from dynamic programming?",
+        "options": [
+          "Longest common subsequence of two strings.",
+          "Edit distance.",
+          "Sorting an array of $n$ integers.",
+          "Coin-change minimum-coins problem."
+        ],
+        "correctIndex": 2,
+        "explanation": "Sorting doesn't have overlapping subproblems — each recursive call (in mergesort or quicksort) processes a disjoint subarray. The other three classics have both optimal substructure and massive subproblem overlap, exactly what DP is for."
+      },
+      "hints": [
+        "Apply the two-question DP test to each option.",
+        "Sorting subproblems are disjoint by construction."
+      ],
+      "workedSolution": "Sorting decomposes into disjoint subproblems (each recursive call works on a different slice), so no subproblem overlap — DP gives no speedup. LCS, edit distance, and coin-change all have polynomial state spaces with massive recursion-tree overlap; DP turns exponential naive recursion into polynomial.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_dp_state",
+        "kind": "scenario",
+        "question": "Designing the state",
+        "prompt": "You need to count the number of ways to climb $n$ stairs taking 1, 2, or 3 steps at a time. Walk through the DP state, recurrence, and base cases in three sentences."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_dp_fib",
+        "kind": "math_expression",
+        "question": "Naive recursive Fibonacci: $F(n) = F(n-1) + F(n-2)$. With memoization, the number of distinct subproblems is exactly:",
+        "acceptedAnswers": [
+          "n",
+          "n+1",
+          "O(n)"
+        ],
+        "hint": "Each F(k) for k from 0..n gets computed once."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_dp",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences when you'd prefer tabulation (bottom-up DP) over memoization (top-down DP).",
+        "rubric": "Mentions tabulation avoids stack-depth issues, has better cache behavior, can sometimes use less memory (rolling window); memoization is more natural for problems where many states are unreachable."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "advanced",
+    "objectives": [
+      "Identify optimal substructure + overlapping subproblems in a new problem.",
+      "Distinguish memoization (top-down) from tabulation (bottom-up).",
+      "Recognize when DP is the wrong tool."
+    ],
+    "prereqs": [
+      "graph-algorithms"
+    ]
+  }
 }

@@ -33,6 +33,18 @@ import { useAuthStore } from "../stores/auth";
 
 const PASSING_SCORE = 0.7;
 
+// Question kinds whose own component renders correct/incorrect feedback
+// (via the answer envelope) — pressing Next on those should advance
+// immediately. All other kinds rely on LessonPage to render the
+// explanation panel, so we use a two-step "Check answer → Next" flow.
+const SELF_REVEALING_KINDS = new Set<QuizQuestion["kind"]>([
+  "free_response",
+  "scenario",
+  "ml_sandbox",
+  "guided_derivation",
+  "code",
+]);
+
 type Phase =
   | "loading"
   | "playing"
@@ -423,33 +435,45 @@ export function LessonPage() {
 
   function handleNext() {
     if (!canAdvance) return;
-    // For question slides, mark them revealed and report the answer
-    // outcome to the analytics endpoint before advancing.
     if (slide?.kind === "question") {
-      setRevealed((r) => ({ ...r, [slide.question.id]: true }));
-      const correct = scoreLocally(slide.question, answers[slide.question.id]);
-      if (node) {
-        api.mastery
-          .postSlideEvent(
-            node.id,
-            idx,
-            correct ? "answered_correct" : "answered_wrong",
-          )
-          .catch(() => {});
+      const qid = slide.question.id;
+      const correct = scoreLocally(slide.question, answers[qid]);
+      const twoStep = !SELF_REVEALING_KINDS.has(slide.question.kind);
+      // First click on a non-self-revealing question: show the
+      // explanation panel and stay on the slide. The learner must
+      // press Next again to advance.
+      if (twoStep && !revealed[qid]) {
+        setRevealed((r) => ({ ...r, [qid]: true }));
+        if (node) {
+          api.mastery
+            .postSlideEvent(
+              node.id,
+              idx,
+              correct ? "answered_correct" : "answered_wrong",
+            )
+            .catch(() => {});
+        }
+        return;
       }
-      // Opt-in: block advance until correct. Feedback/hints/worked
-      // solution are now visible so the learner can fix and retry.
+      // Self-revealing kinds (or second click on a two-step): ensure
+      // revealed flag is set so isCorrect/feedback gating works, and
+      // emit the analytics event once on advance.
+      if (!revealed[qid]) {
+        setRevealed((r) => ({ ...r, [qid]: true }));
+        if (node) {
+          api.mastery
+            .postSlideEvent(
+              node.id,
+              idx,
+              correct ? "answered_correct" : "answered_wrong",
+            )
+            .catch(() => {});
+        }
+      }
       if (slide.retryUntilCorrect && !correct) {
         return;
       }
-      // Committing this question — persist one attempt row (with
-      // confidence iff the learner tapped it during the dwell).
-      recordAttemptOnce(
-        slide.question.id,
-        idx,
-        correct,
-        confidence[slide.question.id],
-      );
+      recordAttemptOnce(qid, idx, correct, confidence[qid]);
     }
     if (isLast) {
       handleFinish();
@@ -1413,7 +1437,17 @@ export function LessonPage() {
               disabled={!canAdvance || submitting}
               className="justify-self-end inline-flex items-center gap-1 px-4 py-1.5 text-sm rounded-md bg-primary text-primary-foreground font-medium disabled:opacity-50"
             >
-              {isLast ? (submitting ? "Finishing…" : "Finish") : "Next"}
+              {(() => {
+                if (isLast) return submitting ? "Finishing…" : "Finish";
+                if (
+                  slide?.kind === "question" &&
+                  !SELF_REVEALING_KINDS.has(slide.question.kind) &&
+                  !revealed[slide.question.id]
+                ) {
+                  return "Check answer";
+                }
+                return "Next";
+              })()}
               <ArrowRight className="w-3.5 h-3.5" strokeWidth={2} />
             </button>
           </div>

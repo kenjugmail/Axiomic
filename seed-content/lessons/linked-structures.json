@@ -7,6 +7,52 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: B-tree fan-out tuning",
+      "body": "PostgreSQL's B-trees have a fan-out of ~256-500 children per node (depending on key + value size + page size). For a 1B-row table, the tree depth is $\\log_{300}(10^9) \\approx 4$. So a key lookup is 4 random page reads + a sequential search within each page. On SSD (~100µs/random read), total ~400µs. Compared to a balanced BST (depth ~30): 3000µs. The big-O is the same; the constant differs by 10× because fan-out exploits sequential-read locality."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_link_avl",
+        "kind": "guided_derivation",
+        "question": "Derive the AVL-height bound",
+        "goal": "Show that AVL trees with $n$ nodes have height $h \\leq 1.44 \\log_2(n + 2)$.",
+        "steps": [
+          {
+            "prompt": "Let $N(h)$ be the *minimum* number of nodes in an AVL tree of height $h$. Set up the recurrence. (Minimum-size AVL of height $h$ has root + minimum-size AVL of height $h-1$ + minimum-size AVL of height $h-2$.)",
+            "motivation": "Worst case AVL has unbalanced sub-trees within the 1-balance.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "N(h) = N(h-1) + N(h-2) + 1"
+              ]
+            },
+            "hints": [
+              "The two sub-trees can have heights differing by 1; pick the smaller pair."
+            ],
+            "reveal": "$N(h) = N(h-1) + N(h-2) + 1$ (Fibonacci-like)."
+          },
+          {
+            "prompt": "This recurrence grows like Fibonacci: $N(h) \\sim \\phi^h$ where $\\phi = (1+\\sqrt 5)/2 \\approx 1.618$. So $n \\geq N(h) \\sim \\phi^h$. Solve for $h$.",
+            "motivation": "Invert.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "log_phi(n)",
+                "h <= log(n)/log(phi)"
+              ]
+            },
+            "hints": [
+              "$h \\leq \\log_\\phi(n) = \\log_2 n / \\log_2 \\phi \\approx 1.44 \\log_2 n$."
+            ],
+            "reveal": "$h \\leq \\log_\\phi n \\approx 1.44 \\log_2 n$."
+          }
+        ],
+        "finalResult": "$$\\boxed{h_{\\text{AVL}} \\leq 1.44 \\log_2(n+2)}$$ AVL trees stay within ~44% of optimal depth even in the worst case. Red-black trees are similar (~$2\\log_2 n$ worst case) but with slightly cheaper rebalancing."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Binary search trees + balance",
       "body": "**BST invariant**: for every node, all keys in the left subtree are smaller; all keys in the right subtree are larger.\n\nLookup: $O(h)$ where $h$ is tree height.\n\n**The catch**: $h$ depends on insertion order. Insert sorted keys → degenerate to a linked list, $h = n$. Worst-case lookup: $O(n)$.\n\nSolutions are **self-balancing trees** ([[balanced-tree]]):\n\n- **AVL trees** (1962): for every node, |left height - right height| ≤ 1. Strict balance; $h \\leq 1.44 \\log n$. Faster lookup, slower insert (more rebalancing).\n- **Red-black trees**: looser balance; $h \\leq 2 \\log n$. Slower lookup, faster insert. Used in C++ `std::map`, Java `TreeMap`, Linux kernel CFS scheduler.\n- **B-trees**: nodes hold many keys + many children. Designed for disk: each node is one disk block. Used in databases (PostgreSQL, MySQL InnoDB), filesystems (ext4, NTFS, HFS+).\n- **B+-trees**: variant where leaves are linked. Optimal for range scans. Default for OLTP databases.\n\n**Practical recommendation**: don't hand-roll a balanced tree. Use stdlib `std::map` / `TreeMap` / `BTreeMap`. The implementations are decades old + heavily tested."
     },
@@ -43,12 +89,93 @@
         "kind": "explain_back",
         "prompt": "You're designing the data structure that powers your editor's autocomplete (1M-word dictionary). A colleague suggests a hash table; you push back with 'use a trie instead.' Explain three concrete advantages, with at least one referencing memory and at least one referencing operation cost.",
         "rubricCriteria": [
-          { "id": "prefix-queries", "description": "Names prefix queries as the primary win — hash tables can't answer 'words starting with comp' without scanning the full dictionary" },
-          { "id": "memory-sharing", "description": "Names memory sharing — common prefixes (compute, computer, computing, computation) share trie nodes; hash tables store each string fully" },
-          { "id": "operation-cost", "description": "Discusses the per-operation cost: trie lookup is $O(|s|)$ for the longest match, vs hash $O(|s|)$ for the hash compute + $O(|s|)$ for the equality check on each colliding bucket entry — comparable, but trie also gives sorted/ordered output for free" }
+          {
+            "id": "prefix-queries",
+            "description": "Names prefix queries as the primary win — hash tables can't answer 'words starting with comp' without scanning the full dictionary"
+          },
+          {
+            "id": "memory-sharing",
+            "description": "Names memory sharing — common prefixes (compute, computer, computing, computation) share trie nodes; hash tables store each string fully"
+          },
+          {
+            "id": "operation-cost",
+            "description": "Discusses the per-operation cost: trie lookup is $O(|s|)$ for the longest match, vs hash $O(|s|)$ for the hash compute + $O(|s|)$ for the equality check on each colliding bucket entry — comparable, but trie also gives sorted/ordered output for free"
+          }
         ],
         "passingScore": 0.5
       }
+    },
+    {
+      "kind": "text",
+      "title": "Why databases use B-trees, not BSTs",
+      "body": "A balanced BST gives $O(\\log_2 n)$ height. For $n = 10^9$, that's $\\log_2(10^9) \\approx 30$ — sounds great.\n\nBut each node lookup is a *pointer chase*. On modern hardware, a cache miss costs ~100 ns; a random main-memory read on a 100 GB index is even worse. 30 random pointer chases is $\\sim 3$ μs per lookup just for index traversal.\n\nB-tree of order $b = 100$: height $\\log_{100}(10^9) \\approx 5$. Each node is a *page* of $\\sim 100$ keys, fits in cache or one disk block. So 5 pointer chases instead of 30. On disk-resident indexes the win is far bigger: 30 random disk reads (~3 sec) vs. 5 (~50 ms).\n\nThat's why every major database index — Postgres, MySQL InnoDB, SQLite — is a B-tree, not a BST. Cache-aware data structures are how big-O closes the gap with real machines."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_link_avl",
+        "kind": "multiple_choice",
+        "question": "An AVL tree maintains balance via rotations. The balance invariant is 'left subtree height and right subtree height differ by at most 1 at every node'. Which fact follows?",
+        "options": [
+          "The tree is necessarily a complete tree.",
+          "The tree's height is $O(\\log n)$, giving worst-case $O(\\log n)$ lookups.",
+          "The tree has exactly $n+1$ rotations on insert.",
+          "Inserts always cost $O(n)$."
+        ],
+        "correctIndex": 1,
+        "explanation": "The AVL invariant constrains the height to be at most $\\sim 1.44 \\log_2 n$. That's the whole point of the rebalancing: trade $O(\\log n)$ amortized rotations per update for guaranteed $O(\\log n)$ depth, which guarantees $O(\\log n)$ search even on adversarial insertion sequences."
+      },
+      "hints": [
+        "The invariant directly bounds the worst-case path from root to leaf.",
+        "Compare to a degenerate BST built from sorted insertions — what goes wrong, and how does the invariant prevent it?"
+      ],
+      "workedSolution": "Bounded skew at every node means worst-case path length is $O(\\log n)$ (formally $\\le 1.44 \\log_2 n + c$ for AVL). Insertions trigger at most $O(\\log n)$ rotations to maintain the invariant. The whole structure is designed so lookups, inserts, deletes are $O(\\log n)$ worst case — unlike unbalanced BSTs which degrade to $O(n)$.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_link_trie",
+        "kind": "scenario",
+        "question": "Choosing a structure",
+        "prompt": "You're building an autocomplete index for 100K words. Lookups are prefix-based: given 'che', return all words that start with 'che'. Pick between a hash set, a balanced BST, and a trie; justify the pick in one sentence each."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_link_btreeheight",
+        "kind": "math_expression",
+        "question": "B-tree of order 100, 10^9 keys, height ≈ log_100(10^9). What is the height?",
+        "acceptedAnswers": [
+          "4.5",
+          "5",
+          "log_100(10^9)",
+          "9/2"
+        ],
+        "hint": "$\\log_{100} 10^9 = 9/\\log_{10} 100 = 9/2$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_link",
+        "kind": "explain_back",
+        "prompt": "Explain in three sentences why a trie can beat a hash table for prefix lookups even though both are 'O(1) per character'.",
+        "rubric": "Mentions that a trie lets you enumerate all extensions of a prefix in time proportional to the subtree size; a hash table requires a full scan to find matching keys."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Reason about balanced-tree invariants and why they matter for worst-case bounds.",
+      "Distinguish BSTs, B-trees, and tries by use case.",
+      "Recognize cache-locality effects on tree performance."
+    ],
+    "prereqs": [
+      "sorting-algorithms"
+    ]
+  }
 }
