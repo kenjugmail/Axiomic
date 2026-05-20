@@ -1,0 +1,151 @@
+{
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "specialist",
+    "objectives": [
+      "State the Hindley-Milner algorithm in outline.",
+      "Apply unification to solve type variables.",
+      "Distinguish parametric polymorphism from subtype polymorphism."
+    ],
+    "prereqs": [
+      "abstract-syntax-trees"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Hindley-Milner: principal types without annotations",
+      "body": "**Hindley-Milner** (Damas, Milner, Hindley 1969-1982) is the type system at the core of ML, OCaml, Haskell, and influencing TypeScript, Rust, Swift.\n\nKey property: every well-typed expression has a UNIQUE most-general (principal) type. The type-checker infers it from the program structure — no annotations needed.\n\nE.g., `let id = fun x -> x` infers `id : ∀α. α → α`. The `∀α` is the generalization step: any free type variable in the inferred type becomes universally quantified.\n\nThe core algorithm (Algorithm W):\n1. Walk the AST top-down.\n2. At each node, generate FRESH type variables for unknowns + EQUALITY CONSTRAINTS between them.\n3. Solve the constraints by **unification**.\n4. At `let x = e1 in e2`, generalize: free type vars in `e1`'s type that aren't free in the environment get a `∀` quantifier.\n5. At each use of a `let`-bound name, instantiate: replace `∀α. T` with `T[α := fresh]`.\n\n**Limitation**: HM doesn't have higher-rank polymorphism (`∀α. ...` only at let-bindings, not inside arrows). Adding it (System F, RankN) makes inference undecidable; type annotations become required. Haskell uses limited RankN behind a flag."
+    },
+    {
+      "kind": "text",
+      "title": "Unification: solving type equality constraints",
+      "body": "**Unification** is the central operation of HM. Given two type expressions $T_1, T_2$, find a substitution $S$ (mapping type variables to types) such that $S(T_1) = S(T_2)$.\n\nRobinson's unification algorithm (1965):\n```\nunify(T1, T2):\n  if T1 == T2 (after substitution): return identity\n  if T1 is var α: bind α = T2 (occurs-check first!)\n  if T2 is var α: bind α = T1\n  if T1 = f(A1,..,An), T2 = g(B1,..,Bm):\n    if f ≠ g or n ≠ m: FAIL (type error)\n    for i in 1..n: unify(Ai, Bi)\n```\n\n**Occurs-check**: when binding `α = T`, fail if `α` occurs inside `T`. Otherwise `α = list α` would unify, creating an infinite type. Most production HM implementations include the occurs-check; some (early ML compilers) omitted it for speed, leading to type-system unsoundness or infinite loops.\n\n**Complexity**: $O(n \\alpha(n))$ with union-find for substitution (essentially linear in input size).\n\n**Application example**:\n- `f(x) = x + 1` → `f : α → β`, constraint `α = int`, `β = int`. Solve → `f : int → int`.\n- `f(g, x) = g(x) + 1` → infer `g : α → β`, `x : α`, then `β = int`, so `f : (α → int) → α → int`."
+    },
+    {
+      "kind": "text",
+      "title": "Parametric vs ad-hoc polymorphism + subtyping",
+      "body": "**Parametric polymorphism**: one implementation works for all types. `id : ∀α. α → α` — the SAME code runs whether α is int, string, list. Functional langs (ML, Haskell, OCaml) use this exclusively.\n\n**Ad-hoc polymorphism** (a.k.a. overloading): different implementations selected by type. Haskell's typeclasses (`Eq a`, `Ord a`), Rust's traits, Scala's implicits. The compiler picks the right instance at call-site.\n\n**Subtype polymorphism**: `Cat <: Animal` so a `Cat` can be used wherever an `Animal` is expected. Object-oriented (Java, C#). Brings variance issues: is `List<Cat> <: List<Animal>`? (No — that's covariance, only safe with read-only lists.)\n\n**Combining all three**: Scala famously does. Rust's traits are ad-hoc + parametric (`fn print<T: Display>(x: T)`). TypeScript has all three: generics (`function id<T>(x: T): T`), overloads (`function foo(x: string): string; function foo(x: number): number;`), structural subtyping (`{name, age}` is a subtype of `{name}`).\n\nThe combination is powerful but the type-system complexity grows quickly: variance rules + GLBs/LUBs + bidirectional checking + decidability concerns. Rust deliberately stayed on the simpler HM-derived branch + got away from full inference where ambiguity arises.\n\nKey takeaway: polymorphism flavor is a major language-design axis."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_type_unify",
+        "kind": "guided_derivation",
+        "question": "Derive a unification of `α → int` with `string → β`",
+        "goal": "Apply the unification algorithm step by step.",
+        "steps": [
+          {
+            "prompt": "Both are function types. So we unify pairwise. Unify the domain types `α` and `string`. Result?",
+            "motivation": "Variable vs concrete: bind.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "α = string.",
+                "string = α (same thing, but notation).",
+                "fail.",
+                "α = int."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "α is a free var, string is concrete."
+            ],
+            "reveal": "Substitution gains `α := string`."
+          },
+          {
+            "prompt": "Unify the codomain types `int` and `β` under the current substitution. Result?",
+            "motivation": "Variable vs concrete: bind.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "β = int.",
+                "fail.",
+                "α = β.",
+                "no change."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "β is a free var, int is concrete."
+            ],
+            "reveal": "Substitution gains `β := int`."
+          },
+          {
+            "prompt": "Apply the full substitution {α := string, β := int} to the original `α → int`. Final type?",
+            "motivation": "Substitute everywhere.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "string → int.",
+                "string → β.",
+                "α → int (unchanged).",
+                "int → string."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "α replaced by string."
+            ],
+            "reveal": "Both inputs unify to `string → int`."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Unification: walk structures, bind vars, occurs-check}}$$ The same algorithm powers Prolog resolution, ML/Haskell/Rust type inference, theorem provers, equation solvers. Linear-time with union-find. This single primitive is responsible for the ergonomics of modern statically-typed functional + systems languages."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_type_unsound",
+        "kind": "multiple_choice",
+        "question": "Java's array covariance: `String[] s = ...; Object[] o = s; o[0] = new Integer(1);`. What happens at runtime?",
+        "options": [
+          "Compiles + runs fine.",
+          "Compile error.",
+          "Compiles but throws `ArrayStoreException` at the assignment.",
+          "Compiles, runs, and silently corrupts memory."
+        ],
+        "correctIndex": 2,
+        "explanation": "Java arrays are covariant: `String[] <: Object[]`. But this is unsound + Java compensates with a runtime check on every array write — `ArrayStoreException` if you try to store an `Integer` into a `String[]`. The check is a small per-store cost; the unsoundness leak in the type system is patched at runtime. (Generics are invariant in Java for exactly this reason — they didn't want the runtime check.)"
+      },
+      "hints": [
+        "Are Java arrays covariant in the type system?",
+        "What's the runtime cost?"
+      ],
+      "workedSolution": "Java arrays were covariant from day 1 (1996) — a design mistake widely acknowledged. Without runtime checks the type system would be unsound. So Java checks every array write at runtime, throwing `ArrayStoreException` on mismatch. Generics, added in 2004, are correctly invariant (no runtime check needed). The lesson: variance is hard, sound static + runtime patches don't compose well.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_type_hm",
+        "kind": "math_expression",
+        "question": "An HM type with no annotations: `let id x = x in id 5`. What is `id`'s most general type?",
+        "acceptedAnswers": [
+          "forall a. a -> a",
+          "∀α. α → α",
+          "∀a. a -> a"
+        ],
+        "hint": "Polymorphic identity."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_type_ts",
+        "kind": "scenario",
+        "question": "TypeScript's bivariance bug",
+        "prompt": "TypeScript treats function parameters as bivariant under `--strictFunctionTypes` off. A team finds this caused a subtle runtime crash. Walk through the type-soundness issue."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_type",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why Hindley-Milner is at the core of every modern functional + ML-family language but is generally NOT extended to full System F.",
+        "rubric": "Mentions that HM gives most-general principal types without annotations (key ergonomic property). Adding rank-N polymorphism makes inference undecidable, forcing annotations + breaking ergonomics. So languages either stay in HM (OCaml, Elm) or add limited extensions behind annotations (Haskell's RankN, Rust's higher-rank trait bounds)."
+      }
+    }
+  ]
+}

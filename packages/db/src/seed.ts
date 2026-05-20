@@ -1952,6 +1952,26 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P9 — Compiler Engineer path. Lexing, parsing, ASTs, types,
+  // SSA IR, optimization passes, register allocation, JIT. Sits
+  // beneath algorithms-engineer + systems-engineer.
+  seedMasteryPath({
+    slug: "compiler-engineer",
+    title: "Compiler Engineer",
+    description:
+      "From lexical analysis through parsing, ASTs, type systems, SSA-form IR, optimization passes, register allocation, and JIT runtime. The full compiler pipeline as practiced in production toolchains (clang, rustc, V8, HotSpot).",
+    nodes: [
+      { slug: "lexical-analysis", title: "Lexical Analysis", level: "apprentice", order: 1, pages: ["regex-nfa-dfa", "maximal-munch"], prereqs: [], description: "Regex → NFA → DFA via Thompson + subset construction, maximal-munch rule, hand-written vs generated lexers." },
+      { slug: "parsing-strategies", title: "Parsing Strategies", level: "practitioner", order: 2, pages: ["ll-vs-lr", "pratt-parsing", "error-recovery"], prereqs: ["lexical-analysis"], description: "LL vs LR, recursive descent, Pratt parsing for expression precedence, error recovery for IDEs." },
+      { slug: "abstract-syntax-trees", title: "Abstract Syntax Trees", level: "practitioner", order: 3, pages: ["ast-design", "visitor-pattern", "source-positions"], prereqs: ["parsing-strategies"], description: "AST vs CST, discriminated-union node types, visitor pattern, source position spans for diagnostics." },
+      { slug: "type-systems", title: "Type Systems (Hindley-Milner)", level: "specialist", order: 4, pages: ["hindley-milner", "unification", "polymorphism"], prereqs: ["abstract-syntax-trees"], description: "Hindley-Milner principal types, unification + occurs-check, parametric vs ad-hoc vs subtype polymorphism." },
+      { slug: "ir-and-ssa", title: "IR + SSA Form", level: "specialist", order: 5, pages: ["llvm-ir", "ssa", "dominance-frontier"], prereqs: ["abstract-syntax-trees"], description: "Why an IR, SSA invariant + φ-functions, dominators + dominance frontiers (Cytron et al)." },
+      { slug: "optimization-passes", title: "Optimization Passes", level: "specialist", order: 6, pages: ["classical-opts", "inlining", "lto-pgo"], prereqs: ["ir-and-ssa"], description: "Classical passes + ordering, why inlining is #1, LTO + PGO + BOLT." },
+      { slug: "codegen-and-registers", title: "Codegen + Register Allocation", level: "expert", order: 7, pages: ["instruction-selection", "graph-coloring", "linear-scan"], prereqs: ["ir-and-ssa"], description: "Instruction selection, register allocation as graph coloring (Chaitin), linear-scan for JITs." },
+      { slug: "jit-and-runtime", title: "JIT Compilation + Runtime", level: "expert", order: 8, pages: ["tiered-jit", "deoptimization", "jit-vs-aot"], prereqs: ["codegen-and-registers", "optimization-passes"], description: "Tiered JITs (V8, HotSpot, RyuJIT), speculative type optimization + deopt, JIT vs AOT trade-offs." },
+    ],
+  });
+
   // P8 — Cryptographer path. Deeper crypto complement to
   // security-engineer: hash functions, block ciphers, AEAD,
   // public-key primitives, zero-knowledge proofs, post-quantum,
