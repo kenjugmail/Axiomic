@@ -1952,6 +1952,30 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P29 — Epidemiologist path. From foundational measures (incidence,
+  // prevalence, CFR) through interactive SIR compartmental models + R₀,
+  // study designs (cohort, case-control, RCT), outbreak investigation +
+  // surveillance, infectious-disease genomics, causal inference + DAGs,
+  // vaccines + immunization programs, public-health decisions + equity,
+  // and global health + pandemic preparedness.
+  seedMasteryPath({
+    slug: "epidemiologist",
+    title: "Epidemiologist",
+    description:
+      "From the core measures (incidence, prevalence, CFR vs IFR) through compartmental SIR models with an interactive viz, R₀ + herd-immunity threshold, observational + experimental study designs, outbreak investigation + multi-stream surveillance (wastewater, genomic), pathogen genomics + Nextstrain phylogenies, modern causal inference with DAGs + target-trial emulation, vaccine efficacy + safety surveillance, equity-focused public health, and global pandemic preparedness. The epidemiology stack end-to-end.",
+    nodes: [
+      { slug: "epidemiology-foundations", title: "Epidemiology Foundations", level: "apprentice", order: 1, pages: ["incidence-prevalence", "rates-ratios", "epi-curves"], prereqs: [], description: "Incidence vs prevalence, CFR vs IFR, age-adjustment + epi curves + the lag problem." },
+      { slug: "compartmental-models-and-r0", title: "Compartmental Models + R₀", level: "practitioner", order: 2, pages: ["sir-derivation", "herd-immunity", "beyond-sir"], prereqs: ["epidemiology-foundations"], description: "Interactive SIR viz, R₀ derivation + herd-immunity threshold, SEIR + age structure + network models + super-spreaders." },
+      { slug: "study-designs", title: "Study Designs", level: "practitioner", order: 3, pages: ["observational-designs", "rcts", "bias-confounding"], prereqs: ["epidemiology-foundations"], description: "Cohort vs case-control vs cross-sectional, RCT design (blinding + ITT), confounding + bias + DAGs." },
+      { slug: "outbreak-investigation-and-surveillance", title: "Outbreak Investigation + Surveillance", level: "practitioner", order: 4, pages: ["ten-steps", "line-list-attack-rate", "multi-stream-surveillance"], prereqs: ["epidemiology-foundations"], description: "CDC 10-step outbreak framework, line lists + attack-rate tables, modern surveillance (notifiable, syndromic, wastewater, genomic)." },
+      { slug: "infectious-disease-genomics", title: "Infectious Disease Genomics", level: "specialist", order: 5, pages: ["phylogenies", "nextstrain", "transmission-reconstruction"], prereqs: ["compartmental-models-and-r0"], description: "Pathogen WGS + molecular clock, Nextstrain + variant surveillance, outbreak reconstruction + vaccine strain selection." },
+      { slug: "causal-inference-in-epidemiology", title: "Causal Inference + DAGs", level: "specialist", order: 6, pages: ["bradford-hill", "dags-backdoor", "target-trial-emulation"], prereqs: ["study-designs"], description: "Bradford-Hill criteria, DAGs + confounder/collider identification + backdoor criterion, target-trial emulation + Mendelian randomization." },
+      { slug: "vaccines-and-immunization-programs", title: "Vaccines + Immunization Programs", level: "specialist", order: 7, pages: ["vaccine-types", "efficacy-effectiveness", "safety-monitoring"], prereqs: ["compartmental-models-and-r0", "study-designs"], description: "Vaccine types (live/inactivated/mRNA), VE vs effectiveness vs impact, VAERS/VSD safety surveillance + Wakefield's legacy." },
+      { slug: "public-health-decisions-and-equity", title: "Public Health Decisions + Equity", level: "expert", order: 8, pages: ["dalys-qalys", "social-determinants", "intervention-design"], prereqs: ["epidemiology-foundations", "study-designs"], description: "DALYs + QALYs + CEA, social determinants + structural epi, universal vs targeted interventions + Health-in-all-Policies." },
+      { slug: "global-health-and-pandemic-preparedness", title: "Global Health + Pandemic Preparedness", level: "expert", order: 9, pages: ["global-architecture", "preparedness-failures", "one-health"], prereqs: ["compartmental-models-and-r0", "outbreak-investigation-and-surveillance"], description: "WHO/Gavi/Global Fund architecture, why preparedness is hard, One Health + zoonotic spillover prevention." },
+    ],
+  });
+
   // P28 — Astrophysicist path. From stellar structure + fusion through
   // HR diagram + stellar evolution (interactive viz), galaxies + dark
   // matter, big-bang cosmology, black holes + GR, exoplanets +

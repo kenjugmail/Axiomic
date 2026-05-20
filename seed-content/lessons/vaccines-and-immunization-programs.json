@@ -1,0 +1,175 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Distinguish vaccine efficacy + effectiveness + impact.",
+      "Reason about herd immunity by disease.",
+      "Walk through immunization program design + safety monitoring."
+    ],
+    "prereqs": [
+      "compartmental-models-and-r0",
+      "study-designs"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Vaccines: the most powerful public-health intervention",
+      "body": "Vaccines have eradicated smallpox (1980), nearly eradicated polio (>99% reduction), eliminated measles in many countries (until coverage drops), + reduced childhood mortality globally by an order of magnitude since the 1960s. The Expanded Programme on Immunization (EPI, WHO 1974) is among the most successful public-health programs ever.\n\n**Vaccine types**:\n• **Live-attenuated**: weakened virus — MMR, varicella, oral polio, yellow fever. Strong + long-lived immunity; contraindicated in immunocompromised.\n• **Inactivated**: killed pathogen — IPV (polio), hepatitis A, flu. Safer but multiple doses + adjuvants typically needed.\n• **Subunit / protein**: target antigens only — hepatitis B HBsAg, HPV L1, Tdap. Highly safe, less immunogenic alone.\n• **mRNA**: lipid nanoparticle delivering mRNA for antigen — Pfizer/Moderna COVID, RSV. Rapid design, scalable manufacturing.\n• **Viral vector**: adenovirus carrying antigen DNA — J&J COVID, Sputnik. Pre-existing vector immunity is a concern.\n• **Toxoid**: inactivated toxin — tetanus, diphtheria.\n\n**Vaccine schedule** (US childhood): birth (HBV), 2 mo (DTaP, IPV, Hib, RV, PCV), 4 mo, 6 mo, 12-15 mo (MMR, varicella, HepA), 4-6 yr, adolescent (Tdap, HPV, MenACWY), adult (Tdap, flu, COVID, shingles). Schedule is optimized for immune system maturity + epidemiological risk."
+    },
+    {
+      "kind": "text",
+      "title": "Efficacy, effectiveness, impact — three different questions",
+      "body": "Three vocabulary distinctions that confuse the public + journalists:\n\n• **Vaccine efficacy (VE)**: reduction in incidence among vaccinated vs unvaccinated in a *controlled trial* (RCT). e.g., Pfizer COVID-19 mRNA: 95% efficacy against symptomatic infection in phase III trial.\n• **Vaccine effectiveness**: same reduction in *real-world deployment*. Usually lower than efficacy because population is more heterogeneous, compliance imperfect, vaccine handling variable. e.g., Pfizer COVID-19 effectiveness ~85-90% against hospitalization in early real-world data; lower with variant emergence + waning.\n• **Vaccine impact**: population-level reduction in disease burden + transmission, including herd-immunity effects. E.g., HPV vaccine: ~90% reduction in cervical pre-cancer in vaccinated cohorts; ~75% reduction in HPV-attributable disease in *all* women (incl. unvaccinated) due to herd effects.\n\nFormula: VE = 1 − (P_vaccinated / P_unvaccinated) — where P is incidence.\n\n**Sources of VE drift**: variant emergence (Omicron escaped Pfizer immunity to ~30% effectiveness against symptomatic infection, though >85% against severe disease); waning immunity (most vaccines have time-limited antibody titers); population heterogeneity (children vs elderly respond differently).\n\nReporting clearly distinguishes between symptomatic protection, severe-disease protection, transmission reduction, + duration. Confusing them leads to misinterpretation."
+    },
+    {
+      "kind": "text",
+      "title": "Safety monitoring + the cost of false-alarm narratives",
+      "body": "Vaccines are studied in pre-licensure trials (tens of thousands of participants), but rare adverse events (1 in 100,000+) appear only post-deployment. **Pharmacovigilance systems**:\n\n• **VAERS** (US, CDC/FDA): passive reporting; anyone can submit. Sensitive but noisy + low specificity.\n• **VSD** (Vaccine Safety Datalink): cohort of >12M with linked EHR + immunization records; active surveillance with adjusted analyses.\n• **V-Safe** (smartphone post-vaccination check-ins, COVID-era).\n• **EudraVigilance** (EU).\n\nReal vaccine-attributable adverse events:\n• Influenza vaccine + Guillain-Barré: ~1 excess per million doses (Hep B + GBS: equivocal).\n• Yellow fever vaccine + viscerotropic disease: ~1 per 250K doses; mostly elderly + immunocompromised.\n• Rotavirus vaccine (RotaShield, 1999) + intussusception: ~1 per 12K; led to product withdrawal + reformulation.\n• mRNA COVID vaccine + myocarditis: ~1-5 per 100K young men; usually mild + self-limited.\n• Vaxzevria + venous thromboembolism (rare): ~1 per 100K.\n\nDecisions balance risk vs benefit: rotavirus vaccine was withdrawn (mild diarrheal disease vs serious AE) but kept for measles + others (severe disease > rare AE).\n\n**Wakefield 1998 fraud** + MMR-autism panic: a fabricated study claimed MMR → autism; investigation showed Wakefield committed fraud + the study was retracted. Despite multiple large studies (incl. 657K Danish children) showing no association, the misinformation caused measles outbreaks for decades. Misinformation is now a primary determinant of vaccine coverage in many countries.\n\n**Communication challenge**: explain rare adverse events transparently while maintaining trust in beneficial vaccines. Risk-communication is now its own subdiscipline."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_vaccine_1",
+        "kind": "guided_derivation",
+        "question": "Compute vaccine efficacy from RCT data",
+        "goal": "A vaccine trial randomizes 20,000 participants 1:1 vaccine vs placebo. After 6 months, 30 vaccine + 270 placebo participants develop disease. Compute efficacy.",
+        "steps": [
+          {
+            "prompt": "Incidence in vaccine arm?",
+            "motivation": "Cases / participants.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "30/10000",
+                "0.003",
+                "0.3%"
+              ]
+            },
+            "hints": [
+              "30 cases / 10,000 vaccinated."
+            ],
+            "reveal": "Vaccine arm incidence = 30 / 10,000 = 0.003 = 0.3%."
+          },
+          {
+            "prompt": "Incidence in placebo arm?",
+            "motivation": "Cases / participants.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "270/10000",
+                "0.027",
+                "2.7%"
+              ]
+            },
+            "hints": [
+              "270 / 10,000."
+            ],
+            "reveal": "Placebo arm incidence = 270 / 10,000 = 0.027 = 2.7%."
+          },
+          {
+            "prompt": "Vaccine efficacy?",
+            "motivation": "1 − RR.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.889",
+                "89%",
+                "88.9%",
+                "1 - 0.111"
+              ]
+            },
+            "hints": [
+              "RR = 0.003/0.027 = 0.111. VE = 1 − RR."
+            ],
+            "reveal": "VE = 1 − (0.003/0.027) = 1 − 0.111 = 0.889 = 88.9%. Roughly comparable to original Pfizer + Moderna trials (95% efficacy against symptomatic disease)."
+          },
+          {
+            "prompt": "If real-world effectiveness drops to 70% in deployment (variants + waning), how much would case rates drop in a 75%-vaccinated population vs unvaccinated baseline?",
+            "motivation": "Apply effectiveness × coverage.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "52.5%",
+                "0.525",
+                "52.5"
+              ]
+            },
+            "hints": [
+              "Coverage × effectiveness ≈ vaccinated population effectively protected. 0.75 × 0.70 = 0.525."
+            ],
+            "reveal": "Effective protection = 0.75 × 0.70 = 0.525. So if you'd expect 2.7% incidence without vaccine, you'd expect ~2.7% × (1 - 0.525) ≈ 1.28% with this coverage. Net population impact = 52.5% reduction in cases. Even imperfect vaccines + imperfect coverage substantially reduce disease."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_vaccine_1",
+        "kind": "multiple_choice",
+        "question": "Why did COVID-19 mRNA vaccines retain high effectiveness against severe disease but lower effectiveness against symptomatic infection after Omicron emerged?",
+        "options": [
+          "mRNA vaccines are random.",
+          "Severe disease protection depends mostly on T-cell + memory B-cell responses targeting conserved epitopes (still recognized in Omicron); symptomatic-infection protection depends more on circulating neutralizing antibodies against spike (heavily mutated in Omicron). Variant-escape mutations affect antibody recognition more than T-cell recognition, decoupling the two metrics.",
+          "Variants only affect children.",
+          "The vaccine was reformulated for Omicron and lost effectiveness."
+        ],
+        "correctIndex": 1,
+        "explanation": "Immune protection has multiple components, each with different correlates of protection:\n\n**Symptomatic infection** correlates closely with **circulating neutralizing antibody (nAb)** titers. nAbs target the spike RBD; Omicron has ~30 spike mutations, including many at nAb epitopes. Result: nAb titers against Omicron are 10-30× lower than against ancestral. Symptomatic infection protection drops to ~30-50%.\n\n**Severe disease** depends more on **T-cell responses** + **memory B-cell responses**. T cells recognize ~10-mer peptides from spike + non-spike proteins; mutations rarely escape all T-cell epitopes simultaneously. Memory B cells diversify antibody repertoire over time + can recognize variants. Severe-disease protection stays high (>85%) for both Pfizer + Moderna against Omicron.\n\nClinical implications:\n- Boosters restore nAb titers → restore symptomatic-infection protection (transiently).\n- Severity protection is durable + doesn't need frequent boosters.\n- Updating vaccine antigen (bivalent boosters; ancestral + Omicron) restores nAb to Omicron lineage.\n\nThis decoupling — symptom protection vs severity protection — was a key public-health communication challenge during 2022. Many headlines reported '50% vaccine effectiveness' (against symptomatic Omicron) without noting 85-95% effectiveness against hospitalization. Clear comms: vaccines still work to prevent serious disease + death."
+      },
+      "hints": [
+        "What does antibody titer correlate with?",
+        "What about T-cells?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Symptomatic infection protection ~ neutralizing antibody titer (heavy spike mutations in Omicron → drops 10-30×). Severe disease protection ~ T-cell + memory B-cell responses (broader epitope coverage; harder for single variant to escape all). Result: severity protection stays high (>85%) while symptom protection drops to ~30-50%. Clinical message: vaccines prevent severe outcomes; updated boosters restore symptom protection."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_vaccine_2",
+        "kind": "multiple_choice",
+        "question": "A 1998 study claimed MMR vaccine causes autism. Subsequent studies (incl. 657K Danish children, 95K matched US children) found no association. Why has the misinformation persisted for 25+ years?",
+        "options": [
+          "The 1998 study was correct and never debunked.",
+          "Loss-aversion bias (parents fear vaccine-attributable harm more than disease-attributable harm); availability bias (vivid anecdotal stories outweigh statistics); confirmation bias (skeptical parents seek confirming evidence); social-media echo chambers amplifying; difficulty of communicating absence-of-evidence. Plus: autism symptoms emerge ~MMR-vaccination age (12-15 mo), making the correlation feel causal.",
+          "Vaccines do cause autism.",
+          "The Danish + US studies were wrong."
+        ],
+        "correctIndex": 1,
+        "explanation": "The Wakefield 1998 paper was retracted in 2010 after investigation revealed:\n- Fabricated data (children's records didn't match published claims).\n- Undisclosed conflicts of interest (Wakefield was paid by lawyers planning to sue MMR manufacturers).\n- 12-child sample, biased recruitment, no controls.\n\nDespite retraction + Wakefield being struck off the UK medical register, the claim persists because:\n\n(1) **Cognitive biases**: loss aversion (vaccine harm feels worse than disease harm even if smaller); availability (Wakefield's anecdotes + vivid testimonials more memorable than statistics); confirmation bias.\n\n(2) **Coincidental timing**: autism symptoms typically emerge 12-24 months — right after MMR. Post-hoc-ergo-propter-hoc reasoning.\n\n(3) **Information ecosystem**: anti-vaccine social media + 'celebrity' endorsements (Jenny McCarthy, others) reached millions. RFK Jr's organization promoted the narrative. Health-misinformation algorithms preferentially circulate emotional content.\n\n(4) **Distrust** of pharma + government drives motivated reasoning.\n\n(5) **Absence-of-evidence is hard**: 'no association in 657K children' is statistically conclusive but doesn't 'feel' like proof.\n\nResults: measles outbreaks (Disneyland 2014, Samoa 2019 — 5700 cases + 83 deaths in 200K population), pertussis resurgence, reduced HPV uptake despite cancer-preventing efficacy. Misinformation has measurable mortality consequences.\n\nModern responses include: pre-bunking (inoculate against misinformation before exposure), trust-building with hesitant communities, narrative-based communication, social-media platform interventions."
+      },
+      "hints": [
+        "Was the original study replicated?",
+        "Why does misinformation persist?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Wakefield 1998 was retracted (data fabrication); subsequent studies (incl. 657K Danish children) found no association. Persistence reasons: cognitive biases (loss aversion, availability, confirmation), temporal coincidence (autism + MMR both ~12-24 mo), distrust, social-media amplification, absence-of-evidence hard to communicate. Real consequences: measles outbreaks (Samoa 2019: 83 deaths), pertussis resurgence, reduced HPV uptake. Modern responses include pre-bunking + narrative interventions."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_vaccine_1",
+        "kind": "math_expression",
+        "question": "If a vaccine has 90% efficacy + 80% coverage in a population, what's the effective population protection (fraction of population effectively protected against the disease)?",
+        "acceptedAnswers": [
+          "0.72",
+          "72%",
+          "0.8 * 0.9"
+        ],
+        "hint": "Coverage × efficacy."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_vaccine_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain to a hesitant parent why their child's risk-benefit calculation for routine childhood vaccines is overwhelmingly favorable. Use specific numbers.",
+        "rubric": "Mentions: vaccine-attributable serious adverse events are very rare (~1 per 10,000-1,000,000 doses, varies by vaccine). Compare to disease-attributable risks: measles complications (~1 in 1000 encephalitis, 1-2 per 1000 deaths in well-nourished settings), pertussis (severe in <6mo, ~1 in 200 mortality in infants), polio paralysis (~1 in 200), pneumococcal disease, rotavirus dehydration. Risk-benefit overwhelmingly favors vaccination. Notes immune system maturity argument: infants tolerate many simultaneous antigens (estimated 100K daily from environment). Mentions herd-protection benefit (~5-10% of population can't vaccinate; depend on herd). Acknowledges legitimate concerns + recommends discussion with pediatrician for personalized info. Concludes that the small, transparent vaccine risks are vastly outweighed by the disease risks they prevent."
+      }
+    }
+  ]
+}

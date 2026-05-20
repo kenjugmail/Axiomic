@@ -1,0 +1,178 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Map global health governance (WHO, GFATM, Gavi, IHR).",
+      "Explain why pandemic preparedness is a coordination problem.",
+      "Reason about One Health + zoonotic spillover risks."
+    ],
+    "prereqs": [
+      "compartmental-models-and-r0",
+      "outbreak-investigation-and-surveillance"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The architecture of global health",
+      "body": "**Global health** = health beyond national boundaries, recognizing interdependence + shared determinants. Modern architecture (multilateral, public-private, civil-society):\n\n• **WHO** (World Health Organization, 1948): UN specialized agency; sets norms, supports member states, runs disease-control programs, manages IHR. Funded ~20% by assessed contributions, 80% voluntary donations.\n• **Global Fund (GFATM)**: financing for HIV, TB, malaria. ~$5B/yr. Performance-based grants to countries.\n• **Gavi, the Vaccine Alliance**: bulk-procures childhood vaccines for low-income countries; immunized 1B+ children since 2000.\n• **PEPFAR** (US, 2003): largest HIV bilateral; helped scale ART globally.\n• **Unitaid, FIND, MPP, etc.**: market-shaping for diagnostics + drugs.\n• **GPEI** (Global Polio Eradication Initiative): >99% reduction in polio since 1988; close to eradication.\n• **Civil society + NGOs**: MSF, Partners In Health, BRAC, etc.\n\n**International Health Regulations (IHR, revised 2005)**: legally binding framework for 196 countries. Requires reporting of 'events of international concern' (PHEIC); WHO can issue temporary recommendations.\n\nPHEICs declared: H1N1 2009, polio 2014, Ebola 2014, Zika 2016, Ebola 2019, COVID-19 2020 (declared Jan 30, 2020), mpox 2022, mpox 2024. Each tested + revealed gaps in the system."
+    },
+    {
+      "kind": "text",
+      "title": "Why pandemic preparedness is hard",
+      "body": "Pandemics + global health threats share structural challenges:\n\n• **Externalities + free-riding**: every country wants others to invest in preparedness while underinvesting itself. Surveillance, vaccine R&D, stockpiling are public goods with under-provision absent coordination.\n• **Sovereignty tensions**: IHR requires reporting + cooperation but lacks enforcement; countries fear travel/trade restrictions + may delay reporting (early COVID-19, MERS).\n• **Time inconsistency**: post-crisis attention spikes (SARS 2003, H1N1 2009, Ebola 2014, COVID-19 2020); preparedness funding cycles + then declines as memory fades.\n• **Wealth disparities**: rich countries access vaccines / drugs / treatments first; low-income countries last (vaccine equity in COVID-19 was a major moral + epidemiological failure).\n• **Misinformation**: pandemic-era trust deficits undermine compliance, vaccination, accurate reporting.\n• **Surveillance gaps**: most spillovers occur in resource-poor settings with limited laboratory + epidemiological capacity.\n• **'Spilled milk' problem**: investments that *prevent* a pandemic look wasteful if the pandemic doesn't happen; political economy favors response over prevention.\n\nCOVID-19 exposed all these. Post-COVID response: WHO Pandemic Agreement negotiations (2024-25, status uncertain); proposed Independent Panel for Pandemic Preparedness + Response (IPPPR); CEPI 100-day mission for new vaccines; Coalition for Epidemic Preparedness Innovations; ACT-A (Access to COVID-19 Tools).\n\nThe central preparedness question: can the international system coordinate effectively when individual incentives push against cooperation? An open question that the next pandemic will test."
+    },
+    {
+      "kind": "text",
+      "title": "One Health + zoonotic spillover",
+      "body": "**One Health**: human, animal, + environmental health are interconnected. Most emerging infectious diseases are **zoonotic** — originated in animals + jumped to humans.\n\n**Recent zoonotic spillovers**:\n• HIV (chimp/bonobo → human, ~1908, central Africa).\n• Ebola (fruit bat reservoir, multiple human outbreaks).\n• MERS-CoV (camel → human, ~2012).\n• SARS-CoV-1 (civet → human, 2002-03).\n• SARS-CoV-2 (likely bat → intermediate → human, 2019; ongoing debate).\n• Nipah, Hendra (bat → human/livestock).\n• Influenza pandemic strains (avian + swine → human; 1918, 1957, 1968, 2009).\n• Mpox (rodent reservoir; 2022 outbreak in non-endemic countries).\n\nDrivers of spillover (Jones+ 2008 Nature; Plowright+ 2017):\n1. **Wildlife-human contact**: deforestation, bushmeat hunting, wet markets, urban encroachment.\n2. **Agricultural intensification**: factory farming with stressed animals + dense populations (avian flu).\n3. **Climate change**: shifting animal ranges + behavior.\n4. **Travel + trade**: rapid global spread once jump occurs.\n5. **Antimicrobial use** in livestock: drives resistance.\n\n**Prevention strategies**: surveillance of wildlife + livestock; sentinel veterinary monitoring; deforestation + biodiversity protection; safer wildlife trade regulation; antimicrobial stewardship; better PPE + risk-communication for animal workers; rapid genome-sequencing capacity.\n\n**Investments**: PREDICT project (USAID, ended 2020 + partially restored as DEEP VZN); Global Virome Project; EcoHealth Alliance; WHO+FAO+WOAH (animal health) tripartite. Debate over how broadly to surveil + how much to fund — high-risk-high-reward science with diffuse public benefit."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_global_health_1",
+        "kind": "guided_derivation",
+        "question": "Reason through vaccine equity during the COVID-19 pandemic",
+        "goal": "By December 2021, wealthy countries had administered ~70% of available COVID-19 vaccine doses; some countries in sub-Saharan Africa had <5% coverage. Walk through what went wrong + what could improve next time.",
+        "steps": [
+          {
+            "prompt": "What was the proposed mechanism for equitable distribution?",
+            "motivation": "COVAX framework.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "COVAX",
+                "ACT-Accelerator",
+                "Gavi-coordinated COVAX"
+              ]
+            },
+            "hints": [
+              "A global multilateral procurement + distribution mechanism."
+            ],
+            "reveal": "COVAX: ACT-Accelerator's vaccine pillar; co-led by Gavi + CEPI + WHO. Aimed to procure + distribute 2B doses to 92 lower-income countries by end of 2021, with self-financing for higher-income countries."
+          },
+          {
+            "prompt": "Why did it underdeliver?",
+            "motivation": "Identify structural problems.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "bilateral deals",
+                "rich country hoarding",
+                "manufacturing capacity",
+                "export bans"
+              ]
+            },
+            "hints": [
+              "Wealthy countries acted directly with manufacturers."
+            ],
+            "reveal": "(1) **Bilateral deals + advance-purchase agreements** by wealthy countries (US, EU, UK) secured early supply before COVAX could place orders. (2) **Manufacturing concentration**: most mRNA production in US/EU; India's Serum Institute (key COVAX supplier) faced export ban after Delta wave. (3) **IP barriers**: vaccine patents + technology-transfer concerns limited diversification. (4) **Cold-chain + delivery capacity gaps** in recipient countries."
+          },
+          {
+            "prompt": "What was the consequence — for both ethics + global pandemic dynamics?",
+            "motivation": "Variant emergence, prolonged pandemic, moral failures.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "variants",
+                "Omicron",
+                "prolonged pandemic",
+                "more deaths",
+                "moral failure"
+              ]
+            },
+            "hints": [
+              "What happens when transmission remains high?"
+            ],
+            "reveal": "(1) **Variant emergence**: Omicron likely emerged in unvaccinated populations with high transmission (South Africa) — eventually spread globally + reinfected vaccinated populations. (2) **Prolonged pandemic**: low coverage = ongoing transmission = ongoing healthcare strain + deaths in low-income settings. (3) **Moral failures**: WHO Director-General Tedros called it a 'moral catastrophe' — preventable deaths in low-income countries.\n\nVaccine equity is also self-interest: ongoing global transmission breeds variants that affect everyone."
+          },
+          {
+            "prompt": "What would improve next time?",
+            "motivation": "Identify interventions.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "technology transfer",
+                "distributed manufacturing",
+                "binding rules",
+                "pre-arranged financing"
+              ]
+            },
+            "hints": [
+              "Multiple complementary changes."
+            ],
+            "reveal": "(1) **Distributed manufacturing**: mRNA tech-transfer hubs (WHO South Africa hub launched 2022 — making Moderna analog without licensing). (2) **Pre-arranged financing** + binding multilateral commitments (WHO Pandemic Agreement, in negotiation). (3) **Pre-positioned regulatory pathways** + WHO emergency-use listings to accelerate approvals. (4) **R&D commitments** with equitable-access conditions (CEPI 100-day mission). (5) **Stockpiling regional + diversified**. (6) **Capacity-building** in recipient countries: regulatory, cold-chain, delivery, training. (7) **Trade flexibilities**: TRIPS waivers, technology-transfer requirements built into emergency declarations.\n\nThe WHO Pandemic Agreement (final text 2024-25) attempts many of these — but binding force + buy-in remain contested."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_global_health_1",
+        "kind": "multiple_choice",
+        "question": "Why is malaria still endemic in sub-Saharan Africa despite >50 years of intensified control, while it was eliminated from much of the temperate world?",
+        "options": [
+          "Africans don't want malaria control.",
+          "Multiple structural drivers: (1) Anopheles mosquito species in Africa (esp. An. gambiae) are highly anthropophilic + efficient vectors; (2) Year-round transmission climate; (3) Poverty + weak health systems; (4) Drug + insecticide resistance; (5) P. falciparum (more deadly + complex) dominates vs P. vivax / malariae elsewhere; (6) Vaccine development was historically underfunded relative to disease burden. Most non-African elimination relied on temperate climate breaking transmission seasonally + economic development enabling housing + sanitation improvements.",
+          "Malaria is genetic and only affects certain populations.",
+          "Malaria has been eliminated everywhere except where conspiracy theories prevent control."
+        ],
+        "correctIndex": 1,
+        "explanation": "Malaria control history:\n\n• **WHO Global Malaria Eradication Programme (1955-1969)**: DDT spraying + chloroquine. Eliminated malaria from Europe, Caribbean, parts of US, Singapore, much of Asia. Failed in Africa: too efficient vectors + insufficient infrastructure.\n• Effort abandoned (1969); replaced with control focus.\n• **Roll Back Malaria (1998-)**: ITNs (insecticide-treated nets), IRS (indoor residual spraying), ACTs (artemisinin combination therapies), case management.\n• Deaths dropped from ~860K (2000) to ~600K (2022) globally. ~96% of malaria deaths in sub-Saharan Africa.\n• Recent setbacks: insecticide resistance, ACT resistance in Southeast Asia (artemisinin failure in Cambodia spreading to Africa).\n\nStructural reasons for African persistence:\n1. **An. gambiae complex**: highly anthropophilic (prefers humans), endophilic (rests in houses), long-lived, abundant. An. gambiae s.s. is among the most efficient malaria vectors known.\n2. **Climate**: year-round warm + humid; vector abundant + transmission continuous.\n3. **P. falciparum dominance**: most deadly Plasmodium species; complex life cycle resists drug + immune control.\n4. **Health system + poverty**: limited diagnosis, drug access, vector control.\n5. **Drug + insecticide resistance**: chloroquine (1970s-90s); pyrethroid (2010s+); artemisinin (Southeast Asia, spreading).\n\nProgress: **RTS,S (Mosquirix) vaccine** approved 2021 for African children; **R21/Matrix-M** approved 2023 with higher efficacy. Both have ~70-77% reduction in severe malaria episodes. First malaria vaccines approved after >30 yr development. Coupled with bednets + ACTs + monoclonals, control is finally improving — but elimination requires sustained, integrated effort + new tools."
+      },
+      "hints": [
+        "What's special about the African Anopheles?",
+        "What's the role of climate?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "African An. gambiae is hyper-anthropophilic + abundant + long-lived + bites humans efficiently. Climate year-round warm + humid. P. falciparum dominates (most deadly + complex). Poverty + weak health systems. Insecticide + drug resistance emerged. Non-African elimination relied on temperate climate breaking transmission + economic development. Africa needs sustained ITNs + IRS + ACTs + new vaccines (RTS,S 2021, R21 2023) + monoclonals. Progress slow but accelerating."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_global_health_2",
+        "kind": "multiple_choice",
+        "question": "What's the strongest argument for 'One Health' surveillance as pandemic preparation?",
+        "options": [
+          "Animals are interesting.",
+          "~75% of emerging infectious diseases are zoonotic; spillover is the upstream event of pandemics; integrated surveillance of wildlife, livestock, + humans can detect novel pathogen emergence before human-to-human spread becomes established. Cost: a fraction of pandemic response. Examples: H5N1 surveillance pre-empted 2009 H1N1 mitigation; SARS-CoV-1 traced to civets enabled mid-2003 containment; Nipah surveillance in Bangladesh enables outbreak control.",
+          "It's required by law in all countries.",
+          "Surveillance is always cheap and easy."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Zoonotic emergence + spillover** is the entry point for most pandemics:\n• HIV: ~1908 spillover, decades to recognition.\n• SARS-CoV-1: civet/bat → human Nov 2002.\n• SARS-CoV-2: bat → intermediate? → human late 2019.\n• H5N1, H7N9: avian flus, repeated near-misses.\n• Ebola: bat reservoir, multiple human outbreaks.\n• Nipah: bat → pig/human, recurring outbreaks.\n• Mpox: rodent reservoir → human + intra-human chains since 2022.\n\n**Integrated surveillance** (One Health) detects emergence at the human-animal-environment interface:\n- Wildlife sampling (e.g., PREDICT identified ~1000 viruses, some now-known pandemic threats).\n- Livestock surveillance (avian influenza in poultry).\n- Animal worker sentinels (vets, abattoir workers).\n- Wastewater + environmental sampling.\n- Rapid genomic sequencing.\n\n**Cost-effectiveness**:\n- Pandemic response cost (COVID-19): >$10T globally.\n- Preparedness + surveillance: ~$5-10B/yr globally (proposed).\n- Even if surveillance reduces pandemic likelihood by 10%, the math is overwhelmingly favorable.\n\n**Limits**:\n- Sampling space is vast (>1.7M unknown viruses in mammals + birds; ~600K-800K with zoonotic potential).\n- Few will spill over.\n- Risk of laboratory accident + gain-of-function research raises ethical questions.\n- Political constraint + disease-stigma concerns can hamper international cooperation.\n\n**Current investments**: WHO, FAO, WOAH (animal health) tripartite + UNEP form the Quadripartite. DEEP VZN, Global Virome Project, regional centers. Underfunded relative to pandemic risk; debate over targeting + intensity."
+      },
+      "hints": [
+        "What % of emerging diseases are zoonotic?",
+        "What's the cost-benefit?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "~75% of emerging infectious diseases are zoonotic. Spillover is upstream of pandemics. Integrated surveillance (wildlife + livestock + human + environment) detects emergence before sustained human-to-human spread. Cost: $5-10B/yr globally vs pandemic costs >$10T. Even small risk-reduction yields favorable cost-benefit. Limits: vast sampling space, biosafety/lab-accident risks, political coordination. Current programs: PREDICT/DEEP VZN, Global Virome Project, WHO+FAO+WOAH+UNEP Quadripartite. Underfunded relative to risk."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_global_health_1",
+        "kind": "math_expression",
+        "question": "An estimated 75% of emerging infectious diseases originate in wildlife. If there are roughly 1.7 million unknown mammal + bird viruses + about half could potentially infect humans, approximately how many zoonotic threats are there in mammals + birds (in millions, to one decimal)?",
+        "acceptedAnswers": [
+          "0.85",
+          "850000",
+          "0.85M"
+        ],
+        "hint": "1.7M × 0.5."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_global_health_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain to a national-government policy-maker why investing in pandemic preparedness is a 'no-brainer' economically but politically difficult to fund.",
+        "rubric": "Mentions: pandemic costs (COVID-19 globally >$10T economic + ~7M+ excess deaths; future pandemics could be similar or worse). Preparedness costs (~$5-10B/yr globally) tiny in comparison; even a 1-10% risk reduction has very favorable cost-benefit. Components of preparedness: surveillance (incl. One Health), R&D (CEPI 100-day mission), manufacturing capacity, stockpiles, health-system capacity, governance + international coordination. Political difficulty: preparedness benefits are diffuse + delayed (and look 'wasted' if the pandemic doesn't happen); investments outside ministry of health + crowding out by other priorities; rich-poor country incentive mismatch (manufacturing in HICs but worst spillover risks in LMICs); attention fades after each crisis (cycle of panic + neglect). Concludes: requires institutional commitment (pre-arranged + binding financing) + sustained advocacy + reframing as economic + security policy not just health policy."
+      }
+    }
+  ]
+}

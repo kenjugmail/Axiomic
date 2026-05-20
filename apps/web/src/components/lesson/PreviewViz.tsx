@@ -88,6 +88,11 @@ const LazyHRDiagram = lazy(() =>
     (m) => ({ default: m.HRDiagram }),
   ),
 );
+const LazySIRModel = lazy(() =>
+  import("../../../../../packages/viz/src/components/SIRModel").then(
+    (m) => ({ default: m.SIRModel }),
+  ),
+);
 const LazyDoublePendulum = lazy(() =>
   import("../../../../../packages/viz/src/components/DoublePendulum").then(
     (m) => ({ default: m.DoublePendulum }),
@@ -194,6 +199,8 @@ function VizByName({
       return <LazyMohrsCircle {...(props as object)} />;
     case "hr-diagram":
       return <LazyHRDiagram {...(props as object)} />;
+    case "sir-model":
+      return <LazySIRModel {...(props as object)} />;
     default:
       return null;
   }

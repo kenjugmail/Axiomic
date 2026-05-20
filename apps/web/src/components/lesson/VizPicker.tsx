@@ -152,6 +152,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "⭐",
     tags: ["astronomy", "astrophysics", "stars", "hr-diagram", "physics"],
   },
+  {
+    name: "sir-model",
+    label: "SIR epidemic model",
+    description: "Drag R₀ + infectious period + vaccination; live S/I/R curves + peak + attack rate.",
+    thumb: "🦠",
+    tags: ["epidemiology", "infectious-disease", "modeling", "biology", "public-health"],
+  },
 ];
 
 interface Props {

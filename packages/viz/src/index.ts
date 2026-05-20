@@ -19,6 +19,7 @@ export { ROCCurve } from "./components/ROCCurve";
 export { OrderBook } from "./components/OrderBook";
 export { MohrsCircle } from "./components/MohrsCircle";
 export { HRDiagram } from "./components/HRDiagram";
+export { SIRModel } from "./components/SIRModel";
 export { SoftmaxTemperatureSlider } from "./quiz/SoftmaxTemperatureSlider";
 export { AttentionHeatmapExplorer } from "./quiz/AttentionHeatmapExplorer";
 export { GradientDescent2D } from "./quiz/GradientDescent2D";

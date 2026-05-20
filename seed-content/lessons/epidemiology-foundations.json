@@ -1,0 +1,188 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "intro",
+    "objectives": [
+      "Distinguish incidence, prevalence, mortality, case-fatality.",
+      "Compute crude rates + age-adjusted rates.",
+      "Read epidemic curves + reason about lag."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Epidemiology: counting disease at scale",
+      "body": "**Epidemiology** is the study of disease distribution + determinants in populations — and the application of that study to control disease. From John Snow's 1854 cholera map of Broad Street to COVID-19 dashboards, the discipline turns case counts + denominators into actionable knowledge.\n\nThree core measures:\n• **Incidence**: new cases per population per unit time (e.g., 12 per 100,000 per year). Captures *risk* — what's happening *now*.\n• **Prevalence**: existing cases per population at a point in time (e.g., 3 per 1,000). Captures *burden* — what currently exists.\n• **Mortality rate**: deaths per population per year.\n\nRelationship: at steady state, **prevalence ≈ incidence × mean duration**. A short-duration acute disease (flu: 1 wk) has high incidence but low prevalence. A long-duration chronic disease (diabetes: 30 yr) has low incidence but high prevalence. Misconfusing them is the most common rookie error."
+    },
+    {
+      "kind": "text",
+      "title": "Rates, ratios, proportions — the vocabulary",
+      "body": "Common derived measures:\n\n• **Case-fatality ratio (CFR)**: deaths / cases. Disease-specific lethality. Ebola: ~50%. COVID-19 (raw, 2020): ~2-3%; with age-stratification, much higher for elderly.\n• **Infection-fatality ratio (IFR)**: deaths / *infections* (incl. asymptomatic). For COVID-19: ~0.5-1% globally. IFR ≪ CFR because most infections aren't detected as cases.\n• **Relative risk (RR)** = P(disease | exposed) / P(disease | unexposed). RR > 1: exposure increases risk. Smoking lung cancer: RR ≈ 20.\n• **Odds ratio (OR)** = (a × d) / (b × c) from a 2×2 table. Approximates RR for rare diseases.\n• **Attributable risk**: P(disease | exposed) − P(disease | unexposed) — absolute risk increase. Drives population-level intervention impact.\n\n**Age-adjustment** (direct standardization): apply category-specific rates of one population to the age structure of a reference population. Lets you compare countries fairly: India vs Sweden crude mortality rates differ partly because Sweden is older, not because health is worse.\n\nMissing this distinction is why media + politicians often misread health statistics."
+    },
+    {
+      "kind": "text",
+      "title": "Epidemic curves + the lag problem",
+      "body": "An **epidemic curve** (epi curve) plots new cases over time. Three shapes:\n\n• **Common-source point**: sudden spike + exponential decline (food-poisoning outbreak from one event).\n• **Continuous common source**: plateau (contaminated water supply, ongoing).\n• **Propagated**: successive waves at intervals of ~one generation interval (person-to-person spread; flu, COVID).\n\n**Lags** are critical + frequently misunderstood:\n• Infection → symptom onset: **incubation period** (COVID-19 ~5 days; rabies up to years).\n• Symptom onset → diagnosis: testing + reporting delay.\n• Infection → death: **infection-to-death lag** (COVID ~2-4 weeks).\n\nReal-time epi-curves of *deaths* lag *infections* by weeks. Decisions made on today's deaths reflect infections from 2-4 weeks ago — by which time the epidemic dynamics may have shifted entirely. The 'flat curve' of deaths in early May 2020 reflected April infections, not real-time. This 'when you see it, it's already old' property motivates *leading indicators*: wastewater surveillance, syndromic ED data, test positivity, hospital admissions."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_epi_foundations_1",
+        "kind": "guided_derivation",
+        "question": "Compute the incidence rate, prevalence, and case-fatality ratio for a measles outbreak",
+        "goal": "A town of 100,000 has 800 measles cases over a 6-month outbreak. 4 deaths. Mean duration of illness: 2 weeks. At any given point during the outbreak, ~200 people are actively sick.",
+        "steps": [
+          {
+            "prompt": "What's the cumulative incidence (attack rate) for the 6-month period?",
+            "motivation": "New cases divided by population at risk.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.008",
+                "0.8%",
+                "800/100000"
+              ]
+            },
+            "hints": [
+              "Cases / population = 800 / 100,000."
+            ],
+            "reveal": "800 / 100,000 = 0.008 = 0.8% = 8 per 1,000. The 'attack rate' over the outbreak period."
+          },
+          {
+            "prompt": "Express as an incidence rate per person-year.",
+            "motivation": "Cases per person-time, scaled annually.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.016",
+                "1.6%",
+                "16 per 1000 PY"
+              ]
+            },
+            "hints": [
+              "6 months → divide cases by 50,000 person-years (100K × 0.5 yr)."
+            ],
+            "reveal": "800 / 50,000 person-years = 0.016 per PY = 16 per 1,000 PY. Doubles the 6-month figure because we're annualizing."
+          },
+          {
+            "prompt": "Point prevalence (snapshot during outbreak peak): ~200 active cases per 100K. Compute it.",
+            "motivation": "Existing cases / population.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.002",
+                "0.2%",
+                "200/100000"
+              ]
+            },
+            "hints": [
+              "Active cases / total pop."
+            ],
+            "reveal": "200 / 100,000 = 0.002 = 0.2%. Prevalence ≪ cumulative incidence because illness is brief (~2 wks ≪ 6 mo)."
+          },
+          {
+            "prompt": "Case-fatality ratio?",
+            "motivation": "Deaths / cases.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.005",
+                "0.5%",
+                "4/800"
+              ]
+            },
+            "hints": [
+              "4 deaths / 800 cases."
+            ],
+            "reveal": "4 / 800 = 0.005 = 0.5%. Consistent with measles CFR in well-resourced settings; in low-income settings it can reach 5-10% (worse nutrition + healthcare access). Pre-vaccine, ~2 million measles deaths/yr globally."
+          },
+          {
+            "prompt": "Why is prevalence ≪ cumulative incidence here? Use the rule of thumb.",
+            "motivation": "Connect incidence × duration ≈ prevalence.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "short duration",
+                "duration short",
+                "2 weeks duration"
+              ]
+            },
+            "hints": [
+              "Prevalence ≈ incidence rate × duration. With duration 2 wks ≪ 6 mo, prevalence is small."
+            ],
+            "reveal": "Steady-state rule: prev ≈ incidence rate × mean duration. 0.016 per PY × (2/52) yr = 6×10⁻⁴ ≈ 0.06% — close to the 0.2% peak prevalence (steady-state isn't quite reached at peak). Long-duration diseases (HIV, diabetes) have prev ≫ annual incidence; short-duration diseases the reverse."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_epi_foundations_1",
+        "kind": "multiple_choice",
+        "question": "A media report compares the US (raw cancer mortality: 158 per 100,000) to India (88 per 100,000) and concludes 'the US has worse cancer outcomes.' What's the most likely flaw?",
+        "options": [
+          "The US uses different cancer-coding standards than India.",
+          "Age structures differ — the US population is much older + thus has higher crude rates regardless of underlying outcomes. Age-adjusted rates are required for fair comparison.",
+          "Cancer mortality is identical between countries; the difference is purely measurement noise.",
+          "India's lower rate reflects superior cancer treatment."
+        ],
+        "correctIndex": 1,
+        "explanation": "Crude mortality rates are dominated by age structure when comparing populations with different demographics. The US has ~17% of population >65; India has ~7%. Since cancer mortality rises steeply with age (~70% of cancer deaths are in >65), the US naturally has higher *crude* rates even if age-specific rates are similar.\n\n**Direct age-adjustment**: apply each age group's rate to a standard population (e.g., WHO World Standard). Result: India's age-adjusted cancer mortality is ~110/100K, US ~92/100K — actually India's is *higher* once you control for age structure. The 'US-worse' narrative reverses.\n\nThis is one of the most common epidemiological mistakes in popular journalism + a worked example of **Simpson's paradox** at population scale. Always check whether rates are crude or age-adjusted before drawing causal conclusions."
+      },
+      "hints": [
+        "Compare US vs India population pyramids.",
+        "What's the term for 'controlling for age structure'?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "US median age 38, India median age 28. ~17% vs ~7% of population over 65. Cancer mortality is concentrated in older ages. So the crude US rate is inflated by demographic structure, not by underlying cancer-mortality risk. Age-adjustment to a standard reference population is the standard fix."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_epi_foundations_2",
+        "kind": "multiple_choice",
+        "question": "An outbreak investigation finds case-fatality 30%. Why is this likely an *overestimate* of true infection-fatality?",
+        "options": [
+          "CFR cannot exceed IFR by definition.",
+          "Severe + diagnosed cases dominate the numerator's denominator (cases), while asymptomatic + mild infections go uncounted. IFR uses *all* infections including asymptomatic; CFR uses only diagnosed cases. CFR > IFR when asymptomatic infections exist.",
+          "CFR equals IFR by definition.",
+          "Outbreak investigations always overestimate fatality rates."
+        ],
+        "correctIndex": 1,
+        "explanation": "CFR = deaths / *diagnosed cases*. IFR = deaths / *all infections* (incl. asymptomatic/mild). When a disease has substantial undetected mild infections, IFR ≪ CFR.\n\nCOVID-19 example: early reports cited CFR ~3% (Wuhan), but seroprevalence studies showed actual IFR was 0.5-1%. The factor-of-3 difference reflects that 1-3 silent infections existed for every diagnosed case.\n\nFlu: CFR ~0.1% in elderly + immunocompromised; IFR ~0.04% (most flu infections are mild + go undetected).\n\nWhen designing public-health interventions, IFR is the relevant denominator for population mortality estimates; CFR is more relevant for clinical triage (given diagnosis, what's the risk?). Confusing them led to early COVID-19 overprojections of deaths."
+      },
+      "hints": [
+        "What's in the denominator of each?",
+        "Are asymptomatic cases counted?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "CFR = deaths / diagnosed cases. IFR = deaths / total infections. Total infections > diagnosed cases when asymptomatic / mild cases go undetected. So CFR > IFR. Seroprevalence studies (random testing for antibodies) are the gold standard for measuring true infection rates + thus IFR."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_epi_foundations_1",
+        "kind": "math_expression",
+        "question": "A region of 500,000 people reports 1,200 new cancer cases in a year + 380 deaths from cancer that year. What's the cancer mortality rate per 100,000 person-years?",
+        "acceptedAnswers": [
+          "76",
+          "76 per 100000",
+          "76 per 100,000",
+          "380/500000"
+        ],
+        "hint": "Deaths / population × 100,000."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_epi_foundations_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain the conceptual difference between incidence and prevalence using a chronic disease (e.g., type 2 diabetes) and an acute disease (e.g., influenza) as worked examples.",
+        "rubric": "Mentions: incidence = new cases per time; prevalence = existing cases at a point in time; relationship prevalence ≈ incidence rate × duration. Chronic disease (T2DM): low incidence (~7 per 1,000 PY) but high prevalence (~11% of US adults — because duration is decades). Acute disease (flu): high incidence (~10% of population/yr) but low prevalence at any moment (~0.3% during peak — because duration is ~1 wk). Concludes that confusing them leads to misinterpretation of public-health stats. Bonus: notes that age-adjustment is needed for cross-country comparison, that mortality + case-fatality are distinct, + that lag between infection + death affects real-time interpretation."
+      }
+    }
+  ]
+}

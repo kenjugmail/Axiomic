@@ -1,0 +1,176 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Read phylogenetic trees of pathogen genomes.",
+      "Connect mutation rate + sampling to outbreak inference.",
+      "Reason about vaccine selection + variant emergence."
+    ],
+    "prereqs": [
+      "compartmental-models-and-r0"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Pathogen genomics: a new pillar of epidemiology",
+      "body": "Since ~2010, **pathogen whole-genome sequencing** has transformed outbreak investigation + public health:\n\n• **Phylogenetic trees** reconstruct evolutionary relationships between samples. Nodes = sequences; branch lengths ∝ mutational distance (or time, with a molecular clock).\n• **Outbreak fingerprinting**: PulseNet (CDC) compares foodborne Listeria, Salmonella, E. coli isolates via WGS to detect multi-state outbreaks faster than traditional epi.\n• **Transmission reconstruction**: similar genomes from the same transmission chain; very different genomes imply independent introductions.\n• **Variant surveillance**: SARS-CoV-2 had >16M public genomes by 2024 (GISAID). Variants of concern (Alpha, Delta, Omicron) were detected weeks-to-months ahead of phenotypic data.\n• **Influenza vaccine strain selection**: WHO Global Influenza Surveillance + Response System uses phylogenetic + antigenic data twice yearly to choose vaccine strains 6 months ahead of the flu season — a perpetual prediction problem.\n\nKey concepts:\n• **Molecular clock**: mutations accumulate at ~constant rate per site per year (~1×10⁻³ for SARS-CoV-2, ~3×10⁻⁵ for human DNA). Branch lengths × clock rate ⇒ time scale.\n• **Mutation vs substitution**: most mutations are deleterious + selected out; substitutions are mutations that survive.\n• **Bottlenecks**: small founder populations during transmission drastically reduce diversity.\n\nGenomic data is now standard alongside line lists; bioinformatics + epidemiology are increasingly integrated."
+    },
+    {
+      "kind": "text",
+      "title": "Reading phylogenies + Nextstrain",
+      "body": "**Nextstrain** is an open-source platform (Bedford + Neher 2017) that ingests pathogen genome submissions + displays evolution + spread in near-real-time. Used by every major variant-surveillance program for SARS-CoV-2, flu, mpox, Ebola, and more.\n\nReading a tree:\n• **Tips** = sampled sequences. Coloring by date / location / variant lineage.\n• **Internal nodes** = inferred common ancestors. Branch lengths = mutational distance.\n• **Time-resolved trees**: x-axis is time; nodes placed at inferred ancestor's date.\n• **Discrete state reconstruction**: infer ancestral location / host — e.g., 'this clade emerged in Wuhan in late November 2019.'\n• **Phylogeography**: arrows on a map show inferred ancestor-to-descendant transitions across geography.\n\n**Variant classification** (Pango lineage / WHO label): BA.1, BA.2, XBB.1.5, etc. Hierarchical naming captures parental relationships. SARS-CoV-2's variant phylogeny is now ~7 'next-gen' designations deep.\n\n**Antigenic cartography** (Smith+ 2004 for flu, now COVID): place strains in a 2D 'antigenic map' based on HAI titer differences — distances ∝ antigenic distance. Vaccine choice = optimize coverage of likely circulating strains in 6 months. Hard prediction problem; flu vaccine effectiveness varies 10-60% per season."
+    },
+    {
+      "kind": "text",
+      "title": "Outbreak reconstruction + super-spreader fingerprints",
+      "body": "**Genomic outbreak reconstruction** combines genomes + epi data (onset dates, contacts) to infer who-infected-whom probabilistically. Bayesian tools (TransPhylo, outbreaker2) model genetic distance, time intervals, contact data.\n\nApplications:\n• **Healthcare-associated outbreaks**: identical genomes among ICU patients + a staff member ⇒ likely transmission link, then targeted control.\n• **Foodborne outbreaks**: matching genome between patient + environmental food sample identifies source. PulseNet routinely detects multi-state outbreaks from clonally-related isolates that would have looked like separate clusters geographically.\n• **HIV transmission networks**: phylogenetic clusters of recently-diverged sequences identify rapid spread + concentrate prevention.\n• **TB transmission**: WGS distinguishes recent transmission (genomically identical) from reactivation of latent infection.\n\n**Privacy + ethics**: genomic + linked epi data are highly identifiable. CDC + state labs treat them as PHI under HIPAA. Public phylogenetic dashboards (Nextstrain) strip individual identifiers; shared databases (GISAID, NCBI SRA) are de-identified.\n\n**Vaccine escape**: pathogen genomes evolve under immune-selection pressure. New variants with mutations in immune epitopes (SARS-CoV-2 RBD spike: E484K, K417N, N501Y) emerge + spread. Genomic surveillance is the leading indicator for these escape events.\n\nThe modern epidemiologist must read phylogenies fluently — they're no longer a specialist's tool."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_genomics_1",
+        "kind": "guided_derivation",
+        "question": "Estimate the date of the most-recent common ancestor (MRCA) of SARS-CoV-2 from sequence data",
+        "goal": "Suppose two SARS-CoV-2 isolates differ by 20 mutations across the 30,000-nucleotide genome. The molecular clock rate is ~1×10⁻³ substitutions / site / year. What's the divergence time?",
+        "steps": [
+          {
+            "prompt": "Compute total substitutions per year (clock × genome length).",
+            "motivation": "Convert per-site rate to per-genome rate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "30",
+                "30 / yr",
+                "30 per year"
+              ]
+            },
+            "hints": [
+              "1×10⁻³ × 30,000 = 30 substitutions/yr/genome."
+            ],
+            "reveal": "Clock rate per genome = 1×10⁻³ × 30,000 = 30 subs/yr/genome."
+          },
+          {
+            "prompt": "Time since MRCA, assuming roughly equal mutations on both lineages?",
+            "motivation": "Distance is sum of both branches.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.33 yr",
+                "~4 months",
+                "0.333 yr",
+                "4 months"
+              ]
+            },
+            "hints": [
+              "Each lineage accumulates 10 subs in t years; t = 10/30 ≈ 0.33 yr."
+            ],
+            "reveal": "20 subs total = 2 × 10 per lineage. Each lineage: 10 subs ÷ 30 subs/yr = 0.33 yr ≈ 4 months. So MRCA was ~4 months before sample dates."
+          },
+          {
+            "prompt": "What are the main sources of error in this estimate?",
+            "motivation": "Identify caveats.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "clock rate variation",
+                "uneven branch lengths",
+                "small sample size",
+                "clock variance"
+              ]
+            },
+            "hints": [
+              "The molecular clock isn't perfectly constant."
+            ],
+            "reveal": "Molecular-clock rate isn't constant: it varies across the genome (synonymous vs non-synonymous), across lineages (selection pressure), + across time (different epidemics in different hosts). Real Bayesian phylogenetic inference (BEAST, BEAST2) uses prior distributions on clock rate + estimates credible intervals — typical SARS-CoV-2 MRCA uncertainties are ±1-2 months for events 1-2 years back, growing as inference goes deeper."
+          },
+          {
+            "prompt": "What was the actual estimated date of SARS-CoV-2 pandemic origin?",
+            "motivation": "Anchor to real data.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "October-November 2019",
+                "late 2019",
+                "Nov 2019"
+              ]
+            },
+            "hints": [
+              "Compare to early Wuhan reports."
+            ],
+            "reveal": "Phylogenetic estimates from early-pandemic genomes place MRCA in mid-October to early-December 2019. Combined with early-case retrospective epi, the consensus is ~late November 2019 in Wuhan. The first reported cases (Dec 8) were caught a few weeks after viral spread began. Origin questions (zoonosis vs lab) remain debated, but the phylogenetic date is well-constrained."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_genomics_1",
+        "kind": "multiple_choice",
+        "question": "Why did genomic surveillance detect the Omicron variant in late November 2021, weeks before clinical / hospital signals?",
+        "options": [
+          "Omicron made people taller, which was easy to spot.",
+          "South African genomic surveillance routinely sequenced random + variant-of-interest samples. The Omicron lineage's >30 spike mutations created an instantly-recognizable clade. Sharing via GISAID enabled rapid global recognition. Phenotypic data (transmissibility, severity) followed weeks later as case counts grew + epi data accumulated.",
+          "Omicron caused unique skin rashes.",
+          "All variants are detected this way and Omicron was no exception."
+        ],
+        "correctIndex": 1,
+        "explanation": "South Africa's NICD + the KRISP team had operated a steady genomic surveillance program through the pandemic + alerted WHO on Nov 24, 2021 about a 'highly divergent' SARS-CoV-2 lineage detected from Botswana + South Africa samples (Nov 11-23 collection dates).\n\nWhy it was caught fast:\n(1) **Existing infrastructure**: routine sequencing pipelines were operational. South Africa had already detected Beta (B.1.351) in late 2020 via the same pipeline.\n(2) **Distinctive signature**: ~30 mutations in spike alone (vs Delta's ~10-15 in spike) — an instantly-recognizable jump.\n(3) **Rapid sharing**: GISAID upload within days. Global researchers immediately ran experiments to predict properties.\n(4) **Coordinated alert**: WHO designated as VOC on Nov 26.\n\nWhat phenotypic data took longer:\n- Severity: epidemiological signals took ~6-8 weeks to accumulate as cases grew.\n- Transmissibility: required serial-interval studies + R_eff estimates.\n- Vaccine escape: required serological neutralization studies in labs.\n\nThe genomic-to-phenotypic latency (weeks) gave the world a heads-up. Without GS, Omicron's emergence would have been recognized only after large-scale clinical impact — 4-6 weeks later. The lesson: invest in routine surveillance, not just outbreak-response surveillance."
+      },
+      "hints": [
+        "What feature of Omicron's genome stood out?",
+        "Who alerted whom?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "South Africa's routine genomic surveillance detected a lineage with >30 spike mutations — unprecedented divergence — in samples collected mid-Nov 2021. Alerted WHO Nov 24; designated VOC Nov 26. Genomic signal preceded phenotypic data (transmissibility, severity, escape) by 4-6 weeks. The lead time bought global preparation, vaccine boosters, travel measures."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_genomics_2",
+        "kind": "multiple_choice",
+        "question": "Why does the influenza vaccine need to be reformulated every year, while measles vaccine doesn't?",
+        "options": [
+          "Influenza vaccine doesn't actually work.",
+          "Influenza virus has high mutation rate + segmented genome enabling antigenic drift + shift; immune pressure selects for escape variants, so the dominant strains evolve substantially over months. Measles has stable antigens + a single serotype; one vaccine formulation works for life.",
+          "Measles is rarer than flu, so the vaccine matters less.",
+          "Flu vaccine companies want money."
+        ],
+        "correctIndex": 1,
+        "explanation": "Two key differences:\n\n**Influenza**:\n- RNA genome with ~1×10⁻⁵ mutations/site/replication — high mutation rate.\n- **Antigenic drift**: HA + NA proteins accumulate mutations under immune pressure. After 1-2 yr, drift shifts the antigenic landscape; vaccine-induced immunity decreases.\n- **Antigenic shift**: segmented genome enables reassortment between strains (especially in pigs, birds, humans). Sudden major shifts (1918, 1957, 1968, 2009) cause pandemics.\n- WHO selects vaccine strains twice yearly (Feb for Northern Hemisphere, Sep for Southern) based on global surveillance — 6 months ahead of season. Often imperfect; effectiveness 10-60% depending on match.\n\n**Measles**:\n- RNA genome but only 1 serotype; little antigenic variation across decades.\n- Vaccine elicits long-lived neutralizing antibodies + memory.\n- 2 doses of MMR (childhood) gives lifelong immunity (~97% efficacy).\n- Same vaccine since 1971.\n\nFlu is the hardest vaccine target among common pathogens precisely because of drift + shift. Universal flu vaccine candidates (targeting conserved HA stalk, M2e, or T-cell epitopes) are an active research area but not yet deployed. Annual reformulation + flu-shot campaigns are a perpetual public-health logistics challenge."
+      },
+      "hints": [
+        "How fast does each virus evolve immunologically?",
+        "How many serotypes does each have?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Influenza has high mutation rate + segmented genome enabling antigenic drift (gradual) + antigenic shift (reassortment, pandemics). Multiple co-circulating subtypes. Vaccine effectiveness depends on match to circulating strains, requires annual update. Measles has stable single serotype, neutralizing antibodies last decades. Differences explain annual flu reformulation vs once-and-done measles vaccine."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_genomics_1",
+        "kind": "math_expression",
+        "question": "Two pathogen isolates differ by 5 mutations. Molecular clock = 2×10⁻³ substitutions/site/year, genome length = 10,000. Approximate time since MRCA in years (assume equal branch lengths).",
+        "acceptedAnswers": [
+          "0.125",
+          "0.13",
+          "1.5 months",
+          "~1.5 months"
+        ],
+        "hint": "Per-genome rate = 2×10⁻³ × 10,000 = 20 subs/yr. Each lineage: 5/2 / 20."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_genomics_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how genomic surveillance has changed public-health response in the last decade, with examples.",
+        "rubric": "Mentions: pathogen WGS now routine + fast (24-48 h turnaround for clinical isolates); PulseNet uses WGS for foodborne outbreak detection (Listeria, Salmonella) — detected multi-state outbreaks faster than ever; SARS-CoV-2 variant tracking (Alpha, Delta, Omicron) via Nextstrain + GISAID provided weeks of lead time; HIV transmission cluster identification via phylogenetics targets prevention; flu vaccine selection via twice-yearly WHO analysis; TB transmission vs reactivation distinguishable. Notes that genomic data is now alongside line lists in modern investigations; bioinformatics + epi are integrated. Concludes that public health is no longer 'wait for symptoms then count' — it's now 'sequence + analyze + alert + intervene.' Privacy + data-sharing ethics remain active issues."
+      }
+    }
+  ]
+}
