@@ -1952,6 +1952,27 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P36 — Photonics Engineer path. EM + Gaussian beams (new
+  // GaussianBeam viz) + lasers/cavities + fiber + photodetectors +
+  // nonlinear optics + photonic ICs + quantum optics. Introduces
+  // 'puzzle_drag_build' question type for optical-system assembly.
+  seedMasteryPath({
+    slug: "photonics-engineer",
+    title: "Photonics Engineer",
+    description:
+      "From Maxwell's equations + Fresnel + dispersion through Gaussian-beam propagation with interactive viz, lasers + cavity design + Michelson interferometer assembly, fiber optics + WDM + EDFA + coherent telecom, photodetectors + SPADs + noise, nonlinear optics + frequency combs + attosecond physics, photonic ICs + Si/InP/SiN/TFLN + co-packaged optics, and quantum optics + entanglement + QKD + Bell tests. The photonics-engineering stack end-to-end.",
+    nodes: [
+      { slug: "em-waves-and-maxwell", title: "EM Waves + Maxwell's Equations", level: "apprentice", order: 1, pages: ["maxwell", "fresnel-coatings", "dispersion-polarization"], prereqs: [], description: "Maxwell's equations, plane-wave + Fresnel coefficients + AR/HR coatings, polarization + birefringence + dispersion + Sellmeier." },
+      { slug: "gaussian-beams-and-diffraction", title: "Gaussian Beams + Diffraction", level: "practitioner", order: 2, pages: ["gaussian-beam-math", "diffraction-limit", "fourier-optics"], prereqs: ["em-waves-and-maxwell"], description: "w(z), z_R, θ_div, M² beam quality + interactive viz, Abbe diffraction limit + Fourier optics + super-resolution." },
+      { slug: "lasers-and-cavity-design", title: "Lasers + Cavity Design", level: "practitioner", order: 3, pages: ["stimulated-emission", "cavity-stability", "cw-pulsed-ultrafast"], prereqs: ["em-waves-and-maxwell"], description: "Einstein A/B + population inversion, resonators + Q + ABCD + cavity stability, CW + Q-switched + mode-locked + CPA + frequency combs." },
+      { slug: "fiber-optics-and-dispersion", title: "Fiber Optics + Dispersion", level: "specialist", order: 4, pages: ["single-multi-mode", "chromatic-dispersion", "wdm-edfa-coherent"], prereqs: ["gaussian-beams-and-diffraction"], description: "Step + graded index + TIR, modal + chromatic + PMD + nonlinear effects, WDM + EDFA + Raman + coherent 100G+ telecom." },
+      { slug: "photodetectors-and-noise", title: "Photodetectors + Noise", level: "specialist", order: 5, pages: ["detector-families", "shot-thermal-noise", "spad-snspd"], prereqs: ["em-waves-and-maxwell"], description: "PIN + APD + SPAD + SNSPD + PMT + SiPM, shot + thermal + dark + amplifier noise, SNR + sensitivity in real systems." },
+      { slug: "nonlinear-optics-and-frequency-conversion", title: "Nonlinear Optics + Frequency Conversion", level: "specialist", order: 6, pages: ["nonlinear-polarization", "phase-matching", "comb-attosecond"], prereqs: ["em-waves-and-maxwell"], description: "χ⁽²⁾ + χ⁽³⁾ processes + phase matching (BPM + QPM/PPLN), frequency combs + supercontinuum + solitons, attosecond physics + 2023 Nobel." },
+      { slug: "photonic-integrated-circuits", title: "Photonic Integrated Circuits", level: "expert", order: 7, pages: ["platforms-siph-inp-sin-tfln", "components", "co-packaged-optics"], prereqs: ["fiber-optics-and-dispersion"], description: "Si + InP + SiN + TFLN platforms + heterogeneous, modulators + lasers + detectors on chip, co-packaged optics + AI accelerator I/O." },
+      { slug: "quantum-optics-and-entanglement", title: "Quantum Optics + Entanglement", level: "expert", order: 8, pages: ["quantum-states", "bell-tests", "qkd-quantum-net"], prereqs: ["em-waves-and-maxwell"], description: "Fock + coherent + squeezed states, Bell theorem + loophole-free tests + 2022 Nobel, BB84/E91 QKD + Beijing-Shanghai + Micius + quantum repeaters." },
+    ],
+  });
+
   // P35 — Information Theorist path. Entropy + source coding + MI/KL
   // + channel capacity (with new ShannonChannel viz) + error-correcting
   // codes + rate-distortion + practical compression + info theory in

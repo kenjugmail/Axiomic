@@ -123,6 +123,11 @@ const LazyShannonChannel = lazy(() =>
     (m) => ({ default: m.ShannonChannel }),
   ),
 );
+const LazyGaussianBeam = lazy(() =>
+  import("../../../../../packages/viz/src/components/GaussianBeam").then(
+    (m) => ({ default: m.GaussianBeam }),
+  ),
+);
 const LazyDoublePendulum = lazy(() =>
   import("../../../../../packages/viz/src/components/DoublePendulum").then(
     (m) => ({ default: m.DoublePendulum }),
@@ -243,6 +248,8 @@ function VizByName({
       return <LazyECGSimulator {...(props as object)} />;
     case "shannon-channel":
       return <LazyShannonChannel {...(props as object)} />;
+    case "gaussian-beam":
+      return <LazyGaussianBeam {...(props as object)} />;
     default:
       return null;
   }

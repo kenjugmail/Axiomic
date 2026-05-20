@@ -201,6 +201,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "📡",
     tags: ["information-theory", "shannon", "communication", "entropy", "channel"],
   },
+  {
+    name: "gaussian-beam",
+    label: "Gaussian beam propagation",
+    description: "Drag waist + wavelength; see beam envelope + Rayleigh range + divergence + optional lens.",
+    thumb: "🔦",
+    tags: ["photonics", "optics", "lasers", "physics", "engineering"],
+  },
 ];
 
 interface Props {

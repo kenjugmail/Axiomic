@@ -28,6 +28,7 @@ const OceanTSDiagram = lazy(() => import("../../../../packages/viz/src/component
 const AtmosphericSounding = lazy(() => import("../../../../packages/viz/src/components/AtmosphericSounding").then(m => ({ default: m.AtmosphericSounding })));
 const ECGSimulator = lazy(() => import("../../../../packages/viz/src/components/ECGSimulator").then(m => ({ default: m.ECGSimulator })));
 const ShannonChannel = lazy(() => import("../../../../packages/viz/src/components/ShannonChannel").then(m => ({ default: m.ShannonChannel })));
+const GaussianBeam = lazy(() => import("../../../../packages/viz/src/components/GaussianBeam").then(m => ({ default: m.GaussianBeam })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -60,6 +61,7 @@ export const VIZ_NAMES = [
   "atmospheric-sounding",
   "ecg-simulator",
   "shannon-channel",
+  "gaussian-beam",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -90,6 +92,7 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "atmospheric-sounding": AtmosphericSounding,
   "ecg-simulator": ECGSimulator,
   "shannon-channel": ShannonChannel,
+  "gaussian-beam": GaussianBeam,
 };
 
 interface VizEmbedProps {

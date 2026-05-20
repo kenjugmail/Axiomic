@@ -1,0 +1,218 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "advanced",
+    "objectives": [
+      "Compare PIC platforms (Si, SiN, InP, LN).",
+      "Reason about modulators, lasers, filters on chip.",
+      "Connect PICs to telecom + datacom + computing."
+    ],
+    "prereqs": [
+      "fiber-optics-and-dispersion"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why photonic integrated circuits matter",
+      "body": "**Photonic integrated circuits (PICs)**: integrate many optical functions (laser, modulator, waveguide, filter, detector) on a single chip — analog to electronic ICs.\n\nMotivation:\n- **Cost**: high-volume CMOS-like manufacturing.\n- **Size**: mm² chips vs benchtop discrete optics.\n- **Power**: shorter interconnects + tightly coupled components.\n- **Reliability**: no free-space alignment to drift.\n- **Performance**: tight integration enables coherent + complex functionalities.\n\n**Platforms** (each with trade-offs):\n\n• **Silicon photonics (SiPh)**: Si waveguides on SOI (silicon-on-insulator) substrate. Mature CMOS-compatible fabs (300 mm). Strong: passives, modulators, detectors (Ge-on-Si). Weak: no on-chip laser (Si is indirect bandgap; lasers via III-V heterogeneous bonding).\n- Major players: Intel, Cisco, Marvell (Inphi), Cisco Acacia, AyarLabs, GlobalFoundries, TSMC.\n- Applications: data-center 100/400/800/1.6T transceivers; co-packaged optics for switches; sensing.\n\n• **Indium phosphide (InP)**: native laser + active components. Smaller fab base (3-inch typically). Higher cost. Telecom workhorse for active functions.\n- Major: Infinera, Lumentum, II-VI (Coherent), Nokia, Furukawa.\n- Applications: coherent transceivers, EML modulators, DWDM lasers.\n\n• **Silicon nitride (SiN, Si₃N₄)**: low-loss passive (~0.1 dB/m); CMOS-compatible. Strong: filters, delay lines, microring resonators, gyroscopes, frequency combs (Kerr soliton). No native gain.\n- Major: LioniX, Imec, Ligentec, PsiQuantum.\n\n• **Lithium niobate (LiNbO₃) thin-film**: thin-film LN (TFLN) on insulator. Strong electro-optic (Pockels) modulator (>100 GHz BW); χ⁽²⁾ nonlinearities (SHG, OPO).\n- Major: HyperLight, Ligentec, Stanford research.\n\n• **III-V on Si heterogeneous**: bond/grow InP-based active devices on Si platform. Best of both worlds.\n\n• **Diamond, SiC, GaN, AlN**: emerging for quantum, UV, high-power."
+    },
+    {
+      "kind": "text",
+      "title": "Key PIC components + their integration",
+      "body": "**Waveguides** (basic building block):\n- SOI: 220-nm-thick Si on 2-µm buried oxide. ~3 dB/cm loss.\n- SiN: 200-800 nm strip; ~0.1 dB/cm loss.\n- LN: thin-film + ridge; ~0.1 dB/cm loss.\n- InP: typical ~0.5 dB/cm.\n\n**Mode converters / spot-size converters**: match fiber mode (~10 µm) to chip mode (~0.5 µm) at edge couplers + grating couplers.\n\n**Modulators**:\n- Mach-Zehnder (MZM): split + recombine; differential phase via index modulation. Drives: Si carrier-depletion (~50 GHz), TFLN Pockels (>110 GHz), InP MQW (~50 GHz).\n- Electro-absorption modulator (EAM): wavelength-edge absorption shifts under field; InP EML.\n- Ring resonator: small (~10 µm) but limited bandwidth; thermal-tuning.\n\n**Lasers (on Si)**:\n- III-V/Si heterogeneous bonding: InP DFB or DBR lasers bonded to Si waveguide layer.\n- Hybrid integration: III-V chip flip-chip mounted on Si PIC.\n- Direct integration: III-V epitaxially grown on Si (research; ongoing improvement).\n\n**Photodetectors**:\n- Ge-on-Si: 100% CMOS-compatible; covers 1310 + 1550 nm; ~30-50 GHz bandwidth.\n- InP heterogeneous.\n- Avalanche + SPAD variants.\n\n**Filters**:\n- Mach-Zehnder lattice.\n- Microring resonator (high finesse, narrow bandpass).\n- Bragg grating (wavelength-selective).\n- Arrayed waveguide grating (AWG): wavelength MUX/DEMUX for WDM.\n\n**Switches**:\n- Thermo-optic: silicon heater + waveguide; ms-scale switching.\n- Electro-optic: faster but more loss.\n- MEMS: high cross-talk isolation.\n\n**Couplers**:\n- Directional coupler (evanescent).\n- Multimode interference (MMI).\n- Y-junction.\n\n**Polarization handling**:\n- TE/TM modes have different propagation constants.\n- Polarization-splitter rotator (PSR) to align polarizations on chip."
+    },
+    {
+      "kind": "text",
+      "title": "Co-packaged optics + neural-network accelerators",
+      "body": "**Co-packaged optics (CPO)** for switches + servers:\n- Switches handling 51.2T-102.4T need optics inside the package (not pluggable transceivers).\n- Photons replace copper for chip-to-chip + module-to-module.\n- Reduces power 30-50%; enables higher radix switches.\n- Cisco + Broadcom + Marvell + Ayar Labs working on CPO for 2025-2027 deployment.\n\n**Optical I/O for AI accelerators**:\n- AI workloads bandwidth-bound; copper SerDes hitting limits.\n- Optical I/O (OIO): TX/RX optical interfaces co-packaged with compute die.\n- Ayar Labs TeraPHY: 8 Tbps/chiplet to NVIDIA + others.\n- Lightmatter Passage: dense photonic interposer linking GPUs.\n- Celestial AI: photonic memory expansion + GPU-to-GPU links.\n\n**Photonic computing** (more speculative):\n- **Photonic neural networks**: matrix-vector multiplication via MZI meshes (Lightmatter, Lightelligence, Luminous, MIT Notion). Promises lower energy/op for inference.\n- **Coherent Ising machines**: optical solving of combinatorial problems (NTT, Stanford).\n- **Quantum photonic computing**: PsiQuantum + Xanadu + ORCA + Quandela; photonic qubits + linear-optics quantum computing.\n\n**LiDAR + ranging on PIC**:\n- FMCW (frequency-modulated CW): coherent ranging via chirped CW laser; less power + better SNR than direct pulsed.\n- Integrated chirped-laser + optical phased array + Ge-on-Si detector → all on a chip.\n- Aeva, Mobileye, Aurora, Luminar + others using PIC-based lidar for autonomous vehicles.\n\n**Sensing**:\n- Gas sensing via mid-IR PIC absorption.\n- Biosensing via evanescent-wave ring resonators + microfluidics.\n- Inertial sensing via SiN gyroscope (Sagnac effect, on-chip).\n- Atomic-clock-on-chip: NIST + JILA + commercial efforts.\n\n**Volumes + cost**:\n- 800G pluggable transceiver: ~$1000 (volume).\n- Co-packaged optics: $400 / Tbps eventually.\n- Lasers + PICs: $1-100/port depending on volume + complexity.\n- Cost driven by packaging + test + III-V; Si CMOS volumes promise economies of scale."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_pic_1",
+        "kind": "guided_derivation",
+        "question": "Compare Si vs SiN vs InP PIC platforms for specific applications",
+        "goal": "Choose the right PIC platform for: (a) 800G coherent transceiver; (b) low-loss optical delay line; (c) high-bandwidth quantum-key distribution.",
+        "steps": [
+          {
+            "prompt": "800G coherent transceiver — best platform?",
+            "motivation": "Combine active + passive + modulator BW.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Si + InP heterogeneous",
+                "Si photonics with III-V laser",
+                "InP or Si+InP"
+              ]
+            },
+            "hints": [
+              "Need: laser (InP) + modulator + detector + DSP electronics."
+            ],
+            "reveal": "**Si + III-V heterogeneous** (or pure **InP**). Si photonics for waveguides + modulators + Ge detectors; III-V laser bonded onto Si chip. Modern 800G ZR + 1.6T pluggables (OSFP, QSFP-DD) use this approach. Pure InP also competitive (Infinera, Lumentum). Si advantage: scale + lower cost; III-V advantage: native gain + better modulator BW at high baud."
+          },
+          {
+            "prompt": "Low-loss optical delay line (km-equivalent in mm scale)?",
+            "motivation": "Optimize loss.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "SiN",
+                "silicon nitride"
+              ]
+            },
+            "hints": [
+              "~0.1 dB/m loss."
+            ],
+            "reveal": "**Silicon nitride (SiN, Si₃N₄)**: ultra-low loss (~0.1-1 dB/m); 1 km equivalent achievable in spiral patterns on cm²-size chip. Used: long delay lines for optical computing + lidar; high-Q resonators for filters + Kerr combs + lasers (DBR). Trade-off: no native gain (passive only); no fast modulators (no Pockels in SiN itself; heterogeneous with TFLN or InP)."
+          },
+          {
+            "prompt": "High-bandwidth modulator for QKD or coherent telecom (>100 GHz)?",
+            "motivation": "Pockels-effect platform.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "thin-film lithium niobate (TFLN)",
+                "TFLN",
+                "lithium niobate"
+              ]
+            },
+            "hints": [
+              "Pockels modulator with highest bandwidth."
+            ],
+            "reveal": "**Thin-film lithium niobate (TFLN)**: leverages LN's strong χ⁽²⁾ Pockels effect for >100 GHz modulator bandwidth at low drive voltage (Vπ ~1-2 V). HyperLight + Ligentec + others. Used: highest-BW coherent transceivers (next-gen >200G/lane); QKD systems requiring fast random-basis switching; integrated frequency combs + quantum-light sources. Si MZ modulators (carrier depletion) ~50 GHz; TFLN doubles+ that."
+          },
+          {
+            "prompt": "Why does heterogeneous integration matter?",
+            "motivation": "Combine strengths.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "different materials for different functions",
+                "Si + III-V combined"
+              ]
+            },
+            "hints": [
+              "No single material excels at everything."
+            ],
+            "reveal": "Different platforms have orthogonal strengths: Si for passives + manufacturing scale; InP for lasers + EAMs; SiN for low-loss passives + high-Q; TFLN for modulators + nonlinear. Modern advanced PICs combine multiple platforms via heterogeneous integration: III-V on Si (laser); SiN on Si (filter + comb); TFLN on Si (modulator). Photonic Heterogeneous Integration (PHI) is the frontier. Modern chiplet-style designs assemble best-of-breed photonic + electronic dies into single package."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_pic_1",
+        "kind": "slider",
+        "question": "Drag to estimate the data-center optical transceiver bandwidth (in Tbps) deployed in 2024 production for AI-cluster interconnect.",
+        "target": {
+          "min": 0.4,
+          "max": 0.8
+        },
+        "default": 0.05,
+        "explanation": "2024 production: 400G + 800G transceivers dominant in AI clusters (NVIDIA Hopper + Blackwell). 1.6T transceivers + co-packaged optics emerging 2025-2027. Pluggable transceivers shipped: ~50M units/year globally. Massive volume: each AI data center ~1M+ transceivers."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_pic_1",
+        "kind": "drag_classify",
+        "question": "Match each component or technology to its main PIC platform.",
+        "items": [
+          {
+            "id": "soi-waveguide",
+            "label": "Sub-micron waveguide on 220 nm SOI",
+            "bin": "siph"
+          },
+          {
+            "id": "ge-detector",
+            "label": "Ge-on-Si photodetector (1.3+1.55 µm)",
+            "bin": "siph"
+          },
+          {
+            "id": "dfb-laser",
+            "label": "DFB laser at 1310/1550 nm",
+            "bin": "inp"
+          },
+          {
+            "id": "eml-modulator",
+            "label": "EAM (electro-absorption) modulator",
+            "bin": "inp"
+          },
+          {
+            "id": "soliton-comb",
+            "label": "Microring soliton frequency comb",
+            "bin": "sin"
+          },
+          {
+            "id": "sin-delay-line",
+            "label": "10-meter low-loss delay line on chip",
+            "bin": "sin"
+          },
+          {
+            "id": "tfln-modulator",
+            "label": "100 GHz Pockels modulator",
+            "bin": "lnoi"
+          },
+          {
+            "id": "tfln-ppln",
+            "label": "PPLN for waveguide SHG",
+            "bin": "lnoi"
+          }
+        ],
+        "bins": [
+          {
+            "id": "siph",
+            "label": "Silicon photonics (SOI)"
+          },
+          {
+            "id": "inp",
+            "label": "Indium phosphide (InP)"
+          },
+          {
+            "id": "sin",
+            "label": "Silicon nitride (SiN)"
+          },
+          {
+            "id": "lnoi",
+            "label": "Thin-film lithium niobate (TFLN)"
+          }
+        ],
+        "explanation": "PIC platform specialization:\n• **Silicon photonics (SOI)**: 220 nm SOI waveguides, Mach-Zehnder + microring modulators (carrier depletion ~50 GHz), Ge-on-Si detectors (1.3 + 1.55 µm). CMOS-compatible. Lowest cost at volume.\n• **InP**: native semiconductor laser (DFB, DBR); EAM (electro-absorption modulator); fast modulator + detector. Cost higher.\n• **SiN**: ultra-low-loss passives (~0.1 dB/m); high-Q ring resonators; Kerr-soliton combs; high-Q delay lines + filters. No native gain.\n• **TFLN**: strong Pockels effect → fastest modulators (>100 GHz); χ⁽²⁾ for nonlinear conversion (SHG, OPA, comb). Emerging as standard for high-BW coherent + nonlinear applications.\n\nMost advanced PICs use multiple platforms via heterogeneous integration (III-V/Si laser + SiN filter + TFLN modulator on Si carrier)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_pic_1",
+        "kind": "multiple_choice",
+        "question": "Why is co-packaged optics (CPO) being deployed for next-generation network switches + AI accelerators?",
+        "options": [
+          "Marketing.",
+          "At 51.2T+ switch bandwidth + 800G+ per port, copper-electrical SerDes hit limits: power, distance, signal integrity. Putting photonic interfaces inside the switch package (not pluggable cages at the front) reduces electrical path length, power per Gbps, + enables higher radix. CPO is being deployed by Cisco + Broadcom + Marvell + Ayar Labs + Lightmatter for 51.2T-102.4T switches + AI accelerator I/O. Reduces interconnect power by 30-50% + enables denser systems.",
+          "CPO doesn't work.",
+          "Not deployed."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Co-Packaged Optics (CPO)** + the bandwidth crisis:\n\n*Problem at scale*:\nNetwork switches + AI accelerators face exponential bandwidth demand. Current generation:\n- 800G per port × 64 ports = 51.2T switch BW.\n- Next generation (2025-2027): 1.6T per port × 64 = 102.4T.\n- Future: 256-512 ports at multi-Tbps.\n\nDriving issues:\n- **SerDes power**: each electrical SerDes lane consumes 5-15 pJ/bit. 51.2T × 8 pJ/bit = ~410 W just for I/O.\n- **Reach limit**: PAM4 SerDes at 200+ Gbps/lane lose signal integrity beyond ~10 cm copper trace.\n- **Density**: pluggable transceiver cages on front panel limit physical port count + mechanical complexity.\n\n*Pluggable optical transceivers* (current solution):\n- QSFP-DD + OSFP cages at switch front panel.\n- Plug-in modules host laser + driver + modulator + photodetector + DSP.\n- 800G ZR + ZR+ shipped 2022+; 1.6T emerging 2024-2025.\n- Drawback: electrical signal still must travel ~10-30 cm of PCB trace from switch ASIC to front-panel module; loss + power.\n\n*Co-packaged optics (CPO)*:\n- Photonic chips integrated **inside the switch package** alongside the switch ASIC.\n- Direct die-to-die or chiplet attachment.\n- Electrical signals stay within ~1 cm of switch ASIC.\n- Optical fibers exit the package.\n\n*Power savings*:\n- 30-50% reduction vs pluggable for given total bandwidth.\n- Lower SerDes power (~3-5 pJ/bit reachable vs 8-15 pJ/bit for pluggable).\n- Better thermal management.\n\n*Density*:\n- Higher radix possible (>64 ports per switch ASIC).\n- More compact systems.\n\n*Reliability challenge*:\n- Pluggable: 'hot swap' if defective.\n- CPO: defective optic = swap whole module/board.\n- Industry solution: highly reliable + redundant designs; longer-term: bank of redundant lanes.\n\n*Industry roll-out*:\n- Cisco (Silicon One): CPO products planned 2025.\n- Broadcom (Bailly + Tomahawk): CPO 51.2T + 102.4T platforms.\n- Marvell (Inphi): CPO photonic engines.\n- Ayar Labs (TeraPHY): chiplet-based optical I/O for NVIDIA, Intel, AMD.\n- Lightmatter (Passage): photonic interposer for AI accelerators.\n- Celestial AI (Photonic Fabric): GPU-to-GPU optical interconnect.\n\n*AI accelerator I/O*:\n- NVIDIA H100 + B100/B200: NVLink 4/5 use copper still; future Blackwell+ + Rubin generations may incorporate CPO.\n- AMD, Intel, Google TPU, Amazon Trainium: optical I/O roadmap.\n- Optical I/O enables larger AI training clusters with more efficient inter-GPU communication.\n\n*Timeline*:\n- 2024: pluggable 800G mainstream; CPO demos.\n- 2025-2026: first commercial CPO 51.2T deployments.\n- 2026-2028: CPO 102.4T + AI accelerator I/O.\n- 2030+: integrated photonic-electronic computing increasingly common.\n\n*Larger trend*: photonics is moving from inter-rack (long fiber) to intra-rack (board-to-board) to intra-chip (die-to-die). Each step accelerated by AI workload growth + bandwidth-energy constraints."
+      },
+      "hints": [
+        "Why is copper SerDes hitting limits?",
+        "What does CPO change?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "CPO addresses bandwidth crisis at 51.2T-102.4T switches + 800G+/port. Electrical SerDes power (5-15 pJ/bit) + reach (~10 cm copper) limits hit. CPO integrates photonic chips inside switch package alongside ASIC; electrical signals stay <1 cm; 30-50% power savings; higher port density. Industry: Cisco, Broadcom, Marvell, Ayar Labs, Lightmatter, Celestial AI. AI accelerator I/O (NVIDIA NVLink+) also adopting. Timeline: 2025-2027 commercial deployment."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_pic_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why photonic integrated circuits are following an analogous 'Moore's law' trajectory to electronic ICs, but with different drivers.",
+        "rubric": "Mentions: PIC technology is moving from discrete optics (assembled by hand) to chip-scale + mass-producible. Function counts doubling regularly; per-port cost falling. Drivers different from CMOS Moore's law: not transistor density (photons can't be 5 nm), but: complexity (more components per chip), heterogeneous integration (Si + InP + SiN + TFLN on one carrier), packaging scale (CMOS-fab + chiplet assembly). 2024 state: 800G/1.6T transceivers; co-packaged optics; quantum photonic chips. Drivers: AI bandwidth + data-center power; LIDAR for autonomous driving; quantum computing + networking; sensing + biomedical. Scaling will continue but with engineering creativity (heterogeneous + multi-die + nonlinear) rather than pure feature shrinking. Closes: photonics following CMOS-like trajectory ~20 yr behind, increasingly tightly coupled."
+      }
+    }
+  ]
+}

@@ -1,0 +1,216 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Apply Einstein A + B coefficients + stimulated emission.",
+      "Reason about gain, threshold, + cavity stability.",
+      "Distinguish CW + pulsed + ultrafast lasers."
+    ],
+    "prereqs": [
+      "em-waves-and-maxwell"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Stimulated emission + the basic laser",
+      "body": "**LASER** = Light Amplification by Stimulated Emission of Radiation.\n\nEinstein 1917: atoms emit light in three processes:\n• **Spontaneous emission**: excited atom decays randomly, emits photon. Random direction + phase. Rate A_21.\n• **Absorption**: photon absorbed; atom excited. Rate B_12 × ρ(ν).\n• **Stimulated emission**: incoming photon triggers excited atom to emit identical photon (same direction, phase, frequency, polarization). Rate B_21 × ρ(ν).\n\nEinstein coefficients related by: A_21 = (8πhν³/c³) B_21, B_12 = B_21 (for non-degenerate levels). Key: stimulated emission produces coherent identical photons → light amplification.\n\n**Population inversion**: usually atoms are mostly in ground state; absorption dominates over emission. For lasing: need N_2 > N_1 (more excited than ground) → net amplification. Achieved by **pumping**.\n\n**Pumping**:\n- Optical (other laser, flashlamp, sun): excite atoms via absorption.\n- Electrical: discharge (gas), p-n junction (diode), accelerated electron beam.\n- Chemical: H₂ + F₂ → HF + light (chemical lasers).\n- Gas-dynamic: rapid cooling of hot gas.\n\n**3-level vs 4-level lasers**:\n- 3-level (ruby): ground → upper → lower (= ground). Needs >50% population inversion (hard).\n- 4-level (Nd:YAG, dye, most modern): ground → upper → metastable → terminal (≠ ground) → ground. Easier to invert.\n\n**Threshold + saturation**: at low pump, no lasing (loss > gain). Above threshold, lasing starts; gain clamps to loss; population inversion saturates.\n\n**Beam properties**:\n- **Monochromatic**: narrow linewidth (cavity-mode + transition).\n- **Coherent**: long coherence length (1 µm - 100 km depending on laser).\n- **Directional**: narrow divergence (~mrad).\n- **High intensity**: up to ~10²² W/m² focused (multi-petawatt lasers)."
+    },
+    {
+      "kind": "text",
+      "title": "Optical resonators + cavity stability",
+      "body": "**Optical resonator** confines + amplifies light by trapping it between mirrors (Fabry-Perot cavity).\n\nLongitudinal modes: standing waves with integer half-wavelengths between mirrors. Frequency spacing Δν = c/(2L) (free spectral range, FSR).\n\nTransverse modes: TEM_00 (lowest order), TEM_01, TEM_10, etc. (Hermite-Gaussian for rectangular symmetry).\n\n**Stability criterion** (g₁ g₂ stability, where g_i = 1 - L/R_i for mirror radii R_i):\n- 0 ≤ g₁ g₂ ≤ 1: stable resonator (beams stay bounded after many round trips).\n- Otherwise: unstable → energy escapes the resonator after few trips.\n- Common stable configs: plano-concave (g₁=1, 0 < g₂ < 1), confocal (g₁ = g₂ = 0), concentric.\n- Unstable resonators used for high-power: large mode volume + efficient power extraction.\n\n**Q-factor**: ω × stored energy / power loss. High Q: long photon lifetime → narrow linewidth.\nLine narrowing: Δν ~ FSR / F (F = finesse). High-F resonators (>10⁵) for spectroscopy + frequency standards.\n\n**Mode selection**:\n- Single-mode (single longitudinal): intracavity etalon, ring cavity.\n- Single-transverse mode: aperture, lens-design.\n- Multi-mode: cavity supports many; sum gives intensity fluctuations.\n\n**Output coupler**: partially transmissive mirror that lets some light out. Reflectivity ~50-99% depending on gain + power. Higher R: lower threshold but lower output; lower R: higher threshold + higher extraction.\n\n**Modern cavity designs**:\n- Linear (Fabry-Perot): simple, common.\n- Ring: traveling-wave; single-frequency operation; lower noise.\n- Bow-tie: travels in figure-eight; common in OPOs.\n- Cavity-enhanced spectroscopy: F ~ 10⁵; weak-signal detection.\n- Whispering-gallery modes (WGM): microspheres + microtoroids; extremely high Q (~10¹⁰); narrow linewidth + nonlinear effects."
+    },
+    {
+      "kind": "text",
+      "title": "CW, pulsed, + ultrafast lasers",
+      "body": "**Continuous wave (CW)**: steady-state output. Stable + spectrally narrow. Examples: He-Ne, Ar-ion, semiconductor laser diode, fiber lasers (most operate CW).\n\n**Pulsed lasers**: temporally modulated output for high peak power.\n\n• **Free-running** flashlamp-pumped: pulse driven by pump duration (~ms).\n• **Q-switched**: intracavity shutter holds energy then releases (~ns pulses, MW peak). Used: laser ranging, marking, surgery, machining. Driver: electro-optic (Pockels) or acousto-optic modulator.\n• **Mode-locked**: phase-lock multiple longitudinal modes → ultrashort pulses. Repetition rate = c/2L (~80 MHz typical Ti:S laser). Pulse duration ~ inverse of bandwidth. Modern: <5 fs.\n• **Chirped-pulse amplification (CPA)**: stretch pulse → amplify → compress. Avoids damage in gain medium. Mourou + Strickland 1985, Nobel 2018. Foundation of multi-PW ultrafast lasers.\n• **Frequency combs**: precise comb of equally-spaced laser lines from mode-locked laser. Hänsch + Hall 2005 Nobel. Used for: optical frequency metrology, atomic clocks, astronomy + exoplanet RV searches.\n\n**Notable laser systems**:\n- **He-Ne** (632.8 nm, 1-50 mW): classroom + alignment.\n- **Argon-ion** (488 + 514 nm): fluorescence microscopy, optical pumping. Mostly replaced by diodes.\n- **Nd:YAG** (1064 nm, ns-CW): industrial, surgery. SHG → 532 nm (green pointer).\n- **Ti:sapphire** (~800 nm, ultrashort 5fs-100fs): research workhorse.\n- **Fiber laser** (1µm, 1.5µm): industrial cutting/welding (IPG, Coherent); telecom.\n- **Excimer** (193, 248 nm): photolithography, eye surgery (LASIK).\n- **CO₂** (10.6 µm, kW-CW): industrial cutting.\n- **VCSEL + DFB diodes**: telecom, datacenter, lidar, mouse sensors.\n- **Quantum cascade laser (QCL)**: mid-IR; spectroscopy.\n- **Free-electron laser (FEL)**: tunable from THz to X-ray; massive facilities (LCLS, European XFEL).\n\n**Recent advances**:\n- **Petawatt + multi-petawatt** for relativistic plasma physics, attosecond pulses.\n- **Frequency comb spectroscopy** + atomic clocks (10⁻¹⁸ precision).\n- **Ultracold atom + optical lattice clocks**.\n- **Optical phased arrays + integrated photonics** scaling lasers on chip.\n- **High-power fiber lasers**: 100s kW single-mode for industrial.\n- **Single-photon sources** for quantum networks."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_laser_1",
+        "kind": "guided_derivation",
+        "question": "Compute laser threshold + slope efficiency for a Nd:YAG laser",
+        "goal": "A diode-pumped Nd:YAG laser has cavity round-trip loss 5%, output coupler T = 5%, gain medium absorbs 95% of pump. Pump-to-mode coupling efficiency 80%, photon-energy conversion (1064/808) = 0.76. Compute threshold + slope efficiency.",
+        "steps": [
+          {
+            "prompt": "Total cavity loss?",
+            "motivation": "Sum loss + outcoupling.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "10%",
+                "5% + 5%"
+              ]
+            },
+            "hints": [
+              "Round-trip = scattering + outcoupling."
+            ],
+            "reveal": "Total loss = 5% (scattering, absorption, diffraction) + 5% (output coupler) = 10% round-trip."
+          },
+          {
+            "prompt": "Gain threshold (matches loss)?",
+            "motivation": "Steady-state.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "10%",
+                "g_th = loss"
+              ]
+            },
+            "hints": [
+              "At threshold, gain = loss."
+            ],
+            "reveal": "g_th = 10% per round trip. Population inversion adjusts to provide this gain."
+          },
+          {
+            "prompt": "Slope efficiency η_slope = η_pump × η_absorb × η_quantum × η_outcoupling?",
+            "motivation": "Multiply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~28.9%",
+                "0.8 × 0.95 × 0.76 × 0.5"
+              ]
+            },
+            "hints": [
+              "0.8 × 0.95 × 0.76 × (0.05/0.1) = ?"
+            ],
+            "reveal": "η_pump = 0.8 (coupling); η_absorb = 0.95 (gain medium); η_quantum = 0.76 (Stokes); η_out = T/(T+loss) = 0.05/0.10 = 0.5. Product = 0.8 × 0.95 × 0.76 × 0.5 = 0.289 = 28.9%."
+          },
+          {
+            "prompt": "If pump threshold is 5 W + we pump 20 W: output power?",
+            "motivation": "Linear above threshold.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~4.3 W",
+                "(20-5) × 0.289",
+                "4.3 W"
+              ]
+            },
+            "hints": [
+              "P_out = η_slope × (P_pump - P_threshold)."
+            ],
+            "reveal": "P_out = 0.289 × (20 - 5) = 4.34 W at 1064 nm. Typical Nd:YAG diode-pumped efficiency. Higher T_OC raises slope but raises threshold; trade-off optimized per design + pump power."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "puzzle_laser_1",
+        "kind": "puzzle_drag_build",
+        "question": "Drag components to build a Michelson interferometer. Build it correctly: laser source → beam splitter → two mirrors (one fixed, one movable) → detector at the recombined output.",
+        "slots": [
+          {
+            "id": "slot-source",
+            "accepts": "source"
+          },
+          {
+            "id": "slot-splitter",
+            "accepts": "beam-splitter"
+          },
+          {
+            "id": "slot-mirror1",
+            "accepts": "mirror"
+          },
+          {
+            "id": "slot-mirror2",
+            "accepts": "mirror"
+          },
+          {
+            "id": "slot-detector",
+            "accepts": "detector"
+          }
+        ],
+        "components": [
+          {
+            "id": "laser",
+            "type": "source",
+            "label": "He-Ne laser (633 nm coherent source)"
+          },
+          {
+            "id": "bs50",
+            "type": "beam-splitter",
+            "label": "50:50 beam splitter (cube)"
+          },
+          {
+            "id": "m-fixed",
+            "type": "mirror",
+            "label": "Fixed end mirror"
+          },
+          {
+            "id": "m-moving",
+            "type": "mirror",
+            "label": "Movable end mirror (PZT-mounted)"
+          },
+          {
+            "id": "photodiode",
+            "type": "detector",
+            "label": "Silicon photodiode + amplifier"
+          },
+          {
+            "id": "thermal-source",
+            "type": "source",
+            "label": "Incandescent bulb (incoherent)"
+          },
+          {
+            "id": "absorber",
+            "type": "beam-splitter",
+            "label": "Neutral density filter (absorber)"
+          }
+        ],
+        "explanation": "A **Michelson interferometer** uses a 50:50 beam splitter to divide a coherent laser beam into two arms, each terminated by an end mirror. Reflected beams recombine at the splitter; the recombined output goes to a detector. Difference in arm length Δd shifts interference fringes — used for: LIGO gravitational-wave detection (3-4 km arms, picometer sensitivity), Fourier-transform IR (FTIR) spectroscopy, surface profilometry, wavemeter, etc. **Key**: coherent source required (laser, not lamp); 50:50 beam-splitter (not absorber); identical-quality mirrors; one mirror movable (often PZT-driven) for scanning. Modern: Mach-Zehnder, Sagnac, Twyman-Green variants."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_laser_1",
+        "kind": "multiple_choice",
+        "question": "Why did the development of fiber lasers (1990s-2000s) revolutionize industrial materials processing?",
+        "options": [
+          "Fiber lasers are cheaper.",
+          "Combined: high efficiency (~30% wall-plug), high beam quality (M² near 1 even at 100 kW for single-mode), excellent thermal management (long thin fiber distributes heat), reliable + maintenance-free vs flashlamp-pumped solid-state, fiber-deliverable to remote work-cell. Replaced CO₂ + DPSS for many cutting + welding + cladding applications. IPG Photonics dominant supplier; multi-billion industry. Drives faster + finer + cheaper laser materials processing globally.",
+          "Fiber lasers don't work.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Fiber-laser revolution** (~2000-2020):\n\n*Pre-fiber-laser industrial lasers*:\n- **CO₂ lasers**: 10.6 µm; high power; bulky + maintenance-heavy; mirror-based delivery only (no fiber at 10 µm). Dominant for cutting since 1970s.\n- **Diode-pumped Nd:YAG (DPSS)**: 1064 nm; fiber-deliverable; lower efficiency (~10%); thermal-lensing limits power.\n- **Lamp-pumped Nd:YAG**: legacy; even less efficient; high maintenance.\n\n*Fiber-laser advantages*:\n\n1. **Efficiency**: ~30% wall-plug efficiency (vs ~10% DPSS, ~5-10% CO₂). Direct diode pump into Yb-doped fiber.\n\n2. **Beam quality**: long fiber acts as mode filter; output highly Gaussian (M² ≤ 1.3 typical, even at multi-kW). Critical for tight-focus cutting.\n\n3. **Thermal management**: kilometer of thin fiber distributes heat over large surface area; no thermal-lensing in bulk crystal. Enables high CW power.\n\n4. **Reliability**: fiber-spliced; no free-space alignment to drift; sealed; lifetime 100k+ hours.\n\n5. **Compactness**: gain medium is the fiber; pump diodes + folded beam path → benchtop sizes for kW-class.\n\n6. **Fiber delivery**: output fiber routes laser to workpiece; flexible robot integration; no fragile mirrors over the production line.\n\n7. **Pulsed regimes**: easy to add modulators for pulsed/Q-switched operation; ns, ps, fs available.\n\n*Power evolution*:\n- 2000: ~100 W single-mode fiber laser.\n- 2010: 10 kW multimode.\n- 2020: 100 kW single-mode; multi-MW R&D.\n- Today: routine 6-12 kW single-mode for cutting + welding.\n\n*Industrial impact*:\n\n- **Sheet-metal cutting**: 6 kW fiber laser replaced CO₂ for stainless + aluminum cutting; faster + finer + cheaper.\n- **Welding**: deep-penetration keyhole welding at 5-20 kW; auto + battery industries.\n- **3D printing (LPBF/SLM)**: powder-bed fusion with kW fiber lasers; medical + aerospace.\n- **Marking + engraving**: 20-100 W pulsed fiber for industrial markers; replaced YAG.\n- **Cladding + heat treatment**: surface treatment + repair.\n- **Cleaning + rust removal**: pulsed fiber lasers for paint + oxide removal.\n\n*Market dominance*:\n- IPG Photonics (US/Russia origin): pioneered + dominated; market cap $1B-$10B.\n- Trumpf, Coherent (II-VI), Han's Laser, Maxphotonics: major players.\n- China + Europe + US compete; Chinese cutting market grew rapidly 2015-2024.\n\n*Trade-offs*:\n- CO₂ still preferred for: thick metal, certain plastics, glass cutting (10.6µm absorbs).\n- DPSS for: short-pulse precision (fs/ps systems often crystal-based for power scaling).\n- Diode lasers for: kW direct, simpler systems (~50% efficiency, M²~10-50).\n\n*Future*:\n- Higher power (multi-MW + research).\n- Beam-shape engineering (e.g., ring intensity, vortex).\n- Coherent + spectral beam combining of multiple fibers.\n- Integration with sensing + AI for adaptive processing.\n\nFiber laser is a model of materials-science + photonics-engineering co-evolution paying off in industrial applications."
+      },
+      "hints": [
+        "What are fiber-laser advantages?",
+        "Why fiber over CO₂?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Fiber lasers: ~30% wall-plug efficiency (vs ~10% DPSS / ~5-10% CO₂); high beam quality (M²~1.3 even at multi-kW); long fiber distributes heat; reliable maintenance-free operation; flexible fiber-routed delivery; pulsed variants available. Replaced CO₂ + DPSS for sheet-metal cutting, welding, 3D-printing, marking, cleaning. Power evolved 100W → 100kW single-mode 2000-2020. IPG Photonics + Trumpf + Coherent dominate; multi-billion industry. CO₂ still preferred for thick metal/glass."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_laser_1",
+        "kind": "math_expression",
+        "question": "FSR (free spectral range, in GHz) of a 30-cm-long laser cavity?",
+        "acceptedAnswers": [
+          "0.5 GHz",
+          "0.5",
+          "c/(2L)"
+        ],
+        "hint": "FSR = c / (2L) = 3e8 / 0.6 = 5e8 Hz = 0.5 GHz."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_laser_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain the trio of CW, Q-switched, + mode-locked lasers + when each is used.",
+        "rubric": "Mentions: CW = continuous, narrow-linewidth, steady; used for spectroscopy, fiber comm, alignment, basic cutting/welding. Q-switched = nanosecond pulses with high peak power; built by intracavity modulator that holds + releases. Used for: marking + drilling + ranging + surgery + tattoo removal + nonlinear conversion (SHG). Mode-locked = phase-locked longitudinal modes producing ultrashort pulses (ps, fs, even attoseconds with HHG). Repetition rate = c/2L (~80 MHz). Used for: time-resolved spectroscopy (femtochemistry), materials machining with cold ablation, multiphoton microscopy, frequency-comb metrology, attosecond science. CPA (chirped-pulse amplification, Mourou-Strickland Nobel 2018) extends to petawatt regimes for laser fusion + relativistic plasma physics. Concludes: pulse regime selected per peak/average power needs + temporal resolution requirements."
+      }
+    }
+  ]
+}
