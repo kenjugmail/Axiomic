@@ -1,0 +1,160 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intro",
+    "objectives": [
+      "Distinguish discretionary vs systematic trading.",
+      "Outline strategy taxonomy.",
+      "Reason about firm structures + edge sources."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Systematic vs discretionary trading",
+      "body": "**Systematic (quant) trading**: rules-based, code-executed. Strategy + execution pre-defined; humans monitor + supervise.\n\n**Discretionary trading**: humans decide trade-by-trade using judgment + analysis.\n\n**Spectrum** between: most modern shops are systematic at the execution layer + discretionary at strategy/risk-allocation.\n\n**Why systematic dominates trading**:\n- **Speed**: humans can't react in microseconds.\n- **Discipline**: removes emotion (panic-sell, FOMO).\n- **Backtestability**: rigorous historical evaluation.\n- **Scale**: trade thousands of instruments simultaneously.\n- **Reproducibility**: same code, same trades.\n\n**Why discretionary persists**:\n- Novel situations + macro shifts (regimes outside training data).\n- Catalyst-driven (earnings, M&A, geopolitical).\n- Information advantages (research, network).\n- Smaller capital can move with less impact.\n\n**Major firm types**:\n\n**Hedge funds** (multi-strategy): Citadel, Millennium, Point72, Balyasny, Schonfeld, Two Sigma. Mix systematic + fundamental. AUM \\$50B-\\$70B+ each.\n\n**Pure quant funds**: Renaissance Technologies (Medallion famously ~66% annualized 1988-2018), DE Shaw, Two Sigma. Highest profit-margin businesses.\n\n**Market makers / HFT**: Jane Street, Citadel Securities, Virtu, Hudson River Trading, Optiver, IMC, DRW, Jump Trading. Provide liquidity; profit from spread + volume.\n\n**Prop trading firms**: Susquehanna (SIG), Old Mission, Flow Traders, Tower Research. Smaller than hedge funds; high tech intensity.\n\n**Investment banks**: Goldman, JPM, Morgan Stanley, Bank of America. Sales + trading desks. Many systematic strategies; client-facing.\n\n**Pension + sovereign wealth funds**: long-only typically; some quant (e.g., factor investing).\n\n**Edge sources**:\n- **Speed (HFT)**: arbitrage across venues, latency advantages.\n- **Statistical arbitrage**: mean-reversion across correlated pairs/baskets.\n- **Fundamental quant**: factor investing (value, momentum, quality, low-vol).\n- **Macro**: trend-following, carry, RV across asset classes.\n- **Alternative data**: satellite, transaction, social, geolocation.\n- **ML/AI**: complex non-linear patterns.\n- **Execution**: optimal order placement reduces transaction costs.\n\n**Markets traded**:\n- Equities (single names, ETFs, indices).\n- Equity options + futures.\n- Foreign exchange (FX).\n- Fixed income (Treasuries, corporate bonds).\n- Commodities (oil, gas, metals, agricultural).\n- Crypto.\n- Volatility (VIX, variance swaps).\n\n**Capital efficiency**: most strategies have capacity limits. Smaller strategies = larger edge but limited size. Largest funds compete for capacity in big strategies."
+    },
+    {
+      "kind": "text",
+      "title": "Strategy taxonomy + lifecycle",
+      "body": "**Major strategy families**:\n\n**Trend-following (momentum)**:\n- Buy what's going up; sell what's going down.\n- Time-series momentum (own price history) vs cross-sectional (relative to peers).\n- AHL, Winton, Man Group, Aspect — CTA (Commodity Trading Advisor) firms.\n- Robust over decades; payoff is convex (loves big moves).\n\n**Mean-reversion / statistical arbitrage**:\n- Bet on reversal: oversold bounces, overbought corrects.\n- Pairs trading: long one stock, short correlated stock.\n- Index arbitrage: ETF vs basket.\n- Renaissance, DE Shaw — pioneers.\n- Profit per trade small; many trades, fast execution.\n\n**Carry**:\n- Borrow low-yield, lend high-yield. FX carry (long high-yield FX vs low-yield).\n- Risk: episodic crashes when correlations spike.\n\n**Factor investing**:\n- Long stocks with desired factors (value, quality, momentum, low-vol, size).\n- Short opposites.\n- Academic-derived (Fama-French, Carhart).\n- Smart-beta ETFs.\n\n**Relative value**:\n- Pairs of related assets where mispricing exists.\n- Fixed income RV: bond vs bond, swap vs Treasury.\n- Equity RV: futures vs cash, M&A arb.\n- Convertible arbitrage.\n\n**Event-driven**:\n- M&A arbitrage: long target, short acquirer if cash-only.\n- Spin-offs, restructurings, distressed debt.\n- Earnings + announcement strategies.\n\n**Volatility strategies**:\n- Vol selling: collect premium; risk = jumps.\n- Vol arbitrage: implied vs realized.\n- Dispersion: long single-name vol, short index vol.\n\n**HFT / market making**:\n- Provide bid + ask; capture spread.\n- Latency arbitrage across venues.\n- Order-book imbalance trading.\n\n**Strategy lifecycle**:\n1. **Idea generation**: from research, papers, ML, intuition.\n2. **Backtest**: historical simulation. Many ideas die here.\n3. **Paper trading**: live but small.\n4. **Production**: real capital.\n5. **Monitoring**: live performance vs backtest.\n6. **Decay + retirement**: most strategies decay over months-years as edge dissipates.\n\n**Decay sources**:\n- **Adoption**: more market participants → smaller edge.\n- **Capacity**: strategy works only up to size.\n- **Regime change**: market structure shifts (e.g., 2020 pandemic).\n- **Regulation**: rules change (e.g., short-sale restrictions).\n- **Reflexivity**: trades affect prices they target.\n\n**The 'tradedown'**: published academic strategies often have post-publication performance much weaker than backtest.\n\n**Persistent vs decaying alpha**: structural (market microstructure, liquidity) tends to persist. Pattern-based (specific signal) tends to decay."
+    },
+    {
+      "kind": "text",
+      "title": "Performance metrics + the firm structure",
+      "body": "**Sharpe ratio**: (excess return − risk-free rate) / volatility. Annualized.\n- 0.5-1: mediocre.\n- 1-2: good systematic.\n- 2-3: excellent.\n- 3+: rare; suspect quality (data mining, capacity limits).\n- Medallion (Renaissance) post-fees ~2.5 Sharpe over decades. After-fees only its employees see; gross likely 4+.\n\n**Sortino ratio**: like Sharpe but only down-side volatility. More charitable for skewed returns.\n\n**Calmar ratio**: annual return / max drawdown. Captures downside risk differently.\n\n**Max drawdown**: peak-to-trough loss. Critical for both psychology + capacity.\n\n**Information ratio**: alpha / tracking error. For benchmarked strategies.\n\n**Skewness + kurtosis**: shape of return distribution.\n- Positive skew = occasional big wins (trend-following).\n- Negative skew = small wins, occasional crashes (vol-selling).\n\n**Capacity**: how much capital can deploy without degrading edge.\n- HFT: limited (microseconds + venue queue position matter).\n- Large-cap equity factor: very high (\\$100B+).\n- Stat arb: moderate.\n- Macro: very high.\n\n**Profit attribution**: where does PnL come from? Alpha vs beta vs cost.\n- Performance attribution to factors, sectors, regions.\n- BARRA + Axioma + Wolfe Research risk models.\n\n**Fees + alignment**:\n- **2 and 20**: 2% management + 20% performance. Historically standard hedge funds.\n- Recent compression: 1-1.5% + 15-20%.\n- Quant shops: similar or higher (Renaissance Medallion: ~5% + 44%).\n- High-water mark: only earn perf fee above previous peak NAV.\n- Multi-strategy firms (Citadel, Millennium): pay traders ~70-90% of their book PnL.\n\n**Firm structure (large quant fund)**:\n- **Quant researchers / portfolio managers**: develop strategies.\n- **Software engineers / quant developers**: build infrastructure.\n- **Data engineers**: ingest + curate datasets.\n- **Execution traders**: human oversight of trading systems.\n- **Risk managers**: enforce limits.\n- **Operations**: settlements, compliance, reporting.\n- **Compliance**: increasingly large in regulated environments.\n\n**Compensation**:\n- Quant researchers / engineers: top end \\$300K-\\$2M+ all-in (junior to senior).\n- Successful PM: \\$5M-\\$50M+ in good years.\n- Variability enormous; few stay long.\n\n**Career paths**:\n- **PhD STEM** → quant research at hedge fund.\n- **MS/PhD CS** → quant dev or HFT.\n- **MBA finance** → less direct to quant; more banking + fundamental.\n- Top firms recruit from competitive academic + math/physics/CS programs."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_quant_sharpe",
+        "kind": "guided_derivation",
+        "question": "Compute Sharpe ratio",
+        "goal": "Strategy returns: 18% annualized, 12% volatility, risk-free 5%.",
+        "steps": [
+          {
+            "prompt": "Excess return: 18% - 5% = ?",
+            "motivation": "Subtract.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "13%",
+                "0.13"
+              ]
+            },
+            "hints": [
+              "18 - 5."
+            ],
+            "reveal": "Excess = 13%."
+          },
+          {
+            "prompt": "Sharpe = excess / volatility = ?",
+            "motivation": "Divide.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1.08",
+                "~1.1",
+                "13/12"
+              ]
+            },
+            "hints": [
+              "13/12."
+            ],
+            "reveal": "Sharpe ≈ 1.08. Good but not exceptional. For systematic strategy: solid. For HFT or top stat-arb: would expect higher (2-3+)."
+          },
+          {
+            "prompt": "If volatility doubled to 24% (same returns), Sharpe becomes?",
+            "motivation": "Recompute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~0.54",
+                "0.54",
+                "13/24"
+              ]
+            },
+            "hints": [
+              "13/24."
+            ],
+            "reveal": "0.54. Sharpe is HIGHLY sensitive to volatility. Reducing volatility is often more valuable than raising returns. Risk management is a core quant edge."
+          },
+          {
+            "prompt": "What's the trade-off between Sharpe + capacity?",
+            "motivation": "Real-world.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "No trade-off.",
+                "Higher-Sharpe strategies often have LOWER capacity (can deploy less capital before edge degrades). Renaissance Medallion: legendary Sharpe but tiny capacity (closed to outsiders since 1993). Large funds optimize for capacity + good Sharpe, not max Sharpe.",
+                "More capital, more Sharpe.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "High-Sharpe → low-capacity often."
+            ],
+            "reveal": "Higher Sharpe often = lower capacity. Top strategies (microstructure, niche stat arb) can't scale. Successful firms balance: enough Sharpe to attract LPs + enough capacity to deploy AUM. Medallion's perfect-Sharpe small strategy is unique; most must trade some Sharpe for capacity."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Sharpe} = (R - R_f) / \\sigma; \\text{ trade-off with capacity}}$$ Sharpe is THE summary metric of risk-adjusted performance. But context matters: capacity, drawdown, skew, regime sensitivity all matter beyond a single number. Top quant funds achieve 2-3+ Sharpe (gross) on substantial capital; mediocre funds achieve 0.5-1. Above 3 over long periods: extremely rare + suggests either data quality (Medallion) or fraud (Madoff)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_quant_renaissance",
+        "kind": "multiple_choice",
+        "question": "Renaissance's Medallion fund has reported ~66% annualized gross returns from 1988-2018 — vastly outperforming any other hedge fund. What enables this?",
+        "options": [
+          "Random.",
+          "Combination: extreme talent (PhD physicists + cryptographers), focused on short-term price patterns no one else identified, secret + proprietary signals, limited capacity (Medallion is small; closed to outsiders since 1993), heavy compute + data infrastructure since the 1980s.",
+          "Inside information.",
+          "Lucky."
+        ],
+        "correctIndex": 1,
+        "explanation": "Renaissance's Medallion is the most successful hedge fund in history. Gross returns ~66% annualized 1988-2018; ~39% net of fees. The fund is small (~$10B); closed to outsiders since 1993. Why so successful + how can it persist?\n\n- Hired PhDs in pure math, physics, signal processing, cryptography — not finance.\n- Mathematical pattern detection from massive market data + alternative data.\n- Limited capacity strategies — small fund can deploy efficiently.\n- Reinvested in research + infrastructure for decades.\n- Cultural focus on rigor + skepticism.\n\nFees: ~5% management + 44% performance (highest in industry). Other Renaissance funds (RIEF, RIDA, RIDGE) for outside investors have NOT matched Medallion's performance. The 'capacity wall' is real even for them.\n\nMedallion's edge is presumably some combination of: (a) microstructure-level patterns (5-10 second alpha); (b) heavy multi-asset analysis; (c) execution efficiency; (d) extraordinarily long runway to refine. Public details deliberately limited."
+      },
+      "hints": [
+        "Why Medallion succeeds?",
+        "Why limited capacity?"
+      ],
+      "workedSolution": "PhD-heavy team, focus on micro patterns, limited capacity (small AUM), reinvested in research + tech for decades, cultural rigor. Closed to outsiders since 1993 = signal that capacity limited. Other Renaissance funds for outsiders haven't matched. Public details limited. Combination of talent, focus, infrastructure, + capacity discipline.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_quant_calmar",
+        "kind": "math_expression",
+        "question": "Annual return 25%, max drawdown 12%. Calmar ratio?",
+        "acceptedAnswers": [
+          "~2.08",
+          "2.08",
+          "25/12"
+        ],
+        "hint": "$25/12 \\approx 2.08$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_quant_career",
+        "kind": "scenario",
+        "question": "Quant career path",
+        "prompt": "A physics PhD considers quant trading vs academia. Walk through the considerations + typical entry paths."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_quant_overview",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why systematic + quant trading has become dominant despite occasional spectacular discretionary success.",
+        "rubric": "Mentions that systematic trading scales (thousands of trades, low latency, no fatigue), is testable (backtests + paper trading), reproducible, disciplined; markets are mostly efficient + edges are small + statistical. Discretionary persists for catalyst-driven + macro + low-capacity opportunities. Most top firms blend: systematic execution + discretionary oversight + risk allocation."
+      }
+    }
+  ]
+}

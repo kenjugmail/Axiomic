@@ -73,6 +73,11 @@ const LazyROCCurve = lazy(() =>
     (m) => ({ default: m.ROCCurve }),
   ),
 );
+const LazyOrderBook = lazy(() =>
+  import("../../../../../packages/viz/src/components/OrderBook").then(
+    (m) => ({ default: m.OrderBook }),
+  ),
+);
 const LazyDoublePendulum = lazy(() =>
   import("../../../../../packages/viz/src/components/DoublePendulum").then(
     (m) => ({ default: m.DoublePendulum }),
@@ -173,6 +178,8 @@ function VizByName({
       return <LazyPKCurve {...(props as object)} />;
     case "roc-curve":
       return <LazyROCCurve {...(props as object)} />;
+    case "order-book":
+      return <LazyOrderBook {...(props as object)} />;
     default:
       return null;
   }

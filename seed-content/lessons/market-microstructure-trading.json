@@ -1,0 +1,161 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Outline limit-order-book mechanics.",
+      "Compute slippage + market impact.",
+      "Reason about makers vs takers + venue selection."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Limit order books + walking the book",
+      "body": "**Limit Order Book (LOB)**: central data structure of modern markets.\n\n**Order types**:\n- **Limit**: 'buy at \\$X or better'. Sits passively if not crossable.\n- **Market**: 'buy at any price'. Lifts asks (or hits bids).\n- **Stop**: trigger price; becomes market on trigger.\n- **Stop-limit**: trigger; becomes limit.\n- **Iceberg**: large order shown in slices.\n- **Hidden / dark**: don't show in book.\n- **Pegged**: track best bid or ask.\n- **IOC (Immediate-Or-Cancel)**: take what's available, cancel rest.\n- **FOK (Fill-Or-Kill)**: all-or-nothing immediate.\n- **GTC (Good-Til-Canceled)**: stays until filled/canceled.\n- **GTD (Good-Til-Date)**.\n\n**Best bid + ask + spread**:\n- **Top of book (TOB)**: highest bid + lowest ask.\n- **Spread = ask - bid**.\n- **Mid = (bid + ask) / 2**.\n- **Depth**: total quantity at top + within N ticks.\n\n**The viz below** shows an interactive order book. Drag spread, depth, slope (how thick the book gets deeper from top), order size, side. Watch:\n- Bids shown below mid (sky blue); asks above (rose).\n- A market order WALKS THE BOOK: lift asks (buy) or hit bids (sell) until filled.\n- VWAP (volume-weighted avg fill price) shown vs mid.\n- Slippage in basis points: $(VWAP - mid)/mid \\times 10000$.\n\nTry: small order = single level, no slippage. Large order = walks multiple levels = high slippage. Thicker book (high depth) = less slippage. Wider spread = always at least spread/2 slippage on a market order.\n\n**Continuous limit order book vs auction**:\n- **Continuous LOB**: most modern markets. Limit orders rest; aggressive market orders execute.\n- **Call auction (batch)**: orders accumulate; periodic single-price clearing. Used at open + close in most exchanges. Some markets entirely auction-based (some HK + Shanghai segments).\n\n**Tick size**: minimum price increment. \\$0.01 USA stocks above \\$1. Smaller for cheaper, larger for futures. Microstructure depends on tick size.\n\n**Maker vs taker**:\n- **Maker**: posts limit order that sits + waits. Provides liquidity.\n- **Taker**: posts marketable order that crosses spread. Removes liquidity.\n- **Maker-taker fees**: exchange pays MAKERS rebates (~0.2 cents/share); CHARGES takers fees (~0.3 cents/share). Encourages liquidity provision. NYSE, Nasdaq, ARCA standard.\n- **Inverted markets (Boston Stock Exchange, EDGA)**: opposite — pay takers, charge makers. Used for hidden / short flow.",
+      "viz": "order-book"
+    },
+    {
+      "kind": "text",
+      "title": "Market impact + transaction costs",
+      "body": "**Market impact**: large orders MOVE prices.\n\n**Components**:\n- **Spread cost**: half-spread paid on entry.\n- **Permanent impact**: information content of trade pushes price. Doesn't recover.\n- **Temporary impact**: depth consumed; price reverts.\n- **Total cost**: bid-ask spread + permanent + temporary.\n\n**Almgren-Chriss model**: classic optimal-execution framework.\n- Trade-off between price impact + execution risk (timing risk).\n- Solution: execute over time at rate that minimizes expected cost + risk-weighted variance.\n\n**Implementation Shortfall (IS)**:\n- Difference between decision price + actual execution price.\n- The 'true' cost from trader's perspective.\n- Includes spread + impact + opportunity cost (unfilled portion).\n\n**Volume-Weighted Average Price (VWAP)**:\n- Volume-weighted average over the day.\n- Common BENCHMARK for execution algos.\n- Algorithm that matches VWAP is 'neutral' to market.\n\n**TWAP (Time-Weighted Average Price)**:\n- Uniform over time interval.\n- Simpler than VWAP.\n- Used when desire is to match clock-time rather than volume-time.\n\n**Volume profile** (intraday):\n- U-shape: heavy at open + close, light midday.\n- Half-life of mid-day liquidity drought.\n- Execution algos predict + adapt.\n\n**Almgren impact formula** (square-root law):\n$$\\text{Impact (bps)} \\propto \\sqrt{Q / V}$$\n\nWhere $Q$ = order size, $V$ = daily volume.\n\nE.g., trading 5% of daily volume → ~30-50 bps impact. Trading 10% → ~70-100 bps. Square-root keeps it from blowing up but is large for big orders.\n\n**Pre-trade cost estimation**:\n- Cost models (Bloomberg Trade Cost, Markit ITG, BlackRock Aladdin).\n- Inputs: order size, volume, volatility, spread, sector.\n- Output: predicted bps cost.\n\n**Trading style by horizon**:\n- **HFT** (microseconds-seconds): pure microstructure + latency.\n- **Intraday** (minutes-hours): mean-reversion, momentum.\n- **Swing** (days-weeks): factor exposure.\n- **Long-term** (months-years): fundamental + factor.\n\n**Crossing networks + dark pools**:\n- ~30-40% of USA equity volume traded off-exchange.\n- IEX (Investors Exchange): designed to reduce HFT advantages.\n- Liquidnet, BIDS, Instinet, MS Pool, JPM XFI, GS Sigma: large institutional pools.\n- Trade-off: less impact + privacy vs slower fills + less price info.\n\n**Smart order router (SOR)**: software that splits + routes orders across venues for best execution. Required for best-execution regulatory compliance (Reg NMS, MiFID II)."
+    },
+    {
+      "kind": "text",
+      "title": "HFT + makers + the modern microstructure landscape",
+      "body": "**HFT (High-Frequency Trading)**: ultra-low-latency algorithmic trading.\n\n**Strategies**:\n- **Market making**: post bid + ask; capture spread + rebates. Inventory risk.\n- **Latency arbitrage**: trade ahead of slower flow across venues.\n- **Stat arb (microsecond)**: tiny mean-reversion opportunities.\n- **Order anticipation**: detect large institutional orders + trade in front.\n- **News arbitrage**: process news feeds in microseconds.\n\n**Technology**:\n- **Co-location**: servers in exchange data centers.\n- **FPGAs + GPUs**: hardware acceleration.\n- **Microwave / millimeter-wave**: between exchanges (NJ → IL → CHX faster than fiber, but distance-limited + weather-affected).\n- **Network engineering**: kernel bypass, custom NICs, RDMA.\n- **Tick-to-trade**: round-trip latency ~1-10 μs in top firms.\n\n**Major HFT firms**: Jump, Citadel Securities, Virtu, Hudson River, Jane Street, Tower, IMC, Optiver, DRW, Susquehanna, Two Sigma Securities, Wolverine.\n\n**HFT controversies**:\n- 'Flash Crash' May 6 2010: S&P 500 dropped 9% in 30 min; recovered. HFT amplified the crash; quotes withdrawn.\n- Bid-ask spreads have COMPRESSED massively since electronification (NYSE 1990s: ~25 cents → today: ~1 cent on liquid names). Big benefit to retail + institutional.\n- 'Flash Boys' (Michael Lewis, 2014): popular book criticizing HFT; led to IEX founding.\n- IEX 'speed bump' (350 μs delay): designed to neutralize co-location advantage.\n\n**Market making + the spread**:\n- Spread compensates for: order-processing cost, inventory risk, adverse selection (Glosten 1985, Kyle 1985).\n- Tighter spread = more competitive market-making.\n- HFT competition has tightened spreads dramatically.\n- Cost to retail/institutional: smaller. Cost to traditional market makers: huge (many displaced).\n\n**Fragmentation**: USA has 16 stock exchanges + 50+ dark pools. National Market System (NMS) + Reg NMS govern. Order protection rule: orders must execute at best price across venues.\n\n**Tape A, B, C**: where stocks trade. Tape A (NYSE-listed), Tape B (NYSE Amex), Tape C (Nasdaq). Listing exchange has slight protocol differences.\n\n**Auction mechanics**: opening + closing auctions have own dynamics. Disproportionate volume + price discovery there. Critical for index funds, ETFs.\n\n**Modern microstructure data**:\n- **TAQ (Trade + Quote)**: standard structured tick data.\n- **Order book reconstructions**: full Level 2 or Level 3 data.\n- **Cost**: \\$10K-\\$100K+/month for quality real-time data.\n- **Provider**: Refinitiv, Bloomberg, Polygon.io (modern + cheaper), Databento.\n\n**MiFID II (EU)** + **Reg NMS (USA)**: regulatory frameworks. Best execution + transaction-cost analysis (TCA) mandatory.\n\n**TCA (Transaction Cost Analysis)**: post-trade analysis. Was execution good? Used for vendor evaluation + algo tuning + execution quality reporting. Required by regulation in many jurisdictions."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_quant_impact",
+        "kind": "guided_derivation",
+        "question": "Compute market impact",
+        "goal": "Stock with daily volume 5M shares, price \\$100, volatility 25%. Order to BUY 250,000 shares. Use square-root impact: $bps = c \\sqrt{Q/V}$ with $c = 100$.",
+        "steps": [
+          {
+            "prompt": "Fraction of daily volume: $Q/V = ?$",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.05",
+                "5%"
+              ]
+            },
+            "hints": [
+              "250000/5000000."
+            ],
+            "reveal": "5% of daily volume. Substantial."
+          },
+          {
+            "prompt": "Impact (bps): $100 \\sqrt{0.05} = ?$",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~22.4 bps",
+                "22.4",
+                "100 × 0.224"
+              ]
+            },
+            "hints": [
+              "$\\sqrt{0.05} \\approx 0.224$."
+            ],
+            "reveal": "~22 bps. At \\$100 price: ~22 cents of impact. On 250K shares: ~\\$56K in market impact cost."
+          },
+          {
+            "prompt": "To halve impact, what should you do?",
+            "motivation": "Square-root scaling.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Halve order size.",
+                "Quarter order size (would give $\\sqrt{0.0125} \\approx 0.112$ bps, half of original). OR trade over 4× longer time period (smaller participation rate). Square-root impact means you need disproportionate changes to reduce.",
+                "No way.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Square-root means."
+            ],
+            "reveal": "Quarter order size OR 4× longer execution period. To reduce impact, must reduce instantaneous participation rate. VWAP + TWAP algos slice large orders over hours; impact reduced."
+          },
+          {
+            "prompt": "Total transaction cost includes spread (say 2 bps half-spread) + impact + commissions (say 1 bp). Total cost for the buy?",
+            "motivation": "Sum.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~25 bps",
+                "~25",
+                "2+22+1"
+              ]
+            },
+            "hints": [
+              "Spread + impact + commissions."
+            ],
+            "reveal": "~25 bps total cost. At \\$100 × 250K shares = \\$25M notional: ~\\$63K total cost. Significant for any strategy. Tighter execution algos can reduce some; smart routing across venues helps; minimum cost is the spread + impact for the order size."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Impact} \\propto \\sqrt{Q/V}; \\text{ total cost} = \\text{spread} + \\text{impact} + \\text{commissions}}$$ The square-root law (empirically validated across asset classes + decades) is THE central microstructure formula. Large orders = disproportionate cost. Execution algorithms (TWAP, VWAP, IS) slice + dice to minimize. Without impact awareness, large institutional trades can leak alpha entirely into transaction costs."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_quant_iex",
+        "kind": "multiple_choice",
+        "question": "IEX (Investors Exchange) was founded with a 350 μs 'speed bump' on all orders. What problem does this solve?",
+        "options": [
+          "Random.",
+          "Removes HFT latency advantage: by the time an HFT receives a quote update + tries to act on it, the 350 μs delay means another institution's order has already been filled at the displayed price. Prevents 'predatory' HFT strategies that race ahead of institutional orders.",
+          "Faster trading.",
+          "Marketing."
+        ],
+        "correctIndex": 1,
+        "explanation": "IEX's speed bump (350 microseconds): introduced 2013, became exchange 2016. Designed to neutralize HFT co-location + latency advantages.\n\nProblem IEX addresses: HFT strategies can detect institutional orders crossing multiple venues + race ahead. By the time the slower institutional algorithm finishes filling at one venue, HFT has updated quotes at other venues to less-favorable prices ('latency arbitrage').\n\nIEX's speed bump: all orders delayed 350 μs (40+ miles of fiber coiled in a box). This levels the playing field — by the time HFT sees the quote update, the institutional order is also seeing it.\n\nResult: more 'natural' execution + less leakage. Slower for HFT; better for institutions. IEX captured significant institutional market share. Other exchanges followed with own speed-bump variants (NYSE American). 'Flash Boys' (Michael Lewis 2014) popularized.\n\nNot universally loved: some HFT firms argue it disadvantages traders by reducing market efficiency. Active debate."
+      },
+      "hints": [
+        "Problem solved?",
+        "How?"
+      ],
+      "workedSolution": "HFT latency arbitrage: ahead-of-flow trades on institutional orders. IEX 350 μs delay levels playing field — HFT can't race ahead. Result: more 'natural' execution + less leakage. Popularized by 'Flash Boys'. Other exchanges added own speed bumps. Debated but successful — IEX took meaningful institutional market share.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_quant_vwap",
+        "kind": "math_expression",
+        "question": "Stock trades 1M shares at \\$50 + 500K at \\$51. VWAP?",
+        "acceptedAnswers": [
+          "~$50.33",
+          "50.33",
+          "50 + 500/1500"
+        ],
+        "hint": "$(1000000 \\times 50 + 500000 \\times 51) / 1.5M = 50.333$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_quant_execute",
+        "kind": "scenario",
+        "question": "Executing a large order",
+        "prompt": "Your fund needs to buy 5M shares of a stock (10% of daily volume). Walk through the execution strategy: TWAP vs VWAP vs IS, venue selection, market impact."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_quant_micro",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why understanding market microstructure is critical for any systematic strategy.",
+        "rubric": "Mentions that strategy alpha is small in basis points; transaction costs (spread + impact + fees) can erode 50-100% of theoretical edge for poorly-executed strategies; microstructure determines what's feasible (capacity, execution costs, signal decay); modern quant firms have dedicated execution research. The gap between theoretical + real-world strategy performance often lives in microstructure."
+      }
+    }
+  ]
+}

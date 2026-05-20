@@ -131,6 +131,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "📈",
     tags: ["statistics", "ml", "medicine", "evaluation", "classification"],
   },
+  {
+    name: "order-book",
+    label: "Limit order book + market impact",
+    description: "Walk a market order through bid/ask ladders; live VWAP + slippage + depth.",
+    thumb: "📊",
+    tags: ["trading", "finance", "microstructure", "quant"],
+  },
 ];
 
 interface Props {

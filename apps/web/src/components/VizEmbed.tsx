@@ -18,6 +18,7 @@ const CarnotCycle = lazy(() => import("../../../../packages/viz/src/components/C
 const BeamDeflection = lazy(() => import("../../../../packages/viz/src/components/BeamDeflection").then(m => ({ default: m.BeamDeflection })));
 const PKCurve = lazy(() => import("../../../../packages/viz/src/components/PKCurve").then(m => ({ default: m.PKCurve })));
 const ROCCurve = lazy(() => import("../../../../packages/viz/src/components/ROCCurve").then(m => ({ default: m.ROCCurve })));
+const OrderBook = lazy(() => import("../../../../packages/viz/src/components/OrderBook").then(m => ({ default: m.OrderBook })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -40,6 +41,7 @@ export const VIZ_NAMES = [
   "beam-deflection",
   "pk-curve",
   "roc-curve",
+  "order-book",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -60,6 +62,7 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "beam-deflection": BeamDeflection,
   "pk-curve": PKCurve,
   "roc-curve": ROCCurve,
+  "order-book": OrderBook,
 };
 
 interface VizEmbedProps {

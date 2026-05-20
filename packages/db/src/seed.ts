@@ -1952,6 +1952,27 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P26 — Quant Trader path. Systematic trading: strategies,
+  // microstructure (uses OrderBook viz), signals + alpha,
+  // statistical arbitrage, trend + momentum, backtesting,
+  // execution algos, risk + portfolio management.
+  seedMasteryPath({
+    slug: "quant-trader",
+    title: "Quant Trader",
+    description:
+      "From systematic vs discretionary trading + strategy taxonomies through limit-order books + market impact (interactive OrderBook viz), alpha signals + the fundamental law of active management, statistical arbitrage + cointegration, trend + momentum + Almgren-Chriss execution, backtesting + López-de-Prado overfitting, RL execution + VaR + Kelly + LTCM. The systematic-trading stack end-to-end.",
+    nodes: [
+      { slug: "systematic-trading-overview", title: "Systematic Trading Overview", level: "apprentice", order: 1, pages: ["systematic-vs-discretionary", "strategy-taxonomy", "sharpe-firms"], prereqs: [], description: "Systematic vs discretionary, strategy families (trend/mean-revert/factor/HFT), Sharpe + capacity + firm structures." },
+      { slug: "market-microstructure-trading", title: "Market Microstructure (Trading)", level: "practitioner", order: 2, pages: ["lob-orders", "impact-tca", "hft-makers"], prereqs: [], description: "Limit order books + walk-the-book (interactive viz), market impact + square-root law, HFT + makers + dark pools." },
+      { slug: "signals-and-alpha", title: "Signals + Alpha", level: "practitioner", order: 3, pages: ["alpha-sources", "decay-combination", "alt-data-ml"], prereqs: [], description: "Alpha sources + IC/IR, signal decay + combination, alternative data + ML in trading + López-de-Prado." },
+      { slug: "statistical-arbitrage", title: "Statistical Arbitrage", level: "specialist", order: 4, pages: ["pairs-cointegration", "mean-reversion", "factor-regime"], prereqs: [], description: "Pairs trading + Engle-Granger cointegration, mean-reversion strategies, factor models + regime change (Aug 2007 quake)." },
+      { slug: "trend-and-momentum", title: "Trend + Momentum", level: "practitioner", order: 5, pages: ["trend-fundamentals", "ma-breakout", "modern-momentum"], prereqs: [], description: "Time-series + cross-sectional momentum, MA + breakout + vol scaling, crisis alpha (2008, 2022) + risk-parity." },
+      { slug: "backtesting-pitfalls", title: "Backtesting Pitfalls", level: "specialist", order: 6, pages: ["bias-types", "walk-forward-cv", "capacity-gap"], prereqs: [], description: "Survivorship + look-ahead + selection biases, walk-forward + López-de-Prado PBO + Deflated Sharpe, capacity + paper trading." },
+      { slug: "execution-algorithms", title: "Execution Algorithms", level: "specialist", order: 7, pages: ["twap-vwap-is", "sor-dark", "rl-modern"], prereqs: ["market-microstructure-trading"], description: "TWAP/VWAP/IS/POV algorithms, smart order routing + dark pools + IEX, Almgren-Chriss + RL execution (JPMorgan LOXM)." },
+      { slug: "risk-and-portfolio-management", title: "Risk + Portfolio Management", level: "expert", order: 8, pages: ["var-es", "kelly-sizing", "stress-ltcm"], prereqs: [], description: "VaR + Expected Shortfall, Kelly + position sizing + leverage, stress testing + liquidity + the LTCM lesson." },
+    ],
+  });
+
   // P25 — Healthcare ML Engineer path. EHR + coding, medical imaging
   // AI, clinical decision support (uses ROC viz), clinical NLP +
   // ambient scribes, predictive modeling, clinical genomics,
