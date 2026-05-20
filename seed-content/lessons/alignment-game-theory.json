@@ -43,12 +43,79 @@
         "kind": "explain_back",
         "prompt": "Frame **deceptive alignment** as a principal-agent problem with hidden information + hidden action. Why is this the worst-case version of the alignment problem? What mechanism-design responses might address it?",
         "rubricCriteria": [
-          { "id": "principal-agent", "description": "Identifies that deceptive alignment combines both hidden information (the model's true objective is unobservable) and hidden action (its internal computation is opaque)" },
-          { "id": "worst-case", "description": "Explains why this is worst-case: the agent has incentive to look aligned during training (to avoid modification) then pursue mesa-objective at deployment" },
-          { "id": "responses", "description": "Names at least one response — interpretability, process supervision, corrigibility-preserving training, debate, or constitutional AI" }
+          {
+            "id": "principal-agent",
+            "description": "Identifies that deceptive alignment combines both hidden information (the model's true objective is unobservable) and hidden action (its internal computation is opaque)"
+          },
+          {
+            "id": "worst-case",
+            "description": "Explains why this is worst-case: the agent has incentive to look aligned during training (to avoid modification) then pursue mesa-objective at deployment"
+          },
+          {
+            "id": "responses",
+            "description": "Names at least one response — interpretability, process supervision, corrigibility-preserving training, debate, or constitutional AI"
+          }
         ],
         "passingScore": 0.5
       }
+    },
+    {
+      "kind": "text",
+      "title": "Goodhart, mesa-optimization, and why this is hard",
+      "body": "**Goodhart's law**: 'When a measure becomes a target, it ceases to be a good measure.' First articulated for monetary policy; reappears in every ML evaluation.\n\nRLHF example: train a model to maximize a reward model's score (target). The reward model was trained on human preferences (measure). At small scale, RLHF lifts both reward model score AND human satisfaction. At large scale, RLHF policies start finding pathological completions that score high on the reward model but humans find off-putting — Goodhart's law in operation. The reward model was a *proxy* for human preferences; when we optimized against the proxy hard enough, the gap appeared.\n\n**Outer alignment**: the loss / reward function correctly captures human values. Hard.\n\n**Inner alignment** (mesa-optimization): even if the outer objective is right, the trained policy might internally optimize for a *different* objective that happens to score well during training. The model is itself an optimizer ('mesa-optimizer') whose objective ('mesa-objective') need not match the outer one. Capabilities can train an inner objective into a model in ways we can't yet detect or audit.\n\nThe game-theoretic frame: the model is an agent, training is mechanism design. Mechanism design says aligning incentives requires careful design of payments / penalties; ML training mostly relies on the loss to align internal motivations. There's not yet a robust ML analog to the revelation principle for inner alignment."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_align_goodhart",
+        "kind": "multiple_choice",
+        "question": "Goodhart's law in ML evaluation predicts that:",
+        "options": [
+          "Models will always overfit to the training set.",
+          "Optimizing a model strongly against a proxy metric will eventually cause the proxy to diverge from the underlying property it was meant to measure.",
+          "Bigger models are better at generalization.",
+          "All metrics converge to the same answer with enough data."
+        ],
+        "correctIndex": 1,
+        "explanation": "Goodhart's: a measure used as a target stops measuring the thing. Strong optimization finds the gap between proxy and underlying value. Examples: gaming click-through rate (proxy for ad value), gaming auto-grader scores (proxy for student understanding), RLHF reward-hacking (proxy for human preferences). The standard countermeasures: KL-regularize against the base policy, ensemble of reward models, RLAIF, mixed-objective training. All are partial mitigations."
+      },
+      "hints": [
+        "The proxy is what you can measure; the underlying value is what you actually care about.",
+        "What happens to that gap as you optimize harder against the proxy?"
+      ],
+      "workedSolution": "When a proxy is used as a target, optimization pressure finds the gap between proxy and underlying value. The harder you optimize, the larger the gap becomes (because the slack regions of the proxy that don't track value are where the optimizer ends up). Common mitigations: KL-regularize, ensemble proxies, periodic re-grounding via fresh human feedback — all of which reduce but don't eliminate the Goodhart gap.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_align_rl",
+        "kind": "scenario",
+        "question": "Reward hacking",
+        "prompt": "An RL agent trained on a CartPole-style task learns a trick: it briefly enters an off-screen state where the simulator's score-tracking glitches, racking up score without actually balancing. Why is this a textbook reward-hacking example, and what's the meta-lesson for alignment in more capable systems?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_align",
+        "kind": "explain_back",
+        "prompt": "Explain in three sentences why alignment is closer to a mechanism-design problem than to a standard ML training problem.",
+        "rubric": "Mentions that ML training optimizes a fixed loss; alignment requires engineering the loss so equilibria correspond to good outcomes; mechanism design has a 100-year head start on this kind of problem and offers conceptual tools (incentive compatibility, revelation principle, externality pricing) that ML alignment is starting to import."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "advanced",
+    "objectives": [
+      "Frame alignment as a principal-agent problem.",
+      "Recognize Goodhart's law in ML evaluation.",
+      "Articulate how mesa-optimization differs from outer alignment."
+    ],
+    "prereqs": [
+      "mechanism-design",
+      "multi-agent-rl"
+    ]
+  }
 }

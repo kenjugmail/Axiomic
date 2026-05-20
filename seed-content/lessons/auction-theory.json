@@ -38,12 +38,92 @@
         "kind": "explain_back",
         "prompt": "Why does Myerson's optimal auction add a *reserve price* > 0, even when it sometimes refuses to sell? How does this trade off efficiency vs revenue?",
         "rubricCriteria": [
-          { "id": "reserve-mechanism", "description": "Identifies that a reserve price refuses to sell when the highest bid is below the reserve, foregoing some efficient sales" },
-          { "id": "revenue-gain", "description": "Explains that withholding sometimes raises expected revenue (from buyers willing to bid higher than the reserve), even though some sales are lost" },
-          { "id": "tradeoff", "description": "Explicitly names the tradeoff — Myerson optimal sacrifices efficiency for revenue" }
+          {
+            "id": "reserve-mechanism",
+            "description": "Identifies that a reserve price refuses to sell when the highest bid is below the reserve, foregoing some efficient sales"
+          },
+          {
+            "id": "revenue-gain",
+            "description": "Explains that withholding sometimes raises expected revenue (from buyers willing to bid higher than the reserve), even though some sales are lost"
+          },
+          {
+            "id": "tradeoff",
+            "description": "Explicitly names the tradeoff — Myerson optimal sacrifices efficiency for revenue"
+          }
         ],
         "passingScore": 0.5
       }
+    },
+    {
+      "kind": "text",
+      "title": "Revenue equivalence, the surprising theorem",
+      "body": "Myerson (1981): under standard assumptions (independent private values, risk-neutral bidders, symmetric bidders), ALL four classical auction formats yield the same expected revenue to the seller:\n\n- First-price sealed-bid\n- Second-price sealed-bid (Vickrey)\n- English (ascending open-cry)\n- Dutch (descending open-cry)\n\nThe formats differ in *who bears the strategic complexity* (Vickrey is truthful, first-price requires bid shading). But on average, the seller's revenue is the same.\n\nWhy this isn't intuitive: in second-price, the winner pays the second-highest bid (which is below their valuation). In first-price, the winner pays their own bid (which they've shaded below their valuation). The math turns out to be identical in expectation.\n\nViolations of the assumptions move you to different formats. Risk-averse bidders → first-price beats second-price. Common values (winner's curse) → English beats sealed-bid. Budget constraints → discriminatory formats can beat uniform-price.\n\nReal-world ad auctions have moved from second-price (Vickrey-derived GSP) to first-price as bidders demanded transparency about what they're paying for. The revenue-equivalence math says this shouldn't matter for ad-platform revenue (it doesn't, much) — but transparency is its own goal."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_auc_winner_curse",
+        "kind": "multiple_choice",
+        "question": "The winner's curse occurs in:",
+        "options": [
+          "Independent-private-values auctions where the highest bidder has the highest value.",
+          "Common-value auctions where all bidders have the same true value but different noisy estimates of it.",
+          "Vickrey auctions only.",
+          "Repeated auctions with reputation effects."
+        ],
+        "correctIndex": 1,
+        "explanation": "Winner's curse: in a common-value auction (true value is the same for everyone but each bidder has a noisy estimate), the winner is the bidder who most over-estimated the value. They systematically overpay. The cure: shade your bid downward to account for the conditional expected over-estimation, given that you'll only win when you've over-estimated."
+      },
+      "hints": [
+        "Winner's curse depends on the structure of valuations across bidders, not the auction format alone.",
+        "Independent values vs common values is the key distinction."
+      ],
+      "workedSolution": "Winner's curse arises in common-value auctions: the bidders all want the same item with the same true value, but estimate it with noise. Bidding your point-estimate means you only win when you've over-estimated — guaranteeing post-hoc regret. The cure is to bid the conditional expected value given you'd win (a downward shading), or to participate in formats like English that aggregate information across bids.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_auc_first",
+        "kind": "math_expression",
+        "question": "Symmetric first-price auction, n = 5 bidders, $v \\sim U[0, 1]$. Equilibrium bid $b(v) = ((n-1)/n)\\,v$. For $v = 1.0$, $b(v) = ?$",
+        "acceptedAnswers": [
+          "0.8",
+          "4/5",
+          ".8"
+        ],
+        "hint": "b = (4/5) × 1."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_auc_ad",
+        "kind": "scenario",
+        "question": "Online ad auctions",
+        "prompt": "Google switched its ad auction from second-price (GSP) to first-price in ~2019. Bidders were concerned about transparency. By revenue equivalence, this shouldn't have changed ad revenue much — has it, in practice, and why might or might not it?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_auc",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why an ascending English auction often produces less winner's curse than a sealed-bid first-price auction.",
+        "rubric": "Mentions that the English format aggregates information across bidders as they drop out, giving the remaining bidders a stronger signal about the consensus value; sealed-bid leaves each bidder with only their own estimate."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Compare first-price, second-price, English, and Dutch auctions.",
+      "Apply the revenue-equivalence theorem.",
+      "Recognize the winner's curse and bidder regret."
+    ],
+    "prereqs": [
+      "mechanism-design"
+    ]
+  }
 }

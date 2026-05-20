@@ -38,12 +38,93 @@
         "kind": "explain_back",
         "prompt": "Adverse selection is a Bayesian-game phenomenon. Explain it using the used-car market (Akerlof's lemons): why does private information about car quality cause high-quality sellers to exit the market?",
         "rubricCriteria": [
-          { "id": "private-info", "description": "Identifies that sellers know quality, buyers don't — incomplete information" },
-          { "id": "pricing-equilibrium", "description": "Buyers price based on average quality; high-quality sellers won't accept that price; only low-quality sellers stay" },
-          { "id": "intervention", "description": "Mentions a mechanism-design intervention (warranty, certification) that addresses this" }
+          {
+            "id": "private-info",
+            "description": "Identifies that sellers know quality, buyers don't — incomplete information"
+          },
+          {
+            "id": "pricing-equilibrium",
+            "description": "Buyers price based on average quality; high-quality sellers won't accept that price; only low-quality sellers stay"
+          },
+          {
+            "id": "intervention",
+            "description": "Mentions a mechanism-design intervention (warranty, certification) that addresses this"
+          }
         ],
         "passingScore": 0.5
       }
+    },
+    {
+      "kind": "text",
+      "title": "Auctions are the cleanest Bayesian game",
+      "body": "Each bidder has a private 'type' — their valuation of the item — drawn from a known distribution. They submit bids without seeing others' types.\n\n**First-price sealed-bid**: highest bidder wins, pays their own bid. Each bidder's strategy is a bid function $b(v)$ mapping valuation to bid. In equilibrium with uniform $v \\sim U[0, 1]$ valuations and $n$ bidders, $b(v) = \\frac{n-1}{n}v$ — you bid below your valuation by an amount that vanishes as $n$ grows.\n\n**Second-price sealed-bid (Vickrey)**: highest bidder wins, pays the second-highest bid. Dominant strategy: bid your true valuation $b(v) = v$. The mechanism is **strategy-proof** — no incentive to lie regardless of others' types.\n\nVickrey's brilliance: the auctioneer extracts honest valuations without needing to know the distribution of types. Modern web ad auctions (Google's Generalized Second Price, until ~2019) descend from this. Now they've gone back to first-price for transparency reasons — but the type-space + Bayesian-NE math is the same.\n\nIncomplete information (types are private) ≠ imperfect information (some past moves are unobserved). Bayesian games handle the first; sequential games with imperfect info handle the second."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bg_vickrey",
+        "kind": "multiple_choice",
+        "question": "Vickrey second-price auction's strategy-proofness means:",
+        "options": [
+          "No bidder can profit by misrepresenting their valuation.",
+          "All bidders pay their own bid.",
+          "Only the winner has incentive to lie.",
+          "Only used in first-price settings."
+        ],
+        "correctIndex": 0,
+        "explanation": "Strategy-proof = truthful bidding is a dominant strategy. In Vickrey, regardless of others' bids, bidding your true value v is weakly better than any other bid. Bidding > v risks paying > v if you win; bidding < v risks losing a profitable item. Bid = v is the dominant strategy. The mechanism elicits honest valuations without needing to model others' types — the cleanest result in mechanism design."
+      },
+      "hints": [
+        "Compute the payoff to a bidder under (truth + win), (lie up + win), (lie down + lose).",
+        "Show that any deviation from truth is weakly worse regardless of others' bids."
+      ],
+      "workedSolution": "Suppose your valuation is v. (i) Bid v: if highest bid below v wins, you pay below v → gain. (ii) Bid b > v: same outcomes as truth except a slice of cases where you now win at price between v and b → loss. (iii) Bid b < v: same outcomes as truth except cases where you now lose at price < v → forgone gain. Truth weakly dominates → dominant strategy.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_bg_winner",
+        "kind": "scenario",
+        "question": "Winner's curse",
+        "prompt": "In a common-value auction (e.g., bidding for oil-rig rights where the true value is the same for all bidders but each has noisy estimates), the winner tends to be the bidder who most over-estimated. What's the strategic implication for how to bid?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_bg_first",
+        "kind": "math_expression",
+        "question": "Uniform valuations $v \\sim U[0,1]$, n = 4 bidders, symmetric first-price auction. Equilibrium bid $b(v) = ((n-1)/n) v$. For $v = 0.8$, $b(v) = ?$",
+        "acceptedAnswers": [
+          "0.6",
+          "0.60",
+          "3/5",
+          "0.6 USD"
+        ],
+        "hint": "b = (3/4) × 0.8."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_bg",
+        "kind": "explain_back",
+        "prompt": "Explain in three sentences why mechanism design is sometimes called 'reverse game theory'.",
+        "rubric": "Mentions that mechanism design starts with the desired outcome and engineers the payoff structure so equilibria realize it; standard game theory takes the rules as given and predicts equilibria."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "State the type-space formulation of a Bayesian game.",
+      "Compute Bayesian Nash equilibrium in a small example.",
+      "Recognize the difference between incomplete and imperfect information."
+    ],
+    "prereqs": [
+      "nash-equilibrium"
+    ]
+  }
 }
