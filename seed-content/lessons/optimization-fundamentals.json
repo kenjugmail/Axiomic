@@ -11,6 +11,55 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Adam vs SGD on transformer training",
+      "body": "Vanilla SGD on transformers: requires careful learning-rate warmup + cosine decay; small batches hurt; transformer-specific schedules. Adam: works largely out-of-box at LR ~3e-4. The reason: Adam's per-parameter step-size adaptation handles transformers' bad conditioning across layers. Vaswani et al.'s original transformer used Adam; nearly every transformer training since uses AdamW (Adam + decoupled weight decay). The exception: ViT + EMA techniques sometimes win with SGD + momentum + careful tuning."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_opt_adam",
+        "kind": "guided_derivation",
+        "question": "Derive the Adam update",
+        "goal": "Adam maintains $m_t$ (first moment) + $v_t$ (second moment) of gradients. Derive the update.",
+        "steps": [
+          {
+            "prompt": "Exponentially-weighted moving average of gradients: $m_t = \\beta_1 m_{t-1} + (1 - \\beta_1) g_t$. Similarly $v_t = \\beta_2 v_{t-1} + (1 - \\beta_2) g_t^2$. At init $m_0 = v_0 = 0$, so $m_t, v_t$ are biased toward 0 early. Bias-corrected: $\\hat m_t = m_t/(1 - \\beta_1^t)$. What's $\\hat v_t$?",
+            "motivation": "Bias correction.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "v_t / (1 - beta_2^t)"
+              ]
+            },
+            "hints": [
+              "Symmetric to $\\hat m$."
+            ],
+            "reveal": "$\\hat v_t = v_t / (1 - \\beta_2^t)$."
+          },
+          {
+            "prompt": "Adam update: $\\theta_{t+1} = \\theta_t - \\eta \\hat m_t / (\\sqrt{\\hat v_t} + \\epsilon)$. Interpret each piece.",
+            "motivation": "Per-parameter adaptive step size.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$\\hat m$: smoothed gradient direction; $\\sqrt{\\hat v}$: per-parameter gradient scale; effective step is $\\eta$ / (gradient scale) per parameter.",
+                "$\\sqrt{\\hat v}$ is unused.",
+                "$\\eta$ is per-layer.",
+                "Adam ignores past gradients."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Divide-by-magnitude makes each parameter's effective step size adaptive."
+            ],
+            "reveal": "Adam = SGD with per-parameter learning rate $\\eta / \\sqrt{\\hat v}$, smoothed gradient $\\hat m$. Handles bad conditioning across layers."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\theta_{t+1} = \\theta_t - \\eta \\frac{\\hat m_t}{\\sqrt{\\hat v_t} + \\epsilon}}$$ Default hyperparameters: $\\beta_1 = 0.9, \\beta_2 = 0.999, \\epsilon = 10^{-8}$. AdamW (Loshchilov-Hutter) adds decoupled weight decay; standard for transformers."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The size of each step matters",
       "body": "How big a step should we take? That's the **learning rate** $\\eta$. The update rule is:\n\n$$\\theta_{t+1} = \\theta_t - \\eta \\, \\nabla L(\\theta_t)$$\n\nToo small and you crawl. Too large and you overshoot — and on an *anisotropic* surface (one stretched in some directions, narrow in others) you can oscillate wildly along the narrow axis while barely moving along the wide one.\n\nLook at the trajectory now: with a much higher learning rate, the descent ricochets. The narrow axis (vertical) has high curvature; small movements there change the loss a lot. A learning rate that's well-tuned for the wide axis is too large for the narrow one.\n\nThis ill-conditioning is one reason **Adam** and friends exist — they automatically adapt the learning rate per parameter.",
       "viz": "gradient-descent-2d",

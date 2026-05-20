@@ -7,6 +7,37 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: the replication crisis in social psych",
+      "body": "Bem 2011 reported precognition with $p < 0.05$. Subsequent attempts to replicate produced null results. Many similar findings in social psychology have failed to replicate (Open Science Collaboration 2015 found ~36% replication rate). The diagnosis: combination of p-hacking + selective reporting + small samples. The post-2015 reform: pre-registration, larger samples, registered reports."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_er_phacking",
+        "kind": "guided_derivation",
+        "question": "Show p-hacking inflates Type I error",
+        "goal": "$k$ comparisons run; report the one with smallest $p$. What's the effective Type I error?",
+        "steps": [
+          {
+            "prompt": "$k$ independent tests at nominal $\\alpha$. Probability that ALL fail to reach significance under null: $(1 - \\alpha)^k$. Probability the minimum $p$ is below $\\alpha$: complement.",
+            "motivation": "Same as multiple-testing inflation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1 - (1-alpha)^k"
+              ]
+            },
+            "hints": [
+              "$P(\\min p < \\alpha) = 1 - P(\\text{all } p \\geq \\alpha)$."
+            ],
+            "reveal": "$P(\\min p < \\alpha) = 1 - (1-\\alpha)^k \\approx k\\alpha$ for small $\\alpha$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{p-hack inflation: } P(\\min p < \\alpha) \\approx k\\alpha}$$ Running 10 tests + reporting the best inflates Type I error 10×. Mitigations: pre-registration (lock in tests before data), Bonferroni (correct $\\alpha$ by $k$), FDR control."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Test-set contamination",
       "body": "**Contamination**: test set examples appear (verbatim or paraphrased) in the training corpus.\n\nThis is endemic for LLMs trained on web-scraped data. Most public benchmarks (MMLU, HumanEval, GSM8K, etc.) have their text indexed by Google, which means it's in CommonCrawl, which means it's in the training data of any model trained on web text. Some benchmark questions have direct copies in the training set.\n\nDetection:\n\n- **N-gram overlap**: search for verbatim n-grams from test questions in the training corpus. Useful but conservative — paraphrases evade.\n- **Embedding similarity**: cluster training data by embedding, find clusters near test embeddings. More aggressive; catches paraphrases.\n- **Behavioral signature**: a contaminated model often has unusually high benchmark accuracy compared to its capability profile (e.g., 90% on a benchmark with capabilities that don't transfer to similar-but-novel inputs).\n\nMitigations:\n\n- **Held-out benchmarks**: contests like the ARC Challenge release new test questions periodically that haven't been on the web yet.\n- **Private holdouts**: keep some test questions secret from the public web. Most papers don't have this.\n- **Synthetic / generated test sets**: questions written specifically for evaluation, never released.\n\nA paper that doesn't address contamination on a public benchmark is missing context. Treat headline numbers with appropriate skepticism."
     },

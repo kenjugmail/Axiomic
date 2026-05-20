@@ -7,6 +7,52 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: AWS DynamoDB September 2015 outage",
+      "body": "5-hour outage triggered by a metadata-table query that timed out, then retried, then retried more aggressively. Each retry added load to the failing component, cascading into total unavailability. The post-mortem: lack of exponential backoff + jitter. Modern AWS SDK defaults: exponential backoff (250ms × 2^attempt) + jitter (random 50% multiplier). Every distributed-systems guide cites this exact incident as the canonical retry-storm example."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_prod_retry",
+        "kind": "guided_derivation",
+        "question": "Derive the retry-storm amplification",
+        "goal": "Service receives baseline rate $R$. On error: each client retries 3× with no backoff. If 10% of requests fail, the effective rate the server sees is ?",
+        "steps": [
+          {
+            "prompt": "Without retries: rate $R$. With 3 retries on 10% of requests: each failed request becomes (1 + retries) = 4 requests. Compute the amplified rate.",
+            "motivation": "Multiplier per failure.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1.3 R",
+                "1.30 R"
+              ]
+            },
+            "hints": [
+              "$R \\cdot (0.9 \\cdot 1 + 0.1 \\cdot 4) = R \\cdot 1.3$."
+            ],
+            "reveal": "Effective rate $= R \\cdot 1.3$. 30% extra load — adding more if 30% now fail (since the higher load broke more things)."
+          },
+          {
+            "prompt": "If overload causes 30% failure with same 3-retry policy, what's the next-step amplification?",
+            "motivation": "Vicious cycle.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "R * 1.9"
+              ]
+            },
+            "hints": [
+              "$R \\cdot (0.7 \\cdot 1 + 0.3 \\cdot 4) = R \\cdot 1.9$."
+            ],
+            "reveal": "$R \\cdot 1.9$. Doubled load → more failures → more retries → cascading collapse."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Retry storm amplification: rate} \\to R(1 + (n-1) p_{\\text{fail}})}$$ Without backoff, retries create positive feedback: failure → more retries → more load → more failure. Cures: exponential backoff + jitter (spread retries over time), circuit breakers (stop retrying after threshold), retry budgets (cap total retry rate)."
+      }
+    },
+    {
+      "kind": "text",
       "title": "OOM under load",
       "body": "**Failure shape**: a request with unusual context length (e.g., 32K tokens when most are 2K) lands; KV cache plus activations exceed available HBM; CUDA OOMs; the worker dies. If the request was the only thing in flight, just that user sees an error. If 30 other requests were sharing the worker, all 30 see errors. With process-per-GPU serving, the worker restart can take 30s during which no requests are served.\n\n**Prevention**:\n- Set a hard max context limit at the request router, lower than the model's theoretical max (e.g., 16K for an 8K-trained model with RoPE extrapolation; 100K for a 200K-trained model).\n- Estimate per-request memory cost as a function of input length + max_new_tokens. Reject requests that would exceed remaining KV cache budget.\n- Use PagedAttention so KV cache utilization is high but bounded.\n- Reserve a memory headroom (e.g., 5% of HBM) as a safety margin; the OOMs that happen are usually the ones that exceeded the margin you forgot you needed.\n\n**Mitigation**:\n- Out-of-memory exception handler in the worker: cancel the offending request, free its slot, return a clean error to the caller, *do not crash the worker*.\n- Liveness check on the worker so the orchestrator restarts it if it does crash, with bounded restart rate.\n- Alert on OOM rate; treat as a class-1 quality issue, not a class-3 latency blip."
     },

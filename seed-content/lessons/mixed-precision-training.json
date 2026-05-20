@@ -7,6 +7,38 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: dynamic loss scaling",
+      "body": "PyTorch's `GradScaler` starts with a large scale (~65536). After each backward pass, checks for `inf` / `NaN` gradients. If found: skip the optimizer step + halve the scale. If not: scale up after a few clean steps. The scale auto-tunes to the largest value that doesn't overflow — letting gradients use the maximum FP16 dynamic range. The whole machinery is invisible to model code; just wrap `optimizer.step()` in `scaler.step(optimizer)`. BF16 with its larger exponent range doesn't need any of this."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mp_lossscale",
+        "kind": "guided_derivation",
+        "question": "Derive the appropriate loss scale",
+        "goal": "FP16 min positive normal value ~$6 \\times 10^{-5}$. To represent gradients down to $10^{-9}$, what loss scale is needed?",
+        "steps": [
+          {
+            "prompt": "Loss scale $S$ multiplies gradients by $S$ before FP16 conversion. We need scaled gradients $\\geq 6 \\times 10^{-5}$. With true gradient $g = 10^{-9}$: solve $S g \\geq 6 \\times 10^{-5}$.",
+            "motivation": "Push gradients into representable range.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "6e4",
+                "60000"
+              ]
+            },
+            "hints": [
+              "$S \\geq 6 \\times 10^{-5}/10^{-9} = 6 \\times 10^4$."
+            ],
+            "reveal": "$S = 6 \\times 10^4$ — close to the default starting value 65536."
+          }
+        ],
+        "finalResult": "$$\\boxed{S \\geq \\text{min FP16}/\\text{min target gradient}}$$ Standard PyTorch GradScaler starts at 65536 and adapts. BF16 has the same exponent range as FP32 and needs no scaling."
+      }
+    },
+    {
+      "kind": "text",
       "title": "fp16, bf16, fp8 — the trade-offs",
       "body": "All three are 16-bit or smaller. The key difference is how the bits split between **range** (exponent) and **precision** (mantissa).\n\n| Format | Bits | Exponent | Mantissa | Range | Precision |\n|---|---|---|---|---|---|\n| fp32 | 32 | 8 | 23 | ~1e-38 to ~1e38 | high |\n| fp16 | 16 | 5 | 10 | ~6e-5 to ~6e4 | medium |\n| bf16 | 16 | 8 | 7 | ~1e-38 to ~3e38 | low |\n| fp8 (E4M3) | 8 | 4 | 3 | ~2e-3 to ~448 | very low |\n| fp8 (E5M2) | 8 | 5 | 2 | ~6e-5 to ~6e4 | very low |\n\n**bf16** keeps fp32's exponent. Same dynamic range, less mantissa precision. **It rarely needs loss scaling** because gradients don't underflow.\n\n**fp16** has narrower range. Small gradients (`< 6e-5`) flush to zero. Loss scaling fixes this by multiplying the loss before backward (so gradients land in the representable range), then unscaling before the optimizer step.\n\n**fp8** is even tighter. Two encodings: E4M3 for forward pass (more precision, less range), E5M2 for gradients (more range, less precision). H100 supports it natively; A100 doesn't.\n\n**Practical rule**: bf16 on Ampere+ for training. fp8 for hot paths on Hopper+. fp16 when you must (older hardware), with loss scaling."
     },

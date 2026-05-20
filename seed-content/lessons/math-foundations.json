@@ -7,6 +7,52 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: why dot products dominate ML",
+      "body": "Almost every ML similarity computation reduces to a dot product. Word embeddings: cosine similarity = normalized dot product. Attention: QK^T is a matrix of dot products. Recommendation engines: user-item dot products. The reason: dot product is cheap ($O(d)$), captures direction-alignment, and is the natural inner product in Euclidean space. The whole ML stack is fast linear algebra optimized for batch dot products on hardware (Tensor Cores compute them in single instructions)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mf_dot",
+        "kind": "guided_derivation",
+        "question": "Derive cosine similarity from dot product + norms",
+        "goal": "Show $\\cos\\theta = \\mathbf{a} \\cdot \\mathbf{b} / (\\|\\mathbf{a}\\| \\|\\mathbf{b}\\|)$ from the law of cosines.",
+        "steps": [
+          {
+            "prompt": "Law of cosines: $\\|\\mathbf{a} - \\mathbf{b}\\|^2 = \\|\\mathbf{a}\\|^2 + \\|\\mathbf{b}\\|^2 - 2\\|\\mathbf{a}\\|\\|\\mathbf{b}\\|\\cos\\theta$. Also: $\\|\\mathbf{a} - \\mathbf{b}\\|^2 = (\\mathbf{a} - \\mathbf{b}) \\cdot (\\mathbf{a} - \\mathbf{b}) = ?$",
+            "motivation": "Expand the dot product.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "a.a - 2a.b + b.b",
+                "||a||^2 + ||b||^2 - 2 a.b"
+              ]
+            },
+            "hints": [
+              "Distribute the dot product."
+            ],
+            "reveal": "$\\|\\mathbf{a} - \\mathbf{b}\\|^2 = \\|\\mathbf{a}\\|^2 - 2\\mathbf{a}\\cdot\\mathbf{b} + \\|\\mathbf{b}\\|^2$."
+          },
+          {
+            "prompt": "Equate both expressions for $\\|\\mathbf{a} - \\mathbf{b}\\|^2$ and solve for $\\cos\\theta$.",
+            "motivation": "Cancel + solve.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "a.b / (||a|| ||b||)"
+              ]
+            },
+            "hints": [
+              "$\\|\\mathbf{a}\\|^2 + \\|\\mathbf{b}\\|^2 - 2\\mathbf{a}\\cdot\\mathbf{b} = \\|\\mathbf{a}\\|^2 + \\|\\mathbf{b}\\|^2 - 2\\|\\mathbf{a}\\|\\|\\mathbf{b}\\|\\cos\\theta$. Cancel $\\|a\\|^2 + \\|b\\|^2$ and isolate $\\cos\\theta$."
+            ],
+            "reveal": "$\\cos\\theta = \\mathbf{a}\\cdot\\mathbf{b}/(\\|\\mathbf{a}\\|\\|\\mathbf{b}\\|)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\cos\\theta = \\frac{\\mathbf{a} \\cdot \\mathbf{b}}{\\|\\mathbf{a}\\| \\|\\mathbf{b}\\|}}$$ The dot product and the geometric angle are the same object up to magnitude scaling. ML's love of dot products is the love of fast angle/similarity measurement."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Linear algebra essentials",
       "body": "The four operations you'll see constantly:\n\n**Matrix-vector product** `Wx`. Linear combination of W's columns weighted by x.\n\n**Matrix-matrix product** `AB`. Each entry `(AB)[i,j] = Σ_k A[i,k] · B[k,j]`. Order matters: `AB ≠ BA` in general.\n\n**Dot product** `x · y = Σ x_i y_i`. Measures how 'aligned' two vectors are. Equals `|x| |y| cos(θ)`. The dot product *is* what attention computes when comparing queries to keys.\n\n**Norm** `||x||`. The most common is L2: `||x||_2 = √(Σ x_i²)`. L1 is `Σ |x_i|`. Norms quantify 'size' of a vector.\n\nTwo decompositions worth knowing by name:\n\n- **Eigendecomposition** `A = QΛQ^(-1)`. Eigenvectors and eigenvalues. The eigenbasis is where A looks like a scaling.\n- **Singular Value Decomposition (SVD)** `A = UΣV^T`. Generalizes eigendecomposition to non-square matrices. Underlies LoRA, PCA, and many dimension-reduction methods.\n\nIf you can compute matrix shapes by hand and know what 'rank' means, you can read most ML papers. See [[linear-algebra-foundations]]."
     },

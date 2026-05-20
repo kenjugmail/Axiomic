@@ -7,6 +7,38 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: head-of-line blocking in a request queue",
+      "body": "Server processes requests serially. Most requests take 10ms; one request occasionally takes 5s. Mean response time: still under 100ms (long tail averages out). p99: ~5s (the slow request happens ~1% of the time). p99 vs mean diverge dramatically when there's heavy-tail latency. Modern monitoring tracks p50/p90/p99/p99.9 not just averages — because the long tail is where users actually experience the system."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mon_p99",
+        "kind": "guided_derivation",
+        "question": "Derive sample-size requirement for p99 estimation",
+        "goal": "How many samples do you need to reliably estimate the 99th percentile?",
+        "steps": [
+          {
+            "prompt": "To estimate p99, you need at least a few samples in the top 1% tail. Rule of thumb: need ~100/(1 - 0.99) = 10,000 samples for stable p99 estimation. More precise: variance of order statistic decreases like $1/n$. For 95% CI on p99 with relative error < 10%, need ~$1/(0.01 \\cdot 0.1^2) \\approx ?$",
+            "motivation": "Order-statistic variance scaling.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "10000",
+                "1e4"
+              ]
+            },
+            "hints": [
+              "Tail order statistics have variance $\\sim p(1-p)/(n f(q)^2)$; rough estimate."
+            ],
+            "reveal": "$\\sim 10^4$ samples needed for reasonably stable p99. p99.9 needs $\\sim 10^5$. p99.99 needs $\\sim 10^6$."
+          }
+        ],
+        "finalResult": "Sample-size rule: $\\sim 10^k / (1 - q)$ samples to estimate $q$-th percentile reliably. p99 needs $\\sim 10^4$, p99.9 needs $\\sim 10^5$. Monitoring systems aggregate over time + use approximate quantile sketches (t-digest, HDR-histogram) to track tail latency without storing every sample."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The four monitoring layers",
       "body": "**Layer 1 — Service health.** Standard SRE: uptime, error rate, p50/p95/p99 latency, throughput, GPU utilization. Use the same observability stack as the rest of the org (Prometheus + Grafana, Datadog, Honeycomb). Sufficient for 'is the service up?' Insufficient for 'is the service correct?'\n\n**Layer 2 — Input distribution drift.** Compare today's inputs to last month's. Statistical distance metrics (PSI, KL, JS divergence) over engineered features (input length, language detection, topic distribution from a small classifier, embedding distance from training data centroids). Alerts fire when divergence exceeds a threshold.\n\n**Layer 3 — Output distribution drift.** Same shape, different signal. Compare today's outputs to last month's. Refusal rate, average output length, sentiment skew, hallucination-detector scores. Useful for catching upstream changes (a new prompt template, a model swap) that ripple into output behavior.\n\n**Layer 4 — Online evaluation.** Run a small percentage of production traffic through an eval harness. For LLMs: LLM-as-judge against a reference model, factuality checks, instruction-following tests. For classifiers: shadow predictions vs ground-truth labels (when labels become available later — e.g. did the user click the recommended item?). This is the most direct quality signal but also the hardest to implement well.\n\nGood production stacks have all four. Most teams ship with layer 1 only and add layers 2-4 reactively after a quality regression bites them."
     },

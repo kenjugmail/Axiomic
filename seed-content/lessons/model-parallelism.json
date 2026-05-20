@@ -7,6 +7,52 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Llama 3 70B training topology",
+      "body": "Meta trained Llama 3 70B on ~16K H100 GPUs. Typical setup: tensor parallel within a node (8 GPUs/node over NVLink), pipeline parallel across nodes, FSDP for additional sharding. Tradeoffs: TP keeps communication local (fast NVLink); PP uses cross-node infinity-band (slower); FSDP overlaps with compute. The exact mix is tuned per cluster + model. Typical bubble fraction (PP): 10-20%."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mp_bubble",
+        "kind": "guided_derivation",
+        "question": "Derive the pipeline-bubble fraction",
+        "goal": "$S$ pipeline stages, $M$ microbatches. Total wall-clock = (M + S - 1) × stage time. Useful work = M × S × stage time / S = M × stage time. Bubble = ?",
+        "steps": [
+          {
+            "prompt": "Bubble fraction = idle time / total time = $((M + S - 1) - M)/(M + S - 1) = ?$",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(S-1)/(M+S-1)"
+              ]
+            },
+            "hints": [
+              "Subtract; simplify."
+            ],
+            "reveal": "Bubble fraction $= (S-1)/(M+S-1)$."
+          },
+          {
+            "prompt": "For $S = 8, M = 32$: bubble = ?",
+            "motivation": "Concrete.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "7/39",
+                "0.18"
+              ]
+            },
+            "hints": [
+              "Plug in."
+            ],
+            "reveal": "$7/39 \\approx 0.18$ — 18% of pipeline time is bubble. Doubling $M$ to 64: $7/71 \\approx 10\\%$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Bubble fraction} = (S-1)/(M+S-1)}$$ Increase microbatch count to reduce bubble. Past some point, activation memory limits how many microbatches you can hold. Schedules like 1F1B (one forward, one backward) reduce activation memory further at the cost of bubble."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Tensor parallelism (TP) — Megatron-style",
       "body": "Take a transformer's FFN: `out = (gelu(x @ W1) @ W2)`. With TP=4, split `W1` along its output dimension into 4 column shards, distribute one shard per GPU. Each GPU computes its column shard of `gelu(x @ W1)`. Then split `W2` along its input dimension correspondingly. Each GPU computes a partial sum of the output. An **all-reduce** across the 4 GPUs sums those partials.\n\nResult: every GPU does 1/4 the matmul work; the model fits in 1/4 the memory; one all-reduce per FFN block.\n\nFor multi-head attention, the natural split is **across heads**. With 32 heads and TP=4, each GPU owns 8 heads. The Q/K/V projections shard cleanly along the head dimension; the output projection's input dimension matches.\n\nWhen TP works:\n- High-bandwidth interconnect within a host (NVLink ~900 GB/s).\n- TP degree fits within a single node.\n- Layers are large enough that the matmul work matters more than the all-reduce overhead.\n\nWhen TP breaks:\n- Across hosts (inter-host bandwidth too low; the per-layer all-reduce dominates).\n- For tiny layers (overhead exceeds compute saved).\n- TP > 8 (most cluster topologies have only 8 GPUs per host on NVLink)."
     },

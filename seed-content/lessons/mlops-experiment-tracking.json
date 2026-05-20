@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Weights & Biases at OpenAI scale",
+      "body": "Modern ML org runs 10K-100K experiments/month per team. W&B + MLflow + Sacred all store: hyperparameters, metrics over time, code version, dataset hash, environment fingerprint. The discipline: every experiment auto-logs via a few lines of init code; manual logging is forbidden because human consistency fails. The payoff: a year later, anyone can find the exact run that produced the deployed model, with all the inputs needed to reproduce it."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mlops_repro",
+        "kind": "guided_derivation",
+        "question": "Apply the 5-element reproducibility checklist",
+        "goal": "Given a 'reproduction failed' incident, identify which element was missing.",
+        "steps": [
+          {
+            "prompt": "Engineer A reports 87% accuracy. Engineer B reproduces with code, data, hyperparams matching — gets 84%. What's the most likely missing element?",
+            "motivation": "Standard diagnosis.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random seeds (not pinned).",
+                "Hardware difference.",
+                "Python version.",
+                "OS difference."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Code matches, data matches, hyperparams match — what's the next variable that affects outputs?"
+            ],
+            "reveal": "Random seeds. Without explicit seeding, init randomness + data shuffling differ between runs. Pinning seeds is usually the 'aha' fix."
+          }
+        ],
+        "finalResult": "The 5-element checklist: code version + data version + hyperparams + random seeds + hardware fingerprint. Missing any one and reproduction is uncertain."
+      }
+    },
+    {
+      "kind": "text",
       "title": "What to log",
       "body": "A good run record contains five categories:\n\n**1. Configuration.** Every hyperparameter you can vary: model architecture (layers, hidden, heads), optimizer (LR, betas, weight decay, schedule), training (batch size, gradient accumulation, max steps), data (dataset version, mix proportions, augmentations). Keep this in YAML/JSON checked into the repo and load it via Hydra / OmegaConf / dataclasses.\n\n**2. Metrics over time.** Train loss + val loss + eval scores at every checkpoint interval. Plus system metrics: GPU utilization, memory, throughput (tokens/sec), step time. Log every step (or every N steps) so you can plot loss curves and catch divergence early.\n\n**3. Provenance.** Git commit hash (was the code clean? `is_dirty()`?). Data version (dataset name + checksum or `dvc` hash). Hardware (GPU type, world size). Library versions (PyTorch, CUDA, NCCL). Random seeds.\n\n**4. Artifacts.** Checkpoints (every N steps + final), tokenizer / vocab files, eval predictions, sample outputs. These get *uploaded* to a backing store (S3, GCS, local) — keeping them per-run is essential for later comparison.\n\n**5. Notes.** A free-text 'why this run' field. Future-you will thank present-you. The most underrated metadata."
     },

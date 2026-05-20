@@ -7,6 +7,38 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: KL coefficient tuning in RLHF",
+      "body": "Anthropic's Claude + OpenAI's GPT RLHF training: $\\beta$ (the KL coefficient) is tuned to balance reward gain vs SFT divergence. Too low: policy aggressively maximizes reward model, finds adversarial outputs that score high but humans find bad. Too high: policy barely moves from SFT, leaves reward gains on the table. Sweet spot is empirical; modern recipes use *adaptive* $\\beta$ that increases when KL exceeds a target."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_align_klreg",
+        "kind": "guided_derivation",
+        "question": "Derive the optimal RLHF policy",
+        "goal": "Show that the policy maximizing $\\mathbb{E}_\\pi[r(x)] - \\beta \\text{KL}(\\pi \\| \\pi_{\\text{ref}})$ is $\\pi^*(x) \\propto \\pi_{\\text{ref}}(x) \\exp(r(x)/\\beta)$.",
+        "steps": [
+          {
+            "prompt": "Set up the Lagrangian with $\\sum_x \\pi(x) = 1$ as the constraint. Solve $\\partial \\mathcal{L}/\\partial \\pi(x) = 0$.",
+            "motivation": "Constrained optimization.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "pi*(x) proportional to pi_ref(x) exp(r(x)/beta)"
+              ]
+            },
+            "hints": [
+              "$\\partial / \\partial \\pi(x)$: $r(x) - \\beta(\\log \\pi(x) - \\log \\pi_{\\text{ref}}(x) + 1) - \\mu = 0$.",
+              "Solve for $\\log \\pi(x)$."
+            ],
+            "reveal": "$\\pi^*(x) \\propto \\pi_{\\text{ref}}(x) \\exp(r(x)/\\beta)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\pi^*(x) = \\pi_{\\text{ref}}(x) \\exp(r(x)/\\beta) / Z}$$ The Gibbs-form optimal policy. $\\beta \\to \\infty$: $\\pi^* \\to \\pi_{\\text{ref}}$ (no learning). $\\beta \\to 0$: $\\pi^* \\to$ argmax of $r$. This closed-form is the basis of DPO's loss derivation."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Preference optimization variants",
       "body": "PPO (the original RLHF) has been joined by simpler alternatives:\n\n**DPO** (Direct Preference Optimization). Skip the explicit reward model; train the policy directly on preference pairs `(y_chosen, y_rejected)`. Implementation is much simpler. Works well in many regimes; sometimes underperforms PPO at large scale, partly because PPO can sample from the policy during training and DPO can't.\n\n**IPO** (Identity Preference Optimization). Variation of DPO with a different mathematical formulation that's claimed to be more robust to overconfident preferences. Mixed empirical results.\n\n**KTO** (Kahneman-Tversky Optimization). Trained on individual labels (this output is good / bad) rather than paired comparisons. Useful when paired data is hard to collect.\n\n**ORPO** (Odds Ratio Preference Optimization). Combines SFT and preference optimization in a single loss. Removes the need for a separate SFT stage. Empirically competitive in 2024.\n\n**Constitutional AI**. Use a rule set to generate preferences automatically (model A produces a response; a critique model judges it against the rules; corrections train the policy). Reduces dependence on human labelers. Anthropic's Claude was trained this way.\n\nThe distinctions aren't life-changing in practice. Pick based on infrastructure constraints (DPO if you don't want a reward model; PPO if you have the infra and want online sampling)."
     },

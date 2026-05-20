@@ -7,6 +7,52 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: double descent in modern ML",
+      "body": "Classical bias-variance: as model capacity grows past the interpolation threshold, generalization should worsen monotonically. Modern empirics: it does worsen until interpolation, but then *improves again* with more capacity ('double descent'). Belkin et al. 2019, Nakkiran et al. 2020. The interpretation: over-parameterized models in the over-fit regime are implicitly regularized by SGD (smaller-norm solutions); the second descent comes from this regularization landing on a smoother model. The classical decomposition still applies — but the regime modern ML operates in is past the classical analysis range."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sm_biasvar",
+        "kind": "guided_derivation",
+        "question": "Derive the bias-variance decomposition",
+        "goal": "Show $\\mathbb{E}[(\\hat f - f)^2] = \\text{Bias}^2 + \\text{Var}$.",
+        "steps": [
+          {
+            "prompt": "Add and subtract $\\mathbb{E}[\\hat f]$ inside the squared difference. What does this give?",
+            "motivation": "Add-subtract trick.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(hat f - E[hat f])^2 + 2(hat f - E[hat f])(E[hat f] - f) + (E[hat f] - f)^2"
+              ]
+            },
+            "hints": [
+              "$(\\hat f - f) = (\\hat f - \\mathbb{E}[\\hat f]) + (\\mathbb{E}[\\hat f] - f)$.",
+              "Square."
+            ],
+            "reveal": "$(\\hat f - f)^2 = (\\hat f - \\mathbb{E}[\\hat f])^2 + 2(\\hat f - \\mathbb{E}[\\hat f])(\\mathbb{E}[\\hat f] - f) + (\\mathbb{E}[\\hat f] - f)^2$."
+          },
+          {
+            "prompt": "Take expectation over $\\hat f$. The cross-term vanishes because $\\mathbb{E}[\\hat f - \\mathbb{E}[\\hat f]] = 0$. What's the decomposition?",
+            "motivation": "Linearity + zero-mean cross term.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Var(hat f) + Bias(hat f)^2"
+              ]
+            },
+            "hints": [
+              "First term: $\\text{Var}(\\hat f)$. Third term: $\\text{Bias}(\\hat f)^2$."
+            ],
+            "reveal": "$\\mathbb{E}[(\\hat f - f)^2] = \\text{Var}(\\hat f) + \\text{Bias}(\\hat f)^2$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\mathbb{E}[(\\hat f - f)^2] = \\text{Bias}^2 + \\text{Var}}$$ Plus irreducible noise when target is itself stochastic. The bias-variance tradeoff: capacity increases variance + decreases bias. Modern ML operates past this curve in the interpolation regime; double descent."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Maximum likelihood estimation",
       "body": "Given data `D = {x_1, x_2, ...}` and a parametric model `p(x | θ)`, **MLE** finds the parameters that make the data most probable:\n\n$$\\hat{\\theta}_{MLE} = \\arg\\max_\\theta \\prod_i p(x_i | \\theta) = \\arg\\max_\\theta \\sum_i \\log p(x_i | \\theta)$$\n\nThe log is just for numerical stability — the product of many probabilities underflows; the sum of log-probabilities doesn't.\n\nMLE is what training a neural net does. The cross-entropy loss is `-log p(y | x; θ)` summed over training examples. Gradient descent on this loss = MLE.\n\nProperties:\n- **Consistent**: as data → ∞, MLE → true parameters (under regularity conditions).\n- **Asymptotically efficient**: lowest possible variance among consistent estimators.\n- **NOT unbiased in general**: MLE for variance underestimates by a known factor.\n- **Sensitive to model misspecification**: if the parametric family doesn't include the truth, MLE finds the closest member of the family — which might be far from truth."
     },

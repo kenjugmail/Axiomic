@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: discovering IOI circuits in GPT-2",
+      "body": "Wang et al. 2022 used activation patching to identify the GPT-2 Small circuit for indirect-object identification ('Mary and John went to the store. Then ___'). Method: run with prompt A ('Mary and John...' → John); run with prompt B ('Bob and John...' → John); patch activations from B into A at each (head, position); observe how the prediction changes. Result: 26 attention heads cooperate to identify the IOI, including 'name-mover' heads, 'duplicate-token' heads, and 'backup' heads. The actual algorithm GPT-2 implements is now understood at the head level — a milestone in mechanistic interp."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_interp_actpatch",
+        "kind": "guided_derivation",
+        "question": "Sketch activation-patching causal evidence",
+        "goal": "Why does swapping activations between two related inputs reveal what activation 'does'?",
+        "steps": [
+          {
+            "prompt": "Run model on input A → output $y_A$. Run on input B → output $y_B$. Now: run on A, but at layer $\\ell$, position $p$, replace the activation with the one from running on B. Output $y_{A \\leftarrow B[\\ell, p]}$. If $y_{A \\leftarrow B[\\ell, p]}$ is closer to $y_B$ than $y_A$ was, what does this tell you?",
+            "motivation": "Counterfactual intervention reveals which activations carry which signal.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "The activation at $(\\ell, p)$ causally encodes information that flows from input to output.",
+                "Inputs A and B are the same.",
+                "The model is broken.",
+                "The intervention is meaningless."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "This is a causal-inference-style experiment: control everything except the one variable."
+            ],
+            "reveal": "If patching the activation at $(\\ell, p)$ from B-context into A-context flips the prediction toward B's output, that activation causally carries the signal that distinguishes A from B."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Activation patching: causal intervention on internal states}}$$ The mechanistic-interp workhorse. Lets you identify exactly which heads, layers, positions are responsible for specific output behavior. The cleanest available evidence for 'this neuron / head does X'."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Methodology — finding a circuit",
       "body": "If you want to find a clean circuit (like induction heads), the recipe roughly is:\n\n**1. Identify a behavior** — something the model does reliably on a specific kind of input. Examples: copying tokens, completing repeated patterns, named-entity disambiguation.\n\n**2. Build an evaluation set** — a few hundred inputs where you know what the right behavior is.\n\n**3. Logit attribution** — for each input, decompose the final logits into contributions from each layer / head. Layers that contribute most to the correct answer are candidates for being 'where the work happens.'\n\n**4. Activation patching (causal mediation)** — replace the activations of one component (head, layer) at a time with its activations from a different input, and measure how much that breaks the behavior. The components whose patching most degrades the behavior are the load-bearing parts.\n\n**5. Verify with ablation** — zero out (or noise out) the candidate components and confirm the behavior disappears. If ablating part X kills the behavior, X is causally responsible.\n\nThe induction-heads paper followed this exact pattern. Steps 3-4 are the workhorses; step 5 is the proof.\n\nTools: TransformerLens (the standard library) implements all of this. Neel Nanda's tutorials walk through the methodology with running code."
     },

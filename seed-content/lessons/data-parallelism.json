@@ -7,6 +7,56 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: NCCL all-reduce on a 70B model",
+      "body": "70B params in FP32 grad = 280 GB to all-reduce per step. Ring all-reduce: each GPU sends + receives $\\sim 2|θ|(G-1)/G$ bytes total per step. With 8 GPUs over NVLink (300 GB/s): roughly $(2 \\cdot 280 \\cdot 7/8) / 300 \\approx 1.6$ seconds per step JUST for gradient sync. Hence FSDP (shard the parameters) + ZeRO (shard optimizer state) — they reduce the communication volume by sharding."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dp_allreduce",
+        "kind": "guided_derivation",
+        "question": "Derive ring all-reduce bandwidth requirement",
+        "goal": "$G$ workers, each has $D$ bytes to all-reduce. Ring algorithm: total bytes each worker sends $= ?$",
+        "steps": [
+          {
+            "prompt": "Ring all-reduce: 2 phases (reduce-scatter + all-gather). Each phase: $G-1$ rounds; each round each worker sends $D/G$ bytes. Total bytes sent per worker: $?$",
+            "motivation": "Count round-trips.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2(G-1) D / G",
+                "(2(G-1)/G) D"
+              ]
+            },
+            "hints": [
+              "$2 \\times (G-1)$ rounds × $D/G$ per round."
+            ],
+            "reveal": "$2(G-1)D/G$ bytes per worker."
+          },
+          {
+            "prompt": "For large $G$, this approaches $2D$. What does this imply about scaling?",
+            "motivation": "Asymptotic behavior.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Per-worker bandwidth requirement is asymptotically independent of $G$ — that's the magic of ring all-reduce.",
+                "Bandwidth grows linearly in $G$.",
+                "Each worker sends the full $D$ to every other.",
+                "Bandwidth grows as $G^2$."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Ring's beauty: per-worker total send/receive doesn't grow with cluster size."
+            ],
+            "reveal": "Per-worker bandwidth is $\\approx 2D$ regardless of $G$. Ring all-reduce scales perfectly in per-worker bandwidth."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Ring all-reduce: } 2(G-1)D/G \\approx 2D \\text{ per worker, independent of } G}$$ The reason ring all-reduce won. Tree all-reduce: $O(\\log G)$ rounds but unbalanced bandwidth. Ring: $O(G)$ rounds but balanced + per-worker bandwidth-optimal."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The DDP step, in pseudocode",
       "body": "```\nfor batch in dataloader:\n    # 1. Each GPU gets a different shard of the batch.\n    local_batch = batch[rank :: world_size]\n\n    # 2. Forward pass in parallel — every GPU computes its own loss.\n    loss = model(local_batch)\n\n    # 3. Backward pass — each GPU computes its own gradients.\n    loss.backward()\n\n    # 4. All-reduce: average gradients across all GPUs.\n    #    DDP fires this automatically per parameter, overlapped with backward.\n    #    After all-reduce, every GPU has identical gradients.\n\n    # 5. Optimizer step in parallel — every GPU updates its weights identically.\n    optimizer.step()\n    optimizer.zero_grad()\n```\n\nKey property: after step 4, every GPU's gradients are byte-identical (mod floating-point order-of-summation). After step 5, every GPU's weights are byte-identical. The model stays in sync without ever materializing on a single device.\n\nDDP overlaps the all-reduce with the backward pass. As soon as a layer's gradient is computed, its all-reduce kicks off — while the next layer's backward is still running. This hides ~80% of the communication cost behind compute on a well-tuned setup."
     },

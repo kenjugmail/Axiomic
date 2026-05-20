@@ -7,6 +7,57 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: tuning a small matmul to be compute-bound",
+      "body": "$1024 \\times 1024$ FP16 matmul: $2 \\cdot 1024^3 \\approx 2 \\times 10^9$ FLOPs, reads $2 \\cdot 2 \\cdot 1024^2 \\approx 4 \\times 10^6$ bytes. Arithmetic intensity = $500$ FLOP/byte. On an A100 (peak 312 TFLOPS FP16, 2 TB/s HBM), the roofline crossover is ~150 FLOP/byte — we're compute-bound. Expected runtime $\\approx 2 \\times 10^9 / (3 \\times 10^{14}) \\approx 7\\mu s$. cuBLAS achieves ~80% of peak, so ~$9\\mu s$ in practice. Smaller matmuls ($128 \\times 128$ etc.) have lower intensity + are memory-bound; that's why batching matters."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_gpu_roofline",
+        "kind": "guided_derivation",
+        "question": "Derive the roofline crossover",
+        "goal": "Compute the arithmetic intensity at which compute roof = memory roof on an A100.",
+        "steps": [
+          {
+            "prompt": "A100 FP16: peak compute $P = 312$ TFLOPS = $3.12 \\times 10^{14}$ FLOP/s. HBM bandwidth $B = 2.0$ TB/s = $2 \\times 10^{12}$ bytes/s. At what intensity $I^*$ (FLOPs/byte) does compute time = memory time?",
+            "motivation": "Setup.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "P/B",
+                "3.12e14 / 2e12",
+                "156"
+              ]
+            },
+            "hints": [
+              "$I^* = P / B$."
+            ],
+            "reveal": "$I^* = P/B = 3.12 \\times 10^{14} / 2 \\times 10^{12} = 156$ FLOPs/byte."
+          },
+          {
+            "prompt": "Operations with intensity $> I^*$ are compute-bound; $< I^*$ are memory-bound. Where do you spend optimization effort for each?",
+            "motivation": "Match optimization to bottleneck.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Compute-bound: pick bigger matmul shapes / use Tensor Cores. Memory-bound: fuse kernels, tile in shared memory, reduce data movement.",
+                "Always optimize compute.",
+                "Always optimize memory.",
+                "Neither matters."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Roofline tells you which roof you're hitting."
+            ],
+            "reveal": "Compute-bound: optimize FLOP throughput. Memory-bound: fuse + tile to reduce HBM traffic."
+          }
+        ],
+        "finalResult": "$$\\boxed{I^* = P/B \\approx 156 \\text{ FLOP/byte on A100 FP16}}$$ Below: memory-bound. Above: compute-bound. The roofline model is the single most useful tool for prioritizing GPU kernel optimization."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Tensor cores and FLOPS",
       "body": "Modern GPUs (A100, H100, B200) have **tensor cores** — specialized matrix-multiply units that do small block matmuls in a single cycle. Numbers worth knowing for an H100 SXM:\n\n- bf16 matmul: ~989 TFLOPS\n- fp8 matmul: ~1979 TFLOPS\n- fp32 (CUDA cores, no tensor cores): ~67 TFLOPS\n\nThat's a ~15× ratio between matmul on tensor cores and matmul on CUDA cores. Two consequences:\n\n- **Use the tensor cores.** That means reduced precision (bf16, fp16, fp8) for matmuls. PyTorch + cuDNN do this automatically when you use `autocast`.\n- **Tensor core matmuls have shape constraints.** Dimensions should be multiples of 16 (bf16) or 32 (fp8). A model with `d_model = 768` (multiple of 16) hits the fast path; `d_model = 1000` does not, and quietly leaves performance on the table.\n\n**Compute-bound vs memory-bound.** A kernel is compute-bound when it spends most of its time doing arithmetic (e.g. large matmul); memory-bound when it spends most of its time loading bytes from HBM (e.g. softmax over a long sequence). Profilers (Nsight, `torch.profiler`) tell you which regime you're in."
     },

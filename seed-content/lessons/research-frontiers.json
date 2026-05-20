@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: the 'introduction sandwich'",
+      "body": "Most ML papers follow a standard intro structure: paragraph 1 (context: what's the area), paragraph 2 (gap: what's missing), paragraph 3 (contribution: what we did), paragraph 4 (results bullet list). Skim hack: read the last two paragraphs first. Skip the historical framing; jump to 'what's new + what's the headline result'. This reduces 30-min paper reading to 10-min skim, dramatically increasing the ratio of papers absorbed per week."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_rf_skim",
+        "kind": "guided_derivation",
+        "question": "Decompose a paper's load-bearing claim",
+        "goal": "Most ML papers have a single quantitative claim. Identify the pattern.",
+        "steps": [
+          {
+            "prompt": "What's the typical 'load-bearing' element of an ML paper?",
+            "motivation": "Pattern recognition.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "A specific number or curve on a specific benchmark/setting.",
+                "The mathematical derivation.",
+                "The author affiliation.",
+                "The bibliography."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "The thing that makes the paper compelling vs forgettable."
+            ],
+            "reveal": "A specific number on a specific benchmark (e.g., 'we achieve 87% on ImageNet') OR a specific curve ('scaling law fits y = a x^b'). Everything else is context."
+          }
+        ],
+        "finalResult": "Load-bearing claim = the specific quantitative result. Read papers by finding this first; everything else is context for it."
+      }
+    },
+    {
+      "kind": "text",
       "title": "What to read in what order",
       "body": "Don't read papers top to bottom. Read in this order:\n\n**1. Title + abstract**: 30 seconds. Get the headline claim.\n**2. Figures + tables**: 2 minutes. The empirical work lives here. If the figures don't show what the abstract claims, the paper is overclaim.\n**3. Conclusions**: 1 minute. What do the authors think they showed?\n**4. Methodology section**: 5-10 minutes if the figures look credible. How did they get the numbers?\n**5. Related work**: skip on first read; come back if you want context.\n**6. Body text**: only if the paper is worth deeper investment.\n\nSpending 15 minutes on a paper this way tells you whether it's worth a full read. Most aren't.\n\nAggressive: many papers have one main result and one main figure. The figure is the result. If you can't extract the result from the figure in 60 seconds, the figure is poorly designed (or the result isn't actually clear)."
     },

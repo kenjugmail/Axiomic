@@ -7,6 +7,56 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Llama 3 + the Chinchilla retreat",
+      "body": "Llama 3 (2024) was trained on ~15T tokens for the 70B model — about 200 tokens per parameter, vs Chinchilla's 20. Empirically: still improving with more data, contradicting the strict Chinchilla optimum. The shift: 'training compute optimal' isn't the same as 'inference compute optimal'. If you'll serve the model billions of times, spending more on training (over-training relative to Chinchilla) is worth it because inference cost dominates over the model's lifetime. Llama 3, GPT-4, Claude all train past Chinchilla's tokens/param ratio."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_td_chinchilla",
+        "kind": "guided_derivation",
+        "question": "Derive the Chinchilla optimum",
+        "goal": "Given fixed compute $C \\propto N D$ (params × tokens), find $N, D$ that minimize loss $L(N, D) \\propto N^{-\\alpha} + D^{-\\beta}$.",
+        "steps": [
+          {
+            "prompt": "Lagrangian: $\\mathcal{L} = N^{-\\alpha} + D^{-\\beta} + \\lambda (ND - C)$. Set $\\partial / \\partial N = 0$ and $\\partial / \\partial D = 0$. What's the relationship between $N$ and $D$?",
+            "motivation": "First-order conditions.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "alpha N^{-(alpha+1)} = lambda D, beta D^{-(beta+1)} = lambda N",
+                "alpha/N^(alpha+1) = lambda D"
+              ]
+            },
+            "hints": [
+              "Two FOCs; divide them to eliminate $\\lambda$."
+            ],
+            "reveal": "$\\alpha N^{-(\\alpha+1)}/D = \\beta D^{-(\\beta+1)}/N$, i.e., $\\alpha N^{-\\alpha}/D^2 = $ similar."
+          },
+          {
+            "prompt": "Empirical Chinchilla fit: $\\alpha \\approx 0.34, \\beta \\approx 0.28$. Solving (long algebra omitted), optimal $D/N \\approx 20$. What does this mean operationally?",
+            "motivation": "Translate to engineering guidance.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "For each parameter, train on ~20 tokens.",
+                "For each token, train on 20 parameters.",
+                "Token count and parameter count don't matter.",
+                "Token count is fixed."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "$D/N = 20$: tokens per parameter."
+            ],
+            "reveal": "Compute-optimal: ~20 tokens per parameter. 70B model → 1.4T tokens."
+          }
+        ],
+        "finalResult": "$$\\boxed{D^* / N^* \\approx 20 \\text{ tokens/param (Chinchilla)}}$$ The compute-optimal ratio. Modern training (Llama 3, GPT-4) over-trains past this when inference cost dominates lifetime compute."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The healthy loss curve",
       "body": "Healthy training loss is **noisy but trending downward on a moving average**. The noise is intrinsic to SGD — each minibatch's gradient is a noisy estimate of the true gradient, so per-step loss bounces around the trend.\n\nWhat to expect at different scales:\n\n- **Early training** (first ~1% of steps): loss drops fast. The model goes from random initialization to anything-better-than-random in a small fraction of total compute.\n- **Mid-training** (10-50%): slow, steady decline. Power-law-shaped on a log-log plot of loss vs steps.\n- **Late training** (50%+): the curve flattens. Diminishing returns. Most of the final-loss improvement is squeezed from this phase.\n\n**A spike upward** mid-training is normal if it self-corrects within a few hundred steps. A sustained upward trend means something broke — usually a learning rate that's too high or a data issue.\n\n**A plateau early** (loss drops then stalls) usually means the LR is too low for the current model state. This can self-resolve as the LR schedule decays, or it can stall the run permanently if the LR is genuinely too low."
     },

@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: AlphaFold's culture of pre-registration",
+      "body": "DeepMind's AlphaFold team famously submits predictions to CASP (Critical Assessment of Structure Prediction) — a blind benchmark where target structures are unknown. AlphaFold's improvements have been validated against unseen targets, making the gains credible in a way that in-sample evaluation can't. The discipline of submitting to CASP is essentially pre-registration for protein structure prediction: 'here's what we predict, before seeing the answer'."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_nc_prereg",
+        "kind": "guided_derivation",
+        "question": "Show pre-registration's value via the multiple-comparisons argument",
+        "goal": "If you run 20 analyses and report the best, your Type I error is ~$20 \\times 0.05$. Pre-registration fixes this.",
+        "steps": [
+          {
+            "prompt": "Pre-registration commits to a specific analysis BEFORE seeing data. How does this affect the effective number of comparisons $k$ in the multiple-comparisons inflation?",
+            "motivation": "Pre-reg fixes the comparison count to 1.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$k = 1$: only the pre-registered analysis counts; Type I error is the nominal $\\alpha$.",
+                "$k$ is reduced but not to 1.",
+                "$k$ is unchanged.",
+                "Pre-registration is just paperwork."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "With pre-registration, only the planned tests count; post-hoc analyses must be labeled exploratory."
+            ],
+            "reveal": "Pre-registration commits the analysis to a single comparison. Effective $k = 1$. Type I error is the nominal $\\alpha$, not the inflated $k\\alpha$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Pre-registration: } k_{\\text{effective}} = 1 \\Rightarrow \\text{Type I error} = \\alpha}$$ The strongest single methodological commitment for trustworthy results. Used in pharma RCTs (FDA requires pre-reg via clinicaltrials.gov), ML benchmarks (papers must commit to splits), and increasingly in ML+systems research."
+      }
+    },
+    {
+      "kind": "text",
       "title": "What's NOT a contribution (alone)",
       "body": "Things that often don't clear the bar by themselves:\n\n**+0.5% on a benchmark.** Without confidence intervals showing the gap is real, this is a metric tweak, not a contribution. Reviewers in 2024+ are increasingly aware of this.\n\n**A new architecture variant.** 'We replaced LayerNorm with RMSNorm' is interesting; it's not a paper unless you have a deeper story (why this works, how it generalizes, what problems it solves).\n\n**Application of existing methods to a new domain.** 'We trained BERT on legal text' isn't a contribution unless the application reveals something about the method or the domain that wasn't known.\n\n**A larger version of an existing model.** Scaling existing recipes 10× isn't a research contribution unless you measure something new about the scale (which scaling-laws papers do).\n\n**A clever prompt that improves benchmark performance.** Useful, but not a paper unless the prompt reveals a structural property of the model or task.\n\nNone of these are *bad work*. Many are useful engineering or applied research. They just don't clear the 'novel research contribution' bar by themselves."
     },

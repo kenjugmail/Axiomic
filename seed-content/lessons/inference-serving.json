@@ -7,6 +7,54 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: vLLM's PagedAttention memory savings",
+      "body": "Traditional attention serving: pre-allocate KV cache for max context length per request. With max context 4096 + batch 64 + 70B model: ~5 GB allocated but most requests don't reach max length, so 30-60% memory is wasted. vLLM's PagedAttention: KV cache lives in pages (like virtual memory). Allocate pages on-demand as the response grows. Result: ~2-3× more concurrent requests on the same GPU memory. Adopted by virtually every modern LLM serving stack (TGI, TensorRT-LLM, etc.)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_serv_kvsize",
+        "kind": "guided_derivation",
+        "question": "Derive the KV cache size",
+        "goal": "Model: $L$ layers, $H$ heads, head dim $d$. Context length $T$. KV cache size in bytes (FP16)?",
+        "steps": [
+          {
+            "prompt": "Per layer: K is shape $(H, T, d)$, V is shape $(H, T, d)$. Total per layer: $2 H T d$ values. Across layers: $\\times L$. FP16: $\\times 2$ bytes. What's the formula?",
+            "motivation": "Counting.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "4 L H T d"
+              ]
+            },
+            "hints": [
+              "$2$ (K+V) × $L$ × $H$ × $T$ × $d$ × 2 (FP16 bytes)."
+            ],
+            "reveal": "$\\text{KV cache} = 4 L H T d$ bytes."
+          },
+          {
+            "prompt": "For 70B model: $L = 80, H = 64, d = 128, T = 4096$. Compute (round to nearest GB).",
+            "motivation": "Concrete.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "10",
+                "11",
+                "10 GB",
+                "10.7"
+              ]
+            },
+            "hints": [
+              "$4 \\cdot 80 \\cdot 64 \\cdot 4096 \\cdot 128 = ?$"
+            ],
+            "reveal": "$4 \\cdot 80 \\cdot 64 \\cdot 4096 \\cdot 128 \\approx 1.07 \\times 10^{10}$ bytes $\\approx 10.7$ GB per sequence. With batch 32: 343 GB — needs sharding."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{KV cache} = 4 L H T d \\text{ bytes (FP16)}}$$ The dominant memory cost at long contexts. GQA (Grouped Query Attention) reduces $H$ effectively to $H_\\text{kv}$ groups (usually 8); MQA collapses further to $H_\\text{kv} = 1$. PagedAttention reduces *wasted* allocation."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Static batching is the wrong primitive",
       "body": "Vanilla framework serving: collect K requests, batch them, run forward, return results. Two problems:\n\n**Heterogeneous lengths.** Request A wants 50 output tokens; request B wants 500. Static batching either (a) waits for the slowest request before starting the next batch, wasting compute on completed sequences, or (b) ends every request at the shortest length, throwing away usable output.\n\n**Long tail.** Some requests (RAG with long context, code completion with reasoning) take 10× longer than median. Static batching at K=8 with one long-tail request waits 10× as long for the entire batch.\n\n**Continuous batching** (Yu et al. 2022, popularized by vLLM): treat the running batch as a fluid pool. As soon as a sequence in the batch finishes (hits EOS or max length), free its slot and admit a new request. Per-step throughput stays high; latency for individual requests stays low.\n\nThe practical impact: 2-5× throughput on heterogeneous workloads vs static batching. Most modern serving frameworks default to it. If your team is rolling its own inference path, this is the first optimization to add."
     },
