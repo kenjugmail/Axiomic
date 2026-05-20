@@ -1,0 +1,211 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Apply cross-entropy, KL, MI to ML losses.",
+      "Reason about ELBO + variational inference.",
+      "Connect InfoNCE + contrastive learning."
+    ],
+    "prereqs": [
+      "mutual-information-and-kl-divergence"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Cross-entropy + maximum likelihood (the classification connection)",
+      "body": "**Maximum likelihood estimation (MLE)**: choose parameters θ that maximize P(data | θ). For iid data:\n\n  θ* = argmax ∑ log P(x_i | θ) = argmin -∑ log P(x_i | θ) = argmin H(P_true, P_θ)\n\nThis is **cross-entropy minimization**.\n\nFor classification: P_θ(x) = softmax over classes; cross-entropy = ∑ -y_i log p_θ(x_i). Standard CE loss.\n\nDuring training:\n- L = cross-entropy(P_data, P_model)\n- Reduces to: L = H(P_data) + KL(P_data || P_model)\n- H(P_data) constant in θ → minimizing CE = minimizing KL\n\n**Implications**:\n- CE loss is theoretically optimal (achieves MLE).\n- Gradient: ∇L ∝ (p_model - y) — clean, never saturates.\n- Calibration: well-trained CE network produces calibrated probabilities.\n- Generalization: ML theory + PAC-Bayes connect CE risk to test error.\n\n**Regression with Gaussian noise**: assume y = f(x) + N(0, σ²). MLE = MSE minimization. Same principle, different distribution.\n\n**Cross-entropy variants**:\n- **Binary CE**: binary classification.\n- **Sparse CE**: integer labels (not one-hot).\n- **Focal loss** (Lin+ 2017): downweights easy examples; (1-p)^γ factor; useful for imbalanced + dense prediction.\n- **Label smoothing**: target 1-ε on true + ε/(K-1) on others; reduces overconfidence.\n- **Distillation**: CE between student + teacher's softmax (with temperature).\n- **Knowledge distillation**: KL between distributions.\n\n**Connection to softmax**: softmax is the maximum-entropy distribution given linear scores. Pair softmax + CE for optimization-friendly + theoretically-grounded classifier."
+    },
+    {
+      "kind": "text",
+      "title": "ELBO + variational inference + VAEs",
+      "body": "**Variational inference**: approximate intractable posterior p(z | x) with simpler q_φ(z | x). Minimize KL(q || p).\n\n**Evidence Lower BOund (ELBO)**:\n\n  log p(x) = E_q[log p(x, z)] - E_q[log q(z | x)] + KL(q || p)\n  ≥ E_q[log p(x, z)] - E_q[log q(z | x)]   (=ELBO)\n\nMaximizing ELBO = maximizing log p(x) (since KL ≥ 0 + KL = 0 iff q = p_post). Provides lower bound on data likelihood.\n\nRearranging:\n\n  ELBO = E_q[log p(x | z)] - KL(q(z | x) || p(z))\n        = [reconstruction term] - [regularization term]\n\nReconstruction: model should reconstruct data well from latent z.\nRegularization: q(z | x) should stay close to prior p(z) (often N(0, I)).\n\n**Variational Autoencoder (VAE)** (Kingma + Welling 2013):\n- Encoder q_φ(z | x): outputs μ, σ for Gaussian over z.\n- Decoder p_θ(x | z): reconstructs x.\n- Reparameterization trick: z = μ + σ × ε, ε ~ N(0, I); allows gradient flow.\n- Train with ELBO maximization (Adam on -ELBO).\n\nApplications: generative modeling, representation learning, disentanglement, semi-supervised.\n\n**Beyond VAEs**:\n- **Normalizing flows**: invertible transformations of Gaussian → flexible distributions; exact log-likelihood. RealNVP, Glow, FFJORD.\n- **Diffusion models**: train to reverse noising process; conditional generation. Stable Diffusion + DALL-E 2 + Sora.\n- **β-VAE** (Higgins+ 2017): scale KL term by β > 1; encourages disentanglement.\n- **InfoVAE / WAE**: alternative divergences (MMD, Wasserstein).\n- **Conditional VAEs**: condition on labels.\n\n**Connection to compression**: VAE encoder ≈ source coder; decoder ≈ source decoder; ELBO ≈ negative bit-rate + reconstruction quality. Neural compression literature directly uses VAE-style architectures."
+    },
+    {
+      "kind": "text",
+      "title": "Contrastive learning + InfoNCE",
+      "body": "**Contrastive learning**: learn representations by distinguishing positive (similar) pairs from negative (dissimilar) pairs.\n\n**InfoNCE loss** (van den Oord+ 2018):\n\n  L = -log [exp(f(x, x⁺)/τ) / ∑_{x'∈{x⁻}} exp(f(x, x')/τ)]\n\nWhere:\n- (x, x⁺): positive pair (same instance, augmented).\n- {x⁻}: negative samples.\n- f: similarity (often cosine).\n- τ: temperature.\n\n**InfoNCE = MI lower bound** (van den Oord+ 2018 derivation): minimizing InfoNCE upper-bounds the MI between input + representation across positive pairs.\n\n**Architectures + applications**:\n\n• **SimCLR** (Chen+ 2020): same-image augmentations as positives; in-batch negatives. ResNet → projection head. Foundational self-supervised method.\n• **MoCo** (He+ 2020): momentum encoder + queue of negatives. Stable longer-batch training.\n• **BYOL** (Grill+ 2020): no explicit negatives; predictor + EMA target. Simpler.\n• **DINO** (Caron+ 2021): self-distillation + ViT. Emergent attention maps.\n• **MAE** (He+ 2021): masked autoencoder; reconstruct masked image patches. Discriminative + generative.\n• **CLIP** (Radford+ 2021): image-text contrastive; one of the most important modern models. Image encoder + text encoder; positive pairs from paired (image, caption) data; negatives from other captions. Drives modern multimodal (DALL-E, Stable Diffusion, GPT-4V, LLaVA, etc.).\n• **SigLIP** (Zhai+ 2023): sigmoid loss vs softmax; better scaling.\n\n**Why contrastive works**:\n1. Self-supervised: no labels needed.\n2. Scalable: billions of unlabeled images/texts.\n3. Strong representations: linear classifier on frozen features matches supervised.\n4. Foundation of multimodal: CLIP embeddings power retrieval + generation.\n5. Information-theoretic: maximizes MI between inputs + their representations.\n\n**Connection to other paradigms**:\n- Predictive: predict masked or future tokens (BERT, GPT).\n- Generative: VAE, diffusion.\n- Contrastive: InfoNCE-family.\n- Hybrid: increasing common (e.g., MAE + contrastive).\n\nInformation-theoretic understanding (InfoNCE = MI bound) drove SSL/contrastive maturation 2018-2023."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_itml_1",
+        "kind": "guided_derivation",
+        "question": "Derive cross-entropy loss for logistic regression",
+        "goal": "Show that minimizing CE on binary outputs equals maximum likelihood for logistic regression.",
+        "steps": [
+          {
+            "prompt": "Likelihood of single observation P(y | x, θ) for binary y + logistic σ(θ^T x)?",
+            "motivation": "Bernoulli likelihood.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "p^y (1-p)^(1-y)",
+                "Bernoulli"
+              ]
+            },
+            "hints": [
+              "Bernoulli with p = σ(θ^T x)."
+            ],
+            "reveal": "p = σ(θ^T x). P(y | x, θ) = p^y × (1-p)^(1-y). Bernoulli."
+          },
+          {
+            "prompt": "Log-likelihood?",
+            "motivation": "Take log.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "y log p + (1-y) log(1-p)"
+              ]
+            },
+            "hints": [
+              "log of Bernoulli."
+            ],
+            "reveal": "ℓ = y log p + (1-y) log(1-p)."
+          },
+          {
+            "prompt": "Negative log-likelihood?",
+            "motivation": "Loss to minimize.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-[y log p + (1-y) log(1-p)]",
+                "binary cross-entropy"
+              ]
+            },
+            "hints": [
+              "Standard form."
+            ],
+            "reveal": "-ℓ = -y log p - (1-y) log(1-p) = binary cross-entropy. **This is the binary CE loss**."
+          },
+          {
+            "prompt": "Multi-class generalization?",
+            "motivation": "K classes.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-∑ y_k log p_k",
+                "categorical CE"
+              ]
+            },
+            "hints": [
+              "Categorical."
+            ],
+            "reveal": "Multi-class: CE = -∑_k y_k log p_k where p = softmax(θ^T x). Direct generalization. Combined with linear-in-θ scores + softmax → optimization-friendly via convex (logistic) or non-convex (neural) optimization. Universal in modern classification."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_itml_1",
+        "kind": "slider",
+        "question": "Drag the slider to estimate the typical temperature τ used in InfoNCE for SimCLR/CLIP-style contrastive learning.",
+        "target": {
+          "min": 0.05,
+          "max": 0.2
+        },
+        "default": 1,
+        "explanation": "InfoNCE temperature τ: typically 0.05-0.2 (often 0.07-0.1 for SimCLR + CLIP). Lower τ: sharper softmax over similarities; concentrates loss on hardest negatives. Higher τ: smoother; less discriminative gradient. Hyperparameter tuned empirically. CLIP uses learnable τ (logit scale); ~0.07 at end of training."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_itml_1",
+        "kind": "drag_classify",
+        "question": "Classify each ML technique by its primary information-theoretic concept.",
+        "items": [
+          {
+            "id": "softmax-cross-entropy",
+            "label": "Classification with cross-entropy loss",
+            "bin": "cross-entropy-mle"
+          },
+          {
+            "id": "regression-mse",
+            "label": "Gaussian regression with MSE loss",
+            "bin": "cross-entropy-mle"
+          },
+          {
+            "id": "vae-training",
+            "label": "VAE training (encoder + decoder)",
+            "bin": "kl-elbo"
+          },
+          {
+            "id": "diffusion-elbo",
+            "label": "Diffusion model training (likelihood-weighted MSE)",
+            "bin": "kl-elbo"
+          },
+          {
+            "id": "simclr",
+            "label": "SimCLR self-supervised representation",
+            "bin": "info-mi"
+          },
+          {
+            "id": "clip",
+            "label": "CLIP image-text alignment",
+            "bin": "info-mi"
+          },
+          {
+            "id": "policy-gradient",
+            "label": "REINFORCE policy gradient",
+            "bin": "cross-entropy-mle"
+          },
+          {
+            "id": "ppo",
+            "label": "PPO with KL constraint to old policy",
+            "bin": "kl-elbo"
+          }
+        ],
+        "bins": [
+          {
+            "id": "cross-entropy-mle",
+            "label": "Cross-entropy / MLE-based"
+          },
+          {
+            "id": "kl-elbo",
+            "label": "KL / ELBO / variational"
+          },
+          {
+            "id": "info-mi",
+            "label": "Mutual information / InfoNCE"
+          }
+        ],
+        "explanation": "Information-theoretic concepts unify ML methods:\n• **Cross-entropy / MLE**: standard supervised classification + regression (Gaussian-assumed); REINFORCE policy gradient (log-likelihood × advantage). Optimization-friendly + theoretically optimal under iid sampling.\n• **KL / ELBO / variational**: VAEs (ELBO maximization), diffusion models (likelihood-weighted MSE), variational inference, PPO (KL constraint to previous policy, prevents policy collapse).\n• **Mutual information / InfoNCE**: SimCLR + MoCo + BYOL (self-supervised contrastive), CLIP + SigLIP + LiT (multimodal contrastive). Maximize MI between augmented views or paired modalities.\n\nAll three are facets of the same underlying information-theoretic framework. Modern ML training is multi-component + uses combinations: e.g., RLHF uses cross-entropy (reward model) + KL (constrain policy) + MI (reward model contrastive variants)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_itml_1",
+        "kind": "multiple_choice",
+        "question": "Why has CLIP (Contrastive Language-Image Pretraining) been so influential since 2021?",
+        "options": [
+          "It's the first vision model.",
+          "CLIP demonstrated: (1) contrastive learning on noisy web-scale image-text pairs (400M pairs) creates powerful joint embeddings; (2) zero-shot classification without fine-tuning matches supervised; (3) image + text representations align in shared embedding space; (4) underpins downstream multimodal models — DALL-E 2 + Stable Diffusion + GPT-4V + LLaVA use CLIP encoders or descendants. Showed scale + contrastive learning + open web data produces broadly-useful representations. Influenced LiT, SigLIP, X-CLIP, EVA-CLIP, MetaCLIP successors.",
+          "Convention.",
+          "Required by law."
+        ],
+        "correctIndex": 1,
+        "explanation": "**CLIP (Radford+ 2021) impact**:\n\n*Technical contributions*:\n1. **Contrastive objective**: image encoder + text encoder; positive pairs from (image, caption) in dataset; negatives from other captions in batch. InfoNCE loss.\n2. **Web-scale data**: 400M image-text pairs scraped from internet (largely noisy + uncurated).\n3. **Modular**: image encoder (ResNet or ViT) + text encoder (transformer); decoupled training.\n4. **Zero-shot classification**: 'a photo of [class]' text embeddings → match against image embeddings → classify. No fine-tuning needed.\n5. **Linear probe**: frozen features + linear classifier matches supervised on many benchmarks.\n\n*Why so influential*:\n\n(a) **Multimodal embedding space**: aligns image + text in shared latent space. Used by:\n- **DALL-E 2** (Ramesh+ 2022): text encoder → CLIP latents → diffusion prior → image decoder.\n- **Stable Diffusion** (Rombach+ 2022): text-conditioned diffusion with CLIP encoder.\n- **GPT-4V**: vision component uses CLIP-style encoder.\n- **LLaVA**: open-source multimodal LLM with CLIP visual encoder.\n- **Flamingo** (DeepMind 2022): CLIP-like vision adapter for LLMs.\n\n(b) **Open-world / open-vocabulary**:\n- Detection (OWL-ViT, GroundingDINO): CLIP for vocabulary-free object detection.\n- Segmentation (LSeg, OpenSeg): CLIP for semantic segmentation.\n- Retrieval (image search, video QA): cross-modal retrieval at scale.\n\n(c) **Demonstrating scaling**: showed scaling laws apply to multimodal (more data + compute → better embeddings). Influenced ViT-22B, follow-ups.\n\n(d) **Open ecosystem**:\n- Original OpenAI release + many open-source replications (OpenCLIP, MetaCLIP).\n- Easy to use embeddings → countless downstream applications.\n\n*Improved variants since 2021*:\n- **LiT** (Zhai+ 2022): freeze image encoder, train text on top. Better efficiency.\n- **EVA-CLIP** (Sun+ 2023): better data + curriculum; SOTA on benchmarks.\n- **SigLIP** (Zhai+ 2023): replace softmax CE with sigmoid; faster + better scaling.\n- **X-CLIP** + others: video + audio extensions.\n- **MetaCLIP** (Xu+ 2023): improved data curation.\n- **DFN-CLIP, DataComp**: data-focused improvements.\n- **NVIDIA Sana, OpenAI Sora** etc.: use CLIP-style encoders.\n\n*Lessons*:\n1. **Scale + contrastive + web data** produces robust representations.\n2. **Multimodal alignment** unlocks generative + retrieval applications.\n3. **Open-source releases** enable rapid follow-up research.\n4. **Foundation models**: representation learned once + reused across tasks.\n\nCLIP is one of the most influential papers of the 2020-2025 era; foundation of modern multimodal AI."
+      },
+      "hints": [
+        "What's CLIP's training objective?",
+        "Why does multimodal alignment matter?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "CLIP (2021): contrastive learning of 400M (image, caption) web pairs creates joint image-text embedding space. Demonstrated: (1) web-scale + contrastive → robust representations; (2) zero-shot classification; (3) shared multimodal latent space. Foundation for DALL-E 2, Stable Diffusion, GPT-4V, LLaVA, Flamingo. Open-world detection (OWL-ViT, GroundingDINO) + segmentation + retrieval. Variants: LiT, EVA-CLIP, SigLIP, MetaCLIP. Influence: scaling laws + multimodal alignment + open-source ecosystem. Foundation model of modern multimodal AI."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_itml_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why information theory provides a unifying lens for modern ML — from supervised classification to self-supervised representation learning to generative modeling.",
+        "rubric": "Mentions: information theory is the common language of: (1) supervised classification (cross-entropy = KL minimization = MLE); (2) regression (Gaussian assumption → MSE = MLE); (3) variational inference (ELBO maximization = KL minimization vs posterior); (4) generative modeling (likelihood for autoregressive; ELBO for VAE; score-matching for diffusion approximating log p); (5) self-supervised learning (InfoNCE = MI lower bound between views); (6) RL (policy entropy as exploration regularizer; KL constraints in PPO/TRPO); (7) model selection (Akaike, BIC related to entropy); (8) compression-prediction equivalence (Shannon source-coding theorem). Practical impact: cross-entropy loss is universal classification objective; KL constraints stabilize RL; InfoNCE drives modern self-supervised learning; ELBO is foundational for generative models. Information theory provides theoretical guarantees + algorithmic recipes + connection to data + cognitive science (sparse coding, Bayesian brain). Concludes: not a specialized topic; the foundational mathematical theory underlying modern AI."
+      }
+    }
+  ]
+}

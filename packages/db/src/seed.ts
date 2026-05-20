@@ -1952,6 +1952,27 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P35 — Information Theorist path. Entropy + source coding + MI/KL
+  // + channel capacity (with new ShannonChannel viz) + error-correcting
+  // codes + rate-distortion + practical compression + info theory in
+  // ML. Continues 'slider' question type usage.
+  seedMasteryPath({
+    slug: "information-theorist",
+    title: "Information Theorist",
+    description:
+      "From entropy + surprisal through source coding + Huffman/arithmetic/ANS, mutual information + KL divergence, Shannon's noisy-channel theorem with interactive binary-symmetric-channel viz, error-correcting codes (Hamming → Reed-Solomon → LDPC → polar), rate-distortion + perceptual coding, practical compressors (gzip/zstd/xz/brotli), and information theory in ML (cross-entropy, ELBO, InfoNCE, CLIP). The information-theory stack end-to-end.",
+    nodes: [
+      { slug: "entropy-and-surprisal", title: "Entropy + Surprisal", level: "apprentice", order: 1, pages: ["surprisal", "entropy-axioms", "coding-interpretation"], prereqs: [], description: "Surprisal -log p, Shannon entropy H = -∑ p log p, axiomatic derivation, coding-theorem interpretation." },
+      { slug: "source-coding-and-compression", title: "Source Coding + Compression", level: "practitioner", order: 2, pages: ["huffman", "arithmetic-ans", "lz-bwt"], prereqs: ["entropy-and-surprisal"], description: "Huffman + arithmetic + ANS entropy coders, LZ77/LZ78 + BWT dictionary coding, universal coding + neural LM compression." },
+      { slug: "mutual-information-and-kl-divergence", title: "Mutual Info + KL Divergence", level: "practitioner", order: 3, pages: ["mutual-info", "kl-divergence", "information-bottleneck"], prereqs: ["entropy-and-surprisal"], description: "I(X;Y) + KL(P||Q), information bottleneck, cross-entropy + variational inference + MI for representation learning." },
+      { slug: "channel-capacity-and-noisy-channel-theorem", title: "Channel Capacity + Shannon's Theorem", level: "specialist", order: 4, pages: ["bsc-capacity", "shannon-hartley", "multi-user"], prereqs: ["mutual-information-and-kl-divergence"], description: "BSC capacity + interactive viz, Shannon-Hartley + practical wireless/fiber, MIMO + 5G + multi-user info theory." },
+      { slug: "error-correcting-codes", title: "Error-Correcting Codes", level: "expert", order: 5, pages: ["hamming-bch-rs", "convolutional-turbo", "ldpc-polar-neural"], prereqs: ["channel-capacity-and-noisy-channel-theorem"], description: "Hamming + BCH + Reed-Solomon, convolutional + turbo, LDPC + polar + iterative decoding, neural decoders." },
+      { slug: "rate-distortion-and-lossy-compression", title: "Rate-Distortion + Lossy Compression", level: "expert", order: 6, pages: ["rd-function", "jpeg-mp3", "neural-codecs"], prereqs: ["entropy-and-surprisal"], description: "R(D) for Gaussian, JPEG + MP3 + perceptual coding, AVIF + HEIC + neural image codecs." },
+      { slug: "compression-in-practice", title: "Compression in Practice", level: "expert", order: 7, pages: ["gzip-zstd-xz", "columnar-db", "streaming"], prereqs: ["source-coding-and-compression"], description: "gzip/zstd/xz/brotli/LZ4 tradeoffs, columnar databases + Parquet/ORC, streaming + dictionary + parallelism." },
+      { slug: "information-theory-in-ml", title: "Information Theory in ML", level: "expert", order: 8, pages: ["cross-entropy-mle", "elbo-vae", "infonce-clip"], prereqs: ["mutual-information-and-kl-divergence"], description: "Cross-entropy = MLE = KL min, ELBO + VAE + diffusion, InfoNCE + SimCLR + CLIP + multimodal foundations." },
+    ],
+  });
+
   // P34 — Biomedical Engineer path. Biomechanics + tissue, cardio
   // hemodynamics, electrophysiology + ECG with new interactive
   // ECGSimulator viz, medical imaging modalities, biomaterials +

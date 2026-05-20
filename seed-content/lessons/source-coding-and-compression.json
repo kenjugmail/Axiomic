@@ -1,0 +1,180 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Construct Huffman + arithmetic codes.",
+      "Reason about LZ + dictionary coding.",
+      "Distinguish entropy + LZ + universal coding."
+    ],
+    "prereqs": [
+      "entropy-and-surprisal"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Lossless compression: the fundamental tradeoff",
+      "body": "**Lossless compression**: represent a message in fewer bits without losing information. Decompressor must perfectly reconstruct.\n\nShannon's bound: optimal compression rate = source entropy H. No lossless scheme can do better; good ones approach H.\n\n**Practical compression families**:\n\n1. **Entropy coding** (matches symbol probabilities to codewords):\n   - **Huffman**: prefix code; integer code lengths; ≤H+1 bits/symbol.\n   - **Arithmetic coding**: arbitrary fractional bits; approaches H exactly.\n   - **ANS / range coding**: modern variants; speed of Huffman + efficiency of arithmetic.\n\n2. **Dictionary / pattern matching**:\n   - **Lempel-Ziv 77 (LZ77)**: replace repeated substrings with (offset, length) references. Used in gzip + zip + LZ77 family.\n   - **Lempel-Ziv 78 (LZ78)**: build dictionary; emit (dict_index, char). LZW variant in GIF + TIFF.\n   - **Burrows-Wheeler transform (BWT)** + RLE: bzip2 family. Block-sorting; permutes input to make it more compressible by simple coders.\n\n3. **Statistical / predictive**:\n   - **Prediction by partial matching (PPM)**: context-conditional probability models.\n   - **Context mixing**: combine multiple predictors. ZPAQ, PAQ family.\n   - **Neural language models**: GPT-3 + LLaMA can compress English at 2.4 bits/byte; close to estimated information content. Token-by-token entropy coding using neural-predicted probability.\n\n**Real-world compressors**:\n- **gzip / DEFLATE** (LZ77 + Huffman): 1990s standard; universal.\n- **bzip2** (BWT + RLE + Huffman): ~10-20% better than gzip; slower.\n- **xz / LZMA** (LZ77 + range coding): higher ratio; standard in modern Linux.\n- **zstd** (LZ77 + ANS): fastest at decent ratios; Facebook + Linux defaults growing.\n- **brotli** (LZ77 + context modeling + Huffman): web (Chrome HTTP).\n- **7z / LZMA2**: archives.\n- **CMIX / NNCP** (neural language models): best ratio; impractical speed."
+    },
+    {
+      "kind": "text",
+      "title": "Huffman coding: the classic algorithm",
+      "body": "**Huffman algorithm** (Huffman 1952, his MIT homework):\n\n1. Compute probabilities for each symbol.\n2. Put each symbol in a min-heap by probability.\n3. While heap > 1: pop two lowest-probability nodes; combine into new node with summed probability; push back.\n4. The final tree's leaves are symbols; path (left=0, right=1) gives codeword.\n\nProperties:\n- **Prefix code**: no codeword is a prefix of another → unambiguous decoding.\n- **Optimal among prefix codes**: minimizes expected length E[ℓ].\n- **Bound**: H ≤ E[ℓ] < H + 1 bit/symbol.\n- Limitations: integer code lengths waste sub-bit precision; suboptimal for highly-skewed distributions.\n\n**Example**: symbols {A: 0.45, B: 0.30, C: 0.15, D: 0.05, E: 0.05}.\n\nBuild tree:\n- Combine D + E (0.10).\n- Combine C + DE (0.25).\n- Combine B + CDE (0.55).\n- Combine A + BCDE (1.00).\n\nCodewords (one valid assignment): A='0', B='10', C='110', D='1110', E='1111'. \n\nExpected length: 0.45 × 1 + 0.30 × 2 + 0.15 × 3 + 0.05 × 4 + 0.05 × 4 = 1.95 bits/symbol. Entropy: H ≈ 1.94 bits. Within 0.01 of optimal.\n\n**Limitations + extensions**:\n- **Static**: probabilities computed once; doesn't adapt.\n- **Adaptive Huffman**: updates tree as data arrives.\n- **Canonical Huffman**: efficient encoding of code-length sequences (used in DEFLATE).\n- **Sub-bit precision needed for skewed distributions**: e.g., {0.99, 0.01}; H=0.08 bits but Huffman gives 1 bit. Arithmetic coding fixes this.\n\nHuffman is foundational + widely used (gzip, DEFLATE, JPEG, MP3) despite its limitations. Engineering simplicity often wins over theoretical optimality."
+    },
+    {
+      "kind": "text",
+      "title": "Arithmetic + ANS + universal coding",
+      "body": "**Arithmetic coding** (Rissanen 1976, Witten et al. 1987):\n\n1. Maintain a current interval [low, high) starting at [0, 1).\n2. For each symbol, subdivide interval proportional to symbol probabilities.\n3. Final interval represents the entire message; encode any value in it as a sufficiently-precise binary fraction.\n\nKey property: code length = -log₂(P(message)) bits → exactly entropy-optimal in the limit. No bit wasted on integer-length rounding.\n\nUsed in: JPEG 2000, H.264/H.265 (CABAC), modern lossless codecs.\n\n**Range coding**: equivalent reformulation working in finite-precision integer ranges. Practical implementation.\n\n**Asymmetric Numeral Systems (ANS)** (Duda 2014): modern alternative to arithmetic + range coding. Combines speed of Huffman with optimality of arithmetic. Tabled encoding; widely adopted in zstd, LZFSE.\n\n**Universal coding** — coders that compress any source without knowing its statistics a priori:\n\n- **LZ family** (LZ77, LZ78): adapt to repetition patterns; asymptotically optimal for stationary sources.\n- **PPM** (Prediction by Partial Matching): context-conditional models built online.\n- **Context-Mixing** (PAQ): combines many predictors via weighted blending.\n- **Neural language models**: GPT-3 + LLaMA achieve ~0.7-1.0 bits/byte on Wikipedia (close to absolute lower bound).\n\n**Kolmogorov-Chaitin complexity**: theoretical minimum description length for a single string. Uncomputable in general (halting problem); practical compression approximates.\n\n**Modern practice**: combine multiple techniques. zstd: LZ77 + ANS + dictionary. brotli: LZ77 + context modeling + Huffman. Neural codecs: LSTM/transformer + arithmetic coding.\n\n**Compression benchmarks** (Hutter Prize, etc.): English Wikipedia compresses to ~110 MB (from 1 GB raw text); LLM-based compressors approach this."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_src_1",
+        "kind": "guided_derivation",
+        "question": "Compute compression bounds for English text",
+        "goal": "English text has H ≈ 1.0-1.5 bits per character (Shannon's 1951 estimate via cloze + N-gram models). Compute compression ratios + compare to actual compressors.",
+        "steps": [
+          {
+            "prompt": "Raw ASCII bits per character?",
+            "motivation": "Uncompressed.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "8 bits/char",
+                "8"
+              ]
+            },
+            "hints": [
+              "1 byte."
+            ],
+            "reveal": "ASCII: 8 bits/character. Latin-1, UTF-8 ASCII subset same."
+          },
+          {
+            "prompt": "Theoretical compression ratio if H = 1.2 bits/char?",
+            "motivation": "Lower bound.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~6.7×",
+                "8/1.2 = 6.67"
+              ]
+            },
+            "hints": [
+              "8 / 1.2."
+            ],
+            "reveal": "Compression ratio ~ 8/1.2 = 6.67× (theoretical lower bound from Shannon's entropy estimate)."
+          },
+          {
+            "prompt": "gzip on Wikipedia: ~3.5 bits/char (4-5× compression). What's the gap?",
+            "motivation": "Gzip suboptimality.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~3× from optimal",
+                "almost half theoretical",
+                "gap from grammatical structure"
+              ]
+            },
+            "hints": [
+              "3.5 / 1.2 ≈ 3."
+            ],
+            "reveal": "gzip ~3× worse than theoretical optimum. Why: LZ77 + Huffman captures local repetition + character-level entropy but misses long-range grammatical + semantic dependencies (subject-verb agreement, paragraph topic, document structure)."
+          },
+          {
+            "prompt": "Neural language-model-based compressors (NNCP, CMIX) achieve ~0.75 bits/char on Wikipedia. Close to which bound?",
+            "motivation": "Near-optimal.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~Shannon estimate",
+                "near theoretical",
+                "0.75 ~ H"
+              ]
+            },
+            "hints": [
+              "Shannon estimated 0.6-1.3 depending on text type."
+            ],
+            "reveal": "Neural LLMs approach Shannon's 1951 estimate of H ≈ 0.6-1.3 bits/char. ChatGPT + GPT-4 used as compressors hit ~0.7 bits/char on diverse English. This converges to the limit Shannon predicted 70+ years ago. Implication: language modeling = lossless compression (per Shannon source coding theorem). The 'compressor' uses LM to predict next-symbol distribution + arithmetic-codes the residual. Better LM → better compressor → closer to entropy."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_src_1",
+        "kind": "sortable",
+        "question": "Order these lossless compressors by typical compression ratio on English text (best to worst).",
+        "items": [
+          {
+            "id": "nncp",
+            "label": "NNCP / CMIX (neural LM-based)"
+          },
+          {
+            "id": "zstd-22",
+            "label": "zstd at max level (LZ77 + ANS)"
+          },
+          {
+            "id": "xz",
+            "label": "xz / LZMA"
+          },
+          {
+            "id": "bzip2",
+            "label": "bzip2 (BWT + Huffman)"
+          },
+          {
+            "id": "gzip",
+            "label": "gzip (LZ77 + Huffman)"
+          }
+        ],
+        "explanation": "Compression ratios on English Wikipedia (approximate, lower is better):\n• **NNCP / CMIX (neural)**: ~0.75-1.0 bits/char (theoretical limit ~0.6-1.0); slow but best ratio. Uses LLM-based context prediction + arithmetic coding.\n• **xz / LZMA**: ~1.5-2.0 bits/char; high compression at moderate speed. Used for Linux packages.\n• **zstd -22**: ~2.0-2.5 bits/char; high compression at decent speed. Designed for both ratio + speed.\n• **bzip2**: ~2.0-2.5 bits/char; BWT-based; slower than gzip; better ratio.\n• **gzip**: ~3.0-3.5 bits/char; fastest of these; ubiquitous standard since 1990s.\n\nNote: zstd + xz vs bzip2 ordering depends on settings + input; on text both are similar. Neural compressors clearly best but slow (seconds-minutes/MB vs MB/sec for gzip)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_src_1",
+        "kind": "multiple_choice",
+        "question": "Why is arithmetic coding theoretically optimal but Huffman often preferred in practice?",
+        "options": [
+          "Huffman is more compressed.",
+          "Arithmetic achieves entropy-optimal compression but requires more complex encoder/decoder (precision arithmetic; serial nature limits parallelism). Huffman is simpler + faster + cache-friendly + within ~1 bit/symbol of optimal. For most applications (gzip text, JPEG-baseline images), Huffman's near-optimality + 5-10× speed wins. Arithmetic shines for: extreme-skew distributions, small block sizes, lossless image/video codecs where 5-10% ratio matters (H.264 CABAC, JPEG2000).",
+          "Arithmetic doesn't work.",
+          "Patent issues."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Huffman vs Arithmetic vs ANS comparison**:\n\n*Huffman*:\n- Simple algorithm.\n- Integer code lengths → up to 1 bit/symbol suboptimal.\n- Fast: dozens of bits/ns/core; vectorizable.\n- Cache-friendly tables.\n- Widely supported in hardware (JPEG, MP3 silicon).\n- Sub-optimal for very-skewed distributions.\n\n*Arithmetic*:\n- Entropy-optimal.\n- Complex precision arithmetic; needs renormalization.\n- Inherently serial: each symbol updates state.\n- ~10× slower than Huffman in software.\n- Patent issues historically (IBM patents 1980s-90s; now expired).\n- Used in JPEG 2000, H.264/H.265 (CABAC), HEVC.\n\n*ANS / FSE / tANS*:\n- Modern alternative.\n- Entropy-optimal like arithmetic.\n- Comparable speed to Huffman (table-driven).\n- No patents.\n- Used in zstd (table-based ANS), Apple LZFSE, Linux kernel ZSTD.\n- Increasingly displacing Huffman in newer codecs.\n\n**Why Huffman still dominates many applications**:\n1. Simplicity → maintainable + portable.\n2. Speed → no significant bottleneck for most data.\n3. Hardware ubiquity (JPEG, MP3, DEFLATE).\n4. Suboptimality only matters at high skew → rare for typical data.\n5. Patent-free → safe legal default.\n\n**When arithmetic / ANS pay off**:\n- Lossy media codecs where small ratio gains accumulate (H.264 over H.263 driven partly by CABAC).\n- Extreme-skew distributions (genomic data, sparse representations).\n- High-ratio archives where speed less critical.\n- Modern codecs designed for ratio (zstd, xz, brotli).\n\n**ANS specifically**: Duda 2014 paper revolutionized practical near-optimal coding. zstd's adoption demonstrates ANS's combination of speed + ratio. Expected to slowly replace Huffman in many domains over coming decade.\n\nDesign tradeoff: depending on use case, complexity / patents / speed all factor in alongside theoretical ratio."
+      },
+      "hints": [
+        "What are Huffman's strengths?",
+        "When does arithmetic win?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Huffman: simple + fast (10s of bits/ns); ≤1 bit/symbol suboptimal; widely deployed in hardware (JPEG, MP3, DEFLATE). Arithmetic: entropy-optimal but serial + complex + slower (~10×); used in CABAC (H.264), JPEG2000. ANS (Duda 2014): table-driven + entropy-optimal + Huffman-speed; in zstd, LZFSE, Linux kernel. Tradeoffs: simplicity/speed/patents/hardware vs ratio. Huffman dominates many applications via the practical-engineering combination; ANS slowly replacing it."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_src_1",
+        "kind": "slider",
+        "question": "Drag the slider to estimate the entropy (in bits/byte) of typical English text.",
+        "target": {
+          "min": 1.5,
+          "max": 2.5
+        },
+        "default": 4,
+        "explanation": "English text entropy ~1.2-2.0 bits/byte (Shannon 1951 cloze experiment estimated 0.6-1.3 bits/character; modern neural LM compressors achieve ~0.75 bits/byte on Wikipedia). Compare to: random data ~8 bits/byte; structured code (Python, Markdown) ~3-5 bits/byte; numeric data varies widely. Lower entropy = more compressible; English's grammatical + semantic structure makes it ~6× compressible from raw ASCII."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_src_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why 'lossless compression' has a fundamental limit (Shannon's source-coding theorem) but lossy compression can go arbitrarily small.",
+        "rubric": "Mentions: lossless = decompressor must reconstruct input exactly. Pigeonhole argument: N distinct N-bit inputs cannot all map to (N-1)-bit outputs (only 2^(N-1) outputs available). So average compression bounded by entropy H of source distribution. Source coding theorem: optimal rate = H bits/symbol. Lossy compression abandons exact reconstruction; tolerates reconstruction error ε. Can transmit fewer bits; rate decreases as ε increases. Rate-distortion theory (next lesson) formalizes this tradeoff: R(D) gives minimum rate at distortion D. Examples: JPEG drops high-frequency components (visible at very high compression); MP3 drops inaudible frequencies (psychoacoustic model); neural image compression (Hyperprior + BMSHJ models) near-optimal at given quality. Compute trade-offs increasingly relevant: 4K video transmission impossible without lossy; lossless reserved for code, text, medical/legal. Concludes: lossless rate-floor = H; lossy can be arbitrarily small but lossy + distortion-controlled."
+      }
+    }
+  ]
+}

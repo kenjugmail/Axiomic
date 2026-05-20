@@ -118,6 +118,11 @@ const LazyECGSimulator = lazy(() =>
     (m) => ({ default: m.ECGSimulator }),
   ),
 );
+const LazyShannonChannel = lazy(() =>
+  import("../../../../../packages/viz/src/components/ShannonChannel").then(
+    (m) => ({ default: m.ShannonChannel }),
+  ),
+);
 const LazyDoublePendulum = lazy(() =>
   import("../../../../../packages/viz/src/components/DoublePendulum").then(
     (m) => ({ default: m.DoublePendulum }),
@@ -236,6 +241,8 @@ function VizByName({
       return <LazyAtmosphericSounding {...(props as object)} />;
     case "ecg-simulator":
       return <LazyECGSimulator {...(props as object)} />;
+    case "shannon-channel":
+      return <LazyShannonChannel {...(props as object)} />;
     default:
       return null;
   }

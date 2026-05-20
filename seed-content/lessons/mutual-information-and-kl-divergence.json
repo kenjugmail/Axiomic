@@ -1,0 +1,224 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Define mutual information + KL divergence.",
+      "Connect to maximum likelihood + Bayesian inference.",
+      "Reason about information geometry."
+    ],
+    "prereqs": [
+      "entropy-and-surprisal"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Mutual information: shared structure between X + Y",
+      "body": "**Mutual information** I(X; Y): how much knowing Y reduces uncertainty about X (or vice versa).\n\n  I(X; Y) = H(X) - H(X|Y) = H(Y) - H(Y|X) = H(X) + H(Y) - H(X, Y)\n\n• I(X; Y) ≥ 0; equals 0 iff X ⊥ Y.\n• Symmetric: I(X; Y) = I(Y; X).\n• Bounded: I(X; Y) ≤ min(H(X), H(Y)).\n\n**Interpretations**:\n- Bits of information about X obtainable from Y on average.\n- Bits saved when encoding X knowing Y vs not knowing.\n- Tightness of dependence (deterministic Y = f(X) → I = H(X)).\n- Generalized correlation (works for non-linear, categorical, mixed-type).\n\n**Examples**:\n- Coin flip + its outcome: I = 1 bit (knowing outcome fully informs).\n- Coin flip + an unrelated coin flip: I = 0.\n- Coin flip + 'flipper's mood': probably low I.\n- Stock price + news sentiment: small but non-zero I (correlated weakly).\n- Coordinates of nearby trees in a forest: high I (spatial structure).\n\n**Data processing inequality**: information cannot be created by processing.\n  X → Y → Z (Markov chain) ⟹ I(X; Z) ≤ I(X; Y).\n\n**Applications**:\n- **Feature selection**: pick features with high I to predict label.\n- **Independent component analysis (ICA)**: minimize MI between components.\n- **Variational inference**: ELBO = -KL(q || p_post) = expected log-likelihood + mutual information term.\n- **Channel capacity**: C = max I(X; Y) over input distribution (next lesson).\n- **Representation learning**: maximize I between input + representation while constraining (info bottleneck)."
+    },
+    {
+      "kind": "text",
+      "title": "KL divergence: measuring difference between distributions",
+      "body": "**Kullback-Leibler divergence** (1951):\n\n  D_KL(P || Q) = ∑ P(x) log[P(x)/Q(x)]   (discrete)\n  D_KL(P || Q) = ∫ P(x) log[P(x)/Q(x)] dx  (continuous)\n\nProperties:\n• D_KL(P || Q) ≥ 0; equals 0 iff P = Q.\n• **Not symmetric**: D_KL(P || Q) ≠ D_KL(Q || P) in general.\n• **Not a metric**: doesn't satisfy triangle inequality.\n• Diverges when Q(x) = 0 + P(x) > 0 for any x.\n• Units: bits (log₂) or nats (ln).\n\n**Interpretations**:\n- 'Information lost' when approximating P with Q.\n- Inefficiency of coding P-distributed data with code optimized for Q.\n- Likelihood ratio: D_KL(P || Q) = E_P[log(P/Q)] = relative entropy.\n- Forward KL vs Reverse KL:\n  - Forward D_KL(P || Q): penalty for Q underestimating P (Q must cover P's support). 'Inclusive.'\n  - Reverse D_KL(Q || P): penalty for Q exceeding P (Q can ignore parts). 'Exclusive,' mode-seeking.\n  - VAE training: minimizes D_KL(q || p) — encoder q seeks mode of true posterior p.\n\n**Connection to mutual information**: I(X; Y) = D_KL(p(x,y) || p(x) p(y)) — divergence between joint + product of marginals. Zero iff X ⊥ Y.\n\n**Cross-entropy**: H(P, Q) = -∑ P log Q = H(P) + D_KL(P || Q). Used in ML as the **cross-entropy loss** (negative log-likelihood).\n\n**Jensen-Shannon divergence**: symmetric variant: JS(P, Q) = ½ [D_KL(P || M) + D_KL(Q || M)], where M = (P+Q)/2. Bounded, symmetric, useful when KL diverges.\n\n**f-divergences**: family generalizing KL (Csiszár 1967). KL, JS, Hellinger, χ², total variation all special cases. Each has different sensitivity profile. Used in: GANs (Jensen-Shannon, then Wasserstein); domain adaptation; statistical testing."
+    },
+    {
+      "kind": "text",
+      "title": "Information bottleneck + ML connections",
+      "body": "**Information bottleneck** (Tishby 1999): for a learning task, find representation T that maximizes I(T; Y) (predictive) while minimizing I(T; X) (compressed). Lagrangian:\n\n  L = I(T; Y) - β I(T; X)\n\nβ controls tradeoff. Lower β: more compression but loss of predictive power.\n\n**Interpretation in deep learning**:\n- Each hidden layer is a representation T.\n- During training, layers move toward higher I(T; Y) (fitting).\n- Then 'compression phase': I(T; X) decreases as layer becomes invariant to irrelevant input variations.\n- Initially controversial but emerging as theoretical lens for deep-learning generalization (Schwartz-Ziv & Tishby 2017; Saxe+ 2018; many follow-ups).\n\n**Cross-entropy loss + KL divergence**: standard classification loss is cross-entropy:\n  L = -∑ y_i log p_θ(x)_i = H(P_true, P_θ)\n\nMinimizing cross-entropy = minimizing KL(P_true || P_θ) + H(P_true) — the H is constant in θ; the KL is what's minimized.\n\n**Variational inference**: ELBO = log p(x) - D_KL(q(z|x) || p(z|x)) where:\n- p(z|x): true (intractable) posterior.\n- q(z|x): variational approximation.\n- Minimize KL → maximize ELBO.\n- VAE training uses this with KL(q || prior) penalty for regularization.\n\n**Mutual information neural estimation (MINE)**: Belghazi+ 2018 + variants estimate MI via deep networks. Used for: representation-learning objectives, fairness constraints, contrastive learning.\n\n**InfoNCE objective** (CPC, SimCLR, CLIP): maximize MI between input + representation using contrastive samples. Foundation of modern self-supervised learning.\n\n**Conditional MI + transfer**: I(X; Y | Z) measures dependence beyond what Z explains. Useful for: causal inference (confounding by Z), explainable AI (feature attribution), partial information decomposition.\n\n**Information geometry** (Amari 1985, Amari + Nagaoka 2007): differential-geometric framework for statistical manifolds. KL divergence as the natural divergence; Fisher information as the natural metric. Natural-gradient methods + variational inference benefit."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mi_1",
+        "kind": "guided_derivation",
+        "question": "Compute mutual information between two binary variables",
+        "goal": "X is a fair coin flip; Y = X with probability 0.8 (noisy copy). Compute I(X; Y).",
+        "steps": [
+          {
+            "prompt": "Joint distribution p(X, Y)?",
+            "motivation": "Construct the 2×2 table.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "P(X=0,Y=0)=0.4 etc",
+                "matrix [0.4,0.1;0.1,0.4]"
+              ]
+            },
+            "hints": [
+              "X uniform; P(Y=X) = 0.8."
+            ],
+            "reveal": "P(X=0, Y=0) = 0.5 × 0.8 = 0.4. P(X=0, Y=1) = 0.5 × 0.2 = 0.1. Symmetric. So p(x, y) = [[0.4, 0.1], [0.1, 0.4]]."
+          },
+          {
+            "prompt": "Marginal P(Y)?",
+            "motivation": "Sum over X.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "P(Y=0) = 0.5, P(Y=1) = 0.5",
+                "uniform"
+              ]
+            },
+            "hints": [
+              "Add columns."
+            ],
+            "reveal": "Y is also uniform: P(Y=0) = 0.4 + 0.1 = 0.5; P(Y=1) = 0.1 + 0.4 = 0.5."
+          },
+          {
+            "prompt": "H(X), H(Y)?",
+            "motivation": "Standard entropy.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1 bit, 1 bit",
+                "H(X) = H(Y) = 1"
+              ]
+            },
+            "hints": [
+              "Both uniform binary."
+            ],
+            "reveal": "H(X) = H(Y) = 1 bit (both fair binary)."
+          },
+          {
+            "prompt": "H(X | Y) using H(X|Y=0) + H(X|Y=1)?",
+            "motivation": "Conditional entropy.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~0.72 bits",
+                "0.722 bits"
+              ]
+            },
+            "hints": [
+              "H(X|Y=0) = H(0.8, 0.2) = 0.722; H(X|Y=1) same."
+            ],
+            "reveal": "P(X | Y=0) = (0.8, 0.2) → H(X|Y=0) = -0.8 log 0.8 - 0.2 log 0.2 ≈ 0.722 bits. Same for Y=1. So H(X|Y) = 0.5 × 0.722 + 0.5 × 0.722 = 0.722 bits."
+          },
+          {
+            "prompt": "I(X; Y) = H(X) - H(X|Y)?",
+            "motivation": "Apply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~0.278 bits",
+                "0.278",
+                "1 - 0.722"
+              ]
+            },
+            "hints": [
+              "1 - 0.722."
+            ],
+            "reveal": "I(X; Y) = 1 - 0.722 = 0.278 bits. Y carries 0.278 bits of information about X (out of 1 possible). With p_error = 0.5 (random): I = 0. With p_error = 0 (perfect copy): I = 1."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_mi_1",
+        "kind": "slider",
+        "question": "Drag to estimate I(X; Y) when X is a fair coin + Y is X passed through a BSC with error p=0 (perfect channel).",
+        "target": {
+          "min": 1,
+          "max": 1
+        },
+        "default": 0.5,
+        "explanation": "Perfect channel: Y = X always, so observing Y completely determines X. I(X; Y) = H(X) = 1 bit. For BSC: I(X; Y) = 1 - H(p), where H is binary entropy. p=0 → I=1; p=0.5 → I=0; p=1 → I=1 (perfect inversion). Channel capacity is the maximum I over input distributions; for BSC with uniform input, C = I = 1 - H(p)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_mi_1",
+        "kind": "drag_classify",
+        "question": "Classify each statement as TRUE or FALSE about KL divergence + mutual information.",
+        "items": [
+          {
+            "id": "kl-positive",
+            "label": "D_KL(P || Q) ≥ 0 always",
+            "bin": "true"
+          },
+          {
+            "id": "kl-symmetric",
+            "label": "D_KL(P || Q) = D_KL(Q || P)",
+            "bin": "false"
+          },
+          {
+            "id": "kl-zero-implies-equal",
+            "label": "D_KL(P || Q) = 0 iff P = Q",
+            "bin": "true"
+          },
+          {
+            "id": "mi-symmetric",
+            "label": "I(X; Y) = I(Y; X)",
+            "bin": "true"
+          },
+          {
+            "id": "mi-zero-iff-indep",
+            "label": "I(X; Y) = 0 iff X ⊥ Y",
+            "bin": "true"
+          },
+          {
+            "id": "mi-bounded-by-entropy",
+            "label": "I(X; Y) ≤ min(H(X), H(Y))",
+            "bin": "true"
+          },
+          {
+            "id": "cross-entropy-is-kl",
+            "label": "Cross-entropy H(P,Q) = D_KL(P || Q)",
+            "bin": "false"
+          },
+          {
+            "id": "kl-triangle",
+            "label": "D_KL satisfies triangle inequality (D_KL(P,R) ≤ D_KL(P,Q) + D_KL(Q,R))",
+            "bin": "false"
+          }
+        ],
+        "bins": [
+          {
+            "id": "true",
+            "label": "TRUE"
+          },
+          {
+            "id": "false",
+            "label": "FALSE"
+          }
+        ],
+        "explanation": "KL divergence + MI properties:\n• D_KL(P || Q) ≥ 0 (Gibbs' inequality); zero iff P = Q. TRUE.\n• Not symmetric: D_KL(P || Q) ≠ D_KL(Q || P) in general. FALSE.\n• Zero iff equal. TRUE (Gibbs).\n• I(X; Y) symmetric. TRUE.\n• I(X; Y) = 0 iff X ⊥ Y. TRUE (equals D_KL(p(x,y) || p(x)p(y))).\n• I(X; Y) ≤ min(H(X), H(Y)). TRUE.\n• Cross-entropy H(P, Q) = H(P) + D_KL(P || Q). Cross-entropy is NOT the KL divergence; they differ by H(P). FALSE.\n• KL does NOT satisfy triangle inequality. FALSE.\n\nKL is a divergence (positive + zero iff equal) but not a metric. JS divergence + Wasserstein distance are metric alternatives. Cross-entropy + KL related but distinct."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mi_1",
+        "kind": "multiple_choice",
+        "question": "Why is cross-entropy loss the standard for classification training (not, e.g., MSE)?",
+        "options": [
+          "Convention.",
+          "Cross-entropy = -∑ y_true log p_θ measures the negative log-likelihood of the true labels under the model's predicted distribution. Minimizing it = minimizing KL(P_true || P_θ) (since H(P_true) is constant in θ). MSE between probabilities + labels: lacks the proper-scoring-rule property + gives near-zero gradient when wrong with high confidence. Cross-entropy provides large gradient when confident-and-wrong → faster + more reliable convergence.",
+          "MSE is wrong.",
+          "Cross-entropy is required by law."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Why cross-entropy + not MSE for classification**:\n\n*Cross-entropy loss*:\n  L = -∑_i y_i log p_θ(x)_i\nwhere y is one-hot label, p_θ are model probabilities.\n\n*Equivalent forms*:\n- Negative log-likelihood of labels.\n- KL(P_true || P_θ) - H(P_true) (drop constant: minimize KL).\n- Maximum likelihood estimator (MLE) of model parameters.\n\n*Why it works for classification*:\n\n1. **Proper scoring rule**: cross-entropy is uniquely minimized when predicted distribution matches true distribution. MSE on probabilities is a proper scoring rule but with different sensitivity.\n\n2. **Gradient magnitude when wrong**: cross-entropy gradient ∝ (p - y) (logistic regression case) — finite + non-zero when very wrong. MSE gradient when p is wrong + saturated (e.g., p=0.999 when y=0): ~0 because sigmoid output saturates. Cross-entropy never saturates; always provides learning signal.\n\n3. **Information-theoretic interpretation**: minimizing cross-entropy = minimizing KL = best approximation of true distribution in KL sense.\n\n4. **Connection to softmax**: cross-entropy + softmax pair has clean gradient (p - y) — the optimization-friendly Bayes-optimal pairing.\n\n5. **Maximum likelihood**: under iid sampling, cross-entropy minimization is asymptotically the MLE — guaranteed consistency + (under regularity) asymptotic efficiency.\n\n*When MSE used instead*:\n- Regression (continuous outputs).\n- Some specific ML scenarios where calibration is critical + cross-entropy biased.\n- Some Bayesian methods using posterior moments.\n\n*Modern variants*:\n- **Focal loss** (Lin+ 2017): downweights easy examples; better for imbalanced classification.\n- **Label smoothing**: soft-target (1-ε on true, ε/K on others); reduces overconfidence.\n- **Distillation loss**: KL between teacher + student softmax outputs.\n- **Contrastive losses** (InfoNCE): MI lower-bound; foundation of CLIP + SimCLR.\n\n*Connection back to info theory*: maximum likelihood = minimum KL = maximum information about labels in model = information bottleneck objective. The fundamental quantity is information, expressed multiple ways.\n\nThis is a key example of how information theory shapes practical ML."
+      },
+      "hints": [
+        "What's the gradient when wrong + confident?",
+        "What's the info-theory interpretation?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Cross-entropy = -∑ y log p = NLL = KL(P_true || P_θ) - H(P_true). Provides finite gradient when wrong + confident; MSE saturates near 0 + 1 → vanishing gradient. Minimizing CE = minimizing KL = MLE. Cross-entropy + softmax pair gives clean (p - y) gradient. Variants: focal loss, label smoothing, distillation, InfoNCE. Info-theoretic foundation: KL is fundamental measure of difference between distributions."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mi_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how mutual information has become a foundation for modern representation learning.",
+        "rubric": "Mentions: I(X; Y) = bits of info Y carries about X. For representation learning: T = encoder(X); want T to retain info about Y (label) but discard nuisance variation in X. Information bottleneck (Tishby 1999): max I(T; Y) - β I(T; X). Modern self-supervised learning: CLIP, SimCLR, MoCo, BYOL use **InfoNCE** = MI lower bound between input + positive pairs. Contrastive objective: distinguish positive pair (same instance, augmented) from negative pairs; maximizes MI between representations. MINE (Belghazi+ 2018) + neural MI estimation enables direct use in objectives. CLIP: I(image, text) maximized → joint embedding. ELBOs in VAEs include KL = MI-related terms. Cross-entropy loss = KL minimization. Foundations of modern self-supervised + multimodal learning all info-theoretic. Concludes: I + KL are unifying concepts across ML."
+      }
+    }
+  ]
+}

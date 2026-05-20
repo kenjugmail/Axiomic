@@ -1,0 +1,201 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "advanced",
+    "objectives": [
+      "Compare gzip, zstd, xz, brotli.",
+      "Reason about block sizes, dictionaries, parallelism.",
+      "Connect to streaming + database storage."
+    ],
+    "prereqs": [
+      "source-coding-and-compression"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Real-world compressors: when, where, why",
+      "body": "**Practical compression** balances: ratio, speed, memory, parallelism, format compatibility, licensing.\n\n**General-purpose compressors**:\n• **gzip (DEFLATE)**: 1992, RFC 1951. LZ77 + Huffman. Ubiquitous (web, Linux, packages). Mid-ratio, fast.\n• **bzip2**: 1996. BWT + RLE + Huffman. Better ratio than gzip; slower.\n• **xz (LZMA2)**: 2009. LZ77 variant + range coding. High ratio; slower than gzip; default for Linux kernel + Arch packages.\n• **zstd**: 2015 Facebook. LZ77 + ANS. Fast + high-ratio. Becoming default in many: Linux kernel modules, btrfs, ZFS, Cloudflare.\n• **brotli**: 2015 Google. LZ77 + context modeling + Huffman. Web (HTTP Content-Encoding: br); ~20% better than gzip for HTML/JS/CSS.\n• **LZ4**: 2011. Fast LZ77 variant. Highest speed; modest ratio. Used in: compression for SQL Server, ZFS, Linux kernel boot.\n• **Snappy / Snappy-frame**: Google 2011. Fast LZ77. Used in: BigTable, Hadoop, Lucene.\n\n**Specialized**:\n- **JPEG, MP3, etc.** (lossy media; covered earlier).\n- **PNG**: lossless image; uses DEFLATE.\n- **FLAC**: lossless audio.\n- **Parquet, ORC** (database file formats): combine columnar + run-length + dictionary + Snappy/zstd compression.\n- **Bloom filters + similar**: lossy sketches for set membership.\n\n**Trade-offs**:\n- Speed: LZ4 > Snappy > zstd > gzip > brotli > bzip2 > xz.\n- Ratio: xz > brotli > zstd-max > bzip2 > gzip > zstd-1 > LZ4 > Snappy.\n- Memory: xz, brotli need most; LZ4 + gzip least.\n- Parallelism: zstd, xz, pigz (parallel gzip), pixz (parallel xz) support multi-threaded.\n\n**Modern trend**: zstd increasingly default — combines high ratio + fast decode + good parallelism + permissive license."
+    },
+    {
+      "kind": "text",
+      "title": "Block sizes, dictionaries, + parallelism",
+      "body": "**Block size** matters for compression:\n- Small blocks (~16 KB gzip): low memory + fast random access; lower ratio.\n- Large blocks (~MB xz): high ratio; high memory; slow seek.\n- zstd: ~4 MB default; adjustable.\n\n**Dictionary compression**: pre-trained dictionary of common patterns. Decompressor must have same. Used for: small messages (e.g., HTTP headers, log lines, message-queue payloads).\n- zstd: native dictionary support; train on representative samples.\n- gzip: limited.\n- Effectiveness: small messages (~500 bytes) often see 2-5× extra ratio.\n\n**Parallel compression**:\n- pigz (parallel gzip): independent blocks; near-linear scaling.\n- xz: parallel mode.\n- zstd: native multi-thread.\n- Limitation: independent blocks → small ratio penalty; not all formats allow.\n\n**Streaming compression**:\n- All formats support, but block boundaries affect ratio.\n- gzip streaming: emit on each input flush.\n- Modern: zstd long-range mode (LDM) for streaming many GB.\n\n**Random access** (decompress fragments without full scan):\n- Most formats don't support natively.\n- Solutions: index files (e.g., bgzip + tabix for genomic data), random-access zstd, lz4-frame.\n\n**Compression as service**:\n- HTTP Content-Encoding: gzip, br (brotli), zstd (since 2018).\n- TCP-level: rarely; usually app-level.\n- Cloud storage: S3 + GCS + Azure all offer + recommend compression.\n- CDN: CloudFront + Cloudflare auto-compress text content.\n\n**Storage compression**:\n- File systems: btrfs + ZFS + XFS support transparent zstd or LZ4.\n- Databases: PostgreSQL + MySQL support compression at table/page/column level.\n- Time-series (InfluxDB, TimescaleDB): heavy use of compression + delta encoding.\n- Log archival: zstd typically; gzip for compat."
+    },
+    {
+      "kind": "text",
+      "title": "Compression in databases + streaming",
+      "body": "**Column-oriented databases** (Parquet, ORC, Apache Arrow, ClickHouse, DuckDB, BigQuery) combine multiple compression techniques per column:\n\n1. **Dictionary encoding**: replace strings with small integer IDs; saves space for low-cardinality columns.\n2. **Run-length encoding (RLE)**: store repeating sequences as (value, count).\n3. **Delta encoding**: store differences between consecutive values; small for monotonic.\n4. **Bit-packing**: use minimum bits per value (16-bit ints in 12 bits if max value < 4096).\n5. **General-purpose**: gzip, zstd, Snappy on top of all above.\n\nResult: 10-100× compression vs raw row-oriented storage; analytic queries scan less data.\n\n**Time-series-specific** (Prometheus, InfluxDB, TimescaleDB):\n- Gorilla compression (Facebook 2015): variable-length encoding of double values; ~12 bytes → ~1-2 bytes typical.\n- Delta + delta-of-delta for timestamps + monotonic counters.\n- Combined: 10-50× compression typical.\n\n**Log streaming**:\n- Kafka + Pulsar + Kinesis: compression per batch.\n- Log aggregators (Loki, Splunk, Datadog): heavy use of compression + sketches.\n\n**Web + CDN**:\n- Brotli for HTML/JS/CSS — ~20% better than gzip; widely supported.\n- HTTP/3 (QUIC): per-request compression possibilities.\n- Image CDNs (Cloudinary, Imgix): on-the-fly format conversion to AVIF/WebP.\n\n**Container + image registries**:\n- Docker uses gzip + zstd (--compression-mode zstd:chunked).\n- Layered storage relies on compression for download speed.\n\n**ML model serialization**:\n- HuggingFace safetensors: no compression by default (compression breaks zero-copy memory mapping).\n- ONNX: compression optional.\n- Trade-off: smaller files vs decompression overhead.\n- Quantization (int8, int4) is a primary 'compression' for ML models.\n\n**Crypto + secure compression**:\n- CRIME, BREACH attacks (2012, 2013): TLS + gzip-compression timing leaks. Mitigated via TLS-level controls."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_comp_1",
+        "kind": "guided_derivation",
+        "question": "Choose the right compressor for a use case",
+        "goal": "Match compressor to scenario.",
+        "steps": [
+          {
+            "prompt": "Need: log files archived to S3; mainly stored, rarely retrieved.",
+            "motivation": "Optimize ratio.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "xz",
+                "xz / LZMA"
+              ]
+            },
+            "hints": [
+              "High ratio + cold storage."
+            ],
+            "reveal": "**xz / LZMA**: highest ratio at slow speed. S3 storage costs > compression time for cold archives. Modern alternative: zstd at level 19+ for similar ratio + faster decompress."
+          },
+          {
+            "prompt": "Need: HTTP web pages from API; high request volume.",
+            "motivation": "Optimize decompress speed.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "brotli or zstd",
+                "brotli",
+                "zstd"
+              ]
+            },
+            "hints": [
+              "Brotli or zstd."
+            ],
+            "reveal": "**Brotli** (text-tuned; 20% better than gzip for HTML/JS/CSS) or **zstd** (general; web support growing). Both 2-3× faster decompress than gzip + better ratio. Browser support: Chrome + Firefox + Safari + Edge support both natively."
+          },
+          {
+            "prompt": "Need: container image layers stored in registry.",
+            "motivation": "Multi-objective.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "zstd:chunked",
+                "zstd",
+                "gzip for compat"
+              ]
+            },
+            "hints": [
+              "Docker + Kubernetes registries."
+            ],
+            "reveal": "**zstd:chunked**: latest Docker + OCI default. Combines high ratio + fast decompression + parallel + supports lazy / chunked download. Replacing gzip standard. **gzip** for compat with old tooling."
+          },
+          {
+            "prompt": "Need: real-time log streaming with low latency.",
+            "motivation": "Speed > ratio.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "LZ4 or Snappy",
+                "LZ4",
+                "Snappy"
+              ]
+            },
+            "hints": [
+              "Optimize speed."
+            ],
+            "reveal": "**LZ4** or **Snappy**: very fast compress + decompress (multi-GB/s per core). Lower ratio (~2× vs gzip's 3×). Kafka + ClickHouse + log aggregators use these for hot streams."
+          },
+          {
+            "prompt": "Need: scientific dataset (genomics, climate) with 10 TB.",
+            "motivation": "Specialized.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "domain-specific + zstd dictionary",
+                "Gorilla + zstd",
+                "bgzip"
+              ]
+            },
+            "hints": [
+              "Specialized + general."
+            ],
+            "reveal": "Multi-layered approach: domain-specific (delta encoding, Gorilla for time series, BCF/CRAM for genomics) + general-purpose (zstd or xz) on top. Indexed formats (HDF5, bgzip/tabix for genomic) allow random access. ML-based compression emerging for specialty (e.g., Cramore for genomic, climate-data-specific neural compression)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_comp_1",
+        "kind": "sortable",
+        "question": "Order these compressors by *decompression speed* (fastest to slowest, on similar text).",
+        "items": [
+          {
+            "id": "lz4",
+            "label": "LZ4"
+          },
+          {
+            "id": "snappy",
+            "label": "Snappy"
+          },
+          {
+            "id": "zstd-1",
+            "label": "zstd (level 1)"
+          },
+          {
+            "id": "gzip",
+            "label": "gzip"
+          },
+          {
+            "id": "brotli",
+            "label": "Brotli"
+          },
+          {
+            "id": "xz",
+            "label": "xz / LZMA"
+          }
+        ],
+        "explanation": "Decompression speed (approximate, MB/sec per core):\n• **LZ4**: ~3-5 GB/sec; fastest.\n• **Snappy**: ~2-3 GB/sec.\n• **zstd (any level)**: ~1-2 GB/sec (slightly faster at level 1).\n• **gzip**: ~300-500 MB/sec.\n• **Brotli**: ~200-400 MB/sec; depends on level.\n• **xz / LZMA**: ~100-200 MB/sec; slowest.\n\nDecompression speed is what matters for read-heavy workloads (most apps + databases + CDNs read more than they compress). Compression speed inverted (slower for higher ratio). zstd's sweet spot: faster compression than gzip + similar/better ratio + multi-thread."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_comp_1",
+        "kind": "multiple_choice",
+        "question": "Why has zstd become the de facto default for many modern compressed workloads (Linux kernel modules, Docker images, ZFS, btrfs, Cloudflare HTTP)?",
+        "options": [
+          "Marketing.",
+          "zstd combines: (1) high ratio (close to xz at high levels, similar to brotli); (2) fast compression (5-10× gzip); (3) very fast decompression (~1.5-2 GB/sec per core); (4) excellent multi-threading; (5) native dictionary support for small messages; (6) permissive BSD license; (7) wide format support including streaming + random-access. Combined: better than gzip + xz + brotli for most workloads. Backed by Facebook + actively developed; integrated into Linux kernel + Docker + most Linux distros.",
+          "zstd is the only compressor.",
+          "Required by law."
+        ],
+        "correctIndex": 1,
+        "explanation": "**zstd ascent (Facebook 2015 → de-facto default 2020s)**:\n\n*Design goals* (Yann Collet, 2015):\n- Better ratio than gzip at similar speed.\n- Better speed than xz at similar ratio.\n- Multi-threaded for both compression + decompression.\n- Streaming support.\n- Free/open-source.\n\n*Technical decisions*:\n- **LZ77** for matching (proven; well-understood).\n- **Finite State Entropy (FSE)** / **tANS** for entropy coding (entropy-optimal at Huffman-like speed).\n- **Compression levels 1-22**: span from LZ4-like speed to xz-like ratio.\n- **Dictionary compression**: 10-100× compression for small messages.\n- **Skipped frames**: small headers; random access feasible.\n- **Streaming + frame format**: supports gigabyte-level streams.\n\n*Performance (level 3 default)*:\n- Compression: ~500 MB/sec/core (vs gzip ~100 MB/sec).\n- Decompression: ~1.5 GB/sec/core (vs gzip ~400 MB/sec).\n- Ratio: similar to gzip-6.\n- High-ratio mode (level 19-22): ratio close to xz; slower.\n\n*Adoption timeline*:\n- 2015: initial Facebook release.\n- 2017: Linux kernel module compression option.\n- 2019: Cloudflare adopted for HTTP.\n- 2020: ZFS native support.\n- 2021: btrfs default option.\n- 2022: Docker / OCI zstd:chunked default for new images.\n- 2023: HTTP Content-Encoding: zstd added to RFC.\n- 2024: most Linux distros default-include zstd.\n\n*Why broader adoption than xz + brotli*:\n- xz: high ratio but very slow decompression; bad for high-throughput.\n- brotli: web-optimized; less general-purpose; not as fast at archive levels.\n- gzip: legacy + universal; slowly being replaced.\n- LZ4: too low ratio for general use; specialized for in-memory.\n\n*Future*:\n- zstd-tail-end-of-distribution improvements: long-range mode (LDM) for huge files.\n- ML-augmented dictionaries.\n- Hardware acceleration: ARM + Intel + AMD all have zstd-acceleration extensions; cloud providers (AWS Graviton) include.\n- Quantum-resistant compression (post-2030 issue).\n\n**Lesson**: in computing, occasionally a tool dominates by combining many engineering trade-offs well rather than excelling at one dimension. zstd + Linux + Wireshark + git all share this characteristic."
+      },
+      "hints": [
+        "What's zstd's combination of properties?",
+        "What was it designed to replace?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "zstd combines: high ratio (close to xz at level 22); fast compression (5-10× gzip); very fast decompression (~1.5-2 GB/sec); excellent multi-thread; native dictionary support; permissive BSD license; streaming + random-access. Replaces gzip + xz + (partially) brotli. Adopted by: Linux kernel, Docker/OCI, ZFS, btrfs, Cloudflare, HuggingFace, most Linux distros. Yann Collet (Facebook) 2015; LZ77 + FSE/tANS entropy coding. Levels 1-22 span LZ4-to-xz performance."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_comp_1",
+        "kind": "slider",
+        "question": "Drag to estimate the compression ratio (input:output) of zstd default on typical English text.",
+        "target": {
+          "min": 3,
+          "max": 4
+        },
+        "default": 6,
+        "explanation": "zstd default (level 3) on English text: ~3-4× compression ratio (so 1 GB → ~250-330 MB). gzip default: ~3×. zstd at level 22: ~4-4.5× (similar to xz). Neural codecs: ~6-8× (close to entropy limit). For comparison: highly-redundant data (logs, code) can compress 5-10×; already-encoded binary data minimal compression; pre-compressed (JPEG, MP3) usually doesn't compress further."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_comp_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why compression has become 'invisible infrastructure' — used everywhere but rarely noticed by end users.",
+        "rubric": "Mentions: compression saves ~3-10× on storage + bandwidth without user awareness. Web: gzip + brotli auto-encode HTTP responses; browsers transparently decompress. CDN: AVIF/WebP/JPEG served automatically by content type + browser support. OS: filesystems (ZFS, btrfs, NTFS) transparently compress + decompress files. Cloud storage (S3, GCS): server-side compression; transparent retrieval. Databases (columnar): Parquet + ORC + ClickHouse highly compressed; queries transparent. Streaming services: Netflix/YouTube/Spotify deliver compressed audio/video; user sees only quality + buffering. Container images: Docker pulls compressed layers. Log aggregators: heavy compression for retention. Mobile networks: compression at multiple layers (codec, transport, encryption). Compression-aware caching + dedup. ML models: quantization is a form of compression. Concludes: compression is foundational utility; absence would crash bandwidth + storage by 5-10×; ubiquity is its measure of success."
+      }
+    }
+  ]
+}

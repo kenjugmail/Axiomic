@@ -1,0 +1,217 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Define channel capacity + Shannon's noisy-channel theorem.",
+      "Compute C for BSC + Gaussian channels.",
+      "Reason about capacity-achieving codes."
+    ],
+    "prereqs": [
+      "mutual-information-and-kl-divergence"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Channel capacity: the fundamental limit on reliable communication",
+      "body": "Shannon's most famous result. For a noisy channel with input X + output Y, **channel capacity** is:\n\n  C = max I(X; Y)\n      p(x)\n\nThe max is over all input distributions p(x).\n\n**Shannon's noisy-channel theorem** (1948):\n- For any rate R < C, codes exist with arbitrarily small probability of decoding error (n → ∞).\n- For R > C, error probability is bounded away from zero — reliable communication impossible.\n\n**Profound implications**:\n1. **Reliable communication over unreliable channels is possible** — error rate can be driven to zero with appropriate coding.\n2. **There's a hard limit** — exceed it + nothing works.\n3. **Concrete capacity numbers** for engineering design.\n\nBefore Shannon: people assumed reliable comm required perfect channels. Shannon showed redundancy + clever encoding compensate for noise — foundation of modern digital communication, internet, cell phones, deep-space probes.\n\n**Binary symmetric channel (BSC) with crossover p**:\n  C = 1 - H(p) = 1 - [-p log p - (1-p) log(1-p)] bits/use\n\n• p = 0 or 1: perfect channel; C = 1 bit/use.\n• p = 0.5: useless; C = 0.\n• p = 0.1: C ≈ 0.531 (so ~half the bandwidth still recovered).\n• p = 0.01: C ≈ 0.919.\n\n**Gaussian channel** (continuous, AWGN noise with power N, signal power S):\n  C = ½ log₂(1 + S/N)  bits/use   (Shannon-Hartley)\n\n  C = B log₂(1 + S/N)   bits/sec  (with bandwidth B Hz)\n\nThis is the formula behind WiFi, 4G/5G, fiber-optic + satellite communication.",
+      "viz": "shannon-channel",
+      "vizProps": {
+        "p": 0.1
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Shannon-Hartley + practical communication systems",
+      "body": "**Shannon-Hartley** C = B × log₂(1 + SNR):\n- B = bandwidth in Hz.\n- SNR = signal-to-noise ratio (linear, not dB).\n- C in bits/second.\n\n**Examples**:\n- Phone line (B = 3.4 kHz, SNR = 30 dB = 1000): C ≈ 3.4k × log₂(1001) ≈ 33.9 kbps. Real telephone modems peaked at 56 kbps via better modulation closer to Shannon limit.\n- ADSL (1 MHz, SNR ~30 dB): C ~ 10 Mbps. Real ADSL ~24 Mbps with modern coding.\n- WiFi 802.11ac (80 MHz, SNR 30 dB+): C ~ 800 Mbps + per stream. MIMO multiplies.\n- 5G mmWave (400 MHz, SNR 25 dB): C ~ several Gbps per beam.\n- Fiber-optic (~50 THz available, but practical 10s of THz with EDFA windows): C up to ~100 Tbps per fiber demonstrated.\n\n**Achieving the limit + practical codes**:\n\n1. **Hamming (1950)**: first error-correcting code; corrects 1-bit errors. (7,4) Hamming: 4 data bits + 3 parity = 7 transmitted. Used in some memory ECC. ~50% efficiency far below Shannon.\n\n2. **Convolutional codes + Viterbi**: 1960s. Continuous-stream encoder; trellis decoder. Used in: GPS, deep space (Voyager), early cellular.\n\n3. **Reed-Solomon**: 1960; non-binary; corrects burst errors. Used in: CD, DVD, QR codes, RAID, deep space.\n\n4. **Turbo codes** (Berrou + Glavieux 1993): two parallel convolutional + iterative decoding. First codes approaching Shannon limit in practice. Used in: 3G/4G cellular.\n\n5. **LDPC** (Low-Density Parity-Check, Gallager 1962 rediscovered 1990s): sparse parity-check matrix + belief-propagation decoding. Within 0.1 dB of Shannon. Used in: WiFi (802.11n+), DVB-S2 satellite, 5G NR, 802.16e WiMAX.\n\n6. **Polar codes** (Arıkan 2009): provably-capacity-achieving binary codes. Used in: 5G control channels.\n\nDeep-learning era: neural decoders + joint source-channel coding via end-to-end DNN are active research."
+    },
+    {
+      "kind": "text",
+      "title": "Other channels + multi-user information theory",
+      "body": "Beyond BSC + Gaussian:\n\n**Binary erasure channel (BEC)**: symbol erased with prob ε; rest perfect. Easier than BSC. C_BEC = 1 - ε.\n\n**Z-channel**: 0 → 0 always; 1 → 0 with prob p; 1 → 1 with prob 1-p. Asymmetric. Useful for some asymmetric noise models.\n\n**Multiple-access channel (MAC)**: multiple senders → single receiver. Capacity region (not single number). Used: cellular uplink.\n\n**Broadcast channel (BC)**: single sender → multiple receivers. Cellular downlink. Capacity region with rate inner-bounds (Cover-Marton).\n\n**Interference channel**: multiple pairs sharing same medium with interference. Open question for capacity region; Han-Kobayashi inner bound.\n\n**Relay channel**: source → relay → destination. Cover-El Gamal 1979 partial decode-forward. Modern: cooperative communication.\n\n**Multiple-input multiple-output (MIMO)**: multiple TX + RX antennas. Capacity grows linearly with min(N_TX, N_RX) in good conditions. Foundation of: 4G/5G/WiFi 6 spatial multiplexing.\n\n**MIMO capacity** (Telatar 1995, Foschini 1996):\n  C = log₂ det(I + (S/(N M_T)) H H^†)  per channel use\n\nwhere H = channel matrix, M_T = transmit antennas. With 4×4 MIMO + ~25 dB SNR: C ≈ 20+ bits/use; vs 1×1 ~8 bits/use.\n\n**Massive MIMO** (Marzetta 2010): hundreds of antennas at base station. Capacity scales aggressively + beamforming reduces interference. Cornerstone of 5G.\n\n**Quantum channels**: capacity formulas (Holevo bound, Hartle's theorem). Quantum cryptography (BB84) uses quantum-channel properties for security.\n\n**Network information theory**: capacity regions for arbitrary networks. Open in general; routing + coding tradeoffs."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cap_1",
+        "kind": "guided_derivation",
+        "question": "Compute the capacity of a Gaussian channel + a real-world example",
+        "goal": "5G mmWave channel: bandwidth B = 200 MHz, signal power 1 W, noise power 0.001 W. Compute capacity.",
+        "steps": [
+          {
+            "prompt": "Compute SNR (linear).",
+            "motivation": "Signal/noise.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1000",
+                "1 / 0.001"
+              ]
+            },
+            "hints": [
+              "Linear ratio."
+            ],
+            "reveal": "SNR = 1 / 0.001 = 1000 (30 dB)."
+          },
+          {
+            "prompt": "Capacity per use (or per Hz)?",
+            "motivation": "Shannon-Hartley per Hz.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~9.97 bits/Hz",
+                "log₂ 1001 ≈ 9.97"
+              ]
+            },
+            "hints": [
+              "log₂(1 + 1000)."
+            ],
+            "reveal": "C/B = log₂(1 + 1000) ≈ 9.97 bits/Hz."
+          },
+          {
+            "prompt": "Total capacity?",
+            "motivation": "Multiply by B.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~1.99 Gbps",
+                "2 Gbps",
+                "200e6 × 9.97"
+              ]
+            },
+            "hints": [
+              "200 MHz × ~10 bits/Hz = 2 Gbps."
+            ],
+            "reveal": "C = 200 MHz × 9.97 bits/Hz ≈ 1.99 Gbps. Real-world 5G peak rates ~10 Gbps achieved via MIMO + carrier aggregation + LDPC + polar codes."
+          },
+          {
+            "prompt": "What technologies bring us close to this limit in practice?",
+            "motivation": "Capacity-achieving codes.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "LDPC + polar + MIMO + carrier aggregation",
+                "modern codes"
+              ]
+            },
+            "hints": [
+              "Channel coding + spatial multiplexing."
+            ],
+            "reveal": "Modern 5G: LDPC codes (data channels) + polar codes (control channels) for near-Shannon performance; MIMO (up to 8×8 user-side, 64+ at base station) for spatial multiplexing; carrier aggregation across bands (sub-6 + mmWave) for total bandwidth. 5G NR (3GPP Release 15+) approaches theoretical limit at typical operating SNR."
+          },
+          {
+            "prompt": "At higher SNR (60 dB), what's C/B?",
+            "motivation": "Diminishing returns.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~20 bits/Hz",
+                "log₂(1 + 10⁶)",
+                "20"
+              ]
+            },
+            "hints": [
+              "log₂ scales with SNR in dB ÷ 3."
+            ],
+            "reveal": "C/B = log₂(1 + 10⁶) ≈ 20 bits/Hz. SNR doubled in dB → C grows logarithmically. Each +3 dB ≈ +1 bit/Hz. Diminishing returns — high SNR doesn't pay off as much as low → effort goes to: more bandwidth, more antennas, spectral coordination (massive MIMO + beamforming + cell densification)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_cap_1",
+        "kind": "sortable",
+        "question": "Order these error-correcting codes by typical decoding complexity + maturity (simplest/oldest to most-complex/modern).",
+        "items": [
+          {
+            "id": "hamming",
+            "label": "Hamming (7,4) code"
+          },
+          {
+            "id": "reed-solomon",
+            "label": "Reed-Solomon (255, 223)"
+          },
+          {
+            "id": "convolutional-viterbi",
+            "label": "Convolutional codes + Viterbi decoder"
+          },
+          {
+            "id": "turbo",
+            "label": "Turbo codes + BCJR decoder"
+          },
+          {
+            "id": "ldpc",
+            "label": "LDPC codes + belief propagation"
+          },
+          {
+            "id": "polar",
+            "label": "Polar codes + SC/SCL decoder"
+          }
+        ],
+        "explanation": "Coding history + complexity:\n• **Hamming (7,4)**: 1950, simplest; corrects 1 error per 7-bit block. Simple matrix operations. Used in some memory ECC.\n• **Reed-Solomon**: 1960; algebraic non-binary code; corrects burst errors. Used in CDs, DVDs, QR codes, RAID-6, deep space (Voyager).\n• **Convolutional + Viterbi**: 1960s; trellis structure; ML decoder; modest gain over uncoded. Used in GPS, 2G cellular.\n• **Turbo codes**: 1993 Berrou + Glavieux; iterative decoding; first codes near Shannon limit. Used in 3G/4G cellular.\n• **LDPC**: 1962 Gallager, rediscovered 1990s; sparse parity-check; belief propagation. Within 0.1 dB of Shannon. Used in WiFi, DVB-S2, 5G, 802.16.\n• **Polar codes**: 2009 Arıkan; provably-capacity-achieving binary codes; SC/SCL decoder. Used in 5G control channels.\n\nComplexity-performance frontier evolves; each new generation closes the gap to Shannon further. Quantum + neural decoders are next frontier."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_cap_1",
+        "kind": "slider",
+        "question": "Drag the slider to estimate BSC capacity (in bits/use) at bit-error probability p = 0.1.",
+        "target": {
+          "min": 0.5,
+          "max": 0.55
+        },
+        "default": 0.8,
+        "explanation": "BSC capacity: C = 1 - H(p). For p = 0.1: H(0.1) = -0.1 log₂ 0.1 - 0.9 log₂ 0.9 ≈ 0.469 bits. C = 1 - 0.469 ≈ 0.531 bits/use. So a channel with 10% bit-error rate still carries ~53% of its underlying bandwidth via clever coding. This insight (Shannon 1948) revolutionized communications."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cap_1",
+        "kind": "multiple_choice",
+        "question": "Why is 'reliable communication over a noisy channel' possible per Shannon, even at high error rates?",
+        "options": [
+          "Magic.",
+          "Channel capacity C = max I(X; Y) > 0 for any channel with non-zero mutual information. Shannon proved that codes exist transmitting information at rates R < C with arbitrarily low decoding error probability, in the limit of long block lengths. Mechanism: encode k information bits into n > k channel bits with redundancy that allows error correction. As n grows, structured codes (LDPC, polar, turbo) can extract reliable information even when individual bits are 10%, 20%, 40% erroneous — provided the rate doesn't exceed C.",
+          "Noisy channels don't actually exist.",
+          "Errors cancel out."
+        ],
+        "correctIndex": 1,
+        "explanation": "Shannon's noisy-channel theorem is one of the most counterintuitive + consequential results in 20th-century science.\n\n**Statement**: For any channel with capacity C > 0, + any rate R < C, there exist coding schemes such that the probability of decoding error → 0 as block length n → ∞.\n\n**Pre-Shannon thinking**: assumed reliable communication required perfect channels or that errors accumulate proportionally to message length. Both wrong.\n\n**Shannon's insight**: redundancy plus structure can compensate for noise. Specifically:\n- Encode k info bits into n > k channel bits.\n- Receiver sees noisy n bits.\n- Decode via 'most likely' codeword.\n- For random codes (Shannon's proof technique), expected error → 0 if R < C.\n\n**Proof sketch (random coding)**:\n1. Each of 2^(nR) messages mapped to randomly-chosen n-bit codeword.\n2. Send codeword over channel; receive noisy version.\n3. Decoder finds 'jointly typical' codeword with received output.\n4. Probability of error → 0 for R < C as n → ∞.\n\n**Constructive achievability** (much harder than proof of existence):\n- 1950s-90s: gap of ~3 dB between practical codes + Shannon limit.\n- Turbo codes (1993): 0.5 dB gap.\n- LDPC (1990s rediscovery): 0.1 dB gap.\n- Polar codes (2009): provably achieves capacity (with finite-length penalty).\n- Modern 5G + WiFi: operate within 1-2 dB of Shannon.\n\n**Practical demonstrations**:\n- Voyager probes: -157 dBW signal + ~50 dB SNR after antenna gain → Shannon-bounded; transmitted high-quality images of all gas giants via Reed-Solomon + convolutional concatenated codes.\n- HD video over 4G/5G: real-time at near-Shannon rates.\n- Deep-space optical: Pluto images via New Horizons; multi-Gbps over 5 billion km demonstrated.\n- Internet protocols (TCP): use coding + retransmission; effective rate ~ Shannon-bounded.\n\n**Connection to other fields**:\n- DNA error-correction: cells repair DNA damage at error rates that, without correction, would prevent organisms.\n- Neural coding in the brain: neurons send messages at high noise levels but reliable behavior emerges from redundancy + population coding.\n- Cryptography: error-correcting codes used in post-quantum lattice cryptography.\n- ML: variational autoencoders + flow-based models share variational + coding structure.\n\nShannon 1948 set the foundation for the digital age. His thesis is now a 75-year-old PhD thesis still being engineered against."
+      },
+      "hints": [
+        "What allows reliable comm with errors?",
+        "Why does coding work?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Shannon's noisy-channel theorem: for any channel with capacity C > 0 + rate R < C, codes exist with arbitrarily low decoding error as block length n→∞. Mechanism: redundancy + structure. Encode k info bits into n>k channel bits; decode via most-likely codeword. Practical codes: convolutional + Viterbi (1960s); turbo (1993, 0.5 dB gap); LDPC (1990s rediscovery, 0.1 dB gap); polar (2009, provably-achieving). Voyager, HD video, internet all bounded by Shannon. Connections: DNA repair, neural coding, post-quantum crypto. Shannon thesis 75 years old + still engineered against."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_cap_1",
+        "kind": "math_expression",
+        "question": "Compute the Shannon-Hartley capacity (in Mbps) of a channel with B = 20 MHz + SNR = 100 (20 dB).",
+        "acceptedAnswers": [
+          "~133 Mbps",
+          "133",
+          "20e6 × log₂(101)"
+        ],
+        "hint": "C = B × log₂(1 + SNR) = 20×10⁶ × log₂(101) ≈ 20 × 6.66 ≈ 133 Mbps."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cap_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain Shannon-Hartley + why it shapes every wireless + wired communication system today.",
+        "rubric": "Mentions: C = B log₂(1 + SNR) bits/sec for Gaussian channel. Two levers: bandwidth B (spectrum allocation; expensive + finite) + SNR (transmit power + reduce noise). Logarithmic in SNR → +3 dB doubles SNR but adds only 1 bit/Hz; +30 dB adds 10 bits/Hz. Each generation of wireless (2G→3G→4G→5G→6G) increases bandwidth (more spectrum, including mmWave + Terahertz) + spatial multiplexing (MIMO) + better modulation/coding (LDPC, polar). 5G mmWave: ~400 MHz + 64-QAM + MIMO + LDPC → multi-Gbps. Fiber-optic: ~10s of THz spectrum + WDM + modulation → Tbps per fiber. Internet backbone scales by adding fibers + wavelengths. Energy/bit limits also apply (Landauer 4×10⁻²¹ J/bit thermodynamic). Concludes: Shannon-Hartley is the fundamental design constraint + each new technology chases the next bit/Hz per cost."
+      }
+    }
+  ]
+}

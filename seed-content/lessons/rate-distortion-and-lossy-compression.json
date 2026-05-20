@@ -1,0 +1,178 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "advanced",
+    "objectives": [
+      "Define rate-distortion function.",
+      "Distinguish PSNR + perceptual quality.",
+      "Reason about JPEG + MP3 + modern codecs."
+    ],
+    "prereqs": [
+      "entropy-and-surprisal"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Rate-distortion: trading bits for quality",
+      "body": "**Rate-distortion theory**: extends source coding to lossy regime. Compressing X to representation X̂ allows distortion d(X, X̂); pay R(D) bits/symbol at allowable distortion D.\n\nRate-distortion function: R(D) = min I(X; X̂) over P(X̂ | X) s.t. E[d(X, X̂)] ≤ D.\n\nProperties:\n- R(0) = H(X) (lossless).\n- R(D) decreasing in D.\n- R(D) → 0 as D → D_max (constant codeword).\n- Continuous + convex.\n\n**Gaussian source with squared-error distortion**:\n  R(D) = (1/2) log₂(σ²/D)  for 0 < D ≤ σ²\n\nSo 1-bit reduction in rate → factor 2 reduction in fidelity (D doubles).\n\n**Practical codecs vs R(D)**: well-designed codecs operate near R(D); gap of ~0.5-3 dB common in image/video.\n\n**Distortion measures**:\n• **MSE / PSNR**: pixel-level error. Easy to optimize but doesn't match human perception.\n• **SSIM**: structural similarity; better perceptual.\n• **LPIPS** (Zhang+ 2018): learned perceptual; matches human judgment.\n• **VMAF** (Netflix): video-quality metric combining multiple features + ML.\n• **Mean opinion score (MOS)**: human evaluation; ground truth for quality.\n\n**Modern image codecs**:\n- **JPEG** (1992): DCT + quantization + Huffman. Ubiquitous.\n- **JPEG 2000** (2000): wavelet + arithmetic coding; better but adoption limited.\n- **WebP** (2010): VP8-based; better than JPEG; Google-promoted.\n- **HEIF/HEIC** (2015): HEVC-based; Apple-default; ~50% better than JPEG.\n- **AVIF** (2019): AV1-based; ~30-50% better than JPEG.\n- **JPEG XL** (2021): supersedes everything; in standardization; not yet broadly adopted.\n- **Neural codecs**: HyperPrior, BMSHJ, ELIC; FiLM-based; learned end-to-end. Beat traditional codecs at low rates; compute-heavy."
+    },
+    {
+      "kind": "text",
+      "title": "JPEG: the canonical lossy codec",
+      "body": "**JPEG (Joint Photographic Experts Group, 1992)**:\n\nPipeline (encode):\n1. RGB → YCbCr (luminance + chrominance separation; human visual system more sensitive to luminance).\n2. Subsample chrominance (4:2:0 typical, half-resolution Cb + Cr).\n3. Divide image into 8×8 blocks.\n4. **2D DCT** (discrete cosine transform) on each block → frequency-domain coefficients.\n5. **Quantization**: divide each coefficient by entry from quantization matrix Q. Larger Q = coarser quantization = more compression + visible blocking artifacts.\n6. **Zigzag scan** + **run-length encoding** + **Huffman**.\n\nDecode: reverse.\n\n**Quality parameter** controls quantization scale:\n- Q=100: minimal quantization; near-lossless.\n- Q=90: typical for photography.\n- Q=70-80: web-standard.\n- Q<50: visible artifacts (blocking, ringing).\n\n**Compression ratios**:\n- Photo at Q=85: ~8-15× compression vs raw RGB. Bits/pixel ~1-3 (vs 24 raw).\n- Aggressive JPEG: 50-100× ratio with significant quality loss.\n\n**JPEG limitations**:\n- 8×8 block structure → blocking artifacts at low quality.\n- DCT bases not ideal for natural images.\n- No spatial-frequency separation between brightness + structure.\n\n**JPEG 2000 (JP2)** uses **wavelets** (smooth multi-scale basis): no block artifacts, better quality at low bitrates. Adoption limited to specialized (medical imaging, archival, JPEG-XS for digital cinema).\n\n**Modern image codecs**: AVIF + HEIC + JPEG XL approach 2-3× JPEG efficiency at similar quality. Neural codecs (HyperPrior, BMSHJ) beat traditional at low rates but compute-heavy."
+    },
+    {
+      "kind": "text",
+      "title": "MP3 + Opus + neural audio + perceptual coding",
+      "body": "**MP3 (MPEG-1 Layer III, 1993)**: psychoacoustic-model-based audio compression. Drops inaudible spectral components (masked by other frequencies). 192 kbps stereo near-CD quality.\n\nPipeline:\n1. Frame audio (~1152 samples = 26 ms at 44.1 kHz).\n2. Subband decomposition (32 bands via polyphase quadrature filter).\n3. **Psychoacoustic model** computes per-band masking thresholds (frequency masking + temporal masking).\n4. Modified DCT (MDCT) for spectral fine resolution.\n5. Quantize: more bits to perceptually-important bands; fewer to masked.\n6. Huffman coding of quantized coefficients + side information.\n\n**Audio coding evolution**:\n- **MP3** (1993): the popularizer; 128-320 kbps; iPod era.\n- **AAC** (1997): better quality at similar bitrate; iTunes + YouTube default.\n- **Opus** (2012): combines voice (SILK) + audio (CELT); 6-510 kbps; royalty-free; default in WebRTC + Discord; 50-150 kbps superior to MP3.\n- **EVS** (2014): 3GPP cellular; full-band; backward-compatible.\n- **MPEG-H 3D audio**: object + scene-based; immersive (Atmos, etc.).\n- **Neural audio codecs** (Encodec from Meta 2022; SoundStream from Google 2022; OPUS-extending): 1.5-6 kbps for speech/music with high quality. Use VQ-VAE + transformer-style + residual coding.\n\n**LLM applications**: SoundStream + Encodec used as tokenizers for audio LLMs (AudioLM, MusicGen). Multi-token-per-second audio sequences become tractable for transformer training.\n\n**Perceptual coding lessons**:\n1. Human perception has redundancies (masking, attention, irrelevance).\n2. Tailoring compression to perception >> uniform compression.\n3. Combined with learned models: get more than handcrafted.\n4. Neural codecs increasingly use generative priors (denoise reconstruction).\n\n**Video codecs**: H.264 (ubiquitous), H.265/HEVC (4K), AV1 (open + royalty-free), VVC (H.266). Same idea + motion compensation between frames."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_rd_1",
+        "kind": "guided_derivation",
+        "question": "Apply rate-distortion to a Gaussian source",
+        "goal": "A Gaussian random variable X ~ N(0, σ² = 1). Compute R(D) for D = 0.01, 0.1, 1.0.",
+        "steps": [
+          {
+            "prompt": "R(D) formula for Gaussian + MSE?",
+            "motivation": "Standard result.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "R(D) = ½ log₂(σ²/D)",
+                "(1/2) log σ²/D"
+              ]
+            },
+            "hints": [
+              "Half log of variance over distortion."
+            ],
+            "reveal": "R(D) = (1/2) log₂(σ²/D) for 0 < D ≤ σ². At D = σ²: R = 0 (constant codeword)."
+          },
+          {
+            "prompt": "R(0.01)?",
+            "motivation": "Plug in.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~3.32 bits",
+                "3.32",
+                "0.5 × log₂ 100"
+              ]
+            },
+            "hints": [
+              "(1/2) log₂(1/0.01) = (1/2) × 6.64."
+            ],
+            "reveal": "R(0.01) = (1/2) × log₂(100) ≈ 3.32 bits. To compress to mean-squared error 0.01 = 1% of variance, need 3.32 bits/sample."
+          },
+          {
+            "prompt": "R(0.1)?",
+            "motivation": "Plug in.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~1.66 bits",
+                "1.66",
+                "0.5 × log₂ 10"
+              ]
+            },
+            "hints": [
+              "(1/2) × log₂(10) = 1.66."
+            ],
+            "reveal": "R(0.1) = (1/2) × log₂(10) ≈ 1.66 bits."
+          },
+          {
+            "prompt": "R(1.0)?",
+            "motivation": "Plug in.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0 bits",
+                "0"
+              ]
+            },
+            "hints": [
+              "D = σ² → constant codeword."
+            ],
+            "reveal": "R(1.0) = (1/2) × log₂(1) = 0 bits. Distortion equals variance → no information needed; predict the mean (0)."
+          },
+          {
+            "prompt": "What does this curve teach designers of lossy codecs?",
+            "motivation": "Engineering insight.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "each halving of rate doubles distortion",
+                "logarithmic tradeoff"
+              ]
+            },
+            "hints": [
+              "1 bit ↔ factor of 4 in D."
+            ],
+            "reveal": "Each bit-rate increase by 1 bit/sample → halving of distortion (factor 4 in MSE). Practical implication: marginal quality returns diminish quickly above ~1-2 bits/pixel for images. Visible artifacts dominate at <0.5 bpp. Bandwidth + storage decisions optimize within these regions; perceptual quality vs PSNR matters at boundaries."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_rd_1",
+        "kind": "slider",
+        "question": "Drag the slider to estimate the typical JPEG bits/pixel needed for high-quality photographs.",
+        "target": {
+          "min": 0.8,
+          "max": 2
+        },
+        "default": 5,
+        "explanation": "JPEG photos at quality 85-90: ~1-2 bits/pixel (8-12× compression from raw 24-bit RGB). Beyond this: marginal quality gain; below: visible artifacts. Modern codecs (HEIC, AVIF, JPEG XL): ~0.5-1 bits/pixel for same quality; neural codecs (BMSHJ, ELIC): ~0.3-0.7 bits/pixel. Raw 4K = ~24 bits/pixel × 8.3M pixels = 200 Mbits/frame; JPEG at 1 bit/pixel = 8.3 Mbits/frame."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_rd_1",
+        "kind": "multiple_choice",
+        "question": "Why has perceptual coding (MP3, JPEG, video codecs) succeeded so dramatically vs information-theoretic optimum?",
+        "options": [
+          "Perceptual codecs aren't very good.",
+          "Perceptual coding exploits redundancies in human perception (frequency masking, attention, color sensitivity, motion blur) that information theory alone doesn't capture. R(D) formula uses arbitrary distortion metric (MSE); real applications care about *perceptual* quality. Modern codecs (HEIC, AV1, neural codecs) build perceptual or learned distortion metrics into the optimization, achieving much higher subjective quality at given bitrate than naïve R(D) would suggest. The 'right' rate-distortion function uses the right distortion metric.",
+          "Perceptual coding is wrong.",
+          "Information theory is incorrect."
+        ],
+        "correctIndex": 1,
+        "explanation": "**The 'right' distortion metric matters as much as the rate**:\n\n*Standard R(D) with MSE*: minimizes pixel-level error. Doesn't match human perception. JPEG photos at 30 dB PSNR may look noticeably worse than ones at 25 dB if the latter is perceptually-optimized.\n\n*Human-perception specifics*:\n- **Frequency masking**: loud tone hides quiet nearby frequencies. MP3 exploits.\n- **Temporal masking**: brief loud tone hides quiet tones before/after. Audio codecs.\n- **Lightness vs chrominance sensitivity**: human vision more sensitive to luminance. JPEG subsamples chroma 4:2:0.\n- **Spatial-frequency response (CSF)**: peak ~4 cycles/degree; sensitive to mid-frequencies. JPEG quantizes high-frequency DCT coefficients heavily.\n- **Texture masking**: complex regions tolerate more distortion than smooth.\n- **Visual attention**: salient features (faces) need more bits.\n- **Color appearance**: depends on context, illumination, surround.\n\n*Engineering exploitation*:\n- JPEG quantization tables tuned to human visual response.\n- Video codecs use temporal masking (less detail in fast motion).\n- Bitrate allocation directed by perceptual saliency.\n- Modern: ML-based 'perceptual loss' (LPIPS, VMAF) instead of MSE.\n\n*Modern advances*:\n- **Neural image compression** (HyperPrior, BMSHJ, ELIC, FiLM-based): trained on perceptual losses (MSE + LPIPS); ~30-60% lower bitrate at same quality.\n- **Adversarial compression** (GAN-based): synthesize plausible details at very low rates; near-realistic at <0.1 bpp.\n- **Diffusion-based compression**: generative priors for restoration; very-low-rate regime.\n- **Foundation-model codecs**: leverage pre-trained image priors for compression.\n\n*Distortion ≠ perception*:\n- 30 dB PSNR + noise: looks bad to humans.\n- 30 dB PSNR + structured artifacts: looks bad.\n- 25 dB PSNR + perception-aware quantization: looks better.\n\n*Modern metrics*:\n- **PSNR**: traditional, well-understood, not perceptual.\n- **SSIM**: structural similarity; intermediate.\n- **LPIPS**: learned perceptual; correlated with human judgment.\n- **VMAF**: video-quality from features + ML; Netflix-developed; used in production.\n- **NIMA**: assesses aesthetic + quality together.\n- **DISTS**: combines structure + texture.\n\n**Information theory still relevant**: provides lower bound + framework. But achieving that bound for a specific perceptual quality target requires perception-aware design. Modern compression = info theory + cognitive science + ML.\n\n**Implications for design**: choosing right distortion metric is half the problem. Future codecs will likely use multi-modal foundation-model-based perceptual losses tuned to specific applications + user populations."
+      },
+      "hints": [
+        "What metric does MSE-based R(D) optimize?",
+        "What perceptual redundancies exist?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Standard R(D) with MSE optimizes pixel error; doesn't match perception. Codecs exploit: frequency masking (MP3), temporal masking (video), luminance>chrominance (JPEG 4:2:0), CSF response, attention, motion blur. Modern: neural codecs with perceptual loss (LPIPS, VMAF) → 30-60% bitrate reduction at same perceived quality. Distortion metric matters as much as rate; info theory provides framework, perception-aware design provides delivery."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_rd_1",
+        "kind": "math_expression",
+        "question": "For a Gaussian source σ² = 4 + allowable MSE distortion D = 1, what's the rate (in bits/sample)?",
+        "acceptedAnswers": [
+          "1 bit",
+          "1",
+          "(1/2) log₂ 4"
+        ],
+        "hint": "R(D) = (1/2) log₂(σ²/D) = (1/2) log₂(4) = 1."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_rd_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why modern video streaming (Netflix, YouTube) requires both information-theoretic + machine-learning approaches.",
+        "rubric": "Mentions: video has high redundancy in space (within frames) + time (between frames). Information theory provides R(D) bound + structure (entropy coding, motion compensation). Codecs (H.264, H.265, AV1, VVC) implement: predict from previous frame (motion vectors); residual compressed via DCT + entropy. ML adds: perceptual quality metrics (VMAF, LPIPS) guiding encoding decisions; adaptive bitrate (per-shot or per-scene optimization, Netflix per-title encoding); neural pre-/post-processing (super-resolution, denoising); content-aware encoding; encoding-time optimization with ML-predicted rate-distortion. Modern Netflix encode: ~3-4 Mbps 1080p high quality (vs ~20 Mbps raw); ABR streaming switches bitrate by network. ML-based perceptual encoders save additional 20-30%. Concludes: info theory + perception + ML + adaptive streaming = modern video delivery; ongoing co-design + integration."
+      }
+    }
+  ]
+}

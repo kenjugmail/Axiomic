@@ -194,6 +194,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🫀",
     tags: ["biomedical", "cardiology", "medicine", "ecg", "physiology"],
   },
+  {
+    name: "shannon-channel",
+    label: "Shannon channel capacity",
+    description: "Drag bit-error probability; see binary entropy H(p) + channel capacity C = 1−H(p) + BSC diagram.",
+    thumb: "📡",
+    tags: ["information-theory", "shannon", "communication", "entropy", "channel"],
+  },
 ];
 
 interface Props {
