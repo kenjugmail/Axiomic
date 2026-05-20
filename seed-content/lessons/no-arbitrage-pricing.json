@@ -1,0 +1,148 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "core",
+    "objectives": [
+      "State the no-arbitrage principle + law of one price.",
+      "Price a forward contract by replication.",
+      "Define the risk-neutral measure + the FTAP."
+    ],
+    "prereqs": [
+      "time-value-of-money"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The no-arbitrage principle",
+      "body": "**Arbitrage**: a riskless profit. A trading strategy with zero initial cost, no chance of loss, + positive chance of profit. In a well-functioning market, arbitrage doesn't exist (or vanishes within milliseconds as traders pile in).\n\n**The no-arbitrage assumption** is THE foundational assumption of derivatives pricing. It's strong but defensible: if a security's price violates no-arbitrage, professionals will trade against it until prices align.\n\n**Law of one price**: two cash-flow streams that pay the same in every state of the world must have the same price.\n\n**Replication**: if a derivative's payoff can be exactly replicated by a portfolio of more-basic instruments, then by LOP the derivative's price = the replicating portfolio's cost.\n\n**Example**: a 1-year forward contract on a non-dividend stock at price $K$. Payoff at expiry: $S_T - K$.\n\nReplicating portfolio: buy 1 stock today (cost $S_0$); borrow $K e^{-rT}$ at risk-free rate (must repay $K$ at expiry). Net cash flow at expiry: own stock worth $S_T$, owe $K$. Net = $S_T - K$. Same payoff!\n\nNo-arbitrage forces forward price $F$ such that the cost of replication = 0:\n$$F = S_0 e^{rT}$$\n\nThe entire field of derivatives pricing extends this template: replicate the payoff, compute the cost of replication."
+    },
+    {
+      "kind": "text",
+      "title": "Risk-neutral measure + the FTAP",
+      "body": "**The Fundamental Theorem of Asset Pricing (FTAP)**: a market is arbitrage-free iff there exists a **risk-neutral probability measure** $\\mathbb{Q}$ such that every asset's discounted price is a martingale under $\\mathbb{Q}$.\n\nIn plainer terms: under $\\mathbb{Q}$, every asset has expected return = risk-free rate $r$.\n$$S_0 = e^{-rT} \\mathbb{E}^{\\mathbb{Q}}[S_T]$$\n\nThis is NOT the real-world probability! In reality stocks have expected return higher than $r$ (the equity risk premium). The risk-neutral measure is a mathematical device that absorbs the risk premium into the probabilities themselves.\n\n**Why this is useful**: option prices are\n$$\\text{price} = e^{-rT} \\mathbb{E}^{\\mathbb{Q}}[\\text{payoff}]$$\nA call option's payoff is $\\max(S_T - K, 0)$. Under $\\mathbb{Q}$, this expectation is computable (e.g., Black-Scholes evaluates it in closed form when $S_T$ is log-normal under $\\mathbb{Q}$).\n\n**The completeness theorem (FTAP II)**: the market is complete (every payoff replicable) iff $\\mathbb{Q}$ is UNIQUE. Black-Scholes models are complete. Stochastic-volatility + jump-diffusion models are typically incomplete (multiple valid $\\mathbb{Q}$'s; each gives a different price).\n\nIncompleteness means there's pricing discretion — you can hedge approximately, but not perfectly. Real markets are incomplete; banks add a margin to cover the hedging error."
+    },
+    {
+      "kind": "text",
+      "title": "Put-call parity: a clean no-arbitrage example",
+      "body": "Consider European call $C$ + put $P$ on the same stock, same strike $K$, same expiry $T$. Payoffs at expiry:\n- Call: $\\max(S_T - K, 0)$\n- Put: $\\max(K - S_T, 0)$\n- Call − Put: $S_T - K$ (always, no matter $S_T$!)\n\nThis is exactly the payoff of a forward contract at $K$. Now no-arbitrage:\n$$C - P = S_0 - K e^{-rT}$$\n\n**Why useful**:\n- Quick sanity check on quoted call + put prices: if they violate parity by more than transaction costs, arbitrage opportunity.\n- Compute one from the other: given $C$ + market data, $P = C - S_0 + K e^{-rT}$.\n- Synthesizes positions: long call + short put = long forward. Useful when one of the components is mis-priced or illiquid.\n\n**Real markets**: parity holds to within bid-ask spreads in major equity index options. In single-name stocks, deviations can reflect borrow costs (shorting stock has a cost), dividends, hard-to-borrow situations. Sophisticated traders monitor parity deviations as an arbitrage / borrow-cost signal.\n\n**Generalization**: every theoretical derivatives relationship is a no-arbitrage identity of this form. Mastering put-call parity (1 line of algebra) is the gateway to mastering more complex relations (American option early exercise, conversion / reversal trades, dispersion trades)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_arb_forward",
+        "kind": "guided_derivation",
+        "question": "Derive the forward price by replication",
+        "goal": "Forward contract on a non-dividend stock: deliver one stock for cash $F$ at time $T$. What is $F$ today?",
+        "steps": [
+          {
+            "prompt": "Long-forward payoff at $T$: $S_T - F$ (receive stock worth $S_T$, pay $F$). To replicate with stock + bond: buy how much stock today?",
+            "motivation": "We want to end up with one stock at $T$.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "1 stock.",
+                "$e^{-rT}$ stocks.",
+                "$e^{rT}$ stocks.",
+                "0 stocks."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "We need to OWN 1 stock at expiry."
+            ],
+            "reveal": "Buy 1 stock today, hold until $T$. Cost: $S_0$."
+          },
+          {
+            "prompt": "We owe $F$ at $T$. To replicate this debt, we should borrow how much today (so the loan matures to exactly $F$)?",
+            "motivation": "Time-value of money in reverse.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$F$.",
+                "$F e^{-rT}$ (PV of $F$).",
+                "$F e^{rT}$.",
+                "$F / T$."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "PV of $F$."
+            ],
+            "reveal": "Borrow $F e^{-rT}$ today; it grows to $F$ at $T$."
+          },
+          {
+            "prompt": "Net cost of the replicating portfolio today: $S_0 - F e^{-rT}$. Forward starts at zero cost (no money exchanges hands at $t=0$). Set equal to 0 + solve for $F$.",
+            "motivation": "No-arb pricing.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "S_0 e^{rT}",
+                "S_0 * e^{rT}"
+              ]
+            },
+            "hints": [
+              "$F e^{-rT} = S_0$."
+            ],
+            "reveal": "$F = S_0 e^{rT}$."
+          }
+        ],
+        "finalResult": "$$\\boxed{F = S_0 e^{rT}}$$ The forward price on a non-dividend stock is the spot price compounded at the risk-free rate. If $F$ were higher: SELL the forward + BUY the stock with borrowed cash; risk-free profit. If $F$ were lower: BUY the forward + SHORT the stock + invest cash; risk-free profit. The single no-arbitrage condition pins $F$ exactly. Extending to dividend-paying stocks: $F = (S_0 - PV(\\text{div})) e^{rT}$. Foreign exchange: $F = S_0 e^{(r_d - r_f)T}$ (covered interest parity)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_arb_market",
+        "kind": "multiple_choice",
+        "question": "A senior trader says 'the no-arbitrage assumption is wrong; real markets have arbitrages all the time'. What's the right way to think about this?",
+        "options": [
+          "They're right; financial theory is broken.",
+          "Pure mathematical arbitrages are rare; small inefficiencies exist but are quickly closed by professionals (HFT). 'No-arbitrage' is a model assumption that's accurate at the timescales most pricing problems operate on.",
+          "Pure arbitrages are easy to find; you should look on Robinhood.",
+          "No-arbitrage only applies to options."
+        ],
+        "correctIndex": 1,
+        "explanation": "Real markets have transient inefficiencies measured in microseconds-to-minutes; HFT firms exist exactly to exploit + close them. By the time a retail trader sees a quote, professional liquidity providers have already arbitraged. For risk management + pricing models at second/day/longer horizons, no-arbitrage is a defensible approximation. The exceptions (closed-end fund discounts, illiquid markets, regulated FX pegs) are studied as special cases."
+      },
+      "hints": [
+        "Who arbitrages?",
+        "What time-scale?"
+      ],
+      "workedSolution": "HFT firms with co-located servers exploit microsecond mispricings. Stat-arb funds exploit minute/hour discrepancies. By the time deep liquidity is consumed, prices align. Pure 'free money' arbs essentially don't exist for retail. But model 'arbitrages' (mispricings relative to a SPECIFIC model) do exist — and exploiting them is the bread-and-butter of quant funds + market makers.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_arb_put",
+        "kind": "math_expression",
+        "question": "Given call $C = \\$10$, stock $S_0 = \\$100$, strike $K = \\$95$, $r=5\\%$, $T=1$. Put-call parity: $P = ?$",
+        "acceptedAnswers": [
+          "$5.36",
+          "5.36",
+          "5.36 dollars"
+        ],
+        "hint": "$P = C - S_0 + Ke^{-rT} = 10 - 100 + 95 \\cdot e^{-0.05} \\approx 5.36$"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_arb_complete",
+        "kind": "scenario",
+        "question": "Why incomplete markets matter",
+        "prompt": "Your firm trades options on illiquid single-name stocks. A senior PM says these are 'incomplete-market problems'. Explain what this means + how the firm should price + hedge given incompleteness."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_arb",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why every derivative pricing model rests on the no-arbitrage assumption + replication argument.",
+        "rubric": "Mentions that no-arbitrage forces prices to be self-consistent; replicating a payoff with simpler instruments lets us compute its price from instruments whose prices we know; the entire derivatives industry rests on this trick. Failure of replication (incomplete markets) is the source of pricing model uncertainty + bid-ask spreads."
+      }
+    }
+  ]
+}

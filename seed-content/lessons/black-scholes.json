@@ -1,0 +1,146 @@
+{
+  "meta": {
+    "timeMinutes": 32,
+    "difficulty": "specialist",
+    "objectives": [
+      "State the Black-Scholes assumptions + the PDE.",
+      "Outline the derivation via delta-hedging.",
+      "Distinguish the BSM price from market-quoted implied vol."
+    ],
+    "prereqs": [
+      "no-arbitrage-pricing"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Black-Scholes assumptions + the closed-form",
+      "body": "**Black, Scholes, Merton (1973)** derived the first closed-form European-option price. Assumptions:\n\n1. Stock price follows geometric Brownian motion: $dS = \\mu S dt + \\sigma S dW$ (continuous, no jumps, constant vol $\\sigma$).\n2. Risk-free rate $r$ is constant.\n3. Can trade continuously, no transaction costs.\n4. No dividends.\n5. Markets are frictionless + complete.\n\nUnder these, the European call price is:\n$$C = S_0 N(d_1) - K e^{-rT} N(d_2)$$\nwhere $N(\\cdot)$ is the standard normal CDF,\n$$d_1 = \\frac{\\ln(S_0/K) + (r + \\sigma^2/2)T}{\\sigma \\sqrt{T}}, \\quad d_2 = d_1 - \\sigma \\sqrt{T}$$\n\n**Reading the formula**:\n- $S_0 N(d_1)$: expected value of receiving the stock IF it's in the money.\n- $K e^{-rT} N(d_2)$: PV of paying the strike IF the option is exercised.\n- $N(d_2)$: risk-neutral probability of finishing in the money.\n\nThis won Scholes + Merton the 1997 Nobel Prize. Black died in 1995 + Nobel isn't awarded posthumously.\n\nThe formula's structure (closed-form for a non-trivial expectation) sparked the explosion of quantitative finance + the modern derivatives industry."
+    },
+    {
+      "kind": "text",
+      "title": "Derivation via delta-hedging (sketch)",
+      "body": "The classical derivation is via **dynamic replication + the BSM PDE**.\n\nIdea: a portfolio $\\Pi = C - \\Delta S$ (long call, short $\\Delta$ stocks) can be made instantaneously riskless by choosing $\\Delta = \\partial C/\\partial S$ — the call's sensitivity to the stock. By no-arbitrage, a riskless portfolio must earn $r$:\n$$d\\Pi = r \\Pi \\, dt$$\n\nExpanding $dC$ via Itô's lemma:\n$$dC = \\frac{\\partial C}{\\partial t} dt + \\frac{\\partial C}{\\partial S} dS + \\frac{1}{2} \\frac{\\partial^2 C}{\\partial S^2} \\sigma^2 S^2 dt$$\n\nSubstitute into $d\\Pi = dC - \\Delta \\, dS$, set $\\Delta = \\partial C/\\partial S$ to kill the random $dS$ term, equate with $r\\Pi \\, dt$:\n$$\\frac{\\partial C}{\\partial t} + r S \\frac{\\partial C}{\\partial S} + \\frac{1}{2} \\sigma^2 S^2 \\frac{\\partial^2 C}{\\partial S^2} = r C$$\n\nThis is the **Black-Scholes PDE**. Solving with the boundary condition $C(S, T) = \\max(S - K, 0)$ gives the closed-form above.\n\n**Key insight from the derivation**: BSM doesn't depend on the stock's expected return $\\mu$. Two stocks with the same $\\sigma$ but different $\\mu$'s have the same option price. This is counterintuitive! The answer: $\\mu$ doesn't matter because the option is replicable via dynamic delta-hedging, which doesn't care about drift — only volatility (the un-hedgeable randomness).\n\nReformulated via the risk-neutral measure: under $\\mathbb{Q}$, the stock drifts at $r$ (regardless of real-world $\\mu$). The price = $e^{-rT} \\mathbb{E}^{\\mathbb{Q}}[\\max(S_T - K, 0)]$ = the closed-form."
+    },
+    {
+      "kind": "text",
+      "title": "Implied volatility + the volatility smile",
+      "body": "**The market doesn't quote $\\sigma$**; it quotes option prices. To get $\\sigma$, INVERT BSM: given a market price, solve for the $\\sigma$ that produces it. This is **implied volatility** (IV).\n\nIf BSM were exactly right, every option on the same underlying (different $K$, $T$) would have the SAME implied vol — the stock's true volatility. In practice, IVs differ across $K$ + $T$:\n\n- **Volatility smile / smirk**: equity-index options have higher IV for out-of-the-money puts than at-the-money calls. The market prices in the possibility of crashes (fat left tails) that BSM's log-normal model doesn't capture.\n- **Term structure**: IVs differ across $T$. Short-dated IVs respond to current events; long-dated IVs are more stable.\n\nThe **IV surface** (IV as function of $K$ and $T$) is the practitioner's view of the market. Traders quote IVs, not prices. The 'BSM model' is a *unit of measure* — IV is the meaningful number even though it's defined relative to a model the trader doesn't believe.\n\n**Why BSM survives**: even though its assumptions are wrong (vol isn't constant, returns aren't log-normal, jumps exist), the formula is a clean LANGUAGE for quoting. Everyone agrees what 20% IV means; that's enough for trading. The smile + skew are corrections layered on top.\n\nMore sophisticated models (Heston stochastic vol, SABR, Bates jump-diffusion, local vol) better fit the IV surface — at the cost of more parameters + less interpretability. The trade-off: model fit vs model complexity vs hedging difficulty."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bsm_atm",
+        "kind": "guided_derivation",
+        "question": "Derive the at-the-money call price simplification",
+        "goal": "Specialize Black-Scholes when $S_0 = K e^{-rT}$ (ATM forward).",
+        "steps": [
+          {
+            "prompt": "$S_0 = K e^{-rT}$ implies $\\ln(S_0/K) = -rT$. Substituting into $d_1$: $d_1 = (-rT + (r + \\sigma^2/2)T)/(\\sigma\\sqrt{T}) = ?$",
+            "motivation": "Simplify.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "sigma sqrt(T) / 2",
+                "(sigma * sqrt(T)) / 2",
+                "σ√T / 2"
+              ]
+            },
+            "hints": [
+              "The $rT$ terms cancel."
+            ],
+            "reveal": "$d_1 = \\sigma\\sqrt{T}/2$."
+          },
+          {
+            "prompt": "Then $d_2 = d_1 - \\sigma\\sqrt{T} = ?$",
+            "motivation": "Algebra.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-sigma sqrt(T) / 2",
+                "-(sigma * sqrt(T)) / 2",
+                "-σ√T / 2"
+              ]
+            },
+            "hints": [
+              "Subtract $\\sigma\\sqrt{T}$ from $\\sigma\\sqrt{T}/2$."
+            ],
+            "reveal": "$d_2 = -\\sigma\\sqrt{T}/2$."
+          },
+          {
+            "prompt": "For SMALL $\\sigma\\sqrt{T}$, $N(d_1) \\approx 1/2 + d_1/\\sqrt{2\\pi}$. Approximate $C = S_0 N(d_1) - Ke^{-rT} N(d_2)$. Using $S_0 = Ke^{-rT}$: $C \\approx S_0 (N(d_1) - N(d_2))$. With Taylor: $N(d_1) - N(d_2) \\approx (d_1 - d_2)/\\sqrt{2\\pi}$. Result?",
+            "motivation": "Bachelier-style approximation.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$C \\approx S_0 \\sigma \\sqrt{T/(2\\pi)} \\approx 0.4 S_0 \\sigma \\sqrt{T}$.",
+                "$C = 0$.",
+                "$C = S_0$.",
+                "$C = K$."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "$1/\\sqrt{2\\pi} \\approx 0.4$."
+            ],
+            "reveal": "$C_{\\text{ATM}} \\approx 0.4 S_0 \\sigma \\sqrt{T}$."
+          }
+        ],
+        "finalResult": "$$\\boxed{C_{\\text{ATM-fwd}} \\approx 0.4 S_0 \\sigma \\sqrt{T}}$$ A famous quant approximation. ATM option prices scale linearly with $\\sigma\\sqrt{T}$ (annualized vol × root-time). For S&P 500 at \\$5000, 20% IV, 1 month ($T=1/12$): $C \\approx 0.4 \\cdot 5000 \\cdot 0.20 \\cdot \\sqrt{1/12} \\approx \\$115$. Quick mental-math sanity check used by every options trader."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bsm_assumptions",
+        "kind": "multiple_choice",
+        "question": "Black-Scholes assumes constant volatility. Empirically, what does the market do?",
+        "options": [
+          "Vol is constant; BSM is perfect.",
+          "Vol changes daily + clusters (high-vol periods, low-vol periods). The market prices options with a 'volatility smile' that grows steeper after crashes.",
+          "Vol is random but always 20%.",
+          "Vol is irrelevant for pricing."
+        ],
+        "correctIndex": 1,
+        "explanation": "Volatility clustering (Mandelbrot 1963, Engle's ARCH 1982 Nobel) is a stylized fact: high-vol periods cluster, low-vol periods cluster. Markets price options reflecting this (steeper IV smiles after crashes). BSM's constant-vol assumption is wrong; the smile is the market's correction. Models like Heston (stochastic vol) capture this more honestly."
+      },
+      "hints": [
+        "What's an empirical fact about returns?",
+        "What does this imply for IVs?"
+      ],
+      "workedSolution": "Volatility clustering: volatility is autocorrelated. The smile reflects market pricing of: (1) fat tails (real returns more kurtotic than log-normal); (2) crash risk (asymmetric — left tail fatter); (3) vol-of-vol (vol itself is uncertain). BSM gives the language; the smile is the practitioner correction. Stochastic-vol + jump models fit the smile more naturally.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_bsm_d1",
+        "kind": "math_expression",
+        "question": "Compute $d_1$ for: $S_0 = 100$, $K = 100$, $r = 5\\%$, $\\sigma = 20\\%$, $T = 1$. (Use $\\ln(1) = 0$ + plug in.)",
+        "acceptedAnswers": [
+          "0.35",
+          "0.35000"
+        ],
+        "hint": "$d_1 = (0 + (0.05 + 0.02) \\cdot 1) / (0.20 \\cdot 1) = 0.07/0.20 = 0.35$"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_bsm_smile",
+        "kind": "scenario",
+        "question": "Why the SPX smile got steeper after 2008",
+        "prompt": "An options trader explains that the S&P 500 IV skew became significantly steeper after the 2008 crash + has never fully reverted. Walk through why."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_bsm",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why the Black-Scholes price doesn't depend on the stock's expected return $\\mu$.",
+        "rubric": "Mentions that the BSM derivation via dynamic delta-hedging eliminates exposure to $dS$; the only randomness that matters is volatility $\\sigma$. Equivalently, under the risk-neutral measure the stock drifts at $r$ regardless of real-world drift. This is the 'magic' of replication-based pricing."
+      }
+    }
+  ]
+}

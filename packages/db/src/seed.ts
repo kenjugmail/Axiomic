@@ -1952,6 +1952,26 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P10 — Financial Engineer (quant finance) path. Time value of
+  // money, no-arb pricing, Black-Scholes, Greeks, Monte Carlo,
+  // fixed income, market microstructure, portfolio theory.
+  seedMasteryPath({
+    slug: "financial-engineer",
+    title: "Financial Engineer",
+    description:
+      "From time value of money through no-arbitrage pricing, Black-Scholes, option Greeks + hedging, Monte Carlo simulation, fixed income, market microstructure, and portfolio theory. The full quant-finance toolkit.",
+    nodes: [
+      { slug: "time-value-of-money", title: "Time Value of Money", level: "apprentice", order: 1, pages: ["pv-fv", "compounding", "npv"], prereqs: [], description: "Present + future value, discrete vs continuous compounding, NPV + capital budgeting." },
+      { slug: "no-arbitrage-pricing", title: "No-Arbitrage Pricing", level: "practitioner", order: 2, pages: ["arbitrage-principle", "risk-neutral", "put-call-parity"], prereqs: ["time-value-of-money"], description: "Replication arguments, FTAP + the risk-neutral measure, put-call parity, forward pricing." },
+      { slug: "black-scholes", title: "Black-Scholes Model", level: "specialist", order: 3, pages: ["bsm-formula", "bsm-pde", "implied-vol"], prereqs: ["no-arbitrage-pricing"], description: "BSM assumptions + closed-form, delta-hedging derivation, implied vol + the smile." },
+      { slug: "greeks-and-hedging", title: "Greeks + Dynamic Hedging", level: "specialist", order: 4, pages: ["delta-gamma-vega", "gamma-scalping", "vega-risk"], prereqs: ["black-scholes"], description: "The Greeks, dynamic delta-hedging, gamma scalping = the vol trade, vega + vanna risk." },
+      { slug: "monte-carlo-finance", title: "Monte Carlo in Finance", level: "specialist", order: 5, pages: ["mc-pricing", "variance-reduction", "lsm-americans"], prereqs: ["black-scholes"], description: "MC for derivative pricing, variance reduction, Longstaff-Schwartz for Americans." },
+      { slug: "fixed-income", title: "Fixed Income", level: "specialist", order: 6, pages: ["bond-pricing", "duration-convexity", "yield-curve"], prereqs: ["time-value-of-money"], description: "Bond pricing + YTM, duration + convexity for risk, the yield curve + forward rates." },
+      { slug: "market-microstructure", title: "Market Microstructure", level: "expert", order: 7, pages: ["limit-order-book", "spread-impact", "hft"], prereqs: ["no-arbitrage-pricing"], description: "Limit order book, spread + market impact, Kyle's lambda, market makers + HFT." },
+      { slug: "portfolio-theory", title: "Portfolio Theory", level: "specialist", order: 8, pages: ["markowitz", "capm", "factor-models"], prereqs: ["time-value-of-money"], description: "Markowitz mean-variance, CAPM + the SML, Fama-French + factor models." },
+    ],
+  });
+
   // P9 — Compiler Engineer path. Lexing, parsing, ASTs, types,
   // SSA IR, optimization passes, register allocation, JIT. Sits
   // beneath algorithms-engineer + systems-engineer.

@@ -1,0 +1,148 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "specialist",
+    "objectives": [
+      "Outline Monte Carlo for option pricing.",
+      "State variance-reduction techniques.",
+      "Distinguish PDE methods from MC."
+    ],
+    "prereqs": [
+      "black-scholes"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Monte Carlo: pricing by simulation",
+      "body": "**Monte Carlo (MC)**: simulate $N$ paths of the underlying under the risk-neutral measure, compute the payoff for each, average.\n$$\\text{price} \\approx e^{-rT} \\frac{1}{N} \\sum_{i=1}^N \\text{payoff}_i$$\n\nFor geometric Brownian motion under $\\mathbb{Q}$:\n$$S_T = S_0 \\exp\\left((r - \\sigma^2/2)T + \\sigma \\sqrt{T} \\, Z\\right), \\quad Z \\sim \\mathcal{N}(0, 1)$$\n\nGenerate $N$ independent $Z_i$'s, compute $S_T^{(i)}$, compute $\\text{payoff}^{(i)} = \\max(S_T^{(i)} - K, 0)$, average + discount.\n\n**Convergence**: by CLT, standard error decreases as $1/\\sqrt{N}$. To halve the error, quadruple $N$. To get 0.1% precision typically needs $N \\sim 10^7$ paths — slow.\n\n**When MC wins**:\n- **High-dimensional problems**: PDE methods scale exponentially with dimension; MC scales linearly. Basket options on 20 stocks → MC is the only feasible approach.\n- **Path-dependent payoffs**: Asian options (average price), barriers (knock-in/out), lookbacks (max/min). The PDE for these is high-dimensional or non-Markovian; MC handles them naturally — just track the path stats.\n- **Stochastic-vol models**: extra state variable (vol) blows up PDE grids; MC adds it for free.\n\n**When PDE wins**:\n- **Low-dim Markovian**: vanilla European on 1 underlying — PDE in 1D is super fast.\n- **American options**: early exercise. PDE with backward induction handles this naturally. MC requires extra machinery (Longstaff-Schwartz regression)."
+    },
+    {
+      "kind": "text",
+      "title": "Variance reduction: making MC efficient",
+      "body": "Pure MC converges at $1/\\sqrt{N}$, which is painfully slow. Several techniques reduce the variance of the estimator (without bias):\n\n**Antithetic variates**: for each path with random draw $Z$, also use $-Z$. Negatively correlated → variance halved roughly. Free.\n\n**Control variates**: find a related quantity $X$ with KNOWN expected value $\\mathbb{E}[X]$. Compute $\\hat{Y}' = \\hat{Y} - \\beta(\\hat{X} - \\mathbb{E}[X])$ for some $\\beta$. If $\\text{cov}(X, Y)$ is high, variance dramatically reduced. For Asian options: use the geometric-average option (which has closed-form) as a control for the arithmetic-average option (no closed form).\n\n**Importance sampling**: sample paths under a measure that puts more probability on the important regions (e.g., ITM paths for deep-OTM options). Reweight by likelihood ratio. Critical for rare-event pricing (deep-OTM options, default probabilities).\n\n**Quasi-Monte Carlo (QMC)**: replace random numbers with low-discrepancy sequences (Sobol, Halton). Converges as $1/N$ (instead of $1/\\sqrt{N}$) in low dimensions. Dimensional curse weakens for path-dependent payoffs that effectively depend on few principal components.\n\n**Multilevel Monte Carlo (MLMC)** (Mike Giles, 2008): combine simulations at multiple time-step resolutions. Achieves $\\mathcal{O}(\\varepsilon^{-2})$ work for $\\varepsilon$ error in many SDE-pricing problems — same as plain MC for vanilla Europeans, vastly better for complex products."
+    },
+    {
+      "kind": "text",
+      "title": "Pricing American options + the LSM algorithm",
+      "body": "**American options**: can be exercised at any time up to expiry $T$. Optimal exercise is a stopping-time problem.\n\nThe Bellman equation:\n$$V(t, S) = \\max\\left(\\text{payoff}(S), e^{-r \\Delta t} \\mathbb{E}^{\\mathbb{Q}}[V(t + \\Delta t, S')]\\right)$$\n\nThe right side is the 'continuation value' — what you get by waiting. Exercise iff intrinsic > continuation.\n\n**With PDE**: backward induction on a 1D grid. Cheap + accurate.\n\n**With MC**: tricky because MC simulates forward. **Longstaff-Schwartz Method (LSM, 2001)**: at each time step, regress observed future cash flows against the current state (e.g., $S_t, S_t^2$, time, etc.) to ESTIMATE the continuation value as a function of state. Then decide: exercise iff intrinsic > estimated continuation.\n\nWidely adopted. The challenge is choosing the regression basis: too few features → biased exercise decisions; too many → overfit + slow.\n\n**Modern**: deep-learning-based methods replace the regression with a neural network (Sirignano-Spiliopoulos 2018, Becker-Cheridito-Jentzen 2019). Useful for high-dimensional Americans (basket Bermudans). Computational cost scales with the network, not the dimension.\n\n**Industry use**: every major bank prices its early-exercise products with LSM (or a tier-up to PDE for low-dim cases). The same machinery prices Bermudans, callable bonds, mortgage prepayment, anything with optionality."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mc_error",
+        "kind": "guided_derivation",
+        "question": "Derive the standard error of an MC estimator",
+        "goal": "Estimate $\\mu = \\mathbb{E}[X]$ from $N$ iid samples $X_1, \\dots, X_N$. The estimator $\\hat{\\mu} = \\frac{1}{N}\\sum X_i$.",
+        "steps": [
+          {
+            "prompt": "Variance of $\\hat{\\mu}$: $\\text{Var}(\\hat{\\mu}) = ?$",
+            "motivation": "Sum of independent vars.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$N \\cdot \\text{Var}(X)$.",
+                "$\\text{Var}(X)/N$.",
+                "$\\text{Var}(X)$.",
+                "$\\sqrt{N} \\cdot \\text{Var}(X)$."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Variance of average of N iid: divide by N."
+            ],
+            "reveal": "$\\text{Var}(\\hat{\\mu}) = \\text{Var}(X)/N$."
+          },
+          {
+            "prompt": "Standard error (sqrt of variance) of $\\hat{\\mu}$?",
+            "motivation": "Sqrt.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "sigma / sqrt(N)",
+                "sigma/sqrt(N)",
+                "σ/√N"
+              ]
+            },
+            "hints": [
+              "$\\sqrt{\\text{Var}(X)/N}$."
+            ],
+            "reveal": "$\\text{SE} = \\sigma / \\sqrt{N}$."
+          },
+          {
+            "prompt": "To halve the standard error, what factor of N is needed?",
+            "motivation": "Solve $\\sigma/\\sqrt{4N} = (1/2)\\sigma/\\sqrt{N}$.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "4",
+                "factor of 4",
+                "4x"
+              ]
+            },
+            "hints": [
+              "$1/\\sqrt{4} = 1/2$."
+            ],
+            "reveal": "Halving SE requires 4× the number of samples."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{MC SE} = \\sigma/\\sqrt{N}}$$ The slow convergence rate is THE limit of vanilla MC. Halving error = 4× samples = 4× compute. This is why variance-reduction techniques matter — antithetic / control variates / importance sampling can reduce $\\sigma$ by 10-100× with no loss of unbiasedness. QMC + MLMC give better-than-$1/\\sqrt{N}$ in favorable cases."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mc_arithmetic_asian",
+        "kind": "multiple_choice",
+        "question": "Why is arithmetic-average Asian option pricing typically done by Monte Carlo, not closed-form?",
+        "options": [
+          "Because Monte Carlo is always preferred.",
+          "Because the sum of log-normals is NOT log-normal — no closed-form distribution for the average. (Geometric average IS log-normal — closed form exists.)",
+          "Because Asian options are illegal.",
+          "Because volatility is too high."
+        ],
+        "correctIndex": 1,
+        "explanation": "The arithmetic average $\\frac{1}{n}\\sum_i S_{t_i}$ does NOT have a simple distribution even when each $S_{t_i}$ is log-normal — log-normals are not stable under addition. The geometric average DOES (product of log-normals is log-normal). So geometric-average Asians have closed-form prices; arithmetic-average Asians need MC (or various analytical approximations). The geometric is used as a control variate for the arithmetic."
+      },
+      "hints": [
+        "What distribution would let you do this in closed form?",
+        "What's the GBM sum distribution?"
+      ],
+      "workedSolution": "Sum of log-normals = no simple distribution. Mean + variance computable but the full CDF needed for $\\mathbb{E}[\\max(\\bar{S} - K, 0)]$ isn't. Hence MC or analytical approximations (Turnbull-Wakeman, Levy moment-matching). The geometric-average option HAS closed-form (just modify the BSM $\\sigma$ + $r$); often used as a control variate.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mc_n",
+        "kind": "math_expression",
+        "question": "MC pricing currently has standard error \\$0.10 with N = 10,000 paths. To reach \\$0.01 standard error, how many paths needed?",
+        "acceptedAnswers": [
+          "1000000",
+          "1,000,000",
+          "10^6",
+          "1e6"
+        ],
+        "hint": "Need 100× lower SE = 10000× more samples = 100 million... wait, 100^2 = 10000, so 10000 × 10000 = 10^8. Actually: 0.01/0.10 = 1/10 = 1/√k → k = 100 → N = 10000 × 100 = 10^6."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mc_basket",
+        "kind": "scenario",
+        "question": "Pricing a basket option",
+        "prompt": "Your trading desk needs to price an exotic basket option on 30 underlyings with stochastic-vol dynamics. The PDE quant suggests a finite-difference grid; the MC quant suggests a million paths. Walk through the decision."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mc",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why Monte Carlo is the workhorse pricing tool despite its slow $1/\\sqrt{N}$ convergence rate.",
+        "rubric": "Mentions that MC scales linearly with dimension (PDE methods scale exponentially), trivially parallelizes (each path independent), handles path-dependent payoffs naturally, and accommodates arbitrary dynamics. The convergence rate is slow but compute is cheap; variance reduction + multilevel + QMC techniques bring effective rates much higher. PDE is preferred only for low-dim Markovian problems."
+      }
+    }
+  ]
+}

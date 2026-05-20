@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "specialist",
+    "objectives": [
+      "Define delta, gamma, vega, theta, rho.",
+      "Reason about dynamic delta-hedging + gamma scalping.",
+      "Distinguish vega risk from delta risk."
+    ],
+    "prereqs": [
+      "black-scholes"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The five major Greeks",
+      "body": "**Greeks** measure option-price sensitivity to inputs.\n\n- **Delta** ($\\Delta = \\partial C/\\partial S$): change in option value per unit change in underlying. For an at-the-money call, $\\Delta \\approx 0.5$. Deep ITM call: $\\Delta \\to 1$. Deep OTM call: $\\Delta \\to 0$. Put: $\\Delta < 0$.\n- **Gamma** ($\\Gamma = \\partial^2 C/\\partial S^2$): rate of change of delta. ATM options have peak $\\Gamma$; deep ITM/OTM have low $\\Gamma$. $\\Gamma$ measures non-linearity.\n- **Vega** ($\\nu = \\partial C/\\partial \\sigma$): sensitivity to volatility. ATM options have peak vega. Vega scales with $\\sqrt{T}$ — long-dated options have higher vega.\n- **Theta** ($\\Theta = \\partial C/\\partial t$): time decay. Options lose value as $T$ shrinks; ATM options decay fastest. $\\Theta$ is typically negative for long-option positions.\n- **Rho** ($\\rho = \\partial C/\\partial r$): sensitivity to interest rate. Small for short-dated equity options; significant for long-dated + interest-rate-sensitive products.\n\n**Higher-order**: vanna ($\\partial^2 C/\\partial S \\partial \\sigma$), volga ($\\partial^2 C / \\partial \\sigma^2$), charm ($\\partial \\Delta / \\partial t$), etc. Used in vol-trading desks; mostly invisible at higher levels.\n\n**For closed-form BSM**: each Greek has a closed-form expression. Practitioners memorize the formulas + their shapes (delta sigmoid, gamma bell, vega bell)."
+    },
+    {
+      "kind": "text",
+      "title": "Dynamic delta-hedging",
+      "body": "**Delta-hedge** = maintain $\\Delta_{\\text{portfolio}} \\approx 0$ at all times. If long 1 call with $\\Delta = 0.5$, short 0.5 stocks. The net position has $\\Delta = 0$ → first-order insensitive to $S$.\n\nBut $\\Delta$ CHANGES as $S$ moves (that's $\\Gamma$). So you must re-hedge — buy/sell stock to keep $\\Delta = 0$ as $S$ drifts.\n\n**Gamma scalping** (a long-options strategy):\n1. Long call → $\\Gamma > 0$.\n2. As $S$ rises, $\\Delta$ rises → must sell stock to re-hedge. You SELL into rallies.\n3. As $S$ falls, $\\Delta$ falls → must buy stock to re-hedge. You BUY into selloffs.\n4. Profit: buying low + selling high mechanically.\n\nBUT you pay $\\Theta$ (time decay). Net P&L: $\\frac{1}{2} \\Gamma (\\Delta S)^2 + \\Theta \\Delta t$ (approximately).\n\nIn BSM equilibrium, realized vol = implied vol → gamma scalping breaks even. If realized vol > implied (vol underpriced), gamma scalping makes money. If realized < implied, it loses. **This IS the volatility trade**.\n\n**The market-maker's view**: a market maker holds many option positions. They neutralize $\\Delta$ continuously, scalping gamma. Their P&L is the difference between realized vol + implied vol on the options they're long, minus the IV − RV on the ones they're short. The bid-ask spread compensates for the variance of this P&L."
+    },
+    {
+      "kind": "text",
+      "title": "Vega risk + the vol-of-vol",
+      "body": "**Vega**: change in option value per 1% change in implied vol. ATM 1-year option with $\\sigma = 20\\%$: vega ≈ \\$0.40 per dollar of underlying per 1% IV move. A bank with \\$1B notional of ATM options has \\$4M vega — a 1% IV move = \\$4M P&L.\n\n**Vega is unhedgeable with stock alone**. Stock has $\\Delta = 1$, $\\Gamma = 0$, vega = 0. You can only hedge vega with other options.\n\n**Volga** ($\\partial^2 C / \\partial \\sigma^2$): convexity in $\\sigma$. ATM options have ~zero volga (linear in $\\sigma$); OTM options have positive volga. **Vanna** ($\\partial^2 C / \\partial S \\partial \\sigma$): how delta changes with vol. Important when vol moves are correlated with spot (equity crashes raise IV → put writers' delta jumps).\n\n**Risk management in practice**:\n- A book is delta-hedged daily (or intraday).\n- Vega + gamma exposures are limited (book risk limits).\n- Vanna + volga modeled for stress scenarios (crashes that move both spot + vol).\n- Higher-order Greeks (DvegaDtime, volga-of-volga) used for exotic + structured products.\n\n**The 2008 lesson**: when correlations + vols spike together, all the second-order Greeks come alive simultaneously. Trading desks with naive Greek hedging blew up. Risk systems now stress-test against historical + hypothetical joint moves of all factors."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_greeks_delta",
+        "kind": "guided_derivation",
+        "question": "Derive delta for an ATM call (BSM)",
+        "goal": "Use the BSM formula $C = S_0 N(d_1) - K e^{-rT} N(d_2)$ + compute $\\partial C/\\partial S$.",
+        "steps": [
+          {
+            "prompt": "Use product + chain rules. Naively: $\\Delta = N(d_1) + S_0 N'(d_1) \\frac{\\partial d_1}{\\partial S} - K e^{-rT} N'(d_2) \\frac{\\partial d_2}{\\partial S}$. The two derivative-of-N terms — are they each nonzero?",
+            "motivation": "Algebra.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Yes — both contribute.",
+                "Yes, but they CANCEL — a non-obvious identity makes $S_0 N'(d_1) \\partial d_1 / \\partial S - K e^{-rT} N'(d_2) \\partial d_2 / \\partial S = 0$.",
+                "No, both are zero.",
+                "Only the first."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "The identity $S_0 N'(d_1) = K e^{-rT} N'(d_2)$ holds + $\\partial d_1/\\partial S = \\partial d_2/\\partial S$."
+            ],
+            "reveal": "Both terms cancel via the identity $S_0 N'(d_1) = Ke^{-rT}N'(d_2)$ (provable by substitution)."
+          },
+          {
+            "prompt": "What is delta then?",
+            "motivation": "Just the first term remains.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "N(d_1)",
+                "N d1",
+                "Phi(d1)"
+              ]
+            },
+            "hints": [
+              "Just $N(d_1)$."
+            ],
+            "reveal": "$\\Delta = N(d_1)$."
+          },
+          {
+            "prompt": "For ATM ($d_1 \\approx 0.35$ for $\\sigma = 20\\%, r=5\\%, T=1$), $N(0.35) \\approx ?$",
+            "motivation": "Lookup or remember.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "0.5.",
+                "0.64.",
+                "0.84.",
+                "0.95."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Standard normal table."
+            ],
+            "reveal": "$N(0.35) \\approx 0.6368$. So ATM call delta $\\approx 0.64$, not 0.50."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\Delta_{\\text{call}} = N(d_1)}$$ Beautifully simple. Note: for SHORT-DATED ATM calls ($T \\to 0$, $d_1 \\to 0$), delta $\\to 0.5$. For LONG-DATED ATM calls, $d_1 > 0$ so delta > 0.5 — long-dated calls 'lean ITM' even when ATM-spot, because the drift term $(r + \\sigma^2/2)T$ pushes the distribution to the right. The same identity gives put delta: $\\Delta_{\\text{put}} = N(d_1) - 1$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_greeks_scalp",
+        "kind": "multiple_choice",
+        "question": "A trader gamma-scalps a long-option position. Realized vol turns out to be HIGHER than implied vol at trade entry. What happens?",
+        "options": [
+          "Strategy breaks even.",
+          "Strategy LOSES money (vol higher = bad for long options).",
+          "Strategy PROFITS — gamma scalping monetizes realized vol; if realized > implied, the long gamma profits exceed the implied-vol theta paid.",
+          "Strategy outcome is random."
+        ],
+        "correctIndex": 2,
+        "explanation": "Gamma scalping P&L ≈ $\\frac{1}{2}\\Gamma(\\Delta S)^2 + \\Theta \\Delta t$. The first term grows with realized volatility (more $\\Delta S$ moves = more rebalancing profit). The second is the fixed time-decay cost. Long-vol breakeven: realized vol = implied vol (BSM equilibrium). If realized > implied: long-gamma profits exceed theta paid. This IS the vol trade."
+      },
+      "hints": [
+        "What part of P&L depends on realized vol?",
+        "What's the fixed cost?"
+      ],
+      "workedSolution": "P&L decomposes into: (1) gamma P&L = $\\frac{1}{2}\\Gamma (\\Delta S)^2$ — scales with realized vol; (2) theta P&L = $\\Theta \\Delta t$ — fixed time decay (negative for long options). In BSM: $\\Theta = -\\frac{1}{2}\\Gamma \\sigma^2 S^2$. If realized vol > implied vol, gamma P&L exceeds theta paid — long-vol wins. If realized < implied, long-vol loses (options were overpriced). Gamma scalping IS the vol-trading mechanism.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_greeks_vega",
+        "kind": "math_expression",
+        "question": "An option has vega = 25 (per 1% IV move). IV rises by 2%. P&L change?",
+        "acceptedAnswers": [
+          "50",
+          "+50",
+          "$50"
+        ],
+        "hint": "Vega × ΔIV = 25 × 2 = $50."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_greeks_pin",
+        "kind": "scenario",
+        "question": "Pin risk at expiry",
+        "prompt": "An options trader is short a near-the-money call expiring tomorrow. The stock is sitting right at the strike. They worry about 'pin risk'. Walk through what this is + what to do."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_greeks",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why an options market-maker maintains continuous delta-neutrality but accepts vega + gamma exposure.",
+        "rubric": "Mentions that delta is hedgeable cheaply (stock has delta 1); gamma + vega require other options. The market-maker earns the bid-ask spread for warehousing gamma + vega risk; delta exposure is too cheap to charge for, so they neutralize it continuously. Their P&L is realized-vs-implied vol on the warehoused positions minus operational costs."
+      }
+    }
+  ]
+}

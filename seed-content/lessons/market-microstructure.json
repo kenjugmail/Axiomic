@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "expert",
+    "objectives": [
+      "Describe the limit order book + matching engine.",
+      "Reason about spread + market impact + adverse selection.",
+      "Distinguish maker vs taker + the make-take fee model."
+    ],
+    "prereqs": [
+      "no-arbitrage-pricing"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The limit order book (LOB)",
+      "body": "Modern equity, FX, futures, crypto markets are **limit order books**. Two sides: bids (buy orders), offers (sell orders), each at a specified price + size.\n\n**Best bid + best ask (top of book)**: highest buy price + lowest sell price respectively. The **spread** = best ask − best bid. SPY typically has \\$0.01 spread; small caps wider.\n\n**Market orders**: 'buy 100 at the market' — cross the spread, executes immediately against the best ask. **Limit orders**: 'buy 100 at \\$50' — sits in the book at \\$50 until matched or canceled.\n\n**Maker / Taker**:\n- **Maker**: places a passive limit order that rests in the book. Provides liquidity.\n- **Taker**: places an aggressive order that crosses the spread + matches against existing orders. Removes liquidity.\n\n**The make-take fee model**: exchanges typically PAY makers a small rebate (~0.2 cents/share) + CHARGE takers a fee (~0.3 cents/share). This subsidizes liquidity provision. Some exchanges have **inverted** fee schedules (pay takers, charge makers) — useful for hidden / short-flow orders.\n\n**Matching engines**: price-priority then time-priority. Within a price level, FIFO by order arrival. Modern exchanges (Nasdaq, NYSE Pillar, IEX, CME Globex) process millions of orders per second, with microsecond timestamps."
+    },
+    {
+      "kind": "text",
+      "title": "Spread + market impact + adverse selection",
+      "body": "**The spread is not noise — it's information**. Three components (Glosten 1985, Kyle 1985):\n1. **Order-processing cost**: pure operational + tech cost.\n2. **Inventory cost**: market maker takes on positions, charges for inventory risk.\n3. **Adverse-selection cost**: market maker loses to informed traders; the spread compensates.\n\nThe **adverse-selection** component is the deep one. When you buy from a market maker, half the time you have information they don't, + the trade moves the price against them. They charge the spread upfront to cover average losses.\n\n**Market impact**: large trades MOVE the market. Walking the book of liquidity. The Almgren-Chriss model decomposes execution cost:\n$$\\text{cost} = \\text{spread cost} + \\text{permanent impact} + \\text{temporary impact}$$\nPermanent impact (proportional to the trade's information content) doesn't decay; temporary impact (related to liquidity demand) decays after the trade.\n\nFor large orders, slicing across time + venues is the central problem of **algorithmic execution** (VWAP, TWAP, IS algorithms, percent-of-volume). Goldman Sachs has hundreds of execution algos; banks have dedicated quant teams just for execution.\n\n**Kyle's lambda**: $\\lambda = \\partial \\text{price} / \\partial Q$, the marginal price impact per unit of order flow. Lower $\\lambda$ = deeper market. A central liquidity measure.\n\n**Implementation shortfall**: the gap between decision price + execution price. THE single most-tracked metric for buy-side execution quality."
+    },
+    {
+      "kind": "text",
+      "title": "Market makers + HFT",
+      "body": "**Market makers**: liquid quoters. Quote both bid + ask at all times in target instruments; capture the spread; manage inventory risk. Traditional MMs: specialists at NYSE (historically), DMMs today, OTC-derivatives banks (Goldman, Morgan Stanley).\n\n**HFT (High-Frequency Trading)**: algorithmic market making + statistical arbitrage at the millisecond timescale. Co-located servers next to exchanges, microsecond-precision timestamps, optimized hardware (FPGAs).\n\n**HFT strategies**:\n- **Electronic market making**: post + cancel quotes in milliseconds. Earn spread + rebate.\n- **Latency arbitrage**: race ahead of stale quotes on slower venues + lift them before market makers can pull.\n- **Statistical arbitrage**: pairs / portfolio mean-reversion at minute / second horizon.\n- **News-feed arbitrage**: parse news APIs in microseconds + trade ahead of the slower flow.\n\n**Critiques**:\n- 'Predatory' (Brad Katsuyama, IEX founder; Michael Lewis's 'Flash Boys'): HFTs detect large institutional orders + front-run.\n- 'Liquidity withdrawal': HFT quotes are FAST. When real news hits, quotes pull instantly → effective liquidity disappears precisely when needed.\n- May 6, 2010 'Flash Crash': S&P 500 dropped 9% + recovered in minutes. CFTC report partially blamed HFT-quote-cancellation feedback.\n\n**The HFT-defense view**: liquidity provision benefits everyone, spread reduction has been dramatic since electronification (NYSE spreads from ~25 cents in 1990 to ~1 cent today), competition between HFTs reduces rents.\n\nBoth sides are partially right. Modern market structure is the equilibrium of MMs, HFTs, institutional execution algos, retail flow, + exchange rules. It's vastly more efficient than the floor-based era, but also more opaque + faster than human-scale."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_micro_kyle",
+        "kind": "guided_derivation",
+        "question": "Derive Kyle's λ from a one-period model",
+        "goal": "Informed trader knows asset's true value $v$. Submits order $x = \\beta(v - p_0)$. Noise traders submit $u \\sim \\mathcal{N}(0, \\sigma_u^2)$. Market maker sees total order flow $Q = x + u$ + sets price $p = p_0 + \\lambda Q$.",
+        "steps": [
+          {
+            "prompt": "Market maker breaks even on average: $\\mathbb{E}[v | Q] = p$. So $\\lambda = \\text{Cov}(v, Q)/\\text{Var}(Q)$ (regression coefficient of $v$ on $Q$). Compute $\\text{Cov}(v, Q)$ assuming $v \\sim \\mathcal{N}(p_0, \\sigma_v^2)$.",
+            "motivation": "Linear projection.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$\\beta \\sigma_v^2$.",
+                "$\\sigma_v \\sigma_u$.",
+                "0.",
+                "$\\sigma_v^2 + \\sigma_u^2$."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "$\\text{Cov}(v, x + u) = \\text{Cov}(v, \\beta(v-p_0)) + 0$."
+            ],
+            "reveal": "$\\text{Cov}(v, Q) = \\beta \\sigma_v^2$."
+          },
+          {
+            "prompt": "Compute $\\text{Var}(Q) = \\text{Var}(\\beta(v-p_0) + u) = ?$",
+            "motivation": "Independence.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "beta^2 * sigma_v^2 + sigma_u^2",
+                "β^2 σ_v^2 + σ_u^2"
+              ]
+            },
+            "hints": [
+              "Var of sum of independent."
+            ],
+            "reveal": "$\\text{Var}(Q) = \\beta^2 \\sigma_v^2 + \\sigma_u^2$."
+          },
+          {
+            "prompt": "$\\lambda = \\text{Cov}/\\text{Var} = ?$ Then the informed trader solves for $\\beta$ to maximize $\\mathbb{E}[(v - p)x]$; at equilibrium, $\\beta = \\sigma_u / \\sigma_v$. Plug in: $\\lambda = ?$",
+            "motivation": "Algebra.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$\\sigma_v / (2\\sigma_u)$.",
+                "$\\sigma_v / \\sigma_u$.",
+                "$\\sigma_u / \\sigma_v$.",
+                "$\\sigma_v \\sigma_u$."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "At $\\beta = \\sigma_u/\\sigma_v$: $\\lambda = (\\sigma_u/\\sigma_v) \\sigma_v^2 / (\\sigma_u^2 + \\sigma_u^2) = \\sigma_v / (2\\sigma_u)$."
+            ],
+            "reveal": "$\\lambda = \\sigma_v / (2 \\sigma_u)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\lambda = \\sigma_v / (2 \\sigma_u)}$$ Kyle (1985). Insights: (1) Price impact is higher when fundamental volatility ($\\sigma_v$) is high — informed traders have more to extract. (2) Price impact is LOWER when noise-trader volume ($\\sigma_u$) is high — informed orders are 'hidden in the noise', so each unit moves the price less. This is why illiquid markets (low $\\sigma_u$) have high impact; deep markets (high $\\sigma_u$) absorb large orders cheaply."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_micro_lvl",
+        "kind": "multiple_choice",
+        "question": "Why does the bid-ask spread INCREASE during market crises?",
+        "options": [
+          "Because exchanges raise fees.",
+          "Because adverse-selection risk explodes (the next trade is more likely to be from an informed seller) + inventory risk spikes (market makers don't want to absorb falling positions). MMs widen quotes to protect themselves.",
+          "Because of regulation.",
+          "Because of liquidity providers' lunch break."
+        ],
+        "correctIndex": 1,
+        "explanation": "Spread = order-processing cost + inventory risk + adverse-selection risk. During crises (Lehman, COVID March 2020, Flash Crashes), inventory + adverse-selection risk both spike: positions move faster, informed flow dominates, MMs lose more from getting picked off. Spreads widen 5-50× in stress conditions. The widening IS the market's stress signal."
+      },
+      "hints": [
+        "Spread compensates for what kinds of risk?",
+        "Which risks rise in a crisis?"
+      ],
+      "workedSolution": "Adverse-selection rises: news arrives unpredictably; counterparties more often have information. Inventory risk rises: positions held against trend lose, fast. Both push optimal spread wider. In quiet markets, MMs compete the spread down; in crises, they pull back. The Flash Crash dynamics were precisely this — quotes pulled, effective liquidity vanished.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_micro_spread",
+        "kind": "math_expression",
+        "question": "Best bid \\$99.99, best ask \\$100.01. Spread + mid-price?",
+        "acceptedAnswers": [
+          "$0.02 and $100.00",
+          "0.02, 100.00",
+          "0.02 and 100",
+          "0.02 / 100"
+        ],
+        "hint": "Ask - bid for spread, average for mid."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_micro_iceberg",
+        "kind": "scenario",
+        "question": "Execution of a large order",
+        "prompt": "A pension fund needs to sell \\$200M of a large-cap stock. The portfolio manager asks the execution desk whether to dump it as one block, slice it via VWAP over the day, or use a dark pool. Walk through the trade-offs."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_micro",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why market makers + HFT firms can earn the bid-ask spread reliably as a business.",
+        "rubric": "Mentions that market makers post both sides + capture the spread on round-trip flow; they're compensated for adverse selection + inventory risk; competition (especially HFT) keeps the spread tight at the equilibrium level. The 'spread as compensation for liquidity provision' is the foundational microstructure model."
+      }
+    }
+  ]
+}

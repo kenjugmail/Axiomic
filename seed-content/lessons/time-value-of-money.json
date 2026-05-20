@@ -1,0 +1,146 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intro",
+    "objectives": [
+      "Compute present value + future value with compound interest.",
+      "Distinguish discrete from continuous compounding.",
+      "Compute net present value (NPV) for a cash-flow stream."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "A dollar today vs a dollar in a year",
+      "body": "**Time value of money**: \\$1 today is worth more than \\$1 next year. Reasons: opportunity cost (you could invest), inflation (purchasing power decays), risk (the future dollar might not arrive).\n\nThe **risk-free rate** $r$ is the price of time itself. With $r = 5\\%$ annually:\n- \\$100 today, invested → \\$105 in one year.\n- \\$105 in one year, discounted back → \\$100 today.\n\n**Future value** (FV) of $P$ today with rate $r$ over $n$ years (discrete compounding):\n$$FV = P (1 + r)^n$$\n\n**Present value** (PV) of $F$ received in $n$ years:\n$$PV = \\frac{F}{(1 + r)^n}$$\n\nEverything in finance is built on these two equations. Bond pricing, mortgage amortization, NPV of a project, option pricing — all are discounted-cash-flow problems.\n\n**Key insight**: comparing two cash flows always means discounting both to the SAME point in time. A \\$1000 cash flow in year 5 vs \\$800 today — at $r = 5\\%$, \\$1000 in year 5 has PV $1000/1.05^5 \\approx \\$784$, so \\$800 today is preferred. Discounting puts comparisons on level ground."
+    },
+    {
+      "kind": "text",
+      "title": "Discrete vs continuous compounding",
+      "body": "Compounding period matters. With nominal rate $r$ compounded $m$ times per year:\n$$FV = P (1 + r/m)^{mn}$$\n\n- $m=1$: annual. \\$100 at 10% → \\$110.\n- $m=12$: monthly. \\$100 at 10%/12 monthly → $100 \\times 1.00833^{12} \\approx \\$110.47$.\n- $m=365$: daily → $\\approx \\$110.516$.\n- $m \\to \\infty$: continuous compounding. The limit is $FV = Pe^{rn}$.\n\n**Continuous compounding** is the natural form for theoretical work. The bridge:\n$$\\lim_{m \\to \\infty}(1 + r/m)^{mn} = e^{rn}$$\nVia the definition $e = \\lim (1 + 1/n)^n$.\n\nIn options pricing + interest-rate models, $e^{rt}$ is everywhere. The reasoning: option prices live in continuous time + the derivatives work better with $e$.\n\n**Effective annual rate (EAR)**: the equivalent annually-compounded rate. With nominal $r$ compounded $m$ times: $EAR = (1 + r/m)^m - 1$. Continuous compounding: $EAR = e^r - 1$. Use EAR when comparing rates with different compounding conventions.\n\nFor 5% nominal: monthly EAR ≈ 5.116%, continuous EAR ≈ 5.127%. Small difference at low rates; meaningful at high rates."
+    },
+    {
+      "kind": "text",
+      "title": "Net Present Value + capital budgeting",
+      "body": "**NPV** of a cash-flow stream $\\{C_0, C_1, \\dots, C_n\\}$ at discount rate $r$:\n$$NPV = \\sum_{t=0}^{n} \\frac{C_t}{(1+r)^t}$$\n\nUsually $C_0 < 0$ (initial investment) + later $C_t > 0$ (returns). If $NPV > 0$, the project creates value at this discount rate; accept. If $NPV < 0$, reject.\n\n**Example**: spend \\$1000 today, receive \\$300/year for 5 years. At $r = 8\\%$:\n$$NPV = -1000 + \\sum_{t=1}^{5} \\frac{300}{1.08^t} = -1000 + 1197.81 = 197.81$$\nProject creates ~\\$198 of value. Accept.\n\n**Internal Rate of Return (IRR)**: the discount rate at which $NPV = 0$. The 'break-even' rate. Sometimes used as a heuristic, but NPV is the theoretically correct decision rule. IRR has well-known pathologies (multiple roots, scale-invariance lies about absolute value).\n\n**Capital budgeting**: with limited capital, rank projects by NPV (or NPV-per-dollar = profitability index). This is what corporate-finance teams + venture investors do — quantify the discount rate that captures opportunity cost + risk, sum the discounted flows, decide.\n\nThe most consequential application: **valuing a company**. Equity value = sum of discounted free cash flows. Choosing the right discount rate (WACC, weighted average cost of capital) is the hard part."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_tvm_pv",
+        "kind": "guided_derivation",
+        "question": "Derive PV of an annuity",
+        "goal": "Annuity: pays $C$ at the end of each year for $n$ years. Discount rate $r$. Compute PV.",
+        "steps": [
+          {
+            "prompt": "Sum of discounted cash flows: $PV = C/(1+r) + C/(1+r)^2 + \\dots + C/(1+r)^n$. Factor out $C$. Inside the parens, what kind of series?",
+            "motivation": "Recognize the form.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Arithmetic series.",
+                "Geometric series with ratio $1/(1+r)$.",
+                "Telescoping series.",
+                "Power series."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Each term is the previous times $1/(1+r)$."
+            ],
+            "reveal": "Geometric series, first term $1/(1+r)$, ratio $1/(1+r)$, $n$ terms."
+          },
+          {
+            "prompt": "Geometric series sum: $\\sum_{k=1}^{n} x^k = x \\cdot \\frac{1 - x^n}{1 - x}$. With $x = 1/(1+r)$, simplify $\\frac{1 - x^n}{1 - x}$. What does $1 - x$ become?",
+            "motivation": "Algebra.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$r$.",
+                "$r/(1+r)$.",
+                "$1 - 1/(1+r) = r/(1+r)$.",
+                "$1 + r$."
+              ],
+              "correctIndex": 2
+            },
+            "hints": [
+              "$1 - \\frac{1}{1+r}$."
+            ],
+            "reveal": "$1 - 1/(1+r) = ((1+r) - 1)/(1+r) = r/(1+r)$."
+          },
+          {
+            "prompt": "Putting it together: $PV = C \\cdot \\frac{1}{1+r} \\cdot \\frac{1 - 1/(1+r)^n}{r/(1+r)}$. Simplify the $(1+r)$ factors. Result?",
+            "motivation": "Cancel.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "C * (1 - (1+r)^{-n}) / r",
+                "C(1 - (1+r)^{-n})/r"
+              ]
+            },
+            "hints": [
+              "The $(1+r)$ in numerator + denominator cancel."
+            ],
+            "reveal": "$PV = C \\cdot \\frac{1 - (1+r)^{-n}}{r}$."
+          }
+        ],
+        "finalResult": "$$\\boxed{PV_{\\text{annuity}} = C \\cdot \\frac{1 - (1+r)^{-n}}{r}}$$ This single formula prices mortgages, car loans, leases, retirement annuities. For perpetual annuity ($n \\to \\infty$): $PV = C/r$ (the perpetuity formula — a stock paying constant dividend has value $D/r$). The classical Gordon growth model with growth $g$: $PV = C/(r-g)$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_tvm_mortgage",
+        "kind": "multiple_choice",
+        "question": "A 30-year mortgage of \\$400,000 at 6% (nominal annual, compounded monthly). Approximately what is the monthly payment?",
+        "options": [
+          "\\$1,000 — close enough.",
+          "\\$2,398 — the annuity formula with monthly rate 0.5% and 360 payments.",
+          "\\$3,500.",
+          "\\$1,111 — principal/360."
+        ],
+        "correctIndex": 1,
+        "explanation": "Mortgage is an annuity in reverse: PV given, solve for monthly payment $C$. With PV = \\$400k, $r = 0.06/12 = 0.005$ monthly, $n = 360$: $C = 400000 / [(1 - 1.005^{-360})/0.005] \\approx \\$2,398$. The borrower pays back \\$863k over 30 years — \\$463k in interest."
+      },
+      "hints": [
+        "Convert annual rate to monthly: divide by 12.",
+        "Use the annuity-PV formula in reverse."
+      ],
+      "workedSolution": "Monthly rate $r = 6\\%/12 = 0.5\\%$. $n = 30 \\times 12 = 360$ payments. Annuity formula: $PV = C(1-(1+r)^{-n})/r$. Rearrange: $C = PV \\cdot r / (1-(1+r)^{-n}) = 400000 \\cdot 0.005 / (1 - 1.005^{-360}) \\approx 400000 \\cdot 0.005 / 0.8341 \\approx 2398$. Over 30 years: total paid ≈ \\$863,353, interest = \\$463,353.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_tvm_double",
+        "kind": "math_expression",
+        "question": "Approximately how many years to double money at 7% annual interest? (Use the rule of 72.)",
+        "acceptedAnswers": [
+          "10",
+          "approximately 10",
+          "~10"
+        ],
+        "hint": "72/7 ≈ 10.3 years."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_tvm_npv",
+        "kind": "scenario",
+        "question": "Evaluating a business investment",
+        "prompt": "Your team proposes investing \\$500k to build a feature that will earn \\$120k/year for 6 years. The CFO requires 12% hurdle rate. Walk through whether to do it + the assumptions in the NPV calculation."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_tvm",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why the time value of money is the foundation of all financial decisions, from corporate budgeting to options pricing.",
+        "rubric": "Mentions that cash flows arriving at different times can't be compared directly; discounting reduces them to a common date (typically present); the discount rate captures both opportunity cost + risk; every valuation problem (NPV, DCF, bond pricing, option pricing) is a discounted-cash-flow calculation underneath."
+      }
+    }
+  ]
+}

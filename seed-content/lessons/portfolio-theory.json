@@ -1,0 +1,133 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "specialist",
+    "objectives": [
+      "State Markowitz mean-variance optimization.",
+      "Outline the CAPM + the Sharpe ratio.",
+      "Distinguish factor models from idiosyncratic risk."
+    ],
+    "prereqs": [
+      "time-value-of-money"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Markowitz mean-variance optimization",
+      "body": "**Harry Markowitz (1952)**: portfolio optimization should consider both return + risk. Risk = variance of returns. Found the **efficient frontier** — the set of portfolios with maximum return for given variance (or minimum variance for given return).\n\nGiven $n$ assets with expected returns $\\mu \\in \\mathbb{R}^n$ + covariance matrix $\\Sigma \\in \\mathbb{R}^{n \\times n}$, find weights $w$ (summing to 1) that minimize $w^T \\Sigma w$ subject to $\\mu^T w = \\mu_{\\text{target}}$.\n\nClosed-form solution (with Lagrange multipliers): $w^* = \\Sigma^{-1}(\\alpha \\mathbf{1} + \\beta \\mu)$ for some scalars depending on the target.\n\n**The two-fund separation theorem**: every efficient portfolio is a combination of just TWO funds. With a risk-free asset, every efficient portfolio is a mix of risk-free + the single **tangency portfolio** (the maximum-Sharpe-ratio portfolio).\n\n**Sharpe ratio**:\n$$S = (\\mu_p - r_f) / \\sigma_p$$\nThe portfolio's excess return per unit of risk. The tangency portfolio maximizes $S$.\n\n**Real-world issues**:\n- Estimating $\\mu$ is HARD. Sample mean is unstable (high estimation error → portfolio overfits to noise).\n- Estimating $\\Sigma$ requires lots of data + structure (shrinkage estimators, factor decomposition).\n- Optimal weights tend to be EXTREME (huge longs + huge shorts). 'Markowitz optimization is unusable in practice' — Robert Merton.\n\nFixes: **Black-Litterman** (combine market-implied views with subjective views), **risk-parity** (weight by inverse volatility), **robust optimization** (account for parameter uncertainty)."
+    },
+    {
+      "kind": "text",
+      "title": "CAPM + the Security Market Line",
+      "body": "**CAPM (Capital Asset Pricing Model)** — Sharpe, Lintner, Mossin 1964-66:\n\nUnder strong assumptions (everyone has the same beliefs, mean-variance preferences, frictionless markets, all assets traded), at equilibrium every investor holds the same risky portfolio = the **market portfolio** (a value-weighted basket of all risky assets).\n\nAn individual asset $i$'s expected excess return is proportional to its **beta**:\n$$\\mathbb{E}[R_i] - r_f = \\beta_i (\\mathbb{E}[R_m] - r_f)$$\n$$\\beta_i = \\text{Cov}(R_i, R_m)/\\text{Var}(R_m)$$\n\n**Beta** = sensitivity to market moves. Bank stock with $\\beta = 1.5$ amplifies market moves 50%. Utility stock with $\\beta = 0.5$ damps them.\n\nThis decomposes asset risk into:\n- **Systematic risk** ($\\beta$-related): rewarded by market premium.\n- **Idiosyncratic risk** (residual): not rewarded — diversifiable.\n\n**The Security Market Line (SML)**: expected return as a linear function of beta. Assets above the line are 'cheap' (high alpha); below the line 'expensive' (negative alpha).\n\n**Empirical record**: CAPM is a useful first-order model but doesn't fully fit the data. Famous anomalies: size effect (small caps outperform), value effect (low P/B outperform), momentum (recent winners keep winning). These motivated multi-factor extensions."
+    },
+    {
+      "kind": "text",
+      "title": "Factor models + the Fama-French extension",
+      "body": "**Multi-factor models**: extend CAPM with additional priced factors. **Fama-French 3-factor (1992, 1993)**:\n$$\\mathbb{E}[R_i] - r_f = \\beta_{\\text{mkt}} \\text{MKT} + \\beta_{\\text{SMB}} \\text{SMB} + \\beta_{\\text{HML}} \\text{HML}$$\n- **MKT**: market excess return.\n- **SMB** (Small Minus Big): long small caps, short large caps.\n- **HML** (High Minus Low): long high-B/P (value), short low-B/P (growth).\n\nLater extended to 5-factor (adding profitability + investment factors).\n\n**Carhart 4-factor**: Fama-French + UMD (Up Minus Down) = momentum factor.\n\n**Application**:\n- **Performance attribution**: a fund manager's returns decompose into market + factor + alpha. Most of the 'alpha' historically attributed to fund managers turns out to be factor exposures.\n- **Risk management**: portfolio's factor loadings explain its variance + tail risks.\n- **Strategy construction**: 'smart beta' / 'factor investing' = systematically harvest factor premia at low cost. The basis of every index-fund + ETF that's not pure market-cap-weighted.\n\n**Modern equity factor zoo**: hundreds of proposed factors in academia. Most don't survive out-of-sample (the 'factor zoo' / 'p-hacking' critique — Harvey et al 2016). Industry uses ~5-15 vetted factors (market, size, value, momentum, quality, low-vol).\n\nIn ML lingo, factor models are **linear regression with hand-engineered features**. Modern quant funds (AQR, Two Sigma, Citadel) layer ML methods on top: gradient-boosted trees for non-linear interactions, deep learning for alternative data."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_pf_sharpe",
+        "kind": "guided_derivation",
+        "question": "Derive optimal weight for two-asset portfolio",
+        "goal": "Two risky assets with $\\mu_1, \\mu_2$, std-devs $\\sigma_1, \\sigma_2$, correlation $\\rho$. Risk-free $r_f$. Find weights $w_1, w_2 = 1 - w_1$ that maximize Sharpe ratio.",
+        "steps": [
+          {
+            "prompt": "Portfolio expected return: $\\mu_p = w_1 \\mu_1 + w_2 \\mu_2$. Portfolio variance: $\\sigma_p^2 = ?$",
+            "motivation": "Variance of a sum.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$w_1^2 \\sigma_1^2 + w_2^2 \\sigma_2^2$.",
+                "$w_1^2 \\sigma_1^2 + w_2^2 \\sigma_2^2 + 2 w_1 w_2 \\rho \\sigma_1 \\sigma_2$.",
+                "$w_1 \\sigma_1 + w_2 \\sigma_2$.",
+                "$\\sigma_1 + \\sigma_2$."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Don't forget the covariance term."
+            ],
+            "reveal": "$\\sigma_p^2 = w_1^2 \\sigma_1^2 + w_2^2 \\sigma_2^2 + 2 w_1 w_2 \\rho \\sigma_1 \\sigma_2$."
+          },
+          {
+            "prompt": "Set $\\partial S/\\partial w_1 = 0$ where $S = (\\mu_p - r_f)/\\sigma_p$. With excess returns $e_1 = \\mu_1 - r_f$, $e_2 = \\mu_2 - r_f$, after algebra: $w_1^* = \\frac{e_1 \\sigma_2^2 - e_2 \\rho \\sigma_1 \\sigma_2}{e_1 \\sigma_2^2 + e_2 \\sigma_1^2 - (e_1 + e_2) \\rho \\sigma_1 \\sigma_2}$. If $\\rho = 0$ (uncorrelated), simplify.",
+            "motivation": "Special case clarifies.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$w_1^* = e_1 / (e_1 + e_2)$.",
+                "$w_1^* = (e_1/\\sigma_1^2) / (e_1/\\sigma_1^2 + e_2/\\sigma_2^2)$.",
+                "$w_1^* = 1/2$.",
+                "$w_1^* = \\sigma_2/(\\sigma_1+\\sigma_2)$."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "With $\\rho=0$: weight ∝ excess-return / variance."
+            ],
+            "reveal": "$w_1^* = (e_1/\\sigma_1^2) / (e_1/\\sigma_1^2 + e_2/\\sigma_2^2)$. Higher excess return → higher weight. Higher variance → lower weight."
+          }
+        ],
+        "finalResult": "$$\\boxed{w^* \\propto \\Sigma^{-1} (\\mu - r_f \\mathbf{1})}$$ The general result: optimal weights are the inverse covariance times excess returns, scaled. For $\\Sigma = \\text{diag}(\\sigma^2)$ (independent assets), weight in asset $i$ is proportional to $e_i / \\sigma_i^2$ — risk-adjusted return per unit of variance. This is THE foundational risk-return-weight relationship in quantitative portfolio management."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_pf_diversify",
+        "kind": "multiple_choice",
+        "question": "Why does diversification reduce portfolio risk but NOT proportionally to the number of assets?",
+        "options": [
+          "Because asset returns are positively correlated; the irreducible 'systematic' component remains.",
+          "Because of taxes.",
+          "Because of transaction costs.",
+          "Because more assets equals more risk."
+        ],
+        "correctIndex": 0,
+        "explanation": "In an N-asset equal-weight portfolio, variance is $(1/N)\\bar{\\sigma}^2 + ((N-1)/N)\\overline{\\text{cov}}$. As $N\\to\\infty$, the first (idiosyncratic) term vanishes but the second (average covariance — the systematic component) doesn't. Equities are typically 30-50% correlated to the market, so diversification reduces but doesn't eliminate risk."
+      },
+      "hints": [
+        "What's the formula for portfolio variance?",
+        "Which term doesn't vanish?"
+      ],
+      "workedSolution": "Portfolio variance = $(1/N) \\text{avg variance} + (1 - 1/N) \\text{avg covariance}$. As $N$ grows, only the first (idio) term goes to zero. The second (systematic, market-correlated) term remains — this is the irreducible risk of being LONG equities. To go below it requires hedging via shorts, options, or low-correlated assets (bonds, gold, alts).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_pf_sharpe",
+        "kind": "math_expression",
+        "question": "Portfolio return 12%, risk-free 4%, std-dev 16%. Sharpe ratio?",
+        "acceptedAnswers": [
+          "0.5",
+          "0.50",
+          "0.5000"
+        ],
+        "hint": "(12-4)/16 = 8/16 = 0.5"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_pf_factor",
+        "kind": "scenario",
+        "question": "Decomposing a fund's alpha",
+        "prompt": "An equity fund returned 18% last year vs market 10%. The investment committee asks if the manager has 'alpha' or just factor exposure. Walk through the analysis."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_pf",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why pure Markowitz optimization is rarely used in practice, despite being the theoretical foundation.",
+        "rubric": "Mentions that estimating $\\mu$ + $\\Sigma$ from history has large uncertainty; the optimization is highly sensitive to inputs (small input changes → huge weight swings); practical implementations use shrinkage, factor models, risk parity, or Black-Litterman to stabilize the weights. Markowitz is the framework, not the algorithm."
+      }
+    }
+  ]
+}
