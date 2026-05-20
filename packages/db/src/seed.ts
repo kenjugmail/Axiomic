@@ -1952,6 +1952,27 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P27 — Geologist path. Earth science end-to-end: plate tectonics,
+  // minerals + rocks, structural geology (interactive Mohr's circle
+  // viz), sedimentary systems, earthquakes + seismology, volcanism,
+  // deep time + mass extinctions, economic geology + critical minerals.
+  seedMasteryPath({
+    slug: "geologist",
+    title: "Geologist",
+    description:
+      "From plate tectonics + the unifying theory of Earth through minerals + the rock cycle, structural geology with an interactive Mohr's-circle stress viz, sedimentary systems + facies, earthquake source mechanics + seismic waves, volcanism + magma evolution, deep time + radiometric dating + the Big Five extinctions, and economic geology + the critical-minerals stack (Li, Co, Ni, Cu, REE). The Earth-science stack end-to-end.",
+    nodes: [
+      { slug: "plate-tectonics", title: "Plate Tectonics", level: "apprentice", order: 1, pages: ["lithosphere-asthenosphere", "boundary-types", "hotspots-convection"], prereqs: [], description: "Lithosphere + asthenosphere, divergent + convergent + transform boundaries, hotspots + mantle convection, Wilson cycle." },
+      { slug: "minerals-and-rocks", title: "Minerals + the Rock Cycle", level: "apprentice", order: 2, pages: ["mineral-id", "igneous-classification", "metamorphic-facies"], prereqs: [], description: "Mineral identification + silicate classes, igneous TAS + Bowen's reaction series, sedimentary + metamorphic facies + the rock cycle." },
+      { slug: "structural-geology", title: "Structural Geology + Stress", level: "practitioner", order: 3, pages: ["stress-strain", "mohrs-circle", "folds-faults-coulomb"], prereqs: ["minerals-and-rocks"], description: "Stress + strain tensors, interactive Mohr's circle + Coulomb failure, folds + faults + Anderson's classification + reservoir geomechanics." },
+      { slug: "sedimentary-systems", title: "Sedimentary Systems + Facies", level: "practitioner", order: 4, pages: ["weathering-transport", "facies-walther", "sequence-stratigraphy"], prereqs: ["minerals-and-rocks"], description: "Weathering + Hjulström transport + sorting, depositional environments + Walther's law, sequence stratigraphy + petroleum systems." },
+      { slug: "earthquakes-and-seismology", title: "Earthquakes + Seismology", level: "specialist", order: 5, pages: ["elastic-rebound", "p-s-waves", "magnitude-hazard"], prereqs: ["structural-geology"], description: "Elastic-rebound theory + focal mechanisms, P/S/surface waves + travel-time + tomography, magnitude scales + hazard + early-warning." },
+      { slug: "volcanism-and-magma", title: "Volcanism + Magma", level: "practitioner", order: 6, pages: ["magma-genesis", "eruption-styles-vei", "monitoring-hazards"], prereqs: ["plate-tectonics", "minerals-and-rocks"], description: "Magma genesis + decompression melting, viscosity + volatile content + eruption styles + VEI, monitoring + Pinatubo + super-eruption risk." },
+      { slug: "earth-history-and-deep-time", title: "Deep Time + Earth History", level: "specialist", order: 7, pages: ["radiometric-dating", "geologic-time-scale", "big-five-extinctions"], prereqs: [], description: "Radiometric dating + half-life math, Hadean → Cenozoic narrative, the Big Five mass extinctions + the Anthropocene + Snowball Earth." },
+      { slug: "economic-geology-and-resources", title: "Economic Geology + Resources", level: "expert", order: 8, pages: ["ore-genesis", "critical-minerals", "energy-resources"], prereqs: ["plate-tectonics", "structural-geology"], description: "Porphyry + VMS + SEDEX + epithermal ore genesis, critical minerals (Li, Co, Ni, Cu, REE), petroleum systems + geothermal + CCS + the energy transition." },
+    ],
+  });
+
   // P26 — Quant Trader path. Systematic trading: strategies,
   // microstructure (uses OrderBook viz), signals + alpha,
   // statistical arbitrage, trend + momentum, backtesting,

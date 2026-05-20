@@ -17,6 +17,7 @@ export { BeamDeflection } from "./components/BeamDeflection";
 export { PKCurve } from "./components/PKCurve";
 export { ROCCurve } from "./components/ROCCurve";
 export { OrderBook } from "./components/OrderBook";
+export { MohrsCircle } from "./components/MohrsCircle";
 export { SoftmaxTemperatureSlider } from "./quiz/SoftmaxTemperatureSlider";
 export { AttentionHeatmapExplorer } from "./quiz/AttentionHeatmapExplorer";
 export { GradientDescent2D } from "./quiz/GradientDescent2D";

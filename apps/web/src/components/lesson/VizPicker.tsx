@@ -138,6 +138,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "📊",
     tags: ["trading", "finance", "microstructure", "quant"],
   },
+  {
+    name: "mohrs-circle",
+    label: "Mohr's circle of stress",
+    description: "Drag σ_x, σ_y, τ_xy + rotation; see principal stresses + max shear graphically.",
+    thumb: "🪨",
+    tags: ["geology", "mechanics", "structural", "engineering", "stress"],
+  },
 ];
 
 interface Props {
