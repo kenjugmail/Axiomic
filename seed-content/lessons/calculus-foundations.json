@@ -61,6 +61,75 @@
       "kind": "text",
       "title": "What's next",
       "body": "Calculus is the engine of ML. Three concepts to remember:\n\n- The chain rule: outer derivative evaluated at the inner function's value\n- Partial derivatives: differentiate w.r.t. one variable, hold others fixed\n- Gradient: vector of all partial derivatives, points uphill\n\nNext lessons in the math path:\n\n- [[statistics-foundations]] — turning data into claims\n- [[gradient-descent]] — using gradients to find minima\n- [[backpropagation]] — applying chain rule systematically through a network"
+    },
+    {
+      "kind": "text",
+      "title": "Chain rule, mechanically",
+      "body": "If $h(x) = f(g(x))$ then $h'(x) = f'(g(x))\\cdot g'(x)$.\n\nExample: $h(x) = \\sin(x^2)$. Set $g(x)=x^2$, $f(u)=\\sin u$. Then $g'(x)=2x$, $f'(u)=\\cos u$, and\n\n$$h'(x) = \\cos(x^2)\\cdot 2x.$$\n\nBackpropagation is just this rule applied a few thousand times in a row — *every* gradient in deep learning is a chain-rule product."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_calc_chain",
+        "kind": "math_expression",
+        "question": "Differentiate $h(x) = (3x + 1)^4$ with respect to $x$. Enter $h'(x)$.",
+        "acceptedAnswers": [
+          "12(3x+1)^3",
+          "12*(3x+1)^3",
+          "(3x+1)^3*12"
+        ],
+        "hint": "Outer: $u^4 \\mapsto 4u^3$. Inner: $3x+1 \\mapsto 3$. Multiply."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_calc_min",
+        "kind": "multiple_choice",
+        "question": "The function $f(x) = x^3 - 3x + 1$ has a derivative $f'(x) = 3x^2 - 3$. At which point is $f$ at a local minimum?",
+        "options": [
+          "$x = -1$",
+          "$x = 0$",
+          "$x = 1$",
+          "$f$ has no local minimum."
+        ],
+        "correctIndex": 2,
+        "explanation": "Critical points: $3x^2 - 3 = 0 \\Rightarrow x = \\pm 1$. Second derivative $f''(x) = 6x$ is positive at $x=1$ (minimum) and negative at $x=-1$ (maximum)."
+      },
+      "hints": [
+        "Solve $f'(x) = 0$ first to find candidate critical points.",
+        "Use the sign of $f''(x) = 6x$ at each candidate to classify min vs max."
+      ],
+      "workedSolution": "$f'(x)=0$ gives $x=\\pm 1$. The second-derivative test uses $f''(x)=6x$: at $x=1$, $f''=6>0$ → concave up → local min. At $x=-1$, $f''=-6<0$ → concave down → local max. So the local minimum is at $x=1$.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_calc_lr",
+        "kind": "scenario",
+        "question": "Why does training diverge?",
+        "prompt": "A learner runs gradient descent on a smooth loss with a learning rate of $0.5$, but the loss explodes upward instead of decreasing. What's the most likely calculus-flavored explanation, and what's the smallest change that would fix it? Two sentences."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_calc",
+        "kind": "explain_back",
+        "prompt": "Explain in your own words why the chain rule is the workhorse of every neural-network gradient computation. One paragraph.",
+        "rubric": "Mentions that NN forward pass = composition of layers, gradients flow back via the chain rule, and the product structure is what makes backprop computable in O(forward pass) time."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "intro",
+    "objectives": [
+      "Read a derivative as instantaneous rate of change, both algebraically and geometrically.",
+      "Apply the chain rule to compose functions in your head.",
+      "Compute a gradient in 2D and read off the direction of steepest ascent."
+    ],
+    "prereqs": []
+  }
 }

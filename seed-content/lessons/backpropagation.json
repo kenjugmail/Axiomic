@@ -61,6 +61,78 @@
       "kind": "text",
       "title": "What's next",
       "body": "Backprop is the algorithm that makes neural networks practical. The chain rule is mechanical; what makes backprop work at scale is the structural choice of reverse-mode autodiff and the engineering tricks (caching, checkpointing, FlashAttention) that manage the memory cost.\n\nThis lesson is the last in the math foundations path. From [[linear-algebra-foundations]] through [[probability-foundations]], [[statistics-foundations]], [[calculus-foundations]], [[loss-functions]], [[gradient-descent]], to backpropagation, you've covered the math substrate of modern ML.\n\nKey takeaways:\n- Backprop is reverse-mode autodiff applied through the network's computation graph\n- It's chain rule applied systematically — not a 'second forward pass'\n- One backward pass computes gradients w.r.t. all parameters; this is what makes deep learning feasible\n- Memory cost from caching activations; gradient checkpointing trades memory for compute\n- Default computes gradients w.r.t. parameters, NOT inputs (you have to ask explicitly for input gradients)"
+    },
+    {
+      "kind": "text",
+      "title": "Backprop on a tiny graph",
+      "body": "Take $f(x) = (3x + 1)^2$. Forward: $u = 3x+1$, $y = u^2$. Backward: $\\partial y / \\partial u = 2u$, $\\partial u / \\partial x = 3$, so $\\partial y / \\partial x = 6u = 6(3x+1)$.\n\nThat's the entire algorithm: compute the forward values, then traverse the graph backward multiplying local derivatives. With $n$ inputs and $m$ outputs, reverse-mode autodiff computes all $n$ partial derivatives of one output in time proportional to ONE forward pass — vs. forward-mode's $n$ passes.\n\nThat asymmetry is why every modern neural-net trainer uses reverse-mode (= backprop): networks have millions of parameters (inputs to the loss) and one scalar loss (output)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bp_vanish",
+        "kind": "multiple_choice",
+        "question": "A 30-layer feedforward network with sigmoid activations trains for many epochs without the early-layer weights changing meaningfully. What's the most likely cause?",
+        "options": [
+          "The learning rate is too low.",
+          "Sigmoid derivatives are at most 0.25, so gradients shrink ~4× per layer and vanish to numerical zero before reaching early layers.",
+          "Sigmoid is not differentiable.",
+          "Backpropagation only updates the last layer."
+        ],
+        "correctIndex": 1,
+        "explanation": "Classical vanishing-gradient diagnosis. Sigmoid's max derivative is 0.25 ($\\sigma'(0)$). Stacked 30 times you get a factor of $4^{-30} \\approx 10^{-18}$ on early-layer gradients — numerical zero. ReLU + residual connections were the fix that made deep networks trainable."
+      },
+      "hints": [
+        "Compute the max of $\\sigma'(x) = \\sigma(x)(1-\\sigma(x))$.",
+        "Raise that number to the 30th power and reason about whether early-layer gradients survive."
+      ],
+      "workedSolution": "The sigmoid derivative $\\sigma'(x) = \\sigma(x)(1-\\sigma(x))$ peaks at $0.25$ when $\\sigma(x)=0.5$. Backprop multiplies these factors across layers, so with 30 layers the upper-bound shrinkage is $0.25^{30}\\approx 10^{-18}$ — gradients to early layers vanish below floating-point precision. This was the central problem ResNet and ReLU were invented to solve.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_bp_explode",
+        "kind": "scenario",
+        "question": "Exploding gradients",
+        "prompt": "A learner trains an RNN on long sequences. Loss is decreasing nicely for the first 20 steps, then suddenly jumps to NaN. Diagnose the failure mode and propose one mitigation that doesn't change the architecture."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_bp_chain",
+        "kind": "math_expression",
+        "question": "$y = f(g(h(x)))$ with $h(x)=x^2$, $g(u)=3u$, $f(v)=\\sin v$. Compute $dy/dx$ as a closed form in $x$.",
+        "acceptedAnswers": [
+          "6x*cos(3x^2)",
+          "6x cos(3x^2)",
+          "cos(3x^2)*6x"
+        ],
+        "hint": "Chain rule three ways: $\\sin'\\!\\cdot 3 \\cdot 2x$ evaluated at the appropriate inner values."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_bp",
+        "kind": "explain_back",
+        "prompt": "Explain in your own words, in two or three sentences, why reverse-mode autodiff is the right choice for neural-network training and forward-mode autodiff isn't.",
+        "rubric": "Mentions that NN training computes the gradient of a single scalar loss with respect to many parameters; reverse-mode does this in one backward pass while forward-mode would need one pass per parameter."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 35,
+    "difficulty": "core",
+    "objectives": [
+      "Apply the chain rule across a small computation graph.",
+      "Recognize backprop as a reverse-mode autodiff pass — not a special algorithm.",
+      "Distinguish vanishing from exploding gradients in deep networks."
+    ],
+    "prereqs": [
+      "calculus-foundations",
+      "linear-algebra-foundations"
+    ]
+  }
 }

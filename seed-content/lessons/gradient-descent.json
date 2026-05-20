@@ -61,6 +61,77 @@
       "kind": "text",
       "title": "What's next",
       "body": "Gradient descent is the engine of modern ML training. The basic algorithm hasn't changed since the 1960s; what has changed is the optimizer (Adam → AdamW), the schedule (cosine + warmup), and the scale of the data + parameters.\n\nKey takeaways:\n- SGD is gradient descent on minibatches; per-step noise is normal\n- Momentum maintains velocity across steps; helps escape shallow minima and traverse long valleys\n- Adam adapts per-parameter scale; AdamW with cosine + warmup is the modern default\n- Learning rate matters; the right value depends on model size, data, and schedule\n\nNext: [[backpropagation]] — how gradients are computed efficiently in deep networks."
+    },
+    {
+      "kind": "text",
+      "title": "Why momentum exists",
+      "body": "Vanilla gradient descent oscillates badly in narrow valleys: the gradient zig-zags across the valley walls while making slow progress along the floor.\n\nMomentum keeps a running average $\\mathbf{v}_t = \\beta\\,\\mathbf{v}_{t-1} + (1-\\beta)\\,\\nabla L(\\theta_t)$ and updates $\\theta_{t+1} = \\theta_t - \\eta\\,\\mathbf{v}_t$. The cross-valley components cancel out of the average; the along-the-floor component reinforces. The result is straighter, faster descent.\n\nAdam takes the same idea and adds per-parameter learning-rate scaling via the running variance of gradients — that's the trick that lets transformer training proceed without manual learning-rate tuning per layer."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_gd_lr",
+        "kind": "multiple_choice",
+        "question": "During training, the loss decreases for the first few epochs and then starts oscillating between $0.4$ and $1.8$ without settling. Which intervention is most likely to help?",
+        "options": [
+          "Increase the learning rate.",
+          "Decrease the learning rate.",
+          "Increase the batch size — but keep the learning rate the same.",
+          "Switch from SGD to vanilla gradient descent."
+        ],
+        "correctIndex": 1,
+        "explanation": "Oscillation around a minimum is the classic signature of a learning rate that's too high — the optimizer overshoots and bounces. Lowering $\\eta$ (or adding a learning-rate schedule that decays it) is the first thing to try."
+      },
+      "hints": [
+        "Map each symptom (oscillation, slow progress, plateau, divergence) to a learning-rate diagnosis.",
+        "Increasing batch size reduces noise but doesn't reduce step size."
+      ],
+      "workedSolution": "Oscillation around a minimum without settling is the textbook 'learning rate too high' symptom: each step overshoots the basin. Decreasing $\\eta$ (or using a decay schedule) cures it. Increasing the LR makes it worse; raising the batch size reduces gradient noise but doesn't shrink the step size.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_gd_step",
+        "kind": "math_expression",
+        "question": "You're minimizing $L(\\theta) = \\theta^2$ with $\\theta_0 = 4$ and learning rate $\\eta = 0.1$. What is $\\theta_1$ after one gradient-descent step?",
+        "acceptedAnswers": [
+          "3.2",
+          "3.20",
+          "16/5"
+        ],
+        "hint": "Gradient is $2\\theta$, so $\\theta_1 = \\theta_0 - \\eta\\cdot 2\\theta_0$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_gd_plateau",
+        "kind": "scenario",
+        "question": "A long flat loss curve",
+        "prompt": "Training loss drops sharply for one epoch, then sits at a plateau for fifty epochs before slowly decreasing again. What two distinct causes could explain that pattern, and how would you tell them apart?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_gd",
+        "kind": "explain_back",
+        "prompt": "Explain in your own words, in two sentences, why Adam often 'just works' on transformer training when vanilla SGD requires careful tuning.",
+        "rubric": "Mentions per-parameter step-size scaling via running gradient variance, and that this implicitly handles bad conditioning across layers."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "core",
+    "objectives": [
+      "State the gradient-descent update and reason about step-size choice.",
+      "Distinguish vanilla GD, SGD, momentum, and Adam by their update rules.",
+      "Recognize loss-curve symptoms of a too-large or too-small learning rate."
+    ],
+    "prereqs": [
+      "calculus-foundations"
+    ]
+  }
 }
