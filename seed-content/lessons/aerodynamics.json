@@ -1,0 +1,145 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "core",
+    "objectives": [
+      "State Bernoulli's equation + its assumptions.",
+      "Distinguish subsonic, transonic, supersonic, hypersonic.",
+      "Reason about lift + drag + the boundary layer."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Bernoulli + the fluid dynamics foundation",
+      "body": "**Bernoulli's equation** (for incompressible, inviscid, steady flow along a streamline):\n$$p + \\frac{1}{2} \\rho v^2 + \\rho g h = \\text{const}$$\n\n- $p$ = static pressure.\n- $\\frac{1}{2}\\rho v^2$ = dynamic pressure (kinetic energy per volume).\n- $\\rho g h$ = potential.\n\nImplication: where velocity is HIGH, pressure is LOW. Forms the basis for understanding lift on wings, venturi flowmeters, jet pumps.\n\n**Why a wing lifts** (textbook explanation):\n- Air flows over curved top + flatter bottom.\n- Top flow accelerates (curved path); bottom is slower.\n- Per Bernoulli: lower pressure on top, higher on bottom.\n- Net upward force = LIFT.\n\n**More accurate explanation**:\n- Wing has positive 'angle of attack' relative to airflow.\n- Newton's 3rd law: wing deflects air DOWNWARD; reaction pushes wing UPWARD.\n- The pressure distribution + the downwash are two views of the same phenomenon.\n- Circulation theorem (Kutta-Joukowski): lift per span = $\\rho v \\Gamma$ where $\\Gamma$ is circulation around wing.\n\n**Lift + drag equations**:\n$$L = \\frac{1}{2} \\rho v^2 S C_L$$\n$$D = \\frac{1}{2} \\rho v^2 S C_D$$\nwhere $S$ is wing area, $C_L$ + $C_D$ are dimensionless coefficients depending on shape + angle of attack.\n\n**Stall**: at high angle of attack (~15-20°), flow SEPARATES from the wing's top surface. Lift drops, drag spikes. Recovery requires reducing angle of attack. Famous cause of aircraft accidents.\n\n**Aspect ratio** $AR = b^2 / S$ where $b$ = span. High AR (gliders, U-2 spy plane) = efficient cruise; low AR (fighters) = maneuverable but less efficient.\n\n**Reynolds number** $\\text{Re} = \\rho v L / \\mu$: dimensionless ratio of inertial to viscous forces. Determines flow regime.\n- Re < 1: viscous-dominated (bacteria in fluid).\n- Re ~10⁵-10⁶: typical aircraft. Mostly turbulent.\n- Re > 10⁷: very turbulent (large aircraft, ships)."
+    },
+    {
+      "kind": "text",
+      "title": "Compressibility + the speed regimes",
+      "body": "Below Mach ~0.3, air can be treated as incompressible. Above that, compressibility matters.\n\n**Mach number** $M = v / a$ where $a$ = speed of sound.\n\n**Speed of sound in air**: $a = \\sqrt{\\gamma R T} \\approx 340$ m/s at sea level + 20°C. Decreases with altitude (cooler air). At cruising altitude (~11 km), $a$ ≈ 295 m/s.\n\n**Flow regimes**:\n- **Subsonic** (M < 0.8): conventional Bernoulli applies. Most general-aviation + propeller aircraft.\n- **Transonic** (0.8 < M < 1.2): shock waves appear locally over the wing. Drag rises sharply ('drag rise' or 'sound barrier'). Most commercial airliners cruise at M~0.78-0.85.\n- **Supersonic** (1.2 < M < 5): shock waves dominate. Aircraft must be designed for shock wave control (Concorde, F-22). Sonic boom heard on ground.\n- **Hypersonic** (M > 5): chemical reactions + plasma in flow. SR-71 (M=3.3) was approaching this; X-15 (M=6.7), Space Shuttle reentry (M~25).\n\n**Shock waves**: discontinuous jumps in pressure / temperature / density. Form when flow exceeds Mach 1 (sound waves can't propagate upstream against supersonic flow).\n\n**Wave drag**: drag specifically due to shock wave formation. Becomes huge in transonic + supersonic flight. Famous 'sound barrier' was wave drag — early aircraft thought to physically break at M=1 (actually, the X-1 in 1947 broke through it).\n\n**Area rule** (Whitcomb 1952): cross-sectional area along an aircraft should vary smoothly (Sears-Haack body shape minimizes wave drag). Inspired the 'Coke bottle' fuselage of supersonic aircraft (F-102 transformation: post-area-rule supersonic; pre-area-rule subsonic only).\n\n**Hypersonic aerothermodynamics**: extreme heating from compression + friction. Real gas effects (molecules ionize). Heat shields (ablation, transpiration, regenerative cooling) mandatory."
+    },
+    {
+      "kind": "text",
+      "title": "Drag + the boundary layer",
+      "body": "**Drag breakdown** (subsonic):\n- **Parasitic drag**: form (shape) + skin friction + interference. Roughly constant for given speed + shape.\n- **Induced drag**: produced by lift generation. Wingtip vortices spill energy. Decreases at high speed; dominant at low speed.\n- **Wave drag**: shock-wave-related. Significant only transonic+.\n\n**Drag polar**: plot of $C_L$ vs $C_D$. Each aircraft has a characteristic curve. Best L/D ratio is the 'glide ratio' — how far you can glide per unit altitude lost.\n- 737: L/D ~17.\n- Gliders: L/D 50-70.\n- F-16 (clean): L/D ~10.\n- ISS (no airfoil): N/A but drag-dominated reentry.\n\n**Boundary layer**: thin layer of air near surface where viscosity matters. Velocity goes from 0 at surface to free-stream velocity over ~mm to cm.\n- **Laminar**: smooth flow. Low skin friction.\n- **Turbulent**: chaotic. Higher skin friction but better attached (resists separation).\n- **Transition**: laminar → turbulent. Determined by Reynolds number + surface roughness.\n\nMost aircraft surfaces have turbulent boundary layers. Laminar flow on wings is a holy grail (less drag) but hard to maintain (any contamination, surface imperfection → turbulence).\n\n**Vortices**:\n- **Wingtip vortices**: trailing vortex from lift. Disturb following aircraft (wake turbulence — must space takeoffs / landings).\n- **Winglets**: vertical wingtip extensions reduce wingtip vortices, improve efficiency.\n\n**CFD (Computational Fluid Dynamics)**: numerical solution of Navier-Stokes equations. Used to design every modern aircraft + spacecraft. Direct numerical simulation (DNS) of turbulence is computationally prohibitive at high Re; use turbulence models (RANS, LES, DES).\n\n**Wind tunnels**: still essential. Validate CFD; capture phenomena models miss; test scale models at appropriate Reynolds + Mach. Boeing, Airbus, NASA Ames all maintain extensive wind-tunnel facilities."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_aero_lift",
+        "kind": "guided_derivation",
+        "question": "Compute lift coefficient for cruise",
+        "goal": "Aircraft mass 80,000 kg. Cruise at 240 m/s, altitude 10 km (air density 0.413 kg/m³). Wing area 124 m².",
+        "steps": [
+          {
+            "prompt": "Required lift = weight (level cruise). $L = mg = ?$",
+            "motivation": "Newton.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "785000 N",
+                "~785 kN",
+                "7.85e5"
+              ]
+            },
+            "hints": [
+              "80000 × 9.81."
+            ],
+            "reveal": "$L = 785$ kN."
+          },
+          {
+            "prompt": "Lift coefficient: $C_L = 2L / (\\rho v^2 S)$. Plug in.",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.532",
+                "~0.53",
+                "0.53"
+              ]
+            },
+            "hints": [
+              "$2 \\times 785000 / (0.413 \\times 240^2 \\times 124) = 0.532$."
+            ],
+            "reveal": "$C_L \\approx 0.53$."
+          },
+          {
+            "prompt": "Typical $C_L$ for cruise is 0.3-0.6 for transport aircraft. Our 0.53 is reasonable. What happens to $C_L$ at landing?",
+            "motivation": "Slower → higher CL needed.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Lower.",
+                "Higher: same lift needed, but slower velocity means lower dynamic pressure. $C_L$ must compensate via higher angle of attack + lift devices (flaps, slats). Landing $C_L$ ~1.5-2.5.",
+                "Same.",
+                "Zero."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "L = const, v lower."
+            ],
+            "reveal": "Higher $C_L$ at landing. To stay aloft at 70 m/s instead of 240 m/s, $C_L$ must increase by $(240/70)^2 \\approx 12$ — extended via flaps/slats which boost both $C_L$ + drag."
+          }
+        ],
+        "finalResult": "$$\\boxed{L = \\frac{1}{2}\\rho v^2 S C_L; C_{L,\\text{cruise}} \\sim 0.3-0.6, C_{L,\\text{landing}} \\sim 1.5-2.5}$$ The lift equation governs every flying machine. Cruise $C_L$ optimized for efficiency; landing $C_L$ maximized via flaps/slats. Aircraft designers tune wing area, airfoil section, sweep, twist for the operating envelope. The same equation governs everything from paper airplanes to the Boeing 747 to SpaceX Starship's atmospheric flight."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_aero_supersonic",
+        "kind": "multiple_choice",
+        "question": "Why is going supersonic such a discrete engineering challenge?",
+        "options": [
+          "Random.",
+          "At M~1, shock waves form locally on aircraft. Drag spikes dramatically ('sound barrier'). Above M~1.2, supersonic regime: shock waves dominate aerodynamics; design must control shock placement + intensity. Concorde + military jets specifically designed for supersonic.",
+          "Doesn't exist.",
+          "Just a name."
+        ],
+        "correctIndex": 1,
+        "explanation": "Supersonic flight: shock waves form discontinuously at M~1 (sound barrier). Drag rises sharply (wave drag). Aircraft must be designed for it: thin wings, sharp leading edges, area-ruled fuselage, control authority through shock-wave region. Concorde, F-16, F-22 all engineered for supersonic. Yeager's 1947 X-1 flight broke the barrier — engineering response was 'the sound barrier is a real but surmountable engineering challenge'."
+      },
+      "hints": [
+        "What happens at M=1?",
+        "How does design respond?"
+      ],
+      "workedSolution": "At M~1: shock waves appear locally on aircraft surfaces. Wave drag spikes. Aircraft must control shock formation: thin wings (reduce thickness ratio), sharp leading edges (manage shock geometry), area rule (smooth cross-section variation), powerful engines (push through drag rise). Concorde was a triumph of supersonic engineering; modern military jets routinely fly supersonic. Boom Supersonic + others working on next-gen civilian supersonic aircraft.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_aero_mach",
+        "kind": "math_expression",
+        "question": "Aircraft at 250 m/s in air with speed of sound 295 m/s. Mach number?",
+        "acceptedAnswers": [
+          "~0.847",
+          "0.847",
+          "~0.85"
+        ],
+        "hint": "250/295."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_aero_concorde",
+        "kind": "scenario",
+        "question": "Why supersonic flight is hard economically",
+        "prompt": "Concorde flew but was retired in 2003 + nothing has replaced it commercially. Walk through the technical + economic challenges of supersonic passenger flight."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_aero",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why subsonic + supersonic aircraft are designed so differently.",
+        "rubric": "Mentions that subsonic flow is incompressible (Bernoulli applies); above M~0.8, compressibility + shock waves change the physics; supersonic aircraft need thin wings, sharp leading edges, area-ruled fuselage, control authority through shock regions. The dividing line is the 'sound barrier' — practical for engineers but a real physical regime change."
+      }
+    }
+  ]
+}

@@ -1,0 +1,145 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "expert",
+    "objectives": [
+      "Outline ballistic + lifting reentry.",
+      "Reason about heat-shield materials + ablation.",
+      "Distinguish capsule from spaceplane EDL."
+    ],
+    "prereqs": [
+      "aerodynamics",
+      "structures-and-materials"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Reentry: kinetic energy → heat",
+      "body": "A spacecraft returning from orbit has enormous kinetic energy. From LEO ~7.7 km/s: $\\frac{1}{2}mv^2 = 30$ MJ/kg. To convert this to heat + dissipate it without destroying the vehicle is the EDL (Entry, Descent, Landing) challenge.\n\n**Where does the energy go**:\n- ~95% radiated as heat to atmosphere (compressed + heated by shockwave).\n- ~5% absorbed by spacecraft structure (must survive).\n\n**Peak conditions**:\n- **Mach number**: 25+ at LEO reentry; 35+ from lunar return.\n- **Stagnation temperature**: thousands of K at the heat shield.\n- **Heat flux**: kW/cm² peak. To survive without ablating: heat shield.\n- **Deceleration**: 4-12 g typical for crewed; up to 20+ g unmanned.\n- **Plasma sheath**: ionized air around spacecraft. Blocks radio for ~5-10 min during peak heating (radio blackout).\n\n**Heat-shield materials**:\n- **Ablative**: material chars + vaporizes, carrying away heat. PICA-X (SpaceX Dragon), AVCOAT (Apollo), Phenolic Impregnated Carbon Ablator (Stardust, Mars Sample Return). Single-use.\n- **Reusable** (Shuttle thermal protection system): silica tiles + flexible blankets. Survived ~25,000°C surface temperatures via low conductivity. Fragile + labor-intensive between flights (Columbia 2003 disaster: damaged tiles).\n- **Reradiating** (Carbon-Carbon, RCC on Shuttle nose + leading edges): high-temperature ceramic composite. Reradiates heat back. Brittle.\n- **Hot structures**: load-bearing structure that operates hot. Used in some hypersonic vehicles. Niobium, Inconel, columbium-titanium.\n- **Transpiration cooling**: pump coolant through porous structure. Used in some engine designs (rocket nozzles); explored for reentry.\n\n**SpaceX Starship** plans reusable steel hull cooled by methane / water transpiration through tiny perforations. Different approach; still evolving."
+    },
+    {
+      "kind": "text",
+      "title": "Ballistic + lifting + skipping reentry",
+      "body": "**Ballistic reentry**: spacecraft is essentially a falling capsule. Trajectory determined by atmospheric drag + gravity + initial conditions.\n\nUsed by: Mercury, Gemini, Apollo (CM), Soyuz, Dragon, Starliner, Orion.\n\nPros: simple, lightweight (most blunt shape), high deceleration efficiency.\nCons: high G loads (4-9g), limited cross-range capability (where it lands is mostly set by initial conditions).\n\n**Lifting reentry**: spacecraft generates lift to control trajectory. Can extend reentry time (lower peak heating) + reach cross-range targets.\n\nUsed by: Space Shuttle, Buran, X-37B (small uncrewed), SpaceX Starship.\n\n**Shuttle reentry**:\n- Re-entered nose high (~40° angle of attack) using bottom surface as heat shield.\n- Crossrange: ~2200 km lateral capability.\n- Multiple S-turns to bleed energy + reach Edwards or Kennedy.\n- Peak heating ~1650°C on leading edges + nose.\n- Energy management algorithm computed throughout descent.\n\n**Skip reentry**: enter atmosphere, decelerate, exit atmosphere briefly, re-enter again. Used to manage heat + cross-range. Apollo 9 + Orion use limited skip-reentry. Theorized for hypersonic gliders.\n\n**Mars EDL** (Curiosity, Perseverance, etc.):\n- Mars atmosphere ~1% Earth pressure: harder to slow down.\n- Multiple phases: aerocapture (heat shield), supersonic parachute deployment, supersonic retropropulsion, rocket-powered descent, skycrane delivery.\n- The 'Seven minutes of terror' for Curiosity. Each step must work.\n\n**Failure modes**:\n- **Too steep angle**: heat shield burns through. Vehicle disintegrates.\n- **Too shallow**: skips off atmosphere back to space. Stranded.\n- **Re-entry corridor**: typically 2-3° wide. Apollo, Mars missions, Mars Sample Return all designed for this.\n- **Heat shield damage**: STS Columbia (2003). Damage from foam strike on launch caused plasma penetration on re-entry. Vehicle disintegrated."
+    },
+    {
+      "kind": "text",
+      "title": "EDL of modern programs",
+      "body": "**SpaceX Dragon**:\n- Capsule with PICA-X heat shield.\n- Reusable (refurbish, fly again multiple times).\n- Parachute descent + ocean splashdown.\n- Cargo + crewed variants.\n\n**SpaceX Starship (in development)**:\n- Lifting reentry with belly-down attitude.\n- 'Bellyflop + skydive' maneuver for landing.\n- Methane-rich reusable steel structure.\n- Catch by chopsticks ('Mechazilla') instead of pad landing (super-heavy booster).\n\n**NASA Orion**:\n- AVCOAT ablative shield.\n- Designed for lunar + Mars return (higher velocity than LEO).\n- 11.2 km/s reentry from lunar return; tested on Artemis I (2022).\n- Parachute + water landing.\n\n**Russia / Roscosmos Soyuz**:\n- 60+ years of crewed flight history.\n- Conventional ballistic re-entry to land in Kazakhstan.\n- Service module, descent module, orbital module: separation just before reentry.\n\n**Boeing Starliner**:\n- Capsule similar in spirit to Dragon.\n- Land on dry ground (vs Dragon's ocean) via airbag cushioning.\n- Crewed missions began 2024.\n\n**Mars sample return**: bring Mars samples to Earth at 12+ km/s. Major heat-shield design challenge. Multiple-step EDL.\n\n**Reusable boosters (not reentry but related)**: Falcon 9, New Shepard. Suborbital + boost-back. Different from orbital reentry (lower velocity, less energy to dissipate).\n\n**Trans-atmospheric vehicles**: SR-71 (3.3 Mach + 80,000 ft); X-15 (6 Mach, 100 km); hypothetical hypersonic transports. Each has its EDL-like challenges.\n\n**Future**: hot structures + advanced ceramics + active cooling. Carbon-carbon technologies. Better failure-tolerant heat-shield designs. AI-augmented trajectory control."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_reentry_energy",
+        "kind": "guided_derivation",
+        "question": "Compute reentry kinetic energy",
+        "goal": "Dragon capsule at LEO 7670 m/s with mass 9525 kg. Compute KE + average heat flux if dissipated over 5 minutes.",
+        "steps": [
+          {
+            "prompt": "Kinetic energy: $\\frac{1}{2} m v^2$.",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~280 GJ",
+                "2.8e11 J",
+                "280000 MJ"
+              ]
+            },
+            "hints": [
+              "0.5 × 9525 × 7670^2."
+            ],
+            "reveal": "~280 GJ. Equivalent to 70 tons of TNT."
+          },
+          {
+            "prompt": "Average power if dissipated over 5 minutes (300 sec)?",
+            "motivation": "P = E/t.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~933 MW",
+                "1 GW",
+                "~1 gigawatt"
+              ]
+            },
+            "hints": [
+              "280e9 / 300."
+            ],
+            "reveal": "~933 MW. Average power equivalent to a nuclear reactor."
+          },
+          {
+            "prompt": "Heat-shield area ~10 m². Average flux?",
+            "motivation": "P / A.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~93 MW/m^2",
+                "~9.3 kW/cm^2",
+                "~93 W/cm^2 (factor)"
+              ]
+            },
+            "hints": [
+              "933e6 / 10."
+            ],
+            "reveal": "~93 MW/m². Most of this is RADIATED outward + away into atmosphere; ablative shield absorbs the rest. Peak flux is higher (kW-MW/cm² range). The fundamental challenge: get the energy OUT before it conducts inward + destroys structure."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Reentry energy } \\sim 30 \\text{ MJ/kg, peak flux MW/m}^2}$$ This enormous energy must dissipate as heat into the atmosphere or be carried away by ablation. Ablative shields work by char + vaporization carrying mass + energy away from the structure. Reusable shields (Shuttle, X-37B) rely on radiating heat back to atmosphere from refractory ceramic surfaces. Both approaches verified through decades of operational flight."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_reentry_columbia",
+        "kind": "multiple_choice",
+        "question": "STS Columbia (2003) disintegrated during re-entry. Cause?",
+        "options": [
+          "Wear.",
+          "Foam strike on launch (16 days earlier) damaged carbon-carbon panel on left wing leading edge. On reentry, plasma penetrated the wing, melted internal structure, caused breakup at Mach 18, 60 km altitude. Investigation led to retirement of Shuttle in 2011 + reusable-spacecraft re-design.",
+          "Solar flare.",
+          "Software."
+        ],
+        "correctIndex": 1,
+        "explanation": "Columbia: foam from external tank struck wing during launch; ground review judged 'no safety issue'; on reentry the damaged leading edge let plasma penetrate; wing structure melted; aerodynamic forces broke up the vehicle. Investigation (Columbia Accident Investigation Board, CAIB) found broader cultural + technical issues at NASA. Led to: retirement of Shuttle, increased focus on inspections, evolution of NASA's safety culture. The next-gen vehicles (Dragon, Starliner, Orion) all designed with explicit attention to EDL margins."
+      },
+      "hints": [
+        "What was the proximate cause?",
+        "What was the lesson?"
+      ],
+      "workedSolution": "Foam-strike damaged carbon-carbon. Plasma penetration on reentry through compromised leading edge. Structural failure. Broader lessons: maintained vigilance for damage; better in-flight inspection; safety culture; the Shuttle's reusable thermal protection system was inherently fragile. Modern spacecraft mostly use single-use ablative shields (Dragon, Orion) — simpler, lower-risk.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_reentry_v",
+        "kind": "math_expression",
+        "question": "Speed at LEO (~400 km altitude)?",
+        "acceptedAnswers": [
+          "~7.67 km/s",
+          "~7670 m/s"
+        ],
+        "hint": "Vis-viva calculation."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_reentry_mars",
+        "kind": "scenario",
+        "question": "EDL for Mars Sample Return",
+        "prompt": "Bringing Mars samples to Earth requires a 12+ km/s reentry — higher than lunar return. Walk through the heat-shield + parachute + recovery challenges."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_reentry",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why heat-shield design + EDL physics still receive intense research investment despite the basic principles being settled since Apollo.",
+        "rubric": "Mentions that each new mission profile (faster reentry from interplanetary, higher cross-range for reusable, larger payloads for Mars) requires new heat-shield materials + analysis; failures (Columbia) are catastrophic; reusability + advanced trajectories (Starship's bellyflop) push the envelope. Heat-shield technology is one of the most expensive + skill-intensive areas of aerospace engineering."
+      }
+    }
+  ]
+}

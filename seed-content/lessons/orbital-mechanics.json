@@ -1,0 +1,143 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "intro",
+    "objectives": [
+      "State Kepler's three laws of planetary motion.",
+      "Apply the vis-viva equation.",
+      "Outline the Hohmann transfer."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Kepler's laws + the two-body problem",
+      "body": "**Johannes Kepler (1571-1630)** formulated three empirical laws of planetary motion from Tycho Brahe's observations. Later derived by Newton from gravity.\n\n**Kepler's 1st law**: planets move in ELLIPSES with the Sun at one focus.\n- Semi-major axis $a$: half the long axis.\n- Eccentricity $e$ (0-1): how non-circular. 0 = circle. Earth's orbit: e ≈ 0.017 (nearly circular). Halley's comet: e ≈ 0.97 (very elliptical).\n- Perihelion: closest point to focus, distance $a(1-e)$.\n- Aphelion: farthest, $a(1+e)$.\n\n**Kepler's 2nd law**: the line from Sun to planet sweeps EQUAL AREAS in equal times. Implies planet moves faster near perihelion, slower at aphelion. Conservation of angular momentum.\n\n**Kepler's 3rd law**: $T^2 \\propto a^3$. Period squared is proportional to semi-major-axis cubed. For Solar System with Sun mass $M$:\n$$T^2 = \\frac{4\\pi^2}{G M} a^3$$\n\nIn convenient units (Earth-Sun): if $a$ is in AU + $T$ in years, $T^2 = a^3$.\n\n**Two-body problem**: gravitational dynamics of two point masses. Solvable in closed form. Higher-order (N-body) generally chaotic, not solvable analytically. Used numerically.\n\n**Orbital elements** (uniquely specify an orbit):\n1. **Semi-major axis** $a$: size.\n2. **Eccentricity** $e$: shape.\n3. **Inclination** $i$: angle to reference plane (e.g., equator).\n4. **Right ascension of ascending node** $\\Omega$: where orbit crosses reference plane.\n5. **Argument of periapsis** $\\omega$: orientation of ellipse in plane.\n6. **True anomaly** $\\nu$ (or mean anomaly): position along orbit at a given time.\n\nSix elements = full orbit specification. Used by every space agency to track satellites + spacecraft."
+    },
+    {
+      "kind": "text",
+      "title": "Vis-viva + the energy of orbits",
+      "body": "**Energy of an orbit**:\n- Kinetic: $\\frac{1}{2} m v^2$.\n- Potential: $-G M m / r$ (negative; ground state at $r \\to \\infty$).\n- Total: $E = -\\frac{G M m}{2 a}$. Negative for bound orbits; depends ONLY on $a$.\n\n**Vis-viva equation**: gives velocity at any point in orbit.\n$$v^2 = GM \\left(\\frac{2}{r} - \\frac{1}{a}\\right)$$\n\nReading:\n- Circular orbit ($r = a$): $v = \\sqrt{GM/a}$.\n- Parabolic escape ($a \\to \\infty$): $v_{\\text{esc}} = \\sqrt{2 GM/r}$. The escape velocity from radius $r$.\n- Elliptical: faster at perihelion (small $r$), slower at aphelion.\n\n**Numerical**: Earth orbit:\n- $GM_E \\approx 3.986 \\times 10^{14}$ m³/s² (Earth's standard gravitational parameter $\\mu_E$).\n- Surface escape: $v_{\\text{esc}} \\approx 11.2$ km/s.\n- LEO (low Earth orbit, ~400 km altitude): $v \\approx 7.67$ km/s.\n- Geostationary (35,786 km altitude): $v \\approx 3.07$ km/s.\n- Moon distance (384,000 km): orbital velocity ~1 km/s.\n\n**Specific energy** (energy / mass): $\\epsilon = -\\mu/(2a)$. Negative → bound; zero → parabolic escape trajectory; positive → hyperbolic (unbound, like an interstellar visitor).\n\n**Specific angular momentum**: $h = \\sqrt{\\mu a (1 - e^2)}$. Constant along orbit (Kepler's 2nd law).\n\n**Orbital period**: $T = 2\\pi \\sqrt{a^3 / \\mu}$ (Kepler 3 inverted).\n\n**Why low orbits are tricky**: LEO satellites at 400 km feel residual atmospheric drag. Without periodic boost, they DECAY + re-enter (ISS reboost every few months). Lower altitudes = more drag, shorter lifetimes."
+    },
+    {
+      "kind": "text",
+      "title": "Hohmann transfer + delta-v budgets",
+      "body": "**Hohmann transfer**: most fuel-efficient way to move between two circular orbits.\n\nFrom inner circular orbit (radius $r_1$) to outer ($r_2$):\n1. **Burn 1** at $r_1$: prograde burn raises apoapsis to $r_2$. Now on elliptical transfer orbit.\n2. **Coast** half an orbit.\n3. **Burn 2** at $r_2$: prograde burn circularizes by raising periapsis from $r_1$ to $r_2$.\n\n**Delta-v** required (using vis-viva):\n$$\\Delta v_1 = \\sqrt{\\mu/r_1} \\left(\\sqrt{\\frac{2 r_2}{r_1 + r_2}} - 1\\right)$$\n$$\\Delta v_2 = \\sqrt{\\mu/r_2} \\left(1 - \\sqrt{\\frac{2 r_1}{r_1 + r_2}}\\right)$$\n$$\\Delta v_{\\text{total}} = \\Delta v_1 + \\Delta v_2$$\n\n**Example LEO → GEO transfer**:\n- $r_1 = 6778$ km (200 km altitude).\n- $r_2 = 42164$ km (GEO).\n- $\\Delta v_1 \\approx 2.44$ km/s.\n- $\\Delta v_2 \\approx 1.47$ km/s.\n- Total: 3.91 km/s.\n\n**Beyond Hohmann**: other strategies are faster but more $\\Delta v$.\n- **Bi-elliptic transfer**: when $r_2/r_1 > 11.94$, surprisingly cheaper than Hohmann to go out + back. Used for distant deep-space.\n- **Gravity assists**: use planetary flyby to gain energy. Voyager-1's tour used Jupiter + Saturn + Uranus to reach Neptune (each providing energy).\n- **Low-thrust trajectories**: ion engines apply continuous thrust over months. Lower total $\\Delta v$ but takes way longer. Used by Dawn (Vesta, Ceres), Hayabusa, DART, NASA's Psyche.\n\n**Delta-v budget**: a mission's required total $\\Delta v$ for all maneuvers. Examples:\n- Surface to LEO: ~9.4 km/s (most of it fighting gravity + drag).\n- LEO to lunar surface: ~5.9 km/s.\n- LEO to Mars surface: ~5-7 km/s for capture + EDL.\n- Voyager-style outer solar system: 10-15 km/s (with gravity assists).\n- Interstellar (~1% c): ~3000 km/s. Way beyond current technology."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_orbit_visviva",
+        "kind": "guided_derivation",
+        "question": "Compute orbital velocity at LEO",
+        "goal": "Earth $\\mu = 3.986 \\times 10^{14}$ m³/s². Circular orbit altitude 400 km (ISS-like). Earth radius 6378 km.",
+        "steps": [
+          {
+            "prompt": "Orbital radius from center?",
+            "motivation": "Sum.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "6778 km",
+                "6778000 m",
+                "6778e3"
+              ]
+            },
+            "hints": [
+              "6378 + 400."
+            ],
+            "reveal": "6778 km from Earth's center."
+          },
+          {
+            "prompt": "Vis-viva for circular: $v = \\sqrt{\\mu/r}$.",
+            "motivation": "Plug in.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~7.67 km/s",
+                "7670 m/s",
+                "~7.67e3"
+              ]
+            },
+            "hints": [
+              "$\\sqrt{3.986e14 / 6.778e6}$."
+            ],
+            "reveal": "$v \\approx 7.67$ km/s. ~17,000 mph. The ISS orbits at this speed."
+          },
+          {
+            "prompt": "Orbital period (Kepler 3): $T = 2\\pi\\sqrt{a^3/\\mu}$.",
+            "motivation": "Period.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~92.5 min",
+                "~93 min",
+                "5544 sec"
+              ]
+            },
+            "hints": [
+              "$2\\pi\\sqrt{(6.778e6)^3/3.986e14} \\approx 5544$ s."
+            ],
+            "reveal": "~92.5 minutes per orbit. ISS goes around Earth ~16 times per day."
+          }
+        ],
+        "finalResult": "$$\\boxed{v_{\\text{circ}} = \\sqrt{\\mu/r}, T = 2\\pi\\sqrt{a^3/\\mu}}$$ The vis-viva + Kepler's 3rd law give us every orbital mission's basic parameters. ISS: 7.67 km/s, 92 min. GEO: 3.07 km/s, 24 hours (geostationary by definition). Moon: 1 km/s, 27 days. Mathematics from 1609 still drives modern spaceflight. The Apollo program was guided by software computing these in real-time on the 1MHz Apollo Guidance Computer."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_orbit_geo",
+        "kind": "multiple_choice",
+        "question": "Why does a geostationary satellite remain over the same point on Earth's surface?",
+        "options": [
+          "Random.",
+          "Its orbital period equals Earth's rotation period (~24 hours). At a specific altitude (~35,786 km), the orbital velocity matches Earth's surface velocity beneath it. Used for communications, weather satellites.",
+          "Solar tracking.",
+          "Magnetic."
+        ],
+        "correctIndex": 1,
+        "explanation": "GEO orbit: period = sidereal day (23h 56m 4s). From Kepler 3: $a = (\\mu T^2 / 4\\pi^2)^{1/3}$ ≈ 42,164 km. With Earth radius 6,378 km: altitude ≈ 35,786 km. At equatorial inclination, satellite hovers over one longitude. Used for GPS (medium Earth orbit, MEO), TV broadcast (GEO), weather (GEO geostationary, polar-orbiting low Earth). Different orbits for different mission types."
+      },
+      "hints": [
+        "What does the period need to be?",
+        "What altitude follows?"
+      ],
+      "workedSolution": "GEO requires period = Earth's sidereal day (23h 56m). From $T = 2\\pi\\sqrt{a^3/\\mu}$: $a \\approx 42164$ km from center, altitude ~35,786 km. At equatorial inclination, satellite appears stationary. Used for fixed communication (DirecTV), weather (GOES), broadcasting. GPS uses MEO (~20,200 km) with 12-hour period — multiple orbits per day, but constellation provides global coverage.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_orbit_esc",
+        "kind": "math_expression",
+        "question": "Earth escape velocity from surface ($r = 6378$ km, $\\mu = 3.986e14$)?",
+        "acceptedAnswers": [
+          "~11.2 km/s",
+          "11.2",
+          "~11200 m/s"
+        ],
+        "hint": "$\\sqrt{2\\mu/r}$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_orbit_starlink",
+        "kind": "scenario",
+        "question": "Designing a constellation",
+        "prompt": "SpaceX's Starlink uses LEO (~550 km altitude) with thousands of satellites for global internet. Walk through the trade-offs vs MEO + GEO constellations."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_orbit",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why orbital mechanics still uses Kepler's 17th-century insights despite four centuries of physics progress.",
+        "rubric": "Mentions that Kepler's laws (now derived from Newtonian gravity) describe two-body motion exactly; spacecraft missions reduce to small perturbations around Keplerian motion; the closed-form solutions enable mission planning + trajectory design. More general N-body + relativistic corrections matter for high-precision missions but the Keplerian framework dominates intuition + initial design."
+      }
+    }
+  ]
+}

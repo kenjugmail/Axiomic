@@ -1,0 +1,147 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "core",
+    "objectives": [
+      "Derive the Tsiolkovsky rocket equation.",
+      "State specific impulse + thrust-to-weight.",
+      "Distinguish rocket types."
+    ],
+    "prereqs": [
+      "orbital-mechanics"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Tsiolkovsky rocket equation: the foundation",
+      "body": "**Konstantin Tsiolkovsky (1903)**: derived the basic equation of rocketry from conservation of momentum.\n\nA rocket gains velocity by EJECTING mass at high speed. Apply conservation of momentum:\n$$m \\, dv = -v_e \\, dm$$\nwhere $v_e$ is exhaust velocity, $dm$ is the (negative) change in rocket mass.\n\nIntegrate from initial mass $m_0$ to final $m_f$:\n$$\\Delta v = v_e \\ln \\frac{m_0}{m_f}$$\n\nThis is the **rocket equation**, or **Tsiolkovsky equation**.\n\n**Reading**:\n- Final $\\Delta v$ proportional to exhaust velocity $v_e$.\n- LOGARITHMIC in mass ratio $m_0/m_f$. Huge mass ratios needed for high $\\Delta v$.\n- For $\\Delta v = v_e$: mass ratio = $e \\approx 2.72$ (37% of mass remains).\n- For $\\Delta v = 2 v_e$: mass ratio = $e^2 \\approx 7.4$ (13.5% remains).\n- For $\\Delta v = 3 v_e$: mass ratio = $e^3 \\approx 20$ (5% remains).\n\n**Implication**: each 'doubling' of $\\Delta v$ via mass requires EXPONENTIALLY more fuel. The tyranny of the rocket equation.\n\n**Staging**: drop empty fuel tanks + engines after they're used. Each stage carries less dead weight. Why every multi-stage rocket exists. Saturn V used 3 stages to reach the Moon.\n\n**Numerical example**:\n- $v_e = 4000$ m/s (chemical rocket).\n- Desired $\\Delta v = 9.4$ km/s (LEO).\n- Mass ratio: $e^{9400/4000} = e^{2.35} \\approx 10.5$.\n- For 1 ton payload: ~10.5 tons total = 9.5 tons of fuel.\n- Need staging because structural mass also counts.\n\n**Single-stage-to-orbit (SSTO)**: very hard. With current chemical propulsion, mass ratio of ~20 needed; impossible with realistic structures. Theoretical SSTO designs exist (X-33, Skylon) but none have flown."
+    },
+    {
+      "kind": "text",
+      "title": "Specific impulse + thrust + rocket types",
+      "body": "**Specific impulse** $I_{sp}$: efficiency of a rocket engine. Has units of seconds (a historical quirk; really it's $v_e / g_0$).\n$$I_{sp} = v_e / g_0$$\nwhere $g_0 = 9.81$ m/s².\n\nThe higher $I_{sp}$, the more $\\Delta v$ per kg of fuel.\n\n**Typical values**:\n- **Solid rocket booster**: $I_{sp} \\approx 250$ s. Reliable, cheap, simple. Used in Space Shuttle SRBs + missiles. Can't throttle / restart.\n- **Liquid kerosene + LOX (e.g., Falcon 9 Merlin)**: $I_{sp} \\approx 300$ s sea-level, 340 s vacuum.\n- **Liquid methalox (Raptor, SpaceX Starship)**: $I_{sp} \\approx 330$ s sea-level, 380 s vacuum.\n- **Liquid hydrogen + LOX (Space Shuttle SSME, J-2, BE-3, RS-25)**: $I_{sp} \\approx 450$ s. Highest of chemical.\n- **Nuclear thermal**: $I_{sp} \\approx 800-1000$ s. Tested (NERVA, Soviet RD-0410). Promising for Mars but not yet operational.\n- **Ion (Xenon)**: $I_{sp} \\approx 1500-5000$ s. Used on Dawn, DART, BepiColombo. Low thrust but high efficiency.\n- **Hall-effect thrusters**: similar to ion. SpaceX Starlink uses Krypton Hall.\n- **VASIMR**: variable-Isp. Hypothetical.\n\n**Thrust-to-weight ratio (T/W)**: must be >1 at lift-off (otherwise rocket doesn't move). Higher = more performance margin + faster ascent.\n\n**Trade-off**: high $I_{sp}$ engines tend to be low-thrust (ion engines: micronewtons; chemical: meganewtons). Chemical for launch (high T/W needed); ion for cruise (high $I_{sp}$ over long time gives more $\\Delta v$ at lower fuel).\n\n**Combined missions**: chemical launch to LEO; ion engine for deep-space cruise. Common modern paradigm.\n\n**Engine cycles**:\n- **Pressure-fed**: tanks pressurized; simple but high tank mass. Used by SpaceX SuperDraco (Dragon abort).\n- **Gas generator**: small fraction of fuel burned to drive turbopumps; some fuel wasted. F-1 (Saturn V first stage), Merlin.\n- **Staged combustion**: nothing wasted. Higher Isp but more complex. RS-25 (Shuttle), Raptor (Starship), RD-180 (Atlas V).\n- **Full-flow staged combustion**: both fuel + oxidizer flow through preburners. Raptor is the first operational example. ~10% Isp improvement over standard staged combustion.\n- **Electric pumps** (Rutherford on Electron): batteries drive electric turbopumps. Simple but heavy on battery mass."
+    },
+    {
+      "kind": "text",
+      "title": "Jet engines + atmospheric propulsion",
+      "body": "Atmospheric flight uses the surrounding air as oxidizer + reaction mass. No need to carry oxidizer.\n\n**Engine types**:\n\n**Propeller / piston**: simple, low-cost. Limited to subsonic, low altitude. Used in general aviation + light cargo.\n\n**Turboprop**: gas turbine drives a propeller. More efficient than turbojets at low subsonic speeds. Used in regional airliners (ATR, Dash 8) + many military transports.\n\n**Turbojet**: gas turbine ingests air, compresses, burns fuel, exhausts thrust. Used by early jets. Most modern military jets use afterburning turbojets.\n\n**Turbofan**: a turbojet with a large fan in front. Most of the thrust comes from the fan (high bypass ratio); the turbojet core powers it. The dominant commercial aircraft engine. Higher efficiency at subsonic speeds than pure turbojets.\n\n**Bypass ratio**: ratio of fan air to core air.\n- Military fighter (J57): low bypass (~0.3).\n- 737/A320 (CFM56, V2500): ~5-6.\n- 787 (Trent 1000, GEnx): ~10.\n- Newest LEAP / GTF: 11-12.\n- Higher BPR = quieter + more fuel-efficient at subsonic cruise.\n\n**Ramjet + scramjet**:\n- **Ramjet**: no moving parts (except for fuel pumps). Air compression done by RAM EFFECT from forward velocity. Requires M~3+ to start; efficient at M~3-6. Used in SR-71 (J58 was a hybrid turbojet/ramjet).\n- **Scramjet (Supersonic Combustion Ramjet)**: combustion happens at supersonic speeds. Operates M~5-15. NASA's X-43 + X-51 demonstrated; no operational system yet. Very hard: fuel must combust in a microsecond pass through the engine.\n\n**Rocket vs jet**: jet engines need atmosphere; rockets don't. Above ~30 km altitude, atmosphere too thin for jets. Why launch vehicles are rockets — they must reach vacuum.\n\n**Aerospike + linear engines**: rocket nozzles optimized for variable altitude. Lockheed's never-flown X-33 used aerospike. Theoretically optimal but no operational examples.\n\n**Plasma + nuclear pulse + photon drive**: speculative far-future. Project Orion (1950s nuclear-bomb propulsion). VASIMR (electromagnetic plasma). Photon sails (Breakthrough Starshot). Currently theoretical or millimeter-newton scale."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_prop_rocket_eq",
+        "kind": "guided_derivation",
+        "question": "Compute mass ratio for LEO",
+        "goal": "Desired Δv = 9.4 km/s (to LEO with gravity losses). Engine $I_{sp}$ = 320 s. Compute $v_e$ + required mass ratio.",
+        "steps": [
+          {
+            "prompt": "Exhaust velocity: $v_e = I_{sp} \\cdot g_0$.",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "3139 m/s",
+                "~3140",
+                "~3.14 km/s"
+              ]
+            },
+            "hints": [
+              "320 × 9.81."
+            ],
+            "reveal": "$v_e \\approx 3140$ m/s."
+          },
+          {
+            "prompt": "Tsiolkovsky: $\\Delta v = v_e \\ln(m_0/m_f)$. Solve for mass ratio.",
+            "motivation": "Algebra.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~20",
+                "e^3",
+                "20.1"
+              ]
+            },
+            "hints": [
+              "$\\Delta v / v_e = 9400/3140 = 2.99$. $e^{2.99} \\approx 20$."
+            ],
+            "reveal": "$m_0/m_f \\approx 20$. For each kg payload, 19 kg of fuel + structure."
+          },
+          {
+            "prompt": "Realistic structural mass is ~5-10% of total. For 5% (good): payload + structure = $0.05 \\times m_0$, fuel = $0.95 \\times m_0$. Implies $m_f / m_0 = 0.05$, $m_0/m_f = 20$. Consistent. Payload fraction realistically:",
+            "motivation": "Payload calc.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "10%.",
+                "Around 3-5% of total mass to LEO for a single stage. Falcon 9 (multi-stage): ~3.5%. Saturn V: ~4%.",
+                "50%.",
+                "1%."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Real-world fractions."
+            ],
+            "reveal": "~3-5% to LEO with reasonable engines. STAGING boosts this dramatically — drop empty tanks. Each stage carries less dead weight. Saturn V's 3 stages achieved Moon-landing payload."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\Delta v = v_e \\ln(m_0/m_f); \\text{ to LEO need mass ratio } \\sim 20}$$ The rocket equation's logarithm is unforgiving. To reach LEO with realistic chemical engines, you need ~95% of your initial mass to be fuel. Staging is the only way to make it work with current technology. SpaceX's Starship pushes the envelope with full-flow staged combustion + reusability — same physics, better engineering."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_prop_ion",
+        "kind": "multiple_choice",
+        "question": "Why are ion engines used for deep-space missions despite extremely low thrust?",
+        "options": [
+          "Random.",
+          "Their very high $I_{sp}$ (~3000-5000 s vs ~450 for chemical) means much less fuel for the same total $\\Delta v$. Over months of continuous thrust, ions accumulate enormous $\\Delta v$ — competitive with chemical rockets for deep-space, but impossible for launch (need high T/W to fight gravity).",
+          "Cheaper.",
+          "Cooler."
+        ],
+        "correctIndex": 1,
+        "explanation": "Trade-off: chemical rockets have high thrust (~MN) but low $I_{sp}$ (~450 s). Ion engines have low thrust (~mN) but high $I_{sp}$ (~3000-5000 s). For deep-space, ion engines apply thrust for MONTHS, accumulating $\\Delta v$ comparable to chemical, using a fraction of the propellant. NASA Dawn, JAXA Hayabusa, ESA BepiColombo, NASA Psyche all use ion engines. Can't launch with them (T/W < 1) — chemical lifts to orbit, ion takes over."
+      },
+      "hints": [
+        "What's the ion-engine trade-off?",
+        "Why deep-space?"
+      ],
+      "workedSolution": "Ion: low thrust × high $I_{sp}$. Cannot fight gravity (T/W < 1) so not for launch. In space, vacuum + no gravity drag → continuous low thrust accumulates massive $\\Delta v$ over months. Dawn delivered to Vesta then Ceres on ~400 kg of Xenon — chemical mission would have needed several tons. Modern interplanetary missions increasingly use ion or Hall-effect for cruise.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_prop_isp",
+        "kind": "math_expression",
+        "question": "Engine $I_{sp}$ = 380 s. Exhaust velocity?",
+        "acceptedAnswers": [
+          "~3727 m/s",
+          "3728",
+          "~3.73 km/s"
+        ],
+        "hint": "$I_{sp} \\times g_0 = 380 \\times 9.81 \\approx 3727$ m/s."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_prop_mars",
+        "kind": "scenario",
+        "question": "Mars mission propulsion plan",
+        "prompt": "Walk through the propulsion choices for a crewed Mars mission: launch, trans-Mars injection, Mars capture, Mars surface descent, return."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_prop",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why the rocket equation is called 'the tyranny of the rocket equation'.",
+        "rubric": "Mentions that mass ratio is exponential in $\\Delta v$; each additional km/s requires multiplying fuel mass; staging mitigates by dropping dead weight; current chemical propulsion barely reaches LEO with sensible payload fractions. Higher $I_{sp}$ propulsion (nuclear, ion, future) is the only way to break this exponential — but each comes with constraints (radiation, low thrust)."
+      }
+    }
+  ]
+}

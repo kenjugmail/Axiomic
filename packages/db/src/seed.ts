@@ -1952,6 +1952,26 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P19 — Aerospace Engineer path. Orbital mechanics, aero,
+  // propulsion, structures, flight dynamics + control,
+  // re-entry, spacecraft, GNC. The full aerospace stack.
+  seedMasteryPath({
+    slug: "aerospace-engineer",
+    title: "Aerospace Engineer",
+    description:
+      "From Kepler + vis-viva orbital mechanics through aerodynamics + compressibility, the Tsiolkovsky rocket equation, structural design + fatigue, fly-by-wire flight control, atmospheric reentry + heat shields, spacecraft subsystems, and GNC + Kalman filtering. The aerospace stack end-to-end.",
+    nodes: [
+      { slug: "orbital-mechanics", title: "Orbital Mechanics", level: "apprentice", order: 1, pages: ["kepler-laws", "vis-viva", "hohmann"], prereqs: [], description: "Kepler's three laws, vis-viva + orbital energy, Hohmann transfer + delta-v budgets." },
+      { slug: "aerodynamics", title: "Aerodynamics", level: "practitioner", order: 2, pages: ["bernoulli-lift-drag", "compressibility-mach", "boundary-layer"], prereqs: [], description: "Bernoulli + lift/drag/stall, subsonic/transonic/supersonic/hypersonic regimes, boundary layer + Reynolds." },
+      { slug: "propulsion", title: "Propulsion + Rocket Equation", level: "practitioner", order: 3, pages: ["tsiolkovsky", "isp-thrust", "jets-rockets"], prereqs: ["orbital-mechanics"], description: "Tsiolkovsky equation derivation + the tyranny of mass ratio, specific impulse + thrust-to-weight, jet vs rocket vs ion." },
+      { slug: "structures-and-materials", title: "Aero Structures + Materials", level: "practitioner", order: 4, pages: ["load-paths", "fatigue", "composites"], prereqs: [], description: "Load paths + safety factors, fatigue (Comet, Aloha 243), composites + advanced alloys + 3D printing." },
+      { slug: "flight-dynamics-and-control", title: "Flight Dynamics + Control", level: "specialist", order: 5, pages: ["six-dof", "stability", "fly-by-wire"], prereqs: ["aerodynamics"], description: "Six DOF + control surfaces, static + dynamic stability + modes, fly-by-wire + envelope protection." },
+      { slug: "atmospheric-reentry", title: "Atmospheric Reentry + EDL", level: "expert", order: 6, pages: ["reentry-physics", "ballistic-lifting", "heat-shields"], prereqs: ["aerodynamics", "structures-and-materials"], description: "Reentry kinetic energy + plasma sheath, ballistic vs lifting vs skip reentry, ablative vs reusable heat shields." },
+      { slug: "spacecraft-design", title: "Spacecraft Subsystems", level: "specialist", order: 7, pages: ["subsystems", "power-thermal", "comms-dsn"], prereqs: ["orbital-mechanics"], description: "Bus + payload, ADCS + propulsion + structure, power + thermal + comms budgets." },
+      { slug: "avionics-and-guidance", title: "Avionics + GNC + Kalman", level: "expert", order: 8, pages: ["gnc-stack", "kalman-filter", "ins-gps"], prereqs: ["flight-dynamics-and-control", "spacecraft-design"], description: "Guidance/Navigation/Control stack, Kalman filter + sensor fusion, INS + GPS + visual-inertial." },
+    ],
+  });
+
   // P18 — Audio Engineer / Music Producer path. Acoustics +
   // psychoacoustics, digital audio + DSP, mixing + dynamics,
   // synthesis, mastering + LUFS, spatial audio, DAWs + plugins.

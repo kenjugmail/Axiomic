@@ -1,0 +1,145 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "specialist",
+    "objectives": [
+      "List the major spacecraft subsystems.",
+      "Reason about power, thermal, comms budgets.",
+      "Distinguish bus from payload."
+    ],
+    "prereqs": [
+      "orbital-mechanics"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Subsystems of a spacecraft",
+      "body": "A spacecraft is a tightly integrated system. Major subsystems:\n\n**Structure**: physical chassis. Light + rigid. Aluminum (older), composite (modern). Carries loads from launch + microgravity ops.\n\n**Propulsion**: maneuvering + station-keeping. Chemical (large $\\Delta v$, station-keeping), ion (long missions). Reaction control system (RCS) thrusters for attitude.\n\n**Attitude Determination + Control System (ADCS)**: keep spacecraft pointed.\n- **Sensors**: sun sensors, star trackers, magnetometers, IMUs, GPS.\n- **Actuators**: reaction wheels (spin internal wheels to counter-rotate spacecraft), control moment gyros (CMGs), thrusters (RCS), magnetorquers (for LEO).\n- **Software**: Kalman filter for state estimation, PID or modern control for tracking commands.\n\n**Power**: solar arrays (most missions) + batteries (during eclipses). Plutonium-238 RTG for deep-space (Voyager, Cassini, Mars rovers, New Horizons).\n\n**Thermal**: keep spacecraft within temperature limits (-100°C to +100°C typical). Vacuum + radiation + sun-shadow create huge gradients. Tools: MLI blankets, heat pipes, radiators, electric heaters, louvers.\n\n**Communications**: link to ground stations.\n- **Antennas**: high-gain dishes (deep-space), patch antennas (LEO).\n- **Frequencies**: S-band (2 GHz, telemetry), X-band (8 GHz, deep-space), Ka-band (32 GHz, high-rate).\n- **Tracking**: Deep Space Network (DSN) — 70m + 34m dishes worldwide for deep-space comms.\n\n**Data + on-board computer**:\n- Radiation-tolerant CPU (RAD750: 200 MHz, used in Mars Curiosity, JWST. ~\\$200K each).\n- Modern: RAD5500, ARM Cortex-A53 radiation-tolerant, FPGA-based.\n- Latched-up state on radiation hit: SEU (Single Event Upset). Memory scrubbing + watchdog timers required.\n\n**Payload**: the WORK the spacecraft does. Cameras, antennas, scientific instruments, communications relays. Everything else is 'bus' supporting the payload.\n\n**ConOps (Concept of Operations)**: how the spacecraft will be operated. Mission timeline, contact schedule, safe modes, anomaly handling. Foundational document."
+    },
+    {
+      "kind": "text",
+      "title": "Power budgeting",
+      "body": "**Power budget**: each subsystem has nominal + peak power draw. Must be supplied by solar / RTG; stored in batteries.\n\n**Typical LEO satellite power**:\n- Communications: 10-100 W (depending on link power).\n- Computers: 10-50 W.\n- ADCS: 10-50 W (reaction wheels, sensors).\n- Heaters: 10-100 W (peak when in shadow).\n- Payload: 10-1000 W+.\n- Total typical small sat (CubeSat): 10-100 W.\n- Large communication sat: 5-25 kW.\n\n**Solar arrays**:\n- At Earth, solar flux 1361 W/m² (above atmosphere).\n- Cell efficiency: 28-32% for triple-junction (modern), 18-22% for silicon.\n- Useful output: 300-400 W/m² of array.\n- Sun-tracking + sun pointing required.\n\n**Eclipse**: in LEO, spacecraft in Earth's shadow ~30 min per 90-min orbit. Batteries supply during eclipse. Battery cycles: 16/day × 5+ years = 30,000+ cycles. Sizing for cycle depth + life is mission-critical.\n\n**Battery types**:\n- **NiCad**: legacy, robust.\n- **NiH2**: Hubble Space Telescope (replaced 2002 with Li-ion).\n- **Lithium-ion**: modern standard. Lighter, higher energy density. CYCLE-LIFE-LIMITED.\n\n**At distance from sun**:\n- Mars: 43% Earth's solar flux. Larger arrays needed.\n- Jupiter: 4% Earth. RTGs preferred (Juno used solar; difficult).\n- Saturn-Neptune: RTG mandatory.\n- RTG: Pu-238 decay heat → thermoelectric conversion. ~100 W per kg of Pu-238. Multi-decade operation (Voyager-1 still operating 47 years after launch in 2024).\n\n**Power management distribution**: regulators + busses + switches. Critical to avoid faults from rippling through system. Spacecraft typically have multiple redundant power paths."
+    },
+    {
+      "kind": "text",
+      "title": "Thermal + comms + the complete system",
+      "body": "**Thermal design**:\n- Vacuum eliminates convection. Only radiation + conduction.\n- Solar input + Earth IR + albedo on one side; deep-space cold sink on the other.\n- Components must operate within thermal limits (e.g., electronics 0-50°C, batteries 0-30°C).\n\n**Tools**:\n- **MLI (Multi-Layer Insulation)**: gold-coated Kapton blankets, layered. Reduces radiative heat transfer. The 'gold foil' look of spacecraft.\n- **Heat pipes**: capillary fluid moves heat from hot to cold parts.\n- **Radiators**: large area facing deep space. Reject heat.\n- **Electric heaters**: heat components if too cold.\n- **Louvers / phase-change materials**: active or passive temperature control.\n\n**Worst cases**:\n- **Hot case**: subsolar point, eclipse exit, all heaters on, full sun.\n- **Cold case**: deep eclipse, heaters failed, minimum power.\n- Design must work at both extremes.\n\n**Communications link budget**:\n$$P_{\\text{received}} = P_{\\text{transmit}} \\cdot G_{\\text{tx}} \\cdot G_{\\text{rx}} / (L \\cdot F^2)$$\nwhere $G$ is antenna gain, $L$ is path loss, $F$ is frequency.\n\nFor deep-space:\n- Voyager 1 (24 billion km from Earth as of 2024): transmits 23 W; signal received on DSN 70m dish is ~$10^{-19}$ W. Signal-to-noise around 1; data rate ~160 bps.\n- DSN amplifiers: cryogenic, ultra-low-noise.\n- Light delay: Voyager 1 ~22 hours one-way (delayed commands).\n\n**Modern broadband from space**: Starlink (~12,000 sats), OneWeb (~600), Kuiper (in deployment) provide Mbps-Gbps to LEO. Phased-array antennas. Inter-satellite optical links (laser) for backbone routing.\n\n**Total spacecraft system**:\n- Bus (structure + power + thermal + comms + ADCS + propulsion + computer): ~50-70% of spacecraft mass.\n- Payload (instruments, science, mission): rest.\n- For commercial comsats: payload (transponders) is large fraction.\n- For science (Hubble, JWST, planetary): payload dominates.\n\n**Verification testing**: extensive ground testing in thermal-vacuum chambers, vibration test (launch loads), EMC (electromagnetic compatibility), software hardware-in-loop simulators. Months of testing before launch."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sc_power",
+        "kind": "guided_derivation",
+        "question": "Design a satellite power budget",
+        "goal": "LEO satellite. Avg power draw 50 W. Orbit period 95 min, eclipse 35 min. Battery efficiency 80%. Battery DoD 30% (depth-of-discharge limit for 5-year life).",
+        "steps": [
+          {
+            "prompt": "Eclipse energy required: 50 W × 35 min × 60 s/min = ?",
+            "motivation": "Compute Watt-seconds.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "105000 J",
+                "105 kJ",
+                "29.2 Wh"
+              ]
+            },
+            "hints": [
+              "50 × 35 × 60."
+            ],
+            "reveal": "105 kJ ≈ 29.2 Wh."
+          },
+          {
+            "prompt": "Battery sized for 30% DoD: nominal capacity = 29.2 Wh / 0.30 = ?",
+            "motivation": "DoD margin.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~97 Wh",
+                "97.3 Wh",
+                "~100 Wh"
+              ]
+            },
+            "hints": [
+              "29.2/0.3."
+            ],
+            "reveal": "~97 Wh. Common sat battery sizing."
+          },
+          {
+            "prompt": "Solar array sizing: must support load + recharge battery during sun-pass. Sun time 60 min (95 - 35). Charge needed: 29.2/0.80 = 36.5 Wh (efficiency loss). Plus continuing 50 W load. Required array power?",
+            "motivation": "Add charge + load.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~87 W",
+                "~85",
+                "85-90 W"
+              ]
+            },
+            "hints": [
+              "50 W load + 36.5 Wh / 1 hour = 36.5 W recharge → 86.5 W total."
+            ],
+            "reveal": "~87 W during sun. Array might be sized at 100-120 W for margin + end-of-life degradation (~30% over 10 years from radiation)."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Power} = \\text{Sun load} + \\text{Battery recharge}}$$ Spacecraft power budgeting is multi-step: average load, eclipse energy, battery sizing (DoD + efficiency + cycle life), array sizing (load + recharge + EOL degradation). Each step has industry-standard margins. Spacecraft engineers spend significant effort on this; mis-sized power is a common mission-killer. Modern small-sat power design is increasingly aided by software tools (STK, FreeFlyer, Systems Tool Kit)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sc_dsn",
+        "kind": "multiple_choice",
+        "question": "Voyager 1, ~24 billion km from Earth, sends radio signals at 23 W. Earth receives them. How?",
+        "options": [
+          "Magic.",
+          "Three things: (1) Voyager's high-gain antenna concentrates signal toward Earth; (2) DSN's 70-meter dishes are extremely sensitive; (3) cryogenic low-noise amplifiers + integration over time. Signal-to-noise is borderline; data rate ~160 bps with error correction.",
+          "Doesn't reach.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Deep-space communications is signal-detection at the edge of physics. Voyager's 23W radiated → 70m DSN dish receives ~$10^{-19}$ W (less than one photon per bit). Cryogenic LNAs + integration time + error correction extract bits. Light delay: ~22 hours one-way. Data rate: 160 bps (yes, BPS — not kbps). Yet Voyager-1 still sends science data 47 years after launch. Engineering marvel. NASA tracks it with 70m antennas in California, Australia, Spain."
+      },
+      "hints": [
+        "What's the link math?",
+        "How is it possible?"
+      ],
+      "workedSolution": "$P_{rx} = P_{tx} \\cdot G_{tx} \\cdot G_{rx} / (4\\pi d/\\lambda)^2$. For Voyager: huge path loss but high gains + extreme sensitivity + integration over many seconds per bit. SNR around 1 with error correction. Engineering: focused transmitter + huge dishes + cryogenic amplifiers + low data rate. Modern Mars missions (~150-200 million km) get Mbps; Voyager (24 billion km) gets bps. Distance squared in the link equation is unforgiving.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sc_solar",
+        "kind": "math_expression",
+        "question": "Solar flux at Mars (1.52 AU from sun)?",
+        "acceptedAnswers": [
+          "~590 W/m²",
+          "1361/1.52²",
+          "~590"
+        ],
+        "hint": "$1361 / 1.52^2 \\approx 590$ W/m²."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sc_smallsat",
+        "kind": "scenario",
+        "question": "CubeSat design",
+        "prompt": "Designing a 3U CubeSat (30×10×10 cm) for Earth observation. Walk through the major subsystem trade-offs."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sc",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why spacecraft engineering is treated as a system-of-systems discipline rather than independent subsystem design.",
+        "rubric": "Mentions that every subsystem couples to others (more power needs more solar array → more area → more thermal radiation → different attitude control → different propellant ...); mass-budget constraints make trade-offs critical; reliability requires careful interface management; the system engineer's role exists to manage these couplings. The cost of getting it wrong is mission failure on a $100M-$10B spacecraft."
+      }
+    }
+  ]
+}
