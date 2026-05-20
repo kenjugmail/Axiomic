@@ -208,6 +208,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🔦",
     tags: ["photonics", "optics", "lasers", "physics", "engineering"],
   },
+  {
+    name: "vowel-formant-chart",
+    label: "IPA vowel formant chart",
+    description: "F1 vs F2 vowel chart across languages (English, Spanish, French, Mandarin, Arabic). Hover for IPA + examples.",
+    thumb: "🗣️",
+    tags: ["linguistics", "phonetics", "phonology", "language", "ipa"],
+  },
 ];
 
 interface Props {

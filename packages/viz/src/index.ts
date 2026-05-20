@@ -27,6 +27,7 @@ export { AtmosphericSounding } from "./components/AtmosphericSounding";
 export { ECGSimulator } from "./components/ECGSimulator";
 export { ShannonChannel } from "./components/ShannonChannel";
 export { GaussianBeam } from "./components/GaussianBeam";
+export { VowelFormantChart } from "./components/VowelFormantChart";
 export { SoftmaxTemperatureSlider } from "./quiz/SoftmaxTemperatureSlider";
 export { AttentionHeatmapExplorer } from "./quiz/AttentionHeatmapExplorer";
 export { GradientDescent2D } from "./quiz/GradientDescent2D";

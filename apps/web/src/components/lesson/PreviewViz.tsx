@@ -128,6 +128,11 @@ const LazyGaussianBeam = lazy(() =>
     (m) => ({ default: m.GaussianBeam }),
   ),
 );
+const LazyVowelFormantChart = lazy(() =>
+  import("../../../../../packages/viz/src/components/VowelFormantChart").then(
+    (m) => ({ default: m.VowelFormantChart }),
+  ),
+);
 const LazyDoublePendulum = lazy(() =>
   import("../../../../../packages/viz/src/components/DoublePendulum").then(
     (m) => ({ default: m.DoublePendulum }),
@@ -250,6 +255,8 @@ function VizByName({
       return <LazyShannonChannel {...(props as object)} />;
     case "gaussian-beam":
       return <LazyGaussianBeam {...(props as object)} />;
+    case "vowel-formant-chart":
+      return <LazyVowelFormantChart {...(props as object)} />;
     default:
       return null;
   }

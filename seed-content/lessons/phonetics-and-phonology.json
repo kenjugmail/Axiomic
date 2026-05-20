@@ -1,0 +1,181 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Apply IPA + articulatory phonetics.",
+      "Reason about phonemes vs allophones.",
+      "Connect to formant analysis + acoustics."
+    ],
+    "prereqs": [
+      "language-structure-foundations"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Articulatory phonetics + IPA",
+      "body": "**Phonetics** = physical sounds of speech. **Phonology** = abstract sound system of a language.\n\n**Articulatory phonetics** describes sounds by how they're produced:\n• **Place of articulation**: where in vocal tract (bilabial, labiodental, dental, alveolar, post-alveolar, retroflex, palatal, velar, uvular, pharyngeal, glottal).\n• **Manner of articulation**: how (stop/plosive, fricative, affricate, nasal, lateral, approximant, trill, tap).\n• **Voicing**: voiced (vocal-fold vibration) or voiceless.\n• **Vowels**: open-close (jaw position), front-back (tongue), rounded-unrounded (lips).\n\n**International Phonetic Alphabet (IPA, 1888+)**: standard symbols for transcribing speech sounds across all languages.\n- Pulmonic consonants: ~52 main symbols on the chart.\n- Vowels: 28 cardinal positions (front/back × close/open × rounded/unrounded).\n- Non-pulmonic: clicks (Khoisan), implosives, ejectives.\n- Suprasegmentals: tone, stress, length, intonation.\n\nWhy IPA: language-independent + universally trained. Replaces orthography (English 'ough' has ~7 different pronunciations).\n\n**Acoustic phonetics** measures speech waveforms:\n- **Spectrogram**: time × frequency × intensity. Reveals formants, fricatives, stops, vowels.\n- **Formants F1, F2, F3**: vocal-tract resonances. F1+F2 distinguish vowels (see viz).\n- **VOT (voice onset time)**: gap between consonant release + voicing onset. /pa/ vs /ba/.\n- **Pitch (F0)**: fundamental frequency. ~120 Hz adult male, ~210 Hz adult female. Tone-bearing in Mandarin etc.\n- **Praat** + open-source tools enable acoustic analysis at PhD-or-undergraduate level."
+    },
+    {
+      "kind": "text",
+      "title": "Phonemes vs allophones + phonological rules",
+      "body": "**Phoneme**: abstract sound category that distinguishes meaning. Cross-linguistic differences:\n- English /p/ vs /b/: distinct phonemes (pat vs bat).\n- Korean /p/, /pʰ/, /p'/: 3 distinct phonemes (aspirated, unaspirated, tense).\n- Mandarin /p/ + /pʰ/: distinct (ba vs pa); Mandarin lacks /b/.\n\n**Allophone**: variant of a phoneme; predictable from context; doesn't distinguish meaning.\n- English /p/ → [pʰ] word-initial (pat); [p] elsewhere (spat). Same phoneme, different allophones.\n- Spanish /b/ → [b] after pause/nasal; [β] (fricative) intervocalically.\n\nDiscovering phonemes: **minimal pairs** (sip vs zip). If two sounds distinguish meaning, they're separate phonemes.\n\n**Phonological rules** (generative tradition):\n- /t/ → [tʰ] / # _ V (word-initial aspiration)\n- /t/ → [ɾ] / V _ V (intervocalic flap in American English: 'butter' → 'budder')\n- /n/ → [m] / _ p, b (assimilation: 'in possible' → 'impossible')\n- Devoicing: /b/ → [p] word-finally (German: Tag /tak/)\n\n**Phonological processes**:\n- **Assimilation**: sounds become more like neighbors.\n- **Dissimilation**: become less similar.\n- **Deletion**: drop a sound (English 'going' → 'goin').\n- **Insertion / epenthesis**: add a sound (Sp 'español' from L 'spanus').\n- **Metathesis**: reorder (animal — animul).\n\n**Optimality Theory (OT)** (Prince + Smolensky 1993): phonology as ranked constraints (faithfulness vs markedness). Modern dominant framework.\n\n**Suprasegmental phonology**:\n- **Tone**: lexical pitch contrast. Mandarin 4 tones; Cantonese 6-9.\n- **Stress**: prominence on syllable. English (lexical stress); Czech (initial fixed).\n- **Intonation**: utterance-level pitch contour. Distinguish statement / question / exclamation.",
+      "viz": "vowel-formant-chart"
+    },
+    {
+      "kind": "text",
+      "title": "Speech acoustics + perception",
+      "body": "**Source-filter model** of speech production (Fant 1960):\n- **Source**: vocal-fold vibration (voiced) or noise (voiceless fricative).\n- **Filter**: vocal-tract resonances → spectral shaping.\n- Vowels: source = periodic voicing; filter = formants F1, F2, F3.\n- Fricatives: source = turbulent noise at constriction; filter = spectral peaks.\n- Stops: silence (closure) + burst (release).\n\n**Formant locations + meaning**:\n- F1 (~300-800 Hz): inversely correlates with vowel height (jaw opening). /i, u/ have low F1; /a/ high F1.\n- F2 (~800-2500 Hz): correlates with backness. /i/ has high F2; /u/ low F2.\n- F3 (~2500-3500 Hz): rhoticity (R-coloring); some lip rounding.\n- Speaker-normalization needed: women + children have higher formants (shorter vocal tract).\n\n**Speech perception**:\n- **Categorical perception**: continuous acoustic variation perceived in discrete categories. /pa-ba/ VOT continuum: sharp categorical boundary at ~30 ms.\n- **Acoustic invariance vs context**: same phoneme has different acoustic realizations in different contexts (coarticulation); listeners normalize.\n- **McGurk effect**: lip movement + audio integrate; /ba/ + visual /ga/ = perceived /da/.\n- **Categorical learning**: infants learn language-specific categories ~6-12 months.\n\n**Speech in technology**:\n- **ASR (automatic speech recognition)**: HMM-GMM → DNN → end-to-end transformer (Whisper). Open-source: Wav2Vec, Whisper-Large; closed-source: Google, Amazon, Apple. Word-error rate <5% for many languages.\n- **TTS (text-to-speech)**: concatenative → parametric → neural (Tacotron, FastSpeech, VALL-E, ElevenLabs). Near-human quality.\n- **Speaker recognition**: identification + verification. Used in banking, security.\n- **Forensic phonetics**: voice analysis for legal purposes."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_phon_1",
+        "kind": "guided_derivation",
+        "question": "Identify phoneme vs allophone via minimal pairs",
+        "goal": "In English, do [p] (unaspirated) + [pʰ] (aspirated) represent separate phonemes or allophones of one phoneme?",
+        "steps": [
+          {
+            "prompt": "Can you find a minimal pair where [p] vs [pʰ] distinguishes meaning?",
+            "motivation": "Phoneme test.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "no",
+                "no minimal pair",
+                "no different meanings"
+              ]
+            },
+            "hints": [
+              "Word-initial vs after /s/."
+            ],
+            "reveal": "No minimal pair: 'pat' [pʰæt] and 'spat' [spæt] — [pʰ] occurs word-initially, [p] after /s/. Switching them ('[pæt]' for 'pat') sounds odd but doesn't change meaning. Therefore allophones of a single phoneme."
+          },
+          {
+            "prompt": "What environment determines [pʰ] vs [p]?",
+            "motivation": "Predictability.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "word-initial position",
+                "before stressed vowel",
+                "stressed-syllable onset"
+              ]
+            },
+            "hints": [
+              "Where does aspiration occur?"
+            ],
+            "reveal": "[pʰ] occurs in stressed-syllable onsets: 'pat' [pʰæt]. [p] elsewhere, including post-/s/ clusters ('spat' [spæt]), unstressed positions, syllable codas ('cap' [kʰæp̚]). Predictable from environment → allophonic."
+          },
+          {
+            "prompt": "How would the phonological rule be written?",
+            "motivation": "SPE/OT formalism.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "/p/ → [pʰ] / # _ V[+stress]",
+                "p aspirated word-initial stressed"
+              ]
+            },
+            "hints": [
+              "Use slash + condition."
+            ],
+            "reveal": "**Rule**: /p/ → [pʰ] / σ̂_onset _ V[+stress], where σ̂ marks stressed syllable. In other contexts /p/ → [p]. Cf. /t/ same rule + /k/ same. All voiceless stops aspirate in stressed-onset position."
+          },
+          {
+            "prompt": "How would this work in Korean?",
+            "motivation": "Cross-linguistic contrast.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "3 separate phonemes (pa, pʰa, p'a)",
+                "3 phonemes in Korean"
+              ]
+            },
+            "hints": [
+              "Korean has 3 way contrast."
+            ],
+            "reveal": "Korean: 3 separate phonemes — plain /p/, aspirated /pʰ/, tense /p'/. Minimal triple: 불 /pul/ 'fire', 풀 /pʰul/ 'grass', 뿔 /p'ul/ 'horn'. Same English allophonic distinction is phonemic in Korean. Cross-linguistic differences in what's phonemic vs allophonic is foundational to phonology — same acoustic categories partitioned differently."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_phon_1",
+        "kind": "sortable",
+        "question": "Order these phonological processes by frequency cross-linguistically (most common to least common).",
+        "items": [
+          {
+            "id": "assimilation",
+            "label": "Assimilation (n → m before p,b)"
+          },
+          {
+            "id": "deletion",
+            "label": "Deletion (final consonant drop)"
+          },
+          {
+            "id": "insertion",
+            "label": "Epenthesis (vowel insertion to break clusters)"
+          },
+          {
+            "id": "metathesis",
+            "label": "Metathesis (consonant reordering)"
+          },
+          {
+            "id": "ejective-creation",
+            "label": "Spontaneous ejective creation"
+          }
+        ],
+        "explanation": "Cross-linguistic frequency of phonological processes:\n• **Assimilation**: extremely common; near-universal. Nasal place assimilation, voicing assimilation, vowel harmony. Drives most cross-language alternations.\n• **Deletion**: common, especially in casual speech + diachronic change. English 'going to' → 'gonna'.\n• **Epenthesis**: moderately common. Languages with restricted syllable structure use it to repair illicit clusters (Sp 'spanish' → 'español').\n• **Metathesis**: less common but well-attested. English 'animal' → 'animul'; OE 'brid' → 'bird'.\n• **Spontaneous ejective creation**: rare. Ejectives are typologically uncommon (Caucasian languages, some African + American + Bering); usually emerge from sound-change involving glottal stop + obstruent.\n\nThe hierarchy reflects: assimilation is articulatorily-driven + universal; complex processes (metathesis, ejective creation) require specific historical contingencies. Naturalness-of-process is a major topic in phonological theory + Optimality-Theory constraint ranking."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_phon_1",
+        "kind": "multiple_choice",
+        "question": "Why do native speakers of one language often have difficulty perceiving distinctions in another language?",
+        "options": [
+          "Different vocal tracts.",
+          "**Categorical perception**: by ~6-12 months, infants learn the phonemic categories of their native language; sounds that aren't contrastive in L1 are perceived as variants of a single category. Adult learners may struggle with: Japanese /r/ vs /l/ (single phoneme in Japanese); Mandarin tones (English-speakers); Hindi retroflex /ʈ/ vs dental /t̪/ (English /t/); /θ/ vs /s/ (many languages collapse). Perceptual training + experience can refine over months/years; perfect L2 phonology is rare after critical period (~10-12 yr).",
+          "Anatomical limits.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Categorical perception + L1/L2 phonology**:\n\n*Categorical perception phenomenon* (Liberman + colleagues 1957+):\n- Adults perceive speech categorically: continuous acoustic variation (e.g., VOT) classified as discrete categories.\n- Categories defined by L1 phoneme inventory.\n- Hearing /pa/ vs /ba/: sharp boundary at VOT ~30 ms in English.\n\n*Infant development*:\n- 0-6 months: infants discriminate ALL phonemes universally.\n- 6-12 months: 'perceptual narrowing' — infants lose sensitivity to non-native contrasts.\n- 1+ year: L1 categorical perception established.\n\n*Famous L2 difficulties*:\n\n1. **Japanese /r/ vs /l/**: \n  - Japanese has single liquid /ɾ/ (alveolar tap).\n  - English /r/ + /l/ distinction not contrastive in Japanese.\n  - Japanese learners of English struggle: 'right' + 'light' sound the same to them.\n  - Training studies (Lively + Pisoni 1993): high-variability phonetic training improves discrimination.\n\n2. **Mandarin tones for English speakers**:\n  - Mandarin has 4 tones + neutral; tone is phonemic (mā = mother, má = hemp, mǎ = horse, mà = scold).\n  - English uses pitch for intonation (utterance-level), not lexically.\n  - English speakers initially hear 'same word'; learn to discriminate over months-years.\n\n3. **Hindi/Korean retroflex /ʈ/ vs dental /t̪/**:\n  - English single /t/.\n  - L2 speakers don't distinguish without training.\n\n4. **Spanish/Italian /r/ vs /rr/** (tap vs trill):\n  - English R is different; either may sound foreign.\n\n5. **Click consonants (Khoisan)**:\n  - !Xóõ has ~83 click phonemes.\n  - Outsiders perceive them as a single category 'click.'\n\n*Critical-period hypothesis* (Lenneberg 1967):\n- Period (~puberty, ~10-12 yr) after which L2 acquisition particularly L2 phonology is harder.\n- Not all-or-nothing: some adult learners achieve near-native phonology with effort + training; many don't.\n- Phonology is the hardest aspect of L2; grammar + vocabulary continue to be learnable through adulthood.\n\n*Plasticity + training*:\n- High-variability phonetic training (HVPT): exposure to many speakers + contexts.\n- Adaptive computer-based training (Pisoni et al.; modern: ELSA Speak).\n- Some success with intense + targeted programs.\n- Bilinguals (early + balanced) achieve near-native L2 phonology.\n\n*Modern frontiers*:\n- **Neural models**: do deep ASR systems show similar categorical perception?\n- **Cross-linguistic phonemic universals**: which contrasts are easier/harder?\n- **Adult plasticity**: limits + training optimization.\n- **Music-language connections**: musicians sometimes have better tone perception.\n\nApplications: L2 teaching; speech-recognition adaptation; voice-cloning (TTS in specific accents); accent reduction (controversial); forensic phonetics.\n\nThis is a beautiful case of cognitive constraints shaping behavior + culture."
+      },
+      "hints": [
+        "When do infants narrow their phonemic categories?",
+        "What's the critical-period hypothesis?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Categorical perception: L1 phonemes learned in infancy ~6-12 months; sounds not contrastive in L1 perceived as same category. L2 difficulties: Japanese /r/ vs /l/, Mandarin tones, Hindi retroflex, Spanish trill. Critical period (~10-12 yr): adult L2 phonology hardest. Plasticity exists with training (HVPT, computer-adaptive). Modern: deep ASR shows similar patterns; cross-linguistic universals; neural+cognitive science studies."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_phon_1",
+        "kind": "math_expression",
+        "question": "Vowel /i/ formants: F1=270 Hz, F2=2290 Hz. F2/F1 ratio?",
+        "acceptedAnswers": [
+          "~8.5",
+          "8.48",
+          "2290/270"
+        ],
+        "hint": "2290 / 270 ≈ 8.48. High F2/F1 ratio characterizes front close vowels like /i/."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_phon_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why speech recognition + synthesis benefits from understanding phonetics + phonology.",
+        "rubric": "Mentions: ASR + TTS systems benefit from understanding the structure of speech. Phonetic knowledge: acoustic features (formants, VOT, fricative spectral patterns); coarticulation effects; allophone variants. Phonological knowledge: phoneme inventories + permitted sequences + alternations + stress + intonation. Foundation of modern systems: phoneme-based acoustic models (HMM-GMM in 1990s-2010s; deep + transformer-based today). End-to-end neural systems (Whisper, Wav2Vec) increasingly learn phonetic + phonological structure implicitly from data, but supplementing with linguistic priors improves: low-resource languages, code-switching, accent variation, prosody-aware synthesis. TTS quality: high-quality outputs require phonological alignment (lexical stress, sandhi rules, intonation patterns). Languages without large training data benefit most from phonological priors. Concludes: linguistic knowledge + neural methods + data are complementary; modern speech engineering combines all three."
+      }
+    }
+  ]
+}

@@ -1,0 +1,250 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "advanced",
+    "objectives": [
+      "Apply Gricean maxims + speech-act theory.",
+      "Distinguish entailment, presupposition, implicature.",
+      "Connect to NLU + LLM prompting."
+    ],
+    "prereqs": [
+      "semantics-meaning-and-truth"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Pragmatics: meaning in context",
+      "body": "**Pragmatics**: how context contributes to meaning. Distinguished from semantics (truth conditions): pragmatics deals with utterance vs context-independent sentence meaning.\n\n**Key phenomena**:\n\n• **Deixis**: 'I', 'you', 'here', 'tomorrow' — meaning depends on speaker, listener, time, place.\n\n• **Speech acts** (Austin 1962, Searle 1969): saying = doing.\n  - Locution: what was said literally.\n  - Illocution: speaker's intent (assertion, request, promise, command).\n  - Perlocution: effect on hearer.\n  - 'Can you pass the salt?' = literally yes/no question; illocution = request.\n  - Speech-act categories: representatives (asserting), directives (requesting, ordering), commissives (promising), expressives (apologizing), declarations (christening).\n\n• **Presupposition**: assumed background.\n  - 'The king of France is bald' presupposes there's a king of France.\n  - 'John stopped smoking' presupposes John smoked.\n  - Triggered by: factive verbs (regret, know), definites, focus.\n  - Distinct from entailment: survives negation. 'John didn't stop smoking' still presupposes he was smoking.\n\n• **Entailment**: A entails B iff A true ⟹ B true.\n  - 'John murdered Bill' entails 'Bill is dead.'\n  - Negate A: doesn't entail B.\n\n• **Implicature**: inference beyond literal meaning.\n  - Conventional: 'but' implicates contrast.\n  - Conversational: arises from Gricean maxims (next slide).\n\n**Gricean maxims** (Grice 1975, 'Logic + Conversation'): conversation follows a Cooperative Principle subdivided:\n• **Quantity**: be informative, but not too much.\n• **Quality**: speak truthfully + with evidence.\n• **Relation**: be relevant.\n• **Manner**: be clear, brief, orderly, unambiguous.\n\nViolations or 'flouting' generate conversational implicatures.\n\n**Examples**:\n- 'Some students passed' implicates 'not all' (Quantity).\n- 'It's cold in here' may implicate 'close the window' (Relation).\n- 'War is war' is tautological literally; flouts Quantity → implicates 'this conflict is normal/inevitable.'\n\nMaxims often broken; participants compute speaker's intended meaning."
+    },
+    {
+      "kind": "text",
+      "title": "Politeness + register + speech-event types",
+      "body": "**Politeness** (Brown + Levinson 1987): social management of face needs.\n- **Positive face**: desire to be liked + approved.\n- **Negative face**: desire to be unimpeded.\n- Face-threatening acts (FTAs): requests, criticism, disagreement.\n- Strategies: direct, positive politeness, negative politeness, off-record, no FTA.\n\n**Indirect speech**: 'Could you possibly close the door?' vs 'Close the door!'.\n- Indirect = more polite; protects negative face.\n- Direct = more efficient; demands familiarity.\n\n**Register** (style or formality):\n- Formal: 'I regret to inform you...'.\n- Informal: 'Hey, sorry to say...'.\n- Each language has multiple registers.\n- Code-switching between registers indicates social setting.\n\n**Honorifics**: \n- Japanese: ます-form (masu) polite vs plain; -san/-kun/-sama suffixes.\n- Korean: subject + object + speech-level all marked.\n- Hindi: tu/tum/aap pronouns by social distance.\n- Spanish: tú vs usted; vos vs Ud. Vary by region.\n- English: thou (intimate) lost ~1700; you universal.\n\n**Discourse coherence**:\n- **Cohesion**: linguistic links (pronouns, conjunctions, lexical repetition).\n- **Coherence**: conceptual + topical continuity.\n- **Discourse markers**: 'so', 'well', 'anyway', 'first', 'in conclusion.'\n\n**Information structure** (topic vs focus):\n- 'John ate the apple.' Neutral.\n- 'JOHN ate the apple.' Focus on subject (it was John).\n- 'John ate the APPLE.' Focus on object.\n- Topic-comment: 'As for John, he ate the apple.'\n- Cleft + pseudocleft: 'It is John who ate the apple.'\n\n**Genres + speech events**: lecture, debate, interview, casual chat, prayer, narrative. Each has expected structures + conventions."
+    },
+    {
+      "kind": "text",
+      "title": "Modern pragmatics + LLM prompting",
+      "body": "**Computational pragmatics** + NLU:\n- Reference resolution: 'he', 'it', 'this' — what's referent?\n- Speech-act classification (request, statement, etc.).\n- Sentiment + stance analysis.\n- Sarcasm + irony detection.\n- Politeness classification.\n- Style/formality transfer.\n\n**Rational Speech Act (RSA) model** (Frank + Goodman 2012): listener models speaker as Bayesian-pragmatic agent + vice versa. Game-theoretic + recursive. Explains: implicatures, embedded scalar items.\n\n**LLM era**:\n- LLMs (GPT-4, Claude, Gemini) handle most pragmatic phenomena well via training on conversational data.\n- Coreference + grounding implicit.\n- Speech acts: instruction-following + chat-aligned LLMs trained explicitly on this.\n- Politeness + register: prompted via system message + style.\n- Common sense + world knowledge: vast in modern LLMs.\n\n**Prompt engineering as pragmatic interface**:\n- System messages set role + register.\n- Few-shot examples convey desired behavior.\n- Chain-of-thought elicits explicit reasoning.\n- Constitutional AI + RLHF align LLMs with human preferences (helpful + harmless + honest).\n\n**Hallucination + grounded LLMs**: LLMs sometimes confidently produce false statements. Pragmatic + epistemic uncertainty. Mitigations: RAG (retrieval-augmented generation), calibration, tool use, citation generation.\n\n**Multi-turn dialogue + coherence**:\n- Maintain conversation state.\n- Reference + ellipsis ('Yes, I'll do that.').\n- Topic shifts + closings.\n- LLM-based chatbots (ChatGPT, Claude, Gemini) handle multi-turn well; long-context (100k-1M tokens) helps further.\n\n**Cross-cultural pragmatics**:\n- Politeness conventions vary widely.\n- Direct vs indirect cultures (Hall 1976).\n- High-context vs low-context.\n- LLMs trained mostly on English/Western: some bias; multilingual + cultural-adaptation ongoing.\n\n**Theory of Mind in LLMs**:\n- Do LLMs model speaker beliefs + intentions?\n- Sally-Anne false-belief task: GPT-4 + Claude often solve correctly.\n- Active research (Sap+ 2022; ToMI benchmark).\n- Pragmatics requires recursive reasoning about speaker + listener mental states."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_prag_1",
+        "kind": "guided_derivation",
+        "question": "Compute the implicature of 'Some students passed the exam.'",
+        "goal": "Apply Gricean reasoning to derive the scalar implicature 'not all students passed.'",
+        "steps": [
+          {
+            "prompt": "Literal meaning of 'Some students passed'?",
+            "motivation": "Truth-conditional.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "∃x [student(x) ∧ passed(x)]",
+                "at least one student passed"
+              ]
+            },
+            "hints": [
+              "Existential."
+            ],
+            "reveal": "Literally: ∃x [student(x) ∧ passed(x)] — at least one student passed. Logically compatible with 'all students passed.'"
+          },
+          {
+            "prompt": "What stronger statement could the speaker have made?",
+            "motivation": "Scalar alternative.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "all students passed",
+                "all passed",
+                "every student"
+              ]
+            },
+            "hints": [
+              "Stronger quantifier."
+            ],
+            "reveal": "Stronger alternative: 'All students passed.' Or 'most.' On scale of <some, many, most, all>."
+          },
+          {
+            "prompt": "Apply Quantity maxim. What does NOT saying the stronger statement implicate?",
+            "motivation": "Implicature.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "not all passed",
+                "implicates not stronger",
+                "stronger is false"
+              ]
+            },
+            "hints": [
+              "If speaker knew all passed, they would have said so."
+            ],
+            "reveal": "**Scalar implicature**: by Quantity maxim, speaker would have said 'all' if they could. Since they said 'some' (weaker), the stronger 'all' is implicated to be false. Implicates: 'not all passed' (i.e., some students didn't pass)."
+          },
+          {
+            "prompt": "Is this implicature defeasible?",
+            "motivation": "Cancellable.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "yes cancellable",
+                "yes, can be cancelled",
+                "in fact all"
+              ]
+            },
+            "hints": [
+              "Can it be cancelled?"
+            ],
+            "reveal": "Yes — implicatures are cancelable. 'Some students passed... in fact, all of them passed.' Cancellation explicit. Distinguishes implicatures from entailments (uncancellable). \n\nScalar implicatures are bread + butter of pragmatics; central to NLU + LLM evaluation. Computational pragmatics formalizes via Rational Speech Act (RSA) models."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_prag_1",
+        "kind": "drag_classify",
+        "question": "Classify each inference as ENTAILMENT, PRESUPPOSITION, IMPLICATURE, or none.",
+        "items": [
+          {
+            "id": "john-killed-bill",
+            "label": "'John killed Bill' → 'Bill is dead'",
+            "bin": "entailment"
+          },
+          {
+            "id": "john-stopped",
+            "label": "'John stopped smoking' → 'John used to smoke'",
+            "bin": "presupposition"
+          },
+          {
+            "id": "some-students",
+            "label": "'Some students passed' → 'Not all students passed'",
+            "bin": "implicature"
+          },
+          {
+            "id": "where-is-store",
+            "label": "'Where is the nearest store?' → 'The speaker wants to know the location of the nearest store'",
+            "bin": "implicature"
+          },
+          {
+            "id": "the-king-bald",
+            "label": "'The king of France is bald' → 'There exists a king of France'",
+            "bin": "presupposition"
+          },
+          {
+            "id": "alice-bob-met",
+            "label": "'Alice met Bob' → 'Bob met Alice'",
+            "bin": "entailment"
+          },
+          {
+            "id": "regret-x",
+            "label": "'John regrets quitting' → 'John quit'",
+            "bin": "presupposition"
+          },
+          {
+            "id": "can-you-pass-salt",
+            "label": "'Can you pass the salt?' → 'Pass the salt' (request)",
+            "bin": "implicature"
+          }
+        ],
+        "bins": [
+          {
+            "id": "entailment",
+            "label": "Entailment"
+          },
+          {
+            "id": "presupposition",
+            "label": "Presupposition"
+          },
+          {
+            "id": "implicature",
+            "label": "Conversational implicature"
+          },
+          {
+            "id": "none",
+            "label": "None of these"
+          }
+        ],
+        "explanation": "Inference types:\n• **Entailment**: A is true ⟹ B is true. Uncancellable. 'John killed Bill' entails 'Bill is dead' — can't say 'John killed Bill but Bill isn't dead.' 'Alice met Bob' entails 'Bob met Alice' (symmetric relation).\n• **Presupposition**: assumed background; survives negation. 'John stopped smoking' presupposes John used to smoke; 'John didn't stop smoking' also presupposes it. Definite descriptions ('the king of France') trigger existence presupposition.\n• **Conversational implicature**: derived via Gricean maxims; cancellable. 'Some passed' implicates 'not all' (Quantity). 'Can you pass the salt?' implicates request (Relation/Manner). 'Where is the store?' implicates wanting location.\n\nDistinguishing these is core of formal pragmatics; computational systems must handle each type appropriately. NLU benchmarks (MNLI, SNLI) often blur lines; modern LLMs handle most cases well via training, but formal tests still reveal blind spots."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_prag_1",
+        "kind": "multiple_choice",
+        "question": "Why does LLM-based chat (ChatGPT, Claude, Gemini) work pragmatically well despite training on text?",
+        "options": [
+          "Lucky.",
+          "Massive training corpora contain conversational text — dialogues, customer service, books with dialogue, internet forums. LLMs learn pragmatic patterns implicitly: turn-taking, politeness, register, speech acts, implicature. Modern fine-tuning (RLHF, Constitutional AI, DPO) further aligns to human preferences for helpfulness + harmlessness. Limitations remain: cultural-pragmatic bias toward English/Western training data; occasional hallucination; embedded LLMs handle multi-turn dialogue well via long-context.",
+          "Random.",
+          "Required by law."
+        ],
+        "correctIndex": 1,
+        "explanation": "**LLM pragmatic performance + how it works**:\n\n*Training data*:\n- Books with dialogues + chat data.\n- Internet forums (Reddit, StackExchange, Quora).\n- Customer service transcripts.\n- Reddit AMA + interviews.\n- Filtered fine-tuning data (ShareGPT, OpenAssistant).\n\n*Implicit pragmatic learning*:\n- Turn-taking patterns (Q-A, A-B-A-B).\n- Politeness markers + indirect speech.\n- Register (formal vs informal).\n- Speech acts (request, assertion, promise).\n- Conversational implicature.\n- Topic shifts + closings.\n- Phatic language ('how are you?', 'have a good day').\n\n*Alignment + fine-tuning*:\n\n1. **Supervised fine-tuning (SFT)** on instruction-following datasets.\n2. **RLHF (Reinforcement Learning from Human Feedback)** (Christiano+ 2017, OpenAI + Anthropic 2020-2022): reward model trained on human preferences; policy optimized via PPO. Aligns to helpful + harmless + honest.\n3. **Constitutional AI** (Anthropic 2022): self-supervision via principles.\n4. **DPO (Direct Preference Optimization)** (Rafailov+ 2023): simpler alternative to RLHF.\n5. **Reasoning training** (OpenAI o1, Claude 3.5 Sonnet + later): chain-of-thought + reflection.\n\n*Pragmatic competencies*:\n\n1. **Coreference resolution**: 'It', 'he', 'this' tracked across multi-turn.\n2. **Topic management**: maintain conversation thread; smooth topic shifts.\n3. **Speech-act recognition**: respond to questions, requests, assertions appropriately.\n4. **Politeness + register matching**: adapt to user's style.\n5. **Implicit inference**: understand sarcasm, irony, idioms, implicature.\n6. **Theory of Mind (ToM) tasks**: false-belief, Sally-Anne — LLMs solve many correctly (Kosinski 2023; debated).\n\n*Limitations*:\n\n1. **Cultural bias**: training-data-dominated by English + Western pragmatics. Cross-cultural variation underrepresented.\n2. **Hallucination**: confidently false statements + invented references.\n3. **Sycophancy**: tendency to agree with user; RLHF + DPO partially address.\n4. **Long-context coherence**: multi-100k context window still has edge effects; very long conversations may lose threads.\n5. **Genuine theory of mind**: do LLMs model speaker mental states, or pattern-match? Active research.\n6. **Sarcasm + irony**: improved but still imperfect, especially without context.\n7. **Common-ground tracking**: shared knowledge between speakers; less explicit modeling.\n\n*Modern frontiers*:\n\n- **Multi-agent dialogue**: LLMs interacting; emergent communication.\n- **Tool use + reasoning**: LLM + external tools + chain-of-thought.\n- **Persistent memory**: cross-conversation user models.\n- **Cultural adaptation**: tailoring to user's language + region.\n- **Pragmatic evaluation**: BIG-bench, MMLU, BBH, MMLU-Pro tests.\n- **Theory of Mind benchmarks**: ToMI, ToMBench.\n\n*Pragmatics + safety*:\n\n- Refusing harmful requests requires recognizing intent.\n- Avoiding leakage of training data via clever prompts.\n- Constitutional AI principles encode pragmatic norms.\n- Red-teaming evaluates pragmatic + safety boundaries.\n\nThe alignment of LLMs to be 'helpful + harmless + honest' is fundamentally a pragmatic engineering challenge: language + context + social norms + speaker intent. Linguistic pragmatics provides theoretical foundation for designing + evaluating these systems."
+      },
+      "hints": [
+        "What data do LLMs learn from?",
+        "What's RLHF?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "LLMs (ChatGPT, Claude, Gemini) work pragmatically well because: training data includes dialogues + forums + books; learns turn-taking + politeness + speech acts + implicature implicitly. Fine-tuning aligns to human preferences: SFT + RLHF (Christiano 2017, OpenAI 2022) + Constitutional AI (Anthropic 2022) + DPO. Strong on: coreference, multi-turn coherence, register matching, implicit inference. Limitations: cultural-pragmatic bias (English/Western), hallucination, sycophancy, theory of mind. Active research: Sally-Anne tests, multi-agent dialogue, persistent memory, cultural adaptation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_prag_1",
+        "kind": "sortable",
+        "question": "Order these conversational moves by typical politeness/formality (most polite/formal to least).",
+        "items": [
+          {
+            "id": "could-you-possibly",
+            "label": "'Could you possibly close the door, please?'"
+          },
+          {
+            "id": "could-you",
+            "label": "'Could you close the door?'"
+          },
+          {
+            "id": "can-you",
+            "label": "'Can you close the door?'"
+          },
+          {
+            "id": "imperative",
+            "label": "'Close the door!'"
+          },
+          {
+            "id": "blunt-rude",
+            "label": "'Shut the door!'"
+          }
+        ],
+        "explanation": "Politeness gradient in English requests:\n• **'Could you possibly close the door, please?'**: most polite + indirect. Conditional + epistemic hedging + 'please' + 'possibly'. Negative-politeness maximized.\n• **'Could you close the door?'**: polite indirect. Conditional softens.\n• **'Can you close the door?'**: still polite, slightly less indirect. Ability-question + remains indirect.\n• **'Close the door!' (imperative)**: direct + neutral. Used in close relationships, authority contexts (parents/children, military), urgent needs.\n• **'Shut the door!'**: blunt, abrupt, rude. 'Shut' is more colloquial-aggressive than 'close.'\n\nPragmatic factors:\n- Negative politeness (don't impose) vs positive politeness (express solidarity).\n- Power + distance (P + D from Brown + Levinson 1987).\n- Cultural variation (Western indirect; some cultures more direct).\n- Register matching to relationship.\n- Voice + body language modulate.\n\nLLMs typically default to polite indirect requests; can be prompted for different register."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_prag_1",
+        "kind": "math_expression",
+        "question": "In Brown + Levinson's politeness model, weight of FTA W = P + D + R, where P=power, D=distance, R=ranking of imposition. Higher W → more elaborate politeness. For an FTA of magnitude P=2, D=2, R=3 vs P=1, D=1, R=1, which is more polite-demanding?",
+        "acceptedAnswers": [
+          "the first (W=7 > W=3)",
+          "first",
+          "7 > 3"
+        ],
+        "hint": "W_1 = 2+2+3 = 7; W_2 = 1+1+1 = 3. Higher W = more politeness needed."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_prag_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why pragmatics is harder for NLP than syntax + semantics.",
+        "rubric": "Mentions: syntax + semantics largely intrinsic to linguistic form; pragmatics depends on context, speaker intent, world knowledge, social norms, theory of mind. Examples: 'Can you pass the salt?' literal = yes/no question; pragmatic = request — requires inferring speaker intent. Implicature, presupposition, sarcasm, irony, indirectness — all context-dependent. Cross-cultural variation: pragmatic conventions differ widely (high-context vs low-context cultures, direct vs indirect cultures). Modern LLMs handle most pragmatic phenomena via training on conversational data + RLHF alignment, but limitations remain: cultural-pragmatic bias toward Western/English; theory of mind tasks; common-ground tracking; multi-cultural adaptation. Computational pragmatics (RSA models, ToM benchmarks, theory-of-mind probes) is active research. LLM + grounding + multimodal + tool-use combine to address. Concludes: pragmatics requires more than language — it requires modeling speakers + listeners + cultures + world. Hardest layer of NLU; LLM era progress impressive but not solved."
+      }
+    }
+  ]
+}

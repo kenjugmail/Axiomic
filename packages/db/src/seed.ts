@@ -1952,6 +1952,27 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P37 — Linguist path (general formal linguistics, distinct from
+  // existing nlp-linguist which is computational). Phonetics +
+  // phonology with new VowelFormantChart viz; morphology; syntax;
+  // semantics; pragmatics; sociolinguistics; historical linguistics.
+  seedMasteryPath({
+    slug: "linguist",
+    title: "Linguist",
+    description:
+      "From Hockett's design features + typological diversity through phonetics + phonology with an interactive IPA vowel formant chart, morphology + agglutinative/fusional/polysynthetic typology, syntax + X-bar + dependency + word-order universals, formal truth-conditional + distributional semantics + lambda calculus + word embeddings, pragmatics + Gricean maxims + speech acts + LLM theory of mind, sociolinguistics + Labovian variation + dialect + AAVE, and historical linguistics + comparative method + Grimm's Law + Indo-European + Bayesian phylogenetics. The general-linguistics stack end-to-end.",
+    nodes: [
+      { slug: "language-structure-foundations", title: "Language Structure + Foundations", level: "apprentice", order: 1, pages: ["hockett-features", "linguistic-levels", "universals-diversity"], prereqs: [], description: "Hockett's design features, linguistic levels (phonetics → pragmatics), universals + cross-linguistic diversity, formal vs functional approaches." },
+      { slug: "phonetics-and-phonology", title: "Phonetics + Phonology", level: "practitioner", order: 2, pages: ["articulatory-ipa", "phoneme-allophone", "acoustic"], prereqs: ["language-structure-foundations"], description: "Articulatory + acoustic phonetics + IPA + interactive vowel chart, phonemes vs allophones + phonological rules + OT, formant analysis + speech perception." },
+      { slug: "morphology-and-word-formation", title: "Morphology + Word Formation", level: "practitioner", order: 3, pages: ["morphemes", "typology", "computational"], prereqs: ["language-structure-foundations"], description: "Derivational + inflectional, isolating → polysynthetic typology + index of synthesis, finite-state + subword tokenization (BPE)." },
+      { slug: "syntax-and-phrase-structure", title: "Syntax + Phrase Structure", level: "specialist", order: 4, pages: ["constituency-dependency", "word-order", "movement-binding"], prereqs: ["language-structure-foundations"], description: "X-bar + dependency, Greenberg word-order universals + Chomsky parameters, movement + binding theory + neural parsing." },
+      { slug: "semantics-meaning-and-truth", title: "Semantics: Meaning + Truth", level: "specialist", order: 5, pages: ["truth-conditional", "lexical-wordnet", "distributional-neural"], prereqs: ["syntax-and-phrase-structure"], description: "Truth-conditional + compositional + lambda + Montague, lexical relations + WordNet + frame semantics, distributional + neural embeddings + CLIP + LLMs." },
+      { slug: "pragmatics-and-discourse", title: "Pragmatics + Discourse", level: "expert", order: 6, pages: ["gricean-speech-acts", "politeness-register", "computational-llm"], prereqs: ["semantics-meaning-and-truth"], description: "Gricean maxims + speech acts + presupposition + implicature, politeness + face + register + honorifics, RSA + LLM ToM + RLHF alignment." },
+      { slug: "sociolinguistics-and-variation", title: "Sociolinguistics + Variation", level: "expert", order: 7, pages: ["labov-variationist", "standard-prestige", "change-revitalization"], prereqs: ["phonetics-and-phonology"], description: "Labov's NYC + variationist methodology, standard + prescriptive vs descriptive + AAVE, apparent-time + language change + endangerment." },
+      { slug: "historical-linguistics-and-reconstruction", title: "Historical Linguistics + Reconstruction", level: "expert", order: 8, pages: ["comparative-method", "ie-families", "phylogenetics"], prereqs: ["phonetics-and-phonology"], description: "Comparative method + Grimm/Verner laws, IE + other families + steppe hypothesis, glottochronology + Bayesian phylogenetics + ancient DNA." },
+    ],
+  });
+
   // P36 — Photonics Engineer path. EM + Gaussian beams (new
   // GaussianBeam viz) + lasers/cavities + fiber + photodetectors +
   // nonlinear optics + photonic ICs + quantum optics. Introduces
