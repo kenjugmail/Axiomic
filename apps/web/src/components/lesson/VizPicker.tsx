@@ -145,6 +145,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🪨",
     tags: ["geology", "mechanics", "structural", "engineering", "stress"],
   },
+  {
+    name: "hr-diagram",
+    label: "Hertzsprung-Russell diagram",
+    description: "Drag stellar mass; see T_eff, luminosity, spectral type, MS lifetime, endpoint.",
+    thumb: "⭐",
+    tags: ["astronomy", "astrophysics", "stars", "hr-diagram", "physics"],
+  },
 ];
 
 interface Props {

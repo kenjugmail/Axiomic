@@ -1,0 +1,145 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Compare optical, radio, X-ray, and GW astronomy windows.",
+      "Reason about telescope resolution + diffraction limits.",
+      "Distinguish ground vs space facility tradeoffs."
+    ],
+    "prereqs": [
+      "high-energy-astrophysics"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The electromagnetic + multi-messenger spectrum",
+      "body": "Modern astronomy uses every accessible window of the EM spectrum, plus non-EM messengers:\n\n• **Radio** (>1 mm): cool gas (21-cm HI), CMB, pulsars, AGN jets. Ground (no atmospheric absorption); the largest single-dish (FAST, 500 m) + arrays (ALMA, VLA, MeerKAT, future SKA).\n• **Sub-mm + mm**: thermal dust, molecular lines, CMB anisotropies. ALMA at high-altitude Atacama is the gold standard.\n• **Infrared** (~1-300 μm): cool stars, dust-obscured star formation, high-z galaxies. JWST (2.7-m, L2) operates 0.6-28 μm.\n• **Optical** (0.4-1 μm): all the classical astronomy. HST + JWST + 8-10m ground telescopes (VLT, Keck, Subaru, Gemini), extremely large telescopes coming (ELT 39m, TMT 30m).\n• **UV** (10-400 nm): hot stars, ISM, intergalactic medium. Must be space-based — atmosphere absorbs (only HST + Astrosat now active).\n• **X-ray** (0.1-100 keV): hot plasma (>10⁶ K), accreting compact objects. Space-only (Chandra, XMM-Newton, NuSTAR, NICER).\n• **Gamma-ray** (>100 keV): non-thermal processes — AGN, GRBs, pulsars. Fermi (orbital), MAGIC + HESS + VERITAS + CTA (ground, Cherenkov for E > TeV).\n\n**Multi-messenger** (non-EM):\n• Neutrinos: IceCube (Antarctic ice, > GeV), SuperKamiokande.\n• Gravitational waves: LIGO, Virgo, KAGRA, future LISA (space, mHz).\n• Cosmic rays: Auger, Telescope Array."
+    },
+    {
+      "kind": "text",
+      "title": "Diffraction limit + resolution",
+      "body": "Angular resolution of a telescope is fundamentally limited by **diffraction**: θ ≈ 1.22 λ / D (radians), where λ is wavelength + D is aperture diameter. Smaller λ + larger D → finer resolution.\n\nExamples (in arcseconds, 1 arcsec = 4.85×10⁻⁶ rad):\n• HST (D = 2.4 m, λ = 0.5 μm): θ ≈ 0.05 arcsec.\n• JWST (D = 6.5 m, λ = 2 μm): θ ≈ 0.08 arcsec.\n• 30-m ground telescope (TMT/ELT, λ = 0.5 μm): θ ≈ 0.005 arcsec (5 mas).\n• VLA (B-config, D_eff = 36 km, λ = 21 cm): θ ≈ 0.7 arcsec.\n• EHT (D_eff = Earth, ~12,000 km, λ = 1.3 mm): θ ≈ 20 μas.\n\nGround optical is degraded by atmospheric turbulence ('seeing') to ~1 arcsec at good sites, requiring **adaptive optics** (AO) to push toward the diffraction limit. Sodium-laser guide stars + deformable mirrors recover near-diffraction-limited imaging in selected fields.\n\nFor radio + sub-mm wavelengths, **interferometry** lets us synthesize the resolution of a much larger telescope by combining signals from widely separated antennas. Effective aperture = baseline length. ALMA + VLBI + EHT all rely on this."
+    },
+    {
+      "kind": "text",
+      "title": "Ground vs space: the tradeoff",
+      "body": "**Atmosphere blocks** most of the EM spectrum: UV, X-ray, gamma-ray, and most IR (water-vapor bands). Visible light + radio waves get through.\n\n**Space telescopes**:\n• Pros: full spectral coverage, no atmospheric turbulence (perfect images at diffraction limit), no day-night cycle (continuous observation), no weather.\n• Cons: limited aperture (launch mass, fairing volume) → HST 2.4 m, JWST 6.5 m, Roman 2.4 m. Servicing is hard (HST: 5 servicing missions; JWST at L2: no servicing). Lifetime limited by consumables / orbit decay.\n\n**Ground telescopes**:\n• Pros: very large apertures possible (8-10 m current, 30-39 m coming), upgradable, decades-long lifetimes. Heavy spectrographs + interferometers (ALMA, EHT).\n• Cons: atmospheric absorption + turbulence; limited spectral range; weather + day/night cycle.\n\nDecadal survey strategy: ground does what ground does best (extremely large apertures, interferometry, sustained survey campaigns), space does what only space can (UV, X-ray, mid-IR; ultra-stable PSF for transit spectroscopy + direct imaging).\n\n**Decadal 2020** (Astro2020) ranks Habitable Worlds Observatory (HWO) — a ~6-m UV/optical/IR space telescope to image Earth analogs — as top priority for the 2040s. ELT-class ground telescopes + SKA + Vera Rubin Observatory + CMB-S4 fill out the program."
+    },
+    {
+      "kind": "question",
+      "kindHint": "guided_derivation",
+      "title": "Estimate the angular size of an Earth-analog around a nearby star",
+      "statement": "Could the next generation of telescopes directly image an Earth-twin around a nearby Sun-like star? Use diffraction + angular size.",
+      "steps": [
+        {
+          "prompt": "Star: Sun analog at 10 parsec (~33 ly). Planet: Earth at 1 AU. What's the angular separation between star + planet, as seen from Earth?",
+          "answer": "θ = (1 AU) / (10 pc). 1 pc = 206265 AU, so θ = 1 / 2.06×10⁶ rad = 4.85×10⁻⁷ rad × (10⁶) × 0.0485 arcsec/μrad... let me recompute. 1 AU at 10 pc = 1/10 arcsec = 100 mas.",
+          "hint": "θ = a/d. Convert d to AU."
+        },
+        {
+          "prompt": "Diffraction limit of a 6-m space telescope at λ = 600 nm?",
+          "answer": "θ_diff = 1.22 × 6×10⁻⁷ / 6 = 1.22×10⁻⁷ rad ≈ 25 mas. So a 6-m can in principle separate a planet at 100 mas from its star — separation is 4× the diffraction limit. Comfortable.",
+          "hint": "1.22 λ/D, then convert to mas."
+        },
+        {
+          "prompt": "Flux contrast Earth/Sun in visible light is ~10⁻¹⁰. What's the practical observational challenge?",
+          "answer": "Even though the angular separation is resolvable, the planet is 10 billion times fainter than the star at the same point in the sky. Sufficient starlight scattering (from the optics, the WFE residuals, diffraction sidelobes) overwhelms the planet signal. Need **coronagraphs** (suppress starlight by 10¹⁰ at small inner working angle, 'IWA') + **wavefront control** at picometer level. HWO is designed for this; current state of the art (Keck NIRC2, GPI, SPHERE) achieves ~10⁻⁶ - 10⁻⁸ contrast at >100 mas, much worse than the 10⁻¹⁰ needed.",
+          "hint": "Brightness contrast, not angular size, is the bottleneck."
+        },
+        {
+          "prompt": "Why does HWO target the UV/visible rather than IR, for Earth-analog detection?",
+          "answer": "(1) Earth-analog spectral features (O₂ at 0.76 μm, O₃ Hartley band in UV, vegetation 'red edge' at ~0.7 μm) are most diagnostic in visible/UV. (2) Earth-Sun contrast in visible is ~10⁻¹⁰, but in IR it's ~10⁻⁶ (planet thermal emission dominates over reflected) — easier to image — except *exo*-zodiacal dust around the host star also peaks in IR, swamping the planet signal. UV+visible coronagraphy is the harder but more diagnostic regime, and HWO targets it.",
+          "hint": "Spectral diagnostics + contrast considerations."
+        }
+      ]
+    },
+    {
+      "kind": "question",
+      "kindHint": "multiple_choice",
+      "prompt": "Why is interferometry necessary at radio wavelengths but optional at visible wavelengths?",
+      "choices": [
+        {
+          "label": "Radio waves don't focus through optical lenses.",
+          "isCorrect": false,
+          "rationale": "Radio dishes are *reflectors*, not lenses — they focus radio just fine via parabolic surfaces. The reason for arrays is resolution, not focusability."
+        },
+        {
+          "label": "Diffraction limit scales as λ/D, and at radio wavelengths (~21 cm) you'd need a kilometer-scale dish to match visible-light arcsecond resolution.",
+          "isCorrect": true,
+          "rationale": "Correct. For 1 arcsec resolution at λ = 21 cm: D = 1.22 λ / θ ≈ 1.22 × 0.21 / 4.85×10⁻⁶ ≈ 53 km. Impossible to build a single 53-km dish, so radio astronomers synthesize equivalent resolution by combining widely separated smaller dishes (VLBI). At visible λ ≈ 5×10⁻⁷ m, even a 1-m telescope diffracts to ~0.13 arcsec — comparable to atmospheric seeing, so single-dish optical is competitive."
+        },
+        {
+          "label": "Atmospheric turbulence is more severe at radio frequencies.",
+          "isCorrect": false,
+          "rationale": "Backwards — atmospheric turbulence is much worse at *short* (optical) wavelengths. Radio is largely insensitive to seeing."
+        },
+        {
+          "label": "The wave-particle duality only manifests at radio wavelengths.",
+          "isCorrect": false,
+          "rationale": "Wave-particle duality applies at all wavelengths. The diffraction limit (a purely wave phenomenon) is what drives the design choice."
+        }
+      ],
+      "hint": "Compute D needed for arcsecond resolution at λ = 21 cm.",
+      "workedSolution": "θ = 1.22 λ / D → D = 1.22 λ / θ. For θ = 1 arcsec = 4.85×10⁻⁶ rad, λ = 21 cm: D = 53 km. The largest single radio dish (FAST in China) is 500 m, giving resolution ~3 arcmin at 21 cm — useless for resolving anything smaller than a galaxy. By spreading antennas over thousands of km (VLBA + the EHT), we synthesize effective baselines of D ~ 10,000 km and achieve μas resolution. Visible light, in contrast, gets arcsec from any half-meter optical telescope."
+    },
+    {
+      "kind": "question",
+      "kindHint": "scenario",
+      "prompt": "JWST's mid-infrared imager (MIRI) operates at λ = 5-28 μm. Why was it specifically designed to be cooled to ~7 K passively (via sunshield + active cryo-cooler)?",
+      "choices": [
+        {
+          "label": "Cold detectors have lower dark current.",
+          "isCorrect": false,
+          "rationale": "True but not the main reason — the MIRI cryo is much colder than needed for low dark current alone."
+        },
+        {
+          "label": "MIRI must observe IR sources that are much fainter than the telescope's own thermal emission at room temperature; the optics must be colder than the targets.",
+          "isCorrect": true,
+          "rationale": "Correct. Anything at 300 K emits a Planck spectrum peaking at λ_max = 2898/T ≈ 10 μm — squarely in MIRI's band. A room-temperature telescope would be blinded by its own thermal glow. By cooling the optics to <40 K (and detectors to 7 K), MIRI's self-emission is pushed well below the photon noise floor of typical astronomical targets. This is why HST (warm, ~290 K) doesn't have a mid-IR camera — its own thermal background would dominate. JWST's choice of L2 + sunshield + cryo-cooler enables the entire mid-IR capability."
+        },
+        {
+          "label": "Cold electronics consume less power.",
+          "isCorrect": false,
+          "rationale": "Marginal — cryo-coolers themselves consume substantial power."
+        },
+        {
+          "label": "To slow detector dark current to <1 electron / pixel / hour.",
+          "isCorrect": false,
+          "rationale": "Important secondary effect, but the primary driver is the self-emission floor of the telescope itself."
+        }
+      ],
+      "hint": "What is the thermal emission of a room-temperature object in the wavelength range MIRI is observing?",
+      "workedSolution": "Wien's law: λ_max(T) = 2898 μm·K / T. For T = 300 K, λ_max ≈ 10 μm — directly in MIRI's band. A 300 K telescope emits as a blackbody at 10 μm with surface brightness ~10⁷ × the astronomical sky background. To observe sources >10⁶× fainter than the sky, the telescope itself needs to be colder than the sky background — i.e., colder than the noise floor it's trying to detect. JWST's sunshield achieves ~40 K passive cooling; the MIRI detector array adds active cryo-cooler to reach 7 K. This was the single largest engineering driver of JWST's design + cost."
+    },
+    {
+      "kind": "question",
+      "kindHint": "math_expression",
+      "prompt": "The Vera Rubin Observatory's LSST camera will image the sky in 30-second exposures with a 9.6 sq deg field of view. How long to image the entire visible sky (~20,000 sq deg) once, ignoring overheads?",
+      "acceptedAnswers": [
+        "17.4",
+        "17.36",
+        "17",
+        "17.4 hr",
+        "17.36 hr",
+        "62500"
+      ],
+      "tolerance": 0.05,
+      "hint": "20000 / 9.6 = number of pointings × 30 s = total time.",
+      "workedSolution": "Pointings needed: 20000 / 9.6 ≈ 2083. Time: 2083 × 30 s = 62,500 s ≈ 17.36 hours. So Rubin can image the entire visible sky in ~17 hr of continuous observation. Including readout + slewing overheads + multi-band coverage, the actual cadence is ~3-4 nights for a full-sky pass in one band, with ~825 visits per field over the 10-yr survey. The survey will detect ~10 million transients per year (variable stars, supernovae, near-Earth asteroids), driving the transient-alert + ML follow-up infrastructure that's now mainstream in modern astronomy."
+    },
+    {
+      "kind": "explain_back",
+      "prompt": "In ≤120 words, explain why the future of astronomy depends on multi-wavelength + multi-messenger coordination, with concrete examples.",
+      "rubric": [
+        "Different physical processes radiate in different bands; only multi-wavelength views give a complete picture.",
+        "Example 1: GW170817 — GWs gave the merger; gamma-rays gave the relativistic-jet onset; optical/IR gave the kilonova spectrum + r-process nucleosynthesis; radio gave long-lived afterglow + jet structure.",
+        "Example 2: A high-z galaxy — radio (cold gas + star formation rate), IR (dust-obscured SF + AGN), optical/UV (unobscured young stars), X-ray (AGN + hot plasma) — combined to get total SFR + AGN luminosity + dust + stellar mass.",
+        "Example 3: AGN feedback — X-ray cavities (Chandra) + warm ionized outflows (optical IFU spectroscopy) + radio jets (VLA / SKA) tell different pieces of the same story.",
+        "Surveys (LSST, Euclid, SKA) generate alerts; broker networks (Lasair, ALeRCE) coordinate global follow-up.",
+        "Coordination requires shared data standards, real-time alerts, observing-time agreements between facilities — astronomy is increasingly a coordinated science enterprise."
+      ]
+    }
+  ]
+}

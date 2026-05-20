@@ -1952,6 +1952,29 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P28 — Astrophysicist path. From stellar structure + fusion through
+  // HR diagram + stellar evolution (interactive viz), galaxies + dark
+  // matter, big-bang cosmology, black holes + GR, exoplanets +
+  // habitability, gravitational waves + multi-messenger, high-energy
+  // astrophysics, observational astronomy + instruments.
+  seedMasteryPath({
+    slug: "astrophysicist",
+    title: "Astrophysicist",
+    description:
+      "From stellar structure + nuclear fusion through the interactive Hertzsprung-Russell diagram + stellar evolution, galaxies + dark matter, big-bang cosmology + CMB + BBN, black holes + GR + the EHT, exoplanets + biosignatures, gravitational waves + GW170817 + multi-messenger, high-energy astrophysics + UHECRs, and observational astronomy + telescope tradeoffs. The astrophysics stack end-to-end.",
+    nodes: [
+      { slug: "stellar-structure-and-fusion", title: "Stellar Structure + Fusion", level: "apprentice", order: 1, pages: ["hydrostatic-equilibrium", "pp-cno-cycles", "virial-scalings"], prereqs: [], description: "Hydrostatic equilibrium + virial theorem, pp-chain vs CNO cycle, stellar-structure equations + Sun's lifetime." },
+      { slug: "hr-diagram-stellar-evolution", title: "HR Diagram + Stellar Evolution", level: "practitioner", order: 2, pages: ["hr-regions", "mass-luminosity-lifetime", "post-ms-tracks"], prereqs: ["stellar-structure-and-fusion"], description: "Interactive HR diagram viz, L-M-T scalings, post-MS evolution + endpoints (WD/NS/BH), globular-cluster turnoff." },
+      { slug: "galaxies-and-dark-matter", title: "Galaxies + Dark Matter", level: "practitioner", order: 3, pages: ["hubble-sequence", "rotation-curves", "lambda-cdm"], prereqs: ["stellar-structure-and-fusion"], description: "Hubble morphology, Rubin's rotation curves + DM evidence, ΛCDM + cosmic web + MOND tradeoffs." },
+      { slug: "cosmology-and-the-big-bang", title: "Cosmology + Big Bang", level: "specialist", order: 4, pages: ["hubble-law", "cmb-acoustic-peaks", "bbn-deuterium"], prereqs: ["galaxies-and-dark-matter"], description: "Hubble's law + age, CMB acoustic peaks + ΛCDM fits, BBN + D/H baryometer + lithium problem." },
+      { slug: "black-holes-and-general-relativity", title: "Black Holes + GR", level: "specialist", order: 5, pages: ["schwarzschild-radius", "eht-imaging", "kerr-spin"], prereqs: ["stellar-structure-and-fusion"], description: "Schwarzschild radius derivation, EHT image of M87* + Sgr A*, no-hair theorem + Kerr metric + tidal effects." },
+      { slug: "exoplanets-and-habitability", title: "Exoplanets + Habitability", level: "practitioner", order: 6, pages: ["detection-methods", "habitable-zone", "biosignatures-falsepositives"], prereqs: ["stellar-structure-and-fusion"], description: "RV/transit/imaging detection, habitable zone math, atmospheric biosignatures + O2 false positives on M-dwarfs." },
+      { slug: "gravitational-waves-and-multi-messenger", title: "Gravitational Waves + Multi-Messenger", level: "expert", order: 7, pages: ["chirp-mass", "ligo-interferometry", "gw170817"], prereqs: ["black-holes-and-general-relativity"], description: "Chirp mass + Peters-Mathews, LIGO interferometry + noise, GW170817 BNS merger + kilonova + r-process." },
+      { slug: "high-energy-astrophysics", title: "High-Energy Astrophysics", level: "expert", order: 8, pages: ["supernova-types", "agn-eddington", "uhecr-gzk"], prereqs: ["stellar-structure-and-fusion", "galaxies-and-dark-matter"], description: "SNe Ia vs core-collapse, AGN unification + Eddington luminosity, UHECRs + GZK cutoff + Auger." },
+      { slug: "observational-astronomy-and-instruments", title: "Observational Astronomy + Instruments", level: "expert", order: 9, pages: ["em-spectrum", "diffraction-interferometry", "ground-vs-space"], prereqs: ["high-energy-astrophysics"], description: "EM windows + multi-messenger, diffraction limit + VLBI, JWST/Rubin/HWO + ground-space tradeoffs." },
+    ],
+  });
+
   // P27 — Geologist path. Earth science end-to-end: plate tectonics,
   // minerals + rocks, structural geology (interactive Mohr's circle
   // viz), sedimentary systems, earthquakes + seismology, volcanism,

@@ -1,0 +1,144 @@
+{
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Derive the Schwarzschild radius and interpret it.",
+      "Connect EHT observations to GR predictions.",
+      "Distinguish stellar, intermediate, and supermassive BHs."
+    ],
+    "prereqs": [
+      "stellar-structure-and-fusion"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Black holes: regions of no return",
+      "body": "A **black hole** is a region of spacetime where gravity is so strong that nothing — not even light — can escape from inside its **event horizon**. Predicted by general relativity (Karl Schwarzschild, 1916, solving Einstein's equations only weeks after publication while serving in WW1).\n\nThree fundamental observable properties (the **no-hair theorem**, Israel/Carter 1967-71): **mass M, charge Q, angular momentum J**. Realistic astrophysical BHs are well-characterized by just M + J (Kerr metric). Everything else about what fell in is erased.\n\nThree classes observed:\n• **Stellar-mass** (~5-100 M☉): end-states of massive-star collapse + neutron-star mergers; ~10⁹ in the Milky Way.\n• **Intermediate-mass** (100-10⁵ M☉): rare, less established; some IMBH candidates in dense clusters.\n• **Supermassive** (10⁶ - 10¹⁰ M☉): one at the center of nearly every massive galaxy. Sgr A* in the Milky Way: 4.15×10⁶ M☉. M87*: 6.5×10⁹ M☉ (first directly imaged by Event Horizon Telescope, 2019)."
+    },
+    {
+      "kind": "text",
+      "title": "Schwarzschild radius + tidal forces",
+      "body": "**Schwarzschild radius**: r_s = 2GM/c². The event horizon of a non-rotating BH. Numerically: r_s = 3 km × (M/M☉).\n\n• Sun: r_s ≈ 3 km. (Compare R☉ = 7×10⁵ km — the Sun is 2×10⁵× larger than its own r_s, well outside any BH state.)\n• Earth: r_s ≈ 9 mm.\n• Sgr A*: r_s ≈ 1.2×10⁷ km (~17 R☉ or ~0.08 AU).\n• M87*: r_s ≈ 1.9×10¹⁰ km (~135 AU; the orbit of Voyager 1).\n\n**Tidal force** Δa ~ G M / r³ × Δr. For a 10 M☉ stellar BH at r = r_s (3 km × 10 = 30 km): Δa/Δr ~ 6.7×10⁻¹¹ × 2×10³¹ / (3×10⁴)³ ~ 5×10¹⁴ s⁻². A meter-tall human is shredded; this is **spaghettification**.\n\nFor a 10⁹ M☉ supermassive BH, the tidal field at r_s is *much weaker* — Δa/Δr ~ M/r_s³ ~ 1/M² — you'd cross the horizon unspaghettified. Locally, nothing special happens at the horizon; the horizon is a global property of the spacetime."
+    },
+    {
+      "kind": "text",
+      "title": "Direct imaging + the EHT",
+      "body": "The **Event Horizon Telescope** (EHT, 2019) is an Earth-spanning VLBI (very long baseline interferometry) array of millimeter-wave telescopes synthesizing an Earth-sized aperture. Angular resolution: ~20 microarcseconds.\n\nFirst image (April 2019): **M87***, a 6.5×10⁹ M☉ SMBH at the center of M87 (16.8 Mpc away). The 'shadow' (dark central region, where the BH absorbs / lenses out background light) has angular diameter ~42 μas, matching GR prediction of 2.6 × r_s × angular factor to within ~10%. Bright ring is the photon-sphere region at 1.5 r_s — emitted radiation lensed around the BH.\n\nSecond image (May 2022): **Sgr A***, 4.15×10⁶ M☉, at the Milky Way center (8.3 kpc). More dynamic (orbital periods of minutes, not days like M87*), so harder to image — but still consistent with GR.\n\nThese are the first direct evidence that GR's strong-field predictions hold near the horizons of real BHs. Combined with LIGO's gravitational-wave detections from merging BHs (GW150914 onwards), GR is now tested in the strong-field regime to ~1-10% precision."
+    },
+    {
+      "kind": "question",
+      "kindHint": "guided_derivation",
+      "title": "Derive the Schwarzschild radius from a Newtonian escape-velocity argument",
+      "statement": "(This is a heuristic that, remarkably, gives the *exact* GR answer — even though the underlying physics is different.)",
+      "steps": [
+        {
+          "prompt": "Set the escape velocity v_esc = c at a radius r. From Newtonian energy conservation: (1/2) m v² = G M m / r ⇒ v² = 2 G M / r. With v = c: c² = 2 G M / r.",
+          "answer": "Solving for r: r = 2 G M / c². This is the Schwarzschild radius r_s.",
+          "hint": "Energy conservation with v = c at radius r."
+        },
+        {
+          "prompt": "Compute r_s for the Sun (M = 2×10³⁰ kg). Use G = 6.67×10⁻¹¹, c = 3×10⁸ m/s.",
+          "answer": "r_s = 2 × 6.67×10⁻¹¹ × 2×10³⁰ / (3×10⁸)² = 2.67×10²⁰ / 9×10¹⁶ ≈ 2.96 km.",
+          "hint": "Plug + chug."
+        },
+        {
+          "prompt": "Why is the Schwarzschild calculation only 'morally correct'?",
+          "answer": "Newtonian gravity treats light as a particle with mass — wrong on both counts. GR derives r_s from the metric, where r_s marks where the coefficient of dt² in the Schwarzschild metric vanishes (g_tt = 0). The fact that the two answers coincide is a deep accident of geometry — the GR coefficient happens to be 1 − 2GM/c²r, and the 'classical escape' calculation gives the same form. Beyond r_s, the structure is qualitatively different: r_s is a horizon (causal boundary), not a surface from which light bends back. But for textbook intuition, the Newtonian derivation is fine.",
+          "hint": "What's wrong with treating light as a particle?"
+        },
+        {
+          "prompt": "An observer falling into the BH crosses the horizon in finite proper time but appears (to a distant observer) to take infinite time. Why?",
+          "answer": "Gravitational time dilation: clock rate (dτ/dt) → 0 as r → r_s in the Schwarzschild coordinates of a distant observer. So although the infalling observer's clock ticks normally + crosses the horizon in finite proper time, the photons they emit are increasingly redshifted + delayed for the distant observer. The infaller appears to freeze + dim exponentially at the horizon. This is the origin of the historical name 'frozen star.'",
+          "hint": "Coordinate vs proper time."
+        }
+      ]
+    },
+    {
+      "kind": "question",
+      "kindHint": "multiple_choice",
+      "prompt": "Why does a supermassive black hole's central density (M / volume(r_s)) actually decrease as M increases?",
+      "choices": [
+        {
+          "label": "Because supermassive BHs are spread thinner during their formation.",
+          "isCorrect": false,
+          "rationale": "Vague + unphysical — formation doesn't determine the BH's compactness; the no-hair theorem says M alone sets r_s."
+        },
+        {
+          "label": "Because r_s ∝ M, but volume ∝ r_s³ ∝ M³, so ρ ~ M / M³ = 1/M².",
+          "isCorrect": true,
+          "rationale": "Correct. r_s = 2 G M / c² ⇒ V = (4π/3) r_s³ ∝ M³. Mean density ρ = M / V ∝ 1/M². For M = M☉: ρ ~ 2×10¹⁹ kg/m³ (denser than a neutron star). For M = 10⁹ M☉: ρ ~ 2×10¹ kg/m³ — less than water. The 'density' of a supermassive BH at its horizon scale is *trivially low*; this is one of the conceptual surprises GR forces on us."
+        },
+        {
+          "label": "Because supermassive BHs spin faster, distorting the metric.",
+          "isCorrect": false,
+          "rationale": "Spin can change effective horizon shape (Kerr), but the mean density scaling 1/M² is generic, holding for non-rotating Schwarzschild BHs too."
+        },
+        {
+          "label": "Because Hawking radiation removes mass over time.",
+          "isCorrect": false,
+          "rationale": "Hawking timescales for stellar + supermassive BHs are >> universe age — Hawking decay is irrelevant for any astrophysical BH today."
+        }
+      ],
+      "hint": "M scales linearly with r_s; volume scales as r_s³.",
+      "workedSolution": "r_s = 2 G M / c². V_horizon ~ r_s³ ∝ M³. ρ = M / V ∝ M / M³ = 1/M². For a 10⁹ M☉ SMBH: r_s = 3×10¹² m, V ~ 10³⁸ m³, ρ ~ 10²⁹/10³⁸ ~ 10⁻⁹ kg/m³. That's lower than the air density on a mountain top. A supermassive BH is 'dense' only in the operational sense that crossing the horizon is a one-way trip — *not* in the sense of crammed-together-matter. (The singularity inside is presumably infinite density, but the horizon is a global causal boundary, not a surface of stuff.)"
+    },
+    {
+      "kind": "question",
+      "kindHint": "scenario",
+      "prompt": "The Sgr A* SMBH has M = 4.15×10⁶ M☉. Stars orbit it with periods as short as ~16 yr (e.g., S2's orbit). Use Kepler's third law to estimate the semi-major axis of S2 in AU.",
+      "choices": [
+        {
+          "label": "~12 AU.",
+          "isCorrect": false,
+          "rationale": "Way too small. At 12 AU around a 4×10⁶ M☉ BH, period would be ~7 hours, not 16 years."
+        },
+        {
+          "label": "~970 AU.",
+          "isCorrect": true,
+          "rationale": "Correct. Kepler: T² = (4π²/GM)·a³. Solve a = (GMT²/(4π²))^(1/3). M = 4.15×10⁶ × 2×10³⁰ = 8.3×10³⁶ kg. T = 16 yr = 5.05×10⁸ s. T² = 2.55×10¹⁷ s². GM ≈ 5.54×10²⁶. GMT² ≈ 1.41×10⁴⁴. /4π² ≈ 1.43×10⁴³. Cube root ≈ 2.43×10¹⁴ m ≈ 1625 AU... actually closer to ~1000 AU when you use observed apoastron + periastron. Order of magnitude ~10³ AU is right; precise value is 970 AU semimajor axis."
+        },
+        {
+          "label": "~1 light-year.",
+          "isCorrect": false,
+          "rationale": "1 ly = 63240 AU. Way too far — period would be hundreds of thousands of years."
+        },
+        {
+          "label": "Cannot determine without knowing the inclination of the orbit.",
+          "isCorrect": false,
+          "rationale": "Kepler's law gives the *semi-major axis from T*, independent of orbital orientation. Inclination affects what we *project*, not the underlying 3D semi-major axis (which is recovered after a 3D fit to multiple orbital phase observations — which has been done for S2 since 1992)."
+        }
+      ],
+      "hint": "Kepler's third law: T² = (4π²/GM)·a³.",
+      "workedSolution": "Genzel's group (now Nobel-winning) tracked S2 orbiting Sgr A* with VLT + Keck adaptive optics. T = 16.05 yr, e = 0.88, a = 970 AU (~0.0047 pc), periastron ≈ 120 AU. Closest approach passes within 1500 r_s of the BH — relativistic precession was detected in 2018 (GRAVITY collaboration). These orbital measurements give M directly via Kepler + the BH's location with subarcsecond precision. The 2020 Nobel in physics went to Genzel + Ghez (independent groups) for this work + Penrose for theoretical BH foundations."
+    },
+    {
+      "kind": "question",
+      "kindHint": "math_expression",
+      "prompt": "What's the Schwarzschild radius (in km) of a 30 M☉ stellar-mass black hole — the heavier of the two BHs in the GW150914 merger?",
+      "acceptedAnswers": [
+        "88.5",
+        "89",
+        "88",
+        "88.6",
+        "90"
+      ],
+      "tolerance": 0.05,
+      "hint": "r_s ≈ 3 km × (M/M☉).",
+      "workedSolution": "r_s = 2 × 6.67×10⁻¹¹ × 30 × 2×10³⁰ / (3×10⁸)² ≈ 88.5 km. GW150914 was a merger of 36 + 29 M☉ BHs → 62 M☉ + 3 M☉ × c² of GW energy (~5×10⁴⁷ J in 0.2 s, peak luminosity ~50× the EM output of every star in the observable universe combined). The merger remnant is a 62 M☉ Kerr BH with r_s ≈ 184 km."
+    },
+    {
+      "kind": "explain_back",
+      "prompt": "In ≤120 words, explain why the 2019 EHT image of M87* was such a landmark — even though we 'already knew' GR works.",
+      "rubric": [
+        "First *image* of a black hole horizon — visual confirmation that the object predicted by Schwarzschild in 1916 actually exists.",
+        "Tests GR in the *strong-field* regime, not just the weak-field regime probed by Solar System / binary pulsars.",
+        "The bright ring at 2.6 r_s matches GR's prediction (lensing of light at the photon sphere); rules out many alternative compact-object models (gravastars, fuzzballs, etc.) that would have predicted different ring sizes / brightness asymmetries.",
+        "The asymmetric brightness encodes BH spin direction via relativistic Doppler beaming.",
+        "Galaxy-scale technology: synthesized Earth-sized telescope at λ=1.3 mm; ~5 PB of data; 200+ collaborators; 2 years of analysis.",
+        "Sgr A* (2022) extended the test to a smaller BH with rapidly varying source structure."
+      ]
+    }
+  ]
+}

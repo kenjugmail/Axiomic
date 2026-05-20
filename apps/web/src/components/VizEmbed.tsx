@@ -20,6 +20,7 @@ const PKCurve = lazy(() => import("../../../../packages/viz/src/components/PKCur
 const ROCCurve = lazy(() => import("../../../../packages/viz/src/components/ROCCurve").then(m => ({ default: m.ROCCurve })));
 const OrderBook = lazy(() => import("../../../../packages/viz/src/components/OrderBook").then(m => ({ default: m.OrderBook })));
 const MohrsCircle = lazy(() => import("../../../../packages/viz/src/components/MohrsCircle").then(m => ({ default: m.MohrsCircle })));
+const HRDiagram = lazy(() => import("../../../../packages/viz/src/components/HRDiagram").then(m => ({ default: m.HRDiagram })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -44,6 +45,7 @@ export const VIZ_NAMES = [
   "roc-curve",
   "order-book",
   "mohrs-circle",
+  "hr-diagram",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -66,6 +68,7 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "roc-curve": ROCCurve,
   "order-book": OrderBook,
   "mohrs-circle": MohrsCircle,
+  "hr-diagram": HRDiagram,
 };
 
 interface VizEmbedProps {
