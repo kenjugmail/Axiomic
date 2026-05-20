@@ -1,0 +1,189 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Apply Bernoulli + the mechanical energy balance.",
+      "Use Reynolds number to predict flow regime.",
+      "Distinguish heat, mass, momentum transport analogies."
+    ],
+    "prereqs": [
+      "mass-and-energy-balances"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Mechanical energy balance + pipe-flow design",
+      "body": "For incompressible isothermal pipe flow between points 1 + 2:\n\n  (P₁/ρ + v₁²/2 + g z₁) + W_pump = (P₂/ρ + v₂²/2 + g z₂) + h_f\n\nThe **friction loss** h_f along a pipe of length L + diameter D is:\n\n  h_f = (4 f) (L/D) (v²/2)\n\nwhere **f** is the Fanning friction factor (or use Darcy = 4 × Fanning if you see f_D in formulas).\n\nFor laminar flow (Re < 2100): f = 16/Re (analytical, Hagen-Poiseuille).\nFor turbulent flow (Re > 4000): f from Moody chart or Colebrook equation:\n  1/√f = −4 log₁₀(ε/D/3.7 + 1.26/(Re √f))\n\nKey design quantities:\n• **Reynolds number** Re = ρ v D / μ — predicts laminar vs turbulent.\n• **Volumetric flow rate** Q = v · A = v · πD²/4.\n• **Pressure drop** ΔP = h_f · ρ (for horizontal pipe).\n• **Pump head** H_pump = W_pump / g — for sizing the pump.\n\n**Pump power**: Ẇ_pump = ṁ · g · H / η = (Q · ρ · g · H) / η, where η is pump efficiency (~60-80% for centrifugals).\n\n**Practical sizing**: economic optimum diameter balances capital cost (~D^1.5) against pumping cost (~D^−5). Typical 'rules of thumb': v ~ 1-3 m/s for liquids, 10-30 m/s for gases. Higher v gives smaller pipe but more pumping."
+    },
+    {
+      "kind": "text",
+      "title": "Reynolds number + the dimensionless-number culture",
+      "body": "Chemical engineering lives by **dimensionless numbers**. Each is a ratio of physical effects + predicts when one dominates.\n\n• **Re = ρvD/μ** — inertial / viscous. Determines flow regime: laminar (Re<2100), transitional (2100<Re<4000), turbulent (Re>4000). Most industrial flow is turbulent (Re > 10⁴ - 10⁶).\n• **Pr = c_p μ / k** — momentum / thermal diffusivity. Gases ~0.7-1; water ~7; oils 50-50000.\n• **Sc = μ / (ρD_AB)** — momentum / mass diffusivity. Gases ~0.5-2; liquids ~100-10000.\n• **Nu = h L / k** — convective / conductive heat transfer.\n• **Sh = k_c L / D_AB** — convective / diffusive mass transfer.\n• **Pe = Re · Pr** (heat) or Re · Sc (mass) — convective / diffusive overall.\n• **Gr = g β ΔT L³ / ν²** — buoyancy / viscous. Sets natural convection.\n• **Ra = Gr · Pr** — full natural convection criterion.\n• **We = ρ v² L / σ** — inertial / surface tension. Droplet breakup.\n• **Bi = h L / k_s** — external / internal heat transfer. Lumped capacitance valid for Bi << 1.\n\n**Correlations** typically have form: dimensionless transfer coefficient = f(Re, Pr/Sc, geometry).\n\nFor turbulent pipe flow:\n• **Dittus-Boelter**: Nu = 0.023 Re^0.8 Pr^0.4 (heating) or Pr^0.3 (cooling).\n• **Chilton-Colburn analogy**: Sh = 0.023 Re^0.8 Sc^(1/3).\n\nThese collapse hundreds of experimental conditions into one or two equations. The dimensionless-number culture is what makes ChemE quantitative."
+    },
+    {
+      "kind": "text",
+      "title": "Heat, mass, momentum transport — the same equations",
+      "body": "**Transport phenomena** (Bird, Stewart, Lightfoot 1960) unified the field by recognizing that heat, mass, + momentum transport all obey the same form of equations:\n\n• **Momentum (Newton's law of viscosity)**: τ_yx = −μ ∂v_x/∂y. Shear stress = −μ × velocity gradient.\n• **Heat (Fourier's law)**: q_y = −k ∂T/∂y. Heat flux = −k × temperature gradient.\n• **Mass (Fick's law)**: J_Ay = −D_AB ∂c_A/∂y. Mass flux = −D_AB × concentration gradient.\n\nEach has a diffusivity (μ/ρ = ν, k/ρc_p = α, D_AB) with units L²/T.\n\n**Boundary-layer theory**: near a solid surface there's a thin region where transport gradients are concentrated. Thickness scales with the appropriate Pr or Sc. For Pr=1 (gases): thermal + velocity BLs coincide. For Pr>1 (liquids): thermal BL is thinner. For Pr<1 (liquid metals): thermal BL is thicker.\n\n**Chilton-Colburn analogy**:\n  j_H = (Nu / Re Pr^(1/3)) = (Sh / Re Sc^(1/3)) = j_M = f/2\n\nIf you know the friction factor for a geometry, you can predict heat + mass transfer (within ~10%) without independent measurements. Hugely powerful for design.\n\n**Two-resistance model** for interphase transfer (e.g., gas absorber): overall resistance = sum of liquid-side + gas-side resistances. Rate-limiting side dominates; design accordingly.\n\nModern ChemE process design uses these correlations through equipment-specific design equations: Kern method for shell-and-tube heat exchangers, Sherwood-Holloway for packed columns, etc."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fluids_1",
+        "kind": "guided_derivation",
+        "question": "Design pump head + power for an industrial water transfer",
+        "goal": "Transfer water (ρ=1000 kg/m³, μ=10⁻³ Pa·s) at 50 m³/h from a ground tank to an elevated tank 15 m higher through 200 m of 4-inch (D=0.1 m) commercial steel pipe (roughness ε=4.5×10⁻⁵ m). Both surfaces atmospheric. Pump efficiency 70%.",
+        "steps": [
+          {
+            "prompt": "Compute velocity in the pipe + Reynolds number.",
+            "motivation": "Set up the friction-factor calculation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "v ~ 1.77 m/s, Re ~ 177000",
+                "1.77 m/s, 1.77e5",
+                "v=1.77, Re=177000"
+              ]
+            },
+            "hints": [
+              "Q = 50/3600 m³/s = 0.0139 m³/s. A = π × 0.05² = 7.85×10⁻³ m². v = Q/A. Re = ρvD/μ."
+            ],
+            "reveal": "v = 0.0139 / 7.85×10⁻³ = 1.77 m/s. Re = 1000 × 1.77 × 0.1 / 10⁻³ = 1.77×10⁵ — strongly turbulent. ε/D = 4.5×10⁻⁵/0.1 = 4.5×10⁻⁴ — rough flow."
+          },
+          {
+            "prompt": "From the Moody chart / Colebrook, the Fanning friction factor f ≈ 0.005 at Re = 1.77×10⁵, ε/D = 4.5×10⁻⁴. Compute friction head loss h_f in J/kg.",
+            "motivation": "h_f = 4f (L/D) v²/2.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "h_f ~ 63 J/kg",
+                "62.6 J/kg",
+                "63 m of water / 6.4 m"
+              ]
+            },
+            "hints": [
+              "4 × 0.005 × (200/0.1) × (1.77²/2)."
+            ],
+            "reveal": "h_f = 4 × 0.005 × 2000 × 1.566 = 62.6 J/kg. In head units (h_f / g): 6.4 m. Friction loss alone equals ~40% of the static lift."
+          },
+          {
+            "prompt": "Compute the required pump head H_pump (in m of water) from the mechanical energy balance.",
+            "motivation": "H_pump = Δz + h_f/g (since ΔP = 0 + v in/out negligible).",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~21.4 m",
+                "21.4",
+                "15 + 6.4"
+              ]
+            },
+            "hints": [
+              "H = elevation + friction = 15 + 6.4."
+            ],
+            "reveal": "H_pump = 15 m + 6.4 m = 21.4 m of water. Pump must provide 21.4 m of head at 50 m³/h."
+          },
+          {
+            "prompt": "Pump shaft power?",
+            "motivation": "Ẇ = Q · ρ · g · H / η.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~4.2 kW",
+                "4.16 kW",
+                "4200 W"
+              ]
+            },
+            "hints": [
+              "0.0139 × 1000 × 9.81 × 21.4 / 0.7."
+            ],
+            "reveal": "Ẇ = 0.0139 × 1000 × 9.81 × 21.4 / 0.70 ≈ 4170 W ≈ 4.2 kW. Pick a 5-kW (or 7.5-kW with margin) centrifugal pump. Capital + operating cost both scale with this number, so it directly drives the project economics."
+          },
+          {
+            "prompt": "What changes if we double the flow rate (100 m³/h)?",
+            "motivation": "Trace effects through Re, f, h_f, H.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~4x friction, much higher H",
+                "friction grows roughly fourfold",
+                "head doubles or more"
+              ]
+            },
+            "hints": [
+              "v doubles → Re doubles → f only slightly changes → h_f ∝ v² grows 4×."
+            ],
+            "reveal": "v → 3.54 m/s; Re → 3.54×10⁵ (still turbulent rough); f very slightly drops to ~0.0048 (small effect at this Re). h_f → 4 × 0.0048 × 2000 × 6.27 ≈ 240 J/kg ≈ 24.5 m head. H_pump = 15 + 24.5 = 39.5 m. Power = 0.0278 × 1000 × 9.81 × 39.5 / 0.7 ≈ 15.4 kW — nearly 4× as much as before. The takeaway: pumping power scales roughly with Q³ at fixed pipe geometry. Doubling flow > 3× the power. Pipe sizing has nonlinear effects on operating cost."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fluids_1",
+        "kind": "multiple_choice",
+        "question": "Why does the Reynolds number cleanly separate flow regimes despite the wide variety of fluids + geometries it encompasses?",
+        "options": [
+          "It is a magic number.",
+          "Re = ρvD/μ is the ratio of inertial to viscous forces. When inertia dominates (high Re), small disturbances amplify → turbulence. When viscous forces dominate (low Re), disturbances damp → laminar. The physics of transition (Tollmien-Schlichting waves, secondary instabilities) is set by this ratio, so Re predicts regime universally. The critical value (~2100 for pipe flow) reflects geometry; the principle is dimensionless physics.",
+          "It works for water only.",
+          "It is calibrated empirically + has no physical meaning."
+        ],
+        "correctIndex": 1,
+        "explanation": "Reynolds (1883) experimentally observed flow regimes in pipe-tracer experiments + recognized that flow behavior collapsed to a single dimensionless ratio.\n\nPhysically: Re = (ρv²) / (μv/D) = inertia / viscous force per unit volume. Or equivalently: Re = (vL) / (μ/ρ) = convection time / diffusion time = how quickly momentum diffuses across the pipe vs how quickly fluid flows along.\n\n**Low Re (laminar)**: viscous diffusion damps disturbances faster than convection amplifies them. Streamlines stable + parallel.\n**High Re (turbulent)**: convective amplification wins; small disturbances grow + cascade into a turbulent fluctuation spectrum.\n\nThe **critical Reynolds** (~2100 for pipes, ~5×10⁵ for boundary layers) depends on geometry + disturbance level — the transition has a kind of universality similar to a phase transition.\n\nThis is why Re works *across* fluids — water, air, glycerol, blood, lava — all have the same regime boundary at the same Re. Same physical mechanism, same dimensionless threshold. **Buckingham Pi theorem** formalizes why dimensionless numbers organize physics so neatly: any dimensionally homogeneous equation can be rewritten in terms of N-K dimensionless groups, where K is the number of fundamental dimensions. The recovered correlations are minimum-redundancy descriptions.\n\nThis is why ChemE design is dimensionless-number-driven: it generalizes across scale + fluid."
+      },
+      "hints": [
+        "What's the physical interpretation of Re?",
+        "Why is the critical Re consistent across fluids?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Re = ρvD/μ = ratio of inertial to viscous forces. Low Re: viscous damping > convective amplification → stable laminar. High Re: convective amplification > viscous damping → turbulent. Critical Re (~2100 pipes) depends on geometry; the underlying physics is universal (analogous to phase-transition behavior). Buckingham Pi theorem formalizes why dimensionless numbers organize physics. Re predicts regime across all Newtonian fluids + scales — water, air, lava, blood — at the same threshold. Same dimensionless physics, same regime boundary."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fluids_2",
+        "kind": "multiple_choice",
+        "question": "An engineer estimates heat-transfer coefficient h for cooling water flowing in a tube using the Dittus-Boelter correlation: Nu = 0.023 Re^0.8 Pr^0.4. If Re doubles, how does h change?",
+        "options": [
+          "h doubles.",
+          "h scales as Re^0.8 (since Nu = h D / k, and D, k constant). Doubling Re increases h by factor 2^0.8 ≈ 1.74 — a ~74% increase, not 100%. Higher flow rate + smaller pipe both increase h, but with diminishing returns.",
+          "h is unchanged.",
+          "h halves."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Dittus-Boelter**: Nu = h D / k = 0.023 Re^0.8 Pr^0.4.\n\nSolving for h: h = 0.023 (k/D) Re^0.8 Pr^0.4. With D, k, fluid properties constant: h ∝ Re^0.8.\n\nDouble Re: h ratio = 2^0.8 ≈ 1.74. ~74% increase.\n\n**Practical implications**:\n• To enhance heat transfer, increasing velocity is effective but with diminishing returns + costs (pumping power scales as v³).\n• Decreasing tube diameter increases h (since Re ∝ v ∝ Q/D² + h ∝ Re^0.8 / D ∝ Q^0.8 / D^1.6) — but at the cost of higher pressure drop (ΔP ∝ Q^1.8 / D^4.8).\n• Optimal design balances heat-transfer area + pressure drop + capital cost.\n\n**Why the 0.8 exponent**: in turbulent flow, the heat-transfer boundary layer thickness scales as δ_T ~ D / Re^0.8 (approximate). h ~ k/δ_T ~ k Re^0.8 / D. Empirically tuned to fit data; theoretically derivable from boundary-layer arguments + Reynolds analogy.\n\n**Range of validity**: Re > 10,000, Pr 0.7-160, L/D > 60. Outside this, use other correlations (Sieder-Tate for high Pr, Gnielinski for transitional Re).\n\nDesign principle: use the correlation, but know its validity range + uncertainty (~10-20%); compute with sensitivities, not point values."
+      },
+      "hints": [
+        "What does h scale with in Dittus-Boelter?",
+        "Compute 2^0.8."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "h = (k/D) × 0.023 × Re^0.8 × Pr^0.4. With D, k, Pr fixed: h ∝ Re^0.8. Doubling Re → h × 2^0.8 ≈ 1.74 → +74%. Practical: higher flow gives diminishing-return heat transfer + cubic pumping cost. Smaller diameter increases h but with major pressure-drop penalty. Design balances area, pressure drop, cost."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fluids_1",
+        "kind": "math_expression",
+        "question": "Water (ρ=1000 kg/m³, μ=10⁻³ Pa·s) flows at v=2 m/s in a 5-cm pipe. What's the Reynolds number?",
+        "acceptedAnswers": [
+          "100000",
+          "1e5",
+          "10^5"
+        ],
+        "hint": "Re = ρ v D / μ."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fluids_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why ChemE relies so heavily on dimensionless correlations (Nu, Re, Pr, Sh, etc.) instead of solving the underlying partial differential equations directly. What's gained, what's lost?",
+        "rubric": "Mentions: full Navier-Stokes + energy + species PDEs are nonlinear + coupled + extremely hard to solve analytically; turbulent flow has no closed-form solution. Dimensionless correlations distill empirical + analytical data into compact + transferable design equations. Gained: rapid design across scales + fluids + geometries (Buckingham Pi); compact predictive relations with ~10-20% accuracy; intuition about which physical effects dominate. Lost: detail of local flow + temperature fields; ability to handle complex geometries; nonlinear coupling beyond what correlations capture. Modern approach: use correlations for first-pass design + economic optimization; CFD / DNS / experiments for detailed verification of critical equipment. The hierarchy reflects engineering pragmatism — fastest accurate-enough tool for each stage."
+      }
+    }
+  ]
+}

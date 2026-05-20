@@ -1952,6 +1952,28 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P30 — Chemical Engineer path. Mass + energy balances through
+  // fluid mechanics, heat transfer, reactor design with the new
+  // interactive CSTR-vs-PFR viz, distillation + separations, process
+  // control + dynamics, process safety + HAZOP/LOPA, and process
+  // intensification + sustainability + decarbonization.
+  seedMasteryPath({
+    slug: "chemical-engineer",
+    title: "Chemical Engineer",
+    description:
+      "From mass + energy balances through fluid mechanics + transport phenomena, heat-exchanger design + LMTD, reactor design + kinetics with an interactive CSTR-vs-PFR comparison viz, distillation + extraction + membranes, PID + cascade process control, HAZOP + LOPA process safety, and process intensification + LCA + decarbonization pathways. The chemical-engineering stack end-to-end.",
+    nodes: [
+      { slug: "mass-and-energy-balances", title: "Mass + Energy Balances", level: "apprentice", order: 1, pages: ["general-balance", "steady-state", "energy-balance"], prereqs: [], description: "Accumulation = In − Out + Gen − Cons applied to mass + energy; steady-state vs dynamic; reactor + evaporator + heater design balances." },
+      { slug: "fluid-mechanics-and-transport", title: "Fluid Mechanics + Transport", level: "practitioner", order: 2, pages: ["mechanical-energy-balance", "reynolds-number", "transport-analogies"], prereqs: ["mass-and-energy-balances"], description: "Bernoulli + friction-factor + pump sizing; Re + flow regimes; Chilton-Colburn analogy + dimensionless-number culture." },
+      { slug: "heat-transfer-and-exchangers", title: "Heat Transfer + Exchangers", level: "practitioner", order: 3, pages: ["three-modes", "lmtd-sizing", "topology-selection"], prereqs: ["fluid-mechanics-and-transport"], description: "Conduction/convection/radiation; LMTD + UA sizing; S+T vs plate-and-frame + heat-integration via pinch analysis." },
+      { slug: "reactor-design-and-kinetics", title: "Reactor Design + Kinetics", level: "specialist", order: 4, pages: ["arrhenius-rates", "cstr-vs-pfr", "selectivity-multiple-reactions"], prereqs: ["mass-and-energy-balances"], description: "Arrhenius + rate laws; interactive CSTR-vs-PFR viz; selectivity in series + parallel + Damköhler scaling." },
+      { slug: "separations-distillation-and-extraction", title: "Separations: Distillation + Extraction", level: "specialist", order: 5, pages: ["vle-raoult", "mccabe-thiele", "extraction-membranes"], prereqs: ["mass-and-energy-balances"], description: "Raoult's law + relative volatility; McCabe-Thiele + Fenske-Underwood + minimum reflux; extraction + absorption + membranes + RO desalination." },
+      { slug: "process-control-and-dynamics", title: "Process Control + Dynamics", level: "expert", order: 6, pages: ["first-order-fopdt", "pid-tuning", "cascade-mpc"], prereqs: ["mass-and-energy-balances", "reactor-design-and-kinetics"], description: "First-order + FOPDT models; PID + IMC tuning + anti-windup; cascade control + MPC + RGA pairing." },
+      { slug: "process-safety-and-risk", title: "Process Safety + Risk", level: "expert", order: 7, pages: ["historical-incidents", "hazop-lopa", "safety-culture"], prereqs: ["mass-and-energy-balances"], description: "Bhopal + Texas City lessons; HAZOP + LOPA + SIL ratings + Swiss-cheese model; inherent safety + safety culture + PSM." },
+      { slug: "process-intensification-and-sustainability", title: "Process Intensification + Sustainability", level: "expert", order: 8, pages: ["intensification", "lca-boundaries", "decarbonization-pathways"], prereqs: ["mass-and-energy-balances", "reactor-design-and-kinetics", "separations-distillation-and-extraction"], description: "Divided-wall columns + reactive distillation + microreactors; LCA methodology + system-boundary; green H₂ + CCUS + circular feedstocks." },
+    ],
+  });
+
   // P29 — Epidemiologist path. From foundational measures (incidence,
   // prevalence, CFR) through interactive SIR compartmental models + R₀,
   // study designs (cohort, case-control, RCT), outbreak investigation +

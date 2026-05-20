@@ -1,0 +1,189 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Apply VLE + Raoult's law to binary separations.",
+      "Construct McCabe-Thiele stages on x-y diagrams.",
+      "Distinguish distillation, absorption, extraction, membranes."
+    ],
+    "prereqs": [
+      "mass-and-energy-balances"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Separations: the unsung 50% of ChemE",
+      "body": "Roughly **half** of capital cost + energy use in chemical plants goes to **separations** — distillation, absorption, extraction, crystallization, drying, membranes. Producing pure products from impure mixtures is the unsung hero of the field.\n\nWhy: nature mixes things; thermodynamics is happy to keep them mixed. Separating against the natural entropic drive requires energy + sophisticated equipment.\n\n**Driving forces** for separation:\n• **Relative volatility** (distillation, evaporation): components vaporize at different rates.\n• **Differential solubility** (extraction, absorption): components partition differently between phases.\n• **Selective permeation** (membranes): different transport rates through a barrier.\n• **Selective adsorption** (chromatography, swing): different affinity for a solid surface.\n• **Phase change at specific T** (crystallization): cooling or supersaturation drives selective crystal formation.\n• **Density / size / charge** (centrifuges, screens, electrophoresis).\n\nMost industrial chemicals — gasoline, ethanol, NH₃, urea, ethylene, propylene — are produced + separated via distillation. ~40% of US industrial energy use is distillation-related. Ethylene crackers + refineries are dominated by separation columns.\n\nModern alternative + emerging technologies:\n• **Membrane separations**: reverse osmosis (water), pervaporation (azeotropes), gas separation.\n• **Hybrid systems**: distillation + extraction, distillation + membrane, distillation + crystallization.\n• **Reactive distillation**: reaction + separation in one column.\n• **Heat integration**: heat-pumped distillation, divided-wall columns."
+    },
+    {
+      "kind": "text",
+      "title": "Vapor-liquid equilibrium + binary distillation",
+      "body": "For an ideal binary mixture, **Raoult's law**: P_i = x_i · P_i*(T), where P_i* is pure-component vapor pressure (function of T). Total pressure: P = ∑ P_i. Vapor composition y_i = P_i / P.\n\n**Relative volatility** α = (y_A/x_A) / (y_B/x_B). Constant α (≈) → easy distillation; α = 1 → impossible (azeotrope or pure component); α → ∞ → trivial separation.\n\nFor constant α, the **y-x equilibrium curve**: y = α x / (1 + (α−1) x).\n\n**McCabe-Thiele method** (1925): graphical staircase on the x-y diagram. Stages are 'steps' between equilibrium curve + operating lines.\n\nElements:\n• **Rectifying operating line**: y = (R/(R+1)) x + x_D/(R+1), where R = L/D is reflux ratio + x_D is distillate composition.\n• **Stripping operating line**: similar, between bottoms + feed.\n• **q-line**: feed-thermal-condition line. Vapor feed q=0; saturated liquid q=1; mixed in between.\n• **Stages count**: number of staircase steps between the lines.\n\n**Minimum reflux** R_min: reflux at which infinite stages are needed (operating line pinches against equilibrium curve at feed point). Below R_min, separation impossible.\n\n**Minimum stages** N_min (at total reflux, R = ∞): all reflux returned + no product; closes the gap between equilibrium curve + 45-degree line. Fenske equation: N_min = log[(x_D/(1-x_D))((1-x_B)/x_B)] / log α.\n\nIndustrial designs operate at R = 1.2-1.5 × R_min — economic trade-off: lower R = more stages (capital); higher R = more reboiler/condenser duty (operating)."
+    },
+    {
+      "kind": "text",
+      "title": "Beyond distillation: extraction + absorption + membranes",
+      "body": "**Liquid-liquid extraction**: solute A partitions between two immiscible liquid phases (e.g., aqueous + organic). Distribution coefficient K_A = [A]_org/[A]_aq.\n\n**Counter-current extraction columns** (similar to distillation): solvent + raffinate move opposite directions; equilibrium stages give selectivity. Used for: bioseparations (penicillin recovery), metals (uranium from ore via Purex), petrochemicals.\n\n**Gas absorption**: gas mixture contacts liquid solvent; one component preferentially dissolves. CO₂ scrubbing in amine solvents (Selexol, MEA); SO₂ removal in flue-gas scrubbers; H₂S removal in natural-gas treatment.\n\n**Membranes**:\n• **Reverse osmosis (RO)**: high pressure forces water through semi-permeable membrane, rejecting salts. Desalination — ~30% of global desalination capacity uses RO; ~3 kWh/m³ energy intensity.\n• **Nanofiltration**: between RO + ultrafiltration; partial salt rejection, good for softening.\n• **Ultrafiltration / microfiltration**: separation by size; protein concentration, dairy, biotech.\n• **Gas membranes**: H₂/N₂ separation in ammonia plants (Prism membrane); CO₂ removal from natural gas; O₂ enrichment.\n• **Pervaporation**: liquid feed, vapor permeate. Used to break azeotropes (ethanol-water).\n\n**Crystallization**: cooling or evaporative supersaturation drives crystal growth. Used for sugar, salt, urea, pharmaceuticals. Polymorph control critical in pharma.\n\n**Adsorption + PSA (pressure-swing adsorption)**: zeolites or activated carbon selectively adsorb one component. Air separation (O₂/N₂); H₂ purification; trace contaminant removal.\n\n**Process synthesis** (Heuristics, optimization, AI): chooses + sequences separations to minimize cost. Modern process simulators (Aspen, Pro/II, CHEMCAD) integrate all of these into integrated flowsheets."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_separations_1",
+        "kind": "guided_derivation",
+        "question": "Estimate the minimum reflux + minimum stages for a benzene-toluene distillation",
+        "goal": "Separate a feed of 50 mol% benzene + 50 mol% toluene (saturated liquid) into distillate of 95% benzene + bottoms of 95% toluene. Relative volatility α = 2.45.",
+        "steps": [
+          {
+            "prompt": "Compute the minimum reflux R_min using the Underwood formula for constant α + saturated liquid feed: R_min = (1/(α-1))(x_D/x_F − α(1-x_D)/(1-x_F)). Plug in.",
+            "motivation": "Apply Underwood's formula.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "R_min ≈ 1.17",
+                "1.17",
+                "1.165"
+              ]
+            },
+            "hints": [
+              "x_D = 0.95, x_F = 0.5, α = 2.45. (1/(2.45-1))(0.95/0.5 - 2.45 × 0.05/0.5)."
+            ],
+            "reveal": "R_min = (1/1.45)((0.95/0.5) − (2.45 × 0.05/0.5)) = (1/1.45)(1.90 − 0.245) = (1/1.45)(1.655) = 1.142. (Slightly different formula versions give ≈1.15-1.20; ~1.17 acceptable.)"
+          },
+          {
+            "prompt": "If we operate at R = 1.5 × R_min, what's the operating R?",
+            "motivation": "Economic optimum.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "R ≈ 1.71",
+                "1.71",
+                "1.50 × 1.142"
+              ]
+            },
+            "hints": [
+              "Multiply."
+            ],
+            "reveal": "R = 1.5 × 1.142 = 1.71. A typical industrial operating choice — balances stages + reboiler duty."
+          },
+          {
+            "prompt": "Compute minimum stages N_min using Fenske: N_min = log[(x_D/(1-x_D))((1-x_B)/x_B)] / log α.",
+            "motivation": "Total-reflux limit.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "N_min ≈ 6.6",
+                "6.6 stages",
+                "6.6"
+              ]
+            },
+            "hints": [
+              "((0.95/0.05) × (0.95/0.05)) = 361. log 361 = 2.558. log 2.45 = 0.389."
+            ],
+            "reveal": "N_min = log[(0.95/0.05) × (0.95/0.05)] / log 2.45 = log(361) / log(2.45) = 2.558 / 0.389 = 6.58 ≈ 6.6 theoretical stages at total reflux."
+          },
+          {
+            "prompt": "Real stages: assume tray efficiency 70% (Murphree). Total trays?",
+            "motivation": "Divide theoretical by efficiency.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~14-17 trays",
+                "~14 trays",
+                "13-17"
+              ]
+            },
+            "hints": [
+              "At operating R, you need ~10-14 theoretical stages (between N_min + ∞). ÷ 0.70."
+            ],
+            "reveal": "At R = 1.5 R_min, typical Gilliland correlation gives N ≈ 10-14 theoretical stages. /0.70 efficiency → 14-20 actual trays. Plus reboiler counts as a stage. Typical column has ~15-20 trays, ~6-15 m tall, ~1-3 m diameter for moderate throughput. Capital + operating cost both scale with R + N; sweet spot ~1.2-1.5 × R_min."
+          },
+          {
+            "prompt": "What happens if α drops from 2.45 to 1.10 (near-azeotropic mixture)?",
+            "motivation": "Show difficulty scaling.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "N_min and R_min explode",
+                "much harder separation",
+                "many more stages needed"
+              ]
+            },
+            "hints": [
+              "log α = 0.0414. Plug into Fenske."
+            ],
+            "reveal": "N_min = 2.558 / 0.0414 ≈ 62 theoretical stages — 10× more! R_min also blows up. Near-azeotropic separations (ethanol-water, propylene-propane) require dozens of stages + huge reflux ratios. Often alternative techniques (extractive distillation, pervaporation, molecular sieves for ethanol drying) become competitive at α < 1.2."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_separations_1",
+        "kind": "multiple_choice",
+        "question": "An ethanol-water mixture forms an azeotrope at 95.6 wt% ethanol. Why can't simple distillation produce anhydrous ethanol?",
+        "options": [
+          "Azeotropes are a myth.",
+          "At the azeotropic composition, y = x (vapor + liquid have same composition); relative volatility = 1; no further separation possible by distillation regardless of column height. Workarounds: extractive distillation (add benzene, ethylene glycol), molecular sieves (adsorbent removes water), pervaporation (membrane-based), pressure-swing (azeotrope shifts with P).",
+          "Distillation requires too much energy.",
+          "Ethanol decomposes."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Ethanol-water azeotrope** at 95.6 wt% (~89.4 mol%) ethanol, 78.15 °C @ 1 atm. At this composition, vapor + liquid have identical composition. y/x = 1 → α_eff = 1. Distillation can't separate.\n\n**Why azeotropes form**: deviations from Raoult's law. Negative deviation → maximum boiling azeotrope (HCl-water). Positive deviation → minimum boiling azeotrope (ethanol-water, acetone-water). Caused by molecular interactions (H-bonding, asymmetry).\n\n**Workarounds for ethanol-water**:\n\n(1) **Extractive distillation**: add high-boiling solvent (ethylene glycol, sulfolane) that changes relative volatility — shifts azeotrope or eliminates it. Solvent recovered in second column. Common in bioethanol production.\n\n(2) **Molecular sieves (3 Å zeolites)**: adsorb water selectively (water diameter 2.8 Å, ethanol 4.4 Å). Regenerate periodically. Most common method today for anhydrous ethanol — gives >99.5% purity.\n\n(3) **Pervaporation**: hydrophilic membrane lets water through preferentially. Energy-efficient + compact. Growing in biorefineries.\n\n(4) **Pressure-swing**: ethanol-water azeotrope shifts to ~70 wt% at 0.1 atm. Two columns at different P; switch back + forth. Energy-intensive.\n\n(5) **Hybrid distillation + membrane**: distillation to 90%+ ethanol, then membrane finishes. Common in fuel-ethanol plants.\n\n**Historical workaround**: benzene addition (Drager-Brown process); now phased out due to benzene toxicity. Replaced by glycol-based extractive distillation + molecular sieves.\n\n**Cost**: extra unit + energy ~20-30% above straight distillation. Reason ethanol fuel mandates carefully specify 'fuel ethanol' = anhydrous; absolute alcohol carries this premium."
+      },
+      "hints": [
+        "What's the relative volatility at azeotropic composition?",
+        "Name a workaround."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "At ethanol-water azeotrope (95.6 wt% EtOH, 78.15 °C), y = x + α_eff = 1, so distillation can't go further. Workarounds: extractive distillation (add EG/sulfolane), molecular sieves (3Å zeolites), pervaporation (membrane), pressure-swing, hybrid. Most modern fuel-ethanol plants use distillation to ~93% + then 3Å sieves to >99.5%. Reason fuel ethanol is more expensive than industrial: extra purification cost."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_separations_2",
+        "kind": "multiple_choice",
+        "question": "Reverse osmosis desalination consumes ~3 kWh/m³ of fresh water. The thermodynamic minimum (free-energy of pure water in salt) is ~0.78 kWh/m³. Why the 4× gap?",
+        "options": [
+          "RO membranes are obsolete.",
+          "Real systems incur losses from: (1) concentration polarization at membrane surface; (2) finite ΔP driving force needed for finite flux (energy ∝ ΔP); (3) pump efficiency (~75%); (4) energy-recovery devices recover ~95% but not 100%; (5) pretreatment + post-treatment (chemicals, pumping); (6) recovery ratio (~50% of feed becomes product). Achieving the thermodynamic limit requires reversible (slow) separation; real operation finite-rate + irreversible.",
+          "Salt is fundamentally impossible to remove.",
+          "The thermodynamic limit is wrong."
+        ],
+        "correctIndex": 1,
+        "explanation": "RO desalination is one of the most efficient practical separations relative to its thermodynamic limit. The gap to the limit reflects:\n\n**(1) Thermodynamic minimum** (0.78 kWh/m³ for seawater at 50% recovery): reversible separation needs free-energy difference between salt water + fresh water. Independent of method.\n\n**(2) Real operation requires finite ΔP > osmotic pressure to drive water through membrane at finite rate**: typical 55-70 bar applied vs ~28 bar osmotic. The 'overhead' ΔP is what produces flux; reducing it means lower flux + more membrane area needed.\n\n**(3) Concentration polarization**: salt accumulates at membrane surface as water passes through. Local osmotic pressure rises; effective ΔP drops. Mitigated by spacers + cross-flow but never eliminated.\n\n**(4) Pump efficiency**: ~75-85% in modern high-pressure pumps; the rest dissipated as heat.\n\n**(5) Energy-recovery devices (ERD)**: turbines / pressure exchangers recover energy from concentrated brine before discharge. ~95-97% efficient. The unrecovered 3-5% is lost.\n\n**(6) Recovery ratio**: <100% (typically 40-60% for seawater) means feed must be pumped 1/recovery × volume of product.\n\n**(7) Pretreatment + post-treatment**: chemicals, antiscalants, micro/ultrafiltration prefilters, post-disinfection.\n\n**Result**: ~3 kWh/m³ (modern large plants like Sorek in Israel achieve ~2.5 kWh/m³).\n\n**Historic context**: 1970s plants used ~10 kWh/m³. The 3× drop over 50 yr came from membrane improvements (higher flux, more selective), ERDs (the biggest energy-saver), + scale. Further progress requires fundamentally new membrane chemistries or different processes.\n\n**Alternatives**: MED + MSF (thermal): 80-300 kWh/m³ equivalent. Forward osmosis + capacitive deionization: emerging, may close gap further. RO remains dominant for affordability."
+      },
+      "hints": [
+        "What overhead beyond thermodynamic minimum is needed?",
+        "Why isn't recovery 100%?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Thermodynamic min: 0.78 kWh/m³. Real ~3 kWh/m³ from: finite ΔP needed for flux (energy ∝ ΔP); pump η ~75%; ERD recovery ~95%; concentration polarization; pretreatment; <100% recovery. Modern plants approach 2.5 kWh/m³ via better membranes + ERDs + scale. Further closing gap requires fundamentally new chemistries."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_separations_1",
+        "kind": "math_expression",
+        "question": "For a constant-α binary system with α = 3, vapor composition y in equilibrium with liquid x = 0.4?",
+        "acceptedAnswers": [
+          "0.667",
+          "2/3",
+          "0.67"
+        ],
+        "hint": "y = α x / (1 + (α-1)x) = 3 × 0.4 / (1 + 2 × 0.4)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_separations_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why a process designer might choose extraction over distillation for a particular separation. Give a concrete industrial example.",
+        "rubric": "Mentions: extraction preferred when (a) relative volatility too low for economic distillation (close-boiling); (b) components heat-sensitive (pharma); (c) very dilute solute (concentration before distillation); (d) reactive species in feed; (e) azeotrope-formers; (f) ionic / polar species hard to vaporize. Concrete examples: penicillin recovery from broth (heat-sensitive); uranium recovery (Purex process — TBP + kerosene); acetic-acid recovery from dilute streams (ethyl acetate); aromatic-aliphatic separation in petrochemicals (sulfolane). Trade-offs: extraction needs solvent recovery (often by distillation later); requires two immiscible phases; mass-transfer kinetics + equilibria more complex. Concludes: extraction + distillation often combined; modern process synthesis (Aspen) optimizes the combo to minimize TAC (total annualized cost)."
+      }
+    }
+  ]
+}

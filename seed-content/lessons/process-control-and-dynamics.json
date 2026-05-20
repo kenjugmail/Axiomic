@@ -1,0 +1,190 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Build first-order + second-order process models.",
+      "Tune PID controllers using Ziegler-Nichols + IMC.",
+      "Reason about stability + control degrees of freedom."
+    ],
+    "prereqs": [
+      "mass-and-energy-balances",
+      "reactor-design-and-kinetics"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Process dynamics: first-order, second-order, dead time",
+      "body": "Process control studies how a system *responds in time* to disturbances + manipulated changes. Most chemical-process variables (temperature, level, composition, pressure) behave approximately as:\n\n• **First-order**: τ dy/dt + y = K u(t). Time constant τ; gain K. Step response: y(t) = K · (1 − e^(−t/τ)). Examples: stirred-tank level, well-mixed temperature in low-disturbance regime.\n\n• **Second-order**: τ² d²y/dt² + 2ζτ dy/dt + y = K u(t). Damping ratio ζ. Under-damped (ζ<1): oscillates. Critically damped (ζ=1): fastest no-overshoot. Over-damped (ζ>1): like cascaded first-order. Examples: position control, sensitive temperature loops.\n\n• **Dead time** θ: delay between input change + first-noticeable output change. Pipe flow time, measurement transport delay, mass transfer in slow stages. Even 30-60s dead time fundamentally limits achievable closed-loop bandwidth — 'lambda' tuning rule + Smith-predictor-type compensators handle this.\n\n**FOPDT** (first-order-plus-dead-time): τ dy/dt + y = K u(t−θ). The workhorse model for industrial PID tuning. Identify (τ, θ, K) from step-test data + tune controller per IMC or Cohen-Coon rules.\n\n**Transfer functions** (Laplace domain): G(s) = Y(s)/U(s). For FOPDT: G(s) = K e^(−θs) / (τs + 1). Composition of process + sensor + valve + control loop is multiplication of transfer functions — algebraic instead of integro-differential. Modern process control built on this."
+    },
+    {
+      "kind": "text",
+      "title": "PID control: the workhorse of process control",
+      "body": "**PID controller**:\n  u(t) = K_c [ e(t) + (1/τ_I) ∫₀ᵗ e dt + τ_D · de/dt ]\n\nwith e(t) = y_set − y(t).\n\nThree terms:\n• **P (proportional)**: u proportional to current error. Faster response, but offset remains for step disturbances.\n• **I (integral)**: u proportional to integrated error. Eliminates offset; can wind up + cause overshoot.\n• **D (derivative)**: u proportional to error rate. Predictive; damps oscillations but amplifies noise.\n\n**Tuning rules**:\n• **Ziegler-Nichols (1942)**: closed-loop ultimate-cycle method. Increase P until sustained oscillation; record K_u + period P_u. Set K_c = 0.6 K_u, τ_I = P_u/2, τ_D = P_u/8. Quick but aggressive.\n• **Cohen-Coon (1953)**: open-loop FOPDT-based; explicit formulas in (K, τ, θ).\n• **IMC (Internal Model Control)** (Skogestad 2003): tunable single parameter λ (closed-loop time constant). K_c = τ/(K(λ+θ)); τ_I = min(τ, 4(λ+θ)); τ_D varies. Robust + simple; modern default.\n\n**PI** (no D) is most common in industry. **D term** only useful for slow processes with little measurement noise.\n\n**Anti-windup**: when actuator saturates (valve fully open/closed), integral term keeps accumulating. Causes huge overshoot when actuator un-saturates. Industrial PIDs implement back-calculation to limit windup.\n\n**Cascade control**: outer loop sets the inner loop's setpoint. Inner loop fast (flow, pressure); outer loop slow (composition, temperature). Improves disturbance rejection + decouples dynamics. Standard for reactor temperature control via jacket cooling."
+    },
+    {
+      "kind": "text",
+      "title": "Stability + control structure design",
+      "body": "**Closed-loop stability** (Nyquist, root locus, bode): determines whether feedback amplifies or damps disturbances.\n\n• **Gain margin** + **phase margin**: how much controller gain + phase the loop can tolerate before instability. Industrial standards: GM ≥ 6 dB, PM ≥ 30-45°.\n• **Bode integral theorem (waterbed)**: improving sensitivity at one frequency necessarily worsens it at another. Trade-offs are unavoidable.\n• **RHP zeros**: produce 'inverse response' (output moves wrong way initially); limit achievable bandwidth.\n• **RHP poles**: unstable open-loop; need stabilizing feedback.\n• **Dead time θ**: limits achievable closed-loop time constant to ~θ. Cannot 'undo' delay.\n\n**Control structure design**:\n1. **Identify CVs** (controlled variables): what to keep on setpoint? Usually product specs, environmental, safety.\n2. **Identify MVs** (manipulated variables): what can be adjusted? Valves, motors, heaters.\n3. **Identify DVs** (disturbance variables): what's varying that you can't control? Feed temperature, feed composition.\n4. **Match CVs to MVs** (pairing) via Relative Gain Array (RGA) — quantifies interaction between loops.\n5. **Add cascade + feedforward** where useful.\n\n**Model predictive control (MPC)**: optimizes over a moving horizon, handles constraints, multivariable. Industrial uptake high in refineries + petrochemicals; uses linear or nonlinear plant models. **Advanced process control (APC)** packages (Aspen DMC3, Honeywell Profit Controller, Yokogawa Exaquantum) deliver 1-5% economic-uplift in refinery applications.\n\n**Emerging**: ML-based controllers, reinforcement learning, digital twins for control. Still mostly research/demos for safety-critical chemical processes; conventional control remains the workhorse."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_control_1",
+        "kind": "guided_derivation",
+        "question": "Tune a PI controller for a temperature loop using IMC rules",
+        "goal": "A jacketed CSTR temperature responds to steam-valve changes with K = 2 (°C / % valve), τ = 5 min (first-order), θ = 1 min dead-time (sensor delay + thermal lag). Find PI tuning constants using IMC rules with λ = 1.5 min (target closed-loop time constant).",
+        "steps": [
+          {
+            "prompt": "Write the FOPDT process transfer function.",
+            "motivation": "Identify the model.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "G(s) = 2 e^(-s) / (5s + 1)",
+                "K=2, τ=5, θ=1",
+                "FOPDT"
+              ]
+            },
+            "hints": [
+              "G(s) = K e^(-θs) / (τs + 1) with given K, τ, θ."
+            ],
+            "reveal": "G(s) = 2 e^(−s) / (5s + 1)."
+          },
+          {
+            "prompt": "Compute IMC PI gain K_c.",
+            "motivation": "K_c = τ / (K (λ + θ)).",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "K_c = 1.0",
+                "1.0",
+                "5 / (2 × 2.5)"
+              ]
+            },
+            "hints": [
+              "5 / (2 × (1.5 + 1)) = 5 / 5 = 1."
+            ],
+            "reveal": "K_c = τ / (K(λ + θ)) = 5 / (2 × 2.5) = 1.0 (% valve per °C)."
+          },
+          {
+            "prompt": "Integral time τ_I?",
+            "motivation": "IMC PI: τ_I = τ (no min in this case).",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "τ_I = 5 min",
+                "5",
+                "5 min"
+              ]
+            },
+            "hints": [
+              "τ_I = min(τ, 4(λ+θ)) = min(5, 10) = 5."
+            ],
+            "reveal": "τ_I = 5 min. PI controller fully specified: K_c = 1.0, τ_I = 5 min."
+          },
+          {
+            "prompt": "What if dead time grows to θ = 4 min (e.g., longer sensor lag)? What happens to K_c?",
+            "motivation": "K_c decreases — control becomes more conservative.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "K_c ~ 0.45",
+                "K_c = 0.5",
+                "0.45-0.50"
+              ]
+            },
+            "hints": [
+              "K_c = 5 / (2 × (1.5 + 4)) = 5 / 11 = 0.45."
+            ],
+            "reveal": "K_c = 5/(2 × 5.5) = 0.45. Reducing controller gain ~2× to maintain stability with the longer delay. Important lesson: dead time fundamentally limits aggressive control. Reduce dead-time (faster sensors, closer valve) before raising K_c."
+          },
+          {
+            "prompt": "Why does the closed-loop response rise time τ_cl ≈ λ + θ?",
+            "motivation": "Show fundamental limit.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "dead time floors response",
+                "θ limits achievable speed",
+                "cannot beat dead time"
+              ]
+            },
+            "hints": [
+              "Information about the disturbance can't propagate faster than the dead time."
+            ],
+            "reveal": "Closed-loop time constant τ_cl ≈ λ + θ ≈ 2.5 min in this case. The system *cannot* respond faster than θ (no information about the disturbance is available yet). λ is the additional smoothing the controller adds. Reducing dead time (faster instruments, closer placement of sensor + actuator) is the most effective way to improve control performance — far more than retuning the controller."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_control_1",
+        "kind": "multiple_choice",
+        "question": "Why is integral action (the 'I' in PID) almost always necessary in process control, despite the potential for windup + overshoot?",
+        "options": [
+          "Integral action makes calculations easier.",
+          "Without integral, P-only control leaves a steady-state offset (error) after step disturbances. Integral 'remembers' past error + drives offset to zero — essential for tight setpoint tracking. The cost (windup, overshoot) is managed by anti-windup logic + tuning, not by removing the I term.",
+          "Integral action is rarely used.",
+          "It is required by ISA standards."
+        ],
+        "correctIndex": 1,
+        "explanation": "P-only controller: u = K_c × e. For a step disturbance d, steady state has dy/dt = 0 + still requires nonzero u to balance d. Since u = K_c e, e must be nonzero → **steady-state offset**.\n\nMathematically: at steady state, y_∞ = K_p · u_∞ + K_d · d / (1 + K_p · K_c) where K_p is plant gain + K_d the disturbance gain. The 1/(1 + K_p K_c) factor doesn't drop to zero with finite K_c — offset remains.\n\n**Integral term** ensures u changes until e = 0 (integral can grow without limit until e ≈ 0). So **integral action eliminates steady-state offset** for step disturbances + setpoint changes. Essential whenever the application requires precise tracking — temperature within ±0.5 °C, composition within ±0.1%, pressure within ±0.01 bar.\n\n**Trade-offs**:\n- Larger integral action → faster offset elimination but more overshoot + slower oscillation.\n- Aggressive integral + actuator saturation → **windup** → much-bigger overshoot when actuator un-saturates.\n- Solution: **anti-windup** logic (back-calculation, conditional integration) limits integral term during saturation.\n\n**When to skip I**: rare cases where offset doesn't matter (level control in surge tanks, where ±5% level is fine) — use P-only for smoother control without integral oscillation. Most temperature, composition, pressure loops *require* integral.\n\n**PI is dominant** in industry (>90% of loops). PID adds D for fast processes with low noise. PD (no integral) almost never used in process control."
+      },
+      "hints": [
+        "What's the steady-state offset for P-only?",
+        "What does integral eliminate?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "P-only: at steady state, dy/dt = 0 but disturbance still requires nonzero u. Since u = K_c e + the gain is finite, e must be nonzero → offset. Integral: u changes until e = 0 (it 'remembers' past error). Eliminates offset for step changes. Trade-offs: windup during actuator saturation; managed via anti-windup logic, not by removing I. PI is dominant in industry (>90% of loops). PD almost never used in process control."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_control_2",
+        "kind": "multiple_choice",
+        "question": "Cascade control puts an inner-loop's setpoint under the outer-loop's control. Why is this so commonly used for jacketed-reactor temperature control?",
+        "options": [
+          "It is required by safety codes.",
+          "Inner-loop controls jacket fluid temperature (or flow) — fast (seconds), with stable kinetics. Outer-loop controls reactor contents temperature — slow (minutes), drives inner setpoint. The inner loop rejects disturbances (steam pressure, ambient T) faster than the outer-loop alone could. Effective bandwidth ~ inner-loop bandwidth; better than single-loop control by 2-10×.",
+          "It eliminates the need for a PID controller.",
+          "Cascade has no real benefit but is traditional."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Cascade architecture**: outer-loop (slave: reactor T) → inner-loop (master: jacket T or jacket flow). Outer compares reactor T to setpoint + sends jacket-T setpoint to inner. Inner compares jacket T to that setpoint + adjusts the steam valve / cooling water flow.\n\n**Why it works**:\n\n(1) **Different timescales**: jacket T responds in seconds; reactor T in minutes. Inner loop attenuates disturbances at the jacket (steam pressure variation, etc.) before they propagate to reactor.\n\n(2) **Disturbance attenuation**: a disturbance in jacket steam pressure (changing the rate at which jacket heats / cools) would have to propagate through both inner + outer loop time constants in single-loop. With cascade, inner-loop rejects it quickly.\n\n(3) **Linearization**: jacket T-to-valve is nonlinear (cooling water + steam have different gains). Inner loop linearizes this; outer loop sees a simpler model.\n\n(4) **Setpoint changes**: outer-loop setpoint changes go through inner-loop's well-tuned dynamics; less overshoot.\n\n**Standard for**:\n- Jacketed reactor T control (outer: reactor T; inner: jacket T)\n- Steam-heated heat exchanger (outer: process outlet T; inner: steam pressure)\n- Distillation column T control (outer: tray T; inner: reflux flow)\n- pH control (outer: pH; inner: reagent flow)\n\n**Limits**:\n- Adds tuning complexity; both loops need correct tuning.\n- Inner loop must be much faster than outer (10× rule of thumb) to avoid loop interactions.\n- More instrumentation needed (two sensors, two controllers).\n\n**Beyond cascade**: feedforward (measure disturbance + preemptively act), MPC (multivariable + constraints + economics). Modern reactor systems often combine: feedforward + cascade + MPC.\n\nProcess control hierarchy is mature; the textbook patterns deliver 80% of value. Last 20% needs APC or ML-based control + remains an area of active R&D."
+      },
+      "hints": [
+        "Compare timescales: reactor vs jacket.",
+        "What disturbances does the inner loop handle?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Inner loop (jacket T, seconds) rejects fast disturbances (steam pressure, etc.) before they reach reactor. Outer loop (reactor T, minutes) gives inner its setpoint. Effective bandwidth = inner loop's. Standard for: jacketed reactor T, heat-exchanger outlet T, distillation tray T, pH. Limits: more instrumentation, both loops need tuning, inner must be ~10× faster than outer."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_control_1",
+        "kind": "math_expression",
+        "question": "A FOPDT process has K=3, τ=10 min, θ=2 min. Using IMC PI rules with λ = 3 min, what's the controller gain K_c?",
+        "acceptedAnswers": [
+          "0.667",
+          "0.67",
+          "10/(3*(3+2))"
+        ],
+        "hint": "K_c = τ / (K (λ + θ))."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_control_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain to a plant operator why fluctuations in their column tray temperature might not be a tuning problem but a structural one. What evidence would help diagnose it?",
+        "rubric": "Mentions: fluctuations may come from external disturbances (feed composition, ambient T) not poor controller tuning; from internal instabilities (flooding, weeping at extreme conditions); from upstream coupling (different reactor outlet); from physically too-slow control (sensor lag, valve hysteresis); from RHP zeros (inverse response). Diagnostic evidence: characterize frequency content of fluctuations (consistent with disturbance vs controller); step-test the loop (assess dead-time + gain); check valve performance (is it cycling?); examine upstream variations (feed flow, T); look at correlations across plant. If tuning was the issue, would see oscillation at characteristic frequency tied to controller. If structural, would see slow drifts + correlations with external variables. Often combined; needs systematic process-data analysis (Aspen DMC3, OSI PI tools, ML-based loop performance assessment) to diagnose. Concludes: tune what's tunable; address structural causes (sensors, valves, upstream control) for the rest."
+      }
+    }
+  ]
+}

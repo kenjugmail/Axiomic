@@ -1,0 +1,188 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Apply HAZOP + LOPA structured-analysis techniques.",
+      "Reason about layer-of-protection design.",
+      "Connect safety culture to historical disasters."
+    ],
+    "prereqs": [
+      "mass-and-energy-balances"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why process safety is foundational",
+      "body": "Chemical processes routinely involve materials + conditions that *could* cause significant harm if uncontrolled: flammable solvents (gasoline, ethanol, methanol); toxic gases (NH₃, Cl₂, H₂S, HCN, phosgene); high temperatures (cracking ~800 °C); high pressures (PE production ~3000 bar); reactive chemistry (peroxides, organic nitrates).\n\n**Catastrophic incidents** in the field's history have shaped modern practice:\n\n• **Flixborough 1974 (UK)**: caprolactam plant explosion; 28 dead. Cause: temporary 'dog-leg' bypass of a failed reactor failed under pressure. Lesson: management of change (MOC).\n• **Bhopal 1984 (India)**: ~3000-15000 deaths, hundreds of thousands injured. Methyl isocyanate (MIC) gas release from Union Carbide pesticide plant. Cause: water ingress into MIC tank → runaway reaction; multiple safety systems failed. Lesson: inherent safety (don't store hazardous intermediates).\n• **Piper Alpha 1988 (North Sea)**: oil platform fire; 167 dead. Lesson: emergency shutdown systems + permit-to-work.\n• **Phillips 66 Houston 1989**: ethylene plant explosion; 23 dead. Lockout-tagout failure.\n• **Texas City BP 2005**: refinery isomerization unit explosion; 15 dead. Process-safety management deficiencies + cost-cutting culture (CSB report critical).\n• **West Fertilizer 2013 (TX)**: ammonium nitrate storage explosion; 15 dead. Lesson: distance separation, ammonium nitrate stability.\n• **DuPont La Porte 2014 (TX)**: methyl mercaptan release; 4 workers killed. PSM gaps.\n• **Beirut 2020 (Lebanon)**: 2750 tonnes ammonium nitrate detonated in port warehouse; ~220 dead, ~7000 injured.\n\nEach drives changes in regulations (OSHA PSM, EPA RMP), industry standards (AIChE CCPS, API), + culture. Process safety is *engineered*, *managed*, + *cultured* — no single layer is sufficient."
+    },
+    {
+      "kind": "text",
+      "title": "Structured hazard analysis: HAZOP + LOPA",
+      "body": "**HAZOP (Hazard + Operability study)**: systematic line-by-line review by multidisciplinary team. For each line, apply guidewords (No, More, Less, Reverse, As Well As, Part Of, Other Than) to variables (flow, pressure, temperature, composition). For each deviation, identify causes + consequences + safeguards + recommendations.\n\nExample row:\n• Deviation: HIGH FLOW in feed line\n• Causes: control valve fail open, pump runaway, manual valve fully open\n• Consequences: reactor overflow → spill → fire\n• Safeguards: high-flow alarm; HF interlock to close valve; bund containment\n• Recommendation: add high-flow trip not in same I/O card as the alarm\n\nLed for chemical process design + retrofits since 1970s; standardized by AIChE CCPS.\n\n**LOPA (Layer of Protection Analysis)**: semi-quantitative assessment of risk per scenario. For each initiating event of a HAZOP:\n\n  Mitigated frequency = Initiating frequency × (∏ failure probabilities of independent layers of protection)\n\nLayers in order from inherent to last resort:\n1. **Inherent design** (e.g., gas at low pressure; non-flammable solvent if possible)\n2. **Basic process control** (BPCS)\n3. **Alarms** (operator response)\n4. **Safety instrumented system (SIS)** — separate hardware/logic from BPCS, certified SIL (Safety Integrity Level) 1-3\n5. **Pressure relief** (PRV, rupture discs)\n6. **Physical protection** (dikes, blast walls)\n7. **Emergency response** (firefighting, evacuation)\n\nTarget: mitigated frequency < tolerable level (e.g., 10⁻⁶/yr for high-consequence). If gap exists, add another independent layer.\n\n**SIL ratings** (IEC 61511): SIL 1 = 10⁻¹ to 10⁻² PFD (probability of failure on demand); SIL 2 = 10⁻² to 10⁻³; SIL 3 = 10⁻³ to 10⁻⁴; SIL 4 ≤ 10⁻⁴. Higher SIL = more redundancy + more frequent testing.\n\nEvery hazardous unit operation in a modern plant has had HAZOP + LOPA done. Documents are 'living' — updated whenever process changes (MOC discipline)."
+    },
+    {
+      "kind": "text",
+      "title": "Safety culture + organizational learning",
+      "body": "Beyond technical analysis, safety depends on culture + organization. **Process Safety Management (PSM)** standard (OSHA, 1992) codifies 14 elements:\n\n1. Employee participation\n2. Process safety information (chemicals, technology, equipment)\n3. Process hazard analysis (HAZOP, LOPA, what-if)\n4. Operating procedures\n5. Training\n6. Contractors\n7. Pre-startup safety review\n8. Mechanical integrity (inspection, maintenance)\n9. Hot work permits\n10. Management of change (MOC) — proposed changes reviewed for safety implications\n11. Incident investigation\n12. Emergency planning + response\n13. Compliance audits\n14. Trade secrets\n\nEqually important is **safety culture**: shared values + behaviors that prioritize safety. Indicators (Bardo et al. + AIChE):\n• Leadership commitment + visible engagement\n• Open communication; near-miss reporting without blame\n• Sound technical understanding of hazards\n• Continual learning from incidents\n• Conservative decision-making\n\nResearch (CSB, AIChE) consistently finds: serious accidents have organizational/cultural precursors that *could have been* caught. Texas City 2005: years of cost-cutting + production-pressure culture; safety budgets cut; near-misses ignored. CSB recommended fundamental culture change, not just technical fixes.\n\n**Heinrich's pyramid** (1931, simplified): 300 near-misses : 30 minor injuries : 1 major. Reduction at the base reduces the peak. Most modern systems track 'process safety events' at multiple tiers (Tier 1-4 per API RP 754) — leading indicators much earlier than fatalities.\n\n**Modern frontiers**: human + organizational factors (HOF), AI/ML-based incident prediction, digital twins for what-if scenarios, augmented reality for training, behavioral safety programs. Process safety is now a multidisciplinary field combining engineering, psychology, organizational behavior, + regulatory science."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_safety_1",
+        "kind": "guided_derivation",
+        "question": "Apply LOPA to a reactor over-temperature scenario",
+        "goal": "An exothermic reactor has temperature control via cooling water. Scenario: 'cooling-water failure during reaction'. Initiating frequency: 0.1/yr (pump failure history). Consequence: runaway reaction → vessel rupture → potential offsite fatalities. Tolerable risk: 10⁻⁶/yr.",
+        "steps": [
+          {
+            "prompt": "What's the gap between initiating + tolerable?",
+            "motivation": "Number of layers of protection needed.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "10^5 risk reduction needed",
+                "100000x",
+                "5 orders of magnitude"
+              ]
+            },
+            "hints": [
+              "0.1 / 10⁻⁶ = 10⁵."
+            ],
+            "reveal": "Need 10⁵ risk-reduction factor from independent layers of protection."
+          },
+          {
+            "prompt": "Layer 1: high-temperature alarm with operator response. PFD ~0.1 (operator may not respond in time). What's the reduced frequency?",
+            "motivation": "Multiply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.01/yr",
+                "1e-2/yr"
+              ]
+            },
+            "hints": [
+              "0.1 × 0.1 = 0.01/yr."
+            ],
+            "reveal": "After Layer 1: 0.01/yr. Still well above 10⁻⁶ target."
+          },
+          {
+            "prompt": "Layer 2: SIS (Safety Instrumented System) — independent T-sensor + logic solver + emergency cooling valve. SIL 2, PFD ~0.001. New frequency?",
+            "motivation": "Multiply again.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1e-5/yr",
+                "10^-5",
+                "0.00001"
+              ]
+            },
+            "hints": [
+              "0.01 × 0.001 = 10⁻⁵."
+            ],
+            "reveal": "After Layer 2: 10⁻⁵/yr. Still ~10× above target."
+          },
+          {
+            "prompt": "Layer 3: pressure relief valve (PRV) sized for runaway + venting to safe location. PFD ~0.01 (mechanical reliability). New frequency?",
+            "motivation": "Multiply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1e-7/yr",
+                "10^-7"
+              ]
+            },
+            "hints": [
+              "10⁻⁵ × 0.01 = 10⁻⁷."
+            ],
+            "reveal": "After Layer 3: 10⁻⁷/yr — below tolerable 10⁻⁶. Risk is now acceptable."
+          },
+          {
+            "prompt": "Why must the layers be **independent**?",
+            "motivation": "Common-mode failure undermines protection.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "common mode failure",
+                "different power supply",
+                "different sensors",
+                "diversity"
+              ]
+            },
+            "hints": [
+              "What if all 3 layers share a common source?"
+            ],
+            "reveal": "If two layers share a sensor or power supply or operator action, a single failure (sensor stuck reading low) defeats both layers. To meet the multiplication assumption, layers must be diverse (different physics, different power, different operator action). LOPA requires careful examination of dependency. Real plants document this in safety requirements specifications (SRS)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_safety_1",
+        "kind": "multiple_choice",
+        "question": "Why is 'inherent safety' (designing the hazard out) preferred over 'engineered safety' (adding protective layers)?",
+        "options": [
+          "Inherent safety is cheaper.",
+          "Inherent safety eliminates the hazard at its source — once removed, no layer of protection can fail because the hazard isn't there. Engineered controls reduce probability of harm but don't eliminate it; if they fail, the hazard manifests. Examples: storing methanol vs storing phosgene (inherent); using lower pressure vs higher pressure for the same reaction (inherent); reducing inventory of hazardous intermediate vs adding emergency cooling (inherent). Engineered controls are added when inherent solutions aren't possible.",
+          "Engineered safety doesn't work.",
+          "Inherent safety is a marketing term."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Inherent safety (Kletz 1978)** principles:\n\n1. **Substitute**: use safer material (NaOH vs Cl₂ + H₂O; biodegradable vs persistent toxics).\n2. **Minimize**: reduce inventory of hazardous material (continuous reactor vs large storage tank; reduce process volume).\n3. **Moderate**: lower temperatures + pressures (catalysis enables lower-T processes; dilute solutions vs concentrated).\n4. **Simplify**: fewer components, fewer failure modes, fewer human errors.\n\n**Examples**:\n• **Bhopal alternative**: produce methyl isocyanate (MIC) on-demand instead of storing tonnes in tanks. Modern manufacturers (post-Bhopal) reduced MIC inventory ~99% via on-demand chemistry.\n• **HF acid alkylation** → ionic-liquid alkylation: refinery process modernization replacing aerosol-hazardous HF.\n• **Phosgene** → phosgene-free polyurethane processes (still emerging).\n• **Continuous chemistry** vs batch: smaller hold-up + faster, often safer.\n\n**Engineered safety** is *necessary* when inherent isn't fully possible (which is most chemicals). Examples: cooling system, relief valve, blast walls, gas detectors, emergency shutdown.\n\n**Trade-offs**:\n- Inherent often costs more upfront + may have lower yield or other production constraints.\n- Engineered is cheaper + works for established processes — but requires ongoing maintenance + cultural discipline.\n\n**Hierarchy of controls** (OSHA + AIChE):\n1. Elimination (= inherent: ideal)\n2. Substitution (= inherent)\n3. Engineering controls (= engineered safety: design)\n4. Administrative controls (= procedures + training)\n5. PPE (= last resort)\n\nModern process design starts with inherent options; engineered safety fills the gap. Both are necessary; neither alone is sufficient."
+      },
+      "hints": [
+        "What does inherent safety do to the hazard?",
+        "Compare to engineered controls."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Inherent safety removes the hazard at source (substitute, minimize, moderate, simplify). Once removed, no layer can fail. Engineered safety reduces probability of harm but doesn't eliminate it. Bhopal-relevant: modern MIC manufacturers store ~99% less. Examples: HF → ionic-liquid alkylation; phosgene-free PU. Engineered safety still essential (relief valves, gas detection, ESD). Hierarchy: elimination > substitution > engineering > administrative > PPE."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_safety_2",
+        "kind": "multiple_choice",
+        "question": "The CSB's Texas City BP 2005 report concluded the root cause wasn't a single failure but 'organizational + cultural deficiencies.' What does this mean?",
+        "options": [
+          "The accident had no technical cause.",
+          "Multiple safety systems were degraded over years by under-investment + production-pressure culture. Maintenance deferred. Alarms accepted as 'normal nuisance'. Operator training inadequate. Cost-cutting prioritized short-term financials over safety capital. No single technical failure could have been prevented in isolation; the underlying organizational drift produced the conditions where multiple failures aligned (a 'Swiss cheese' model alignment).",
+          "Safety culture is irrelevant.",
+          "Management was unaware of any issues."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Texas City refinery isomerization explosion (Mar 23, 2005)**: 15 dead, 180 injured. Liquid hydrocarbon overflow from a vent stack ignited by a contractor truck idling nearby.\n\nCSB found:\n- The unit had a documented history of high-level events.\n- Operator training was inadequate; procedures complicated + outdated.\n- Critical alarms were ignored ('alarm fatigue' from too many).\n- A blowdown drum with no flare had been retained for cost reasons (post-incident analysis: a flare would have prevented ignition).\n- Maintenance budgets had been cut ~25% over preceding years.\n- Multiple near-misses + similar events at other BP facilities had been documented; lessons not generalized.\n- Top management lacked clear accountability for process safety + emphasized cost-cutting + production targets.\n\n**Swiss cheese model** (Reason 1990): multiple barriers to incidents (technical + procedural + cultural). Each has 'holes' (degradations). Catastrophic events happen when holes align across all layers.\n\nTexas City: every barrier had grown holes over years of under-investment. The accident wasn't a freak chain; it was the *expected* consequence of accumulating organizational decay.\n\n**Implications**:\n- 'Root cause' analysis must look past the proximate trigger to the underlying organizational decisions.\n- Safety culture is a *measurable*, *managed* attribute — not just a value statement.\n- Leading indicators (near-miss reporting, maintenance backlog, alarm rates, training completion) predict latent risk; lagging indicators (fatalities) are too late.\n\n**CSB recommendations** included: separate safety + operations metrics; independent oversight of safety budgets; require management to track + report safety culture indicators; integrate process safety into top-level corporate KPIs.\n\nMany of these are now standard via API RP 754, OSHA NEP, + corporate PSM programs. The lessons of Texas City — alongside Bhopal + others — fundamentally reshaped modern process safety."
+      },
+      "hints": [
+        "What's the Swiss cheese model?",
+        "What organizational drift contributed?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Texas City: 15 dead from a hydrocarbon overflow ignited by an idling truck. Multiple barriers degraded over years: maintenance cut 25%, alarms ignored, training gaps, blowdown drum without flare retained for cost. Swiss-cheese model (Reason 1990): catastrophic events happen when holes in barriers align. Texas City had holes accumulating from cost-cutting + production-pressure culture. CSB lessons: track leading indicators (near-misses, maintenance backlog), independent safety oversight, integrate process safety into top-level KPIs."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_safety_1",
+        "kind": "math_expression",
+        "question": "An initiating event with frequency 1/yr passes through 3 independent layers of protection with PFD 0.1, 0.01, and 0.005 respectively. What's the mitigated event frequency (per year)?",
+        "acceptedAnswers": [
+          "5e-6",
+          "5 × 10⁻⁶",
+          "0.000005"
+        ],
+        "hint": "Multiply: 1 × 0.1 × 0.01 × 0.005."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_safety_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain to a CEO why process-safety budgets should not be subject to the same cost-cutting pressure as other operational expenses. What's the business case?",
+        "rubric": "Mentions: process-safety incidents have asymmetric tail risk — small probability of catastrophic loss. Examples: Bhopal cost UC ~$470M direct + brand-destroying; Texas City ~$1.5B direct + decade of regulatory consequences; Deepwater Horizon $65B+. Insurance + regulatory costs rise after incidents. Reputational damage permanent. Safety budgets are insurance against tail-risk; reducing them increases the variance of outcomes without much reducing mean cost. Leading indicators (near-miss reports, training completion, maintenance backlog) are the early-warning system; under-investing makes them less reliable. Modern PSM + LOPA documentation are auditable + regulatory requirements; reducing them creates liability exposure. Concludes: safety + production aren't either-or — best operators run both well; companies with poor process safety also have higher operational losses + lower long-term ROIC. Cost-cutting in safety is short-term margin trade for long-term survival risk."
+      }
+    }
+  ]
+}

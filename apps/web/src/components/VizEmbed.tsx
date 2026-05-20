@@ -22,6 +22,7 @@ const OrderBook = lazy(() => import("../../../../packages/viz/src/components/Ord
 const MohrsCircle = lazy(() => import("../../../../packages/viz/src/components/MohrsCircle").then(m => ({ default: m.MohrsCircle })));
 const HRDiagram = lazy(() => import("../../../../packages/viz/src/components/HRDiagram").then(m => ({ default: m.HRDiagram })));
 const SIRModel = lazy(() => import("../../../../packages/viz/src/components/SIRModel").then(m => ({ default: m.SIRModel })));
+const ReactorComparator = lazy(() => import("../../../../packages/viz/src/components/ReactorComparator").then(m => ({ default: m.ReactorComparator })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -48,6 +49,7 @@ export const VIZ_NAMES = [
   "mohrs-circle",
   "hr-diagram",
   "sir-model",
+  "reactor-comparator",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -72,6 +74,7 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "mohrs-circle": MohrsCircle,
   "hr-diagram": HRDiagram,
   "sir-model": SIRModel,
+  "reactor-comparator": ReactorComparator,
 };
 
 interface VizEmbedProps {

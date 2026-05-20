@@ -93,6 +93,11 @@ const LazySIRModel = lazy(() =>
     (m) => ({ default: m.SIRModel }),
   ),
 );
+const LazyReactorComparator = lazy(() =>
+  import("../../../../../packages/viz/src/components/ReactorComparator").then(
+    (m) => ({ default: m.ReactorComparator }),
+  ),
+);
 const LazyDoublePendulum = lazy(() =>
   import("../../../../../packages/viz/src/components/DoublePendulum").then(
     (m) => ({ default: m.DoublePendulum }),
@@ -201,6 +206,8 @@ function VizByName({
       return <LazyHRDiagram {...(props as object)} />;
     case "sir-model":
       return <LazySIRModel {...(props as object)} />;
+    case "reactor-comparator":
+      return <LazyReactorComparator {...(props as object)} />;
     default:
       return null;
   }

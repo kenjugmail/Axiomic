@@ -159,6 +159,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🦠",
     tags: ["epidemiology", "infectious-disease", "modeling", "biology", "public-health"],
   },
+  {
+    name: "reactor-comparator",
+    label: "CSTR vs PFR reactor",
+    description: "Drag rate constant + space-time + order; compare CSTR vs PFR conversion side-by-side.",
+    thumb: "⚗️",
+    tags: ["chemical-engineering", "reactor", "kinetics", "process", "engineering"],
+  },
 ];
 
 interface Props {

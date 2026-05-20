@@ -1,0 +1,192 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Apply life-cycle assessment (LCA) to compare processes.",
+      "Identify process-intensification opportunities.",
+      "Reason about decarbonization pathways for chemical industry."
+    ],
+    "prereqs": [
+      "mass-and-energy-balances",
+      "reactor-design-and-kinetics",
+      "separations-distillation-and-extraction"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Process intensification: doing more with less",
+      "body": "**Process intensification (PI)** = dramatic reductions in plant size, capital, energy, + footprint via novel equipment + chemistry. Goals: 10-100× volume reduction, 50-90% energy savings, lower waste + cost.\n\nClassic PI technologies:\n\n• **Reactive distillation**: reaction + separation in one column. Equilibrium-limited reactions (MTBE, esters) benefit hugely — drive reaction to completion by continuously removing product.\n• **Divided-wall columns**: two distillations in one shell. ~30% capital + energy savings. Widely adopted for petrochemical splits.\n• **Heat-pumped distillation**: heat-pump from condenser to reboiler. ~30-50% energy savings for close-boiling separations.\n• **Microreactors**: channel sizes <1 mm. Very high heat + mass transfer; safer (small inventory); flexible (modular). Used for energetic materials + pharma intermediates.\n• **Spinning-disc reactors**: high g forces → thin film → high mass transfer.\n• **HIGEE (high-gravity)**: rotating packed bed for ultra-compact absorption.\n• **Membrane reactors**: reaction + membrane separation simultaneously (drives equilibrium reactions, e.g., dehydrogenation).\n• **Continuous processing of pharmaceuticals**: replaces batch with flow chemistry. FDA increasingly accepting. ~50% capital reduction + faster cycle.\n\n**Adoption** in industrial settings is slow because of: (1) higher risk for first-of-a-kind investments; (2) deep familiarity with conventional equipment; (3) maintenance + operator-skill considerations; (4) materials challenges at extreme conditions. Continuous improvement in modeling (CFD, multiscale) + manufacturing (additive, 3D printing of reactor geometries) accelerating adoption."
+    },
+    {
+      "kind": "text",
+      "title": "Life-cycle assessment (LCA) + the system-boundary problem",
+      "body": "**Life-cycle assessment (LCA)** quantifies environmental impacts across a product's full cradle-to-grave (or cradle-to-cradle) lifecycle. ISO 14040/14044 standardizes the framework.\n\n**4 phases**:\n1. **Goal + scope definition**: functional unit, system boundaries, allocation rules.\n2. **Inventory analysis (LCI)**: catalog inputs (raw materials, energy, water) + outputs (emissions, waste, products).\n3. **Impact assessment (LCIA)**: characterize impacts by category — climate (CO₂eq), acidification (SO₂eq), eutrophication, ecotoxicity, etc.\n4. **Interpretation**: identify hotspots, recommend changes, communicate.\n\n**Methodological choices** dominate results:\n• **System boundary**: include construction? employee transport? cradle-to-grave vs cradle-to-gate?\n• **Allocation**: when a process makes joint products (e.g., refinery producing gasoline + diesel + petrochemicals), how to assign impacts? Mass, energy, economic-value, system-expansion?\n• **Functional unit**: 1 kg ethanol vs 1 MJ fuel vs 1 km driven?\n• **Time horizon**: 100-yr vs 20-yr GWP for methane.\n• **Geographical scope**: location of inputs matters (Chinese vs Brazilian electricity grid).\n\nDifferent reasonable choices can give different answers. LCA results should always come with: methodology stated, sensitivity analysis, uncertainty quantification. Modern tools (SimaPro, openLCA, GaBi, REMIND for energy systems) make LCA workflows standardized but the assumptions remain the operator's responsibility.\n\n**Famous LCA controversies**: corn ethanol life-cycle GHG (positive vs negative ILUC); plastic vs paper bags; hybrid vs ICE vehicles; biodiesel vs petrodiesel. Often the system boundary + allocation choices determine which 'wins'."
+    },
+    {
+      "kind": "text",
+      "title": "Decarbonizing the chemical industry",
+      "body": "Chemical industry emits ~7% of global CO₂ (~1.5 Gt/yr) — third-largest industrial emitter after steel + cement. Decarbonization requires multiple pathways:\n\n• **Energy efficiency + heat integration**: pinch analysis, advanced control, heat pumps. ~15-30% reduction; mature + cost-effective.\n• **Electrification of process heat**: replace fired heaters with resistive / heat-pump electrification. Limited by power-grid decarbonization; technically viable up to ~400 °C now.\n• **Green hydrogen** (electrolysis from renewables): replaces grey H₂ (from CH₄ steam reforming, ~9 t CO₂/t H₂). Critical for ammonia, methanol, refining, steel. Cost: ~$4-6/kg H₂ green vs $1.5-2/kg grey. Closing gap as electricity costs fall.\n• **CCUS** (carbon capture utilization + storage): post-combustion amine scrubbing + sequestration in saline aquifers / depleted reservoirs. Cost $40-100/t CO₂. Boundary Dam (SK), Petra Nova (TX), Northern Lights (Norway) operational.\n• **Biological + circular feedstocks**: replace fossil feedstocks with bio-based or recycled. Bio-based polymers (PLA, PHA), CO₂-derived methanol (e.g., Carbon Recycling Iceland), chemical recycling of plastics.\n• **Plastic recycling + circular economy**: mechanical (downcycle), chemical (depolymerize), pyrolysis-to-fuel. Currently ~10% of plastic actually recycled; technical + economic barriers significant.\n• **Process intensification + new catalysts**: e.g., low-T ammonia synthesis (currently 400 °C, 200 bar via Haber-Bosch; could be 100 °C with new catalysts; would dramatically reduce energy).\n\n**Roadmaps** (IEA, IRENA, regional NGOs): chemical industry can reach net-zero by 2050 via combination of electrification, CCUS, green H₂, circular feedstocks, demand reduction. Cost: ~$2-4T cumulative investment; ~10-15% cost premium on bulk chemicals.\n\n**Implementation barriers**: (1) high capital cost + low margins of bulk chemicals; (2) policy uncertainty (carbon pricing, trade); (3) lock-in of existing assets (refineries last 50+ yr); (4) job + community transitions; (5) global competitiveness — chemicals trade globally + leakage risk. Major area of policy + technology research."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sustainability_1",
+        "kind": "guided_derivation",
+        "question": "Compare LCAs of grey vs green ammonia + identify the carbon breakeven",
+        "goal": "Grey ammonia from steam-methane reforming emits ~2 t CO₂/t NH₃. Green ammonia from electrolytic H₂ + N₂ via Haber-Bosch emits ~0.1-1 t CO₂/t NH₃, depending on electricity grid. At what grid carbon intensity does green NH₃ become equal to grey?",
+        "steps": [
+          {
+            "prompt": "Energy intensity of green ammonia production?",
+            "motivation": "Electrolysis efficiency + Haber-Bosch.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~10 MWh/t NH3",
+                "10000 kWh/t",
+                "10 MWh"
+              ]
+            },
+            "hints": [
+              "Electrolysis: 5 MWh/t H₂ × 0.176 kg H₂ per kg NH₃ → 0.88 MWh/t NH₃ + air separation + HB ~ 1-2. Plus electrolysis ~50 kWh/kg H₂."
+            ],
+            "reveal": "Green NH₃: ~9-12 MWh/t NH₃ depending on electrolysis + HB technology. Use ~10 MWh/t for this calculation."
+          },
+          {
+            "prompt": "Carbon emissions from this electricity at a grid carbon intensity of CI (kg CO₂/kWh)?",
+            "motivation": "Linear relation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "10 × CI t CO2/t NH3",
+                "10 × CI × 1000 kg CO2/t",
+                "10000 × CI"
+              ]
+            },
+            "hints": [
+              "10000 kWh/t × CI kg CO₂/kWh = 10000 × CI kg/t = 10 × CI t/t."
+            ],
+            "reveal": "Green NH₃ emissions = 10 × CI t CO₂/t NH₃ (where CI is in kg CO₂/kWh). E.g., for US grid CI ≈ 0.4 kg/kWh, emissions = 4 t CO₂/t — actually *worse* than grey!"
+          },
+          {
+            "prompt": "Carbon breakeven CI for green = grey emissions?",
+            "motivation": "Solve 10 × CI = 2.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.2 kg/kWh",
+                "200 g/kWh",
+                "0.20 kg CO2/kWh"
+              ]
+            },
+            "hints": [
+              "10 CI = 2 → CI = 0.2 kg/kWh."
+            ],
+            "reveal": "Breakeven CI = 0.2 kg/kWh = 200 g CO₂/kWh. **Green NH₃ is only net-CO₂-better than grey when grid carbon intensity is below 200 g/kWh.**"
+          },
+          {
+            "prompt": "Compare to actual grid carbon intensities.",
+            "motivation": "Connect to real-world feasibility.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "only renewable grids",
+                "Sweden Iceland yes, US/China not yet",
+                "needs decarbonized grid"
+              ]
+            },
+            "hints": [
+              "Iceland ~10 g/kWh (geothermal+hydro); Sweden ~20; France ~50; UK ~200; US ~400; China ~600; India ~700."
+            ],
+            "reveal": "Grids meeting 200 g/kWh today: Iceland, Norway, Sweden, France, parts of Quebec/Pacific NW. Most regions (US 400, EU 200-400, China 600, India 700) don't meet the bar yet. Implication: **green NH₃ is only environmentally beneficial today when produced from dedicated renewable sources (off-grid PV or wind) or in low-CI grids**. As grids decarbonize over coming decades, more regions cross the bar. Direct PV-to-electrolyzer projects (NEOM, Saudi Arabia) target ~50-100 g/kWh effective CI."
+          },
+          {
+            "prompt": "What other LCA boundaries might shift this analysis?",
+            "motivation": "Practice LCA system-boundary thinking.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "upstream methane leaks",
+                "transport",
+                "infrastructure construction",
+                "ammonia end-use"
+              ]
+            },
+            "hints": [
+              "Think upstream + downstream of the production step."
+            ],
+            "reveal": "(1) **Upstream methane leakage** in SMR/NG supply chain: ~1-3% leakage → effective CI for grey NH₃ can be 2.5-3 t CO₂eq/t. (2) **Construction**: electrolyzer + HB plant embodied carbon. (3) **End-use**: NH₃ as fuel emits NOx + has lower CO₂ benefit if combustion incomplete. (4) **Land + ecological footprint** of renewables for green H₂ feedstock. (5) **Air separation** energy for N₂. Each shifts the breakeven by ~10-20%. Modern LCA + GHG protocols (ISO 14064, GHG Protocol Scope 1/2/3) require explicit accounting; results depend on which."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sustainability_1",
+        "kind": "multiple_choice",
+        "question": "Why hasn't 'green' (electrolytic) hydrogen displaced fossil-derived (grey) hydrogen at scale, despite years of advocacy?",
+        "options": [
+          "Green H₂ doesn't work.",
+          "Cost: green ~$4-6/kg vs grey ~$1.5-2/kg (2024). Electrolysis equipment is capital-intensive ($800-1500/kW); electricity inputs are expensive even with cheap renewables; air-separation + storage add cost; logistics (high-pressure or cryogenic transport) expensive. Carbon-pricing levels of $100+/t CO₂ would help close the gap but aren't widespread. Scale-up + learning effects expected to narrow the gap to ~$2/kg by 2030 in favorable regions.",
+          "It produces too much waste.",
+          "There is no demand for hydrogen."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Hydrogen production cost breakdown** (2024):\n\n**Grey H₂ (SMR)**: $1.5-2/kg\n- Feedstock (natural gas): ~$1/kg\n- Capex (amortized): ~$0.3-0.5/kg\n- O&M: ~$0.2/kg\n- Total CO₂: ~9 t/t H₂\n\n**Blue H₂ (SMR + CCUS)**: $2-3/kg\n- Above + CCUS capex + O&M\n- Residual CO₂: ~1 t/t H₂\n\n**Green H₂ (electrolysis)**: $3-6/kg\n- Electricity (~50 kWh/kg × $0.05-0.10/kWh): $2.5-5/kg\n- Electrolyzer capex (amortized): ~$0.5-1/kg (depends on $/kW + utilization factor)\n- Stack lifetime + O&M: ~$0.2-0.3/kg\n- Total CO₂: ~0.1-1 t/t H₂ (depends on grid CI)\n\n**Why slow adoption**:\n1. **Levelized cost gap**: ~2-3× more expensive than grey.\n2. **Carbon price gap**: at typical EU ETS $80-100/t CO₂, a 9-t-CO₂ saving = $0.7-0.9/kg — narrow but not enough to fully bridge.\n3. **Utilization factor**: electrolyzers need ~60%+ capacity factor for economic capex amortization. Pure renewable PV (~20% CF) too low; needs grid backup.\n4. **Infrastructure**: gas pipelines need H₂ retrofits; storage (300 bar tanks, ammonia, methanol carrier) all add cost.\n5. **Scale**: electrolyzer manufacturing capacity ramping but still constrained.\n\n**Trajectories**: IEA Net-Zero scenario assumes green H₂ at $1.5-2/kg by 2030 in best regions, $1/kg by 2040 — driven by 30-50% capex reduction (learning) + cheaper renewable electricity. Some projects (NEOM, Australia) targeting these costs now via dedicated solar/wind farms + scale.\n\n**Policy support**: Inflation Reduction Act (US): $3/kg H₂ tax credit; EU Hydrogen Strategy; Japan H₂ society; Australia hydrogen export. Major area of capital deployment + policy uncertainty."
+      },
+      "hints": [
+        "What's the cost gap?",
+        "What's the carbon-pricing trade-off?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Green H₂ ~$3-6/kg vs grey ~$1.5-2/kg (2024). Electrolysis electricity ($2.5-5/kg) + capex (~$0.5-1/kg) drive the gap. At $80-100/t CO₂ EU price, grey H₂'s 9-t CO₂ premium adds $0.7-0.9/kg — narrows but doesn't close. Utilization factor critical (need >60% CF). Scale + learning expected to drive green to $1.5-2/kg by 2030 in favorable regions. IRA + EU + Japan policy support accelerating. Major capex flow but uncertainty remains."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sustainability_2",
+        "kind": "multiple_choice",
+        "question": "A divided-wall distillation column saves ~30% energy + 30% capital vs two conventional columns. Why hasn't it become ubiquitous in chemical plants?",
+        "options": [
+          "It does not actually save energy.",
+          "Adoption barriers: (1) more complex control (multivariable interactions); (2) operator unfamiliarity + need for retraining; (3) less robust to feed-composition changes; (4) higher first-of-a-kind capital + perceived risk; (5) maintenance (single tall column harder to access vs two shorter); (6) regulatory / engineering codes designed for conventional. Adoption is increasing for new plants (~25% of new ethylene crackers now use dividing walls); retrofits are harder.",
+          "It is illegal.",
+          "Conventional columns are intrinsically better."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Divided-wall column (DWC)** = single vessel with internal partition; two separations in one shell.\n\n**Benefits** vs two conventional columns:\n- ~30% lower energy (single reboiler + condenser; eliminate intermediate stream)\n- ~30% lower capital (one shell, one foundation, less piping)\n- Smaller footprint, less plot space\n\n**Theoretical**: discovered Petlyuk (1965); commercialized in 1980s; growth since 2000.\n\n**Adoption barriers**:\n\n(1) **Control complexity**: 3-4 control variables (vs 2 for conventional). Reboiler duty + reflux + sidedraw + (sometimes) liquid split between sections. Interactions strong. Most plants used single-loop PID; DWC needs decoupled controllers or MPC. Operators less familiar.\n\n(2) **Flexibility**: more sensitive to feed-composition variability. Conventional column has more 'margin' for off-spec operation.\n\n(3) **First-of-a-kind risk**: for any new technology, project sponsors prefer proven designs. Insurance, financing, regulators all easier with conventional. Network effects in engineering knowledge.\n\n(4) **Maintenance**: single tall column harder to access; reboiler + condenser may be larger; spares + repairs different.\n\n(5) **Engineering procedures + codes**: HAZOP procedures, pressure-relief design, vendor catalogs all optimized for conventional. DWC requires customized engineering.\n\n(6) **Cost of failure**: a failure brings down both separations; conventional has more redundancy.\n\n**Adoption trends**:\n- Modern ethylene crackers: ~25% use DWC for demethanizer + deethanizer; growth.\n- BASF Ludwigshafen alone: ~70 DWCs in operation.\n- Refining: growing adoption for VGO / atmospheric / vacuum towers.\n- Pharma + fine chemicals: less common (batch + smaller scale).\n\n**Future**: combination of dynamic process simulation (Aspen, ProMax), advanced control (MPC), + improved engineering codes is enabling broader DWC deployment. Expect ~50% of new bulk-distillation projects to consider DWC by 2030.\n\n**Lesson**: process intensification benefits real but adoption requires aligned ecosystem — engineering training, codes, vendors, control technology, regulatory acceptance. Technology alone isn't sufficient."
+      },
+      "hints": [
+        "Why is it more complex to operate?",
+        "How does control change?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "DWC saves ~30% energy + capital but adoption barriers: (1) complex multivariable control (decoupled / MPC needed); (2) less robust to feed variability; (3) first-of-a-kind risk; (4) maintenance + access; (5) engineering codes + procedures designed for conventional. Growing in new plants (~25% of new ethylene crackers); slower for retrofits. Technology alone isn't sufficient — needs ecosystem alignment."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sustainability_1",
+        "kind": "math_expression",
+        "question": "Steam-methane reforming produces ~9 kg CO₂ per kg H₂. If a 100,000 t/yr H₂ plant offsets emissions by 90% with CCUS, what's the residual CO₂ emission in t/yr?",
+        "acceptedAnswers": [
+          "90000 t/yr",
+          "90,000",
+          "100000 * 9 * 0.1"
+        ],
+        "hint": "Total CO₂ = 100,000 t × 9 = 900,000 t. 10% residual = 90,000 t/yr."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sustainability_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain to a non-technical board why decarbonizing the chemical industry is much harder than decarbonizing electricity generation. What's qualitatively different?",
+        "rubric": "Mentions: chemical industry has no single 'electricity-like' solution. Electricity: replace coal with renewables (mature, scalable, ~5-10 years deployment per gigawatt). Chemicals: ~7% of CO₂ from many separate processes, each requiring different decarbonization. Categories: (1) energy use → electrification (limited by T < 400 °C) + green H₂; (2) feedstocks → bio-based or CO₂-derived (early-stage, expensive); (3) reaction-CO₂ (e.g., calcination in lime/cement; SMR for H₂) inherent to chemistry — can't electrify away; need CCUS or alternative chemistries. Lock-in: refineries last 50+ yr, replace gradually. Trade exposure: chemicals globally traded; high carbon prices in one region drive leakage. Cost: $2-4T cumulative investment to 2050. Conclusion: requires multiple parallel technology pathways (electrification + green H₂ + CCUS + circular + biological) + sustained policy, not a single solution. Realistic timeline 25-30 years for net-zero, expensive."
+      }
+    }
+  ]
+}
