@@ -30,115 +30,137 @@
     },
     {
       "kind": "question",
-      "kindHint": "guided_derivation",
-      "title": "Compute the Eddington luminosity of a 10⁸ M☉ SMBH",
-      "statement": "Find the upper-limit luminosity at which spherical accretion is self-regulated by radiation pressure.",
-      "steps": [
-        {
-          "prompt": "Radiation pressure on ionized hydrogen acts on free electrons (Thomson cross-section σ_T = 6.65×10⁻²⁹ m²) but gravity acts on the proton mass m_p (m_e ≪ m_p, charge neutrality + electrostatic coupling). Set rad-pressure force per ion = gravity force per ion.",
-          "answer": "L σ_T / (4π r² c) = G M m_p / r². Cancel r² ⇒ L_Edd = 4π G M m_p c / σ_T.",
-          "hint": "Equate radiation pressure force per electron to gravity force per proton."
-        },
-        {
-          "prompt": "Plug in M = 10⁸ M☉ = 2×10³⁸ kg. Use G = 6.67×10⁻¹¹, m_p = 1.67×10⁻²⁷ kg, c = 3×10⁸ m/s, σ_T = 6.65×10⁻²⁹ m².",
-          "answer": "Numerator: 4π × 6.67×10⁻¹¹ × 2×10³⁸ × 1.67×10⁻²⁷ × 3×10⁸ ≈ 8.39×10¹⁰ W·m². Divide by σ_T: L_Edd ≈ 1.26×10³⁹ W ≈ 1.26×10⁴⁶ erg/s.",
-          "hint": "Just plug in."
-        },
-        {
-          "prompt": "Use the shortcut L_Edd ≈ 1.3×10³¹ W × (M/M☉) and confirm.",
-          "answer": "1.3×10³¹ × 10⁸ = 1.3×10³⁹ W. Matches.",
-          "hint": "Verify the shortcut."
-        },
-        {
-          "prompt": "If this SMBH is observed at L = 10³⁹ W (just below Eddington), what's its mass accretion rate, assuming 10% radiative efficiency (typical thin disk)?",
-          "answer": "L = η Ṁ c². Ṁ = L/(η c²) = 10³⁹ / (0.1 × 9×10¹⁶) = 1.1×10²³ kg/s ≈ 1.8 M☉/yr. So at near-Eddington, a 10⁸ M☉ SMBH would gain ~10⁸ M☉ in ~10⁸ yr — i.e., e-fold mass on a timescale t_Salpeter = M/Ṁ ≈ 50 Myr. This sets a bound on early-universe SMBH growth: it's hard to grow 10⁹ M☉ BHs by z = 7 from stellar seeds without sustained super-Eddington phases or massive seeds.",
-          "hint": "L = η Ṁ c²; solve for Ṁ; convert to M☉/yr."
-        }
-      ]
+      "question": {
+        "id": "gd_high_energy_astrophysics_1",
+        "kind": "guided_derivation",
+        "question": "Compute the Eddington luminosity of a 10⁸ M☉ SMBH",
+        "goal": "Find the upper-limit luminosity at which spherical accretion is self-regulated by radiation pressure.",
+        "steps": [
+          {
+            "prompt": "Radiation pressure on ionized hydrogen acts on free electrons (Thomson cross-section σ_T = 6.65×10⁻²⁹ m²) but gravity acts on the proton mass m_p (m_e ≪ m_p, charge neutrality + electrostatic coupling). Set rad-pressure force per ion = gravity force per ion.",
+            "motivation": "Equate radiation pressure force per electron to gravity force per proton.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "L σ_T / (4π r² c) = G M m_p / r². Cancel r² ⇒ L_Edd = 4π G M m_p c / σ_T."
+              ]
+            },
+            "hints": [
+              "Equate radiation pressure force per electron to gravity force per proton."
+            ],
+            "reveal": "L σ_T / (4π r² c) = G M m_p / r². Cancel r² ⇒ L_Edd = 4π G M m_p c / σ_T."
+          },
+          {
+            "prompt": "Plug in M = 10⁸ M☉ = 2×10³⁸ kg. Use G = 6.67×10⁻¹¹, m_p = 1.67×10⁻²⁷ kg, c = 3×10⁸ m/s, σ_T = 6.65×10⁻²⁹ m².",
+            "motivation": "Just plug in.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Numerator: 4π × 6.67×10⁻¹¹ × 2×10³⁸ × 1.67×10⁻²⁷ × 3×10⁸ ≈ 8.39×10¹⁰ W·m². Divide by σ_T: L_Edd ≈ 1.26×10³⁹ W ≈ 1.26×10⁴⁶ erg/s."
+              ]
+            },
+            "hints": [
+              "Just plug in."
+            ],
+            "reveal": "Numerator: 4π × 6.67×10⁻¹¹ × 2×10³⁸ × 1.67×10⁻²⁷ × 3×10⁸ ≈ 8.39×10¹⁰ W·m². Divide by σ_T: L_Edd ≈ 1.26×10³⁹ W ≈ 1.26×10⁴⁶ erg/s."
+          },
+          {
+            "prompt": "Use the shortcut L_Edd ≈ 1.3×10³¹ W × (M/M☉) and confirm.",
+            "motivation": "Verify the shortcut.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1.3×10³¹ × 10⁸ = 1.3×10³⁹ W. Matches."
+              ]
+            },
+            "hints": [
+              "Verify the shortcut."
+            ],
+            "reveal": "1.3×10³¹ × 10⁸ = 1.3×10³⁹ W. Matches."
+          },
+          {
+            "prompt": "If this SMBH is observed at L = 10³⁹ W (just below Eddington), what's its mass accretion rate, assuming 10% radiative efficiency (typical thin disk)?",
+            "motivation": "L = η Ṁ c²; solve for Ṁ; convert to M☉/yr.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "L = η Ṁ c². Ṁ = L/(η c²) = 10³⁹ / (0.1 × 9×10¹⁶) = 1.1×10²³ kg/s ≈ 1.8 M☉/yr. So at near-Eddington, a 10⁸ M☉ SMBH would gain ~10⁸ M☉ in ~10⁸ yr — i.e., e-fold mass on a timescale t_Salpeter = M/Ṁ ≈ 50 Myr. This sets a bound on early-universe SMBH growth: it's hard to grow 10⁹ M☉ BHs by z = 7 from stellar seeds without sustained super-Eddington phases or massive seeds."
+              ]
+            },
+            "hints": [
+              "L = η Ṁ c²; solve for Ṁ; convert to M☉/yr."
+            ],
+            "reveal": "L = η Ṁ c². Ṁ = L/(η c²) = 10³⁹ / (0.1 × 9×10¹⁶) = 1.1×10²³ kg/s ≈ 1.8 M☉/yr. So at near-Eddington, a 10⁸ M☉ SMBH would gain ~10⁸ M☉ in ~10⁸ yr — i.e., e-fold mass on a timescale t_Salpeter = M/Ṁ ≈ 50 Myr. This sets a bound on early-universe SMBH growth: it's hard to grow 10⁹ M☉ BHs by z = 7 from stellar seeds without sustained super-Eddington phases or massive seeds."
+          }
+        ]
+      }
     },
     {
       "kind": "question",
-      "kindHint": "multiple_choice",
-      "prompt": "Why is the existence of ~10⁹ M☉ supermassive black holes at z > 7 (universe age ~700 Myr) a puzzle?",
-      "choices": [
-        {
-          "label": "They violate special relativity by growing faster than light.",
-          "isCorrect": false,
-          "rationale": "Mass growth is just accretion + mergers — no relativistic limit on growth rate beyond Eddington."
-        },
-        {
-          "label": "Even at the Eddington rate, growing from a typical stellar-mass seed (~100 M☉) to 10⁹ M☉ requires ~30 e-foldings × 50 Myr each = ~1.5 Gyr — longer than the available time from BH formation at z ~ 20.",
-          "isCorrect": true,
-          "rationale": "Correct. ln(10⁹/100) = ln(10⁷) ≈ 16 e-foldings, × t_Salpeter (50 Myr) ≈ 800 Myr. Available time from a stellar BH at z ~ 20 to observation at z ~ 7 is ~500-700 Myr. Tight — requires near-continuous Eddington accretion, which is hard to sustain. Hence proposals for: (a) heavy seeds (10³ - 10⁵ M☉) from direct-collapse BHs in early atomic-cooling halos; (b) brief super-Eddington phases via slim disks; (c) Population III BH remnants up to ~10³ M☉. JWST high-z AGN observations are tightening constraints + finding many SMBHs at z > 5, intensifying the puzzle."
-        },
-        {
-          "label": "The CMB photons would Hawking-radiate them away.",
-          "isCorrect": false,
-          "rationale": "Hawking timescales for SMBHs are >> Hubble time. CMB photons would *grow* the BH (slowly) via absorption, not shrink it."
-        },
-        {
-          "label": "Their event horizons exceed the size of the observable universe at z = 7.",
-          "isCorrect": false,
-          "rationale": "Wildly false — Schwarzschild radius of 10⁹ M☉ BH is ~10⁻³ pc; observable universe at z = 7 is several Gpc. Not even close."
-        }
+      "question": {
+        "id": "mc_high_energy_astrophysics_2",
+        "kind": "multiple_choice",
+        "question": "Why is the existence of ~10⁹ M☉ supermassive black holes at z > 7 (universe age ~700 Myr) a puzzle?",
+        "options": [
+          "They violate special relativity by growing faster than light.",
+          "Even at the Eddington rate, growing from a typical stellar-mass seed (~100 M☉) to 10⁹ M☉ requires ~30 e-foldings × 50 Myr each = ~1.5 Gyr — longer than the available time from BH formation at z ~ 20.",
+          "The CMB photons would Hawking-radiate them away.",
+          "Their event horizons exceed the size of the observable universe at z = 7."
+        ],
+        "correctIndex": 1,
+        "explanation": "Correct. ln(10⁹/100) = ln(10⁷) ≈ 16 e-foldings, × t_Salpeter (50 Myr) ≈ 800 Myr. Available time from a stellar BH at z ~ 20 to observation at z ~ 7 is ~500-700 Myr. Tight — requires near-continuous Eddington accretion, which is hard to sustain. Hence proposals for: (a) heavy seeds (10³ - 10⁵ M☉) from direct-collapse BHs in early atomic-cooling halos; (b) brief super-Eddington phases via slim disks; (c) Population III BH remnants up to ~10³ M☉. JWST high-z AGN observations are tightening constraints + finding many SMBHs at z > 5, intensifying the puzzle.\n\nOther options: They violate special relativity by growing faster than light: Mass growth is just accretion + mergers — no relativistic limit on growth rate beyond Eddington. | The CMB photons would Hawking-radiate them away.: Hawking timescales for SMBHs are >> Hubble time. CMB photons would *grow* the BH (slowly) via absorption, not shrink it. | Their event horizons exceed the size of the observable unive: Wildly false — Schwarzschild radius of 10⁹ M☉ BH is ~10⁻³ pc; observable universe at z = 7 is several Gpc. Not even close."
+      },
+      "hints": [
+        "Compute the Salpeter e-folding time and how many e-folds are needed."
       ],
-      "hint": "Compute the Salpeter e-folding time and how many e-folds are needed.",
+      "retryUntilCorrect": true,
       "workedSolution": "t_Salpeter = M / Ṁ_Edd = ε c² / (4π G m_p / σ_T) × (1−ε)/ε ≈ 50 Myr (for ε = 0.1). To go from M_seed = 100 M☉ to 10⁹ M☉: e-folds = ln(10⁷) ≈ 16. Time ≈ 16 × 50 = 800 Myr — exceeds the universe age at z = 7 (~700 Myr) even *if* the BH accreted continuously at Eddington from t = 0. Real BHs accrete in bursts + intervals of quiescence, making the puzzle worse. JWST has now found AGN candidates at z = 10-11 with implied M_BH ~ 10⁶-10⁸ M☉ — pushing the problem further into the early universe."
     },
     {
       "kind": "question",
-      "kindHint": "scenario",
-      "prompt": "An ultra-high-energy cosmic ray with E = 10²⁰ eV is detected at Earth. From which sources can it have originated?",
-      "choices": [
-        {
-          "label": "From anywhere within the visible universe; cosmic rays travel ~freely.",
-          "isCorrect": false,
-          "rationale": "Wrong — protons above ~5×10¹⁹ eV scatter off CMB photons (GZK process). Mean free path ~ 50 Mpc."
-        },
-        {
-          "label": "Only from sources within ~100 Mpc; the GZK cutoff suppresses higher-distance contributions.",
-          "isCorrect": true,
-          "rationale": "Correct. p + γ_CMB → Δ⁺ → n + π⁺ has a cross-section that gives ~50 Mpc mean free path at 10²⁰ eV. Each interaction strips ~20% of the proton's energy. After ~3 mean free paths the proton is below threshold. So 10²⁰ eV protons we see were accelerated within ~100 Mpc. Plausible sources: Cen A (3.5 Mpc, nearest AGN), M87 / Virgo Cluster (16 Mpc), starburst galaxies (M82, NGC 253). Auger has detected weak (~3σ) correlations between UHECR arrival directions + Cen A's general direction."
-        },
-        {
-          "label": "From beyond the GZK horizon — they're heavy nuclei that don't interact with CMB photons.",
-          "isCorrect": false,
-          "rationale": "Heavy nuclei (Fe, etc.) interact with CMB *photons* via photodisintegration at similar energies — there's a 'photonuclear horizon' that's also ~50-100 Mpc. The cutoff isn't avoided by switching to nuclei."
-        },
-        {
-          "label": "From the cosmic web at z > 6 — they're old relic particles.",
-          "isCorrect": false,
-          "rationale": "GZK doesn't make exceptions for early-universe cosmic rays. Anything from z > 6 (distance >> 50 Mpc) is suppressed."
-        }
+      "question": {
+        "id": "scn_high_energy_astrophysics_3",
+        "kind": "multiple_choice",
+        "question": "An ultra-high-energy cosmic ray with E = 10²⁰ eV is detected at Earth. From which sources can it have originated?",
+        "options": [
+          "From anywhere within the visible universe; cosmic rays travel ~freely.",
+          "Only from sources within ~100 Mpc; the GZK cutoff suppresses higher-distance contributions.",
+          "From beyond the GZK horizon — they're heavy nuclei that don't interact with CMB photons.",
+          "From the cosmic web at z > 6 — they're old relic particles."
+        ],
+        "correctIndex": 1,
+        "explanation": "Correct. p + γ_CMB → Δ⁺ → n + π⁺ has a cross-section that gives ~50 Mpc mean free path at 10²⁰ eV. Each interaction strips ~20% of the proton's energy. After ~3 mean free paths the proton is below threshold. So 10²⁰ eV protons we see were accelerated within ~100 Mpc. Plausible sources: Cen A (3.5 Mpc, nearest AGN), M87 / Virgo Cluster (16 Mpc), starburst galaxies (M82, NGC 253). Auger has detected weak (~3σ) correlations between UHECR arrival directions + Cen A's general direction.\n\nOther options: From anywhere within the visible universe; cosmic rays trave: Wrong — protons above ~5×10¹⁹ eV scatter off CMB photons (GZK process). Mean free path ~ 50 Mpc. | From beyond the GZK horizon — they're heavy nuclei that don': Heavy nuclei (Fe, etc.) interact with CMB *photons* via photodisintegration at similar energies — there's a 'photonuclear horizon' that's also ~50-100 Mpc. The cutoff isn't avoided by switching to nuclei. | From the cosmic web at z > 6 — they're old relic particles.: GZK doesn't make exceptions for early-universe cosmic rays. Anything from z > 6 (distance >> 50 Mpc) is suppressed."
+      },
+      "hints": [
+        "Look up the GZK process and its mean free path."
       ],
-      "hint": "Look up the GZK process and its mean free path.",
+      "retryUntilCorrect": true,
       "workedSolution": "Greisen-Zatsepin-Kuzmin (independently 1966) showed that p + γ_CMB → π + N has σ ~ 10⁻²⁸ cm² near the Δ⁺ resonance, with photon energy in the proton's rest frame at threshold ~150 MeV. For CMB at T = 2.725 K (k_B T = 2.3×10⁻⁴ eV typical), this requires E_p γ_p > 6×10¹⁹ eV — i.e., E_p > 5-6×10¹⁹ eV in the lab frame. Mean free path λ ~ 50 Mpc. So 10²⁰ eV protons have a horizon ~50-100 Mpc; sources beyond are exponentially suppressed. This is one of the most robust predictions in modern astrophysics + Auger / Telescope Array confirm the cutoff at the expected energy."
     },
     {
       "kind": "question",
-      "kindHint": "math_expression",
-      "prompt": "Compute the Eddington luminosity for the Sgr A* SMBH (M = 4.15×10⁶ M☉) in erg/s.",
-      "acceptedAnswers": [
-        "5.4e44",
-        "5.39e44",
-        "5e44",
-        "5.4e+44"
-      ],
-      "tolerance": 0.1,
-      "hint": "Use L_Edd ≈ 1.3×10³⁸ erg/s × (M/M☉).",
+      "question": {
+        "id": "math_high_energy_astrophysics_4",
+        "kind": "math_expression",
+        "question": "Compute the Eddington luminosity for the Sgr A* SMBH (M = 4.15×10⁶ M☉) in erg/s.",
+        "acceptedAnswers": [
+          "5.4e44",
+          "5.39e44",
+          "5e44",
+          "5.4e+44"
+        ],
+        "hint": "Use L_Edd ≈ 1.3×10³⁸ erg/s × (M/M☉)."
+      },
       "workedSolution": "L_Edd = 1.3×10³⁸ × 4.15×10⁶ ≈ 5.4×10⁴⁴ erg/s. Sgr A*'s observed bolometric luminosity is ~10³⁶ erg/s — eight orders of magnitude below Eddington. It's a *quiescent* AGN; the BH is currently accreting at extremely low rates (radiatively inefficient flow). Most SMBHs spend most of their lifetimes in this low state, with brief quasar-bright accretion episodes likely fueled by mergers."
     },
     {
       "kind": "explain_back",
-      "prompt": "In ≤120 words, explain why the Auger Observatory + Telescope Array, despite covering thousands of km², have struggled to pinpoint individual UHECR sources.",
-      "rubric": [
-        "Galactic + intergalactic magnetic fields deflect charged cosmic rays even at 10²⁰ eV (deflection ~ Z·μGauss × kpc).",
-        "Heavy nuclei (Z = 26 for Fe) deflect Z² more than protons — current evidence suggests UHECR composition shifts toward heavier at higher energies.",
-        "Even straight-line backtracking would only correlate within ~10° angular bin, encompassing ~10⁴ galaxies in the GZK horizon.",
-        "GZK horizon limits sources to within ~100 Mpc, narrowing the search to nearby AGN, starburst galaxies, neutron-star mergers — but each direction still has many candidates.",
-        "Statistical correlations exist (~3σ) but no smoking-gun individual source identification.",
-        "Need next-generation experiments (Auger Prime, GRAND) with better mass + angle resolution to break the degeneracy."
-      ]
+      "question": {
+        "id": "eb_high_energy_astrophysics_5",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why the Auger Observatory + Telescope Array, despite covering thousands of km², have struggled to pinpoint individual UHECR sources.",
+        "rubric": "Galactic + intergalactic magnetic fields deflect charged cosmic rays even at 10²⁰ eV (deflection ~ Z·μGauss × kpc). Heavy nuclei (Z = 26 for Fe) deflect Z² more than protons — current evidence suggests UHECR composition shifts toward heavier at higher energies. Even straight-line backtracking would only correlate within ~10° angular bin, encompassing ~10⁴ galaxies in the GZK horizon. GZK horizon limits sources to within ~100 Mpc, narrowing the search to nearby AGN, starburst galaxies, neutron-star mergers — but each direction still has many candidates. Statistical correlations exist (~3σ) but no smoking-gun individual source identification. Need next-generation experiments (Auger Prime, GRAND) with better mass + angle resolution to break the degeneracy."
+      }
     }
   ]
 }

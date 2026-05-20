@@ -33,117 +33,138 @@
     },
     {
       "kind": "question",
-      "kindHint": "guided_derivation",
-      "title": "Predict the lifetime of Sirius A",
-      "statement": "Sirius A is a main-sequence A1V star with mass ≈ 2.06 M☉ and luminosity ≈ 25 L☉. Estimate its MS lifetime and compare to the Sun.",
-      "steps": [
-        {
-          "prompt": "Use t_MS = 10 Gyr × (M/L) (in solar units) — the same energy budget but adjusted for luminosity. What's the value?",
-          "answer": "t_MS = 10 × (2.06 / 25) ≈ 10 × 0.0824 ≈ 0.82 Gyr ≈ 820 Myr.",
-          "hint": "More fuel ⇒ longer life, but burning faster ⇒ shorter — M/L is the ratio."
-        },
-        {
-          "prompt": "Use the simpler t_MS ~ M^−2.5 scaling. Does it agree?",
-          "answer": "t_MS ≈ 10 Gyr × (2.06)^(−2.5) ≈ 10 × 0.165 ≈ 1.65 Gyr. Roughly within factor 2 of the M/L estimate. The discrepancy reflects that the L-M relation isn't a perfect M^3.5 (it's shallower for A-type stars).",
-          "hint": "Plug M = 2.06 into M^−2.5."
-        },
-        {
-          "prompt": "Sirius is ~250 Myr old. Roughly what fraction of its MS lifetime has elapsed?",
-          "answer": "Using t_MS ≈ 1 Gyr (geometric mean of the two estimates): about 25-30%. So Sirius A is comfortably middle-aged on the MS.",
-          "hint": "Divide age by lifetime."
-        },
-        {
-          "prompt": "Sirius B is a white dwarf companion to Sirius A. What does this tell us about Sirius B's initial mass?",
-          "answer": "Sirius B has already finished its MS life — so its progenitor was more massive than Sirius A (more massive ⇒ shorter life). Estimates put the progenitor at ~5 M☉. Stellar evolution explains why the more massive star is now a corpse while the less massive star is still on the MS.",
-          "hint": "The white dwarf is older — what was its progenitor mass?"
-        }
-      ]
+      "question": {
+        "id": "gd_hr_diagram_stellar_evolution_1",
+        "kind": "guided_derivation",
+        "question": "Predict the lifetime of Sirius A",
+        "goal": "Sirius A is a main-sequence A1V star with mass ≈ 2.06 M☉ and luminosity ≈ 25 L☉. Estimate its MS lifetime and compare to the Sun.",
+        "steps": [
+          {
+            "prompt": "Use t_MS = 10 Gyr × (M/L) (in solar units) — the same energy budget but adjusted for luminosity. What's the value?",
+            "motivation": "More fuel ⇒ longer life, but burning faster ⇒ shorter — M/L is the ratio.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "t_MS = 10 × (2.06 / 25) ≈ 10 × 0.0824 ≈ 0.82 Gyr ≈ 820 Myr."
+              ]
+            },
+            "hints": [
+              "More fuel ⇒ longer life, but burning faster ⇒ shorter — M/L is the ratio."
+            ],
+            "reveal": "t_MS = 10 × (2.06 / 25) ≈ 10 × 0.0824 ≈ 0.82 Gyr ≈ 820 Myr."
+          },
+          {
+            "prompt": "Use the simpler t_MS ~ M^−2.5 scaling. Does it agree?",
+            "motivation": "Plug M = 2.06 into M^−2.5.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "t_MS ≈ 10 Gyr × (2.06)^(−2.5) ≈ 10 × 0.165 ≈ 1.65 Gyr. Roughly within factor 2 of the M/L estimate. The discrepancy reflects that the L-M relation isn't a perfect M^3.5 (it's shallower for A-type stars)."
+              ]
+            },
+            "hints": [
+              "Plug M = 2.06 into M^−2.5."
+            ],
+            "reveal": "t_MS ≈ 10 Gyr × (2.06)^(−2.5) ≈ 10 × 0.165 ≈ 1.65 Gyr. Roughly within factor 2 of the M/L estimate. The discrepancy reflects that the L-M relation isn't a perfect M^3.5 (it's shallower for A-type stars)."
+          },
+          {
+            "prompt": "Sirius is ~250 Myr old. Roughly what fraction of its MS lifetime has elapsed?",
+            "motivation": "Divide age by lifetime.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Using t_MS ≈ 1 Gyr (geometric mean of the two estimates): about 25-30%. So Sirius A is comfortably middle-aged on the MS."
+              ]
+            },
+            "hints": [
+              "Divide age by lifetime."
+            ],
+            "reveal": "Using t_MS ≈ 1 Gyr (geometric mean of the two estimates): about 25-30%. So Sirius A is comfortably middle-aged on the MS."
+          },
+          {
+            "prompt": "Sirius B is a white dwarf companion to Sirius A. What does this tell us about Sirius B's initial mass?",
+            "motivation": "The white dwarf is older — what was its progenitor mass?",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Sirius B has already finished its MS life — so its progenitor was more massive than Sirius A (more massive ⇒ shorter life). Estimates put the progenitor at ~5 M☉. Stellar evolution explains why the more massive star is now a corpse while the less massive star is still on the MS."
+              ]
+            },
+            "hints": [
+              "The white dwarf is older — what was its progenitor mass?"
+            ],
+            "reveal": "Sirius B has already finished its MS life — so its progenitor was more massive than Sirius A (more massive ⇒ shorter life). Estimates put the progenitor at ~5 M☉. Stellar evolution explains why the more massive star is now a corpse while the less massive star is still on the MS."
+          }
+        ]
+      }
     },
     {
       "kind": "question",
-      "kindHint": "multiple_choice",
-      "prompt": "Why do most stars in a globular cluster sit on the lower main sequence and the red-giant branch, with no upper-main-sequence stars?",
-      "choices": [
-        {
-          "label": "Globular clusters preferentially form low-mass stars (IMF is bottom-heavy).",
-          "isCorrect": false,
-          "rationale": "The IMF (initial mass function, Salpeter dN/dM ∝ M^−2.35) is similar across environments. The reason isn't formation — it's evolution."
-        },
-        {
-          "label": "Massive stars in globular clusters have already evolved off the MS and become white dwarfs / neutron stars / black holes.",
-          "isCorrect": true,
-          "rationale": "Correct. Globular clusters are ~12 Gyr old. Any star with t_MS < 12 Gyr (i.e., M > ~0.9 M☉) has finished its main-sequence life and moved on. What you see is everything with M ≤ 0.9 M☉ still on the MS, plus the red-giant remnants of slightly more massive stars currently in their (much shorter) post-MS phases."
-        },
-        {
-          "label": "Massive stars have been ejected by dynamical interactions in the dense cluster core.",
-          "isCorrect": false,
-          "rationale": "Mass segregation in dense clusters tends to sink (not eject) massive stars to the center. Some ejection happens, but it doesn't explain the systematic absence of upper-MS stars."
-        },
-        {
-          "label": "Globular cluster stars are too metal-poor to support CNO burning, so massive stars can't form.",
-          "isCorrect": false,
-          "rationale": "Low metallicity affects opacity + the upper IMF slightly, but Population II stars routinely form massive stars (now observed in earliest-universe galaxies). The 'missing' upper-MS in modern observations is purely an age effect."
-        }
+      "question": {
+        "id": "mc_hr_diagram_stellar_evolution_2",
+        "kind": "multiple_choice",
+        "question": "Why do most stars in a globular cluster sit on the lower main sequence and the red-giant branch, with no upper-main-sequence stars?",
+        "options": [
+          "Globular clusters preferentially form low-mass stars (IMF is bottom-heavy).",
+          "Massive stars in globular clusters have already evolved off the MS and become white dwarfs / neutron stars / black holes.",
+          "Massive stars have been ejected by dynamical interactions in the dense cluster core.",
+          "Globular cluster stars are too metal-poor to support CNO burning, so massive stars can't form."
+        ],
+        "correctIndex": 1,
+        "explanation": "Correct. Globular clusters are ~12 Gyr old. Any star with t_MS < 12 Gyr (i.e., M > ~0.9 M☉) has finished its main-sequence life and moved on. What you see is everything with M ≤ 0.9 M☉ still on the MS, plus the red-giant remnants of slightly more massive stars currently in their (much shorter) post-MS phases.\n\nOther options: Globular clusters preferentially form low-mass stars (IMF is: The IMF (initial mass function, Salpeter dN/dM ∝ M^−2.35) is similar across environments. The reason isn't formation — it's evolution. | Massive stars have been ejected by dynamical interactions in: Mass segregation in dense clusters tends to sink (not eject) massive stars to the center. Some ejection happens, but it doesn't explain the systematic absence of upper-MS stars. | Globular cluster stars are too metal-poor to support CNO bur: Low metallicity affects opacity + the upper IMF slightly, but Population II stars routinely form massive stars (now observed in earliest-universe galaxies). The 'missing' upper-MS in modern observations is purely an age effect."
+      },
+      "hints": [
+        "Globular clusters are old. Use t_MS ~ M^−2.5 to find the turnoff mass."
       ],
-      "hint": "Globular clusters are old. Use t_MS ~ M^−2.5 to find the turnoff mass.",
+      "retryUntilCorrect": true,
       "workedSolution": "For t_MS = 12 Gyr: M = (10/12)^(1/2.5) ≈ 0.93 M☉. So everything more massive than 0.93 M☉ has already left the MS, and the cluster's HR diagram shows a sharp **turnoff** at that mass. The turnoff luminosity is a clock — older cluster ⇒ lower turnoff. This is how globular-cluster ages were derived before Gaia parallaxes."
     },
     {
       "kind": "question",
-      "kindHint": "scenario",
-      "prompt": "You observe a star with T_eff = 4000 K and L = 200 L☉. Use the HR diagram to identify it.",
-      "choices": [
-        {
-          "label": "Main-sequence K dwarf.",
-          "isCorrect": false,
-          "rationale": "K dwarfs are bottom-right of the MS — cool but faint (L ≈ 0.1 - 0.5 L☉). 200 L☉ is two orders of magnitude too bright."
-        },
-        {
-          "label": "Red giant.",
-          "isCorrect": true,
-          "rationale": "Yes. T_eff = 4000 K is cool, and L = 200 L☉ is 200× solar — this is the upper red-giant branch (RGB) or asymptotic giant branch (AGB) of a Sun-like (~1-2 M☉) star that has finished core H-burning. Typical examples: Aldebaran (Tau Tauri), Arcturus."
-        },
-        {
-          "label": "Red supergiant.",
-          "isCorrect": false,
-          "rationale": "Supergiants are far brighter (L > 10⁴ L☉) — Betelgeuse is ~10⁵ L☉. 200 L☉ is too modest for a supergiant."
-        },
-        {
-          "label": "White dwarf.",
-          "isCorrect": false,
-          "rationale": "White dwarfs have L < 0.1 L☉ and live in the bottom-left (cooler ones drift right as they age). They're certainly not at 200 L☉."
-        }
+      "question": {
+        "id": "scn_hr_diagram_stellar_evolution_3",
+        "kind": "multiple_choice",
+        "question": "You observe a star with T_eff = 4000 K and L = 200 L☉. Use the HR diagram to identify it.",
+        "options": [
+          "Main-sequence K dwarf.",
+          "Red giant.",
+          "Red supergiant.",
+          "White dwarf."
+        ],
+        "correctIndex": 1,
+        "explanation": "Yes. T_eff = 4000 K is cool, and L = 200 L☉ is 200× solar — this is the upper red-giant branch (RGB) or asymptotic giant branch (AGB) of a Sun-like (~1-2 M☉) star that has finished core H-burning. Typical examples: Aldebaran (Tau Tauri), Arcturus.\n\nOther options: Main-sequence K dwarf.: K dwarfs are bottom-right of the MS — cool but faint (L ≈ 0.1 - 0.5 L☉). 200 L☉ is two orders of magnitude too bright. | Red supergiant.: Supergiants are far brighter (L > 10⁴ L☉) — Betelgeuse is ~10⁵ L☉. 200 L☉ is too modest for a supergiant. | White dwarf.: White dwarfs have L < 0.1 L☉ and live in the bottom-left (cooler ones drift right as they age). They're certainly not at 200 L☉."
+      },
+      "hints": [
+        "Place (T_eff, L) on the diagram and check which region matches."
       ],
-      "hint": "Place (T_eff, L) on the diagram and check which region matches.",
+      "retryUntilCorrect": true,
       "workedSolution": "T_eff = 4000 K plots near the M/K boundary (right side of HR diagram). L = 200 L☉ ⇒ log L ≈ 2.3 ⇒ that's well above the main sequence (where a K star would be ~0.2 L☉). The point lands squarely in the red giant region. Approximate radius: R/R☉ = √(L/L☉)·(T☉/T)² ≈ √200 × (5780/4000)² ≈ 14 × 2.1 ≈ 30 R☉ — a typical red giant."
     },
     {
       "kind": "question",
-      "kindHint": "math_expression",
-      "prompt": "A 5 M☉ main-sequence star has approximately what MS lifetime in Myr? Use t_MS ≈ 10 Gyr × M^−2.5 (M in solar units).",
-      "acceptedAnswers": [
-        "180",
-        "179",
-        "200",
-        "178.9",
-        "179.0"
-      ],
-      "tolerance": 0.15,
-      "hint": "Compute 10000 × 5^−2.5.",
+      "question": {
+        "id": "math_hr_diagram_stellar_evolution_4",
+        "kind": "math_expression",
+        "question": "A 5 M☉ main-sequence star has approximately what MS lifetime in Myr? Use t_MS ≈ 10 Gyr × M^−2.5 (M in solar units).",
+        "acceptedAnswers": [
+          "180",
+          "179",
+          "200",
+          "178.9",
+          "179.0"
+        ],
+        "hint": "Compute 10000 × 5^−2.5."
+      },
       "workedSolution": "5^2.5 = 5²·√5 = 25·2.236 ≈ 55.9. So t_MS = 10000 / 55.9 ≈ 179 Myr. A 5-M☉ B-type star lives ~180 Myr — short enough that the OB associations we see in spiral arms are kinematic snapshots of recent star formation, not steady states."
     },
     {
       "kind": "explain_back",
-      "prompt": "Explain in ≤120 words why the HR diagram is the single most important plot in astronomy — what does each axis encode, and what physics can you extract from a single point?",
-      "rubric": [
-        "X-axis: T_eff (or color, or spectral type) ⇒ surface temperature ⇒ peak Wien wavelength, ionization state, dominant absorption lines.",
-        "Y-axis: luminosity (often absolute magnitude) ⇒ total power output.",
-        "From L + T_eff: R via Stefan-Boltzmann L = 4πR²σT⁴ ⇒ stellar radius without resolving the disk.",
-        "From the MS location: stellar mass via empirical L-M relation ⇒ then t_MS via M^-2.5.",
-        "From cluster turnoff: cluster age.",
-        "From post-MS branch position: evolutionary phase (RGB, HB, AGB).",
-        "In one plot: temperature, luminosity, radius, mass, age, evolutionary phase. No other single diagnostic combines that much physics."
-      ]
+      "question": {
+        "id": "eb_hr_diagram_stellar_evolution_5",
+        "kind": "explain_back",
+        "prompt": "Explain in ≤120 words why the HR diagram is the single most important plot in astronomy — what does each axis encode, and what physics can you extract from a single point?",
+        "rubric": "X-axis: T_eff (or color, or spectral type) ⇒ surface temperature ⇒ peak Wien wavelength, ionization state, dominant absorption lines. Y-axis: luminosity (often absolute magnitude) ⇒ total power output. From L + T_eff: R via Stefan-Boltzmann L = 4πR²σT⁴ ⇒ stellar radius without resolving the disk. From the MS location: stellar mass via empirical L-M relation ⇒ then t_MS via M^-2.5. From cluster turnoff: cluster age. From post-MS branch position: evolutionary phase (RGB, HB, AGB). In one plot: temperature, luminosity, radius, mass, age, evolutionary phase. No other single diagnostic combines that much physics."
+      }
     }
   ]
 }

@@ -29,116 +29,138 @@
     },
     {
       "kind": "question",
-      "kindHint": "guided_derivation",
-      "title": "Derive ρ(r) from a flat rotation curve",
-      "statement": "Observed: v(r) ≈ v_0 = const beyond a few kpc. Find the implied DM density profile.",
-      "steps": [
-        {
-          "prompt": "For circular orbits, what's the relation between v(r), r, and the enclosed mass M(r)?",
-          "answer": "v² = G M(r) / r ⇒ M(r) = v² r / G.",
-          "hint": "Centripetal acceleration = gravitational attraction."
-        },
-        {
-          "prompt": "If v = v_0 (constant), what's M(r) as a function of r?",
-          "answer": "M(r) = v_0² r / G — mass grows linearly with radius.",
-          "hint": "Constant v means M(r) ∝ r."
-        },
-        {
-          "prompt": "Convert M(r) to ρ(r). (For a spherical halo, M(r) = ∫₀ʳ 4πr'²ρ(r')dr'.)",
-          "answer": "dM/dr = 4πr²ρ(r). With M(r) = v_0² r / G: dM/dr = v_0² / G ⇒ ρ(r) = v_0² / (4π G r²) ∝ 1/r².",
-          "hint": "Differentiate the integral expression."
-        },
-        {
-          "prompt": "What's wrong with the 1/r² law at r=0 and at r→∞?",
-          "answer": "At r=0: ρ → ∞ (singular). At r→∞: total mass M(r) = v_0² r / G is unbounded. Both unphysical. Real halos are well-fit by NFW (Navarro-Frenk-White): ρ(r) ∝ 1/[r(r+r_s)²] — finite total mass, soft core. The flat-rotation profile only holds in an intermediate range; outside the virial radius it falls off.",
-          "hint": "Check the limits."
-        }
-      ]
+      "question": {
+        "id": "gd_galaxies_and_dark_matter_1",
+        "kind": "guided_derivation",
+        "question": "Derive ρ(r) from a flat rotation curve",
+        "goal": "Observed: v(r) ≈ v_0 = const beyond a few kpc. Find the implied DM density profile.",
+        "steps": [
+          {
+            "prompt": "For circular orbits, what's the relation between v(r), r, and the enclosed mass M(r)?",
+            "motivation": "Centripetal acceleration = gravitational attraction.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "v² = G M(r) / r ⇒ M(r) = v² r / G."
+              ]
+            },
+            "hints": [
+              "Centripetal acceleration = gravitational attraction."
+            ],
+            "reveal": "v² = G M(r) / r ⇒ M(r) = v² r / G."
+          },
+          {
+            "prompt": "If v = v_0 (constant), what's M(r) as a function of r?",
+            "motivation": "Constant v means M(r) ∝ r.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "M(r) = v_0² r / G — mass grows linearly with radius."
+              ]
+            },
+            "hints": [
+              "Constant v means M(r) ∝ r."
+            ],
+            "reveal": "M(r) = v_0² r / G — mass grows linearly with radius."
+          },
+          {
+            "prompt": "Convert M(r) to ρ(r). (For a spherical halo, M(r) = ∫₀ʳ 4πr'²ρ(r')dr'.)",
+            "motivation": "Differentiate the integral expression.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "dM/dr = 4πr²ρ(r). With M(r) = v_0² r / G: dM/dr = v_0² / G ⇒ ρ(r) = v_0² / (4π G r²) ∝ 1/r²."
+              ]
+            },
+            "hints": [
+              "Differentiate the integral expression."
+            ],
+            "reveal": "dM/dr = 4πr²ρ(r). With M(r) = v_0² r / G: dM/dr = v_0² / G ⇒ ρ(r) = v_0² / (4π G r²) ∝ 1/r²."
+          },
+          {
+            "prompt": "What's wrong with the 1/r² law at r=0 and at r→∞?",
+            "motivation": "Check the limits.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "At r=0: ρ → ∞ (singular). At r→∞: total mass M(r) = v_0² r / G is unbounded. Both unphysical. Real halos are well-fit by NFW (Navarro-Frenk-White): ρ(r) ∝ 1/[r(r+r_s)²] — finite total mass, soft core. The flat-rotation profile only holds in an intermediate range; outside the virial radius it falls off."
+              ]
+            },
+            "hints": [
+              "Check the limits."
+            ],
+            "reveal": "At r=0: ρ → ∞ (singular). At r→∞: total mass M(r) = v_0² r / G is unbounded. Both unphysical. Real halos are well-fit by NFW (Navarro-Frenk-White): ρ(r) ∝ 1/[r(r+r_s)²] — finite total mass, soft core. The flat-rotation profile only holds in an intermediate range; outside the virial radius it falls off."
+          }
+        ]
+      }
     },
     {
       "kind": "question",
-      "kindHint": "multiple_choice",
-      "prompt": "Why does MOND (modified Newtonian dynamics) reproduce flat rotation curves without dark matter, but is generally disfavored by the broader astrophysical evidence?",
-      "choices": [
-        {
-          "label": "MOND requires modifying general relativity at all scales, which violates Solar System tests.",
-          "isCorrect": false,
-          "rationale": "MOND only kicks in at very low accelerations (a < a_0 ~ 1.2×10⁻¹⁰ m/s²). Solar System accelerations are far above a_0 — Solar System tests don't constrain it."
-        },
-        {
-          "label": "MOND fits galactic rotation curves but cannot simultaneously explain the bullet cluster's offset between mass and visible matter, CMB acoustic peaks, and large-scale structure growth.",
-          "isCorrect": true,
-          "rationale": "Correct. MOND was designed to fit rotation curves and does so beautifully. But (1) the **Bullet Cluster** shows a gravitational lensing signal offset from the gas (visible matter) by 100 kpc — the lensing mass moved with the dark matter, not the gas. (2) **CMB acoustic peaks** are well-fit by ΛCDM but require ~5× more mass than baryons to explain peak heights. (3) **Structure formation** in MOND universes doesn't produce the observed cosmic web. Each could be patched with additional ingredients, but cumulatively MOND requires too many extras."
-        },
-        {
-          "label": "MOND is mathematically inconsistent with Newton's third law.",
-          "isCorrect": false,
-          "rationale": "MOND has consistent relativistic extensions (TeVeS, AeST). Inconsistency isn't the issue."
-        },
-        {
-          "label": "MOND predicts no dark matter, but the LHC has directly detected WIMPs ruling MOND out.",
-          "isCorrect": false,
-          "rationale": "The LHC has *not* directly detected DM particles. The argument against MOND comes from astronomy + cosmology, not particle physics."
-        }
+      "question": {
+        "id": "mc_galaxies_and_dark_matter_2",
+        "kind": "multiple_choice",
+        "question": "Why does MOND (modified Newtonian dynamics) reproduce flat rotation curves without dark matter, but is generally disfavored by the broader astrophysical evidence?",
+        "options": [
+          "MOND requires modifying general relativity at all scales, which violates Solar System tests.",
+          "MOND fits galactic rotation curves but cannot simultaneously explain the bullet cluster's offset between mass and visible matter, CMB acoustic peaks, and large-scale structure growth.",
+          "MOND is mathematically inconsistent with Newton's third law.",
+          "MOND predicts no dark matter, but the LHC has directly detected WIMPs ruling MOND out."
+        ],
+        "correctIndex": 1,
+        "explanation": "Correct. MOND was designed to fit rotation curves and does so beautifully. But (1) the **Bullet Cluster** shows a gravitational lensing signal offset from the gas (visible matter) by 100 kpc — the lensing mass moved with the dark matter, not the gas. (2) **CMB acoustic peaks** are well-fit by ΛCDM but require ~5× more mass than baryons to explain peak heights. (3) **Structure formation** in MOND universes doesn't produce the observed cosmic web. Each could be patched with additional ingredients, but cumulatively MOND requires too many extras.\n\nOther options: MOND requires modifying general relativity at all scales, wh: MOND only kicks in at very low accelerations (a < a_0 ~ 1.2×10⁻¹⁰ m/s²). Solar System accelerations are far above a_0 — Solar System tests don't constrain it. | MOND is mathematically inconsistent with Newton's third law.: MOND has consistent relativistic extensions (TeVeS, AeST). Inconsistency isn't the issue. | MOND predicts no dark matter, but the LHC has directly detec: The LHC has *not* directly detected DM particles. The argument against MOND comes from astronomy + cosmology, not particle physics."
+      },
+      "hints": [
+        "Bullet Cluster, CMB peaks, cosmic web."
       ],
-      "hint": "Bullet Cluster, CMB peaks, cosmic web.",
+      "retryUntilCorrect": true,
       "workedSolution": "The Bullet Cluster (1E 0657-558) is two colliding clusters where the X-ray-emitting gas (most of the baryonic mass) is shocked + slowed in the collision center, while the gravitational lensing signal — tracing the total mass — is offset to where the cluster galaxies sit. The mass is somewhere the gas isn't. MOND struggles to predict this; ΛCDM predicts it naturally (CDM is collisionless and just keeps moving with the galaxies). Combined with CMB + LSS evidence, ΛCDM has the upper hand even though MOND remains a useful effective theory at galaxy scales."
     },
     {
       "kind": "question",
-      "kindHint": "scenario",
-      "prompt": "You observe a galaxy with v_rot = 200 km/s at r = 30 kpc. Estimate the enclosed mass inside 30 kpc in solar masses.",
-      "choices": [
-        {
-          "label": "~2.8×10¹¹ M☉.",
-          "isCorrect": true,
-          "rationale": "Correct. M = v² r / G. v=2×10⁵ m/s, r=30 kpc = 9.26×10²⁰ m. v²r = 4×10¹⁰ × 9.26×10²⁰ = 3.7×10³¹. Divide by G = 6.67×10⁻¹¹ ⇒ 5.55×10⁴¹ kg = 2.78×10¹¹ M☉. This is ~2-3× the visible stellar mass of a typical L* spiral, consistent with a dominant DM contribution at 30 kpc."
-        },
-        {
-          "label": "~10⁹ M☉ (a dwarf galaxy).",
-          "isCorrect": false,
-          "rationale": "Off by ~2 orders of magnitude. v=200 km/s is far too fast for a dwarf galaxy (dwarfs have v ~ 30-70 km/s)."
-        },
-        {
-          "label": "~10¹⁴ M☉ (a cluster).",
-          "isCorrect": false,
-          "rationale": "Off by ~3 orders of magnitude. A 10¹⁴ M☉ cluster at 30 kpc would have v ~ 6000 km/s. Galaxy clusters span Mpc, not 30 kpc."
-        },
-        {
-          "label": "Cannot be determined without knowing the gas + stellar density profiles.",
-          "isCorrect": false,
-          "rationale": "v² = GM/r is *the* point of rotation curves — it gives the enclosed mass directly, independent of how that mass is distributed (as long as the orbit is approximately circular)."
-        }
+      "question": {
+        "id": "scn_galaxies_and_dark_matter_3",
+        "kind": "multiple_choice",
+        "question": "You observe a galaxy with v_rot = 200 km/s at r = 30 kpc. Estimate the enclosed mass inside 30 kpc in solar masses.",
+        "options": [
+          "~2.8×10¹¹ M☉.",
+          "~10⁹ M☉ (a dwarf galaxy).",
+          "~10¹⁴ M☉ (a cluster).",
+          "Cannot be determined without knowing the gas + stellar density profiles."
+        ],
+        "correctIndex": 0,
+        "explanation": "Correct. M = v² r / G. v=2×10⁵ m/s, r=30 kpc = 9.26×10²⁰ m. v²r = 4×10¹⁰ × 9.26×10²⁰ = 3.7×10³¹. Divide by G = 6.67×10⁻¹¹ ⇒ 5.55×10⁴¹ kg = 2.78×10¹¹ M☉. This is ~2-3× the visible stellar mass of a typical L* spiral, consistent with a dominant DM contribution at 30 kpc.\n\nOther options: ~10⁹ M☉ (a dwarf galaxy).: Off by ~2 orders of magnitude. v=200 km/s is far too fast for a dwarf galaxy (dwarfs have v ~ 30-70 km/s). | ~10¹⁴ M☉ (a cluster).: Off by ~3 orders of magnitude. A 10¹⁴ M☉ cluster at 30 kpc would have v ~ 6000 km/s. Galaxy clusters span Mpc, not 30 kpc. | Cannot be determined without knowing the gas + stellar densi: v² = GM/r is *the* point of rotation curves — it gives the enclosed mass directly, independent of how that mass is distributed (as long as the orbit is approximately circular)."
+      },
+      "hints": [
+        "M_enc(r) = v² r / G."
       ],
-      "hint": "M_enc(r) = v² r / G.",
+      "retryUntilCorrect": true,
       "workedSolution": "v = 200 km/s = 2×10⁵ m/s. r = 30 kpc = 30 × 3.086×10¹⁹ m = 9.26×10²⁰ m. M = (2×10⁵)² × 9.26×10²⁰ / 6.67×10⁻¹¹ = 4×10¹⁰ × 9.26×10²⁰ / 6.67×10⁻¹¹ ≈ 5.55×10⁴¹ kg. Solar mass = 2×10³⁰ kg ⇒ M ≈ 2.78×10¹¹ M☉. Comparing to the galaxy's visible stellar mass (~6-7×10¹⁰ M☉ from a luminosity-mass-light estimate) reveals that more than 70% of the enclosed mass at 30 kpc is non-luminous."
     },
     {
       "kind": "question",
-      "kindHint": "math_expression",
-      "prompt": "Express the DM density at 10 kpc from the center of a galaxy with a flat rotation curve at v_0 = 220 km/s. Use ρ = v_0² / (4πGr²). Answer in kg/m³ (in scientific notation).",
-      "acceptedAnswers": [
-        "6.0e-22",
-        "5.9e-22",
-        "6e-22",
-        "5.95e-22",
-        "6.05e-22"
-      ],
-      "tolerance": 0.1,
-      "hint": "Plug v_0 = 2.2×10⁵, r = 10 kpc = 3.086×10²⁰ m.",
+      "question": {
+        "id": "math_galaxies_and_dark_matter_4",
+        "kind": "math_expression",
+        "question": "Express the DM density at 10 kpc from the center of a galaxy with a flat rotation curve at v_0 = 220 km/s. Use ρ = v_0² / (4πGr²). Answer in kg/m³ (in scientific notation).",
+        "acceptedAnswers": [
+          "6.0e-22",
+          "5.9e-22",
+          "6e-22",
+          "5.95e-22",
+          "6.05e-22"
+        ],
+        "hint": "Plug v_0 = 2.2×10⁵, r = 10 kpc = 3.086×10²⁰ m."
+      },
       "workedSolution": "v_0² = 4.84×10¹⁰. r² = 9.52×10⁴⁰. 4πG = 8.38×10⁻¹⁰. ρ = 4.84×10¹⁰ / (8.38×10⁻¹⁰ × 9.52×10⁴⁰) = 4.84×10¹⁰ / 7.98×10³¹ ≈ 6.07×10⁻²² kg/m³. For comparison, the mean cosmological density today is ~10⁻²⁶ kg/m³ — galactic DM halos are ~10⁴× overdense."
     },
     {
       "kind": "explain_back",
-      "prompt": "In ≤120 words, explain how multiple lines of evidence converge on dark matter being a real, non-baryonic component of the universe. Cite at least 3 independent observations.",
-      "rubric": [
-        "Galaxy rotation curves (Rubin 1970s): v(r) flat to large r ⇒ mass must extend well beyond visible.",
-        "Galaxy cluster velocity dispersions (Zwicky 1933, Coma cluster): velocity dispersions too high for visible mass alone.",
-        "Gravitational lensing (incl. Bullet Cluster): mass distribution offset from baryonic gas; weak-lensing maps trace mass directly.",
-        "CMB acoustic peaks (Planck 2018): the height + spacing of peaks at multipole moments ~200, 500, 800 directly constrain Ω_b vs Ω_m, requiring 5× more total matter than baryons.",
-        "Large-scale structure formation: ΛCDM N-body sims match observed cosmic web; baryon-only universes can't form structure fast enough due to radiation pressure smoothing.",
-        "All independent of each other; together they constrain Ω_DM ≈ 0.27 with ~1% precision."
-      ]
+      "question": {
+        "id": "eb_galaxies_and_dark_matter_5",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how multiple lines of evidence converge on dark matter being a real, non-baryonic component of the universe. Cite at least 3 independent observations.",
+        "rubric": "Galaxy rotation curves (Rubin 1970s): v(r) flat to large r ⇒ mass must extend well beyond visible. Galaxy cluster velocity dispersions (Zwicky 1933, Coma cluster): velocity dispersions too high for visible mass alone. Gravitational lensing (incl. Bullet Cluster): mass distribution offset from baryonic gas; weak-lensing maps trace mass directly. CMB acoustic peaks (Planck 2018): the height + spacing of peaks at multipole moments ~200, 500, 800 directly constrain Ω_b vs Ω_m, requiring 5× more total matter than baryons. Large-scale structure formation: ΛCDM N-body sims match observed cosmic web; baryon-only universes can't form structure fast enough due to radiation pressure smoothing. All independent of each other; together they constrain Ω_DM ≈ 0.27 with ~1% precision."
+      }
     }
   ]
 }
