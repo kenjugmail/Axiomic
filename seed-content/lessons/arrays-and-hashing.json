@@ -7,6 +7,37 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: cuckoo hashing",
+      "body": "Cuckoo hashing achieves *worst-case* O(1) lookup (not just amortized) by using two hash functions and at most two possible buckets per key. On insert collision, evict the existing key and re-hash it to its other bucket; if that's also full, recurse. Used in some high-performance networking + storage systems (Memcached's bin-distribution variant). Trade-off: insertion can have probabilistic failures, requiring full rebuild at higher load factors than chaining."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_hash_load",
+        "kind": "guided_derivation",
+        "question": "Derive expected chain length under uniform hashing",
+        "goal": "For a hash table with $n$ keys and $m$ buckets, expected chain length at any bucket is $n/m$.",
+        "steps": [
+          {
+            "prompt": "Define indicator $X_i = 1$ if key $i$ hashes to bucket $b$, else 0. Under uniform hashing, $P(X_i = 1) = 1/m$. Chain length at bucket $b$ is $\\sum_i X_i$. Compute the expectation by linearity.",
+            "motivation": "Linearity + uniform hashing.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "n/m"
+              ]
+            },
+            "hints": [
+              "$\\mathbb{E}[\\sum X_i] = n \\cdot 1/m$."
+            ],
+            "reveal": "$\\mathbb{E}[\\text{chain length}] = n/m = \\alpha$ (the load factor)."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\mathbb{E}[\\text{chain length}] = n/m = \\alpha}$$ Lookup cost under chaining is $O(1 + \\alpha)$. Most production hash tables target $\\alpha < 0.7$ to keep lookups close to constant."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Hash tables: how O(1) lookup works",
       "body": "A **hash table** ([[hash-table]]) maps keys to values via a *hash function* + an array of buckets.\n\n```\nbucket_index = hash(key) % num_buckets\n```\n\nIdeal: each key lands in a unique bucket. Lookup is $O(1)$ — compute the hash, jump to the bucket, return the value.\n\nReality: two keys can hash to the same bucket. This is a **collision** ([[hash-collisions]]). Two strategies:\n\n- **Chaining**: each bucket holds a linked list of entries. Insert prepends; lookup scans. Average $O(1 + \\alpha)$ where $\\alpha = n/b$ is the load factor.\n- **Open addressing**: on collision, probe to the next bucket (linear, quadratic, or double-hashing). Faster cache behavior but degrades worse near full.\n\n**Load factor** $\\alpha$ is the master variable. Most implementations resize (doubling buckets) when $\\alpha > 0.75$, keeping expected chain length $\\leq 1$."
     },

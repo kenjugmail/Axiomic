@@ -7,6 +7,58 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Berkeley admissions 1973",
+      "body": "The 1973 UC Berkeley grad admissions data: men admitted 44%, women 35% — looked like sex discrimination. Bickel et al. broke it down by department: most departments actually admitted *women* at higher rates. The apparent bias came from women applying to more competitive departments. Simpson's paradox in a famous setting; the right unit of analysis was per-department, not overall."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cv_simpson",
+        "kind": "guided_derivation",
+        "question": "Construct a Simpson's-paradox 2x2x2",
+        "goal": "Show two subgroups where treatment A wins in each, but B wins in aggregate.",
+        "steps": [
+          {
+            "prompt": "Subgroup 1: A treats 10 with 9 successes (90%); B treats 100 with 80 successes (80%). Subgroup 2: A treats 100 with 50 successes (50%); B treats 10 with 4 successes (40%). Within each subgroup, who wins?",
+            "motivation": "Check that A beats B in each stratum.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "A wins both subgroups.",
+                "B wins both.",
+                "A and B tie.",
+                "Mixed."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Subgroup 1: 90% vs 80%. Subgroup 2: 50% vs 40%."
+            ],
+            "reveal": "A wins both subgroups: 90% > 80% in Subgroup 1; 50% > 40% in Subgroup 2."
+          },
+          {
+            "prompt": "Aggregate: A gets 9 + 50 = 59 successes out of 10 + 100 = 110 (54%); B gets 80 + 4 = 84 successes out of 100 + 10 = 110 (76%). Who wins overall?",
+            "motivation": "Compute the aggregate rates.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "A wins overall.",
+                "B wins overall.",
+                "Tie."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "59/110 = 54%; 84/110 = 76%."
+            ],
+            "reveal": "B wins aggregate (76% vs 54%) — even though A won every subgroup. The 'paradox' is mix shifts: A's caseload was biased toward the hard subgroup (subgroup 2)."
+          }
+        ],
+        "finalResult": "Simpson's paradox: aggregate vs stratified statistics can disagree when treatment assignment is correlated with the confounding variable. Cure: stratify on the confounder, or randomize."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The three sources of association",
       "body": "When two variables `X` and `Y` are statistically associated, exactly one of three things is true (or some combination):\n\n1. **`X` causes `Y`.** Real causal relationship.\n2. **`Y` causes `X`.** Reverse causation.\n3. **A common cause `Z` causes both.** Confounding.\n\nObservational data alone cannot distinguish these three. They all produce the same correlation pattern.\n\nClassic example: ice cream sales and drownings are correlated. Does ice cream cause drownings? No — both are caused by hot weather. The confound is the season."
     },

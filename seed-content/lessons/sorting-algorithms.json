@@ -7,6 +7,54 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: timsort beats classical sorts on real data",
+      "body": "Tim Peters wrote timsort for CPython (2002), later adopted by Java + Android. Key insight: real-world arrays have *runs* — already-sorted subsequences. Timsort detects runs, merges them adaptively, falls back to insertion sort for small subarrays. On randomly-ordered input: matches mergesort. On partially-sorted input (common in practice): much faster — sometimes linear time. The big-O is still $O(n\\log n)$, but the constants and adaptive behavior make a huge real-world difference."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sort_lower",
+        "kind": "guided_derivation",
+        "question": "Derive the $\\Omega(n\\log n)$ lower bound for comparison sorting",
+        "goal": "Show any comparison sort makes $\\Omega(n\\log n)$ comparisons in the worst case.",
+        "steps": [
+          {
+            "prompt": "Any comparison sort = a binary decision tree (each internal node is a comparison, each leaf is a permutation output). With $n!$ possible input orderings, the tree must have $\\geq n!$ leaves. A binary tree of depth $d$ has $\\leq 2^d$ leaves. So we need $2^d \\geq n!$. Solve for $d$.",
+            "motivation": "Information-theoretic lower bound.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "log(n!)",
+                "log_2(n!)"
+              ]
+            },
+            "hints": [
+              "Take $\\log_2$ of both sides."
+            ],
+            "reveal": "$d \\geq \\log_2(n!)$."
+          },
+          {
+            "prompt": "Use Stirling: $\\log_2(n!) \\approx ?$ (Leading order.)",
+            "motivation": "Stirling's approximation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "n log n",
+                "n log_2 n"
+              ]
+            },
+            "hints": [
+              "$n! \\approx (n/e)^n \\sqrt{2\\pi n}$; take log.",
+              "$\\log_2(n!) \\sim n\\log_2 n$."
+            ],
+            "reveal": "$\\log_2(n!) = \\Theta(n\\log n)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{d \\geq \\log_2(n!) = \\Omega(n\\log n)}$$ Any comparison sort needs at least $n\\log n$ comparisons in the worst case. Comparison sorts are asymptotically optimal — but non-comparison sorts (radix, bucket) can beat this when input structure allows."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The $\\Omega(n \\log n)$ lower bound",
       "body": "Any algorithm that sorts $n$ items by **comparing pairs** must make $\\Omega(n \\log n)$ comparisons in the worst case.\n\n**Proof sketch**: $n!$ possible orderings of $n$ items. Each comparison gives at most 1 bit of information. To distinguish $n!$ orderings, you need $\\geq \\log_2(n!) = \\Theta(n \\log n)$ comparisons.\n\n**This is a *comparison* lower bound**. Algorithms that don't compare can be linear:\n\n- **Counting sort**: $O(n + k)$ for integers in range $[0, k)$. Allocate $k$ buckets, count occurrences, output. Linear when $k = O(n)$.\n- **Radix sort**: $O(n \\cdot d)$ where $d$ is digit count. Sort by least-significant digit first using counting sort. Linear when $d$ is bounded.\n- **Bucket sort**: assume input is uniformly distributed; bucket by range; sort within. $O(n)$ expected for uniform input.\n\n**When linear-time sorting works**: keys have bounded universe size (small integers, fixed-length strings, floating-point under specific assumptions). When it doesn't: arbitrary comparable types, large integer keys, custom comparators.\n\nMost real-world sorting uses comparison sorts because the universe is unbounded or the comparator is custom."
     },

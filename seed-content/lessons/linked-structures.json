@@ -7,6 +7,52 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: B-tree fan-out tuning",
+      "body": "PostgreSQL's B-trees have a fan-out of ~256-500 children per node (depending on key + value size + page size). For a 1B-row table, the tree depth is $\\log_{300}(10^9) \\approx 4$. So a key lookup is 4 random page reads + a sequential search within each page. On SSD (~100µs/random read), total ~400µs. Compared to a balanced BST (depth ~30): 3000µs. The big-O is the same; the constant differs by 10× because fan-out exploits sequential-read locality."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_link_avl",
+        "kind": "guided_derivation",
+        "question": "Derive the AVL-height bound",
+        "goal": "Show that AVL trees with $n$ nodes have height $h \\leq 1.44 \\log_2(n + 2)$.",
+        "steps": [
+          {
+            "prompt": "Let $N(h)$ be the *minimum* number of nodes in an AVL tree of height $h$. Set up the recurrence. (Minimum-size AVL of height $h$ has root + minimum-size AVL of height $h-1$ + minimum-size AVL of height $h-2$.)",
+            "motivation": "Worst case AVL has unbalanced sub-trees within the 1-balance.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "N(h) = N(h-1) + N(h-2) + 1"
+              ]
+            },
+            "hints": [
+              "The two sub-trees can have heights differing by 1; pick the smaller pair."
+            ],
+            "reveal": "$N(h) = N(h-1) + N(h-2) + 1$ (Fibonacci-like)."
+          },
+          {
+            "prompt": "This recurrence grows like Fibonacci: $N(h) \\sim \\phi^h$ where $\\phi = (1+\\sqrt 5)/2 \\approx 1.618$. So $n \\geq N(h) \\sim \\phi^h$. Solve for $h$.",
+            "motivation": "Invert.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "log_phi(n)",
+                "h <= log(n)/log(phi)"
+              ]
+            },
+            "hints": [
+              "$h \\leq \\log_\\phi(n) = \\log_2 n / \\log_2 \\phi \\approx 1.44 \\log_2 n$."
+            ],
+            "reveal": "$h \\leq \\log_\\phi n \\approx 1.44 \\log_2 n$."
+          }
+        ],
+        "finalResult": "$$\\boxed{h_{\\text{AVL}} \\leq 1.44 \\log_2(n+2)}$$ AVL trees stay within ~44% of optimal depth even in the worst case. Red-black trees are similar (~$2\\log_2 n$ worst case) but with slightly cheaper rebalancing."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Binary search trees + balance",
       "body": "**BST invariant**: for every node, all keys in the left subtree are smaller; all keys in the right subtree are larger.\n\nLookup: $O(h)$ where $h$ is tree height.\n\n**The catch**: $h$ depends on insertion order. Insert sorted keys → degenerate to a linked list, $h = n$. Worst-case lookup: $O(n)$.\n\nSolutions are **self-balancing trees** ([[balanced-tree]]):\n\n- **AVL trees** (1962): for every node, |left height - right height| ≤ 1. Strict balance; $h \\leq 1.44 \\log n$. Faster lookup, slower insert (more rebalancing).\n- **Red-black trees**: looser balance; $h \\leq 2 \\log n$. Slower lookup, faster insert. Used in C++ `std::map`, Java `TreeMap`, Linux kernel CFS scheduler.\n- **B-trees**: nodes hold many keys + many children. Designed for disk: each node is one disk block. Used in databases (PostgreSQL, MySQL InnoDB), filesystems (ext4, NTFS, HFS+).\n- **B+-trees**: variant where leaves are linked. Optimal for range scans. Default for OLTP databases.\n\n**Practical recommendation**: don't hand-roll a balanced tree. Use stdlib `std::map` / `TreeMap` / `BTreeMap`. The implementations are decades old + heavily tested."
     },

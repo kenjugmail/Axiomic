@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: AlphaGo + self-play",
+      "body": "AlphaGo (2016) trained primarily by self-play: the policy network played itself, the resulting trajectories trained the value network + a new policy. Iterate. This is essentially fictitious play in a giant search space. The convergence guarantee (for fictitious play in zero-sum games) provides theoretical backing; the engineering (MCTS + neural-net function approximation) made it practical on Go's $10^{170}$ state space."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_marl_fp",
+        "kind": "guided_derivation",
+        "question": "Sketch fictitious-play convergence",
+        "goal": "Each player best-responds to the empirical history of the opponent's plays. In zero-sum games, the average strategies converge to a Nash equilibrium.",
+        "steps": [
+          {
+            "prompt": "Fictitious play in 2-player zero-sum: at iteration $t$, each player computes the empirical distribution of opponent's past plays + plays best response. What's the formal convergence claim?",
+            "motivation": "Robinson 1951.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Average strategies $\\bar\\sigma_t \\to$ NE.",
+                "Pure strategies converge to NE.",
+                "Algorithm always diverges.",
+                "No convergence in zero-sum games."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Note: 'average strategies' (time-averaged history), not 'current strategy'."
+            ],
+            "reveal": "$\\bar\\sigma_t = (1/t) \\sum_{\\tau \\leq t} \\sigma_\\tau$ converges to a Nash equilibrium of the underlying zero-sum game."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Fictitious play: } \\bar\\sigma_t \\to \\text{NE in 2-player zero-sum}}$$ Convergence is in the time-averaged strategy, not the current. PSRO (Policy Space Response Oracles) is the modern generalization: maintain a population, best-respond to a meta-mixture, add to the population."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Three regimes",
       "body": "**Cooperative**: all agents share a single team reward. Centralized training + decentralized execution (CTDE) is the dominant paradigm. MAPPO, QMIX, COMA are workhorses.\n\n**Competitive zero-sum**: classical [[zero-sum]] dynamics. **Self-play** ([[self-play]]) provably converges to Nash equilibrium in time-average for two-player zero-sum + no-regret learning. AlphaZero, AlphaStar, OpenAI Five are landmarks.\n\n**General-sum (mixed)**: hardest. No convergence theorems; the analytic structure is unfriendly. Modern toolkit: PSRO (Policy Space Response Oracles), opponent modeling, league play. Engineering-heavy."
     },

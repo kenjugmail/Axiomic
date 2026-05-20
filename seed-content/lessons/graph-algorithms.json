@@ -7,6 +7,59 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: A* on a road network",
+      "body": "Google Maps doesn't run Dijkstra on the global road graph — too slow. A* with the Euclidean distance heuristic prunes ~99% of the search. Production routing systems layer further optimizations: contraction hierarchies (precompute shortcuts), hierarchical routing (highway-first), bidirectional search. A trip query that would take Dijkstra ~minutes on the global graph runs in milliseconds in production."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_graph_dij",
+        "kind": "guided_derivation",
+        "question": "Show Dijkstra's correctness via greedy invariant",
+        "goal": "Argue that when Dijkstra extracts vertex $v$ from the priority queue, $\\text{dist}[v]$ is the true shortest-path distance.",
+        "steps": [
+          {
+            "prompt": "Inductive claim: when $v$ is extracted, the shortest path from source $s$ to $v$ uses only previously-extracted (= finalized) vertices. By induction, the previous vertices have correct distances. So the path $s \\to \\ldots \\to v$ is computed correctly. What's the missing case to rule out?",
+            "motivation": "Could a shorter path go through a not-yet-extracted vertex?",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "A shorter path might exit through an unfinalized vertex, come back, and reach v.",
+                "Negative edge weights.",
+                "Disconnected graphs.",
+                "Cycles."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "What if the optimal path leaves the finalized set + returns?"
+            ],
+            "reveal": "Need to rule out paths leaving + returning to the finalized set."
+          },
+          {
+            "prompt": "Why can't such a path be shorter? (Hint: non-negative edge weights.)",
+            "motivation": "Triangle inequality + non-negativity.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Non-negative edges mean extending the path only adds cost; the first time we leave the finalized set, we've already paid at least dist[v].",
+                "Floating-point precision.",
+                "Bidirectional search.",
+                "Random pivot."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "With non-negative weights, the path-cost is monotonically non-decreasing."
+            ],
+            "reveal": "Non-negative weights mean any detour adds cost. The priority queue gives us $v$ at the lowest distance; any rival path must be longer."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Dijkstra correctness: non-negative weights + greedy extraction}}$$ The non-negativity assumption is load-bearing: with negative edges, Dijkstra's greedy invariant breaks. Bellman-Ford handles that case at $O(VE)$ cost."
+      }
+    },
+    {
+      "kind": "text",
       "title": "BFS, DFS, and shortest paths",
       "body": "**BFS (breadth-first search)**: explore neighbors level-by-level using a FIFO queue.\n- Solves: shortest path in **unweighted** graphs ($O(V + E)$).\n- Used in: web crawling, social-network distance, IDDFS in AI.\n\n**DFS (depth-first search)**: go deep before exploring siblings, using a LIFO stack (or recursion).\n- Solves: cycle detection, topological sort, strongly-connected components (Tarjan, Kosaraju), articulation points + bridges.\n- Used in: dependency resolution, type checkers, compilers.\n\n**Dijkstra's algorithm** ([[shortest-path]]): shortest paths from a source in a graph with **non-negative edge weights**.\n- Priority queue keyed by tentative distance. Pop the closest unvisited node, relax its edges. Repeat.\n- Time: $O((V + E) \\log V)$ with binary heap; $O(E + V \\log V)$ with Fibonacci heap.\n- **Critical assumption**: non-negative weights. With negative edges, Dijkstra can return wrong answers — its greedy commitment to the closest popped node fails.\n\n**Bellman-Ford** ([[bellman-ford]]): shortest paths from a source, allows negative edges.\n- Relax every edge $V - 1$ times. Detects negative cycles.\n- Time: $O(VE)$. Slower than Dijkstra; use only when negative weights are present.\n\n**A***: Dijkstra + a heuristic estimate of distance-to-goal. Same asymptotic but vastly faster in practice when the heuristic is good. Used in pathfinding (games, robotics)."
     },

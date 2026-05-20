@@ -7,6 +7,52 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: estimating treatment effect from EHR data",
+      "body": "Pharmacoepidemiology routinely uses electronic health records to estimate drug effects without RCTs. The standard recipe: identify all measured confounders, run a propensity-score or regression adjustment, and compute the adjusted effect via the backdoor formula. The honest sensitivity analysis: how big would an unmeasured confounder have to be to flip the conclusion? E-values quantify this. Some EHR-based effect estimates have later been confirmed by RCTs; others have been contradicted (e.g., HRT and cardiac risk)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_doc_backdoor",
+        "kind": "guided_derivation",
+        "question": "Derive the backdoor adjustment formula",
+        "goal": "Show $P(Y | do(T = t)) = \\sum_z P(Y | T = t, Z = z) P(Z = z)$ when $Z$ blocks all backdoor paths.",
+        "steps": [
+          {
+            "prompt": "Total probability: $P(Y | do(T=t)) = \\sum_z P(Y, Z = z | do(T=t)) = \\sum_z P(Y | do(T=t), Z=z) P(Z=z | do(T=t))$. Under randomization-via-intervention, $do(T)$ doesn't affect pre-treatment $Z$. So $P(Z | do(T)) = ?$",
+            "motivation": "Intervention severs upward arrows to $T$.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "P(Z)",
+                "P(Z=z)"
+              ]
+            },
+            "hints": [
+              "$do(T)$ doesn't change the marginal of pre-treatment variables."
+            ],
+            "reveal": "$P(Z | do(T = t)) = P(Z)$."
+          },
+          {
+            "prompt": "When $Z$ blocks all backdoor paths from $T$ to $Y$, the only remaining association between $T$ and $Y$ given $Z$ is the *causal* one. So $P(Y | do(T), Z) = ?$",
+            "motivation": "Backdoor criterion makes intervention probabilistically identical to observation conditional on $Z$.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "P(Y | T, Z)"
+              ]
+            },
+            "hints": [
+              "With backdoors blocked, conditioning on $Z$ identifies the causal effect."
+            ],
+            "reveal": "$P(Y | do(T=t), Z=z) = P(Y | T=t, Z=z)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{P(Y | do(T = t)) = \\sum_z P(Y | T = t, Z = z) P(Z = z)}$$ The backdoor formula: causal effect computed from purely observational quantities, provided $Z$ blocks all backdoor paths."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Identifiability",
       "body": "**Identifiability**: can `P(Y | do(X = x))` be computed from observational data + the causal graph?\n\nNot always. When there's an unobserved confounder of `X` and `Y`, the effect generally isn't identifiable — observational data is consistent with multiple values of the causal effect.\n\nIdentifiability depends on the graph structure:\n\n- **Backdoor adjustment** identifies the effect when there's a backdoor adjustment set `Z` of OBSERVED variables blocking all backdoor paths.\n- **Front-door criterion** (Pearl): identifies the effect even with unobserved confounders, IF there's a mediator `M` such that `T → M → Y` is the only causal path and `M` has no unobserved confounders with `Y`.\n- **Instrumental variables**: identify a local effect (LATE) when there's a variable `Z` that affects `T` but doesn't directly affect `Y`.\n\nWhen none of these apply, the effect isn't identifiable from observational data + the assumed graph. You need either: more data (intervention), more assumptions, or to admit you can't answer the causal question."
     },

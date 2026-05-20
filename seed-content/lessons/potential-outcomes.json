@@ -7,6 +7,53 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: SUTVA violations in vaccination trials",
+      "body": "Vaccine RCT in 2020: vaccinated cohort had ~95% efficacy. But the *unvaccinated* members of treated households also benefited — because they were less likely to catch the disease from a vaccinated household member. This is *spillover*: the treatment of one unit affects the outcomes of others, violating SUTVA's 'no interference' assumption. Modern vaccine trials handle this with cluster-randomization (entire households or cities)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_po_consistency",
+        "kind": "guided_derivation",
+        "question": "Derive the consistency assumption",
+        "goal": "Show that under SUTVA, observed $Y_i = Y_i(T_i)$ — the observed outcome equals the potential outcome under the assigned treatment.",
+        "steps": [
+          {
+            "prompt": "Potential outcomes: $Y_i(0)$ and $Y_i(1)$ — what unit $i$ would experience under each treatment. Observed: $Y_i$. Under SUTVA, $Y_i$ depends only on $T_i$, not on others. So $Y_i = ?$ when $T_i = 1$.",
+            "motivation": "SUTVA: no interference.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Y_i(1)",
+                "Y(1)"
+              ]
+            },
+            "hints": [
+              "Direct substitution."
+            ],
+            "reveal": "$Y_i = Y_i(1)$ when $T_i = 1$."
+          },
+          {
+            "prompt": "Combining the two cases: $Y_i = T_i \\cdot Y_i(1) + (1-T_i) \\cdot Y_i(0) = ?$",
+            "motivation": "Equivalent way to write the conditional.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Y_i(T_i)",
+                "Y_i(T)"
+              ]
+            },
+            "hints": [
+              "Notation: parameterize by $T_i$ as the argument."
+            ],
+            "reveal": "$Y_i = Y_i(T_i)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{Y_i = Y_i(T_i) \\quad \\text{(consistency under SUTVA)}}$$ The fundamental problem: only one potential outcome is ever observed per unit. Causal inference is fundamentally about reconstructing the unobserved counterfactuals from population-level structure."
+      }
+    },
+    {
+      "kind": "text",
       "title": "ATE, ATT, ATC",
       "body": "Since we can't observe individual treatment effects, we work with averages.\n\n**Average Treatment Effect (ATE)**: `E[Y(1) - Y(0)]` over the entire population. \"If we treated everyone, what would the average effect be?\"\n\n**Average Treatment Effect on the Treated (ATT)**: `E[Y(1) - Y(0) | T = 1]` — the effect among those who actually got treated. Useful when treatment isn't randomly assigned.\n\n**Average Treatment Effect on the Controls (ATC)**: `E[Y(1) - Y(0) | T = 0]` — the effect that would have occurred among those who didn't get treated, if they had.\n\nThese are different quantities. They coincide under randomization (the treated and controls are exchangeable). They diverge when treatment assignment depends on features that also affect outcomes."
     },

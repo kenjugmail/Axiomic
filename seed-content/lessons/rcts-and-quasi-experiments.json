@@ -7,6 +7,52 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Card-Krueger 1994 minimum-wage study",
+      "body": "In April 1992, New Jersey raised the minimum wage from $4.25 to $5.05. Pennsylvania (neighboring state, similar economy) did not. Card-Krueger surveyed fast-food employment in both states before and after. Diff-in-diff result: NJ employment did NOT decrease relative to PA — contradicting the textbook prediction that minimum wage hikes reduce employment. This study upended labor economics and demonstrated the power of natural-experiment methods."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_qe_did",
+        "kind": "guided_derivation",
+        "question": "Derive the diff-in-diff estimator",
+        "goal": "Under parallel-trends assumption, show DiD = $(Y^A_{\\text{post}} - Y^A_{\\text{pre}}) - (Y^B_{\\text{post}} - Y^B_{\\text{pre}})$ is the causal effect.",
+        "steps": [
+          {
+            "prompt": "Decompose $Y^A_{\\text{post}}$ = pre-trend in A + counterfactual-trajectory-without-treatment + treatment effect. Under parallel trends, the counterfactual trajectory in A equals the trajectory in B (the control). What does this give for $Y^A_{\\text{post}} - Y^A_{\\text{pre}}$?",
+            "motivation": "Decompose into trend + causal effect.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(Y^B_post - Y^B_pre) + treatment effect"
+              ]
+            },
+            "hints": [
+              "Parallel trends: $Y^A(0)_{\\text{post}} - Y^A_{\\text{pre}} = Y^B_{\\text{post}} - Y^B_{\\text{pre}}$.",
+              "Then the treatment effect is the excess A change over the B change."
+            ],
+            "reveal": "$Y^A_{\\text{post}} - Y^A_{\\text{pre}} = (Y^B_{\\text{post}} - Y^B_{\\text{pre}}) + \\tau$ where $\\tau$ is the treatment effect."
+          },
+          {
+            "prompt": "Solve for $\\tau$.",
+            "motivation": "Algebra.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(Y^A_post - Y^A_pre) - (Y^B_post - Y^B_pre)"
+              ]
+            },
+            "hints": [
+              "Subtract."
+            ],
+            "reveal": "$\\tau = (Y^A_{\\text{post}} - Y^A_{\\text{pre}}) - (Y^B_{\\text{post}} - Y^B_{\\text{pre}})$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\tau^{\\text{DiD}} = \\Delta^A_{\\text{post-pre}} - \\Delta^B_{\\text{post-pre}}}$$ Under parallel trends, the difference-in-differences is the causal effect. Diagnostic: plot pre-trends — they should be parallel."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Natural experiments",
       "body": "A **natural experiment** is a setting where some external event randomly (or quasi-randomly) assigned treatment without anyone planning it. The randomness comes from the world, not the researcher.\n\nClassic examples:\n\n- **Vietnam draft lottery (Angrist 1990)**: random birth dates determined draft eligibility. The lottery effectively randomized who served, allowing causal estimation of military service on later earnings.\n- **Israeli school class size (Angrist & Lavy 1999)**: Maimonides' rule capped class size at 40 — a class of 41 had to be split. Schools just above and just below 40 were near-randomly different in class size.\n- **Boston public schools' lottery**: oversubscribed schools admitted by lottery, randomizing who attended.\n- **Weather variation**: rain on election day affects turnout differentially across regions, providing variation independent of voter preferences.\n\nThe key: identify the source of randomness, defend that it's truly random with respect to your outcome, and exploit it. The hard part is convincingly defending the randomization."
     },

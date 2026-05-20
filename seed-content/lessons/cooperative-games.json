@@ -7,6 +7,52 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: SHAP feature importance",
+      "body": "SHAP values applied to a credit-scoring ML model on a single applicant. Total predicted score: 720. Baseline: 600. Total deviation: +120. SHAP decomposes: income contributes +60, credit history +40, debt-to-income +20. The contributions sum to the prediction deviation by Shapley efficiency. Used in regulated industries (lending, insurance) for model explanations because the axioms are exactly what 'fair attribution' means."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_coop_shap2",
+        "kind": "guided_derivation",
+        "question": "Compute Shapley value for 2 players",
+        "goal": "$v(\\{A\\}) = 4, v(\\{B\\}) = 6, v(\\{A,B\\}) = 12$. Find $\\phi_A, \\phi_B$.",
+        "steps": [
+          {
+            "prompt": "Shapley value: average marginal contribution over orderings. Two orderings: A-then-B, B-then-A. A's marginal in ordering A-B: $v(\\{A\\}) = 4$. A's marginal in ordering B-A: $v(\\{A,B\\}) - v(\\{B\\}) = 12 - 6 = 6$. Average?",
+            "motivation": "Average over 2 orderings.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "5"
+              ]
+            },
+            "hints": [
+              "$\\phi_A = (4 + 6) / 2$."
+            ],
+            "reveal": "$\\phi_A = (4 + 6)/2 = 5$."
+          },
+          {
+            "prompt": "Similarly, $\\phi_B = ?$ (Check efficiency: should sum to $v(\\{A,B\\}) = 12$.)",
+            "motivation": "Symmetric computation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "7"
+              ]
+            },
+            "hints": [
+              "B in ordering A-B: $12 - 4 = 8$. B in B-A: $6$. Avg: $(8+6)/2 = 7$.",
+              "Check: $5 + 7 = 12$ ✓"
+            ],
+            "reveal": "$\\phi_B = (8 + 6)/2 = 7$. Sum = 12 = $v(\\{A,B\\})$ ✓."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\phi_A = 5, \\phi_B = 7,\\quad \\phi_A + \\phi_B = v(\\{A,B\\})}$$ Shapley value satisfies efficiency (sums to grand coalition's value), symmetry, additivity, and the null-player property — uniquely."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Shapley value",
       "body": "For a cooperative game with players $N$ and characteristic function $v$ (mapping subsets of $N$ to real values), player $i$'s Shapley value is the average **marginal contribution** of $i$ across all permutations of player ordering:\n\n$$\\phi_i(v) = \\sum_{S \\subseteq N \\setminus \\{i\\}} \\frac{|S|! (|N| - |S| - 1)!}{|N|!} [v(S \\cup \\{i\\}) - v(S)]$$\n\nThe combinatorial weight is the probability that, in a random permutation, $i$ joins exactly after the players in $S$.\n\n**Example (3 players)**: company with founders. $v(\\emptyset) = 0$. $v(\\{A\\}) = 6$. $v(\\{B\\}) = 4$. $v(\\{C\\}) = 2$. $v(\\{A,B\\}) = 12$. $v(\\{A,C\\}) = 8$. $v(\\{B,C\\}) = 6$. $v(\\{A,B,C\\}) = 18$.\n\nThe Shapley values turn out to be: $\\phi_A = 8$, $\\phi_B = 6$, $\\phi_C = 4$. Sum to 18 (efficient)."
     },

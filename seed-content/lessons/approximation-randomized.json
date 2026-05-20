@@ -7,6 +7,51 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: when 2-approximation is enough",
+      "body": "Vertex cover is NP-hard. The simple matching-based 2-approximation (described below) runs in linear time and gives a solution within 2× of optimal. For most real-world applications (network monitoring, fault detection), this guarantee + simplicity makes it the working algorithm. Tighter approximation algorithms exist (e.g., $2 - O(1/\\sqrt{\\log n})$ via SDP) but the marginal improvement isn't worth the algorithmic complexity for most uses."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_apx_vc2",
+        "kind": "guided_derivation",
+        "question": "Derive the matching-based 2-approximation for vertex cover",
+        "goal": "Greedy: find a maximal matching $M$; return the set $V(M)$ of endpoints. Show $|V(M)| \\leq 2 \\cdot |\\text{OPT}|$.",
+        "steps": [
+          {
+            "prompt": "Maximal matching $M$: no two edges in $M$ share an endpoint, AND no edge of the graph is disjoint from $M$. Every edge of the graph is *covered* by an endpoint in $V(M)$. So $V(M)$ is a vertex cover. Now bound $|V(M)|$.",
+            "motivation": "$|V(M)| = 2|M|$ since each matched edge contributes 2 endpoints.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2 |M|"
+              ]
+            },
+            "hints": [
+              "A matching of size $|M|$ has $2|M|$ endpoints."
+            ],
+            "reveal": "$|V(M)| = 2|M|$."
+          },
+          {
+            "prompt": "Any vertex cover must cover every edge of $M$. Since matching edges are disjoint, each edge of $M$ requires a *separate* vertex. So $|\\text{OPT}| \\geq |M|$. Combine.",
+            "motivation": "Lower bound on OPT via matching size.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "|V(M)| <= 2 |OPT|"
+              ]
+            },
+            "hints": [
+              "$|V(M)| = 2|M| \\leq 2|\\text{OPT}|$."
+            ],
+            "reveal": "$|V(M)| = 2|M| \\leq 2|\\text{OPT}|$ — a 2-approximation."
+          }
+        ],
+        "finalResult": "$$\\boxed{|V(M)| \\leq 2 \\cdot |\\text{OPT}|}$$ The matching-based 2-approximation. Linear time. The best known approximation factor for vertex cover (assuming UGC) is 2, so this simple algorithm is optimal up to lower-order terms."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Approximation algorithms + ratios",
       "body": "An algorithm is an **$\\alpha$-approximation** for a minimization problem if for every input it returns a solution of cost $\\leq \\alpha \\cdot \\text{OPT}$.\n\nApproximation algorithms come in classes by how good the ratio is:\n\n- **Constant-factor**: ratio $\\alpha$ is some specific number. Vertex cover: 2-approximation (greedy on edges). Metric TSP: 1.5-approximation (Christofides 1976). MAX-CUT: 0.878-approximation (Goemans-Williamson via SDP).\n\n- **Logarithmic**: ratio is $O(\\log n)$. Set cover: greedy gives $\\ln n$-approximation, and **provably no polynomial algorithm does better** unless P = NP.\n\n- **PTAS** (Polynomial-Time Approximation Scheme): for any $\\epsilon > 0$, get a $(1 + \\epsilon)$-approximation in polynomial time (where the polynomial may depend exponentially on $1/\\epsilon$). Knapsack: PTAS via DP rounding.\n\n- **FPTAS** (Fully Polynomial-Time): runtime polynomial in both $n$ and $1/\\epsilon$. Knapsack: FPTAS exists.\n\n- **Inapproximable**: no constant ratio possible (unless P = NP). General TSP without metric assumption: cannot be approximated within ANY constant ratio. (Without the triangle inequality, the problem is too unconstrained.)\n\n**Where approximations come from**:\n- **Greedy with analysis**: vertex cover, set cover.\n- **LP rounding**: solve the linear-programming relaxation, round the fractional solution.\n- **Primal-dual**: construct primal + dual solutions simultaneously.\n- **Semidefinite programming (SDP)**: relax to SDP, sample from the solution. Goemans-Williamson MAX-CUT is the classical example.\n- **Local search**: iteratively improve; analyze the local-optimum guarantee."
     },

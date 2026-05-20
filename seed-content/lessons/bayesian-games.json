@@ -7,6 +7,51 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Google's switch from GSP to first-price",
+      "body": "Google Ads ran a generalized-second-price auction (GSP, Vickrey-like) for ~15 years. In 2019 Google switched to first-price for transparency: advertisers can see exactly what they pay. By revenue equivalence (under uniform values + risk-neutrality + symmetry), expected revenue should be similar — and empirically it is. The switch was about predictability for advertisers, not revenue."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bg_first",
+        "kind": "guided_derivation",
+        "question": "Derive the symmetric first-price-auction equilibrium bid",
+        "goal": "$n$ bidders, valuations $v \\sim U[0, 1]$ i.i.d. Symmetric equilibrium $b(v) = ((n-1)/n) v$.",
+        "steps": [
+          {
+            "prompt": "Bidder with valuation $v$ bids $b$. Probability of winning (all others bid less): if others use strategy $b(\\cdot)$, then bidder $i$ wins when all others' valuations $v_j$ satisfy $b(v_j) < b$, i.e., $v_j < b^{-1}(b)$. With $b(v) = \\beta v$ (guess a linear form), $b^{-1}(b) = b/\\beta$. Prob = $(b/\\beta)^{n-1}$. Expected payoff?",
+            "motivation": "Set up expected utility maximization.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(v - b)(b/beta)^(n-1)"
+              ]
+            },
+            "hints": [
+              "Win prob × surplus when winning."
+            ],
+            "reveal": "$\\mathbb{E}[\\text{payoff}] = (v - b) \\cdot (b/\\beta)^{n-1}$."
+          },
+          {
+            "prompt": "Take derivative with respect to $b$ and set to 0. Solve for $b$ in terms of $v$ (assuming $\\beta v = b$ at equilibrium).",
+            "motivation": "First-order condition + symmetry.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "b = ((n-1)/n) v"
+              ]
+            },
+            "hints": [
+              "$\\partial/\\partial b: -(b/\\beta)^{n-1} + (v - b) (n-1)(b/\\beta)^{n-2}/\\beta = 0$. Simplify, use $\\beta v = b$."
+            ],
+            "reveal": "$b(v) = ((n-1)/n) v$."
+          }
+        ],
+        "finalResult": "$$\\boxed{b(v) = ((n-1)/n) v}$$ Bidder shading below true valuation. More bidders → less shading ($n=2: 50\\%$ of value; $n=10: 90\\%$). Expected revenue matches second-price auction's by revenue equivalence."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Harsanyi's transformation",
       "body": "Harsanyi (1967) showed any incomplete-information game can be reformulated as a complete-information game over an enlarged state space (**types**):\n\n1. Nature draws a type profile $(t_1, ..., t_n)$ from a common-prior distribution.\n2. Each player observes their own type.\n3. Players choose actions; payoffs depend on actions + types.\n\nThe **Bayesian Nash equilibrium**: a strategy $\\sigma_i(t_i)$ for each player and type, such that each type's action maximizes expected payoff given other players' strategies + the conditional distribution of others' types.\n\nThis transformation is what makes Bayesian games tractable — it converts incomplete-information into a complete-information game with random type-draws by Nature."
     },

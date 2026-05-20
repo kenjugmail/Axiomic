@@ -7,6 +7,51 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: LCS for diff utilities",
+      "body": "Unix `diff`, Git's diff algorithm, and the patience-diff algorithm all rest on LCS (longest common subsequence) under the hood. The output of `diff a b` is essentially 'find the longest common subsequence; everything not in it is a delete (from a) or an insert (to b)'. LCS gives the minimum-edit alignment. Variations (Myers' algorithm) refine the constants but the DP structure is the same."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dp_lcs",
+        "kind": "guided_derivation",
+        "question": "Derive the LCS recurrence",
+        "goal": "Define $\\text{LCS}(i, j)$ = length of LCS of $A[1..i]$ and $B[1..j]$. Derive recurrence.",
+        "steps": [
+          {
+            "prompt": "Base: $\\text{LCS}(0, j) = \\text{LCS}(i, 0) = 0$. Recursive case: consider $A[i]$ vs $B[j]$. If $A[i] = B[j]$, what's the recurrence?",
+            "motivation": "Matching characters extend the LCS.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "LCS(i-1, j-1) + 1"
+              ]
+            },
+            "hints": [
+              "Use the LCS of the prefixes + 1 for the match."
+            ],
+            "reveal": "$\\text{LCS}(i, j) = \\text{LCS}(i-1, j-1) + 1$ when $A[i] = B[j]$."
+          },
+          {
+            "prompt": "If $A[i] \\neq B[j]$, we must drop one of them. What's the recurrence?",
+            "motivation": "Try both options + take the max.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "max(LCS(i-1, j), LCS(i, j-1))"
+              ]
+            },
+            "hints": [
+              "Either drop $A[i]$ or drop $B[j]$; take the better of the two."
+            ],
+            "reveal": "$\\text{LCS}(i, j) = \\max(\\text{LCS}(i-1, j), \\text{LCS}(i, j-1))$ when $A[i] \\neq B[j]$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{LCS}(i, j) = \\begin{cases} \\text{LCS}(i-1, j-1) + 1 & \\text{if } A[i] = B[j] \\\\ \\max(\\text{LCS}(i-1, j), \\text{LCS}(i, j-1)) & \\text{else} \\end{cases}}$$ Runtime $O(mn)$, memory $O(mn)$. Hirschberg's algorithm gives $O(\\min(m, n))$ memory at the same time complexity — used in production diff tools."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The two implementation styles",
       "body": "**Top-down (memoization)**: natural recursive code with a cache. Solve subproblems on demand; store results.\n\n```python\n@lru_cache(maxsize=None)\ndef fib(n):\n    if n < 2: return n\n    return fib(n-1) + fib(n-2)\n```\n\n**Bottom-up (tabulation)**: build the answer table iteratively, in dependency order.\n\n```python\ndef fib(n):\n    if n < 2: return n\n    table = [0] * (n+1)\n    table[1] = 1\n    for i in range(2, n+1):\n        table[i] = table[i-1] + table[i-2]\n    return table[n]\n```\n\nSame asymptotic complexity ($O(n)$). Different ergonomics — see [[memoization-vs-tabulation]]."
     },

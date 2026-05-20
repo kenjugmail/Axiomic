@@ -7,6 +7,52 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: schoolbook vs Karatsuba in cryptography",
+      "body": "RSA-2048 uses 2048-bit integer multiplications. Schoolbook: $O(n^2) = $ ~$2048^2 \\approx 4 \\times 10^6$ digit-multiplies. Karatsuba: $O(n^{\\log_2 3}) \\approx 2048^{1.585} \\approx $ ~$200{,}000$ digit-multiplies. ~20× speedup at this size. For even larger numbers (RSA-4096, ECC-based ZK proofs), FFT-based multiplication ($O(n \\log n)$) wins. Cryptographic libraries (GMP, OpenSSL) crossover between algorithms based on operand size."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dc_karatsuba",
+        "kind": "guided_derivation",
+        "question": "Derive Karatsuba's $O(n^{\\log_2 3})$ runtime",
+        "goal": "Karatsuba multiplies two $n$-digit numbers using 3 multiplications + some additions of $n/2$-digit numbers. Find $T(n)$.",
+        "steps": [
+          {
+            "prompt": "Write the recurrence.",
+            "motivation": "3 sub-multiplications + linear work.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "T(n) = 3T(n/2) + O(n)"
+              ]
+            },
+            "hints": [
+              "3 calls of half-size + linear overhead."
+            ],
+            "reveal": "$T(n) = 3T(n/2) + O(n)$."
+          },
+          {
+            "prompt": "Apply master theorem. $a = 3, b = 2, d = 1$. $\\log_b a = ?$",
+            "motivation": "Master theorem.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "log_2 3",
+                "log_2(3)"
+              ]
+            },
+            "hints": [
+              "$\\log_2 3 \\approx 1.585$."
+            ],
+            "reveal": "$\\log_2 3 \\approx 1.585 > d = 1$, so Case 3: $T(n) = \\Theta(n^{\\log_2 3})$."
+          }
+        ],
+        "finalResult": "$$\\boxed{T(n) = \\Theta(n^{\\log_2 3}) \\approx O(n^{1.585})}$$ Karatsuba beats $O(n^2)$ schoolbook on large enough $n$. The 'large enough' crossover is around 30-50 digits in practice; below that, schoolbook is faster (smaller constants)."
+      }
+    },
+    {
+      "kind": "text",
       "title": "When greedy works: matroids + exchange",
       "body": "Greedy is **provably optimal** on **matroids**. A matroid is a structure $(E, \\mathcal{I})$ where $E$ is a ground set and $\\mathcal{I}$ is a collection of \"independent\" subsets satisfying:\n\n1. $\\emptyset \\in \\mathcal{I}$.\n2. If $A \\in \\mathcal{I}$ and $B \\subseteq A$, then $B \\in \\mathcal{I}$ (downward closed).\n3. **Exchange axiom**: if $A, B \\in \\mathcal{I}$ and $|A| < |B|$, then there exists $x \\in B \\setminus A$ with $A \\cup \\{x\\} \\in \\mathcal{I}$.\n\nWhen the problem's solution space is a matroid, greedy by weight is provably optimal. This justifies:\n\n- **Minimum spanning tree** (graphic matroid): Kruskal's, Prim's.\n- **Optimal scheduling for jobs with deadlines**.\n- **Optimal selection in vector-matroid problems**.\n\n**The exchange argument** is greedy's other proof technique. Assume greedy is suboptimal; the optimal solution must disagree at some first step. Show you can swap greedy's choice into the optimal without harm. Contradiction → greedy was optimal. This proves correctness for:\n\n- **Activity selection** (pick earliest-ending event).\n- **Huffman coding** (greedy bottom-up tree construction).\n- **Fractional knapsack** (sort by value/weight, take greedily).\n- **Dijkstra's** (greedy on tentative distance — see [[shortest-path]]).\n\n**When greedy provably fails** ([[greedy-always-works]] misconception):\n\n- **0/1 knapsack**: items are indivisible; greedy by value/weight ratio gives suboptimal answers. Use DP.\n- **Set cover**: greedy gives a $\\ln n$-approximation; provably no greedy can do better.\n- **TSP**: nearest-neighbor heuristic can be arbitrarily far from optimal.\n\n**Default**: if you can't prove greedy works (matroid or exchange argument), assume it doesn't. Use DP or approximation algorithms."
     },

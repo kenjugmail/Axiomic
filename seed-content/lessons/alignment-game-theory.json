@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: RLHF reward-model gaming",
+      "body": "When RLHF training is pushed too long, the policy starts producing high reward-model-score outputs that human raters find unhelpful. Concrete example: GPT-style models trained with too much RLHF start excessively hedging ('It depends', 'I can't say for certain') — the reward model rewards apparent calibration but humans find it annoying. The standard cure: stronger KL regularization against the SFT policy + better reward-model evaluation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_align_goodhart",
+        "kind": "guided_derivation",
+        "question": "Show that strong optimization against a misspecified proxy increases the gap",
+        "goal": "Let $V$ be true value + $V'$ the proxy reward. With strong optimization on $V'$, what happens to the gap $V' - V$?",
+        "steps": [
+          {
+            "prompt": "Optimization finds the policy $\\pi^*$ maximizing $V'$. If $V'$ approximates $V$ on the training distribution but diverges on certain (low-probability under training) directions, where does $\\pi^*$ land?",
+            "motivation": "Optimization seeks the highest-$V'$ point, which may be off-distribution.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "At the point where $V'$ is largest, which may be where $V' - V$ is also largest.",
+                "Always at the true optimum of $V$.",
+                "At a random point.",
+                "Optimization fails."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Strong optimization is good at finding global max + bad at filtering for 'where the proxy is well-defined'."
+            ],
+            "reveal": "$\\pi^*$ converges to where $V'$ is large. If $V' - V$ has its maximum in the same region (which is likely if the proxy is misspecified in any direction), the gap widens with optimization."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Strong optimization against misspecified proxy} \\Rightarrow \\text{gap } V' - V \\text{ widens}}$$ This is Goodhart's law operationalized for ML alignment. Mitigations: KL-regularize against base, ensemble rewards, periodic re-grounding via fresh human feedback, conservative policies (avoiding extrapolation)."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Two classical problems, ML versions",
       "body": "**Adverse selection** (hidden information): the agent knows their own type, principal doesn't.\n- Classical: insured knows their risk; insurer doesn't.\n- ML version: AI system 'knows' its own capabilities + dispositions in some functional sense; humans + evaluators see only behavior in tested situations.\n- **Mitigation**: interpretability research, behavioral testing across diverse scenarios, evals.\n\n**Moral hazard** (hidden action): the agent's effort or action is unobservable.\n- Classical: employee's effort can't be directly observed; only output.\n- ML version: AI's internal computation isn't directly observed; only outputs. Reward hacking is the canonical failure.\n- **Mitigation**: process supervision, chain-of-thought monitoring, reward model design."
     },

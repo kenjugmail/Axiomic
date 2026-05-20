@@ -7,6 +7,59 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: real ultimatum-game data",
+      "body": "Hundreds of behavioral experiments since the 1980s. Across cultures, the empirical result: offerers typically split $50/50$ (or $60/40$); offers below $30/70$ are usually rejected. Far from the SPE prediction of $99/1$. The deviation tells us about preferences (fairness norms, spite, social signaling) — not about a flaw in the math. SPE remains correct for the stated game; humans aren't playing the stated game."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_seq_ultimatum",
+        "kind": "guided_derivation",
+        "question": "Derive the SPE of the ultimatum game",
+        "goal": "P1 proposes a split of $100 to P2; P2 accepts (both get the proposed shares) or rejects (both get 0).",
+        "steps": [
+          {
+            "prompt": "Work backwards. At P2's decision node, given P1 offered $x \\geq 0$ to P2: P2's choice between accepting ($x$) and rejecting (0). Best response?",
+            "motivation": "Backward induction starts at the leaves.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Accept any positive offer.",
+                "Accept any offer $\\geq 30$.",
+                "Always reject.",
+                "Accept iff x > 50."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "P2 strictly prefers $x > 0$ to 0; indifferent at $x = 0$."
+            ],
+            "reveal": "P2 accepts any $x > 0$."
+          },
+          {
+            "prompt": "P1 anticipates this. P1's payoff is $100 - x$ if accepted, 0 if rejected. P1 wants to minimize $x$ subject to P2 accepting. Best offer?",
+            "motivation": "Tie-break: offer the smallest positive amount.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$x = 50$.",
+                "$x = 0$.",
+                "$x = 1$ (or smallest positive unit).",
+                "$x = 99$."
+              ],
+              "correctIndex": 2
+            },
+            "hints": [
+              "P1 offers the minimum amount P2 will accept."
+            ],
+            "reveal": "$x = \\epsilon$ (smallest positive unit, e.g., $0.01). P1 keeps $\\$99.99$, P2 accepts."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Ultimatum SPE: } P1 \\text{ offers } \\$0.01, \\text{ P2 accepts}}$$ The SPE prediction. Empirically humans split closer to 50/50 — modeling fairness preferences in the utility function (Fehr-Schmidt) recovers more realistic predictions."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Backward induction",
       "body": "For finite games of **perfect information** (every player sees every prior move), the standard solution is **backward induction**:\n\n1. Start at terminal subgames.\n2. At each, the player to move chooses the action maximizing their payoff.\n3. Roll the value back up; replace the subgame with its equilibrium value.\n4. Continue to the root.\n\nThe path of choices found is the **subgame-perfect equilibrium** ([[subgame-perfect]]) — a [[nash-equilibrium]] that's also a Nash in every subgame.\n\nThis is what AlphaZero's MCTS approximates: each node's value is computed by recursive search through descendant states, then the policy at each node selects the highest-value action."
     },

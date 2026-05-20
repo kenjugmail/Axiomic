@@ -7,6 +7,52 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: comparing merge sort and quicksort empirically",
+      "body": "Both $O(n\\log n)$ in big-O. But on real input: quicksort with random pivots usually beats merge sort by 30-60% wall-clock time because quicksort does in-place partition (better cache behavior) while merge sort allocates a scratch buffer of size $n$. The big-O hides this. Production sort algorithms (std::sort, Java Collections.sort) typically use introsort: quicksort + median-of-three pivot + falls back to heapsort if recursion depth exceeds $2\\log n$, giving worst-case $O(n\\log n)$ with the constants of quicksort."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_asy_master",
+        "kind": "guided_derivation",
+        "question": "Apply the master theorem",
+        "goal": "Solve $T(n) = 2T(n/2) + n$ via the master theorem.",
+        "steps": [
+          {
+            "prompt": "Master theorem: $T(n) = aT(n/b) + n^d$. Compare $\\log_b a$ with $d$. Here: $a = 2, b = 2, d = 1$. What's $\\log_b a$?",
+            "motivation": "Setup.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1"
+              ]
+            },
+            "hints": [
+              "$\\log_2 2 = 1$."
+            ],
+            "reveal": "$\\log_b a = \\log_2 2 = 1$."
+          },
+          {
+            "prompt": "$\\log_b a = d = 1$ — the 'middle case' (Case 2). What's $T(n)$?",
+            "motivation": "Case 2 gives $\\Theta(n^d \\log n)$.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "n log n",
+                "Theta(n log n)"
+              ]
+            },
+            "hints": [
+              "When $\\log_b a = d$: $T(n) = \\Theta(n^d \\log n)$."
+            ],
+            "reveal": "$T(n) = \\Theta(n \\log n)$ — same as merge sort."
+          }
+        ],
+        "finalResult": "$$\\boxed{T(n) = 2T(n/2) + n \\Rightarrow T(n) = \\Theta(n \\log n)}$$ The master theorem solves the bulk of divide-and-conquer recurrences. Cases: $\\log_b a < d$ → $\\Theta(n^d)$. $\\log_b a = d$ → $\\Theta(n^d \\log n)$. $\\log_b a > d$ → $\\Theta(n^{\\log_b a})$."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Common growth orders",
       "body": "From fastest-growing-slowly (best) to fastest-growing-quickly (worst):\n\n| Class | Name | Example |\n|-------|------|---------|\n| $O(1)$ | Constant | Hash-table lookup |\n| $O(\\log n)$ | Logarithmic | Binary search |\n| $O(n)$ | Linear | Single-pass scan |\n| $O(n \\log n)$ | Linearithmic | Mergesort, heapsort |\n| $O(n^2)$ | Quadratic | Selection sort |\n| $O(n^3)$ | Cubic | Standard matrix multiplication |\n| $O(2^n)$ | Exponential | Brute-force subset enumeration |\n| $O(n!)$ | Factorial | Brute-force traveling salesman |\n\n**Rule of thumb for input size $n$**:\n- $n \\leq 10^6$: $O(n^2)$ is borderline.\n- $n \\leq 10^8$: $O(n)$ or $O(n \\log n)$ only.\n- $n \\leq 10^{18}$: $O(\\log n)$ or $O(1)$ only.\n- $n \\geq 50$ for $O(2^n)$: intractable."
     },

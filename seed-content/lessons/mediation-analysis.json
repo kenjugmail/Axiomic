@@ -7,6 +7,53 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: education → income, via degree attainment",
+      "body": "A causal study of a job-training program. Total ATE on income: $+\\$4{,}000$/year. Decompose: NIE (mediated via degree attainment) $+\\$3{,}000$; NDE (direct, skipping degree) $+\\$1{,}000$. Implication: most of the benefit comes from getting the degree. If the program is expensive but degree-attainment-driving, redesigning to streamline degree completion has bigger impact than tweaking the skills component."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_med_decomp",
+        "kind": "guided_derivation",
+        "question": "Derive direct + indirect = total under linearity",
+        "goal": "Under linear $M = aT + e_M$ and $Y = bT + cM + e_Y$, show ATE = $b + ac$ (direct $b$ + indirect $ac$).",
+        "steps": [
+          {
+            "prompt": "Substitute $M$ into the equation for $Y$. What's the reduced form?",
+            "motivation": "Plug in.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Y = bT + c(aT + e_M) + e_Y = (b + ca)T + ce_M + e_Y",
+                "Y = (b+ac)T + noise"
+              ]
+            },
+            "hints": [
+              "Distribute $c$ over $aT + e_M$."
+            ],
+            "reveal": "$Y = (b + ca) T + (c e_M + e_Y)$."
+          },
+          {
+            "prompt": "Read off the total effect of $T$ on $Y$.",
+            "motivation": "Coefficient of $T$.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "b + ac",
+                "b + ca"
+              ]
+            },
+            "hints": [
+              "From the reduced form."
+            ],
+            "reveal": "ATE = $b + ac$. Direct $= b$; indirect (via $M$) $= ac$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{ATE} = b + ac \\quad (\\text{direct} + \\text{indirect})}$$ Under linearity, mediation decomposes cleanly. With nonlinearity (interactions, logistic), the natural-direct/natural-indirect framework (Pearl) generalizes the decomposition."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Direct + indirect effects, formally",
       "body": "Using potential outcomes notation with mediator `M`:\n\n- **Total Effect (TE)**: `E[Y(T = 1) - Y(T = 0)]`. The whole effect of treatment on outcome.\n- **Natural Direct Effect (NDE)**: `E[Y(T = 1, M = M(0)) - Y(T = 0, M = M(0))]`. Effect of `T` if we held `M` at the value it would have under control.\n- **Natural Indirect Effect (NIE)**: `E[Y(T = 1, M = M(1)) - Y(T = 1, M = M(0))]`. Effect of moving `M` from its untreated value to its treated value, holding `T` at treated.\n- **Decomposition**: `TE = NDE + NIE`.\n\n**Controlled Direct Effect (CDE)**: `E[Y(T = 1, M = m) - Y(T = 0, M = m)]` — the direct effect when `M` is FIXED at value `m`. Different from NDE; useful when `M` is policy-controllable.\n\nThe natural-effects framework (Pearl, Robins) is the modern standard for mediation."
     },

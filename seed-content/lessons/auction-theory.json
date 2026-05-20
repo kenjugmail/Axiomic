@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: empirical revenue equivalence test",
+      "body": "Engelbrecht-Wiggans (1988) + many follow-up empirical studies compared first-price + second-price auction revenues in field data. Result: revenues are *approximately* equal across formats, consistent with revenue equivalence under the standard assumptions (private values, risk-neutral bidders, symmetric distribution). Deviations: risk-averse bidders push toward first-price (more revenue); common-value settings push toward English/Japanese (winner's curse mitigation)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_auc_reveq",
+        "kind": "guided_derivation",
+        "question": "Sketch revenue equivalence proof",
+        "goal": "Argument: under IPV + risk neutrality + symmetric, revenue depends only on the rule for who wins + the expected payment by the lowest type.",
+        "steps": [
+          {
+            "prompt": "Myerson's revenue-equivalence theorem rests on what observation? Each bidder $i$ with valuation $v_i$ wins with probability $p_i(v_i)$ + pays expected $m_i(v_i)$. Bayesian incentive compatibility forces a specific form on $m_i$.",
+            "motivation": "Envelope theorem fixes payment up to a constant.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Two mechanisms with the same allocation rule + same payments at the lowest type have the same revenue.",
+                "Always the highest bidder wins.",
+                "Auctions are symmetric.",
+                "Bidders are risk-neutral by assumption."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "The envelope theorem fixes the payment function $m_i$ up to a constant determined by $m_i(\\text{lowest type})$."
+            ],
+            "reveal": "Two mechanisms with the same allocation rule + same lowest-type payments produce identical expected revenue."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Revenue equivalence: same allocation + same lowest-type payment} \\Rightarrow \\text{same revenue}}$$ All four classical auctions allocate to the highest valuation + give zero expected surplus to the lowest type → same revenue. Risk-aversion + common values break the symmetry; that's where mechanisms differ."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Why second-price is special",
       "body": "**The Vickrey auction is truthful**: bidding your true valuation is a *dominant strategy*. No analysis of opponents needed.\n\n**Why**: regardless of what others do:\n- Bidding higher than your valuation: you might win when you wouldn't have, and pay more than the item's worth to you.\n- Bidding lower than your valuation: you might lose when you'd profit.\n- Bidding your true valuation: you win exactly when the second-highest bid is below your valuation, and pay that second-highest bid.\n\nThis is the simplest case of [[vcg-auction]] — Vickrey-Clarke-Groves. VCG generalizes truthfulness to multi-item, multi-attribute auctions.\n\n**English ↔ Vickrey**: in an English auction with private values, dropping out exactly when the price reaches your valuation is optimal. The winning price = second-highest valuation. Same outcome as Vickrey.\n\n**Dutch ↔ first-price**: identical strategically. Bidder accepts at the price they'd have bid in a sealed-bid first-price auction."
     },

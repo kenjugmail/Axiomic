@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: causal forests on Project STAR",
+      "body": "Project STAR was a Tennessee education experiment (1985-89) randomizing kindergarteners to small vs regular class sizes. Conventional analysis found a modest average effect. Wager-Athey's 2018 causal-forest re-analysis showed heterogeneity: low-income students benefited more than high-income, and the effect persisted longer for them. The headline ATE (~$\\Delta$ test score) hid that the policy mattered most for the subpopulation that would otherwise underperform."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_hte_learner",
+        "kind": "guided_derivation",
+        "question": "Distinguish S-learner from T-learner",
+        "goal": "Define both meta-learners for estimating CATE from observational data.",
+        "steps": [
+          {
+            "prompt": "S-learner: train one model $\\mu(x, t)$ on $(X, T, Y)$. Predict CATE as $\\mu(x, 1) - \\mu(x, 0)$. T-learner: train *two* models, $\\mu_0(x)$ on controls + $\\mu_1(x)$ on treated. Predict CATE as $\\mu_1(x) - \\mu_0(x)$. Which is better when treatment effects are SMALL relative to outcome variation?",
+            "motivation": "S-learner shares parameters across treatment arms; T-learner doesn't.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "S-learner (regularization helps when effect is small).",
+                "T-learner (separate models give more flexibility).",
+                "Always identical.",
+                "Neither works."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "S-learner regularizes more by sharing parameters; T-learner is less biased but higher-variance."
+            ],
+            "reveal": "S-learner usually wins when treatment effects are small (regularization helps); T-learner wins when effects are large + heterogeneous. X-learner + DR-learner combine the best of both."
+          }
+        ],
+        "finalResult": "S-learner vs T-learner: the basic meta-learner taxonomy for CATE. Combined with cross-fitting + ML base learners (gradient boosting, neural nets), these methods power modern causal-inference deployments at scale."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Defining HTE",
       "body": "**Conditional Average Treatment Effect (CATE)**: the ATE conditional on covariates `X`.\n\n`τ(x) = E[Y(1) - Y(0) | X = x]`\n\nThis is a function of the covariates. The ATE is its average: `ATE = E[τ(X)]`. The function `τ(x)` describes who benefits more or less.\n\n**Why CATE estimation is hard**:\n\n- Each unit only has one observed potential outcome — you can't directly estimate `Y(1) - Y(0)` for a single person.\n- Estimating a function over `X` (rather than a scalar) requires more data + more careful regularization.\n- Confounding is harder when treatment effects are heterogeneous: different subgroups may have different treatment-assignment mechanisms.\n\n**Two approaches**: meta-learners (re-purposing supervised ML for CATE estimation) and direct methods (causal forests, double-ML)."
     },

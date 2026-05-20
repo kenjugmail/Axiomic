@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: spectrum auctions",
+      "body": "Government spectrum auctions (FCC) use VCG-style mechanisms for combinatorial allocation. Bidders value packages of spectrum licenses; the auction allocates to maximize total declared value + each winner pays their externality. VCG produced billions in revenue + efficient allocations through the 2000s. Limitations (revenue can be low, vulnerable to bidder collusion) have led some auctions to alternative formats (clock auctions). Still: the cleanest application of the revelation principle in real-world policy."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_md_vcg",
+        "kind": "guided_derivation",
+        "question": "Show VCG is truthful — single-item case (Vickrey)",
+        "goal": "Show in a single-item second-price auction, bidding your true value is a dominant strategy.",
+        "steps": [
+          {
+            "prompt": "Your value: $v$. Highest competing bid: $b_*$. Outcome depends on your bid $b$ + price you pay if you win = $b_*$. Three cases: $b = v$, $b > v$, $b < v$. In each, when do you win + what surplus do you get?",
+            "motivation": "Compare outcomes across bidding strategies.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$b = v$: win iff $v > b_*$, gain $v - b_*$; $b > v$: same win condition for typical cases, but if $v < b_* < b$, you win and pay $b_* > v$ — loss.; $b < v$: lose some times you would have won at $b = v$ — missed surplus.",
+                "All bids are equivalent.",
+                "$b > v$ always strictly better.",
+                "$b < v$ always strictly better."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Compare each strategy to truth-telling case-by-case."
+            ],
+            "reveal": "Bidding above $v$ risks winning at a price > $v$ (loss). Bidding below $v$ loses opportunities to win at a profit. Truth-telling weakly dominates."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Vickrey: bid } b = v \\text{ is a dominant strategy}}$$ Generalized in VCG: each bidder pays the externality their participation imposes. The mechanism elicits true values regardless of others' bids — strategy-proofness in a single dominant strategy."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The setup",
       "body": "**Players**: $n$ agents, each with a private **type** $t_i$ (a valuation, cost, capability — known to themselves, not to others).\n\n**Designer**: specifies a mechanism $(g, p)$:\n- $g(\\hat{t})$: an **allocation rule** — who gets what.\n- $p(\\hat{t})$: a **payment rule** — who pays what.\n\n**Players** report types $\\hat{t}_i$. They don't have to report truthfully — they'll report whatever maximizes their payoff.\n\n**Designer** commits to executing $g(\\hat{t})$ + $p(\\hat{t})$ given the reports.\n\nThe mechanism is **truthful** (incentive-compatible) iff truth-telling is a dominant strategy for every player. If so, the designer can trust the reports."
     },

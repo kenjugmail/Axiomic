@@ -7,6 +7,61 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: PC algorithm on gene-expression data",
+      "body": "Causal discovery on gene-expression data identifies likely gene-regulatory networks. The PC algorithm starts with a complete undirected graph + iteratively removes edges by testing conditional independence. Result: a CPDAG (completed partially-directed acyclic graph) showing the Markov equivalence class. Some edges' directions are recoverable (the v-structures); others are ambiguous and require intervention or biological knowledge to resolve."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cd_vstruct",
+        "kind": "guided_derivation",
+        "question": "Show that v-structures are identifiable from observational independencies",
+        "goal": "$A \\to C \\leftarrow B$ vs $A \\to C \\to B$ — which is identifiable from independence patterns?",
+        "steps": [
+          {
+            "prompt": "Compute $A \\perp B$ in both DAGs. (Unconditionally.)",
+            "motivation": "Use d-separation.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Both: A ⊥ B unconditionally.",
+                "Only the first.",
+                "Only the second.",
+                "Neither."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "First DAG: $A \\to C \\leftarrow B$ has unconditioned collider $C$ — path blocked.",
+              "Second DAG: $A \\to C \\to B$ has a chain — but no edge between A and B."
+            ],
+            "reveal": "Both show $A \\perp B$ unconditionally (paths are blocked / nonexistent)."
+          },
+          {
+            "prompt": "Compute $A \\perp B | C$ in both.",
+            "motivation": "Conditioning changes the picture.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "First: NOT independent (collider opened). Second: independent (chain blocked).",
+                "Both still independent.",
+                "Both not independent.",
+                "Same in both."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Conditioning on collider $C$ OPENS the path.",
+              "Conditioning on chain element $C$ BLOCKS the path."
+            ],
+            "reveal": "First DAG: $A \\not\\perp B | C$ (collider opens). Second DAG: $A \\perp B | C$ (chain blocked). DIFFERENT independence patterns — so they're distinguishable from observational data."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{v-structures } A \\to C \\leftarrow B \\text{ are identifiable from independencies}}$$ Other DAG configurations (chains and forks with no v-structures) are *not* identifiable from independencies alone — they're Markov-equivalent and require interventions to disambiguate."
+      }
+    },
+    {
+      "kind": "text",
       "title": "PC algorithm",
       "body": "**PC algorithm** (Peter-Clark, Spirtes-Glymour 1991): the classical constraint-based discovery algorithm.\n\n**Procedure**:\n\n1. Start with a complete undirected graph (every node connected to every other).\n2. Remove edges between pairs that are conditionally independent given any subset of the remaining adjacent nodes.\n3. Identify v-structures: for each pair `(X, Y)` connected via `Z`, if `X` and `Y` are NOT independent conditional on `Z`, then `Z` is a collider; orient `X → Z ← Y`.\n4. Apply Meek's rules to orient additional edges that follow from v-structures + acyclicity.\n5. Output: a CPDAG (completed partially-directed acyclic graph) representing the equivalence class.\n\n**Assumptions**:\n\n- **Causal Markov condition**: the joint distribution factorizes per the DAG.\n- **Faithfulness**: no measure-zero conditional independencies (i.e., independencies in the data correspond to absences in the DAG).\n- **Causal sufficiency**: no unobserved common causes.\n\n**Implementation**: `pcalg` R package, `causal-learn` Python library. The algorithm is mechanical given a conditional-independence test (Fisher-Z for Gaussian; mutual information / kernel-based for nonparametric)."
     },

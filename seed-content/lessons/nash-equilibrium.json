@@ -7,6 +7,59 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: cooperation via repeated play",
+      "body": "Prisoner's dilemma played once: defect is dominant. Played many times: cooperation can emerge via 'tit-for-tat' (defect if + only if opponent defected last round). Robert Axelrod's tournaments (1980s) showed tit-for-tat repeatedly beat more complex strategies. The folk theorem: in infinitely repeated games with sufficient patience, virtually any individually-rational outcome is sustainable as an equilibrium — including full cooperation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_nash_pd_check",
+        "kind": "guided_derivation",
+        "question": "Verify that (Defect, Defect) is a Nash equilibrium of PD",
+        "goal": "PD payoffs (row, col): both silent (-1, -1); row silent, col defects (-10, 0); row defects, col silent (0, -10); both defect (-5, -5).",
+        "steps": [
+          {
+            "prompt": "Given column defects, what's row's best response?",
+            "motivation": "Compare payoffs for row.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Silent (-10) — worse.",
+                "Defect (-5) — better.",
+                "Either is fine.",
+                "Stay silent regardless."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Defect = -5; Silent = -10."
+            ],
+            "reveal": "Defect (-5) > Silent (-10). Row's best response to column defecting is to defect."
+          },
+          {
+            "prompt": "By symmetry, column's best response to row defecting is also defect. So (Defect, Defect) is a NE. What's the alternative profile (Silent, Silent) — is IT a NE?",
+            "motivation": "Check if anyone can profitably deviate.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Yes — both prefer the (-1, -1) outcome.",
+                "No — given the other is silent, defecting gives 0 (better than -1).",
+                "Cannot determine.",
+                "Both NEs."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "At (Silent, Silent): row could defect → 0 > -1. So row prefers to deviate."
+            ],
+            "reveal": "(Silent, Silent) is NOT a NE. Either player can profitably deviate to Defect. The unique NE is (Defect, Defect), even though both could be happier at (Silent, Silent) — the classic PD tension."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{PD NE: (Defect, Defect); not Pareto-optimal}}$$ NE captures individual rationality, not collective welfare. PD's unique NE makes everyone worse off than the Pareto-optimal (Silent, Silent) — illustrating that markets / institutions / repeated play are sometimes needed to escape PD-like outcomes."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Prisoner's Dilemma",
       "body": "The most-cited game in economics + ML alignment:\n\n| | Cooperate | Defect |\n|---|---|---|\n| **Cooperate** | (3, 3) | (0, 5) |\n| **Defect** | (5, 0) | (1, 1) |\n\nAnalysis: regardless of what the column player does, the row player is better off defecting:\n- If column cooperates: row gets 5 (Defect) > 3 (Cooperate).\n- If column defects: row gets 1 (Defect) > 0 (Cooperate).\n\nSymmetrically for column. So (Defect, Defect) is the unique Nash equilibrium.\n\nBut both players prefer (Cooperate, Cooperate) at (3, 3)! Equilibrium ≠ optimum.\n\nThis is the canonical example of why Nash equilibrium is a *stability* concept, not an *optimality* concept. The two concepts often disagree."
     },
