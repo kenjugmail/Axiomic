@@ -24,6 +24,7 @@ const HRDiagram = lazy(() => import("../../../../packages/viz/src/components/HRD
 const SIRModel = lazy(() => import("../../../../packages/viz/src/components/SIRModel").then(m => ({ default: m.SIRModel })));
 const ReactorComparator = lazy(() => import("../../../../packages/viz/src/components/ReactorComparator").then(m => ({ default: m.ReactorComparator })));
 const PointKinetics = lazy(() => import("../../../../packages/viz/src/components/PointKinetics").then(m => ({ default: m.PointKinetics })));
+const OceanTSDiagram = lazy(() => import("../../../../packages/viz/src/components/OceanTSDiagram").then(m => ({ default: m.OceanTSDiagram })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -52,6 +53,7 @@ export const VIZ_NAMES = [
   "sir-model",
   "reactor-comparator",
   "point-kinetics",
+  "ocean-ts-diagram",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -78,6 +80,7 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "sir-model": SIRModel,
   "reactor-comparator": ReactorComparator,
   "point-kinetics": PointKinetics,
+  "ocean-ts-diagram": OceanTSDiagram,
 };
 
 interface VizEmbedProps {

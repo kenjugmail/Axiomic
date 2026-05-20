@@ -1,0 +1,220 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Apply Redfield ratio + nutrient cycling.",
+      "Reason about ocean primary productivity.",
+      "Distinguish biological + solubility carbon pumps."
+    ],
+    "prereqs": [
+      "physical-oceanography-basics",
+      "ocean-chemistry-and-acidification"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Primary production + the Redfield ratio",
+      "body": "**Marine primary production**: photosynthesis by phytoplankton (microscopic algae) at ocean surface. Global net primary production: ~50 GtC/yr — roughly equal to terrestrial. Half of Earth's photosynthesis happens in the ocean.\n\n**Photosynthesis**: \n  6 CO₂ + 6 H₂O + light → C₆H₁₂O₆ + 6 O₂\n\n**Phytoplankton stoichiometry — Redfield ratio (Redfield 1934)**:\n  C : N : P = 106 : 16 : 1 (atomic ratio)\n\nNitrogen + phosphorus are typically limiting in ocean primary production. Iron + silicate + other micronutrients secondary. Plankton consume N + P from seawater in roughly Redfield proportions; when respired/remineralized, they release them back in the same ratio.\n\n**Nutrient distribution**:\n- Surface: depleted (organisms consume) — biological 'desert' in subtropical gyres.\n- 200-1000 m: maximum (organic matter sinks + remineralized).\n- Deep ocean (>1 km): rich (accumulated over centuries of biological pump action).\n\n**Limiting nutrients vary by region**:\n- Tropical oligotrophic gyres: N + P both limiting (alternately).\n- Subarctic North Pacific: iron-limited (HNLC — high nitrate, low chlorophyll).\n- Equatorial Pacific: iron + N limiting.\n- Southern Ocean: iron limited (despite high nitrate).\n- Coastal upwelling: usually nutrient-replete; light + grazing dominate."
+    },
+    {
+      "kind": "text",
+      "title": "The biological + solubility pumps",
+      "body": "Two mechanisms move CO₂ from surface to deep ocean:\n\n**Biological pump**:\n1. Phytoplankton fix CO₂ at surface via photosynthesis.\n2. Most organic matter respired in surface (~80%); some sinks to depth (~20% — 'export production').\n3. Sinking particles (marine snow, fecal pellets) remineralized at depth by bacteria → DIC released at depth.\n4. Net result: surface DIC depleted; deep DIC enriched. CO₂ effectively transported from atmosphere → deep ocean.\n5. Global biological pump: ~10 GtC/yr exported to >100 m; ~3 GtC/yr to >1000 m.\n\n**Solubility pump**:\n1. CO₂ more soluble in cold water (more H-bonds available).\n2. Surface cooling at high latitudes increases CO₂ solubility → CO₂ uptake from atmosphere.\n3. This now-CO₂-enriched cold water sinks (becomes NADW, AABW).\n4. Spreads through deep ocean → effective CO₂ transport to depth.\n5. Global solubility pump: ~2 GtC/yr.\n\n**Anthropogenic CO₂ uptake** is enabled by both pumps:\n- ~25-30% of anthropogenic CO₂ absorbed by ocean (≈ 100 GtC over 1750-2020).\n- ~85% of this signal is in waters <1000 m depth.\n\n**Future risks**:\n- Surface warming reduces CO₂ solubility → solubility pump weakens.\n- Stratification increases → less nutrient resupply to surface → biological pump weakens.\n- Polar deep-water formation declines (AMOC + AABW) → less CO₂ delivery to depth.\n- Models project ~10-30% weakening of ocean carbon sink by 2100 — feedback amplifying atmospheric CO₂."
+    },
+    {
+      "kind": "text",
+      "title": "HNLC + iron fertilization + dead zones",
+      "body": "**HNLC** (High Nitrate, Low Chlorophyll) regions: subarctic N. Pacific, Equatorial Pacific, Southern Ocean. Surface has plenty of N + P, but phytoplankton biomass is low. Cause: **iron limitation** (Martin 1990, IronEx I + II experiments confirmed).\n\nIron is a micronutrient — needed for nitrogenase + photosystems + many enzymes. Sources: dust deposition (Saharan Africa → tropical Atlantic; Patagonia → S. Ocean; Asia → N. Pacific). HNLC regions are far from continental dust sources.\n\n**Iron fertilization experiments** (1993-onwards): adding iron to HNLC regions triggers phytoplankton blooms (10-100× chlorophyll). But:\n- Most fixed C is respired in surface, not exported to depth.\n- Carbon-export efficiency: 1-5% of added Fe atoms result in C reaching >1000 m.\n- Side effects: O₂ depletion, ecosystem disruption, dimethylsulfide emission, harmful algal blooms.\n\n**Iron fertilization as climate engineering**: 'Geritol solution' proposed in 1990s. Now controversial: (a) limited carbon-removal efficiency; (b) ecological + governance concerns; (c) violates London Convention on dumping (since 2008, only research permitted).\n\n**Coastal dead zones (eutrophication)**: excess nutrient runoff (fertilizers, sewage) → algal blooms → die-off → respiration → O₂ depletion. Major dead zones: Gulf of Mexico (~15,000 km² seasonally), Baltic Sea, Chesapeake Bay, East China Sea. Fisheries collapse; mass mortality of bottom-dwellers.\n\n**Oxygen minimum zones (OMZ)**: natural mid-depth zones (200-1000 m) where biological respiration consumes O₂ + circulation slow. Tropical Pacific + Indian Ocean. Expanding under warming (oxygen-depleted waters increasing ~0.5%/decade since 1970s). Habitat squeeze for hypoxia-sensitive fish."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_biogeo_1",
+        "kind": "guided_derivation",
+        "question": "Apply Redfield ratio + nutrient limitation",
+        "goal": "A surface water sample has 10 µM NO₃⁻ + 0.3 µM PO₄³⁻ + 1 nM Fe + plenty of light. Which nutrient limits production?",
+        "steps": [
+          {
+            "prompt": "Compute the N:P ratio of the water + compare to Redfield (16:1).",
+            "motivation": "Stoichiometric check.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "N:P = 33",
+                "33:1",
+                "10/0.3"
+              ]
+            },
+            "hints": [
+              "10 / 0.3 = 33.3."
+            ],
+            "reveal": "N:P = 10/0.3 = 33 — higher than Redfield 16. Excess N relative to P; **phosphate is more limiting**."
+          },
+          {
+            "prompt": "When P is exhausted, can N still be consumed?",
+            "motivation": "Liebig's law of minimum.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "no, phytoplankton stops growing",
+                "growth limited by P"
+              ]
+            },
+            "hints": [
+              "Single most-limiting nutrient sets growth."
+            ],
+            "reveal": "**Liebig's law of the minimum**: growth limited by the most-scarce essential nutrient. With Redfield-stoichiometry organisms + N:P = 33: at most 0.3 µM PO₄ × 106/1 = 32 µM C can be fixed before P runs out. Remaining N (~5 µM after 5 µM consumed in Redfield ratio) goes unused — 'excess' nitrogen accumulates."
+          },
+          {
+            "prompt": "What about iron at 1 nM? Compare to typical phytoplankton Fe:C cellular quotient (~10⁻⁶ molar).",
+            "motivation": "Iron limitation criterion.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1 nM × 10^6 = 1000 nM C = 1 µM C — way too low!",
+                "Fe limits at 1 µM C",
+                "iron is very limiting"
+              ]
+            },
+            "hints": [
+              "Fe limits if [Fe] / (Fe:C quotient) < attainable [C]."
+            ],
+            "reveal": "Available C from Fe limit ≈ 1 nM / 10⁻⁶ = 10³ nM C = 1 µM C. Far less than P-limited cap of 32 µM. So **iron is the actual limiting nutrient** in this water — typical HNLC condition (e.g., Southern Ocean, equatorial Pacific). Even with abundant macro-nutrients, lack of iron caps production."
+          },
+          {
+            "prompt": "Iron fertilization would temporarily relax this. What's the carbon-uptake potential per 1 kg of Fe added (rough order of magnitude)?",
+            "motivation": "Fe:C ratio in cells.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~10 t C per kg Fe",
+                "10 t C",
+                "~10000 kg C"
+              ]
+            },
+            "hints": [
+              "1 kg Fe / (Fe:C 10⁻⁶ mass ratio) = 10⁶ kg C — but most respired in surface; export efficiency 1-5%."
+            ],
+            "reveal": "Theoretical (all C exported): ~10⁶ kg C per kg Fe = ~10⁶ × stoichiometric ratio. Actual export to depth (>1000 m): ~10⁴-10⁵ kg C / kg Fe (1-5% efficiency). Comparable to other proposed climate-engineering approaches. But research vessels need to add ~10-100 g/m² × thousands of km² — large operational scale. Combined with ecological + governance concerns, large-scale iron fertilization isn't being deployed; research continues."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_biogeo_1",
+        "kind": "drag_classify",
+        "question": "Classify each marine region by its primary nutrient-limitation regime.",
+        "items": [
+          {
+            "id": "north-pacific-subtropical",
+            "label": "North Pacific subtropical gyre",
+            "bin": "n-p"
+          },
+          {
+            "id": "south-pacific-gyre",
+            "label": "South Pacific gyre",
+            "bin": "n-p"
+          },
+          {
+            "id": "southern-ocean",
+            "label": "Southern Ocean (south of polar front)",
+            "bin": "iron"
+          },
+          {
+            "id": "equatorial-pacific",
+            "label": "Equatorial Pacific (HNLC)",
+            "bin": "iron"
+          },
+          {
+            "id": "winter-arctic",
+            "label": "Arctic Ocean in winter (no sun)",
+            "bin": "light"
+          },
+          {
+            "id": "deep-ocean",
+            "label": "Deep ocean (>200 m)",
+            "bin": "light"
+          },
+          {
+            "id": "upwelling-peru",
+            "label": "Peruvian upwelling region",
+            "bin": "replete"
+          },
+          {
+            "id": "north-atlantic-spring",
+            "label": "North Atlantic spring bloom region",
+            "bin": "replete"
+          }
+        ],
+        "bins": [
+          {
+            "id": "n-p",
+            "label": "Nitrogen + phosphorus limited (oligotrophic)"
+          },
+          {
+            "id": "iron",
+            "label": "Iron limited (HNLC)"
+          },
+          {
+            "id": "light",
+            "label": "Light limited (deep + turbid)"
+          },
+          {
+            "id": "replete",
+            "label": "Replete (productive)"
+          }
+        ],
+        "explanation": "Marine productivity regimes:\n• **Oligotrophic (N + P limited)**: vast subtropical gyres — stratified surface, no nutrient resupply from depth. Low chlorophyll; clear blue water. Includes most of central ocean basins.\n• **HNLC (iron-limited)**: high macronutrients but low chlorophyll. Far from continental dust sources. Subarctic N. Pacific, equatorial Pacific, Southern Ocean. ~30% of ocean area.\n• **Light-limited**: polar oceans during dark seasons; deep waters where photons don't penetrate; turbid coastal/estuarine waters.\n• **Replete (productive)**: continental shelf, upwelling zones, polar oceans during summer + transition periods. Nutrients abundant + light sufficient → highly productive. Most global fisheries are in these regions.\n\nGlobal productivity ~50 GtC/yr; the productive regions punch above their area-weighted contribution. Coastal + shelf (~10% of ocean area): ~50% of fisheries catch. Upwelling regions (~0.1% area): ~25% of fish catch."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_biogeo_1",
+        "kind": "multiple_choice",
+        "question": "Why does the North Atlantic 'spring bloom' produce so much primary production, even though winter has high nutrients?",
+        "options": [
+          "Spring bloom is a myth.",
+          "Winter convection deepens mixed layer to 100-300 m → phytoplankton spend less time in well-lit zone → light-limited (Sverdrup's critical depth, 1953). In spring, mixed layer shoals + warms; phytoplankton stay near surface → light-limited regime ends + nutrient-replete bloom takes off. Bloom continues until N + P depleted; thereafter stratified summer is oligotrophic.",
+          "Spring tides cause upwelling.",
+          "Phytoplankton hibernate in winter."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Sverdrup's critical depth theory** (1953): phytoplankton growth requires light; respiration happens day + night. Net growth requires the mean light over the mixed layer to support photosynthesis > total respiration.\n\nIn winter:\n- Surface cooling deepens mixed layer to ~100-300 m.\n- Phytoplankton circulated through dark depths.\n- Mean light < critical level → net respiration > production.\n- Despite high nutrients, biomass low.\n\nIn spring:\n- Surface warming + reduced wind shoals mixed layer to ~30-50 m.\n- Phytoplankton confined to euphotic zone.\n- Light + nutrients both abundant.\n- **Bloom**: chlorophyll concentrations rise 10-100× over weeks.\n- Phytoplankton consume N + P + Si in Redfield + biogenic-silica proportions.\n- Bloom peaks; nutrient depletion + grazing crashes the bloom.\n\nIn summer:\n- Stratification persists; nutrients depleted in surface.\n- Production reverts to oligotrophic regime.\n- New production = nutrient input rate.\n\nThis seasonal cycle drives major export of carbon to depth: ~25% of N. Atlantic export production happens in the 4-6 weeks of the spring bloom. Foundational for fisheries (cod, herring, mackerel etc. time their reproduction to match the bloom + the downstream zooplankton + larval-fish chain).\n\nClimate change impacts:\n- Earlier shoaling of mixed layer due to warming → bloom timing shifts → potential mismatch with predator life-cycles.\n- Reduced winter convection (AMOC weakening) → less nutrient recharge → smaller blooms.\n- Both effects measurable in satellite chlorophyll records since 1998.\n\n**Modern view**: Sverdrup theory is an approximation; modern theories also consider grazing dynamics, turbulence, multi-species effects. But the seasonal-light-bloom-nutrient story remains foundational for understanding global ocean productivity."
+      },
+      "hints": [
+        "What limits winter production despite high nutrients?",
+        "What changes in spring?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Sverdrup 1953: phytoplankton growth requires mean light over mixed layer > critical. Winter convection deepens mixed layer to 100-300 m → mean light too low despite high nutrients. Spring warming shoals mixed layer to 30-50 m → light sufficient + nutrients abundant → bloom. Bloom crashes when nutrients depleted; summer oligotrophic. Foundational for N. Atlantic fisheries. Climate change shifts bloom timing → predator-prey mismatch risk."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_biogeo_1",
+        "kind": "math_expression",
+        "question": "Phytoplankton with Redfield C:N:P = 106:16:1 (molar) consume 30 µM nitrate before depleting it. How much carbon (µM) is fixed in the process?",
+        "acceptedAnswers": [
+          "199",
+          "198.75",
+          "30 × 106/16"
+        ],
+        "hint": "C/N = 106/16, so 30 × 106/16 = 198.75 µM C."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_biogeo_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how the 'biological carbon pump' is both a mechanism + a vulnerability under climate change.",
+        "rubric": "Mentions: phytoplankton photosynthesis at surface → some organic matter sinks to depth → respired by bacteria, returning CO₂ to deep DIC pool. Net effect: surface CO₂ drawn down → atmospheric CO₂ lower than it would be without biological pump. ~10 GtC/yr exported below 100 m; ~3 GtC/yr below 1000 m. Vulnerability under warming: (1) increased stratification reduces nutrient resupply to surface; (2) shifts in plankton community composition (smaller cells, fewer diatoms); (3) reduced export efficiency; (4) warmer water = faster respiration in surface; (5) polar deep-water formation weakening (AMOC, AABW) reduces transport to abyss. Net: model projections show ~10-30% weakening of ocean carbon sink by 2100. Compounding feedback: less ocean uptake → faster atmospheric accumulation → more warming → less uptake. Active research area; uncertainties large. Solution: emission reductions + observing systems (Argo BGC, Biogeochemical-Argo)."
+      }
+    }
+  ]
+}

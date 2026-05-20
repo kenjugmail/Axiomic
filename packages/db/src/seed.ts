@@ -1952,6 +1952,29 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P32 — Oceanographer path. From physical oceanography through
+  // ocean circulation + currents (uses new OceanTSDiagram viz),
+  // waves + tides, ocean chemistry + acidification, marine
+  // biogeochemistry + nutrients, marine ecosystems + zones,
+  // ENSO + climate coupling, and sea-level rise + ocean warming.
+  // Introduces sortable + drag_classify question types.
+  seedMasteryPath({
+    slug: "oceanographer",
+    title: "Oceanographer",
+    description:
+      "From T-S diagrams + water masses (interactive viz) through wind-driven + thermohaline circulation + AMOC, surface waves + tides + tsunamis, the carbonate system + ocean acidification, marine biogeochemistry + Redfield + carbon pump, vertical + horizontal ecosystem zones + coral reefs, ENSO + Bjerknes feedback + teleconnections, and sea-level rise + ocean heat content + coastal adaptation. The oceanography stack end-to-end.",
+    nodes: [
+      { slug: "physical-oceanography-basics", title: "Physical Oceanography Basics", level: "apprentice", order: 1, pages: ["t-s-density", "water-masses", "vertical-structure"], prereqs: [], description: "T + S + density, T-S diagrams + isopycnals + cabbeling, mixed layer + thermocline + abyssal water." },
+      { slug: "ocean-circulation-and-currents", title: "Ocean Circulation + Currents", level: "practitioner", order: 2, pages: ["wind-driven", "geostrophy-thermal-wind", "amoc-thc"], prereqs: ["physical-oceanography-basics"], description: "Wind-driven gyres + Ekman + western boundary intensification, geostrophy + thermal wind, AMOC + climate coupling." },
+      { slug: "waves-and-tides", title: "Waves + Tides", level: "practitioner", order: 3, pages: ["wave-spectrum", "tides-harmonics", "tsunami-surge"], prereqs: ["physical-oceanography-basics"], description: "Capillary/gravity/swell, tide harmonic decomposition + M2/S2/K1, storm surge + tsunami shoaling + Green's law." },
+      { slug: "ocean-chemistry-and-acidification", title: "Ocean Chemistry + Acidification", level: "practitioner", order: 4, pages: ["major-ions", "carbonate-system", "acidification-impacts"], prereqs: ["physical-oceanography-basics"], description: "Major-ion constancy, carbonate equilibria + Revelle factor + saturation states, OA impacts on calcifiers." },
+      { slug: "marine-biogeochemistry-and-nutrients", title: "Marine Biogeochemistry + Nutrients", level: "specialist", order: 5, pages: ["redfield", "carbon-pumps", "hnlc-iron"], prereqs: ["physical-oceanography-basics", "ocean-chemistry-and-acidification"], description: "Redfield ratio + N/P/Fe limitation, biological + solubility carbon pumps, HNLC regions + iron fertilization + dead zones." },
+      { slug: "marine-ecosystems-and-zones", title: "Marine Ecosystems + Zones", level: "specialist", order: 6, pages: ["vertical-zones", "biomes-reefs", "food-web-decline"], prereqs: ["marine-biogeochemistry-and-nutrients"], description: "Euphotic/mesopelagic/bathypelagic/abyssal, coral reefs + kelp + vents + nurseries, trophic levels + fishing-down + MPAs." },
+      { slug: "el-nino-and-climate-coupling", title: "ENSO + Climate Coupling", level: "expert", order: 7, pages: ["enso-states", "bjerknes-feedback", "teleconnections"], prereqs: ["ocean-circulation-and-currents"], description: "El Niño/La Niña/neutral states, Bjerknes feedback + delayed oscillator, global teleconnections + 2015-16 + 2023-24 super events." },
+      { slug: "sea-level-rise-and-ocean-warming", title: "Sea-Level Rise + Ocean Warming", level: "expert", order: 8, pages: ["ocean-heat-content", "slr-components", "coastal-adaptation"], prereqs: ["physical-oceanography-basics", "ocean-circulation-and-currents"], description: "OHC + Argo + warming trend, SLR components (thermal + glaciers + ice sheets), gravitational fingerprints + adaptation." },
+    ],
+  });
+
   // P31 — Nuclear Engineer path. From fission fundamentals through
   // neutron transport + criticality, reactor kinetics + control with
   // the new interactive PointKinetics viz, thermal-hydraulics +

@@ -1,0 +1,210 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Distinguish wave types + their dispersion relations.",
+      "Reason about tidal forces + harmonic constituents.",
+      "Connect storm surge + tsunami physics to design."
+    ],
+    "prereqs": [
+      "physical-oceanography-basics"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Surface waves: capillary, gravity, wind, swell",
+      "body": "**Surface gravity waves** are oscillations of the air-sea interface restored by gravity (small ripples by surface tension). Classes by wavelength λ:\n\n• **Capillary waves** (λ < 1.7 cm): surface tension-dominated. Restoring force = σ k² (σ = surface tension). c² = σ k / ρ.\n• **Short gravity waves** (λ > 1.7 cm): gravity restoration. Deep water (h ≫ λ/2π): c² = g/k = (g λ)/(2π). Phase speed grows with wavelength.\n• **Long / shallow waves** (h ≪ λ/2π): non-dispersive. c = √(g h). Independent of wavelength. Tsunami physics.\n• **Wind-generated waves**: complex spectrum from wind energy → high-frequency capillary + short gravity, redistributed by nonlinear interactions to longer waves. Significant wave height H_s + peak period T_p characterize sea state.\n• **Swell**: long-period waves (T > 8 s) propagating thousands of km from distant storms. Dispersive — long waves arrive first.\n\n**Wave energy**: ∝ H². A 2-m wave has 4× the energy of a 1-m. Storm waves can exceed 30 m (Andrea Storm 2007, Draupner platform 2000, etc.). Rogue waves (>2× H_s) once thought myth, now well-documented.\n\n**Breaking**: when wave steepness H/λ > ~0.14 or depth/H < ~1.28, waves break. Beach breaks: shallow water reduces phase speed → wavelength compresses → steepness grows → breaks."
+    },
+    {
+      "kind": "text",
+      "title": "Tides: astronomical forcing + harmonic decomposition",
+      "body": "**Tides** are very long ocean waves driven by gravitational pull of Moon + Sun.\n\n• **Tide-raising force**: F_tide ∝ (M_tide-body) / r³ (per unit mass, gradient of gravity field across Earth). Moon's contribution: 2× Sun's despite being 27 million times less massive — because the Moon is much closer.\n• **Tidal bulge**: water rises on the Moon-facing side (direct gravity) + the opposite side (centrifugal effect of Earth-Moon system rotation around their common center of mass).\n• **Diurnal vs semi-diurnal**: Earth's rotation under the tidal bulge gives semi-diurnal (2/day) tides for most places. Where Earth-Moon geometry interacts with continental geometry: diurnal (1/day) tides (Gulf of Mexico, parts of SE Asia).\n• **Spring + Neap tides**: when Moon + Sun align (full/new moon), tidal forces sum → spring tides (larger range, ~20%). When 90° apart (quarter moons): neap tides (smaller, ~70% of spring).\n• **Tidal range** varies wildly with coastal geometry: open ocean ~1 m; Mediterranean ~0.3 m; Bay of Fundy ~16 m (resonant amplification, world's largest tides); Inland seas (Baltic, Caspian): negligible.\n\n**Harmonic analysis** (Doodson 1921+): represent tide as sum of constituent harmonics:\n  η(t) = ∑ A_i cos(2π t / T_i + φ_i)\n\nMain constituents:\n- M2 (principal lunar semi-diurnal, T = 12.42 h): dominates most places\n- S2 (principal solar semi-diurnal, T = 12.00 h)\n- N2, K2: smaller semi-diurnal\n- K1, O1: principal diurnal\n- Long-period: Mf (fortnightly), Mm (monthly), MSf (lunisolar synodic)\n\n~140 constituents total tracked operationally. Tide prediction at >99% accuracy globally; mariners + harbor operations rely on it."
+    },
+    {
+      "kind": "text",
+      "title": "Storm surge + tsunami physics",
+      "body": "**Storm surge**: temporary sea-level rise from hurricane winds + low atmospheric pressure. Mechanisms:\n• **Wind setup**: onshore winds drive Ekman transport, pile water against coast. Dominant.\n• **Pressure setup**: 1 hPa pressure drop → 1 cm sea-level rise (inverse barometer effect).\n• **Coastal geometry**: shallow + concave coasts amplify surge (Gulf Coast, Bay of Bengal).\n• **Wave setup**: nearshore wave breaking adds ~10-30% to surge depth.\n\nDamage scaling: rough estimate of major hurricane storm surge ~5-9 m above astronomical tide. Hurricane Katrina 2005: ~8 m surge in Mississippi; flooded New Orleans. Bangladesh Bhola cyclone 1970: ~10 m surge, ~500,000 deaths.\n\n**Tsunami**: long-wavelength waves from undersea earthquake/landslide/volcanic activity. Physics:\n• Source: vertical seafloor displacement (~m for M8+, ~10m for M9+ EQ).\n• Wavelength λ: 100s of km in open ocean.\n• In deep ocean (h ~ 4000 m): c = √(gh) ≈ 200 m/s = 720 km/h (jet airliner). Wave height ~0.5-1 m, hardly noticeable.\n• As wave shoals on continental shelf (h decreases): c decreases by √(h_deep/h_shallow); wavelength compresses; height grows by Green's law: H ∝ h^(-1/4). 4000 m → 10 m depth: H grows ~5×.\n• Run-up on land: depends on coastal geometry, beach slope, focusing. Can exceed 30 m in narrow bays (Lituya Bay 1958: 524 m local mega-tsunami from landslide).\n\nMajor recent: 2004 Indian Ocean (M9.1 Sumatra, ~230K deaths); 2011 Tōhoku Japan (M9.0, ~20K deaths + Fukushima); 2018 Sulawesi (Indonesia, M7.5 + tsunami + liquefaction)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_waves_1",
+        "kind": "guided_derivation",
+        "question": "Compute the phase speed of a swell wave propagating across the Pacific",
+        "goal": "A storm in the South Pacific generates swell with period T = 15 s. How long does this wave take to reach the California coast, ~10,000 km away?",
+        "steps": [
+          {
+            "prompt": "Wavelength λ in deep water? Use λ = g T² / (2π).",
+            "motivation": "Standard deep-water dispersion.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~350 m",
+                "351",
+                "g T² / 2π"
+              ]
+            },
+            "hints": [
+              "9.81 × 225 / 6.28 = 351."
+            ],
+            "reveal": "λ = 9.81 × 15² / (2π) ≈ 351 m. Very long wave."
+          },
+          {
+            "prompt": "Phase speed c?",
+            "motivation": "c = λ / T or c = g T / (2π).",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~23.4 m/s",
+                "23.4",
+                "9.81 × 15 / 6.28"
+              ]
+            },
+            "hints": [
+              "351 / 15 = 23.4."
+            ],
+            "reveal": "c = 23.4 m/s ≈ 84 km/h. Faster than most ocean currents."
+          },
+          {
+            "prompt": "BUT energy travels at group velocity c_g = c/2 in deep water. Compute travel time over 10,000 km.",
+            "motivation": "Group velocity is what matters for energy propagation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~10 days",
+                "10 days",
+                "238 hr"
+              ]
+            },
+            "hints": [
+              "c_g = 11.7 m/s. 10⁷ m / 11.7 = 8.55×10⁵ s = 9.9 days."
+            ],
+            "reveal": "c_g = 23.4 / 2 ≈ 11.7 m/s. Travel time = 10⁷ m / 11.7 m/s ≈ 8.55 × 10⁵ s = ~9.9 days. Storm energy from Antarctic / Southern Ocean reaches California ~10 days later as long-period swell — exactly what surfers track using buoy spectral data + global wind forecasts."
+          },
+          {
+            "prompt": "Why do longer-period waves arrive first?",
+            "motivation": "Dispersion.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "dispersion",
+                "longer wavelengths faster",
+                "λ ∝ T²"
+              ]
+            },
+            "hints": [
+              "Phase speed grows with period."
+            ],
+            "reveal": "Phase speed c ∝ T in deep water. Longer period → faster propagation. So in a wave spectrum generated by a storm, the longest-period waves arrive first (forerunner swell, T ~ 20+ s), followed by progressively shorter waves over hours-days. Surfers + harbor operators use buoy data + forecast models (WaveWatch III, SWAN, ECMWF) to predict arrival + peak conditions days in advance."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_waves_1",
+        "kind": "drag_classify",
+        "question": "Classify each wave phenomenon by its primary restoring force + characteristic timescale.",
+        "items": [
+          {
+            "id": "ripple",
+            "label": "Wind ripples on a pond (λ ~ 1 mm)",
+            "bin": "capillary"
+          },
+          {
+            "id": "chop",
+            "label": "Whitecap chop in 15-knot wind (λ ~ 5-15 m, T ~ 2-3 s)",
+            "bin": "gravity-short"
+          },
+          {
+            "id": "swell",
+            "label": "Pacific swell (λ ~ 200-400 m, T ~ 12-20 s)",
+            "bin": "gravity-short"
+          },
+          {
+            "id": "m2",
+            "label": "M2 semi-diurnal tide (T ~ 12.42 hr)",
+            "bin": "tide"
+          },
+          {
+            "id": "spring",
+            "label": "Spring tide (synodic, biweekly)",
+            "bin": "tide"
+          },
+          {
+            "id": "sumatra",
+            "label": "Sumatra 2004 tsunami (λ ~ 200 km, c ~ 800 km/h in deep ocean)",
+            "bin": "tsunami"
+          }
+        ],
+        "bins": [
+          {
+            "id": "capillary",
+            "label": "Capillary (surface tension)"
+          },
+          {
+            "id": "gravity-short",
+            "label": "Wind / gravity waves (gravity, short)"
+          },
+          {
+            "id": "tide",
+            "label": "Tides (gravity, long)"
+          },
+          {
+            "id": "tsunami",
+            "label": "Tsunami (gravity, long)"
+          }
+        ],
+        "explanation": "Wave classification by restoring force + timescale is the basic taxonomy:\n• **Capillary** (λ < 1.7 cm): surface tension dominant. Sub-second period. Localized.\n• **Short gravity** (λ ~ m to 100s of m): wind-generated locally + swells from distant storms. Periods 1-25 s. Dispersive in deep water; c ∝ √λ.\n• **Tide** (λ ~ 1000s of km, periods 12-24 hr): astronomical forcing. Earth-scale wavelengths; influenced by ocean basin shape + Coriolis.\n• **Tsunami** (λ ~ 100s of km, periods 10-60 min): triggered by impulsive forcing (EQ, landslide). Long-wave regime (h ≪ λ/2π); non-dispersive; c = √(gh). Crosses oceans in hours.\n\nEach has different physics + different relevance: capillary affects air-sea gas exchange + light reflection; gravity waves drive coastal sediment transport + design loads; tides drive coastal ecosystems + ports; tsunamis are rare but catastrophic."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_waves_1",
+        "kind": "multiple_choice",
+        "question": "Why does the 2004 Sumatra tsunami spread thousands of km across the Indian Ocean with only ~50-cm amplitude in deep water, then grow to 10-30 m runup at coastlines?",
+        "options": [
+          "Tsunami waves grow with distance.",
+          "In deep ocean (h ~ 4000 m), tsunami wavelength is ~200 km but height only ~50 cm — energy per unit area is modest, wave nearly invisible at surface. As wave shoals onto continental shelf, depth drops 100-1000× → wavelength compresses + wave height grows by Green's law H ∝ h^(-1/4) → +5 to 10× height in 10 m water. Coastal focusing (bays, harbors) can multiply this further. Sumatra: 50 cm offshore → 10-30 m at coast = ~50× amplification via shoaling + focusing.",
+          "Tsunami waves are bigger near the equator.",
+          "Tsunamis only happen in shallow water."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Tsunami shoaling physics**:\n\nIn deep ocean (h ≫ λ/2π → 'shallow-water' wave regime even at 4 km depth because tsunami λ is enormous):\n• c = √(g h) (non-dispersive).\n• At h = 4000 m: c = 198 m/s = 713 km/h. λ for 30-min period ≈ 360 km.\n• Amplitude ~0.5-1 m, hardly noticeable on a calm sea.\n\nAs wave moves into shallower water:\n• Phase speed drops: c ∝ √h.\n• Wavelength compresses: λ ∝ √h (since period T conserved + c = λ/T).\n• Wave height grows: H ∝ h^(-1/4) (energy conservation along the ray — Green's law).\n\nGoing from 4000 m to 10 m: H ratio = (4000/10)^(1/4) = 400^(1/4) ≈ 4.5×. From 50 cm at 4000 m → ~2.2 m at 10 m depth. Coastal focusing (V-shaped bays, harbors, refraction) can multiply 2-5× further. Total: 50 cm → 10-30 m runup, depending on local geometry.\n\n**Why Indian Ocean basin shape matters**:\n- The 2004 Sumatra-Andaman EQ generated a tsunami radiating in all directions.\n- Eastern flank: hit Sumatra + Thailand coasts within 15-30 min — short warning.\n- Western flank: hit Sri Lanka, India, Maldives ~2 hours later; East Africa ~7 hours later.\n- Lack of Indian Ocean tsunami warning system in 2004 meant no alerts even hours after the event. Post-2004: Indian Ocean tsunami warning system (IOTWS) deployed by 2006.\n\n**Tsunami warning today**:\n- DART buoys (Deep-ocean Assessment + Reporting of Tsunamis): pressure sensors detect tsunami passage in deep ocean within minutes.\n- Computational models (NOAA's SIFT, JMA's NOWPHAS): forecast inundation maps within ~30 min of EQ.\n- Coastal sirens, mobile alerts, evacuation plans.\n- 2011 Tōhoku (Japan): ~3 min EQ early-warning + ~10 min tsunami alert — but inundation maps underestimated runup; ~20K deaths still occurred.\n\nDesign + planning: coastal nuclear plants, infrastructure, communities now plan for 1-in-1000-year tsunami events. Japan's post-Tōhoku coastal walls (~15 m height) are visible monuments to the lesson."
+      },
+      "hints": [
+        "What's Green's law?",
+        "What's the energy-conservation argument?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Tsunami in deep ocean: λ ~ 200-360 km, H ~ 0.5-1 m, c ~ 700+ km/h. As wave shoals to coast: c ∝ √h, λ ∝ √h, H ∝ h^(-1/4). From 4000 m to 10 m: H grows ~4.5×; coastal focusing adds further 2-5×. Total: 0.5 m offshore → 10-30 m coastal runup. Indian Ocean 2004: lack of warning system + long propagation times → ~230K deaths. Post-2004: DART buoys + IOTWS + computational forecasts deployed. Modern coastal planning accounts for 1-in-1000-yr events."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_waves_1",
+        "kind": "math_expression",
+        "question": "A deep-water gravity wave has period T = 10 s. What's its wavelength (in m)?",
+        "acceptedAnswers": [
+          "156",
+          "155.9",
+          "g T² / 2π"
+        ],
+        "hint": "λ = g T² / (2π) = 9.81 × 100 / 6.28."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_waves_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why tide prediction at most ports is now accurate to ~5-10 cm, while tsunami prediction remains much more uncertain.",
+        "rubric": "Mentions: tides driven by celestial mechanics (Moon + Sun orbital positions) — fully deterministic + decades of harmonic-constituent analysis at each port. Each port has a calibrated tide-gauge record + 140+ harmonic constants. Predictions for years ahead. Tsunamis: triggered by impulsive seafloor displacement (earthquake, landslide, volcanic). Each event has unique source mechanism, fault geometry, displacement field. Real-time inversion of seismic data + DART buoy measurements + numerical propagation models gives ~minutes-hours warning, but spatially resolved inundation depends on local bathymetry + coastal geometry + nonlinear runup processes. Better than 2004 (no warning system) but still uncertain in detail. Better tools: real-time GNSS, ocean-bottom seismometers, AI-based prediction. Concludes: deterministic forcing (tides) gives precise long-range prediction; impulsive forcing (tsunami) gives uncertain real-time prediction. Different problems, different methods."
+      }
+    }
+  ]
+}

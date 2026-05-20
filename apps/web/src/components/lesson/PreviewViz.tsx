@@ -103,6 +103,11 @@ const LazyPointKinetics = lazy(() =>
     (m) => ({ default: m.PointKinetics }),
   ),
 );
+const LazyOceanTSDiagram = lazy(() =>
+  import("../../../../../packages/viz/src/components/OceanTSDiagram").then(
+    (m) => ({ default: m.OceanTSDiagram }),
+  ),
+);
 const LazyDoublePendulum = lazy(() =>
   import("../../../../../packages/viz/src/components/DoublePendulum").then(
     (m) => ({ default: m.DoublePendulum }),
@@ -215,6 +220,8 @@ function VizByName({
       return <LazyReactorComparator {...(props as object)} />;
     case "point-kinetics":
       return <LazyPointKinetics {...(props as object)} />;
+    case "ocean-ts-diagram":
+      return <LazyOceanTSDiagram {...(props as object)} />;
     default:
       return null;
   }

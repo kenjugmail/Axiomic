@@ -1,0 +1,232 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish El Niño + La Niña + neutral states.",
+      "Reason about Bjerknes feedback.",
+      "Connect ENSO to global climate variability."
+    ],
+    "prereqs": [
+      "ocean-circulation-and-currents"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "ENSO: the master mode of interannual climate variability",
+      "body": "**El Niño-Southern Oscillation (ENSO)**: coupled ocean-atmosphere oscillation in the tropical Pacific, with global teleconnections. The dominant mode of natural climate variability on years-to-decade timescales.\n\nTwo phases + a neutral:\n• **Neutral**: normal trade winds push warm surface water westward across Pacific; cold water upwells off Peru/Ecuador; Walker circulation: rising air over western Pacific (Indonesia), descending over eastern Pacific.\n• **El Niño**: trade winds weaken / reverse; warm pool shifts eastward; upwelling off South America declines; surface T anomalies in eastern Pacific +1 to +3 °C. Walker circulation weakens or reverses.\n• **La Niña**: trades intensify; warm pool retreats westward; upwelling stronger; eastern Pacific surface T anomalies -1 to -2 °C.\n\nOscillation period: 2-7 years irregularly. Phase transitions take ~months. ENSO state monitored via:\n- **Niño-3.4 index**: SST anomaly 5°N-5°S, 120-170°W. Used by NOAA + WMO.\n- **Southern Oscillation Index (SOI)**: pressure difference Tahiti minus Darwin.\n- Other indices: Niño-1+2, Niño-3, Niño-4, Multivariate ENSO Index (MEI).\n\n**Major historical events**:\n- 1982-83 El Niño: strongest then-recorded.\n- 1997-98 El Niño: very strong, global impacts.\n- 2009-10 El Niño Modoki: central-Pacific variant.\n- 2015-16 El Niño: strong + record global temperatures.\n- 2023-24 El Niño: strong; coincided with record global heat.\n\nENSO drives ~15-50% of global interannual temperature variability + larger fractions of regional precipitation."
+    },
+    {
+      "kind": "text",
+      "title": "Bjerknes feedback + dynamic coupling",
+      "body": "**Bjerknes (1969) feedback** explains why ENSO oscillates rather than dampens:\n\n*Initial perturbation*: weakening of trade winds (random / triggered).\n\n*Step 1*: weak winds → less westward push of surface water → warm pool extends eastward → SST rises in eastern Pacific.\n\n*Step 2*: warm SST anomaly in east → atmospheric convection shifts east → low surface pressure in east, high in west.\n\n*Step 3*: pressure gradient further weakens trade winds in east.\n\n*Step 4*: feedback loop: weak winds → warm SST → weak winds → ... → El Niño develops.\n\nThis is a **positive (amplifying) feedback**, but it terminates because:\n• Thermocline shoaling in west builds up potential energy.\n• Equatorial Kelvin waves carry cold thermocline anomaly eastward.\n• Reflected Rossby waves help cool the eastern Pacific.\n• La Niña conditions can develop after the El Niño phase, completing oscillation.\n\nMechanistically detailed by the **'delayed oscillator'** theory + the **'recharge oscillator'** + extensions. ENSO is now intensively studied as a coupled phenomenon — atmospheric circulation + ocean thermocline + heat-budget perspectives all required.\n\n**ENSO is NOT periodic** — it's a stochastic oscillation with characteristic timescales 2-7 yr. Each event has unique structure + duration. This complicates prediction; forecast skill ~6-12 months ahead with ENSO models (CFSv2, ECMWF SEAS, etc.)."
+    },
+    {
+      "kind": "text",
+      "title": "Global teleconnections + climate impact",
+      "body": "ENSO has remote effects via atmospheric Rossby-wave propagation + altered Hadley + Walker circulations:\n\n• **United States**: El Niño → wetter winters in southern tier (CA, AZ, FL); drier in PNW. La Niña → drier in southern US + wet in PNW. Drives flood + drought + agricultural impacts.\n• **South America**: El Niño → severe drought in NE Brazil + Amazon; wet + floods in Peru + Ecuador. Reversed in La Niña.\n• **Indonesia + Australia**: El Niño → drought (Indonesia, eastern Australia); fires. La Niña → wet + floods (2010-11 Queensland, 2022 Pakistan + Australia).\n• **East Africa**: El Niño → wet (Kenya, Somalia, Tanzania); La Niña → drought (Horn of Africa).\n• **Indian monsoon**: El Niño → drier monsoon (years of weak monsoon coincide with El Niño).\n• **Atlantic hurricanes**: El Niño → fewer hurricanes (vertical shear suppresses). La Niña → more hurricanes (favorable shear).\n• **Global mean T**: El Niño year → average ~0.1-0.2 °C warmer than neutral. 2016, 2023, 2024 (super-El-Niño years) were record-hot globally.\n\n**Economic impacts**:\n- 1997-98 El Niño: ~$40B economic damages globally.\n- 2015-16: similar magnitude.\n- Agricultural + fisheries impacts: Peruvian anchovy fishery (collapsed during El Niños); global crop yields (US, Australia, India).\n- Insurance, energy demand (heating/cooling), tourism all affected.\n\n**Climate-change interaction**: how does anthropogenic warming affect ENSO? CMIP6 models split between:\n- More frequent / intense El Niños (more variable Pacific).\n- Less frequent but more extreme.\n- Little change.\nObservations: super-El-Niños (1982-83, 1997-98, 2015-16, 2023-24) may be more frequent recently — possibly an emerging climate change signal. Still active research.\n\n**Prediction + forecasting**:\n- IRI / NOAA Climate Prediction Center provide official ENSO forecasts.\n- ENSO + monthly-to-seasonal forecasts inform: water management, agriculture, public health (mosquito-borne disease anticipation), disaster preparedness.\n- ML-based ENSO forecasts (Ham+ 2019, transformer-based) achieving 18+ month lead time."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_enso_1",
+        "kind": "guided_derivation",
+        "question": "Walk through the 2015-16 El Niño event",
+        "goal": "Trace the development + global impacts of the 2015-16 El Niño event (one of the strongest on record).",
+        "steps": [
+          {
+            "prompt": "Early 2015: precursor signals. What did the equatorial Pacific look like?",
+            "motivation": "Identify precursors.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "weak trades",
+                "warm anomaly developing",
+                "Kelvin wave"
+              ]
+            },
+            "hints": [
+              "Westerly Wind Bursts (WWBs) trigger ENSO."
+            ],
+            "reveal": "Early 2015 (Jan-Mar): Westerly Wind Bursts (WWBs) east of the dateline triggered downwelling Kelvin waves propagating eastward. Thermocline deepened in central Pacific; warm SST anomalies began forming."
+          },
+          {
+            "prompt": "By mid-2015: how did Niño-3.4 evolve?",
+            "motivation": "Identify intensification.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "+1.5 to +2.5 °C",
+                "anomaly grew",
+                "developing El Niño"
+              ]
+            },
+            "hints": [
+              "Niño-3.4 reached +2 °C by mid-2015."
+            ],
+            "reveal": "Niño-3.4 SST anomaly grew from +0.5 °C (Jan) to +2.0 °C (Jul), continuing through summer/fall. WMO officially declared El Niño in spring 2015."
+          },
+          {
+            "prompt": "Peak (Nov 2015 - Jan 2016)?",
+            "motivation": "Peak intensity.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "+2.5 °C+",
+                "peak December 2015",
+                "+3 °C"
+              ]
+            },
+            "hints": [
+              "Niño-3.4 peaked at +2.9 °C in Nov 2015."
+            ],
+            "reveal": "Peak Niño-3.4: +2.9 °C in November 2015 — one of the three strongest events recorded (1982-83 and 1997-98 also reached ~+2.7 to +2.9 °C). Anomalously warm pool extended ~150° longitude. Global mean SST set records."
+          },
+          {
+            "prompt": "Global impacts (use 3 examples)?",
+            "motivation": "Trace teleconnections.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Indonesia drought, US wetter, Pakistan flooding, Caribbean hurricanes",
+                "varied teleconnections"
+              ]
+            },
+            "hints": [
+              "Multiple regions affected differently."
+            ],
+            "reveal": "Among impacts:\n- **Indonesia**: severe drought + peatland + forest fires (~$16B economic damage; massive haze across SE Asia).\n- **California**: above-average winter rain (some drought relief).\n- **Ethiopia + Horn of Africa**: severe drought (~10 million food-insecure).\n- **Peru + Ecuador**: heavy rains + flooding.\n- **Caribbean + Atlantic**: fewer hurricanes than usual (high shear).\n- **Pacific cyclones**: 2 of the strongest cyclones recorded (Patricia in E. Pacific, Winston in S. Pacific) during this period.\n- **Global mean T**: 2015 + 2016 set successive global-temperature records; +0.15-0.2 °C boost from ENSO over base trend.\n\nEconomic damages from 2015-16 ENSO: ~$30-50B globally; ~60 million people food-insecure due to drought/flood impacts."
+          },
+          {
+            "prompt": "Post-peak: La Niña developed in 2016. Why?",
+            "motivation": "Phase transition.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "delayed oscillator",
+                "Kelvin/Rossby waves",
+                "cold thermocline rebounded"
+              ]
+            },
+            "hints": [
+              "Stored heat anomaly drained; cold anomaly returned."
+            ],
+            "reveal": "After peak, thermocline shoaling in central + eastern Pacific (cold anomaly rising); equatorial Rossby waves carry cooling westward; reflection as Kelvin waves brings cold anomaly back east. By mid-2016, weak La Niña conditions developed (Niño-3.4 ~-0.5 to -1 °C). This 2-year cycle (2015 El Niño → 2016 La Niña) is typical ENSO pattern — though not periodic."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_enso_1",
+        "kind": "drag_classify",
+        "question": "Classify each regional impact as occurring during an El Niño or La Niña event (or both/neither).",
+        "items": [
+          {
+            "id": "peru-rain",
+            "label": "Heavy rains + floods in coastal Peru",
+            "bin": "elnino"
+          },
+          {
+            "id": "indonesia-drought",
+            "label": "Drought + fires in Indonesia",
+            "bin": "elnino"
+          },
+          {
+            "id": "australia-wet",
+            "label": "Wet conditions in eastern Australia",
+            "bin": "lanina"
+          },
+          {
+            "id": "us-southern-rain",
+            "label": "Wetter winters in southern US",
+            "bin": "elnino"
+          },
+          {
+            "id": "pnw-wet",
+            "label": "Wet winters in Pacific Northwest US",
+            "bin": "lanina"
+          },
+          {
+            "id": "atlantic-hurricanes-active",
+            "label": "Active Atlantic hurricane season",
+            "bin": "lanina"
+          },
+          {
+            "id": "indian-monsoon-weak",
+            "label": "Weak Indian summer monsoon",
+            "bin": "elnino"
+          },
+          {
+            "id": "horn-africa-drought",
+            "label": "Drought in Horn of Africa (E. Africa)",
+            "bin": "lanina"
+          },
+          {
+            "id": "horn-africa-rain",
+            "label": "Heavy rains in Kenya/Tanzania",
+            "bin": "elnino"
+          }
+        ],
+        "bins": [
+          {
+            "id": "elnino",
+            "label": "El Niño (warm phase)"
+          },
+          {
+            "id": "lanina",
+            "label": "La Niña (cold phase)"
+          }
+        ],
+        "explanation": "ENSO teleconnection patterns are well-established by physical mechanism + observation:\n• El Niño: Walker circulation weakens → western Pacific drier (Indonesia drought, Australian fires), eastern Pacific wetter (Peru floods). Hadley cell shifts → US sub-tropical jet strengthens → wetter southern US. Vertical shear weakens Atlantic hurricanes. Indian monsoon weakens. East Africa wetter.\n• La Niña: opposite — Indonesia + Australia wet; Pacific NW wet; southern US drier; Atlantic hurricanes more active; East Africa (Horn) drier.\n\nThese patterns are statistical — not every El Niño produces every impact, but the probability-shifts inform climate-services forecasting. Modern climate-prediction centers issue regional outlooks at 1-6 month lead times based on ENSO state + other modes (NAO, IOD, AMO)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_enso_1",
+        "kind": "multiple_choice",
+        "question": "Why is ENSO prediction reliable at 6-12 months lead time but unreliable beyond 18 months?",
+        "options": [
+          "ENSO is random.",
+          "ENSO has an 'inherent predictability' set by the thermocline-Kelvin-wave timescale (~6-12 months) + the ocean-atmosphere coupling. Beyond that, small-scale weather noise + the 'spring predictability barrier' (transitions occur in northern-spring, when ENSO state is ambiguous + sensitive to perturbations) limit deterministic forecasts. Recent ML methods (transformer-based, deep ensembles) push to ~18-22 months by extracting weak signals; further requires fundamentally new approaches.",
+          "ENSO has no predictability.",
+          "Predictability is unlimited."
+        ],
+        "correctIndex": 1,
+        "explanation": "**ENSO predictability mechanism**:\n\n1. **Subsurface memory**: warm/cold water anomalies in the thermocline propagate as Kelvin + Rossby waves. Persist + slowly translate over months → forecastable.\n\n2. **Atmospheric coupling**: Walker circulation + trade-wind anomalies maintain ENSO state through Bjerknes feedback. Couples ocean + atmosphere on intra-seasonal timescales.\n\n3. **Spring predictability barrier**: equatorial Pacific T anomalies transition in northern spring (Apr-Jun) when monsoonal + global circulation patterns are weak. Initial-condition errors amplify across this window. Forecasts initialized in Jan-Feb (pre-barrier) have lower skill at 6-month lead than those initialized in Jun-Jul (post-barrier).\n\n4. **Stochastic forcing**: Westerly Wind Bursts (WWBs), Madden-Julian Oscillation (MJO), volcanic eruptions perturb ENSO. These have limited predictability themselves.\n\n5. **Model limitations**: coupled GCMs (NCEP CFSv2, ECMWF SEAS, NMME ensemble) have biases — too-strong amplitude, wrong west-east SST gradient, weak/strong asymmetry between El Niño + La Niña. Continuously updated.\n\n**Forecast skill (verified)**:\n- 1-3 months: high skill (Niño-3.4 R > 0.8 between forecast + observation).\n- 6-9 months: moderate skill (R ~ 0.6-0.7); reliable for risk assessment.\n- 12-18 months: low-moderate skill; useful for risk planning but not deterministic.\n- > 18 months: research frontier; some studies claim skill via ML/transformer approaches but contested.\n\n**Ham+ 2019** (Nature): deep-learning approach using SST + heat content fields reached 1.5-year-ahead forecasts at skill levels exceeding traditional models. Subsequent transformer-based methods extending this. Whether genuinely new mechanism or improved extraction of existing signals — debated.\n\n**Operational ENSO products**:\n- NOAA Climate Prediction Center: monthly ENSO discussion (since 1990s); diagnostic + outlook.\n- IRI (International Research Institute): ENSO + Quick Look prediction plumes; multi-model ensemble.\n- WMO: regional climate outlook forums every 3-6 months.\n\n**Practical use**: 6-12 month lead ENSO information used for: water-resource planning, crop-insurance pricing, disaster preparedness (flood/drought), public health (mosquito-borne disease forecasts), energy markets, fishery management.\n\nForecasts have substantial economic value even at imperfect skill; ENSO is one of the most-policy-relevant climate signals."
+      },
+      "hints": [
+        "What sets the inherent timescale?",
+        "What's the spring predictability barrier?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "ENSO has inherent predictability from thermocline memory (Kelvin + Rossby waves; ~6-12 month timescales) + ocean-atmosphere coupling (Bjerknes). Spring predictability barrier (Apr-Jun) limits forecasts initialized before; post-barrier forecasts more skillful. Model limitations + stochastic forcing (WWBs, MJO) cap useful skill at ~18 months for current methods. ML approaches (Ham+ 2019) push to 18+ months. ENSO forecasts used for water, crop, disaster, public health, energy applications worldwide."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_enso_1",
+        "kind": "math_expression",
+        "question": "If a strong El Niño boosts global temperature by ~0.15 °C above neutral, and underlying anthropogenic warming is ~0.02 °C/yr, what year-on-year temperature jump might 2024 (super-El-Niño) show over 2023 (also El-Niño)?",
+        "acceptedAnswers": [
+          "~0.02 to 0.1 °C",
+          "0.05",
+          "depends on strength"
+        ],
+        "hint": "If both ENSO-influenced, mostly underlying trend dominates. ~0.02-0.05 °C typical."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_enso_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how ENSO acts as both a 'natural variability mode' + a 'climate-change-sensitive process'.",
+        "rubric": "Mentions: ENSO is natural variability — coupled ocean-atmosphere oscillation in tropical Pacific; existed pre-industrially (paleoclimate records show ENSO present at least back to last glacial period). Drives major interannual variability in global climate (precipitation, temperature, hurricanes). Climate-change interaction: warming trend may modify ENSO amplitude, frequency, type. CMIP6 model results split between more frequent/intense El Niños + less variability. Observations: super-El-Niños (1982, 1997, 2015, 2023) possibly more frequent recently. Walker-circulation slowdown observed since 1979 — consistent with weak-El-Niño-like background. Implications: planning under climate change must integrate both background warming + altered ENSO behavior; ENSO-sensitive regions (NE Brazil, E. Africa, Indonesia) face compounding stress. Active research + observation key."
+      }
+    }
+  ]
+}

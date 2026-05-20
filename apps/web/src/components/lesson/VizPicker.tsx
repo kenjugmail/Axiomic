@@ -173,6 +173,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "☢️",
     tags: ["nuclear", "reactor", "kinetics", "physics", "engineering"],
   },
+  {
+    name: "ocean-ts-diagram",
+    label: "Ocean T-S diagram",
+    description: "Drag water-mass markers on temperature-salinity plot; see density isopycnals + cabbeling.",
+    thumb: "🌊",
+    tags: ["oceanography", "physics", "water-masses", "climate", "earth-science"],
+  },
 ];
 
 interface Props {

@@ -1,0 +1,208 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intro",
+    "objectives": [
+      "Define T, S, density + their distributions.",
+      "Interpret T-S diagrams + identify water masses.",
+      "Distinguish mixed layer + pycnocline + abyss."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Seawater properties: T, S, ρ",
+      "body": "**Seawater** is ~96.5% pure water + 3.5% dissolved salts. Three fundamental properties drive ocean dynamics:\n\n• **Temperature** T: -2 °C (polar surface, ice-bound) to ~30 °C (equatorial surface). Deep ocean: ~2-4 °C everywhere.\n• **Salinity** S: 33-37 PSU (Practical Salinity Units, ~g/kg total dissolved salts). Range: ~30 (Baltic, river-influenced) to ~40 (Mediterranean, Red Sea).\n• **Density** ρ: ~1023-1030 kg/m³. Usually expressed as **σ_θ** = ρ - 1000 (kg/m³). Range: 22 (warm fresh) to 28+ (cold + salty).\n\nDensity depends on **both** T + S, nonlinearly. **Equation of state**: σ_θ(S, T, p=0) is a polynomial fit (UNESCO 1981). Key qualitative behavior:\n• Cooling → denser (thermal contraction)\n• Salting → denser (haline contraction)\n• These effects don't 'commute' — cooler water expands less per Δ T → thermal expansion coefficient α decreases with T.\n\n**Cabbeling**: mixing two water masses of equal density but different (T,S) produces a *denser* product because the equation of state is curved in T-S space. Important for deep-water formation in polar oceans."
+    },
+    {
+      "kind": "text",
+      "title": "Vertical structure: mixed layer + thermocline + abyss",
+      "body": "ocean-ts-diagram"
+    },
+    {
+      "kind": "text",
+      "title": "Vertical structure: mixed layer + thermocline + abyss",
+      "body": "Typical ocean profile (mid-latitude open ocean):\n\n• **Mixed layer** (0-100 m): well-mixed by wind + diurnal cooling. Uniform T + S. Depth varies seasonally (deeper in winter ~100-300 m; shallower in summer ~10-30 m).\n• **Seasonal thermocline** (top of permanent thermocline): warm-season temperature gradient that erodes in winter.\n• **Permanent thermocline** (100-1000 m): strong T gradient (15 °C surface → 4 °C at 1000 m). Stable stratification.\n• **Pycnocline**: layer of strong density gradient (driven by thermocline + halocline). Strong barrier to vertical mixing.\n• **Deep + abyssal water** (1000-5000+ m): nearly uniform T (~2-4 °C), S (~34.6-34.9 PSU). Filled by polar deep-water formation; ages 500-2000 years.\n\n**Tropical oceans**: strong permanent thermocline starting ~50 m; mixed layer thin.\n**Polar oceans**: minimal thermocline; sometimes inverse stratification (cold-fresh surface over warm-salty deep, supported by salinity).\n**Mediterranean**: high salinity throughout (~38.5 PSU); strong evaporation + restricted exchange.\n\n**Water-mass classification** by source region:\n- Antarctic Bottom Water (AABW): formed in Weddell + Ross Seas; coldest + densest.\n- North Atlantic Deep Water (NADW): formed in Labrador + Nordic Seas; cold + salty.\n- Antarctic Intermediate Water (AAIW): formed near Antarctic Convergence; cool + fresh.\n- Mediterranean Water (MW): high S, leaks into Atlantic at depth.\n- Various surface waters: subtropical, equatorial, etc.\n\nT-S diagrams identify + track these masses across the global ocean — a foundational technique since Sverdrup et al. (1942).",
+      "viz": "ocean-ts-diagram"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_phys_ocean_1",
+        "kind": "guided_derivation",
+        "question": "Identify water masses from T-S coordinates",
+        "goal": "You measure T = 2.5 °C, S = 34.92 PSU at 2500 m depth in the North Atlantic. Identify the water mass + estimate its density σ_θ.",
+        "steps": [
+          {
+            "prompt": "Approximate σ_θ using polynomial: σ_θ ≈ 28.1 + 0.78(S-35) - 0.06T - 0.004T². Plug in T=2.5, S=34.92.",
+            "motivation": "Compute density.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~27.91",
+                "27.91",
+                "27.9 kg/m³"
+              ]
+            },
+            "hints": [
+              "28.1 + 0.78×(-0.08) − 0.06×2.5 − 0.004×6.25 = 28.1 − 0.062 − 0.15 − 0.025."
+            ],
+            "reveal": "σ_θ = 28.1 - 0.062 - 0.150 - 0.025 ≈ 27.86 kg/m³. ρ ≈ 1027.9 kg/m³. Dense water, characteristic of deep N. Atlantic."
+          },
+          {
+            "prompt": "Which classical water mass has T ~ 2-3 °C + S ~ 34.9 PSU at 2-3 km depth in N. Atlantic?",
+            "motivation": "Map to canonical masses.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "NADW",
+                "North Atlantic Deep Water"
+              ]
+            },
+            "hints": [
+              "Cold + salty + deep + formed in northern subarctic latitudes."
+            ],
+            "reveal": "**North Atlantic Deep Water (NADW)**. Formed in Labrador + Greenland Seas by winter convection — cold air strips heat + sea ice rejection adds salt → dense surface water sinks. Spreads southward along Atlantic deep western boundary current at ~2-4 km depth, then around the Southern Ocean + into Indian + Pacific Oceans."
+          },
+          {
+            "prompt": "How does NADW compare in density to Antarctic Bottom Water (T ≈ -0.5 °C, S ≈ 34.65 PSU)?",
+            "motivation": "Compute + compare.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "AABW denser",
+                "AABW denser by ~0.1",
+                "27.91 vs 27.96"
+              ]
+            },
+            "hints": [
+              "AABW: σ_θ = 28.1 + 0.78×(-0.35) − 0.06×(-0.5) − 0.004×0.25 ≈ 27.86."
+            ],
+            "reveal": "AABW: σ_θ ≈ 28.1 - 0.273 + 0.030 - 0.001 = 27.856 kg/m³ (slightly more than NADW, but in practice in-situ pressure effects make AABW the denser of the two at depth — AABW sits below NADW everywhere they coexist). Both fill the global abyss; AABW from south, NADW from north. They meet + overlap around the Atlantic + Antarctic, slowly mixing into Lower Circumpolar Deep Water."
+          },
+          {
+            "prompt": "Why does the equation of state's nonlinearity matter for ocean physics?",
+            "motivation": "Cabbeling concept.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "cabbeling",
+                "mixing creates denser product",
+                "drives deep-water formation"
+              ]
+            },
+            "hints": [
+              "Two equal-density waters can mix to make a denser product."
+            ],
+            "reveal": "**Cabbeling**: σ_θ is curved (concave) in T-S space, so mixing two equal-density water masses produces a mixture *denser* than either parent. Critical for deep-water formation in marginal seas (Labrador, Weddell, etc.) where cold-fresh polar water mixes with warm-salty subtropical water + the mixture sinks. The nonlinear EOS drives the thermohaline circulation that nature otherwise wouldn't produce."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_phys_ocean_1",
+        "kind": "drag_classify",
+        "question": "Classify each water mass by its source region + density category.",
+        "items": [
+          {
+            "id": "aabw",
+            "label": "Antarctic Bottom Water (AABW): T ≈ -0.5 °C, S ≈ 34.65",
+            "bin": "polar-deep"
+          },
+          {
+            "id": "nadw",
+            "label": "North Atlantic Deep Water (NADW): T ≈ 2.5 °C, S ≈ 34.92",
+            "bin": "polar-deep"
+          },
+          {
+            "id": "aaiw",
+            "label": "Antarctic Intermediate Water (AAIW): T ≈ 5 °C, S ≈ 34.3",
+            "bin": "intermediate"
+          },
+          {
+            "id": "mw",
+            "label": "Mediterranean Water (MW): T ≈ 13 °C, S ≈ 37.5",
+            "bin": "marginal"
+          },
+          {
+            "id": "stsw",
+            "label": "Subtropical surface water (STSW): T ≈ 22 °C, S ≈ 36.5",
+            "bin": "subtropical-surface"
+          },
+          {
+            "id": "rsw",
+            "label": "Red Sea Water (RSW): T ≈ 21 °C, S ≈ 40",
+            "bin": "marginal"
+          }
+        ],
+        "bins": [
+          {
+            "id": "polar-deep",
+            "label": "Polar/deep (cold, dense)"
+          },
+          {
+            "id": "intermediate",
+            "label": "Intermediate (cool, fresh)"
+          },
+          {
+            "id": "subtropical-surface",
+            "label": "Subtropical surface (warm, saline)"
+          },
+          {
+            "id": "marginal",
+            "label": "Marginal-sea (warm, very saline)"
+          }
+        ],
+        "explanation": "The T-S signatures + their density implications are the basic vocabulary of physical oceanography. AABW + NADW (polar-deep): formed by surface cooling + sea-ice brine rejection. AAIW (intermediate): formed at Antarctic Convergence where cool fresher surface water sinks beneath subtropical surface water. MW + RSW (marginal): formed in restricted basins (Mediterranean, Red Sea) by evaporative concentration of salts → high salinity → dense outflow over sills. STSW (surface): subtropical gyre's warm, evaporation-concentrated surface. Each mass has a distinctive (T, S) signature that lets oceanographers trace it thousands of km from its source."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_phys_ocean_1",
+        "kind": "multiple_choice",
+        "question": "Why is the deep ocean (>1 km) almost universally cold (2-4 °C), despite the surface being warm in most places?",
+        "options": [
+          "The deep ocean is heated by Earth's interior.",
+          "Deep water is exclusively formed at high latitudes (Weddell + Ross + Labrador + Nordic Seas) where surface waters cool to ~-2 to 4 °C + sink. This polar-sinking + global circulation continuously replaces the deep ocean with cold water. Tropical surface waters cannot sink because they're warm + low-density. So the global deep ocean inherits the temperature of polar surface waters.",
+          "Deep water originated 4 billion years ago + never warmed.",
+          "Salinity controls deep ocean temperature independently of polar formation."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Deep-water formation** happens only in a few specific regions where conditions allow surface water to become dense enough to sink to abyssal depths:\n\n1. **Antarctic Bottom Water (AABW)**: Weddell + Ross Seas. Sea ice rejects salt (brine rejection); cold winds chill surface; sinking water reaches the global abyss.\n2. **North Atlantic Deep Water (NADW)**: Labrador + Nordic + Greenland Seas. Winter convection over ~3 km depth; spreads as a deep western boundary current.\n3. **Mediterranean Outflow Water (MOW)**: evaporative + cooling concentration; sinks but stops at ~1-1.5 km due to relatively warm + less dense character.\n4. Some smaller contributions in Sea of Okhotsk (deep Pacific origin), Persian Gulf, Red Sea.\n\n**Why no tropical sinking**: tropical surface water is warm (25-30 °C) + has high salinity in subtropical gyres, but the warmth dominates → low density → cannot sink past pycnocline. Tropical convection is limited to the mixed layer (~50-100 m).\n\n**Global meridional overturning circulation (MOC)**: deep water sinks at poles, slowly fills global abyss, eventually upwells in mid-latitudes + Antarctic Circumpolar Current. Round-trip ~1000-2000 yr.\n\n**Climate implications**: the deep ocean is a vast heat + carbon reservoir. As surface waters warm under climate change, deep-water formation may weaken (already observed slowing of AMOC since 1900s) — potentially reducing heat + carbon uptake + affecting global climate.\n\n**Geothermal heat**: yes, the ocean floor does receive heat from Earth's interior (~50 mW/m² global average), but this is ~10⁻⁴ × solar input + ~10⁻² × ocean heat uptake. Geothermal warming raises bottom-water temperature by only ~0.1 °C over its ~1000-year residence in abyss — negligible vs polar-source temperature."
+      },
+      "hints": [
+        "Where do dense waters form?",
+        "Can tropical water sink?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Deep water exclusively forms at polar sites (Weddell/Ross for AABW; Labrador/Nordic for NADW) where cooling + brine rejection make surface water dense enough to sink. Tropical surface water is too warm to sink past pycnocline. Polar-source water fills global abyss via meridional overturning circulation (1-2 kyr round-trip). Geothermal heating adds <0.1 °C — negligible. As AMOC weakens under climate change, ocean heat + carbon uptake may decline."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_phys_ocean_1",
+        "kind": "math_expression",
+        "question": "A water parcel at T = 8 °C, S = 35 PSU. Compute σ_θ using σ_θ ≈ 28.1 + 0.78(S-35) - 0.06T - 0.004T².",
+        "acceptedAnswers": [
+          "27.36",
+          "~27.4",
+          "27.36 kg/m³"
+        ],
+        "hint": "Plug in: 28.1 + 0 − 0.48 − 0.256 = 27.36."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_phys_ocean_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how the nonlinear seawater equation of state enables phenomena (cabbeling, double-diffusion) that wouldn't occur with a linear EOS.",
+        "rubric": "Mentions: σ_θ(S, T) is curved (concave) in T-S space — thermal expansion grows with T; haline contraction roughly constant. Implications: (1) Cabbeling: mixing two equal-density water masses produces a denser product because the linear average of T-S coords sits below the isopycnal curve. Drives deep-water formation in polar marginal seas. (2) Double-diffusion: T + S diffuse at different rates (heat ~100× faster than salt) → instabilities even when bulk density stable. Warm-salty over cold-fresh: salt-fingers (cm-scale plumes). Cold-fresh over warm-salty: diffusive staircase. Important in Arctic + Mediterranean overflow + thermocline mixing. With linear EOS, neither phenomenon occurs. Concludes: the seemingly minor nonlinearity is responsible for global thermohaline circulation strength + many mid-latitude mixing pathways."
+      }
+    }
+  ]
+}
