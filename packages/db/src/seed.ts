@@ -1952,6 +1952,27 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P1 — Security Engineer path. The defensive-engineering half of
+  // every shipping system: threat modeling, crypto, web security,
+  // identity, plus the security-on-ML frontier (adversarial ML,
+  // privacy-preserving ML, IR).
+  seedMasteryPath({
+    slug: "security-engineer",
+    title: "Security Engineer",
+    description:
+      "From threat modeling through crypto, web security, identity, adversarial ML, privacy-preserving ML, and incident response. The defensive-engineering half of every shipping system.",
+    nodes: [
+      { slug: "threat-modeling", title: "Threat Modeling", level: "apprentice", order: 1, pages: ["threat-modeling"], prereqs: [], description: "STRIDE, trust boundaries, attack surface. Articulating assumptions before they're broken." },
+      { slug: "symmetric-crypto", title: "Symmetric Cryptography", level: "apprentice", order: 2, pages: ["symmetric-crypto", "aead"], prereqs: ["threat-modeling"], description: "AES, ChaCha20, AEAD discipline, nonce hygiene. The fast half of every secure protocol." },
+      { slug: "asymmetric-crypto", title: "Asymmetric Cryptography", level: "apprentice", order: 3, pages: ["asymmetric-crypto", "diffie-hellman"], prereqs: ["symmetric-crypto"], description: "RSA, ECC, Diffie-Hellman, post-quantum. Key distribution + signatures + the migration ahead." },
+      { slug: "web-security", title: "Web Security", level: "practitioner", order: 4, pages: ["web-security", "owasp-top-10"], prereqs: ["threat-modeling"], description: "OWASP Top 10, XSS vs CSRF, Content-Security-Policy, secure-by-default frameworks." },
+      { slug: "authentication-auth", title: "Authentication & Authorization", level: "practitioner", order: 5, pages: ["oidc", "oauth-2", "webauthn"], prereqs: ["asymmetric-crypto"], description: "OIDC + OAuth 2, MFA, WebAuthn, JWT, the principle of least privilege." },
+      { slug: "adversarial-ml", title: "Adversarial ML", level: "specialist", order: 6, pages: ["adversarial-examples", "prompt-injection"], prereqs: ["threat-modeling"], description: "Evasion, poisoning, extraction. Adversarial examples + prompt injection + the empirical defense practice." },
+      { slug: "privacy-preserving-ml", title: "Privacy-Preserving ML", level: "specialist", order: 7, pages: ["differential-privacy", "federated-learning"], prereqs: ["adversarial-ml"], description: "Differential privacy, DP-SGD, federated learning, secure aggregation. The formal-guarantee half of privacy engineering." },
+      { slug: "security-incident-response", title: "Security Incident Response", level: "expert", order: 8, pages: ["incident-response", "blameless-postmortems"], prereqs: ["threat-modeling"], description: "Detection → containment → eradication → recovery → blameless review. The discipline that turns inevitable incidents into long-term improvements." },
+    ],
+  });
+
   seedExamPrepPaths();
 }
 

@@ -1,0 +1,80 @@
+{
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "intro",
+    "objectives": [
+      "Distinguish RSA from ECC by their hardness assumptions.",
+      "Sketch the Diffie-Hellman key exchange.",
+      "Recognize post-quantum threats to current asymmetric crypto."
+    ],
+    "prereqs": [
+      "symmetric-crypto"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Public-key crypto, in one paragraph",
+      "body": "**Symmetric** crypto: same key encrypts + decrypts. Fast, but key distribution is hard.\n\n**Asymmetric** (public-key) crypto: separate public and private keys, one for each direction. Public key is freely shared; private key is secret. Solves key distribution but is orders of magnitude slower than symmetric crypto, so in practice it bootstraps a symmetric session key for the actual data.\n\n**RSA**: security reduces to factoring large semiprimes. Key sizes 2048 / 3072 / 4096 bits for current security levels.\n\n**ECC** (Elliptic Curve Cryptography): security reduces to elliptic-curve discrete log. Equivalent security at much smaller key sizes — Curve25519 with 256-bit keys is ~equivalent to 3072-bit RSA. Smaller keys mean faster operations + less bandwidth.\n\n**Diffie-Hellman**: two parties exchange public values, derive a shared secret without ever transmitting it. The foundational key-exchange primitive — TLS 1.3 uses elliptic-curve DH (X25519) for every session.\n\nThe modern default: Curve25519 (or P-256 for FIPS environments) + Ed25519 signatures + ChaCha20-Poly1305 or AES-GCM for the symmetric session. Built on libsodium / age / WireGuard-style primitives."
+    },
+    {
+      "kind": "text",
+      "title": "Post-quantum, the next ~10 years",
+      "body": "Shor's algorithm breaks factoring (RSA) and discrete log (DH, ECC) on a sufficiently-large fault-tolerant quantum computer. Symmetric crypto is only quadratically vulnerable (Grover); doubling key length restores security.\n\n**NIST post-quantum standards** (finalized 2024):\n- **Kyber** (ML-KEM): lattice-based key encapsulation. Replacement for ECDH.\n- **Dilithium** (ML-DSA): lattice-based signatures. Replacement for RSA / ECDSA.\n- **SPHINCS+** (SLH-DSA): hash-based signatures. Conservative backup.\n\n**The 'harvest now, decrypt later' threat**: an adversary recording today's TLS traffic could decrypt it once quantum computers exist. For long-confidentiality data (state secrets, banking records), this means migrating to post-quantum *now*, not in 2035 when the quantum threat materializes.\n\nIn 2024-2025, Cloudflare + Google rolled out hybrid X25519+ML-KEM for TLS. Web infrastructure migration will take 5-10 years."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ac_speed",
+        "kind": "multiple_choice",
+        "question": "Why do real-world TLS sessions use asymmetric crypto only for key exchange + handshakes, not for the actual data?",
+        "options": [
+          "Asymmetric crypto can't handle long messages.",
+          "Asymmetric crypto is 100-1000x slower than symmetric; the handshake derives a symmetric session key for the data.",
+          "Symmetric crypto is more secure.",
+          "Asymmetric crypto leaks the public key."
+        ],
+        "correctIndex": 1,
+        "explanation": "Asymmetric operations are dominated by big-number arithmetic (RSA: modular exponentiation; ECC: scalar multiplication). Per-byte throughput is orders of magnitude lower than symmetric ciphers like AES-GCM. The TLS handshake spends asymmetric crypto once to derive a shared symmetric key, then encrypts the actual data with symmetric primitives at ~GB/s."
+      },
+      "hints": [
+        "What's the difference in per-byte throughput between asymmetric and symmetric crypto?",
+        "Asymmetric crypto involves operations on big numbers; symmetric involves operations on bytes."
+      ],
+      "workedSolution": "AES-GCM on modern CPUs with AES-NI runs at ~5 GB/s per core. RSA-2048 encrypt is ~10K ops/sec. The 100-1000× gap rules out using asymmetric crypto for data; TLS uses it only for the handshake (deriving a session key), then encrypts the data stream symmetrically. The same pattern appears in every protocol from SSH to Signal.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ac_pqmigration",
+        "kind": "scenario",
+        "question": "Post-quantum migration",
+        "prompt": "A bank stores customer financial records encrypted with RSA-2048-encapsulated AES keys, expected to be sensitive for 30+ years. Why is this a 'migrate now' problem even though large-scale quantum computers don't exist yet, and what migration would you recommend?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ac_key",
+        "kind": "math_expression",
+        "question": "Curve25519 uses 256-bit keys. Equivalent RSA key size is roughly (in bits):",
+        "acceptedAnswers": [
+          "3072",
+          "3072 bits",
+          "~3072"
+        ],
+        "hint": "ECC vs RSA security-equivalent table."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ac",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why Diffie-Hellman key exchange lets two parties derive a shared secret over an insecure channel without an eavesdropper learning it.",
+        "rubric": "Mentions that each party combines their private value with the other's public value; the math is symmetric but inverting the public value to extract the private value requires solving the discrete log problem (computationally infeasible at the chosen key size)."
+      }
+    }
+  ]
+}

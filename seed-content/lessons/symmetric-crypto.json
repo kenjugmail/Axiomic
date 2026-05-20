@@ -1,0 +1,71 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Distinguish block ciphers from stream ciphers.",
+      "State why ECB is broken.",
+      "Recognize the role of authenticated encryption."
+    ],
+    "prereqs": [
+      "threat-modeling"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "AES + GCM, the modern default",
+      "body": "**Block cipher**: takes a fixed-size block of plaintext (128 bits for AES) plus a key, outputs a fixed-size block of ciphertext. AES is the standard; AES-128 / AES-192 / AES-256 differ only by key length.\n\nA bare block cipher encrypts only one block. To handle longer messages you need a **mode of operation**:\n\n- **ECB** (Electronic Codebook): encrypt each block independently. **Broken**: identical plaintext blocks produce identical ciphertext blocks. The famous 'ECB penguin' image shows the silhouette clearly even after encryption.\n- **CBC** (Cipher Block Chaining): XOR each plaintext block with the previous ciphertext block before encrypting. Hides block-level patterns, but you need a unique random IV per message and the mode is unauthenticated (vulnerable to padding oracle attacks).\n- **GCM** (Galois/Counter Mode): counter-mode encryption + GHASH for authentication. Single-key authenticated encryption with associated data (AEAD). The modern default."
+    },
+    {
+      "kind": "text",
+      "title": "The AEAD discipline",
+      "body": "Confidentiality without integrity isn't security. Without authentication, an attacker can flip ciphertext bits and predictably flip plaintext bits — a *bit-flipping attack*. The defenders rule:\n\n**Always use AEAD ciphers.** AES-GCM (web, TLS 1.3), ChaCha20-Poly1305 (mobile / no-AES-NI), or XSalsa20-Poly1305 (libsodium default). They provide:\n\n- **Confidentiality**: ciphertext reveals nothing about plaintext.\n- **Integrity**: any modification to ciphertext is detected on decryption.\n- **Associated data**: extra context (headers, user IDs) bound to the ciphertext without being encrypted.\n\nIf the API you're using lets you encrypt without authenticating, it's a sign you're using the wrong API."
+    },
+    {
+      "kind": "text",
+      "title": "Stream ciphers + nonce reuse",
+      "body": "**Stream cipher**: generate a long pseudorandom keystream from key + nonce, XOR it with plaintext. Fast, no padding needed. ChaCha20 is the modern standard; AES-CTR is AES used as a stream cipher.\n\n**The nonce hazard**: a stream cipher key + nonce uniquely determines the keystream. **Reusing the (key, nonce) pair on different plaintexts catastrophically breaks confidentiality** — XOR the two ciphertexts and you cancel out the keystream, recovering XOR of plaintexts. From there, classical cryptanalysis usually recovers both messages.\n\nThis is the most-broken security mistake in production cryptography. WEP, Microsoft Office encryption, several PRNGs, every 'I rolled my own crypto' story — nonce reuse is usually the proximate cause. Use a library that manages nonces for you (libsodium's secretstream API, AWS Encryption SDK), or use a random 96+ -bit nonce every time."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sc_ecb",
+        "kind": "multiple_choice",
+        "question": "ECB mode is unsuitable for general encryption because:",
+        "options": [
+          "Its key length is too short.",
+          "Identical plaintext blocks produce identical ciphertext blocks, leaking pattern information.",
+          "It is too slow.",
+          "It requires authenticated encryption."
+        ],
+        "correctIndex": 1,
+        "explanation": "ECB's failure mode is structural: deterministic block-by-block encryption preserves repetition patterns in the plaintext, leaking structural information that often suffices to identify content. The 'ECB penguin' image is the classic visual proof. Even on text data, repeated headers or block-aligned structure leak."
+      },
+      "hints": [
+        "What property of ECB's encryption is the same for every block?",
+        "Repeated patterns in input map to what in output?"
+      ],
+      "workedSolution": "ECB applies the cipher independently to each block. Two identical plaintext blocks produce two identical ciphertext blocks — a deterministic mapping that leaks repetition patterns in the input. The 'ECB penguin' demonstrates how visual patterns survive ECB encryption of a bitmap. The fix is any chaining or randomized mode (CBC, CTR, GCM) with a per-message nonce/IV.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sc_nonce",
+        "kind": "scenario",
+        "question": "Nonce reuse in the wild",
+        "prompt": "A teammate proposes using a fixed 12-byte nonce for AES-GCM 'because the keys are different per user'. They argue: 'the nonce reuse only matters with the same key, right?'. Walk through one concrete way this design fails even when keys are per-user."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sc",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why 'authenticated encryption' isn't optional, even when you 'only' need confidentiality.",
+        "rubric": "Mentions that unauthenticated ciphertext can be modified by an attacker; bit-flipping attacks turn predictable plaintext modifications; security usually depends on detecting modification (padding oracles, message-authentication bypasses), so AEAD is the safe default."
+      }
+    }
+  ]
+}

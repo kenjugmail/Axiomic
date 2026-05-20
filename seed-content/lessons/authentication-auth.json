@@ -1,0 +1,66 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish authentication from authorization.",
+      "Recognize the strengths of OAuth2 + OIDC.",
+      "Apply MFA correctly."
+    ],
+    "prereqs": [
+      "asymmetric-crypto"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Auth vs authz — different problems",
+      "body": "**Authentication (authn)**: who are you? Verify identity. Username+password, OAuth token, client certificate.\n\n**Authorization (authz)**: what can you do? Check permissions. Role-based access control (RBAC), attribute-based access control (ABAC), capability-based.\n\nFamous failures conflate them: 'the user is authenticated, so they must be authorized' is a category error. Most 'broken access control' breaches are missing authz checks AFTER authentication.\n\nGood designs separate them sharply: authentication produces a `User` object; authorization is a separate step that checks if `User X` can perform `Action Y` on `Resource Z`. Each request to a protected endpoint runs through both stages, with the check enforced server-side regardless of UI."
+    },
+    {
+      "kind": "text",
+      "title": "OAuth2 + OIDC + MFA",
+      "body": "**OAuth 2.0**: delegation protocol for authorization. Lets a user grant a third-party app access to their resources without sharing the password. The famous 'Sign in with Google' button is OAuth + OIDC under the hood.\n\n**OpenID Connect (OIDC)**: layer ON TOP of OAuth that handles authentication too (returns a signed ID token containing the user's identity). 'OAuth alone' authorizes; 'OIDC on top of OAuth' authenticates + authorizes.\n\nThe industry-standard auth recipe:\n1. Authenticate via OIDC (delegating to Google / Microsoft / Apple / your IdP).\n2. Provision a session (signed JWT or server-side session) with the user's identity.\n3. On each request, validate the session and check authorization for the specific action.\n\n**MFA** (Multi-Factor Authentication): require two of {something you know, something you have, something you are}. SMS-based 2FA is the weakest (SIM-swap attacks); TOTP apps (Authenticator) are stronger; hardware security keys (WebAuthn / FIDO2) are the strongest. Anything sensitive should require MFA; SaaS products without it lose corporate customers."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_au_jwt",
+        "kind": "multiple_choice",
+        "question": "A web app stores authentication state in a JWT signed by the server. A user's JWT is base64-encoded with a header, payload, and signature. The payload claims the user is an admin. If an attacker modifies the payload to claim admin and re-encodes:",
+        "options": [
+          "The server will accept it because they re-encoded the payload.",
+          "The signature won't match the modified payload, so the server's verification will fail.",
+          "JWTs are unencrypted, so this works.",
+          "The attack works only on expired tokens."
+        ],
+        "correctIndex": 1,
+        "explanation": "JWT signatures cover the header + payload. Modifying the payload invalidates the signature. The server verifies the signature on every request using its secret (or public key). Famous JWT bugs come from misuse (accepting `alg: none` JWTs, accepting RS256 + HMAC algorithm confusion); the standard library correctly verifies the signature."
+      },
+      "hints": [
+        "JWT format is 'header.payload.signature'.",
+        "Tampering with the payload invalidates the signature.\n"
+      ],
+      "workedSolution": "JWT structure: header.payload.signature, all base64-encoded. The signature is computed over base64(header) + '.' + base64(payload) using the server's signing key. Modifying the payload changes the input to the signature, so re-encoding without re-signing produces a token whose signature doesn't match what verification expects. The server rejects. The infamous vulnerabilities (alg=none, RS256/HS256 confusion) require server misconfiguration; the protocol itself is sound.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_au_mfasms",
+        "kind": "scenario",
+        "question": "Why SMS-MFA is weakest",
+        "prompt": "A bank uses SMS-based 2FA for high-value transactions. A teammate proposes upgrading to TOTP apps for all customers. Walk through the threat model — what attacker capability does SMS-MFA defend against, and what defense does TOTP add?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_au",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why the 'principle of least privilege' is the most important security maxim in real-world systems.",
+        "rubric": "Mentions that bugs and breaches happen; least privilege limits the blast radius when something does go wrong; defense-in-depth requires no single component to grant excessive access."
+      }
+    }
+  ]
+}

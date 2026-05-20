@@ -1,0 +1,83 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Apply STRIDE to a small system.",
+      "Distinguish trust boundaries from attack surface.",
+      "Recognize when threat modeling pays for itself."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why threat-model at all",
+      "body": "Most security failures aren't from missed vulnerabilities — they're from missed *assumptions*. Threat modeling forces you to articulate the assumptions:\n\n- Who can talk to this system, directly or indirectly?\n- What data crosses each boundary?\n- What does an attacker gain if they compromise this node?\n\nThe payoff is asymmetric. A few hours of threat modeling at design time catches the architectural mistakes that take months to fix once shipped. The reverse (skip modeling, find issues in production) is the modal failure mode of every security team's worst week."
+    },
+    {
+      "kind": "text",
+      "title": "STRIDE, the everyday framework",
+      "body": "Microsoft's STRIDE acronym names the six classes of threats to look for at each component:\n\n- **S**poofing — pretending to be someone you're not. Mitigation: authentication.\n- **T**ampering — modifying data in flight or at rest. Mitigation: integrity (signing, MACs).\n- **R**epudiation — denying an action you took. Mitigation: non-repudiation logs.\n- **I**nformation disclosure — leaking confidential data. Mitigation: encryption, access control.\n- **D**enial of service — making the system unavailable. Mitigation: rate limiting, redundancy.\n- **E**levation of privilege — gaining more access than authorized. Mitigation: least privilege, sandboxing.\n\nWalk through your data flow diagram one component at a time, asking 'which of S/T/R/I/D/E could happen here?'. The answer is usually 'most of them; here's which we mitigate and how'."
+    },
+    {
+      "kind": "text",
+      "title": "Trust boundaries vs attack surface",
+      "body": "A **trust boundary** is any line your data crosses between components with different privilege or trust levels. A signed-in user → your API; your API → your database; your container → another tenant's container. Every boundary is a potential STRIDE evaluation point.\n\n**Attack surface** = the union of all places an attacker can reach. Every public endpoint, every file upload, every parameter accepted from untrusted input. Smaller surface = fewer places that need defense.\n\nRule of thumb: reducing attack surface is usually cheaper than hardening it. A feature that's not exposed can't be exploited. 'We don't need that endpoint' is the strongest mitigation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_tm_stride",
+        "kind": "multiple_choice",
+        "question": "A web form lets users submit comments. Comments are stored in a database and rendered to other users. Which STRIDE category most directly captures the risk that a malicious comment could execute JavaScript in other users' browsers (XSS)?",
+        "options": [
+          "Spoofing",
+          "Tampering",
+          "Repudiation",
+          "Elevation of privilege"
+        ],
+        "correctIndex": 1,
+        "explanation": "XSS is fundamentally a tampering threat — attacker tampers with the page rendered to victim users by injecting active content. Mitigation: output encoding when rendering, Content-Security-Policy headers, and strict input validation. Each STRIDE category points to a different class of mitigations; mapping the threat correctly tells you which controls to focus on."
+      },
+      "hints": [
+        "XSS modifies what another user's browser executes.",
+        "Which STRIDE letter is about modifying data in transit / at rest / on display?"
+      ],
+      "workedSolution": "XSS = the attacker tampers with the *output* rendered to the victim. STRIDE's T (Tampering) captures unauthorized modification of data — including data being rendered. The mitigation set is tampering-flavored: HTML output encoding, CSP, validation. Spoofing would apply if the attack involved impersonating another user; Elevation if it broke a privilege boundary. XSS itself is a tampering attack with secondary effects (information disclosure via stolen cookies, etc.).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_tm_review",
+        "kind": "scenario",
+        "question": "A design review",
+        "prompt": "A teammate proposes adding an admin endpoint that 'only admins can reach because we'll check the JWT in the controller'. Walk through the STRIDE evaluation: which threats does that mitigation handle, and which does it leave open?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_tm_count",
+        "kind": "math_expression",
+        "question": "A web app has 12 public endpoints + 5 admin endpoints + 3 internal endpoints. Total attack surface in endpoints: ?",
+        "acceptedAnswers": [
+          "20",
+          "12+5+3",
+          "20 endpoints"
+        ],
+        "hint": "Public + admin + internal."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_tm",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why the threat-modeling exercise produces value even when no security issues are found.",
+        "rubric": "Mentions that the exercise documents assumptions and trust boundaries; the artifact becomes a baseline for future change reviews; teams develop shared mental models of where to defend."
+      }
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish evasion from poisoning from extraction attacks.",
+      "Recognize adversarial examples and their transferability.",
+      "Reason about robust training tradeoffs."
+    ],
+    "prereqs": [
+      "threat-modeling"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Three classes of attacks on ML systems",
+      "body": "**Evasion attacks**: at inference time, craft an input that the model misclassifies. The classic 'adversarial examples' (Szegedy et al. 2013, Goodfellow et al. 2014). Imperceptible perturbations to images flip the classifier; a sticker on a stop sign makes self-driving cars see a speed-limit sign. Mitigations: adversarial training, certified robustness (smaller models with formal robustness bounds), defensive distillation (limited).\n\n**Poisoning attacks**: at training time, inject corrupted data that biases the model. Backdoor attacks specifically: the poisoned model behaves normally on benign inputs but misbehaves on inputs with a specific trigger (e.g., a small patch). Mitigations: training data provenance, outlier detection in training data, federated learning with secure aggregation.\n\n**Extraction attacks**: query a deployed model heavily to extract the model itself (model stealing) or training data (membership inference). With API access, an attacker can train a clone or recover specific training examples. Mitigations: rate limiting, output perturbation, query distribution monitoring, differential privacy in training.\n\nThe field is empirical — every defense has been broken by stronger attacks, and 2024-2025 attention has shifted from 'achieve robustness on a specific benchmark' to 'set up empirically-defensible deployment with the right monitoring + rate-limiting controls'."
+    },
+    {
+      "kind": "text",
+      "title": "Adversarial examples + transferability",
+      "body": "An adversarial example for image classifier $M_1$ often *also* fools classifier $M_2$ even if $M_2$ was trained on different data with a different architecture. This is **transferability** — adversarial perturbations exploit shared structure of decision boundaries across models.\n\nConsequence: an attacker without API access to your deployed model can craft adversarial examples on a *surrogate* model and they will likely transfer. 'Security through API obscurity' doesn't work.\n\n**Adversarial training** (Madry et al.): include adversarial examples in the training set. Robust models trained this way have a known tradeoff — accuracy on clean data drops by a few percentage points; robustness against PGD-style attacks goes up substantially. Production deployments rarely use full PGD-style adversarial training (compute cost is 10-100×); instead they use lightweight augmentation, ensembling, and runtime detection.\n\nFor LLMs the landscape is different: prompt-injection attacks (vs adversarial examples for vision) and jailbreaking (vs classifier-flipping). The general principles transfer — defense in depth, monitoring, rate limiting — but the threat surface is different and more rapidly evolving."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_aml_ae",
+        "kind": "multiple_choice",
+        "question": "Adversarial examples for image classifiers usually look:",
+        "options": [
+          "Indistinguishable to humans from the original.",
+          "Completely different from the original.",
+          "Like random noise.",
+          "Always have visible artifacts."
+        ],
+        "correctIndex": 0,
+        "explanation": "Adversarial examples (in the vision-classifier literature) are usually constructed under $\\epsilon$-ball constraints in pixel space — perturbations small enough to be visually imperceptible. The classifier flips its prediction confidently; the human can't see why. This is one of the more startling demonstrations in modern ML; the perturbations exploit the high-dimensional curvature of learned decision boundaries."
+      },
+      "hints": [
+        "Adversarial examples are usually crafted within an $\\epsilon$-ball constraint in the input space.",
+        "What does 'small $\\ell_\\infty$ perturbation' mean visually?"
+      ],
+      "workedSolution": "Standard adversarial examples are crafted to perturb the input by at most $\\epsilon$ in $\\ell_\\infty$ norm — every pixel changes by at most $\\epsilon$ (typically $\\epsilon = 8/255$ for ImageNet). These perturbations are visually imperceptible; the classifier confidently changes its prediction. This is the canonical demonstration that learned classifiers have 'wrong' decision boundaries in adversarial directions even when they're accurate on clean data.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_aml_prompt",
+        "kind": "scenario",
+        "question": "Prompt injection vs jailbreak",
+        "prompt": "A user-facing LLM-based agent has tools to read files and send emails. A teammate distinguishes 'jailbreak' (user tries to make the model misbehave) from 'prompt injection' (untrusted content the model processes contains hidden instructions). Walk through which class is more dangerous in this deployment, and one defense for each."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_aml",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why 'robust to all attacks' is provably impossible for any non-trivial ML model.",
+        "rubric": "Mentions that the curse of dimensionality means adversarial directions exist in every input neighborhood; formal robustness can be proven only against specific bounded attack models; threat-model-specific defenses + monitoring + rate limiting are the practical answer."
+      }
+    }
+  ]
+}

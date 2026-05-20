@@ -1,0 +1,66 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "State the formal definition of differential privacy.",
+      "Distinguish DP-SGD from local DP.",
+      "Recognize federated learning's threat model."
+    ],
+    "prereqs": [
+      "adversarial-ml"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Differential privacy, formally",
+      "body": "An algorithm $\\mathcal{A}$ is $(\\epsilon, \\delta)$-differentially private if for any two datasets $D_1, D_2$ differing in one record, and any output set $S$:\n\n$$P(\\mathcal{A}(D_1) \\in S) \\leq e^\\epsilon \\cdot P(\\mathcal{A}(D_2) \\in S) + \\delta.$$\n\nIntuition: the algorithm's output distribution is nearly indistinguishable whether or not any single record is in the dataset. So an attacker observing the output learns almost nothing specific about any individual.\n\n**Epsilon** is the privacy budget; smaller = stronger privacy guarantee. Production deployments tolerate $\\epsilon \\in [0.5, 10]$ depending on context. **Delta** is the small-probability slack; usually $\\delta \\ll 1/n$ where $n$ is dataset size.\n\nDP composes: running two $\\epsilon$-DP algorithms on the same data gives $2\\epsilon$-DP. The 'privacy budget' is global — every query against the data drains it. Production DP systems track and enforce this budget. Apple, Google, the US Census all deploy formal DP at scale."
+    },
+    {
+      "kind": "text",
+      "title": "DP-SGD + federated learning",
+      "body": "**DP-SGD** (Abadi et al. 2016): the standard recipe for DP training of neural networks.\n1. Compute per-example gradients.\n2. Clip each per-example gradient to a fixed $\\ell_2$ norm.\n3. Add Gaussian noise with calibrated variance.\n4. Average and step.\n\nClipping bounds each example's contribution; noise injects calibrated privacy. The resulting model is $(\\epsilon, \\delta)$-DP with respect to inclusion of any single training example.\n\n**Cost**: 2-10× compute (per-example gradients aren't naturally batched), and a meaningful accuracy hit (a few percentage points on benchmarks like CIFAR-10). The accuracy gap narrows as datasets grow.\n\n**Federated learning**: train across distributed devices that never send raw data to the server. Each client computes a model update locally; the server aggregates updates. Privacy threat model: a malicious server, or a malicious participant. Mitigations:\n- **Secure aggregation**: the server only sees the sum of updates, never individual updates.\n- **DP at the client**: each update is DP, so the aggregate is too.\n- **DP at the server**: noise added by the server.\n\nFL is deployed at scale in Google's Gboard typing predictions, Apple's QuickType, and several medical imaging consortia. It's the standard architecture for 'privacy-preserving' ML training, though it doesn't automatically give formal privacy without DP."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_pml_dp",
+        "kind": "multiple_choice",
+        "question": "$(\\epsilon, \\delta)$-DP with $\\epsilon = 0.1$ vs $\\epsilon = 10$. Which gives stronger privacy?",
+        "options": [
+          "$\\epsilon = 0.1$",
+          "$\\epsilon = 10$",
+          "They're equivalent.",
+          "Depends on $\\delta$."
+        ],
+        "correctIndex": 0,
+        "explanation": "Smaller $\\epsilon$ = tighter bound on the output distribution's change when adding/removing a record = stronger privacy. $\\epsilon = 0.1$ means the output probability changes by at most $e^{0.1} \\approx 1.1\\times$. $\\epsilon = 10$ allows up to $e^{10} \\approx 22{,}000\\times$ — much weaker. Production deployments target small $\\epsilon$; the privacy-utility tradeoff requires careful budget allocation across queries."
+      },
+      "hints": [
+        "What does $e^\\epsilon$ bound?",
+        "Smaller exponent = smaller change = stronger privacy.\n"
+      ],
+      "workedSolution": "$e^\\epsilon$ bounds how much a single record's inclusion can change the output distribution. $\\epsilon = 0.1 \\to e^{0.1} \\approx 1.10$ — output distributions are nearly identical; very strong privacy. $\\epsilon = 10 \\to e^{10} \\approx 22{,}000$ — the distributions can differ by 4 orders of magnitude; very weak privacy. Smaller $\\epsilon$ is stronger; the privacy-utility tradeoff is exponential in $\\epsilon$.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_pml_compose",
+        "kind": "scenario",
+        "question": "Privacy budget composition",
+        "prompt": "A research team has a dataset of medical records. They want to run 100 queries against it for hypothesis exploration. If each query is $\\epsilon = 0.1$-DP, what's the total privacy cost, and what's a more sophisticated accounting technique they should use?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_pml",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why deidentification ('remove the name and SSN, then publish') is NOT a meaningful privacy guarantee.",
+        "rubric": "Mentions famous re-identification attacks (Netflix prize, Massachusetts governor, AOL search logs); any record has enough quasi-identifiers to be re-identified via auxiliary data; formal DP is the only known approach with provable guarantees."
+      }
+    }
+  ]
+}
