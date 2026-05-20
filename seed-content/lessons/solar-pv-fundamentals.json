@@ -1,0 +1,160 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "intro",
+    "objectives": [
+      "Outline the photovoltaic effect + the I-V curve.",
+      "Apply MPPT + reason about irradiance/temperature effects.",
+      "State the Shockley-Queisser limit + multi-junction strategies."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "How a solar cell works",
+      "body": "A **photovoltaic cell** is a p-n junction in a semiconductor. Sunlight ABSORBED in the depletion region creates electron-hole pairs. The built-in electric field across the junction SEPARATES them: electrons drift to the n-side, holes to the p-side. Current flows through an external circuit.\n\n**Photon energy** $E = h\\nu = hc/\\lambda$. For visible light: 1.7-3.1 eV. Silicon's bandgap: 1.12 eV.\n- Photon energy < bandgap: not absorbed (lost to glass + air).\n- Photon energy > bandgap: absorbed; EXCESS energy lost as heat ('thermalization').\n- Photon energy ≈ bandgap: nearly all converted to electrical work.\n\n**Three primary losses in a single-junction cell**:\n1. **Below-bandgap photons** (~20% of solar): transmitted through.\n2. **Thermalization** of high-energy photons (~30%): heat, not electricity.\n3. **Carrier recombination** (~5-15%): electron-hole pair recombines before reaching contacts.\n\n**Shockley-Queisser limit** (1961): theoretical max for single-junction cell ≈ 33% at optimal bandgap ~1.4 eV. Silicon (1.12 eV) is close: ~31% theoretical.\n\n**Modern silicon cells**: 22-26% efficient (manufacturing). Tandem perovskite-silicon: ~33% (lab) + commercial scale-up.\n\n**Material families**:\n- **Crystalline silicon (c-Si)**: ~95% of market. Cost dropped 90% in 2010s.\n- **CdTe thin-film**: ~5% market. First Solar.\n- **CIGS**: smaller share. Flexible substrates.\n- **Perovskite**: rapid lab progress; commercial scaling 2024+.\n- **III-V multijunction**: 40%+ efficient. Used in concentrating PV + spacecraft (cost-justified)."
+    },
+    {
+      "kind": "text",
+      "title": "The I-V curve + maximum power point",
+      "body": "A solar cell's output is described by its **I-V curve**: current vs voltage.\n\n**Key points**:\n- **Short-circuit current** $I_{sc}$: V = 0, max current. Proportional to irradiance.\n- **Open-circuit voltage** $V_{oc}$: I = 0, max voltage. Decreases ~slowly with irradiance + STRONGLY with temperature.\n- **Maximum power point (MPP)**: where $P = VI$ is maximized. Where you want the cell to operate.\n- **Fill factor** $FF = P_{max} / (V_{oc} \\cdot I_{sc})$. Quality measure; typically 0.75-0.85 for good cells.\n\n**Efficiency**: $\\eta = P_{max} / (G \\cdot A)$ where $G$ = irradiance (W/m²), $A$ = cell area.\n\n**Temperature effect**: $V_{oc}$ drops ~-2 mV per °C per cell (60-cell panel: -120 mV/°C). On a 33°C panel (vs STC 25°C): ~0.96 W/°C lost. Hot panels are LESS efficient → counter-intuitively, desert solar plants have inverter design margins for heat.\n\n**Irradiance effect**: $I_{sc}$ scales nearly linearly. At 500 W/m² (50% sun): ~50% current; voltage drops slightly.\n\n**MPPT (Maximum Power Point Tracking)**: power electronics that continuously adjusts operating point to track MPP as conditions change.\n- Perturb-and-observe: change duty cycle slightly, see if power went up, repeat.\n- Incremental conductance: more precise; checks $dI/dV + I/V$.\n- Modern grid-tied inverters do this thousands of times per second.\n- Without MPPT: lose 20-40% of available power.\n\n**The viz below shows the I-V + P-V curves** as you drag irradiance + temperature. Watch the MPP dot track the peak. Notice: doubling irradiance roughly doubles current; warming the cell shifts $V_{oc}$ left.",
+      "viz": "solar-pv-curve"
+    },
+    {
+      "kind": "text",
+      "title": "System design + balance-of-system",
+      "body": "A real solar installation isn't just panels. The **balance-of-system (BOS)** includes:\n\n- **Inverter**: converts DC from panels to AC for grid + loads. ~95-98% efficient. String inverters (cheap, less flexible) vs microinverters (per-panel, more shade-tolerant, ~10% more expensive).\n- **Combiners + DC wiring**: connect strings, handle high DC voltages safely (up to 1500 V DC in utility systems).\n- **AC wiring + transformers + grid interconnection**.\n- **Racking**: rooftop, ground-mount, tracker (single-axis or dual-axis).\n- **Monitoring + safety**: rapid shutdown for fire codes (NEC 690.12).\n\n**Trackers**: single-axis (rotates east-west) adds 15-25% energy yield vs fixed-tilt. Dual-axis (also follows sun's elevation) adds 30-40% but costs + maintenance higher. Utility plants increasingly use single-axis.\n\n**Capacity factor** = actual energy / (rated × hours).\n- Fixed-tilt c-Si: ~15-20% in sunny climate.\n- Single-axis tracker: ~25-30%.\n- Dual-axis: ~30-35%.\n- (Compare: wind ~30-45%, gas combined-cycle ~50-60%, nuclear ~90%+.)\n\n**System costs (2024 USD)**:\n- Utility solar (ground-mount, USA): \\$0.80-1.20/W → LCOE \\$25-45/MWh.\n- Residential rooftop: \\$2.50-3.50/W → LCOE \\$120-200/MWh (with incentives often lower for owner).\n- Commercial: in between.\n- Costs continue to fall ~5-10% annually.\n\n**Solar + storage hybrid**: pairing PV with batteries enables nighttime export, peak-shaving, grid services. Cost premium small + falling. Becoming standard for new utility PV in markets like California, Texas, Australia.\n\n**Land use**: ~5-7 acres per MW. Agrivoltaics (panels + crops on same land) emerging — slight panel-shade benefits some crops while producing power. Floating solar: panels on water surface, cooler operation + less land use."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_solar_eff",
+        "kind": "guided_derivation",
+        "question": "Compute system-level energy yield",
+        "goal": "Residential 6 kW system in a region with 1700 kWh/m²/year of solar resource. Modules at 20% efficient. System derate factor (inverter, wiring, soiling, etc.) ~0.80.",
+        "steps": [
+          {
+            "prompt": "Energy per panel area: irradiation × efficiency. Energy per m²?",
+            "motivation": "Convert resource to electrical.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "340 kWh/m²/yr",
+                "340",
+                "1700 × 0.2"
+              ]
+            },
+            "hints": [
+              "1700 × 0.20."
+            ],
+            "reveal": "340 kWh/m²/year before system losses."
+          },
+          {
+            "prompt": "Module area for 6 kW at 20% (so 1000 W/m² × 0.20 = 200 W/m²): 6000/200 = 30 m². Annual energy at module: 30 × 340 = ?",
+            "motivation": "Plug in.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "10200 kWh",
+                "10.2 MWh",
+                "10200"
+              ]
+            },
+            "hints": [
+              "30 × 340."
+            ],
+            "reveal": "10,200 kWh/year at the module."
+          },
+          {
+            "prompt": "After system derate 0.80: ?",
+            "motivation": "Apply derate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "8160 kWh",
+                "~8160",
+                "8.16 MWh"
+              ]
+            },
+            "hints": [
+              "10200 × 0.80."
+            ],
+            "reveal": "~8160 kWh/year delivered to home/grid. Typical USA household uses ~10,000 kWh/year — so 6 kW covers most loads in sunny regions."
+          },
+          {
+            "prompt": "Capacity factor: ratio of actual to (rated × 8760 hours).",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~0.155",
+                "15.5%",
+                "~0.16"
+              ]
+            },
+            "hints": [
+              "8160 / (6 × 8760) = 8160/52560 ≈ 0.155."
+            ],
+            "reveal": "~15.5% capacity factor. Typical for fixed-tilt residential in moderate sun. Trackers + sunnier sites push to 25-30%."
+          }
+        ],
+        "finalResult": "$$\\boxed{E = G \\cdot \\eta \\cdot A \\cdot \\text{derate}; CF = E/(P_{nameplate} \\cdot 8760)}$$ Solar-system sizing follows a chain: solar resource → module efficiency → system derate → delivered energy. The PVwatts model (NREL) implements this with location-specific weather + tilt + albedo. Industry-standard for project finance + utility planning. As costs continue falling, solar increasingly the cheapest new generation; the questions are now grid integration + storage rather than cell physics."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_solar_sq",
+        "kind": "multiple_choice",
+        "question": "The Shockley-Queisser limit (~33% for single-junction) seems low. Why are commercial silicon cells (~24%) so close to it, while perovskite + multijunction can exceed it?",
+        "options": [
+          "Marketing.",
+          "Single-junction is FUNDAMENTALLY limited by below-bandgap transmission + thermalization. To exceed SQ, you need to capture multiple sub-ranges (multijunction stacks) or use exotic effects (multiple-exciton generation, intermediate band). Tandem perovskite-Si is engineering this: top cell captures blue + green, Si captures red + NIR.",
+          "Random.",
+          "Bad measurement."
+        ],
+        "correctIndex": 1,
+        "explanation": "SQ limit (33% at optimal bandgap) applies to single-junction with photon + heat losses. To exceed, must capture more of the spectrum. Two main strategies: (1) Multijunction — stack cells with different bandgaps; each absorbs its optimal range. III-V triple-junction reaches 40%+ at concentrated sun. (2) Tandem c-Si + perovskite: ~25-30% pure perovskite + ~26% pure Si combine to 33%+. The 2024 commercial-scale roadmap is tandem. Beyond that: quantum dots, hot-carrier cells, intermediate band — still research."
+      },
+      "hints": [
+        "What's the basic SQ limitation?",
+        "How to exceed?"
+      ],
+      "workedSolution": "SQ: single-junction has fundamental losses (below-bandgap transmission + above-bandgap thermalization). Cannot beat without changing the architecture. Multijunction: stack 2-3 cells with different bandgaps. Tandem perovskite-Si is the 2024 commercial trajectory. III-V triple-junction is in space + concentrating solar. Other strategies (multiple exciton, hot-carrier, intermediate band) remain research. The physics is well-understood; engineering at scale is the active frontier.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_solar_voc",
+        "kind": "math_expression",
+        "question": "60-cell silicon panel, V_oc temperature coefficient -2 mV/°C/cell. At 50°C cell temp (vs STC 25°C), V_oc drop?",
+        "acceptedAnswers": [
+          "3.0 V",
+          "3 V",
+          "-3 V"
+        ],
+        "hint": "60 × 2 mV × 25°C = 3 V."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_solar_loss",
+        "kind": "scenario",
+        "question": "Diagnosing low yield",
+        "prompt": "A residential solar system is producing 30% less energy than expected. Walk through the diagnostic checklist: shading, soiling, module mismatch, inverter, wiring, cell degradation."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_solar",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why MPPT (Maximum Power Point Tracking) is now standard in every grid-tied solar inverter.",
+        "rubric": "Mentions that the MPP shifts continuously with irradiance + temperature; without MPPT (just fixed-voltage operation), 20-40% of available power is lost; modern inverters do MPPT thousands of times per second cheaply with a microcontroller; the small MPPT cost pays for itself within weeks. Multi-string + microinverter architectures also enable per-string or per-panel MPPT for shade-tolerant systems."
+      }
+    }
+  ]
+}

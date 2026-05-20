@@ -1,0 +1,160 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "State the Betz limit + wind-power equation.",
+      "Outline turbine components + the gearbox vs direct-drive choice.",
+      "Reason about wind-farm wake effects + curtailment."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The wind-power equation + the Betz limit",
+      "body": "**Wind power** through a swept area $A$:\n$$P = \\frac{1}{2} \\rho A v^3$$\nWhere $\\rho$ = air density (~1.225 kg/m³ at sea level), $v$ = wind speed.\n\n**Key insight: CUBE of wind speed**. Doubling wind speed = 8× power. Why turbine siting is so critical + wind speed is the dominant economic variable.\n\n**Examples**:\n- 5 m/s 'breeze' through a 100 m² rotor: ~7.7 kW.\n- 10 m/s 'good wind': ~62 kW (8× more for 2× speed).\n- 15 m/s 'rated wind': ~207 kW (27× more).\n\n**Betz limit** (Albert Betz 1919): maximum theoretical efficiency of a wind turbine = $16/27 \\approx 59.3\\%$.\n\nWhy: if turbine extracted ALL kinetic energy, air would stop behind it + new air couldn't pass. Optimal: slow incoming wind to 1/3 of original.\n\n**Actual turbine efficiency** (power coefficient $C_p$):\n- Modern utility turbines: $C_p \\approx 0.45-0.50$ at rated wind. Approaching Betz.\n- Smaller turbines: 0.25-0.40.\n- Wind farm overall (accounting for wake effects): 0.30-0.40.\n\n**Turbine power equation**:\n$$P = \\frac{1}{2} \\rho A v^3 C_p$$\n\nWith real rotor + drivetrain efficiencies.\n\n**Cut-in + rated + cut-out wind speeds**:\n- **Cut-in** (~3-4 m/s): below this, can't overcome friction.\n- **Rated** (~12-14 m/s): nameplate power. Above this, blades pitch to limit power.\n- **Cut-out** (~25 m/s): too windy; shut down for safety. Newer 'storm-ride-through' turbines stay on, derated.\n\n**Annual energy** depends on wind-speed DISTRIBUTION at site (Weibull distribution typically). Lower-altitude sites have lower mean wind + more variability; higher altitudes (mountains, offshore) have stronger steadier winds — but harder to access."
+    },
+    {
+      "kind": "text",
+      "title": "Turbine architecture + components",
+      "body": "Modern utility wind turbines (3-15 MW):\n\n**Rotor**:\n- 3 blades (preferred over 2 for smoothness + visual).\n- Composite materials (glass + carbon fiber-reinforced epoxy).\n- Diameter: 80-220 m (the larger the modern offshore).\n- Tip speeds limited to ~80-100 m/s to control noise + cavitation-like losses.\n\n**Drivetrain** (transmits rotor torque to generator):\n- **Geared**: slow rotor → high-speed generator via 100:1 gearbox. Gearbox = single biggest failure mode in wind. Vestas, GE, Goldwind use.\n- **Direct-drive**: synchronous generator on rotor shaft. No gearbox. Larger + heavier generator. Enercon pioneer, Siemens Gamesa SG offshore.\n- **Medium-speed (hybrid)**: small gearbox (~10:1) + medium-speed generator. Recent trend: best of both.\n\n**Generator**:\n- Doubly-fed induction (DFIG): geared. Cheaper, controllable.\n- Permanent magnet synchronous: direct-drive + medium-speed. Higher efficiency, requires rare-earth magnets (neodymium).\n\n**Control systems**:\n- **Yaw control**: turbine rotates to face wind. ~0.5°/sec.\n- **Pitch control**: blades rotate to control power capture. Fast response (~10°/sec).\n- **Power electronics**: convert variable-speed AC to grid-frequency AC.\n- **Storm shutdown**: pitch blades to 90° (feathered, no torque).\n\n**Tower**:\n- Tubular steel ~80-150 m. Newer hybrid (steel + concrete) towers up to 165 m+.\n- Higher = stronger winds + better economics, but transportation + construction cost.\n\n**Modern trends**:\n- **Taller**: hub heights up to 165 m → reach faster atmospheric winds (wind shear).\n- **Larger rotors**: 220 m (~equal to Eiffel Tower) at offshore turbines. 15+ MW per unit.\n- **Offshore**: stronger + steadier winds. ~50% more capacity factor than onshore. Capex 2-3× higher. Becoming cost-competitive.\n- **Floating offshore**: deep-water (where fixed-bottom infeasible). 5-10× more accessible offshore resource. Hywind (Norway) operating since 2017; commercial-scale deployments 2024+."
+    },
+    {
+      "kind": "text",
+      "title": "Wind farms + grid integration",
+      "body": "**Wind farm**: multiple turbines on a site. Layout matters.\n\n**Wake effects**: downwind turbines see TURBULENT, slower wind from upwind ones.\n- Single-turbine wake loss: ~5-10% at 10 rotor diameters.\n- Cumulative: 15-25% across a farm. Optimal spacing trades land area vs energy capture.\n- Modern wake-steering: yaw upwind turbines slightly to deflect wake; total farm output increased ~1-3% (Bonn et al + others).\n\n**Wind variability + grid**:\n- Wind output varies on all timescales: seconds (turbulence), minutes-hours (weather), days (fronts), seasons (winter > summer in mid-latitudes).\n- Forecasting: NWP (numerical weather prediction) + ML for short-term + statistical for medium. Modern wind forecasts within ~5-10% MAPE at day-ahead.\n- Grid operators integrate forecasts into dispatch. Surprise events ('wind ramp') still happen.\n\n**Capacity credit**: contribution to grid reliability. Wind alone: ~5-25% of nameplate. Needs backup + storage for high penetration.\n\n**Curtailment**: shutting turbines when grid can't absorb their power. Caused by transmission congestion, oversupply, negative prices. Major issue in some markets (Texas, Germany, China). ~3-10% of generation curtailed in high-penetration grids.\n\n**Grid forming inverters**: new technology. Wind (+ solar + battery) inverters historically GRID-FOLLOWING (need grid voltage reference). New grid-FORMING inverters can establish voltage themselves. Critical for high-renewable grids approaching 100%.\n\n**LCOE (Levelized Cost of Energy)**:\n- Onshore wind (USA, 2024): \\$30-45/MWh.\n- Offshore (Europe, 2024): \\$60-80/MWh.\n- Floating offshore: \\$100-150/MWh (declining).\n- Compared to gas: \\$45-75/MWh + carbon costs.\n- Wind is now cheapest new generation in most markets WITHOUT subsidy.\n\n**Hybrid + co-located projects**: wind + solar + storage at one site. Share grid interconnection, optimize for different generation patterns (wind often complements solar's day-only output)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_wind_power",
+        "kind": "guided_derivation",
+        "question": "Compute energy from a wind turbine",
+        "goal": "Modern offshore turbine: 200 m rotor diameter, hub at 150 m, average wind 9 m/s (Weibull k=2), air density 1.225 kg/m³, $C_p$ = 0.45. Estimate annual energy.",
+        "steps": [
+          {
+            "prompt": "Swept area: $A = \\pi (D/2)^2$ for D = 200 m. Compute.",
+            "motivation": "Geometry.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "31415 m^2",
+                "~31416",
+                "π × 10000"
+              ]
+            },
+            "hints": [
+              "π × 100²."
+            ],
+            "reveal": "$A \\approx 31,416$ m²."
+          },
+          {
+            "prompt": "Power at 9 m/s: $P = 0.5 \\times 1.225 \\times 31416 \\times 9^3 \\times 0.45$. Compute.",
+            "motivation": "Plug into power equation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~6.3 MW",
+                "~6300 kW",
+                "~6300000 W"
+              ]
+            },
+            "hints": [
+              "0.5 × 1.225 × 31416 × 729 × 0.45 ≈ 6.3 MW."
+            ],
+            "reveal": "~6.3 MW at this specific wind speed."
+          },
+          {
+            "prompt": "BUT: Weibull-distributed wind means the AVERAGE power is NOT the power at the average wind. The cube means high-wind hours dominate. Typical capacity factor for offshore with these specs?",
+            "motivation": "Realistic CF.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "10%.",
+                "40-55%: modern large offshore turbines on good sites achieve very high CFs. Wind blows steadily at 150 m height + low surface friction over water.",
+                "100%.",
+                "5%."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Offshore CFs are high."
+            ],
+            "reveal": "40-55% is typical for modern offshore. Onshore: 30-45%. CF = annual energy / (rated × 8760). For 15 MW turbine: 15 × 8760 × 0.5 ≈ 65,700 MWh/year per turbine."
+          },
+          {
+            "prompt": "An offshore wind farm with 50 such turbines (15 MW each) produces approximately how much annual energy?",
+            "motivation": "Scale.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~3.3 TWh",
+                "~3300 GWh"
+              ]
+            },
+            "hints": [
+              "50 × 65,700 MWh = ~3.3 TWh."
+            ],
+            "reveal": "~3.3 TWh/year. Enough to power ~300,000 typical USA households or ~1 million European households. The largest offshore wind farms (Hornsea, UK) are ~3-4 GW + produce ~15 TWh/year."
+          }
+        ],
+        "finalResult": "$$\\boxed{P = \\frac{1}{2}\\rho A v^3 C_p, E_{annual} = P_{rated} \\cdot 8760 \\cdot CF}$$ Wind energy economics is dominated by site selection + tower height (winds increase with altitude). Modern utility turbines are 6-15 MW machines with blades larger than Boeing 747 wings. Offshore wind is the fastest-growing segment globally (UK, China, Germany, USA East Coast). Cost continues falling — onshore wind has been cheapest new generation in many markets since 2018."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_wind_betz",
+        "kind": "multiple_choice",
+        "question": "Why can't a wind turbine extract 100% of the wind's kinetic energy?",
+        "options": [
+          "Random.",
+          "Air must flow THROUGH the rotor. If you extracted all energy, air would stop behind + block incoming flow. Betz showed optimum is slowing air to 1/3 of original speed; the resulting maximum is 16/27 ≈ 59.3% of incident kinetic energy.",
+          "Bad design.",
+          "Wind doesn't have much energy."
+        ],
+        "correctIndex": 1,
+        "explanation": "Betz's argument (1919): turbine slows wind from $v_1$ to $v_2$. The work done = drop in kinetic energy. Maximizing over $v_2/v_1$: optimal is $v_2/v_1 = 1/3$, giving $C_p = 16/27 \\approx 0.593$. Modern turbines achieve $C_p \\approx 0.45-0.50$ at design point — 75-85% of Betz limit. Approaching the physical maximum. Beyond Betz requires VAWTs in arrays or other architectures (research, not commercial)."
+      },
+      "hints": [
+        "What's Betz's argument?",
+        "Why a maximum?"
+      ],
+      "workedSolution": "Air must keep flowing. Slowing it 100% blocks flow. Optimum: slow to 1/3. $C_p \\le 16/27 \\approx 0.593$. Modern turbines: 0.45-0.50, approaching the limit. Engineering focus has shifted from $C_p$ (near-max) to scale (larger rotors), cost (lower LCOE), reliability (long maintenance intervals), grid services (frequency response, voltage support).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_wind_cube",
+        "kind": "math_expression",
+        "question": "Wind doubles from 6 to 12 m/s. Power factor change?",
+        "acceptedAnswers": [
+          "8x",
+          "8 times",
+          "factor of 8"
+        ],
+        "hint": "$v^3$ scaling: $2^3 = 8$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_wind_offshore",
+        "kind": "scenario",
+        "question": "Choosing offshore wind site",
+        "prompt": "A developer evaluates two offshore wind sites: shallow (20 m depth) with 9 m/s average wind vs deep (100 m, floating) with 10.5 m/s. Walk through trade-offs."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_wind",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why wind turbines are getting steadily larger over time.",
+        "rubric": "Mentions that wind power scales with swept area ($D^2$) but cost scales sub-quadratically; larger rotors capture more wind at proportionally lower cost; taller towers reach steadier higher-altitude winds (wind shear); offshore turbines especially benefit since transport + installation costs are roughly site-fixed. Limits: blade transport (large rotors require special ships + trains), generator weight, tower bending moment."
+      }
+    }
+  ]
+}

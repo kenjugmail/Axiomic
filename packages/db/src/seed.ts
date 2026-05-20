@@ -1952,6 +1952,26 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P21 — Renewable Energy Engineer path. Solar + wind +
+  // batteries + grid + hydrogen + geothermal + nuclear +
+  // economics. Includes a new solar-pv-curve interactive viz.
+  seedMasteryPath({
+    slug: "renewable-energy-engineer",
+    title: "Renewable Energy Engineer",
+    description:
+      "From photovoltaic physics + I-V curves through wind turbine aerodynamics, Li-ion + flow batteries, grid integration + frequency control, green hydrogen + fuel cells, geothermal + hydro, nuclear fission + fusion, and LCOE + carbon pricing. The full clean-energy engineering stack.",
+    nodes: [
+      { slug: "solar-pv-fundamentals", title: "Solar PV Fundamentals", level: "apprentice", order: 1, pages: ["pv-effect", "iv-mpp", "balance-of-system"], prereqs: [], description: "Photovoltaic effect + Shockley-Queisser, I-V curve + MPPT (interactive viz), system design + balance-of-system." },
+      { slug: "wind-energy", title: "Wind Energy", level: "practitioner", order: 2, pages: ["betz-limit", "turbine-architecture", "wind-farms"], prereqs: [], description: "Wind power equation + Betz limit, turbine components + gearbox vs direct-drive, wind farms + wake effects + grid integration." },
+      { slug: "battery-storage", title: "Battery Storage", level: "practitioner", order: 3, pages: ["lion-chemistry", "c-rate-cycle", "grid-storage"], prereqs: [], description: "Li-ion chemistry (LFP/NMC), C-rate + cycle life, grid-scale storage + flow batteries + emerging chemistries." },
+      { slug: "grid-integration", title: "Grid Integration", level: "specialist", order: 4, pages: ["freq-voltage", "transmission", "duck-curve"], prereqs: ["solar-pv-fundamentals", "wind-energy"], description: "Frequency + voltage stability, HVDC + smart grids, duck-curve + inertia + grid-forming inverters." },
+      { slug: "hydrogen-economy", title: "Hydrogen Economy", level: "specialist", order: 5, pages: ["h2-production", "electrolysis", "fuel-cells-uses"], prereqs: [], description: "Gray/blue/green H₂, electrolysis (AEL/PEM/SOE), fuel cells + heavy transport + industrial uses." },
+      { slug: "geothermal-and-hydro", title: "Geothermal + Hydro", level: "practitioner", order: 6, pages: ["geothermal-egs", "hydroelectric", "pumped-storage"], prereqs: [], description: "Geothermal heat + EGS breakthroughs, hydroelectric power + types, pumped storage + tidal + complementarity." },
+      { slug: "nuclear-fundamentals", title: "Nuclear Fission + Fusion", level: "specialist", order: 7, pages: ["fission-chain", "reactor-generations", "safety-fusion"], prereqs: [], description: "Fission + chain reaction control, Gen II/III/IV + SMRs, safety + waste + ITER + NIF fusion." },
+      { slug: "energy-economics-and-policy", title: "Energy Economics + Policy", level: "expert", order: 8, pages: ["lcoe", "carbon-pricing", "transition-pathway"], prereqs: ["solar-pv-fundamentals", "wind-energy", "battery-storage"], description: "Levelized Cost of Energy (LCOE), carbon pricing + ETS, energy markets + transition pathways." },
+    ],
+  });
+
   // P20 — Materials Scientist path. Crystal structure + defects
   // + mechanical properties + phase diagrams + electronic +
   // polymers + composites + characterization.

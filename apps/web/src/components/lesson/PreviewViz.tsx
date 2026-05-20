@@ -48,6 +48,11 @@ const LazyLorenzAttractor = lazy(() =>
     (m) => ({ default: m.LorenzAttractor }),
   ),
 );
+const LazySolarPVCurve = lazy(() =>
+  import("../../../../../packages/viz/src/components/SolarPVCurve").then(
+    (m) => ({ default: m.SolarPVCurve }),
+  ),
+);
 const LazyDoublePendulum = lazy(() =>
   import("../../../../../packages/viz/src/components/DoublePendulum").then(
     (m) => ({ default: m.DoublePendulum }),
@@ -138,6 +143,8 @@ function VizByName({
       return <LazyDoublePendulum {...(props as object)} />;
     case "phase-portrait-1d":
       return <LazyPhasePortrait1D {...(props as object)} />;
+    case "solar-pv-curve":
+      return <LazySolarPVCurve {...(props as object)} />;
     default:
       return null;
   }

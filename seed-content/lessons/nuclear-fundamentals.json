@@ -1,0 +1,159 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "specialist",
+    "objectives": [
+      "Outline fission + chain reaction control.",
+      "Distinguish reactor types + generations.",
+      "Reason about waste + safety + fusion."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Fission + the nuclear reaction",
+      "body": "**Nuclear fission**: heavy nucleus (U-235, Pu-239) absorbs a neutron + splits into two lighter nuclei + 2-3 neutrons + ~200 MeV energy.\n\nKey: each fission releases NEUTRONS that can trigger MORE fissions → **chain reaction**.\n\n**Critical mass**: minimum amount of fissile material to sustain a chain reaction. Depends on:\n- Enrichment level (U-235 fraction; natural U is 0.7%, reactor fuel 3-5%, weapons-grade >90%).\n- Geometry (spherical = lowest critical mass).\n- Neutron moderator presence.\n- Surrounding material (reflector).\n\n**Neutron moderation**: fast (fission-energy ~2 MeV) neutrons are inefficient at causing more fissions. Slow them via collisions with light elements:\n- Water (H₂O): hydrogen is best moderator. Standard.\n- Heavy water (D₂O): D less absorbing than H → enables natural U fuel (CANDU).\n- Graphite (C): solid moderator. RBMK (Chernobyl), Magnox.\n- Sodium, helium, lead: 'fast' reactors (no moderation).\n\n**Multiplication factor** $k$:\n- $k < 1$: subcritical. Reaction dies out.\n- $k = 1$: critical. Sustained reaction. STEADY STATE = reactor operation.\n- $k > 1$: supercritical. Power increases. WEAPONS or runaway accident.\n\n**Control rods**: absorb neutrons (B, Cd, Hf). Insert to reduce reactivity, withdraw to increase. Maintain $k = 1$ during normal operation.\n\n**Delayed neutrons**: ~0.65% of fissions emit neutrons after seconds (vs ~$10^{-13}$ s for prompt neutrons). These provide TIMING MARGIN for control. Reactor operates 'prompt subcritical, delayed critical'.\n\n**Fission energy distribution**:\n- ~80% kinetic energy of fragments (heat).\n- ~5% prompt neutrons.\n- ~5% prompt gammas.\n- ~10% beta + gamma from decay of fission products (waste heat AFTER shutdown).\n\nThe decay-heat tail is why Fukushima failed despite shutdown — pumps stopped + no cooling for the post-shutdown heat → meltdown."
+    },
+    {
+      "kind": "text",
+      "title": "Reactor types + generations",
+      "body": "**Generation I** (1950s-60s): early experimental + commercial. Shippingport, Calder Hall. Retired.\n\n**Generation II** (~70s-90s, currently most operating reactors):\n- **PWR (Pressurized Water Reactor)**: most common (~60% globally). Water moderator + coolant, pressurized to stay liquid at 300+°C. AP1000, EPR.\n- **BWR (Boiling Water Reactor)**: water boils in core directly. GE designs. ~20%.\n- **PHWR (CANDU)**: heavy water moderator + natural U fuel. Canadian.\n- **AGR**: gas-cooled, graphite-moderated. UK.\n- **RBMK**: graphite-moderated + water-cooled. Soviet design; Chernobyl's type.\n- **VVER**: Soviet/Russian PWR. ~10%.\n\n**Generation III + III+** (active deployment): improved safety + economics.\n- **AP1000** (Westinghouse): passive safety systems (no power needed for emergency cooling).\n- **EPR** (Framatome): high power (1.6+ GW), defense-in-depth.\n- **APR1400** (KEPCO Korea): exports to UAE, operating.\n- **VVER-1200** (Rosatom): Russian flagship.\n- **HPR1000** (China): two-loop design.\n\n**Generation IV** (in development): radical changes.\n- **Small Modular Reactors (SMRs)**: <300 MW. Factory-built. NuScale (USA), GE Hitachi BWRX-300, X-energy Xe-100, Rolls-Royce SMR. Faster to deploy + lower upfront cost.\n- **Sodium-cooled fast reactors**: Russian BN-800 operating. France SUPERPHENIX retired. India PFBR.\n- **High-temperature gas-cooled** (HTGR, VHTR): efficient, can produce process heat for hydrogen.\n- **Molten salt reactors (MSR)**: ThorCon, Terrestrial Energy, Moltex. Liquid fuel. Thorium-fueled variants possible.\n- **Lead-cooled**: heavy + corrosive but no positive coid coefficient.\n\n**Reactor lifecycle**:\n- Fuel: enrich U-235 to 3-5%, fabricate into pellets + rods.\n- Operation: 1-2 year fuel cycles. Refueling outage 30-90 days.\n- Spent fuel: cool in pool 5-10 years; then dry cask storage; eventually deep geologic repository (Onkalo, Finland operational 2025+).\n\n**Reactor lifecycle from cradle to grave** is well-studied; total life-cycle CO₂ ~10-15 g/kWh, comparable to wind + solar (and far below gas at ~400+ or coal 800+)."
+    },
+    {
+      "kind": "text",
+      "title": "Safety + waste + fusion",
+      "body": "**Nuclear safety**: high consequences, very low probability.\n\n**Accidents**:\n- **Three Mile Island (1979)**: PWR partial meltdown. Operator confusion + indicators. Reactor lost but radiation release small. Public concern + USA construction halt.\n- **Chernobyl (1986)**: RBMK reactor explosion. Design flaws (positive void coefficient, no containment), botched safety test, secrecy. ~30 immediate deaths; ~4,000 estimated long-term cancers. Major release into Europe.\n- **Fukushima Daiichi (2011)**: BWR. Tsunami flooded backup diesels. Cooling lost. Three reactors melted. Hydrogen explosions. No radiation deaths from incident; significant economic damage + cleanup ongoing. Japan shut down nuclear for years.\n\n**Modern safety architecture** (Gen III+):\n- **Passive cooling**: physics-based (gravity, convection) emergency systems. Don't need power or active intervention. AP1000 + EPR exemplify.\n- **Defense in depth**: multiple independent layers of protection.\n- **Probabilistic Risk Assessment (PRA)**: identify + quantify failure pathways.\n- **Severe accident management**: contain even worst-case meltdowns.\n\n**Waste**:\n- High-level waste (HLW): spent fuel. Tiny volume (per kWh) but very long-lived (10,000+ years to natural background).\n- Geologic disposal: Yucca Mountain stalled (USA). Finland's Onkalo operating. Sweden Forsmark approved. Most countries: spent fuel in dry casks, awaiting repository.\n- Some fuel can be reprocessed (extract Pu + U for re-use). France does this. USA does not (proliferation concerns).\n\n**Fusion**:\n- **D-T fusion**: deuterium + tritium → helium + neutron + 17.6 MeV.\n- 4× more energy per nucleon than fission.\n- No long-lived waste; tritium short-lived; activated structural materials moderate.\n- No criticality risk.\n- Fuel: D from seawater (essentially inexhaustible). T bred from Li in blanket.\n- Hot enough that no material can contain → magnetic confinement (tokamak, stellarator) or inertial (laser).\n\n**Status**: \n- **ITER (Cadarache, France)**: international tokamak. First plasma ~2025 (delayed). Q ~ 10 target (10× energy output vs input). Full operation ~2035.\n- **NIF (USA)**: laser inertial. December 2022 + repeated 2023-24: ignition (Q > 1 in fusion reaction; not net energy when including laser power).\n- **Private fusion**: Commonwealth Fusion, TAE Technologies, Helion, Tokamak Energy, others. Billions raised. Targeting net energy in 2030s.\n- 'Fusion is 20 years away' — joke. Progress is real but COMMERCIAL fusion still ~2040+.\n\n**Nuclear's renewable role**: zero-carbon, baseload, dense. Complement to variable renewables. Growth pathways: SMRs, lifetime extensions of existing fleet, new builds in China + India + UAE + Korea. Future: fusion if commercial."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_nuc_efficiency",
+        "kind": "guided_derivation",
+        "question": "Estimate energy from a reactor",
+        "goal": "1000 MW thermal nuclear reactor, 33% thermal-to-electric efficiency, capacity factor 92%. Annual electricity output? Compare to a 1000 MW solar plant at CF 25%.",
+        "steps": [
+          {
+            "prompt": "Electrical capacity: 1000 MW thermal × 0.33 = ?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "330 MW",
+                "330"
+              ]
+            },
+            "hints": [
+              "Thermal × efficiency."
+            ],
+            "reveal": "~330 MW electric."
+          },
+          {
+            "prompt": "Annual energy: 330 × 8760 × 0.92 = ?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~2660 GWh",
+                "~2.66 TWh",
+                "2.66 billion kWh"
+              ]
+            },
+            "hints": [
+              "330 × 8760 × 0.92 = 2,659,968 MWh."
+            ],
+            "reveal": "~2.66 TWh/year."
+          },
+          {
+            "prompt": "Solar plant 1000 MW electrical × 8760 × 0.25 = ?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~2190 GWh",
+                "~2.19 TWh"
+              ]
+            },
+            "hints": [
+              "1000 × 8760 × 0.25 = 2,190,000 MWh."
+            ],
+            "reveal": "~2.19 TWh/year."
+          },
+          {
+            "prompt": "Same capacity, different annual energy. Reactor produces ~20% more energy than equivalent-capacity solar despite smaller electrical rating. Why?",
+            "motivation": "CF difference.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Capacity factor: nuclear 92% (baseload) vs solar 25% (variable). The reactor's high availability per year compensates for lower nameplate. Compare 'energy per nameplate W' to fairly evaluate.",
+                "Solar is broken.",
+                "Nuclear lies."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "CF."
+            ],
+            "reveal": "Nuclear's 92% capacity factor (vs solar 25%) means ~3.7× more energy per nameplate watt. But solar PV is much cheaper per nameplate (\\$1/W vs \\$5-10/W for nuclear) so the economics depend on weighing capacity vs energy delivery. Both have roles in a decarbonized grid."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Energy} = P_{rated} \\cdot 8760 \\cdot CF}$$ Nuclear's high capacity factor (~92%) makes it competitive on energy delivery despite higher capex. Solar's lower capex but lower CF means more nameplate needed for same energy. Optimal mix in a decarbonized grid depends on demand patterns + storage costs + technology mix. Most planners see roles for both, complementing."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_nuc_fusion",
+        "kind": "multiple_choice",
+        "question": "Why is fusion still 'always 30 years away' even after the 2022 NIF ignition breakthrough?",
+        "options": [
+          "Bad science.",
+          "Ignition (Q > 1) at NIF means net fusion energy at the level of the fusion reaction. NOT net energy when accounting for laser inefficiency (Q ~150 needed for net plant energy). Tokamak fusion needs continuous operation, materials for years of neutron flux, tritium breeding, all unsolved. Commercial fusion power plants are still ~2040+ best estimate.",
+          "Random.",
+          "Doesn't matter."
+        ],
+        "correctIndex": 1,
+        "explanation": "NIF's December 2022 breakthrough: input ~2 MJ laser energy yielded 3 MJ fusion energy. But total LASER energy was ~300 MJ (lasers ~1% efficient). So plant-level Q ~0.01. For commercial fusion, plant-level Q ~10 needed. Plus: tokamak fusion needs continuous (vs NIF's pulsed) operation; structural materials must survive years of 14 MeV neutron flux; tritium must be bred in lithium blankets at sustainable rates. All UNSOLVED engineering challenges. Best estimates: commercial fusion ~2040-2050 if everything goes well. The 'always 30 years' joke reflects real engineering complexity rather than scientific impossibility.\n\nThat said: private fusion (CFS, Helion, TAE, Tokamak Energy) targeting earlier dates with novel approaches."
+      },
+      "hints": [
+        "What did NIF achieve?",
+        "What's still needed?"
+      ],
+      "workedSolution": "NIF: Q_reaction > 1 (3 MJ out / 2 MJ laser in to capsule). But lasers ~1% efficient → plant Q ~0.01. Need plant Q ~10 for commercial. Plus: continuous operation, neutron-resistant materials, tritium breeding, all in 30+ year R&D. Best estimate: commercial fusion ~2040-2050. Private fusion targeting earlier. Real but engineering-bounded, not 'always 30 years away'.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_nuc_uranium",
+        "kind": "math_expression",
+        "question": "U-235 fission releases ~200 MeV. How many fissions for 1 watt-second of energy? (1 eV = 1.6e-19 J)",
+        "acceptedAnswers": [
+          "~3.1e10",
+          "~31 billion",
+          "3.1e10 fissions"
+        ],
+        "hint": "$1 J / 200 MeV / (1.6e-19) = 1 / (200e6 × 1.6e-19) \\approx 3.1\\times10^{10}$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_nuc_smr",
+        "kind": "scenario",
+        "question": "Small modular reactors",
+        "prompt": "An SMR developer pitches 100 MW reactors deployed in factories. Walk through why SMRs might (or might not) revive nuclear power."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_nuc",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why nuclear power is uniquely positioned as a clean-energy source despite public concerns.",
+        "rubric": "Mentions that nuclear provides high-density, dispatchable, zero-carbon baseload power; capacity factors 90%+ + life cycle emissions comparable to wind/solar; major concerns (safety, waste, cost) are real but recent designs + SMRs address some. Most decarbonization scenarios (IPCC, IEA) require nuclear in the mix; without it, solar + wind + storage + transmission needs are dramatically larger + more expensive."
+      }
+    }
+  ]
+}

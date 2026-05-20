@@ -96,6 +96,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "📊",
     tags: ["dynamics", "ode", "physics"],
   },
+  {
+    name: "solar-pv-curve",
+    label: "Solar PV curve",
+    description: "Drag irradiance + temperature; see I-V + P-V curves + MPP track.",
+    thumb: "☀️",
+    tags: ["solar", "energy", "physics", "renewable"],
+  },
 ];
 
 interface Props {
