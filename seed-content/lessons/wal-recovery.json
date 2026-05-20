@@ -1,0 +1,112 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "State the write-ahead-logging invariant.",
+      "Explain crash recovery (REDO + UNDO).",
+      "Reason about checkpoint vs log volume tradeoffs."
+    ],
+    "prereqs": [
+      "transactions-acid"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Write-ahead logging, the central invariant",
+      "body": "**Rule**: any modification to the data file is written to the log FIRST, with the log durable on disk, BEFORE the data file change is durable.\n\nWhy: if we crash mid-write, the log tells us how to recover.\n\nProcedure for a transaction:\n1. Log: 'I'm modifying page X from value V1 to V2.'\n2. fsync the log entry (durable).\n3. Update the data page in memory (page may not yet be flushed).\n4. fsync the log COMMIT marker (this is what makes commit durable).\n5. *Eventually* flush the data page to disk.\n\nCommit returns success at step 4. Step 5 happens lazily, in the background.\n\nResult: data pages can be hours behind their log entries on disk. That's fine — log is durable + can replay forward."
+    },
+    {
+      "kind": "text",
+      "title": "Crash recovery: REDO + UNDO",
+      "body": "After a crash, the DB starts in an unknown state. Crash-recovery procedure (ARIES-style):\n\n1. **Analysis pass**: read the log from the last checkpoint to find which transactions were in-flight.\n2. **REDO pass**: replay all log entries since the last checkpoint, in order. This brings the data files forward to the crashed state.\n3. **UNDO pass**: roll back in-flight (uncommitted) transactions. The log entries also contain compensation/undo info for this.\n\nAfter recovery, the DB is in a state consistent with all committed transactions + no uncommitted ones. Recovery time depends on how much log is between the last checkpoint and the crash.\n\nThe ARIES algorithm (Mohan 1992) formalized this; every modern OLTP DB uses an ARIES variant."
+    },
+    {
+      "kind": "text",
+      "title": "Checkpoints + log retention",
+      "body": "**Checkpoint**: periodically, force all dirty pages to disk + log a 'checkpoint' marker. The log before this point can be discarded (or archived for point-in-time recovery).\n\nTrade-offs:\n- **Frequent checkpoints**: shorter recovery time (less log to replay) but more I/O during normal operation.\n- **Infrequent checkpoints**: lower steady-state I/O but longer crash recovery.\n\nProduction defaults: Postgres checkpoints every 5 minutes (configurable via `checkpoint_timeout`). Plus 'WAL size'-triggered checkpoints when log gets large (`max_wal_size`).\n\n**Point-in-time recovery (PITR)**: archive WAL continuously to object storage. Restore = restore latest base backup + replay WAL forward to desired time. Standard pattern for any production DB. Postgres: `pg_basebackup` + `wal_e`/`wal_g`/`pgbackrest`."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_wal_replay",
+        "kind": "guided_derivation",
+        "question": "Derive recovery time bound",
+        "goal": "Log volume since last checkpoint: $L$ bytes. Replay throughput: $R$ bytes/sec. Recovery time?",
+        "steps": [
+          {
+            "prompt": "Linear: recovery time = log volume / replay rate.",
+            "motivation": "Direct calculation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "L / R"
+              ]
+            },
+            "hints": [
+              "Divide."
+            ],
+            "reveal": "$L / R$ seconds."
+          },
+          {
+            "prompt": "If checkpoints are every $T$ seconds + steady-state write rate is $W$ bytes/sec, max log volume to replay is $L = W T$. Recovery time bound?",
+            "motivation": "Compose.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "W T / R",
+                "WT/R"
+              ]
+            },
+            "hints": [
+              "Substitute."
+            ],
+            "reveal": "Recovery time $\\leq WT/R$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Recovery time} \\leq WT/R}$$ For Postgres: $W \\sim 10$ MB/s steady state, $T = 5$ min, $R \\sim 100$ MB/s replay. Recovery $\\leq 30$ seconds. The default checkpoint interval is tuned to keep recovery under a minute."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_wal_invariant",
+        "kind": "multiple_choice",
+        "question": "The write-ahead logging invariant says:",
+        "options": [
+          "Log + data files are always written together.",
+          "Log must be durable (fsynced to disk) before the corresponding data-file change is durable.",
+          "Log entries are smaller than data entries.",
+          "Log entries are encrypted."
+        ],
+        "correctIndex": 1,
+        "explanation": "WAL invariant: log goes to disk BEFORE data-file changes. This is the entire foundation of crash recovery — if we crash, the log tells us what happened in the last seconds. Without it, you can't tell whether a partial data-file update was committed or not."
+      },
+      "hints": [
+        "What property of the log guarantees we can recover?",
+        "Order matters: log before data."
+      ],
+      "workedSolution": "WAL invariant: every page modification has its log entry fsynced to disk *before* the page modification itself is durable. This way, if we crash mid-operation, the log has the most-recent committed state recoverable; data files might be slightly behind but recoverable from the log.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_wal_recovery",
+        "kind": "scenario",
+        "question": "A long recovery",
+        "prompt": "After a server reboot, a Postgres DB takes 10 minutes to come back online; logs show 'recovering from WAL ...'. Walk through what's happening + what knob you'd tune for faster recovery in the future."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_wal",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why durable commit is possible even though data pages might be flushed to disk much later.",
+        "rubric": "Mentions that commit's durability is provided by the log entry being durable; the data pages can be reconstructed from the log if needed (REDO); so flushing data pages can be lazy without losing committed data."
+      }
+    }
+  ]
+}

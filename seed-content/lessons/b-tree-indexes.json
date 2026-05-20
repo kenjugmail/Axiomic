@@ -1,0 +1,111 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "State the B-tree invariants (balance, fan-out).",
+      "Compute height for given fan-out and key count.",
+      "Recognize when a query benefits from an index."
+    ],
+    "prereqs": [
+      "storage-engines"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "B-tree, the working definition",
+      "body": "A B-tree of order $m$ is a balanced search tree where:\n- Each internal node has between $\\lceil m/2 \\rceil$ and $m$ children.\n- All leaves are at the same depth.\n- Keys within a node are sorted.\n- Lookups, inserts, deletes are $O(\\log_m n)$.\n\n**Why fan-out matters**: with $m = 256$ children per node, a 1B-row table has depth $\\log_{256}(10^9) \\approx 4$ — four random page reads per lookup. With $m = 2$ (binary search tree), depth would be $\\log_2(10^9) \\approx 30$.\n\nFan-out is set by page size + key size. Postgres default 8KB pages + 16-byte keys → ~500 keys/page → ~250 children per internal node. Tuning page size up trades off larger I/O reads against shallower trees."
+    },
+    {
+      "kind": "text",
+      "title": "B+ tree: the variant that won",
+      "body": "Production databases use **B+ trees**, not classical B-trees:\n\n- **B-tree**: keys + values in both internal nodes + leaves.\n- **B+ tree**: keys + pointers in internal nodes; **values only in leaves**. Leaves are linked together in a list.\n\nWhy B+ wins:\n1. **Leaf linking** enables range scans without re-traversing the tree.\n2. **Larger fan-out** because internal nodes don't store values (more keys per page).\n3. **Better cache behavior**: internal levels are small enough to stay cached; reads only hit disk at leaf level.\n\nPostgres, MySQL InnoDB, SQL Server, Oracle — all B+ trees in practice. When people say 'B-tree index' in 2025, they almost always mean B+ tree."
+    },
+    {
+      "kind": "text",
+      "title": "Index-only scans + the covering index pattern",
+      "body": "A query that reads only columns present in the index can be answered from the index alone — no need to look up the actual table row. This is an **index-only scan**.\n\nExample: query `SELECT email FROM users WHERE id = 42`. If there's an index on `(id, email)`, the index alone has both columns. Postgres uses an index-only scan: one B-tree traversal, no table heap fetch.\n\n**Covering index**: an index designed to include all columns a query needs, even ones not part of the lookup key. Postgres `INCLUDE` clause; MySQL secondary indexes naturally cover.\n\nProduction optimization: identify your top-$k$ queries; add covering indexes to make them index-only. Trade-off: bigger indexes take more storage + slow down writes."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bt_height",
+        "kind": "guided_derivation",
+        "question": "Derive B-tree height bound",
+        "goal": "B-tree with fan-out $m$ + $n$ keys. Height $h$ satisfies $m^h \\geq n$, so $h \\leq \\log_m n$.",
+        "steps": [
+          {
+            "prompt": "Each internal node has at most $m$ children. Tree of height $h$ has at most $m^h$ leaves. Number of leaves $\\geq$ number of keys / (max keys per leaf). What's the height bound?",
+            "motivation": "Counting argument.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "log_m n"
+              ]
+            },
+            "hints": [
+              "$m^h \\geq n$, so $h \\geq \\log_m n$."
+            ],
+            "reveal": "Height $h \\leq \\log_m n$ (approximately; details depend on min vs max fan-out)."
+          }
+        ],
+        "finalResult": "$$\\boxed{h \\leq \\log_m n}$$ For $m = 256, n = 10^9$: $h \\leq \\log_{256}(10^9) \\approx 4$. Compared to BST ($h \\approx 30$): order of magnitude fewer disk reads per lookup. The B-tree's whole performance advantage on disk is in this single number."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bt_when",
+        "kind": "multiple_choice",
+        "question": "Adding an index on column $c$ helps query `SELECT * FROM t WHERE c = 'value'` when:",
+        "options": [
+          "Always — indexes always help.",
+          "When the query selects a small fraction of rows + the table is large.",
+          "Never — indexes only help writes.",
+          "Only for primary keys."
+        ],
+        "correctIndex": 1,
+        "explanation": "Indexes help selective queries on large tables. For a 1B-row table where 100 rows match, the index narrows from 1B → 100 quickly. For a query that matches half the table, the optimizer often does a sequential scan instead — the index 'overhead' (lookup + heap fetch per matching row) exceeds the scan cost. Postgres + most DBs make this choice automatically."
+      },
+      "hints": [
+        "Indexes have a fixed cost (B-tree traversal + heap fetch); they only win when the alternative (sequential scan) is more expensive.",
+        "If 90% of rows match the query, scanning the table is faster than 1000 index lookups."
+      ],
+      "workedSolution": "Indexes are only useful when selective (few rows match relative to total). For unselective queries, sequential scan is faster. The query planner usually picks the right plan, but you can hint it with `SET enable_seqscan = off` or `pg_hint_plan`.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_bt_height",
+        "kind": "math_expression",
+        "question": "B-tree fan-out 100. 10⁹ rows. Approximate height?",
+        "acceptedAnswers": [
+          "4.5",
+          "5",
+          "log_100(10^9)"
+        ],
+        "hint": "Use $\\log_{100} 10^9 = 9/2$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_bt_compound",
+        "kind": "scenario",
+        "question": "Choosing the right index",
+        "prompt": "A query: `SELECT * FROM orders WHERE customer_id = ? AND order_date > '2024-01-01' ORDER BY order_date DESC LIMIT 10`. The team is debating between two index options: `(customer_id, order_date)` vs `(order_date, customer_id)`. Walk through which is better + why."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_bt",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why B+ tree leaf-linking is the load-bearing design decision that makes B+ trees so good for range queries.",
+        "rubric": "Mentions that range queries can traverse the leaf-linked-list sequentially after finding the start, avoiding repeated B-tree descents; this turns range scans from O(k log n) into O(log n + k)."
+      }
+    }
+  ]
+}

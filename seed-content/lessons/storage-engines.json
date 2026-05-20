@@ -1,0 +1,119 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Distinguish B-tree vs LSM-tree storage engines.",
+      "Reason about read-heavy vs write-heavy workload fit.",
+      "Recognize the read amplification / write amplification / space amplification trade-offs."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The two dominant storage-engine families",
+      "body": "Two storage-engine families dominate modern databases:\n\n**B-tree**: in-place updates, sorted on disk, optimized for read-heavy + balanced workloads. Postgres, MySQL InnoDB, Oracle, SQL Server, SQLite all use B-tree variants.\n\n**LSM-tree** (Log-Structured Merge tree): writes go to memory, periodically flushed to immutable sorted runs, background compaction merges runs. Optimized for write-heavy workloads. RocksDB, Cassandra, ScyllaDB, LevelDB use LSM. Modern Postgres has experimental LSM support; some commercial DBs (Yugabyte) use LSM internally.\n\nThe choice is workload-dependent. Default assumption: B-tree unless you know writes dominate."
+    },
+    {
+      "kind": "text",
+      "title": "Read / write / space amplification",
+      "body": "Storage engine trade-offs are measured in three amplifications:\n\n- **Write amplification**: how many bytes does the engine write to storage per byte of user data written? B-tree: ~1× (in-place update writes the page once). LSM: ~10-20× (rewrites during compaction).\n- **Read amplification**: bytes read from storage per byte of user data read. B-tree: ~$\\log_b n$ pages (depth of tree). LSM: depends — bloom filters can keep it close to 1 in the common case, but worst case is # of levels.\n- **Space amplification**: actual disk used / logical data size. B-tree: ~1.3× (page fill factor). LSM: 1.1× to 10× depending on compaction strategy.\n\nReal engines pick a point on this curve. Tuning options like 'compaction strategy' (RocksDB) directly trade between these three."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_se_lsm_bench",
+        "kind": "multiple_choice",
+        "question": "Your workload is sustained 50K writes/sec on a 10TB dataset, with reads ~10% of write rate. The right storage engine choice:",
+        "options": [
+          "B-tree (Postgres, MySQL) — simpler operationally.",
+          "LSM-tree (RocksDB-based DB like CockroachDB or YugabyteDB) — better write throughput at this scale.",
+          "In-memory KV (Redis) — fast.",
+          "Document store (MongoDB) — flexible schemas."
+        ],
+        "correctIndex": 1,
+        "explanation": "Sustained 50K writes/sec on 10TB strongly favors LSM. B-tree write amplification + lock contention on hot pages causes problems at this rate. Read amp can be managed with bloom filters. The CockroachDB / Yugabyte stack (RocksDB underneath) is purpose-built for write-heavy at scale."
+      },
+      "hints": [
+        "Compute the write throughput requirements: 50K * payload size.",
+        "B-tree's in-place writes have what failure mode at very high write rates?"
+      ],
+      "workedSolution": "At 50K writes/sec sustained, B-tree's write contention becomes a problem: hot pages get locked + dirty + flushed repeatedly. LSM converts random writes to sequential (memory → sorted runs), absorbing burstiness. Compaction adds background work but doesn't block writes. The trade-off (LSM has more complex ops, occasionally worse read latency) is worth it at this scale.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_se_amp",
+        "kind": "guided_derivation",
+        "question": "Derive LSM write amplification",
+        "goal": "LSM with $L$ levels, growth factor $T$ between levels (each level $L_i$ holds $T \\times$ data of level $L_{i-1}$). Each datum is compacted up to $L$ times. Write amplification?",
+        "steps": [
+          {
+            "prompt": "Datum's journey: written to L_0, compacted to L_1, then to L_2, ..., then to L_{L-1}. Total writes per datum?",
+            "motivation": "Count compactions.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "L"
+              ]
+            },
+            "hints": [
+              "One write per level."
+            ],
+            "reveal": "$L$ writes per datum: original + $L - 1$ compactions."
+          },
+          {
+            "prompt": "Each compaction merges $T$ levels' worth of data. So per byte written by user, total disk writes = ?",
+            "motivation": "Multiply by merging factor.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "L T",
+                "L * T"
+              ]
+            },
+            "hints": [
+              "Each compaction rewrites $T$× volume."
+            ],
+            "reveal": "Total writes per byte = $L \\cdot T$. For RocksDB defaults ($L = 7, T = 10$): WA $\\approx 70$. Adjustable via compaction strategy."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{LSM WA} \\approx L \\cdot T}$$ With $L$ levels + growth factor $T$, each byte gets written $\\sim L \\cdot T$ times. RocksDB defaults: WA ~70×. Modern variants (tiered compaction, leveled compaction with smaller T) tune this trade-off."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_se_layers",
+        "kind": "math_expression",
+        "question": "LSM with growth factor 10 + 1GB memtable. Data size 10TB. Number of levels needed (round to next int):",
+        "acceptedAnswers": [
+          "5",
+          "4",
+          "five"
+        ],
+        "hint": "Solve $1\\text{GB} \\cdot 10^L \\geq 10\\text{TB}$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_se_choose",
+        "kind": "scenario",
+        "question": "A team's data store choice",
+        "prompt": "A startup serving a real-time feed of stock market events: ~100K writes/sec, simple key-value reads, sub-10ms query latency target. They're choosing between Postgres + a custom indexing layer vs RocksDB-based KV (e.g., FoundationDB). Walk through the trade-off in two sentences, including which they should pick + why."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_se",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why LSM-tree-based databases routinely dominate write-heavy benchmarks despite having higher write amplification than B-trees.",
+        "rubric": "Mentions that LSM converts random writes to sequential disk I/O via memtable + sorted runs; sequential write throughput on SSD/NVMe is 10-100× higher than random; total bytes written matters less than the access pattern."
+      }
+    }
+  ]
+}

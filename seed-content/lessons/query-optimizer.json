@@ -1,0 +1,126 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Recognize the cost-based optimizer's role.",
+      "Reason about why join order matters.",
+      "Apply cardinality estimation principles."
+    ],
+    "prereqs": [
+      "b-tree-indexes"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why join order matters so much",
+      "body": "A 3-way join $A \\bowtie B \\bowtie C$ can be executed in different orders:\n\n- $(A \\bowtie B) \\bowtie C$\n- $(A \\bowtie C) \\bowtie B$\n- $(B \\bowtie C) \\bowtie A$\n\nMath: the result is the same. Performance: can differ by orders of magnitude. Reason: intermediate sizes differ.\n\nExample: $|A| = 10^6, |B| = 10^3, |C| = 10^3$, with selective $A \\bowtie B$ producing $10^4$ tuples. $(A \\bowtie B) \\bowtie C$ processes $10^4 \\cdot 10^3 = 10^7$ tuples. $(A \\bowtie C) \\bowtie B$ might process $10^6 \\cdot 10^3 = 10^9$ tuples — 100× slower.\n\nThe query optimizer's job: pick the join order with the smallest expected intermediate sizes. Enumerate (with heuristic pruning) + cost. NP-hard in general; production optimizers use dynamic programming up to ~12 tables, then heuristics."
+    },
+    {
+      "kind": "text",
+      "title": "Cardinality estimation, the bottleneck",
+      "body": "The optimizer's choices depend on **cardinality estimates** — how many rows will this filter / join produce? Tracked via statistics: histograms, most-common values, distinct counts. Postgres: `ANALYZE` collects these.\n\nWhen cardinality estimates are wrong, plans go bad. Classic failure: filter on column `c = 'rare_value'` — if optimizer thinks 1000 rows match but actually 1M do (or vice versa), it picks the wrong index/join strategy.\n\nProduction debug tool: `EXPLAIN ANALYZE` shows both estimated + actual row counts per operator. When they diverge by 10×, you have a cardinality-estimation problem.\n\nFixes: update statistics (ANALYZE more often, custom statistics), index histograms, multi-column statistics."
+    },
+    {
+      "kind": "text",
+      "title": "Reading an EXPLAIN plan",
+      "body": "Postgres `EXPLAIN ANALYZE SELECT ...` shows the chosen plan:\n```\nHash Join (cost=12.0..25.4 rows=10 width=64) (actual rows=10000)\n  Hash Cond: (a.id = b.id)\n  -> Seq Scan on a (cost=0..10 rows=100 width=32) (actual rows=100)\n  -> Hash (cost=2 rows=100 width=32) (actual rows=10000)\n    -> Seq Scan on b (cost=0..2 rows=100 width=32) (actual rows=10000)\n```\n\nKey observations:\n- **rows=** is the estimate; **actual rows=** is what happened.\n- **cost=** is the optimizer's internal cost units. Larger = slower.\n- The tree is read bottom-up: child operations feed parents.\n\nLook for: 10× estimate-vs-actual mismatches (cardinality bug); Seq Scan on large tables when an index exists (missing index); Hash Join when expected Merge Join (planner picking wrong join algo). Diagnosing slow queries is largely reading EXPLAIN plans + finding these patterns."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_qo_join",
+        "kind": "guided_derivation",
+        "question": "Derive join-order intermediate size",
+        "goal": "$A \\bowtie B$ has selectivity $\\sigma_{AB}$ (fraction of cross product). $|A| = a, |B| = b, |C| = c$. Selectivity $A \\bowtie C: \\sigma_{AC}$, $B \\bowtie C: \\sigma_{BC}$. Find intermediate sizes for two orderings.",
+        "steps": [
+          {
+            "prompt": "Order 1: $(A \\bowtie B) \\bowtie C$. Intermediate size after $A \\bowtie B$?",
+            "motivation": "Apply selectivity.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "a b sigma_{AB}",
+                "abσ_AB"
+              ]
+            },
+            "hints": [
+              "Cross product × selectivity."
+            ],
+            "reveal": "$|A \\bowtie B| = a b \\sigma_{AB}$."
+          },
+          {
+            "prompt": "Order 2: $(A \\bowtie C) \\bowtie B$. Intermediate size after $A \\bowtie C$?",
+            "motivation": "Same formula.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "a c sigma_{AC}"
+              ]
+            },
+            "hints": [
+              "Same."
+            ],
+            "reveal": "$|A \\bowtie C| = a c \\sigma_{AC}$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Order 1: } abc\\sigma_{AB}\\sigma_{(AB)C}\\quad\\text{vs Order 2: } abc\\sigma_{AC}\\sigma_{(AC)B}}$$ Different orderings produce same final size but different intermediates. Smaller intermediate = faster. Optimizer picks the order with the smallest expected intermediate."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_qo_explain",
+        "kind": "multiple_choice",
+        "question": "EXPLAIN ANALYZE shows a Seq Scan with `rows=100 width=32 actual rows=10000000`. What's likely going on?",
+        "options": [
+          "The estimate is correct; the plan is fine.",
+          "Estimate is off by 5 orders of magnitude → cardinality bug. Update statistics with ANALYZE, or check for skew the histogram misses.",
+          "Hash join.",
+          "Network slow."
+        ],
+        "correctIndex": 1,
+        "explanation": "Estimate=100, actual=10M = 100,000× off. Optimizer thought it was a tiny table → chose Seq Scan + no index. Reality: 10M rows + no index → slow. Fix: run ANALYZE on the table, or check if data distribution is skewed and standard histograms aren't capturing it."
+      },
+      "hints": [
+        "When estimate-vs-actual divergence is huge, the optimizer's plan is built on a false belief.",
+        "Both 'update stats' and 'check skew' are reasonable first steps."
+      ],
+      "workedSolution": "10⁵× discrepancy. The optimizer picked Seq Scan because it thought scanning 100 rows was cheaper than the alternative. Actual scan of 10M rows: slow. First step: ANALYZE the table to refresh statistics. If the discrepancy persists, look for skewed columns where regular histograms (default 100 buckets) miss the bulk of data.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_qo_cost",
+        "kind": "math_expression",
+        "question": "Hash join cost ~ |outer| + |inner|. $|A| = 10^6$, $|B| = 10^3$. Approximate cost in millions of tuples:",
+        "acceptedAnswers": [
+          "1",
+          "1.001",
+          "~1"
+        ],
+        "hint": "Sum the two."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_qo_slow",
+        "kind": "scenario",
+        "question": "Diagnosing a sudden slowdown",
+        "prompt": "A query that ran in 10ms yesterday now takes 30 seconds. The data hasn't changed significantly. EXPLAIN ANALYZE shows estimate=1000 actual=1000000. Walk through the most likely cause + fix."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_qo",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why cardinality estimation is the single biggest source of plan-selection bugs in modern query optimizers.",
+        "rubric": "Mentions that the optimizer's cost model is correct in theory; in practice it estimates intermediate sizes via statistics that go stale, miss skew, or fail to capture multi-column correlations; bad estimates → bad plans → orders-of-magnitude slowness."
+      }
+    }
+  ]
+}

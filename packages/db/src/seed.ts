@@ -1952,6 +1952,27 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P4 — Database Internals path. Sits beneath data-engineer +
+  // distributed-systems. The 'how does the database actually work'
+  // foundation: storage engines, indexes, transactions, concurrency,
+  // optimization, recovery, distribution.
+  seedMasteryPath({
+    slug: "database-internals",
+    title: "Database Internals",
+    description:
+      "Storage engines, B-trees + LSM-trees, ACID transactions, MVCC, query optimization, WAL + crash recovery, and distributed-storage architectures. The 'how does the database actually work' foundation.",
+    nodes: [
+      { slug: "storage-engines", title: "Storage Engines: B-tree vs LSM", level: "apprentice", order: 1, pages: ["storage-engines", "b-tree-vs-lsm"], prereqs: [], description: "Two dominant engine families + the read/write/space amplification trade-offs." },
+      { slug: "b-tree-indexes", title: "B+ Tree Indexes", level: "practitioner", order: 2, pages: ["b-plus-tree", "covering-index"], prereqs: ["storage-engines"], description: "Fan-out, height, leaf-linking, index-only scans, covering indexes." },
+      { slug: "lsm-trees", title: "LSM Trees in Detail", level: "practitioner", order: 3, pages: ["lsm-tree", "bloom-filter", "compaction"], prereqs: ["storage-engines"], description: "Memtable → SSTable → compaction. Leveled vs tiered. Bloom filters." },
+      { slug: "transactions-acid", title: "ACID Transactions", level: "practitioner", order: 4, pages: ["acid", "isolation-levels", "ssi"], prereqs: ["storage-engines"], description: "ACID, isolation levels + their anomalies, Serializable Snapshot Isolation (SSI)." },
+      { slug: "mvcc", title: "Multi-Version Concurrency Control", level: "practitioner", order: 5, pages: ["mvcc", "vacuum"], prereqs: ["transactions-acid"], description: "Readers don't block writers; the cost is VACUUM + bloat management." },
+      { slug: "query-optimizer", title: "Query Optimizer", level: "specialist", order: 6, pages: ["query-optimizer", "join-order", "cardinality-estimation"], prereqs: ["b-tree-indexes"], description: "Cost-based optimization, join order, cardinality estimation, reading EXPLAIN plans." },
+      { slug: "wal-recovery", title: "WAL + Crash Recovery", level: "specialist", order: 7, pages: ["wal", "aries-recovery", "checkpoint"], prereqs: ["transactions-acid"], description: "Write-ahead log invariant, ARIES recovery, checkpoint tuning, point-in-time recovery." },
+      { slug: "distributed-storage", title: "Distributed Storage", level: "expert", order: 8, pages: ["shared-nothing", "consensus-replication", "data-placement"], prereqs: ["mvcc", "wal-recovery"], description: "Shared-nothing vs shared-disk, consensus + replication, partitioning, real distributed DBs." },
+    ],
+  });
+
   // P3 — Distributed Systems path. The foundation under any
   // multi-node service — ML training infra, data pipelines,
   // production serving. Sits beneath data-engineer + systems-engineer.

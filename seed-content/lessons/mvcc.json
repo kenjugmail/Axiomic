@@ -1,0 +1,101 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "core",
+    "objectives": [
+      "Explain MVCC's central idea (no read locks).",
+      "Reason about vacuum + bloat in production DBs.",
+      "Recognize Postgres-specific vs MySQL-specific MVCC details."
+    ],
+    "prereqs": [
+      "transactions-acid"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "MVCC, the central idea",
+      "body": "**Multi-Version Concurrency Control**: each write creates a new version of the row; readers see the version visible at their snapshot time; no read locks needed.\n\nTraditional locking: readers + writers block each other (writer holds row lock, reader waits). MVCC: readers never block writers (read a snapshot from before the write); writers never block readers (writers create a new version).\n\nResult: huge concurrency improvement for mixed workloads (analytical reads + OLTP writes can run together without contention).\n\nUsed by: Postgres, MySQL InnoDB, SQL Server (read committed snapshot), Oracle. The dominant concurrency model in modern OLTP databases."
+    },
+    {
+      "kind": "text",
+      "title": "Postgres MVCC mechanics",
+      "body": "Each row has:\n- `xmin`: the transaction ID that created this version.\n- `xmax`: the transaction ID that deleted/superseded this version (0 if current).\n\nA transaction sees a row version if $\\text{xmin} \\leq \\text{my\\_snapshot\\_xid} < \\text{xmax}$ and `xmin` was committed before my snapshot.\n\nUpdate: creates a new row version with the new data + sets `xmax` of the old version. **Old versions stay in the table** until they're 'vacuumed' away.\n\n**VACUUM**: background process that removes dead row versions. Without it, the table grows unboundedly even if logical row count is constant. Postgres has autovacuum daemon; production tuning is mostly about whether it's running frequently enough."
+    },
+    {
+      "kind": "text",
+      "title": "MVCC bloat in the wild",
+      "body": "Common production failure: long-running transactions prevent VACUUM from cleaning up old versions. The dead-tuple count grows; queries slow down (they have to scan dead rows + skip them); table size grows on disk.\n\nDiagnosis: `pg_stat_user_tables` shows `n_dead_tup` (dead tuples). If this is comparable to `n_live_tup`, you have bloat.\n\nCommon causes:\n1. Long-running analytical query holds a snapshot that prevents VACUUM from cleaning up rows newer than the snapshot.\n2. Replication slot holds old transactions for replicas.\n3. Idle-in-transaction connections (forgot to commit).\n\nFix: kill the offending transaction, then run `VACUUM FULL` (rewrites table, reclaims space). Long-term: monitor + alert on bloat + idle transactions."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mvcc_vis",
+        "kind": "guided_derivation",
+        "question": "Derive MVCC visibility rule",
+        "goal": "Show that the rule '$\\text{xmin} \\leq \\text{snapshot} < \\text{xmax}$ AND xmin committed' is necessary + sufficient for visibility.",
+        "steps": [
+          {
+            "prompt": "Row version was created by xmin (at time of xmin's commit). To be visible at snapshot $S$: xmin must have committed by $S$. To still be visible: must not have been superseded by some xmax that committed by $S$. State the visibility rule.",
+            "motivation": "Translate properties to conditions.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Visible iff: xmin committed before $S$ AND (xmax = 0 OR xmax committed after $S$).",
+                "Visible iff just xmin committed.",
+                "Always visible.",
+                "Never visible."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Two parts: 'created in time' + 'not yet superseded in time'."
+            ],
+            "reveal": "Visible iff: xmin committed before $S$ AND (xmax is null OR xmax committed after $S$)."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Visible: xmin committed} \\leq S < \\text{xmax committed}}$$ This rule gives readers a consistent point-in-time snapshot without locking. The cost: storing all versions until they're certifiably invisible to all current snapshots — VACUUM's job."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mvcc_lock",
+        "kind": "multiple_choice",
+        "question": "Compared to traditional locking-based concurrency, MVCC's main advantage is:",
+        "options": [
+          "Lower memory footprint.",
+          "Readers don't block writers + vice versa; mixed read+write workloads have far less contention.",
+          "Faster point lookups.",
+          "Smaller indexes."
+        ],
+        "correctIndex": 1,
+        "explanation": "MVCC's signature win: readers + writers can proceed concurrently because they're working with different row versions. Locking-based DBs would have either writers waiting on reader locks or readers waiting on writer locks. Cost: extra storage for old versions + VACUUM overhead."
+      },
+      "hints": [
+        "What's the bottleneck in traditional locking? When readers + writers contend?",
+        "MVCC's machinery (multiple versions) is the trade-off."
+      ],
+      "workedSolution": "Traditional locking: reader holds shared lock; writer wants exclusive lock; writer waits. MVCC: reader sees a snapshot from before the writer's transaction; both proceed in parallel. The cost is the multiple-version storage + VACUUM; the benefit is huge concurrency.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mvcc_bloat",
+        "kind": "scenario",
+        "question": "Diagnosing bloat",
+        "prompt": "A Postgres database's largest table has grown from 50GB to 500GB over a month, despite the row count staying flat at ~50M. Queries on it are slowing down. Walk through how to diagnose + fix this."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mvcc",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why MVCC requires a separate cleanup mechanism (VACUUM in Postgres) while traditional locking-based DBs don't.",
+        "rubric": "Mentions that MVCC's no-read-lock design depends on keeping old versions visible to active snapshots; once those snapshots end, the old versions are garbage; VACUUM identifies + removes them; locking-based DBs overwrite in-place, no garbage collection needed."
+      }
+    }
+  ]
+}
