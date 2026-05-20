@@ -61,6 +61,78 @@
       "kind": "text",
       "title": "What's next",
       "body": "Actor-critic is the architecture. The next lesson covers PPO — the specific actor-critic recipe that's the most-deployed RL algorithm of the 2020s.\n\nNext: [[ppo-trpo]] — clipped surrogate objectives and trust-region updates.\n\nKey takeaways:\n- Actor: policy `π_θ`. Critic: value function `V_φ`. Trained jointly\n- Critic provides the advantage baseline; actor uses it for low-variance policy gradient\n- A2C: synchronous version. Single shared network + dual head is standard\n- Continuous actions: Gaussian parameterization (μ, σ output by network)\n- Bias-variance balance is the practical challenge: actor faster than critic → oscillation"
+    },
+    {
+      "kind": "text",
+      "title": "A2C, structurally",
+      "body": "**Actor**: a policy network $\\pi_\\theta(a|s)$. Outputs action distributions.\n\n**Critic**: a value network $V_\\phi(s)$ (or sometimes $Q_\\phi(s, a)$). Estimates expected return from each state.\n\nTraining loop per environment step:\n\n1. Actor selects $a_t \\sim \\pi_\\theta(\\cdot | s_t)$. Env returns $r_t, s_{t+1}$.\n2. Critic estimates advantage $\\hat A_t = r_t + \\gamma V_\\phi(s_{t+1}) - V_\\phi(s_t)$ — the TD error.\n3. Actor loss: $-\\hat A_t \\cdot \\log \\pi_\\theta(a_t | s_t)$. Gradient pushes the policy toward actions with positive advantage.\n4. Critic loss: $(r_t + \\gamma V_\\phi(s_{t+1}) - V_\\phi(s_t))^2$. Mean-squared TD error.\n\n**A2C** = Advantage Actor-Critic, the synchronous version of **A3C** (Asynchronous Advantage Actor-Critic, the famous 2016 Mnih et al. paper that put actor-critic on the map). A2C usually trains as well as A3C with simpler engineering — one shared environment-parallel batch.\n\nThe key innovation over REINFORCE: bootstrapping. The critic's $V_\\phi(s_{t+1})$ replaces the trajectory sum-of-returns, slashing variance while introducing controllable bias. Modern policy-gradient methods (PPO, TRPO, IMPALA) are all actor-critic descendants."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ac_advantage",
+        "kind": "multiple_choice",
+        "question": "An actor-critic method uses the advantage $A(s, a) = Q(s, a) - V(s)$ rather than the return $G_t$ because:",
+        "options": [
+          "Advantage is always positive.",
+          "Subtracting $V(s)$ (a function of state alone) reduces variance without biasing the policy gradient.",
+          "$Q(s, a)$ is easier to compute than $V(s)$.",
+          "It increases the effective discount factor."
+        ],
+        "correctIndex": 1,
+        "explanation": "Advantage = Q − V. The V baseline is a function of state alone, so it satisfies the baseline-subtraction trick: variance-reducing without bias. Equivalent to picking the best-known baseline for variance reduction. Modern algorithms (PPO, SAC) all use advantage estimates rather than raw returns."
+      },
+      "hints": [
+        "This question is testing whether you remember the baseline-subtraction trick from the last lesson.",
+        "The state-only nature of V matters for unbiasedness."
+      ],
+      "workedSolution": "Advantage = action's $Q$-value minus average $V$ at that state. Because $V$ depends only on state, subtracting it from $Q$ in the policy gradient doesn't bias the estimator (the baseline trick). The result is a much lower-variance estimator that compares each action to the average-action benchmark, which is exactly what actor-critic methods exploit.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ac_ppo",
+        "kind": "scenario",
+        "question": "Why PPO replaced A2C",
+        "prompt": "Most production deep-RL pipelines now use PPO, not A2C. Both are actor-critic. What does PPO add, and why does that addition matter for stable training?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ac_adv",
+        "kind": "math_expression",
+        "question": "$V(s_t) = 5$, $V(s_{t+1}) = 7$, $r_t = 1$, $\\gamma = 0.9$. Compute the TD-advantage estimate $\\hat A_t = r_t + \\gamma V(s_{t+1}) - V(s_t)$.",
+        "acceptedAnswers": [
+          "2.3",
+          "2.30",
+          "1+0.9*7-5"
+        ],
+        "hint": "Just plug in."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ac",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why actor-critic methods balance the strengths of pure policy gradients and pure value-based methods.",
+        "rubric": "Mentions that policy gradients handle continuous actions and explicit policy parameters; value methods reduce variance via bootstrapping; actor-critic gets both — policy network for action selection, value network for variance-reducing advantage estimates."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish actor from critic.",
+      "Explain how A2C reduces variance compared to REINFORCE.",
+      "Recognize the policy + value-net training split."
+    ],
+    "prereqs": [
+      "policy-gradients",
+      "temporal-difference"
+    ]
+  }
 }

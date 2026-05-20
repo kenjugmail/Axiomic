@@ -61,6 +61,63 @@
       "kind": "text",
       "title": "What's next",
       "body": "Model-based RL is the sample-efficiency frontier. The final lesson in this path bridges back to LLMs: RLHF, where the 'environment' is human preferences.\n\nNext: [[rl-from-human-feedback]] — applying PPO to language models with a learned reward.\n\nKey takeaways:\n- MBRL: learn dynamics model, plan with it. 10-100× sample-efficient on real-world tasks\n- Dyna: use model to augment model-free buffer\n- MPC: re-plan every step with short horizon\n- Dreamer: VAE-style world model + actor-critic on imagined rollouts\n- MuZero: train model for policy/value targets, plan via MCTS\n- Failure mode: model bias. Mitigate with ensembles, pessimism, short horizons\n- Use model-free for cheap-sample environments; MBRL when real-world samples matter"
+    },
+    {
+      "kind": "text",
+      "title": "World models, in one paragraph",
+      "body": "**Model-based RL** learns a model $\\hat P(s'|s,a), \\hat R(s,a,s')$ from experience, then plans within the model.\n\nAdvantages:\n- **Sample-efficient**: planning in imagination is free. Real env steps are expensive (robot, simulator, on-policy data).\n- **Transferable**: a learned dynamics model often generalizes across tasks on the same environment.\n\nDisadvantages:\n- **Model bias**: planning against a slightly-wrong model amplifies errors (compounding model error). Long-horizon plans go off the rails.\n- **Implementation complexity**: you need to learn dynamics, train a policy on it, deal with the policy exploiting model errors.\n\n**Dreamer** (Hafner 2019+): learns a world model in pixel space, trains a policy entirely in imagination. Achieves SOTA on many benchmarks.\n\n**MuZero** (Schrittwieser 2019): learns an *implicit* world model — only the dynamics relevant for value prediction. Beats AlphaZero on Atari + Go without ground-truth game rules.\n\nThe sample-efficiency gap is large. Atari with PPO needs ~$10^8$ env steps; Dreamer needs ~$10^6$. For robotics, where each env step costs minutes, this is the difference between feasible and infeasible."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mbrl_compound",
+        "kind": "multiple_choice",
+        "question": "Compounding model error is:",
+        "options": [
+          "The error in the learned model grows linearly with planning horizon.",
+          "Each one-step prediction error compounds with subsequent steps, leading to exponentially-diverging predicted trajectories.",
+          "Only a problem in stochastic environments.",
+          "Solved entirely by larger neural networks."
+        ],
+        "correctIndex": 1,
+        "explanation": "Compounding error: at each predicted step, you add a small error; the next step starts from that already-wrong state and adds more error. Trajectories diverge faster than linear. This is why model-based RL with long horizons typically uses short rollouts + value bootstrap, rather than pure long imaginary rollouts. Larger networks reduce per-step error but don't eliminate the compounding."
+      },
+      "hints": [
+        "What happens when you chain N noisy one-step predictions?",
+        "Single-step error is small; multi-step error?"
+      ],
+      "workedSolution": "Each predicted step is from a slightly-wrong state, so the next prediction is from a state your model has never properly seen. Errors don't just add — they amplify, often exponentially in horizon. Mitigations: short-horizon rollouts + value-network bootstrap to estimate tail value, ensemble world models for uncertainty estimates, model-predictive control with periodic replanning.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mbrl_robotics",
+        "kind": "scenario",
+        "question": "When model-based wins big",
+        "prompt": "You're learning a manipulation policy on a real robot. Each env step takes 10 seconds. A teammate proposes vanilla PPO. Walk through why a model-based approach is the practical choice, and what tradeoffs you accept."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mbrl",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why MuZero's implicit world model can be more useful than an explicit pixel-perfect predictor.",
+        "rubric": "Mentions that MuZero learns a model in a representation space relevant for value/policy prediction; explicit pixel prediction wastes capacity on visual details irrelevant for decision-making."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish model-based from model-free RL.",
+      "Articulate the sample-efficiency advantage of model-based methods.",
+      "Recognize world-model failure modes."
+    ],
+    "prereqs": [
+      "ppo-trpo"
+    ]
+  }
 }
