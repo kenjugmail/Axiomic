@@ -7,6 +7,73 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: language model cross-entropy",
+      "body": "A language model predicts the next token from a 32k-vocabulary. On a test corpus, its average cross-entropy is 2.5 nats per token.\n\nConvert to **perplexity**: $\\text{PPL} = e^{H} = e^{2.5} \\approx 12.2$.\n\nIntuition: the model behaves as if it's effectively guessing uniformly among ~12 tokens at each step. A uniform 32k-token model would have $\\text{PPL} = 32{,}000$ (max possible); a perfect model would have $\\text{PPL} = 1$. Modern frontier LLMs achieve $\\text{PPL} \\approx 5{-}10$ on broad-domain text.\n\nWhen you read 'GPT-X has perplexity 8 on Wikipedia', it means: at each token position, the model is effectively narrowing the next-token guess to ~8 plausible candidates, weighted by its probabilities."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_info_xent_nll",
+        "kind": "guided_derivation",
+        "question": "Derive: minimizing cross-entropy = maximizing log-likelihood",
+        "goal": "Show $\\arg\\min_q H(p, q) = \\arg\\max_q \\mathbb{E}_p[\\log q(x)]$, where $H(p, q) = -\\sum_x p(x) \\log q(x)$.",
+        "steps": [
+          {
+            "prompt": "Cross-entropy: $H(p, q) = -\\sum_x p(x) \\log q(x)$. Rewrite as an expectation under $p$.",
+            "motivation": "Sum-times-probability is the discrete expectation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-E_p[log q(x)]",
+                "- E_p[log q]",
+                "-\\mathbb{E}_{p}[\\log q(x)]"
+              ]
+            },
+            "hints": [
+              "$\\sum_x p(x) f(x) = \\mathbb{E}_p[f(x)]$."
+            ],
+            "reveal": "$H(p, q) = -\\mathbb{E}_p[\\log q(x)]$."
+          },
+          {
+            "prompt": "In ML practice, we don't have the true distribution $p$ — we have $n$ i.i.d. samples from it. What's the empirical estimate of $H(p, q)$?",
+            "motivation": "Monte Carlo: average $-\\log q$ over the observed samples.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-(1/n) sum_i log q(x_i)",
+                "- (1/n) Σ log q(x_i)",
+                "negative average log q"
+              ]
+            },
+            "hints": [
+              "Replace the expectation with an average over samples."
+            ],
+            "reveal": "$\\hat H = -(1/n) \\sum_i \\log q(x_i)$ — the *negative log-likelihood* (NLL) per sample."
+          },
+          {
+            "prompt": "Minimizing $\\hat H$ over $q$ is therefore equivalent to maximizing what?",
+            "motivation": "The relationship is a sign flip + constant.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$\\sum_i \\log q(x_i)$ — i.e., the log-likelihood.",
+                "$\\sum_i q(x_i)$.",
+                "$\\prod_i \\log q(x_i)$.",
+                "Something else."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Flip the sign + multiply by $n$."
+            ],
+            "reveal": "$\\arg\\min_q \\hat H = \\arg\\max_q \\sum_i \\log q(x_i)$ — i.e., MLE of $q$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\arg\\min_q H(p, q) = \\arg\\max_q \\mathbb{E}_p[\\log q(x)]}$$\n\nThis equivalence is the bridge between information theory (cross-entropy loss) and statistics (maximum likelihood). Every probabilistic ML loss is a cross-entropy or a log-likelihood; they're the same object up to sign + sampling."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Entropy",
       "body": "**Entropy** of a distribution P:\n\n$$H(P) = -\\sum_x p(x) \\log p(x)$$\n\nWith log base 2, this is bits. Intuitively: the average number of yes/no questions you'd need to ask to determine X.\n\n- Uniform over 4 outcomes: H = 2 bits. (Two binary questions narrow it down.)\n- Uniform over 8 outcomes: H = 3 bits.\n- Concentrated on one outcome (P[a] = 1): H = 0. No questions needed.\n- Bernoulli with p = 0.5: H = 1 bit. (One coin flip.)\n- Bernoulli with p = 0.99: H ≈ 0.08 bits. (Almost no information; you can guess correctly almost always.)\n\nIn ML: a perfectly-confident model has zero entropy in its predictions; a maximally-uncertain model has max entropy. **Entropy of the model's output** is a useful diagnostic — too high means the model isn't decisive; too low can mean overfitting."
     },

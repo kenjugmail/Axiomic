@@ -7,6 +7,72 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: numerical gradient check",
+      "body": "When debugging a hand-written backprop, the standard sanity check is **numerical gradient checking**:\n\nFor each parameter $\\theta_i$, compute the finite-difference approximation\n\n$$\\frac{\\partial L}{\\partial \\theta_i} \\approx \\frac{L(\\theta + \\epsilon e_i) - L(\\theta - \\epsilon e_i)}{2\\epsilon}$$\n\nwith $\\epsilon = 10^{-5}$. Compare to your analytic gradient. They should agree to ~6 decimal places.\n\nMismatch → bug in your backprop derivation, off-by-one indexing, or wrong transpose. Modern frameworks (PyTorch, JAX) auto-differentiate so you don't write backprop yourself, but the numerical check is the universal way to validate any new custom op."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bp_twolayer",
+        "kind": "guided_derivation",
+        "question": "Derive backprop on a two-layer net",
+        "goal": "For $y = W_2 \\sigma(W_1 x)$ (no biases for brevity), compute $\\partial L / \\partial W_1$ and $\\partial L / \\partial W_2$.",
+        "steps": [
+          {
+            "prompt": "Define $h = W_1 x$, $a = \\sigma(h)$, so $y = W_2 a$. With loss $L = L(y)$, what is $\\partial L / \\partial W_2$?",
+            "motivation": "Differentiate through the last linear layer.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(dL/dy) a^T",
+                "(dL/dy) * a^T",
+                "dL/dy outer a"
+              ]
+            },
+            "hints": [
+              "$y = W_2 a$, so $\\partial y / \\partial W_2$ involves $a$ on the right.",
+              "Chain rule: $\\partial L/\\partial W_2 = (\\partial L/\\partial y)(\\partial y/\\partial W_2)$."
+            ],
+            "reveal": "$\\partial L / \\partial W_2 = (\\partial L / \\partial y) \\cdot a^T$ — outer product of upstream gradient and the cached activation."
+          },
+          {
+            "prompt": "To get $\\partial L / \\partial W_1$, first compute $\\partial L / \\partial h$ via the chain rule through $a = \\sigma(h)$ and $y = W_2 a$. What's the result?",
+            "motivation": "Walk backwards: gradient at $y$ → gradient at $a$ → gradient at $h$.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "W_2^T (dL/dy) elementwise * sigma'(h)",
+                "(W_2^T dL/dy) ⊙ σ'(h)"
+              ]
+            },
+            "hints": [
+              "$\\partial L / \\partial a = W_2^T \\cdot (\\partial L / \\partial y)$.",
+              "Then $\\partial L / \\partial h = (\\partial L / \\partial a) \\odot \\sigma'(h)$ (elementwise)."
+            ],
+            "reveal": "$\\partial L / \\partial h = W_2^T (\\partial L / \\partial y) \\odot \\sigma'(h)$."
+          },
+          {
+            "prompt": "Finally, $\\partial L / \\partial W_1 = ?$, using $h = W_1 x$ and the gradient at $h$ from the previous step.",
+            "motivation": "Same pattern as the last linear layer.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(dL/dh) x^T",
+                "(dL/dh) * x^T",
+                "dL/dh outer x"
+              ]
+            },
+            "hints": [
+              "Same shape as the $W_2$ case: $(\\text{upstream}) \\cdot x^T$."
+            ],
+            "reveal": "$\\partial L / \\partial W_1 = (\\partial L / \\partial h) \\cdot x^T$."
+          }
+        ],
+        "finalResult": "Backprop on two-layer net:\n\n$$\\partial L / \\partial W_2 = (\\partial L / \\partial y)\\,a^T$$\n$$\\partial L / \\partial W_1 = \\bigl[W_2^T (\\partial L / \\partial y) \\odot \\sigma'(h)\\bigr] x^T$$\n\nEach layer's gradient is `(upstream gradient) × (cached forward activation)^T`. Deep networks just chain this pattern through more layers. Modern autodiff (PyTorch, JAX) does this automatically by tracing operations; you compute the forward pass once + the framework records the graph + the backward pass is a single function call."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Forward + backward",
       "body": "Training one batch consists of two passes:\n\n**Forward pass**: compute the output of every layer in order. Cache each layer's input + output. The final layer's output is compared to the target via the loss function.\n\n**Backward pass**: compute gradients in reverse order. Starting from the loss (which is a scalar, so its gradient w.r.t. itself is 1), use the chain rule to propagate the gradient backward through each layer.\n\nFor a layer with input `x`, weights `W`, output `y = f(W, x)`:\n- We're given `∂L/∂y` from the layer above\n- Compute `∂L/∂W = (∂L/∂y) · (∂y/∂W)` — what the gradient of the loss is w.r.t. THIS layer's weights\n- Compute `∂L/∂x = (∂L/∂y) · (∂y/∂x)` — what the gradient is w.r.t. THIS layer's input, which is the next-lower layer's output\n\nPropagate `∂L/∂x` to the layer below; repeat. Done when you've reached the input.\n\nKey insight: `∂L/∂x` is exactly the upstream gradient that the previous layer needs. The structure is recursive."
     },

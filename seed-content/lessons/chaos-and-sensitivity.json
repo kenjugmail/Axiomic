@@ -7,6 +7,54 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: the weather forecast cliff",
+      "body": "Real atmospheric models have a Lyapunov exponent of roughly $\\lambda \\approx 0.4$ /day. Initial-condition uncertainty (radiosondes have ~1 m/s wind error) doubles every ~1.7 days.\n\nForecast skill: after 5 days, perturbations are $e^{0.4 \\cdot 5} \\approx 7.4\\times$ larger; after 10 days, $\\approx 55\\times$; after 14 days, $\\approx 270\\times$.\n\nThis is the *operational* limit on weather forecasting: not computational, not modeling, but the chaotic dynamics of the atmosphere itself. The ECMWF (European weather center) calls 10-15 days the 'predictability barrier' — past it, ensemble spread covers most of the climatological range and the forecast is no better than the long-term average.\n\nClimate prediction is different: it's the *statistics* of weather over decades, not the trajectory. Chaos doesn't prevent statistical predictions."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_chaos_lyap",
+        "kind": "guided_derivation",
+        "question": "Derive the Lyapunov exponent",
+        "goal": "For nearby trajectories $x(t)$ and $x(t) + \\delta(t)$ in a 1-D dynamical system, derive $|\\delta(t)| \\sim e^{\\lambda t}|\\delta(0)|$.",
+        "steps": [
+          {
+            "prompt": "Linearize: $\\dot{(x+\\delta)} = f(x + \\delta) \\approx f(x) + f'(x)\\delta$. Subtract $\\dot x = f(x)$. What's the ODE for $\\delta$?",
+            "motivation": "Same trick as the phase-space lesson, but $f'(x)$ depends on time along the trajectory.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "d delta / dt = f'(x(t)) delta",
+                "δ̇ = f'(x(t)) δ"
+              ]
+            },
+            "hints": [
+              "Same as the linear-stability derivation, but now $f'(x(t))$ varies along the trajectory."
+            ],
+            "reveal": "$\\dot\\delta = f'(x(t))\\,\\delta$."
+          },
+          {
+            "prompt": "Solve the linear-but-time-varying ODE. What does $|\\delta(t)|$ look like? (Use the average $\\lambda = \\lim_{T\\to\\infty} (1/T)\\int_0^T f'(x(t))\\,dt$.)",
+            "motivation": "Time-averaging the local stretch factor gives the long-run growth rate — the Lyapunov exponent.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "delta(0) exp(lambda t)",
+                "|δ(0)| e^{λt}"
+              ]
+            },
+            "hints": [
+              "$\\delta(t) = \\delta(0) \\exp\\!\\left(\\int_0^t f'(x(\\tau))\\,d\\tau\\right)$.",
+              "Average exponent gives effective growth."
+            ],
+            "reveal": "$|\\delta(t)| \\sim |\\delta(0)| e^{\\lambda t}$."
+          }
+        ],
+        "finalResult": "$$\\boxed{|\\delta(t)| \\sim |\\delta(0)| e^{\\lambda t}}$$\n\n$\\lambda > 0$: chaos (exponential divergence). $\\lambda < 0$: contraction to an attractor. $\\lambda = 0$: marginal (periodic motion). For higher-dimensional systems, the Lyapunov *spectrum* contains $n$ exponents; the largest controls divergence rate."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The Lorenz attractor",
       "body": "The system Lorenz studied:\n\n$$\\dot{x} = \\sigma(y - x), \\quad \\dot{y} = x(\\rho - z) - y, \\quad \\dot{z} = xy - \\beta z.$$\n\nFor $\\sigma = 10, \\rho = 28, \\beta = 8/3$, trajectories spiral on two roughly-planar 'wings' and switch between them aperiodically. The attractor is bounded — the trajectory never escapes — but the path on it is non-repeating.\n\nDrag the parameters above. Below $\\rho \\approx 24.7$ the dynamics is *not* chaotic — trajectories settle onto fixed points. Past that threshold the butterfly emerges.",
       "viz": "lorenz-attractor"

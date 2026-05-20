@@ -7,6 +7,73 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: black-body radiation",
+      "body": "Planck's quantization (1900) + Bose-Einstein statistics + the partition function recipe gives the Planck distribution:\n\n$$u(\\omega) = \\frac{\\hbar\\omega^3}{\\pi^2 c^3} \\cdot \\frac{1}{e^{\\hbar\\omega/(k_B T)} - 1}.$$\n\nIntegrate over frequencies and you get the Stefan-Boltzmann law $L = \\sigma T^4$. The sun's surface temperature determines its color (peak frequency from Wien's displacement law) AND its total luminosity (via $T^4$).\n\nEverything from CMB cosmology to thermal cameras to LED efficiency derives ultimately from the Boltzmann distribution applied to the right energy spectrum. Statistical mechanics is the bridge from microscopic energy levels to macroscopic thermodynamics."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sm_boltzmann",
+        "kind": "guided_derivation",
+        "question": "Derive the Boltzmann distribution from maximum entropy",
+        "goal": "Maximize the Shannon entropy $S = -k_B \\sum_i p_i \\ln p_i$ subject to: $\\sum_i p_i = 1$ (normalization) and $\\sum_i p_i E_i = \\langle E\\rangle$ (fixed average energy).",
+        "steps": [
+          {
+            "prompt": "Set up the Lagrangian: $\\mathcal{L} = S - \\alpha(\\sum_i p_i - 1) - \\beta(\\sum_i p_i E_i - \\langle E\\rangle)$. Take $\\partial \\mathcal{L}/\\partial p_i$ and set to zero. What's the equation in $p_i$?",
+            "motivation": "Constrained optimization → Lagrange multipliers.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-k_B (ln p_i + 1) - alpha - beta E_i = 0",
+                "-(ln p_i + 1) - α - β E_i = 0"
+              ]
+            },
+            "hints": [
+              "$\\partial S/\\partial p_i = -k_B(\\ln p_i + 1)$ (treating $k_B$ as part of $S$).",
+              "Set $-k_B(\\ln p_i + 1) = \\alpha + \\beta E_i$."
+            ],
+            "reveal": "$-k_B (\\ln p_i + 1) - \\alpha - \\beta E_i = 0$ (or absorbing $k_B$: $\\ln p_i = -\\text{const} - \\beta E_i / k_B$)."
+          },
+          {
+            "prompt": "Solve for $p_i$.",
+            "motivation": "Exponentiate.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$p_i = \\exp(-\\beta E_i)/Z$ where $Z$ normalizes.",
+                "$p_i = E_i / \\sum E_j$.",
+                "$p_i = 1/N$ for $N$ states.",
+                "$p_i = \\beta E_i$."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Take $\\exp$ of both sides; absorb constants into a partition function $Z$."
+            ],
+            "reveal": "$p_i = \\exp(-\\beta E_i) / Z$ where $Z = \\sum_j \\exp(-\\beta E_j)$."
+          },
+          {
+            "prompt": "Identify $\\beta$ physically. (Hint: it has units of inverse energy and corresponds to inverse temperature in the relevant scale.)",
+            "motivation": "Match dimensions + thermodynamic interpretation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1/(k_B T)",
+                "1/k_B T",
+                "(k_B T)^(-1)"
+              ]
+            },
+            "hints": [
+              "Compare with thermodynamic ideal-gas expressions."
+            ],
+            "reveal": "$\\beta = 1/(k_B T)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{p_i = \\frac{e^{-E_i/k_B T}}{Z}}$$\n\nThe Boltzmann distribution. The maximum-entropy posture given a known average energy. Every equilibrium statistical mechanics derivation starts here. The $1/k_B T$ in the exponent is so universal that physicists abbreviate it $\\beta$ universally."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The Boltzmann distribution",
       "body": "Consider a system with a fixed number of particles, in contact with a heat bath at temperature `T`. The system can occupy various microstates `s`, each with energy `E_s`. **What's the probability of finding it in state `s`?**\n\nAnswer: the **Boltzmann distribution**:\n\n$$p(s) = \\frac{1}{Z} e^{-E_s / k_B T}$$\n\nWhere `k_B` is the Boltzmann constant and `Z` is the **partition function**:\n\n$$Z = \\sum_s e^{-E_s / k_B T}$$\n\n`Z` normalizes the distribution. Not just a normalizer though — almost every thermodynamic quantity is a derivative of `log Z`:\n\n- Average energy: `⟨E⟩ = -∂(log Z)/∂β` where `β = 1/(k_B T)`\n- Free energy: `F = -k_B T log Z`\n- Entropy: `S = -k_B Σ p(s) log p(s)` (the Gibbs entropy formula)\n- Heat capacity, susceptibilities, etc., from second derivatives\n\nThe Boltzmann distribution is *the* answer to 'system in contact with a heat bath.' Everything in equilibrium thermodynamics flows from this one equation. It's why you only need one number — temperature — to summarize a thermodynamic state at equilibrium: temperature picks the distribution."
     },

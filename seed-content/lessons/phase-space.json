@@ -7,6 +7,69 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: epidemics + the basic reproduction number",
+      "body": "In the SIR model, $dS/dt = -\\beta S I$, $dI/dt = \\beta S I - \\gamma I$, $dR/dt = \\gamma I$.\n\nFixed point at the start of an outbreak: $S \\approx 1$ (everyone susceptible), $I = 0$ (handful of infected — treat as perturbation). Linearize $dI/dt$ at $I = 0, S = 1$:\n\n$$\\frac{dI}{dt} \\bigg|_{I=0, S=1} = (\\beta - \\gamma) I.$$\n\nIf $\\beta - \\gamma > 0$ — equivalently, $R_0 = \\beta/\\gamma > 1$ — perturbations grow: epidemic. Otherwise: dies out.\n\nThis is exactly the phase-space stability test from the lesson, applied to a contagion model. $R_0 > 1$ ⇔ unstable disease-free equilibrium ⇔ epidemic spreads. The same machinery that classifies fixed points in pendulums classifies whether COVID becomes endemic."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ps_stability",
+        "kind": "guided_derivation",
+        "question": "Derive the linear-stability test",
+        "goal": "Show that $\\dot x = f(x)$ has a stable fixed point at $x^*$ when $f'(x^*) < 0$.",
+        "steps": [
+          {
+            "prompt": "Let $\\delta(t) = x(t) - x^*$ be a small perturbation. Linearize $f$ at $x^*$: $f(x^* + \\delta) \\approx ?$",
+            "motivation": "Taylor expand around the fixed point.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "f(x*) + f'(x*) delta",
+                "f(x*) + f'(x*)δ"
+              ]
+            },
+            "hints": [
+              "Use a first-order Taylor expansion."
+            ],
+            "reveal": "$f(x^* + \\delta) \\approx f(x^*) + f'(x^*) \\delta$."
+          },
+          {
+            "prompt": "$f(x^*) = 0$ since $x^*$ is a fixed point. So $\\dot\\delta = ?$",
+            "motivation": "Linear ODE for the perturbation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "f'(x*) delta",
+                "f'(x*)·δ"
+              ]
+            },
+            "hints": [
+              "$\\dot\\delta = \\dot x = f(x) \\approx f'(x^*)\\delta$."
+            ],
+            "reveal": "$\\dot\\delta = f'(x^*) \\delta$."
+          },
+          {
+            "prompt": "Solve the linear ODE $\\dot\\delta = \\lambda \\delta$ (where $\\lambda = f'(x^*)$). What's the time-evolution?",
+            "motivation": "First-order linear ODE → exponential.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "delta_0 e^(lambda t)",
+                "δ_0 exp(λ t)",
+                "δ(0) e^{λ t}"
+              ]
+            },
+            "hints": [
+              "$\\delta(t) = \\delta(0) e^{\\lambda t}$."
+            ],
+            "reveal": "$\\delta(t) = \\delta(0) e^{f'(x^*) t}$."
+          }
+        ],
+        "finalResult": "$$\\boxed{f'(x^*) < 0 \\implies \\delta(t) \\to 0 \\implies x^* \\text{ stable}}$$\n\nThe perturbation decays exponentially when $f'(x^*) < 0$ and grows exponentially when $f'(x^*) > 0$. So the sign of the derivative at the fixed point decides stability. For 2-D systems the same idea generalizes to the eigenvalues of the Jacobian."
+      }
+    },
+    {
+      "kind": "text",
       "title": "A toy with one knob",
       "body": "Consider $\\dot{x} = rx - x^3$. Here $r$ is a tunable parameter — temperature, applied field, growth rate, anything that smoothly varies.\n\nFor different values of $r$ you get different phase portraits. Try the slider:\n\n- $r < 0$: a single stable fixed point at the origin. Everything is attracted there.\n- $r = 0$: the dynamics is marginal — exactly $\\dot{x} = -x^3$. Still attracts to zero, but very slowly.\n- $r > 0$: the origin destabilizes, and two new stable fixed points appear at $\\pm \\sqrt{r}$.\n\nThis is a *pitchfork bifurcation*. One stable solution becomes three (one of them unstable, two stable) as $r$ crosses zero.",
       "viz": "phase-portrait-1d"

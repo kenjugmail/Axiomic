@@ -7,6 +7,57 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: building damping into a clock",
+      "body": "An old grandfather clock pendulum has period $T = 2\\pi\\sqrt{L/g}$. For $L = 1$ m, $T \\approx 2.007$ s — close to but not exactly 2 seconds. The clock was designed by Christiaan Huygens (1656) to swing once per second.\n\nA tiny amount of damping is *necessary* to keep the clock from accumulating errors from external perturbations — but too much and the clock loses energy faster than the spring/weight can replenish.\n\nThe gold-standard solution (still used in good mechanical watches): a small *escapement* mechanism delivers a precisely-timed impulse to the pendulum each cycle, replacing exactly the energy lost to damping. The pendulum becomes a *driven* oscillator at its own natural frequency — and that's the most stable thing a mechanical system can do.\n\nMoral: damping is the enemy of conservation but the friend of stability. Mechanical clocks live in the sweet spot."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_osc_omega",
+        "kind": "guided_derivation",
+        "question": "Derive $\\omega = \\sqrt{k/m}$ for a spring-mass system",
+        "goal": "From Hooke's law $F = -kx$, derive the angular frequency of small oscillations.",
+        "steps": [
+          {
+            "prompt": "Newton's second law: $F = m\\ddot x$. Combine with Hooke's law $F = -kx$ to get the equation of motion.",
+            "motivation": "Two forces equal: derive the ODE.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "m d^2x/dt^2 = -kx",
+                "mx'' = -kx",
+                "mẍ + kx = 0",
+                "m d²x/dt² + kx = 0"
+              ]
+            },
+            "hints": [
+              "Set both expressions for $F$ equal."
+            ],
+            "reveal": "$m\\ddot x = -kx$ — the simple harmonic oscillator ODE."
+          },
+          {
+            "prompt": "Try a solution $x(t) = A\\cos(\\omega t)$. Compute $\\ddot x$ and substitute back. What value of $\\omega$ makes the equation hold?",
+            "motivation": "Plug + match.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "sqrt(k/m)",
+                "√(k/m)",
+                "(k/m)^(1/2)"
+              ]
+            },
+            "hints": [
+              "$\\ddot x = -\\omega^2 A\\cos(\\omega t) = -\\omega^2 x$.",
+              "Substituting: $-m\\omega^2 x = -kx$, so $m\\omega^2 = k$."
+            ],
+            "reveal": "$\\omega = \\sqrt{k/m}$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\omega = \\sqrt{k/m}, \\quad T = 2\\pi/\\omega = 2\\pi\\sqrt{m/k}}$$\n\nFor any linear restoring force ($F = -kx$ around a stable equilibrium), the oscillation frequency is determined entirely by the ratio of stiffness to inertia. The same equation governs pendulums (with $k_{\\text{eff}} = mg/L$), LC circuits, molecular vibrations, etc. — every undergraduate physics problem reduces to this somehow."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Simple harmonic motion",
       "body": "A mass on a spring, with spring constant `k` and mass `m`. The spring exerts a restoring force proportional to displacement: `F = -kx`. Newton's law gives:\n\n$$m\\ddot{x} = -kx$$\n\nDefining `ω² = k/m`:\n\n$$\\ddot{x} = -\\omega^2 x$$\n\nThe solution is sinusoidal:\n\n$$x(t) = A \\cos(\\omega t + \\phi)$$\n\nWhere `A` is amplitude, `φ` is phase, and `ω` is angular frequency. Period `T = 2π/ω`.\n\nThe energy decomposes:\n- Kinetic: `T = (1/2)mv² = (1/2)mA²ω²sin²(ωt + φ)`\n- Potential: `U = (1/2)kx² = (1/2)kA²cos²(ωt + φ)`\n- Total `E = (1/2)kA²` (conserved, oscillates between K and U).\n\nThis is the canonical undamped oscillator. Energy is conserved; motion continues forever at constant amplitude."
     },

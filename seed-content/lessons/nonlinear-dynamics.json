@@ -7,6 +7,59 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: the ferromagnet phase transition",
+      "body": "Iron above its Curie temperature (1043 K): magnetization $M = 0$ on average. Below: spontaneous magnetization, either $+M^*$ or $-M^*$.\n\nMean-field theory gives an effective dynamics $\\dot M = (T_c - T) M - M^3$ (after appropriate scaling). Same form as the pitchfork normal form $\\dot x = rx - x^3$ with $r = T_c - T$.\n\n- $T > T_c$: $r < 0$. Single stable fixed point at $M = 0$ (paramagnetic phase).\n- $T < T_c$: $r > 0$. $M = 0$ is unstable; two stable fixed points at $\\pm\\sqrt{T_c - T}$ (ferromagnetic phase, broken symmetry).\n\nThe Curie temperature is precisely the pitchfork bifurcation point. Magnetization grows as $\\sqrt{T_c - T}$ near the transition — the famous mean-field critical exponent of $1/2$. Every undergraduate statistical mechanics course derives this; few mention it's literally the pitchfork normal form."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_nl_pitchfork",
+        "kind": "guided_derivation",
+        "question": "Classify fixed points of the supercritical pitchfork",
+        "goal": "For $\\dot x = rx - x^3$, find all fixed points and classify their stability for $r > 0$.",
+        "steps": [
+          {
+            "prompt": "Fixed points: solve $rx - x^3 = 0$. Factor.",
+            "motivation": "Algebra.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "x = 0, x = ±sqrt(r)",
+                "0, ±√r",
+                "0, -sqrt(r), +sqrt(r)"
+              ]
+            },
+            "hints": [
+              "$x(r - x^2) = 0 \\Rightarrow x = 0$ or $x^2 = r$.",
+              "For $r > 0$, the second case gives $\\pm\\sqrt r$."
+            ],
+            "reveal": "$x^* \\in \\{0, +\\sqrt r, -\\sqrt r\\}$."
+          },
+          {
+            "prompt": "Compute $f'(x) = r - 3x^2$. Evaluate at each fixed point. Which are stable ($f' < 0$)?",
+            "motivation": "Apply the linear-stability test.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$x = \\pm\\sqrt r$ stable; $x = 0$ unstable.",
+                "$x = 0$ stable; $\\pm\\sqrt r$ unstable.",
+                "All three stable.",
+                "All three unstable."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "$f'(0) = r > 0$ → unstable.",
+              "$f'(\\pm\\sqrt r) = r - 3r = -2r < 0$ → stable."
+            ],
+            "reveal": "$x = 0$ has $f' = r > 0$ — unstable. $x = \\pm\\sqrt r$ has $f' = -2r < 0$ — stable."
+          }
+        ],
+        "finalResult": "Supercritical pitchfork: for $r > 0$, the origin loses stability and two new stable equilibria appear at $\\pm\\sqrt r$ — symmetry breaking. Trajectories starting near 0 flow to one of the two new fixed points; which one depends on which side of zero they start. This is the mathematical signature of *spontaneous symmetry breaking* — the same machinery powers phase transitions in physics, neuronal decision dynamics, and cooperative behavior in game theory."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Bifurcations",
       "body": "A **bifurcation** is a qualitative change in the system's behavior as a parameter `μ` passes a critical value. The fixed points (steady states) appear, disappear, or change stability.\n\n**Saddle-node bifurcation**. `ẋ = μ - x²`. For `μ > 0`, two fixed points (stable and unstable). At `μ = 0`, they merge. For `μ < 0`, no fixed points — the system has nowhere to settle.\n\n**Pitchfork bifurcation**. `ẋ = μx - x³`. For `μ < 0`, one stable fixed point at `x = 0`. At `μ = 0`, it becomes unstable, and two new stable points appear at `±√μ`. The system 'breaks symmetry' — it has to choose one.\n\n**Hopf bifurcation**. A fixed point loses stability and a stable limit cycle is born. The system goes from settling to a steady state to oscillating. This is how a quiet circuit can suddenly start generating waves as you turn up the gain.\n\nBifurcations are everywhere: phase transitions in physics (boiling, magnetism), neuron firing onset, ecosystem collapse, training-loss instability spikes when you push the learning rate too high. The math is identical even when the physics looks unrelated."
     },

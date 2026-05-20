@@ -7,6 +7,69 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: data compression via entropy coding",
+      "body": "The English alphabet has 26 letters; uniform would give $\\log_2 26 \\approx 4.7$ bits/char. But real English has entropy ~1 bit/char (Shannon's estimate, 1948).\n\nThe gap: redundancy. Letter frequencies are highly non-uniform; common bigrams (\"th\", \"he\") are very common; some letter combinations (\"qz\") never occur.\n\n**Huffman coding** + **arithmetic coding** assign variable-length codewords matching frequency — high-frequency letters get short codes. They achieve compression rates very close to the Shannon entropy bound: ~4-5× compression on raw English text, which is the asymptotic best any compressor can do without modeling deeper structure.\n\nGzip, zstd, bzip2 all use entropy coding as their final stage, after extracting longer-range structure with dictionary methods (LZ77, BWT). The Shannon entropy is the theoretical limit; modern compressors get within a few percent of it on natural text."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ei_xentkl",
+        "kind": "guided_derivation",
+        "question": "Derive: $H(p, q) = H(p) + D_{\\mathrm{KL}}(p \\| q)$",
+        "goal": "Show that cross-entropy decomposes as entropy plus KL divergence.",
+        "steps": [
+          {
+            "prompt": "Start with the cross-entropy definition: $H(p, q) = -\\sum_x p(x) \\log q(x)$. Multiply and divide by $p(x)$ inside the log to insert $p$.",
+            "motivation": "Algebraic trick to bring entropy + KL out separately.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-sum p(x) log (p(x) q(x)/p(x))",
+                "-Σ p log[p · q/p]"
+              ]
+            },
+            "hints": [
+              "$\\log q = \\log(p \\cdot q / p) = \\log p + \\log(q/p)$."
+            ],
+            "reveal": "$\\log q(x) = \\log p(x) + \\log[q(x)/p(x)]$."
+          },
+          {
+            "prompt": "Substitute and split the sum into two pieces. What are they?",
+            "motivation": "Linearity of expectation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-sum p log p - sum p log(q/p)",
+                "H(p) - sum p log(q/p)"
+              ]
+            },
+            "hints": [
+              "First piece = $-\\sum p \\log p = H(p)$.",
+              "Second piece = $-\\sum p \\log(q/p) = +\\sum p \\log(p/q)$."
+            ],
+            "reveal": "$H(p, q) = -\\sum p \\log p - \\sum p \\log(q/p) = H(p) + \\sum p \\log(p/q)$."
+          },
+          {
+            "prompt": "Recognize the second term as KL divergence: $D_{\\mathrm{KL}}(p \\| q) = ?$",
+            "motivation": "Definition of KL.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "sum p log(p/q)",
+                "Σ p(x) log[p(x)/q(x)]"
+              ]
+            },
+            "hints": [
+              "KL divergence is $\\sum_x p(x) \\log[p(x)/q(x)]$."
+            ],
+            "reveal": "$D_{\\mathrm{KL}}(p \\| q) = \\sum_x p(x) \\log[p(x)/q(x)]$."
+          }
+        ],
+        "finalResult": "$$\\boxed{H(p, q) = H(p) + D_{\\mathrm{KL}}(p \\| q)}$$\n\nWhen training a model $q$ on data $p$, the entropy $H(p)$ is a constant (it depends only on the data). So minimizing cross-entropy = minimizing KL divergence between data and model. They differ by an irreducible-noise constant — the entropy of the data distribution itself."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Shannon's setup",
       "body": "You have a source emitting symbols from an alphabet, with probabilities `p_1, p_2, ..., p_n`. How many bits, on average, do you need to encode each symbol losslessly?\n\nShannon proved the answer is the **entropy**:\n\n$$H = -\\sum_i p_i \\log_2 p_i$$\n\n(Measured in bits; with natural log, in nats.)\n\nIntuition:\n- A perfectly predictable source (one symbol with probability 1) has `H = 0` — no information per symbol.\n- A uniform source over `n` symbols has `H = log_2 n` — maximum information; you need `log_2 n` bits.\n- A skewed source has `H < log_2 n` — you can compress because some symbols are more common.\n\nKey properties:\n- `H ≥ 0`, with equality iff the distribution is concentrated on one outcome.\n- `H ≤ log n`, with equality iff uniform — entropy is maximized at uniform.\n- `H` is additive for independent sources: `H(X, Y) = H(X) + H(Y)` if `X ⊥ Y`.\n- For dependent sources: `H(X, Y) = H(X) + H(Y|X)` (chain rule).\n\nShannon's source coding theorem makes the bound operational: any lossless code uses at least `H` bits per symbol on average, and there exist codes that approach `H + ε` for any `ε > 0`. Entropy is the fundamental compression limit."
     },

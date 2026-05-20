@@ -7,6 +7,70 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: the double pendulum",
+      "body": "Take the same Lagrangian framework and apply it to a double pendulum: rod 1 hangs from a fixed pivot at angle $\\theta_1$; rod 2 hangs from the end of rod 1 at angle $\\theta_2$. Two generalized coordinates, two Euler-Lagrange equations.\n\nThe Lagrangian $L = T - U$ is straightforward to write (kinetic energy is messier because rod 2's velocity depends on both $\\dot\\theta_1$ and $\\dot\\theta_2$). The resulting equations of motion are *nonlinear* and *coupled*.\n\nFor large angles, the double pendulum is *chaotic*: nearby initial conditions diverge exponentially. With $L = T - U$ and Euler-Lagrange, you can derive the equations of motion in ~5 lines; you cannot solve them analytically. They get integrated numerically by every undergraduate physics simulation lab.\n\nThe Lagrangian approach turns a messy mechanics problem into a recipe; the dynamical complexity is then read off the structure of the equations, not the difficulty of deriving them."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_lag_pend",
+        "kind": "guided_derivation",
+        "question": "Derive the pendulum equation of motion via Lagrangian",
+        "goal": "Use Euler-Lagrange on the simple pendulum (rod of length $\\ell$, bob mass $m$, angle $\\theta$) to derive $\\ell\\ddot\\theta + g\\sin\\theta = 0$.",
+        "steps": [
+          {
+            "prompt": "The bob's position is $(\\ell \\sin\\theta, -\\ell\\cos\\theta)$. Velocity squared $v^2 = ?$",
+            "motivation": "Differentiate position; take magnitude squared.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "l^2 theta dot ^2",
+                "ℓ² θ̇²",
+                "(l theta-dot)^2"
+              ]
+            },
+            "hints": [
+              "$\\dot x = \\ell\\dot\\theta\\cos\\theta$, $\\dot y = \\ell\\dot\\theta\\sin\\theta$. Sum of squares simplifies."
+            ],
+            "reveal": "$v^2 = \\ell^2 \\dot\\theta^2$ (the $\\cos^2 + \\sin^2$ cancels)."
+          },
+          {
+            "prompt": "$T = \\tfrac12 m v^2 = \\tfrac12 m\\ell^2\\dot\\theta^2$. $U = mgy = -mg\\ell\\cos\\theta$. Lagrangian $L = T - U = ?$",
+            "motivation": "Just substitute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(1/2) m l^2 theta-dot^2 + mgl cos(theta)",
+                "(1/2)mℓ²θ̇² + mgℓ cosθ"
+              ]
+            },
+            "hints": [
+              "Substitute $T$ and $-U$ (notice the sign of $U$)."
+            ],
+            "reveal": "$L = \\tfrac12 m\\ell^2 \\dot\\theta^2 + mg\\ell\\cos\\theta$."
+          },
+          {
+            "prompt": "Euler-Lagrange: $\\frac{d}{dt}(\\partial L/\\partial \\dot\\theta) - \\partial L/\\partial\\theta = 0$. Compute each term and simplify.",
+            "motivation": "Apply the mechanical recipe.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "m l^2 theta-double-dot + mgl sin(theta) = 0",
+                "mℓ² θ̈ + mgℓ sin θ = 0"
+              ]
+            },
+            "hints": [
+              "$\\partial L/\\partial\\dot\\theta = m\\ell^2\\dot\\theta$. Time-derivative: $m\\ell^2\\ddot\\theta$.",
+              "$\\partial L/\\partial\\theta = -mg\\ell\\sin\\theta$. Set $\\frac{d}{dt}(\\partial L/\\partial\\dot\\theta) - (\\partial L/\\partial\\theta) = 0$."
+            ],
+            "reveal": "$m\\ell^2 \\ddot\\theta + mg\\ell\\sin\\theta = 0$. Divide by $m\\ell$: $\\ell\\ddot\\theta + g\\sin\\theta = 0$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\ell\\ddot\\theta + g\\sin\\theta = 0}$$\n\nFor small angles, $\\sin\\theta \\approx \\theta$, so $\\ddot\\theta = -(g/\\ell)\\theta$ — SHM with $\\omega = \\sqrt{g/\\ell}$. For large angles, the equation is non-linear and gives the famous 'period depends on amplitude' correction that throws off clocks."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The action and least action",
       "body": "Define the **Lagrangian** of a system:\n\n$$L(q, \\dot{q}, t) = T - U$$\n\nWhere `q` is the configuration (position, angle, whatever) and `q̇` is its time derivative.\n\nThe **action** for a path between times `t_1` and `t_2` is:\n\n$$S[q(t)] = \\int_{t_1}^{t_2} L(q, \\dot{q}, t)\\, dt$$\n\n**Hamilton's principle (least action)**: the actual physical trajectory is the one that makes `S` stationary — `δS = 0` for any small variation of `q(t)` that vanishes at the endpoints.\n\n'Stationary' usually means a minimum, but technically it just means the first variation is zero (could be a saddle in some cases). The physics is: nature picks the path where the action neither goes up nor down to first order in nearby paths.\n\nThis is a bizarre re-statement of `F = ma`. But it's equivalent. And the equations you get out are much cleaner."
     },

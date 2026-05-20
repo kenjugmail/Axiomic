@@ -7,6 +7,74 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: the chain rule on neural networks",
+      "body": "A 2-layer net computes $y = \\sigma(W_2\\,\\sigma(W_1 x + b_1) + b_2)$. To train it we need $\\partial y / \\partial W_1$.\n\nChain rule: each layer's local derivative multiplies the next. Define $h_1 = W_1 x + b_1$, $a_1 = \\sigma(h_1)$, $h_2 = W_2 a_1 + b_2$, $y = \\sigma(h_2)$. Then\n\n$$\\frac{\\partial y}{\\partial W_1} = \\sigma'(h_2) \\cdot W_2 \\cdot \\sigma'(h_1) \\cdot x^T.$$\n\nThat's the entire backward-pass logic, encoded in three chain-rule applications. Every deep-learning framework just automates this for arbitrary computation graphs."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_calc_product",
+        "kind": "guided_derivation",
+        "question": "Derive the product rule",
+        "goal": "Starting from the limit definition $f'(x) = \\lim_{h\\to 0} [f(x+h) - f(x)]/h$, derive $(uv)' = u'v + uv'$.",
+        "steps": [
+          {
+            "prompt": "Write the difference quotient for $(uv)(x) = u(x)v(x)$. What appears in the numerator?",
+            "motivation": "We start with the raw difference $(uv)(x+h) - (uv)(x)$.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$u(x+h)v(x+h) - u(x)v(x)$",
+                "$u(x+h)v(x) - u(x)v(x+h)$",
+                "$u(x+h) + v(x+h) - u(x) - v(x)$",
+                "$u'(x) + v'(x)$"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Just substitute into the definition; don't simplify yet."
+            ],
+            "reveal": "Numerator = $u(x+h)v(x+h) - u(x)v(x)$."
+          },
+          {
+            "prompt": "Add and subtract $u(x+h)v(x)$ in the numerator (a classical 'creative zero' trick). Group into two differences. What's the result?",
+            "motivation": "Splitting lets each factor's derivative emerge separately.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "u(x+h)[v(x+h)-v(x)] + v(x)[u(x+h)-u(x)]",
+                "u(x+h)(v(x+h)-v(x)) + v(x)(u(x+h)-u(x))"
+              ]
+            },
+            "hints": [
+              "Group: $u(x+h)v(x+h) - u(x+h)v(x) + u(x+h)v(x) - u(x)v(x)$.",
+              "Factor out $u(x+h)$ from the first pair and $v(x)$ from the second."
+            ],
+            "reveal": "$u(x+h)[v(x+h)-v(x)] + v(x)[u(x+h)-u(x)]$."
+          },
+          {
+            "prompt": "Divide by $h$ and take the limit $h \\to 0$. Using continuity of $u$ and the definitions of $u'$ and $v'$, what does the expression become?",
+            "motivation": "$u(x+h) \\to u(x)$ by continuity; the two bracketed differences become derivatives.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "u(x)v'(x) + v(x)u'(x)",
+                "uv' + vu'",
+                "u(x)*v'(x) + u'(x)*v(x)"
+              ]
+            },
+            "hints": [
+              "First term: $u(x+h) \\to u(x)$ and $[v(x+h)-v(x)]/h \\to v'(x)$.",
+              "Second term: $[u(x+h)-u(x)]/h \\to u'(x)$, $v(x)$ stays."
+            ],
+            "reveal": "$(uv)'(x) = u(x)v'(x) + v(x)u'(x)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{(uv)' = u'v + uv'}$$\n\nThe 'creative zero' (add-subtract) trick reappears in measure-theoretic proofs, in functional-derivative calculations in ML, and in many other identities. Worth recognizing on sight."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Derivatives",
       "body": "The derivative of `f(x)` is the rate of change at a point:\n\n$$f'(x) = \\frac{df}{dx} = \\lim_{h \\to 0} \\frac{f(x+h) - f(x)}{h}$$\n\nIntuitively: if I nudge x by a tiny bit, how much does f change?\n\nA few derivatives you should have memorized:\n\n- `d/dx[x^n] = n·x^(n-1)`\n- `d/dx[e^x] = e^x`\n- `d/dx[ln x] = 1/x`\n- `d/dx[sin x] = cos x`, `d/dx[cos x] = -sin x`\n- `d/dx[c·f(x)] = c·f'(x)` (constant rule)\n- `d/dx[f(x) + g(x)] = f'(x) + g'(x)` (sum rule)\n- `d/dx[f(x)·g(x)] = f'(x)g(x) + f(x)g'(x)` (product rule)\n\nThese cover most of what you'll see in ML papers."
     },

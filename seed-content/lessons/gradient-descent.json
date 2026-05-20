@@ -7,6 +7,58 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: GD on a quadratic",
+      "body": "Minimize $L(\\theta) = \\tfrac12 (\\theta - 3)^2$ from $\\theta_0 = 0$, learning rate $\\eta = 0.5$.\n\nGradient: $L'(\\theta) = \\theta - 3$. Update: $\\theta_{t+1} = \\theta_t - \\eta L'(\\theta_t)$.\n\n- $\\theta_0 = 0 \\Rightarrow L' = -3 \\Rightarrow \\theta_1 = 0 - 0.5 \\cdot (-3) = 1.5$.\n- $\\theta_1 = 1.5 \\Rightarrow L' = -1.5 \\Rightarrow \\theta_2 = 1.5 + 0.75 = 2.25$.\n- $\\theta_2 = 2.25 \\Rightarrow \\theta_3 = 2.625$.\n- ...\n\nEach step closes half the gap to the optimum at $\\theta^* = 3$. The remaining distance is $|\\theta_t - 3| = 3 \\cdot 0.5^t$ — exponential convergence at rate $0.5$. For quadratic objectives with $\\eta = 1/L''$, GD halves the error each step. Real losses aren't quadratic but locally behave that way near the minimum."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_gd_taylor",
+        "kind": "guided_derivation",
+        "question": "Derive the GD update from first-order Taylor",
+        "goal": "Starting from a Taylor expansion of $L(\\theta)$, derive $\\theta_{t+1} = \\theta_t - \\eta \\nabla L(\\theta_t)$.",
+        "steps": [
+          {
+            "prompt": "First-order Taylor of $L$ around $\\theta_t$ in the direction of a step $\\Delta\\theta$: $L(\\theta_t + \\Delta\\theta) \\approx ?$",
+            "motivation": "Linear approximation gives a local model of how $L$ changes.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "L(theta_t) + grad L(theta_t) . delta theta",
+                "L(θ_t) + ∇L(θ_t)·Δθ",
+                "L + ∇L dot Δθ"
+              ]
+            },
+            "hints": [
+              "First-order Taylor: function plus gradient times step."
+            ],
+            "reveal": "$L(\\theta_t + \\Delta\\theta) \\approx L(\\theta_t) + \\nabla L(\\theta_t)^T \\Delta\\theta$."
+          },
+          {
+            "prompt": "Among all $\\Delta\\theta$ with $\\|\\Delta\\theta\\| = \\eta$, which direction makes $\\nabla L^T \\Delta\\theta$ most negative (= biggest decrease in $L$)?",
+            "motivation": "Maximize the decrease by going opposite to the gradient.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$\\Delta\\theta = -\\eta \\nabla L(\\theta_t)/\\|\\nabla L(\\theta_t)\\|$",
+                "$\\Delta\\theta = +\\eta \\nabla L(\\theta_t)/\\|\\nabla L(\\theta_t)\\|$",
+                "$\\Delta\\theta = 0$",
+                "$\\Delta\\theta = \\eta \\hat e_1$"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "The most-negative dot product is achieved when $\\Delta\\theta$ is opposite to the gradient.",
+              "Magnitude is constrained to $\\eta$; only direction matters."
+            ],
+            "reveal": "$\\Delta\\theta = -\\eta\\,\\nabla L(\\theta_t)/\\|\\nabla L(\\theta_t)\\|$ (unit-norm); equivalently, $\\Delta\\theta = -\\eta \\nabla L(\\theta_t)$ when we absorb the magnitude into $\\eta$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\theta_{t+1} = \\theta_t - \\eta \\nabla L(\\theta_t)}$$\n\nGD as 'go downhill in the steepest direction'. Higher-order methods (Newton: $\\theta_{t+1} = \\theta_t - (\\nabla^2 L)^{-1}\\nabla L$) use curvature for faster convergence at higher per-step cost. Adam, RMSprop, and momentum methods are all first-order variants with smarter step-size adaptation."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Stochastic gradient descent (SGD)",
       "body": "Computing the gradient over the entire dataset at each step is expensive. **Stochastic gradient descent** uses minibatches: at each step, compute the gradient over a small random subset (a batch) of the data.\n\nThe minibatch gradient is a **noisy estimate** of the true gradient. Steps are noisier than 'true' gradient descent — but you take many more steps per unit of compute, and the noise itself can help escape shallow local minima.\n\nKey property: **SGD steps are individually noisy but trend toward the same minimum on average**. If you watch the loss curve, you see noise on top of a smooth trend. The noise is not a bug; it's the signature of stochastic optimization.\n\nMisconception: 'training loss should decrease every step.' Wrong. SGD's per-step gradient is a noisy estimator; per-step loss can go up. What matters is the *trend* on a moving average over many steps."
     },

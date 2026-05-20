@@ -7,6 +7,74 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: confidence interval vs credible interval",
+      "body": "Toss a coin 100 times, see 60 heads. Estimate the bias.\n\n**Frequentist (Wald CI)**: $\\hat p = 0.6$; standard error $\\sqrt{\\hat p(1-\\hat p)/n} = \\sqrt{0.24/100} = 0.049$. 95% CI: $0.6 \\pm 1.96 \\cdot 0.049 \\approx [0.504, 0.696]$. Interpretation: under repeated sampling, this construction covers the true $p$ 95% of the time.\n\n**Bayesian (Beta-Binomial)** with uniform prior $\\text{Beta}(1,1)$: posterior is $\\text{Beta}(61, 41)$, mean $= 61/102 \\approx 0.598$. 95% credible interval $\\approx [0.504, 0.690]$. Interpretation: given the data, the probability $p$ lies in this interval is 95%.\n\nThe intervals are numerically similar but conceptually different. The Bayesian interpretation is the one most people *want* from a confidence interval — the frequentist one is more subtle."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_stats_mlegauss",
+        "kind": "guided_derivation",
+        "question": "Derive the MLE for a Gaussian mean",
+        "goal": "Given i.i.d. samples $x_1, \\dots, x_n \\sim \\mathcal{N}(\\mu, \\sigma^2)$ with known $\\sigma$, find $\\hat\\mu_{\\text{MLE}}$.",
+        "steps": [
+          {
+            "prompt": "Write the log-likelihood $\\ell(\\mu) = \\sum_i \\log p(x_i \\mid \\mu)$ using the Gaussian density. Up to a constant in $\\mu$, what's the form?",
+            "motivation": "Maximizing the log-likelihood is equivalent to maximizing the likelihood, and the log makes the product a sum.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$-\\frac{1}{2\\sigma^2}\\sum_i (x_i - \\mu)^2 + C$",
+                "$\\sum_i (x_i - \\mu) + C$",
+                "$\\prod_i (x_i - \\mu)$",
+                "$\\sum_i x_i^2 + C$"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Gaussian PDF: $p(x) \\propto \\exp(-(x-\\mu)^2/(2\\sigma^2))$.",
+              "Take the log; treat $\\mu$-free constants as $C$."
+            ],
+            "reveal": "$\\ell(\\mu) = -\\frac{1}{2\\sigma^2}\\sum_i (x_i - \\mu)^2 + C$ where $C$ doesn't depend on $\\mu$."
+          },
+          {
+            "prompt": "Take $\\partial \\ell / \\partial \\mu$ and set to zero. What equation does $\\hat\\mu$ satisfy?",
+            "motivation": "Critical point of a concave log-likelihood is the maximum.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "sum_i (x_i - mu) = 0",
+                "Σ_i (x_i - μ) = 0"
+              ]
+            },
+            "hints": [
+              "$\\partial/\\partial\\mu \\sum (x_i - \\mu)^2 = -2\\sum (x_i - \\mu)$."
+            ],
+            "reveal": "$\\sum_i (x_i - \\hat\\mu) = 0$."
+          },
+          {
+            "prompt": "Solve for $\\hat\\mu$ in terms of $x_i$ and $n$.",
+            "motivation": "Algebra: distribute the sum.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(1/n) sum x_i",
+                "sum(x_i)/n",
+                "(sum x_i)/n",
+                "mean(x)"
+              ]
+            },
+            "hints": [
+              "$\\sum x_i - n\\hat\\mu = 0$."
+            ],
+            "reveal": "$\\hat\\mu_{\\text{MLE}} = \\frac{1}{n}\\sum_i x_i$ — the sample mean."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\hat\\mu_{\\text{MLE}} = \\bar x = \\frac{1}{n}\\sum_i x_i}$$\n\nThe Gaussian's MLE for the mean is just the empirical mean. This is the basis for why 'compute the average' is so often the right starting point — it's the maximum-likelihood estimator for the most natural noise model."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Estimation",
       "body": "You have a sample `x_1, x_2, ..., x_n` from some distribution. You want to estimate properties of that distribution.\n\nSample mean: $\\bar{x} = \\frac{1}{n} \\sum_i x_i$ — your best guess for the population mean.\n\nSample variance: $s^2 = \\frac{1}{n-1} \\sum_i (x_i - \\bar{x})^2$. The `n-1` (not `n`) is Bessel's correction — using the sample mean instead of the true mean introduces a small bias that this correction removes.\n\n**Standard error** of the mean: $SE = s/\\sqrt{n}$. As n grows, the SE shrinks; you trust the estimate more.\n\n**Bias-variance tradeoff** in estimators: an estimator can be **unbiased** (correct on average) but high-variance (very noisy on any single sample), or **biased** (consistently off) but low-variance. The ideal is both unbiased and low-variance, but in practice you sometimes trade them off."
     },

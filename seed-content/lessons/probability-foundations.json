@@ -7,6 +7,72 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: spam filtering",
+      "body": "Naive Bayes (the classical spam filter): treat each word as conditionally independent given spam/ham labels.\n\n$P(\\text{spam} \\mid \\text{words}) \\propto P(\\text{spam}) \\cdot \\prod_i P(w_i \\mid \\text{spam}).$\n\nTrain by counting word frequencies in spam vs ham emails. Classify a new email by comparing the unnormalized posteriors and picking the larger.\n\nNaive Bayes is the simplest application of Bayes' rule that works on real data — it underlies the spam filters of the 2000s and is still surprisingly competitive on bag-of-words text classification."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_prob_bayes",
+        "kind": "guided_derivation",
+        "question": "Derive Bayes' rule",
+        "goal": "From the definition of conditional probability, derive $P(A \\mid B) = P(B \\mid A) P(A) / P(B)$.",
+        "steps": [
+          {
+            "prompt": "Start from the definition $P(A \\mid B) = P(A \\cap B) / P(B)$. Multiply both sides by $P(B)$.",
+            "motivation": "Get an unconditional product equal to a joint.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "P(A and B)",
+                "P(A∩B)",
+                "P(A ∩ B)",
+                "P(A and B) = P(A|B)P(B)"
+              ]
+            },
+            "hints": [
+              "No algebra needed; just multiply through."
+            ],
+            "reveal": "$P(A \\cap B) = P(A \\mid B) \\cdot P(B)$."
+          },
+          {
+            "prompt": "By symmetry, $P(A \\cap B) = P(B \\cap A) = ?$ (in terms of $P(B \\mid A)$)",
+            "motivation": "Conditional probability is asymmetric, but joint probability is symmetric — and both can be expanded the same way.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "P(B|A)P(A)",
+                "P(B|A) P(A)",
+                "P(B|A)*P(A)"
+              ]
+            },
+            "hints": [
+              "Apply the definition the other way: $P(B \\mid A) = P(A \\cap B) / P(A)$."
+            ],
+            "reveal": "$P(A \\cap B) = P(B \\mid A) \\cdot P(A)$."
+          },
+          {
+            "prompt": "Set the two expressions equal and solve for $P(A \\mid B)$.",
+            "motivation": "Bayes' rule emerges as the algebraic re-arrangement.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "P(B|A)P(A)/P(B)",
+                "P(B|A) P(A) / P(B)",
+                "P(A) P(B|A) / P(B)"
+              ]
+            },
+            "hints": [
+              "$P(A \\mid B) \\cdot P(B) = P(B \\mid A) \\cdot P(A)$, then divide by $P(B)$."
+            ],
+            "reveal": "$P(A \\mid B) = P(B \\mid A) P(A) / P(B)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{P(A \\mid B) = \\frac{P(B \\mid A) P(A)}{P(B)}}$$\n\nThe denominator $P(B)$ is often computed via the law of total probability: $P(B) = \\sum_A P(B \\mid A) P(A)$. This is the whole game of Bayesian inference: combine prior $P(A)$ with likelihood $P(B \\mid A)$ to get the posterior $P(A \\mid B)$."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Softmax produces distributions",
       "body": "The standard recipe for turning unconstrained model outputs (logits) into a distribution is **softmax**:\n\n$$p_i = \\frac{e^{z_i / T}}{\\sum_j e^{z_j / T}}$$\n\nThe temperature $T$ controls sharpness:\n\n- $T \\to 0$: distribution collapses to a one-hot at the largest logit\n- $T = 1$: standard softmax\n- $T \\to \\infty$: distribution flattens toward uniform $1/N$\n\nThe slider above lets you sweep $T$ and watch the bars rearrange. Notice that the *ranking* of the bars never changes — only how concentrated the mass is on the top option.",
       "viz": "softmax-temperature",
