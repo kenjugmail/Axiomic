@@ -69,12 +69,78 @@
         "kind": "explain_back",
         "prompt": "Why is the threshold theorem important? What does it say, and what does it not say, about achieving fault-tolerant quantum computing?",
         "rubricCriteria": [
-          { "id": "what-threshold-says", "description": "Articulates that below threshold, FT-QC is achievable in principle by scaling up" },
-          { "id": "what-it-doesnt-say", "description": "Notes the engineering / overhead reality (1000s of physical qubits per logical)" },
-          { "id": "current-status", "description": "Connects to current hardware capability" }
+          {
+            "id": "what-threshold-says",
+            "description": "Articulates that below threshold, FT-QC is achievable in principle by scaling up"
+          },
+          {
+            "id": "what-it-doesnt-say",
+            "description": "Notes the engineering / overhead reality (1000s of physical qubits per logical)"
+          },
+          {
+            "id": "current-status",
+            "description": "Connects to current hardware capability"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "Why QEC is hard + the threshold theorem",
+      "body": "**Why classical EC fails**: no-cloning prevents 'just store the bit three times'. Quantum errors are continuous (any unitary close to identity is an 'error') not discrete (only bit-flip).\n\n**Solution**: detect errors via stabilizer measurements that DON'T collapse the encoded state. Use entangled multi-qubit code states. A logical qubit is encoded across several physical qubits; ancilla qubits 'syndrome-measure' which type of error occurred without revealing the logical information.\n\n**Three-qubit bit-flip code** (toy): encode $|\\psi\\rangle = \\alpha|0\\rangle + \\beta|1\\rangle$ as $\\alpha|000\\rangle + \\beta|111\\rangle$. Detects + corrects a single bit-flip (X error) on any one qubit. Does NOT detect phase errors. A working code needs to handle both X and Z errors — Shor's 9-qubit code is the smallest example.\n\n**Surface code** (the practical standard): encodes one logical qubit in an $L \\times L$ grid of physical qubits ($\\sim L^2$ physical per logical). Tolerates ~1% physical error rate. Used by Google's Willow chip (2024) for first below-threshold demonstrations.\n\n**Threshold theorem**: if the physical error rate is below some threshold (~$10^{-3}$ to $10^{-2}$ depending on code), arbitrarily-long quantum computations are possible by stacking enough error correction. We're now (2024-2025) at or near the threshold for the best superconducting + ion-trap hardware — the era of below-threshold quantum is just beginning.\n\n**Cost**: thousands to millions of physical qubits to get one fault-tolerant logical qubit. Most current 'NISQ' (Noisy Intermediate-Scale Quantum) demonstrations are nowhere near fault-tolerant — they're operating with the noise budget directly."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_qec_thresh",
+        "kind": "multiple_choice",
+        "question": "The threshold theorem states that:",
+        "options": [
+          "Quantum computation becomes possible only above a critical error rate.",
+          "If physical error rate < threshold, arbitrarily-long fault-tolerant quantum computations are possible (with enough error-correction overhead).",
+          "Error correction works only on specific algorithms.",
+          "Quantum computers are limited to short computations regardless of error rate."
+        ],
+        "correctIndex": 1,
+        "explanation": "Threshold theorem: there exists a critical physical error rate ($\\sim 10^{-3}$ to $10^{-2}$ depending on the code) below which scalable fault-tolerant quantum computation is possible. Crossing the threshold transitions QEC from 'adds errors faster than it removes them' to 'removes errors faster than they accumulate'. Achieving below-threshold operation is the central practical goal of contemporary quantum hardware engineering."
+      },
+      "hints": [
+        "The theorem is about scalability — does increasing the error correction code distance help or hurt?",
+        "Below threshold, the encoded error rate is suppressed as code distance grows."
+      ],
+      "workedSolution": "Below the threshold, each additional layer of error correction reduces the LOGICAL error rate further — so by adding more physical qubits (larger codes), you can make logical errors arbitrarily rare. Above threshold, EC adds more errors than it corrects; the situation gets worse with bigger codes. The exact threshold depends on the code (~1% for surface code with realistic decoders, lower for less-tolerant codes).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_qec_overhead",
+        "kind": "scenario",
+        "question": "Logical qubit cost",
+        "prompt": "Google's Willow demonstrated a logical qubit using ~100 physical qubits with the surface code in 2024. A practical Shor-breaks-RSA computation needs ~4000 logical qubits. Why does this imply we're still ~10⁵ physical qubits away, and what hardware breakthroughs would change the picture?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_qec",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why quantum error correction needs entanglement, not just redundancy.",
+        "rubric": "Mentions that no-cloning prevents straight copying, so error correction works by spreading logical information across an entangled multi-qubit state where local errors can be detected by stabilizer measurements without measuring the logical state."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "State why classical error correction fails on qubits.",
+      "Recognize stabilizer codes.",
+      "Articulate the threshold theorem."
+    ],
+    "prereqs": [
+      "entanglement"
+    ]
+  }
 }

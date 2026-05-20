@@ -69,12 +69,93 @@
         "kind": "explain_back",
         "prompt": "Explain in your own words why quantum gates must be unitary. What goes wrong if we allow non-unitary operations during a quantum algorithm?",
         "rubricCriteria": [
-          { "id": "reversibility", "description": "Names that quantum mechanics is reversible (between measurements)" },
-          { "id": "probability-conservation", "description": "Connects unitarity to preserving total probability = 1" },
-          { "id": "consequence", "description": "Notes that measurement is the only non-unitary 'operation' allowed; it's special" }
+          {
+            "id": "reversibility",
+            "description": "Names that quantum mechanics is reversible (between measurements)"
+          },
+          {
+            "id": "probability-conservation",
+            "description": "Connects unitarity to preserving total probability = 1"
+          },
+          {
+            "id": "consequence",
+            "description": "Notes that measurement is the only non-unitary 'operation' allowed; it's special"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "Single-qubit gates as rotations",
+      "body": "Quantum gates are unitary matrices acting on qubit state vectors. The basic single-qubit gate set:\n\n- **X (NOT)**: $\\begin{pmatrix}0 & 1 \\\\ 1 & 0\\end{pmatrix}$. Flips $|0\\rangle \\leftrightarrow |1\\rangle$. Rotation by $\\pi$ around the X-axis of the Bloch sphere.\n- **Z**: $\\begin{pmatrix}1 & 0 \\\\ 0 & -1\\end{pmatrix}$. Flips the phase of $|1\\rangle$. Rotation by $\\pi$ around Z.\n- **H (Hadamard)**: $\\frac{1}{\\sqrt 2}\\begin{pmatrix}1 & 1 \\\\ 1 & -1\\end{pmatrix}$. Creates superposition: $H|0\\rangle = |+\\rangle = \\frac{1}{\\sqrt 2}(|0\\rangle + |1\\rangle)$.\n\nApply $H$ to $|0\\rangle$: get $|+\\rangle$. Apply $H$ to $|+\\rangle$: get $|0\\rangle$ back ($H$ is self-inverse).\n\n**Two-qubit gates**: CNOT (controlled-NOT) flips target qubit if control is $|1\\rangle$. It's the standard entangling gate. With CNOT + arbitrary single-qubit rotations you have a universal gate set — any unitary can be approximated.\n\n**No-cloning theorem**: there is no unitary $U$ such that $U|\\psi\\rangle|0\\rangle = |\\psi\\rangle|\\psi\\rangle$ for arbitrary unknown $|\\psi\\rangle$. Consequence: you can't make a backup copy of an unknown quantum state. This blocks classical-style error correction (just store $n$ copies and majority-vote); quantum error correction has to use entanglement instead."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_qg_hadamard",
+        "kind": "multiple_choice",
+        "question": "Apply $H$ to $|0\\rangle$. The result is:",
+        "options": [
+          "$|0\\rangle$",
+          "$|1\\rangle$",
+          "$|+\\rangle = \\frac{1}{\\sqrt 2}(|0\\rangle + |1\\rangle)$",
+          "$|-\\rangle = \\frac{1}{\\sqrt 2}(|0\\rangle - |1\\rangle)$"
+        ],
+        "correctIndex": 2,
+        "explanation": "$H|0\\rangle = \\frac{1}{\\sqrt 2}|0\\rangle + \\frac{1}{\\sqrt 2}|1\\rangle = |+\\rangle$. Hadamard transforms computational basis states into superposition states. $H|+\\rangle = |0\\rangle$ (self-inverse). This is the 'create superposition' building block used at the start of nearly every quantum algorithm."
+      },
+      "hints": [
+        "Apply the matrix $H = \\frac{1}{\\sqrt 2}\\begin{pmatrix}1 & 1 \\\\ 1 & -1\\end{pmatrix}$ to $\\binom{1}{0}$.",
+        "First column of $H$ acting on $|0\\rangle$ gives the result."
+      ],
+      "workedSolution": "$H|0\\rangle = \\frac{1}{\\sqrt 2}\\begin{pmatrix}1 & 1 \\\\ 1 & -1\\end{pmatrix}\\binom{1}{0} = \\frac{1}{\\sqrt 2}\\binom{1}{1} = \\frac{1}{\\sqrt 2}(|0\\rangle + |1\\rangle) = |+\\rangle$. The Hadamard gate creates a uniform superposition from a basis state — a building block of nearly every quantum algorithm.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_qg_noclone",
+        "kind": "scenario",
+        "question": "Why classical error correction fails",
+        "prompt": "A teammate proposes 'just copy each qubit three times and vote' to fix errors. Why is this impossible given no-cloning, and what does quantum error correction use instead?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_qg_x",
+        "kind": "math_expression",
+        "question": "Apply X gate to $|0\\rangle$. State after gate:",
+        "acceptedAnswers": [
+          "|1>",
+          "|1\\rangle",
+          "1",
+          "0|0>+1|1>"
+        ],
+        "hint": "X flips computational basis states."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_qg",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why a universal quantum gate set requires both single-qubit gates AND a two-qubit gate.",
+        "rubric": "Mentions that single-qubit gates alone create at most product states; entanglement (which makes quantum computing genuinely different from classical) requires multi-qubit gates; CNOT + arbitrary 1-qubit rotations is one minimal universal set."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Apply single-qubit gates (H, X, Z) to states.",
+      "Distinguish unitary evolution from measurement.",
+      "State the no-cloning theorem."
+    ],
+    "prereqs": [
+      "quantum-foundations"
+    ]
+  }
 }

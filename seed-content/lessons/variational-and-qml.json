@@ -69,12 +69,78 @@
         "kind": "explain_back",
         "prompt": "Pick a specific application area (quantum chemistry, optimization, machine learning, cryptanalysis). For that area, articulate: what quantum advantage might look like, current status, and timeline to practical impact.",
         "rubricCriteria": [
-          { "id": "specific-area", "description": "Names a specific application + appropriate quantum approach (VQE for chemistry, etc.)" },
-          { "id": "current-status", "description": "Honestly assesses 2026 capability for that area" },
-          { "id": "timeline-realistic", "description": "Gives a realistic timeline (5-15 years for most practical cases)" }
+          {
+            "id": "specific-area",
+            "description": "Names a specific application + appropriate quantum approach (VQE for chemistry, etc.)"
+          },
+          {
+            "id": "current-status",
+            "description": "Honestly assesses 2026 capability for that area"
+          },
+          {
+            "id": "timeline-realistic",
+            "description": "Gives a realistic timeline (5-15 years for most practical cases)"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "VQE + QAOA + the QML reality check",
+      "body": "**VQE (Variational Quantum Eigensolver)**: a hybrid quantum-classical algorithm to find the ground state of a Hamiltonian. Quantum circuit parameterized by classical parameters $\\theta$; measure the expected energy $\\langle\\psi(\\theta) | H | \\psi(\\theta)\\rangle$; classical optimizer (gradient descent, SPSA) updates $\\theta$ to minimize. Useful for quantum chemistry of small molecules; main NISQ candidate for early advantage.\n\n**QAOA (Quantum Approximate Optimization Algorithm)**: similar pattern for combinatorial optimization. Parameterized circuit encoding 'cost' + 'mixer' Hamiltonians; optimize classical parameters to maximize expected cost-Hamiltonian value, hopefully encoding good solutions. Theoretically gives approximate solutions for MaxCut + similar; empirically the advantage over classical heuristics on real problems remains uncertain.\n\n**QML (Quantum Machine Learning)**: train parameterized quantum circuits ('quantum neural networks') for classification, regression, generative modeling. As of 2025:\n- **Strong theoretical results**: a few problems (e.g., specific learning tasks on quantum-encoded data) have provable quantum advantage.\n- **Practical results**: no convincing demonstration that QML beats classical ML on real-world classical datasets.\n- **Quantum kernels**: use quantum circuits to compute kernel functions for SVMs. Generates novel kernels that classical methods don't easily reproduce; whether this gives practical advantage is debated.\n- **Barren plateaus**: random parameterized circuits often have exponentially-vanishing gradients (gradient becomes flat in $\\theta$ space). Open problem to design ansätze that avoid barren plateaus while remaining expressive.\n\nThe honest read: QML is a fascinating research area with open theoretical questions. Practical advantage on classical data is not yet demonstrated. Watch the space; don't bet the farm."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_vqml_barren",
+        "kind": "multiple_choice",
+        "question": "Barren plateaus in QML refer to:",
+        "options": [
+          "Quantum hardware regions with high gate fidelity.",
+          "Random parameterized quantum circuits where gradients vanish exponentially with the number of qubits, making training intractable.",
+          "A specific quantum algorithm.",
+          "A common training set."
+        ],
+        "correctIndex": 1,
+        "explanation": "Barren plateaus: McClean et al. 2018 result. Random initial parameterizations of variational circuits often have gradients that decay exponentially with system size; classical optimization becomes intractable. Mitigations: structured ansätze (problem-specific), layerwise training, identity-block initialization. Avoiding barren plateaus while remaining expressive is a central open problem in QML."
+      },
+      "hints": [
+        "The 'plateau' refers to gradients.",
+        "Random circuits + many qubits → gradients become how big?"
+      ],
+      "workedSolution": "Barren plateau: with a wide / deep random parameterized quantum circuit, the gradient of the cost function w.r.t. each parameter has variance shrinking exponentially with circuit depth and qubit count. Classical gradient-based optimization becomes intractable — you can't tell which direction to move. Mitigations include problem-specific ansatz design, identity-initialization, and layerwise training; avoiding barren plateaus while maintaining expressivity is a central open problem.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_vqml_advantage",
+        "kind": "scenario",
+        "question": "QML for tabular data",
+        "prompt": "A teammate proposes using a quantum neural network on a tabular ML problem where logistic regression gets 85% accuracy. Why is this unlikely to demonstrate any practical advantage, and what classes of problems are more promising for genuine QML wins?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_vqml",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why hybrid quantum-classical algorithms (VQE, QAOA) are the realistic 'first useful quantum applications' rather than pure quantum algorithms.",
+        "rubric": "Mentions that NISQ hardware can't run long pure-quantum circuits without error correction; hybrid algorithms keep quantum subroutines shallow + push optimization to classical; this matches the noise profile of current hardware and is where 'practical' early demonstrations are likely to land."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "State VQE / QAOA at a high level.",
+      "Recognize quantum machine learning as a research direction with current limitations.",
+      "Distinguish what's possible vs hype."
+    ],
+    "prereqs": [
+      "nisq-era"
+    ]
+  }
 }

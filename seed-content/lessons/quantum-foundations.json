@@ -64,12 +64,90 @@
         "kind": "explain_back",
         "prompt": "In your own words, explain how a qubit differs from a classical bit. Address: what state space, what measurement does, and why this matters for computation.",
         "rubricCriteria": [
-          { "id": "state-space", "description": "Names that qubit state lives in 2D complex space; classical bit in {0, 1}" },
-          { "id": "measurement", "description": "Notes that measurement is probabilistic + collapses the state" },
-          { "id": "computational-implication", "description": "Articulates the exponential scaling of n qubits and why this matters" }
+          {
+            "id": "state-space",
+            "description": "Names that qubit state lives in 2D complex space; classical bit in {0, 1}"
+          },
+          {
+            "id": "measurement",
+            "description": "Notes that measurement is probabilistic + collapses the state"
+          },
+          {
+            "id": "computational-implication",
+            "description": "Articulates the exponential scaling of n qubits and why this matters"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "Superposition + measurement, in 90 seconds",
+      "body": "A classical bit is 0 or 1. A qubit is $|\\psi\\rangle = \\alpha |0\\rangle + \\beta |1\\rangle$ with complex amplitudes $\\alpha, \\beta$ satisfying $|\\alpha|^2 + |\\beta|^2 = 1$.\n\n**Born rule**: on measurement in the computational basis, get 0 with probability $|\\alpha|^2$ and 1 with probability $|\\beta|^2$. The state collapses to $|0\\rangle$ or $|1\\rangle$ accordingly.\n\nKey points:\n- A qubit in superposition is NOT 'secretly' 0 or 1 — it's genuinely both, until measured.\n- Phases matter for interference. $\\frac{1}{\\sqrt 2}(|0\\rangle + |1\\rangle)$ and $\\frac{1}{\\sqrt 2}(|0\\rangle - |1\\rangle)$ give identical measurement statistics in the computational basis but behave differently when you apply gates.\n- Quantum computing exploits this: arrange interference such that wrong answers cancel and right answers reinforce.\n\nThe |+⟩ state $= \\frac{1}{\\sqrt{2}}(|0\\rangle + |1\\rangle)$ measures 0 or 1 with equal probability. But measure it in the {|+⟩, |-⟩} basis and it's definitely |+⟩ with probability 1. Measurement *basis* matters — there's no 'true value' independent of how you measure."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_qf_born",
+        "kind": "multiple_choice",
+        "question": "A qubit is in state $|\\psi\\rangle = 0.6|0\\rangle + 0.8|1\\rangle$. Probability of measuring 1 in the computational basis:",
+        "options": [
+          "0.8",
+          "0.4",
+          "0.64",
+          "0.36"
+        ],
+        "correctIndex": 2,
+        "explanation": "Born rule: P(outcome) = |amplitude|². P(1) = 0.8² = 0.64. Check normalization: 0.6² + 0.8² = 0.36 + 0.64 = 1 ✓. The amplitude can be confused with the probability; the squaring is what makes quantum probability different from classical 'mixture of states'."
+      },
+      "hints": [
+        "Born rule: probability = |amplitude|².",
+        "Don't confuse the amplitude with the probability itself."
+      ],
+      "workedSolution": "Born rule: $P(\\text{outcome 1}) = |\\beta|^2 = 0.8^2 = 0.64$. The amplitudes ($\\alpha = 0.6$, $\\beta = 0.8$) are NOT the probabilities — their squared magnitudes are. Normalization $|0.6|^2 + |0.8|^2 = 1$ confirms the state is well-defined. Mixing this up is the most common beginner error.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_qf_norm",
+        "kind": "math_expression",
+        "question": "A qubit state $|\\psi\\rangle = a|0\\rangle + b|1\\rangle$ has $a = 0.6$. For the state to be normalized ($|a|^2 + |b|^2 = 1$), $|b|^2 = ?$",
+        "acceptedAnswers": [
+          "0.64",
+          ".64",
+          "1-0.36"
+        ],
+        "hint": "Apply the normalization constraint."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_qf_basis",
+        "kind": "scenario",
+        "question": "Basis matters",
+        "prompt": "A qubit is in state $|+\\rangle = \\frac{1}{\\sqrt 2}(|0\\rangle + |1\\rangle)$. Measured in computational basis: random 0 or 1, each with probability 0.5. Measured in the $|+\\rangle/|-\\rangle$ basis: always +. What does this teach about 'the value of a qubit'?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_qf",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why the Bloch sphere is a useful visualization tool for a single qubit but doesn't generalize to multiple qubits.",
+        "rubric": "Mentions that one qubit's state can be parameterized as a point on the surface of a sphere (the Bloch sphere); $n$-qubit pure states live in a $2^n$-dimensional complex space, which can't be visualized as anything as simple."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Write a qubit state in Dirac notation.",
+      "Compute measurement probabilities from a superposition.",
+      "Reason about why $|0\\rangle + |1\\rangle$ is fundamentally different from a classical bit."
+    ],
+    "prereqs": []
+  }
 }

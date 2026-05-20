@@ -69,12 +69,93 @@
         "kind": "explain_back",
         "prompt": "Explain why Grover's quadratic speedup, while real, doesn't make NP-complete problems efficiently solvable on quantum computers. What's the gap between theoretical interest and practical impact?",
         "rubricCriteria": [
-          { "id": "quadratic-meaning", "description": "Quantifies what quadratic speedup means (O(√N) vs O(N))" },
-          { "id": "np-not-broken", "description": "Notes that 2^{n/2} is still exponential — NP isn't broken" },
-          { "id": "hardware-reality", "description": "Acknowledges current hardware limits + path to practical impact" }
+          {
+            "id": "quadratic-meaning",
+            "description": "Quantifies what quadratic speedup means (O(√N) vs O(N))"
+          },
+          {
+            "id": "np-not-broken",
+            "description": "Notes that 2^{n/2} is still exponential — NP isn't broken"
+          },
+          {
+            "id": "hardware-reality",
+            "description": "Acknowledges current hardware limits + path to practical impact"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "Grover's amplitude amplification",
+      "body": "**Problem**: given a function $f: \\{0,\\ldots,N-1\\} \\to \\{0,1\\}$ with exactly one 'marked' input $x^*$ such that $f(x^*) = 1$ (and 0 elsewhere). Find $x^*$.\n\n**Classical**: $O(N)$ queries in the worst case.\n\n**Grover**: $O(\\sqrt N)$ queries. Quadratic speedup.\n\n**Recipe**: start with uniform superposition over all inputs $|s\\rangle = \\frac{1}{\\sqrt N}\\sum_x |x\\rangle$. Apply Grover operator $G = -A_s O_f$ where $O_f$ flips phase of marked state, $A_s$ flips around average. Each application rotates the state vector toward $|x^*\\rangle$ by angle $\\sim 2/\\sqrt N$. After $\\pi/4 \\cdot \\sqrt N$ applications, the state is nearly $|x^*\\rangle$; measure to find $x^*$ with high probability.\n\n**Generalization**: amplitude amplification. Given any quantum algorithm that finds a 'good' answer with probability $p$, you can boost the probability to ~1 with $O(1/\\sqrt p)$ applications — a quadratic speedup over $O(1/p)$ classical re-sampling. Many quantum heuristics rely on amplitude amplification as a subroutine.\n\n**Why quadratic, not exponential**: Grover is provably optimal for unstructured search — no quantum algorithm can do better than $\\Omega(\\sqrt N)$ queries. The exponential speedups (Shor's, HHL) exploit structure in their problems that unstructured search doesn't have."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_gr_speedup",
+        "kind": "multiple_choice",
+        "question": "Grover's algorithm provides:",
+        "options": [
+          "An exponential speedup over classical search.",
+          "A quadratic speedup ($O(\\sqrt N)$ vs $O(N)$) over classical unstructured search.",
+          "A constant-factor speedup.",
+          "No speedup."
+        ],
+        "correctIndex": 1,
+        "explanation": "Grover: $O(\\sqrt N)$ vs classical $O(N)$. Provably optimal for unstructured search. For $N = 10^6$, that's ~1000 quantum queries vs 1,000,000 classical queries — quadratic. Not exponential, but meaningful at scale, and the underlying amplitude-amplification primitive is broadly useful."
+      },
+      "hints": [
+        "Compare $O(\\sqrt N)$ with $O(N)$ growth rates.",
+        "Quadratic = improvement by a factor of $\\sqrt N$, not exponential."
+      ],
+      "workedSolution": "Grover query complexity: $O(\\sqrt N)$. Classical unstructured search: $O(N)$. The speedup factor grows as $\\sqrt N$ (quadratic). For $N = 10^{12}$, that's $\\sim 10^6$ quantum queries vs $10^{12}$ classical — significant, but not the 'exponentially fewer steps' headline that Shor's algorithm provides for factoring.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_gr_db",
+        "kind": "scenario",
+        "question": "Searching an unsorted database",
+        "prompt": "A 1B-entry unsorted database. Classical lookup: 1B comparisons worst case. Grover: $\\sim$31K quantum queries. Why doesn't this mean we'll all be using Grover for database lookups any time soon?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_gr_iter",
+        "kind": "math_expression",
+        "question": "Grover on $N = 1{,}000{,}000$ items needs approximately $\\pi/4 \\sqrt N$ iterations. To the nearest hundred:",
+        "acceptedAnswers": [
+          "785",
+          "800",
+          "786",
+          "785.0"
+        ],
+        "hint": "$\\pi/4 \\cdot 1000 \\approx 785$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_gr",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why amplitude amplification is more practically interesting than Grover itself.",
+        "rubric": "Mentions that Grover is for the toy problem of unstructured search; amplitude amplification generalizes the trick and is the building block of many quantum optimization heuristics (Grover-adaptive search, QAOA, etc.)."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "advanced",
+    "objectives": [
+      "State Grover's quadratic speedup.",
+      "Recognize amplitude amplification as the underlying primitive.",
+      "Articulate why quadratic isn't exponential."
+    ],
+    "prereqs": [
+      "quantum-algorithms"
+    ]
+  }
 }
