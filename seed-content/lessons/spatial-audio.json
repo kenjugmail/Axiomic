@@ -1,0 +1,147 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "specialist",
+    "objectives": [
+      "State the principles of stereo + surround imaging.",
+      "Distinguish binaural from object-based spatial audio.",
+      "Reason about Atmos + ambisonics."
+    ],
+    "prereqs": [
+      "acoustics-and-psychoacoustics"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Stereo + spatial perception",
+      "body": "Humans localize sound via:\n- **Interaural Time Difference (ITD)**: sound arrives at one ear before the other. Most useful at LOW frequencies (<1500 Hz; longer wavelengths, sound diffracts around head).\n- **Interaural Level Difference (ILD)**: head shadows the further ear. Useful at HIGH frequencies (>1500 Hz).\n- **HRTF (Head-Related Transfer Function)**: ear pinna + head shape filter sound differently from each direction. Provides ELEVATION + FRONT/BACK cues.\n- **Movement + head turning**: small head movements + the resulting ITD/ILD changes resolve front/back ambiguity.\n\n**Stereo** (2-channel L/R): can place sounds in a horizontal arc between speakers using:\n- **Panning** (level difference between L/R): main tool. Pan law = 'how much loss when centered'. Common: -3 dB equal-power, -6 dB constant-amplitude.\n- **Time offset** (Haas effect, <30 ms): listener perceives the sound at the EARLIER speaker. Used sparingly for stereo widening.\n- **Spectral cues** (high-end widening): subtle EQ differences L/R give a 'wider' sense.\n\n**Stereo width**:\n- Mono content: dead center between speakers.\n- Hard-panned: speaker location.\n- Wide stereo: M/S processing exaggerates side content.\n\n**Phase + correlation**:\n- L+R in phase: mono-compatible. Folds to mono cleanly.\n- L-R counter-phase: anti-phase. Folds to ZERO (silence) in mono — a problem on TV / phone speakers, AM radio.\n- Phase meters in mixers show correlation. Aim for positive correlation.\n\n**Pan law**: when something is panned center, it plays at full level in BOTH L + R. At hard-pan (100% L), only L speaker. Equal-power: -3 dB at center reduces total power so center + hard-panned content have same loudness.\n\n**Stereo speakers (equilateral triangle)**: ideal listener position is the 'sweet spot' — apex of equilateral triangle with speakers. Outside this, imaging shifts. Headphones eliminate this — each ear gets dedicated channel."
+    },
+    {
+      "kind": "text",
+      "title": "Surround + 5.1 / 7.1 + Atmos",
+      "body": "**Surround sound formats**:\n\n**5.1**: front L/R, center, back L/R, LFE (.1, subwoofer). Standard for movie theaters since 1990s + home theater.\n- Center channel: dialogue anchored to screen.\n- Surround speakers: ambient environment, effects, music.\n- LFE: very low frequencies (<120 Hz) routed to dedicated sub.\n\n**7.1**: 5.1 + side L/R surrounds. More precise lateral imaging.\n\n**7.1.4 (Dolby Atmos for home)**: 7.1 + 4 height speakers (or speaker-mounted height drivers). Allows sound elevation.\n\n**9.1.6, 11.1.8** etc: enterprise + cinematic configurations.\n\n**Atmos (Dolby Atmos)**: OBJECT-BASED rather than channel-based. Mix audio as 3D positioned objects; renderer maps to whatever speaker layout user has (2.0, 5.1, 7.1.4, headphones via binaural). Future-proof.\n\nObjects: each sound element has 3D position + size + level metadata. Renderer (decoder in playback chain) places it on whichever speakers fit.\n\n**Atmos workflow**:\n1. Compose / mix in spatial audio DAW (Dolby Atmos Music tools, Pro Tools Atmos).\n2. Send tracks as either objects (positioned in 3D) or beds (traditional channels — 7.1.2 + 7.1.4).\n3. Render to deliverables: ADM BWF (Atmos Distribution Master), MP4 with Atmos metadata for streaming.\n\n**Atmos Music**: Apple Music, Tidal, Amazon Music HD all support Atmos. Many top releases since 2021 have Atmos mixes. Quality + technique still evolving.\n\n**Ambisonics**: spherical-harmonic encoding of 3D soundfield. Microphones (Soundfield, Sennheiser AMBEO) capture; decoder converts to whatever output (binaural, speakers). Used in VR + 360 video. Encoding is order-N: 0th (mono), 1st (4-channel), 3rd (16-channel), higher = more precise localization.\n\n**Binaural rendering**: HRTF-convolution converts spatial audio to 2-channel headphone output that gives 3D illusion. Works well for headphones. Apple Spatial Audio uses this; many Atmos releases auto-binaural."
+    },
+    {
+      "kind": "text",
+      "title": "Binaural + HRTF + the headphone problem",
+      "body": "**Headphones**: each ear gets ONE channel. To create spatial illusion: apply HRTF (head-related transfer function) to position-shift the sound.\n\n**HRTF**: how an individual's ears + head + torso filter sound from each direction. Unique per person (ear shape varies). Captured via dummy-head measurements (KEMAR, Neumann KU-100) or in-ear microphones.\n\n**Generic vs personalized HRTFs**:\n- Generic (from KEMAR dummy): works for everyone OK; not exact.\n- Personalized (3D-scan your ear + ML predict your HRTF): more accurate. Apple's AirPods Pro + iPhone do this with a face/ear scan.\n\n**Binaural recordings**: stereo recordings made WITH HRTF baked in — typically a dummy head with two in-ear microphones. Played back on headphones, sound 3D realistic. Famous demos (Virtual Barber Shop) showcase.\n\n**Spatial cues**:\n- **ITD**: head circumference / speed of sound × angle. ~0.6 ms max ITD between ears.\n- **ILD**: high-frequency shadow can be 20+ dB at 90° azimuth.\n- **Pinna filtering**: notches + peaks differ for elevation + front/back. Critical cues for these directions.\n- **Reverberation**: distance cues via direct-to-reverb ratio + reverb time.\n- **Doppler**: moving sources shift pitch (rare in music; common in cinema).\n\n**VR / AR spatial audio**:\n- Head tracking: sound source should stay PLACED in space as user turns head. Tech: head-tracked spatial audio (Apple AirPods Pro 2 + iPhone gyroscopes).\n- Sound objects + ambient + music layered for immersion.\n- Spatial audio crucial to VR presence (mismatch with visual = breaks immersion + can cause motion sickness).\n\n**Spatial audio tools**:\n- Dolby Atmos Renderer (DAR): authoring + monitoring.\n- Steinberg / Nuendo: Atmos tools.\n- Pro Tools Ultimate: Atmos integrated.\n- Apple Logic Pro: Atmos workflow.\n- Plugins: FB360 Spatial Workstation, Waves NX, Wave Arts Convology XT.\n\n**Future**: AI-generated HRTFs from photo of ear, AR-based personal spatial audio + the metaverse drive growing investment."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_spatial_itd",
+        "kind": "guided_derivation",
+        "question": "Compute ITD for a sound source",
+        "goal": "Sound source at 60° to the listener's right. Head width ~17 cm. Speed of sound ~343 m/s.",
+        "steps": [
+          {
+            "prompt": "ITD ≈ (head radius × angle) / speed-of-sound. Path-length difference: head radius × sin(angle) (Woodworth's formula). Compute the difference for 60° + 0.085 m radius.",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.074 m",
+                "~7.4 cm",
+                "0.085 × sin(60)"
+              ]
+            },
+            "hints": [
+              "0.085 × 0.866 ≈ 0.074."
+            ],
+            "reveal": "~7.4 cm."
+          },
+          {
+            "prompt": "Convert to time: distance / speed = ?",
+            "motivation": "ITD.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~215 microseconds",
+                "~0.215 ms",
+                "0.00021 sec",
+                "215 us"
+              ]
+            },
+            "hints": [
+              "0.074 / 343."
+            ],
+            "reveal": "~215 μs (0.215 ms). The right ear hears the sound this much later than the left."
+          },
+          {
+            "prompt": "Maximum ITD (sound at 90°)?",
+            "motivation": "Sin(90) = 1.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~248 us",
+                "~248 microseconds",
+                "~0.25 ms",
+                "0.000248"
+              ]
+            },
+            "hints": [
+              "0.085 / 343 × sin(90)."
+            ],
+            "reveal": "~248 μs at 90°. Just over 0.6 ms (if including ear-to-back path differences). The maximum ITD humans use for localization. Below ~1500 Hz where wavelength > head size, ITD is the dominant cue."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{ITD} \\approx (r/c) \\sin(\\theta), \\text{ max ~0.6 ms}}$$ The brain decodes ITD with remarkable precision — humans can detect ITD differences as small as ~10 μs! Combined with ILD (level difference, dominant at high frequencies), pinna filtering (elevation + front/back), reverberation (distance), the brain builds a rich 3D auditory scene. Binaural recordings + HRTF processing exploit all of this to create headphone-based spatial illusion."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_spatial_atmos",
+        "kind": "multiple_choice",
+        "question": "Why is Atmos called 'object-based' rather than 'channel-based'?",
+        "options": [
+          "Marketing.",
+          "Sounds are stored as positioned objects with 3D metadata (x, y, z, size); the renderer at playback positions them on WHATEVER speaker configuration the listener has (2.0 stereo, 5.1, 7.1.4, headphones via binaural). Future-proof: same master plays on any layout.",
+          "Random.",
+          "Doesn't matter."
+        ],
+        "correctIndex": 1,
+        "explanation": "Channel-based: master mixed for specific speaker layout (5.1). Plays correctly only on that layout. Object-based (Atmos): master = objects + metadata. Renderer adapts to any layout. Same master plays on 2.0 (stereo collapse), 5.1, 7.1.4, headphones (binaural). Future-proof for new layouts. Increased flexibility + production complexity. Apple Music + Tidal + Amazon all stream Atmos Music. Growing share of new releases (2021+) include Atmos."
+      },
+      "hints": [
+        "What's the channel-based limitation?",
+        "What's object-based?"
+      ],
+      "workedSolution": "Channel-based: mix tailored to specific speaker layout. 5.1 mix needs 5.1 system; on stereo, manual downmix degrades quality. Object-based: objects + positional metadata → renderer adapts to listener's gear (stereo, 5.1, 7.1.4, binaural). Same mix scales. Increased authoring complexity but future-proof; Atmos rapidly becoming the spatial standard.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_spatial_pinna",
+        "kind": "math_expression",
+        "question": "ITD max for human listener (head width 17 cm, sound speed 343 m/s)?",
+        "acceptedAnswers": [
+          "~0.5 ms",
+          "~500 μs",
+          "0.5 ms"
+        ],
+        "hint": "0.17/343 × 1."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_spatial_vr",
+        "kind": "scenario",
+        "question": "Audio for a VR game",
+        "prompt": "Designing audio for a 360° VR game with head-tracked spatial audio. Walk through choices: ambisonics vs object-based vs binaural rendering."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_spatial",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why object-based spatial audio (Atmos) is replacing channel-based formats (5.1) as the production standard.",
+        "rubric": "Mentions that object-based mixes play on ANY speaker configuration via render-side adaptation; channel-based mixes lock in a specific layout + degrade when downmixed; Atmos future-proofs for new layouts + headphones; integrated workflow (DAWs support natively) makes it tractable. Industry transition is well-underway in cinematic + music (Apple Music, Tidal streaming Atmos by default)."
+      }
+    }
+  ]
+}

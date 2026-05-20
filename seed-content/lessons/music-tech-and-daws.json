@@ -1,0 +1,151 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "specialist",
+    "objectives": [
+      "State the role of a DAW.",
+      "Outline MIDI + audio routing.",
+      "Reason about plugin formats + ecosystem."
+    ],
+    "prereqs": [
+      "digital-audio-fundamentals"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "DAWs: the production studio",
+      "body": "**DAW (Digital Audio Workstation)**: software that records, edits, mixes, sequences MIDI + audio. The center of modern music production.\n\n**Major DAWs**:\n- **Ableton Live**: clip-based + linear hybrid. Strong in electronic + performance. Distinctive Session View.\n- **Logic Pro** (Mac-only): Apple. Music creation + light production. Strong included instruments + plugins.\n- **Pro Tools**: industry standard for recording + post-production (TV, film). Subscription model.\n- **FL Studio** (Windows-first): pattern-based; popular in hip-hop + EDM.\n- **Cubase / Nuendo**: Steinberg. Cubase = music; Nuendo = post-production.\n- **Studio One**: PreSonus. Modern interface + good for hybrid workflows.\n- **Reaper**: lightweight, customizable, cheap (\\$60). Power-user favorite.\n- **GarageBand**: Apple beginner DAW. Free with macOS / iOS.\n- **Bitwig**: modular DAW with extensive routing + the Grid.\n- **REASON**: rack-based, modular. Loyal users.\n\n**Common features**:\n- **Multi-track recording**: capture multiple inputs simultaneously.\n- **MIDI sequencing**: program note data; trigger plugins or hardware.\n- **Audio editing**: cut, fade, time-stretch, pitch-shift, crossfade.\n- **Plugin hosting**: insert VSTs / AU / AAX into channels.\n- **Routing**: complex signal flow between tracks, busses, sends, master.\n- **Automation**: time-varying parameter control (volume rides, filter sweeps).\n- **Time-stretching + pitch-shifting**: change tempo or pitch without affecting the other (elastic-audio).\n\n**Pricing models**:\n- One-time purchase (Logic \\$200, FL Studio \\$99-499, Studio One \\$199).\n- Subscription (Pro Tools \\$30/mo).\n- Free tiers (GarageBand, Reaper for personal use, Cakewalk).\n\n**Workflow philosophies**:\n- **Linear timeline**: arrangement on horizontal timeline (Pro Tools, Logic, Cubase). Best for live recording + traditional workflows.\n- **Pattern + clip-based**: build patterns + arrange them (FL Studio, Live's Session View). Best for electronic + iterative composition."
+    },
+    {
+      "kind": "text",
+      "title": "MIDI: control protocol + ecosystem",
+      "body": "**MIDI (Musical Instrument Digital Interface)**: control protocol from 1983. NOT audio. NOT samples. Just messages.\n\n**Message types**:\n- **Note On / Off**: 'play note X at velocity Y'. Notes 0-127 (5-octave keyboard).\n- **Velocity** (0-127): how hard the note was struck.\n- **CC (Control Change)**: parameter control. CC1 = mod wheel, CC7 = volume, CC10 = pan, CC11 = expression. ~120 CCs.\n- **Pitch bend**: ±2 semitones (or program-dependent).\n- **Program change**: switch patches.\n- **Aftertouch**: pressure after note-on.\n- **System messages**: clock, sync, sysex (manufacturer-specific data).\n\n**MIDI 1.0**: 7-bit values (0-127). Limited precision; can hear staircase steps in slow filter sweeps.\n\n**MIDI 2.0** (2020): much higher resolution (32-bit). Backwards-compatible. Adopted slowly. New devices ship with MIDI 2.0; many older devices still on 1.0.\n\n**MPE (MIDI Polyphonic Expression)**: standard for per-note expression. Each NOTE has its own pitch + Y-axis + Z-axis CC. Enables expressive per-finger control on devices like ROLI Seaboard, Linnstrument, Lightpad. Modern softsynths (Equator, Arturia Pigments, Native Instruments) increasingly support MPE.\n\n**MIDI → audio chain in a DAW**:\n1. Hardware controller (keyboard) sends MIDI to DAW via USB or MIDI cable.\n2. DAW records MIDI on a track.\n3. Track has a plugin instrument (VST/AU/AAX) loaded.\n4. Plugin receives MIDI events, generates audio.\n5. Audio routes through track → bus → master → output.\n\n**Tempo sync**: MIDI clock + MTC (MIDI Time Code) sync devices to DAW tempo. Critical for live performance + studio gear integration.\n\n**Velocity layers**: realistic sampled instruments (piano, drums) have different samples per velocity range. 4-16 layers typical for piano; up to 100+ in expensive libraries.\n\n**Articulations + keyswitches**: orchestral libraries trigger different playing styles (legato, staccato, pizzicato, etc.) via 'keyswitches' (MIDI notes outside playing range that switch articulations). Workflow can be cumbersome; some libraries automate via 'expression maps' or DAW articulation tracks (Cubase, Logic 11+)."
+    },
+    {
+      "kind": "text",
+      "title": "Plugins + the modern ecosystem",
+      "body": "**Plugins**: third-party software loaded into DAWs. Massive ecosystem.\n\n**Formats**:\n- **VST (Virtual Studio Technology)**: Steinberg. Cross-platform (Win/Mac). De-facto standard.\n  - VST2: deprecated (Steinberg ended licensing 2018) but still in use.\n  - VST3: current. Newer features (sidechain routing, polyphonic modulation, contextual menus).\n- **AU (Audio Unit)**: Apple. macOS / iOS native.\n- **AAX**: Avid (Pro Tools). DSP + native variants.\n- **CLAP** (CLever Audio Plugin): new open standard. Bitwig + Surge XT-style. Gaining traction.\n- **LV2**: Linux open-source.\n\n**Plugin categories**:\n- **Instruments (VSTi)**: synthesize sound. Synths, samplers, drum machines.\n- **Effects**: process incoming audio. EQ, compression, reverb, delay, distortion, etc.\n- **MIDI effects**: process MIDI before instrument. Arpeggiators, chord generators, scale quantizers.\n\n**Notable plugin developers**:\n- **Native Instruments**: Komplete suite. Massive (Komplete 14: 100+ instruments + effects).\n- **Waves**: classic mixing + mastering. Subscription + perpetual.\n- **iZotope**: AI-assisted (RX for repair, Ozone for mastering, Nectar for vocals).\n- **FabFilter**: high-quality DSP. Pro-Q (EQ), Pro-L (limiter), Pro-C (compressor).\n- **u-he**: high-end synths (Diva, Hive, Repro).\n- **Spectrasonics**: Omnisphere, Keyscape — premium sample-based instruments.\n- **Universal Audio**: hardware + software emulation (UAD-2 plugins, Apollo interface).\n- **Soundtoys**: character processors (Decapitator, EchoBoy).\n- **Slate Digital**: mixing console emulation.\n\n**AI-powered plugins** (2022+):\n- **iZotope Ozone Master Assistant**: ML-driven mastering suggestions.\n- **iZotope RX**: audio repair (de-bleed, de-rumble, voice de-noise) using ML.\n- **Adobe Speech Enhance, NVIDIA Broadcast**: real-time AI denoise + enhancement.\n- **AI generative tools (Suno, Udio, Riffusion)**: full-song generation. Disrupting + integrating with production workflows.\n\n**Hardware + software hybrids**:\n- **Universal Audio Apollo**: DSP-powered interface running UAD plugins with zero latency.\n- **Native Instruments Maschine**: groove-box hardware + software integration.\n- **Push 3 (Ableton)**: standalone or with Live software.\n\nThe plugin ecosystem democratized professional-quality production. A laptop + Logic + a few plugins can produce releases that compete with studios. Genre + style increasingly dictated by accessible tools (vocal chops via Serum, sidechain bass via LFOTool, etc.)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_daw_routing",
+        "kind": "guided_derivation",
+        "question": "Build a routing for a vocal track",
+        "goal": "Lead vocal track. Apply: EQ → compression → de-esser. Also send to: parallel-compression bus + reverb bus.",
+        "steps": [
+          {
+            "prompt": "Insert chain (in order) on the vocal track. Order matters because each processor sees the previous one's output. Suggested order?",
+            "motivation": "Signal flow.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random order.",
+                "EQ first (corrective EQ before compression hits), then compressor (controls dynamics), then de-esser (removes sibilance from compressed signal). Some engineers swap compressor/EQ.",
+                "De-esser first.",
+                "Compressor first."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Corrective before dynamic."
+            ],
+            "reveal": "EQ → Compressor → De-esser. Compressor responds to the EQ'd signal; de-esser removes sibilance from compressed (which can EMPHASIZE sibilance)."
+          },
+          {
+            "prompt": "Send to parallel-compression bus: 'Pre-fader' or 'post-fader'?",
+            "motivation": "Send routing.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Pre-fader (independent of vocal channel's fader).",
+                "Post-fader: send level rides the vocal fader. As you fade the vocal, parallel compression follows. Most DAW defaults.",
+                "Both.",
+                "Neither."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Post-fader common."
+            ],
+            "reveal": "Post-fader: send mix follows vocal level. Pre-fader is for cue mixes (headphone independent of main). For effects sends, post-fader is standard."
+          },
+          {
+            "prompt": "Reverb bus: 'Pre' or 'post' the de-esser?",
+            "motivation": "Pre or post insert?",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Pre-insert (vocal pre any processing).",
+                "Post-insert (after all processing): cleaner. The reverb gets a vocal that's already been processed; sounds in context with the dry signal.",
+                "No difference.",
+                "Wrong question."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Pre vs post-processing."
+            ],
+            "reveal": "Post-insert: vocal is EQ'd + compressed + de-essed before going to reverb. Reverb sounds more cohesive with dry track. Pre-insert is sometimes desired (different EQ on reverb send) but less common."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Signal chain: EQ → comp → effects, post-fader sends to bus FX}}$$ DAW routing is the practical mixing skill. Sends + busses enable shared effects (one reverb on multiple tracks). Sidechain routing enables side-chain compression. Parallel chains enable subtle layered processing. Mastering this is what separates competent from professional mixing. Modern DAWs (Logic, Pro Tools, Ableton, Studio One) all support these flexibly."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_daw_plugin",
+        "kind": "multiple_choice",
+        "question": "A DAW is unstable when loaded with many plugins. Likely cause?",
+        "options": [
+          "Bad DAW.",
+          "Plugin instability is common. Suspects: 32-bit plugins on 64-bit DAW, outdated plugins, corrupted preferences, audio buffer set too low (try 512 samples), unstable plugin sandbox. Fix: incremental disabling to find offender + update or sandbox plugin.",
+          "Wrong format.",
+          "Doesn't happen."
+        ],
+        "correctIndex": 1,
+        "explanation": "Plugin instability remains the #1 DAW pain point. Causes: incompatible plugin versions (legacy 32-bit on modern DAW; old API), DSP errors in poorly-written plugins, audio buffer too low causing dropouts mis-diagnosed as crashes, plugin sandbox (separate process for plugins, isolates crashes). Modern DAWs increasingly sandbox plugins; Logic Pro X+, Ableton 11+ run problematic plugins in isolated processes that can crash without killing the DAW. Workflow tip: bounce hot tracks to audio to free up DSP + plugin load."
+      },
+      "hints": [
+        "Common cause of DAW crashes?",
+        "What's a sandbox?"
+      ],
+      "workedSolution": "Plugin crashes are common. Causes: legacy/outdated plugins, conflicts between plugins, hostile interactions with audio interface drivers, low buffer settings. Sandboxing (Logic, Ableton) isolates plugins in separate processes — a crashed plugin doesn't take down the DAW. Standard practice now. Older DAWs without sandboxing have full-DAW crashes from one bad plugin.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_daw_latency",
+        "kind": "math_expression",
+        "question": "Audio buffer 256 samples at 48 kHz. Round-trip latency (ignoring plugin lookahead)?",
+        "acceptedAnswers": [
+          "~10.7 ms",
+          "10.67",
+          "~11 ms"
+        ],
+        "hint": "2 × 256/48000 ≈ 10.67 ms."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_daw_pick",
+        "kind": "scenario",
+        "question": "Choosing a DAW for a new producer",
+        "prompt": "A friend asks which DAW to learn. They make pop + electronic, work on Mac, beginner. Walk through the options + recommendation."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_daw",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why modern DAWs combine MIDI + audio with deep plugin integration in a single application.",
+        "rubric": "Mentions that music production combines composition (MIDI), recording (audio), processing (plugins), arranging (linear timeline) + mixing — having them in one app eliminates costly format conversions + workflow friction; the plugin ecosystem provides infinite extensibility without changing the core DAW. The all-in-one DAW (vs separate sequencer/mixer/recording tools of pre-90s era) is THE enabler of bedroom-studio production."
+      }
+    }
+  ]
+}

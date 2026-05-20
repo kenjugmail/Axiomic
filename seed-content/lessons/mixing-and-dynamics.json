@@ -1,0 +1,168 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "specialist",
+    "objectives": [
+      "Outline EQ + compression workflows.",
+      "Reason about gain staging + headroom.",
+      "Distinguish busses, sends, parallel processing."
+    ],
+    "prereqs": [
+      "dsp-and-fft"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Mixing fundamentals + the workflow",
+      "body": "**Mixing** = combining many tracks into a coherent stereo (or surround) image. The mix engineer makes hundreds of decisions per song.\n\n**Goals**:\n- **Balance**: each element heard at intended level relative to others.\n- **Clarity**: each element distinct, not masked.\n- **Tone**: pleasing timbre across the mix.\n- **Dynamics**: appropriate macro-dynamics (verse vs chorus) + micro-dynamics (transient impact).\n- **Space**: spatial placement (panning, reverb, depth).\n- **Vibe**: emotional fit to the song.\n\n**Workflow** (varies):\n1. **Listen + sort**: hear all tracks raw; identify problems + opportunities.\n2. **Gain staging** (next slide): set initial levels so no track clips.\n3. **Subtractive EQ**: cut problematic frequencies (mud, harshness).\n4. **Compression**: control dynamics, glue elements.\n5. **Additive EQ**: boost where needed.\n6. **Panning**: place sources in stereo field.\n7. **Time-based FX** (reverb, delay): add depth + space.\n8. **Bus + master processing**: glue + final polish.\n9. **Reference + iterate**: compare to commercial references; tweak.\n\n**Critical listening**:\n- Multi-monitor: studio monitors (accurate), headphones (detail), small speakers (smartphone-like).\n- Reference tracks: well-mixed commercial songs in same genre. Frequent A/B.\n- Take breaks: ear fatigue is real (~hours of mixing = ear gets tired + makes bad decisions).\n- Listen at MULTIPLE LEVELS: -85 dB SPL is the standard 'reference'. Also check at quiet + loud.\n- Listen for what's WRONG, then fix; don't add until it works.\n\n**Common mix problems** (gardener's checklist):\n- Vocal not loud enough → carve guitars, automate vocal level, side-chain.\n- Mud at 200-500 Hz → high-pass everything that doesn't need lows.\n- Harshness at 2-5 kHz → de-ess, EQ down narrowly.\n- Lack of width → pan + add stereo width effects sparingly.\n- Lack of depth → reverb returns at varying lengths + EQ them dark for distance.\n- Dynamics flat → bus compression, automation, more contrast in arrangement."
+    },
+    {
+      "kind": "text",
+      "title": "EQ + frequency tuning",
+      "body": "**EQ (equalization)** = filter that emphasizes / de-emphasizes specific frequency ranges.\n\n**Filter types**:\n- **Peak / bell**: boost or cut at a center frequency with adjustable Q (width).\n- **Shelf**: boost / cut all frequencies above (high shelf) or below (low shelf) a corner frequency.\n- **High-pass / low-pass**: remove everything below / above a cutoff.\n- **Notch**: very narrow cut. Used for removing hum, ringing.\n\n**Parameters**:\n- **Frequency** (Hz): where the filter is centered.\n- **Gain** (dB): how much boost / cut.\n- **Q**: width / steepness. Higher Q = narrower / sharper.\n\n**Frequency regions** (rough zones):\n- **20-60 Hz (sub-bass)**: club rumble; felt more than heard.\n- **60-250 Hz (bass)**: kick + bass guitar fundamentals.\n- **250-500 Hz (low-mid)**: where 'mud' lives. Lots of instruments compete.\n- **500 Hz - 2 kHz (mid)**: vocal warmth, instrument body.\n- **2-5 kHz (presence)**: vocal intelligibility, guitar attack. Ear most sensitive.\n- **5-10 kHz (treble)**: cymbal sheen, vocal clarity, snare snap.\n- **10-20 kHz (air)**: openness, breath.\n\n**Common EQ moves**:\n- High-pass everything that doesn't need lows below ~60-200 Hz.\n- Carve mud at 200-500 Hz from instruments fighting the kick / bass.\n- Boost vocal presence at 2-5 kHz tastefully.\n- Brighten dull recordings with high-shelf above 8 kHz.\n- Notch out resonances revealed by sweeping a narrow boost.\n\n**Sweep technique**: with a narrow high-Q peak boosted +10 dB, sweep across the frequency range while soloing the track. Frequencies where it sounds WORST are problem spots. Reset to a CUT at those locations.\n\n**Linear-phase vs minimum-phase EQ**: discussed earlier. Mastering: linear; mixing: usually min-phase to avoid latency + transient smearing.\n\n**Match EQ**: tools (Fabfilter Pro-Q3, iZotope Ozone) analyze a reference + match your track's tone toward it. Useful starting point; not a substitute for ear."
+    },
+    {
+      "kind": "text",
+      "title": "Compression + dynamic processing",
+      "body": "**Compressor**: reduces dynamic range. When signal exceeds **threshold**, attenuate by **ratio**.\n\n**Parameters**:\n- **Threshold**: level above which compression kicks in.\n- **Ratio**: how much. 4:1 = for every 4 dB above threshold, output rises 1 dB.\n- **Attack**: how fast the compressor reacts. Slow attack (10+ ms) preserves transients; fast (<1 ms) clamps them.\n- **Release**: how fast it stops compressing after signal drops below threshold.\n- **Makeup gain**: amplify the (now-quieter) output back up.\n\n**Goals**:\n- **Control peaks**: prevent unpredictable loudness spikes.\n- **Increase average level**: by reducing peaks, can amplify the rest.\n- **Add 'glue'**: blend tracks together.\n- **Sustain**: longer notes audible.\n- **Tone**: aggressive compression has a sonic character (pumping, thickness).\n\n**Settings + use cases**:\n- **Vocal**: 3-6 dB reduction, ratio 3:1-5:1, fast attack (~5 ms), medium release (~50-100 ms). Keep vocal even.\n- **Drums**: parallel compression — blend compressed copy with original. Heavy compression on the duplicate for impact + body, retain transients from original.\n- **Bus**: 1-3 dB gentle compression on entire mix bus. Glue.\n- **Mastering**: very subtle, < 2 dB.\n\n**Side-chain compression**: trigger compression on track A by signal from track B. Famously: pump bass by kick drum. The kick triggers brief duck on bass → kick punches through; bass returns when kick decays. Used heavily in dance music + modern pop.\n\n**Limiter**: extreme compression with high ratio (∞:1 or 20:1+) + very fast attack. Acts as a brick wall — anything above threshold gets clamped. Used on master to prevent clipping + set final loudness.\n\n**Multi-band compressor**: split signal into frequency bands; compress each independently. Useful when only certain frequencies have problems (e.g., compress lows aggressively, leave mids/highs alone). Used in mastering + bass-control.\n\n**De-esser**: narrowband compressor on 'S' frequencies (~5-10 kHz). Reduces sibilance.\n\n**Soft-knee vs hard-knee**: hard = abrupt onset of compression at threshold. Soft = gradual transition. Soft sounds more natural; hard more 'clamping'.\n\n**RMS vs peak detection**: peak compressors react to instant peaks; RMS to average level. Peak = fast catch; RMS = musical feel."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mix_comp",
+        "kind": "guided_derivation",
+        "question": "Set up vocal compression",
+        "goal": "A vocal has loud + quiet parts. You want to compress for evenness without losing dynamics.",
+        "steps": [
+          {
+            "prompt": "Pick threshold: where do you want compression to kick in? Aim for ~3-6 dB reduction on the loudest parts.",
+            "motivation": "Calibrate.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "At signal peak.",
+                "Slightly below the loud parts; just enough that the compressor 'catches' them. Watch gain reduction meter for ~3-6 dB on loudest segments.",
+                "Way below.",
+                "Way above."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Threshold catches the peaks."
+            ],
+            "reveal": "Set threshold so the loudest parts trigger ~3-6 dB of reduction."
+          },
+          {
+            "prompt": "Pick attack time. For vocals, want some transient through. Approximately?",
+            "motivation": "Transient preservation.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "0.1 ms (very fast).",
+                "~5-10 ms — fast enough to catch sustained loud parts, slow enough to let consonant transients through.",
+                "100 ms (very slow).",
+                "1 sec."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Medium-fast."
+            ],
+            "reveal": "5-10 ms typical. Faster will dull consonants; slower will miss the loud parts."
+          },
+          {
+            "prompt": "Release time?",
+            "motivation": "Recovery.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Instant.",
+                "~50-100 ms typical. Long enough to feel musical, short enough that gaps between words don't pump audibly.",
+                "1 second.",
+                "Same as attack."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Musical."
+            ],
+            "reveal": "50-150 ms. Auto-release (program-dependent) on modern compressors is often best — adapts to material."
+          },
+          {
+            "prompt": "Ratio?",
+            "motivation": "Compression amount.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "1:1 (no compression).",
+                "3:1 to 4:1 typical for vocal. Moderate compression preserving dynamics.",
+                "10:1 (limiting).",
+                "100:1."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Moderate."
+            ],
+            "reveal": "3:1-4:1 for natural-sounding vocal compression. For pop / aggressive style: 5-8:1. Limiting (20:1+) for peaks only."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Vocal compressor: threshold for 3-6 dB GR, attack ~5 ms, release ~50-100 ms, ratio 3-4:1}}$$ These are starting points; tweak by ear. The compressor's job is to make the vocal sit consistently in the mix without sounding 'compressed'. Subtle, transparent compression is the goal. Over-compression flattens the performance + creates pumping artifacts. Pros chain 2-3 light compressors instead of one heavy one for transparency."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mix_gain",
+        "kind": "multiple_choice",
+        "question": "A mix sounds 'thin' even after EQ + compression. What's a likely cause?",
+        "options": [
+          "Bug.",
+          "Gain staging issue: tracks too quiet → master sounds anemic; or some elements clipping internally (especially with summing). Re-check input levels + use proper headroom (peaks around -6 to -12 dBFS during mixing).",
+          "Bad genre.",
+          "Wrong monitor."
+        ],
+        "correctIndex": 1,
+        "explanation": "Gain staging: maintain healthy levels through the mix chain. Modern DAWs at 32-bit float don't clip internally, but plugins (especially analog-modeled ones) may have nonlinear behavior at extreme levels. Best practice: aim for peaks around -6 to -12 dBFS on individual tracks + master bus. Boost LATER (at mastering) to commercial loudness. Mixing too hot leads to constrained dynamics + amplitude-dependent plugin behavior."
+      },
+      "hints": [
+        "What's gain staging?",
+        "Why does it matter?"
+      ],
+      "workedSolution": "Gain staging: managing levels at each stage of the signal chain. Too quiet: lose detail. Too hot: clipping + plugin nonlinearity. Sweet spot: peaks around -6 to -12 dBFS during mixing. Boost loudness at mastering stage, not earlier. Modern DAWs in 32-bit float don't clip internally, but analog-modeled plugins respond differently at extreme levels (which is sometimes desired, sometimes problematic). Match plugin's expected operating level.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mix_ratio",
+        "kind": "math_expression",
+        "question": "Compressor ratio 4:1. Threshold -10 dBFS. Input peaks at -2 dBFS. Output peak (before makeup)?",
+        "acceptedAnswers": [
+          "-8 dBFS",
+          "-8"
+        ],
+        "hint": "-10 + (-2-(-10))/4 = -10 + 2 = -8."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mix_vocal",
+        "kind": "scenario",
+        "question": "A vocal that won't sit in the mix",
+        "prompt": "Despite EQ + compression, a lead vocal sounds 'buried'. Walk through the diagnostic steps."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mix",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why EQ is foundational to mixing despite being one of the simplest concepts.",
+        "rubric": "Mentions that EQ shapes the timbre of every track; carving frequency space prevents masking + makes each element distinct; subtle moves (1-3 dB) often more effective than dramatic ones. Without proper EQ, the densest mixes become a muddy mess. EQ is the first tool of the mixing engineer + remains the most-used throughout the chain."
+      }
+    }
+  ]
+}

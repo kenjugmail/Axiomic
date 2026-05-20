@@ -1952,6 +1952,26 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P18 — Audio Engineer / Music Producer path. Acoustics +
+  // psychoacoustics, digital audio + DSP, mixing + dynamics,
+  // synthesis, mastering + LUFS, spatial audio, DAWs + plugins.
+  seedMasteryPath({
+    slug: "audio-engineer",
+    title: "Audio Engineer",
+    description:
+      "From acoustic + psychoacoustic foundations through Nyquist sampling, FFT-based DSP, EQ + compression mixing, subtractive + FM + wavetable synthesis, LUFS-aware mastering, binaural + Atmos spatial audio, and DAW + plugin ecosystems. Music production + audio engineering end-to-end.",
+    nodes: [
+      { slug: "acoustics-and-psychoacoustics", title: "Acoustics + Psychoacoustics", level: "apprentice", order: 1, pages: ["sound-waves-spl", "equal-loudness", "masking-critical-bands"], prereqs: [], description: "Sound wave properties + SPL, Fletcher-Munson equal-loudness contours, auditory masking + critical bands." },
+      { slug: "digital-audio-fundamentals", title: "Digital Audio Fundamentals", level: "practitioner", order: 2, pages: ["nyquist-sampling", "bit-depth-dither", "aliasing"], prereqs: ["acoustics-and-psychoacoustics"], description: "Nyquist-Shannon sampling, bit depth + dynamic range + dithering, aliasing + oversampling." },
+      { slug: "dsp-and-fft", title: "DSP + FFT", level: "practitioner", order: 3, pages: ["fft", "spectrogram-stft", "fir-iir"], prereqs: ["digital-audio-fundamentals"], description: "DFT/FFT + frequency resolution, spectrogram + STFT + mel-spec, FIR vs IIR digital filters." },
+      { slug: "mixing-and-dynamics", title: "Mixing + Dynamics", level: "specialist", order: 4, pages: ["mixing-workflow", "eq", "compression"], prereqs: ["dsp-and-fft"], description: "Mixing workflow + gain staging, EQ + frequency tuning, compression + side-chain + parallel processing." },
+      { slug: "synthesis-techniques", title: "Synthesis Techniques", level: "specialist", order: 5, pages: ["subtractive-analog", "fm-additive-wavetable", "polyphony"], prereqs: ["dsp-and-fft"], description: "Subtractive analog synthesis, FM + additive + wavetable + granular, polyphony + voice management." },
+      { slug: "mastering", title: "Mastering + LUFS", level: "expert", order: 6, pages: ["loudness-war-lufs", "mastering-chain", "delivery-formats"], prereqs: ["mixing-and-dynamics"], description: "LUFS + the end of the loudness war, mastering chain (EQ + multi-band + saturation + limiter), delivery formats (CD, streaming, vinyl)." },
+      { slug: "spatial-audio", title: "Spatial Audio (Stereo + Atmos + Binaural)", level: "specialist", order: 7, pages: ["stereo-perception", "surround-atmos", "binaural-hrtf"], prereqs: ["acoustics-and-psychoacoustics"], description: "Stereo perception + ITD/ILD, surround + Dolby Atmos object-based, binaural rendering via HRTF + VR." },
+      { slug: "music-tech-and-daws", title: "Music Tech + DAWs", level: "specialist", order: 8, pages: ["daw-overview", "midi", "plugin-ecosystem"], prereqs: ["digital-audio-fundamentals"], description: "DAWs (Logic / Pro Tools / Live / FL), MIDI + MPE, plugin formats + ecosystem + AI tools." },
+    ],
+  });
+
   // P17 — UX Designer path. Design-discipline complement to
   // frontend-engineer: research, IA, interaction principles,
   // typography, prototyping, usability, design systems,

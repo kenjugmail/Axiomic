@@ -1,0 +1,151 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "specialist",
+    "objectives": [
+      "Distinguish subtractive, FM, additive, wavetable, granular synthesis.",
+      "Outline the analog-style synthesizer signal chain.",
+      "Reason about polyphony + voice management."
+    ],
+    "prereqs": [
+      "dsp-and-fft"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Subtractive synthesis: the analog model",
+      "body": "**Subtractive synthesis**: start with a harmonically-rich waveform; SUBTRACT (filter) frequencies to shape the tone.\n\n**Classic analog signal chain** (Moog, ARP, Roland Jupiter):\n```\nOscillator(s) → Mixer → Filter (VCF) → Amplifier (VCA) → Output\n                        ↑              ↑\n                  Envelope (ADSR) → Envelope (ADSR)\n                  LFO modulation\n```\n\n**Oscillator (VCO — Voltage Controlled Oscillator)**:\n- **Sine**: pure tone, single frequency. Used for sub-bass.\n- **Triangle**: smoother than square; some harmonics.\n- **Sawtooth**: all harmonics. Bright, buzzy.\n- **Square / pulse**: odd harmonics. Hollow.\n- **PWM (Pulse Width Modulation)**: varying pulse width creates time-varying timbre.\n\nDigital VAs (Virtual Analog) use band-limited oscillators (PolyBLEP, MinBLEP) to avoid aliasing.\n\n**Filter (VCF — Voltage Controlled Filter)**: heart of the sound.\n- **Low-pass (most common)**: removes highs above cutoff.\n- **High-pass**: removes lows.\n- **Band-pass**: passes a range.\n- **Notch**: removes a range.\n- **Resonance**: feedback at cutoff frequency; can self-oscillate.\n\n**Envelope (ADSR — Attack, Decay, Sustain, Release)**:\n- **Attack**: rise time to peak.\n- **Decay**: fall to sustain level.\n- **Sustain**: held level while key down.\n- **Release**: fall to zero after key release.\n\n**LFO (Low Frequency Oscillator)**: sub-audio modulator. Wobbles parameters (filter cutoff for wah, pitch for vibrato, amplitude for tremolo).\n\n**Amplifier (VCA — Voltage Controlled Amplifier)**: gates the sound based on envelope. Controls dynamics.\n\n**Modulation matrix**: route LFOs + envelopes to ANY parameter. The flexibility that makes analog-style synths expressive. Modern softsynths (Massive X, Serum, Phase Plant) have huge modulation matrices."
+    },
+    {
+      "kind": "text",
+      "title": "FM + additive + wavetable + granular",
+      "body": "**FM (Frequency Modulation) synthesis** (Chowning 1973, Yamaha DX7 1983): one oscillator's frequency modulates another's. Generates rich, complex spectra from simple primitives. Bell tones, metallic timbres, electric pianos. DX7's iconic electric piano sound was FM.\n\nMath: $y(t) = \\sin(2\\pi f_c t + I \\sin(2\\pi f_m t))$. Modulating wave at $f_m$ shifts carrier's instantaneous frequency. Index $I$ controls modulation depth. Frequencies + modulation depth determine harmonic content.\n\n**Additive synthesis**: build complex sound by ADDING many sine waves with different frequencies + amplitudes + envelopes. Each partial separately controlled. Powerful but expensive (CPU + parameter count).\n\nNotable additive synths: Hammond organ (sliders for harmonic levels), Kawai K5, modern: Loom, Razor, Image-Line Harmor.\n\n**Wavetable synthesis**: oscillator's waveshape is a TABLE of samples that can be morphed across position. Each table position is a single-cycle waveform. Sweep through table for evolving tone. Used in Serum, Vital, Massive X, Pigments. The defining synthesis of modern electronic + EDM.\n\n**Sample-based + ROMpler**: triggered samples instead of synthesized oscillators. Kontakt, Omnisphere, Native Instruments libraries. Best of both: realistic acoustic emulations + synthesis flexibility.\n\n**Granular synthesis**: chop audio into tiny grains (~10-100 ms); rearrange / loop / pitch-shift them. Creates atmospheric textures from any source material. Used in cinematic + ambient music. Examples: Granulator (Ableton), Output Portal, Output Movement.\n\n**Physical modeling**: simulate physics of acoustic instruments (struck strings, plucked, bowed, blown). Used in pianos, percussion, wind. Examples: Pianoteq, Roland VP-9000, Logic Sculpture.\n\n**Modular synthesis**: connect components freely (oscillators, filters, envelopes, modulators) via patch cables. Eurorack (1990s+) revived modular. Software equivalents: VCV Rack, Bitwig Modules.\n\n**Modern hybrid synths** (Serum, Phase Plant, Pigments, Massive X): combine multiple synthesis types: wavetable + FM + analog + sample + granular. Unprecedented sonic flexibility."
+    },
+    {
+      "kind": "text",
+      "title": "Polyphony + voice management",
+      "body": "**Polyphony**: number of simultaneous notes a synth can play.\n\n- **Monophonic**: one note at a time. Classic Minimoog, Yamaha CS-10. Many bass + lead synths.\n- **Polyphonic**: multiple notes. From 4-voice (Oberheim 4-Voice) to ~64+ voices in modern softsynths.\n- **Unison**: same note across multiple voices, detuned slightly. Thick, wide sound. Common for leads + supersaws.\n\n**Voice stealing**: when polyphony limit reached + new note triggered. Drop oldest, lowest-velocity, or oldest-with-release. Algorithm choices affect feel.\n\n**Voice management challenges**:\n- **CPU**: each voice = oscillators + filters + envelopes computed in parallel. 32 voices × 4 oscillators × 1024 samples per buffer = lots of compute.\n- **Latency**: must initiate voice in same buffer as MIDI note. Plugins set audio callback latencies typically ≤6 ms.\n- **Glide / portamento**: smooth pitch transitions in monophonic mode.\n- **Legato vs retrigger**: when sliding to a new note, retrigger envelope or continue?\n\n**Synthesis CPU bottleneck**: modern softsynths can use 5-30% CPU per instance with all features (oversampling, multiple oscillators, filter modeling). Stack 10+ instances + a track gets heavy. Bouncing to audio = standard performance hack.\n\n**Latency-vs-quality plugin design**:\n- Lookahead processing (transient detection, linear-phase EQ) increases latency.\n- Compensated by DAW automatically.\n- Live performance: zero-latency settings prioritized.\n\n**Plugin formats**: VST3, AU (Apple), AAX (Pro Tools), CLAP (modern open). Cross-platform plugins built once + targeted at multiple formats. CLAP is gaining ground as open standard for innovative plugin features (per-note modulation, polyphonic modulation routing).\n\n**MPE (MIDI Polyphonic Expression)**: each NOTE has independent per-channel pitch bend + modulation. Enables expressive per-finger control (ROLI Seaboard, Linnstrument, Lightpad). Modern softsynths increasingly support MPE."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_synth_fm",
+        "kind": "guided_derivation",
+        "question": "Compute FM synthesis spectrum",
+        "goal": "FM synth: carrier $f_c = 200$ Hz, modulator $f_m = 100$ Hz, modulation index $I = 2$. Bessel-function analysis gives sidebands at $f_c \\pm n f_m$ for $n = 0, 1, 2, ...$",
+        "steps": [
+          {
+            "prompt": "Frequencies of sidebands?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Only 200 Hz.",
+                "200, 300, 400, 500, ..., 100, 0, -100... (= 100, 200, 300 ...). Aliased side-band stack.",
+                "Random.",
+                "Just 100 + 200."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "$f_c + n f_m$ + $f_c - n f_m$."
+            ],
+            "reveal": "Positive sidebands: 300, 400, 500, ... Hz. 'Negative' sidebands wrap: 100, 0 (DC), -100→100 Hz (sign flip is phase). Full spectrum at 0, 100, 200, 300, 400, ... Hz."
+          },
+          {
+            "prompt": "Bessel amplitudes $J_n(I=2)$: $J_0(2) \\approx 0.22$, $J_1(2) \\approx 0.58$, $J_2(2) \\approx 0.35$, $J_3(2) \\approx 0.13$. Strongest sideband?",
+            "motivation": "Bessel max.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "DC (n=0).",
+                "n=1 sidebands at $f_c \\pm f_m$ = 100 + 300 Hz. Largest Bessel amplitude at this modulation index.",
+                "n=10.",
+                "All equal."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "J_1 highest at I=2."
+            ],
+            "reveal": "n=1 sidebands (100 + 300 Hz). At modulation index $I$, peak Bessel coefficient shifts: $I=0$ → only carrier; $I=1$ → spread to J_0/J_1; higher I → wider spectrum."
+          },
+          {
+            "prompt": "If $f_c$ / $f_m$ ratio is INTEGER (200/100 = 2 here), spectrum is HARMONIC. If non-integer, INHARMONIC (bell-like). FM's signature trick.",
+            "motivation": "Application.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Doesn't matter.",
+                "Integer ratios → harmonic series → 'pitched' instrument timbres (electric piano, bass). Non-integer → inharmonic spectra → bells, gongs, metallic percussion. Classic FM trick for synthetic bells.",
+                "Always harmonic.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Ratio determines tone family."
+            ],
+            "reveal": "Integer $f_c/f_m$ → pitched tones. Irrational ratios → bells. DX7 patches exploit this — change ratios for different instrument families. Yamaha's 'algorithm' was the connectivity pattern (which operator modulated which)."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{FM: spectrum at } f_c \\pm n f_m \\text{, amplitudes from Bessel } J_n(I)}$$ FM's beauty: rich, complex spectra from 2 oscillators + an index. The DX7's 32 voices × 6 operators × 32 algorithms produced an enormous variety of sounds from minimal hardware. Yamaha shipped 200K+ DX7s in the 1980s. FM remains a staple in modern softsynths (FM8, Phase Plant, Serum's FM mode)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_synth_polyphony",
+        "kind": "multiple_choice",
+        "question": "A user complains that their softsynth 'cuts out' notes when playing chords. Likely cause?",
+        "options": [
+          "Bug.",
+          "Polyphony limit reached → voice stealing. Increase polyphony cap in synth settings. Trade-off: more voices = more CPU. Bouncing to audio reduces real-time CPU + frees up resources.",
+          "Bad MIDI.",
+          "Wrong key."
+        ],
+        "correctIndex": 1,
+        "explanation": "Synth voice stealing: when polyphony limit (typically 8-64 voices) reached, new notes steal oldest/quietest. Symptoms: chords cut, sustained notes drop, expressive parts lose detail. Fix: raise voice limit. Cost: CPU. Hot-track plugins can use 30%+ CPU per instance with heavy patches. Bouncing problematic tracks to audio frees CPU. Many synths default to 16-32 voices; increase for piano/chord-heavy use."
+      },
+      "hints": [
+        "What is voice stealing?",
+        "Fix?"
+      ],
+      "workedSolution": "Voice stealing: when voice limit reached, oldest/quietest voice replaced by new note. Algorithms vary; some prioritize sustain-on, others time-since-on. Symptoms: cut chords, dropped sustained notes. Fixes: increase poly limit (more CPU), bounce to audio, use different synth, simplify patch (fewer oscillators per voice).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_synth_voices",
+        "kind": "math_expression",
+        "question": "Synth with 16 voices, 4 oscillators each, 1024 samples/buffer. Sample operations per buffer?",
+        "acceptedAnswers": [
+          "~65000",
+          "65536",
+          "64*1024"
+        ],
+        "hint": "16×4×1024 ≈ 65K."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_synth_lead",
+        "kind": "scenario",
+        "question": "Designing a synth lead",
+        "prompt": "A producer wants a 'massive lead' for a track. Walk through synthesis choices: oscillator type, unison voices, filter, modulation."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_synth",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why wavetable synthesis became the dominant synthesis paradigm in modern electronic music production.",
+        "rubric": "Mentions that wavetable enables vast timbre variation by morphing through tables; combines harmonic richness of analog with computational efficiency + UI tractability; allows artists to create complex evolving tones with simpler modulation routes. Serum + Vital + Massive X have made wavetable the default for many genres."
+      }
+    }
+  ]
+}
