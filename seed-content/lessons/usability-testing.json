@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "specialist",
+    "objectives": [
+      "Outline a usability test protocol.",
+      "State the think-aloud method.",
+      "Reason about task-success metrics + SUS."
+    ],
+    "prereqs": [
+      "user-research-and-interviews"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Usability test fundamentals",
+      "body": "**Usability test**: observe users attempting tasks with your product (real or prototype). Identify problems they encounter.\n\nNOT a focus group, NOT a survey. Centered on observed BEHAVIOR.\n\n**Protocol** (typical 60-min session):\n1. **Intro + consent** (~5 min): explain purpose, recording, anonymity.\n2. **Warm-up questions** (~5 min): background, current tools.\n3. **Tasks** (~40 min): user attempts 5-10 tasks. Researcher observes.\n4. **Post-task questions** (~5 min): What was easy/hard? Suggestions?\n5. **Debrief** (~5 min): thank user, schedule incentive.\n\n**Task design**:\n- **Realistic**: 'Find a doctor accepting your insurance' (real goal) vs 'Click the search button' (telegraphing).\n- **Specific**: clear success criterion.\n- **Independent**: tasks don't reveal info needed for later tasks.\n- **Increasing complexity**: easy first; build confidence.\n\n**Moderator's role**:\n- DON'T help (defeats purpose).\n- DON'T lead ('you can find it under Settings...').\n- DO encourage talking ('tell me what you're thinking').\n- DO observe + take notes.\n- ASK after each task: 'How was that?'\n\n**5 users find 80% of issues** (Nielsen): per usability discovery.\n\n**Remote unmoderated**: tool (UserTesting, Maze, Lookback) sends task script; users record themselves attempting tasks. Cheap + scaled (50+ users in days). Less depth than moderated.\n\n**Remote moderated**: Zoom + screen-share. Common since 2020.\n\n**In-person**: classic. Better for niche populations (need testing equipment, can build rapport)."
+    },
+    {
+      "kind": "text",
+      "title": "Think-aloud method",
+      "body": "**Think-aloud protocol**: user verbalizes their thoughts while attempting task.\n\nExample:\n> 'Okay, I want to find a doctor. I see a search bar at the top, but it says 'search the site' which is vague. Maybe I should try the menu... I see 'Find a Provider' here, that sounds right. I'm going to click it...'\n\nReveals MENTAL MODEL, CONFUSION POINTS, REASONS for choices. A user who silently completes the task in 30 sec teaches less than a user who narrates their journey.\n\n**Concurrent think-aloud**: think + perform simultaneously. Most common.\n\n**Retrospective think-aloud**: do task silently; afterward, watch video + narrate. Used when concurrent disrupts performance (e.g., timing-sensitive tasks).\n\n**Coaching the think-aloud**: many users go silent. Prompt:\n- 'What are you thinking?'\n- 'What's going through your mind?'\n- 'What do you expect to happen?'\n\nDON'T ask leading questions ('Are you confused?'). DON'T fill silence with explanation.\n\n**Behavioral indicators of usability issues**:\n- **Hesitation**: user pauses to read or scan.\n- **Backtracking**: user reverses; took wrong path.\n- **Repeated attempts**: tried something, didn't work, tried again.\n- **Frustration**: sighs, muttering.\n- **Misuse**: tried to do task in a way the design didn't anticipate.\n- **Errors**: clicked wrong thing.\n- **Abandonment**: gave up.\n\n**Severity ratings**: post-test, classify issues:\n- **Cosmetic** (rating 1): minor irritation; fix when convenient.\n- **Minor** (2): occasional difficulty; fix in next sprint.\n- **Major** (3): regularly impedes; fix soon.\n- **Catastrophic** (4): users cannot complete; fix immediately.\n\nFocus on Major + Catastrophic. Cosmetic issues consume disproportionate dev time; fix only when easy."
+    },
+    {
+      "kind": "text",
+      "title": "Success metrics + System Usability Scale",
+      "body": "**Task-success metrics**:\n- **Success rate**: % of users who completed the task. Goal: ≥80% for primary tasks.\n- **Time on task**: how long. Compare to expected baseline; aim to reduce in iterations.\n- **Errors**: number of mistakes (wrong clicks, dead-ends).\n- **Assists**: how often moderator had to intervene (give 1 = task failed).\n- **Satisfaction**: post-task Likert ('1=very difficult, 5=very easy').\n\n**System Usability Scale (SUS)** (Brooke 1996): the most-used standardized usability questionnaire. 10 questions, alternating positive/negative, 5-point Likert.\n```\n1. I think that I would like to use this system frequently.\n2. I found the system unnecessarily complex.\n3. I thought the system was easy to use.\n4. I think that I would need the support of a technical person to be able to use this system.\n... (10 total)\n```\nScoring: each question 0-4 (subtract 1 from positive, subtract from 5 for negative); sum × 2.5 = SUS score (0-100).\n\n- SUS ≥ 80: excellent.\n- SUS 68-80: good.\n- SUS 50-68: OK.\n- SUS < 50: poor.\n\nBenchmark across products + iterations.\n\n**Other questionnaires**:\n- **UMUX-Lite** (User Experience Lite): 4 items, faster.\n- **NPS (Net Promoter Score)**: 'how likely to recommend' 0-10. Loyalty proxy. Disliked by some (oversimplified) but heavily used.\n- **CSAT (Customer Satisfaction)**: simple satisfaction 1-5 per interaction.\n- **CES (Customer Effort Score)**: 'how easy was it to ___' 1-7. Strongly correlated with loyalty.\n\n**Google's HEART framework**: track Happiness, Engagement, Adoption, Retention, Task success. Combine into a dashboard for ongoing product health.\n\n**Logging + analytics**: complement usability tests. A/B tests measure WHICH design wins. Funnels show WHERE users drop off. Heatmaps show WHERE attention goes. Combined with usability tests, you have a complete picture: WHAT problems exist + HOW MANY users encounter them."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_test_n",
+        "kind": "guided_derivation",
+        "question": "Run a usability test",
+        "goal": "Product: a tax-filing app. New onboarding redesigned. Plan a usability test.",
+        "steps": [
+          {
+            "prompt": "Sample size?",
+            "motivation": "Nielsen's rule + segments.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "50 users.",
+                "5-8 users per primary user segment. For tax-filing, you might have 'simple W-2 filer' + 'self-employed' + 'tax professional' segments. 5 of each = 15 total.",
+                "1.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "5/segment, with segments."
+            ],
+            "reveal": "5-8 per segment. Tax-filing might have 2-4 segments (simple, self-employed, complex). 15-20 users total."
+          },
+          {
+            "prompt": "Tasks?",
+            "motivation": "Realistic + key flows.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Examples: 'Start your tax return for the year' (covers onboarding), 'Add your W-2 income', 'Find where to enter business expenses' (self-employed-specific), 'Review your return before filing'. Realistic, specific.",
+                "Click every button.",
+                "Wait."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Key flows."
+            ],
+            "reveal": "Realistic tasks covering primary user goals + edge cases. Avoid leading words ('search', 'menu')."
+          },
+          {
+            "prompt": "Key metrics?",
+            "motivation": "Mix of measures.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Time only.",
+                "Mix: completion rate per task; time per task; assists (did mod help?); errors; post-task ease rating; overall SUS at end.",
+                "Just SUS.",
+                "Just clicks."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Behavioral + perceptual."
+            ],
+            "reveal": "Behavioral (completion, time, errors) + perceptual (post-task ease, SUS). Triangulate: data point alone is noise; combined picture is signal."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Usability test: small N, real tasks, observe + quantify}}$$ Modern usability testing combines moderated tests (deep insight, 5-10 users) + unmoderated (broader sample, 20-50) + analytics (real-world prevalence). Each method answers different questions. A mature UX team runs all three regularly. The combined evidence is what informs design iteration + roadmap."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_test_sus",
+        "kind": "multiple_choice",
+        "question": "Your new design's SUS score is 72. The previous version was 68. Is the change significant?",
+        "options": [
+          "No way to know.",
+          "Statistically: 4-point SUS difference with reasonable sample (15-30 users) is borderline. Would need ~30+ users for statistical significance at this effect size. Both scores are 'good' range; the improvement may or may not be real. Run more tests + look at task-level metrics for confirmation.",
+          "Yes, huge.",
+          "Doesn't matter."
+        ],
+        "correctIndex": 1,
+        "explanation": "SUS uncertainty: small sample (5-10 users) has noise ±5 points easily. To detect 4-point difference reliably, need 30+ users. With 15: borderline. Look at confidence intervals; complement with task-level metrics + qualitative findings. Don't make decisions on SUS alone; triangulate with completion rates + observed problems. Both 68 + 72 are 'good' so prioritize qualitative improvement over chasing the SUS number."
+      },
+      "hints": [
+        "How precise is SUS at small N?",
+        "What else to look at?"
+      ],
+      "workedSolution": "SUS with N=10 has ~5-7 point uncertainty (95% CI). 4-point difference: not reliably distinguishable. Triangulate: task completion rates, time-on-task, qualitative issues observed. Use SUS as one number among many. Don't tune designs to chase SUS — fix observed problems + SUS will follow.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_test_sus",
+        "kind": "math_expression",
+        "question": "SUS questionnaire raw sum after subtraction is 30 (max 40). Final SUS score?",
+        "acceptedAnswers": [
+          "75"
+        ],
+        "hint": "30 × 2.5."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_test_remote",
+        "kind": "scenario",
+        "question": "Choosing between moderated + unmoderated tests",
+        "prompt": "Your team has \\$5K + 2 weeks to test a redesigned signup flow. Walk through whether to do 8 moderated sessions or 40 unmoderated."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_test",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why behavioral metrics (completion, time, errors) should generally be weighted more than self-reported satisfaction in usability tests.",
+        "rubric": "Mentions that users often rate poor designs as 'fine' (politeness, low expectations); behavioral metrics reveal struggle the user might minimize verbally; combined behavioral + self-report gives the full picture; designs should be judged primarily on whether users CAN complete tasks, secondarily on whether they ENJOY the journey."
+      }
+    }
+  ]
+}

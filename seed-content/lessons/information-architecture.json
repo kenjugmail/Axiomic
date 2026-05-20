@@ -1,0 +1,151 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "core",
+    "objectives": [
+      "State the principles of information architecture.",
+      "Apply card sorting + tree testing.",
+      "Reason about navigation models."
+    ],
+    "prereqs": [
+      "user-research-and-interviews"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Information architecture fundamentals",
+      "body": "**Information Architecture (IA)** = how content is organized + labeled + made findable.\n\nA confused IA = users can't find features that exist. A well-designed IA = invisible — users get to what they need with minimal effort.\n\n**Building blocks** (Rosenfeld + Morville 'Information Architecture' classic):\n- **Organization systems**: how content is grouped. Examples: alphabetical, chronological, by topic, by user task, by audience.\n- **Labeling systems**: how groups + items are named.\n- **Navigation systems**: how users move between sections. Global, local, contextual nav.\n- **Search systems**: how users find specific items.\n\n**Hierarchies vs networks vs facets**:\n- **Hierarchy** (tree): folders within folders. Filesystems, traditional websites.\n- **Network**: items connected to each other. Wikipedia (links between articles).\n- **Faceted**: items tagged with multiple attributes. E-commerce filters (size, color, brand, price).\n\nReal products use combinations. Amazon: hierarchy of categories + faceted filtering + search + recommendations (network-like).\n\n**Affordance of labels**: words matter. 'My Account' vs 'Settings' vs 'Profile' — each implies different content. Test labels with users; their words often differ from yours.\n\n**Common mistakes**:\n- **Mirror organizational structure**: 'Marketing', 'Sales', 'Engineering' on a public website. Users don't care about your org chart.\n- **Too many top-level items**: navigation overwhelm. Hick's Law: more options = longer decision time.\n- **Jargon labels**: 'Synergistic Solutions' vs 'How We Help'.\n- **Mystery meat navigation**: icons without text labels.\n- **Deep hierarchy**: 6 levels deep → users get lost."
+    },
+    {
+      "kind": "text",
+      "title": "Card sorting + tree testing",
+      "body": "**Card sorting**: research method for IA. Users sort content cards into groups OF THEIR CHOOSING.\n\n**Open card sort**: users create their own categories. Reveals natural mental models.\n**Closed card sort**: users sort cards into PRE-DEFINED categories. Tests if your structure works.\n**Hybrid**: provide some categories + let users add more.\n\nProcedure:\n1. Write content topics on cards (or use a tool: Optimal Workshop, UserZoom, kardsort.com).\n2. ~15-30 users (online or in-person).\n3. Each user groups cards + labels groups.\n4. Aggregate results: similarity matrix → cluster analysis → suggests organization.\n\n**Tree testing**: validate a proposed IA without designing a UI.\n- Show users a TEXT-ONLY tree of the navigation (just labels).\n- Give them tasks ('find the return policy').\n- Measure: did they click the correct path? How long?\n- Result: a TREE STRUCTURE that doesn't work isn't going to work as a UI.\n\nTools: Treejack (Optimal Workshop), UserZoom, Maze.\n\n**Findability metrics**:\n- **Success rate**: % of users who find the right item.\n- **Time on task**: how long it took.\n- **Directness**: did they backtrack? Took the most-direct path?\n- **First-click**: where they clicked first; correlates strongly with eventual success (Bob Bailey's research: 87% of users who first-click correctly succeed; 46% if first-click wrong).\n\n**Iteration**: rarely is the first IA right. 2-3 rounds of card-sort + tree-test typical for major projects. Cheaper to iterate on IA than on built UI."
+    },
+    {
+      "kind": "text",
+      "title": "Navigation models + IA patterns",
+      "body": "**Common navigation patterns**:\n\n- **Global nav**: persistent across pages. Top horizontal or left vertical. Top-level sections.\n- **Local nav**: within a section. Sub-pages.\n- **Contextual nav**: 'See also' related items.\n- **Breadcrumbs**: path showing where you are. Helps recovery + orientation.\n- **Hamburger menu**: hidden navigation behind icon. Saves space but reduces discoverability. Mobile-friendly but reduces engagement; trade-off.\n- **Tab bar (mobile)**: 3-5 top-level destinations at bottom of screen. iOS HIG + Material Design standard.\n- **Search**: complement to nav. Some users prefer to search; others browse.\n\n**Faceted navigation** (e-commerce): filter by multiple attributes simultaneously. Common: category + price + brand + ratings + availability.\n- Combine filters with AND (narrow) or OR (broaden).\n- Show counts ('Red (124)', 'Blue (87)') so users see options + scale.\n- Persistent filters: when user navigates pages within a category, filters stay.\n\n**Search affordances**:\n- Autocomplete + suggestions.\n- Recent searches.\n- Search-result filters (mini-facets).\n- Result counts + pagination.\n- 'Did you mean?' spelling correction.\n\n**Information scent** (Pirolli + Card): users follow 'cues' that suggest the right content is at a particular link. Bad labels = weak scent = users give up.\n\n**Modern IA challenges**:\n- **Personalization**: amazon's homepage tailored per user. Pros: relevance. Cons: missing 'discovery' across edges of personalization.\n- **AI-driven search + summarization**: Bing, Perplexity, ChatGPT bypass traditional IA. Users ask in natural language; AI synthesizes.\n- **Voice + ambient**: Alexa, Siri navigation is fundamentally linear (no visual tree).\n- **Cross-device**: phone + tablet + desktop + watch. IA must adapt to screen size + interaction mode."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ia_carsort",
+        "kind": "guided_derivation",
+        "question": "Run a card sort",
+        "goal": "Project: redesign a hospital's website. Cards: 'Find a doctor', 'Pay bill', 'Get directions', 'Book appointment', 'Medical records', 'Patient FAQ', 'Volunteer', 'Research papers', 'Press room', 'Careers', 'Donate', 'About leadership'.",
+        "steps": [
+          {
+            "prompt": "12 cards. How should you run the card sort?",
+            "motivation": "Procedure.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "1 user.",
+                "~15-30 users; OPEN sort (let users create categories). After all results aggregate via similarity-matrix clustering.",
+                "100s in one sort.",
+                "Survey."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Standard card sort N."
+            ],
+            "reveal": "15-30 users, open sort, online tool. Each user organizes cards into groups of their choosing, labels groups."
+          },
+          {
+            "prompt": "Likely user-driven groupings?",
+            "motivation": "Predict mental model.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Doctor / Bill / Directions.",
+                "Three rough buckets: 'Get care' (find doctor, book appt, records, FAQ), 'Logistics' (pay bill, directions), 'About' (research, careers, donate, volunteer, press, leadership).",
+                "Random.",
+                "Just one bucket."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Mental model: patient tasks, logistics, org info."
+            ],
+            "reveal": "Roughly: patient tasks vs operational tasks vs institutional info. Most patients won't care about 'research' or 'press'; group those into one less-prominent area."
+          },
+          {
+            "prompt": "If 60% of users group 'Volunteer' with 'Donate' + 30% with 'Careers' + 10% with 'About', what does that suggest about labeling?",
+            "motivation": "Aggregate signal.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "No signal.",
+                "Strong signal: 'Volunteer' fits with 'support the hospital' (with 'Donate'). Combine + label as 'Get Involved' or similar. The minority 'Careers' interpretation may reflect 'how can I work here' confusion — worth follow-up.",
+                "Always Careers.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Majority signal."
+            ],
+            "reveal": "Combine Volunteer + Donate into 'Support / Get Involved'. The 'Careers' minority view suggests some users see Volunteer as a 'job-like' thing; worth investigating with follow-up."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Card sort: discover users' mental models; tree test: validate proposed structure}}$$ The IA design loop: card sort (open) → propose hierarchy → tree test (closed) → iterate. The output is a sitemap + nav structure validated to work for users. Cheaper to do this 3 times in early design than to rebuild navigation after launch. Standard tool kit: Optimal Workshop, UserZoom, Maze. Reasonable cost (~\\$100s for online studies)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ia_hick",
+        "kind": "multiple_choice",
+        "question": "Hick's Law states reaction time grows logarithmically with the number of choices. How should this affect navigation design?",
+        "options": [
+          "Doesn't matter.",
+          "More options = longer decision time. So: limit top-level nav items (~7±2 is comfortable, follows Miller's number), use clear categories rather than long lists, progressive disclosure (show less, reveal more on hover/click). Balance: too few items hides options.",
+          "Show all options.",
+          "No options."
+        ],
+        "correctIndex": 1,
+        "explanation": "Hick's Law: $T = a + b \\log_2(n)$ where $n$ is number of options. More choices = slower. Implication: minimize top-level nav items (5-7 typical), group related items into submenus, use search + recommendations to reduce browsing cost. Trade-off: too few items can hide important features. The Goldilocks is often 5-9 top-level items, well-named, with submenu hover/click."
+      },
+      "hints": [
+        "What's Hick's Law?",
+        "How apply to nav?"
+      ],
+      "workedSolution": "$T \\propto \\log n$ for $n$ choices. Implication: limit top-level navigation items; group + nest. Miller's '7±2' as a target (working-memory limit). Modern best practice: 5-7 top-level items, well-labeled, with progressive disclosure (hover, click) for sub-items. Counter-balance: hiding important items behind drill-downs hurts discoverability.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ia_hick",
+        "kind": "math_expression",
+        "question": "Hick's Law: $T = 0.2 + 0.1 \\log_2(n)$ sec for $n$ choices. T at 8 choices vs 16?",
+        "acceptedAnswers": [
+          "0.5 vs 0.6",
+          "0.5, 0.6",
+          "0.5 and 0.6"
+        ],
+        "hint": "0.2 + 0.1×3 = 0.5; 0.2 + 0.1×4 = 0.6."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ia_nav",
+        "kind": "scenario",
+        "question": "Reorganizing a confusing site",
+        "prompt": "Users frequently complain they can't find features that exist on a SaaS product's nav. Walk through how to diagnose + fix using card sort + tree test."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ia",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why good information architecture is invisible to users.",
+        "rubric": "Mentions that when IA matches users' mental models + tasks, users get to what they need quickly without thinking; bad IA makes users CONSCIOUSLY navigate (back-tracking, hunting); the invisibility of good IA is why it's underappreciated + under-invested; the principle: design for the user's task, not the organizational structure."
+      }
+    }
+  ]
+}

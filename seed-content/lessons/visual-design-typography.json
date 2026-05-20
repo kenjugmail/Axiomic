@@ -1,0 +1,147 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "core",
+    "objectives": [
+      "Outline typography fundamentals (type, hierarchy, scale).",
+      "State the role of grids + whitespace.",
+      "Reason about color systems + accessibility."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Typography fundamentals",
+      "body": "Typography is the design of TEXT. Most UI is text; typography shapes most of the visual experience.\n\n**Typeface vs font**:\n- **Typeface**: family (Helvetica, Inter, Roboto).\n- **Font**: a specific weight + style + size (Helvetica Bold 14pt).\n\n**Classification**:\n- **Serif**: small strokes at letter ends. Garamond, Times. Traditional, formal, used in print.\n- **Sans-serif**: clean letterforms. Inter, Helvetica, Roboto, San Francisco. Default for screens; better readability at small sizes.\n- **Slab serif**: heavy serifs. Roboto Slab, Lora.\n- **Monospace**: fixed-width. Used for code (JetBrains Mono, Fira Code, Source Code Pro).\n- **Display**: decorative, for headlines only.\n\n**Anatomy** (typographer's terms):\n- **x-height**: height of lowercase 'x'. Larger x-height = more readable at small sizes.\n- **Ascender** / **descender**: parts above x-height / below baseline.\n- **Counter**: enclosed space in letters (inside 'O', 'e').\n- **Aperture**: the opening in letters like 'e', 'c'.\n\n**Web fonts**:\n- **System fonts**: -apple-system, BlinkMacSystemFont, 'Segoe UI'. Native to OS. Fast (no download). Used by default for performance + integration.\n- **Custom fonts**: hosted via @font-face. Brand identity. Download cost (~50-300KB per family).\n- **Variable fonts**: single file with multiple weights + widths. Flexibility without bloat.\n\n**Web font formats**:\n- WOFF2: modern standard, brotli-compressed.\n- WOFF: older browsers fallback.\n- TTF/OTF: original formats; large.\n\n**Typographic scale**: ratio between sizes. Common: 1.25 (major third), 1.333 (perfect fourth), 1.5 (perfect fifth). Bigger ratios = more dramatic hierarchy; smaller = subtle. Material design uses 1.25; Apple uses dynamic type with custom scale per platform."
+    },
+    {
+      "kind": "text",
+      "title": "Hierarchy, scale, + whitespace",
+      "body": "**Visual hierarchy**: viewer's eye should be directed to the most-important element first.\n\nTechniques to create hierarchy:\n- **Size**: bigger = more important. H1 > H2 > body.\n- **Weight**: bold > regular > light.\n- **Contrast**: high-contrast (black on white) > low-contrast (gray on light gray).\n- **Color**: bright/saturated > muted.\n- **Position**: top-left receives attention first in LTR cultures (eye-tracking studies).\n- **Spacing**: whitespace around an element draws attention.\n\nCombine techniques but don't overdo. Two strong hierarchies competing = neither dominates.\n\n**Type scale**: define ~5-7 type styles. Don't ad-hoc. Examples:\n```\nh1: 32px / bold / line-height 1.2\nh2: 24px / semibold / 1.3\nh3: 20px / semibold / 1.4\nbody: 16px / regular / 1.5\nsmall: 14px / regular / 1.5\ncaption: 12px / regular / 1.4\n```\n\n**Line height** (leading): vertical space between lines. ~1.2 for headlines; ~1.5 for body. Too tight = hard to read; too loose = lines disconnect.\n\n**Line length**: 50-75 characters per line for body. Too short = jerky eye movement; too long = lose place when wrapping. Use max-width.\n\n**Whitespace** (negative space): essential, not wasted. Whitespace AROUND elements creates hierarchy + reduces cognitive load.\n- Whitespace BETWEEN elements groups (small) or separates (large).\n- Whitespace at PAGE EDGES (gutters) frames content.\n- Whitespace within ELEMENTS (padding) makes them feel touchable + breathable.\n\n**Grids**:\n- 12-column grid (popularized by Bootstrap) is the web standard.\n- Mobile-first: 4 columns mobile, 8 tablet, 12 desktop.\n- Gutters between columns (16-32px).\n- Margins at outer edges.\n\n**Alignment**: align consistently (left, right, center, justified). Mixed alignment = chaos. Left-align for most LTR text; center for short callouts; right-align for numerical columns; avoid justification on screens (causes uneven word spacing)."
+    },
+    {
+      "kind": "text",
+      "title": "Color + accessibility",
+      "body": "**Color in design**: signaling, emotional, hierarchical, branding.\n\n**Color systems**:\n- **HEX** (#FF0000): RGB in hexadecimal.\n- **RGB**: red/green/blue, 0-255 each.\n- **HSL** (hue/saturation/lightness): more intuitive for color picking. Hue is the rainbow position; saturation is intensity; lightness is brightness.\n- **OKLCH** (perceptually uniform): newer, used in modern CSS color functions. Linear in perceived brightness + chroma.\n\n**Color palette** for a product:\n- **Primary**: brand-defining hue. Used for primary actions, brand expression.\n- **Secondary**: supporting hue. Less prominent.\n- **Semantic**: success (green), warning (orange/yellow), error (red), info (blue). Standard meanings.\n- **Neutrals**: grays. 5-10 shades. Used for text, backgrounds, borders.\n\n**Accessibility (WCAG)**:\n- **Contrast ratio**: ratio between foreground + background. Minimum 4.5:1 for body text (WCAG AA); 7:1 for AAA. Larger text (18pt+) can be 3:1.\n- **Color alone**: never use color as the ONLY indicator. Red 'error' should also have icon + text. 8% of men + 0.5% of women are color-blind.\n- **Focus indicators**: keyboard users need to SEE which element has focus. Outline or border on :focus. Many designers remove this for aesthetics — never. WCAG 2.4.7.\n\n**Color blindness types**:\n- **Deuteranopia** (red-green, most common): trouble with red + green.\n- **Protanopia**: similar; red appears darker.\n- **Tritanopia** (blue-yellow): rare.\n- **Achromatopsia** (no color): very rare.\n\n**Tools**:\n- **Color contrast checkers**: WebAIM, Stark plugin.\n- **Simulators**: macOS accessibility settings show grayscale, color-blind modes. Useful for testing.\n- **Palette tools**: Coolors, Paletton, Adobe Color, Tailwind palette.\n\n**Dark mode**:\n- Increasingly standard. iOS/Android system-wide setting.\n- Inversion of background + text + tweaked semantic colors (errors stay red but more muted; borders less harsh).\n- Tokens (next lesson) make dark mode 'just' a token-table swap.\n- 30%+ of users prefer dark mode globally; higher in developer / power-user segments."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_visual_contrast",
+        "kind": "guided_derivation",
+        "question": "Check WCAG contrast",
+        "goal": "Foreground: #767676 gray. Background: #FFFFFF white. WCAG ratio = ?",
+        "steps": [
+          {
+            "prompt": "WCAG contrast formula compares relative luminance: $(L_1 + 0.05)/(L_2 + 0.05)$ where L is luminance + L_1 > L_2. For #FFFFFF, L = 1.0. For #767676, L ≈ 0.18.",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "4.55",
+                "~4.5",
+                "4.5"
+              ]
+            },
+            "hints": [
+              "(1.0 + 0.05) / (0.18 + 0.05) ≈ 4.57."
+            ],
+            "reveal": "~4.57:1."
+          },
+          {
+            "prompt": "WCAG AA requires 4.5:1 for body text. Does this pass?",
+            "motivation": "Compare.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Yes, by a thin margin (4.57 > 4.5).",
+                "No.",
+                "Only for large text.",
+                "Maybe."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Just above threshold."
+            ],
+            "reveal": "Just passes AA. Cutting it close — design-system gray should be slightly darker to provide margin. #757575 ≈ 4.6:1, safer."
+          },
+          {
+            "prompt": "What about WCAG AAA (7:1) requirement?",
+            "motivation": "Stricter.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Yes.",
+                "No — 4.57 < 7. Would need darker gray (e.g., #595959 ≈ 7.0:1).",
+                "Same.",
+                "Different formula."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "7 > 4.57."
+            ],
+            "reveal": "No, fails AAA. For AAA compliance + comfort, use darker text. Many design systems aim for AAA in design tokens; degrade gracefully in some cases."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Contrast ratio} = (L_1 + 0.05)/(L_2 + 0.05); \\geq 4.5 \\text{ for AA, } \\geq 7 \\text{ for AAA}}$$ A core accessibility checkbox. Tools (Stark, WebAIM Contrast Checker, browser DevTools) check this automatically. Design tokens for the design system should pre-clear contrast for every text/background pair. Failing contrast is the #1 most-common accessibility violation in audits."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_visual_blind",
+        "kind": "multiple_choice",
+        "question": "Your design uses RED text to indicate error + GREEN text for success. A user reports they can't tell the difference. Cause?",
+        "options": [
+          "Bug.",
+          "Most likely deuteranopia (red-green color-blindness; ~8% of men). Use color ALONG with icons + text labels, not color alone. Icons (× vs ✓), labels ('Error: ...' / 'Success: ...'), or distinct hue values (orange vs blue) help.",
+          "Bad monitor.",
+          "User error."
+        ],
+        "correctIndex": 1,
+        "explanation": "Color-blindness is common (especially red-green deuteranopia). Designing with color ALONE excludes ~8% of male users + ~0.5% of female users. WCAG 1.4.1 (Use of Color): color must NEVER be the sole means of conveying information. Best practice: pair color with icon + text. E.g., '× Error: invalid email' in red is fine because icon + text carry the message; red alone is not."
+      },
+      "hints": [
+        "What's color blindness?",
+        "What does WCAG require?"
+      ],
+      "workedSolution": "Color blindness affects ~8% of men. WCAG 1.4.1: 'Color is not used as the only visual means of conveying information.' Pair color with icons + labels. Simulators (macOS Accessibility, online tools) test for this. Many internal-tool designers think 'red = bad' is universal — common bug. Designs must work in grayscale + with color-blind simulation.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_visual_scale",
+        "kind": "math_expression",
+        "question": "Type scale with ratio 1.25, base 16px. Size at the 4th step?",
+        "acceptedAnswers": [
+          "39.0625",
+          "~39px",
+          "39"
+        ],
+        "hint": "16 × 1.25^4 = 16 × 2.44 ≈ 39."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_visual_dark",
+        "kind": "scenario",
+        "question": "Implementing dark mode",
+        "prompt": "Your app needs a dark-mode theme. Walk through what changes (colors, contrast, semantic intent) + what stays the same."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_visual",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why typography choices are foundational to UI quality.",
+        "rubric": "Mentions that the majority of UI is text; type choices (size, weight, line-height, font-family) determine reading ease, scanability, perceived hierarchy + brand. Good typography is the single biggest lever for making interfaces feel polished + readable; bad typography can sabotage even otherwise-good design."
+      }
+    }
+  ]
+}

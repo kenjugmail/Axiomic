@@ -1952,6 +1952,27 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P17 — UX Designer path. Design-discipline complement to
+  // frontend-engineer: research, IA, interaction principles,
+  // typography, prototyping, usability, design systems,
+  // metrics + experimentation.
+  seedMasteryPath({
+    slug: "ux-designer",
+    title: "UX Designer",
+    description:
+      "From qualitative + quantitative user research through information architecture, Norman's interaction principles + Fitts's Law, typography + color systems, Figma prototyping, usability testing + SUS, design tokens + atomic design, and HEART metrics + A/B testing. The UX-design discipline end-to-end.",
+    nodes: [
+      { slug: "user-research-and-interviews", title: "User Research + Interviews", level: "apprentice", order: 1, pages: ["qual-vs-quant", "contextual-jbd", "samples-bias"], prereqs: [], description: "Qualitative vs quantitative methods, contextual inquiry + jobs-to-be-done, sample-size + bias mitigation." },
+      { slug: "information-architecture", title: "Information Architecture", level: "practitioner", order: 2, pages: ["ia-fundamentals", "card-sort-tree-test", "nav-patterns"], prereqs: ["user-research-and-interviews"], description: "IA principles, card sorting + tree testing, navigation patterns + Hick's Law." },
+      { slug: "interaction-design-principles", title: "Interaction Design Principles", level: "practitioner", order: 3, pages: ["norman-principles", "feedback-patterns", "fitts-sizing"], prereqs: ["user-research-and-interviews"], description: "Norman's principles (affordances, mappings, feedback, constraints), feedback latency rules, Fitts's Law + control sizing." },
+      { slug: "visual-design-typography", title: "Visual Design + Typography", level: "practitioner", order: 4, pages: ["typography", "hierarchy-grids", "color-accessibility"], prereqs: [], description: "Typography fundamentals, hierarchy + whitespace + grids, color systems + WCAG accessibility." },
+      { slug: "wireframing-and-prototyping", title: "Wireframing + Prototyping", level: "specialist", order: 5, pages: ["fidelity", "figma-workflow", "interactive-handoff"], prereqs: ["interaction-design-principles"], description: "Low + mid + high fidelity, Figma workflow + components + variants, interactive prototyping + dev handoff." },
+      { slug: "usability-testing", title: "Usability Testing", level: "specialist", order: 6, pages: ["test-protocol", "think-aloud", "sus-metrics"], prereqs: ["user-research-and-interviews"], description: "Usability-test protocol, think-aloud method, task success + SUS + HEART metrics." },
+      { slug: "design-systems-and-tokens", title: "Design Systems + Tokens", level: "specialist", order: 7, pages: ["design-systems", "tokens-themes", "atomic-design"], prereqs: ["visual-design-typography", "wireframing-and-prototyping"], description: "Design-system structure, design tokens for theming + accessibility, atomic-design hierarchy." },
+      { slug: "ux-metrics-and-experimentation", title: "UX Metrics + Experimentation", level: "expert", order: 8, pages: ["heart-framework", "ab-testing", "goodhart-dark-patterns"], prereqs: ["usability-testing", "user-research-and-interviews"], description: "Google HEART framework, A/B test design + sample sizes, Goodhart's Law + dark patterns + ethical metrics." },
+    ],
+  });
+
   // P16 — Game Developer path. Real-time interactive systems:
   // loop, rendering, shaders, physics, AI, networking, animation,
   // engines + build.
