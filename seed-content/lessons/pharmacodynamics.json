@@ -1,0 +1,159 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "State receptor binding + Hill equation.",
+      "Distinguish agonists / antagonists / partial agonists.",
+      "Reason about therapeutic window + drug-receptor selectivity."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Pharmacodynamics: what the drug does to the body",
+      "body": "**Pharmacodynamics (PD)** = drug action on its target + downstream effect. Complement to PK (what the body does to the drug).\n\n**Drug targets**:\n- **Receptors**: G-protein coupled (GPCRs), ionotropic, nuclear (steroid). ~30-40% of marketed drugs.\n- **Enzymes**: kinases (cancer drugs), proteases (HIV, COVID antivirals), reductases (statins).\n- **Ion channels**: sodium-channel blockers (anesthetics, antiepileptics), potassium-channel modulators, calcium-channel blockers.\n- **Transporters**: SSRIs (5-HT reuptake), SGLT2 inhibitors (diabetes).\n- **DNA / RNA**: chemotherapy, antibiotics, antivirals.\n\n**Receptor binding**: drug (ligand) attaches to receptor, triggers response.\n\n**Affinity** $K_d$: dissociation constant. Concentration at which 50% of receptors occupied at equilibrium.\n- Low $K_d$ = HIGH affinity (strong binding).\n- $K_d$ in nM to pM range for good drugs.\n\n**Hill equation**: receptor occupancy vs concentration.\n$$\\text{Response} = \\frac{[\\text{drug}]^n}{K_d^n + [\\text{drug}]^n}$$\n\n- $n = 1$: simple binding (one ligand per receptor).\n- $n > 1$: cooperative (multiple subunits). Hemoglobin-O₂ (n ≈ 2.7).\n- Plot on log scale: sigmoidal curve.\n\n**EC50 vs ED50**:\n- **EC50**: concentration producing 50% maximal effect.\n- **ED50**: dose producing 50% effect in 50% of subjects (clinical).\n- Related but conceptually distinct.\n\n**Potency**: low EC50 = potent. Doesn't mean effective.\n\n**Efficacy** ($E_{max}$): maximum effect achievable. Different drugs at same receptor can have different $E_{max}$.\n\n**Agonist + antagonist + partial agonist**:\n- **Full agonist**: binds + activates fully ($E_{max}$ = full receptor activation). Morphine at $\\mu$-opioid receptor.\n- **Partial agonist**: binds + activates partially. Buprenorphine ($\\mu$-opioid). Limits maximum response.\n- **Antagonist**: binds, NO activation. Blocks endogenous agonist. Naloxone at $\\mu$-opioid (reverses overdose).\n- **Inverse agonist**: receptor has constitutive activity; inverse agonist suppresses below baseline. Some antihistamines.\n\n**Competitive vs non-competitive**:\n- **Competitive antagonist**: same binding site as agonist. Overcome by higher agonist concentration. Shifts curve RIGHT.\n- **Non-competitive (allosteric)**: different site. Reduces $E_{max}$. Doesn't shift.\n\n**Examples**:\n- Beta-blockers (propranolol, metoprolol): competitive $\\beta$-adrenoceptor antagonists. Reverse with high adrenaline.\n- Ketamine: NMDA receptor allosteric antagonist.\n- Benzodiazepines: GABA-A positive allosteric modulators."
+    },
+    {
+      "kind": "text",
+      "title": "Dose-response + therapeutic window",
+      "body": "**Dose-response curve**: typically sigmoidal on log dose axis.\n\nKey parameters:\n- **Threshold**: minimum dose producing observable effect.\n- **Slope**: how steeply response rises.\n- **Maximum response** ($E_{max}$).\n- **EC50/ED50**.\n\n**Steep curve** (high Hill coefficient): small dose changes → large effect changes. Hard to titrate. Examples: depolarizing neuromuscular blockers.\n\n**Shallow curve**: easier to titrate. Drugs with margin.\n\n**Therapeutic index** $TI$:\n$$TI = TD_{50} / ED_{50}$$\n\nWhere $TD_{50}$ = dose causing toxicity in 50%, $ED_{50}$ = therapeutic in 50%.\n\nHigher TI = wider safety margin.\n\n**Drug examples**:\n- **Penicillin**: TI > 100. Very safe.\n- **Lithium**: TI ~3. Narrow. Must monitor blood levels.\n- **Digoxin**: TI ~2. Very narrow. TDM mandatory.\n- **Warfarin**: TI varies; titrate via INR.\n- **Cytotoxic chemotherapy**: TI often < 2. Routine toxicity expected.\n\n**Therapeutic window**: range of doses giving therapeutic effect without unacceptable toxicity.\n\n**Selectivity**: drug acts on target receptor + minimally affects others. The 'side effect' problem is often off-target binding.\n- $\\beta_1$ vs $\\beta_2$ adrenoceptors: bisoprolol is selective for $\\beta_1$ (heart); less bronchoconstriction. Important for asthma patients.\n- Statins: selective for HMG-CoA reductase.\n- Imatinib: BCR-ABL kinase (first 'targeted' cancer drug). Other kinases minimally affected.\n\n**Receptor desensitization**: prolonged exposure → reduced response.\n- Tachyphylaxis: rapid (minutes-hours). Bronchodilator beta-agonists in asthma.\n- Tolerance: longer (days-weeks). Opioids, benzodiazepines, alcohol.\n- Receptor downregulation: number reduced.\n- Receptor uncoupling: signal pathway desensitized.\n\n**Drug dependence + withdrawal**: chronic dosing creates physiological adaptation. Stopping → withdrawal symptoms (rebound). Examples: opioids, benzodiazepines, alcohol, nicotine, SSRIs (less severe). Distinct from psychological addiction.\n\n**Pharmacological half-life ≠ clinical effect duration**:\n- Aspirin: $t_{1/2}$ ~15 min, but irreversible COX inhibition → antiplatelet effect for ~7-10 days (platelet lifetime).\n- Omeprazole: $t_{1/2}$ ~1 hr, but irreversibly inactivates H+/K+ ATPase → effect lasts >24 hr.\n- Botulinum toxin: t½ minutes; effect months (irreversible at presynaptic terminals).\n\nIrreversible drugs decouple PK from effect duration."
+    },
+    {
+      "kind": "text",
+      "title": "Modern PD + structure-based design",
+      "body": "**Structure-Activity Relationship (SAR)**: how chemical structure changes affect drug activity. Optimize via medicinal chemistry: tweak functional groups, test, iterate.\n\nModern: rational drug design using:\n- **X-ray crystallography**: target structure.\n- **Cryo-EM**: large + flexible targets.\n- **Computational docking**: predict binding modes (Glide, AutoDock, Gold).\n- **Free-energy perturbation**: predict binding affinity changes (FEP+, OpenFEP).\n- **AI-driven ML**: AlphaFold structures, protein language models, generative chemistry.\n\n**Receptor structures**: thousands of GPCR + kinase + other structures now available. Most validated drug targets have structures.\n\n**Targeted therapy** (oncology):\n- **Imatinib (Gleevec)**: 2001. BCR-ABL kinase. Transformed CML from death sentence to manageable.\n- **Trastuzumab (Herceptin)**: HER2 receptor (breast cancer).\n- **EGFR inhibitors** (erlotinib, gefitinib): lung cancer with EGFR mutations.\n- **BTK inhibitors** (ibrutinib): CLL, mantle cell.\n- **CDK4/6 inhibitors** (palbociclib): HER2-positive breast cancer.\n- **PD-1/PD-L1 inhibitors** (pembrolizumab, nivolumab): immune checkpoint, many cancers.\n\n**Biologics**: antibodies + recombinant proteins + nucleic acids.\n- **Monoclonal antibodies (mAbs)**: TNF inhibitors (adalimumab), CD20 (rituximab), checkpoint inhibitors. ~30% of new drug approvals.\n- **Antibody-drug conjugates (ADCs)**: mAb + cytotoxic payload. Targeted delivery. Trastuzumab emtansine, brentuximab vedotin.\n- **mRNA**: COVID vaccines (Pfizer/Moderna). Cancer vaccines in trials.\n- **Gene therapy**: AAV vectors (Luxturna, Hemgenix, Casgevy for sickle cell).\n- **siRNA**: silence specific mRNAs. Patisiran, lumasiran.\n- **PROTACs (Proteolysis-Targeting Chimeras)**: bind target + ubiquitin ligase → target degraded. ARV-471 (estrogen receptor degrader). Emerging modality.\n\n**Biased agonism**: same receptor, different signaling pathways. Drug can selectively activate one pathway (e.g., G-protein vs $\\beta$-arrestin). Oliceridine (TRV130): biased $\\mu$-opioid agonist, claimed less constipation. Real-world impact debated.\n\n**Polypharmacology**: drugs act on multiple targets. Sometimes designed intentionally (multi-kinase inhibitors). Often a side effect that becomes valuable (sildenafil: PDE5 inhibitor initially for angina, became Viagra).\n\n**Drug repurposing**: existing drugs for new indications. Faster + cheaper than discovery. Examples: thalidomide (multiple myeloma), aspirin (cardiovascular), metformin (longevity research)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_pd_hill",
+        "kind": "guided_derivation",
+        "question": "Compute receptor occupancy",
+        "goal": "Drug A: $K_d$ = 10 nM at $\\mu$-opioid receptor, Hill coefficient n = 1. Compute occupancy at [A] = 5, 10, 50, 100 nM.",
+        "steps": [
+          {
+            "prompt": "Occupancy formula: $f = [A]^n / (K_d^n + [A]^n)$ with n = 1: $f = [A] / (K_d + [A])$. Compute at 5 nM.",
+            "motivation": "Plug in.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.333",
+                "33.3%",
+                "5/15"
+              ]
+            },
+            "hints": [
+              "5/(10+5)."
+            ],
+            "reveal": "33% occupancy at 5 nM."
+          },
+          {
+            "prompt": "At [A] = $K_d$ = 10 nM?",
+            "motivation": "Definition of $K_d$.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.5",
+                "50%",
+                "10/20"
+              ]
+            },
+            "hints": [
+              "10/20."
+            ],
+            "reveal": "50% occupancy at [A] = $K_d$. This is the DEFINITION of $K_d$."
+          },
+          {
+            "prompt": "At [A] = 50 nM?",
+            "motivation": "Plug in.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~83%",
+                "0.833",
+                "50/60"
+              ]
+            },
+            "hints": [
+              "50/60."
+            ],
+            "reveal": "83% occupancy."
+          },
+          {
+            "prompt": "At [A] = 100 nM (10× $K_d$)?",
+            "motivation": "Plug in.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~91%",
+                "0.909",
+                "100/110"
+              ]
+            },
+            "hints": [
+              "100/110."
+            ],
+            "reveal": "91%. Note: tenfold excess gives only ~90% occupancy. Receptor occupancy is hyperbolic, not steep. For full effect typically need ≥10× $K_d$. This is why dose-response curves cover 2-3 orders of magnitude of concentration."
+          }
+        ],
+        "finalResult": "$$\\boxed{f = [A]^n / (K_d^n + [A]^n)}$$ The Hill equation governs receptor binding. For full agonists at simple receptors, full receptor activation requires ~10× the $K_d$. Cooperative receptors (Hill n > 1, like hemoglobin or steroid receptors with dimerization) have steeper response — small concentration changes give large effect changes. The same equation appears throughout biology + biochemistry (oxygen-hemoglobin, enzyme kinetics with Hill coefficients, gene expression)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_pd_ti",
+        "kind": "multiple_choice",
+        "question": "Why is lithium prescribed with frequent blood-level monitoring?",
+        "options": [
+          "Random.",
+          "Lithium's therapeutic index is ~2-3 — therapeutic range (0.6-1.2 mmol/L) is close to toxic range (>1.5 mmol/L causes tremor, confusion; >2.5 mmol/L can be fatal). Renal clearance varies with hydration + sodium intake + meds. TDM ensures levels stay in window.",
+          "Decoration.",
+          "Marketing."
+        ],
+        "correctIndex": 1,
+        "explanation": "Lithium has very narrow therapeutic index. Therapeutic plasma 0.6-1.2 mmol/L (acute), 0.4-0.8 (maintenance). Toxic >1.5; severe >2.5 (potentially fatal). Multiple factors push levels around: dehydration, salt depletion (renal sodium reabsorption increases lithium reabsorption), NSAIDs + ACE inhibitors + diuretics affect clearance. TDM standard every 3-12 months in steady patients + after any dose or interacting-med change. Other narrow-TI drugs requiring TDM: digoxin, vancomycin, aminoglycosides, antiepileptics, immunosuppressants (tacrolimus, cyclosporine, sirolimus), methotrexate.\n\nFor wide-TI drugs (penicillin, most antihypertensives, SSRIs): TDM not standard; dose adjusted by clinical response."
+      },
+      "hints": [
+        "Why monitor?",
+        "Wide vs narrow TI?"
+      ],
+      "workedSolution": "Lithium has narrow TI (~2-3). Therapeutic 0.6-1.2 mmol/L, toxic >1.5. Many factors shift levels (hydration, sodium, NSAIDs, ACE-i, diuretics). TDM confirms in-window + guides dose changes. Other narrow-TI drugs (digoxin, vanco, aminoglycosides, immunosuppressants, antiepileptics, methotrexate) similarly monitored. Wide-TI drugs (penicillin, most antihypertensives, SSRIs) don't need TDM.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_pd_emax",
+        "kind": "math_expression",
+        "question": "Drug at concentration 2× EC50. Fraction of E_max (assuming Hill n=1)?",
+        "acceptedAnswers": [
+          "2/3",
+          "66.7%",
+          "0.667"
+        ],
+        "hint": "$2/(1+2) = 2/3$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_pd_design",
+        "kind": "scenario",
+        "question": "Designing a partial agonist",
+        "prompt": "A pharma team wants to develop a partial agonist at the μ-opioid receptor for pain (analgesia) without full agonist's respiratory depression. Walk through the rationale + risks."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_pd",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why the Hill equation appears throughout pharmacology + biology beyond simple receptor binding.",
+        "rubric": "Mentions that the Hill equation describes any equilibrium between a ligand + binding site with cooperativity coefficient n; receptor binding (n=1 typically), oxygen-hemoglobin (n≈2.7), allosteric enzymes, transcription factors (cooperative dimerization, n=2-4); it's the universal sigmoidal-binding equation. The n value reveals cooperativity (steep response curves are 'switch-like' — useful in signaling)."
+      }
+    }
+  ]
+}

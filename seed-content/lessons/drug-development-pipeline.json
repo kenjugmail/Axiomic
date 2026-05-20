@@ -1,0 +1,145 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "specialist",
+    "objectives": [
+      "Outline preclinical → clinical phases.",
+      "Reason about regulatory pathways + endpoints.",
+      "Distinguish accelerated + standard approvals."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "From target to candidate: preclinical phase",
+      "body": "Drug discovery starts before the IND application.\n\n**Target validation**: confirm modulating target produces clinical benefit. Sources of evidence: human genetics (LOF/GOF mutations), animal models, mechanistic biology, prior trials.\n\n**Lead optimization** (medicinal chemistry): iterate to find candidate with potency + selectivity + ADME + safety.\n\n**Preclinical (IND-enabling) studies**:\n\n**Pharmacology**:\n- Mechanism of action confirmation.\n- PK in multiple species (typically rat + dog, sometimes monkey).\n- Dose-response in disease models.\n\n**Safety pharmacology** (ICH S7A/S7B):\n- CV (hERG, in-vivo telemetry): cardiac safety.\n- CNS (Irwin test, FOB): behavioral effects.\n- Respiratory.\n- Renal, GI.\n\n**Toxicology**:\n- **Acute (single-dose)**: rodent + non-rodent. Identify lethal + max tolerated dose.\n- **Repeat-dose (subchronic, chronic)**: 4-week, 13-week, 26-week, 39-week or longer depending on intended use. Identify NOAEL (no observed adverse effect level).\n- **Genotoxicity** (ICH S2): Ames test, in-vitro micronucleus, in-vivo micronucleus.\n- **Reproductive + developmental** (ICH S5): fertility, embryotoxicity, teratogenicity, pre/post-natal.\n- **Carcinogenicity** (ICH S1): typically two-species (rat + mouse) 2-year studies for chronic drugs. Often deferred until later in development.\n- **Phototoxicity, dermal, ocular** (if relevant).\n\n**ADME** (PK in animals):\n- Single + multiple dose.\n- IV vs oral bioavailability.\n- Distribution (mass-balance studies with radiolabeled drug in tissues).\n- Metabolism (in vitro liver microsomes, in vivo metabolites).\n- Excretion (renal + biliary).\n- Plasma protein binding.\n\n**CMC (Chemistry, Manufacturing, Controls)**:\n- Synthesis route + scale-up.\n- Drug substance specs + tests.\n- Drug product (formulation, dosage form).\n- Stability data.\n- Manufacturing GMP.\n\n**IND (Investigational New Drug) application**:\n- Comprehensive submission to FDA (~5000-15000 pages).\n- 30-day FDA review.\n- If no clinical hold → trial can begin.\n- Similar: EU CTA (Clinical Trial Application).\n\n**Cost**: preclinical can cost \\$10-100 million per program. Most fail here."
+    },
+    {
+      "kind": "text",
+      "title": "Clinical trial phases",
+      "body": "**Phase I**: safety + PK in HEALTHY VOLUNTEERS (or sometimes patients for cancer drugs).\n- ~30-100 participants.\n- Single + multiple ascending dose (SAD/MAD).\n- Determine: max tolerated dose (MTD), dose-limiting toxicities (DLTs), PK.\n- Duration: 6-12 months.\n- Success rate: ~60% advance to Phase II.\n\n**Phase II**: efficacy + safety in PATIENTS with target disease.\n- ~100-300 participants.\n- Phase IIa: proof-of-concept (POC). Does it work at all?\n- Phase IIb: dose-ranging + larger.\n- Endpoints: surrogate (biomarker) or clinical (symptoms, function).\n- Duration: 1-2 years.\n- Success rate: ~30% advance to Phase III. THE most-failed phase.\n\n**Phase III**: large-scale CONFIRMATION.\n- ~1000-3000+ participants (sometimes 10,000+).\n- Multi-center, randomized, controlled.\n- Comparator: placebo, standard of care, or active control.\n- Multiple Phase III studies typical (FDA usually wants two pivotal trials with statistically-significant results).\n- Duration: 2-4 years.\n- Success rate: ~60% advance to NDA. ~10% from Phase I to approval overall.\n\n**Trial design considerations**:\n- **Randomization + blinding**: control bias. Double-blind preferred.\n- **Placebo vs active control**: when no SoC exists, placebo OK; when SoC exists, ethical question of placebo.\n- **Endpoints**:\n  - **Hard**: mortality, MI, stroke. Best.\n  - **Surrogate**: biomarker (HbA1c, blood pressure, LDL, viral load). Often acceptable. Risk: not all surrogates predict clinical outcomes (e.g., antiarrhythmics suppressed arrhythmias but increased mortality — CAST trial 1989).\n  - **Patient-reported outcomes (PROs)**: pain, function, quality of life.\n  - **Composite endpoints**: combine multiple events for statistical power.\n- **Statistical power**: probability of detecting effect if real. 80-90% standard.\n- **Sample size**: function of expected effect, variability, power. Often 100s-1000s per arm.\n- **Adaptive designs**: modify based on interim data. Increasing.\n- **Bayesian**: prior + accumulating data → posterior. Continuous monitoring.\n\n**NDA / BLA filing**:\n- NDA: small molecules. ~250,000 pages (with data).\n- BLA: biologics.\n- FDA review: 10-12 months standard; 6-month Priority Review for important.\n- Advisory committees may convene.\n- Approval: terms negotiated (label, indications, REMS if needed).\n- Manufacturing inspection prior to approval.\n\n**Post-marketing (Phase IV)**:\n- Continued safety monitoring.\n- Real-world evidence.\n- Comparative effectiveness.\n- New indications via additional trials."
+    },
+    {
+      "kind": "text",
+      "title": "Regulatory pathways + accelerated approval + the modern landscape",
+      "body": "**Standard pathway**: meet substantial evidence of effectiveness + safety. Typical 10-15 year timeline.\n\n**Accelerated approval pathways**:\n\n**FDA Accelerated Approval (subpart H)**: drug for serious condition addressing unmet need; based on SURROGATE endpoint reasonably likely to predict benefit. Confirmatory trial required post-approval. Examples: many cancer drugs (response rate as surrogate for survival), HIV drugs (viral load), Alzheimer drugs (amyloid).\n\n**Breakthrough Therapy designation**: substantial improvement on substantial endpoint over existing therapy. Intensive FDA engagement + rolling review.\n\n**Fast Track designation**: serious condition, addresses unmet need. Rolling review of submissions.\n\n**Priority Review**: 6-month vs 10-month standard review.\n\n**Orphan Drug**: <200,000 USA patients. Tax credits + 7-year exclusivity + waived filing fees. Drives many rare-disease drug developments.\n\n**Real-World Data (RWD) / Real-World Evidence (RWE)**: increasingly accepted to support approvals + label expansions. EHR data, registries, claims. FDA + EMA guidance evolving.\n\n**Adaptive Pathways (EMA) / Project Orbis (FDA)**: simultaneous review across multiple regulatory agencies. Speeds global approval.\n\n**Companion diagnostics**: drug + diagnostic together. Critical for targeted therapies. PD-L1 testing for pembrolizumab. EGFR testing for erlotinib. HER2 testing for trastuzumab. Co-developed + approved.\n\n**Recent accelerated approvals**:\n- **Aducanumab (2021)**: Alzheimer's. Controversial. Surrogate (amyloid reduction); two trials with conflicting results. Limited clinical use.\n- **Lecanemab (2023)**: Alzheimer's. Better evidence; modest clinical benefit.\n- **Donanemab (2024)**: Alzheimer's. Similar mechanism.\n- **Casimersen, eteplirsen** (Duchenne muscular dystrophy): controversial; surrogate-based.\n\n**Failures + safety withdrawals**:\n- **Vioxx (rofecoxib, 2004)**: COX-2 inhibitor; withdrawn due to CV deaths.\n- **Phen-fen (1997)**: weight loss combo; cardiac valve damage.\n- **Bextra (2005)**: COX-2 inhibitor.\n- **Tysabri (2005, reinstated 2006)**: MS drug; PML risk; restricted use.\n\n**Generic pathway**: 505(j) ANDA (Abbreviated New Drug Application). Just demonstrate bioequivalence to reference drug. No clinical trials needed.\n\n**Biosimilars**: 351(k) BLA. Complex; need analytical + clinical comparability. Cost-saving alternative to expensive biologics.\n\n**Economics of drug development**:\n- Estimated cost per approved drug: \\$1-3 billion (DiMasi 2016, 2020). Includes cost of failures + capital costs.\n- Time from target to approval: ~10-15 years.\n- Approval rate from Phase I: ~10%.\n- US market remains largest by far (~50% of global pharma revenue, ~30% of patients).\n- US drug prices significantly higher than other developed nations. IRA 2022 added Medicare price negotiation; impacts evolving."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_pipeline_attrition",
+        "kind": "guided_derivation",
+        "question": "Compute pipeline attrition",
+        "goal": "Assume Phase I success 60%, Phase II 30%, Phase III 60%, regulatory approval 90%. Compute overall probability of approval from Phase I.",
+        "steps": [
+          {
+            "prompt": "Multiply probabilities: $0.6 \\times 0.3 \\times 0.6 \\times 0.9$.",
+            "motivation": "Compound.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.0972",
+                "9.72%",
+                "~10%"
+              ]
+            },
+            "hints": [
+              "Multiply through."
+            ],
+            "reveal": "~9.7% approval rate from Phase I. Matches industry-reported 10%."
+          },
+          {
+            "prompt": "If a company has 10 programs entering Phase I, expected approvals?",
+            "motivation": "Multiply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~1",
+                "~0.97",
+                "approximately 1"
+              ]
+            },
+            "hints": [
+              "10 × 0.097."
+            ],
+            "reveal": "~1 approval. This is why big pharma needs large pipelines + portfolios."
+          },
+          {
+            "prompt": "Phase II attrition (~70% failure) is the worst. Why?",
+            "motivation": "Where things fail.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Phase II is first time drug seen in patients with disease. Many promising preclinical signals don't translate (efficacy fails). Plus efficacy bar higher than safety in Phase I. Hence 'Valley of Death' for biotech.",
+                "Marketing.",
+                "Easy."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "First efficacy test."
+            ],
+            "reveal": "Phase II = first true efficacy test in patients. Animal models often poor predictors. Many drugs work in cells/animals but not humans. Selecting right patient population, right endpoint, right dose all hard. Industry attrition statistic: ~70% Phase II failure."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Approval rate} \\approx 10\\% \\text{ from Phase I; Phase II is biggest filter}}$$ Drug-development attrition is a fundamental industry feature. Big pharma must maintain pipelines of 50-200 programs to deliver 1-3 approvals/year. Biotech often single-asset = boom or bust. Modern: better target selection, biomarker-driven trials, adaptive designs improve odds but Phase II remains the Valley of Death."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_pipeline_aducanumab",
+        "kind": "multiple_choice",
+        "question": "FDA's accelerated approval of aducanumab (2021) was controversial. Why?",
+        "options": [
+          "Marketing.",
+          "Approved based on SURROGATE endpoint (amyloid plaque reduction) but two pivotal Phase III trials gave conflicting results (one positive, one negative). FDA's own advisory committee recommended against approval. Approval based on the surrogate + presumption of clinical benefit. Many medical centers refused to prescribe; CMS limited coverage.",
+          "Random.",
+          "Routine."
+        ],
+        "correctIndex": 1,
+        "explanation": "Aducanumab (Aduhelm) controversy: two Phase III trials (EMERGE + ENGAGE) gave conflicting cognitive results — EMERGE positive, ENGAGE negative. FDA's advisory committee voted overwhelmingly against approval. FDA approved anyway based on amyloid reduction (surrogate). Multiple ad-com members resigned in protest. Major medical centers (Cleveland Clinic, Mass General) refused to prescribe. CMS imposed coverage with evidence development (CED), effectively limiting use to research patients. Annual price \\$56K (later reduced).\n\nThis case became a flashpoint for: (1) Reliance on surrogate endpoints. (2) Conflicting trial results. (3) Patient advocacy pressure vs evidence. (4) Industry/FDA relationships. (5) Drug pricing.\n\nFollow-on amyloid drugs (lecanemab 2023, donanemab 2024) have better evidence + more cautious uptake."
+      },
+      "hints": [
+        "What was controversial?",
+        "What followed?"
+      ],
+      "workedSolution": "Aducanumab: surrogate-based approval (amyloid reduction); conflicting Phase III; FDA approved against advisory committee; CMS restricted coverage; lecanemab + donanemab followed with better evidence. Case study in: surrogate endpoints, ad-com vs FDA, patient advocacy, pricing, Medicare coverage. Has affected subsequent approvals + dialogue between industry + agency.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_pipeline_time",
+        "kind": "math_expression",
+        "question": "Drug discovery → approval: 12 years typical. Patent life starts pre-clinical, 20 years total. Approximate marketable patent life remaining at launch?",
+        "acceptedAnswers": [
+          "~8 years",
+          "8 years",
+          "20 - 12"
+        ],
+        "hint": "12 years used; ~8 years remaining."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_pipeline_orphan",
+        "kind": "scenario",
+        "question": "Orphan-drug economics",
+        "prompt": "A startup develops a drug for a rare genetic disorder affecting 10,000 USA patients. Walk through the regulatory pathway + economics of orphan drug development."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_pipeline",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why despite tens of billions in pharma R&D each year, approved-drug counts remain in single-digits per company per year.",
+        "rubric": "Mentions that drug development is high-risk + long: only ~10% of Phase I drugs reach approval; each program costs ~\\$1-3B all-in; 10-15 year cycles; biology is hard + most targets don't translate. Even successful companies have many failures masked by their few wins; new modalities (mAbs, mRNA, ADCs) shift but don't eliminate the attrition."
+      }
+    }
+  ]
+}

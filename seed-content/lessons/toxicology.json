@@ -1,0 +1,160 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "core",
+    "objectives": [
+      "State dose-response in toxicology.",
+      "Outline acute + chronic toxicology testing.",
+      "Reason about therapeutic index + risk assessment."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Dose-response in toxicology + Paracelsus",
+      "body": "**Paracelsus (1493-1541)**: 'Sola dosis facit venenum' — only the dose makes the poison. Foundational.\n\nEVERY substance is toxic at SOME dose. Even water (water intoxication, hyponatremia, ~10 L+ in hours). Oxygen (toxicity above ~50% inspired for prolonged periods).\n\n**Toxic dose-response**:\n- **LD50**: dose lethal in 50% of test animals. Standard acute-tox measurement.\n- **TD50**: dose causing toxicity in 50%.\n- **NOAEL** (No Observed Adverse Effect Level): highest dose without observable adverse effects.\n- **LOAEL** (Lowest Observed Adverse Effect Level): lowest with effects.\n- **PoD (Point of Departure)**: NOAEL or benchmark dose for risk assessment.\n\n**Types of toxic effects**:\n- **Acute**: single or short-term exposure. Symptoms within hours-days.\n- **Subacute**: 1-4 weeks.\n- **Subchronic**: 1-3 months.\n- **Chronic**: months to lifetime.\n- **Reversible vs irreversible**.\n- **Local (at site) vs systemic**.\n- **Idiosyncratic**: unpredictable individual reaction; not dose-related (immune-mediated).\n- **Allergic**: immune reaction. Often dose-independent.\n\n**Target organs**:\n- **Hepatotoxicity**: liver. Acetaminophen overdose, isoniazid, valproate.\n- **Nephrotoxicity**: kidneys. Aminoglycosides, contrast media, NSAIDs (especially in renal-impaired).\n- **Cardiotoxicity**: heart. Anthracyclines (doxorubicin), trastuzumab, COX-2 inhibitors.\n- **Neurotoxicity**: brain/nerves. Heavy metals (lead, mercury), organic solvents, certain chemo agents.\n- **Bone marrow / blood**: chemotherapy, clozapine (agranulocytosis), chloramphenicol.\n- **Pulmonary**: bleomycin (fibrosis), nitrofurantoin (chronic interstitial), amiodarone.\n- **Skin**: rashes (most common ADR), Stevens-Johnson syndrome, toxic epidermal necrolysis.\n- **Reproductive**: thalidomide (limb defects), valproate (neural tube defects).\n- **Carcinogenic**: long latency. Asbestos (mesothelioma), aflatoxin (liver), benzene (leukemia).\n\n**Therapeutic index** $TI = TD_{50} / ED_{50}$: covered in PD lesson. Wide TI = safe; narrow = needs TDM."
+    },
+    {
+      "kind": "text",
+      "title": "Toxicology testing + risk assessment",
+      "body": "**Toxicology testing pyramid**:\n\n**Tier 1 (in vitro)**:\n- **Ames test**: bacterial mutagenicity. Salmonella his⁻ → his⁺ revertants.\n- **In vitro micronucleus**: chromosome damage.\n- **HepG2, HepaRG**: hepatotoxicity screens.\n- **hERG channel assay**: cardiotoxicity (QT prolongation).\n- **Cell viability + apoptosis**: general.\n- **Cytochrome inhibition/induction**: DDI risk.\n\n**Tier 2 (in vivo)**:\n- **Acute toxicity**: single dose. LD50 + clinical signs + necropsy.\n- **Repeat-dose**: 14-day, 28-day, 90-day, 1-year, 2-year studies. Two species (rodent + non-rodent, typically dog or monkey).\n- **Genotoxicity**: in vivo micronucleus.\n- **Reproductive + developmental**: fertility, embryotoxicity, peri-postnatal.\n- **Carcinogenicity**: lifetime studies (2-year rat, 2-year mouse or transgenic short-term). Required for chronic indications.\n\n**Alternatives + 3Rs (Replace, Reduce, Refine)**:\n- **In silico**: QSAR predictions.\n- **Organ-on-chip**: microphysiological systems.\n- **iPSC-derived models**: human cells.\n- **Animal-free pathways**: increasing regulatory acceptance.\n- **Replacement antibodies**: reduce animal-derived reagents.\n- **High-throughput screening + computational prediction**: replace per-compound studies.\n\n**Risk assessment for environmental + food chemicals** (EPA + EFSA):\n1. Hazard identification: what can this cause?\n2. Dose-response: at what level?\n3. Exposure assessment: how much do humans get?\n4. Risk characterization: combine → margin of exposure (MOE), reference dose (RfD), acceptable daily intake (ADI).\n\n**Reference Dose (RfD)** = NOAEL / Uncertainty Factors.\n- Inter-species (animal → human): 10×.\n- Inter-individual (susceptible humans): 10×.\n- Subchronic to chronic: 10× (if data only short-term).\n- Database deficiency: 10×.\n- Total: 100-1000× safety factor typical.\n\n**Acceptable Daily Intake (ADI)** for food additives: similar approach with FAO/WHO/EFSA.\n\n**Carcinogen risk**: linear no-threshold (LNT) extrapolation typical (assume no safe dose for genotoxic carcinogens). Threshold model for non-genotoxic.\n\n**Modern toxicology**:\n- **Adverse Outcome Pathways (AOP)**: mechanistic framework linking molecular event → adverse outcome. Used by EPA, OECD.\n- **Tox21 + ToxCast**: high-throughput screening of thousands of chemicals.\n- **In silico**: QSAR, machine learning.\n- **Microphysiological systems**: organ-on-chip, multi-organ chips."
+    },
+    {
+      "kind": "text",
+      "title": "Acetaminophen + the prototypical toxicology + the broader landscape",
+      "body": "**Acetaminophen (paracetamol)**: most common cause of acute liver failure in many countries. ~30,000 USA hospitalizations + ~500 deaths/year.\n\n**Mechanism of toxicity**:\n- Therapeutic doses: most metabolized by glucuronidation + sulfation. Small fraction by CYP2E1 to NAPQI (toxic metabolite). NAPQI conjugated with glutathione → harmless.\n- Overdose: glutathione depleted. NAPQI accumulates. Binds liver proteins → cell death.\n- Risk: 4 g/day max; toxic at ~10-15 g acute or 7-8 g chronic.\n- Worsened by: alcohol (induces CYP2E1), fasting (lowers glutathione), CYP3A4 inducers, glutathione deficiency.\n\n**Treatment**: N-acetylcysteine (NAC) replenishes glutathione. Most effective in first 8-10 hours; useful up to 24 hours.\n\n**Rumack-Matthew nomogram**: plasma acetaminophen level vs time since ingestion → predict toxicity + guide NAC.\n\n**Lessons + general principles**:\n- Common drugs + low-margin safety = high public-health burden.\n- Specific antidote may exist; time-sensitive.\n- Combination products (Vicodin, Percocet, Tylenol PM) drive accidental overdose.\n- FDA reduced acetaminophen content in combination prescription drugs.\n\n**Other major toxicologies**:\n\n**Heavy metals**:\n- **Lead**: neurotoxicity (especially children), nephrotoxicity. Sources: paint (pre-1978), water pipes, industrial. Blood lead level monitoring; chelation (succimer) for severe.\n- **Mercury**: methylmercury (fish; Minamata 1956); elemental + organic distinct. Neurotoxicity.\n- **Arsenic**: groundwater (Bangladesh, India, USA Southwest). Carcinogenic (skin, bladder, lung); cardiovascular.\n- **Cadmium**: industrial, smoking. Kidney + bone (Itai-Itai disease, Japan 1912+).\n\n**Organophosphates** (pesticides, nerve agents):\n- Irreversibly inhibit acetylcholinesterase → ACh excess → SLUDGE symptoms + muscle paralysis + seizures.\n- Treatment: atropine + pralidoxime (within hours).\n- Sarin attacks (Tokyo subway 1995, Syrian war).\n\n**Carbon monoxide**:\n- Binds hemoglobin (~240× tighter than O₂) → tissue hypoxia despite normal SpO₂.\n- Sources: incomplete combustion, faulty heaters.\n- Treatment: oxygen (high-flow + hyperbaric).\n\n**Cyanide**:\n- Inhibits mitochondrial cytochrome c oxidase → no cellular respiration.\n- Sources: fire smoke, some industrial.\n- Treatment: hydroxocobalamin or nitrite/thiosulfate.\n\n**Snake + spider venoms**: antivenoms for major species.\n\n**Drug poisoning**:\n- Opioid overdose: respiratory depression; antidote naloxone (Narcan).\n- Benzodiazepine: flumazenil (rarely used due to seizure risk).\n- TCA: sodium bicarbonate for sodium-channel toxicity.\n- Beta-blocker: glucagon, calcium.\n- Calcium-channel blocker: calcium, glucagon, high-dose insulin.\n- Digoxin: digoxin-immune Fab.\n- Anticoagulants: vitamin K (warfarin), idarucizumab (dabigatran), andexanet (factor Xa).\n\n**Modern toxicology** is part of medicine (medical toxicology, poison control), occupational health, environmental science, regulatory science, pharmacovigilance."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_tox_apap",
+        "kind": "guided_derivation",
+        "question": "Compute acetaminophen overdose",
+        "goal": "70 kg adult takes 60 × 500 mg acetaminophen tablets ('Tylenol') over 24 hours. Compute total dose + risk.",
+        "steps": [
+          {
+            "prompt": "Total dose: 60 × 500 mg = ?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "30 g",
+                "30000 mg"
+              ]
+            },
+            "hints": [
+              "60 × 500."
+            ],
+            "reveal": "30 g acetaminophen."
+          },
+          {
+            "prompt": "Maximum recommended: 4 g/day. How many times over?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "7.5",
+                "7.5×"
+              ]
+            },
+            "hints": [
+              "30/4."
+            ],
+            "reveal": "7.5× max. Approximately 15× the 2 g/day chronic-toxicity threshold."
+          },
+          {
+            "prompt": "Severe hepatotoxicity threshold: 10-15 g acute overdose. Patient is at HIGH RISK of fulminant hepatic failure. Treatment?",
+            "motivation": "Antidote.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "N-acetylcysteine (NAC) IV or PO immediately. 21-hour IV protocol or 72-hour PO. Restores glutathione + binds NAPQI. Most effective within 8-10 hours of ingestion. Check serum acetaminophen level + use Rumack-Matthew nomogram.",
+                "Aspirin.",
+                "Nothing."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "NAC."
+            ],
+            "reveal": "NAC immediately. Plus: serum acetaminophen level at 4+ hours post-ingestion; check liver enzymes; admit; transplant consultation if developing fulminant failure. Time-critical."
+          },
+          {
+            "prompt": "Patient has chronic alcohol use. Risk modifier?",
+            "motivation": "Alcohol effect.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Lower risk.",
+                "HIGHER risk: chronic alcohol induces CYP2E1 → more NAPQI produced from same acetaminophen dose. Threshold for toxicity LOWER. NAC may be needed at lower acetaminophen levels.",
+                "Same.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Alcohol induces CYP2E1."
+            ],
+            "reveal": "Higher risk. Chronic alcohol induces CYP2E1 (the enzyme producing toxic NAPQI). Same dose = more NAPQI = more toxicity. Lower threshold for treatment + worse prognosis."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Acetaminophen toxicity: dose-dependent + risk-modified by alcohol/CYP/glutathione}}$$ Acetaminophen is the most common drug toxic ingestion + leading cause of acute liver failure. The mechanism + antidote (NAC) are textbook. Public-health interventions: reduced max dose in combination products, blister packs in UK (reduced suicide attempts), warnings, education. Modern: better recognition of chronic supratherapeutic intake as a route to toxicity."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_tox_paracelsus",
+        "kind": "multiple_choice",
+        "question": "Why is 'the dose makes the poison' (Paracelsus) considered foundational to toxicology + pharmacology?",
+        "options": [
+          "Quaint history.",
+          "Every substance is toxic at some dose; therefore safety is about dose + exposure, not about classifying chemicals as 'safe' or 'unsafe'. Regulators set acceptable doses with safety factors; this is the fundamental framework underlying toxicology, food safety, drug approval, environmental regulation.",
+          "Random.",
+          "Marketing."
+        ],
+        "correctIndex": 1,
+        "explanation": "Paracelsus's insight: dose-response is universal. There is no chemical that is fundamentally 'safe' or 'unsafe' — only specific doses are. This is the basis of:\n- Drug development (find dose range with efficacy without unacceptable toxicity).\n- Food safety (acceptable daily intake of additives, contaminants).\n- Occupational safety (exposure limits).\n- Environmental regulation (water quality, air quality).\n- Pharmaceutical labels (dose ranges, max daily doses).\n\nMisunderstood when people fear 'chemicals' broadly without considering dose + exposure. Water poisons at 10 L+; aspirin at 30+ g; vitamin A at chronic excess. Everything has a toxic dose; the question is whether realistic exposures approach it.\n\nAt the same time, certain substances have NO safe dose (genotoxic carcinogens, in classical view). Modern toxicology blends Paracelsus's principle with newer threshold + non-threshold frameworks."
+      },
+      "hints": [
+        "What's Paracelsus's principle?",
+        "Why foundational?"
+      ],
+      "workedSolution": "All substances toxic at some dose; safety is about dose + exposure. Basis of: drug development (find safe + effective dose range); food + workplace safety; environmental regulation. Universal but nuanced: some genotoxic carcinogens may lack thresholds. Misunderstood when people treat 'chemicals' as binary good/bad. Modern toxicology applies Paracelsus + threshold-vs-non-threshold + risk-vs-hazard frameworks.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_tox_li",
+        "kind": "math_expression",
+        "question": "Lithium has TI ~3. ED50 0.5 mmol/L. TD50?",
+        "acceptedAnswers": [
+          "1.5 mmol/L",
+          "1.5"
+        ],
+        "hint": "TI × ED50."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_tox_blood_lead",
+        "kind": "scenario",
+        "question": "Childhood lead poisoning",
+        "prompt": "A 3-year-old has blood lead 30 μg/dL (well above CDC 5 μg/dL threshold). Walk through assessment + intervention."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_tox",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why therapeutic index (TI) is a fundamental concept in drug development + clinical pharmacology.",
+        "rubric": "Mentions that TI ratio of toxic to effective doses; high TI = wide safety margin (easy to dose); narrow TI = needs careful dosing + monitoring (TDM); drug development screens for adequate TI; clinical pharmacology adjusts dosing within the TI window per patient. Same principle in environmental + food + occupational toxicology where 'margin of exposure' is used."
+      }
+    }
+  ]
+}

@@ -1952,6 +1952,26 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P24 — Pharmacologist path. PK + PD + drug targets + medicinal
+  // chemistry + pipeline + clinical pharm + tox + modern modalities.
+  // Uses new pk-curve viz in pharmacokinetics lesson.
+  seedMasteryPath({
+    slug: "pharmacologist",
+    title: "Pharmacologist",
+    description:
+      "From ADME + pharmacokinetics (interactive PK-curve viz) through receptor binding + dose-response, drug targets + GPCRs + kinases, medicinal chemistry + Lipinski's Rule of Five, the clinical-trial pipeline + FDA, drug-drug interactions + Beers Criteria, toxicology + Paracelsus, and biologics + mRNA + gene therapy. The pharmacology stack end-to-end.",
+    nodes: [
+      { slug: "pharmacokinetics", title: "Pharmacokinetics + ADME", level: "apprentice", order: 1, pages: ["adme", "halflife-clearance", "steady-state"], prereqs: [], description: "Absorption + distribution + metabolism + excretion, first-order kinetics + half-life + clearance, steady-state with PK-curve viz." },
+      { slug: "pharmacodynamics", title: "Pharmacodynamics + Hill", level: "practitioner", order: 2, pages: ["receptor-binding", "agonists-antagonists", "therapeutic-window"], prereqs: [], description: "Hill equation + receptor occupancy, agonists vs antagonists vs partial agonists, therapeutic index + selectivity." },
+      { slug: "drug-targets", title: "Drug Targets + Druggability", level: "practitioner", order: 3, pages: ["target-families", "gpcr-kinase", "validation-druggability"], prereqs: [], description: "GPCRs + kinases + ion channels + nuclear + transporters, signaling pathways, target validation + the KRAS G12C breakthrough." },
+      { slug: "medicinal-chemistry", title: "Medicinal Chemistry", level: "specialist", order: 4, pages: ["lipinski", "sar-bioisosteres", "prodrugs-modalities"], prereqs: [], description: "Lipinski's Rule of Five, SAR + bioisosteres + chirality, prodrugs + ADCs + covalent + PROTACs." },
+      { slug: "drug-development-pipeline", title: "Drug Development Pipeline", level: "specialist", order: 5, pages: ["preclinical", "phases-1-2-3", "accelerated-pathways"], prereqs: [], description: "IND + preclinical, Phase I/II/III + endpoints + biomarkers, accelerated approval + RWE + companion diagnostics." },
+      { slug: "clinical-pharmacology", title: "Clinical Pharmacology + DDIs", level: "specialist", order: 6, pages: ["ddi", "polypharmacy-beers", "pharmacogenomics-tdm"], prereqs: ["pharmacokinetics", "pharmacodynamics"], description: "DDI mechanisms + CYP induction/inhibition, polypharmacy + Beers Criteria + deprescribing, pharmacogenomics + TDM." },
+      { slug: "toxicology", title: "Toxicology + Risk", level: "practitioner", order: 7, pages: ["paracelsus", "preclinical-tox", "acetaminophen"], prereqs: [], description: "Dose-response in toxicology, in vitro + in vivo testing + alternatives + risk assessment, acetaminophen + heavy metals + antidotes." },
+      { slug: "modern-modalities", title: "Modern Modalities (Biologics, mRNA, CAR-T)", level: "expert", order: 8, pages: ["biologics-mabs", "mrna-lnp", "gene-cell-therapy"], prereqs: ["pharmacokinetics", "drug-development-pipeline"], description: "mAbs + ADCs + bispecifics, mRNA + LNPs (Nobel 2023), gene therapy + CRISPR + CAR-T + cure paradigm." },
+    ],
+  });
+
   // P23 — Civil / Structural Engineer path. Structural analysis +
   // concrete + steel + soils + foundations + water + transport +
   // construction management. Uses new beam-deflection viz.

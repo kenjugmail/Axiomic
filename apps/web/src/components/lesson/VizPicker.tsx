@@ -117,6 +117,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🏗️",
     tags: ["structural", "civil", "mechanics", "engineering"],
   },
+  {
+    name: "pk-curve",
+    label: "Pharmacokinetics curve",
+    description: "Plasma concentration over time for repeated oral dosing; steady-state ribbon.",
+    thumb: "💊",
+    tags: ["pharmacology", "pk", "biology", "medicine"],
+  },
 ];
 
 interface Props {

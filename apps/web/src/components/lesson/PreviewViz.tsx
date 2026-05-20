@@ -63,6 +63,11 @@ const LazyBeamDeflection = lazy(() =>
     (m) => ({ default: m.BeamDeflection }),
   ),
 );
+const LazyPKCurve = lazy(() =>
+  import("../../../../../packages/viz/src/components/PKCurve").then(
+    (m) => ({ default: m.PKCurve }),
+  ),
+);
 const LazyDoublePendulum = lazy(() =>
   import("../../../../../packages/viz/src/components/DoublePendulum").then(
     (m) => ({ default: m.DoublePendulum }),
@@ -159,6 +164,8 @@ function VizByName({
       return <LazyCarnotCycle {...(props as object)} />;
     case "beam-deflection":
       return <LazyBeamDeflection {...(props as object)} />;
+    case "pk-curve":
+      return <LazyPKCurve {...(props as object)} />;
     default:
       return null;
   }
